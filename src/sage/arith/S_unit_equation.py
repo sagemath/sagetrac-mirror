@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 r"""
-S-unit equations over `QQ`
+S-unit equations over `\QQ`
 
-Let `K` be a number field and `S` a finite set of prime ideals of `K`. Let `\mathcal O_{K,S}:=\{x\in K|v_{\mathfrak p}(x)
-=0` for all `\mathfrak p\not\in S\}` be the group of `S`-units then a `S`-unit equation is the Diophantine equation
-`x+y=1` where both `x,y` lie `\mathcal O_{K,S}`. Here we work on the special case `K = QQ`.
+Let `K` be a number field and `S` a finite set of prime ideals of
+`K`. Let `\mathcal O_{K,S}^*:=\{x\in K|v_{\mathfrak p}(x) =0` for all
+`\mathfrak p\not\in S\}` be the group of `S`-units of K.  The `S`-unit
+equation is the Diophantine equation `x+y=1` where  `x,y \in
+\mathcal O_{K,S}^*`.  A classical reult is that this equation has only
+finitely many solutions.  An algorithm to solve the equation was
+developed by de Weger in his thesis [Weg88]_.
+
+This module contains an implementation of the algorithm in the special
+case `K = \QQ`, following [Weg88]_ and the exposition in Smart's book
+[Sma98]_ (see also [Sma99]_).
 
 AUTHORS:
 
@@ -16,6 +24,10 @@ EXAMPLES::
     sage: from sage.arith.S_unit_equation import solve_S_unit_equation
     sage: solve_S_unit_equation([])
     []
+
+The function solve_S_unit_equation takes as input a list S of primes,
+and returns the finite list of all solutions x; that is, all S-units x
+such that y=1-x is also an S-unit::
 
     sage: solve_S_unit_equation([2,3,5])
     [1/16, 25/16, 1/4, 1/25, 25, 4, 16/25, 16, 125/128, 5/32, 5/8, 1/10, 5/2,
@@ -185,7 +197,7 @@ def initial_bound(S):
 
 def primitive_p_1_root_mod_pn(p,n):
     r"""
-    Return a primitive (p-1)st root of unity in Z/p^n.
+    Return a primitive `(p-1)`st root of unity in `\ZZ/p^n`.
 
     INPUT:
 
@@ -195,7 +207,7 @@ def primitive_p_1_root_mod_pn(p,n):
 
     OUTPUT:
 
-    A primitive (p-1)-th root of unity `\mod p^n` if there exists and 1 otherwise.
+    A primitive `(p-1)`-st root of unity `\mod p^n` if it exists, or 1 otherwise.
 
     EXAMPLES::
 
@@ -228,9 +240,9 @@ def change_basis(v):
 
     OUTPUT:
 
-    If `v=[v_1,...,v_n]`, `gcd(v)=g` and `g=l_1v_1+\cdots +l_nv_n`
-    then the function gives you a matrix in `\mathbb Z` which is
-    invertible and its last row is `[l_1,\cdots,l_n]`
+    Let `v=[v_1,...,v_n]` and `g = \gcd(v) = l_1v_1+\cdots +l_nv_n`.
+    The output is a unimodular integral whose last row is
+    `[l_1,\cdots,l_n]`.
 
     EXAMPLE::
 
@@ -259,8 +271,8 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
 
     INPUT:
 
-    - ``theta`` : a list of `p`-adic numbers as they are defined in
-          section 6.3 page 121 of the reference
+    - ``theta`` : a list of `p`-adic numbers as defined in section 6.3
+      page 121 of [Sma98]_
 
     - ``p`` : a prime number
 
@@ -321,14 +333,15 @@ def p_adic_approximation_of_a_homogenous_lattice(theta,p,m):
 
 def a_base_for_Gmstar(B,A,p,m,m0):
     r"""
+    Return a matrix whose columns generate a lattice needed in the algorithm.
 
     INPUT:
 
     - ``B`` : the matrix whose columns generate the lattice
-      `\Gamma_{\mu}` as it is defined in page 68 of the reference
+      `\Gamma_{\mu}` as it is defined in page 68 of [Sma98]_
 
     - ``A`` : a list `[a_1,..,a_n]` such that `x=\prod a_i^{x_i}`
-      where `a_i\in Q_p` and `v_p(a_i)=0`
+      where `a_i\in \QQ_p` and `v_p(a_i)=0`
 
     - ``p`` : a prime number
 
@@ -417,7 +430,7 @@ def reducing_the_bound(X0,A,p,m):
 
     - ``X0`` : a big upper bound for the exponents
 
-    - ``A`` : a list `[a_1,..,a_n]` such that `x=\prod a_i^x_i` where `a_i\in Q_p` and `v_p(a_i)=0`
+    - ``A`` : a list `[a_1,..,a_n]` such that `x=\prod a_i^x_i` where `a_i\in \QQ_p` and `v_p(a_i)=0`
 
     - ``p`` : a prime number
 
@@ -480,7 +493,7 @@ def find_the_new_bound_for_all_primes(X0,A,precision):
 
     INPUT:
 
-    - ``X0`` : an upper bound for all the primes
+    - ``X0`` : an exponent upper bound for all the primes in A
 
     - ``A`` :a list of primes
 
@@ -534,7 +547,7 @@ def applying_De_Weger_method(A,precision):
 
     - ``A`` : a list of prime numbers
 
-    - ``precision`` : a precision for the `p`-adic numbers
+    - ``precision`` : `p`-adic precision to be used
 
     OUTPUT:
 
@@ -564,7 +577,7 @@ def simple_loop(S,bounds):
     - ``S`` : a list of primes
 
     - ``bounds`` : a list of upper bounds of the absolute value of the
-       exponents, or a single bound for all primes
+      exponents, or a single bound for all primes
 
     OUTPUT:
 
@@ -678,14 +691,14 @@ def trivial_Tp_finite_place_over_Q(S,p,bounds,delta,precision):
 
     INPUT:
 
-    -  ``S``: a list of rational primes
+    - ``S``: a list of rational primes
 
-    -  ``p``: a rational prime
+    - ``p``: a rational prime
 
     - ``bounds``: a list of upper bounds for the exponents of the
-       primes in ``S``
+      primes in ``S``
 
-    -  ``delta``: a real number less than 1
+    - ``delta``: a real number less than 1
 
     OUTPUT:
 
