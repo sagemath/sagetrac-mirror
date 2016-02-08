@@ -88,7 +88,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
                 parent.codomain()._check_satisfies_equations(Q)
             self._points = polys
         else:
-            N parent.codomain().ambient_space().dimension_relative_components()
+            N = parent.codomain().ambient_space().dimension_relative_components()
             if check:
                 parent.codomain()._check_satisfies_equations(polys)
             splitpolys=self.codomain().ambient_space()._factors(polys)

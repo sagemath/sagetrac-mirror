@@ -5,8 +5,8 @@ This class builds on the projective space class and its point and morphism class
 
 EXAMPLES::
 
-    sage: P1xP1.<x,y, u,v> = ProductProjectiveSpaces(QQ, [1, 1])
-    sage: H = End(P1 x P1)
+    sage: P1xP1.<x,y,u,v> = ProductProjectiveSpaces(QQ, [1, 1])
+    sage: H = End(P1xP1)
     sage: H([x^2*u, y^2*v, x*v^2, y*u^2])
     Scheme endomorphism of Product of projective spaces P^1 x P^1 over Rational Field
       Defn: Defined by sending (x : y , u : v) to 

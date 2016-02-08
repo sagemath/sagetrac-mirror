@@ -158,9 +158,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         sage: P.coordinate_ring()
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Rational Field
         sage: P[0]
-        Projective space of dimension 1 over Rational Field
+        Projective Space of dimension 1 over Rational Field
         sage: P[1]
-        Projective space of dimension 2 over Rational Field
+        Projective Space of dimension 2 over Rational Field
         sage: Q = P(6, 3, 2, 2, 2); Q
         (2 : 1 , 1 : 1 : 1)
         sage: Q[0]
@@ -304,7 +304,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
             sage: T.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
             sage: T[0]
-            Projective space of dimension 3 over Rational Field
+            Projective Space of dimension 3 over Rational Field
         """
         return(self._components[i])
 
