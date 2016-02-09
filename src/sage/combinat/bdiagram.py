@@ -349,7 +349,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
 
     def coproduct_on_basis(self, bdiagram):
         """
-        The coproduct of a basis element.
+        The coproduct of bdiagram.
 
         .. MATH::
 
