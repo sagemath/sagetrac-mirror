@@ -8,6 +8,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy
 )
+from sage.combinat.composition import Composition
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
@@ -32,6 +35,10 @@ from sage.functions.other import sqrt
 
 class BDiagram(ClonableList):
     r"""
+
+    TESTS::
+        sage: BDiagram( [[], [], [], []] )
+        [[], {}, {}, ()]
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
     @staticmethod
@@ -66,26 +73,35 @@ class BDiagram(ClonableList):
         r"""
         """
         return len(self[0]) 
-################################################################################
-######################  Product of Elements  ###################################
-################################################################################
+        ###########################################################
+        ###############  Geters of Elements  #####################
+        ###########################################################
+
+# set of non-cut outer  half-edges
     def outer_set(self):
         return self[1]
-    
+   
+# set of non-cut inner half-edges
     def inner_set(self):
         return self[2]
+# set of edges
+    def edges_set(self):
+        return self[3]
+
+# set of outer cut half-edges
     def outer_cut_set(self):
         return [e for e in range (n) if e not in self[1]]
+# set of inner cut half-edges
     def inner_cut_set(self):
         return [e for e in range (n) if e not in self[2]]
+
     def free_outer_set(self):
         res= []
         for edge in self[1]:
             if edge not in map(lambda x: x[0],self.edges_set()):
                 res.append( edge )
         return res
-    def edges_set(self):
-        return self[3]
+
     def free_inner_set(self):
         res = []
         for edge in self.inner_set():
@@ -94,7 +110,10 @@ class BDiagram(ClonableList):
         return res
     def _bugs_number(self):
         return len (self[0])
-
+    
+    def _composition(self):
+        return self[0]
+    
     def _edge_bug_number( self, half_edge):
         i=0; compo=self[0][i] 
         while half_edge>compo:
@@ -102,15 +121,61 @@ class BDiagram(ClonableList):
             compo=compo+self[0][i]
         return i
 
-    def _matrix_connection(self):
-        Mat = Matrix( self._bugs_number() )
+
+        ###########################################################
+        ###############  Sub Bdiagram  ############################
+        ###########################################################
+
+    def _bug_digraph(self):
+        liste_adj = {}
+        for vertex in range( self._bugs_number() ):
+            liste_adj[vertex] = []
         for edge in self.edges_set():
-            print ( (self._edge_bug_number(edge[0]),self._edge_bug_number(edge[1])) )
-            Mat[self._edge_bug_number(edge[0]),self._edge_bug_number(edge[1])]=1
-        return Mat
+            liste_adj[
+                self._edge_bug_number(edge[0])
+            ].append( self._edge_bug_number(edge[1]) )
+        return DiGraph( liste_adj )
+
+    def _sub_intervals(self, list_of_bug):
+        res = []
+        j=0
+        for i in list_of_bug:
+            while (j<=i):
+                mi+= self[0][j]
+                j+=1
+            res.append( (mi,mi+i) )
+        return res
+             
+    def sub_bdiagram( self, list_of_bug ):
+        sub_edges = []
+        sub_compo = []
+        sub_outers= []
+        sub_inners= []
+        # get sub edges
+        for edge in self._edges_set():
+            if self._edge_bug_number(edge[0]) in list_of_bug:
+                sub_edges.append(edge)
+        # get sub composition
+        for i in list_of_bug:
+            sub_compo.append(self[O][i])
+        # get intervals
+        intervals = self._sub_intervals(list_of_bug)
+        # get sub outers set and inner outer set
+        for interval in intervals:
+            for i in self.outer_set():
+                if interval[0] <= i and i<= interval[1]:
+                    sub_outers.append(i)
+            for i in self.inner_set():
+                if interval[0] <= i and i<= interval[1]:
+                    sub_outers.append(i)
+        res = [sub_compo,sub_outers,sub_inners,sub_edges]
+        return BDiagram ( self._std_diagram( res ) )
 
 
-#
+###############################################################################################################
+################################ The Factory of BDiagrams  ####################################################
+###############################################################################################################
+
 class BDiagramsFactory():
     def __call__(self, size=None):
         if size is None:
@@ -201,15 +266,7 @@ class BDiagrams_size(UniqueRepresentation, Parent):
 
 
 BDiagrams = BDiagramsFactory()
-#
-#
-#
-#
-#
-#
-#
-#
-#
+
 #
 #
 #def diagram_size( d ):
@@ -233,66 +290,11 @@ BDiagrams = BDiagramsFactory()
 #    return x**( diagram_size( d ) ) * y**( nb_outer_free_half_edges( d ) )
 #
 #
-#
-#def get_position_first_allowed_inner(set_inner,comp,edge):
-#    i=0; compo=comp[i]; liste_valid_inner=[]
-#    while edge>compo:
-#        i+=1
-#        compo=compo+comp[i]
-#    for pos in range(len(set_inner)):
-#        if set_inner[pos]>=compo:
-#            return pos
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-##class BDiagramsFactory():
-##    def __call__(self):
-##        pass
-##class BDiagrams_all():
-##    pass 
-#
-##class BDiagrams_size():
-##    def __init__(self.size):
-##        pass
-##    def __iter__(self):
-##        pass
-#
-##class BDiagram():
-##    pass
-#
-##BDiagrams=BdiagramsFactory
-#
-#
-#
-#
-##def get_free_outer_set(outer_set,connection_set):
-##        set_free_outer=set()
-##    for edge in outer_set:
-##        if edge not in map(lambda x: x[0],connection_set):
-##            set_free_outer.add(edge)
-##    return set_free_outer
-#
-##def get_free_inner_set(inner_set,connection_set):
-##        set_free_inner=set()
-##    for edge in inner_set:
-##        if edge not in map(lambda x: x[1],connection_set):
-##            set_free_inner.add(edge)
-##    return set_free_inner
-#
-#
+
+
+###############################################################################################################
+################################ BDiagrams Hopf Algebra  ######################################################
+###############################################################################################################
 
 
 class BDiagramHopfAlgebra(CombinatorialFreeModule):
@@ -345,7 +347,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
             res += self( BDiagram( (comp,outer_set,inner_set,edges+match) ) )
         return res
 
-    def coproduct_on_basis(self, i):
+    def coproduct_on_basis(self, bdiagram):
         """
         The coproduct of a basis element.
 
@@ -368,14 +370,20 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
             P0 # P3 + 3*P1 # P2 + 3*P2 # P1 + P3 # P0
 
         """
-        pass
-#        return self.sum_of_terms(
-#            ((i-j, j), binomial(i, j))
-#            for j in range(i+1)
-#        )
-
-
-
-
-
-
+        res = 0
+        graph = bdiagram._bug_digraph()
+        connected_components = graph.connected_components()
+        nb_compo = len(connected_components)
+        id_compo = range(connected_components)
+        for left_compo in Subsets( id_compo ):
+            right_compo = id_compo - left_compo
+            left = []
+            for i in left_compo:
+                left += connected_components[i]
+            right = []
+            for i in right_compo:
+                right += connected_components[i]
+            left = bdiagram.sub_diagram( map( connected_components[x], left ) )
+            right = bdiagram.sub_diagram( map( connected_components[x], right ) )
+            res += self( left ).tensor( self(right) )
+        return res

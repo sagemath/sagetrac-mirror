@@ -67,6 +67,9 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 #Diagram algebra
 from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
+#BDiagram
+from bdiagram import BDiagrams, BDiagram, BDiagramHopfAlgebra
+
 #Descent algebra
 from descent_algebra import DescentAlgebra
 
