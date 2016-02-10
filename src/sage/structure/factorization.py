@@ -319,7 +319,10 @@ class Factorization(SageObject):
         self.__unit = unit
         self.__cr = cr
         if sort and self.is_commutative():
-            self.sort()
+            try:
+                self.sort()
+            except NotImplementedError:
+                pass
         if simplify:
             self.simplify()
 

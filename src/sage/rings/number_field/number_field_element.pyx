@@ -722,9 +722,13 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8)
             sage: a  + 1 > a # indirect doctest
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
             sage: a + 1 < a # indirect doctest
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
 
         Comparison of embedded number fields::
 
@@ -748,19 +752,14 @@ cdef class NumberFieldElement(FieldElement):
             False
         """
         cdef NumberFieldElement _right = right
-        cdef int res
+        cdef bint res
 
         # fast equality check
         res = left.__numerator == _right.__numerator and left.__denominator == _right.__denominator
-        if res:
-            if op == Py_EQ or op == Py_GE or op == Py_LE:
-                return True
-            if op == Py_NE or op == Py_GT or op == Py_LT:
-                return False
-        elif op == Py_EQ:
-            return False
+        if op == Py_EQ:
+            return res
         elif op == Py_NE:
-            return True
+            return not(res)
 
         # comparisons <, <=, > or >=
         # this should work for number field element and order element
@@ -769,7 +768,7 @@ cdef class NumberFieldElement(FieldElement):
             P = <number_field_base.NumberField?> left._parent
         except TypeError:
             P = left._parent.number_field()
-        cdef size_t i = 0
+        cdef size_t i = 1
         if P._embedded_real:
             # TODO: optimize this computation without any call to the method
             # polynomial!
@@ -778,7 +777,9 @@ cdef class NumberFieldElement(FieldElement):
             la = lp(P._get_embedding_approx(0))
             ra = rp(P._get_embedding_approx(0))
             while la.overlaps(ra):
-                i += 1
+                #common knowledge and hensel lifting tells us precision
+                #should be doubled for iterative refinement.
+                i *= 2
                 la = lp(P._get_embedding_approx(i))
                 ra = rp(P._get_embedding_approx(i))
             if op == Py_LT or op == Py_LE:
@@ -4875,7 +4876,7 @@ class CoordinateFunction:
             raise TypeError, "Cannot coerce element into this number field"
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
-    def _cmp_(self, other):
+    def __eq__(self, other):
         r"""
         EXAMPLE::
 
@@ -4888,8 +4889,22 @@ class CoordinateFunction:
             sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
             False
         """
-        msg = LazyFormat("comparison not implemented for %r")%type(self)
-        raise NotImplementedError(msg)
+        return (self.__class__ == other.__class__) and (self.__K == other.__K) and (self.__alpha == other.__alpha)
+
+    def __ne__(self, other):
+        r"""
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^4 + 1)
+            sage: f = (a + 1).coordinates_in_terms_of_powers()
+            sage: f != loads(dumps(f))
+            False
+            sage: f != (a + 2).coordinates_in_terms_of_powers()
+            True
+            sage: f != NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
+            True
+        """
+        return (self.__class__ != other.__class__) or (self.__K != other.__K) or (self.__alpha != other.__alpha)
 
 #################
 

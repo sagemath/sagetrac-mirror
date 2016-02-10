@@ -7707,7 +7707,7 @@ class NumberField_absolute(NumberField_generic):
         conj = self.pari_nf().nfgaloisconj()
         # Convert these to conjugates of self.gen().
         P = self._pari_absolute_structure()[1].lift()
-        conj = sorted([self(P(g.Mod(f))) for g in conj])
+        conj = [self(P(g.Mod(f))) for g in conj]
         v = [self.hom([e]) for e in conj]    # check=False here?
         put_natural_embedding_first(v)
         self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,
@@ -7794,7 +7794,11 @@ class NumberField_absolute(NumberField_generic):
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
-        r = sorted(f.roots(K, multiplicities=False))
+        r = f.roots(K, multiplicities=False)
+        try:
+            r.sort()
+        except NotImplementedError:
+            pass
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
