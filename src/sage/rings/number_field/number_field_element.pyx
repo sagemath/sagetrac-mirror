@@ -39,6 +39,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.sage_object cimport rich_to_bool
+from sage.misc.lazy_format import LazyFormat
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -785,7 +786,8 @@ cdef class NumberFieldElement(FieldElement):
             elif op == Py_GT or op == Py_GE:
                 return la.lower() > ra.upper()
         else:
-            return rich_to_bool(op, 1)
+            msg = LazyFormat("comparison not implemented for %r")%type(left)
+            raise NotImplementedError(msg)
 
     def _random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
@@ -4873,7 +4875,7 @@ class CoordinateFunction:
             raise TypeError, "Cannot coerce element into this number field"
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         EXAMPLE::
 
@@ -4886,9 +4888,8 @@ class CoordinateFunction:
             sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
             False
         """
-        return cmp(self.__class__, other.__class__) or cmp(self.__K, other.__K) or cmp(self.__alpha, other.__alpha)
-
-
+        msg = LazyFormat("comparison not implemented for %r")%type(self)
+        raise NotImplementedError(msg)
 
 #################
 
