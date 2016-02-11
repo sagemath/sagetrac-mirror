@@ -840,7 +840,10 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         else:
             key_function = lambda E: flatten([list(ai) for ai in E.ainvs()])
 
-        self.curves = sorted(curves,key=key_function)
+        try:
+            self.curves = sorted(curves,key=key_function)
+        except NotImplementedError:
+            self.curves = curves
         perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
         if verbose:
             print "Sorting permutation = %s" % perm

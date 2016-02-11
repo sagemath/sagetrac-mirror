@@ -190,7 +190,12 @@ def cm_j_invariants(K, proof=None):
         sage: len(cm_j_invariants(K))
         23
     """
-    return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
+    res = [j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]
+    try:
+        res.sort()
+    except NotImplementedError:
+        pass
+    return list(res)
 
 def cm_j_invariants_and_orders(K, proof=None):
     r"""
