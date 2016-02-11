@@ -56,6 +56,9 @@ from sage.combinat.rigged_configurations.bij_type_D_tri import RCToKRTBijectionT
 from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67
 from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67
 
+from sage.combinat.rigged_configurations.bij_type_E8 import KRTToRCBijectionTypeE8
+from sage.combinat.rigged_configurations.bij_type_E8 import RCToKRTBijectionTypeE8
+
 def KRTToRCBijection(tp_krt):
     r"""
     Return the correct KR tableaux to rigged configuration bijection helper class.
@@ -80,6 +83,8 @@ def KRTToRCBijection(tp_krt):
         if typ == 'E':
             if ct.classical().rank() < 8:
                 return KRTToRCBijectionTypeE67(tp_krt)
+            else:
+                return KRTToRCBijectionTypeE8(tp_krt)
         #if typ == 'F':
         #if typ == 'G':
     else:
@@ -121,6 +126,8 @@ def RCToKRTBijection(rigged_configuration_elt):
         if typ == 'E':
             if ct.classical().rank() < 8:
                 return RCToKRTBijectionTypeE67(rigged_configuration_elt)
+            else:
+                return RCToKRTBijectionTypeE8(rigged_configuration_elt)
         #if typ == 'F':
         #if typ == 'G':
     else:

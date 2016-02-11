@@ -1859,14 +1859,14 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         bij = RCToKRTBijection(self)
         ht = P.dims[0][0]
         B = [[1,1], [bij._next_index(ht),1]]
-        if P._cartan_type.type() == 'E' and P._cartan_type.n == 7:
-            B[0][0] = 7 # Special handling for E_7^{(1)}
+        if P._cartan_type.type() == 'E' and P._cartan_type.n >= 7:
+            B[0][0] = P._cartan_type.n # Special handling for E_{7,8}^{(1)}
         B.extend(P.dims[1:])
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
         RC = RiggedConfigurations(P._cartan_type, B)
         parts = [x._clone() for x in self] # Make a deep copy
 
-        if P._cartan_type.type() != 'E':
+        if P._cartan_type.type() not in ['E', 'F']:
             for nu in parts[:r-1]:
                 nu._list.append(1)
             for a, nu in enumerate(parts[:r-1]):
