@@ -4630,7 +4630,10 @@ cdef class Matrix(matrix1.Matrix):
 
         S = [ ]
 
-        F.sort()
+        try:
+            F.sort()
+        except NotImplementedError:
+            pass
         for i in range(len(F)):
             g, m = F[i]
 

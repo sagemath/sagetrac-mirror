@@ -188,7 +188,10 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                 for d in D:
                     P = [d[t] for t in R.gens()]
                     points.append(X(P))
-                points.sort()
+                try:
+                    points.sort()
+                except NotImplementedError:
+                    pass
                 return points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:

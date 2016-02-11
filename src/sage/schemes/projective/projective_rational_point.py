@@ -201,7 +201,10 @@ def enum_projective_number_field(X,B, prec=53):
             pts.append(X(P))
         except TypeError:
             pass
-    pts.sort()
+    try:
+        pts.sort()
+    except NotImplementedError:
+        pass
     return pts
 
 

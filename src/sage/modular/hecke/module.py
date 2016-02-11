@@ -1060,7 +1060,10 @@ class HeckeModule_free_module(HeckeModule_generic):
         if anemic:
             self.__is_splittable_anemic = len(D) > 1
 
-        D.sort(key = None if not sort_by_basis else lambda ss: ss.free_module())
+        try:
+            D.sort(key = None if not sort_by_basis else lambda ss: ss.free_module())
+        except NotImplementedError:
+            pass
         D.set_immutable()
         self.__decomposition[key] = D
         for i in range(len(D)):

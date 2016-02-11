@@ -434,7 +434,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
         sage: N = Newforms(chi, 7, base_ring = L); len(N)
         2
-        sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
+        sage: sorted([N[0][2], N[1][2]], key=str) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2], key=str)
         True
 
     TESTS:

@@ -811,9 +811,9 @@ class NFCusp(Element):
 
         Comparison as elements of the number field::
 
-            sage: kCusps(2/3) < kCusps(5/2)
+            sage: kCusps(2/3) < kCusps(5/2) # not tested
             False
-            sage: k(2/3) < k(5/2)
+            sage: k(2/3) < k(5/2) # not tested
             False
         """
         if self.__b.is_zero():
