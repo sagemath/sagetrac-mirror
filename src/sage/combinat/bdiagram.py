@@ -1,3 +1,32 @@
+r"""
+The BDiagram Hopf Algebra and morphisms
+=======================================
+
+This module deals with a new combinatorial objects called BDiagrams.
+
+AUTHORS:
+
+- Imad Eddine Bousbaa 
+- Adrien Boussicault
+- Zakaria Chemli
+
+REFERENCES:
+
+..  Imad Eddine Bousbaa, Ali Chouria, Jean-Gabriel Luque.
+   *A combinatorial Hopf algebra for the boson normal ordering problem *,
+   :arxiv:`1512.05937`.
+"""
+#******************************************************************************
+#  Copyright (C) 2016    
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#******************************************************************************
+
+from sage.combinat.subset import Subsets
+from sage.graphs.digraph import DiGraph
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.categories.sets_with_grading import SetsWithGrading
@@ -31,6 +60,7 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
+from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
 
 class BDiagram(ClonableList):
@@ -71,21 +101,76 @@ class BDiagram(ClonableList):
             
     def size(self):
         r"""
+        Return the number of half edges.
+
+        EXAMPLES::
+
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.size()
+            17
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.size()
+            0
         """
-        return len(self[0]) 
+        return self.composition().size()
         ###########################################################
-        ###############  Geters of Elements  #####################
+        ###############  Geters of BDiagram   #####################
         ###########################################################
 
 # set of non-cut outer  half-edges
     def outer_set(self):
+        r"""
+        EXAMPLES::
+
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.outer_set()
+            {1, 2, 3, 4, 5, 6, 11}
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.outer_set()
+            {}
+        """
         return self[1]
    
 # set of non-cut inner half-edges
     def inner_set(self):
+        r"""
+        EXAMPLES::
+
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.inner_set()
+            {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.inner_set()
+            {}
+        """
         return self[2]
+
 # set of edges
     def edges_set(self):
+        r"""
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.edges_set()
+            ((1, 7), (2, 13), (3, 10), (11, 16))
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.edges_set()
+            ()
+        """
         return self[3]
 
 # set of outer cut half-edges
@@ -108,17 +193,60 @@ class BDiagram(ClonableList):
             if edge not in map(lambda x: x[1],self.edges_set()):
                 res.append( edge )
         return res
-    def _bugs_number(self):
-        return len (self[0])
+    def bug_number(self):
+        r"""
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.bug_number()
+            6
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.bug_number()
+            0
+        """
+        return len (self.composition())
     
-    def _composition(self):
+    def composition(self):
         return self[0]
     
-    def _edge_bug_number( self, half_edge):
-        i=0; compo=self[0][i] 
-        while half_edge>compo:
+    def _edge_to_bug_number( self, half_edge):
+        r"""
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2._edge_to_bug_number(10)
+            3
+            sage: exem2._edge_to_bug_number(16)
+            5
+            sage: exem2._edge_to_bug_number(0)
+            0
+            sage: exem2._edge_to_bug_number(1)
+            0
+            sage: exem2._edge_to_bug_number(2)
+            0
+            sage: exem2._edge_to_bug_number(3)
+            1
+            sage: exem2._edge_to_bug_number(4)
+            1
+            sage: exem2._edge_to_bug_number(5)
+            1
+            sage: exem2._edge_to_bug_number(6)
+            2
+            sage: exem2 = BDiagram([[],[],[],[]])
+            sage: exem2._edge_to_bug_number(0)
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
+        assert( self.bug_number() > 0 ) 
+        i=0; compo=self.composition()[i] 
+        while half_edge>=compo:
             i+=1            
-            compo=compo+self[0][i]
+            compo=compo+self.composition()[i]
         return i
 
 
@@ -127,49 +255,109 @@ class BDiagram(ClonableList):
         ###########################################################
 
     def _bug_digraph(self):
+        r"""
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: d=exem2._bug_digraph()
+            sage: d.vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: d.edges()
+            [(0, 2, None), (0, 4, None), (1, 3, None), (3, 5, None)]
+        """
         liste_adj = {}
-        for vertex in range( self._bugs_number() ):
+        for vertex in range( self.bug_number() ):
             liste_adj[vertex] = []
         for edge in self.edges_set():
             liste_adj[
-                self._edge_bug_number(edge[0])
-            ].append( self._edge_bug_number(edge[1]) )
+                self._edge_to_bug_number(edge[0])
+            ].append( self._edge_to_bug_number(edge[1]) )
         return DiGraph( liste_adj )
 
     def _sub_intervals(self, list_of_bug):
+        r"""
+        Return a list of interval of half edges id
+        associated with each bug of ``list_of_bug``.
+
+        The ``list_of_bug`` have to be sorted !
+
+        EXAMPLES::
+
+            sage: bd = BDiagram([[3,7,5,11,13,2], [], [], []])
+            sage: bd._sub_intervals([2,4,5])
+            [(10, 15), (26, 39), (39, 41)]
+            sage: bd._sub_intervals([])
+            []
+            sage: bd = BDiagram([[], [], [], []])
+            sage: bd._sub_intervals([])
+            []
+        """
         res = []
-        j=0
+        prev=0
+        mi=0
         for i in list_of_bug:
-            while (j<=i):
-                mi+= self[0][j]
-                j+=1
-            res.append( (mi,mi+i) )
+            for j in range(prev, i):
+                mi+= self.composition()[j]
+            prev = i
+            res.append( (mi,mi+self.composition()[i]) )
         return res
-             
+
     def sub_bdiagram( self, list_of_bug ):
+        r"""
+        EXAMPLES::
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,5,6,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.sub_bdiagram([1, 3, 5])
+            [[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))]
+            sage: exem2.sub_bdiagram([0, 2, 4])
+            [[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))]
+            sage: exem2.sub_bdiagram([0, 1, 2, 3, 4, 5])
+            [[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))]
+            sage: exem2.sub_bdiagram([])
+            [[], {}, {}, ()]
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.sub_bdiagram([])
+            [[], {}, {}, ()]
+            
+        """
         sub_edges = []
         sub_compo = []
         sub_outers= []
         sub_inners= []
-        # get sub edges
-        for edge in self._edges_set():
-            if self._edge_bug_number(edge[0]) in list_of_bug:
-                sub_edges.append(edge)
+        dictio_of_outers = dict()
+        dictio_of_inners = dict()
+        # get intervals
+        list_of_bug.sort()
+        intervals = self._sub_intervals(list_of_bug)
         # get sub composition
         for i in list_of_bug:
-            sub_compo.append(self[O][i])
-        # get intervals
-        intervals = self._sub_intervals(list_of_bug)
+            sub_compo.append( self.composition()[i] )
         # get sub outers set and inner outer set
+        index = 0
+        lenght = 0
+
         for interval in intervals:
             for i in self.outer_set():
-                if interval[0] <= i and i<= interval[1]:
-                    sub_outers.append(i)
+                if interval[0] <= i and i< interval[1]:
+                    dictio_of_outers[i] = i-interval[0]+ lenght
+                    sub_outers.append( dictio_of_outers[i] )
             for i in self.inner_set():
-                if interval[0] <= i and i<= interval[1]:
-                    sub_outers.append(i)
-        res = [sub_compo,sub_outers,sub_inners,sub_edges]
-        return BDiagram ( self._std_diagram( res ) )
+                if interval[0] <= i and i< interval[1]:
+                    dictio_of_inners [i] = i-interval[0] + lenght 
+                    sub_inners.append( dictio_of_inners[i] )
+            lenght+=sub_compo[index]
+            index+=1
+        # get sub edges
+        for edge in self.edges_set():
+            if self._edge_to_bug_number(edge[0]) in list_of_bug:
+                sub_edges.append( ( dictio_of_outers[edge[0]], dictio_of_inners[edge[1]] ) )
+        # return the sub diagram 
+        return BDiagram ( [sub_compo,sub_outers,sub_inners,sub_edges]  )
 
 
 ###############################################################################################################
@@ -303,6 +491,15 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one_basis(self):
+        r"""
+            sage: hbd = BDiagramHopfAlgebra(QQ)
+            sage: hbd.one_basis()
+            [[], {}, {}, ()]
+            sage: hbd.one()
+            B[[], {}, {}, ()]
+            sage: isinstance(hbd.one_basis(), BDiagram)
+            True
+        """
         return self.basis().keys()( ([], [], [], []) )
 
     def degree_on_basis(self, bd):
@@ -313,6 +510,11 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
 
     def _repr_term(self, bd):
         return 'B' + repr(bd)
+
+        ###########################################################
+        ###############  Product of Bdiagrams #####################
+        ###########################################################
+
 
     def _shift_list(self,l,sh):
         return map(lambda x: x+sh, l )
@@ -347,6 +549,10 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
             res += self( BDiagram( (comp,outer_set,inner_set,edges+match) ) )
         return res
 
+        ###########################################################
+        ###############  Coproduct of Bdiagram  ###################
+        ###########################################################
+
     def coproduct_on_basis(self, bdiagram):
         """
         The coproduct of bdiagram.
@@ -357,33 +563,33 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``i`` -- a non-negative integer
-
         OUTPUT:
-
-        - an element of the tensor square of ``self``
 
         TESTS::
 
-            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
-            sage: H.monomial(3).coproduct()
-            P0 # P3 + 3*P1 # P2 + 3*P2 # P1 + P3 # P0
-
+            sage: hbd = BDiagramHopfAlgebra(QQ)
+            sage: b = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,5,6,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: hbd.coproduct_on_basis( b )
+            B[[], {}, {}, ()] # B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] + B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))] # B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] + B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] # B[[], {}, {}, ()] + B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] # B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))] 
         """
         res = 0
         graph = bdiagram._bug_digraph()
         connected_components = graph.connected_components()
         nb_compo = len(connected_components)
-        id_compo = range(connected_components)
+        id_compo = range(nb_compo)
         for left_compo in Subsets( id_compo ):
-            right_compo = id_compo - left_compo
+            right_compo = Set(id_compo) - left_compo
             left = []
             for i in left_compo:
                 left += connected_components[i]
             right = []
             for i in right_compo:
                 right += connected_components[i]
-            left = bdiagram.sub_diagram( map( connected_components[x], left ) )
-            right = bdiagram.sub_diagram( map( connected_components[x], right ) )
+            left = bdiagram.sub_bdiagram( left )
+            right = bdiagram.sub_bdiagram( right ) 
             res += self( left ).tensor( self(right) )
         return res
