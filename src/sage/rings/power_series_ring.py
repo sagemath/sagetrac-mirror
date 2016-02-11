@@ -123,9 +123,8 @@ from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRi
 from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
 import laurent_series_ring_element
-import commutative_ring
-import integral_domain
 import integer
+from . import ring
 from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
@@ -448,7 +447,7 @@ def is_PowerSeriesRing(R):
     else:
         return False
 
-class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.CommutativeRing, Nonexact):
+class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexact):
     """
     A power series ring.
     """
@@ -556,9 +555,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         else:
             raise ValueError('unknown power series implementation: %r' % implementation)
 
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name,
-                                                  category=getattr(self,'_default_category',
-                                                                  _CommutativeRings))
+        ring.CommutativeRing.__init__(self, base_ring, names=name,
+                                      category=getattr(self,'_default_category',
+                                                       _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
             self.__generator = self.element_class(self, R.gen()._pari_(), check=False)
@@ -1258,7 +1257,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                                                  self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
-class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
+class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
     pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
