@@ -391,14 +391,14 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: RR(g)
         -1.25992104989487
 
-    If no embedding is specified or is complex, the comparison is not returning something
-    meaningful.::
+    If no embedding is specified or is complex, the comparison raises a
+    NotImplemented error::
 
         sage: N.<g> = NumberField(x^3+2)
         sage: 1 < g
-        False
-        sage: g > 1
-        True
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: comparison not implemented for <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>
 
     Since SageMath 6.9, number fields may be defined by polynomials
     that are not necessarily integral or monic.  The only notable

@@ -1075,8 +1075,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                     elif mQ == nP:
                         ans.append(nQ)
 
-        # Finally, sort and return
-        ans.sort()
+        # Finally, try sort and return
+        try:
+            ans.sort()
+        except NotImplementedError:
+            pass
         return ans
 
     def _divide_out(self, p):

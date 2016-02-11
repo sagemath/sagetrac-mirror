@@ -2376,7 +2376,10 @@ class MPolynomialIdeal_singular_repr(
 
             for v in Vbar:
                 V.append(KeyConvertingDict(P, v))
-        V.sort()
+        try:
+            V.sort()
+        except NotImplementedError:
+            pass
         return V
 
     @require_field

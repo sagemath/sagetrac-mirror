@@ -304,7 +304,11 @@ def isogenies_prime_degree_genus_0(E, l=None):
         R = PolynomialRing(F,'t')
         t = R.gen()
         f = R(Fricke_polynomial(l))
-        t_list = sorted((f-j*t).roots(multiplicities=False))
+        t_list = (f-j*t).roots(multiplicities=False)
+        try:
+            t_list.sort()
+        except NotImplementedError:
+            pass
         # The generic kernel polynomial applies to a standard curve
         # E_t with the correct j-invariant; we must compute the
         # appropriate twising factor to scale X by:
@@ -755,14 +759,20 @@ def isogenies_5_0(E):
         []
 
         sage: E = EllipticCurve(GF(13^2,'a'),[0,-3])
-        sage: isogenies_5_0(E)
-        [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (4*a+6)*x + (2*a+10) over Finite Field in a of size 13^2, Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (12*a+5)*x + (2*a+10) over Finite Field in a of size 13^2, Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (10*a+2)*x + (2*a+10) over Finite Field in a of size 13^2, Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (3*a+12)*x + (11*a+12) over Finite Field in a of size 13^2, Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (a+4)*x + (11*a+12) over Finite Field in a of size 13^2, Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (9*a+10)*x + (11*a+12) over Finite Field in a of size 13^2]
-
+        sage: sorted(isogenies_5_0(E),key=str)
+        [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (10*a+2)*x + (2*a+10) over Finite Field in a of size 13^2,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (12*a+5)*x + (2*a+10) over Finite Field in a of size 13^2,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (3*a+12)*x + (11*a+12) over Finite Field in a of size 13^2,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (4*a+6)*x + (2*a+10) over Finite Field in a of size 13^2,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (9*a+10)*x + (11*a+12) over Finite Field in a of size 13^2,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 10 over Finite Field in a of size 13^2 to Elliptic Curve defined by y^2 = x^3 + (a+4)*x + (11*a+12) over Finite Field in a of size 13^2]
+        
         sage: K.<a> = NumberField(x**6-320*x**3-320)
         sage: E = EllipticCurve(K,[0,0,1,0,0])
-        sage: isogenies_5_0(E)
-        [Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^6 - 320*x^3 - 320 to Elliptic Curve defined by y^2 + y = x^3 + (643/8*a^5-15779/48*a^4-32939/24*a^3-71989/2*a^2+214321/6*a-112115/3)*x + (2901961/96*a^5+4045805/48*a^4+12594215/18*a^3-30029635/6*a^2+15341626/3*a-38944312/9) over Number Field in a with defining polynomial x^6 - 320*x^3 - 320,
-        Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^6 - 320*x^3 - 320 to Elliptic Curve defined by y^2 + y = x^3 + (-1109/8*a^5-53873/48*a^4-180281/24*a^3-14491/2*a^2+35899/6*a-43745/3)*x + (-17790679/96*a^5-60439571/48*a^4-77680504/9*a^3+1286245/6*a^2-4961854/3*a-73854632/9) over Number Field in a with defining polynomial x^6 - 320*x^3 - 320]
+        sage: sorted(isogenies_5_0(E),key=str)
+        [Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^6 - 320*x^3 - 320 to Elliptic Curve defined by y^2 + y = x^3 + (-1109/8*a^5-53873/48*a^4-180281/24*a^3-14491/2*a^2+35899/6*a-43745/3)*x + (-17790679/96*a^5-60439571/48*a^4-77680504/9*a^3+1286245/6*a^2-4961854/3*a-73854632/9) over Number Field in a with defining polynomial x^6 - 320*x^3 - 320,
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^6 - 320*x^3 - 320 to Elliptic Curve defined by y^2 + y = x^3 + (643/8*a^5-15779/48*a^4-32939/24*a^3-71989/2*a^2+214321/6*a-112115/3)*x + (2901961/96*a^5+4045805/48*a^4+12594215/18*a^3-30029635/6*a^2+15341626/3*a-38944312/9) over Number Field in a with defining polynomial x^6 - 320*x^3 - 320]
+
     """
     F = E.base_field()
     if E.j_invariant() != 0:
@@ -774,7 +784,7 @@ def isogenies_5_0(E):
     Ew = E.short_weierstrass_model()
     a = Ew.a6()
     x = polygen(F)
-    betas = sorted((x**6-160*a*x**3-80*a**2).roots(multiplicities=False))
+    betas = (x**6-160*a*x**3-80*a**2).roots(multiplicities=False)
     if len(betas)==0:
         return []
     gammas = [(beta**2 *(beta**3-140*a))/(120*a) for beta in betas]
@@ -874,7 +884,7 @@ def isogenies_5_1728(E):
         [isog.set_post_isomorphism(isog.codomain().isomorphism_to(E)) for isog in isogs]
     # Type 2: if 5 is a square we have up to 4 (non-endomorphism) isogenies
     if square5:
-        betas = sorted((x**4+20*a*x**2-80*a**2).roots(multiplicities=False))
+        betas = (x**4+20*a*x**2-80*a**2).roots(multiplicities=False)
         gammas = [(beta**2-2*a)/6 for beta in betas]
         isogs += [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
     [isog.set_pre_isomorphism(iso) for isog in isogs]
@@ -962,7 +972,7 @@ def isogenies_7_0(E):
 
     # there will be 2 endomorphisms if -3 is a square:
 
-    ts = sorted((x**2+3).roots(multiplicities=False))
+    ts = (x**2+3).roots(multiplicities=False)
     kers = [7*x-(2+6*t) for t in ts]
     kers = [k(x**3/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
@@ -973,7 +983,7 @@ def isogenies_7_0(E):
     ts = (x**2-21).roots(multiplicities=False)
     for t0 in ts:
         s3 = a/(28+6*t0)
-        ss = sorted((x**3-s3).roots(multiplicities=False))
+        ss = (x**3-s3).roots(multiplicities=False)
         ker = x**3 - 2*t0*x**2 - 4*t0*x + 4*t0 + 28
         kers = [ker(x/s).monic() for s in ss]
         isogs += [Ew.isogeny(k, model=model) for k in kers]
@@ -1052,7 +1062,7 @@ def isogenies_7_1728(E):
     x = polygen(F)
     for t0 in ts:
         s2 = a/t0
-        ss = sorted((x**2-s2).roots(multiplicities=False))
+        ss = (x**2-s2).roots(multiplicities=False)
         ker = 9*x**3 + (-3*t0**3 - 36*t0**2 - 123*t0)*x**2 + (-8*t0**3 - 101*t0**2 - 346*t0 + 35)*x - 7*t0**3 - 88*t0**2 - 296*t0 + 28
 
         kers = [ker(x/s) for s in ss]
@@ -1153,7 +1163,7 @@ def isogenies_13_0(E):
     x = polygen(F)
 
     # there will be 2 endomorphisms if -3 is a square:
-    ts = sorted((x**2+3).roots(multiplicities=False))
+    ts = (x**2+3).roots(multiplicities=False)
     kers = [13*x**2 + (78*t + 26)*x + 24*t + 40 for t in ts]
     kers = [k(x**3/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
@@ -1161,10 +1171,10 @@ def isogenies_13_0(E):
         [endo.set_post_isomorphism(endo.codomain().isomorphism_to(E)) for endo in isogs]
 
     # we may have up to 12 other isogenies:
-    ts = sorted((x**4 + 7*x**3 + 20*x**2 + 19*x + 1).roots(multiplicities=False))
+    ts = (x**4 + 7*x**3 + 20*x**2 + 19*x + 1).roots(multiplicities=False)
     for t0 in ts:
         s3 = a / (6*t0**3 + 32*t0**2 + 68*t0 + 4)
-        ss = sorted((x**3-s3).roots(multiplicities=False))
+        ss = (x**3-s3).roots(multiplicities=False)
         ker = (x**6 + (20*t0**3 + 106*t0**2 + 218*t0 + 4)*x**5
             + (-826*t0**3 - 4424*t0**2 - 9244*t0 - 494)*x**4
             + (13514*t0**3 + 72416*t0**2 + 151416*t0 + 8238)*x**3
@@ -1261,7 +1271,7 @@ def isogenies_13_1728(E):
     x = polygen(F)
 
     # we will have two endomorphisms if -1 is a square:
-    ts = sorted((x**2+1).roots(multiplicities=False))
+    ts = (x**2+1).roots(multiplicities=False)
     kers = [13*x**3 + (-26*i - 13)*x**2 + (-52*i - 13)*x - 2*i - 3 for i in ts]
     kers = [k(x**2/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
@@ -1270,10 +1280,10 @@ def isogenies_13_1728(E):
 
     # we may have up to 12 other isogenies:
 
-    ts = sorted((x**6 + 10*x**5 + 46*x**4 + 108*x**3 + 122*x**2 + 38*x - 1).roots(multiplicities=False))
+    ts = (x**6 + 10*x**5 + 46*x**4 + 108*x**3 + 122*x**2 + 38*x - 1).roots(multiplicities=False)
     for t0 in ts:
         s2 = a/(66*t0**5 + 630*t0**4 + 2750*t0**3 + 5882*t0**2 + 5414*t0 + 162)
-        ss = sorted((x**2-s2).roots(multiplicities=False))
+        ss = (x**2-s2).roots(multiplicities=False)
         ker = (x**6 + (-66*t0**5 - 630*t0**4 - 2750*t0**3 - 5882*t0**2
               - 5414*t0 - 162)*x**5 + (-21722*t0**5 - 205718*t0**4 -
               890146*t0**3 - 1873338*t0**2 - 1652478*t0 + 61610)*x**4
