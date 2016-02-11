@@ -466,6 +466,8 @@ class Function_ceil(BuiltinFunction):
                 # expression unevaluated.
                 return BuiltinFunction.__call__(self, SR(x))
             try:
+                if x_interval.is_int()[0]:
+                    return x_interval.is_int()[1]
                 return x_interval.unique_ceil()
             except ValueError:
                 bits *= 2
@@ -629,6 +631,8 @@ class Function_floor(BuiltinFunction):
                 # expression unevaluated.
                 return BuiltinFunction.__call__(self, SR(x))
             try:
+                if x_interval.is_int()[0]:
+                    return x_interval.is_int()[1]
                 return x_interval.unique_floor()
             except ValueError:
                 bits *= 2
