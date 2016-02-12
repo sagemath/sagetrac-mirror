@@ -135,9 +135,9 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                     for PP in aff_points:
                         points.add(X.ambient_space()(list(phi(PP))))
                 try:
-                    points = sorted(points)
+                    points = sorted(points) # converts set to list
                 except NotImplementedError:
-                    pass
+                    points = list(points)
                 return points
         R = self.value_ring()
         if is_RationalField(R):
