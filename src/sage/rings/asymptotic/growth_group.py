@@ -228,6 +228,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -1396,6 +1397,37 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
 
+    def _singularity_analysis_(self, zeta, var, precision):
+        r"""
+        Perform singularity analysis on this growth element.
+
+        INPUT:
+
+        - ``zeta`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `(1-z\zeta)\to 0`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=2)._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            in GenericGrowthGroup
+        """
+        raise NotImplementedError("singularity analysis not implemented "
+            "in GenericGrowthGroup")
+
 
 class GenericGrowthGroup(
         sage.structure.unique_representation.UniqueRepresentation,
@@ -1514,8 +1546,17 @@ class GenericGrowthGroup(
             Category of groups
             sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
+
+        ::
+
+            sage: MonomialGrowthGroup(AsymptoticRing('z^ZZ', QQ), 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
-        if not isinstance(base, sage.structure.parent.Parent):
+        from asymptotic_ring import AsymptoticRing
+        if not isinstance(base, sage.structure.parent.Parent) or \
+           isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
         if var is None:
@@ -2813,6 +2854,74 @@ class MonomialGrowthElement(GenericGrowthElement):
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
+    def _singularity_analysis_(self, zeta, var, precision):
+        r"""
+        Perform singularity analysis on this growth element.
+
+        INPUT:
+
+        - ``zeta`` -- a number
+
+        - ``var`` -- a string denoting the variable
+
+        - ``precision`` -- an integer
+
+        OUTPUT:
+
+        An asymptotic expansion for  `[z^n] f` where `n` is ``var``
+        and `f` has this growth element as a singular expansion
+        in `(1-z\zeta)\to 0`.
+
+        EXAMPLE::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^QQ')
+            sage: G(x^(1/2))._singularity_analysis_(2, 'n', 2)
+            1/sqrt(pi)*(1/2)^n*n^(-1/2) - 1/8/sqrt(pi)*(1/2)^n*n^(-3/2)
+            + O((1/2)^n*n^(-5/2))
+            sage: G = GrowthGroup('log(x)^QQ')
+            sage: G(log(x))._singularity_analysis_(1, 'n', 5)
+            n^(-1) + O(n^(-3))
+            sage: G(log(x)^2)._singularity_analysis_(2, 'n', 3)
+            8*(1/2)^n*n^(-1)*log(n) + 8*euler_gamma*(1/2)^n*n^(-1)
+            + O((1/2)^n*n^(-2)*log(n)^2)
+
+        TESTS::
+
+            sage: G(log(x)^(1/2))._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            for non-integer exponent 1/2 of log(x)
+            sage: G = GrowthGroup('log(log(x))^QQ')
+            sage: G(log(log(x))^(1/2))._singularity_analysis_(2, 'n', 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: singularity analysis not implemented
+            for Growth Group log(log(x))^QQ
+        """
+        from sage.rings.integer_ring import ZZ
+
+        if self.parent()._var_.is_monomial():
+            from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                asymptotic_expansions
+            return asymptotic_expansions.SingularityAnalysis(
+                var=var, zeta=zeta, alpha=self.exponent, beta=0, delta=0,
+                precision=precision)
+        elif self.parent().gens_logarithmic():
+            if self.exponent not in ZZ:
+                raise NotImplementedError(
+                    "singularity analysis not implemented for non-integer "
+                    "exponent {} of {}".format(self.exponent, self.parent().gen()))
+            from sage.rings.asymptotic.asymptotic_expansion_generators import \
+                asymptotic_expansions
+            return asymptotic_expansions._SingularityAnalysis_non_normalized_(
+                var=var, zeta=zeta, alpha=0, beta=ZZ(self.exponent), delta=0,
+                precision=precision)
+        else:
+            raise NotImplementedError(
+                "singularity analysis not implemented for {}".format(self.parent()))
+
 
 class MonomialGrowthGroup(GenericGrowthGroup):
     r"""
@@ -3082,6 +3191,42 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if not self._var_.is_monomial():
             return tuple()
         return (self(raw_element=self.base().one()),)
+
+
+    def gens_logarithmic(self):
+        r"""
+        Return a tuple containing logarithmic generators of this growth
+        group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple containing elements of this growth group.
+
+        .. NOTE::
+
+            A generator is called logarithmic generator if the variable
+            of the underlying growth group is the logarithm of a valid
+            identifier. For
+            example, ``x^ZZ`` has no logarithmic generator,
+            while ``log(x)^ZZ`` has ``log(x)`` as
+            logarithmic generator.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').gens_logarithmic()
+            ()
+            sage: GrowthGroup('log(x)^QQ').gens_logarithmic()
+            (log(x),)
+        """
+        if str(self.gen()) == "log({})".format(self.variable_name()):
+            return (self(raw_element=self.base().one()),)
+        else:
+            return tuple()
 
 
     def construction(self):
