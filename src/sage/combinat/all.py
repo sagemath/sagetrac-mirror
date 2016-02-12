@@ -89,6 +89,7 @@ from composition_tableau import CompositionTableau, CompositionTableaux
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
+lazy_import('sage.combinat.shifted_tableaux', ['ShiftedTableaux', 'ShiftedTableau'])
 
 #Words
 from words.all import *
