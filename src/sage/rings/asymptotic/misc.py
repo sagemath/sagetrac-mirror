@@ -291,7 +291,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
     return tuple(strip(f) for f in factors)
 
 
-def repr_op(left, op, right=None):
+def repr_op(left, op, right=None, latex=False):
     r"""
     Create a string ``left op right`` with
     taking care of parentheses in its operands.
@@ -320,6 +320,11 @@ def repr_op(left, op, right=None):
         '(a-b)^c'
         sage: repr_op('a+b', '^', 'c')
         '(a+b)^c'
+
+    ::
+
+        sage: print repr_op(r'\frac{1}{2}', '^', 'c', latex=True)
+        \left(\frac{1}{2}\right)^c
     """
     left = str(left)
     right = str(right) if right is not None else ''
@@ -329,13 +334,15 @@ def repr_op(left, op, right=None):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
-        if any(sig in s for sig in signals):
-            return '(%s)' % (s,)
+        if any(sig in s for sig in signals) or latex and s.startswith(r'\frac'):
+            if latex:
+                return r'\left({}\right)'.format(s)
+            else:
+                return '({})'.format(s)
         else:
             return s
 
-    return add_parentheses(left, op) + op +\
-        add_parentheses(right, op)
+    return add_parentheses(left, op) + op + add_parentheses(right, op)
 
 
 def combine_exceptions(e, *f):
