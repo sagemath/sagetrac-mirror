@@ -1203,6 +1203,10 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
+    def _latex_(self):
+        raise NotImplementedError
+
+
     def _substitute_(self, rules):
         r"""
         Substitute the given ``rules`` in this generic term.
@@ -2005,7 +2009,7 @@ class OTerm(GenericTerm):
         O(x^17)
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this `O`-term.
 
@@ -2023,13 +2027,42 @@ class OTerm(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, QQ)
-            sage: t1 = OT(x); t2 = OT(x^2); t3 = OT(x^3)
-            sage: t1._repr_(), t2._repr_()
-            ('O(x)', 'O(x^2)')
-            sage: t3
+            sage: OT(x)._repr_()
+            'O(x)'
+            sage: OT(x^2)._repr_()
+            'O(x^2)'
+            sage: OT(x^3)
             O(x^3)
         """
-        return 'O(%s)' % self.growth
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        if latex:
+            s = r'O\!\left({g}\right)'
+        else:
+            s = 'O({g})'
+        return s.format(g=f(self.growth))
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: OT = TermMonoid('O', G, QQ)
+            sage: latex(OT(x))
+            O\!\left(x\right)
+            sage: latex(OT(x^2))
+            O\!\left(x^{2}\right)
+            sage: latex(OT(x^3))
+            O\!\left(x^{3}\right)
+        """
+        return self._repr_(latex=True)
 
 
     def __invert__(self):
@@ -3092,7 +3125,7 @@ class ExactTerm(TermWithCoefficient):
         5*x^2
     """
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exact term.
 
@@ -3110,7 +3143,7 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = TermMonoid('exact', G, ZZ)
-            sage: et1 = ET(x^2, 2); et1
+            sage: ET(x^2, 2)
             2*x^2
 
         TESTS::
@@ -3132,20 +3165,72 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        g = repr(self.growth)
-        c = repr(self.coefficient)
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        g = f(self.growth)
+        c = f(self.coefficient)
+
         if g == '1':
             return c
         elif c == '1':
-            return '%s' % (g,)
+            return '{g}'.format(g=g)
         elif c == '-1':
-            return '-%s' % (g,)
+            return '-{g}'.format(g=g)
         elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
             # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
             # in the asymptotic ring, we ignore such non-atomicity.
-            return '%s*%s' % (c, g)
+            s = '{c} {g}' if latex else '{c}*{g}'
         else:
-            return '(%s)*%s' % (c, g)
+            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
+        s = s.format(c=c, g=g)
+
+        if latex:
+            import re
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \cdot \2', s)
+
+        return s
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, ZZ)
+            sage: latex(ET(x^2, 2))
+            2 x^{2}
+
+        ::
+
+            sage: latex(ET(x^2, 1))
+            x^{2}
+            sage: latex(ET(x^2, -1))
+            -x^{2}
+            sage: latex(ET(x^0, 42))
+            42
+
+        ::
+
+            sage: C.<c> = AsymptoticRing('c^ZZ', SR)
+            sage: latex((1+pi)*c)
+            \left(\pi + 1\right) c
+            sage: R.<a> = QQ[]
+            sage: S.<n> = AsymptoticRing('n^QQ', R)
+            sage: latex((1+a)/n)
+            \left(a + 1\right) n^{-1}
+
+        ::
+
+            sage: D.<d> = AsymptoticRing('QQ^d * d^ZZ', ZZ)
+            sage: latex(42*3^d)
+            42 \cdot 3^{d}
+        """
+        return self._repr_(latex=True)
 
 
     def __invert__(self):
@@ -3608,8 +3693,8 @@ class ExactTerm(TermWithCoefficient):
             sage: T('2*x^(-1)')._singularity_analysis_(2, 'n', 3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The result is O(0) which means 0
-            for sufficiently large n
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
         """
         return self.coefficient * self.growth._singularity_analysis_(
             zeta=zeta, var=var, precision=precision)

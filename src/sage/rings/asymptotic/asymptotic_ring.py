@@ -470,8 +470,18 @@ Classes and Methods
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.defaults import series_precision
 from sage.misc.superseded import experimental
 from sage.rings.all import RIF
+
+
+class NoConvergenceError(RuntimeError):
+    r"""
+    A special :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+    which is raised when an algorithm does not converge/stop.
+    """
+    pass
+
 
 class AsymptoticExpansion(CommutativeAlgebraElement):
     r"""
@@ -998,7 +1008,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         self._summands_.merge(reverse=True)
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this asymptotic expansion.
 
@@ -1018,12 +1028,30 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (5*x^2-12*x) * (x^3+O(x))  # indirect doctest
             5*x^5 - 12*x^4 + O(x^3)
         """
-        s = ' + '.join(repr(elem) for elem in
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+        s = ' + '.join(f(elem) for elem in
                        self.summands.elements_topological(reverse=True))
         s = s.replace('+ -', '- ')
         if not s:
             return '0'
         return s
+
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: latex((5*x^2+12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} + 12 x^{4} + O\!\left(x^{3}\right)
+            sage: latex((5*x^2-12*x) * (x^3+O(x)))  # indirect doctest
+            5 x^{5} - 12 x^{4} + O\!\left(x^{3}\right)
+        """
+        return self._repr_(latex=True)
 
 
     def _add_(self, other):
@@ -1149,9 +1177,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
             point.
+
+        TESTS::
+
+            sage: R(1) * R(0)
+            0
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ> over Integer Ring
         """
-        return sum(self._mul_term_(term_other) for
-                   term_other in other.summands.elements())
+        return sum(iter(self._mul_term_(term_other) for
+                        term_other in other.summands.elements()),
+                   self.parent().zero())
 
 
     def _rmul_(self, other):
@@ -1457,6 +1493,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: _.parent()
             Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
 
+        ::
+
+            sage: C.<c> = AsymptoticRing(growth_group='QQ^c * c^QQ', coefficient_ring=QQ, default_prec=5)
+            sage: (3 + 1/c^2)^c
+            3^c + 1/3*3^c*c^(-1) + 1/18*3^c*c^(-2) - 4/81*3^c*c^(-3)
+            - 35/1944*3^c*c^(-4) + O(3^c*c^(-5))
+            sage: _.parent()
+            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+            sage: (2 + (1/3)^c)^c
+            2^c + 1/2*(2/3)^c*c + 1/8*(2/9)^c*c^2 - 1/8*(2/9)^c*c
+            + 1/48*(2/27)^c*c^3 + O((2/27)^c*c^2)
+            sage: _.parent()
+            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+
         TESTS:
 
         See :trac:`19110`::
@@ -1473,6 +1523,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: z^(1+1/z)
             z + log(z) + 1/2*z^(-1)*log(z)^2 + 1/6*z^(-2)*log(z)^3 +
             1/24*z^(-3)*log(z)^4 + O(z^(-4)*log(z)^5)
+            sage: _.parent()
+            Asymptotic Ring <z^QQ * log(z)^QQ> over Rational Field
 
         ::
 
@@ -1519,9 +1571,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 raise NotImplementedError('Taking %s to the exponent %s not implemented.' %
                                           (self, exponent))
 
+        elif exponent == 0:
+            return self.parent().one()
+
+        elif exponent == 1:
+            return self
+
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
             if isinstance(exponent, AsymptoticExpansion) and element.is_constant():
+
                 return exponent.rpow(base=element.coefficient, precision=precision)
             try:
                 return self.parent()._create_element_in_extension_(
@@ -1548,7 +1607,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         from sage.symbolic.expression import Expression
         if isinstance(exponent, Expression) and exponent.is_constant():
-             return self.__pow_number__(exponent, precision=precision)
+            return self.__pow_number__(exponent, precision=precision)
+
+        if isinstance(exponent, AsymptoticExpansion) and len(self.summands) != 1:
+            try:
+                return self.__pow_number__(exponent, precision=precision,
+                                           check_convergence=True)
+            except NoConvergenceError:
+                pass
 
         try:
             return (exponent * self.log(precision=precision)).exp(precision=precision)
@@ -1561,7 +1627,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
     pow = __pow__
 
 
-    def __pow_number__(self, exponent, precision=None):
+    def __pow_number__(self, exponent, precision=None, check_convergence=False):
         r"""
         Return the power of this asymptotic expansion to some
         number (``exponent``).
@@ -1584,6 +1650,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
           or other constant.
 
         - ``precision`` -- a non-negative integer.
+
+        - ``check_convergence`` -- (default: ``False``) a boolean. If set,
+          then an additional check on the input is performed to ensure,
+          that the calculated sum converges.
 
         OUTPUT:
 
@@ -1633,6 +1703,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             ValueError: Cannot determine main term of a + b since
             there are several maximal elements a, b.
+
+        ::
+
+            sage: S.<s> = AsymptoticRing(growth_group='QQ^s * s^ZZ', coefficient_ring=QQ)
+            sage: (2 + 2/s^2).__pow_number__(s, precision=7)
+            2^s + 2^s*s^(-1) + 1/2*2^s*s^(-2) - 1/3*2^s*s^(-3)
+            - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
+            + 271/720*2^s*s^(-6) + O(2^s*s^(-7))
+            sage: _.parent()
+            Asymptotic Ring <QQ^s * s^QQ> over Rational Field
         """
         if not self.summands:
             if exponent > 0:
@@ -1653,16 +1733,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return self.parent()._create_element_in_extension_(
                 element**exponent, element.parent())
 
-        (max_elem, x) = self._main_term_relative_error_()
+        try:
+            (max_elem, x) = self._main_term_relative_error_()
+        except ValueError:
+            if check_convergence:
+                raise NoConvergenceError
+            raise
 
-        pmax_elem = max_elem**exponent
-        x = self.parent()._create_element_in_extension_(
-                pmax_elem, max_elem.parent()).parent()(x)
+        if check_convergence:
+            if not (x * exponent).is_little_o_of_one():
+                raise NoConvergenceError
 
-        one = x.parent().one()
+        pmax = self.parent()(max_elem)**exponent
 
         import itertools
-
         def binomials(a):
             P = a.parent()
             a = a + 1
@@ -1675,6 +1759,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 f *= b / k
                 yield f
 
+        one = x.parent().one()
+
         result = AsymptoticExpansion._power_series_(
             coefficients=binomials(exponent),
             start=one,
@@ -1682,7 +1768,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ratio_start=one,
             precision=precision)
 
-        return result._mul_term_(pmax_elem)
+        return result * pmax
 
 
     def sqrt(self, precision=None):
@@ -1746,8 +1832,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
-            sage: O(AR(0))
-            0
             sage: (2*x).O()
             O(x)
 
@@ -1755,7 +1839,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
             :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
+
+        TESTS::
+
+            sage: AR(0).O()
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large x.
         """
+        if not self.summands:
+            from misc import NotImplementedOZero
+            raise NotImplementedOZero(self.parent())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 
@@ -2983,7 +3078,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     Element = AsymptoticExpansion
 
 
-    from sage.misc.defaults import series_precision
     __default_prec__ = series_precision()  # default default-precision
 
 
@@ -3549,22 +3643,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                         raise combine_exceptions(
                             ValueError('Symbolic expression %s is not in %s.' %
                                        (data, self)), e)
-                return sum(summands)
+                return sum(summands, self.zero())
 
         elif is_PolynomialRing(P):
             p = P.gen()
             try:
-                return sum(self.create_summand('exact', growth=p**i,
-                                               coefficient=c)
-                           for i, c in enumerate(data))
+                return sum(iter(self.create_summand('exact', growth=p**i,
+                                                    coefficient=c)
+                                for i, c in enumerate(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
         elif is_MPolynomialRing(P):
             try:
-                return sum(self.create_summand('exact', growth=g, coefficient=c)
-                           for c, g in iter(data))
+                return sum(iter(self.create_summand('exact', growth=g, coefficient=c)
+                                for c, g in iter(data)),
+                           self.zero())
             except ValueError as e:
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
@@ -3897,13 +3993,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: B.singularity_analysis(f, (1,), precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term is O(0) which means
-            0 for sufficiently large n.
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
-        from asymptotic_expansion_generators import asymptotic_expansions,\
-            NotImplementedOZero
+        from asymptotic_expansion_generators import asymptotic_expansions
+        from misc import NotImplementedOZero
 
         singular_expansions = {}
 
@@ -3926,9 +4022,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                     result += contribution
 
         if OZeroEncountered and result.is_exact():
-            raise NotImplementedOZero(
-                'The error term is O(0) which means 0 '
-                'for sufficiently large {}.'.format(self.gen()))
+            raise NotImplementedOZero(self)
 
         if return_singular_expansions:
             from collections import namedtuple

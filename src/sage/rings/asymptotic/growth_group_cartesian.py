@@ -869,7 +869,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         is_lt_one = _is_lt_one_
 
 
-        def _repr_(self):
+        def _repr_(self, latex=False):
             r"""
             A representation string for this Cartesian product element.
 
@@ -889,10 +889,21 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
                 'x^(1/2)*log(x)'
             """
-            s = '*'.join(repr(v) for v in self.value if not v.is_one())
+            if latex:
+                from sage.misc.latex import latex as latex_repr
+                f = latex_repr
+            else:
+                f = repr
+
+            mul = ' ' if latex else '*'
+            s = mul.join(f(v) for v in self.value if not v.is_one())
             if s == '':
                 return '1'
             return s
+
+
+        def _latex_(self):
+            return self._repr_(latex=True)
 
 
         def __pow__(self, exponent):
@@ -1235,8 +1246,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: G(1)._singularity_analysis_(2, 'n', 3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedOZero: The error term is O(0) which means
-                0 for sufficiently large n.
+                NotImplementedOZero: The error term in the result is O(0)
+                which means 0 for sufficiently large n.
                 sage: G('exp(x)')._singularity_analysis_(2, 'n', 3)
                 Traceback (most recent call last):
                 ...
@@ -1245,12 +1256,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             """
             factors = self.factors()
             if len(factors) == 0:
-                from asymptotic_expansion_generators import asymptotic_expansions,\
-                    NotImplementedOZero
-
-                raise NotImplementedOZero(
-                    'The error term is O(0) which means 0 '
-                    'for sufficiently large {}.'.format(var))
+                from asymptotic_expansion_generators import asymptotic_expansions
+                from misc import NotImplementedOZero
+                raise NotImplementedOZero(var=var)
             elif len(factors) == 1:
                 return factors[0]._singularity_analysis_(
                     zeta=zeta, var=var, precision=precision)
