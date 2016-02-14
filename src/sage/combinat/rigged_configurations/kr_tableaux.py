@@ -1686,8 +1686,10 @@ class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
         """
         if i == self.parent().cartan_type().special_node():
             P = self.parent()
+            if P.cartan_type() != CartanType(['D',4,3]):
+                return None
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[P.r(), P.s()]])
             ret = K(self).to_rigged_configuration()
             RC = ret.parent()
             ret = ret.to_virtual_configuration().e(0)
@@ -1715,8 +1717,10 @@ class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
         """
         if i == self.parent().cartan_type().special_node():
             P = self.parent()
+            if P.cartan_type() != CartanType(['D',4,3]):
+                return None
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[P.r(), P.s()]])
             ret = K(self).to_rigged_configuration()
             RC = ret.parent()
             ret = ret.to_virtual_configuration().f(0)
@@ -1743,8 +1747,10 @@ class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
         """
         if i == self.parent().cartan_type().special_node():
             P = self.parent()
+            if P.cartan_type() != CartanType(['D',4,3]):
+                return 0
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[P.r(), P.s()]])
             rc = K(self).to_rigged_configuration().to_virtual_configuration()
             return rc.epsilon(0)
         return TensorProductOfRegularCrystalsElement.epsilon(self, i)
@@ -1765,11 +1771,23 @@ class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
         """
         if i == self.parent().cartan_type().special_node():
             P = self.parent()
+            if P.cartan_type() != CartanType(['D',4,3]):
+                return 0
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[P.r(), P.s()]])
             rc = K(self).to_rigged_configuration().to_virtual_configuration()
             return rc.phi(0)
         return TensorProductOfRegularCrystalsElement.phi(self, i)
+
+    def weight(self):
+        """
+        Return the weight of ``self``.
+        """
+        WLR = self.parent().weight_lattice_realization()
+        La = WLR.fundamental_weights()
+        cl_index = self.parent()._cartan_type.classical().index_set()
+        wt = WLR.sum((self.phi(i) - self.epsilon(i)) * La[i] for i in cl_index)
+        return -wt.level() * La[0] + wt
 
 class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
     r"""

@@ -1855,18 +1855,36 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if P.dims[0][1] > 1:
             return self.left_split().left_column_box()
 
-        B = [[1,1], [r-1,1]]
+        from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
+        bij = RCToKRTBijection(self)
+        ht = P.dims[0][0]
+        B = [[1,1], [bij._next_index(ht),1]]
+        if P._cartan_type.type() == 'E' and P._cartan_type.n >= 7:
+            B[0][0] = P._cartan_type.n # Special handling for E_{7,8}^{(1)}
         B.extend(P.dims[1:])
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
         RC = RiggedConfigurations(P._cartan_type, B)
         parts = [x._clone() for x in self] # Make a deep copy
-        for nu in parts[:r-1]:
-            nu._list.append(1)
-        for a, nu in enumerate(parts[:r-1]):
-            vac_num = RC._calc_vacancy_number(parts, a, 1)
-            i = nu._list.index(1)
-            nu.vacancy_numbers.insert(i, vac_num)
-            nu.rigging.insert(i, vac_num)
+
+        if P._cartan_type.type() not in ['E', 'F']:
+            for nu in parts[:r-1]:
+                nu._list.append(1)
+            for a, nu in enumerate(parts[:r-1]):
+                vac_num = RC._calc_vacancy_number(parts, a, 1)
+                i = nu._list.index(1)
+                nu.vacancy_numbers.insert(i, vac_num)
+                nu.rigging.insert(i, vac_num)
+        else:
+            cur = bij._endpoint(ht)
+            I = P._cartan_type.classical().index_set()
+            path = [I.index(i) for i in cur.to_highest_weight(I)[1]]
+            for i in path:
+                parts[i]._list.append(1)
+            for i in path:
+                vac_num = RC._calc_vacancy_number(parts, i, 1)
+                j = parts[i]._list.index(1)
+                parts[i].vacancy_numbers.insert(j, vac_num)
+                parts[i].rigging.insert(j, vac_num)
         return RC(*parts)
 
     def right_column_box(self):
