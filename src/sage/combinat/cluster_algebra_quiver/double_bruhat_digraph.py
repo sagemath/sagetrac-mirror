@@ -20,8 +20,8 @@ def dblBruhatDigraph(DynkinType, u,v,word = False):
 
         sage: W = WeylGroup(['C',4])
         sage: s1,s2,s3,s4 = W.simple_reflections()
-        sage: QC,EC,FC = dblBruhatQuiver(s1*s2*s3*s4,s4*s3*s2*s1,['C',4])
-        sage: show(QC.subgraph(EC))
+        sage: D,F = dblBruhatDigraph(s1*s2*s3*s4,s4*s3*s2*s1,['C',4])
+        sage: ClusterQuiver(D,F)
 ''' 
     
     typeChar = DynkinType[0]
