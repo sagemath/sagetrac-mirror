@@ -527,6 +527,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         if isinstance(x, dict):
             return MPolynomial_polydict(self, x)
+        elif self.has_coerce_map_from(x.parent()):
+            return self.coerce_map_from(x.parent())(x)
         else:
             c = self.base_ring()(x)
             return MPolynomial_polydict(self, {self._zero_tuple:c})

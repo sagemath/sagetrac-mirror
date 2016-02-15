@@ -18,6 +18,7 @@ from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.rings.all import Integer
+from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 import sage.structure.element
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -30,7 +31,7 @@ from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.categories.all import Sets
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
-from sage.sets.family import Family
+from sage.sets.family import Family, FiniteFamily
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
@@ -3349,4 +3350,3 @@ class TensorUnit(CombinatorialFreeModule.Tensor):
         return self.one()
 
     Element = TensorUnitElement
-

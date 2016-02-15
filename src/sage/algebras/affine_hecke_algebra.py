@@ -117,8 +117,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: T(Ty_Y(a))==a
         True
         sage: K = QQ['v,vl'].fraction_field()
-        sage: v,vl=K.gens()
-        sage: H = ExtendedAffineHeckeAlgebra(['C',2,1], q1=Family(dict([[0,vl],[1,v],[2,vl]])))
+        sage: H = ExtendedAffineHeckeAlgebra(['C',2,1], q1=Family(dict([[0,K.gen(1)],[1,K.gen(0)],[2,K.gen(1)]])))
         sage: T = H.T()
         sage: Ty_Y = H.tvLv()
         sage: Y_Ty = H.Lvtv()
@@ -263,39 +262,47 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None, dual_side=None, general_linear=None):
-        def boolean_input_handler(bool, default_value):
-            if bool is None:
-                return default_value
-            if bool not in (True,False):
-                raise ValueError, "%s should be True or False"%bool
-            return bool
+    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=True, dual_side=False, general_linear=False):
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
-        if isinstance(q1, dict):
-            q1 = Family(q1)
-        if isinstance(q2, dict):
-            q2 = Family(q2)
-        extended = boolean_input_handler(extended, True)
-        dual_side = boolean_input_handler(dual_side, False)
-        general_linear = boolean_input_handler(general_linear, False)
-        return super(ExtendedAffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2, extended, dual_side, general_linear)
-
-    def __init__(self, cartan_type, q1, q2, extended, dual_side, general_linear):
-        # set the root system and parameters
         if cartan_type.is_reducible():
             raise ValueError, "Cartan type should be irreducible"
         if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
             cartan_type = cartan_type.affine()
         elif not cartan_type.is_affine():
             raise ValueError, "Cartan type must be finite or affine"
-        self._base_ring, self._q1, self._q2 = ParameterFamilies(cartan_type.index_set(), q1, q2)
+        base_ring, q1, q2 = ParameterFamilies(cartan_type.index_set(), q1, q2)
+        return super(ExtendedAffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, base_ring, q1, q2, extended, dual_side, general_linear)
+
+    def __init__(self, cartan_type, base_ring, q1, q2, extended, dual_side, general_linear):
+        r"""
+        INPUTS::
+
+        - ``cartan_type`` -- A Cartan type, either of finite or affine type.
+        If it is of finite type then the untwisted affinization is used.
+
+        The following are optional parameters::
+
+        - `q1`, `q2` -- (default: None) Optional families from the Dynkin node set to a ring.
+        Their format is described in meth:`sage.algebras.multiparameter_hecke_algebra.ParameterFamilies`.
+        Each of `q1` and `q2` can be a single ring element; this means all of the corresponding Hecke
+        eigenvalues get set to this common value. If these are absent then generic parameters are used
+        from a constructed function field over the rationals.
+        - ``extended`` -- If True, use the extended affine Hecke algebra, that is, the tensor product
+        with the group algebra of the special affine Dynkin automorphism group
+        - ``dual_side`` -- If True, use a dual realization
+        - ``general_linear`` -- If True and the root system is untwisted type A, use the general linear
+        root datum.
+        """
+        self._base_ring = base_ring
+        self._q1 = q1
+        self._q2 = q2
         Parent.__init__(self, category = AlgebrasWithBasis(self._base_ring).WithRealizations())
 
         self._cartan_type = cartan_type
         self._extended = extended
         self._dual_side = dual_side
-        if general_linear and self._extended and cartan_type.is_untwisted_affine() and cartan_type.type() == 'A':
+        if general_linear and extended and cartan_type.is_untwisted_affine() and cartan_type.type() == 'A':
             self._general_linear = True
             self._n = cartan_type.n + 1
         else:

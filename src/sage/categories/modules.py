@@ -576,3 +576,4 @@ class Modules(Category_module):
                 """
                 from magmatic_algebras import MagmaticAlgebras
                 return [MagmaticAlgebras(self.base_category().base_ring())]
+

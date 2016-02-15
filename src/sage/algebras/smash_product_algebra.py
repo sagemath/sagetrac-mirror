@@ -223,14 +223,13 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             ...       return AB.monomial((a,b))
             sage: C = SmashProductAlgebra(A,B,twist_on_basis=t_map); C # indirect doctest
             Smash product of A and A
-
         """
         R = A.base_ring()
         module_category = ModulesWithBasis(R)
         algebra_category = AlgebrasWithBasis(R)
         tensor_category = module_category.TensorProducts()
         if R != B.base_ring():
-            raise TypeError("%s and %s must have the same base ring"%(A,B))
+            raise TypeError("%s and %s must have the same base rings: \n %s \n %s\n"%(A,B,A.base_ring(),B.base_ring()))
         if A not in algebra_category or B not in algebra_category:
             raise TypeError("Tensor factors should be AlgebrasWithBasis over %s"%(R))
 

@@ -154,6 +154,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
     Algebras = LazyImport('sage.combinat.root_system.root_lattice_realization_algebras', 'Algebras')
 
+    SymmetricAlgebras = LazyImport('sage.combinat.root_system.root_lattice_realization_symmetric_algebras', 'SymmetricAlgebras')
+
     class ParentMethods:
 
         def __init_extra__(self):

@@ -62,15 +62,15 @@ def ParameterFamilies(I, q1=None, q2=None):
             except:
                 raise TypeError, "%s should be a Family or a ring element"%x
 
-        if isinstance(q, FiniteFamily):
+        if isinstance(q, FiniteFamily): # q is a family of elements of a common ring
             F = parent_ring(q[I[0]])
             if not all(i in q.keys() and q[i] in F for i in I):
                 raise TypeError, "All parameters should be elements of a common ring"
-        else:
-            if q is None:
+        else: # these cases have a single parameter
+            if q is None: # nothing is specified. Here we make up a single parameter ring.
                 F = QQ['v'].fraction_field()
                 q = F.gen(0)
-            else:
+            else: # a single parameter is given
                 F = parent_ring(q)
             q = Family(dict([[i, q] for i in I]))
         return (F, q)
@@ -227,13 +227,18 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         if not weyl_group in WeylGroups():
             cartan_type = CartanType(weyl_group)
             weyl_group=WeylGroup(cartan_type,prefix="s")
-        if isinstance(q1, dict):
-            q1 = Family(q1)
-        if isinstance(q2, dict):
-            q2 = Family(q2)
-        return super(MultiParameterHeckeAlgebra, cls).__classcall__(cls, weyl_group, q1, q2, prefix, category)
+        def listtupledict_to_family(q):
+            if isinstance(q, (list,tuple)):
+                q = dict(q)
+            if isinstance(q, dict):
+                q = Family(q)
+            return q
+        q1 = listtupledict_to_family(q1)
+        q2 = listtupledict_to_family(q2)
+        base_ring, q1, q2 = ParameterFamilies(weyl_group.cartan_type().index_set(), q1, q2)
+        return super(MultiParameterHeckeAlgebra, cls).__classcall__(cls, weyl_group, base_ring, q1, q2, prefix, category)
 
-    def __init__(self, weyl_group, q1, q2, prefix, category):
+    def __init__(self, weyl_group, base_ring, q1, q2, prefix, category):
         r"""
         Initialize Hecke algebra
 
@@ -260,7 +265,9 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
             raise TypeError, "%s is not a Weyl group"%weyl_group
         self._weyl_group = weyl_group
         I = self._weyl_group.index_set()
-        self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
+        self._base_ring = base_ring
+        self._q1 = q1
+        self._q2 = q2
 
         # Used when multiplying generators: minor speed-up as it avoids the
         # need to constantly add and multiply the parameters when applying the
