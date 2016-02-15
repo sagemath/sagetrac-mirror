@@ -443,6 +443,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
+- Clemens Heuberger (2016)
 
 ACKNOWLEDGEMENT:
 
@@ -3926,13 +3927,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``function`` -- a callable function in one variable.
 
-        - ``singularities`` -- list of dominant singularities of the function
+        - ``singularities`` -- list of dominant singularities of the function.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
 
         - ``return_singular_expansions`` -- (default: ``False``) a boolean.
-          if set, the singular expansions are also returned.
+          If set, the singular expansions are also returned.
 
         OUTPUT:
 
@@ -3941,8 +3942,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - If ``return_singular_expansions=True``: A named tuple with
           components ``asymptotic_expansion`` and
-          ``singular_expansions``. The former contains the asymptotic
-          expansion in this ring, the latter is a dictionary which
+          ``singular_expansions``. The former contains an asymptotic
+          expansion from this ring, the latter is a dictionary which
           contains the singular expansions around the singularities.
 
         .. TODO::
@@ -3956,7 +3957,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: def catalan(z):
             ....:     return (1-(1-4*z)^(1/2))/(2*z)
-            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ', QQ)
+            sage: B.<n> = AsymptoticRing('QQ^n * n^QQ', QQ)
             sage: B.singularity_analysis(catalan, (1/4,), precision=3)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
             + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-4))
@@ -3978,7 +3979,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: def harmonic(z):
             ....:     return -log(1-z)/(1-z)
-            sage: B.<n> = AsymptoticRing('QQ^n*n^QQ * log(n)^QQ', QQ)
+            sage: B.<n> = AsymptoticRing('QQ^n * n^QQ * log(n)^QQ', QQ)
             sage: ex = B.singularity_analysis(harmonic, (1,), precision=13); ex
             log(n) + euler_gamma + 1/2*n^(-1) - 1/12*n^(-2) + 1/120*n^(-4)
             + O(n^(-6))
@@ -4004,18 +4005,20 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         singular_expansions = {}
 
         OZeroEncountered = False
-        result = 0
+
+        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR, default_prec=precision)
+        T = A.gen()
+
+        result = A.zero()
         for singularity in singularities:
-            A = AsymptoticRing(
-                'T^QQ*log(T)^QQ', coefficient_ring=SR, default_prec=precision)
-            T = A.gen()
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
 
             for s in singular_expansion.summands:
                 try:
                     contribution = s._singularity_analysis_(
-                        singularity, 'Z', precision).subs(Z=self.gen())
+                        var='Z', zeta=singularity,
+                        precision=precision).subs(Z=self.gen())
                 except NotImplementedOZero:
                     OZeroEncountered = True
                 else:
