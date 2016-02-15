@@ -4538,14 +4538,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         This curve had numerous `2`-isogenies::
 
-            sage: e=EllipticCurve([1,0,0,-39,90])
+            sage: e = EllipticCurve([1,0,0,-39,90])
             sage: isocls = e.isogeny_class(); isocls.matrix()
             [1 2 4 4 8 8]
             [2 1 2 2 4 4]
-            [4 2 1 4 8 8]
-            [4 2 4 1 2 2]
-            [8 4 8 2 1 4]
-            [8 4 8 2 4 1]
+            [4 2 1 4 2 2]
+            [4 2 4 1 8 8]
+            [8 4 2 8 1 4]
+            [8 4 2 8 4 1]
 
         See http://math.harvard.edu/~elkies/nature.html for more
         interesting examples of isogeny structures.
@@ -4584,10 +4584,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: print "\n".join([repr(C) for C in isocls.curves])
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field
-            Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field
-            Elliptic Curve defined by y^2 + x*y + y = x^3 - 11*x + 12 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 2731*x - 55146 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 11*x + 12 over Rational Field
             sage: isocls2 = isocls.reorder('lmfdb'); isocls2.matrix()
             [ 1  2  3  9 18  6]
             [ 2  1  6 18  9  3]
@@ -4611,7 +4611,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [ 5  1 25]
             [ 5 25  1]
             sage: f = isocls.isogenies()[0][1]; f.kernel_polynomial()
-            x^2 + x - 29/5
+            x^2 - 21*x + 80
         """
         try:
             isoclass = self._isoclass[algorithm]
@@ -4670,7 +4670,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.isogenies_prime_degree(2)
             [Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field]
             sage: E.isogenies_prime_degree(3)
-            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field, Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field]
+            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field,
+             Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field]
             sage: E.isogenies_prime_degree(5)
             []
             sage: E.isogenies_prime_degree(11)
@@ -4998,14 +4999,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: G = E.isogeny_graph()
             sage: for v in G: print v, G.get_vertex(v)
             ...
-            1 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
-            2 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
-            3 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field
-            4 Elliptic Curve defined by y^2 + x*y  = x^3 - 520*x - 4225 over Rational Field
-            5 Elliptic Curve defined by y^2 + x*y  = x^3 + 605*x - 19750 over Rational Field
-            6 Elliptic Curve defined by y^2 + x*y  = x^3 - 8125*x - 282568 over Rational Field
-            7 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
-            8 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
+            1 Elliptic Curve defined by y^2 + x*y = x^3 - 110*x + 435 over Rational Field
+            2 Elliptic Curve defined by y^2 + x*y = x^3 - 115*x + 392 over Rational Field
+            3 Elliptic Curve defined by y^2 + x*y = x^3 - 520*x - 4225 over Rational Field
+            4 Elliptic Curve defined by y^2 + x*y = x^3 + 210*x + 2277 over Rational Field
+            5 Elliptic Curve defined by y^2 + x*y = x^3 - 8125*x - 282568 over Rational Field
+            6 Elliptic Curve defined by y^2 + x*y = x^3 + 605*x - 19750 over Rational Field
+            7 Elliptic Curve defined by y^2 + x*y = x^3 - 130000*x - 18051943 over Rational Field
+            8 Elliptic Curve defined by y^2 + x*y = x^3 - 7930*x - 296725 over Rational Field
             sage: G.plot(edge_labels=True)
             Graphics object consisting of 23 graphics primitives
         """
@@ -5104,8 +5105,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: EllipticCurve('11a1')._shortest_paths()
             ((Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field,
-              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field,
-              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field),
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field),
              {0: 0, 1: 5, 2: 5})
             sage: EllipticCurve('11a2')._shortest_paths()
             ((Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,

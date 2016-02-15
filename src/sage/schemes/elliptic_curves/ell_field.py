@@ -935,22 +935,36 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         Examples over finite fields::
 
             sage: E = EllipticCurve(GF(next_prime(1000000)), [7,8])
-            sage: E.isogenies_prime_degree()
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 347438*x + 594729 over Finite Field of size 1000003, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 674846*x + 7392 over Finite Field of size 1000003, Isogeny of degree 23 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 390065*x + 605596 over Finite Field of size 1000003]
-            sage: E.isogenies_prime_degree(2)
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003]
+            sage: sorted(E.isogenies_prime_degree(), key=str)
+            [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003,
+             Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003,
+             Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 347438*x + 594729 over Finite Field of size 1000003,
+             Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 674846*x + 7392 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003,
+             Isogeny of degree 23 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 390065*x + 605596 over Finite Field of size 1000003]
+            sage: sorted(E.isogenies_prime_degree(2), key=str)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003]
             sage: E.isogenies_prime_degree(3)
             []
             sage: E.isogenies_prime_degree(5)
             []
             sage: E.isogenies_prime_degree(7)
             []
-            sage: E.isogenies_prime_degree(13)
-            [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003,
-            Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003]
+            sage: sorted(E.isogenies_prime_degree(13), key=str)
+            [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003,
+             Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003]
 
-            sage: E.isogenies_prime_degree([2, 3, 5, 7, 13])
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003]
+            sage: sorted(E.isogenies_prime_degree([2, 3, 5, 7, 13]), key=str)
+            [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003,
+             Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003]
+
             sage: E.isogenies_prime_degree([2, 4])
             Traceback (most recent call last):
             ...
@@ -964,12 +978,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E = EllipticCurve(GF(17),[2,0])
             sage: E.isogenies_prime_degree(3)
             []
-            sage: E.isogenies_prime_degree(2)
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 9*x over Finite Field of size 17, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 5*x + 9 over Finite Field of size 17, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 5*x + 8 over Finite Field of size 17]
+            sage: sorted(E.isogenies_prime_degree(2), key=str)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 5*x + 8 over Finite Field of size 17,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 5*x + 9 over Finite Field of size 17,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 17 to Elliptic Curve defined by y^2 = x^3 + 9*x over Finite Field of size 17]
 
             sage: E = EllipticCurve(GF(13^4, 'a'),[2,8])
-            sage: E.isogenies_prime_degree(2)
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 7*x + 4 over Finite Field in a of size 13^4, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (8*a^3+2*a^2+7*a+5)*x + (12*a^3+3*a^2+4*a+4) over Finite Field in a of size 13^4, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (5*a^3+11*a^2+6*a+11)*x + (a^3+10*a^2+9*a) over Finite Field in a of size 13^4]
+            sage: sorted(E.isogenies_prime_degree(2), key=str)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (5*a^3+11*a^2+6*a+11)*x + (a^3+10*a^2+9*a) over Finite Field in a of size 13^4,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (8*a^3+2*a^2+7*a+5)*x + (12*a^3+3*a^2+4*a+4) over Finite Field in a of size 13^4,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 7*x + 4 over Finite Field in a of size 13^4]
 
             sage: E.isogenies_prime_degree(3)
             [Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 9*x + 11 over Finite Field in a of size 13^4]
@@ -983,16 +1001,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
             sage: QQroot2.<e> = NumberField(x^2-2)
             sage: E = EllipticCurve(QQroot2, j=8000)
-            sage: E.isogenies_prime_degree()
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-36750)*x + 2401000 over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (220500*e-257250)*x + (54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-220500*e-257250)*x + (-54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2]
+            sage: sorted(E.isogenies_prime_degree(), key=str)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-220500*e-257250)*x + (-54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-36750)*x + 2401000 over Number Field in e with defining polynomial x^2 - 2,
+             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (220500*e-257250)*x + (54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2]
 
             sage: E = EllipticCurve(QQroot2, [1,0,1,4, -6]); E
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2
-            sage: E.isogenies_prime_degree(2)
+            sage: sorted(E.isogenies_prime_degree(2), key=str)
             [Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-36)*x + (-70) over Number Field in e with defining polynomial x^2 - 2]
-            sage: E.isogenies_prime_degree(3)
+            sage: sorted(E.isogenies_prime_degree(3), key=str)
             [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-1)*x over Number Field in e with defining polynomial x^2 - 2,
             Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """

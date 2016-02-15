@@ -465,9 +465,10 @@ class ModularSymbolECLIB(ModularSymbol):
             8
 
             sage: E = EllipticCurve('15a1')
-            sage: [C.modular_symbol(use_eclib=True,normalize='L_ratio')(0) for C in E.isogeny_class()]
-            [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
-            sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in E.isogeny_class()]
+            sage: Cl = sorted(E.isogeny_class())
+            sage: [C.modular_symbol(use_eclib=True,normalize='L_ratio')(0) for C in Cl]
+            [1/16, 1, 1/2, 1/2, 1/8, 1/4, 1/8, 1/4]
+            sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in Cl]
             [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
 
         Currently, the interface for negative modular symbols in eclib is not yet written::
@@ -609,11 +610,12 @@ class ModularSymbolSage(ModularSymbol):
             1
 
             sage: E = EllipticCurve('15a1')
-            sage: [C.modular_symbol(use_eclib=False, normalize='L_ratio')(0) for C in E.isogeny_class()]
-            [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
-            sage: [C.modular_symbol(use_eclib=False, normalize='period')(0) for C in E.isogeny_class()]
-            [1/8, 1/16, 1/8, 1/4, 1/16, 1/32, 1/4, 1/2]
-            sage: [C.modular_symbol(use_eclib=False, normalize='none')(0) for C in E.isogeny_class()]
+            sage: Cl = sorted(E.isogeny_class())
+            sage: [C.modular_symbol(use_eclib=False, normalize='L_ratio')(0) for C in Cl]
+            [1/16, 1, 1/2, 1/2, 1/8, 1/4, 1/8, 1/4]
+            sage: [C.modular_symbol(use_eclib=False, normalize='period')(0) for C in Cl]
+            [1/32, 1/2, 1/4, 1/4, 1/16, 1/8, 1/16, 1/8]
+            sage: [C.modular_symbol(use_eclib=False, normalize='none')(0) for C in Cl]
             [1, 1, 1, 1, 1, 1, 1, 1]
 
         """

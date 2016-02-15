@@ -172,12 +172,12 @@ def cm_j_invariants(K, proof=None):
 
     EXAMPLE::
 
-        sage: cm_j_invariants(QQ)
+        sage: sorted(cm_j_invariants(QQ))
         [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
 
     Over imaginary quadratic fields there are no more than over `QQ`::
 
-        sage: cm_j_invariants(QuadraticField(-1, 'i'))
+        sage: sorted(cm_j_invariants(QuadraticField(-1, 'i')))
         [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
 
     Over real quadratic fields there may be more, for example::
@@ -194,12 +194,7 @@ def cm_j_invariants(K, proof=None):
         sage: len(cm_j_invariants(K))
         23
     """
-    res = [j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]
-    try:
-        res.sort()
-    except NotImplementedError:
-        pass
-    return list(res)
+    return [j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]
 
 @cached_function
 def cm_j_invariants_and_orders(K, proof=None):

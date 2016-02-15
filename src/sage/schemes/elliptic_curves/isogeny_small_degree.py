@@ -305,10 +305,6 @@ def isogenies_prime_degree_genus_0(E, l=None):
         t = R.gen()
         f = R(Fricke_polynomial(l))
         t_list = (f-j*t).roots(multiplicities=False)
-        try:
-            t_list.sort()
-        except NotImplementedError:
-            pass
         # The generic kernel polynomial applies to a standard curve
         # E_t with the correct j-invariant; we must compute the
         # appropriate twising factor to scale X by:
@@ -681,11 +677,6 @@ def isogenies_2(E):
     """
     f2 = E.division_polynomial(2)
     x2 = f2.roots(multiplicities=False)
-    try:
-        x2.sort()
-    except NotImplementedError:
-        pass
-
     x = f2.parent().gen()
     ff = [x-x2i for x2i in x2]
     from sage.rings.number_field.number_field_base import is_NumberField
@@ -710,28 +701,27 @@ def isogenies_3(E):
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import isogenies_3
         sage: E = EllipticCurve(GF(17), [1,1])
-        sage: [phi.codomain().ainvs() for phi in isogenies_3(E)]
-        [(0, 0, 0, 9, 7), (0, 0, 0, 0, 1)]
+        sage: sorted([phi.codomain().ainvs() for phi in isogenies_3(E)])
+        [(0, 0, 0, 0, 1), (0, 0, 0, 9, 7)]
 
         sage: E = EllipticCurve(GF(17^2,'a'), [1,1])
-        sage: [phi.codomain().ainvs() for phi in isogenies_3(E)]
-        [(0, 0, 0, 9, 7), (0, 0, 0, 0, 1), (0, 0, 0, 5*a + 1, a + 13), (0, 0, 0, 12*a + 6, 16*a + 14)]
+        sage: sorted([phi.codomain().ainvs() for phi in isogenies_3(E)])
+        [(0, 0, 0, 0, 1),
+         (0, 0, 0, 9, 7),
+         (0, 0, 0, 5*a + 1, a + 13),
+         (0, 0, 0, 12*a + 6, 16*a + 14)]
 
         sage: E = EllipticCurve('19a1')
-        sage: [phi.codomain().ainvs() for phi in isogenies_3(E)]
-        [(0, 1, 1, 1, 0), (0, 1, 1, -769, -8470)]
+        sage: sorted([phi.codomain().ainvs() for phi in isogenies_3(E)])
+        [(0, 1, 1, -769, -8470), (0, 1, 1, 1, 0)]
 
         sage: E = EllipticCurve([1,1])
-        sage: [phi.codomain().ainvs() for phi in isogenies_3(E)]
+        sage: sorted([phi.codomain().ainvs() for phi in isogenies_3(E)])
         []
 
     """
     f3 = E.division_polynomial(3)
     x3 = f3.roots(multiplicities=False)
-    try:
-        x3.sort()
-    except NotImplementedError:
-        pass
     x = f3.parent().gen()
     ff = [x-x3i for x3i in x3]
     from sage.rings.number_field.number_field_base import is_NumberField
@@ -1071,10 +1061,6 @@ def isogenies_7_1728(E):
     ts = (Fricke_module(7)-1728).numerator().roots(F,multiplicities=False)
     if len(ts)==0:
         return []
-    try:
-        ts.sort()
-    except NotImplementedError:
-        pass
     isogs = []
     from sage.rings.number_field.number_field_base import is_NumberField
     model = "minimal" if is_NumberField(F) else None
@@ -1655,10 +1641,6 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
             S += [[u0,(2*j-a(u0))/b(u0)]]
     if len(S) == 0:
         return []
-    try:
-        S.sort()
-    except NotImplementedError:
-        pass
 
     c4, c6 = E.c_invariants()
     b2 = E.b2()
@@ -1748,10 +1730,6 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l):
             S += [[u0,-a(u0)/b(u0)]]
     if len(S)==0 and len(kernels) == 0:
         return []
-    try:
-        S.sort()
-    except NotImplementedError:
-        pass
 
     psi = Fxuv(Psi2(l))
     for u0,v0 in S:
@@ -1837,10 +1815,6 @@ def isogenies_prime_degree_genus_plus_0_j1728(E, l):
             S += [[u0,(2*1728-a(u0))/b(u0)]]
     if len(S)==0 and len(kernels) == 0:
         return []
-    try:
-        S.sort()
-    except NotImplementedError:
-        pass
 
     psi = Fxuv(Psi2(l))
     for u0,v0 in S:

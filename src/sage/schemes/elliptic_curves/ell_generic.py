@@ -2711,14 +2711,14 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: E = EllipticCurve('11a1')
             sage: E._p_primary_torsion_basis(5)
-            [[(5 : -6 : 1), 1]]
+            [[(16 : 60 : 1), 1]]
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
             sage: EK._p_primary_torsion_basis(5)  # long time (2s on sage.math, 2011)
             [[(16 : 60 : 1), 1], [(t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1), 1]]
             sage: EF = E.change_ring(GF(101))
             sage: EF._p_primary_torsion_basis(5)
-            [[(0 : 13 : 1), 1], [(5 : 5 : 1), 1]]
+            [[(0 : 13 : 1), 1], [(82 : 4 : 1), 1]]
 
             sage: F.<z> = CyclotomicField(21)
             sage: E = EllipticCurve([2,-z^7,-z^7,0,0])

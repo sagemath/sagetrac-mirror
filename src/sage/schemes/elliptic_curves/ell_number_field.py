@@ -2197,37 +2197,38 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('15a1')
             sage: K.<t> = NumberField(x^2 + 2*x + 10)
             sage: EK = E.base_extend(K)
-            sage: EK.torsion_points()
-            [(-7 : -5*t - 2 : 1),
-             (-7 : 5*t + 8 : 1),
-             (-13/4 : 9/8 : 1),
-             (-2 : -2 : 1),
-             (-2 : 3 : 1),
-             (-t - 2 : -t - 7 : 1),
-             (-t - 2 : 2*t + 8 : 1),
-             (-1 : 0 : 1),
-             (t : t - 5 : 1),
-             (t : -2*t + 4 : 1),
-             (0 : 1 : 0),
-             (1/2 : -5/4*t - 2 : 1),
-             (1/2 : 5/4*t + 1/2 : 1),
-             (3 : -2 : 1),
-             (8 : -27 : 1),
-             (8 : 18 : 1)]
+            sage: sorted(EK.torsion_points(), key=str)
+            [(-1 : 0 : 1),
+            (-13/4 : 9/8 : 1),
+            (-2 : -2 : 1),
+            (-2 : 3 : 1),
+            (-7 : -5*t - 2 : 1),
+            (-7 : 5*t + 8 : 1),
+            (-t - 2 : -t - 7 : 1),
+            (-t - 2 : 2*t + 8 : 1),
+            (0 : 1 : 0),
+            (1/2 : -5/4*t - 2 : 1),
+            (1/2 : 5/4*t + 1/2 : 1),
+            (3 : -2 : 1),
+            (8 : -27 : 1),
+            (8 : 18 : 1),
+            (t : -2*t + 4 : 1),
+            (t : t - 5 : 1)]
 
         ::
 
             sage: K.<i> = QuadraticField(-1)
             sage: EK = EllipticCurve(K,[0,0,0,0,-1])
-            sage: EK.torsion_points ()
-             [(-2 : -3*i : 1), (-2 : 3*i : 1), (0 : -i : 1), (0 : i : 1), (0 : 1 : 0), (1 : 0 : 1)]
+            sage: sorted(EK.torsion_points(), key=str)
+            [(-2 : -3*i : 1),
+             (-2 : 3*i : 1),
+             (0 : -i : 1),
+             (0 : 1 : 0),
+             (0 : i : 1),
+             (1 : 0 : 1)]
          """
         T = self.torsion_subgroup() #  cached
         pts = T.points()
-        try:
-            pts.sort()
-        except NotImplementedError:
-            pass
         return pts           # these are also cached in T
 
     def rank_bounds(self, **kwds):
@@ -2594,11 +2595,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The curves in the class (sorted)::
 
+            sage: C = C.reorder(sorted(C.curves, key=str))
             sage: [E1.ainvs() for E1 in C]
-            [(0, 0, 0, 0, -27),
-            (0, 0, 0, 0, 1),
-            (i + 1, i, i + 1, -i + 3, 4*i),
-            (i + 1, i, i + 1, -i + 33, -58*i)]
+            [(i + 1, i, i + 1, -i + 3, 4*i),
+             (i + 1, i, i + 1, -i + 33, -58*i),
+             (0, 0, 0, 0, -27),
+             (0, 0, 0, 0, 1)]
 
         The matrix of degrees of cyclic isogenies between curves::
 
@@ -2618,22 +2620,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: isogs = C.isogenies()
             sage: [((i,j),isogs[i][j].degree()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
             [((0, 1), 3),
-            ((0, 3), 2),
-            ((1, 0), 3),
-            ((1, 2), 2),
-            ((2, 1), 2),
-            ((2, 3), 3),
-            ((3, 0), 2),
-            ((3, 2), 3)]
+             ((0, 3), 2),
+             ((1, 0), 3),
+             ((1, 2), 2),
+             ((2, 1), 2),
+             ((2, 3), 3),
+             ((3, 0), 2),
+             ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), (1/9*x^3 - 12)/x^2),
-             ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
-             ((1, 0), (x^3 + 4)/x^2),
-             ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
-             ((2, 1), (1/2*i*x^2 - x)/(x + 3/2*i)),
-             ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
-             ((3, 0), (1/2*i*x^2 + x + 4*i)/(x - 5/2*i)),
-             ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
+            [((0, 1), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
+             ((0, 3), (1/2*i*x^2 - x)/(x + 3/2*i)),
+             ((1, 0), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16)),
+             ((1, 2), (1/2*i*x^2 + x + 4*i)/(x - 5/2*i)),
+             ((2, 1), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
+             ((2, 3), (1/9*x^3 - 12)/x^2),
+             ((3, 0), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
+             ((3, 2), (x^3 + 4)/x^2)]
 
         The isogeny class may be visualized by obtaining its graph and
         plotting it::
@@ -2645,6 +2647,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
             sage: C = E.isogeny_class(); C
             Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1
+            sage: C = C.reorder(sorted(C.curves, key=str))
             sage: len(C)
             6
             sage: C.matrix()
@@ -2655,12 +2658,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [ 6  2  6  3  1  3]
             [ 2  6 18  9  3  1]
             sage: [E1.ainvs() for E1 in C]
-            [(i + 1, i - 1, i, -i - 1, -i + 1),
-            (i + 1, i - 1, i, 14*i + 4, 7*i + 14),
-            (i + 1, i - 1, i, 59*i + 99, 372*i - 410),
-            (i + 1, -i, i, -240*i - 399, 2869*i + 2627),
-            (i + 1, -i, i, -5*i - 4, 2*i + 5),
-            (i + 1, -i, i, 1, 0)]
+            [(i + 1, -i, i, -240*i - 399, 2869*i + 2627),
+             (i + 1, -i, i, -5*i - 4, 2*i + 5),
+             (i + 1, -i, i, 1, 0),
+             (i + 1, i - 1, i, -i - 1, -i + 1),
+             (i + 1, i - 1, i, 14*i + 4, 7*i + 14),
+             (i + 1, i - 1, i, 59*i + 99, 372*i - 410)]
 
         An example with CM by `\sqrt{-5}`::
 
@@ -2680,11 +2683,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: C.matrix()
             [1 2]
             [2 1]
+            sage: C = C.reorder(sorted(C.curves, key=str))
             sage: [E.ainvs() for E in C]
-            [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
-            (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
+            [(0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c),
+             (0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         An example with CM by `\sqrt{-23}` (class number `3`)::
 
@@ -2703,12 +2707,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         The reason for the isogeny class having size six while the
         class number is only `3` is that the class also contains three
         curves with CM by the order of discriminant `-92=4\cdot(-23)`,
-        which also has class number `3`.  The curves in the class are
-        sorted first by CM discriminant (then lexicographically using
-        a-invariants)::
+        which also has class number `3`.::
 
+            sage: C = C.reorder(sorted(C.curves, key=str))
             sage: [F.cm_discriminant() for F in C]
-            [-23, -23, -23, -92, -92, -92]
+            [-92, -92, -23, -92, -23, -23]
 
         `2` splits in the order with discriminant `-23`, into two
         primes of order `3` in the class group, each of which induces
@@ -2720,12 +2723,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-92, -23, -23]
 
             sage: C.matrix()
-            [1 2 2 4 2 4]
-            [2 1 2 2 4 4]
-            [2 2 1 4 4 2]
-            [4 2 4 1 3 3]
-            [2 4 4 3 1 3]
-            [4 4 2 3 3 1]
+            [1 3 4 3 2 4]
+            [3 1 4 3 4 2]
+            [4 4 1 2 2 2]
+            [3 3 2 1 4 4]
+            [2 4 2 4 1 2]
+            [4 2 2 4 2 1]
 
         The graph of this isogeny class has a shape which does not
         occur over `\QQ`: a triangular prism.  Note that for curves
@@ -2752,12 +2755,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: G = C.graph()
             sage: G.adjacency_matrix()
-            [0 1 1 0 1 0]
-            [1 0 1 1 0 0]
-            [1 1 0 0 0 1]
-            [0 1 0 0 1 1]
+            [0 1 0 1 1 0]
             [1 0 0 1 0 1]
-            [0 0 1 1 1 0]
+            [0 0 0 1 1 1]
+            [1 1 1 0 0 0]
+            [1 0 1 0 0 1]
+            [0 1 1 0 1 0]
 
         To display the graph without any edge labels::
 
@@ -2811,11 +2814,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: C = E.isogeny_class(); len(C) # long time (~11s)
             4
+            sage: C = C.reorder(sorted(C.curves, key=str))
             sage: C.matrix()                    # long time
-            [ 1 13  2 26]
-            [13  1 26  2]
-            [ 2 26  1 13]
-            [26  2 13  1]
+            [ 1 13 26  2]
+            [13  1  2 26]
+            [26  2  1 13]
+            [ 2 26 13  1]
             sage: len(Set([EE.j_invariant() for EE in C.curves]))  # long time
             2
 
@@ -2835,6 +2839,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         forms of discriminant `-104`, from which we have selected a
         small prime::
 
+            sage: CL = CL.reorder(sorted(CL.curves, key=str))
             sage: CL.matrix() # long time # random (see :trac:`19229`)
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
@@ -3179,8 +3184,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
             sage: C = E.isogeny_class()
-            sage: [E.isogeny_degree(F) for F in C]
-            [2, 6, 18, 9, 3, 1]
+            sage: sorted([E.isogeny_degree(F) for F in C])
+            [1, 2, 3, 6, 9, 18]
         """
         # First deal with some easy cases:
         if self.conductor() != other.conductor():
