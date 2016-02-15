@@ -32,7 +32,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.algebras.multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 from sage.algebras.smash_product_algebra import SmashProductAlgebra
 from sage.algebras.affine_hecke_algebra import ExtendedAffineHeckeAlgebra
-from sage.algebras.twisted_group_algebra import TwistedGroupAlgebra
 from sage.modules.free_module_element import vector
 from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
@@ -1436,13 +1435,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         LT_to_LLvtv = LT.module_morphism(on_basis=LT_to_LLvtv_on_basis, codomain=LLvtv)
         LT_to_LLvtv.register_as_coercion()
 
-        # Create the localized form (DAHA tensored with fraction field of the lattice group algebra)
-        # it is realized as the twisted group algebra of the extended affine Weyl group on the above
-        # fraction field
-        # Not worrying about dual_side=True case for this part
-        self._KQ = self._KL.rational_function_field(prefix="x")
-        QW = self.QW()
-
     def double_affine_type(self):
         r"""
         Return the double affine type of ``self``.
@@ -1850,31 +1842,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         KL = self.lattice_algebra()
         return Family(dict([[0,dat.q()**dat._m * KL.monomial(cl_alpha_0)]] + [[i, KL.monomial(simple_roots[i])] for i in I0]))
 
-    def lattice_algebra_fraction_field(self):
-        r"""
-        The fraction field of ``self.lattice_algebra()``.
-
-        EXAMPLES::
-
-            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", reduced=False, dual_reduced=False)
-            sage: HH.lattice_algebra_fraction_field()
-            Fraction Field of Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2 over Rational Field
-        """
-        return self._KQ
-
-    def localized_form(self):
-        r"""
-        The twisted group algebra of the affine Weyl group of ``self``, with scalars in
-        ``self.lattice_algebra_fraction_field()``.
-
-        EXAMPLES::
-
-            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", reduced=False, dual_reduced=False)
-            sage: HH.localized_form()
-            Localized form of the The double affine Hecke algebra of type ['B', 2, 1]
-        """
-        return self._QW
-
     def dual_lattice_algebra(self):
         r"""
         The group algebra of the dual lattice.
@@ -2142,22 +2109,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
     def tv(self):
         return self._tv
-
-    def QW(self):
-        r"""
-        The localized form of the DAHA.
-
-        It is the twisted group ring using the affine Weyl group of the DAHA,
-        whose 'scalar' ring is the fraction field of the group algebra of the `X` lattice.
-
-        A coercion is supplied from the DAHA bases to this algebra.
-
-        EXAMPLES::
-
-            sage: DoubleAffineHeckeAlgebraSansDuality("B2",reduced=False,dual_reduced=False).QW()
-            Localized form of the The double affine Hecke algebra of type ['B', 2, 1]
-        """
-        return self.DoubleAffineHeckeAlgebraLocalized()
 
     @cached_method
     def _F_on_LTmod_left_morphism(self, pi):
@@ -3564,228 +3515,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             """
             return self._to_polynomial_morphism(x)
-
-    class DoubleAffineHeckeAlgebraLocalizedElement(CombinatorialFreeModuleElement):
-        r"""
-        Element class for :class:`DoubleAffineHeckeAlgebraLocalized`.
-        """
-        def difference_operator(self):
-            r"""
-            Map ``self`` to the pure difference operator obtained by replacing each reflection operator by the identity.
-
-            That is, send each extended affine Weyl group basis element to the unique translation element in its coset mod
-            the finite Weyl group.
-
-            EXAMPLES::
-
-                sage: QW=DoubleAffineHeckeAlgebraSansDuality("A2").QW()
-                sage: T0 = QW.T_generators()[0]
-                sage: T0.difference_operator()
-                ((-q^3*v^2*x2+x0)/(-q^3*v*x2+v*x0))*X[t[Lambda[1] + Lambda[2]]] + ((v^2*x0-x0)/(-q^3*v*x2+v*x0))*X[1]
-            """
-            return self.map_support(lambda w: w.parent().from_dual_translation(w.to_dual_translation_left()))
-
-    class DoubleAffineHeckeAlgebraLocalized(TwistedGroupAlgebra, BindableClass):
-        r"""
-        The localized form of the DAHA.
-        """
-
-        def __init__(self, HH):
-            r"""
-            TESTS::
-
-                sage: QW = DoubleAffineHeckeAlgebraSansDuality("B2",reduced=False,dual_reduced=False).QW()
-                sage: TestSuite(QW).run()
-
-            """
-            self._daha = HH # this makes the DAHA method work
-            # Set up lazy families of operators, one indexed by W0 and the other by P,
-            # with values in automorphisms of the fraction field
-            self._Q = HH.lattice_algebra_fraction_field()
-            self._X = self._Q.lattice()
-            self._B = self._X.basis()
-            self._I = self._B.keys()
-            self._W0working = self._X.weyl_group()
-            self._W0_autos = Family(self.extended_affine_weyl().classical_weyl(), lambda w: self._Q.induced_endomorphism([self._W0working.from_reduced_word(w.reduced_word()).action(b) for b in self._B]),lazy=True)
-            self._translation_autos = Family(self.extended_affine_weyl().dual_lattice(), lambda mu: self._Q.scaling_endomorphism(Family(self._I, lambda i: self.double_affine_type().q()**(-self.DAHA().Y_pair_X_m(mu.to_ambient(),self._B[i])))))
-
-            self._affine_weyl_action = lambda w, a: self._translation_autos[w.to_dual_translation_left()](self._W0_autos[w.to_dual_classical_weyl()](a))
-
-            TwistedGroupAlgebra.__init__(self, self._Q, self.extended_affine_weyl().PvW0(), self._affine_weyl_action)
-            HH._QW = self
-
-        def _repr_(self):
-            r"""
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW()
-                Localized form of the The double affine Hecke algebra of type ['C', 2, 1]^*
-            """
-            return "Localized form of the %s"%repr(self.DAHA())
-
-        def DAHA(self):
-            r"""
-            The double affine Hecke algebra of which ``self`` is a localized form.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().DAHA()
-                The double affine Hecke algebra of type ['C', 2, 1]^*
-            """
-            return self._daha
-
-        def double_affine_type(self):
-            r"""
-            The double affine type of ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().double_affine_type()
-                Double Affine Type ['C', 2, 1]^* nonreduced nondual-reduced
-            """
-            return self.DAHA().double_affine_type()
-
-        def extended_affine_weyl(self):
-            r"""
-            The extended affine Weyl group of ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().extended_affine_weyl()
-                Extended affine Weyl group of type ['C', 2, 1]^*
-            """
-            return self.double_affine_type().extended_affine_weyl()
-
-        def lattice_algebra_fraction_field(self):
-            r"""
-            The scalar field of ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().lattice_algebra_fraction_field()
-                Fraction Field of Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-            """
-            return self._Q
-
-        @cached_method
-        def simple_roots_as_scalars(self):
-            r"""
-            The family of simple roots living in the scalar field of ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").QW().simple_roots_as_scalars()
-                Finite family {0: q^3*x2/x0, 1: x0/x1, 2: x1/x2}
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().simple_roots_as_scalars()
-                Finite family {0: q/x0, 1: x0/x1, 2: x1}
-            """
-            lattice_algebra_simple_roots = self.DAHA().lattice_algebra_simple_roots()
-            return Family(lattice_algebra_simple_roots.keys(), lambda i: self.lattice_algebra_fraction_field().from_lattice_algebra_map()(lattice_algebra_simple_roots[i]))
-
-        @cached_method
-        def simple_reflections(self):
-            r"""
-            The family of simple reflections in ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").QW().simple_reflections()
-                Finite family {0: X[t[Lambda[1] + Lambda[2]] * s1*s2*s1], 1: X[s1], 2: X[s2]}
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().simple_reflections()
-                Finite family {0: X[t[Lambda[1]] * s1*s2*s1], 1: X[s1], 2: X[s2]}
-            """
-            PvW0 = self.extended_affine_weyl().PvW0()
-            return Family(self.double_affine_type().cartan_type().index_set(), lambda i: self.monomial(PvW0.simple_reflection(i)))
-
-        @cached_method
-        def T_generators(self):
-            r"""
-            The family of `T` generators, expressed as difference-reflection operators in ``self``.
-
-            ..MATH::
-
-                T_i = \begin{cases}
- v_i s_i + \dfrac{(v_{\alpha_i} - v_{\alpha_i}^{-1})+(v_{2\alpha_i}-v_{2\alpha_i}^{-1})X^{\alpha_i}}{1-X^{2\alpha_i}} (1 - s_i) & \text{if $i$ is a doubled node} \\
- v_i s_i + \dfrac{(v_{\alpha_i} - v_{\alpha_i}^{-1})}{1-X^{\alpha_i}} (1 - s_i) & \text{otherwise.}
-                \end{cases}
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").QW().T_generators()
-                Finite family {0: ((-q^3*v^2*x2+x0)/(-q^3*v*x2+v*x0))*X[t[Lambda[1] + Lambda[2]] * s1*s2*s1] + ((v^2*x0-x0)/(-q^3*v*x2+v*x0))*X[1], 1: ((-v^2*x0+x1)/(-v*x0+v*x1))*X[s1] + ((v^2*x1-x1)/(-v*x0+v*x1))*X[1], 2: ((v^2*x2-x2)/(-v*x1+v*x2))*X[1] + ((-v^2*x1+x2)/(-v*x1+v*x2))*X[s2]}
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().T_generators()
-                Finite family {0: ((q*v0*vz^2*x0+v0^2*vz*x0^2-q*v0*x0-vz*x0^2)/(-q^2*v0*vz+v0*vz*x0^2))*X[1] + ((-q^2*v0^2*vz-q*v0*vz^2*x0+q*v0*x0+vz*x0^2)/(-q^2*v0*vz+v0*vz*x0^2))*X[t[Lambda[1]] * s1*s2*s1], 1: ((-vl^2*x0+x1)/(-vl*x0+vl*x1))*X[s1] + ((vl^2*x1-x1)/(-vl*x0+vl*x1))*X[1], 2: ((v*v2^2*x1+v^2*v2-v*x1-v2)/(-v*v2*x1^2+v*v2))*X[1] + ((-v^2*v2*x1^2-v*v2^2*x1+v*x1+v2)/(-v*v2*x1^2+v*v2))*X[s2]}
-            """
-            dat = self.double_affine_type()
-            Q = self.lattice_algebra_fraction_field()
-            nodes = dat.cartan_type().index_set()
-            doubled_nodes = dat.doubled_nodes()
-            return Family(dict([[i, dat.v(i)*self.simple_reflections()[i] + ((dat.diff_reciprocal(dat.v(i))+dat.diff_reciprocal(dat.v2(i))*self.simple_roots_as_scalars()[i])/(Q.one() - self.simple_roots_as_scalars()[i]**2))*(self.one() - self.simple_reflections()[i])] for i in doubled_nodes]+[[i, dat.v(i)*self.simple_reflections()[i] + (dat.diff_reciprocal(dat.v(i))/(Q.one() - self.simple_roots_as_scalars()[i]))*(self.one() - self.simple_reflections()[i])] for i in nodes if i not in doubled_nodes]))
-
-        @cached_method
-        def fundamental_group_operators(self):
-            r"""
-            The family of fundamental group generators, expressed as difference-reflection operators in ``self``.
-
-            The keys are the fundamental nodes and the values are the monomials for the corresponding group
-            elements.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").QW().fundamental_group_operators()
-                Finite family {0: X[1], 1: X[t[Lambda[1]] * s1*s2], 2: X[t[Lambda[2]] * s2*s1]}
-                sage: DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW().fundamental_group_operators()
-                Finite family {0: X[1], 2: X[t[Lambda[2]] * s2*s1*s2]}
-            """
-            EW = self.extended_affine_weyl()
-            F = EW.fundamental_group()
-            PvW0 = EW.PvW0()
-            return Family(F.special_nodes(), lambda i: self.monomial(PvW0.from_fundamental(F(i))))
-
-        @cached_method
-        def Tw(self, w):
-            r"""
-            The image in ``self`` of the `T_w` operator for `w` in the affine Weyl group.
-
-            EXAMPLES::
-
-                sage: QW = DoubleAffineHeckeAlgebraSansDuality("A2").QW()
-                sage: QW.Tw(QW.extended_affine_weyl().PvW0().from_reduced_word([1,2]))
-                ((v^4*x0^2-v^2*x0*x1-v^2*x0*x2+x1*x2)/(v^2*x0^2-v^2*x0*x1-v^2*x0*x2+v^2*x1*x2))*X[s1*s2] + ((-v^4*x0*x2+v^2*x0*x2+v^2*x1*x2-x1*x2)/(v^2*x0^2-v^2*x0*x1-v^2*x0*x2+v^2*x1*x2))*X[s1] + ((v^4*x1*x2-2*v^2*x1*x2+x1*x2)/(v^2*x0*x1-v^2*x1^2-v^2*x0*x2+v^2*x1*x2))*X[1] + ((-v^4*x1^2+v^2*x1^2+v^2*x1*x2-x1*x2)/(v^2*x0*x1-v^2*x1^2-v^2*x0*x2+v^2*x1*x2))*X[s2]
-                sage: QW = DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False,reduced=False,dual_reduced=False).QW()
-                sage: QW.Tw(QW.extended_affine_weyl().PvW0().from_reduced_word([1,2]))
-                ((-v*vl^2*v2^2*x0^2-v^2*vl^2*v2*x0+v*vl^2*x0^2+v*v2^2*x0*x1+vl^2*v2*x0+v^2*v2*x1-v*x0*x1-v2*x1)/(v*vl*v2*x0^3-v*vl*v2*x0^2*x1-v*vl*v2*x0+v*vl*v2*x1))*X[s1] + ((v^2*vl^2*v2*x0^3+v*vl^2*v2^2*x0^2-v^2*v2*x0^2*x1-v*vl^2*x0^2-v*v2^2*x0*x1-vl^2*v2*x0+v*x0*x1+v2*x1)/(v*vl*v2*x0^3-v*vl*v2*x0^2*x1-v*vl*v2*x0+v*vl*v2*x1))*X[s1*s2] + ((v*vl^2*v2^2*x1^2+v^2*vl^2*v2*x1-v*vl^2*x1^2-v*v2^2*x1^2-v^2*v2*x1-vl^2*v2*x1+v*x1^2+v2*x1)/(v*vl*v2*x0*x1^2-v*vl*v2*x1^3-v*vl*v2*x0+v*vl*v2*x1))*X[1] + ((-v^2*vl^2*v2*x1^3-v*vl^2*v2^2*x1^2+v^2*v2*x1^3+v*vl^2*x1^2+v*v2^2*x1^2+vl^2*v2*x1-v*x1^2-v2*x1)/(v*vl*v2*x0*x1^2-v*vl*v2*x1^3-v*vl*v2*x0+v*vl*v2*x1))*X[s2]
-            """
-            i = w.first_descent(side='left')
-            if i is None:
-                return self.one()
-            return self.T_generators()[i] * self.Tw(w.apply_simple_reflection(i, side='left'))
-
-        def from_LT(self, element):
-            r"""
-            The image of ``element`` under the map from the `LT` form of the DAHA, to ``self``.
-
-            The keys of the basis of `LT` consist of triples `(la,i,w)` where `la` is a weight in the
-            `X` lattice, `i` is a special node, and `w` is an affine Weyl group element.
-            It represents `X^\lambda \pi_i T_w`.
-
-            EXAMPLES::
-
-                sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
-                sage: LT = HH.LT()
-                sage: la = HH.lattice().fundamental_weight(2)
-                sage: WE = HH.double_affine_type().extended_affine_weyl()
-                sage: pi = WE.fundamental_group().one()
-                sage: w = WE.PvW0().from_reduced_word([2]).to_affine_weyl_right()
-                sage: m = LT.monomial((la,pi,w)); m
-                X[(1, 1, 0)] TX[2]
-                sage: HH.QW().from_LT(m)
-                ((-v^2*x0*x1^2+x0*x1*x2)/(-v*x1+v*x2))*X[s2] + ((v^2*x0*x1*x2-x0*x1*x2)/(-v*x1+v*x2))*X[1]
-            """
-            return self.sum([element[(la,i,w)]*self.lattice_algebra_fraction_field().lattice_monomial(la)*self.fundamental_group_operators()[i.value()]*self.Tw(w) for (la,i,w) in element.support()])
-
-    DoubleAffineHeckeAlgebraLocalized.Element = DoubleAffineHeckeAlgebraLocalizedElement
-
 
 class RamYipFormula(SageObject):
     r"""

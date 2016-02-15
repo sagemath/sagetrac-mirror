@@ -31,7 +31,6 @@ from sage.categories.category_types import Category_over_base
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.modules import Modules
-from sage.categories.rings import Rings
 from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.with_basis.morphism',
@@ -1804,4 +1803,3 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [Category of duals of vector spaces over Rational Field, Category of duals of modules with basis over Rational Field]
             """
             return [Modules(self.base_category().base_ring())]
-

@@ -18,7 +18,6 @@ from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.rings.all import Integer
-from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 import sage.structure.element
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets

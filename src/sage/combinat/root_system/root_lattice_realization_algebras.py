@@ -16,8 +16,6 @@ from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
 from sage.categories.algebra_functor import AlgebrasCategory
 lazy_import('sage.rings.integer_ring', 'ZZ')
-from sage.categories.integral_domains import IntegralDomains
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
 from sage.algebras.multiparameter_hecke_algebra import ParameterFamilies
@@ -1427,13 +1425,6 @@ class Algebras(AlgebrasCategory):
 
             return HeckeAlgebraRepresentation(self, on_basis, self.cartan_type(), q1, q2, q=1, side=side, doubled_parameters=doubled_parameters)
             
-        def rational_function_field(self, **keywords):
-            r"""
-            The fraction field of the root lattice realization algebra.
-            """
-            from sage.algebras.symmetric_algebra import FractionFieldFromLatticeGroupAlgebra
-            return FractionFieldFromLatticeGroupAlgebra(self, **keywords)
-
     class ElementMethods:
 
         def acted_upon(self, w):
