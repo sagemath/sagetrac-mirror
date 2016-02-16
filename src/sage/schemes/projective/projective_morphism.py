@@ -2711,7 +2711,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.critical_points()
             [(1 : 0)]
             sage: K.<w> = QuadraticField(6)
-            sage: f.critical_points(K)
+            sage: sorted(f.critical_points(K))
             [(-1/3*w : 1), (1/3*w : 1), (1 : 0)]
 
         ::
@@ -2720,7 +2720,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([2*x^2-y^2, x*y])
-            sage: f.critical_points(QQbar)
+            sage: sorted(f.critical_points(QQbar))
             [(-0.7071067811865475?*I : 1), (0.7071067811865475?*I : 1)]
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
@@ -2964,7 +2964,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2-x*y+y^2, x^2-y^2+x*y])
-            sage: f.periodic_points(1)
+            sage: sorted(f.periodic_points(1))
             [(-0.500000000000000? - 0.866025403784439?*I : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
             (1 : 1)]
 
@@ -2973,7 +2973,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'),2)
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2, y^2-z^2, z^2])
-            sage: f.periodic_points(2)
+            sage: sorted(f.periodic_points(2))
             [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1), (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1),
             (-3/4 : 0 : 1), (1/4 : -1 : 1), (1/4 : -1/2*t + 1/2 : 1), (1/4 : 0 : 1), (1/4 : 1/2*t + 1/2 : 1),
             (7/4 : -1 : 1), (7/4 : 0 : 1)]
@@ -2998,7 +2998,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
-            sage: f.periodic_points(2, False)
+            sage: sorted(f.periodic_points(2, False))
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1), (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1),
             (1/4 : 2 : 1), (1 : 0 : 0), (1 : 1 : 0), (7/4 : -1 : 1), (7/4 : 2 : 1)]
 
@@ -3007,7 +3007,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
             sage: f = H([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
-            sage: f.periodic_points(2)
+            sage: sorted(f.periodic_points(2))
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
         """
         if n <= 0:

@@ -4629,11 +4629,7 @@ cdef class Matrix(matrix1.Matrix):
         num_iterates = max([0] + [f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
 
         S = [ ]
-
-        try:
-            F.sort()
-        except NotImplementedError:
-            pass
+ 
         for i in range(len(F)):
             g, m = F[i]
 

@@ -2511,7 +2511,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E=EllipticCurve([0,0,0,a,2])
-            sage: embs=K.embeddings(CC); len(embs)
+            sage: embs=sorted(K.embeddings(CC), key = lambda e: e(K.gen()))
+            sage: len(embs)
             3
 
         For each embedding we have a different period lattice::

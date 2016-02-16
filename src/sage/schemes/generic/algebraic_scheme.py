@@ -1460,7 +1460,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: K.<v> = NumberField(u^2 + 3)
             sage: A.<x,y> = ProjectiveSpace(K,1)
             sage: X=A.subscheme(x^2 - y^2)
-            sage: X.rational_points(3)
+            sage: sorted(X.rational_points(3))
             [(-1 : 1), (1 : 1)]
 
         One can enumerate points up to a given bound on a projective scheme

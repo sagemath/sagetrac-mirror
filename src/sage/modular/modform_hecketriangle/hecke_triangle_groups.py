@@ -797,7 +797,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Relative number field morphism:
               From: Number Field in e with defining polynomial x^2 - lam^2 + 4 over its base field
               To:   Algebraic Field
-              Defn: e |--> 0.?... + 0.867767478235...?*I
+              Defn: e |--> 0.867767478235...?*I
                     lam |--> 1.801937735804...?
         """
 

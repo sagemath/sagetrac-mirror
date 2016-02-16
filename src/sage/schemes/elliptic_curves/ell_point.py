@@ -3140,7 +3140,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         Examples over number fields::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: embs = K.embeddings(CC)
+            sage: embs = sorted(K.embeddings(CC), key=lambda e:e(K.gen()))
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: Ls = [E.period_lattice(e) for e in embs]
             sage: [L.real_flag for L in Ls]

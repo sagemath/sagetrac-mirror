@@ -2403,7 +2403,7 @@ class NumberField_generic(number_field_base.NumberField):
             ]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        return self.embeddings(CC)
+        return sorted(self.embeddings(CC), key=lambda e: e(self.gen()))
 
     def real_embeddings(self, prec=53):
         r"""
@@ -2425,26 +2425,20 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: K.real_embeddings()
-            [
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 53 bits of precision
-              Defn: a |--> -1.25992104989487
-            ]
+            [Ring morphism:
+               From: Number Field in a with defining polynomial x^3 + 2
+               To:   Real Field with 53 bits of precision
+               Defn: a |--> -1.25992104989487]
             sage: K.real_embeddings(16)
-            [
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 16 bits of precision
-              Defn: a |--> -1.260
-            ]
+            [Ring morphism:
+               From: Number Field in a with defining polynomial x^3 + 2
+               To:   Real Field with 16 bits of precision
+               Defn: a |--> -1.260]
             sage: K.real_embeddings(100)
-            [
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 100 bits of precision
-              Defn: a |--> -1.2599210498948731647672106073
-            ]
+            [Ring morphism:
+               From: Number Field in a with defining polynomial x^3 + 2
+               To:   Real Field with 100 bits of precision
+               Defn: a |--> -1.2599210498948731647672106073]
 
         As this is a numerical function, the number of embeddings
         may be incorrect if the precision is too low::
@@ -2461,7 +2455,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         """
         K = sage.rings.real_mpfr.RealField(prec)
-        return self.embeddings(K)
+        return sorted(self.embeddings(K), key=lambda e: e(self.gen()))
 
     def specified_complex_embedding(self):
         r"""
@@ -7764,15 +7758,15 @@ class NumberField_absolute(NumberField_generic):
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.62996052494743... - 1.09112363597172*I,
+              Defn: a |--> 1.25992104989487,
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> -0.62996052494743... + 1.09112363597172*I,
+              Defn: a |--> -0.629960524947437 - 1.09112363597172*I,
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
               To:   Complex Field with 53 bits of precision
-              Defn: a |--> 1.25992104989487
+              Defn: a |--> -0.629960524947437 + 1.09112363597172*I
             ]
 
         Test that :trac:`15053` is fixed::
@@ -7795,10 +7789,6 @@ class NumberField_absolute(NumberField_generic):
 
         f = self.defining_polynomial()
         r = f.roots(K, multiplicities=False)
-        try:
-            r.sort()
-        except NotImplementedError:
-            pass
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
@@ -7999,6 +7989,8 @@ class NumberField_absolute(NumberField_generic):
             complex_places = [ self.hom([i], check=False) for i in
                                all_intervals if i.imag() > 0 ]
 
+        real_places.sort(key=lambda e: e(self.gen()))
+        complex_places.sort(key=lambda e: e(self.gen()))
         return real_places + complex_places
 
     def real_places(self, prec=None):
@@ -10547,7 +10539,7 @@ def refine_embedding(e, prec=None):
 
     Complex embeddings can be extended into ``QQbar``::
 
-        sage: e = K.embeddings(CC)[0]; e
+        sage: e = K.embeddings(CC)[1]; e
         Ring morphism:
         From: Number Field in a with defining polynomial x^3 - 2
         To:   Complex Field with 53 bits of precision
@@ -10559,8 +10551,8 @@ def refine_embedding(e, prec=None):
         Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
         sage: ComplexField(200)(e(a))
         -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
-        sage: e(a)^3
-        2
+        sage: e(a)^3 == 2
+        True
 
     Embeddings into lazy fields work::
 
