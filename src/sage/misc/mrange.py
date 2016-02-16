@@ -598,7 +598,7 @@ def cartesian_product_iterator(X):
     -  ``X`` - list or tuple of lists
 
 
-    OUTPUT: iterator over the cartesian product of the elements of X
+    OUTPUT: iterator over the Cartesian product of the elements of X
 
     EXAMPLES::
 
@@ -680,7 +680,7 @@ def cantor_product(*args, **kwds):
         TypeError: 'toto' is an invalid keyword argument for this function
     """
     from itertools import count
-    from sage.combinat.integer_list import IntegerListsLex
+    from sage.combinat.integer_lists import IntegerListsLex
 
     m = len(args)                         # numer of factors
     lengths = [None] * m                  # None or length of factors

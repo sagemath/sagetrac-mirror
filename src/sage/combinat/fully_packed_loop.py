@@ -14,7 +14,7 @@ from sage.plot.graphics import Graphics
 from sage.matrix.constructor import matrix
 from sage.plot.line import line
 from sage.combinat.perfect_matching import PerfectMatching
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute
@@ -874,6 +874,37 @@ class FullyPackedLoop(Element):
                         G += line([(i,j+1), (i,j)])
         G.axes(False)
         return G
+
+    def gyration(self):
+        r"""
+        Return the fully packed loop obtained by applying gyration
+        to the alternating sign matrix in bijection with ``self``.
+
+        Gyration was first defined in [Wieland00]_ as an action on 
+        fully-packed loops.
+
+        REFERENCES:
+
+        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
+           alternating sign matrices*. Electron. J. Combin. 7 (2000).
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: fpl.gyration().to_alternating_sign_matrix()
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: asm = AlternatingSignMatrix([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: f = FullyPackedLoop(asm)
+            sage: f.gyration().to_alternating_sign_matrix()
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+        """
+        return FullyPackedLoop(self.to_alternating_sign_matrix().gyration())
+
 
     def link_pattern(self):
         """

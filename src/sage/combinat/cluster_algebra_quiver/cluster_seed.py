@@ -55,6 +55,8 @@ from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.rings.integer import Integer
 
+from sage.misc.decorators import rename_keyword
+
 class ClusterSeed(SageObject):
     r"""
     The *cluster seed* associated to an *exchange matrix*.
@@ -213,6 +215,7 @@ class ClusterSeed(SageObject):
 
             # Copy the following attributes from data
             self._M = copy( data._M )
+            self._M.set_immutable()
             self._B = copy( data._B )
             self._n = data._n
             self._m = data._m
@@ -269,6 +272,7 @@ class ClusterSeed(SageObject):
             quiver = ClusterQuiver( data )
 
             self._M = copy(quiver._M)    # B-tilde exchange matrix
+            self._M.set_immutable()
             self._n = quiver._n
             self._m = quiver._m
             self._B = copy(self._M[:self._n,:self._n])  # Square Part of the B_matrix
@@ -397,6 +401,7 @@ class ClusterSeed(SageObject):
                     self._C = copy(self._M[self._m:(self._n+self._m),:self._n])
                     self._BC = copy(self._M)
                     self._M = self._M[:self._m:self._n]
+                    self._M.set_immutable()
                     self._bot_is_c = False
 
     def use_g_vectors(self, use=True, force=False):
@@ -858,6 +863,27 @@ class ClusterSeed(SageObject):
             d_vec = self.d_matrix() == other.d_matrix()
         return g_vec and c_vec and d_vec and clusters and ExMat
 
+    def __hash__(self):
+        """
+        Return a hash of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = ClusterSeed(['A',5])
+            sage: hash(Q)  # indirect doctest
+            -5649412990944896369  # 64-bit
+            222337679  # 32-bit
+        """
+        # mat_hash = self._M.__hash__()
+        if self._use_fpolys:
+            return hash(tuple(self.cluster()))
+        elif self._use_g_vec:
+            return hash(self.g_matrix())
+        elif self._use_c_vec:
+            return hash(self.c_matrix())
+        elif self._use_d_vec:
+            return hash(self.d_matrix())
+
     def _repr_(self):
         r"""
         Returns the description of ``self``.
@@ -975,6 +1001,7 @@ class ClusterSeed(SageObject):
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
         from sage.misc.all import html,latex
+        from sage.repl.rich_output.pretty_print import pretty_print
 
         if not EMBEDDED_MODE:
             return "The interactive mode only runs in the Sage notebook."
@@ -986,13 +1013,19 @@ class ClusterSeed(SageObject):
             ssm = [True]
             ssl = [True]
             @interact
-            def player(k=selector(values=range(self._n),nrows = 1,label='Mutate at: '), show_seq=("Mutation sequence:", True), show_vars=("Cluster variables:", True), show_matrix=("B-Matrix:", True), show_lastmutation=("Show last mutation:", True) ):
-                ft,ss,sv,sm,sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
+            def player(k=selector(values=range(self._n), nrows = 1,
+                                  label='Mutate at: '),
+                       show_seq=("Mutation sequence:", True),
+                       show_vars=("Cluster variables:", True),
+                       show_matrix=("B-Matrix:", True),
+                       show_lastmutation=("Show last mutation:", True)):
+                ft, ss, sv, sm, sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
                 if ft:
                     self.show(fig_size=fig_size, circular=circular)
                 elif show_seq is not ss or show_vars is not sv or show_matrix is not sm or show_lastmutation is not sl:
                     if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular, mark=seq[len(seq)-1])
+                        self.show(fig_size=fig_size, circular=circular,
+                                  mark=seq[len(seq) - 1])
                     else:
                         self.show(fig_size=fig_size, circular=circular )
                 else:
@@ -1001,32 +1034,27 @@ class ClusterSeed(SageObject):
                     if not show_lastmutation:
                         self.show(fig_size=fig_size, circular=circular)
                     else:
-                        self.show(fig_size=fig_size, circular=circular,mark=k)
+                        self.show(fig_size=fig_size, circular=circular, mark=k)
                 sft.append(False)
                 sss.append(show_seq)
                 ssv.append(show_vars)
                 ssm.append(show_matrix)
                 ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$" )
+                if show_seq:
+                    pretty_print(html("Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$"))
                 if show_vars:
-                    html( "Cluster variables:" )
+                    pretty_print(html("Cluster variables:"))
                     table = "$\\begin{align*}\n"
                     for i in xrange(self._n):
-                        table += "\tv_{%s} &= "%i + latex( self._cluster[i] ) + "\\\\ \\\\\n"
+                        table += "\tv_{%s} &= " % i + latex(self.cluster_variable(i)) + "\\\\ \\\\\n"
                     table += "\\end{align*}$"
-                    html( "$ $" )
-                    html( table )
-                    html( "$ $" )
+                    pretty_print(html("$ $"))
+                    pretty_print(html(table))
+                    pretty_print(html("$ $"))
                 if show_matrix:
-                    html( "B-Matrix:" )
-                    m = self._M
-                    #m = matrix(range(1,self._n+1),sparse=True).stack(m)
-                    m = latex(m)
-                    m = m.split('(')[1].split('\\right')[0]
-                    html( "$ $" )
-                    html( "$\\begin{align*} " + m + "\\end{align*}$" )
-                    #html( "$" + m + "$" )
-                    html( "$ $" )
+                    pretty_print(html("B-Matrix:"))
+                    pretty_print(html(self._M))
+                    pretty_print(html("$ $"))
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""
@@ -1077,7 +1105,7 @@ class ClusterSeed(SageObject):
             [ 0  0  0  1]
             [ 0  0 -2  0]
         """
-        return copy( self._M )
+        return copy(self._M)
 
     def ground_field(self):
         r"""
@@ -1265,7 +1293,7 @@ class ClusterSeed(SageObject):
             else:
                 raise ValueError('Clusters not being tracked')
         elif self._cluster is None:
-            self._cluster = [ self.cluster_variable(k) for k in range(self._n) ]
+            self._cluster = [self.cluster_variable(k) for k in range(self._n)]
         return copy(self._cluster)
 
     def _f_mutate( self, k):
@@ -2359,6 +2387,7 @@ class ClusterSeed(SageObject):
 
             seed._BC.mutate(k)
             seed._M = copy(seed._BC[:n+m,:n])
+            self._M.set_immutable()
 
             if seed._use_c_vec:
                 seed._C = seed._BC[n+m:2*n+m,:n+m]
@@ -2438,16 +2467,15 @@ class ClusterSeed(SageObject):
             sage: S.mutation_sequence([0,1,0,1],return_output='var')
             [(x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1), (x0 + 1)/x1, x0]
         """
-
-        seed = ClusterSeed( self )
+        seed = ClusterSeed(self)
 
         new_clust_var = []
         seed_sequence = []
 
         for v in sequence:
-            seed = seed.mutate(v,inplace=False)
-            new_clust_var.append( seed.cluster()[v])
-            seed_sequence.append( seed )
+            seed = seed.mutate(v, inplace=False)
+            new_clust_var.append(seed.cluster()[v])
+            seed_sequence.append(seed)
 
         if show_sequence:
             self.quiver().mutation_sequence2(sequence=sequence, show_sequence=True, fig_size=fig_size )
@@ -2729,7 +2757,8 @@ class ClusterSeed(SageObject):
         seed.track_mutations(self._track_mut)
         if self._use_fpolys:
             self.cluster()
-            seed._cluster = [ self._cluster[k].subs(eval_dict) for k in xrange(self._n) ]
+            seed._cluster = [self._cluster[k].subs(eval_dict)
+                             for k in xrange(self._n)]
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -2804,7 +2833,8 @@ class ClusterSeed(SageObject):
 
         A = 2 - self.b_matrix().apply_map(abs).transpose()
 
-        rs = CartanMatrix(A).root_space()
+        # We give the indexing set of the Cartan matrix to be [1, 2, ..., n]
+        rs = CartanMatrix(A, index_set=range(1,A.ncols()+1)).root_space()
         almost_positive_coroots = rs.almost_positive_roots()
 
         sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
@@ -2963,7 +2993,8 @@ class ClusterSeed(SageObject):
             if not force:  # if already have f_polynomials, using set_cluster might yield data inconsistent with them.
                 print("Warning: using set_cluster at this point could lead to inconsistent seed data.")
             else:
-                self._cluster = [ FractionField(self._R)(x) for x in cluster ][0:self._n]
+                self._cluster = [FractionField(self._R)(x)
+                                 for x in cluster][0:self._n]
                 self._is_principal = None
         else:
              print("Warning: clusters not being tracked so this command is ignored.") 
@@ -3050,15 +3081,19 @@ class ClusterSeed(SageObject):
             [ 0  1  0]
             [ 0  0  1]
         """
-        n,m = self._n, self._m
+        n, m = self._n, self._m
         if not n == m:
-            raise ValueError("The numbers of cluster variables and of frozen variables do not coincide.")
+            raise ValueError("The numbers of cluster variables "
+                             "and of frozen variables do not coincide.")
+        newM = copy(self._M)
         for i in xrange(m):
             for j in xrange(n):
                 if i == j:
-                    self._M[i+n,j] = 1
+                    newM[i + n, j] = 1
                 else:
-                    self._M[i+n,j] = 0
+                    newM[i + n, j] = 0
+        self._M = newM
+        self._M.set_immutable()
         self._quiver = None
         self._is_principal = None
 
@@ -3851,7 +3886,8 @@ class ClusterSeed(SageObject):
             self._mutation_type = self._quiver.mutation_type()
         return self._mutation_type
 
-    def greedy(self, a1, a2, method='by_recursion'):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def greedy(self, a1, a2, algorithm='by_recursion'):
         r"""
         Returns the greedy element `x[a_1,a_2]` assuming that self is rank two.
 
@@ -3885,14 +3921,14 @@ class ClusterSeed(SageObject):
         if self.b_matrix().dimensions() == (2, 2):
             b = abs(self.b_matrix()[0, 1])
             c = abs(self.b_matrix()[1, 0])
-            if method == 'by_recursion':
+            if algorithm == 'by_recursion':
                 ans = self.x(0)**(-a1)*self.x(1)**(-a2)
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):
                         if p != 0 or q != 0:
                             ans += self._R(coeff_recurs(p, q, a1, a2, b, c))*self.x(0)**(b*p-a1)*self.x(1)**(c*q-a2)
                 return(ans)
-            elif method == 'by_combinatorics':
+            elif algorithm == 'by_combinatorics':
                 if b == 0:
                     S = ClusterSeed([['A', 1], ['A', 1]])
                 else:
@@ -3916,7 +3952,7 @@ class ClusterSeed(SageObject):
                             ans = ans + S.x(0)**(b*len(oddT)) * S.x(1)**(c*len(evenT))
                 ans = ans*S.x(0)**(-a1)*S.x(1)**(-a2)
                 return ans
-            elif method == 'just_numbers':
+            elif algorithm == 'just_numbers':
                 ans = 1
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):
@@ -4007,7 +4043,7 @@ def _bino(n, k):
         0
     """
     if n >= 0:
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return binomial(n, k)
     else:
         return 0

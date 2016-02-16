@@ -176,10 +176,10 @@ AUTHOR:
 #*****************************************************************************
 
 from operator import mul
-from itertools import chain
+from itertools import chain, product
 from sage.misc.all import prod
 from sage.functions.all import factorial
-from sage.rings.arith import moebius
+from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element, parent
 from sage.structure.parent import Parent
@@ -187,9 +187,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
-from sage.rings.all import ZZ, QQ, FractionField, divisors
+from sage.rings.all import ZZ, QQ, FractionField
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce
 
@@ -1555,7 +1554,7 @@ def ext_orbit_centralizers(input_data, q = None, selftranspose = False):
             yield (item[0].substitute(q = q**tau.degree()), item[1].substitute(q = q**tau.degree()))
     elif case == 'sim':
         tau = data
-        for item in CartesianProduct(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
+        for item in product(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
                 size = prod([list(entry)[0] for entry in item])
                 freq = prod([list(entry)[1] for entry in item])
                 yield(size, freq)

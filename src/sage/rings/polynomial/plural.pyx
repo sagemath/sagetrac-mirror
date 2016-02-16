@@ -131,7 +131,6 @@ from sage.rings.ring import check_default_category
 from sage.structure.element cimport CommutativeRingElement, Element, ModuleElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.polynomial.term_order import TermOrder
 
@@ -977,9 +976,9 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef number *n
         cdef number *denom
 
-        if not <ParentWithBase>self is f._parent:
+        if self is not f._parent:
             f = self._coerce_c(f)
-        if not <ParentWithBase>self is g._parent:
+        if self is not g._parent:
             g = self._coerce_c(g)
 
         if(r != currRing): rChangeCurrRing(r)
@@ -1106,9 +1105,9 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         cdef poly *m = p_ISet(1,self._ring)
 
-        if not <ParentWithBase>self is f._parent:
+        if self is not f._parent:
             f = self._coerce_c(f)
-        if not <ParentWithBase>self is g._parent:
+        if self is not g._parent:
             g = self._coerce_c(g)
 
         if f._poly == NULL:
@@ -1363,12 +1362,12 @@ cdef class NCPolynomial_plural(RingElement):
             0
         """
         self._poly = NULL
-        self._parent = <ParentWithBase>parent
+        self._parent = parent
 
     def __dealloc__(self):
         # TODO: Warn otherwise!
         # for some mysterious reason, various things may be NULL in some cases
-        if self._parent is not <ParentWithBase>None and (<NCPolynomialRing_plural>self._parent)._ring != NULL and self._poly != NULL:
+        if self._parent is not None and (<NCPolynomialRing_plural>self._parent)._ring != NULL and self._poly != NULL:
             p_Delete(&self._poly, (<NCPolynomialRing_plural>self._parent)._ring)
 
 #    def __call__(self, *x, **kwds): # ?
@@ -1385,9 +1384,6 @@ cdef class NCPolynomial_plural(RingElement):
         """
         return unpickle_NCPolynomial_plural, (self._parent, self.dict())
 
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         """
         This hash incorporates the variable name in an effort to
@@ -1411,7 +1407,7 @@ cdef class NCPolynomial_plural(RingElement):
         """
         return self._hash_c()
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare left and right and return -1, 0, and 1 for <,==, and >
         respectively.
@@ -1430,9 +1426,6 @@ cdef class NCPolynomial_plural(RingElement):
             True
             sage: y^2 > x
             False
-
-##            sage: (2/3*x^2 + 1/2*y + 3) > (2/3*x^2 + 1/4*y + 10)
-#            True
 
         TESTS::
 
@@ -1458,22 +1451,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: (x+1) > x
             True
-
-#            sage: f = 3/4*x^2*y + 1/2*x + 2/7
-#            sage: f > f
-#            False
-#            sage: f < f
-#            False
-#            sage: f == f
-#            True
-
-#            sage: P.<x,y,z> = PolynomialRing(GF(127), order='degrevlex')
-#            sage: (66*x^2 + 23) > (66*x^2 + 2)
-#            True
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
         if left is right:
             return 0
         cdef poly *p = (<NCPolynomial_plural>left)._poly
@@ -2694,7 +2672,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
 
     """
     cdef NCPolynomial_plural p = NCPolynomial_plural.__new__(NCPolynomial_plural)
-    p._parent = <ParentWithBase>parent
+    p._parent = parent
     p._poly = juice
     p_Normalize(p._poly, parent._ring)
     return p

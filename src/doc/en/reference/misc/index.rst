@@ -48,6 +48,7 @@ Lists and Iteration, etc.
    :maxdepth: 1
 
    sage/misc/callable_dict
+   sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools
@@ -113,8 +114,8 @@ Lazyness
    sage/misc/lazy_attribute
    sage/misc/lazy_format
    sage/misc/lazy_import
-   sage/misc/lazy_list
    sage/misc/lazy_import_cache
+   sage/misc/lazy_list
    sage/misc/lazy_string
 
 Caching
