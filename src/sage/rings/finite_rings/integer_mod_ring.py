@@ -303,9 +303,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     EXAMPLES:
 
-    First we compute with integers modulo `29`.
-
-    ::
+    First we compute with integers modulo `29`::
 
         sage: FF = IntegerModRing(29)
         sage: FF

@@ -140,7 +140,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             Category of tensor products of vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
-        assert(all(isinstance(parent, Parent) for parent in parents))
+        if not all(isinstance(parent, Parent) for parent in parents):
+            raise TypeError, "Not all items are parents"
         # Should we pass a set of categories to reduce the cache size?
         # But then this would impose that, for any constructor, the
         # category of the result does not depend on the order/repetition
@@ -170,7 +171,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             sage: cartesian_product.category_from_categories((Cat1, Cat2))
             Category of Cartesian products of monoids
         """
-        assert(len(categories) > 0)
+        if not len(categories) > 0:
+            raise ValueError, "There should be at least one category"
         return self.category_from_category(Category.meet(categories))
 
     def category_from_category(self, category):
@@ -201,13 +203,14 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args, **kwargs):
+    def __call__(self, args, **keywords):
         """
         Functorial construction application
 
         INPUT:
          - ``self``: a covariant functorial construction `F`
          - ``args``: a tuple (or iterable) of parents or elements
+         - ``keywords``: a dictionary of keyword=value arguments
 
         Returns `F(args)`
 
@@ -216,11 +219,17 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"]); E.rename("E")
             sage: tensor((E, E, E))
             E # E # E
+
         """
-        args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
-        assert(all( hasattr(arg, self._functor_name) for arg in args))
-        assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:], **kwargs)
+        if not isinstance(args, (tuple, list)):
+            args = tuple([args])
+        else:
+            args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
+        if not all(hasattr(arg, self._functor_name) for arg in args):
+            raise TypeError("The functor %s does not apply to all arguments: %s"%(self._functor_name, args))
+        if not len(args) > 0:
+            raise ValueError, "There should be at least one item"
+        return getattr(args[0], self._functor_name)(*args[1:], **keywords)
 
 class FunctorialConstructionCategory(Category): # Should this be CategoryWithBase?
     """
@@ -421,7 +430,8 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: import __main__; __main__.FooBars = FooBars # Fake FooBars being defined in a python module
             sage: TestSuite(C).run()
         """
-        assert isinstance(category, Category)
+        if not isinstance(category, Category):
+            raise TypeError, "Should be a category"
         self._base_category = category
         self._args = args
         super(FunctorialConstructionCategory, self).__init__(*args)

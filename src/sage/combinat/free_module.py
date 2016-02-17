@@ -14,20 +14,26 @@ from sage.structure.element import Element, have_same_parent
 from sage.structure.parent import Parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.misc.misc import repr_lincomb
+from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.modules.module import Module
 from sage.rings.all import Integer
 import sage.structure.element
-from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct_iters
+from sage.categories.category import Category, JoinCategory
+from sage.categories.all import Sets
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.all import Category, Sets, ModulesWithBasis
+from sage.sets.family import Family, FiniteFamily
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.poor_man_map import PoorManMap
+from sage.combinat.cartesian_product import CartesianProduct_iters
+from sage.categories.realizations import Category_realization_of_parent
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
+
 class CombinatorialFreeModuleElement(Element):
     def __init__(self, M, x):
         """
@@ -1740,9 +1746,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             d = {key: coeff for key, coeff in d.iteritems() if coeff}
         return self.element_class( self, d )
 
+    @cached_method
+    def tensor_unit(self, category = None, **keywords):
+        if not category:
+            category = self.category()
+        return TensorUnit(category=category.TensorProducts(), **keywords)
+
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules
+
+        This class should not be constructed directly.
+        Please use `tensor`.
 
         EXAMPLES:
 
@@ -1755,7 +1770,6 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
             sage: T.category()
             Category of tensor products of modules with basis over Integer Ring
-
             sage: T.construction() # todo: not implemented
             [tensor, ]
 
@@ -1771,7 +1785,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 
-        FIXME: Should elements of a CartesianProduct be tuples (making them hashable)?
+        FIXME: Should elements of a CartesianProduct be tuples (making them hashable)? M.S. votes: Yes!
 
         Here are the basis elements themselves::
 
@@ -1818,9 +1832,36 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             True
             sage: tensor([F, tensor([G, H])]) == tensor([F, G, H])
             True
+
+        Implementation notes:
+
+        Tensor products are implemented for free modules with distinguished basis over a commutative ring `R`.
+        They are implemented as modules with basis with index set given by tuples
+        of the index sets of the tensor factors. They are automatically flattened so that there is no
+        nesting of tensor products.
+
+        Although the one-fold tensor product::
+
+            sage: M = CombinatorialFreeModule(ZZ, [1,2])
+            sage: T1M = tensor([M])
+            sage: T1M == M
+            False
+
+        of a module is isomorphic to the module, they are different to the code: the category of the one-fold
+        tensor is a subclass of ModulesWithBasis(R).TensorProducts() since it was created by the tensor construction,
+        whereas the original module has category subclassing ModulesWithBasis(R).
+
+        Mathematically there is a zero-fold tensor product which is the unit object in the tensor category.
+        It is the base ring `R` viewed as a free module over itself. It is implemented as a special free
+        module of rank 1::
+
+            sage: MR = M.tensor_unit()
+            sage: T1M == tensor([M, MR])
+            True
+
         """
         @staticmethod
-        def __classcall_private__(cls, modules, **options):
+        def __classcall_private__(cls, modules, category, **options):
             """
             TESTS::
 
@@ -1831,26 +1872,66 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 True
                 sage: tensor([F, tensor([G, H])]) == tensor([F, G, H])
                 True
+                sage: U = F.tensor_unit()
+                sage: tensor([U, G, U, F]) == tensor([G,F])
+                True
+                sage: U == tensor([U,U])
+                True
+
             """
-            assert(len(modules) > 0)
-            R = modules[0].base_ring()
-            assert(all(module in ModulesWithBasis(R)) for module in modules)
-            # should check the base ring
-            # flatten the list of modules so that tensor(A, tensor(B,C)) gets rewritten into tensor(A, B, C)
-            modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules], ())
-            return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, **options)
+            # category should be a subcategory of a tensor category
+            # this code finds the first tensor category in a join and returns its base category
+            base_category = None
+            if isinstance(category, Category_realization_of_parent):
+                category = category.base()
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        base_category = supercategory.base_category()
+                        break
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Category (%s) should be a subcategory of tensor products of modules"%category
+            R = base_category.base_ring()
+            if len(modules) > 0:
+                tensor_unit = modules[0].tensor_unit(category=base_category)
+                # TODO: need more accurate check for tensor units; this won't match if category disagrees
+                modules = [module for module in modules if module != tensor_unit]
+                if len(modules) == 0:
+                    return tensor_unit
+                # flatten the tensor product
+                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
+            return super(CombinatorialFreeModule_Tensor, cls).__classcall__(cls, modules, category, **options)
 
-
-        def __init__(self, modules, **options):
+        def __init__(self, modules, category, **options):
             """
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2]); F
                 F
+                sage: tensor([F,F])
+                F # F
+
             """
             from sage.categories.tensor import tensor
+            # save the flattened tensor factors
             self._sets = modules
-            CombinatorialFreeModule.__init__(self, modules[0].base_ring(), CartesianProduct_iters(*[module.basis().keys() for module in modules]).map(tuple), **options)
+            base_category = None
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        if base_category is None:
+                            base_category = supercategory.base_category()
+                        else:
+                            base_category = Category.join((base_category, supercategory.base_category()))
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Category (%s) should be a subcategory of tensor products of modules"%category
+            R = base_category.base_ring()
+            category = Category.join((category,ModulesWithBasis(R)))
+            CombinatorialFreeModule.__init__(self, R, CartesianProduct_iters(*[module.basis().keys() for module in modules]).map(tuple), category=category, **options)
             # the following is not the best option, but it's better than nothing.
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
@@ -1864,6 +1945,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
                 sage: G = CombinatorialFreeModule(ZZ, [1,2,3,8])
                 sage: F.rename("F")
+                sage: tensor([F])
+                F
                 sage: G.rename("G")
                 sage: T = tensor([F, G])
                 sage: T # indirect doctest
@@ -1946,11 +2029,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 2*F[1] # G[3] + F[1] # G[4] + 4*F[2] # G[3] + 2*F[2] # G[4]
             """
             from sage.categories.tensor import tensor
-            if hasattr(self, "_print_options"):
-                symb = self._print_options['tensor_symbol']
-                if symb is None:
-                    symb = tensor.symbol
-            else:
+            symb = self._print_options['tensor_symbol']
+            if symb is None:
                 symb = tensor.symbol
             return symb.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
 
@@ -1969,7 +2049,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join(module._latex_term(t) for (module, t) in zip(self._sets, term))
 
         @cached_method
-        def tensor_constructor(self, modules):
+        def tensor_constructor(self, modules, **keywords):
             r"""
             INPUT:
 
@@ -2002,8 +2082,6 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: phi_fg_h(phi_fg(f, g), h)
                 2*B[1] # B[3] # B[5] + 2*B[1] # B[3] # B[6] + B[1] # B[4] # B[5] + B[1] # B[4] # B[6] + 4*B[2] # B[3] # B[5] + 4*B[2] # B[3] # B[6] + 2*B[2] # B[4] # B[5] + 2*B[2] # B[4] # B[6]
             """
-            assert(module in ModulesWithBasis(self.base_ring()) for module in modules)
-            assert(sage.categories.tensor.tensor(modules) == self)
             # a list l such that l[i] is True if modules[i] is readily a tensor product
             is_tensor = [isinstance(module, CombinatorialFreeModule_Tensor) for module in modules]
             # the tensor_constructor, on basis elements
@@ -2013,7 +2091,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 result = modules[i]._module_morphism(result, position = i, codomain = self)
             return result
 
-        def _tensor_of_elements(self, elements):
+        def _tensor_of_elements(self, elements, **keywords):
             """
             Returns the tensor product of the specified elements.
             The result should be in self.
@@ -2038,8 +2116,55 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
                 sage: FGH._tensor_of_elements([f, gh])
                 2*B[1] # B[3] # B[5] + 2*B[1] # B[3] # B[6] + B[1] # B[4] # B[5] + B[1] # B[4] # B[6] + 4*B[2] # B[3] # B[5] + 4*B[2] # B[3] # B[6] + 2*B[2] # B[4] # B[5] + 2*B[2] # B[4] # B[6]
+
+                sage: tensor([F])._tensor_of_elements([f])
+                B[1] + 2*B[2]
+
             """
-            return self.tensor_constructor(tuple(element.parent() for element in elements))(*elements)
+            return self.tensor_constructor(tuple(element.parent() for element in elements), **keywords)(*elements)
+
+        def _a_basis_key(self):
+            r"""
+            A basis key.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3,4,5])
+                sage: FG = tensor([F,G])
+                sage: FG._a_basis_key()
+                (1, 3)
+            """
+            return tuple([x.an_element() for x in self.basis().keys().cc.iters])
+
+        def a_monomial(self):
+            r"""
+            A monomial of ``self``.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3,4,5])
+                sage: FG = tensor([F,G])
+                sage: FG.a_monomial()
+                B[1] # B[3]
+            """
+            return self.monomial(self._a_basis_key())
+
+        def an_element(self):
+            r"""
+            An element of ``self``.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3])
+                sage: FG = tensor([F,G])
+                sage: FG.an_element()
+                4*B[1] # B[3] + 4*B[2] # B[3]
+
+            """
+            return self(tensor([module.an_element() for module in self._sets]))
 
         def _coerce_map_from_(self, R):
             """
@@ -2068,9 +2193,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: S.has_coerce_map_from(S2)
                 False
                 sage: S.an_element()
-                3*B[0] # B[-1] + 2*B[0] # B[0] + 2*B[0] # B[1]
+                9*B[-1] # B[-1] + 3*B[-1] # B[0] + 9*B[-1] # B[1] + 3*B[0] # B[-1] + B[0] # B[0] + 3*B[0] # B[1] + 9*B[1] # B[-1] + 3*B[1] # B[0] + 9*B[1] # B[1]
                 sage: S2(S.an_element())
-                2*B[0] # B[0] + 5*B[0] # B[1]
+                B[0] # B[0] + 6*B[0] # B[1] + 6*B[1] # B[0] + 36*B[1] # B[1]
 
             ::
 
@@ -2103,6 +2228,77 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                                          codomain=self)
 
             return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
+
+        def _tensor_of_maps(self, maps, **keywords):
+            r"""
+            Tensor product of maps.
+
+            EXAMPLES::
+
+                sage: from sage.categories.morphism import SetMorphism
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: s = Sym.s()
+                sage: id_s = s._identity_map()
+                sage: antipode_map = SetMorphism(Hom(s,s),lambda x: s.antipode(x))
+                sage: iS = tensor([id_s, antipode_map])
+                sage: ss = tensor([s,s])
+                sage: coproduct_map = s.module_morphism(on_basis=s.coproduct_on_basis, codomain=ss)
+                sage: product_map = ss.module_morphism(on_basis=lambda x: s[x[0]]*s[x[1]], codomain=s)
+                sage: U = s.tensor_unit()
+                sage: counit_map = SetMorphism(Hom(s,U),lambda x: s.counit(x)*U.one())
+                sage: unit_map = U.module_morphism(on_basis=lambda x: s.one(), codomain=s)
+                sage: b = s.an_element(); b
+                2*s[] + 2*s[1] + 3*s[2]
+                sage: (unit_map * counit_map)(b)
+                2*s[]
+                sage: (product_map*iS*coproduct_map)(b)
+                2*s[]
+
+            """
+            tensor_unit = self.tensor_unit()
+            # delete any map from the tensor unit to itself
+            maps = [map for map in maps if map.domain() != tensor_unit or map.codomain() != tensor_unit]
+            if len(maps) == 0:
+                return tensor_unit._identity_map()
+            category = self.category()
+            base_category = None
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory,TensorProductsCategory):
+                        if base_category is None:
+                            base_category = supercategory.base_category()
+                        else:
+                            base_category = Category.join((base_category, supercategory.base_category()))
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Should be a tensor category of modules"
+            R = base_category.base_ring()
+            module_tensor_category = ModulesWithBasis(R).TensorProducts()
+            codomains = [map.codomain() for map in maps]
+            # flag which codomains are tensors
+            codomain_is_tensor = tuple(codomain in module_tensor_category for codomain in codomains)
+            # find the sizes of the tensors. Size zero means the tensor factor consists of scalars
+            codomain_n_tensor = tuple(0 if codomains[i] == tensor_unit else len(codomains[i]._sets) if codomain_is_tensor[i] else 1 for i in range(len(maps)))
+
+            domains = [map.domain() for map in maps]
+            domain_is_tensor = tuple(domain in module_tensor_category for domain in domains)
+            domain_n_tensor = tuple(0 if domains[i] == tensor_unit else len(domains[i]._sets) if domain_is_tensor[i] else 1 for i in range(len(maps)))
+            # the function that splits one tuple into tuples that plug into the maps
+            key_splitter = CartesianProductWithUnflattening(domain_is_tensor, domain_n_tensor)
+            # make a tuple whose items are (i,f) where i is the index into the tuple and f is the scalar-valued map
+            scalar_part = tuple([(i,maps[i]) for i in range(len(maps)) if codomain_n_tensor[i] == 0])
+            # make a tuple whose items are (i, b, f) where i is the index, b is boolean
+            # where False means that f will be a constant vector and True means that f will be a vector-valued function
+            vector_part = tuple((i, domain_n_tensor[i], maps[i] if domain_n_tensor[i] != 0 else maps[i](maps[i].domain().one())) \
+              for i in range(len(maps)) if codomain_n_tensor[i] != 0)
+
+            R = self.base_ring()
+            def on_basis(long_key):
+                keys = key_splitter(long_key)
+                monomials = [domains[i].monomial(keys[i]) if domain_n_tensor[i] != 0 else () for i in range(len(maps))]
+                return R.prod([f(monomials[i]) for (i,f) in scalar_part]) * tensor([f(monomials[i]) if d!=0 else f for (i,d,f) in vector_part])
+            return self.module_morphism(on_basis=on_basis, codomain=tensor(codomains, category=base_category.TensorProducts()))
 
 class CartesianProductWithFlattening(object):
     """
@@ -2140,10 +2336,281 @@ class CartesianProductWithFlattening(object):
         """
         return sum( (i if flatten else (i,) for (i,flatten) in zip(indices, self._flatten) ), ())
 
+class CartesianProductWithUnflattening(object):
+    """
+    A class for cartesian product constructor.
+    """
+    def __init__(self, unflatten, sizes):
+        r"""
+        This class computes the inverse of flattening,
+        splitting a tuple of length equal to `sum(sizes)`
+        into a tuple of tuples or single elements,
+        such that the length of the `i`-th tuple is `sizes[i]`.
+
+        INPUT:
+
+         - ``unflatten`` -- a tuple of booleans
+         - ``sizes`` -- a tuple of positive integers
+
+        """
+        assert len(unflatten) == len(sizes)
+        # unflatten[i] must be true except when size[i] == 1.
+        assert all(unflatten_this or size == 1 for (unflatten_this, size) in zip(unflatten,sizes))
+        def partial_sums(sz):
+            if len(sz) == 1:
+                return sz
+            else:
+                ps = partial_sums(sz[:-1])
+                return ps + tuple([ps[-1]+sz[-1]])
+        if len(sizes) == 0:
+            self._bounds = tuple([])
+        else:
+            upper_bounds = partial_sums(sizes)
+            lower_bounds = tuple([0])+upper_bounds[:-1]
+            self._bounds = tuple(zip(unflatten, lower_bounds, upper_bounds))
+
+    def __call__(self, tup):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.free_module import CartesianProductWithUnflattening
+            sage: un = CartesianProductWithUnflattening((True, False, True, True), (3,1,2,2))
+            sage: un((1,2,3,4,5,6,7,8))
+            ((1, 2, 3), 4, (5, 6), (7, 8))
+            sage: un = CartesianProductWithUnflattening((True, False, True, True, True), (3,1,0,1,3))
+            sage: un((1,2,3,4,5,6,7,8))
+            ((1, 2, 3), 4, (), (5,), (6, 7, 8))
+
+        """
+        return tuple([tup[low:high] if unflatten else tup[low] for (unflatten,low,high) in self._bounds])
 
 # TODO: find a way to avoid this hack to allow for cross references
 CombinatorialFreeModule.Tensor = CombinatorialFreeModule_Tensor
 
+class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
+    r"""
+    Concrete class for tensor products that remembers grouping.
+
+    INPUT:
+
+    - modules -- the modules to be tensored
+    - keywords -- optional keyword parameters
+
+    Implementation: This class remembers the tensor factors used in its creation.
+    The actual object is the flattened tensor product provided by
+    :class:`CombinatorialFreeModule_Tensor`.
+
+    The methods :meth:`.indices_to_index` and :meth:`.index_to_indices` provide bijections between
+    the grouped tuples that naturally index the grouped tensor product, and the flattened indices used in the
+    implementation.
+
+    """
+
+    def __init__(self, modules, category, **keywords):
+        # save the tensor factors
+        self._factors = modules
+        self._is_tensor = tuple(isinstance(module, CombinatorialFreeModule_Tensor) for module in modules)
+        self._n_factors = tuple(len(module.factors()) if isinstance(module, CombinatorialFreeModule_TensorGrouped) else len(module._sets) if isinstance(module, CombinatorialFreeModule_Tensor) else 1 for module in modules)
+        self._unflattening_function = CartesianProductWithUnflattening(self._is_tensor, self._n_factors)
+        self._flattening_function = CartesianProductWithFlattening(self._is_tensor)
+        flattened_modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
+        CombinatorialFreeModule_Tensor.__init__(self, flattened_modules, category, **keywords)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: W=WeylGroup("A2",prefix="s")
+            sage: A=W.algebra(ZZ); A.rename("A")
+            sage: A2=tensor([A,A]); A2
+            A # A
+            sage: tensor([A2,A2])
+            (A # A) # (A # A)
+            sage: tensor([A, tensor([A,A])])
+            A # (A # A)
+            sage: tensor([A2,A2], category=ModulesWithBasis(ZZ))
+            A # A # A # A
+
+        """
+        from sage.categories.tensor import tensor
+        if hasattr(self, "_print_options"):
+            symb = self._print_options['tensor_symbol']
+            if symb is None:
+                symb = tensor.symbol
+        else:
+            symb = tensor.symbol
+        return symb.join(["(%s)"%self.factor(i) if self._n_factors[i] > 1 else "%s"%self.factor(i) for i in range(len(self.factors()))])
+
+    def factors(self):
+        r"""
+        The list of tensor factors of `self`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A]) # calls this class 
+            sage: A4 = tensor([A2,A2])
+            sage: A4.factors()
+            (A # A, A # A)
+
+        """
+        return self._factors
+
+    def factor(self, i):
+        r"""
+        The `i`-th factor of ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: A4.factor(1)
+            A # A
+        """
+        return self._factors[i]
+
+    def indices_to_index(self):
+        r"""
+        The bijection from the tuple of indices of bases of `self.factors()` to the
+        index set of `self.basis()`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: a = (r([1]),r([2]))
+            sage: b = (r([2,1]),r([1,2]))
+            sage: A4.indices_to_index()(a,b)
+            (s1, s2, s2*s1, s1*s2)
+
+        """
+        return self._flattening_function
+
+    def index_to_indices(self):
+        r"""
+        The bijection from the index set of `self.basis()` to the tuples of indices
+        of bases of `self.factors()`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: A4.index_to_indices()((r([1]),r([2]),r([2,1]),r([1,2])))
+            ((s1, s2), (s2*s1, s1*s2))
+        """
+        return self._unflattening_function
+
+    def monomial_grouped(self, tup):
+        r"""
+        The monomial indexed by a grouped tuple.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: m = A4.monomial_grouped(((r([1]),r([2])),(r([1,2]),r([2,1])))); m
+            B[s1] # B[s2] # B[s1*s2] # B[s2*s1]
+
+        """
+        return self.monomial(self.indices_to_index()(*tup))
+
+    def tensor_module_morphism(self, on_basis, codomain, category=None, **keywords):
+        r"""
+        Returns a module morphism whose domain is a tensor product.
+
+        This is analogous to :meth:`.module_morphism` except that only the ``on_basis`` option is
+        implemented and the inputs for the ``on_basis`` function are grouped tuples instead of the
+        flattened tuples secretly used in the implementation of tensor products.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',2],prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A3 = tensor([A2,A])
+            sage: R = lambda (a,b): (b,a)
+            sage: RI = A3.tensor_module_morphism(on_basis = lambda (ab, c): A3.monomial_grouped((R(ab),c)), codomain=A3)
+            sage: pair = (r([1,2]), r([2]))
+            sage: RI(A3.monomial_grouped((pair,r([1]))))
+            B[s2] # B[s1*s2] # B[s1]
+
+        """
+        return self.module_morphism(on_basis = lambda x: on_basis(self.index_to_indices()(x)), category=category, codomain=codomain, **keywords)
+
+    @cached_method
+    def _flat_tensor(self):
+        r"""
+        The flattened tensor product of ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: AAAA = A4._flat_tensor(); AAAA
+            A # A # A # A
+            sage: isinstance(AAAA, CombinatorialFreeModule.TensorGrouped)
+            False
+
+        """
+        return tensor(self.factors(), category=ModulesWithBasis(self.base_ring()).TensorProducts())
+
+    def from_direct_product(self, tup):
+        r"""
+        Given a tuple of elements of the factors of ``self``, return the corresponding element of ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: a = A2.monomial((r([1]),r([2])))
+            sage: b = A2.monomial((r([2,1]),r([1,2])))
+            sage: A4.from_direct_product((a,b))
+            B[s1] # B[s2] # B[s2*s1] # B[s1*s2]
+        """
+        if len(tup) != len(self.factors()):
+            raise ValueError, "Number of components of tuple is incorrect"
+        try:
+            return self(tensor([the_factor(element) for the_factor, element in zip(self.factors(), tup)], category=ModulesWithBasis(self.base_ring())))
+        except:
+            raise ValueError, "Cannot coerce tuple (%s) into tensor product %s"%(tup, self)
+
+    def an_element(self):
+        r"""
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A1",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: A4.an_element()
+            81*B[s1] # B[s1] # B[s1] # B[s1] + 27*B[s1] # B[s1] # B[s1] # B[1] + 27*B[s1] # B[s1] # B[1] # B[s1] + 9*B[s1] # B[s1] # B[1] # B[1] + 27*B[s1] # B[1] # B[s1] # B[s1] + 9*B[s1] # B[1] # B[s1] # B[1] + 9*B[s1] # B[1] # B[1] # B[s1] + 3*B[s1] # B[1] # B[1] # B[1] + 27*B[1] # B[s1] # B[s1] # B[s1] + 9*B[1] # B[s1] # B[s1] # B[1] + 9*B[1] # B[s1] # B[1] # B[s1] + 3*B[1] # B[s1] # B[1] # B[1] + 9*B[1] # B[1] # B[s1] # B[s1] + 3*B[1] # B[1] # B[s1] # B[1] + 3*B[1] # B[1] # B[1] # B[s1] + B[1] # B[1] # B[1] # B[1]
+
+        """
+        return self.from_direct_product(tuple([the_factor.an_element() for the_factor in self.factors()]))
+
+CombinatorialFreeModule.TensorGrouped = CombinatorialFreeModule_TensorGrouped
 
 class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
     """
@@ -2343,3 +2810,200 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
 CombinatorialFreeModule.CartesianProduct = CombinatorialFreeModule_CartesianProduct
 
+class TensorUnitElement(CombinatorialFreeModuleElement):
+    def coefficient(self, m):
+        r"""
+        Return the coefficient of `m` in ``self``.
+
+        EXAMPLES::
+
+            sage: M=CombinatorialFreeModule(ZZ,[1,2])
+            sage: U=M.tensor_unit()
+            sage: u=U.an_element(); u
+            2*B[()]
+            sage: u.coefficient(())
+            2
+
+        """
+        #assert m == tuple([])
+        return self[m]
+
+    def the_coefficient(self):
+        r"""
+        Return the sole coefficient of ``self``.
+
+        Note that ``self`` is a free module with only one basis element whose index is the 0-tuple.
+        """
+        return self[()]
+
+class TensorUnit(CombinatorialFreeModule.Tensor):
+    r"""
+    The unit in the tensor category of ModulesWithBasis over a base ring, realized by
+    a zerofold `class`:CombinatorialFreeModule_Tensor`.
+
+    This is just the base ring itself, constructed as a free module of rank 1.
+    Optionally, by specifying a category, it can be viewed as an algebra, coalgebra, hopf algebra, etc.
+    All the structure maps are trivial.
+
+    This class is implemented by a direct call to CombinatorialFreeModule_Tensor.
+
+    """
+
+    def __init__(self, category=None, **keywords):
+        """
+        INPUTS:
+
+        - category -- tensor category of result
+        - keywords -- optional keyword arguments
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1,2])
+            sage: M.tensor_unit() # indirect doctest
+            The unit object in Category of tensor products of modules with basis over Integer Ring
+
+        """
+        self._one_key = tuple([])
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([]), category, **keywords)
+        assert self._one_key == self.basis().keys().an_element()
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1,2])
+            sage: M.tensor_unit()
+            The unit object in Category of tensor products of modules with basis over Integer Ring
+
+        Should this also describe the implementation class?
+        """
+        return "The unit object in %s"%self.category()
+
+    def _repr_term(self, term):
+        return CombinatorialFreeModule._repr_term(self, term)
+
+    def one_basis(self):
+        """
+        Returns the one of the group, which index the one of this algebra,
+        as per :meth:`AlgebrasWithBasis.ParentMethods.one_basis`.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=AlgebrasWithBasis(ZZ))
+            sage: A.one_basis()
+            ()
+            sage: A.one()
+            B[()]
+
+        """
+        return self._one_key
+
+    def one(self):
+        """
+        Returns the unit element in ``self`` viewed as an algebra.
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=AlgebrasWithBasis(ZZ))
+            sage: A.one()
+            B[()]
+
+        """
+        return self.monomial(self._one_key)
+
+    def an_element(self):
+        r"""
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit()
+            sage: A.an_element()
+            2*B[()]
+
+        """
+        return 2 * self.one()
+
+    def product_on_basis(self, g1, g2):
+        r"""
+        Product, on basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=AlgebrasWithBasis(ZZ))
+            sage: A.one_basis()
+            ()
+            sage: a = A.one_basis()
+            sage: A.product_on_basis(a, a)
+            B[()]
+            sage: ma = A.monomial(a); ma
+            B[()]
+            sage: ma*ma
+            B[()]
+
+        """
+        return self.one()
+
+    def algebra_generators(self):
+        r"""
+        The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=AlgebrasWithBasis(ZZ))
+            sage: A.algebra_generators()
+            Finite family {(): B[()]}
+
+        """
+        return Family(tuple([self._one_key]), self.monomial)
+
+    def coproduct_on_basis(self, g):
+        r"""
+        Coproduct, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.coproduct_on_basis`.
+
+        Since we are taking the coproduct of the base ring and compressing tensor products, the
+        codomain is automatically isomorphed to a single copy of the base ring and the
+        coproduct is the identity map.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=HopfAlgebrasWithBasis(ZZ))
+            sage: A.coproduct_on_basis(A.one_basis()) == A.one()
+            True
+
+        """
+        return self.one()
+
+    def counit_on_basis(self, g):
+        r"""
+        Counit, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.counit_on_basis`.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=HopfAlgebrasWithBasis(ZZ))
+            sage: A.counit_on_basis(A.one_basis()) == A.base_ring().one()
+            True
+
+        """
+        return self.base_ring().one()
+
+    def antipode_on_basis(self, g):
+        r"""
+        Antipode, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.antipode_on_basis`.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit(category=HopfAlgebrasWithBasis(ZZ))
+            sage: A.antipode_on_basis(A.one_basis()) == A.one()
+            True
+
+        """
+        return self.one()
+
+    Element = TensorUnitElement

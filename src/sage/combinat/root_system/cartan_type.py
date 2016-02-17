@@ -1441,6 +1441,28 @@ class CartanType_abstract(object):
         from sage.combinat.root_system.type_folded import CartanTypeFolded
         return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
 
+    @cached_method
+    def doubled_nodes(self):
+        r"""
+        Lists the Dynkin nodes whose Cartan matrix rows consist entirely of even integers.
+
+            sage: CartanType(['A',1,1]).doubled_nodes()
+            (0, 1)
+            sage: CartanType(['A',2,1]).doubled_nodes()
+            ()
+            sage: CartanType(['B',2]).doubled_nodes()
+            (2, )
+            sage: CartanType(['C',2,1]).doubled_nodes()
+            (1, )
+            sage: CartanType(['D',3,2]).doubled_nodes()
+            (0, 2)
+
+        """
+        from sage.misc.functional import is_even
+        I = self.index_set()
+        M = self.cartan_matrix()
+        return tuple([I[i] for i in range(len(I)) if all([is_even(M[i][j]) for j in range(len(I))])])
+
     global_options = CartanTypeOptions
 
 class CartanType_crystallographic(CartanType_abstract):

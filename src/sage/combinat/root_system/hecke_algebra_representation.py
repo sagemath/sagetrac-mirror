@@ -5,6 +5,9 @@ Hecke algebra representations
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Anne Schilling <anne at math.ucdavis.edu>
 #
+#                     2014 Mark Shimozono <mshimo@math.vt.edu>
+#                     Hecke algebras with unequal parameters
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -18,6 +21,7 @@ from sage.sets.family import Family
 from sage.combinat.subset import Subsets
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.sets.family import Family, FiniteFamily
 
 class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
     r"""
@@ -36,29 +40,38 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
         F_w (x) = F_{i_k}\circ\cdots\circ F_{i_1}(x) .
 
+
     INPUT:
 
     - ``domain`` -- a vector space
     - ``f`` -- a function ``f(l,i)`` taking a basis element `l` of ``domain`` and an index `i`, and returning `F_i`
     - ``cartan_type`` -- The Cartan type of the Hecke algebra
     - ``q1,q2`` -- The eigenvalues of the generators `T` of the Hecke algebra
-    - ``side`` -- "left" or "right" (default: "right")
-      whether this is a left or right representation
+    - `q` -- The parameter corresponding to the null root of the affine root system
+    - ``side`` -- "left" or "right" (default: "right") whether this is a left or right representation
+    - ``doubled_parameters`` -- (default: None) The parameters for doubled simple roots for nonreduced affine root systems
+
+    The parameters are handled as follows. Two families `self._q1` and `self._q2` are created.
+    For each `i` in the Dynkin node set `I`, `self._q1[i]` and `self._q2[i]` are the eigenvalues of the `i`-th algebra
+    generator `T_i` of the Hecke algebra. If the input `q1` is in the base ring of ``domain`` then
+    `self._q1[i]` is set to `q1` for all `i`. Otherwise `q1` should be a dictionary/family from `I` to the base ring of ``domain``.
+    If `q2` is None then `self._q2[i]` is set to `-1/self._q1[i]` for all `i` in `I`.
+    If `q2` is in the base ring of ``domain`` then `self._q2[i]` is set to `q2` for all `i`.
+    Otherwise `q2` is a dictionary/family as above.
 
     EXAMPLES::
 
         sage: K = QQ['q1,q2'].fraction_field()
         sage: q1, q2 = K.gens()
-        sage: KW = WeylGroup(["A",3]).algebra(QQ)
+        sage: KW = WeylGroup(["A",3]).algebra(K)
         sage: H = KW.demazure_lusztig_operators(q1,q2); H
-        A representation of the (q1, q2)-Hecke algebra of type ['A', 3, 1]
-        on Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
+        A representation of the (q1, q2)-Hecke algebra of type ['A', 3, 1] on Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
 
     Among other things, it implements the `T_w` operators, their
     inverses and compositions thereof::
 
         sage: H.Tw((1,2))
-        Generic endomorphism of Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
+        Generic endomorphism of Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
 
     and the Cherednik operators `Y^{\lambda^\vee}`::
 
@@ -81,7 +94,17 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """
-    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right"):
+
+    @staticmethod
+    def __classcall_private__(cls, domain, on_basis, cartan_type, q1, q2=None, q=1, side="right", doubled_parameters=None):
+        cartan_type = CartanType(cartan_type)
+        if isinstance(q1, dict):
+            q1 = Family(q1)
+        if isinstance(q2, dict):
+            q2 = Family(q2)
+        return Super(HeckeAlgebraRepresentation, cls).__classcall__(cls, domain, on_basis, cartan_type, q1, q2, q=q, side=side, doubled_parameters=doubled_parameters)
+
+    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right", doubled_parameters=None):
         r"""
         TESTS::
 
@@ -94,11 +117,39 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         """
         self._domain = domain
         self._Ti_on_basis = on_basis
-        self._q1 = q1  # should check / coerce into the base ring
-        self._q2 = q2
-        self._q = q
         self._cartan_type = cartan_type
         self._side = side
+        self._q = q
+        self._doubled_parameters = doubled_parameters
+        self._unequal_parameters = False
+
+        I = cartan_type.index_set()
+        if q1 is None:
+            raise TypeError, "%s should either be a Family or an element of the base ring %s"%(q1, domain.base_ring())
+        elif isinstance(q1, FiniteFamily):
+            self._q1 = q1
+            self._unequal_parameters = True
+        else:
+            try:
+                q1 = domain.base_ring()(q1)
+            except:
+                raise TypeError, "%s should either be a Family or an element of the base ring %s"%(q1, domain.base_ring())
+            self._q1 = Family(dict([[i,q1] for i in I]))
+        if q2 is None:
+            self._q2 = Family(dict([[i, -1/self._q1[i]] for i in I]))
+        elif isinstance(q2, FiniteFamily):
+            self._q2 = q2
+            self._unequal_parameters = True
+        else:
+            try:
+                q2 = domain.base_ring()(q2)
+            except:
+                raise TypeError, "%s should either be a Family or an element of the base ring %s"%(q2, domain.base_ring())
+            self._q2 = Family(dict([[i, q2] for i in I]))
+        if not self._unequal_parameters:
+            i = self.cartan_type().index_set()[0]
+            self._single_q1 = self._q1[i]
+            self._single_q2 = self._q2[i]
 
     def _repr_(self):
         r"""
@@ -108,7 +159,12 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             "A representation of the (-1, 1)-Hecke algebra of type ['A', 3, 1]
             on Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field"
         """
-        return "A representation of the %s-Hecke algebra of type %s on %s"%((self._q1,self._q2), self.cartan_type(), self.domain())
+        if self._unequal_parameters:
+            parmstring = ""
+        else:
+            i = self.cartan_type().index_set()[0]
+            parmstring = "(%s, %s)-"%(self._q1[i],self._q2[i])
+        return "A representation of the %sHecke algebra of type %s on %s"%(parmstring, self.cartan_type(), self.domain())
 
     @cached_method
     def parameters(self, i):
@@ -119,7 +175,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
             sage: K = QQ['q1,q2'].fraction_field()
             sage: q1, q2 = K.gens()
-            sage: KW = WeylGroup(["A",3]).algebra(QQ)
+            sage: KW = WeylGroup(["A",3]).algebra(K)
             sage: H = KW.demazure_lusztig_operators(q1,q2)
             sage: H.parameters(1)
             (q1, q2)
@@ -134,7 +190,17 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             starting point for implementing parameters depending on
             the node `i` of the Dynkin diagram.
         """
-        return self._q1, self._q2
+        return (self._q1[i], self._q2[i])
+
+    @cached_method
+    def parameters_sum(self, i):
+        q1,q2 = self.parameters(i)
+        return q1+q2
+
+    @cached_method
+    def parameters_product(self, i):
+        q1,q2 = self.parameters(i)
+        return q1*q2
 
     def cartan_type(self):
         r"""
@@ -211,9 +277,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             sage: rho.Ti_inverse_on_basis(w, 1)
             -1/q2*B[1231] + ((q1+q2)/(q1*q2))*B[123]
         """
-        q1 = self._q1
-        q2 = self._q2
-        return (self._domain.term(x, q1+q2) - self.Ti_on_basis(x, i))/(q1*q2)
+        return (self._domain.term(x, self.parameters_sum(i)) - self.Ti_on_basis(x, i))/self.parameters_product(i)
 
     @cached_method
     def on_basis(self, x, word, signs=None, scalar=None):
@@ -344,6 +408,14 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
             c T_{i_k}^{\epsilon_k} \circ \cdots \circ T_{i_1}^{\epsilon_k}
 
+        If the representation was constructed with side="left" then instead we have
+
+        .. MATH::
+
+            T_w = T_{i_1} \circ \cdots \circ T_{i_k}
+
+        in left action notation.
+
         EXAMPLES::
 
             sage: W = WeylGroup("A3")
@@ -386,6 +458,10 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             3
         """
         word = self.straighten_word(word)
+        if self._side == "left":
+            word = tuple([x for x in reversed(word)])
+            if signs is not None:
+                signs= tuple([x for x in reversed(signs)])
         result = self._domain.module_morphism(functools.partial(self.on_basis, word=word, signs=signs, scalar=scalar),
                                             codomain = self._domain)
         # For debugging purpose, make the parameters easily accessible:
@@ -440,27 +516,73 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: L = RootSystem(["A",3]).ambient_space()
-            sage: K = QQ['q1,q2'].fraction_field()
-            sage: q1, q2 = K.gens()
+#            sage: L = RootSystem(["A",3]).ambient_space()
+#            sage: K = QQ['q1,q2'].fraction_field()
+#            sage: q1, q2 = K.gens()
+#            sage: KL = L.algebra(K)
+#            sage: T = KL.demazure_lusztig_operators(q1,q2)
+#            sage: T._test_relations()
+
+            sage: L = CartanType(['D',3,2]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
+            sage: q,v,vl,v0,v2,vz = K.gens()
+            sage: q1 = Family(dict([[0,v0],[1,vl],[2,v]]))
+            sage: q2 = Family(dict([[0,-1/v0],[1,-1/vl],[2,-1/v]]))
+            sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.demazure_lusztig_operators(q1,q2)
-            sage: T._test_relations()
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
+            sage: T._test_relations(root_lattice_weights=True)
+
+            sage: L = CartanType(['B',3,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v2'].fraction_field()
+            sage: q,v,vl,v2 = K.gens()
+            sage: q1 = Family(dict([[0,vl],[1,vl],[2,vl],[3,v]]))
+            sage: q2 = Family(dict([[0,-1/vl],[1,-1/vl],[2,-1/vl],[3,-1/v]]))
+            sage: p = Family(dict([[3,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
+            sage: T._test_relations(root_lattice_weights=True)
+
+            sage: L = CartanType(['A',1,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,v0,v2,vz'].fraction_field()
+            sage: q,v,v0,v2,vz = K.gens()
+            sage: q1 = Family(dict([[0,v0],[1,v]]))
+            sage: q2 = Family(dict([[0,-1/v0],[1,-1/v]]))
+            sage: p = Family(dict([[0,vz-1/vz],[1,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant",doubled_parameters=p)
+            sage: T._test_relations(root_lattice_weights=True)
+
+            sage: L = CartanType(['C',2,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v2'].fraction_field()
+            sage: q,v,vl,v2 = K.gens()
+            sage: q1 = Family(dict([[0,vl],[1,v],[2,vl]]))
+            sage: q2 = Family(dict([[0,-1/vl],[1,-1/v],[2,-1/vl]]))
+            sage: p = Family(dict([[1,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
+            sage: T._test_relations(root_lattice_weights=True)
+
         """
         tester = self._tester(**options)
+
         cartan_type = self.cartan_type()
+
         # In some use cases, the operators are not defined everywhere.
         # This allows to specify which elements the tests
         # should be run on. This does not work when calling this
         # method indirectly via TestSuite though.
         elements = options.get('elements', self.domain().some_elements())
-        q1 = self._q1
-        q2 = self._q2
+        if self._doubled_parameters:
+            if 'root_lattice_weights' in options.keys() and options['root_lattice_weights'] == True:
+                # only test elements whose support is in the root lattice
+                elements = [elt for elt in elements if all(v.in_root_lattice() for v in elt.support())]
         T = self
         def Ti(x,i,c):
             return T[i](x)+c*x
         # Check the quadratic relation
         for i in cartan_type.index_set():
+            q1,q2 = self.parameters(i)
             for x in elements:
                 tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero())
         G = cartan_type.coxeter_diagram()
@@ -495,16 +617,18 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         """
         tester = self._tester(**options)
         elements = self.domain().some_elements()
-        q1 = self._q1
-        q2 = self._q2
-        if q1.is_unit() and q2.is_unit():
-            I = self.cartan_type().index_set()
-            for w in [[i] for i in I] + [tuple(I)]:
-                Tw = self.Tw(w)
-                Tw_inverse = self.Tw_inverse(w)
-                for x in elements:
-                    tester.assertEqual(Tw_inverse(Tw(x)), x)
-                    tester.assertEqual(Tw(Tw_inverse(x)), x)
+        I = self.cartan_type().index_set()
+        for i in I:
+            q1, q2 = self.parameters(i)
+            if not q1.is_unit() or not q2.is_unit():
+                return
+
+        for w in [[i] for i in I] + [tuple(I)]:
+            Tw = self.Tw(w)
+            Tw_inverse = self.Tw_inverse(w)
+            for x in elements:
+                tester.assertEqual(Tw_inverse(Tw(x)), x)
+                tester.assertEqual(Tw(Tw_inverse(x)), x)
 
     def Y_lambdacheck(self, lambdacheck):
         r"""
@@ -617,9 +741,12 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # At this point, this is more or less of a guess, but that
         # works for our two main examples (action of affine W on W,
         # and Macdonald polynomials)
-        if self._side == "left":
-            word = tuple([x for x in reversed(word)])
-            signs= tuple([x for x in reversed(signs)])
+
+        # Mark commented this out and moved the reversal to :meth:`Tw`.
+        #if self._side == "left":
+        #    word = tuple([x for x in reversed(word)])
+        #    signs= tuple([x for x in reversed(signs)])
+
         # The power of q implements the fact that Y^\deltacheck = 1/q.
         # The classical simple coroots have no \deltacheck term.
         # alpha[0] has a \deltacheck with coefficient one
@@ -629,7 +756,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # so we can ignore this see the discussion in
         # sage.combinat.root_system.weight_space.WeightSpace).
         special_node = Q_check.cartan_type().special_node()
-        scalar = (-self._q1*self._q2)**(-sum(signs)/2) * self._q**(-lambdacheck[special_node])
+        scalar = (-self._single_q1*self._single_q2)**(-sum(signs)/2) * self._q**(-lambdacheck[special_node])
         return self.Tw(word, signs, scalar)
 
     def Y(self, base_ring=ZZ):
@@ -658,6 +785,8 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         """
         if not self.cartan_type().is_affine():
             raise ValueError("The Cherednik operators are only defined for representations of affine Hecke algebra")
+        if self._unequal_parameters:
+            raise NotImplementedError, "Only currently implemented for equal parameters"
         L = self.cartan_type().root_system().coroot_space(base_ring)
         return Family(L, self.Y_lambdacheck)
 

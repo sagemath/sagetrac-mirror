@@ -19,6 +19,7 @@ from sage.categories.tensor import TensorProductsCategory
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.tensor import TensorProductsCategory
 _Fields = Fields()
 
 class VectorSpaces(Category_module):
@@ -222,6 +223,8 @@ class VectorSpaces(Category_module):
                 Category of Cartesian products of vector spaces over Rational Field
                 sage: C in C.CartesianProducts().super_categories()
                 True
+                sage: C.CartesianProducts().extra_super_categories()
+                [Category of vector spaces over Rational Field]
             """
             return [self.base_category()]
 
@@ -235,5 +238,7 @@ class VectorSpaces(Category_module):
                 Category of tensor products of vector spaces over Rational Field
                 sage: C in C.TensorProducts().super_categories()
                 True
+                sage: C.TensorProducts().extra_super_categories()
+                [Category of vector spaces over Rational Field]
             """
             return [self.base_category()]
