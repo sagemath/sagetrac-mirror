@@ -99,8 +99,8 @@ from copy import copy
 from sage.functions.all import sqrt
 from sage.matrix.all import zero_matrix
 from sage.misc.all import verbose, prod
-from sage.rings.all import polygen, ZZ, RealField, ComplexField
-from sage.rings.all import QQ, integer_ceil, integer_floor
+from sage.rings.all import polygen, QQ, ZZ, RealField, ComplexField
+from sage.arith.all import integer_ceil, integer_floor
 from sage.rings.real_mpfr import is_RealField
 
 
@@ -113,10 +113,10 @@ def abs_log_height(X, gcd_one=True, precision=None):
 
     INPUT:
 
-    - ``X`` -- Point in projective space over a number field `K`
+    - ``X`` (list) -- Coordinates of a point in projective space over a number field `K`
 
-    - ``gcd_one`` -- (default: True) if false this throws in the
-      places at the numerators in addition to the places at the denominator.
+    - ``gcd_one`` -- (default: True) if false this includes the places
+      at the numerators in addition to the places at the denominator.
 
     - ``precision`` -- (default: None) bits of precision of the real and complex fields
 
@@ -128,7 +128,7 @@ def abs_log_height(X, gcd_one=True, precision=None):
 
         sage: import sage.schemes.elliptic_curves.ell_int_points as ellpts
         sage: E = EllipticCurve('5077a')
-        sage: [ellpts.abs_log_height(list(u)) for u in E.gens()]
+        sage: [ellpts.abs_log_height(u) for u in E.gens()]
         [1.09861228866811, 3.21887582486820, 0.000000000000000]
 
     ::
@@ -136,13 +136,15 @@ def abs_log_height(X, gcd_one=True, precision=None):
         sage: import sage.schemes.elliptic_curves.ell_int_points as ellpts
         sage: K.<a> = NumberField(x^2-x-1)
         sage: F = EllipticCurve(K,[0,-a,1,-a-1,2*a+1])
-        sage: P1, P2 = F.gens()
-        sage: P2
-        (-3/4*a + 1/4 : -5/4*a - 5/8 : 1)
-        sage: ellpts.abs_log_height(list(P2))
-        2.56625746464637
+        sage: P = F(1,-a)
+        sage: ellpts.abs_log_height(list(P))
+        0.2406059125298017237488794567122
     """
-    assert isinstance(X, list)
+    if not isinstance(X, list):
+        try:
+            X = list(X)
+        except ValueError:
+            raise ValueError("argument should be a list of coordinates of a point in projective space" % X)
     K = X[0].parent()
     if precision is None:
         RR = RealField()
@@ -1050,11 +1052,11 @@ def integral_points(self, L=None, both_signs=False, algorithm="new"):
         try:
             L = self.gens()
             r = self.rank()
-        except ValueError:
+            assert len(L) == r
+        except (ValueError, AssertionError):
             raise ValueError("Cannot compute a provable set of generators, "
                              "please "
                              "supply generators of the Mordell-Weil group.")
-        assert len(L) == r
 
     if algorithm == "old":
         try:
