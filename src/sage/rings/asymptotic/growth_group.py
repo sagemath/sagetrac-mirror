@@ -3667,6 +3667,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
         try:
             return self.base ** self.parent()._var_._substitute_(rules)
         except (ArithmeticError, TypeError, ValueError) as e:
+            try:
+                return self.parent()._var_._substitute_(rules).rpow(self.base)
+            except:
+                pass
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
