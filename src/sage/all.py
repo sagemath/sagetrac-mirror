@@ -97,6 +97,7 @@ except ImportError:
 
 from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
@@ -106,6 +107,7 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
@@ -171,6 +173,8 @@ from sage.tensor.all     import *
 from sage.matroids.all   import *
 
 from sage.game_theory.all import *
+
+from sage.manifolds.all import *
 
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')

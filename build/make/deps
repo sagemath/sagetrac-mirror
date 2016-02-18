@@ -11,7 +11,8 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 .PHONY: all all-sage all-toolchain all-build start \
 	base toolchain toolchain-deps sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean sagelib-clean build-clean
+	doc-clean doc-src-clean doc-output-clean \
+	clean sagelib-clean build-clean
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -44,6 +45,12 @@ all-sage: \
 		$(EXTCODE) \
 		$(SCRIPTS)
 
+# Download all packages which should be inside an sdist tarball (the -B
+# option to make forces all targets to be built unconditionally)
+download-for-sdist: base
+	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
+		$(STANDARD_PACKAGES) gcc mpir python2
+
 # TOOLCHAIN consists of dependencies determined by build/make/install,
 # including for example the GCC package.
 toolchain: $(TOOLCHAIN)
@@ -59,7 +66,6 @@ toolchain-deps:
 	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -94,7 +100,9 @@ base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 sagelib: \
+		$(INST)/$(ARB) \
 		$(INST)/$(ATLAS) \
+		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \
 		$(INST)/$(CLIQUER) \
 		$(INST)/$(CYTHON) \
@@ -109,6 +117,7 @@ sagelib: \
 		$(INST)/$(GSL) \
 		$(INST)/$(IML) \
 		$(INST)/$(JINJA2) \
+		$(INST)/$(JUPYTER_CORE) \
 		$(INST)/$(LCALC) \
 		$(INST)/$(LRCALC) \
 		$(INST)/$(LIBGAP) \
@@ -124,7 +133,6 @@ sagelib: \
 		$(INST)/$(NUMPY) \
 		$(INST)/$(PARI) \
 		$(INST)/$(PLANARITY) \
-		$(INST)/$(BRIAL) \
 		$(INST)/$(PPL) \
 		$(INST)/$(PYNAC) \
 		$(INST)/$(PYTHON) \
@@ -134,7 +142,8 @@ sagelib: \
 		$(INST)/$(SINGULAR) \
 		$(INST)/$(SIX) \
 		$(INST)/$(SYMMETRICA) \
-		$(INST)/$(ZN_POLY)
+		$(INST)/$(ZN_POLY) \
+		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
@@ -179,7 +188,8 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
 	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT)
+	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT) \
+	$(INST)/$(CONWAY_POLYNOMIALS)
 
 doc: doc-html
 
@@ -202,8 +212,13 @@ doc-html-jsmath: doc-html-mathjax
 doc-pdf: $(DOC_DEPENDENCIES)
 	cd ../.. && sage-logger './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
-doc-clean:
+doc-clean: doc-src-clean doc-output-clean
+
+doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+
+doc-output-clean:
+	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
 ###############################################################################
