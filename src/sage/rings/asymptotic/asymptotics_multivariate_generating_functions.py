@@ -95,8 +95,8 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
      Multivariate Polynomial Ring in x, y over Rational Field
     sage: s = solve([SR(z) for z in I.gens()],
     ....:           [SR(z) for z in R.gens()], solution_dict=true)
-    sage: s
-    [{y: 1, x: 1}]
+    sage: s == [{SR(x): 1, SR(y): 1}]
+    True
     sage: p = s[0]
     sage: asy = F.asymptotics(p, alpha, 1, verbose=True)
     Creating auxiliary functions...
@@ -2462,7 +2462,7 @@ class FractionWithFactoredDenominator(RingElement):
 
         .. SEEALSO::
 
-            :function:`direction`
+            :func:`direction`
 
         .. NOTE::
 
@@ -2841,7 +2841,6 @@ class FractionWithFactoredDenominator(RingElement):
              Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.sets.set import Set
 
         R = self.denominator_ring
         Hred = prod([h for (h, e) in self.denominator_factored()])
@@ -2853,7 +2852,7 @@ class FractionWithFactoredDenominator(RingElement):
         for a in alpha:
             if a not in K and a in SR:
                 indets.append(a)
-        indets = sorted(Set(indets))   # Delete duplicates in indets.
+        indets = sorted(set(indets), key=str)   # Delete duplicates in indets.
         if indets:
             L = PolynomialRing(K, indets).fraction_field()
             S = R.change_ring(L)
@@ -4370,19 +4369,15 @@ def coerce_point(R, p):
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = FFPD()
         sage: p = {SR(x): 1, SR(y): 7/8}
-        sage: p
-        {y: 7/8, x: 1}
-        sage: for k in sorted(p.keys()):
-        ....:     print k, k.parent()
-        y Symbolic Ring
-        x Symbolic Ring
+        sage: for k in sorted(p.keys(), key=str):
+        ....:     print k, k.parent(), p[k]
+        x Symbolic Ring 1
+        y Symbolic Ring 7/8
         sage: q = coerce_point(R, p)
-        sage: q
-        {y: 7/8, x: 1}
-        sage: for k in sorted(q.keys()):
-        ....:     print k, k.parent()
-        y Multivariate Polynomial Ring in x, y over Rational Field
-        x Multivariate Polynomial Ring in x, y over Rational Field
+        sage: for k in sorted(q.keys(), key=str):
+        ....:     print k, k.parent(), q[k]
+        x Multivariate Polynomial Ring in x, y over Rational Field 1
+        y Multivariate Polynomial Ring in x, y over Rational Field 7/8
     """
     if p is not None and p.keys() and p.keys()[0].parent() != R:
         try:
