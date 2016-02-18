@@ -319,34 +319,6 @@ class Polyhedron_ZZ(Polyhedron_base):
         p = ans.splitlines()[-2]
 
         return R(p)
-
-    def h_vector(self):
-        """
-        Return the `h`-vector of the polytope.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron()
-            sage: p.h_vector()
-            ?
-        """
-        from sage.functions.other import factorial, binomial
-        p = self.ehrhart_polynomial()
-        x = p.parent().gen()
-        remain = p
-        result = {}
-        while remain:
-            N = remain.degree()
-            top_coeff = ZZ(remain.leading_coefficient() * factorial(N))
-            remain -= top_coeff * binomial(N + x, N)
-            result[N] = top_coeff
-        d = max(result)
-        m = matrix(ZZ, d + 1, d + 1,
-                   lambda j, i: (-1) ** (d - j) * binomial(d - i, d - j))
-        v = [ZZ.zero()] * (d + 1)
-        for i, c in result.items():
-            v[i] = c
-        return m * vector(ZZ, v)
     
     @cached_method
     def polar(self):
