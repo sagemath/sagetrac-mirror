@@ -79,3 +79,5 @@ from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           exponential_integral_1, Ei)
 
 from hypergeometric import hypergeometric
+
+from riemann_theta import RiemannTheta
