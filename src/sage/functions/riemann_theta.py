@@ -84,19 +84,19 @@ the same precision. (These values are checked against the Maple
 implementation of Riemann theta written by Bernard Deconinck and Mark van
 Hoeij; two of the authors of [CRTF]_.)::
 
-    sage: theta([0,0])
-    1.1654 - 1.9522e-15*I
-    sage: theta([I,I])
-    -438.94 + 0.00056160*I
+    sage: theta([0,0])  # abs tol 1e-15
+    1.1654 + 4.5119e-36*I
+    sage: theta([I,I])  # abs tol 1e-12
+    -438.94 - 5.3754e-14*I
 
 One can also compute the exponential and oscillatory parts of the Riemann
 theta function separately::
 
     sage: u,v = theta.exp_and_osc_at_point([I,I])
-    sage: (u,v)
-    (6.2832, -0.81969 + 1.0488e-6*I)
-    sage: e^u*v
-    -438.94 + 0.00056160*I
+    sage: (u,v)  # abs tol 1e-14
+    (6.2832, -0.81969 - 1.0038e-16*I)
+    sage: e^u*v  # abs tol 1e-12
+    -438.94 - 5.3754e-14*I
 
 Directional derivatives of theta can also be computed. The directional
 derivative can be specified in the construction of the Riemann theta function
@@ -176,11 +176,12 @@ from sage.ext.fast_callable import fast_callable
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
 from sage.plot.all import implicit_plot
-from sage.rings.all import RDF, RealField, ZZ, PolynomialRing
+from sage.rings.all import RDF, ZZ, PolynomialRing
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
 from scipy.optimize import fsolve
 from scipy.special import gamma, gammaincc, gammainccinv
+from sage.functions.other import sqrt
 
 
 def RiemannTheta_Constructor(Omega, deriv=[], uniform=True,
@@ -247,7 +248,7 @@ def RiemannTheta_Constructor(Omega, deriv=[], uniform=True,
     Riemann matrix.::
 
         sage: R = ComplexField(20)
-        sgae: I = R.gen()
+        sage: I = R.gen()
         sage: Omega = matrix(R,2,2,[I,-1/2,-1/2,I])
         sage: theta = RiemannTheta(Omega)
         sage: theta
@@ -263,19 +264,19 @@ def RiemannTheta_Constructor(Omega, deriv=[], uniform=True,
     Bernard Deconinck and Mark van Hoeij; two of the authors of
     [CRTF]_.)::
 
-        sage: theta([0,0])
-        1.1654 - 1.9522e-15*I
-        sage: theta([I,I])
-        -438.94 + 0.00056160*I
+        sage: theta([0,0])  # abs tol 1e-15
+        1.1654 + 4.5119e-36*I
+        sage: theta([I,I])  # abs tol 1e-12
+        -438.94 - 5.3754e-14*I
 
     One can also compute the exponential and oscillatory parts of the Riemann
     theta function separately::
 
         sage: u,v = theta.exp_and_osc_at_point([I,I])
-        sage: (u,v)
-        (6.2832, -0.81969 + 1.0488e-6*I)
-        sage: e^u*v
-        -438.94 + 0.00056160*I
+        sage: (u,v)  # abs tol 1e-15
+        (6.2832, -0.81969 - 1.0038e-16*I)
+        sage: e^u*v  # abs tol 1e-15
+        -438.94 - 5.3754e-14*I
 
     Directional derivatives of theta can also be computed. The directional
     derivative can be specified in the construction of the Riemann theta
@@ -444,13 +445,13 @@ class Function_RiemannTheta(BuiltinFunction):
                                  conversions=conversions)
 
         self._max_points_in_one_evaluation = 32000
-        self._g = ZZ(self.Omega.nrows())
-        assert self._g == self.Omega.ncols()
+        self._g = self.Omega.nrows()
+        assert self.Omega.is_square()
 
         # store the base ring and a RealField of the same precision
         self._ring = self.Omega.base_ring()
         self._prec = self._ring.prec()
-        self._realring = RealField(self._prec)
+        self._realring = RDF
 
         # require that Omega be symmetric and the imaginary part be positive
         # positive definite. The check for positive definiteness is inherent
@@ -770,18 +771,17 @@ class Function_RiemannTheta(BuiltinFunction):
             sage: Omega = matrix(R,2,2,[I,-1/2,-1/2,I])
             sage: theta = RiemannTheta(Omega)
             sage: theta.radius([])
-            3.61513411073
+            3.615134110730906
 
             sage: R = ComplexField(40); I = R.gen()
             sage: Omega = matrix(R,2,2,[I,-1/2,-1/2,I])
             sage: theta = RiemannTheta(Omega)
             sage: theta.radius([])
-            6.02254252538
+            6.02254252538064
             sage: theta.radius([[1,0]])
             6.37024100817
         """
         Pi = self._ring.pi()
-        # I = self._ring.gen()
         g = self._g
 
         # compute the length of the shortest lattice vector
@@ -799,7 +799,7 @@ class Function_RiemannTheta(BuiltinFunction):
             lhs = RDF(eps * (2 / g) * (r / 2) ** g * gamma(g / 2))
             ins = RDF(gammainccinv(g / 2, lhs))
             R = ins.sqrt() + r / 2
-            rad = max(R, ((2 * g).sqrt() + r) / 2)
+            rad = max(R, (sqrt(2 * g) + r) / 2)
         elif len(deriv) == 1:
             # solve for left-hand side
             L = self.deriv_accuracy_radius
@@ -818,7 +818,10 @@ class Function_RiemannTheta(BuiltinFunction):
 
                 INPUT:
 
-                - ``ins`` -- the quantity `(R-\rho)^2` where `R` is the radius we must solve for and `\rho` is the length of the shortest lattice vector in the integer lattice defined by `\Omega`.
+                - ``ins`` -- the quantity `(R-\rho)^2` where `R` is
+                  the radius we must solve for and `\rho` is the
+                  length of the shortest lattice vector in the integer
+                  lattice defined by `\Omega`.
 
                 EXAMPLES:
 
@@ -829,7 +832,7 @@ class Function_RiemannTheta(BuiltinFunction):
                     sage: Omega = matrix(R,2,2,[I,-1/2,-1/2,I])
                     sage: theta = RiemannTheta(Omega)
                     sage: theta.radius([])
-                    6.02254252538
+                    6.02254252538064
                     sage: theta.radius([[1,0]])
                     6.37024100817
                 """
@@ -839,9 +842,9 @@ class Function_RiemannTheta(BuiltinFunction):
                         float(lhs))
 
             #  define lower bound (guess) and attempt to solve for the radius
-            lbnd = (g + 2 + (g ** 2 + 8).sqrt()).sqrt() + r
+            lbnd = sqrt(RDF(g + 2 + sqrt(g ** 2 + 8))) + r
             try:
-                ins = RDF(fsolve(rhs, float(lbnd))[0])
+                ins = fsolve(rhs, float(lbnd))[0]
             except RuntimeWarning:
                 # fsolve had trouble finding the solution. We try
                 # a larger initial guess since the radius increases
@@ -849,7 +852,9 @@ class Function_RiemannTheta(BuiltinFunction):
                 try:
                     ins = RDF(fsolve(rhs, float(2 * lbnd))[0])
                 except RuntimeWarning:
-                    raise ValueError("Could not find an accurate bound for the radius. Consider using higher precision.")
+                    raise ValueError("Could not find an accurate bound"
+                                     " for the radius. Consider using"
+                                     " higher precision.")
 
             # solve for radius
             R = ins.sqrt() + r / 2
@@ -874,7 +879,10 @@ class Function_RiemannTheta(BuiltinFunction):
 
                 INPUT:
 
-                    - ``ins`` -- the quantity `(R-\rho)^2` where `R` is the radius we must solve for and `\rho` is the length of the shortest lattice vector in the integer lattice defined by `\Omega`.
+                - ``ins`` -- the quantity `(R-\rho)^2` where `R` is
+                  the radius we must solve for and `\rho` is the
+                  length of the shortest lattice vector in the integer
+                  lattice defined by `\Omega`.
 
                 EXAMPLES:
 
@@ -885,7 +893,7 @@ class Function_RiemannTheta(BuiltinFunction):
                     sage: Omega = matrix(R,2,2,[I,-1/2,-1/2,I])
                     sage: theta = RiemannTheta(Omega)
                     sage: theta.radius([])
-                    6.02254252538
+                    6.02254252538064
                     sage: theta.radius([[1,0]])
                     6.37024100817
                 """
@@ -896,7 +904,7 @@ class Function_RiemannTheta(BuiltinFunction):
                         gamma(g / 2) * gammaincc(g / 2, ins) - float(lhs))
 
             #  define lower bound (guess) and attempt to solve for the radius
-            lbnd = (g + 4 + (g ** 2 + 16).sqrt()).sqrt() + r
+            lbnd = sqrt(RDF(g + 4 + sqrt(g ** 2 + 16))) + r
             try:
                 ins = RDF(fsolve(rhs, float(lbnd))[0])
             except RuntimeWarning:
@@ -947,19 +955,19 @@ class Function_RiemannTheta(BuiltinFunction):
         Some example evaluations::
 
             sage: theta.exp_and_osc_at_point([0,0])
-            (0, 1.050286258 - 0.1663490011*I)
+            (0.0000000000, 1.050286258 - 0.1663490011*I)
             sage: theta.exp_and_osc_at_point([0.3+0.5*I,0.9+1.2*I])
             (4.763409165, 0.1568397231 - 1.078369835*I)
             sage: theta.exp_and_osc_at_point([0.3+0.5*I,0.9+1.2*I], deriv=[[1,0]])
-            (4.763409165, -0.5864936847 + 0.04570614011*I)
+            (4.763409165, -0.5864936846 + 0.04570614005*I)
 
         Defining a Riemann theta function, we demonstrate that the oscillatory
         part is periodic in each component with period 1::
 
             sage: theta.exp_and_osc_at_point([0,0])
-            (0, 1.050286258 - 0.1663490011*I)
+            (0.0000000000, 1.050286258 - 0.1663490011*I)
             sage: theta.exp_and_osc_at_point([1,3])
-            (0, 1.050286258 - 0.1663490011*I)
+            (0.0000000000, 1.050286258 - 0.1663490011*I)
         """
         domain = self._realring
         pi = domain.pi()
@@ -1173,7 +1181,7 @@ class Function_RiemannTheta(BuiltinFunction):
             sage: f = theta([x^2,sin(x)]); f
             theta(x^2, sin(x))
             sage: f(x=1.0*I)
-            -94.35488925 - 59.48498251*I
+            -94.35488927 - 59.48498251*I
         """
         if any(is_Expression(arg) for arg in args[0]):
             return BuiltinFunction.__call__(self, *args[0])
@@ -1195,8 +1203,8 @@ class Function_RiemannTheta(BuiltinFunction):
             x
             sage: f = theta([x^2,1+x]); f
             theta(x^2, x + 1)
-            sage: f(x=I)
-            23. + 0.045*I
+            sage: f(x=I)   # abs tol 1e-13
+            23. + 5.7e-15*I
         """
         has_symbolic = False
         for arg in args:
