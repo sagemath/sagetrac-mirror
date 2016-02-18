@@ -46,6 +46,7 @@ from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
+from sage.combinat.cluster_algebra_quiver.quiver_construction_type import QuiverConstructionType
 
 
 class ClusterQuiver(SageObject):
@@ -225,54 +226,61 @@ class ClusterQuiver(SageObject):
         elif type( data ) in [list,tuple] and ( isinstance(data[0], str) or all(type( comp ) in [list,tuple] and isinstance(comp[0], str) for comp in data) ):
             if frozen is not None:
                 print 'The input specifies a mutation type, so the additional parameter frozen is ignored.'
-            if isinstance(data[1], list) and isinstance(data[1][0],list):
-                data[1][0] = tuple(data[1][0])
-            mutation_type = QuiverMutationType( data )
+            #if isinstance(data[1], list) and isinstance(data[1][0],list):
+            #    data[1][0] = tuple(data[1][0])
+            
+            construction_type = QuiverConstructionType( data )
+            if construction_type._details:
+                quiv = ClusterQuiver(construction_type._digraph,construction_type._frozen)
+                quiv._construction_type = construction_type
+                self.__init__( quiv )
+            
+            else:
+                
+                mutation_type = QuiverMutationType( data )
 
-            # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.
-            if len(data) == 2 and isinstance(data[0], str):
-                if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2) or data[0] == 'DB':
-                    if data[1] in ZZ:
-                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1] )._digraph )
-                        quiv._mutation_type = mutation_type
-                        self.__init__( quiv )
-                    elif isinstance(data[1], list):
-                        if isinstance(data[1][0], list):
-                            data[1][0] = tuple(data[1][0])
-                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph, frozen = QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._frozen )
-                        quiv._mutation_type = mutation_type
-                        self.__init__( quiv )
-                else:
-                    self.__init__( mutation_type.standard_quiver() )
-            elif len(data) == 3 and isinstance(data[0], str):
-                if (data[0] == 'F' and data[1] == 4 and data[2] == [2,1])   or (data[0] == 'G' and data[1] == 2 and data[2] == [3,1]):
-                    quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], tuple(data[2]) )._digraph )
-                    quiv._mutation_type = mutation_type
-                    self.__init__( quiv )
-                elif (data[0] == 'F' and data[1] == 4 and data[2] == (2,1) )   or (data[0] == 'G' and data[1] == 2 and data[2] == (3,1) ):
-                    quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
-                    quiv._mutation_type = mutation_type
-                    self.__init__( quiv )
-                elif data[0] == 'A' and isinstance(data[1], list) and data[2] == 1:
-                    if len(data[1]) == 2 and min(data[1]) == 0:
-                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]), data[2] )._digraph )
-                        quiv._mutation_type = mutation_type
-                        self.__init__( quiv )
+                # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.
+                if len(data) == 2 and isinstance(data[0], str):
+                    if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2):
+                        if data[1] in ZZ:
+                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1] )._digraph )
+                            quiv._mutation_type = mutation_type
+                            self.__init__( quiv )
+                        elif isinstance(data[1], list):
+                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph )
+                            quiv._mutation_type = mutation_type
+                            self.__init__( quiv )
                     else:
                         self.__init__( mutation_type.standard_quiver() )
-
-                elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
-                    if len(data[1]) == 2 and min(data[1]) == 0:
+                elif len(data) == 3 and isinstance(data[0], str):
+                    if (data[0] == 'F' and data[1] == 4 and data[2] == [2,1])   or (data[0] == 'G' and data[1] == 2 and data[2] == [3,1]):
+                        quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], tuple(data[2]) )._digraph )
+                        quiv._mutation_type = mutation_type
+                        self.__init__( quiv )
+                    elif (data[0] == 'F' and data[1] == 4 and data[2] == (2,1) )   or (data[0] == 'G' and data[1] == 2 and data[2] == (3,1) ):
                         quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
                         quiv._mutation_type = mutation_type
                         self.__init__( quiv )
+                    elif data[0] == 'A' and isinstance(data[1], list) and data[2] == 1:
+                        if len(data[1]) == 2 and min(data[1]) == 0:
+                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]), data[2] )._digraph )
+                            quiv._mutation_type = mutation_type
+                            self.__init__( quiv )
+                        else:
+                            self.__init__( mutation_type.standard_quiver() )
+
+                    elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
+                        if len(data[1]) == 2 and min(data[1]) == 0:
+                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
+                            quiv._mutation_type = mutation_type
+                            self.__init__( quiv )
+                        else:
+                            self.__init__( mutation_type.standard_quiver() )
+
                     else:
                         self.__init__( mutation_type.standard_quiver() )
-
                 else:
                     self.__init__( mutation_type.standard_quiver() )
-            else:
-                self.__init__( mutation_type.standard_quiver() )
 
             if user_labels:
                 
@@ -282,6 +290,7 @@ class ClusterQuiver(SageObject):
                     self._nlist = user_labels
                     
                 self.relabel(self._nlist)
+
                 
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
@@ -302,6 +311,7 @@ class ClusterQuiver(SageObject):
             self._vertex_dictionary = data._vertex_dictionary
             self._mutation_type = data._mutation_type
             self._description = data._description
+            self._construction_type = data._construction_type
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
@@ -318,6 +328,7 @@ class ClusterQuiver(SageObject):
             self._digraph = _matrix_to_digraph( self._M )
             self._vertex_dictionary = {}
             self._mutation_type = None
+            self._construction_type = QuiverConstructionType(data)
             
             if user_labels:
                 if isinstance(user_labels, dict):
@@ -427,6 +438,7 @@ class ClusterQuiver(SageObject):
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
             self._mutation_type = None
+            self._construction_type = QuiverConstructionType(data)
 
         # if data is a list of edges, the appropriate digraph is constructed.
 
@@ -486,6 +498,8 @@ class ClusterQuiver(SageObject):
             name += ' with %s frozen vertex'%self._m
         elif self._m > 1:
             name += ' with %s frozen vertices'%self._m
+        if self._construction_type._details:
+            name += ' constructed from '+ str(self._construction_type)
         return name
 
     def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
@@ -1028,6 +1042,9 @@ class ClusterQuiver(SageObject):
                     mutation_type = QuiverMutationType( mutation_type )
             self._mutation_type = mutation_type
         return self._mutation_type
+    
+    def construction_type(self):
+        return self.construction_type
 
     def n(self):
         """
@@ -1430,6 +1447,7 @@ class ClusterQuiver(SageObject):
             self._digraph = dg
         else:
             Q = ClusterQuiver( M )
+            Q._construction_type = self._construction_type
             Q._mutation_type = self._mutation_type
             return Q
 

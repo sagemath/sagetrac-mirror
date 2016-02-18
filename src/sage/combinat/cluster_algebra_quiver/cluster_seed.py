@@ -254,6 +254,7 @@ class ClusterSeed(SageObject):
             self._b_initial = copy( data._b_initial)
 
             self._mutation_type = copy( data._mutation_type)
+            self._construction_type = copy(data._construction_type)
             self._description = copy( data._description)
             self._quiver = ClusterQuiver( data._quiver ) if data._quiver else None
 
@@ -294,6 +295,7 @@ class ClusterSeed(SageObject):
             # If initializing from a ClusterQuiver rather than a ClusterSeed, the initial B-matrix is reset to be the input B-matrix.
             self._b_initial = copy(self._M)
             self._mutation_type = copy(quiver._mutation_type)
+            self._construction_type = copy(quiver._construction_type)
             self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
             self._quiver = quiver
 
@@ -950,6 +952,13 @@ class ClusterSeed(SageObject):
             # the following case allows description of 'undetermined finite mutation type'
             else:
                 name += ' of ' + self._mutation_type
+            #if self._construction_type:
+            #     name += ' constructed from '+ str(self._construction_type)
+        
+        else:
+            name += ' constructed from '+ str(self._construction_type)
+        #if self._construction_type._details:
+        #    name += ' constructed from '+ str(self._construction_type)
         if self._is_principal:
             name += ' with principal coefficients'
         elif self._m == 1:
@@ -3957,6 +3966,17 @@ class ClusterSeed(SageObject):
                 self.quiver()
             self._mutation_type = self._quiver.mutation_type()
         return self._mutation_type
+    
+    def construction_type(self):
+        r"""
+        Returns the construction type of ``self''.
+        """
+        if self._construction_type is None:
+            if self._quiver is None:
+                self.quiver()
+            self._construction_type = self._quiver.construction_type()
+        return self._construction_type
+        
 
     def greedy(self, a1, a2, method='by_recursion'):
         r"""

@@ -2,7 +2,7 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.graphs.graph import DiGraph
 #from sage.rings.integer import sign
 
-def dblBruhatDigraph(DynkinType, u,v,word = False):
+def DoubleBruhatDigraph(CartanType, u,v,word = False):
     '''Returns a quiver from the Weyl group elements u and v, along with lists of exchangable and frozen vertices, using the algorithm outlined in Cluster Algebras III.  
     
     INPUT:
@@ -13,30 +13,20 @@ def dblBruhatDigraph(DynkinType, u,v,word = False):
         * str - a string representation of a permutation
         * PermutationGroupElement
         * Matrix
-    - DynkinType -- the Coxeter Dynkin type of the underlying group, i.e. ['A', 5], ['C',6], etc.
+    - CartanType -- the Cartan type of the underlying group, i.e. ['A', 5], ['C',6], etc.
     - ``word`` -- (default: False) a chosen reduced word for (u,v) as an element of W x W, using the convention that simple reflections in v are associated to negative integers.
 
     TESTS::
 
         sage: W = WeylGroup(['C',4])
         sage: s1,s2,s3,s4 = W.simple_reflections()
-        sage: D,F = dblBruhatDigraph(s1*s2*s3*s4,s4*s3*s2*s1,['C',4])
+        sage: D,F = DoubleBruhatDigraph(['C',4],s1*s2*s3*s4,s4*s3*s2*s1)
         sage: ClusterQuiver(D,F)
 ''' 
     
-    typeChar = DynkinType[0]
-    r = DynkinType[1]
+    typeChar = CartanType[0]
+    r = CartanType[1]
     
-    # Anything accepted by WeylGroupElement will work (in particular permutations, matrices, etc.)
-    #W = WeylGroup(DynkinType)
-    #WeylElements = W.list() 
-
-    # A quick reality check
-    #if (u not in WeylElements) or (v not in WeylElements):
-    #    print "Bruhat cell data u or v does not correspond to the given Weyl group"
-    #    return None, None, None
-    #u = WeylGroupElement(W,u)
-    #v = WeylGroupElement(W,v)
     lu = u.length()
     lv = v.length()
     
@@ -46,10 +36,10 @@ def dblBruhatDigraph(DynkinType, u,v,word = False):
         for n in v.reduced_word():
             word.append(-n)
           
-    # Pads the list with frozen variables (Note: there will be other frozen variable in the final quiver
+    # Pads the list with frozen variables (Note: there will be other frozen variable in the final quiver)
     word = range(-r,0) + word
     indecies = range(-r,0) + range(1,lu+lv+1)   
-    M = CartanMatrix(DynkinType)
+    M = CartanMatrix(CartanType)
     
     # Determines the exchangable vertices
     exchangables = []
@@ -74,8 +64,9 @@ def dblBruhatDigraph(DynkinType, u,v,word = False):
             
             kplus = plus(k,word,r)
             lplus = plus(l,word,r)
-            if kplus in indecies and lplus in indecies:
+            if kplus in indecies:
                 ikplus = word[indecies.index(kplus)]
+            if lplus in indecies: 
                 ilplus = word[indecies.index(lplus)]
                     
             # This runs through BFZ's three conditions under which there can be an edge between k and l
@@ -105,11 +96,11 @@ def dblBruhatDigraph(DynkinType, u,v,word = False):
     return dg,frozen
 
 def plus(k,word,r):
-    '''Returns the index 'k+', being the smallest index l in 'word' such that k<l and the index k and l entries of 'word' agree.  NOTE: the 'index' is assumed to be following the indexing conventions of dblBruhatQuiver, not the standard python conventions.
+    '''Returns the index 'k+', being the smallest index l in 'word' such that k<l and the index k and l entries of 'word' agree.  NOTE: the 'index' is assumed to be following the indexing conventions of DoubleBruhatDigraph, not the standard python conventions.
 
     INPUT:
-    - ``k`` -- An index for `word` in the convention of dblBruhatQuiver.
-    - ``word`` -- The reduced word constructed in dblBruhatQuiver.
+    - ``k`` -- An index for `word` in the convention of DoubleBruhatQuiver.
+    - ``word`` -- The reduced word constructed in DoubleBruhatQuiver.
     - ``r`` -- The number of additional frozen variables in the beginning of `word` (which is the rank of the underlying Cartan matrix).'''
 
     # fix for index 0
@@ -131,8 +122,8 @@ def iExchangable(k,word,r):
 
     INPUT:
 
-    - ``k`` -- An index for `word` in the convention of dblBruhatQuiver.
-    - ``word`` -- The reduced word constructed in dblBruhatQuiver.
+    - ``k`` -- An index for `word` in the convention of DoubleBruhatDigraph.
+    - ``word`` -- The reduced word constructed in DoubleBruhatDigraph.
     - ``r`` -- The number of additional frozen variables in the beginning of `word` (which is the rank of the underlying Cartan matrix).'''
 
     if (k >=1 and k<=(len(word) - r)) and (plus(k,word,r) >=1 and plus(k,word,r)<=(len(word) - r)):
