@@ -560,7 +560,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 TODO: optimize this implementation!
 
                 """
-                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2))))
+                return tensor( [module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2))])
 
             def _monomial_almost_one(self, i, x):
                 r"""

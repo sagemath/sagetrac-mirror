@@ -216,7 +216,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
         except AttributeError:
             pass
         if x not in parent.special_nodes():
-            raise ValueError("%s is not a special node" % x)
+            raise ValueError("{} is not a special node".format(x))
         self._value = x
         MultiplicativeGroupElement.__init__(self, parent)
 
@@ -236,6 +236,22 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             4
         """
         return self._value
+
+    def __hash__(self):
+        r"""
+        Hash function for elements.
+
+        This is so that these elements can be bases of free modules.
+
+        EXAMPLES::
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
+            sage: x = F.an_element(); x
+            f[4]
+            sage: x.__hash__()
+            -7661715669080947598
+        """
+        return hash((self.parent(), self._value))
 
     def _repr_(self):
         r"""
@@ -403,6 +419,32 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         else:
             cat = Groups().Commutative().Infinite()
         Parent.__init__(self, category = cat)
+
+    def _element_constructor_(self, elt):
+        r"""
+        Construct an element of ``self`` from ``elt``.
+
+        INPUT:
+
+        - ``self`` -- A fundamental group
+        - ``elt`` -- Either an element of ``self`` or a special node, which is assumed to be an integer.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: F(2) # indirect doctest
+            pi[2]
+        """
+        if elt in ZZ:
+            return self.element_class(self, elt)
+        try:
+            P = elt.parent()
+            if P == self:
+                return elt
+        except AttributeError:
+            pass
+        raise ValueError("Element {} does not have {} as parent".format(elt,self))
 
     @cached_method
     def one(self):
@@ -615,7 +657,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
     """
     Element = FundamentalGroupGLElement
 
-    def __init__(self, cartan_type, prefix='pi'):
+    def __init__(self, cartan_type, prefix):
         r"""
 
         EXAMPLES::
@@ -629,6 +671,32 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix, finite=False)
         self._special_nodes = ZZ
         self._n = cartan_type.n + 1
+
+    def _element_constructor_(self, elt):
+        r"""
+        Construct an element of ``self`` from ``elt``.
+
+        INPUT:
+
+        - ``self`` -- A fundamental group
+        - ``elt`` -- Either an element of ``self`` or an integer
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1], general_linear=True)
+            sage: F(-7) # indirect doctest
+            pi[-7]
+        """
+        if elt in ZZ:
+            return self.element_class(self, elt)
+        try:
+            P = elt.parent()
+            if P == self:
+                return elt
+        except AttributeError:
+            pass
+        raise ValueError("Element {} does not have {} as parent".format(elt,self))
 
     @cached_method
     def one(self):
