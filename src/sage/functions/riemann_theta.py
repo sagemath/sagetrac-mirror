@@ -1237,7 +1237,7 @@ class Function_RiemannTheta(BuiltinFunction):
             2*x*theta_10(x^2, x + 1) + theta_01(x^2, x + 1)
         """
         diff_param = kwds['diff_param']
-        deriv = (self._g * [0])
+        deriv = self._g * [0]
         deriv[diff_param] = 1
         newderiv = [d for d in self.deriv]  # to avoid deep copy
         newderiv.append(deriv)
