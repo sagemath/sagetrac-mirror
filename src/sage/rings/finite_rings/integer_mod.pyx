@@ -57,12 +57,14 @@ TESTS::
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -83,12 +85,10 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
-## import arith
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
 
-import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.interfaces.all
 
 import sage.rings.integer
@@ -753,8 +753,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         OUTPUT:
 
-            The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
-            (where `n` denotes the modulus).
+        The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
+        (where `n` denotes the modulus).
 
         EXAMPLES::
 
@@ -983,8 +983,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 R = self.parent()['x']
                 modulus = R.gen()**2 - R(self)
                 if self._parent.is_field():
-                    import constructor
-                    Q = constructor.FiniteField(self.__modulus.sageInteger**2, y, modulus)
+                    from finite_field_constructor import FiniteField
+                    Q = FiniteField(self.__modulus.sageInteger**2, y, modulus)
                 else:
                     R = self.parent()['x']
                     Q = R.quotient(modulus, names=(y,))
@@ -1069,7 +1069,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     vmod.append(w)
                     moduli.append(k)
                 # Now combine in all possible ways using the CRT
-                from sage.rings.arith import CRT_basis
+                from sage.arith.all import CRT_basis
                 basis = CRT_basis(moduli)
                 from sage.misc.mrange import cartesian_product_iterator
                 v = []
@@ -1496,7 +1496,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             45154201192451
         """
         n = self.__modulus.sageInteger
-        return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
+        return sage.rings.integer.Integer(n // self.lift().gcd(n))
 
     def is_primitive_root(self):
         """
@@ -1651,21 +1651,16 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 return infinity
         return r
 
-    def __floordiv__(self, other):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Exact division for prime moduli, for compatibility with other fields.
 
-        EXAMPLES:
-        sage: GF(7)(3) // GF(7)(5)
-        2
+        EXAMPLES::
+
+            sage: GF(7)(3) // 5
+            2
         """
-        # needs to be rewritten for coercion
-        if other.parent() is not self.parent():
-            other = self.parent().coerce(other)
-        if self.parent().is_field():
-            return self / other
-        else:
-            raise TypeError, "Floor division not defined for non-prime modulus"
+        return self._mul_(~right)
 
     def _repr_(self):
         return str(self.lift())
@@ -1844,10 +1839,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             return 0
         else:
             return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_gmp self):
         """
@@ -2118,8 +2109,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: hash(a)
             8943
         """
-#        return mpz_pythonhash(self.value)
-        return hash(self.lift())
+        return mpz_pythonhash(self.value)
 
     @coerce_binop
     def gcd(self, IntegerMod_gmp other):
@@ -2199,13 +2189,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
 
-    def _make_new_with_parent_c(self, parent): #ParentWithBase parent):
-        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
-        x._parent = parent
-        x.__modulus = parent._pyx_order
-        x.ivalue = self.ivalue
-        return x
-
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)
@@ -2258,10 +2241,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return -1
         else:
             return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -3087,10 +3066,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
         else: return 1
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-
     cpdef bint is_one(IntegerMod_int64 self):
         """
         Returns ``True`` if this is `1`, otherwise
@@ -3787,7 +3762,9 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     - Robert Bradshaw
 
-    TESTS: Every case appears in the first hundred primes.
+    TESTS:
+
+    Every case appears in the first hundred primes.
 
     ::
 
