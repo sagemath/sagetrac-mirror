@@ -1607,7 +1607,7 @@ cdef class ModularSymbolNumerical:
 
 # ===============
 
-    @cached_method
+    @cached_method # its modified below for max eps
     def kappa(self, llong m, llong z, eps=None):
         r"""
         This returns all `\kappa_{j,m}(1/\sqrt{z})` for a given
@@ -1645,6 +1645,25 @@ cdef class ModularSymbolNumerical:
             [-0.0480019651322545, 1.50187890874049, -1.45400356716803]
             sage: M.kappa(3,12345,0.001) # abs tol 1e-5
             [-0.0479088332692401, 1.50190732357395, -1.45399829091235]
+
+        This is to check that the caching works when asked with lower precision::
+
+            sage: M.kappa(7,9,0.0001) # abs tol 1e-5
+            [-3.84834856224137e-46,
+            0.123144711070145,
+            -0.0151646191409459,
+            -0.00124496117956343,
+            0.000114982874752164,
+            -0.0000226552513699823,
+            2.32489432812699e-6]
+            sage: M.kappa(7,9,0.1) # abs tol 1e-5
+            [-3.84834856224137e-46,
+            0.123144711070145,
+            -0.0151646191409459,
+            -0.00124496117956343,
+            0.000114982874752164,
+            -0.0000226552513699823,
+            2.32489432812699e-6]
         """
         verbose("       enter kappa with m=%s, z=%s and eps=%s"%(m,z,eps), level=5)
         cdef int T, prec, j
@@ -1652,6 +1671,13 @@ cdef class ModularSymbolNumerical:
         cdef object res
         cdef double y, epsi
         cdef RealNumber yr
+
+        # if called with a previous (m,z,eps) but a larger eps, return the cached value
+        cac = self.__cached_methods['kappa'].cache
+        for ke in cac.keys():
+            mm,zz,eeps = ke[0]
+            if mm == m and zz == z and eeps < eps:
+                return cac[ke]
 
         y = <double>(z)
         y = sqrt(y)
@@ -2234,7 +2260,7 @@ cdef class ModularSymbolNumerical:
 
 #======= precise rationals =====
 
-    @cached_method
+    @cached_method  # (key=lambda r,sign,use_partials:(r,sign)) lead to a compiler crash
     def symbol_ioo_to_r(self, Rational r, int sign = 0,
                         int use_partials=True):
         r"""
@@ -2531,7 +2557,7 @@ cdef class ModularSymbolNumerical:
             -1/4
         """
         verbose("       enter symbol_unitary with r=%s, sign=%s"%(r,sign), level=5)
-        cdef llong a, m, Q, x, y, N = self._N
+        cdef llong a, m, Q, x, y, N = self._N, u, v, un, vn
         cdef Rational r2, res
 
         if sign == 0:
@@ -2546,6 +2572,7 @@ cdef class ModularSymbolNumerical:
             raise ValueError("Cusp must be unitary")
         a = rc._a
         m = rc._m
+        verbose("     cusp is %s/%s of width %s"%(a,m,Q), level=4)
 
         if m < self._cut_val:
             # now at some point we go directly to ioo
@@ -2557,7 +2584,7 @@ cdef class ModularSymbolNumerical:
             if y*2 > m:
                 y -= m
             x = (1-y*a) / m
-            #verbose("     smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4)
+            verbose("     smallest xgcd is %s = %s * %s + %s * %s"%(Q,a,y,x,m), level=4)
             # make the cusp -x/y unitary.
             Q = llgcd(y, N)
             if llgcd(Q, N/Q) != 1:
@@ -2571,6 +2598,8 @@ cdef class ModularSymbolNumerical:
             if llgcd(Q, N/Q) != 1: # still bad ex: N=36 a=2, m=5
                 res = self.symbol_ioo_to_r(r, sign=sign)
             else:
+                u = -y
+                v = m
                 r2 = Rational( (-1,1) )
                 if x < 0:
                     r2 = -r2
@@ -2578,9 +2607,15 @@ cdef class ModularSymbolNumerical:
                 if y < 0:
                     r2 = -r2
                     y = -y
-                r2 = Rational( (x, y) )
-                verbose("Next piece: integrate to the cusp %s "%r2, level=2)
-                res = self.symbol_r_to_rr(r, r2, sign=sign)
+                r2 *= Rational( (x, y) )
+                verbose("Next piece: integrate from %s to %s via the Manin symbol for (%s : %s)"%(r,r2,u,v), level=2)
+
+                # normalise it now so that the cache gets the right keys.
+                oi = proj_normalise(self._N, u, v, &un, &vn)
+                verbose("   normalized representant on P^1: "
+                        "(%s,%s)"%(un, vn), level=3)
+
+                res = self.manin_symbol(un,vn,sign=sign)
                 res += self.symbol_unitary(r2, sign=sign)
 
         return res
