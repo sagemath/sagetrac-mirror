@@ -612,17 +612,16 @@ cdef class ntl_ZZ_pEX(object):
 
     def convert_to_pE(self, ntl_ZZ_pEContext_class cE):
         """
-
         Convert to a new ``ntl_ZZ_pEContext``.
 
         INPUT:
 
-            - ``cE`` -- a ``ntl_ZZ_pEContext`` object.
+        - ``cE`` -- a ``ntl_ZZ_pEContext`` object.
 
         OUTPUT:
 
-            - A new ``ntl_ZZ_pEX`` which is the same as ``self``, but considered
-              modulo a different ``pEContext`` (but the SAME polynomial).
+        - A new ``ntl_ZZ_pEX`` which is the same as ``self``, but considered
+          modulo a different ``pEContext`` (but the SAME polynomial).
 
         In order for this to make mathematical sense, the modulus `p = cE.get_pc()`
         should divide the modulus of ``self`` (in which case ``self`` is reduced
@@ -632,23 +631,24 @@ cdef class ntl_ZZ_pEX(object):
         extension `cE` should reduce mod `p` to the polynomial defining the
         class of ``self`` or viceversa.
 
-        EXAMPLES:
-        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([3120, 0, 1], 5^5))
-        sage: d = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 3*5^6))
-        sage: a = ntl.ZZ_pE([2245, 64], c)
-        sage: b = ntl.ZZ_pE([2650, 1112], c)
-        sage: f = ntl.ZZ_pEX([a, b])
-        sage: g = f.convert_to_pE( d )
-        sage: g
-        [[2245 64] [2650 1112]]
-        sage: g.get_modulus_context()
-        NTL modulus [46870 0 1] (mod 46875)
-        sage: g^2
-        [[44880 6110] [805 35205] [33345 34225]]
-        sage: (f^2).convert_to_pE( d )
-        [[1130 2985] [805 830] [2095 2975]]
-        sage: ((f^2).convert_to_pE( d ) - g^2).convert_to_pE(c)
-        []
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([3120, 0, 1], 5^5))
+            sage: d = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 3*5^6))
+            sage: a = ntl.ZZ_pE([2245, 64], c)
+            sage: b = ntl.ZZ_pE([2650, 1112], c)
+            sage: f = ntl.ZZ_pEX([a, b])
+            sage: g = f.convert_to_pE( d )
+            sage: g
+            [[2245 64] [2650 1112]]
+            sage: g.get_modulus_context()
+            NTL modulus [46870 0 1] (mod 46875)
+            sage: g^2
+            [[44880 6110] [805 35205] [33345 34225]]
+            sage: (f^2).convert_to_pE( d )
+            [[1130 2985] [805 830] [2095 2975]]
+            sage: ((f^2).convert_to_pE( d ) - g^2).convert_to_pE(c)
+            []
         """
         cE.restore_c()
         cdef ntl_ZZ_pEX ans = ntl_ZZ_pEX.__new__(ntl_ZZ_pEX)
@@ -1232,8 +1232,7 @@ cdef class ntl_ZZ_pEX(object):
 
         INPUT:
 
-            - `R`: an univariate polynomial ring over an absolute number field
-              `QQ[a]`.
+        - `R`: an univariate polynomial ring over an absolute number field `QQ[a]`.
 
         If `self` is an element in `ZZ[x]/(m, c(x))`. In order to make sense
         of this algorithm, the minimum polynomial of `a` should be congruent
@@ -1254,7 +1253,6 @@ cdef class ntl_ZZ_pEX(object):
             sage: f
             [[1 1] [1 1] [2 1] [] [0 2]]
             sage: N = NumberField(x^2+7,'a')
-
         """
         cdef ntl_ZZ_pX element
         lifted = []

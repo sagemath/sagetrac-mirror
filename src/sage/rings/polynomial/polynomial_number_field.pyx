@@ -3,7 +3,7 @@ Univariate polynomials over number fields.
 
 AUTHOR:
 
-- Luis Felipe Tabera Alonso (2013-03): initial version, gcd computation.
+- Luis Felipe Tabera Alonso (2014-02): initial version, gcd computation.
 
 EXAMPLES:
 
@@ -129,11 +129,12 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
 
         INPUT:
 
-        - ``other`` -- a polynomial with the same parent as ``self``.
-        - ``algorithm``
+        - `other` -- a polynomial with the same parent as ``self``.
 
-          - ``pari`` - use pari routines.
-          - ``modular`` - modular algorithm using NTL (default).
+        - ``algorithm`` - default: 'modular' - one of:
+
+            - ``pari`` - use pari routines.
+            - ``modular`` - (default) modular algorithm using NTL.
 
         OUTPUT:
 
@@ -217,6 +218,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         ALGORITHM:
 
         - pari: Uses pari internal gcd routines.
+
         - modular (default): a combination of Langemyr-McCallum [LM89] and
           Encarnacion [E95]. Use Langemyr-McCallum algorithm but, from time to
           time, try a rational reconstruction of the gcd. Inspired from [HH09].
@@ -310,7 +312,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
                 h1c = ntl_ZZ_pEX(h1ntl, c)
                 h2c = ntl_ZZ_pEX(h2ntl, c)
                 Dc  = ntl_ZZ_pEX([ntl_ZZ_pE(D, c)])
-                if h1c.degree() == h1d and h2c.degree() == h2d and Dc !=0:
+                if h1c.degree() == h1d and h2c.degree() == h2d and not Dc.is_zero():
                     # Compute residual gcd.
                     try:
                         gcd_pEX = h1c.gcd(h2c) * Dc
@@ -414,10 +416,11 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         INPUT:
 
         - ``other`` -- a polynomial with the same parent as ``self``.
-        - ``algorithm``
 
-          - ``pari`` - use pari routines.
-          - ``modular`` - modular algorithm using NTL (default).
+        - ``algorithm`` - default: 'modular' - one of:
+
+            - ``pari`` - use pari routines.
+            - ``modular`` - (default) modular algorithm using NTL.
 
         OUTPUT:
 
