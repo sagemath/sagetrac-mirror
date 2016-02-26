@@ -3651,8 +3651,9 @@ class RamYipFormula(SageObject):
         zerovector = self._daha.lattice().zero()
 
         if ddat.extended_base_ring():
-            self._diff_recip_v = [-ddat.c_parameter(ddat.v(i)) for i in self._the_reduced_word]
-            self._diff_recip_v2 = [-ddat.c_parameter(ddat.v2(i)) for i in self._the_reduced_word]
+            res = dat.partial_restrict_base_ring_map()
+            self._diff_recip_v = [-res(ddat.c_parameter(ddat.v(i))) for i in self._the_reduced_word]
+            self._diff_recip_v2 = [-res(ddat.c_parameter(ddat.v2(i))) for i in self._the_reduced_word]
         else:
             self._diff_recip_v = [ddat.diff_reciprocal(ddat.v(i)) for i in self._the_reduced_word]
             self._diff_recip_v2 = [ddat.diff_reciprocal(ddat.v2(i)) for i in self._the_reduced_word]
