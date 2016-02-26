@@ -794,9 +794,9 @@ class CoxeterGroups(Category_singleton):
                     tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
     class ElementMethods:
-        def has_descent(self, i, side = 'right', positive=False):
+        def has_descent(self, i, side='right', positive=False):
             """
-            Returns whether i is a (left/right) descent of self.
+            Return whether i is a (left/right) descent of ``self``.
 
             See :meth:`.descents` for a description of the options.
 
@@ -825,10 +825,9 @@ class CoxeterGroups(Category_singleton):
                 raise ValueError("%s is neither 'right' nor 'left'"%(side))
             return self.has_left_descent(i)  != positive
 
-#        @abstract_method(optional = True)
         def has_right_descent(self, i):
             """
-            Returns whether ``i`` is a right descent of self.
+            Return whether ``i`` is a right descent of ``self``.
 
             EXAMPLES::
 
@@ -847,7 +846,7 @@ class CoxeterGroups(Category_singleton):
 
         def has_left_descent(self, i):
             """
-            Returns whether `i` is a left descent of self.
+            Return whether `i` is a left descent of ``self``.
 
             This default implementation uses that a left descent of
             `w` is a right descent of `w^{-1}`.
@@ -872,10 +871,10 @@ class CoxeterGroups(Category_singleton):
             """
             return (~self).has_right_descent(i)
 
-        def first_descent(self, side = 'right', index_set=None, positive=False):
+        def first_descent(self, side='right', index_set=None, positive=False):
             """
-            Returns the first left (resp. right) descent of self, as
-            ane element of ``index_set``, or ``None`` if there is none.
+            Return the first left (resp. right) descent of ``self``, as
+            an element of ``index_set``, or ``None`` if there is none.
 
             See :meth:`.descents` for a description of the options.
 
@@ -892,13 +891,18 @@ class CoxeterGroups(Category_singleton):
                 sage: w = s[0]*s[1]
                 sage: w.first_descent()
                 1
+
+            TESTS::
+
+                sage: W.one().first_descent()
             """
             if index_set is None:
                 index_set = self.parent().index_set()
+            if self == self.parent().one():
+                return None if not positive else index_set[0]
             for i in index_set:
-                if self.has_descent(i, side = side, positive = positive):
+                if self.has_descent(i, side=side, positive=positive):
                     return i
-            return None
 
         def descents(self, side = 'right', index_set=None, positive=False):
             """
@@ -926,20 +930,23 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
-                sage: s=W.simple_reflections()
-                sage: w=s[0]*s[1]
+                sage: W = CoxeterGroups().example()
+                sage: s = W.simple_reflections()
+                sage: w = s[0]*s[1]
                 sage: w.descents()
                 [1]
-                sage: w=s[0]*s[2]
+                sage: w = s[0]*s[2]
                 sage: w.descents()
                 [0, 2]
 
                 TODO: side, index_set, positive
             """
             if index_set is None:
-                index_set=self.parent().index_set()
-            return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
+                index_set = self.parent().index_set()
+            if self == self.parent().one():
+                return [] if not positive else index_set
+            return [i for i in index_set
+                    if self.has_descent(i, side=side, positive=positive)]
 
         def is_grassmannian(self, side = "right"):
             """
