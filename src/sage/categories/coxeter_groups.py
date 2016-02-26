@@ -898,7 +898,7 @@ class CoxeterGroups(Category_singleton):
             """
             if index_set is None:
                 index_set = self.parent().index_set()
-            if self == self.parent().one():
+            if self.is_one():
                 return None if not positive else index_set[0]
             for i in index_set:
                 if self.has_descent(i, side=side, positive=positive):
@@ -943,7 +943,7 @@ class CoxeterGroups(Category_singleton):
             """
             if index_set is None:
                 index_set = self.parent().index_set()
-            if self == self.parent().one():
+            if self.is_one():
                 return [] if not positive else index_set
             return [i for i in index_set
                     if self.has_descent(i, side=side, positive=positive)]

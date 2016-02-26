@@ -819,6 +819,21 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             """
             return self.matrix()
 
+        def is_one(self):
+            """
+            Test if ``self`` is equal to the unit of the group.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], base_ring=QQ)
+                sage: a,b,c = W.gens()
+                sage: a.is_one()
+                False
+                sage: W.one().is_one()
+                True
+            """
+            return self.matrix().is_one()
+        
         @cached_method
         def action_on_root_indices(self, i):
             """
