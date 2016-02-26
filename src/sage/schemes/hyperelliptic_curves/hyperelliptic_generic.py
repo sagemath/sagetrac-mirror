@@ -228,7 +228,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def genus(self):
         """
-        Return the genus of ``self``
+        Return the genus of ``self``.
 
         EXAMPLES::
 
@@ -241,7 +241,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def jacobian(self):
         """
-        Return the Jacobian of ``self``
+        Return the Jacobian of ``self``.
 
         EXAMPLES::
 
@@ -592,7 +592,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def finite_weierstrass_points(self):
         r"""
-        Return a list of finite Weierstrass points of ``self``
+        Return a list of finite Weierstrass points of ``self``.
 
         EXAMPLES::
 
@@ -602,15 +602,17 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             [[(1, 0)], [(0, 0)], [(-9, 0)]]
         """
         f = self.hyperelliptic_polynomials()[0]
-        return [j*[(i, 0)] for i, j in f.roots()]
+        return [j * [(i, 0)] for i, j in f.roots()]
 
     def cup_product_matrix(self, prec=10):
         r"""
-        Computes the matrix whose `ij`th entry is the cup product pairing
+        Compute the matrix of the cup product pairing in de Rham cohomology.
+
+        This is the matrix whose `ij`th entry is the cup product pairing
         of elements of the basis of de Rham cohomology for the hyperelliptic
         curve, i.e.,
-        $a_{i+1,j+1} = [w_i]\cup [w_j] = Res(w_j*\integral(w_i))$, where
-        $w_i = x^i dx/2y, i = 0,..., 2g-1$.
+        `a_{i+1,j+1} = [w_i]\cup [w_j] = Res(w_j \integral(w_i))`, where
+        `w_i = x^i dx/2y, i = 0,..., 2g-1`.
 
         INPUT:
 
@@ -655,20 +657,16 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         x, y = self.local_coordinates_at_infinity()
         xprime = x.derivative()
-        g = self.genus()
-        w = [x**i*xprime/(2*y) for i in range(2*g)]
-        wint = [(w[i]).integral() for i in range(2*g)]
-        R = PolynomialRing(self.base_ring(), 'a')
-        A = matrix(R, 2*g, 2*g)
-        for i in range(2*g):
-            for j in range(2*g):
-                A[i, j] = (w[j]*wint[i]).residue()
-        return matrix(self.base_ring(), 2*g, 2*g, [f[0] for f in A.list()])
+        gg = 2 * self.genus()
+        w = [x ** i * xprime / (2 * y) for i in range(gg)]
+        wint = [w[i].integral() for i in range(gg)]
+        R = self.base_ring()
+        return matrix(R, gg, gg, lambda i, j: (w[j] * wint[i]).residue()[0])
 
     def cup(self, v, w):
         """
-        Computes the cup product of the vectors v and w with respect to
-        MW cohomology
+        Compute the cup product of the vectors v and w with respect to
+        MW cohomology.
 
         EXAMPLES::
 
@@ -678,8 +676,4 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             5/2
         """
         M = self.cup_product_matrix()
-        sum = 0
-        for i in range(len(v.list())):
-            for j in range(len(w.list())):
-                sum += v[i] * w[j] * M[i, j]
-        return sum
+        return v * M * w

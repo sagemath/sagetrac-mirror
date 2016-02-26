@@ -654,7 +654,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         M_sys = matrix(K, M_frob).transpose() - 1
         TP_to_TQ = M_sys**(-1) * b
         prof("done")
-#        print prof
         if algorithm == 'teichmuller':
             return P_to_TP + TP_to_TQ + TQ_to_Q
         else:
@@ -962,9 +961,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         INPUT:
 
-        - f power series wtih coefficients in `\QQ_p` or an extension
-        - x0 seeds the Newton iteration
-        - prec precision
+        - `f` -- power series with coefficients in `\QQ_p` or an extension
+        - ``x0`` -- seeds the Newton iteration
+        - ``prec`` -- precision
 
         OUTPUT:
 
@@ -1009,15 +1008,15 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def curve_over_ram_extn(self, deg):
         r"""
-        Return ``self`` over `\QQ_p(p^(1/deg))`.
+        Return ``self`` over `\QQ_p(p^{1/deg})`.
 
         INPUT:
 
-        - deg: the degree of the ramified extension
+        - deg -- the degree of the ramified extension
 
         OUTPUT:
 
-        ``self`` over `\QQ_p(p^(1/deg))`
+        ``self`` over `\QQ_p(p^{1/deg})`
 
         EXAMPLES::
 
@@ -1089,8 +1088,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         INPUT:
 
-        - P: finite Weierstrass point
-        - S: point in disc of P
+        - `P` -- finite Weierstrass point
+        - `S` -- point in disc of `P`
 
         OUTPUT:
 
@@ -1358,27 +1357,24 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def recip_froby(self, x, y, prec=10):
         """
-        Given local expansions x(t) and y(t), computes the reciprocal of the Frobenius of y
-
-        EXAMPLES::
+        Given local expansions x(t) and y(t), computes the reciprocal
+        of the Frobenius of y.
         """
         f = self.hyperelliptic_polynomials()[0]
         p = self.base_ring().prime()
-        s = 1 + sum(self.Bm(i) * ((f(x**p)-f(x)**p)/(f(x)**p))**i
+        s = 1 + sum(self.Bm(i) * ((f(x ** p) - f(x) ** p)/(f(x) ** p)) ** i
                     for i in range(1, prec))
-        return y**(-p) * s
+        return y ** (-p) * s
 
     def froby(self, x, y, prec=10):
         """
-        Given local expansions x(t) and y(t), computes the Frobenius of y
-
-        EXAMPLES::
+        Given local expansions x(t) and y(t), computes the Frobenius of y.
         """
         f = self.hyperelliptic_polynomials()[0]
         p = self.base_ring().prime()
-        s = 1 + sum(self.Bp(i) * ((f(x**p)-f(x)**p)/(f(x)**p))**i
+        s = 1 + sum(self.Bp(i) * ((f(x ** p) - f(x) ** p)/(f(x) ** p)) ** i
                     for i in range(1, prec))
-        return y**p * s
+        return y ** p * s
 
     def sum_of_local_symbols(self, divisor, prec=20):
         """
@@ -1389,13 +1385,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         NOTE: Right now, assuming that divisor = (P)-(Q)
         
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K = pAdicField(11, 10)
             sage: R.<x> = PolynomialRing(K)
             sage: C = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: P = C(1,6)
             sage: Q = C(-2, 12)
-        
         
         AUTHOR:
 
@@ -1406,9 +1402,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         g = self.genus()
         P = divisor[0][1]
         Q = divisor[1][1]
-        local = vector([divisor[1][0]*self.coleman_integral(w*x**j, P, Q)
-                        for j in range(2*g)])
-        return local
+        return vector([divisor[1][0] *
+                       self.coleman_integral(w * x ** j, P, Q)
+                       for j in range(2 * g)])
 
     def differential_log(self, divisor, prec=40):
         r"""
@@ -1457,16 +1453,17 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def differential_log_projection(self, divisor, prec=20):
         """
-        The component of differential_log that lies in W
-        Have to specify W in differential_log
+        The component of differential_log that lies in W.
 
-        EXAMPLES:
+        Have to specify W in differential_log.
+
+        EXAMPLES::
+
             sage: K = pAdicField(11,5)
             sage: R.<x> = PolynomialRing(K)
             sage: C = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: P = C(1,6)
             sage: Q = C(-2, 12)
-
 
         AUTHOR:
 
@@ -1474,30 +1471,29 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         g = self.genus()
         v = self.differential_log(divisor, prec)
-        return vector([0]*g + [v[i] for i in range(g, 2*g)])
+        return vector([0] * g + [v[i] for i in range(g, 2 * g)])
 
     def differential_log_holomorphic(self, divisor, prec=20):
         """
         The holomorphic component of differential_log.
 
-        aka ``eta''
+        Also known as ``eta``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K = pAdicField(11,5)
             sage: R.<x> = PolynomialRing(K)
             sage: C = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: P = C(1,6)
             sage: Q = C(-2, 12)
 
-
         AUTHOR:
 
         - Jennifer Balakrishnan (2008-01)
         """
-        #print "differential_log_holomorphic"
         g = self.genus()
         v = self.differential_log(divisor, prec)
-        w = vector([v[i] for i in range(g)]+[0]*g)
+        w = vector([v[i] for i in range(g)] + [0] * g)
         return w
 
     def square_root_extension(self, num):
@@ -1505,27 +1501,23 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         takes a square root in an p-adic extension
         (might not return the right one)
         """
-        #print "square_root_extension"
         p = self.base_ring().prime()
-        #print num
         if num.valuation() == 0:
             c = num.list()[0]
             i = 1
-            while i <p//2:
-                if (i**2)%p == c:
+            while i < p // 2:
+                if (i ** 2) % p == c:
                     break
-                i=i+1
-        ###Newton's method for square root
+                i += 1
+        # Newton's method for square root
         j = 0
-        while j <100:       #change prec later
-            root = (i+num/i)/2
+        while j < 100:       # change prec later
+            root = (i + num / i) / 2
             if i == root:
                 break
             i = root
-            #print i
-            j = j+1
-        if i**2 == num:
-            #print "found a root!"
+            j += 1
+        if i ** 2 == num:
             return i
 
     def find_pth_root_point(self, P, all=False):
@@ -1533,7 +1525,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         Given P=(a, b), finds a point P'=(a', b') over Qp(a^(1/p) such that
         a'^p = a
 
-        if all is ``True``, find all pth roots
+        If all is ``True``, find all pth roots.
 
         """
         #print "find_pth_root_point"
@@ -1542,19 +1534,19 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         xP = P[0]
 
         g = self.hyperelliptic_polynomials()[0]
-        ###working over the appropriate field
+        # working over the appropriate field
         R = QQ['x']
         x = R.gen()
-        if xP**p == xP:
+        if xP ** p == xP:
             f = cyclotomic_polynomial(p, var='y')
-            J = K.extension(f(x+1), names='a')
+            J = K.extension(f(x + 1), names='a')
         else:
-            #print "not cyclotomic"
+            # not cyclotomic
             J = K.extension((x+QQ(xP))**p-QQ(xP), names='a')
         a = J.gen()
         HJ = self.change_ring(J)
 
-        ###find the pth roots of x(P)
+        # find the pth roots of x(P)
 
         if xP**p == xP:
             xPfracpow = (1+a) * xP
@@ -1612,12 +1604,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         Computes the vector of local symbols (<w,w_i>_A)_{i=0...2g-1}, where w is a differential form with residue divisor "divisor"
 
-        if extension is True, creates the appropriate field extension and curve over that extension
+        If extension is True, creates the appropriate field extension and curve over that extension.
 
         P is fixed point for all computations to link constants of integration
         Q is the residue disc where all the stuff should be happening
 
-        .. TODO: merge with sum_of_local_symbols, make more modular
+        .. TODO::
+
+             merge with sum_of_local_symbols, make more modular
         """
         p = self.base_ring().prime()
         #if (Q[0]**p==Q[0]):
@@ -1635,7 +1629,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         g = self.hyperelliptic_polynomials()[0]
         gen = self.genus()
 
-        ###working over the appropriate field
+        # working over the appropriate field
 
         cyc = False
         if extension:
@@ -1658,11 +1652,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             H = self
 
         x, y = H.local_coord(A, prec=30)     #worry about prec later
-        ###formal antiderivative of w_i
+        # formal antiderivative of w_i
 
 
         I2 = vector(J,[0]*2*gen)
-        ###if working over an extension, need tiny integral + coleman integral over Qp
+        # if working over an extension, need tiny integral + coleman integral over Qp
         if extension is True:
             xx, yy = H.local_analytic_interpolation_cyclotomic(Q, A[0], prec)  # this will change when it's weiestrass
             print xx(0) == Q[0]
@@ -1675,7 +1669,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             #print "I = %s"%I
 
             P = H(P[0], P[1])
-        ###plus a Coleman integral to offset the constant if P, A aren't in the same residue disc #this will change when it's weierstrass
+        # plus a Coleman integral to offset the constant if P, A aren't in the same residue disc #this will change when it's weierstrass
             xm, ym = self.monsky_washnitzer_gens()
             omega = self.invariant_differential()
 
@@ -1701,11 +1695,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def is_good(self, P, R):
         """
-        checks if P is good wrt R
-
-        EXAMPLES::
+        Check if P is good with respect to R.
         """
-        # S = div2[1][1]
         if P[0] == R[0] and P[1] == -R[1]:
             return True
         else:
@@ -1713,13 +1704,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def diff(self, divisor, x, y, tiny=False, alpha=False):
         """
-        ###needs to be fixed to account for neg discs
+        # needs to be fixed to account for neg discs
         writing differential with residue divisor "divisor" in terms of x, y
         (an interpolation usually)
 
         alpha=True: truncates diffP to get rid of meaningless terms
-
-        EXAMPLES::
         """
         P = divisor[0][1]
         Q = divisor[1][1]
@@ -1788,10 +1777,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def frob_diff_nw(self, divisor, x, y , prec=7):
         """
-        ###needs to be fixed to account for negative discs
+        # needs to be fixed to account for negative discs
         Action of Frobenius on differential for nonweierstrass point (x, y are local coordinates of that point)
-
-        EXAMPLES::
         """
         p = self.base_ring().prime()
         P = divisor[0][1]
@@ -1983,7 +1970,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HK.frob_psi_diff([(1, P),(-1, Pprime)])
 
         """
-        # cup = self._cpm
         cup = self.cup_product_matrix()  # prec
         g = self.genus()
         p = self.base_ring().prime()
@@ -1992,14 +1978,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         local_at_P = self.sum_of_local_symbols_extension([(1, P), (-1, Q)],
                                                          P, P, True)
-        #print "local_at_P = %s"%local_at_P
         local_at_Q = self.sum_of_local_symbols_extension([(1, P), (-1, Q)],
                                                          P, Q, True)
         local = local_at_P + local_at_Q
 
-        #print "local = %s"%local
         r = self._fwstrass
-        local_wstrass=vector(self.base_ring(), [0]*2*g)
+        local_wstrass = vector(self.base_ring(), [0] * 2 * g)
         for R in r:
             if R[0] != 0:
                 x, y = self.local_coord(R, 20*p)  # this seems to be the min for prec=5
@@ -2015,8 +1999,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         works!
         (see above for consistency check)
-
-        EXAMPLES::
         """
         from sage.schemes.hyperelliptic_curves.monsky_washnitzer import matrix_of_frobenius_hyperelliptic
         M_frob, forms = self._frob_calc = matrix_of_frobenius_hyperelliptic(self)
@@ -2035,8 +2017,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def psi_alpha(self, divisor, prec=20):
         """
         Computes Psi(alpha)= Psi(phi^*w-p*w) as phi^*(Psi(w))-p*Psi(w)
-
-        EXAMPLES::
         """
         frob_psiw = self.frob_psi_diff(divisor, prec)
         p = self.base_ring().prime()
@@ -2054,15 +2034,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         returns sum(res(alpha*(int(beta) + c))) where c is the right constant of integration
         and the sum is over non-Weierstrass poles of alpha
-
-        EXAMPLES::
         """
     #    print "res_alpha_int_beta"
         p = self.base_ring().prime()
         g = self.genus()
         pth_roots = self._pth_roots
         P = divisor1[0][1]
-        ####integrate beta from P to P_i, take the trace
+        # #integrate beta from P to P_i, take the trace
         x, y = self.local_analytic_interpolation_cyclotomic(P, pth_roots[0][0], p*prec+2*g+1)    # will have to change prec
         betaP = self.diff(divisor2, x, y, True, True)
         int_betaP = (betaP).integral()
@@ -2097,7 +2075,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         else:
 
-            xx, yy = self.local_analytic_interpolation_cyclotomic(Q, pth_roots[1][0],2*p*prec)       ###will have to change prec
+            xx, yy = self.local_analytic_interpolation_cyclotomic(Q, pth_roots[1][0],2*p*prec)       # will have to change prec
             betaQ = self.diff(divisor2, xx, yy,True, True)
             int_betaQ = (betaQ).integral()
             #print "int_betaQ = %s"%int_betaQ
@@ -2124,14 +2102,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         ...
         alpha[2g+4] is at finite weierstrass_{2g+1}
         alpha[2g+5] is at infinity
-
-        EXAMPLES::
         """
         from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
         p = self.base_ring().prime()
         #print "prec = %s"%prec
         A = self.alpha(divisor1, prec)
-        ###need to cache values here
+        # need to cache values here
         #div3 = [self.find_pth_root_point(divisor1[i][1]) for i in range(2)]
         div3 = self._pth_roots
         #A = A.list()
@@ -2172,8 +2148,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         Returns the cup product of psiA and psiB
 
         JSB (2008-05)
-
-        EXAMPLES::
         """
         psiA = self.psi_alpha(divisor1)
         V = self._subspace
@@ -2188,8 +2162,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def eta_integral(self, divisor1, divisor2, prec=5):
         """
         Integral of eta
-
-        EXAMPLES::
         """
         #coeffs = self.differential_log_holomorphic(divisor1, prec)
         coeffs = self._diff_log_hol_div1
@@ -2199,8 +2171,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def is_neg_disc(self, P, Q):
         """
         checks if P is in disc(-Q)
-
-        EXAMPLES::
         """
         K = self.base_ring()
         if (P[0]).parent() == (Q[0]).parent():
@@ -2216,7 +2186,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def omega_integral(self, divisor1, divisor2, prec=5):
         """
-        EXAMPLES::
         """
         p = self.base_ring().prime()
         P = divisor1[0][1]
@@ -2368,8 +2337,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def init_height(self, divisor1, divisor2, prec=5):
         """
         initializes and caches certain quantities for height computation so as to avoid repeats
-
-        EXAMPLES::
         """
         from sage.schemes.hyperelliptic_curves.monsky_washnitzer import matrix_of_frobenius_hyperelliptic
         g = self.genus()
