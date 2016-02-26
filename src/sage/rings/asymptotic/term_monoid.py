@@ -1204,6 +1204,24 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
 
 
     def _latex_(self):
+        r"""
+        A LaTeX-representation string for this generic term.
+
+        OUTPUT:
+
+        A NotImplementedError is raised.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: latex(T(x))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 
@@ -2065,7 +2083,8 @@ class OTerm(GenericTerm):
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -2099,6 +2118,12 @@ class OTerm(GenericTerm):
 
     def _latex_(self):
         r"""
+        A LaTeX-representation string for this `O`-term.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -3211,7 +3236,8 @@ class ExactTerm(TermWithCoefficient):
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -3274,8 +3300,15 @@ class ExactTerm(TermWithCoefficient):
 
         return s
 
+
     def _latex_(self):
         r"""
+        A LaTeX-representation string for this exact term.
+
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
