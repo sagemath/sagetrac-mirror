@@ -23,8 +23,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-# TODO: cythonize this.
-
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix, zero_matrix
@@ -34,7 +32,10 @@ from chain_complex_morphism import ChainComplexMorphism
 from chain_homotopy import ChainContraction
 from sage.rings.rational_field import QQ
 
-def algebraic_topological_model(K, base_ring=None):
+from sage.matrix.matrix cimport Matrix
+from sage.modules.free_module_element cimport FreeModuleElement
+
+cpdef tuple algebraic_topological_model(K, base_ring=None):
     r"""
     Algebraic topological model for cell complex ``K``
     with coefficients in the field ``base_ring``.
@@ -167,20 +168,21 @@ def algebraic_topological_model(K, base_ring=None):
 
     # The following are all dictionaries indexed by dimension.
     # For each n, gens[n] is an ordered list of the n-cells generating the complex M.
-    gens = {}
+    cdef dict gens = {}
     # For each n, phi_dict[n] is a dictionary of the form {idx:
     # vector}, where idx is the index of an n-cell in the list of
     # n-cells in K, and vector is the image of that n-cell, as an
     # element in the free module of (n+1)-chains for K.
-    phi_dict = {}
+    cdef dict phi_dict = {}
     # For each n, pi_dict[n] is a dictionary of the same form, except
     # that the target vectors should be elements of the chain complex M.
-    pi_dict = {}
+    cdef dict pi_dict = {}
     # For each n, iota_dict[n] is a dictionary of the form {cell:
     # vector}, where cell is one of the generators for M and vector is
     # its image in C, as an element in the free module of n-chains.
-    iota_dict = {}
+    cdef dict iota_dict = {}
 
+    cdef int n
     for n in range(K.dimension()+1):
         gens[n] = []
         phi_dict[n] = {}
@@ -189,8 +191,12 @@ def algebraic_topological_model(K, base_ring=None):
 
     C = K.chain_complex(base_ring=base_ring)
     # old_cells: cells one dimension lower.
-    old_cells = []
+    cdef list old_cells = []
 
+    cdef list n_cells
+    cdef int dim, rank, old_rank, c_j_idx, u_idx, idx, i
+    cdef Matrix diff
+    cdef FreeModuleElement zero, c_vec, c_bar, bdry_c, bdry_c_bar, pi_bdry_c_bar
     for dim in range(K.dimension()+1):
         n_cells = K.n_cells(dim)
         diff = C.differential(dim)
@@ -261,18 +267,18 @@ def algebraic_topological_model(K, base_ring=None):
                     try:
                         eta_ij = pi_dict[dim-1][c_j_idx][u_idx]
                     except (KeyError, IndexError):
-                        eta_ij = 0
+                        eta_ij = base_ring.zero()
                     if eta_ij:
                         # Adjust phi(c_j).
                         try:
-                            phi_dict[dim-1][c_j_idx] += eta_ij * lambda_i**(-1) * c_bar
+                            phi_dict[dim-1][c_j_idx] += eta_ij * ~lambda_i * c_bar
                         except KeyError:
-                            phi_dict[dim-1][c_j_idx] = eta_ij * lambda_i**(-1) * c_bar
+                            phi_dict[dim-1][c_j_idx] = eta_ij * ~lambda_i * c_bar
                         # Adjust pi(c_j).
                         try:
-                            pi_dict[dim-1][c_j_idx] += -eta_ij * lambda_i**(-1) * pi_bdry_c_bar
+                            pi_dict[dim-1][c_j_idx] += -eta_ij * ~lambda_i * pi_bdry_c_bar
                         except KeyError:
-                            pi_dict[dim-1][c_j_idx] = -eta_ij * lambda_i**(-1) * pi_bdry_c_bar
+                            pi_dict[dim-1][c_j_idx] = -eta_ij * ~lambda_i * pi_bdry_c_bar
 
                 gens[dim-1].remove(u)
                 del iota_dict[dim-1][u]
@@ -285,12 +291,15 @@ def algebraic_topological_model(K, base_ring=None):
     # M_data will contain (trivial) matrices defining the differential
     # on M. Keep track of the sizes using "M_rows" and "M_cols", which are
     # just the ranks of consecutive graded pieces of M.
-    M_data = {}
-    M_rows = 0
+    cdef dict M_data = {}
+    cdef int M_rows = 0
     # pi_data: the matrices defining pi. Similar for iota_data and phi_data.
-    pi_data = {}
-    iota_data = {}
-    phi_data = {}
+    cdef dict pi_data = {}
+    cdef dict iota_data = {}
+    cdef dict phi_data = {}
+    cdef list pi_cols, phi_cols
+
+    #cdef FreeModuleElement c
     for n in range(K.dimension()+1):
         n_cells = K.n_cells(n)
         # Remove zero entries from pi_dict and phi_dict.
@@ -333,9 +342,9 @@ def algebraic_topological_model(K, base_ring=None):
     pi = ChainComplexMorphism(pi_data, C, M)
     iota = ChainComplexMorphism(iota_data, M, C)
     phi = ChainContraction(phi_data, pi, iota)
-    return phi, M
+    return (phi, M)
 
-def algebraic_topological_model_delta_complex(K, base_ring=None):
+cpdef tuple algebraic_topological_model_delta_complex(K, base_ring=None):
     r"""
     Algebraic topological model for cell complex ``K``
     with coefficients in the field ``base_ring``.
@@ -430,43 +439,35 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         sage: coC.differential(1) * H.dual().iota().in_degree(1).column(1) == 0
         True
     """
-    def conditionally_sparse(m):
-        """
-        Return a sparse matrix if the characteristic is zero.
-
-        Multiplication of matrices with low density seems to be quicker
-        if the matrices are sparse, when over the rationals. Over
-        finite fields, dense matrices are faster regardless of
-        density.
-        """
-        if base_ring == QQ:
-            return m.sparse_matrix()
-        else:
-            return m
-
     if not base_ring.is_field():
         raise ValueError('the coefficient ring must be a field')
 
     # The following are all dictionaries indexed by dimension.
     # For each n, gens[n] is an ordered list of the n-cells generating the complex M.
-    gens = {}
-    pi_data = {}
-    phi_data = {}
-    iota_data = {}
+    cdef dict gens = {}
+    cdef dict pi_data = {}
+    cdef dict phi_data = {}
+    cdef dict iota_data = {}
 
+    cdef int n
     for n in range(-1, K.dimension()+1):
         gens[n] = []
 
     C = K.chain_complex(base_ring=base_ring)
-    n_cells = []
-    pi_cols = []
-    iota_cols = {}
+    cdef list n_cells = []
+    cdef list pi_cols = []
+    cdef dict iota_cols = {}
 
+    cdef int dim, rank, old_rank, pi_nrows, i, r
+    cdef list old_cells, cols, pi_cols_old
+    cdef set to_be_deleted
+    cdef Matrix diff, pi_old, phi_old
+    cdef FreeModuleElement zero_vector, c_bar, c, pi_bdry_c_bar
     for dim in range(K.dimension()+1):
         # old_cells: cells one dimension lower.
         old_cells = n_cells
         # n_cells: the standard basis for the vector space C.free_module(dim).
-        n_cells = C.free_module(dim).gens()
+        n_cells = list(C.free_module(dim).gens())
         diff = C.differential(dim)
         # diff is sparse and low density. Dense matrices are faster
         # over finite fields, but for low density matrices, sparse
@@ -487,8 +488,13 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         pi_cols = []
         phi_old = MatrixSpace(base_ring, rank, old_rank, sparse=(base_ring==QQ)).zero()
         phi_old_cols = phi_old.columns()
-        phi_old = conditionally_sparse(phi_old)
-        to_be_deleted = []
+
+        # Multiplication of matrices with low density seems to be quicker
+        # if the matrices are sparse, when over the rationals. Over
+        # finite fields, dense matrices are faster regardless of density.
+        if base_ring is QQ:
+            phi_old = phi_old.sparse_matrix()
+        to_be_deleted = set()
 
         zero_vector = vector(base_ring, rank)
         pi_nrows = pi_old.nrows()
@@ -500,12 +506,12 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
                 c_bar = c
                 pi_bdry_c_bar = False
             else:
-                if base_ring == QQ:
+                if base_ring is QQ:
                     c_bar = c - phi_old * (diff * c)
-                    pi_bdry_c_bar = conditionally_sparse(pi_old) * (diff * c_bar)
+                    pi_bdry_c_bar = pi_old.sparse_matrix() * (diff * c_bar)
                 else:
                     c_bar = c - phi_old * diff * c
-                    pi_bdry_c_bar = conditionally_sparse(pi_old) * diff * c_bar
+                    pi_bdry_c_bar = pi_old * diff * c_bar
 
             # One small typo in the published algorithm: it says
             # "if bdry(c_bar) == 0", but should say
@@ -526,7 +532,7 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
                         break
                 # This element/column needs to be deleted from gens and
                 # iota_old. Do that later.
-                to_be_deleted.append(u_idx)
+                to_be_deleted.add(u_idx)
                 # pi(c) = 0.
                 pi_cols.append(zero_vector)
                 for c_j_idx, c_j in enumerate(old_cells):
@@ -535,15 +541,16 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
                     eta_ij = c_j.dot_product(pi_old.row(u_idx))
                     if eta_ij:
                         # Adjust phi(c_j).
-                        phi_old_cols[c_j_idx] += eta_ij * lambda_i**(-1) * c_bar
+                        phi_old_cols[c_j_idx] += eta_ij * ~lambda_i * c_bar
                         # Adjust pi(c_j).
-                        pi_cols_old[c_j_idx] -= eta_ij * lambda_i**(-1) * pi_bdry_c_bar
+                        pi_cols_old[c_j_idx] -= eta_ij * ~lambda_i * pi_bdry_c_bar
 
                 # The matrices involved have many zero entries. For
                 # such matrices, using sparse matrices is faster over
                 # the rationals, slower over finite fields.
-                phi_old = matrix(base_ring, phi_old_cols, sparse=(base_ring==QQ)).transpose()
-                keep = vector(base_ring, pi_nrows, {i:1 for i in range(pi_nrows)
+                phi_old = matrix(base_ring, phi_old_cols, sparse=(base_ring is QQ)).transpose()
+                one = base_ring.one()
+                keep = vector(base_ring, pi_nrows, {i: one for i in range(pi_nrows)
                                                     if i not in to_be_deleted})
                 cols = [v.pairwise_product(keep) for v in pi_cols_old]
                 pi_old = MS_pi_t.matrix(cols).transpose()
@@ -576,8 +583,8 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
     # M_data will contain (trivial) matrices defining the differential
     # on M. Keep track of the sizes using "M_rows" and "M_cols", which are
     # just the ranks of consecutive graded pieces of M.
-    M_data = {}
-    M_rows = 0
+    cdef dict M_data = {}
+    cdef int M_rows = 0
     for n in range(K.dimension()+1):
         M_cols = len(gens[n])
         M_data[n] = zero_matrix(base_ring, M_rows, M_cols)
@@ -588,5 +595,5 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
     pi = ChainComplexMorphism(pi_data, C, M)
     iota = ChainComplexMorphism(iota_data, M, C)
     phi = ChainContraction(phi_data, pi, iota)
-    return phi, M
+    return (phi, M)
 

@@ -478,6 +478,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.homology
+    ##
+    ################################
+
+    Extension('sage.homology.algebraic_topological_model',
+              ['sage/homology/algebraic_topological_model.pyx']),
+
+    ################################
+    ##
     ## sage.interacts
     ##
     ################################
