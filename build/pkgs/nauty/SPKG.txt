@@ -7,25 +7,39 @@ generating non-isomorphic graphs with certain properties, etc.
 
 == License ==
 
-The original source code is NOT GPL-compatible, as it is shared with the
-following restrictions:
+Since version 2.6, nauty license is GPL-compatible, see
 
-    nauty and traces is subject to the following usage restrictions:
+http://users.cecs.anu.edu.au/~bdm/nauty/COPYRIGHT.txt
 
-    nauty is copyright (1984-2014) Brendan McKay. All rights reserved. Traces is
-    copyright (2008-2014) Adolfo Piperno. All rights reserved. Permission is
-    hereby given for use and/or distribution with the exception of sale for
-    profit or application with nontrivial military significance. You must not
-    remove this copyright notice, and you must document any changes that you
-    make to this program. This software is subject to this copyright only,
-    irrespective of any copyright attached to any package of which this is a
-    part.  Absolutely no guarantees or warranties are made concerning the
-    suitability, correctness, or any other aspect of this program. Any use is at
-    your own risk.
+This is the copyright notice for the software package Nauty and
+Traces, versions 2.6 and later.
 
-    The above does not apply to the file planarity.c, which is copyright to the
-    Magma project and distributed with nauty by permission, nor to the file
-    watercluster2.c, which is copyright to Gunnar Brinkmann.
+Four categories of software are included in the package:
+A. All files not listed as B-D below, copyright Brendan McKay (1984-)
+B. Files traces.h, traces.h and dretodot.c, copyright Adolfo Piperno (2008-)
+C. File watercluster2.c, copyright Gunnar Brinkmann (2009-)
+D. Files planarity.h and planarity.c, copyright Magma project,
+   University of Sydney
+
+Permission is hereby given for the use, distribution and
+modification of this software subject to the following.
+  * You must include this copyright notice with all distributed
+    copies of this software, including modified copies.
+  * You must clearly mark modified versions of this software
+    as differing from the original.
+
+Regarding all the files in the package:
+   This software is only provided "as is". No guarantee is made
+   as to the suitability of this software for any purpose. No
+   responsibility will be taken by the authors or their employers
+   for any misfortune which befalls you because of its use. Your
+   use of this software implies your agreement with this notice.
+
+Brendan McKay: Australian National University;
+Brendan.McKay@anu.edu.au
+Adolfo Piperno: University of Rome "Sapienza"; piperno@di.uniroma1.it
+Gunnar Brinkmann: University of Ghent; Gunnar.Brinkmann@UGent.be
+Magma Administration: University of Sydney; admin@maths.usyd.edu.au
 
 == Special Packaging Instruction ==
 
