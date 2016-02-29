@@ -21,7 +21,7 @@ from sage.rings.all import ZZ
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.partition_tuple import PartitionTuple
 from sage.combinat.partition import Partitions
-from sage.rings.arith import moebius
+from sage.arith.misc import moebius
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import itertools
 
@@ -69,30 +69,28 @@ def cohomology_polynomial(Q, mu, var=None):
     q = R.gen()
     HLP = SymmetricFunctions(R).hall_littlewood(q).P()
     n = ZZ(mu.size())
-    r = mu.level()
-    fac_r = (-1) ** (r - 1) / r
 
     ret = R.zero()
     for d in n.divisors():  # We must have d dividing n
-        qd = q ** d
-        terms = R.zero()
-        # We only have a chance if each partition's size times d is equal to
-        # the size of the corresponding partition in mu
+        coeff = {}
         for pt in itertools.product(*[Partitions(p.size() // d)
                                       for p in mu.components()]):
-            Z = zip(mu.components(), pt)
-            t = prod(HLP[p].frobenius(d).coefficient(m) for m, p in Z)
-            if t != 0:  # If there's something to do
-                t *= prod(qd ** pt[i].pairing(pt[j])
-                          for i, j in Q.edges(False))
-                t /= prod(qd ** la.pairing(la) *
-                          prod(1 - qd ** -j for mk in la.to_exp_dict().values()
-                               for j in range(1, mk + 1))
-                          for la in pt)
-                terms += t
-        ret += moebius(d) * terms / d
+            c = prod(q ** pt[i].pairing(pt[j])
+                     for i, j in Q.edges(False))
+            c /= prod(q ** la.pairing(la) *
+                      prod(1 - q ** (-j)
+                           for mk in la.to_exp_dict().values()
+                           for j in range(1, mk + 1))
+                      for la in pt)
+            coeff[pt] = c
+        for D in d.divisors():
+            # here the product *should* live in the tensor product of Sym ?
+            power = sum(coeff[p](q=q ** D) *
+                        prod(HLP[p].frobenius(D) for pi in p)
+                        for p in coeff)
+            ret += moebius(D) * power ** (d / D).coefficient(mu) / D
 
-    ret *= fac_r * (q - 1)
+    ret *= (q - 1)
 
     if var is None:
         return ret
@@ -101,7 +99,7 @@ def cohomology_polynomial(Q, mu, var=None):
 
 
 def kac_polynomial(Q, v, q=None):
-    """
+    r"""
     Return the Kac polynomial for the quiver `Q` and the dimension vector `v`.
 
     INPUT:
@@ -110,20 +108,26 @@ def kac_polynomial(Q, v, q=None):
     - `v` -- the dimension vector
     - `q` -- (optional) the variable `q`
 
+    The vertices of the quiver must be the integers `0,\dots,n`.
+
     EXAMPLES::
 
         sage: from sage.combinat.kac_polynomial import kac_polynomial
         sage: kac_polynomial(DiGraph([[1],[]]), (1,))
         1?
+        sage: kac_polynomial(DiGraph({0:[1,2,3]}), (2,1,1,1))
+        1+q?
     """
     return cohomology_polynomial(Q, PartitionTuple([[x] for x in v]), q)
 
 
 def DT_invariant(Q, v, q=None):
-    """
+    r"""
     Return the DT-invariant for the quiver `Q` and the dimension vector `v`.
 
     DT is a shorthand for Donaldson-Thomas.
+
+    The vertices of the quiver must be the integers `0,\dots,n`.
 
     INPUT:
 
@@ -136,5 +140,7 @@ def DT_invariant(Q, v, q=None):
         sage: from sage.combinat.kac_polynomial import DT_invariant
         sage: DT_invariant(DiGraph([[1],[]]), (1,))
         1?
+        sage: kac_polynomial(DiGraph({0:[1,2,3]}), (2,1,1,1))
+        1+q?
     """
     return cohomology_polynomial(Q, PartitionTuple([[1] * x for x in v]), q)

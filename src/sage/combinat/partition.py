@@ -4645,6 +4645,16 @@ class Partition(CombinatorialElement):
         r"""
         Return the pairing of ``self`` and ``mu``.
 
+        INPUT:
+
+        ``mu`` -- a partition
+
+        OUTPUT:
+
+        an integer
+
+        This pairing is used in the computation of Kac polynomials of quivers.
+
         The pairing of partitions `\lambda` and `\mu` is given by:
 
         .. MATH::
