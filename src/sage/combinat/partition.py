@@ -4641,6 +4641,37 @@ class Partition(CombinatorialElement):
                               immutable=True, multiedges=True)
         return self.dual_equivalence_graph(directed, coloring)
 
+    def pairing(self, mu):
+        r"""
+        Return the pairing of ``self`` and ``mu``.
+
+        The pairing of partitions `\lambda` and `\mu` is given by:
+
+        .. MATH::
+
+            \langle \lambda, \mu \rangle = \sum_{i,j} \min(i, j) m_i(\lambda)
+            m_j(\mu)
+
+        where `m_i(\lambda)` denotes the multiplicity of `i` in `\lambda`.
+
+        EXAMPLES::
+
+            sage: la = Partition([3,1,1])
+            sage: mu = Partition([2,1])
+            sage: la.pairing(mu)
+            7
+            sage: mu.pairing(la)
+            7
+            sage: la.pairing(la)
+            11
+            sage: mu.pairing(mu)
+            5
+        """
+        return sum(min(i, j) * mla * mmu
+                   for i, mla in self.to_exp_dict().items()
+                   for j, mmu in mu.to_exp_dict().items())
+
+
 ##############
 # Partitions #
 ##############
