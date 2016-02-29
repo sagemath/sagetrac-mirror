@@ -2703,6 +2703,7 @@ cdef class Expression(CommutativeRingElement):
                     else:
                         return not equality_ok
         else:
+            from mpmath.libmp.libhyper import NoConvergence
             for k in range(ntests):
                 try:
                     if is_interval:
@@ -2718,7 +2719,8 @@ cdef class Expression(CommutativeRingElement):
                         return False
                     if is_interval:
                         eq_count += <bint>val.contains_zero()
-                except (TypeError, ValueError, ArithmeticError, AttributeError) as ex:
+                except (TypeError, ValueError, ArithmeticError,
+                        AttributeError, NoConvergence) as ex:
                     errors += 1
                     if k == errors > 3 and is_ComplexIntervalField(domain):
                         domain = RIF.to_prec(domain.prec())
