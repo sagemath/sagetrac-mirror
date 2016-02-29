@@ -28,7 +28,7 @@ import itertools
 
 def cohomology_polynomial(Q, mu, var=None):
     r"""
-    Return the cohomology polynomial of the quiver `Q` .
+    Return the cohomology polynomial of the quiver `Q`.
 
     INPUT:
 
@@ -122,6 +122,8 @@ def kac_polynomial(Q, v, q=None):
 def DT_invariant(Q, v, q=None):
     """
     Return the DT-invariant for the quiver `Q` and the dimension vector `v`.
+
+    DT is a shorthand for Donaldson-Thomas.
 
     INPUT:
 
