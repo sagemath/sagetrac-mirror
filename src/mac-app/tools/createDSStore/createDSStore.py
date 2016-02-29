@@ -23,12 +23,12 @@ import ds_store, mac_alias, biplist
 import datetime, sys, os
 
 # Hard-coded data for finder
-backgroundImageSize = (479, 379)
+backgroundImageSize = (563, 337)
 backgroundImageName = '.background.png'
 iconPositions = {
-    'README.txt' : (230, 276),
-    'Applications' : (366, 90),
-    'app' :  (90, 95)
+    'README.txt' : (716, 76),
+    'Applications' : (666, 290),
+    'app' :  (151, 291)
 }
 
 def getWindowData_bwsp():
