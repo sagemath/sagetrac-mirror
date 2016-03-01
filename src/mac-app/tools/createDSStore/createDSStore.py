@@ -23,12 +23,15 @@ import ds_store, mac_alias, biplist
 import datetime, sys, os
 
 # Hard-coded data for finder
-backgroundImageSize = (563, 337)
+# The .background.png's dpi should be set to 72, otherwise, we get weird
+# behavior (especially on Retina displays). This can be fixed with
+#    convert -density 72 -units pixelsperinch file.png file.png
+backgroundImageSize = (563, 348)
 backgroundImageName = '.background.png'
 iconPositions = {
-    'README.txt' : (716, 76),
-    'Applications' : (666, 290),
-    'app' :  (151, 291)
+    'README.txt' : (497, 52),
+    'Applications' : (462, 212),
+    'app' :  (104, 212)
 }
 
 def getWindowData_bwsp():
@@ -97,7 +100,7 @@ def getBackgroundImage_icvp(volume_name):
         'viewOptionsVersion': 1,
         'backgroundColorBlue': 1.0,
         'scrollPositionX': 0.0,
-        'iconSize': 128.0,
+        'iconSize': 88.0,
         'backgroundColorGreen': 1.0,
         'arrangeBy': 'none',
         'showIconPreview': False,
