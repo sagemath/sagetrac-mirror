@@ -33,6 +33,7 @@ AUTHORS:
 - Nick Alexander: add doctests and clean code for Doc Days 2
 - William Stein (2009-08-05): composition; some ReSTification.
 - William Stein (2009-09-18): make immutable.
+- Jon Hanke (2011-02-05):  Add spectral decomp. and some nice pictures.
 """
 
 #*****************************************************************************
@@ -50,6 +51,13 @@ from sage.rings.all import ZZ, is_fundamental_discriminant
 from sage.arith.all import divisors, gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+
+from sage.matrix.constructor import Matrix
+from sage.modules.free_module_element import vector
+from sage.functions.other import sqrt, ceil
+from sage.functions.trig import arccos
+from sage.plot.all import Graphics, point, ellipse, text
+
 
 class BinaryQF(SageObject):
     """
@@ -728,6 +736,286 @@ class BinaryQF(SageObject):
                     x = (z-b*y)//a2
                     return (x,y)
         return None
+
+    def matrix_Gram(self):
+        r"""
+        Return the (symmetric) Gram matrix `G` of the quadratic form.
+
+        This expresses `Q(x,y)` as the
+        matrix product `Q(x,y) = [x y] * G * [x y]^t`.
+
+        This matrix has base_ring `\QQ`.
+
+        EXAMPLES::
+        """
+        return Matrix(QQ, 2, 2, [QQ(self._a), QQ(self._b) / 2,
+                                 QQ(self._b) / 2, QQ(self._c)])
+
+    def matrix_Hessian(self):
+        r"""
+        Return the Hessian matrix of the quadratic form.
+
+        This is twice the Gram matrix.
+
+        This matrix has base_ring `\ZZ`.
+
+        EXAMPLES::
+        """
+        return Matrix(ZZ, 2, 2, [2 * self._a, self._b, self._b, 2 * self._c])
+
+    def eigenspaces(self):
+        """
+        Return the eigenspaces of the Hessian matrix of this quadratic form.
+
+        .. TODO::
+
+            Cache this, and make sure the BQF is immutable!
+
+        EXAMPLES::
+        """
+        return self.matrix_Hessian().eigenspaces()
+
+    def spectral_decomposition(self):
+        """
+        Return the spectral decomposition matrices `(D, X)`.
+
+        The Hessian matrix `H` (which is twice the Gram matrix of `Q`)
+        can be written as `H = X^{t} * D * X` where `D` is a diagonal
+        matrix and `X` is an orthogonal matrix.
+
+        OUTPUT:
+
+        - `D` -- a diagonal matrix
+
+        - `X` -- an orthogonal matrix
+
+        EXAMPLES::
+
+            sage: B = BinaryQF([1,1,1])
+            sage: B.eigenspaces()
+            [
+            (3, Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1]),
+            (1, Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -1])
+            ]
+
+            sage: B = BinaryQF([1,0,2])
+            sage: B.eigenspaces()
+            [
+            (4, Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [0 1]),
+            (2, Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 0])
+            ]
+        """
+        E = self.eigenspaces()
+
+        # Make the diagonal matrix D
+        D_list = []
+        for W in E:
+            D_list += [W[0][0]] * W[0][1].dimension()
+        D = Matrix(QQ, 2, 2, 0)
+        for i in range(2):
+            D[i, i] = D_list[i]
+
+        # Make the orthogonal matrix X
+        M_rows = []
+        for W in E:
+            for v in W.basis():
+                v_len = sqrt(v.dot_product(v))
+                M_rows.append(v / v_len)
+        X = Matrix(M_rows).transpose()
+
+        # Return the spectral decomposition
+        return D, X
+
+    def major_axis(self):
+        """
+        Return an eigenvector with the smallest eigenvalue.
+
+        This assumes that the quadratic form is definite. If there is
+        a single eigenspace, then we return the standard basis vector
+        `e_1 = (1,0)`.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: B = BinaryQF([1,1,1])
+            sage: B.major_axis()
+            (1, -1)
+            sage: B.minor_axis()
+            (1, 1)
+
+            sage: B = BinaryQF([1,0,2])
+            sage: B.major_axis()
+            (1, 0)
+            sage: B.minor_axis()
+            (0, 1)
+
+            sage: B = BinaryQF([1,0,1])
+            sage: B.major_axis()
+            (1, 0)
+            sage: B.minor_axis()
+            (0, 1)
+        """
+        E = self.eigenspaces()
+        if len(E) == 1:
+            return vector([1, 0])
+        else:
+            # Choose the *smallest* eigenvalue for the major axis
+            if abs(E[0][0]) < abs(E[1][0]):
+                return E[0][1].basis()[0]
+            else:
+                return E[1][1].basis()[0]
+
+    def minor_axis(self):
+        """
+        Return an eigenvector with the largest size eigenvalue.
+
+        This assumes that the quadratic form is definite. If there is
+        a single eigenspace, then we return the standard basis vector
+        `e_2 = (0,1)`.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: B = BinaryQF([1,1,1])
+            sage: B.major_axis()
+            (1, -1)
+            sage: B.minor_axis()
+            (1, 1)
+
+            sage: B = BinaryQF([1,0,2])
+            sage: B.major_axis()
+            (1, 0)
+            sage: B.minor_axis()
+            (0, 1)
+
+            sage: B = BinaryQF([1,0,1])
+            sage: B.major_axis()
+            (1, 0)
+            sage: B.minor_axis()
+            (0, 1)
+        """
+        E = self.eigenspaces()
+        if len(E) == 1:
+            return vector([0, 1])
+        else:
+            # Choose the *largest* eigenvalue for the minor axis
+            if abs(E[0][0]) > abs(E[1][0]):
+                return E[0][1].basis()[0]
+            else:
+                return E[1][1].basis()[0]
+
+    def plot_level_set(self, m, x_max=None, y_max=None, legend_center=None):
+        """
+        Return a graphic object showing the level set of the quadratic form.
+
+        This displays the level sets of this binary quadratic form
+        with respect to the standard basis, showing both the
+        background lattice, the level set ellipse, and the lattice
+        points on this level set.
+
+        .. TODO::
+
+            Allow arguments for:
+            x_max
+            y_max
+            legend_center -- ok
+            ---------------
+            x_range
+            y_range
+            point_color
+            point_size
+            ellipse_color
+            ellipse_thickness
+            intersection_point_size
+            intersection_point_color
+            return_plot
+            aspect_ratio
+            legend_center
+            hide_legend
+
+        INPUT:
+
+        - m -- an integer
+
+        OUTPUT:
+
+        - a graphics object
+
+        EXAMPLES::
+
+            B = BinaryQF([1,1,1])
+            sage: B.plot_level_set(13)
+            sage: B.plot_level_set(409)
+            sage: B.plot_level_set(11, legend_center=(3,3.5))
+        """
+        # legend_label='$x^2 + xy + y^2$'
+        #  legend_label = str(Q([i,j]))
+
+                    #G += point([(i,j)], size=15, rgbcolor=(1,0,0))
+        #G += circle((0,0), sqrt(13), rgbcolor=(1,0,0))
+
+        sqrt_m = sqrt(m)
+
+        # Find the eigenvalues and eigenvectors
+        v1 = self.major_axis()
+        v2 = self.minor_axis()
+        euclid_len1 = sqrt(v1.dot_product(v1))
+        euclid_len2 = sqrt(v2.dot_product(v2))
+        Q_len1 = sqrt(self(v1))
+        Q_len2 = sqrt(self(v2))
+
+        # Find the ellipse information
+        if v1[1] < 0:
+            upper_v1 = -v1
+            # ensure the major axis vector is in upper half-plane, so
+            # Arccos gives the correct angle!
+        else:
+            upper_v1 = v1
+        angle = arccos(RR(upper_v1[0]) / euclid_len1)
+        major_radius = sqrt_m * euclid_len1 / Q_len1
+        minor_radius = sqrt_m * euclid_len2 / Q_len2
+
+        # Determine bounds for our lattice point region
+        x_max = ceil(major_radius)
+        y_max = x_max
+
+        # Draw the lattice and intersection points
+        G = Graphics()
+        for i in range(-x_max, x_max + 1):
+            for j in range(-y_max, y_max + 1):
+                if self([i, j]) != m:
+                    G += point([(i, j)], size=4)
+                else:
+                    G += point([(i, j)], size=15)
+
+        # Draw the shaded ellipse
+        G += ellipse((0, 0), major_radius, minor_radius,
+                     angle, fill=True, alpha=0.3)
+
+        # Add a label
+        if legend_center is None:
+            legend_center = (x_max - 1, y_max - 1 + .5)
+        G += text('$' + str(self.polynomial()).replace('*', '') + ' = ' + str(m) + '$', legend_center, fontsize=15, rgbcolor=(0, 0, 1))
+
+        # Return the plotted graphic
+        G.axes_labels(['$x$', '$y$'])
+        G.set_aspect_ratio(1)
+        return G.show()
+
 
 def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""
