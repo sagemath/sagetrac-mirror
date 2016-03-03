@@ -818,6 +818,11 @@ class Function_gamma(GinacFunction):
             sage: latex(gamma(1/4))
             \Gamma\left(\frac{1}{4}\right)
 
+        Check that :trac:`20102` is fixed::
+
+            sage: (gamma(x)^2).series(x==0, 1)
+            1*x^(-2) + (-2*euler_gamma)*x^(-1) + (2*euler_gamma^2 + 1/6*pi^2) + Order(x)
+
         Test pickling::
 
             sage: loads(dumps(gamma(x)))

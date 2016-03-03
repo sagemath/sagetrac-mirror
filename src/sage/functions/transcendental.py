@@ -114,6 +114,13 @@ class Function_zeta(GinacFunction):
             zeta(pi)
             sage: zeta(pi).n()  # rel tol 1e-10
             1.17624173838258
+
+        Check that :trac:`20102` is fixed::
+
+            sage: (zeta(x)^2).series(x==1, 1)
+            1*(x - 1)^(-2) + (2*euler_gamma)*(x - 1)^(-1) + (euler_gamma^2 - stieltjes(1)) + Order(x - 1)
+            sage: (zeta(x)^4).residue(x==1)
+            4/3*euler_gamma*(3*euler_gamma^2 - stieltjes(1)) - 14/3*euler_gamma*stieltjes(1) + 2/3*stieltjes(2)
         """
         GinacFunction.__init__(self, "zeta")
 
