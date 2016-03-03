@@ -733,7 +733,7 @@ def solve(f, *args, **kwds):
     TESTS::
 
         sage: solve([sin(x)==x,y^2==x],x,y)
-        [sin(x) == x, y^2 == x]
+        []
         sage: solve(0==1,x)
         Traceback (most recent call last):
         ...
@@ -860,7 +860,8 @@ def solve(f, *args, **kwds):
             s = []
 
     sol_list = string_to_list_of_solutions(repr(s))
-
+    if f == sol_list:
+        sol_list = []
     # Relaxed form suggested by Mike Hansen (#8553):
     if kwds.get('solution_dict', False):
         if len(sol_list)==0: # fixes IndexError on empty solution list (#8553)
