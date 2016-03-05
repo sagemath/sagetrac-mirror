@@ -97,7 +97,8 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     .. [MS14] Jennifer Morse and Anne Schilling.
        *Crystal approach to affine Schubert calculus*.
-       :arxiv:`1408.0320`.
+       Int. Math. Res. Not. (2015).
+       :doi:`10.1093/imrn/rnv194`, :arxiv:`1408.0320`.
     """
     @staticmethod
     def __classcall_private__(cls, w, n, x = None, k = None):
@@ -332,7 +333,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             """
             Return the tableau representation of ``self``.
 
-            Uses the recording tableau of a minor varition of
+            Uses the recording tableau of a minor variation of
             Edelman-Greene insertion. See Theorem 4.11 in [MS14]_.
 
             EXAMPLES::
@@ -494,6 +495,18 @@ class FactorizationToTableaux(CrystalMorphism):
             sage: B = crystals.AffineFactorization(w,3)
             sage: phi = B._tableaux_isomorphism
             sage: phi.is_isomorphism()
+            True
+
+        TESTS::
+
+            sage: W = WeylGroup(['A',4,1], prefix='s')
+            sage: w = W.from_reduced_word([2,1,3,2,4,3,2,1])
+            sage: B = crystals.AffineFactorization(w, 4)
+            sage: phi = B._tableaux_isomorphism
+            sage: all(phi(b).e(i) == phi(b.e(i)) and phi(b).f(i) == phi(b.f(i))
+            ....:     for b in B for i in B.index_set())
+            True
+            sage: set(phi(b) for b in B) == set(phi.codomain())
             True
         """
         return True
