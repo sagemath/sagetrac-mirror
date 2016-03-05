@@ -2018,11 +2018,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
        return self.change_ring(Fv)
 
     @cached_method
-    def root_number(self, P=None, algorithm="pari"):
+    def root_number(self, P=None):
         r"""
-        Returns the global or local root number of this elliptic curve.
-        
-        This is 1 if the order of vanishing of the L-function L(E,s) at 1 
+        Return the global or local root number of this elliptic curve.
+
+        This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
 
         The computations are based on [Rohr]_, [Koba]_ for primes `P|3`
@@ -2034,24 +2034,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
                   root number at this ideal, otherwise return the global root
                   number
 
-        - ``algorithm`` - string (default: "pari") Ignored unless the
-                          base field is `\QQ`.  If "pari", use the PARI 
-                          C-library ``ellrootno`` implementation over `\QQ`. 
-                          If "generic", use the general number field 
-                          implementation.
-
         OUTPUT:
 
         The global or local root number of the elliptic curve, either 1 or -1.
 
+        Over `\QQ`, the PARI C-library ``ellrootno`` implementation is used.
+        Otherwise, the general number field implementation is used.
+
         EXAMPLES:
 
         Finding some global root numbers::
-        
+
             sage: EllipticCurve('11a1').root_number()
             1
             sage: EllipticCurve('37a1').root_number()
-            -1         
+            -1
             sage: EllipticCurve('389a1').root_number()
             1
             sage: EllipticCurve('208b1').root_number()
@@ -2073,7 +2070,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             1
 
         The root number is cached::
-        
+
             sage: E.root_number(2) is E.root_number(2)
             True
             sage: E.root_number()
@@ -2099,15 +2096,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. [Koba] S. Kobayashi "The local root number of elliptic curves with wild ramification"
         .. [Dokch] T. and V. Dokchitser "Root numbers and parity ranks of elliptic curves"
         """
-        if algorithm == "pari" and self.base_field() is QQ:
-            e = self.pari_mincurve()
-            if P is None:
-                return Integer(e.ellrootno())
-
-            return Integer(e.ellrootno(P if P in ZZ else P.gen()))
-
-        if algorithm == "magma":
-            raise NotImplementedError('not yet available via magma')
+        # the case of base field QQ is tackled by ell_rational_field
+        # here is the generic implementation only
 
         if P is None:
             # contribution from places at infinity
