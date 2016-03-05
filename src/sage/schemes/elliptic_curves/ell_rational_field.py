@@ -89,13 +89,12 @@ import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
-
+from sage.misc.cachefunc import cached_method
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
 from sage.functions.other import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
-from sage.misc.cachefunc import cached_method
 from copy import copy
 
 Q = RationalField()
@@ -4158,14 +4157,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     @cached_method
     def root_number(self, p=None):
         """
-        Returns the root number of this elliptic curve.
+        Return the root number of this elliptic curve.
 
         This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
 
         INPUT:
 
-        - `p` -- optional, default (None); if given, return the local
+        - `p` -- optional, default (``None``); if given, return the local
           root number at `p`
 
         EXAMPLES::
