@@ -2054,7 +2054,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             -1         
             sage: EllipticCurve('389a1').root_number()
             1
-            sage: EllipticCurve('208b1').root_number(algorithm='generic')
+            sage: EllipticCurve('208b1').root_number()
             -1
 
         The output is a sage integer::
