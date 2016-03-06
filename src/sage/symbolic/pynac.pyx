@@ -1105,6 +1105,8 @@ cdef bint py_is_real(object a) except +:
         P = parent_c(a)
         if P.is_field() and P.is_finite():
             return False
+    except NotImplementedError:
+        return False
     except AttributeError:
         pass
     return py_imag(a) == 0
