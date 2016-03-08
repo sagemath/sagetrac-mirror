@@ -1501,7 +1501,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             See http://trac.sagemath.org/18420 for details.
             0
         """
-        from sage.misc.superseded import deprecation
         deprecation(18420, "_mul_trunc is deprecated, use _mul_trunc_ instead")
         return self._mul_trunc_(right, n)
 
@@ -7242,32 +7241,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
-    def hamming_weight(self):
+    def number_of_terms(self):
         """
-        Returns the number of non-zero coefficients of self.
+        Returns the number of non-zero coefficients of self. Also called weight,
+        hamming weight or sparsity.
 
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: f = x^3 - x
-            sage: f.hamming_weight()
+            sage: f.number_of_terms()
             2
-            sage: R(0).hamming_weight()
+            sage: R(0).number_of_terms()
             0
             sage: f = (x+1)^100
-            sage: f.hamming_weight()
+            sage: f.number_of_terms()
             101
             sage: S = GF(5)['y']
-            sage: S(f).hamming_weight()
+            sage: S(f).number_of_terms()
             5
-            sage: cyclotomic_polynomial(105).hamming_weight()
+            sage: cyclotomic_polynomial(105).number_of_terms()
             33
+
+        The method :meth:`hamming_weight` is an alias::
+
+            sage: f.hamming_weight()
+            101
         """
         cdef long w = 0
         for a in self.coefficients(sparse=False):
             if a:
                 w += 1
         return w
+
+    # alias hamming_weight for number_of_terms:
+    hamming_weight = number_of_terms
 
     def map_coefficients(self, f, new_base_ring = None):
         """
@@ -7877,12 +7885,19 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     EXAMPLES::
 
-        sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'))
-        sage: f = x^3 - x + 17
-        sage: type(f)
-        <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+        sage: f = QQ['x']['y'].random_element()
         sage: loads(f.dumps()) == f
         True
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense
+        sage: isinstance(f, Polynomial_generic_dense)
+        True
+        sage: f = CC['x'].random_element()
+        sage: isinstance(f, Polynomial_generic_dense)
+        True
+
     """
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         Polynomial.__init__(self, parent, is_gen=is_gen)
