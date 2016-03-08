@@ -1125,6 +1125,23 @@ class ContinuedFraction_base(SageObject):
                                                      algorithm=algorithm)
     n = numerical_approx
 
+    def apply_homography(self, a, b, c, d):
+        """
+        Returns a new continued fraction (ax + b)/(cx + d) computed using Gosper's algorithm.
+
+        INPUT:
+
+        - ``a, b, c, d`` - integer coefficients
+        """
+        x = self.value()
+        z = (a*x+b)/(c*x+d)
+        from rational_field import QQ
+        if z in QQ:
+            _i = iter(Gosper_iterator(a,b,c,d,iter(self)))
+            l = list(_i)
+            return continued_fraction(l, z)
+        if z in
+
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
@@ -2561,5 +2578,70 @@ def farey(v, lim):
             if lim < mediant[1]:
                 return lower
             upper = mediant
+
+class Gosper_iterator:
+
+    def __init__(self, a, b, c, d, x):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+
+        self.x = x
+
+        self.done = False
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        oops = 100
+        while True:
+            if self.c == 0 and self.d == 0:
+                return Infinity
+            else:
+                import math
+                ub = math.floor(self.bound(self.a, self.c))
+                lb = math.floor(self.bound(self.b, self.d))
+                if ub == lb:
+                    self.egest(ub)
+                    return ub
+                else:
+                    self.ingest()
+            oops -= 1
+            if oops < 1:
+                print "ERROR: Next loop in holo ran too many times."
+                raise StopIteration
+
+    def egest(self, q):
+        a = self.a
+        b = self.b
+        self.a = self.c
+        self.b = self.d
+        self.c = a - q*self.c
+        self.d = b - q*self.d
+
+    def ingest(self):
+        p = next(self.x)
+        if p == Infinity:
+            self.done = True
+            self.b = self.a
+            self.d = self.c
+        else:
+            a = self.a
+            c = self.c
+            self.a = a*p + self.b
+            self.b = a
+            self.c = c*p + self.d
+            self.d = c
+
+    def bound(self, n,d):
+        if d == 0:
+            return Infinity
+        #elif d == 0 and n == 0:
+        #    return 0
+        else:
+            return float(n)/float(d)
+
 
 
