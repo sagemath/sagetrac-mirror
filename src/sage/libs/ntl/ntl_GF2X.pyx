@@ -14,8 +14,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -74,7 +75,7 @@ def GF2XHexOutput(have_hex=None):
     else:
         GF2XHexOutput_c[0] = 0
 
-cdef class ntl_GF2X:
+cdef class ntl_GF2X(object):
     """
     Univariate Polynomials over GF(2) via NTL.
     """
@@ -155,12 +156,6 @@ cdef class ntl_GF2X:
         GF2X_from_str(&self.x, s)
         sig_off()
 
-    def __cinit__(self):
-        GF2X_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2X_destruct(&self.x)
-
     def __reduce__(self):
         """
         EXAMPLES:
@@ -196,7 +191,7 @@ cdef class ntl_GF2X:
         GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
         return r
 
-    def __div__(ntl_GF2X self, b):
+    def __truediv__(ntl_GF2X self, b):
         """
         EXAMPLES:
             sage: a = ntl.GF2X(4)
@@ -217,6 +212,9 @@ cdef class ntl_GF2X:
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by b (=%s)"%(self, b)
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def DivRem(ntl_GF2X self, b):
         """
@@ -322,31 +320,31 @@ cdef class ntl_GF2X:
         GF2X_power(r.x, self.x, e)
         return r
 
-
-    def __richcmp__(self, other, op):
+    def __richcmp__(ntl_GF2X self, other, int op):
         """
-        EXAMPLES:
-            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: f = ntl.GF2X([1,0,1,1])
+            sage: g = ntl.GF2X([0,1,0])
             sage: f == g ## indirect doctest
             False
             sage: f == f
             True
+            sage: g != polygen(GF(2))
+            False
         """
-        if op != 2 and op != 3:
-            raise TypeError, "elements in GF(2)[X] are not ordered."
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2)[X] are not ordered")
 
-        if not isinstance(other, ntl_GF2X):
-            other = ntl_GF2X(other)
+        cdef ntl_GF2X b
+        try:
+            b = <ntl_GF2X?>other
+        except TypeError:
+            b = ntl_GF2X(other)
 
-        if not isinstance(self, ntl_GF2X):
-            self = ntl_GF2X(self)
-
-        cdef int t
-        t = GF2X_equal((<ntl_GF2X>self).x, (<ntl_GF2X>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __lshift__(ntl_GF2X self, int i):
         """
@@ -402,7 +400,7 @@ cdef class ntl_GF2X:
         if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
-        gcd.x = GF2X_GCD(self.x, (<ntl_GF2X>other).x)
+        GF2X_GCD(gcd.x, self.x, (<ntl_GF2X>other).x)
         return gcd
 
     def XGCD(ntl_GF2X self, other):
@@ -531,7 +529,7 @@ cdef class ntl_GF2X:
         """
         if R is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
         return R(map(int,self.list()))
@@ -677,9 +675,8 @@ cdef class ntl_GF2X:
             sage: int(e)
             1
         """
-        cdef long l = 0
         if GF2X_deg(self.x) != 0:
-            raise ValueError, "cannot convert non-constant polynomial to integer"
+            raise ValueError("cannot convert non-constant polynomial to integer")
         else:
             return GF2_conv_to_long(GF2X_coeff(self.x,0))
 

@@ -15,15 +15,17 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle, os
+import cPickle
+import os
 
 from expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
 
 
-class Sage(Expect):
+class Sage(ExtraTabCompletion, Expect):
     r"""
     Expect interface to the Sage interpreter itself.
 
@@ -183,58 +185,17 @@ class Sage(Expect):
             s = s[i+1:-1]
         return float(s)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: t = sage0.trait_names()
+            sage: t = sage0._tab_completion()
             sage: len(t) > 100
             True
             sage: 'gcd' in t
             True
         """
         return eval(self.eval('print repr(globals().keys())'))
-
-    def quit(self, verbose=False):
-        """
-        EXAMPLES::
-
-            sage: s = Sage()
-            sage: s.eval('2+2')
-            '4'
-            sage: s.quit()
-        """
-        import signal
-        if not self._expect is None:
-            pid = self._expect.pid
-            if verbose:
-                if self.is_remote():
-                    print "Exiting spawned %s process (local pid=%s, running on %s)"%(self,pid,self._server)
-                else:
-                    print "Exiting spawned %s process (pid=%s)."%(self, pid)
-            try:
-                for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
-                    self._expect.sendline(chr(3))  # send ctrl-c
-                    self._expect.sendline('quit_sage(verbose=%s)'%verbose)
-                    self._so_far(wait=0.2)
-
-                os.killpg(pid, 9)
-                os.kill(pid, 9)
-
-            except (RuntimeError, OSError) as msg:
-                pass
-
-            try:
-                os.killpg(pid, 9)
-                os.kill(pid, 9)
-            except OSError:
-                pass
-
-            try:
-                self._expect.close(signal.SIGQUIT)
-            except Exception:
-                pass
-            self._expect = None
 
     def __call__(self, x):
         """
@@ -442,6 +403,22 @@ class SageElement(ExpectElement):
         """
         return None
 
+    def _repr_option(self, option):
+        """
+        Disable repr option.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: m = sage0(4)
+            sage: m._repr_option('ascii_art')
+            False
+        """
+        return False
+
     def __getattr__(self, attrname):
         """
         EXAMPLES::
@@ -540,7 +517,6 @@ def reduce_load_element(s):
     return sage0('loads(base64.b32decode("%s"))'%s)
 
 
-import os
 def sage0_console():
     """
     Spawn a new Sage command-line session.
@@ -554,6 +530,9 @@ def sage0_console():
         ----------------------------------------------------------------------
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%sage0 magics instead.')
     os.system('sage')
 
 def sage0_version():

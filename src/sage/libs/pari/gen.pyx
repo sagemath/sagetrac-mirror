@@ -15,19 +15,22 @@ AUTHORS:
   handling.
 
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-  Upgrade to PARI 2.4.3 (#9343)
+  Upgrade to PARI 2.4.3 (:trac:`9343`)
 
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
-  (#11611, #11854, #11952)
+  (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
 - Peter Bruin (2013-11-17): move PariInstance to a separate file
-  (#15185)
+  (:trac:`15185`)
 
-- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
-- Martin von Gagern (2014-12-17): Added some Galois functions (#17519)
+- Martin von Gagern (2014-12-17): Added some Galois functions (:trac:`17519`)
 
-- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (#16997)
+- Jeroen Demeyer (2015-01-12): upgrade to PARI 2.8 (:trac:`16997`)
+
+- Jeroen Demeyer (2015-03-17): automatically generate methods from
+  ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 """
 
@@ -36,7 +39,7 @@ AUTHORS:
 #       Copyright (C) ???? Justin Walker
 #       Copyright (C) ???? Gonzalo Tornaria
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2010-2014 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2010-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -51,23 +54,31 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
+from sage.libs.pari.closure cimport objtoclosure
 
-from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
+from pari_instance cimport (PariInstance, pari_instance,
+        prec_bits_to_words, prec_words_to_bits, default_bitprec)
 cdef PariInstance P = pari_instance
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 
 include 'auto_gen.pxi'
@@ -85,6 +96,20 @@ cdef class gen(gen_auto):
             sage_free(<void*> self.b)
 
     def __repr__(self):
+        """
+        Display representation of a gen.
+
+        OUTPUT: a Python string
+
+        EXAMPLES::
+
+            sage: pari('vector(5,i,i)')
+            [1, 2, 3, 4, 5]
+            sage: pari('[1,2;3,4]')
+            [1, 2; 3, 4]
+            sage: pari('Str(hello)')
+            "hello"
+        """
         cdef char *c
         pari_catch_sig_on()
         # Use sig_block(), which is needed because GENtostr() uses
@@ -97,6 +122,29 @@ cdef class gen(gen_auto):
         s = str(c)
         pari_free(c)
         return s
+
+    def __str__(self):
+        """
+        Convert this gen to a string.
+
+        Except for PARI strings, we have ``str(x) == repr(x)``.
+        For strings (type ``t_STR``), the returned string is not quoted.
+
+        OUTPUT: a Python string
+
+        EXAMPLES::
+
+            sage: print(pari('vector(5,i,i)'))
+            [1, 2, 3, 4, 5]
+            sage: print(pari('[1,2;3,4]'))
+            [1, 2; 3, 4]
+            sage: print(pari('Str(hello)'))
+            hello
+        """
+        # Use __repr__ except for strings
+        if typ(self.g) == t_STR:
+            return GSTR(self.g)
+        return repr(self)
 
     def __hash__(self):
         """
@@ -180,8 +228,11 @@ cdef class gen(gen_auto):
             sage: f = pari('x^3 - 3')
             sage: loads(dumps(f)) == f
             True
+            sage: f = pari('"hello world"')
+            sage: loads(dumps(f)) == f
+            True
         """
-        s = str(self)
+        s = repr(self)
         return (objtogen, (s,))
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -266,10 +317,6 @@ cdef class gen(gen_auto):
     def __neg__(gen self):
         pari_catch_sig_on()
         return P.new_gen(gneg(self.g))
-
-    def __xor__(gen self, n):
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
 
     def __rshift__(self, long n):
         """
@@ -775,9 +822,9 @@ cdef class gen(gen_auto):
 
         if isinstance(n, tuple):
             if pari_type != t_MAT:
-                raise TypeError, "self must be of pari type t_MAT"
+                raise TypeError("self must be of pari type t_MAT")
             if len(n) != 2:
-                raise IndexError, "index must be an integer or a 2-tuple (i,j)"
+                raise IndexError("index must be an integer or a 2-tuple (i,j)")
             i = int(n[0])
             j = int(n[1])
 
@@ -983,19 +1030,19 @@ cdef class gen(gen_auto):
         try:
             if isinstance(n, tuple):
                 if typ(self.g) != t_MAT:
-                    raise TypeError, "cannot index PARI type %s by tuple"%typ(self.g)
+                    raise TypeError("cannot index PARI type %s by tuple" % typ(self.g))
 
                 if len(n) != 2:
-                    raise ValueError, "matrix index must be of the form [row, column]"
+                    raise ValueError("matrix index must be of the form [row, column]")
 
                 i = int(n[0])
                 j = int(n[1])
                 ind = (i,j)
 
                 if i < 0 or i >= glength(<GEN>(self.g[1])):
-                    raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
+                    raise IndexError("row i(=%s) must be between 0 and %s" % (i, self.nrows()-1))
                 if j < 0 or j >= glength(self.g):
-                    raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
+                    raise IndexError("column j(=%s) must be between 0 and %s" % (j, self.ncols()-1))
                 if self.refers_to is None:
                     self.refers_to = {ind: x}
                 else:
@@ -1009,7 +1056,7 @@ cdef class gen(gen_auto):
                 inds = xrange(*n.indices(l))
                 k = len(inds)
                 if k > len(y):
-                    raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)
+                    raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))
 
                 # actually set the values
                 for i,j in enumerate(inds):
@@ -1019,7 +1066,7 @@ cdef class gen(gen_auto):
             i = int(n)
 
             if i < 0 or i >= glength(self.g):
-                raise IndexError, "index (%s) must be between 0 and %s"%(i,glength(self.g)-1)
+                raise IndexError("index (%s) must be between 0 and %s" % (i, glength(self.g)-1))
 
             # so python memory manager will work correctly
             # and not free x if PARI part of self is the
@@ -1047,10 +1094,7 @@ cdef class gen(gen_auto):
     # comparisons
     ###########################################
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1119,14 +1163,11 @@ cdef class gen(gen_auto):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            r = left._rich_to_bool(op, gcmp(x, y))
+            r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -1248,7 +1289,7 @@ cdef class gen(gen_auto):
         cdef int size
         x = self.g
         if typ(x) != t_INT:
-            raise TypeError, "gen must be of PARI type t_INT"
+            raise TypeError("gen must be of PARI type t_INT")
         if not signe(x):
             return "0"
         lx = lgefint(x)-2  # number of words
@@ -1325,7 +1366,7 @@ cdef class gen(gen_auto):
         """
         cdef long n, m
         if typ(self.g) != t_VECSMALL:
-            raise TypeError, "Object (=%s) must be of type t_VECSMALL."%self
+            raise TypeError("Object (=%s) must be of type t_VECSMALL." % self)
         V = []
         m = glength(self.g)
         for n from 0 <= n < m:
@@ -1360,21 +1401,31 @@ cdef class gen(gen_auto):
         cdef gen t
 
         if typ(self.g) != t_VEC:
-            raise TypeError, "Object (=%s) must be of type t_VEC."%self
+            raise TypeError("Object (=%s) must be of type t_VEC." % self)
         m = glength(self.g)
         V = []
         for n from 0 <= n < m:
-            V.append(self.__getitem__(n))
+            V.append(self[n])
         return V
 
     def python(self, locals=None):
         """
-        Return Python eval of self.
+        Return the closest Python/Sage equivalent of the given PARI object.
 
-        Note: is self is a real (type t_REAL) the result will be a
-        RealField element of the equivalent precision; if self is a complex
-        (type t_COMPLEX) the result will be a ComplexField element of
-        precision the minimum precision of the real and imaginary parts.
+        INPUT:
+
+        - `z` -- PARI ``gen``
+
+        - `locals` -- optional dictionary used in fallback cases that
+          involve :func:`sage_eval`
+
+        .. NOTE::
+
+            If ``self`` is a real (type ``t_REAL``), then the result
+            will be a RealField element of the equivalent precision;
+            if ``self`` is a complex (type ``t_COMPLEX``), then the
+            result will be a ComplexField element of precision the
+            maximal precision of the real and imaginary parts.
 
         EXAMPLES::
 
@@ -1387,17 +1438,115 @@ cdef class gen(gen_auto):
             sage: f.python({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
 
-        You can also use .sage, which is a psynonym::
+        You can also use :meth:`.sage`, which is an alias::
 
             sage: f.sage({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
+
+        Converting a real number::
+
+            sage: pari.set_real_precision(70)
+            15
+            sage: a = pari('1.234').python(); a
+            1.234000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: a.parent()
+            Real Field with 256 bits of precision
+            sage: pari.set_real_precision(15)
+            70
+            sage: a = pari('1.234').python(); a
+            1.23400000000000000
+            sage: a.parent()
+            Real Field with 64 bits of precision
+
+        For complex numbers, the parent depends on the PARI type::
+
+            sage: a = pari('(3+I)').python(); a
+            i + 3
+            sage: a.parent()
+            Number Field in i with defining polynomial x^2 + 1
+
+            sage: a = pari('2^31-1').python(); a
+            2147483647
+            sage: a.parent()
+            Integer Ring
+
+            sage: a = pari('12/34').python(); a
+            6/17
+            sage: a.parent()
+            Rational Field
+
+            sage: a = pari('(3+I)/2').python(); a
+            1/2*i + 3/2
+            sage: a.parent()
+            Number Field in i with defining polynomial x^2 + 1
+
+            sage: z = pari(CC(1.0+2.0*I)); z
+            1.00000000000000 + 2.00000000000000*I
+            sage: a = z.python(); a
+            1.00000000000000000 + 2.00000000000000000*I
+            sage: a.parent()
+            Complex Field with 64 bits of precision
+
+            sage: I = sqrt(-1)
+            sage: a = pari(1.0 + 2.0*I).python(); a
+            1.00000000000000000 + 2.00000000000000000*I
+            sage: a.parent()
+            Complex Field with 64 bits of precision
+
+        Vectors and matrices::
+
+            sage: a = pari('[1,2,3,4]')
+            sage: a
+            [1, 2, 3, 4]
+            sage: a.type()
+            't_VEC'
+            sage: b = a.python(); b
+            [1, 2, 3, 4]
+            sage: type(b)
+            <type 'list'>
+
+            sage: a = pari('[1,2;3,4]')
+            sage: a.type()
+            't_MAT'
+            sage: b = a.python(); b
+            [1 2]
+            [3 4]
+            sage: b.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+            sage: a = pari('Vecsmall([1,2,3,4])')
+            sage: a.type()
+            't_VECSMALL'
+            sage: a.python()
+            [1, 2, 3, 4]
+
+        We use the locals dictionary::
+
+            sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
+            sage: x,y=var('x,y')
+            sage: from sage.libs.pari.gen import gentoobj
+            sage: gentoobj(f, {'x':x, 'y':y})
+            2/3*x^3 + x + y - 5/7
+            sage: gentoobj(f)
+            Traceback (most recent call last):
+            ...
+            NameError: name 'x' is not defined
+
+        Conversion of p-adics::
+
+            sage: K = Qp(11,5)
+            sage: x = K(11^-10 + 5*11^-7 + 11^-6); x
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: y = pari(x); y
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: y.sage()
+            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+            sage: pari(K(11^-5)).sage()
+            11^-5 + O(11^0)
         """
-        import sage.libs.pari.gen_py
-        return sage.libs.pari.gen_py.python(self, locals=locals)
+        return gentoobj(self, locals)
 
-    sage = python
-
-    _sage_ = _eval_ = python
+    sage = _sage_ = _eval_ = python
 
     def __long__(gen self):
         """
@@ -2814,20 +2963,15 @@ cdef class gen(gen_auto):
 
     def binary(gen x):
         """
-        binary(x): gives the vector formed by the binary digits of abs(x),
-        where x is of type t_INT.
+        Return the vector formed by the binary digits of abs(x).
 
         INPUT:
 
-
-        -  ``x`` - gen of type t_INT
-
+        - ``x`` -- gen of type ``t_INT``
 
         OUTPUT:
 
-
-        -  ``gen`` - of type t_VEC
-
+        - ``gen`` -- gen of type ``t_VEC``
 
         EXAMPLES::
 
@@ -2845,10 +2989,8 @@ cdef class gen(gen_auto):
             sage: pari('"2"').binary()
             Traceback (most recent call last):
             ...
-            TypeError: x (="2") must be of type t_INT, but is of type t_STR.
+            PariError: incorrect type in binary (t_STR)
         """
-        if typ(x.g) != t_INT:
-            raise TypeError, "x (=%s) must be of type t_INT, but is of type %s."%(x,x.type())
         pari_catch_sig_on()
         return P.new_gen(binaire(x.g))
 
@@ -3126,18 +3268,19 @@ cdef class gen(gen_auto):
 
     def centerlift(gen x, v=-1):
         """
-        centerlift(x,v): Centered lift of x. This function returns exactly
-        the same thing as lift, except if x is an integer mod.
+        Centered lift of x. This function returns exactly the same thing as lift,
+        except if x is an integer mod.
 
         INPUT:
 
+        -  ``x`` -- gen
 
-        -  ``x`` - gen
+        -  ``v`` -- var (default: x)
 
-        -  ``v`` - var (default: x)
+        OUTPUT:
 
-
-        OUTPUT: gen
+        - `r` -- gen. If `x` is an integer mod `n`, return the unique element `r` congruent
+          to `x` mod `n` such that `-n/2 < r \\leq n/2`.
 
         EXAMPLES::
 
@@ -3158,10 +3301,17 @@ cdef class gen(gen_auto):
             x - y
             sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
+
+        For compatibility with other classes in Sage, there is an alias
+        ``lift_centered``::
+
+            sage: pari("Mod(3,5)").lift_centered()
+            -2
         """
         pari_catch_sig_on()
         return P.new_gen(centerlift0(x.g, P.get_var(v)))
 
+    lift_centered = centerlift
 
     def component(gen x, long n):
         """
@@ -3683,50 +3833,6 @@ cdef class gen(gen_auto):
         """
         return gsizebyte(x.g)
 
-    def sizedigit(gen x):
-        """
-        sizedigit(x): Return a quick estimate for the maximal number of
-        decimal digits before the decimal point of any component of x.
-
-        INPUT:
-
-
-        -  ``x`` - gen
-
-
-        OUTPUT:
-
-
-        -  ``int`` - Python integer
-
-
-        EXAMPLES::
-
-            sage: x = pari('10^100')
-            sage: x.Str().length()
-            101
-            sage: x.sizedigit()
-            101
-
-        Note that digits after the decimal point are ignored.
-
-        ::
-
-            sage: x = pari('1.234')
-            sage: x
-            1.23400000000000
-            sage: x.sizedigit()
-            1
-
-        The estimate can be one too big::
-
-            sage: pari('7234.1').sizedigit()
-            4
-            sage: pari('9234.1').sizedigit()
-            5
-        """
-        return sizedigit(x.g)
-
     def truncate(gen x, estimate=False):
         """
         truncate(x,estimate=False): Return the truncation of x. If estimate
@@ -4171,31 +4277,6 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(bernreal(x, prec_bits_to_words(precision)))
-
-    def bernvec(gen x):
-        r"""
-        Creates a vector containing, as rational numbers, the Bernoulli
-        numbers `B_0, B_2,\ldots, B_{2x}`. This routine is
-        obsolete. Use bernfrac instead each time you need a Bernoulli
-        number in exact form.
-
-        Note: this routine is implemented using repeated independent calls
-        to bernfrac, which is faster than the standard recursion in exact
-        arithmetic.
-
-        EXAMPLES::
-
-            sage: pari(8).bernvec()
-            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
-            See http://trac.sagemath.org/15767 for details.
-            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
-            sage: [pari(2*n).bernfrac() for n in range(9)]
-            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
-        pari_catch_sig_on()
-        return P.new_gen(bernvec(x))
 
     def besselh1(gen nu, x, unsigned long precision=0):
         r"""
@@ -5160,17 +5241,6 @@ cdef class gen(gen_auto):
     # 4: NUMBER THEORETICAL functions
     ###########################################
 
-    def bezout(gen x, y):
-        cdef gen u, v, g
-        cdef GEN U, V, G
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        G = gbezout(x.g, t0.g, &U, &V)
-        g = P.new_gen_noclear(G)
-        u = P.new_gen_noclear(U)
-        v = P.new_gen(V)
-        return g, u, v
-
     def binomial(gen x, long k):
         """
         binomial(x, k): return the binomial coefficient "x choose k".
@@ -5537,17 +5607,6 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(sumdivk(n.g, k))
-
-    def xgcd(gen x, y):
-        """
-        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
-
-        EXAMPLES::
-
-            sage: pari(10).xgcd(15)
-            (5, -1, 1)
-        """
-        return x.bezout(y)
 
     def Zn_issquare(gen self, n):
         """
@@ -5938,31 +5997,6 @@ cdef class gen(gen_auto):
             set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
         return P.new_gen(g)
 
-    def ellbil(self, z0, z1, unsigned long precision=0):
-        """
-        e.ellbil(z0, z1): return the value of the canonical bilinear form
-        on z0 and z1.
-
-        INPUT:
-
-
-        -  ``e`` - elliptic curve (assumed integral given by a
-           minimal model, as returned by ellminimalmodel)
-
-        -  ``z0, z1`` - rational points on e
-
-
-        EXAMPLES::
-
-            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
-            sage: e.ellbil([1, 0], [-1, 1])
-            0.418188984498861
-        """
-        cdef gen t0 = objtogen(z0)
-        cdef gen t1 = objtogen(z1)
-        pari_catch_sig_on()
-        return P.new_gen(bilhell(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
-
     def ellchangecurve(self, ch):
         """
         e.ellchangecurve(ch): return the new model (equation) for the
@@ -6011,15 +6045,18 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))
 
-    def ellheight(self, a, long flag=-1, unsigned long precision=0):
+    def ellheight(self, a, b=None, long flag=-1, unsigned long precision=0):
         """
-        canonical height of point ``a`` on elliptic curve ``self``.
+        Canonical height of point ``a`` on elliptic curve ``self``,
+        resp. the value of the associated bilinear form at ``(a,b)``.
 
         INPUT:
 
         - ``self``-- an elliptic curve over `\QQ`.
 
         - ``a`` -- rational point on ``self``.
+
+        - ``b`` -- (optional) rational point on ``self``.
 
         - ``precision (optional)`` -- the precision of the
           result, in bits.
@@ -6032,13 +6069,24 @@ cdef class gen(gen_auto):
             sage: e.ellheight([1,0], precision=128).sage()
             0.47671165934373953737948605888465305945902294218            # 32-bit
             0.476711659343739537379486058884653059459022942211150879336  # 64-bit
+
+        Computing the bilinear form::
+
+            sage: e.ellheight([1, 0], [-1, 1])
+            0.418188984498861
         """
         if flag != -1:
             from sage.misc.superseded import deprecation
             deprecation(16997, 'The flag argument to ellheight() is deprecated and not used anymore')
         cdef gen t0 = objtogen(a)
-        pari_catch_sig_on()
-        return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
+        cdef gen t1
+        if b is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
+        else:
+            t1 = objtogen(b)
+            pari_catch_sig_on()
+            return P.new_gen(ellheight0(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
 
     def ellheightmatrix(self, x, unsigned long precision=0):
         """
@@ -6277,9 +6325,9 @@ cdef class gen(gen_auto):
             sage: e.elllseries(2.1)
             0.402838047956645
             sage: e.elllseries(1, precision=128)
-            2.98766720445395 E-38
+            6.21952537507477 E-39
             sage: e.elllseries(1, precision=256)
-            5.48956813891054 E-77
+            2.95993347819786 E-77
             sage: e.elllseries(-2)
             0
             sage: e.elllseries(2.1, A=1.1)
@@ -6425,13 +6473,11 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(zell(self.g, t0.g, prec_bits_to_words(precision)))
 
-    def ellpow(self, z, n):
+    def ellmul(self, z, n):
         """
-        e.ellpow(z, n): return `n` times the point `z` on the elliptic
-        curve `e`.
+        Return `n` times the point `z` on the elliptic curve `e`.
 
         INPUT:
-
 
         -  ``e`` - elliptic curve
 
@@ -6441,7 +6487,6 @@ cdef class gen(gen_auto):
            multiplication for `e`. Complex multiplication currently
            only works if `e` is defined over `Q`.
 
-
         EXAMPLES: We consider a curve with CM by `Z[i]`::
 
             sage: e = pari([0,0,0,3,0]).ellinit()
@@ -6449,16 +6494,16 @@ cdef class gen(gen_auto):
 
         Multiplication by two::
 
-            sage: e.ellpow([0,0], 2)
+            sage: e.ellmul([0,0], 2)
             [0]
-            sage: e.ellpow(p, 2)
+            sage: e.ellmul(p, 2)
             [1/4, -7/8]
 
         Complex multiplication::
 
-            sage: q = e.ellpow(p, 1+I); q
+            sage: q = e.ellmul(p, 1+I); q
             [-2*I, 1 + I]
-            sage: e.ellpow(q, 1-I)
+            sage: e.ellmul(q, 1-I)
             [1/4, -7/8]
 
         TESTS::
@@ -6479,8 +6524,8 @@ cdef class gen(gen_auto):
             ....:     # Evaluate cm_minpoly(cm)(P), which should be zero
             ....:     #
             ....:     e = pari(E)  # Convert E to PARI
-            ....:     P2 = e.ellpow(P, cm_minpoly[2]*cm + cm_minpoly[1])
-            ....:     P0 = e.elladd(e.ellpow(P, cm_minpoly[0]), e.ellpow(P2, cm))
+            ....:     P2 = e.ellmul(P, cm_minpoly[2]*cm + cm_minpoly[1])
+            ....:     P0 = e.elladd(e.ellmul(P, cm_minpoly[0]), e.ellmul(P2, cm))
             ....:     assert(P0 == E(0))
         """
         cdef gen t0 = objtogen(z)
@@ -6806,6 +6851,87 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(bnrclassno(self.g, t0.g))
 
+    def _eltabstorel(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POLMOD`` with ``t_POLMOD`` coefficients.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: f_abs = rnfeq[0]; f_abs
+            x^4 + 6*x^2 + 1
+            sage: x_rel = rnfeq._eltabstorel(x); x_rel
+            Mod(x + Mod(-y, y^2 + 1), x^2 + 2)
+            sage: f_abs(x_rel)
+            Mod(0, x^2 + 2)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel(self.g, t0.g))
+
+    def _eltabstorel_lift(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POL`` with ``t_POLMOD`` coefficients.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltabstorel_lift(x)
+            x + Mod(-y, y^2 + 1)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel_lift(self.g, t0.g))
+
+    def _eltreltoabs(self, x):
+        """
+        Return the absolute number field element corresponding to `x`.
+
+        The result is a ``t_POL``.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltreltoabs` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltreltoabs(x)
+            1/2*x^3 + 7/2*x
+            sage: rnfeq._eltreltoabs('y')
+            1/2*x^3 + 5/2*x
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltreltoabs(self.g, t0.g))
+
     def galoisinit(self, den=None):
         """
         Calculate the Galois group of ``self``.
@@ -6917,11 +7043,11 @@ cdef class gen(gen_auto):
 
             sage: G = pari(x^4 + 1).galoisinit()
             sage: G.galoisfixedfield(G[5][1], flag=2)
-            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            [x^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
             sage: G.galoisfixedfield(G[5][5:7])
             [x^4 + 1, Mod(x, x^4 + 1)]
             sage: L = G.galoissubgroups()
-            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            sage: G.galoisfixedfield(L[3], flag=2, v='z')
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
@@ -6959,7 +7085,7 @@ cdef class gen(gen_auto):
             sage: G.galoissubfields(flag=1)
             [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
             sage: G = pari(x^4 + 1).galoisinit()
-            sage: G.galoissubfields(flag=2, v='z')[2]
+            sage: G.galoissubfields(flag=2, v='z')[3]
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
         .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
@@ -7642,7 +7768,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(nfinit0(self.g, flag, prec_bits_to_words(precision)))
 
-    def nfisisom(self, gen other):
+    def nfisisom(self, other):
         """
         nfisisom(x, y): Determine if the number fields defined by x and y
         are isomorphic. According to the PARI documentation, this is much
@@ -7678,9 +7804,20 @@ cdef class gen(gen_auto):
             sage: H = NumberField(x^2-2,'alpha')
             sage: F._pari_().nfisisom(H._pari_())
             0
+
+        TESTS:
+
+        This method converts its second argument (:trac:`18728`)::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: L.<b> = NumberField(x^2 + 3)
+            sage: pari(K).nfisisom(L)
+            [-1/2*y - 1/2, 1/2*y - 1/2]
+
         """
+        cdef gen t0 = objtogen(other)
         pari_catch_sig_on()
-        return P.new_gen(nfisisom(self.g, other.g))
+        return P.new_gen(nfisisom(self.g, t0.g))
 
     def nfrootsof1(self):
         """
@@ -7716,11 +7853,34 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(nfsubfields(self.g, d))
 
+    def _nf_rnfeq(self, relpol):
+        """
+        Return data for converting number field elements between
+        absolute and relative representation.
+
+        .. NOTE::
+
+            The output of this method is suitable for the methods
+            :meth:`_eltabstorel`, :meth:`_eltabstorel_lift` and
+            :meth:`_eltreltoabs`.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: K._nf_rnfeq(x^2 + 2)
+            [x^4 + 6*x^2 + 1, 1/2*x^3 + 5/2*x, -1, y^2 + 1, x^2 + 2]
+
+        """
+        cdef gen t0 = objtogen(relpol)
+        pari_catch_sig_on()
+        return P.new_gen(nf_rnfeq(self.g, t0.g))
+
     def rnfidealdown(self, x):
         r"""
         rnfidealdown(rnf,x): finds the intersection of the ideal x with the base field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ZZ['xx1'].0; pari(x)
             xx1
             sage: y = ZZ['yy1'].0; pari(y)
@@ -7925,6 +8085,15 @@ cdef class gen(gen_auto):
             sage: f()
             [0, 0, 1.00000000000000]
 
+        Variadic closures are supported as well (:trac:`18623`)::
+
+            sage: f = pari("(v[..])->length(v)")
+            sage: f('a', f)
+            2
+            sage: g = pari("(x,y,z[..])->[x,y,z]")
+            sage: g(), g(1), g(1,2), g(1,2,3), g(1,2,3,4)
+            ([0, 0, []], [1, 0, []], [1, 2, []], [1, 2, [3]], [1, 2, [3, 4]])
+
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
 
@@ -7946,12 +8115,9 @@ cdef class gen(gen_auto):
         if t == t_CLOSURE:
             if nkwds > 0:
                 raise TypeError("cannot evaluate a PARI closure using keyword arguments")
-            # XXX: use undocumented internals to get arity of closure
-            # (In PARI 2.6, there is closure_arity() which does this)
-            arity = self.g[1]
-            if nargs > arity:
-                raise TypeError("PARI closure takes at most %d argument%s (%d given)"%(
-                    arity, "s" if (arity!=1) else "", nargs))
+            if closure_is_variadic(self.g):
+                arity = closure_arity(self.g) - 1
+                args = list(args[:arity]) + [0]*(arity-nargs) + [args[arity:]]
             t0 = objtogen(args)
             pari_catch_sig_on()
             result = closure_callgenvec(self.g, t0.g)
@@ -8031,7 +8197,7 @@ cdef class gen(gen_auto):
             sage: pari('() -> 42')(1,2,3)
             Traceback (most recent call last):
             ...
-            TypeError: PARI closure takes at most 0 arguments (3 given)
+            PariError: too many parameters in user-defined function call
             sage: pari('n -> n')(n=2)
             Traceback (most recent call last):
             ...
@@ -8059,7 +8225,7 @@ cdef class gen(gen_auto):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^2 - 1/8)
             sage: pari(x^2 - 2).factornf(K.pari_polynomial("a"))
-            [x + Mod(-4*a, 8*a^2 - 1), 1; x + Mod(4*a, 8*a^2 - 1), 1]
+            [x + Mod(-a, a^2 - 2), 1; x + Mod(a, a^2 - 2), 1]
         """
         cdef gen t0 = objtogen(t)
         pari_catch_sig_on()
@@ -8141,7 +8307,7 @@ cdef class gen(gen_auto):
         Now it takes much less than a second::
 
             sage: pari.allocatemem(200000)
-            PARI stack size set to 200000 bytes
+            PARI stack size set to 200000 bytes, maximum size set to ...
             sage: x = polygen(ZpFM(3,10))
             sage: pol = ((x-1)^50 + x)
             sage: pari(pol).poldisc()
@@ -8230,11 +8396,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(rootpadic(self.g, t0.g, r))
 
-    def polsturm_full(self):
-        pari_catch_sig_on()
-        n = sturmpart(self.g, NULL, NULL)
-        pari_catch_sig_off()
-        return n
+    polsturm_full = deprecated_function_alias(18203, gen_auto.polsturm)
 
     def serreverse(self):
         """
@@ -8364,11 +8526,14 @@ cdef class gen(gen_auto):
         INPUT:
 
         - ``self`` -- a quadratic form
+
         - ``b`` -- a bound on vector norm (finds minimal non-zero
-          vectors if b=0)
+          vectors if b is ``None``)
+
         - ``m`` -- maximum number of vectors to return.  If ``None``
           (default), return all vectors of norm at most B
-        - flag (optional) --
+
+        - ``flag`` (optional) --
 
            - 0: default;
            - 1: return only the first minimal vector found (ignore ``max``);
@@ -8398,32 +8563,31 @@ cdef class gen(gen_auto):
 
         The first 5 vectors of norm at most 10::
 
-             sage: pari(A).qfminim(10, 5).python()
-             [
-                      [-17 -14 -15 -16 -13]
-                      [  4   3   3   3   2]
-             146, 10, [  3   3   3   3   3]
-             ]
-
+            sage: pari(A).qfminim(10, 5).python()
+            [
+                     [17 14 15 16 13]
+                     [-4 -3 -3 -3 -2]
+            146, 10, [-3 -3 -3 -3 -3]
+            ]
 
         All vectors of minimal norm::
 
-             sage: pari(A).qfminim(0).python()
-             [
-                   [-5 -2  1]
-                   [ 1  1  0]
-             6, 1, [ 1  0  0]
-             ]
+            sage: pari(A).qfminim().python()
+            [
+                  [ 5  2  1]
+                  [-1 -1  0]
+            6, 1, [-1  0  0]
+            ]
+
 
         Use flag=2 for non-integral input::
 
-             sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
-             [
-                                      [ -5 -10  -2  -7   3]
-                                      [  1   2   1   2   0]
-             10, 5.00000000000000000, [  1   2   0   1  -1]
-             ]
-
+            sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+            [
+                                     [ -5 -10  -2  -7   3]
+                                     [  1   2   1   2   0]
+            10, 5.00000000000000000, [  1   2   0   1  -1]
+            ]
         """
         cdef gen t0, t1
         cdef GEN g0, g1
@@ -8680,13 +8844,6 @@ cdef class gen(gen_auto):
         This is the LLL-reduced Z-basis of the kernel of the matrix x with
         integral entries.
 
-        INPUT:
-
-
-        -  ``flag`` - optional, and may be set to 0: default,
-           uses a modified LLL, 1: uses matrixqz.
-
-
         EXAMPLES::
 
             sage: pari('[2,1;2,1]').matker()
@@ -8694,8 +8851,12 @@ cdef class gen(gen_auto):
             sage: pari('[2,1;2,1]').matkerint()
             [1; -2]
             sage: pari('[2,1;2,1]').matkerint(1)
+            doctest:...: DeprecationWarning: The flag argument to matkerint() is deprecated by PARI
+            See http://trac.sagemath.org/18203 for details.
             [1; -2]
         """
+        if flag:
+            deprecation(18203, "The flag argument to matkerint() is deprecated by PARI")
         pari_catch_sig_on()
         return P.new_gen(matkerint0(self.g, flag))
 
@@ -9006,7 +9167,7 @@ cdef class gen(gen_auto):
             sage: pari(0).znstar()
             [2, [2], [-1]]
             sage: pari(96).znstar()
-            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            [32, [8, 2, 2], [Mod(37, 96), Mod(31, 96), Mod(65, 96)]]
             sage: pari(-5).znstar()
             [4, [4], [Mod(2, 5)]]
         """
@@ -9080,7 +9241,7 @@ cdef class gen(gen_auto):
         if varn(self.g) == n:
             return self
         if typ(self.g) != t_POL and typ(self.g) != t_SER:
-            raise TypeError, "set_variable() only works for polynomials or power series"
+            raise TypeError("set_variable() only works for polynomials or power series")
         # Copy self and then change the variable in place
         cdef gen newg = P.new_gen_noclear(self.g)
         setvarn(newg.g, n)
@@ -9207,7 +9368,7 @@ cdef class gen(gen_auto):
         elif t == t_VECSMALL: return 't_VECSMALL'
         elif t == t_CLOSURE:  return 't_CLOSURE'
         else:
-            raise TypeError, "Unknown PARI type: %s"%t
+            raise TypeError("Unknown PARI type: %s" % t)
 
     def polinterpolate(self, ya, x):
         """
@@ -9356,7 +9517,7 @@ cdef class gen(gen_auto):
         With flag=1, compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
-            [13.9658695257485, 50.5619893875144]
+            [13.9658695257485, 50.5619300880073]
         """
         cdef gen t0 = objtogen(z)
         cdef GEN g0 = t0.g
@@ -9414,10 +9575,208 @@ cdef class gen(gen_auto):
         pari_catch_sig_off()
         return
 
+    ####################################################################
+    # Functions deprecated by upstream PARI
+    #
+    # NOTE: these should remain in Sage as long as PARI supports them,
+    # do not just delete these methods!
+    ####################################################################
+
+    def bezout(x, y):
+        deprecation(18203, "bezout() is deprecated in PARI, use gcdext() instead (note that the output is in a different order!)")
+        u, v, g = x.gcdext(y)
+        return g, u, v
+
+    def xgcd(x, y):
+        """
+        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
+
+        EXAMPLES::
+
+            sage: pari(10).xgcd(15)
+            doctest:...: DeprecationWarning: xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)
+            See http://trac.sagemath.org/18203 for details.
+            (5, -1, 1)
+        """
+        deprecation(18203, "xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)")
+        u, v, g = x.gcdext(y)
+        return g, u, v
+
+    def sizedigit(x):
+        """
+        sizedigit(x): Return a quick estimate for the maximal number of
+        decimal digits before the decimal point of any component of x.
+
+        INPUT:
+
+        -  ``x`` - gen
+
+        OUTPUT: Python integer
+
+        EXAMPLES::
+
+            sage: x = pari('10^100')
+            sage: x.Str().length()
+            101
+            sage: x.sizedigit()
+            doctest:...: DeprecationWarning: sizedigit() is deprecated in PARI
+            See http://trac.sagemath.org/18203 for details.
+            101
+
+        Note that digits after the decimal point are ignored::
+
+            sage: x = pari('1.234')
+            sage: x
+            1.23400000000000
+            sage: x.sizedigit()
+            1
+
+        The estimate can be one too big::
+
+            sage: pari('7234.1').sizedigit()
+            4
+            sage: pari('9234.1').sizedigit()
+            5
+        """
+        deprecation(18203, "sizedigit() is deprecated in PARI")
+        return sizedigit(x.g)
+
+    def bernvec(x):
+        r"""
+        Creates a vector containing, as rational numbers, the Bernoulli
+        numbers `B_0, B_2,\ldots, B_{2x}`. This routine is
+        obsolete. Use bernfrac instead each time you need a Bernoulli
+        number in exact form.
+
+        Note: this routine is implemented using repeated independent calls
+        to bernfrac, which is faster than the standard recursion in exact
+        arithmetic.
+
+        EXAMPLES::
+
+            sage: pari(8).bernvec()
+            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
+            See http://trac.sagemath.org/15767 for details.
+            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+            sage: [pari(2*n).bernfrac() for n in range(9)]
+            [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+        """
+        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
+        pari_catch_sig_on()
+        return P.new_gen(bernvec(x))
+
+    bezoutres = deprecated_function_alias(18203, gen_auto.polresultantext)
+
+    ellbil = deprecated_function_alias(18203, ellheight)
+
+    ellpow = deprecated_function_alias(18203, ellmul)
+
+    def rnfpolred(*args, **kwds):
+        deprecation(18203, "rnfpolred() is deprecated in PARI, port your code to use rnfpolredbest() instead")
+        return gen_auto.rnfpolred(*args, **kwds)
+
+    def rnfpolredabs(*args, **kwds):
+        deprecation(18203, "rnfpolredabs() is deprecated in PARI, port your code to use rnfpolredbest() instead")
+        return gen_auto.rnfpolredabs(*args, **kwds)
+
 
 cpdef gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI gen.
+
+    For Sage types, this uses the `_pari_()` method on the object.
+    Basic Python types like ``int`` are converted directly. For other
+    types, the string representation is used.
+
+    EXAMPLES::
+
+        sage: pari([2,3,5])
+        [2, 3, 5]
+        sage: pari(Matrix(2,2,range(4)))
+        [0, 1; 2, 3]
+        sage: pari(x^2-3)
+        x^2 - 3
+
+    ::
+
+        sage: a = pari(1); a, a.type()
+        (1, 't_INT')
+        sage: a = pari(1/2); a, a.type()
+        (1/2, 't_FRAC')
+        sage: a = pari(1/2); a, a.type()
+        (1/2, 't_FRAC')
+
+    Conversion from reals uses the real's own precision::
+
+        sage: a = pari(1.2); a, a.type(), a.precision()
+        (1.20000000000000, 't_REAL', 4) # 32-bit
+        (1.20000000000000, 't_REAL', 3) # 64-bit
+
+    Conversion from strings uses the current PARI real precision.
+    By default, this is 64 bits::
+
+        sage: a = pari('1.2'); a, a.type(), a.precision()
+        (1.20000000000000, 't_REAL', 4)  # 32-bit
+        (1.20000000000000, 't_REAL', 3)  # 64-bit
+
+    But we can change this precision::
+
+        sage: pari.set_real_precision(35)  # precision in decimal digits
+        15
+        sage: a = pari('1.2'); a, a.type(), a.precision()
+        (1.2000000000000000000000000000000000, 't_REAL', 6)  # 32-bit
+        (1.2000000000000000000000000000000000, 't_REAL', 4)  # 64-bit
+
+    Set the precision to 15 digits for the remaining tests::
+
+        sage: pari.set_real_precision(15)
+        35
+
+    Conversion from matrices and vectors is supported::
+
+        sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
+        ([1, 2, 3; 4, 5, 6], 't_MAT')
+        sage: v = vector([1.2, 3.4, 5.6])
+        sage: pari(v)
+        [1.20000000000000, 3.40000000000000, 5.60000000000000]
+
+    Some more exotic examples::
+
+        sage: K.<a> = NumberField(x^3 - 2)
+        sage: pari(K)
+        [y^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 + 1.09112363597172*I, -0.793700525984100 - 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, 0.461163111024285, -2.16843016298270; 1, -1.72108416091916, 0.581029111014503], [1, 1, 2; 1, 0, -2; 1, -2, 1], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]], []], [1.25992104989487, -0.629960524947437 + 1.09112363597172*I], [1, y, y^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
+
+        sage: E = EllipticCurve('37a1')
+        sage: pari(E)
+        [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
+
+    Conversion from basic Python types::
+
+        sage: pari(int(-5))
+        -5
+        sage: pari(long(2**150))
+        1427247692705959881058285969449495136382746624
+        sage: pari(float(pi))
+        3.14159265358979
+        sage: pari(complex(exp(pi*I/4)))
+        0.707106781186548 + 0.707106781186548*I
+        sage: pari(False)
+        0
+        sage: pari(True)
+        1
+
+    Some commands are just executed without returning a value::
+
+        sage: pari("dummy = 0; kill(dummy)")
+        sage: type(pari("dummy = 0; kill(dummy)"))
+        <type 'NoneType'>
+
+    TESTS::
+
+        sage: pari(None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot convert None to pari
     """
     cdef GEN g
     cdef Py_ssize_t length, i
@@ -9433,29 +9792,29 @@ cpdef gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if PyString_Check(s):
+    if isinstance(s, str):
         pari_catch_sig_on()
         g = gp_read_str(PyString_AsString(s))
         if g == gnil:
             P.clear_stack()
             return None
         return P.new_gen(g)
-    if PyInt_Check(s):
+    if isinstance(s, int):
         pari_catch_sig_on()
         return P.new_gen(stoi(PyInt_AS_LONG(s)))
-    if PyBool_Check(s):
+    if isinstance(s, bool):
         return P.PARI_ONE if s else P.PARI_ZERO
-    if PyLong_Check(s):
+    if isinstance(s, long):
         pari_catch_sig_on()
         mpz_init(mpz_int)
         mpz_set_pylong(mpz_int, s)
         g = P._new_GEN_from_mpz_t(mpz_int)
         mpz_clear(mpz_int)
         return P.new_gen(g)
-    if PyFloat_Check(s):
+    if isinstance(s, float):
         pari_catch_sig_on()
         return P.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
-    if PyComplex_Check(s):
+    if isinstance(s, complex):
         pari_catch_sig_on()
         g = cgetg(3, t_COMPLEX)
         set_gel(g, 1, dbltor(PyComplex_RealAsDouble(s)))
@@ -9470,11 +9829,81 @@ cpdef gen objtogen(s):
             v[i] = objtogen(s[i])
         return v
 
+    if callable(s):
+        return objtoclosure(s)
+
     if s is None:
         raise ValueError("Cannot convert None to pari")
 
     # Simply use the string representation
     return objtogen(str(s))
+
+
+cpdef gentoobj(gen z, locals={}):
+    """
+    Convert a PARI gen to a Sage/Python object.
+
+    See the ``python`` method of :class:`gen` for documentation and
+    examples.
+    """
+    cdef GEN g = z.g
+    cdef long t = typ(g)
+    cdef long tx, ty
+    cdef gen real, imag
+    cdef Py_ssize_t i, j, nr, nc
+
+    if t == t_INT:
+         return Integer(z)
+    elif t == t_FRAC:
+         return Rational(z)
+    elif t == t_REAL:
+        from sage.rings.all import RealField
+        prec = prec_words_to_bits(z.precision())
+        return RealField(prec)(z)
+    elif t == t_COMPLEX:
+        real = z.real()
+        imag = z.imag()
+        tx = typ(real.g)
+        ty = typ(imag.g)
+        if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
+            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
+        if tx == t_REAL or ty == t_REAL:
+            xprec = real.precision()  # will be 0 if exact
+            yprec = imag.precision()  # will be 0 if exact
+            if xprec == 0:
+                prec = prec_words_to_bits(yprec)
+            elif yprec == 0:
+                prec = prec_words_to_bits(xprec)
+            else:
+                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
+
+            from sage.rings.all import RealField, ComplexField
+            R = RealField(prec)
+            C = ComplexField(prec)
+            return C(R(real), R(imag))
+        else:
+            from sage.rings.all import QuadraticField
+            K = QuadraticField(-1, 'i')
+            return K([gentoobj(real), gentoobj(imag)])
+    elif t == t_VEC or t == t_COL:
+        return [gentoobj(x, locals) for x in z.python_list()]
+    elif t == t_VECSMALL:
+        return z.python_list_small()
+    elif t == t_MAT:
+        nc = lg(g)-1
+        nr = 0 if nc == 0 else lg(gel(g,1))-1
+        L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
+        from sage.matrix.constructor import matrix
+        return matrix(nr, nc, L)
+    elif t == t_PADIC:
+        from sage.rings.padics.factory import Qp
+        p = z.padicprime()
+        K = Qp(Integer(p), precp(g))
+        return K(z.lift())
+
+    # Fallback (e.g. polynomials): use string representation
+    from sage.misc.sage_eval import sage_eval
+    return sage_eval(str(z), locals=locals)
 
 
 cdef GEN _Vec_append(GEN v, GEN a, long n):

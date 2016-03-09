@@ -1,5 +1,5 @@
-"""
-Fast binary code routines.
+r"""
+Fast binary code routines
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with
@@ -8,19 +8,25 @@ gives rise to a permutation of the vectors, or words, in $GF(2)^n$,
 sending $(w_i)$ to $(w_{g(i)})$. The permutation automorphism group of
 the code $C$ is the set of permutations of the basis that bijectively
 map $C$ to itself. Note that if $g$ is such a permutation, then
-$$g(a_i) + g(b_i) = (a_{g(i)} + b_{g(i)}) = g((a_i) + (b_i)).$$
+
+.. MATH::
+
+    g(a_i) + g(b_i) = (a_{g(i)} + b_{g(i)}) = g((a_i) + (b_i)).
+
 Over other fields, it is also required that the map be linear, which
 as per above boils down to scalar multiplication. However, over
 $GF(2),$ the only scalars are 0 and 1, so the linearity condition has
 trivial effect.
 
 AUTHOR:
-    Robert L Miller (Oct-Nov 2007)
-        * compiled code data structure
-        * union-find based orbit partition
-        * optimized partition stack class
-        * NICE-based partition refinement algorithm
-        * canonical generation function
+
+- Robert L Miller (Oct-Nov 2007)
+
+* compiled code data structure
+* union-find based orbit partition
+* optimized partition stack class
+* NICE-based partition refinement algorithm
+* canonical generation function
 
 """
 
@@ -34,7 +40,6 @@ AUTHOR:
 include 'sage/ext/cdefs.pxi'
 from cpython.mem cimport *
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
 from sage.rings.integer cimport Integer
@@ -79,32 +84,33 @@ def weight_dist(M):
     """
     Computes the weight distribution of the row space of M.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.coding.binary_code import weight_dist
         sage: M = Matrix(GF(2),[
-        ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-        ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
-        ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],
-        ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+        ....:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+        ....:  [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        ....:  [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
+        ....:  [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],
+        ....:  [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
         sage: weight_dist(M)
         [1, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 1]
         sage: M = Matrix(GF(2),[
-        ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-        ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-        ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],
-        ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
+        ....:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+        ....:  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
+        ....:  [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],
+        ....:  [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
         sage: weight_dist(M)
         [1, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 4, 0, 0, 0, 0, 0]
         sage: M=Matrix(GF(2),[
-        ... [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],
-        ... [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],
-        ... [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],
-        ... [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],
-        ... [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],
-        ... [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],
-        ... [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],
-        ... [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
+        ....:  [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],
+        ....:  [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],
+        ....:  [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],
+        ....:  [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],
+        ....:  [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],
+        ....:  [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],
+        ....:  [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],
+        ....:  [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
         sage: weight_dist(M)
         [1, 0, 0, 0, 0, 0, 68, 0, 85, 0, 68, 0, 34, 0, 0, 0, 0, 0]
 
@@ -511,15 +517,18 @@ def test_expand_to_ortho_basis(B=None):
     function.
 
     INPUT:
-    B -- a BinaryCode in standard form
+
+    - B -- a BinaryCode in standard form
 
     OUTPUT:
+
     An array of codewords which represent the expansion of a basis for $B$ to a
     basis for $(B^\prime)^\perp$, where $B^\prime = B$ if the all-ones vector 1
     is in $B$, otherwise $B^\prime = \text{span}(B,1)$ (note that this guarantees
     that all the vectors in the span of the output have even weight).
 
-    TESTS:
+    TESTS::
+
         sage: from sage.coding.binary_code import test_expand_to_ortho_basis, BinaryCode
         sage: M = Matrix(GF(2), [[1,1,1,1,1,1,0,0,0,0],[0,0,1,1,1,1,1,1,1,1]])
         sage: B = BinaryCode(M)
@@ -559,10 +568,12 @@ def test_expand_to_ortho_basis(B=None):
 cdef codeword *expand_to_ortho_basis(BinaryCode B, int n):
     r"""
     INPUT:
-    B -- a BinaryCode in standard form
-    n -- the degree
+
+    - B -- a BinaryCode in standard form
+    - n -- the degree
 
     OUTPUT:
+
     An array of codewords which represent the expansion of a basis for $B$ to a
     basis for $(B^\prime)^\perp$, where $B^\prime = B$ if the all-ones vector 1
     is in $B$, otherwise $B^\prime = \text{span}(B,1)$ (note that this guarantees
@@ -682,7 +693,8 @@ cdef class BinaryCode:
     """
     Minimal, but optimized, binary code object.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: import sage.coding.binary_code
         sage: from sage.coding.binary_code import *
         sage: M = Matrix(GF(2), [[1,1,1,1]])
@@ -805,7 +817,8 @@ cdef class BinaryCode:
         """
         Method for pickling and unpickling BinaryCodes.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1]])
             sage: B = BinaryCode(M)
@@ -819,7 +832,8 @@ cdef class BinaryCode:
         """
         Comparison of BinaryCodes.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1]])
             sage: B = BinaryCode(M)
@@ -835,7 +849,8 @@ cdef class BinaryCode:
         Returns the generator matrix of the BinaryCode, i.e. the code is the
         rowspace of B.matrix().
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]])
             sage: from sage.coding.binary_code import *
             sage: B = BinaryCode(M)
@@ -858,9 +873,10 @@ cdef class BinaryCode:
 
     def print_data(self):
         """
-        Print all data for self.
+        Print all data for ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1]])
@@ -937,7 +953,7 @@ cdef class BinaryCode:
             10011001
             01101001
         """
-        from sage.graphs.generic_graph_pyx import binary
+        from sage.graphs.generic_graph_pyx import int_to_binary_string
         cdef int ui
         cdef int i
         s = ''
@@ -947,22 +963,23 @@ cdef class BinaryCode:
         s += "\nradix:" + str(self.radix)
         s += "\nbasis:\n"
         for i from 0 <= i < self.nrows:
-            b = list(binary(self.basis[i]).zfill(self.ncols))
+            b = list(int_to_binary_string(self.basis[i]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
             s += ''.join(b)
         s += "\nwords:\n"
         for ui from 0 <= ui < self.nwords:
-            b = list(binary(self.words[ui]).zfill(self.ncols))
+            b = list(int_to_binary_string(self.words[ui]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
             s += ''.join(b)
 
     def __repr__(self):
         """
-        String representation of self.
+        String representation of ``self``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0],[0,0,0,0,1,1,1,1],[1,0,1,0,1,0,1,0]])
@@ -987,7 +1004,8 @@ cdef class BinaryCode:
         coefficients of the basis given by self.matrix(). This function returns
         a string representation of that word.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1]])
             sage: B = BinaryCode(M)
@@ -1011,7 +1029,8 @@ cdef class BinaryCode:
         as integers, which represent linear combinations of the rows of the
         generator matrix of the code.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0],[0,0,0,0,1,1,1,1],[1,0,1,0,1,0,1,0]])
@@ -1040,12 +1059,14 @@ cdef class BinaryCode:
         Check whether a given permutation is an automorphism of the code.
 
         INPUT:
-            col_gamma -- permutation sending i |--> col_gamma[i] acting
-                on the columns.
-            word_gamma -- permutation sending i |--> word_gamma[i] acting
-                on the words.
 
-        EXAMPLE:
+        - col_gamma -- permutation sending i |--> col_gamma[i] acting
+          on the columns.
+        - word_gamma -- permutation sending i |--> word_gamma[i] acting
+          on the words.
+
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0],[0,0,0,0,1,1,1,1],[1,0,1,0,1,0,1,0]])
@@ -1093,9 +1114,11 @@ cdef class BinaryCode:
         Apply a column permutation to the code.
 
         INPUT:
-        labeling -- a list permutation of the columns
 
-        EXAMPLE:
+        - labeling -- a list permutation of the columns
+
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
             sage: B
@@ -1167,7 +1190,8 @@ cdef class BinaryCode:
         Put the code in binary form, which is defined by an identity matrix on
         the left, augmented by a matrix of data.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]])
             sage: B = BinaryCode(M); B
@@ -1277,7 +1301,8 @@ cdef class OrbitPartition:
         """
         Return a string representation of the orbit partition.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1313,7 +1338,8 @@ cdef class OrbitPartition:
         """
         Returns the root of word.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1341,7 +1367,8 @@ cdef class OrbitPartition:
         """
         Join the cells containing x and y.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1387,7 +1414,8 @@ cdef class OrbitPartition:
         """
         Returns the root of col.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1415,7 +1443,8 @@ cdef class OrbitPartition:
         """
         Join the cells containing x and y.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1463,7 +1492,8 @@ cdef class OrbitPartition:
         then after merge_perm, a and b will be in the same cell. Returns 0 if
         nothing was done, otherwise returns 1.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: O = OrbitPartition(4, 8)
@@ -1525,7 +1555,6 @@ cdef class PartitionStack:
     """
     Partition stack structure for traversing the search tree during automorphism
     group computation.
-
     """
     def __cinit__(self, arg1, arg2=None):
         cdef int k, nwords, ncols, sizeof_int
@@ -1642,7 +1671,8 @@ cdef class PartitionStack:
         """
         Prints all data for self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -1763,7 +1793,8 @@ cdef class PartitionStack:
         """
         Return a string representation of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -1786,7 +1817,8 @@ cdef class PartitionStack:
         """
         Gives a string representing the partition at level k:
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6); P
             ({0,1,2,3})  ({0,1,2,3,4,5})
@@ -1816,7 +1848,8 @@ cdef class PartitionStack:
         """
         Returns whether the partition at level k is discrete.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -1855,7 +1888,8 @@ cdef class PartitionStack:
         """
         Returns the number of cells in the partition at level k.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -1892,7 +1926,8 @@ cdef class PartitionStack:
         Lemma 2.25 in Brendan McKay's Practical Graph Isomorphism paper (see
         sage/graphs/graph_isom.pyx.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2174,7 +2209,8 @@ cdef class PartitionStack:
         """
         For debugging only.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2202,7 +2238,8 @@ cdef class PartitionStack:
         """
         Do one round of bubble sort on ents.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2236,7 +2273,8 @@ cdef class PartitionStack:
         """
         Do one round of bubble sort on ents.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2331,12 +2369,14 @@ cdef class PartitionStack:
         Split vertex v out, placing it before the rest of the cell it was in.
         Returns the location of the split vertex.
 
-        NOTE:
+        .. NOTE::
+
             There is a convention regarding whether a vertex is a word or a
             column. See the 'flag' attribute of the PartitionStack object:
             If vertex&flag is not zero, it is a word.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2393,7 +2433,8 @@ cdef class PartitionStack:
         Returns the number of words in the cell specified by wd_ptr that have a
         1 in the col-th column.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2433,7 +2474,8 @@ cdef class PartitionStack:
         Returns the number of columns in the cell specified by col_ptr that are
         1 in wd.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2477,11 +2519,13 @@ cdef class PartitionStack:
         Essentially a counting sort, but on only one cell of the partition.
 
         INPUT:
-            start -- location of the beginning of the cell
-            k -- at what level of refinement the partition of interest lies
-            degrees -- the counts to sort by
 
-        EXAMPLE:
+        - start -- location of the beginning of the cell
+        - k -- at what level of refinement the partition of interest lies
+        - degrees -- the counts to sort by
+
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2547,11 +2591,13 @@ cdef class PartitionStack:
         Essentially a counting sort, but on only one cell of the partition.
 
         INPUT:
-            start -- location of the beginning of the cell
-            k -- at what level of refinement the partition of interest lies
-            degrees -- the counts to sort by
 
-        EXAMPLE:
+        - start -- location of the beginning of the cell
+        - k -- at what level of refinement the partition of interest lies
+        - degrees -- the counts to sort by
+
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(3, 6)
@@ -2766,7 +2812,8 @@ cdef class PartitionStack:
 
     def _clear(self, k):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
@@ -2805,9 +2852,10 @@ cdef class PartitionStack:
                 self.col_percolate(j, i)
                 j = i + 1
 
-    def _cmp(self, other, C):
+    cpdef int cmp(self, PartitionStack other, BinaryCode CG):
         """
-        EXAMPLE:
+        EXAMPLES::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0],[0,0,0,0,1,1,1,1],[1,0,1,0,1,0,1,0]])
@@ -2841,13 +2889,9 @@ cdef class PartitionStack:
             1224
             sage: Q._is_discrete(4)
             1
-            sage: Q._cmp(P, B)
+            sage: Q.cmp(P, B)
             0
-
         """
-        return self.cmp(other, C)
-
-    cdef int cmp(self, PartitionStack other, BinaryCode CG):
         cdef int *self_wd_ents = self.wd_ents
         cdef codeword *CG_words = CG.words
         cdef int i, j, l, m, span = 1, ncols = self.ncols, nwords = self.nwords
@@ -2861,7 +2905,8 @@ cdef class PartitionStack:
 
     def print_basis(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(4, 8)
@@ -2894,7 +2939,8 @@ cdef class PartitionStack:
 
     def _find_basis(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(4, 8)
@@ -2944,7 +2990,8 @@ cdef class PartitionStack:
 
     def _get_permutation(self, other):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0],[0,0,0,0,1,1,1,1],[1,0,1,0,1,0,1,0]])
@@ -3090,8 +3137,9 @@ cdef class BinaryCodeClassifier:
         Compute the automorphism group and canonical label of the code CC.
 
         INPUT:
-            CC - a BinaryCode object
-            verbosity - a nonnegative integer
+
+        - CC - a BinaryCode object
+        - verbosity - a nonnegative integer
 
         OUTPUT:
             a tuple, (gens, labeling, size, base)
@@ -3103,17 +3151,18 @@ cdef class BinaryCodeClassifier:
             size -- the order of the automorphism group.
             base -- a set of cols whose action determines the action on all cols
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
 
             sage: M = Matrix(GF(2),[
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
-            ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],
-            ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
+            ....:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
+            ....:  [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],
+            ....:  [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
             sage: B = BinaryCode(M)
             sage: gens, labeling, size, base = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
@@ -3124,10 +3173,10 @@ cdef class BinaryCodeClassifier:
             322560
 
             sage: M = Matrix(GF(2),[
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-            ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],
-            ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
+            ....:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
+            ....:  [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],
+            ....:  [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
             sage: B = BinaryCode(M)
             sage: gens, labeling, size, base = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
@@ -3138,14 +3187,14 @@ cdef class BinaryCodeClassifier:
             2304
 
             sage: M=Matrix(GF(2),[
-            ... [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],
-            ... [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],
-            ... [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],
-            ... [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],
-            ... [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],
-            ... [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],
-            ... [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],
-            ... [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
+            ....:  [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],
+            ....:  [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],
+            ....:  [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],
+            ....:  [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],
+            ....:  [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],
+            ....:  [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],
+            ....:  [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],
+            ....:  [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
             sage: B = BinaryCode(M)
             sage: gens, labeling, size, base = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
@@ -3156,17 +3205,17 @@ cdef class BinaryCodeClassifier:
             136
 
             sage: M=Matrix(GF(2),[
-            ... [0,1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1],
-            ... [1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0],
-            ... [0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0],
-            ... [1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,1,0,0,1],
-            ... [1,1,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,0,0,1,0],
-            ... [1,0,0,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,1,0,0],
-            ... [0,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0,0],
-            ... [0,0,1,0,0,1,0,1,1,1,0,1,1,0,1,0,0,1,0,0,0,1],
-            ... [0,1,0,0,1,0,1,1,1,0,0,1,0,1,0,0,1,0,0,0,1,1],
-            ... [1,0,0,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,1,1],
-            ... [0,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0]])
+            ....:  [0,1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1],
+            ....:  [1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0],
+            ....:  [0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0],
+            ....:  [1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,1,0,0,1],
+            ....:  [1,1,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,0,0,1,0],
+            ....:  [1,0,0,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,1,0,0],
+            ....:  [0,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0,0],
+            ....:  [0,0,1,0,0,1,0,1,1,1,0,1,1,0,1,0,0,1,0,0,0,1],
+            ....:  [0,1,0,0,1,0,1,1,1,0,0,1,0,1,0,0,1,0,0,0,1,1],
+            ....:  [1,0,0,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,1,1],
+            ....:  [0,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0]])
             sage: B = BinaryCode(M)
             sage: gens, labeling, size, base = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
@@ -3190,41 +3239,41 @@ cdef class BinaryCodeClassifier:
             87178291200
 
             sage: M = Matrix(GF(2),[
-            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-            ... [0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1],
-            ... [0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,1,1],
-            ... [0,0,0,1,0,0,0,1,0,1,0,1,0,1,1,1,0,1],
-            ... [0,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,1,0]])
+            ....:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+            ....:  [0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1],
+            ....:  [0,0,1,1,0,0,0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:  [0,0,0,1,0,0,0,1,0,1,0,1,0,1,1,1,0,1],
+            ....:  [0,1,0,0,0,1,0,0,0,1,1,1,0,1,0,1,1,0]])
             sage: B = BinaryCode(M)
             sage: BC._aut_gp_and_can_label(B)[2]
             2160
 
             sage: M = Matrix(GF(2),[
-            ... [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-            ... [1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,1,1,0,0],
-            ... [1,1,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0],
-            ... [1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0]])
+            ....:  [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            ....:  [1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,1,1,0,0],
+            ....:  [1,1,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0],
+            ....:  [1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0]])
             sage: B = BinaryCode(M)
             sage: BC._aut_gp_and_can_label(B)[2]
             294912
 
             sage: M = Matrix(GF(2), [
-            ... [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-            ... [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0],
-            ... [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0],
-            ... [0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],
-            ... [0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
-            ... [0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,0,1,1,1,0,1],
-            ... [0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,1,1,1,0,0,0,1]])
+            ....:  [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+            ....:  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0],
+            ....:  [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0],
+            ....:  [0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],
+            ....:  [0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
+            ....:  [0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,0,1,1,1,0,1],
+            ....:  [0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,1,1,1,0,0,0,1]])
             sage: B = BinaryCode(M)
             sage: BC = BinaryCodeClassifier()
             sage: BC._aut_gp_and_can_label(B)[2]
@@ -3852,7 +3901,8 @@ cdef class BinaryCodeClassifier:
         pivots to the front so that the generator matrix is of the form: the
         identity matrix augmented to the right by arbitrary data.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
             sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
@@ -3897,13 +3947,17 @@ cdef class BinaryCodeClassifier:
         Use canonical augmentation to generate children of the code B.
 
         INPUT:
-        B -- a BinaryCode
-        n -- limit on the degree of the code
-        d -- test whether new vector has weight divisible by d. If d==4, this
-            ensures that all doubly-even canonically augmented children are
-            generated.
 
-        EXAMPLE:
+        - B -- a BinaryCode
+
+        - n -- limit on the degree of the code
+
+        - d -- test whether new vector has weight divisible by d. If d==4, this
+          ensures that all doubly-even canonically augmented children are
+          generated.
+
+        EXAMPLE::
+
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
             sage: B = BinaryCode(Matrix(GF(2), [[1,1,1,1]]))
@@ -3913,18 +3967,20 @@ cdef class BinaryCodeClassifier:
             [0 1 0 1 1 1]
             ]
 
-        NOTE:
-        The function self_orthogonal_binary_codes makes heavy use of this
-        function.
+        .. NOTE::
 
-        MORE EXAMPLES:
+            The function ``self_orthogonal_binary_codes`` makes heavy
+            use of this function.
+
+        MORE EXAMPLES::
+
             sage: soc_iter = self_orthogonal_binary_codes(12, 6, 4)
             sage: L = list(soc_iter)
             sage: for n in range(0, 13):
-            ...     s = 'n=%2d : '%n
-            ...     for k in range(1,7):
-            ...         s += '%3d '%len([C for C in L if C.length() == n and C.dimension() == k])
-            ...     print s
+            ....:   s = 'n=%2d : '%n
+            ....:   for k in range(1,7):
+            ....:       s += '%3d '%len([C for C in L if C.length() == n and C.dimension() == k])
+            ....:   print s
             n= 0 :   0   0   0   0   0   0
             n= 1 :   0   0   0   0   0   0
             n= 2 :   0   0   0   0   0   0
@@ -4126,7 +4182,7 @@ cdef class BinaryCodeClassifier:
 #                    print 'm:'
 #                    print m
                     m_aut_gp_gens, m_labeling, m_size, m_base = self._aut_gp_and_can_label(m)
-                    from sage.rings.arith import factorial
+                    from sage.arith.all import factorial
                     if True:#size*factorial(n-B.ncols) == m_size:
 #                        print 'in if'
 #                        print 'm_aut_gp_gens:', m_aut_gp_gens

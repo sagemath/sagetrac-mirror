@@ -31,7 +31,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
 
 cdef extern from *:
@@ -1048,10 +1048,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             if face.n == 0: # skip unused vertices
                 continue
             face.vertices = &dual.face_indices[ix]
-            ff, next = dd.itervalues().next()
+            ff, next_ = next(dd.itervalues())
             face.vertices[0] = ff
             for j from 1 <= j < face.n:
-                ff, next = dd[next]
+                ff, next_ = dd[next_]
                 face.vertices[j] = ff
             i += 1
             ix += face.n

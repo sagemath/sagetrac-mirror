@@ -14,8 +14,6 @@
 /config.log
 /config.status
 /configure
-/build/Makefile-auto
-/build/Makefile-auto.in
 
 ###################
 # Temporary Files #
@@ -77,3 +75,9 @@ $RECYCLE.BIN/
 *.sage-chat
 *.sage-history
 *.syncdoc*
+
+###########
+# Jupyter #
+###########
+.ipynb_checkpoints
+Untitled*.ipynb

@@ -24,8 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'gsl.pxi'
 
 from sage.ext.fast_eval cimport FastDoubleFunc

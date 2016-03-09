@@ -24,9 +24,10 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
-include "sage/libs/pari/decl.pxi"
 
+from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
@@ -184,7 +185,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         # TODO: move this up the hierarchy, perhaps this should go all the way to element?
         # The "verify that shift is an integer" part could be shared
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
             if not isinstance(shift, Integer):
@@ -232,7 +233,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             2*5^5 + 3*5^6 + O(5^25)
         """
         cdef long s
-        if PyInt_Check(shift):
+        if isinstance(shift, int):
             s = PyInt_AS_LONG(shift)
         else:
             if not isinstance(shift, Integer):

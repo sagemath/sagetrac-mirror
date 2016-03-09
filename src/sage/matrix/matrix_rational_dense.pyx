@@ -41,21 +41,25 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
 
-from sage.libs.gmp.types cimport mpq_t
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.randomize cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
@@ -68,10 +72,10 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
@@ -86,7 +90,7 @@ from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 #########################################################
@@ -305,8 +309,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if mpq_set_str(self._entries[i], s, 32):
                 raise RuntimeError("invalid pickle data")
 
-    def __richcmp__(Matrix self, right, int op):
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -315,7 +317,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * cdef _add_
     # x * cdef _mul_
     # x * cdef _vector_times_matrix_
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -410,7 +412,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         cdef mpq_t *a
         cdef mpq_t *b
         cdef Py_ssize_t i, j
@@ -589,7 +591,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return M
 
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __invert__(self):
     # def _list(self):
     # def _dict(self):
@@ -2578,7 +2580,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: impossible inverse in ginv: 0
+            PariError: impossible inverse in ginv: [1, 2; 2, 4]
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
@@ -2670,6 +2672,29 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         for j in range(self._nrows):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
         return v
+
+    ################################################
+    # LLL
+    ################################################
+
+    def LLL(self, *args, **kwargs):
+        """
+        Return an LLL reduced or approximated LLL reduced lattice for
+        ``self`` interpreted as a lattice.
+
+        For details on input parameters, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
+
+        EXAMPLE::
+
+            sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
+            sage: A.LLL()
+            [ 1/28 -1/40 -1/18]
+            [ 1/28 -1/40  1/18]
+            [    0 -3/40     0]
+        """
+        A, d = self._clear_denom()
+        return A.LLL(*args, **kwargs) / d
 
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):

@@ -130,7 +130,7 @@ of several different types of polynomial rings.
 
 If you want to create a new directory in the Sage library
 ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
-should contain a file ``__init__.py`` that contains the single line 
+should contain a file ``__init__.py`` that contains the single line
 ``import all`` in addition to whatever
 files you want to add (say, ``borel_measure.py`` and
 ``banach_tarski.py``), and also a file ``all.py`` listing imports from
@@ -181,7 +181,7 @@ The top of each Sage code file should follow this format::
     - YOUR NAME (2005-01-03): initial version
 
     - person (date in ISO year-month-day format): short desc
-    
+
     EXAMPLES::
 
     <Lots and lots of examples>
@@ -271,11 +271,15 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block (highly recommended) with links to related parts of
+   Sage. This helps users find the features that interests them and discover the
+   new ones. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`,
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.
@@ -370,7 +374,29 @@ information. You can use the existing functions of Sage as templates.
 
 - A **TESTS** block (optional)
 
-  Formatted just like EXAMPLES, containing tests that are not relevant to users.
+  Formatted just like EXAMPLES, containing tests that are not relevant
+  to users.  In particular, these blocks are not shown when users ask
+  for help via `foo?`: they are stripped by the function
+  :func:`sage.misc.sagedoc.skip_TESTS_block`.
+
+  For the purposes of removal, A "TESTS" block is a block starting
+  with "TEST:" or "TESTS:" (or the same with two colons), on a line on
+  its own, and ending with an unindented line (that is, the same level
+  of indentation as "TESTS") matching one of the following:
+
+  one of the following ways:
+
+  - a line which starts with whitespace and then a Sphinx directive
+    of the form ".. foo:", optionally followed by other text.
+
+  - a line which starts with whitespace and then text of the form
+    "UPPERCASE:", optionally followed by other text.
+
+  - lines which look like a ReST header: one line containing
+    anything, followed by a line consisting only of whitespace,
+    followed by a string of hyphens, equal signs, or other
+    characters which are valid markers for ReST headers:
+    ``- = ` : ' " ~ _ ^ * + # < >``.
 
 Template
 ^^^^^^^^
@@ -856,12 +882,9 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: z = 32
-      sage: z.powermodm_ui(2^32-1, 14)
-      Traceback (most recent call last):                              # 32-bit
-      ...                                                             # 32-bit
-      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8                                                               # 64-bit
+      sage: hash(-920390823904823094890238490238484)
+      -873977844            # 32-bit
+      6874330978542788722   # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

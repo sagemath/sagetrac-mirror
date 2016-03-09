@@ -65,10 +65,6 @@ and isometries in hyperbolic space::
     False
     sage: U.boundary_point_in_model(2)
     True
-
-.. TODO::
-
-    Implement a category for metric spaces.
 """
 
 #***********************************************************************
@@ -98,7 +94,7 @@ from sage.geometry.hyperbolic_space.hyperbolic_point import (
             HyperbolicPoint, HyperbolicPointUHP)
 from sage.geometry.hyperbolic_space.hyperbolic_isometry import (
             HyperbolicIsometry, HyperbolicIsometryUHP,
-            HyperbolicIsometryPD, HyperbolicIsometryKM, mobius_transform)
+            HyperbolicIsometryPD, HyperbolicIsometryKM, moebius_transform)
 from sage.geometry.hyperbolic_space.hyperbolic_geodesic import (
             HyperbolicGeodesic, HyperbolicGeodesicUHP, HyperbolicGeodesicPD,
             HyperbolicGeodesicKM, HyperbolicGeodesicHM)
@@ -996,7 +992,7 @@ class HyperbolicModelUHP(HyperbolicModel):
             # Is a straight line:
             # Map the endpoints to 0 and infinity and another endpoint to 1.
             T = HyperbolicGeodesicUHP._crossratio_matrix(start, start + 1, end)
-        x = mobius_transform(T, p)
+        x = moebius_transform(T, p)
         return self._dist_points(x, abs(x)*I)
 
     #################
@@ -1068,13 +1064,13 @@ class HyperbolicModelUHP(HyperbolicModel):
         repel = real(repel)
         attract = real(attract)
         if repel == infinity:
-            A = self._mobius_sending([infinity, attract, attract + 1],
+            A = self._moebius_sending([infinity, attract, attract + 1],
                                      [infinity, attract, attract + 2])
         elif attract == infinity:
-            A = self._mobius_sending([repel, infinity, repel + 1],
+            A = self._moebius_sending([repel, infinity, repel + 1],
                                      [repel, infinity, repel + 2])
         else:
-            A = self._mobius_sending([repel, attract, infinity],
+            A = self._moebius_sending([repel, attract, infinity],
                                      [repel, attract, max(repel, attract) + 1])
         return self.get_isometry(A)
 
@@ -1115,7 +1111,7 @@ class HyperbolicModelUHP(HyperbolicModel):
     ###################
 
     @staticmethod
-    def _mobius_sending(z, w): #UHP
+    def _moebius_sending(z, w): #UHP
         r"""
         Given two lists ``z`` and ``w`` of three points each in
         `\mathbb{CP}^1`, return the linear fractional transformation
@@ -1124,16 +1120,16 @@ class HyperbolicModelUHP(HyperbolicModel):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
-            sage: bool(abs(mobius_transform(HyperbolicModelUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),1) - 3 + I) < 10^-4)
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import moebius_transform
+            sage: bool(abs(moebius_transform(HyperbolicModelUHP._moebius_sending([1,2,infinity],[3 - I, 5*I,-12]),1) - 3 + I) < 10^-4)
             True
-            sage: bool(abs(mobius_transform(HyperbolicModelUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),2) - 5*I) < 10^-4)
+            sage: bool(abs(moebius_transform(HyperbolicModelUHP._moebius_sending([1,2,infinity],[3 - I, 5*I,-12]),2) - 5*I) < 10^-4)
             True
-            sage: bool(abs(mobius_transform(HyperbolicModelUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),infinity) + 12) < 10^-4)
+            sage: bool(abs(moebius_transform(HyperbolicModelUHP._moebius_sending([1,2,infinity],[3 - I, 5*I,-12]),infinity) + 12) < 10^-4)
             True
         """
         if len(z) != 3 or len(w) != 3:
-            raise TypeError("mobius_sending requires each list to be three points long")
+            raise TypeError("moebius_sending requires each list to be three points long")
         A = HyperbolicGeodesicUHP._crossratio_matrix(z[0],z[1],z[2])
         B = HyperbolicGeodesicUHP._crossratio_matrix(w[0],w[1],w[2])
         return B.inverse() * A
@@ -1476,11 +1472,12 @@ class HyperbolicModelHM(HyperbolicModel):
             sage: H = HyperbolicPlane().HM().get_background_graphic()
         """
         from sage.plot.plot3d.all import plot3d
-        from sage.all import var
+        from sage.all import SR
         hyperboloid_opacity = bdry_options.get('hyperboloid_opacity', .1)
         z_height = bdry_options.get('z_height', 7.0)
         x_max = sqrt((z_height ** 2 - 1) / 2.0)
-        (x, y) = var('x,y')
+        x = SR.var('x')
+        y = SR.var('y')
         return plot3d((1 + x ** 2 + y ** 2).sqrt(),
                       (x, -x_max, x_max), (y,-x_max, x_max),
                       opacity=hyperboloid_opacity, **bdry_options)

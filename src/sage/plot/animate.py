@@ -117,6 +117,7 @@ import os
 import struct
 import zlib
 
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
 import plot
@@ -139,7 +140,7 @@ def animate(frames, **kwds):
     """
     return Animation(frames, **kwds)
 
-class Animation(SageObject):
+class Animation(WithEqualityById, SageObject):
     r"""
     Return an animation of a sequence of plots of objects.
 
@@ -215,6 +216,9 @@ class Animation(SageObject):
         sage: a._frames
         <generator object ...
 
+        sage: from sage.plot.animate import Animation
+        sage: hash(Animation()) # random
+        140658972348064
     """
     def __init__(self, v=None, **kwds):
         r"""
@@ -265,7 +269,6 @@ class Animation(SageObject):
             if values:
                 new_kwds[name] = getattr(__builtin__, name[1:])(values)
         return new_kwds
-
 
     def __getitem__(self, i):
         """
@@ -489,22 +492,22 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(); print g
             Graphics Array of size 2 x 3
-            sage: g.show(figsize=[6,3]) # optional
+            sage: g.show(figsize=[6,3])  # not tested
 
-        Specify different arrangement of array and save with different file name::
+        Specify different arrangement of array and save it with a given file name::
 
             sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
             sage: f = tmp_filename(ext='.png')
-            sage: g.show(f) # optional
+            sage: g.save(f)
 
         Frames can be specified as a generator too; it is internally converted to a list::
 
             sage: t = var('t')
             sage: b = animate((plot(sin(c*pi*t)) for c in sxrange(1,2,.2)))
-            sage: g = b.graphics_array(); print g
+            sage: g = b.graphics_array()
+            sage: g
             Graphics Array of size 2 x 3
-            sage: g.show() # optional
         """
         ncols = int(ncols)
         frame_list = list(self._frames)
@@ -555,6 +558,8 @@ class Animation(SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print '\x21\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
             sage: a.gif(savefile=td + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
@@ -635,13 +640,55 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a._rich_repr_(dm)       # optional -- ImageMagick
             OutputImageGif container
         """
-        OutputImageGif = display_manager.types.OutputImageGif
-        if OutputImageGif not in display_manager.supported_output():
-            return
-        return display_manager.graphics_from_save(
-            self.save, kwds, '.gif', OutputImageGif)
 
-    def show(self, delay=20, iterations=0):
+        iterations = kwds.get('iterations', 0)
+        loop = (iterations == 0)
+
+        t = display_manager.types
+        supported = display_manager.supported_output()
+        format = kwds.pop("format", None)
+        if format is None:
+            if t.OutputImageGif in supported:
+                format = "gif"
+            else:
+                return # No supported format could be guessed
+        suffix = None
+        outputType = None
+        if format == "gif":
+            outputType = t.OutputImageGif
+            suffix = ".gif"
+        if format == "ogg":
+            outputType = t.OutputVideoOgg
+        if format == "webm":
+            outputType = t.OutputVideoWebM
+        if format == "mp4":
+            outputType = t.OutputVideoMp4
+        if format == "flash":
+            outputType = t.OutputVideoFlash
+        if format == "matroska":
+            outputType = t.OutputVideoMatroska
+        if format == "avi":
+            outputType = t.OutputVideoAvi
+        if format == "wmv":
+            outputType = t.OutputVideoWmv
+        if format == "quicktime":
+            outputType = t.OutputVideoQuicktime
+        if format is None:
+            raise ValueError("Unknown video format")
+        if outputType not in supported:
+            return # Sorry, requested format is not supported
+        if suffix is not None:
+            return display_manager.graphics_from_save(
+                self.save, kwds, suffix, outputType)
+
+        # Now we save for OutputVideoBase
+        filename = tmp_filename(ext=outputType.ext)
+        self.save(filename, **kwds)
+        from sage.repl.rich_output.buffer import OutputBuffer
+        buf = OutputBuffer.from_file(filename)
+        return outputType(buf, loop=loop)
+
+    def show(self, delay=None, iterations=None, **kwds):
         r"""
         Show this animation immediately.
 
@@ -654,10 +701,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         INPUT:
 
         -  ``delay`` -- (default: 20) delay in hundredths of a
-           second between frames
+           second between frames.
 
         -  ``iterations`` -- integer (default: 0); number of
            iterations of animation. If 0, loop forever.
+
+        - ``format`` - (default: gif) format to use for output.
+          Currently supported formats are: gif,
+          ogg, webm, mp4, flash, matroska, avi, wmv, quicktime.
 
         OUTPUT:
 
@@ -688,6 +739,28 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(delay=50)        # optional -- ImageMagick
 
+        You can also make use of the HTML5 video element in the Sage Notebook::
+
+            sage: a.show(format="ogg")         # optional -- ffmpeg
+            sage: a.show(format="webm")        # optional -- ffmpeg
+            sage: a.show(format="mp4")         # optional -- ffmpeg
+            sage: a.show(format="webm", iterations=1)  # optional -- ffmpeg
+
+        Other backends may support other file formats as well::
+
+            sage: a.show(format="flash")       # optional -- ffmpeg
+            sage: a.show(format="matroska")    # optional -- ffmpeg
+            sage: a.show(format="avi")         # optional -- ffmpeg
+            sage: a.show(format="wmv")         # optional -- ffmpeg
+            sage: a.show(format="quicktime")   # optional -- ffmpeg
+
+        TESTS:
+
+        Use of positional parameters is discouraged, will likely get
+        deprecated, but should still work for the time being::
+
+            sage: a.show(50, 3)           # optional -- ImageMagick
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -699,9 +772,16 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+
+        # Positional parameters for the sake of backwards compatibility
+        if delay is not None:
+            kwds.setdefault("delay", delay)
+        if iterations is not None:
+            kwds.setdefault("iterations", iterations)
+
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, delay=delay, iterations=iterations)
+        dm.display_immediately(self, **kwds)
 
     def _have_ffmpeg(self):
         """
@@ -795,6 +875,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
+            doctest:...: DeprecationWarning: use tmp_filename instead
+            See http://trac.sagemath.org/17234 for details.
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -924,8 +1006,8 @@ please install it and try again."""
         if show_path:
             print "Animation saved to file %s." % savefile
 
-    def save(self, filename=None, show_path=False, use_ffmpeg=False):
-        """
+    def save(self, filename=None, show_path=False, use_ffmpeg=False, **kwds):
+        r"""
         Save this animation.
 
         INPUT:
@@ -964,6 +1046,27 @@ please install it and try again."""
             sage: a.save(td + 'wave0.sobj')
             sage: a.save(td + 'wave1.sobj', show_path=True)
             Animation saved to file .../wave1.sobj.
+
+        TESTS:
+
+        Ensure that we can pass delay and iteration count to the saved
+        GIF image (see :trac:`18176`)::
+
+            sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x14\x00' in f.read()  # optional -- ImageMagick
+            False
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xf9\x04\x08\x23\x00' in f.read()  # optional -- ImageMagick
+            True
+            sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read()  # optional -- ImageMagick
+            False
+            sage: with open(td + 'wave.gif', 'rb') as f: print '!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read()  # optional -- ImageMagick
+            True
         """
         if filename is None:
             suffix = '.gif'
@@ -974,16 +1077,13 @@ please install it and try again."""
 
         if filename is None or suffix == '.gif':
             self.gif(savefile=filename, show_path=show_path,
-                     use_ffmpeg=use_ffmpeg)
-            return
+                     use_ffmpeg=use_ffmpeg, **kwds)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
             if show_path:
                 print "Animation saved to file %s." % filename
-            return
         else:
-            self.ffmpeg(savefile=filename, show_path=show_path)
-            return
+            self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
 
 
 class APngAssembler(object):

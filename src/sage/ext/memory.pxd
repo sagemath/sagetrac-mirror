@@ -13,9 +13,9 @@ Low-level memory allocation functions
 #*****************************************************************************
 
 
-include 'sage/ext/interrupt.pxi'
 cimport cython
 from libc.stdlib cimport malloc, calloc, realloc, free
+from cysignals.signals cimport sig_block, sig_unblock
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
