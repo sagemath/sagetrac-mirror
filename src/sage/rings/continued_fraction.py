@@ -2599,13 +2599,20 @@ class Gosper_iterator:
 
         self.x = x
 
+        self.output = []
+
         self.done = False
 
         self.states = []                # State consists of a,b,c,d and next input
 
         self.i0 = 0                     # How many we have already output
         self.i = 0                      # Steps after hitting period
-        self.j = 0                      # Current step
+        self.j = -1                     # Current step
+
+        self.period_length = 0                                      # Default is non-periodic case
+        if isinstance(x, tuple):
+            self.period_length = len(x.quotients()[1])              # In quadratic case, we have nonzero period length
+        self.preperiod_length = x.length() - self.period_length     # Length in QQ case, infinite in infinite case
 
     def __iter__(self):
         return self
@@ -2613,6 +2620,24 @@ class Gosper_iterator:
     def next(self):
         oops = 100
         while True:
+            self.j += 1
+            current_state = {
+                'a': self.a,
+                'b': self.b,
+                'c': self.c,
+                'd': self.d,
+                'next': self.quotient(self.j)
+            }
+
+            # Check if we hit the period and if so, save and compare states
+            if self.j > self.preperiod_length:
+                self.i += 1
+                for state in self.states:
+                    if state == current_state:
+                        # Finish, create preperiod, period
+                        pass
+                self.states.append(current_state)
+
             if self.c == 0 and self.d == 0:
                 return Infinity
             else:
@@ -2620,6 +2645,8 @@ class Gosper_iterator:
                 ub = math.floor(self.bound(self.a, self.c))
                 lb = math.floor(self.bound(self.b, self.d))
                 if ub == lb:
+                    self.output.append(ub)
+                    self.i0 += 1
                     self.egest(ub)
                     return ub
                 else:
