@@ -1136,11 +1136,13 @@ class ContinuedFraction_base(SageObject):
         x = self.value()
         z = (a*x+b)/(c*x+d)
         from rational_field import QQ
-        if z in QQ:
+        if z in QQ or isinstance(z.value(), sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic):
             _i = iter(Gosper_iterator(a,b,c,d,iter(self)))
             l = list(_i)
+            # TODO: Modify the iterator in such a way that it will return one list in case of x one list, tuple in case x is tuple (preperiod, period)
             return continued_fraction(l, z)
-        if z in
+        else: # z will be infinite, l will be a lazy list
+            pass
 
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
@@ -1254,6 +1256,14 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         if n < len(self._x1):
             return self._x1[n]
         return self._x2[(n-len(self._x1)) % len(self._x2)]
+
+    def quotients(self):
+        r"""
+        Return the tuple _x1 and _x2, the preperiod and period, as
+        a tuple.
+        """
+
+        return self._x1, self._x2
 
     def length(self):
         r"""
@@ -2590,6 +2600,12 @@ class Gosper_iterator:
         self.x = x
 
         self.done = False
+
+        self.states = []                # State consists of a,b,c,d and next input
+
+        self.i0 = 0                     # How many we have already output
+        self.i = 0                      # Steps after hitting period
+        self.j = 0                      # Current step
 
     def __iter__(self):
         return self
