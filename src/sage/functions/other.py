@@ -412,6 +412,19 @@ class Function_ceil(BuiltinFunction):
 
             sage: loads(dumps(ceil))
             ceil
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: ceil(z)
+            1
+
+            sage: ceil(3, maximum_bits=10)
+            doctest:...: DeprecationWarning: the argument maximum_bits is deprecated
+            See http://trac.sagemath.org/12121 for details.
+            3
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
@@ -427,7 +440,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, maximum_bits=None):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -444,6 +457,10 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
+        if maximum_bits is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(12121, "the argument maximum_bits is deprecated")
+
         try:
             return x.ceil()
         except AttributeError:
@@ -457,27 +474,37 @@ class Function_ceil(BuiltinFunction):
 
         from sage.rings.all import RealIntervalField
 
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
+        bits = 64
+        try:
+            x_interval = RealIntervalField(bits)(x)
+        except TypeError:
+            # If we cannot compute a numerical enclosure, leave the
+            # expression unevaluated.
+            return BuiltinFunction.__call__(self, SR(x))
+
+        while x_interval.absolute_diameter() > .125:
+            bits *= 2
+            x_interval = RealIntervalField(bits)(x)
+
+        l,r = x_interval.endpoints()
+        if l.ceil() == r.ceil():
+            return l.ceil()
+
+        a = x_interval.is_int()[1]
+        assert a is not None, "a = {}, lc = {}, rc = {}".format(a, l.ceil(), r.ceil())
+
+        if bool(x == a):
+            return a
+
+        x = SR(x).full_simplify().canonicalize_radical()
+
+        while True:
+            bits *= 2
+            x_interval = RealIntervalField(bits)(x)
             try:
                 return x_interval.unique_ceil()
             except ValueError:
-                bits *= 2
-
-        try:
-            return ceil(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
-
-
+                pass
 
     def _eval_(self, x):
         """
@@ -576,6 +603,19 @@ class Function_floor(BuiltinFunction):
 
             sage: loads(dumps(floor))
             floor
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: floor(z)
+            1
+
+            sage: floor(3, maximum_bits=10)
+            doctest:...: DeprecationWarning: the argument maximum_bits is deprecated
+            See http://trac.sagemath.org/12121 for details.
+            3
         """
         BuiltinFunction.__init__(self, "floor",
                                  conversions=dict(sympy='floor'))
@@ -590,7 +630,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, maximum_bits=None):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -607,6 +647,10 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
+        if maximum_bits is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(12121, "the argument maximum_bits is deprecated")
+
         try:
             return x.floor()
         except AttributeError:
@@ -620,25 +664,35 @@ class Function_floor(BuiltinFunction):
 
         from sage.rings.all import RealIntervalField
 
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
+        bits = 64
+        try:
+            x_interval = RealIntervalField(bits)(x)
+        except TypeError:
+            # If we cannot compute a numerical enclosure, leave the
+            # expression unevaluated.
+            return BuiltinFunction.__call__(self, SR(x))
+
+        while x_interval.absolute_diameter() > .125:
+            bits *= 2
+            x_interval = RealIntervalField(bits)(x)
+
+        l,r = x_interval.endpoints()
+        if l.floor() == r.floor():
+            return l.floor()
+
+        a = x_interval.is_int()[1]
+        assert a is not None, "a = {}, lf = {}, rf = {}".format(a, l.floor(), r.floor())
+
+        if bool(x == a):
+            return a
+
+        while True:
+            bits *= 2
+            x_interval = RealIntervalField(bits)(x)
             try:
                 return x_interval.unique_floor()
             except ValueError:
-                bits *= 2
-
-        try:
-            return floor(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
+                pass
 
     def _eval_(self, x):
         """
