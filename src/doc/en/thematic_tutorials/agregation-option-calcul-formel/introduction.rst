@@ -563,9 +563,9 @@ Outre la simplicité de notation, cela permet d’écrire des programmes
 *génériques* comme::
 
       sage: def puissance_quatre(a):
-      ...        a = a * a
-      ...        a = a * a
-      ...        return a
+      ....:      a = a * a
+      ....:      a = a * a
+      ....:      return a
 
 qui s’appliquent à tout objet admettant les opérations utilisées (ici la
 multiplication)::

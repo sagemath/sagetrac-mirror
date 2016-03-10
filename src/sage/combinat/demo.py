@@ -74,8 +74,8 @@ Enumerated sets (combinatorial classes)
     [1, 1, 3, 1, 2, 1, 1]
 
     sage: for p in StandardTableaux([3,2]):
-    ...       print "-----------------------------"
-    ...       p.pp()
+    ....:     print "-----------------------------"
+    ....:     p.pp()
     -----------------------------
       1  3  5
       2  4
@@ -143,7 +143,7 @@ Constructions
 
     sage: p = iter(U)
     sage: for i in range(12):
-    ...       print p.next()
+    ....:     print p.next()
 
     []
     [1]
@@ -159,7 +159,7 @@ Constructions
     [1, 2, 4, 3]
 
     sage: for p in U:
-    ...       print p
+    ....:     print p
     []
     [1]
     [1, 2]
@@ -250,17 +250,17 @@ Binary trees::
 
     sage: %hide
     sage: def pbt_to_coordinates(t):
-    ...       e = {}
-    ...       queue = [t]
-    ...       while queue:
-    ...           z = queue.pop()
-    ...           if not isinstance(z[0], int):
-    ...               e[z[1]._labels[0]-1] = z
-    ...               queue.extend(z)
-    ...       coord = [(len(e[i][0]._labels) * len(e[i][1]._labels))
-    ...                       for i in range(len(e))]
-    ...       return sage.geometry.polyhedra.Polytopes.project_1(coord)
-    ...
+    ....:     e = {}
+    ....:     queue = [t]
+    ....:     while queue:
+    ....:         z = queue.pop()
+    ....:         if not isinstance(z[0], int):
+    ....:             e[z[1]._labels[0]-1] = z
+    ....:             queue.extend(z)
+    ....:     coord = [(len(e[i][0]._labels) * len(e[i][1]._labels))
+    ....:                     for i in range(len(e))]
+    ....:     return sage.geometry.polyhedra.Polytopes.project_1(coord)
+    ....:
     sage: K4 = Polyhedron(vertices=[pbt_to_coordinates(t) for t in BT.isotypes(range(5))])
     sage: K4.show(fill=True).show(frame=False)
 
@@ -270,17 +270,17 @@ Juggling automaton::
     sage: state_labels = map(tuple, Permutations([0,0,1,1,1]).list())
     sage: states = dict((i, CombinatorialSpecies()) for i in state_labels)
     sage: def successors(state):
-    ...       newstate = state[1:]+(0,)
-    ...       if state[0] == 0:
-    ...           return [(0, newstate)]
-    ...       return [(i+1, newstate[0:i] + (1,) + newstate[i+1:])
-    ...               for i in range(0, len(state)) if newstate[i] == 0]
+    ....:     newstate = state[1:]+(0,)
+    ....:     if state[0] == 0:
+    ....:         return [(0, newstate)]
+    ....:     return [(i+1, newstate[0:i] + (1,) + newstate[i+1:])
+    ....:             for i in range(0, len(state)) if newstate[i] == 0]
     ...
     sage: for state in state_labels:
-    ...       states[state].define(
-    ...           sum( [states[target]*F
-    ...                 for (height, target) in successors(state)], Eps ))
-    ...
+    ....:     states[state].define(
+    ....:         sum( [states[target]*F
+    ....:               for (height, target) in successors(state)], Eps ))
+    ....:
     sage: states
     {(1, 1, 0, 1, 0): Combinatorial species, (0, 1, 1, 0, 1): Combinatorial species, (1, 1, 1, 0, 0): Combinatorial species, (1, 0, 1, 0, 1): Combinatorial species, (0, 1, 0, 1, 1): Combinatorial species, (1, 0, 0, 1, 1): Combinatorial species, (0, 1, 1, 1, 0): Combinatorial species, (1, 0, 1, 1, 0): Combinatorial species, (0, 0, 1, 1, 1): Combinatorial species, (1, 1, 0, 0, 1): Combinatorial species}
 
@@ -567,55 +567,54 @@ A real life example
 ::
 
     sage: def path_to_line(path, grid=True):
-    ...       vert = lambda x, y: circle((x, y), .05, rgbcolor=(0, 0, 1), fill=True)
-    ...       pline = [(0,0)]
-    ...       vertices = [vert(0,0)]
-    ...       h = 0
-    ...       maxh = h
-    ...       ln = len(path)
-    ...       for x, y in enumerate(path):
-    ...           h += y
-    ...           if h > maxh:
-    ...               maxh = h
-    ...           pline += [(x+1, h)]
-    ...           vertices += [vert(x+1, h)]
-    ...       plotted_path = line(pline) + sum(vertices)
-    ...       if grid:
-    ...           gridline = lambda a, b, c, d: line([(a, b), (c,d)], rgbcolor=(0,) * 3, linestyle='--', alpha=.25)
-    ...           # vertical gridlines
-    ...           grid = [gridline(x, 0, x, maxh) for x in [1..ln]]
-    ...           # horizontal gridlines
-    ...           for y in [1..maxh]:
-    ...               grid += [gridline(0, y, ln, y)]
-    ...           plotted_path += sum(grid)
-    ...       plotted_path.set_aspect_ratio(1)
-    ...       return plotted_path
+    ....:     vert = lambda x, y: circle((x, y), .05, rgbcolor=(0, 0, 1), fill=True)
+    ....:     pline = [(0,0)]
+    ....:     vertices = [vert(0,0)]
+    ....:     h = 0
+    ....:     maxh = h
+    ....:     ln = len(path)
+    ....:     for x, y in enumerate(path):
+    ....:         h += y
+    ....:         if h > maxh:
+    ....:             maxh = h
+    ....:         pline += [(x+1, h)]
+    ....:         vertices += [vert(x+1, h)]
+    ....:     plotted_path = line(pline) + sum(vertices)
+    ....:     if grid:
+    ....:         gridline = lambda a, b, c, d: line([(a, b), (c,d)], rgbcolor=(0,) * 3, linestyle='--', alpha=.25)
+    ....:         # vertical gridlines
+    ....:         grid = [gridline(x, 0, x, maxh) for x in [1..ln]]
+    ....:         # horizontal gridlines
+    ....:         for y in [1..maxh]:
+    ....:             grid += [gridline(0, y, ln, y)]
+    ....:         plotted_path += sum(grid)
+    ....:     plotted_path.set_aspect_ratio(1)
+    ....:     return plotted_path
     sage: from sage.combinat.backtrack import GenericBacktracker
     sage: class LukPaths(GenericBacktracker):
-    ...       def __init__(self, n, k=1):
-    ...           GenericBacktracker.__init__(self, [], (0, 0))
-    ...           self._n = n
-    ...           self._k = k
-    ...           if n < 0 or k < 1 or n % (k+1) != 0:
-    ...               def jane_stop_this_crazy_thing(*args):
-    ...                   raise StopIteration
-    ...               self._rec = jane_stop_this_crazy_thing
-    ...       def _rec(self, path, state):
-    ...           ln, ht = state
-    ...           if ln < self._n:
-    ...               # if we're high enough, we can yield a path with a
-    ...               # k-downstep at the end
-    ...               if ht >= self._k:
-    ...                   yield path + [-self._k], (ln + 1, ht - self._k), False
-    ...               # if the path isn't too high, it can also take an upstep
-    ...               if ht / self._k < (self._n - ln):
-    ...                   yield path + [1], (ln + 1, ht + 1), False
-    ...           else:
-    ...               # if length is n, set state to None so we stop trying to
-    ...               # make new paths, and yield what we've got
-    ...               yield path, None, True
+    ....:     def __init__(self, n, k=1):
+    ....:         GenericBacktracker.__init__(self, [], (0, 0))
+    ....:         self._n = n
+    ....:         self._k = k
+    ....:         if n < 0 or k < 1 or n % (k+1) != 0:
+    ....:             def jane_stop_this_crazy_thing(*args):
+    ....:                 raise StopIteration
+    ....:             self._rec = jane_stop_this_crazy_thing
+    ....:     def _rec(self, path, state):
+    ....:         ln, ht = state
+    ....:         if ln < self._n:
+    ....:             # if we're high enough, we can yield a path with a
+    ....:             # k-downstep at the end
+    ....:             if ht >= self._k:
+    ....:                 yield path + [-self._k], (ln + 1, ht - self._k), False
+    ....:             # if the path isn't too high, it can also take an upstep
+    ....:             if ht / self._k < (self._n - ln):
+    ....:                 yield path + [1], (ln + 1, ht + 1), False
+    ....:         else:
+    ....:             # if length is n, set state to None so we stop trying to
+    ....:             # make new paths, and yield what we've got
+    ....:             yield path, None, True
     sage: plots = [path_to_line(p) for  p in LukPaths(12, 2)]
     sage: ga = graphics_array(plots, ceil(len(plots)/6), 6)
     sage: ga.show(figsize=[9,7])
-
 """

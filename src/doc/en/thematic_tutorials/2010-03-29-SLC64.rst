@@ -25,23 +25,23 @@ Interactive plots
 ::
 
     sage: @interact
-    ...def _(a=(0,2)):
-    ...    show(plot(sin(x*(1+a*x)), (x,0,6)))
+    ....: def _(a=(0,2)):
+    ....:     show(plot(sin(x*(1+a*x)), (x,0,6)))
 
 
     sage: @interact
-    ...def plottaylor(order=(1..15)):
-    ...    f = sin(x) * e^(-x)
-    ...    g = f.taylor(x, 0, order)
-    ...    html('$f(x)\;=\;%s$'%latex(f))
-    ...    html('$\hat{f}(x;%s)\;=\;%s+\mathcal{O}(x^{%s})$'%(0,latex(g),order+1))
-    ...    F = plot(f,-1, 5, thickness=2)
-    ...    G = plot(g,-1, 5, color='green', thickness=2)
-    ...    show(F+G, ymin = -.5, ymax = 1)
+    ....: def plottaylor(order=(1..15)):
+    ....:     f = sin(x) * e^(-x)
+    ....:     g = f.taylor(x, 0, order)
+    ....:     html('$f(x)\;=\;%s$'%latex(f))
+    ....:     html('$\hat{f}(x;%s)\;=\;%s+\mathcal{O}(x^{%s})$'%(0,latex(g),order+1))
+    ....:     F = plot(f,-1, 5, thickness=2)
+    ....:     G = plot(g,-1, 5, color='green', thickness=2)
+    ....:     show(F+G, ymin = -.5, ymax = 1)
 
     sage: var('y')
-    ...f = sin(x) - cos(x*y) + 1 / (x^3+1)
-    ...f
+    ....: f = sin(x) - cos(x*y) + 1 / (x^3+1)
+    ....: f
 
     sage: f.integrate(x)
 
@@ -122,8 +122,8 @@ Enumerated sets (combinatorial classes)
     [1, 1, 3, 1, 2, 1, 1]
 
     sage: for p in StandardTableaux([3,2]):
-    ...       print "-----------------------------"
-    ...       p.pp()
+    ....:     print "-----------------------------"
+    ....:     p.pp()
     -----------------------------
       1  3  5
       2  4
@@ -188,7 +188,7 @@ Constructions
     +Infinity
 
     sage: for p in U:
-    ...       print p
+    ....:     print p
     []
     [1]
     [1, 2]
@@ -269,17 +269,17 @@ Fibonacci words::
 
     sage: %hide
     sage: def pbt_to_coordinates(t):
-    ...       e = {}
-    ...       queue = [t]
-    ...       while queue:
-    ...           z = queue.pop()
-    ...           if not isinstance(z[0], int):
-    ...               e[z[1]._labels[0]-1] = z
-    ...               queue.extend(z)
-    ...       coord = [(len(e[i][0]._labels) * len(e[i][1]._labels))
-    ...                       for i in range(len(e))]
-    ...       return sage.geometry.polyhedra.Polytopes.project_1(coord)
-    ...
+    ....:     e = {}
+    ....:     queue = [t]
+    ....:     while queue:
+    ....:         z = queue.pop()
+    ....:         if not isinstance(z[0], int):
+    ....:             e[z[1]._labels[0]-1] = z
+    ....:             queue.extend(z)
+    ....:     coord = [(len(e[i][0]._labels) * len(e[i][1]._labels))
+    ....:                     for i in range(len(e))]
+    ....:     return sage.geometry.polyhedra.Polytopes.project_1(coord)
+    ....:
     sage: K4 = Polyhedron(vertices=[pbt_to_coordinates(t) for t in BT.isotypes(range(5))])
     sage: K4.show(fill=True).show(frame=False)
 
@@ -295,7 +295,7 @@ Lattice points of polytopes
     sage: L.npoints()  # should be cardinality!
     28
 
-This example used PALP and J-mol
+This example used PALP and J-mol.
 
 Graphs up to an isomorphism
 +++++++++++++++++++++++++++
@@ -404,7 +404,7 @@ Let us create the Coxeter group W::
     sage: W = CoxeterGroup(["H",4])
 
 It is constructed as a group of permutations, from root data given by
-GAP3+Chevie (thanks to Franco's interface):
+GAP3+Chevie (thanks to Franco's interface)::
 
     sage: W._gap_group
     CoxeterGroup("H",4)
@@ -509,4 +509,3 @@ which contains the usual commutation + braid relations::
     sage: S = semigroupe.AutomaticSemigroup(W.simple_projections(), W.one(), by_action = True, category = FiniteJTrivialMonoids())
     sage: H = S.algebra(QQ)
     sage: H.orthogonal_idempotents()
-

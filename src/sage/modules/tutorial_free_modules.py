@@ -139,7 +139,7 @@ greatest/least index, respectively::
 We can iterate through the items in an element::
 
     sage: for index, coeff in f:
-    ...       print "The coefficient of a_{%s} is %s"%(index, coeff)
+    ....:     print "The coefficient of a_{%s} is %s"%(index, coeff)
     The coefficient of a_{0} is 1
     The coefficient of a_{1} is 3
     The coefficient of a_{2} is 3

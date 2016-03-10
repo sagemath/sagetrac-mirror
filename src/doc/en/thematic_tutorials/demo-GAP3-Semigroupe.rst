@@ -33,7 +33,7 @@ requiring heavy access to the left and right Cayley graphs
 we can use Jean-Eric Pin's Semigroupe, a software written in C::
 
     sage: S = semigroupe.AutomaticSemigroup(W.semigroup_generators(), W.one(),
-    ...                                     category = CoxeterGroups().Finite())
+    ....:                                   category = CoxeterGroups().Finite())
 
 The following triggers the full expansion of the group and its Cayley
 graph in memory::
@@ -118,7 +118,7 @@ Let us throw in more mathematical information::
 
     sage: W = CoxeterGroup(["A",3])
     sage: S = semigroupe.AutomaticSemigroup(W.simple_projections(), W.one(), by_action = True,
-    ...                                     category = JTrivialMonoids().Finite())
+    ....:                                   category = JTrivialMonoids().Finite())
 
     sage: S.cardinality()
 

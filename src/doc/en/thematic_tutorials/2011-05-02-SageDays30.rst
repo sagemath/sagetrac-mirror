@@ -36,5 +36,4 @@ Tutorials
 * :ref:`tutorial-programming-python`
 * :ref:`sage.modules.tutorial_free_modules`
 * :ref:`tutorial-implementing-algebraic-structures`
-* :ref:`sage.dynamics.interval_exchanges.tutorial`
 * :ref:`tutorial-how-to-contribute`

@@ -375,9 +375,9 @@ intervales sont ceux pour lesquels l'induction reste dans la classe.
     `(\frac{\sqrt{2}}{10},\frac{\sqrt{2}}{5}, 1-\frac{3\sqrt{2}}{10})`.
 
     #.  Implanter l'application de premier retour sur l'intervalle
-        `[0,1-\frac{3\srt{2}}{10}`.
+        `[0,1-\frac{3\sqrt{2}}{10}`.
 
-    #.  Recommencer avec l'intervalle `[0,\frac{3\srt{2}}{10}`.
+    #.  Recommencer avec l'intervalle `[0,\frac{3\sqrt{2}}{10}`.
 
     #.  Quelle est la meilleure des deux inductions?
 
@@ -392,7 +392,7 @@ C'est un moyen de décrire le langage d'un système dynamique.
 
     - Sommets: tous les mots de longueur `n`
 
-    - Arêtes: `u\arrow v` si `u` se prolonge en un mot de suffixe
+    - Arêtes: `u\rightarrow v` si `u` se prolonge en un mot de suffixe
       `v`. Autrement dit, il existe `x` et `y` tels que `ux = yv`.
 
 .. TOPIC:: Remarques

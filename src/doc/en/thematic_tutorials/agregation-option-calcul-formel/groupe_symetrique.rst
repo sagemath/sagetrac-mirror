@@ -717,8 +717,8 @@ Pour le groupe symétrique `S_3`, cela donnerait::
 
     sage: S = SymmetricGroup(3)
     sage: sgf = [ {1: S.one()},
-    ...           {1: S([(1,2)]), 2: S.one()},
-    ...           {1: S([(1,3)]), 2: S([(2,3)]), 3: S.one()} ]
+    ....:         {1: S([(1,2)]), 2: S.one()},
+    ....:         {1: S([(1,3)]), 2: S([(2,3)]), 3: S.one()} ]
 
 .. TOPIC:: Exercice
 

@@ -116,7 +116,7 @@ factorisation::
     6*(3*x + 1)^2*(x^2 - 2)
 
     sage: for A in [ZZ, QQ, ComplexField(16), QQ[sqrt(2)], GF(5)]:
-    ...       print A, ":"; print A['x'](p).factor()
+    ....:     print A, ":"; print A['x'](p).factor()
     Integer Ring :
     2 * 3 * (3*x + 1)^2 * (x^2 - 2)
     Rational Field :
@@ -514,7 +514,7 @@ Ce qui en Sage donne::
     sage: b = LP.new_variable()
     sage: LP.set_objective(sum([b[v] for v in petersen]))
     sage: for (u,v) in petersen.edges(labels=None): # For any edge, we define a constraint
-    ...       LP.add_constraint(b[u]+b[v],max=1)
+    ....:     LP.add_constraint(b[u]+b[v],max=1)
     sage: LP.set_binary(b)
 
 On trouve alors un indépendant de taille quatre::
@@ -612,7 +612,7 @@ En quoi est-ce utile?
    hierarchie de classes::
 
     sage: for cls in K.__class__.mro():
-    ...       print cls
+    ....:     print cls
     <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
     ...
     <class 'sage.categories.finite_fields.FiniteFields.parent_class'>
@@ -692,7 +692,7 @@ requiring heavy access to the left and right Cayley graphs
 we can use Jean-Eric Pin's Semigroupe, a software written in C::
 
     sage: S = semigroupe.AutomaticSemigroup(W.semigroup_generators(), W.one(),
-    ...                                     category = CoxeterGroups().Finite())
+    ....:                                   category = CoxeterGroups().Finite())
 
 The following triggers the full expansion of the group and its Cayley
 graph in memory::
@@ -789,11 +789,11 @@ Let's try now the 0-Hecke monoid::
     24
 
     sage: S = semigroupe.AutomaticSemigroup(W.simple_projections(), W.one(), by_action = True,
-    ...                                     category = JTrivialMonoids().Finite())
+    ....:                                   category = JTrivialMonoids().Finite())
     sage: H = S.algebra(QQ)
     sage: H._repr_term = lambda x: '['+''.join(str(i) for i in x.reduced_word())+']'
     sage: for x in H.orthogonal_idempotents():
-    ...       print x
+    ....:     print x
     [121321]
     -[121321] - [21321] + [2132] + [13] - [12132] + [2321] - [132] + [1213] - [12321] + [1232] + [1321] - [213]
     [232] - [2321] - [1232] + [12321]
