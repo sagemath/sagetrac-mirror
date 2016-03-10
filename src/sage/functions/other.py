@@ -482,7 +482,7 @@ class Function_ceil(BuiltinFunction):
             # expression unevaluated.
             return BuiltinFunction.__call__(self, SR(x))
 
-        while x_interval.absolute_diameter() > .125:
+        while x_interval.absolute_diameter() >= 1:
             bits *= 2
             x_interval = RealIntervalField(bits)(x)
 
@@ -497,6 +497,9 @@ class Function_ceil(BuiltinFunction):
             return a
 
         x = SR(x).full_simplify().canonicalize_radical()
+
+        if bool(x == a):
+            return a
 
         while True:
             bits *= 2
@@ -672,7 +675,7 @@ class Function_floor(BuiltinFunction):
             # expression unevaluated.
             return BuiltinFunction.__call__(self, SR(x))
 
-        while x_interval.absolute_diameter() > .125:
+        while x_interval.absolute_diameter() >= 1:
             bits *= 2
             x_interval = RealIntervalField(bits)(x)
 
@@ -682,6 +685,11 @@ class Function_floor(BuiltinFunction):
 
         a = x_interval.is_int()[1]
         assert a is not None, "a = {}, lf = {}, rf = {}".format(a, l.floor(), r.floor())
+
+        if bool(x == a):
+            return a
+
+        x = SR(x).full_simplify().canonicalize_radical()
 
         if bool(x == a):
             return a
