@@ -2094,7 +2094,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. [Rohr] D. Rohrlich "Galois theory, elliptic curves, and root numbers"
         .. [Koba] S. Kobayashi "The local root number of elliptic curves with wild ramification"
-        .. [Dokch] T. and V. Dokchitser "Root numbers and parity ranks of elliptic curves"
+        .. [Dokch] T. and V. Dokchitser "Root numbers and parity ranks of elliptic curves", :arxiv:`0906.1815`
         """
         # the case of base field QQ is tackled by ell_rational_field
         # here is the generic implementation only
@@ -2289,10 +2289,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             -1
         """
         K = E.base_field()
-        rn = -1 if K is QQ else (-1) ** (P.residue_class_degree() * P.ramification_index())
-
-        t = polygen(K)
-        f = t ** 3 + E.a2() * t ** 2+E.a4()*t + E.a6() + (E.a1()*t+E.a3())**2/4
+        rn = -1 if K is QQ else (-1) ** (P.residue_class_degree() *
+                                         P.ramification_index())
 
         def _val(a, P):
             if P.base_ring() is ZZ:
@@ -2312,14 +2310,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             for P, _ in L:
                 t = E.tamagawa_number(P)
                 cv = valuation(t, ell) + (0 if ell == 3 else _u_of_E(E, P))
-                if cv % 2 == 1:
+                if cv % 2:
                     H *= -1
             return H
 
         def _Hp(E, r, PO, ell=2):
             # translate with two isogeny
             E = E.change_weierstrass_model(1, r, 0, 0)
-            assert E.a1() == 0 and E.a3() == 0
+            # assert E.a1() == 0 and E.a3() == 0  # really ?
             E = EllipticCurve(E.base_field(), [0, -2 * E.a2(), 0,
                                                E.a2() ** 2 - 4 * E.a4(), 0])
             return _H(E, PO, ell)
@@ -2330,18 +2328,27 @@ class EllipticCurve_number_field(EllipticCurve_field):
             discmin = Emin.discriminant()
             if E.base_field() is QQ:
                 return Integer(_val(disc/discmin, P) / 12)
-            return Integer(P.residue_class_degree() * _val(disc/discmin, P) / 12)
+            return Integer(P.residue_class_degree() *
+                           _val(disc/discmin, P) / 12)
 
         disc = E.discriminant()
+        t = polygen(K)
+        # 2-division polynomial:
+        f = (t ** 3 + E.a2() * t ** 2 + E.a4() * t + E.a6() +
+             (E.a1() * t + E.a3()) ** 2 / 4)
         roots = f.roots(multiplicities=False)
         if len(roots) == 3:  # d=1
-            return rn * _H (E, P) * _Hp(E, roots[0], P) * _Hp(E, roots[1], P) * _Hp(E, roots[2], P)
+            return (rn * _H(E, P) * _Hp(E, roots[0], P) *
+                    _Hp(E, roots[1], P) * _Hp(E, roots[2], P))
 
         elif len(roots) == 1:  # d=2
             E = E.change_weierstrass_model(1, roots[0], 0, 0) # E: y^2 = ... x
-            K2 = K.extension(t**2+E.a2()*t+E.a4(), 'a2')
-            EL, PL, [rL]   = _change_ring(K2, [K2('a2')])
-            return rn * _H (E, P) * _Hp(E, 0, P) * _Hp(EL, 0, PL) * _Hp(EL, rL, PL)
+            # new division polynomial:
+            g = t ** 2 + E.a2() * t + E.a4() + (E.a1() * t) ** 2 / 4
+            K2 = K.extension(g, 'a2')
+            EL, PL, [rL] = _change_ring(K2, [K2('a2')])
+            return (rn * _H(E, P) * _Hp(E, 0, P) *
+                    _Hp(EL, 0, PL) * _Hp(EL, rL, PL))
 
         elif disc.is_square():  # d=3
             K3 = K.extension(f, 'a3')
@@ -2355,7 +2362,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             EM, PM, [] = _change_ring(K2, [])
             EL, PL, [rL] = _change_ring(K3, [K3('a3')])
             EF, PF, [rF] = _change_ring(K6, [K3('a3')])
-            return rn * _H(EL, PL) * _Hp(EL, rL, PL) * _H(EF, PF) * _H(EF, PF, 3) * _Hp(EF, rF, PF) * _H(EM, PM, 3)
+            return (rn * _H(EL, PL) * _Hp(EL, rL, PL) *
+                    _H(EF, PF) * _H(EF, PF, 3) *
+                    _Hp(EF, rF, PF) * _H(EM, PM, 3))
 
     def _torsion_bound(self,number_of_places = 20):
         r"""
