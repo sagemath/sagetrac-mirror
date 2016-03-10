@@ -25,6 +25,7 @@ Thematic tutorial document tree
    2012-10-29-CIMPA-Bobo/dynamique
    2012-10-29-CIMPA-Bobo/index
    2012-10-29-CIMPA-Bobo/introduction
+   2016-03-09-ALEA
    algebraic_combinatorics
    agregation-option-calcul-formel/algebre_lineaire
    agregation-option-calcul-formel/algebre_lineaire_rapide
