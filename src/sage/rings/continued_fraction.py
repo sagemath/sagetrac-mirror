@@ -1135,14 +1135,18 @@ class ContinuedFraction_base(SageObject):
         """
         x = self.value()
         z = (a*x+b)/(c*x+d)
+        _i = iter(Gosper_iterator(a,b,c,d,self))
         from rational_field import QQ
-        if z in QQ or isinstance(z.value(), sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic):
-            _i = iter(Gosper_iterator(a,b,c,d,iter(self)))
+        if z in QQ or isinstance(z, sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic):
             l = list(_i)
-            # TODO: Modify the iterator in such a way that it will return one list in case of x one list, tuple in case x is tuple (preperiod, period)
-            return continued_fraction(l, z)
-        else: # z will be infinite, l will be a lazy list
-            pass
+            preperiod_length = _i.output_preperiod_length
+            preperiod = l[:preperiod_length]
+            period = l[preperiod_length:]
+            import pdb; pdb.set_trace();
+            return continued_fraction((preperiod, period), z)
+        else:
+            from sage.misc.lazy_list import lazy_list
+            return continued_fraction(lazy_list(_i), z)
 
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
@@ -2597,7 +2601,8 @@ class Gosper_iterator:
         self.c = c
         self.d = d
 
-        self.x = x
+        self.cf = x
+        self.x = iter(x)
 
         self.output = []
 
@@ -2605,58 +2610,73 @@ class Gosper_iterator:
 
         self.states = []                # State consists of a,b,c,d and next input
 
-        self.i0 = 0                     # How many we have already output
-        self.i = 0                      # Steps after hitting period
-        self.j = -1                     # Current step
+        self.emitted_before_period = 0
+        self.currently_emitted = 0
+        self.i = 0
 
-        self.period_length = 0                                      # Default is non-periodic case
-        if isinstance(x, tuple):
-            self.period_length = len(x.quotients()[1])              # In quadratic case, we have nonzero period length
-        self.preperiod_length = x.length() - self.period_length     # Length in QQ case, infinite in infinite case
+        # Rational or quadratic case
+        if isinstance(self.cf.quotients(), tuple):
+            if self.cf.quotients()[1][0] == +Infinity:
+                self.input_period_length = 0
+            else:
+                self.input_period_length = len(self.cf.quotients()[1])
+        # Infinite case
+        else:
+            self.input_period_length = 0
+
+        self.input_preperiod_length = self.cf.length() - self.input_period_length    # Length in QQ case, infinite in infinite case
+
+        self.output_preperiod_length = 0
+        self.output_period_length = 0
 
     def __iter__(self):
         return self
 
     def next(self):
-        oops = 100
+        limit = 100
         while True:
-            self.j += 1
-            current_state = {
+            if self.i >= self.input_preperiod_length:
+                if self.i == self.input_preperiod_length:
+                    self.emitted_before_period = self.currently_emitted
+                current_state = {
                 'a': self.a,
                 'b': self.b,
                 'c': self.c,
                 'd': self.d,
-                'next': self.quotient(self.j)
-            }
-
-            # Check if we hit the period and if so, save and compare states
-            if self.j > self.preperiod_length:
-                self.i += 1
+                'next': self.cf.quotient(self.i),
+                'currently_emitted': self.currently_emitted
+                }
                 for state in self.states:
                     if state == current_state:
-                        # Finish, create preperiod, period
-                        pass
+                        self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
+                        self.output_preperiod_length = state['currently_emitted'] - self.emitted_before_period
+                        import pdb; pdb.set_trace()     # We should not enter here yet
+                        raise StopIteration
                 self.states.append(current_state)
 
-            if self.c == 0 and self.d == 0:
-                return Infinity
+            import math
+            ub = math.floor(self.bound(self.a, self.c))
+            lb = math.floor(self.bound(self.b, self.d))
+
+            if (self.c == 0 and self.d == 0) or (ub == lb and ub == +Infinity):
+                raise StopIteration
             else:
-                import math
-                ub = math.floor(self.bound(self.a, self.c))
-                lb = math.floor(self.bound(self.b, self.d))
                 if ub == lb:
-                    self.output.append(ub)
-                    self.i0 += 1
-                    self.egest(ub)
+                    self.emit(ub)
                     return ub
                 else:
                     self.ingest()
-            oops -= 1
-            if oops < 1:
+            limit -= 1
+            if limit < 1:
                 print "ERROR: Next loop in holo ran too many times."
                 raise StopIteration
 
-    def egest(self, q):
+    def emit(self, q):
+        self.currently_emitted += 1
+        import pdb; pdb.set_trace()     # Why are we not entering here?
+        if self.i <= self.input_preperiod_length:
+            self.output_preperiod_length = self.currently_emitted
+            import pdb; pdb.set_trace()         # Is the preperiod correctly updated?
         a = self.a
         b = self.b
         self.a = self.c
@@ -2665,24 +2685,23 @@ class Gosper_iterator:
         self.d = b - q*self.d
 
     def ingest(self):
-        p = next(self.x)
-        if p == Infinity:
-            self.done = True
-            self.b = self.a
-            self.d = self.c
-        else:
+        try:
+            p = next(self.x)
+            self.i += 1
             a = self.a
             c = self.c
             self.a = a*p + self.b
             self.b = a
             self.c = c*p + self.d
             self.d = c
+        except StopIteration:
+            self.done = True
+            self.b = self.a
+            self.d = self.c
 
     def bound(self, n,d):
         if d == 0:
             return Infinity
-        #elif d == 0 and n == 0:
-        #    return 0
         else:
             return float(n)/float(d)
 
