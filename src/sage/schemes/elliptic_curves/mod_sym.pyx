@@ -114,7 +114,7 @@ AUTHOR:
 #cython: profile=True
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include 'cysignals/signals.pxi'
 
 from sage.misc.cachefunc import cached_method
 
@@ -126,7 +126,7 @@ from sage.rings.integer cimport Integer
 
 from sage.misc.all import prod
 from sage.misc.misc import verbose
-from sage.rings.arith import kronecker_symbol
+from sage.arith.all import kronecker_symbol
 
 # doing this before cimport ComplexNumber does not compile
 # don't ask me why
