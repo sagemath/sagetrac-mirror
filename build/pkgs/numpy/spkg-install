@@ -46,6 +46,8 @@ if [ `uname` = "Darwin" ]; then
     unset LAPACK
 else
     export {ATLAS,PTATLAS,OPENBLAS,MKL}=None
+    unset BLAS
+    unset LAPACK
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 
