@@ -1137,12 +1137,12 @@ class ContinuedFraction_base(SageObject):
         z = (a*x+b)/(c*x+d)
         _i = iter(Gosper_iterator(a,b,c,d,self))
         from rational_field import QQ
-        if z in QQ or isinstance(z, sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic):
+        from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+        if z in QQ or isinstance(z, NumberFieldElement_quadratic):
             l = list(_i)
             preperiod_length = _i.output_preperiod_length
             preperiod = l[:preperiod_length]
             period = l[preperiod_length:]
-            import pdb; pdb.set_trace();
             return continued_fraction((preperiod, period), z)
         else:
             from sage.misc.lazy_list import lazy_list
@@ -2616,6 +2616,7 @@ class Gosper_iterator:
 
         # Rational or quadratic case
         if isinstance(self.cf.quotients(), tuple):
+            self.input_preperiod_length = len(self.cf.quotients()[0])
             if self.cf.quotients()[1][0] == +Infinity:
                 self.input_period_length = 0
             else:
@@ -2623,8 +2624,7 @@ class Gosper_iterator:
         # Infinite case
         else:
             self.input_period_length = 0
-
-        self.input_preperiod_length = self.cf.length() - self.input_period_length    # Length in QQ case, infinite in infinite case
+            self.input_preperiod_length = +Infinity
 
         self.output_preperiod_length = 0
         self.output_period_length = 0
@@ -2647,12 +2647,13 @@ class Gosper_iterator:
                 'currently_emitted': self.currently_emitted
                 }
                 for state in self.states:
-                    if state == current_state:
+                    if self.compare_dicts(state, current_state, 'currently_emitted'):
                         self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
                         self.output_preperiod_length = state['currently_emitted'] - self.emitted_before_period
-                        import pdb; pdb.set_trace()     # We should not enter here yet
                         raise StopIteration
                 self.states.append(current_state)
+                if len(self.states) > 30:
+                    raise StopIteration
 
             import math
             ub = math.floor(self.bound(self.a, self.c))
@@ -2663,7 +2664,7 @@ class Gosper_iterator:
             else:
                 if ub == lb:
                     self.emit(ub)
-                    return ub
+                    return Integer(ub)
                 else:
                     self.ingest()
             limit -= 1
@@ -2673,10 +2674,8 @@ class Gosper_iterator:
 
     def emit(self, q):
         self.currently_emitted += 1
-        import pdb; pdb.set_trace()     # Why are we not entering here?
         if self.i <= self.input_preperiod_length:
             self.output_preperiod_length = self.currently_emitted
-            import pdb; pdb.set_trace()         # Is the preperiod correctly updated?
         a = self.a
         b = self.b
         self.a = self.c
@@ -2704,6 +2703,11 @@ class Gosper_iterator:
             return Infinity
         else:
             return float(n)/float(d)
+
+    def compare_dicts(self, d1, d2, ignore_keys):
+        d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
+        d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
+        return d1_filtered == d2_filtered
 
 
 
