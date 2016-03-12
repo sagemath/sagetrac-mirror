@@ -1143,6 +1143,7 @@ class ContinuedFraction_base(SageObject):
             preperiod_length = _i.output_preperiod_length
             preperiod = l[:preperiod_length]
             period = l[preperiod_length:]
+            import pdb; pdb.set_trace()
             return continued_fraction((preperiod, period), z)
         else:
             from sage.misc.lazy_list import lazy_list
@@ -2649,7 +2650,8 @@ class Gosper_iterator:
                 for state in self.states:
                     if self.compare_dicts(state, current_state, 'currently_emitted'):
                         self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
-                        self.output_preperiod_length = state['currently_emitted'] - self.emitted_before_period
+                        self.output_preperiod_length = current_state['currently_emitted'] - self.output_period_length
+                        import pdb; pdb.set_trace()
                         raise StopIteration
                 self.states.append(current_state)
                 if len(self.states) > 30:
