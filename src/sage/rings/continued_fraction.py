@@ -1939,7 +1939,7 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
 
             sage: # TODO
         """
-        return "[" + str(self._w[0]) + "; " + ", ".join(map(str,self._w[1:20])) + "...]"
+        return "[" + str(self._w[0]) + "; " + ", ".join(map(str,self._w[1:20])) + ", ...]"
 
     def length(self):
         r"""
