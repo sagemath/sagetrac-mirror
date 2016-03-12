@@ -216,18 +216,6 @@ the first few zeros::
     sage: p1 + p2    # display it
     Graphics object consisting of 2 graphics primitives
 
-We can as well use min_symbolic and max_symbolic with plot function::
-
-    sage: f1(p) = 2*p + 1
-    sage: f2(p) = -p + 3
-    sage: f3(p) = 4*p - 1
-    sage: f4(p) = 3/2*p
-    sage: P = plot([f1,f2,f3,f4], (p,0,2), linestyle='--')
-    sage: P += plot(max_symbolic(f1(p), f2(p), f3(p), f4(p)), (p,0,2), color='red')
-    sage: P += plot(min_symbolic(f1(p), f2(p), f3(p), f4(p)), (p,0,2), color='green')
-    sage: P.show()
-    Launched png viewer for Graphics object consisting of 6 graphics primitives
-
 .. NOTE::
 
     Not all functions in Sage are symbolic. When plotting non-symbolic functions
