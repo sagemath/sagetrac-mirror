@@ -52,6 +52,7 @@ else
 fi
 
 python "${CUR}"/lapack_conf.py
+cat site.cfg
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
