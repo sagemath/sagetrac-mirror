@@ -52,7 +52,14 @@ else
 fi
 
 python "${CUR}"/lapack_conf.py
+echo "generated site.cfg"
 cat site.cfg
+echo "blas pc file"
+cat "${SAGE_LOCAL}"/lib/pkgconfig/blas.pc
+echo "cblas pc file"
+cat "${SAGE_LOCAL}"/lib/pkgconfig/cblas.pc
+echo "lapack pc file"
+cat "${SAGE_LOCAL}"/lib/pkgconfig/lapack.pc
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
