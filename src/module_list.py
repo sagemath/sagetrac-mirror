@@ -57,7 +57,7 @@ zlib_include_dirs = list(zlib_pc['include_dirs'])
 ### Commonly used definitions and aliases
 #########################################################
 
-singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
+singular_incs = [os.path.join(SAGE_INC, 'singular')]
 
 aliases = dict(
     GSL_LIBRARIES=gsl_libs,
@@ -80,7 +80,7 @@ m4ri_extra_compile_args = pkgconfig.cflags('m4ri').split()
 ### Singular
 #########################################################
 
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
+singular_libs = ['Singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Givaro flags
@@ -1520,7 +1520,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'Singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = singular_incs,
               extra_compile_args = givaro_extra_compile_args),

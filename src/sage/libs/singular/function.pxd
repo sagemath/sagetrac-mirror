@@ -18,6 +18,8 @@ from sage.structure.sage_object cimport SageObject
 from sage.libs.singular.decl cimport leftv, idhdl, syStrategy, matrix, poly, ideal, intvec
 from sage.libs.singular.decl cimport ring as singular_ring
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular
+from sage.libs.singular.decl cimport wFunctionalBuch
+
 
 cdef poly* access_singular_poly(p) except <poly*> -1
 cdef singular_ring* access_singular_ring(r) except <singular_ring*> -1

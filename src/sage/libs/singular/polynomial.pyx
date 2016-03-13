@@ -22,7 +22,8 @@ plusminus_pattern = re.compile("([^\(^])([\+\-])")
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
-from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, pLDeg
+#from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, pLDeg
+from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
@@ -250,20 +251,20 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
             return 0
         elif p_IsConstant(q,r):
             # compare 0, const
-            return 1-2*r.cf.nGreaterZero(p_GetCoeff(q,r)) # -1: <, 1: > #
+            return 1-2*r.cf.cfGreaterZero(p_GetCoeff(q,r), r.cf) # -1: <, 1: > #
     elif q == NULL:
         if p_IsConstant(p,r):
             # compare const, 0
-            return -1+2*r.cf.nGreaterZero(p_GetCoeff(p,r)) # -1: <, 1: >
+            return -1+2*r.cf.cfGreaterZero(p_GetCoeff(p,r), r.cf) # -1: <, 1: >
     #else
 
     while ret==0 and p!=NULL and q!=NULL:
         ret = p_Cmp( p, q, r)
 
         if ret==0:
-            h = r.cf.nSub(p_GetCoeff(p, r),p_GetCoeff(q, r))
+            h = r.cf.cfSub(p_GetCoeff(p, r),p_GetCoeff(q, r),r.cf)
             # compare coeffs
-            ret = -1+r.cf.nIsZero(h)+2*r.cf.nGreaterZero(h) # -1: <, 0:==, 1: >
+            ret = -1+r.cf.cfIsZero(h,r.cf)+2*r.cf.cfGreaterZero(h, r.cf) # -1: <, 0:==, 1: >
             n_Delete(&h, r)
         p = pNext(p)
         q = pNext(q)
@@ -332,7 +333,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
         raise ZeroDivisionError
     sig_on()
     cdef number *n = p_GetCoeff(q, r)
-    n = r.cf.nInvers(n)
+    n = r.cf.cfInvers(n,r.cf)
     ret[0] = pp_Mult_nn(p, n, r)
     n_Delete(&n, r)
     sig_off()
@@ -507,7 +508,7 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
     if len(varnames) != r.N:
         raise TypeError("len(varnames) doesn't equal self.parent().ngens()")
 
-    _names = <char**>omAlloc0(sizeof(char*)*r.N)
+    _names = <char**>omAlloc0(sizeof(char*)*r.N) 
     for i from 0 <= i < r.N:
         _name = varnames[i]
         _names[i] = omStrDup(_name)
@@ -530,7 +531,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        return pLDeg(p,&deg,r)
+        return p_Deg(p, r)
 
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):

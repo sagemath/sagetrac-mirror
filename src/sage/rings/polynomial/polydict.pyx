@@ -506,7 +506,7 @@ cdef class PolyDict:
         don't put negative signs on the generators. ::
 
             sage: Integers(2)['x,y'].gens()
-            (x, y)
+            (1*x, 1*y)
 
         We make sure that intervals are correctly represented. ::
 
