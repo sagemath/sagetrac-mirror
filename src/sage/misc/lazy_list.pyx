@@ -1246,7 +1246,7 @@ cdef class lazy_list_generic(object):
 
 cdef class lazy_list_from_iterator(lazy_list_generic):
 
-    def __init__(self, iterator, cache=None, **kwds):
+    def __init__(self, iterator, cache=None, stop=None, **kwds):
         r"""
         Lazy list built from an iterator.
 
