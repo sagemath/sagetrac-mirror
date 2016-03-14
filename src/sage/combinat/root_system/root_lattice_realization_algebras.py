@@ -1344,9 +1344,9 @@ class Algebras(AlgebrasCategory):
             is always the negative reciprocal of the first. `q1` and `q2` can also be Families with key set equal to the
             affine Dynkin node set, whose values are the eigenvalues (ring elements).
             - ``convention`` -- either (default: "antidominant") or "dominant"
-
-            - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of doubled nodes `i` in a nonreduced
-            affine root system, and whose values are associated with the doubled simple roots.
+            - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of
+            doubled nodes `i` in a nonreduced affine root system, and whose values are associated with
+            the doubled simple roots.
             - ``side`` -- (default: "right") Define a left or right action
             - ``domain`` -- (default: None) optional domain of action
 
