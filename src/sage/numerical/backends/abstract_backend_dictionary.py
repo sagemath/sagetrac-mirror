@@ -86,7 +86,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: from sage.numerical.backends.abstract_backend_dictionary \
                 import LPAbstractBackendDictionary
             sage: p = MixedIntegerLinearProgram(maximization=True,\
-                                                solver="Coin")
+                                                solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
@@ -168,7 +168,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: from sage.numerical.backends.abstract_backend_dictionary \
                   import LPAbstractBackendDictionary
             sage: p = MixedIntegerLinearProgram(maximization=True,\
-                                                solver="Coin")
+                                                solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
@@ -195,7 +195,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: from sage.numerical.backends.abstract_backend_dictionary \
                   import LPAbstractBackendDictionary
             sage: p = MixedIntegerLinearProgram(maximization=True,\
-                                                solver="Coin")
+                                                solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
@@ -205,7 +205,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             0
             sage: d = LPAbstractBackendDictionary(b)
             sage: d.get_backend()
-            <sage.numerical.backends.coin_backend.CoinBackend object at ...>
+            <sage.numerical.backends.glpk_backend.GLPKBackend object at ...>
         """
         return self._backend
 
@@ -279,7 +279,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: from sage.numerical.backends.abstract_backend_dictionary \
                   import LPAbstractBackendDictionary
             sage: p = MixedIntegerLinearProgram(maximization=True,\
-                                                solver="Coin")
+                                                solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
             sage: p.add_constraint(-x[0] + x[1] <= 2)
             sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
