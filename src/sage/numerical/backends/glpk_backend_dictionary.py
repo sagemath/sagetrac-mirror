@@ -106,7 +106,7 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
 
         Use function in :class:`InteractiveLPProblem`:
 
-            sage: lp, basis = p.interactive_linear_program()
+            sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
 
         Compare results:
@@ -335,7 +335,7 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
 
         Use function in :class:`InteractiveLPProblem`:
 
-            sage: lp, basis = p.interactive_linear_program()
+            sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
 
         Compare results:
@@ -390,7 +390,7 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
 
         Use function in :class:`InteractiveLPProblem`:
 
-            sage: lp, basis = p.interactive_linear_program()
+            sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
 
         Compare results:
