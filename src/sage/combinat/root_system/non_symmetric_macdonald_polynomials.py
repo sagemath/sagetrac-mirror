@@ -271,7 +271,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. RUBRIC:: Nonsymmetric Macdonald polynomials
 
-    We can now finally define the nonsymmetric Macdonald polyomials.
+    We can now finally define the nonsymmetric Macdonald polynomials.
     Because the Cherednik operators commute (and there is no radical),
     they can be simultaneously diagonalized; namely, `K[L_0]` admits a
     `K`-basis of joint eigenvectors for the `Y_\lambda`.  For `\mu \in
@@ -1806,7 +1806,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
         """
         if self.cartan_type().classical() != mu.parent().cartan_type() or not mu.is_dominant():
-            raise ValueError, "%s must be a dominant weight for the classical subrootsystem of %s"%(mu,self.cartan_type())
+            raise ValueError("%s must be a dominant weight for the classical subrootsystem of %s" % (mu, self.cartan_type()))
         v = self._q1
         KL0 = self.KL0()
         s = KL0.zero()
