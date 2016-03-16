@@ -1,6 +1,5 @@
-from rigged_configurations import HighestWeightRiggedConfigurations
+r"""
+Features that are imported by default in the interpreter namespace
+"""
 from rigged_configurations import RiggedConfigurations
-from tensor_product_kr_tableaux import HighestWeightTensorProductOfKirillovReshetikhinTableaux
-from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-from kr_tableaux import KirillovReshetikhinTableaux
 

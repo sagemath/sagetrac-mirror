@@ -1,13 +1,13 @@
 r"""
-Delsarte, a.k.a. Linear Programming (LP), upper bounds.
+Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
-This module provides  LP upper bounds for the parameters of codes.
+This module provides LP upper bounds for the parameters of codes.
 Exact LP solver, PPL, is used by defaut, ensuring that no rounding/overflow
 problems occur.
 
 AUTHORS:
 
-- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation.
+- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
@@ -16,15 +16,25 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-def Krawtchouk(n,q,l,i):
+def Krawtchouk(n,q,l,x,check=True):
     """
-    Compute ``K^{n,q}_l(i)``, the Krawtchouk polynomial:
-    see :wikipedia:`Kravchuk_polynomials`.
-    It is given by
+    Compute ``K^{n,q}_l(x)``, the Krawtchouk polynomial.
+
+    See :wikipedia:`Kravchuk_polynomials`; It is defined by the generating function
+    `(1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l` and is equal to
 
     .. math::
 
-        K^{n,q}_l(i)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{i \choose j}{n-i \choose l-j}
+        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{x \choose j}{n-x \choose l-j},
+
+    INPUT:
+
+    - ``n, q, x`` -- arbitrary numbers
+
+    - ``l`` -- a nonnegative integer
+
+    - ``check`` -- check the input for correctness. ``True`` by default. Otherwise, pass it
+      as it is. Use ``check=False`` at your own risk.
 
     EXAMPLES::
 
@@ -33,13 +43,45 @@ def Krawtchouk(n,q,l,i):
         sage: Krawtchouk(12300,4,5,6)
         567785569973042442072
 
+    TESTS:
+
+    check that the bug reported on :trac:`19561` is fixed::
+
+        sage: Krawtchouk(3,2,3,3)
+        -1
+        sage: Krawtchouk(int(3),int(2),int(3),int(3))
+        -1
+        sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False)
+        -5
+
+    other unusual inputs ::
+
+        sage: Krawtchouk(sqrt(5),1-I*sqrt(3),3,55.3).n()
+        211295.892797... + 1186.42763...*I
+        sage: Krawtchouk(-5/2,7*I,3,-1/10)
+        480053/250*I - 357231/400
+        sage: Krawtchouk(1,1,-1,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: l must be a nonnegative integer
+        sage: Krawtchouk(1,1,3/2,1)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
     """
-    from sage.rings.arith import binomial
+    from sage.arith.all import binomial
+    from sage.arith.srange import srange
     # Use the expression in equation (55) of MacWilliams & Sloane, pg 151
     # We write jth term = some_factor * (j-1)th term
+    if check:
+        from sage.rings.integer_ring import ZZ
+        l0 = ZZ(l)
+        if l0 != l or l0<0:
+            raise ValueError('l must be a nonnegative integer')
+        l = l0
     kraw = jth_term = (q-1)**l * binomial(n, l) # j=0
-    for j in range(1,l+1):
-        jth_term *= -q*(l-j+1)*(i-j+1)/((q-1)*j*(n-j+1))
+    for j in srange(1,l+1):
+        jth_term *= -q*(l-j+1)*(x-j+1)/((q-1)*j*(n-j+1))
         kraw += jth_term
     return kraw
 
@@ -86,13 +128,13 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     from sage.numerical.mip import MixedIntegerLinearProgram
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-    A = p.new_variable(integer=isinteger) # A>=0 is assumed
+    A = p.new_variable(integer=isinteger, nonnegative=not isinteger) # A>=0 is assumed
     p.set_objective(sum([A[r] for r in xrange(n+1)]))
     p.add_constraint(A[0]==1)
     for i in xrange(1,d):
         p.add_constraint(A[i]==0)
     for j in xrange(1,n+1):
-        rhs = sum([Krawtchouk(n,q,j,r)*A[r] for r in xrange(n+1)])
+        rhs = sum([Krawtchouk(n,q,j,r,check=False)*A[r] for r in xrange(n+1)])
         p.add_constraint(0*A[0] <= rhs)
         if j >= d_star:
           p.add_constraint(0*A[0] <= rhs)
@@ -103,8 +145,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
         p.add_constraint(sum([A[r] for r in xrange(n+1)]), max=maxc)
     return A, p
 
-def delsarte_bound_hamming_space(n, d, q,
-                    isinteger=False, return_data=False, solver="PPL"):
+def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     """
     Find the classical Delsarte bound [1]_ on codes in Hamming space
     ``H_q^n`` of minimal distance ``d``
@@ -118,13 +159,9 @@ def delsarte_bound_hamming_space(n, d, q,
 
     - ``q`` -- the size of the alphabet
 
-    - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
-        that an LP solver. Can be very slow if set to ``True``.
-
     - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is
         a weights vector,  and ``LP`` the Delsarte bound LP; both of them are Sage LP
-        data.  ``W`` need not be a weight distribution of a code, or,
-        if ``isinteger==False``, even have integer entries.
+        data.  ``W`` need not be a weight distribution of a code.
 
     - ``solver`` -- the LP/ILP solver to be used. Defaults to ``PPL``. It is arbitrary
         precision, thus there will be no rounding errors. With other solvers
@@ -170,10 +207,10 @@ def delsarte_bound_hamming_space(n, d, q,
 
     """
     from sage.numerical.mip import MIPSolverException
-    A, p = _delsarte_LP_building(n, d, 0, q, isinteger,  solver)
+    A, p = _delsarte_LP_building(n, d, 0, q, False,  solver)
     try:
         bd=p.solve()
-    except MIPSolverException, exc:
+    except MIPSolverException as exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
             return A,p,False
@@ -185,7 +222,7 @@ def delsarte_bound_hamming_space(n, d, q,
         return bd
 
 def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
-                    isinteger=False, return_data=False, solver="PPL"):
+                     return_data=False, solver="PPL", isinteger=False):
    """
    Find the Delsarte LP bound on ``F_{q_base}``-dimension of additive codes in
    Hamming space ``H_q^n`` of minimal distance ``d`` with minimal distance of the dual
@@ -208,9 +245,6 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    - ``q_base`` -- if ``0``, the code is assumed to be nonlinear. Otherwise,
      ``q=q_base^m`` and the code is linear over ``F_{q_base}``.
 
-   - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
-     that an LP solver. Can be very slow if set to ``True``.
-
    - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is
      a weights vector,  and ``LP`` the Delsarte bound LP; both of them are Sage LP
      data.  ``W`` need not be a weight distribution of a code, or,
@@ -219,6 +253,9 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    - ``solver`` -- the LP/ILP solver to be used. Defaults to ``PPL``. It is arbitrary
      precision, thus there will be no rounding errors. With other solvers
      (see :class:`MixedIntegerLinearProgram` for the list), you are on your own!
+
+   - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
+     that an LP solver. Can be very slow if set to ``True``.
 
    EXAMPLES:
 
@@ -274,7 +311,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       A, p = _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, q_base**m)
       try:
         bd=p.solve()
-      except MIPSolverException, exc:
+      except MIPSolverException as exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
            return A,p,False

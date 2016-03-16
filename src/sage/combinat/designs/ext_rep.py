@@ -1,4 +1,4 @@
-"""
+r"""
 External Representations of Block Designs
 
 The "ext_rep" module is an API to the abstract tree represented by
@@ -14,10 +14,16 @@ REFERENCES:
 .. [D2009] P. Dobcsanyi et al. DesignTheory.org
    http://designtheory.org/database/
 
-TODO: The XML data from the designtheory.org database contains a wealth
-of information about things like automorphism groups, transitivity,
-cycle type representatives, etc, but none of this data is made
-available through the current implementation.
+.. TODO::
+
+    The XML data from the designtheory.org database contains a wealth of
+    information about things like automorphism groups, transitivity, cycle type
+    representatives, etc, but none of this data is made available through the
+    current implementation.
+
+Functions
+---------
+
 """
 
 ###########################################################################
@@ -39,9 +45,11 @@ import re
 import os.path
 import gzip
 import bz2
-from sage.misc.misc import tmp_filename
-import urllib2
+from sage.misc.all import tmp_filename
 import sys
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -503,7 +511,7 @@ def check_dtrs_protocols(input_name, input_pv):
     ipv_major, ipv_minor = input_pv.split('.')
     if ppv_major != ipv_major or int(ppv_minor) < int(ipv_minor):
         msg = ('''Incompatible dtrs_protocols: program: %s %s: %s''' % (program_pv, input_name, input_pv))
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
 def open_extrep_file(fname):
     """
@@ -553,7 +561,7 @@ def open_extrep_url(url):
         sage: s = ext_rep.designs_from_XML_url("http://designtheory.org/database/v-b-k/v3-b6-k2.icgsa.txt.bz2") # optional - internet
     """
 
-    f = urllib2.urlopen(url)
+    f = urlopen(url)
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
@@ -660,7 +668,7 @@ class XTree(object):
         """
 
 
-        if type(node) == StringType:
+        if isinstance(node, StringType):
             node = (node, {}, [])
         name, attributes, children = node
         self.xt_node = node
@@ -684,7 +692,7 @@ class XTree(object):
 
     def __getattr__(self, attr):
         """
-        Returns the data for the first attribute with name attr.
+        Return the data for the first attribute with name attr.
 
         EXAMPLES::
 
@@ -694,7 +702,7 @@ class XTree(object):
             [0, 1, 2]
         """
 
-        if self.xt_attributes.has_key(attr):
+        if attr in self.xt_attributes:
             return self.xt_attributes[attr]
         else:
             for child in self.xt_children:
@@ -707,7 +715,7 @@ class XTree(object):
                             # need this to get an empty Xtree, for append
                             return XTree(child)
                         grandchild = children[0]
-                        if type(grandchild) == TupleType:
+                        if isinstance(grandchild, TupleType):
                             if len(grandchild[1]) == 0 and \
                                 len(grandchild[2]) == 0:
                                 return grandchild[0]
@@ -717,7 +725,7 @@ class XTree(object):
                             return grandchild
         msg = '"%s" is not found in attributes of %s or its children.' % \
               (attr, self)
-        raise AttributeError, msg
+        raise AttributeError(msg)
 
     def __getitem__(self, i):
         """
@@ -731,19 +739,25 @@ class XTree(object):
             [0, 1, 2]
             sage: xt.__getitem__(1)
             [0, 3, 4]
-        """
 
+        TESTS::
+
+            sage: xt.__getitem__(119)
+            Traceback (most recent call last):
+            ...
+            IndexError: XTree<blocks> has no index 119
+        """
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError, '%s no index %s' % (self.__repr__(), `i`)
-        if type(child) == TupleType:
+            raise IndexError('{!r} has no index {}'.format(self, i))
+        if isinstance(child, TupleType):
             name, attributes, children = child
             if len(attributes) > 0:
                 return XTree(child)
             else:
                 grandchild = children[0]
-                if type(grandchild) == TupleType:
+                if isinstance(grandchild, TupleType):
                     if len(grandchild[1]) == 0 and len(grandchild[2]) == 0:
                         return grandchild[0]
                     else:
@@ -755,7 +769,7 @@ class XTree(object):
 
     def __len__(self):
         """
-        Returns the length of the current node.
+        Return the length of the current node.
 
         EXAMPLES::
 
@@ -887,7 +901,7 @@ class XTreeProcessor(object):
 
         if self.in_item:
             children = self.current_node[2]
-            if len(children) > 0 and type(children[0]) == TupleType:
+            if len(children) > 0 and isinstance(children[0], TupleType):
                 if children[0][0] == 'z' or children[0][0] == 'd' \
                    or children[0][0] == 'q':
                     if children[0][0] == 'z':
@@ -895,7 +909,7 @@ class XTreeProcessor(object):
                     elif children[0][0] == 'd':
                         convert = float
                     else:
-                        raise NotImplementedError, 'rational numbers'
+                        raise NotImplementedError('rational numbers')
                     ps = []
                     for x in children:
                         ps.append(convert(''.join(x[2])))
@@ -991,7 +1005,7 @@ class XTreeProcessor(object):
 
 def designs_from_XML(fname):
     """
-    Returns a list of designs contained in an XML file fname. The list
+    Return a list of designs contained in an XML file fname. The list
     contains tuples of the form (v, bs) where v is the number of points of
     the design and bs is the list of blocks.
 
@@ -1010,8 +1024,10 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters()
-        (2, 2, 2, 2)
+        sage: d.is_t_design(t=2)
+        True
+        sage: d.is_t_design(return_parameters=True)
+        (True, (2, 2, 2, 2))
     """
 
     proc = XTreeProcessor()
@@ -1024,7 +1040,7 @@ def designs_from_XML(fname):
 
 def designs_from_XML_url(url):
     """
-    Returns a list of designs contained in an XML file named by a URL.
+    Return a list of designs contained in an XML file named by a URL.
     The list contains tuples of the form (v, bs) where v is the number
     of points of the design and bs is the list of blocks.
 

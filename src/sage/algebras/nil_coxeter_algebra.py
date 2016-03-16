@@ -10,7 +10,6 @@ Nil-Coxeter Algebra
 #*****************************************************************************
 from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.combinat.sf.kschur import kSchurFunctions
 from sage.misc.misc_c import prod
 from sage.rings.rational_field import QQ
 from sage.combinat.partition import Partitions
@@ -40,7 +39,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
         sage: u2*u1*u2 == u1*u2*u1
         True
         sage: U.an_element()
-        u[0,1,2,3] + 3*u[0,1] + 2*u[0] + 1
+        u[0,1,2,3] + 2*u[0] + 3*u[1] + 1
     """
 
     def __init__(self, W, base_ring = QQ, prefix='u'):

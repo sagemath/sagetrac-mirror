@@ -17,10 +17,11 @@ Plotting primitives
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
 
-class GraphicPrimitive(SageObject):
+class GraphicPrimitive(WithEqualityById, SageObject):
     """
     Base class for graphics primitives, e.g., things that knows how to draw
     themselves in 2D.
@@ -34,6 +35,11 @@ class GraphicPrimitive(SageObject):
         Line defined by 2 points
         sage: type(P[0])
         <class 'sage.plot.line.Line'>
+
+    TESTS::
+
+        sage: hash(circle((0,0),1))  # random
+        42
     """
     def __init__(self, options):
         """
@@ -49,6 +55,7 @@ class GraphicPrimitive(SageObject):
             Graphics primitive
         """
         self._options = options
+
 
     def _allowed_options(self):
         """
@@ -80,7 +87,7 @@ class GraphicPrimitive(SageObject):
             ...
             NotImplementedError: 3D plotting not implemented for Graphics primitive
         """
-        raise NotImplementedError, "3D plotting not implemented for %s" % self._repr_()
+        raise NotImplementedError("3D plotting not implemented for %s" % self._repr_())
 
     def _plot3d_options(self, options=None):
         """
@@ -95,9 +102,9 @@ class GraphicPrimitive(SageObject):
             sage: q.thickness
             4
             sage: q.texture.opacity
-            0.500000000000000
+            0.5
         """
-        if options == None:
+        if options is None:
             options = self.options()
         options_3d = {}
         if 'rgbcolor' in options:
@@ -129,9 +136,11 @@ class GraphicPrimitive(SageObject):
             2
             sage: Q = line([(-2,-4), (3,5)], thickness=4,zorder=1,hue=.5)
             sage: P+Q # blue line on top
+            Graphics object consisting of 2 graphics primitives
             sage: q=Q[0]
             sage: q.set_zorder(3)
             sage: P+Q # teal line on top
+            Graphics object consisting of 2 graphics primitives
             sage: q.options()['zorder']
             3
         """
@@ -180,7 +189,7 @@ class GraphicPrimitive(SageObject):
                 s = "\nThe allowed options for %s are:\n"%self
                 K.sort()
                 for k in K:
-                    if A.has_key(k):
+                    if k in A:
                         s += "    %-15s%-60s\n"%(k,A[k])
                 verbose(s, level=0)
 

@@ -57,17 +57,22 @@ AUTHORS:
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.modular.dirichlet import DirichletGroup, trivial_character
-from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
+from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
+from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.padics.precision_error import PrecisionError
 import weakref
 
@@ -97,7 +102,7 @@ def WeightSpace_constructor(p, base_ring=None):
     """
     if base_ring is None:
         base_ring = Qp(p)
-    if _wscache.has_key((p, base_ring)):
+    if (p, base_ring) in _wscache:
         m = _wscache[(p, base_ring)]()
         if m is not None:
             return m
@@ -132,7 +137,7 @@ class WeightSpace_class(ParentWithBase):
         ParentWithBase.__init__(self, base=base_ring)
         p = ZZ(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         self._p = p
         self._param = Qp(p)((p == 2 and 5) or (p + 1))
 
@@ -191,7 +196,7 @@ class WeightSpace_class(ParentWithBase):
             elif arg1.parent().prime() == self.prime():
                 return self._coerce_in_wtchar(arg1)
             else:
-                raise TypeError, "Incompatible type!"
+                raise TypeError("Incompatible type!")
 
         if algebraic:
             return AlgebraicWeight(self, arg1, arg2)
@@ -199,17 +204,19 @@ class WeightSpace_class(ParentWithBase):
             return ArbitraryWeight(self, arg1, arg2)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this weight space.
 
         EXAMPLES::
 
             sage: W = pAdicWeightSpace(17)
-            sage: W.zero_element()
+            sage: W.zero()
             0
         """
         return self(0)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def prime(self):
         r"""
@@ -240,7 +247,7 @@ class WeightSpace_class(ParentWithBase):
         if R.has_coerce_map_from(self.base_ring()):
             return WeightSpace_constructor(self.prime(), R)
         else:
-            raise TypeError, "No coercion map from '%s' to '%s' is defined" % (self.base_ring(), R)
+            raise TypeError("No coercion map from '%s' to '%s' is defined" % (self.base_ring(), R))
 
     def _coerce_impl(self, x):
         r"""
@@ -346,7 +353,7 @@ class WeightCharacter(Element):
             1 - 9*q + 27*q^2 - 9*q^3 - 117*q^4 + 216*q^5 + 27*q^6 - 450*q^7 + 459*q^8 - 9*q^9 - 648*q^10 + 1080*q^11 - 117*q^12 - 1530*q^13 + 1350*q^14 + 216*q^15 - 1845*q^16 + 2592*q^17 + 27*q^18 - 3258*q^19 + O(q^20)
         """
         if not self.is_even():
-            raise ValueError, "Eisenstein series not defined for odd weight-characters"
+            raise ValueError("Eisenstein series not defined for odd weight-characters")
         q = ring.gen()
         s = ring(1) + 2*self.one_over_Lvalue() * sum([sum([self(d)/d for d in divisors(n)]) * q**n for n in xrange(1, prec)])
         return s.add_bigoh(prec)
@@ -440,7 +447,7 @@ class WeightCharacter(Element):
             sage: pAdicWeightSpace(11)(3).one_over_Lvalue()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
             sage: pAdicWeightSpace(11)(0).one_over_Lvalue()
             0
             sage: type(_)
@@ -487,7 +494,7 @@ class AlgebraicWeight(WeightCharacter):
         if n == 1:
             n = self._p
         if not n.is_power_of(self._p):
-            raise ValueError, "Character must have %s-power conductor" % p
+            raise ValueError("Character must have %s-power conductor" % p)
         self._chi = DirichletGroup(n, chi.base_ring())(chi)
 
     def __call__(self, x):
@@ -528,7 +535,7 @@ class AlgebraicWeight(WeightCharacter):
         """
         if isinstance(x, pAdicGenericElement):
             if x.parent().prime() != self._p:
-                raise TypeError, "x must be an integer or a %s-adic integer" % self._p
+                raise TypeError("x must be an integer or a %s-adic integer" % self._p)
             if self._p**(x.precision_absolute()) < self._chi.conductor():
                 raise PrecisionError("Precision too low")
             xint = x.lift()
@@ -562,6 +569,20 @@ class AlgebraicWeight(WeightCharacter):
             Dirichlet character modulo 29 of conductor 29 mapping 2 |--> 28 + 28*29 + 28*29^2 + ... + O(29^20)
         """
         return self._chi
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0)
+            sage: hash(w)
+            -2363716619315244394 # 64-bit
+            470225558            # 32-bit
+        """
+        if self._chi.is_trivial():
+            return hash(self._k)
+        else:
+            return hash( (self._k,self._chi.modulus(),self._chi) )
 
     def _repr_(self):
         r"""
@@ -643,7 +664,7 @@ class AlgebraicWeight(WeightCharacter):
         if self.is_trivial():
             return Infinity
         else:
-            raise NotImplementedError, "Don't know how to compute value of this L-function"
+            raise NotImplementedError("Don't know how to compute value of this L-function")
 
 class ArbitraryWeight(WeightCharacter):
 
@@ -663,7 +684,7 @@ class ArbitraryWeight(WeightCharacter):
         self.t = ZZ(t) % (self._p > 2 and (self._p - 1) or 2)
                 # do we store w precisely?
         if (w - 1).valuation() <= 0:
-            raise ValueError, "Must send generator to something nearer 1"
+            raise ValueError("Must send generator to something nearer 1")
         self.w = w
 
     def _repr_(self):

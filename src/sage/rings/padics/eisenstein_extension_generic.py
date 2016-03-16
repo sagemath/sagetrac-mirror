@@ -9,10 +9,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -62,12 +64,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         valuation map on K in the image of the valuation map on self
         (both normalized so that the valuation of p is 1).
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The ramification index of the extension self/K
 
@@ -95,12 +97,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         fields induced by this extensions.  Since Eisenstein
         extensions are totally ramified, this will be 1 for K=None.
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The degree of the induced extensions of residue fields.
 
@@ -169,7 +171,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
     #def galois_group(self):
     #    r"""
-    #    Returns the galois group of self's fraction field over Qp.
+    #    Returns the Galois group of self's fraction field over Qp.
     #    """
     #    ##
     #    ## If K is a number field, then K.galois_group() can return
@@ -197,7 +199,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             t + O(t^21)
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self([0,1])
 
     def uniformizer_pow(self, n):

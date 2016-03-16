@@ -8,8 +8,20 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from padic_generic import pAdicGeneric
 from padic_base_generic import pAdicBaseGeneric
+from functools import reduce
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -257,12 +269,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
         extension of base.integer_ring() determined by the same
         polynomial.
 
-        INPUT::
+        INPUT:
 
             - print_mode -- a dictionary containing print options.
               Defaults to the same options as this ring.
 
-        OUTPUT::
+        OUTPUT:
 
             - the ring of elements of self with nonnegative valuation.
 
@@ -309,12 +321,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.random_element()
             3 + 4*w + 3*w^2 + w^3 + 4*w^4 + w^5 + w^6 + 3*w^7 + w^8 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 4*w^14 + O(w^15)
         """
-        return reduce(lambda x,y: x+y, \
-                      map(lambda a,b: a*b, \
-                          [self.ground_ring().random_element() for _ in \
-                           range(self.modulus().degree())], \
-                          [self.gen()**i for i in \
-                           range(self.modulus().degree())]),
+        return reduce(lambda x,y: x+y,
+                      [self.ground_ring().random_element() * self.gen()**i for i in
+                           range(self.modulus().degree())],
                       0)
 
     #def unit_group(self):

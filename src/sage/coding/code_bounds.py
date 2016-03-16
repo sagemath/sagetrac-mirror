@@ -188,7 +188,7 @@ REFERENCES:
 
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
 from delsarte_bounds import delsarte_bound_hamming_space, \
@@ -217,21 +217,22 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 
     EXAMPLES::
 
-        sage: codesize_upper_bound(10,3,2)
+        sage: codes.bounds.codesize_upper_bound(10,3,2)
         93
-        sage: codesize_upper_bound(24,8,2,algorithm="LP")
+        sage: codes.bounds.codesize_upper_bound(24,8,2,algorithm="LP")
         4096
-        sage: codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         85
-        sage: codesize_upper_bound(11,3,4,algorithm=None)
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm=None)
         123361
-        sage: codesize_upper_bound(11,3,4,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm="gap")  # optional - gap_packages (Guava package)
         123361
-        sage: codesize_upper_bound(11,3,4,algorithm="LP")
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm="LP")
         109226
 
     """
     if algorithm=="gap":
+        gap.load_package('guava')
         return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
     if algorithm=="LP":
         return int(delsarte_bound_hamming_space(n,d,q))
@@ -253,11 +254,11 @@ def dimension_upper_bound(n,d,q,algorithm=None):
 
     EXAMPLES::
 
-        sage: dimension_upper_bound(10,3,2)
+        sage: codes.bounds.dimension_upper_bound(10,3,2)
         6
-        sage: dimension_upper_bound(30,15,4)
+        sage: codes.bounds.dimension_upper_bound(30,15,4)
         13
-        sage: dimension_upper_bound(30,15,4,algorithm="LP")
+        sage: codes.bounds.dimension_upper_bound(30,15,4,algorithm="LP")
         12
 
     """
@@ -265,7 +266,7 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     if algorithm=="LP":
         return delsarte_bound_additive_hamming_space(n,d,q)
 
-    else:       # algorithm==None or algorithm="gap":
+    else:       # algorithm==None or algorithm=="gap":
         return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 
@@ -276,7 +277,7 @@ def volume_hamming(n,q,r):
 
     EXAMPLES::
 
-        sage: volume_hamming(10,2,3)
+        sage: codes.bounds.volume_hamming(10,2,3)
         176
     """
     ans=sum([factorial(n)/(factorial(i)*factorial(n-i))*(q-1)**i for i in range(r+1)])
@@ -289,7 +290,7 @@ def gilbert_lower_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: gilbert_lower_bound(10,2,3)
+        sage: codes.bounds.gilbert_lower_bound(10,2,3)
         128/7
     """
     ans=q**n/volume_hamming(n,q,d-1)
@@ -305,9 +306,9 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
 
     EXAMPLES::
 
-        sage: plotkin_upper_bound(10,2,3)
+        sage: codes.bounds.plotkin_upper_bound(10,2,3)
         192
-        sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         192
     """
     if algorithm=="gap":
@@ -337,9 +338,9 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     EXAMPLES::
 
-        sage: griesmer_upper_bound(10,2,3)
+        sage: codes.bounds.griesmer_upper_bound(10,2,3)
         128
-        sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         128
     """
     if algorithm=="gap":
@@ -372,9 +373,9 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
     EXAMPLES::
 
-        sage: elias_upper_bound(10,2,3)
+        sage: codes.bounds.elias_upper_bound(10,2,3)
         232
-        sage: elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         232
 
     """
@@ -391,7 +392,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
         for i in range(1,int(r*n)+1):
             if i**2-2*r*n*i+r*n*d>0:
                 I.append(i)
-            return I
+        return I
     I = get_list(n,d,q)
     bnd = min([ff(n,d,w,q) for w in I])
     return int(bnd)
@@ -424,7 +425,7 @@ def hamming_upper_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: hamming_upper_bound(10,2,3)
+        sage: codes.bounds.hamming_upper_bound(10,2,3)
         93
     """
     return int((q**n)/(volume_hamming(n, q, int((d-1)/2))))
@@ -451,7 +452,7 @@ def singleton_upper_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: singleton_upper_bound(10,2,3)
+        sage: codes.bounds.singleton_upper_bound(10,2,3)
         256
     """
     return q**(n - d + 1)
@@ -463,14 +464,14 @@ def gv_info_rate(n,delta,q):
 
     EXAMPLES::
 
-        sage: RDF(gv_info_rate(100,1/4,3))
-        0.367049926083
+        sage: RDF(codes.bounds.gv_info_rate(100,1/4,3))  # abs tol 1e-15
+        0.36704992608261894
     """
     q = ZZ(q)
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
 
-def entropy(x,q):
+def entropy(x, q=2):
     """
     Computes the entropy at `x` on the `q`-ary symmetric channel.
 
@@ -478,24 +479,25 @@ def entropy(x,q):
 
     - ``x`` - real number in the interval `[0, 1]`.
 
-    - ``q`` - integer greater than 1. This is the base of the logarithm.
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
 
     EXAMPLES::
 
-        sage: entropy(0, 2)
+        sage: codes.bounds.entropy(0, 2)
         0
-        sage: entropy(1/5,4)
+        sage: codes.bounds.entropy(1/5,4)
         1/5*log(3)/log(4) - 4/5*log(4/5)/log(4) - 1/5*log(1/5)/log(4)
-        sage: entropy(1, 3)
+        sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 
     Check that values not within the limits are properly handled::
 
-        sage: entropy(1.1, 2)
+        sage: codes.bounds.entropy(1.1, 2)
         Traceback (most recent call last):
         ...
         ValueError: The entropy function is defined only for x in the interval [0, 1]
-        sage: entropy(1, 1)
+        sage: codes.bounds.entropy(1, 1)
         Traceback (most recent call last):
         ...
         ValueError: The value q must be an integer greater than 1
@@ -513,16 +515,67 @@ def entropy(x,q):
     H = x*log(q-1,q)-x*log(x,q)-(1-x)*log(1-x,q)
     return H
 
+def entropy_inverse(x, q=2):
+    """
+    Find the inverse of the ``q``-ary entropy function at the point ``x``.
+
+    INPUT:
+
+    - ``x`` -- real number in the interval `[0, 1]`.
+
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
+
+    OUTPUT:
+
+    Real number in the interval `[0, 1-1/q]`. The function has multiple
+    values if we include the entire interval `[0, 1]`; hence only the
+    values in the above interval is returned.
+
+    EXAMPLES::
+
+        sage: from sage.coding.code_bounds import entropy_inverse
+        sage: entropy_inverse(0.1)
+        0.012986862055848683
+        sage: entropy_inverse(1)
+        1/2
+        sage: entropy_inverse(0, 3)
+        0
+        sage: entropy_inverse(1, 3)
+        2/3
+
+    """
+    # No nice way to compute the inverse. We resort to root finding.
+    if x < 0 or x > 1:
+        raise ValueError("The inverse entropy function is defined only for "
+                         "x in the interval [0, 1]")
+    q = ZZ(q)   # This will error out if q is not an integer
+    if q < 2:   # Here we check that q is actually at least 2
+        raise ValueError("The value q must be an integer greater than 1")
+
+    eps  = 4.5e-16 # find_root has about this as the default xtol
+    ymax = 1 - 1/q
+    if x <= eps:
+        return 0
+    if x >= 1-eps:
+        return ymax
+
+    # find_root will error out if the root can not be found
+    from sage.numerical.optimize import find_root
+    f = lambda y: entropy(y, q) - x
+    return find_root(f, 0, ymax)
+
 def gv_bound_asymp(delta,q):
     """
     Computes the asymptotic GV bound for the information rate, R.
 
     EXAMPLES::
 
-        sage: RDF(gv_bound_asymp(1/4,2))
-        0.188721875541
-        sage: f = lambda x: gv_bound_asymp(x,2)
+        sage: RDF(codes.bounds.gv_bound_asymp(1/4,2))
+        0.18872187554086...
+        sage: f = lambda x: codes.bounds.gv_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-entropy(delta,q))
 
@@ -533,10 +586,11 @@ def hamming_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: RDF(hamming_bound_asymp(1/4,2))
-        0.4564355568
-        sage: f = lambda x: hamming_bound_asymp(x,2)
+        sage: RDF(codes.bounds.hamming_bound_asymp(1/4,2))
+        0.456435556800...
+        sage: f = lambda x: codes.bounds.hamming_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-entropy(delta/2,q))
 
@@ -546,10 +600,11 @@ def singleton_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: singleton_bound_asymp(1/4,2)
+        sage: codes.bounds.singleton_bound_asymp(1/4,2)
         3/4
-        sage: f = lambda x: singleton_bound_asymp(x,2)
+        sage: f = lambda x: codes.bounds.singleton_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-delta)
 
@@ -560,7 +615,7 @@ def plotkin_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: plotkin_bound_asymp(1/4,2)
+        sage: codes.bounds.plotkin_bound_asymp(1/4,2)
         1/2
     """
     r = 1-1/q
@@ -573,7 +628,7 @@ def elias_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: elias_bound_asymp(1/4,2)
+        sage: codes.bounds.elias_bound_asymp(1/4,2)
         0.39912396330...
     """
     r = 1-1/q
@@ -586,7 +641,7 @@ def mrrw1_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: mrrw1_bound_asymp(1/4,2)
-        0.354578902665
+        sage: codes.bounds.mrrw1_bound_asymp(1/4,2)   # abs tol 4e-16
+        0.3545789026652697
     """
     return RDF(entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q))

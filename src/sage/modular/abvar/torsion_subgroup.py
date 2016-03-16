@@ -78,17 +78,23 @@ TESTS::
     True
 """
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
+from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module            import Module
-from finite_subgroup                import FiniteSubgroup, TorsionPoint
-from sage.rings.all                 import divisors, gcd, ZZ, prime_range
+from finite_subgroup                import FiniteSubgroup
+from sage.rings.all                 import ZZ
 from sage.sets.primes               import Primes
 from sage.modular.arithgroup.all    import is_Gamma0
+from sage.arith.all import divisors, gcd, prime_range
 
 class RationalTorsionSubgroup(FiniteSubgroup):
     """
@@ -109,7 +115,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: T = J0(14).rational_torsion_subgroup(); T
             Torsion subgroup of Abelian variety J0(14) of dimension 1
             sage: type(T)
-            <class 'sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup'>
+            <class 'sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup_with_category'>
         """
         FiniteSubgroup.__init__(self, abvar)
 
@@ -186,7 +192,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             n = O[0]
             self._order = n
             return n
-        raise RuntimeError, "Unable to compute order of torsion subgroup (it is in %s)"%O
+        raise RuntimeError("Unable to compute order of torsion subgroup (it is in %s)"%O)
 
     def lattice(self):
         """
@@ -236,7 +242,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         if R.order() == self.multiple_of_order():
             return R.lattice()
         else:
-            raise NotImplementedError, "unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)"
+            raise NotImplementedError("unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)")
 
     def possible_orders(self):
         """
@@ -362,7 +368,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             #       then compute some charpoly involving
             #       that directly...
             # (2) use (1) -- see my MAGMA code.
-            raise NotImplementedError, "torsion multiple only implemented for Gamma0"
+            raise NotImplementedError("torsion multiple only implemented for Gamma0")
         cnt = 0
         if maxp is None:
             X = Primes()
@@ -409,8 +415,10 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         return bnd
 
 
-
 class QQbarTorsionSubgroup(Module):
+
+    Element = TorsionPoint
+
     def __init__(self, abvar):
         """
         Group of all torsion points over the algebraic closure on an
@@ -459,15 +467,13 @@ class QQbarTorsionSubgroup(Module):
         """
         return self.__abvar.base_field()
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         r"""
-        Create an element in this finite group.
+        Create an element in this torsion subgroup.
 
         INPUT:
 
-
-        -  ``x`` - vector in `\QQ^{2d}`
-
+        - ``x`` -- vector in `\QQ^{2d}`
 
         OUTPUT: torsion point
 
@@ -479,7 +485,7 @@ class QQbarTorsionSubgroup(Module):
             4
         """
         v = self.__abvar.vector_space()(x)
-        return TorsionPoint(self, v)
+        return self.element_class(self, v)
 
     def abelian_variety(self):
         """

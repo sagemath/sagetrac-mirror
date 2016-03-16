@@ -3,9 +3,9 @@ Conway-Sloane masses
 """
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import kronecker_symbol, legendre_symbol, prime_divisors, is_prime, fundamental_discriminant
+from sage.arith.all import kronecker_symbol, legendre_symbol, prime_divisors, is_prime, fundamental_discriminant
 from sage.symbolic.constants import pi
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.quadratic_forms.special_values import gamma__exact, zeta__exact, quadratic_L_function__exact
 from sage.functions.all import floor
 
@@ -29,10 +29,12 @@ def parity(self, allow_rescaling_flag=True):
     Jordan component, after a possible rescaling.
 
     INPUT:
+
         self -- a quadratic form with base_ring `ZZ`, which we may
                 require to have integer Gram matrix.
 
     OUTPUT:
+
         One of the strings: "even" or "odd"
 
     EXAMPLES::
@@ -88,7 +90,7 @@ def parity(self, allow_rescaling_flag=True):
         ind = scale_pow_list.index(min_scale_pow)
     else:
         if min_scale_pow < 0:
-            raise TypeError, "Oops!  If rescaling is not allowed, then we require our form to have an integral Gram matrix."
+            raise TypeError("Oops!  If rescaling is not allowed, then we require our form to have an integral Gram matrix.")
         ind = scale_pow_list.index(0)
 
 
@@ -97,7 +99,7 @@ def parity(self, allow_rescaling_flag=True):
     Q0 = J0[1]
 
     ## The lattice is even if there is no component of scale (power) 0
-    if J0 == None:
+    if J0 is None:
         return "even"
 
     ## Look for a 1x1 block in the 0-th Jordan component (which by
@@ -166,9 +168,11 @@ def conway_species_list_at_odd_prime(self, p):
     interpret the return value of zero as positive here! =)
 
     INPUT:
+
         a positive prime number
 
     OUTPUT:
+
         a list of integers
 
     EXAMPLES::
@@ -188,7 +192,7 @@ def conway_species_list_at_odd_prime(self, p):
     """
     ## Sanity Check:
     if not ((p>2) and is_prime(p)):
-        raise TypeError, "Oops!  We are assuming that p is an odd positive prime number."
+        raise TypeError("Oops!  We are assuming that p is an odd positive prime number.")
 
     ## Deal with the zero-dim'l form
     if self.dim() == 0:
@@ -235,6 +239,7 @@ def conway_species_list_at_2(self):
     interpret the return value of zero as positive here! =)
 
     OUTPUT:
+
         a list of integers
 
     EXAMPLES::
@@ -274,7 +279,7 @@ def conway_species_list_at_2(self):
         if jordan_list[i].is_even():
             two_t = d
         else:
-            two_t = ZZ(2) * floor((d-1) / 2)
+            two_t = ZZ(2) * ((d-1) // 2)
 
         ## Determine if the form is bound
         if len(jordan_list) == 1:
@@ -318,9 +323,11 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
     leftmost position.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         an integer 0 <= x <= 7
 
     EXAMPLES::
@@ -364,7 +371,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
         else:
             B = self[ind, ind+1]
             if (B % 2 != 0):
-                raise RuntimeError, "Oops, we expected the mixed term to be even! "
+                raise RuntimeError("Oops, we expected the mixed term to be even! ")
 
             a = self[ind, ind]
             b = ZZ(B / ZZ(2))
@@ -383,7 +390,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
                 ind += 2
                 u = tmp_diag_vec[0]
             else:
-                raise RuntimeError, "Oops!  This should not happen -- the odd 2x2 blocks have disc 1 or 5 (mod 8)."
+                raise RuntimeError("Oops!  This should not happen -- the odd 2x2 blocks have disc 1 or 5 (mod 8).")
 
     ## Compute the octane
     octane = 0
@@ -393,7 +400,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
         elif a % 4 == 3:
             octane += -1
         else:
-            raise RuntimeError, "Oops!  The diagonal elements should all be odd... =("
+            raise RuntimeError("Oops!  The diagonal elements should all be odd... =(")
 
     ## Return its value
     return octane % 8
@@ -405,9 +412,11 @@ def conway_diagonal_factor(self, p):
     Computes the diagonal factor of Conway's `p`-mass.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a rational number > 0
 
     EXAMPLES::
@@ -446,9 +455,11 @@ def conway_cross_product_doubled_power(self, p):
     term in Conway's mass formula.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a rational number
 
     EXAMPLES::
@@ -483,9 +494,11 @@ def conway_type_factor(self):
     This is a special factor only present in the mass formula when `p=2`.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a rational number
 
     EXAMPLES::
@@ -508,9 +521,11 @@ def conway_p_mass(self, p):
     Computes Conway's `p`-mass.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a rational number > 0
 
     EXAMPLES::
@@ -539,9 +554,11 @@ def conway_standard_p_mass(self, p):
     Computes the standard (generic) Conway-Sloane `p`-mass.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a rational number > 0
 
     EXAMPLES::
@@ -554,9 +571,9 @@ def conway_standard_p_mass(self, p):
     ## Some useful variables
     n = self.dim()
     if n % 2 == 0:
-        s = n / 2
+        s = n // 2
     else:
-        s = (n+1) / 2
+        s = (n+1) // 2
 
     ## Compute the inverse of the generic p-mass
     p_mass_inv = 2 * prod([1-p**(-i)  for i in range(2, 2*s, 2)])
@@ -576,9 +593,11 @@ def conway_standard_mass(self):
     Returns the infinite product of the standard mass factors.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a rational number > 0
 
     EXAMPLES::
@@ -596,9 +615,9 @@ def conway_standard_mass(self):
     """
     n = self.dim()
     if n % 2 == 0:
-        s = n / 2
+        s = n // 2
     else:
-        s = (n+1) / 2
+        s = (n+1) // 2
 
     ## DIAGNOSTIC
     #print "n = ", n
@@ -624,9 +643,11 @@ def conway_mass(self):
     Compute the mass by using the Conway-Sloane mass formula.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a rational number > 0
 
     EXAMPLES::

@@ -1,10 +1,17 @@
 """
 Coercion via Construction Functors
 """
+import six
+from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
-from basic import *
 
-from sage.structure.parent import CoercionException
+lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
+lazy_import('sage.categories.commutative_rings', 'CommutativeRings')
+lazy_import('sage.categories.groups', 'Groups')
+lazy_import('sage.categories.objects', 'Objects')
+lazy_import('sage.categories.rings', 'Rings')
+
+lazy_import('sage.structure.parent', 'CoercionException')
 
 # TODO, think through the rankings, and override pushout where necessary.
 
@@ -91,12 +98,13 @@ class ConstructionFunctor(Functor):
     """
     def __mul__(self, other):
         """
-        Compose construction functors to a composit construction functor, unless one of them is the identity.
+        Compose ``self`` and ``other`` to a composite construction
+        functor, unless one of them is the identity.
 
         NOTE:
 
-        The product is in functorial notation, i.e., when applying the product to an object
-        then the second factor is applied first.
+        The product is in functorial notation, i.e., when applying the
+        product to an object, the second factor is applied first.
 
         TESTS::
 
@@ -117,7 +125,7 @@ class ConstructionFunctor(Functor):
 
         """
         if not isinstance(self, ConstructionFunctor) and not isinstance(other, ConstructionFunctor):
-            raise CoercionException, "Non-constructive product"
+            raise CoercionException("Non-constructive product")
         if isinstance(other,IdentityConstructionFunctor):
             return self
         if isinstance(self,IdentityConstructionFunctor):
@@ -170,7 +178,7 @@ class ConstructionFunctor(Functor):
         """
         return cmp(type(self), type(other))
 
-    def __str__(self):
+    def _repr_(self):
         """
         NOTE:
 
@@ -190,25 +198,6 @@ class ConstructionFunctor(Functor):
         s = str(type(self))
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
-
-    def __repr__(self):
-        """
-        NOTE:
-
-        By default, it returns the name of the construction functor's class.
-        Usually, this method will be overloaded.
-
-        TEST::
-
-            sage: F = QQ.construction()[0]
-            sage: F                  # indirect doctest
-            FractionField
-            sage: Q = ZZ.quo(2).construction()[0]
-            sage: Q                  # indirect doctest
-            QuotientFunctor
-
-        """
-        return str(self)
 
     def merge(self, other):
         """
@@ -285,6 +274,92 @@ class ConstructionFunctor(Functor):
 
         """
         return [self]
+
+    # See the pushout() function below for explanation.
+    coercion_reversed = False
+
+    def common_base(self, other_functor, self_bases, other_bases):
+        r"""
+        This function is called by :func:`pushout` when no common parent
+        is found in the construction tower.
+
+        .. NOTE::
+
+            The main use is for multivariate construction functors,
+            which use this function to implement recursion for
+            :func:`pushout`.
+
+        INPUT:
+
+        - ``other_functor`` -- a construction functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        OUTPUT:
+
+        Nothing, since a
+        :class:`~sage.structure.coerce_exceptions.CoercionException`
+        is raised.
+
+        .. NOTE::
+
+            Overload this function in derived class, see
+            e.e. :class:`MultivariateConstructionFunctor`.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(QQ, cartesian_product([ZZ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Integer Ring).
+        """
+        self._raise_common_base_exception_(
+            other_functor, self_bases, other_bases)
+
+    def _raise_common_base_exception_(self, other_functor,
+                                      self_bases, other_bases,
+                                      reason=None):
+        r"""
+        Raise a coercion exception.
+
+        INPUT:
+
+        - ``other_functor`` -- a functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        - ``reason`` -- a string or ``None`` (default).
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(QQ, cartesian_product([QQ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Rational Field).
+        """
+        if not isinstance(self_bases, (tuple, list)):
+            self_bases = (self_bases,)
+        if not isinstance(other_bases, (tuple, list)):
+            other_bases = (other_bases,)
+        if reason is None:
+            reason = '.'
+        else:
+            reason = ': ' + reason + '.'
+        raise CoercionException(
+            'No common base ("join") found for %s(%s) and %s(%s)%s' %
+            (self, ', '.join(str(b) for b in self_bases),
+             other_functor, ', '.join(str(b) for b in other_bases),
+             reason))
 
 
 class CompositeConstructionFunctor(ConstructionFunctor):
@@ -417,7 +492,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
             all = other.all + [self]
         return CompositeConstructionFunctor(*all)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TESTS::
 
@@ -482,6 +557,7 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             True
 
         """
+        from sage.categories.sets_cat import Sets
         ConstructionFunctor.__init__(self, Sets(), Sets())
 
     def _apply_functor(self, x):
@@ -561,6 +637,83 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             return self
 
 
+class MultivariateConstructionFunctor(ConstructionFunctor):
+    """
+    An abstract base class for functors that take
+    multiple inputs (e.g. Cartesian products).
+
+    TESTS::
+
+        sage: from sage.categories.pushout import pushout
+        sage: A = cartesian_product((QQ['z'], QQ))
+        sage: B = cartesian_product((ZZ['t']['z'], QQ))
+        sage: pushout(A, B)
+        The Cartesian product of (Univariate Polynomial Ring in z over
+        Univariate Polynomial Ring in t over Rational Field,
+        Rational Field)
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in z over Rational Field, Rational Field))
+        sage: pushout(A, B)
+        The Cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
+    """
+    def common_base(self, other_functor, self_bases, other_bases):
+        r"""
+        This function is called by :func:`pushout` when no common parent
+        is found in the construction tower.
+
+        INPUT:
+
+        - ``other_functor`` -- a construction functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        OUTPUT:
+
+        A parent.
+
+        If no common base is found a :class:`sage.structure.coerce_exceptions.CoercionException`
+        is raised.
+
+        .. NOTE::
+
+            Overload this function in derived class, see
+            e.g. :class:`MultivariateConstructionFunctor`.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(cartesian_product([ZZ]), QQ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
+            (Multivariate) functors are incompatible.
+            sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            The cartesian_product functorial construction(Integer Ring) and
+            The cartesian_product functorial construction(Integer Ring, Rational Field):
+            Functors need the same number of arguments.
+        """
+        if self != other_functor:
+            self._raise_common_base_exception_(
+                other_functor, self_bases, other_bases,
+                '(Multivariate) functors are incompatible')
+        if len(self_bases) != len(other_bases):
+            self._raise_common_base_exception_(
+                other_functor, self_bases, other_bases,
+                'Functors need the same number of arguments')
+        from sage.structure.element import get_coercion_model
+        Z_bases = tuple(get_coercion_model().common_parent(S, O)
+                        for S, O in zip(self_bases, other_bases))
+        return self(Z_bases)
+
+
 class PolynomialFunctor(ConstructionFunctor):
     """
     Construction functor for univariate polynomial rings.
@@ -638,6 +791,27 @@ class PolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(R, self.var, sparse=self.sparse)
 
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the morphism `f`.
+
+        TEST::
+
+            sage: P = ZZ['x'].construction()[0]
+            sage: P(ZZ.hom(GF(3)))  # indirect doctest
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in x over Finite Field of size 3
+              Defn: Induced from base ring by
+                    Ring Coercion morphism:
+                      From: Integer Ring
+                      To:   Finite Field of size 3
+        """
+        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+        R = self._apply_functor(f.domain())
+        S = self._apply_functor(f.codomain())
+        return PolynomialRingHomomorphism_from_base(R.Hom(S), f)
+
     def __cmp__(self, other):
         """
         TESTS::
@@ -694,7 +868,7 @@ class PolynomialFunctor(ConstructionFunctor):
         else:
             return None
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -803,9 +977,9 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             return self
         if isinstance(other, MultiPolynomialFunctor):
             if self.term_order != other.term_order:
-                raise CoercionException, "Incompatible term orders (%s,%s)." % (self.term_order, other.term_order)
+                raise CoercionException("Incompatible term orders (%s,%s)." % (self.term_order, other.term_order))
             if set(self.vars).intersection(other.vars):
-                raise CoercionException, "Overlapping variables (%s,%s)" % (self.vars, other.vars)
+                raise CoercionException("Overlapping variables (%s,%s)" % (self.vars, other.vars))
             return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
         elif isinstance(other, CompositeConstructionFunctor) \
               and isinstance(other.all[-1], MultiPolynomialFunctor):
@@ -865,7 +1039,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         else:
             return [MultiPolynomialFunctor((x,), self.term_order) for x in reversed(self.vars)]
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -961,7 +1135,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     # We do provide merging with polynomial rings. However, it seems that it is better
     # to have a greater rank, since we want to apply InfinitePolynomialFunctor *after*
-    # [Multi]PolynomialFunktor, which have rank 9. But there is the MatrixFunctor, which
+    # [Multi]PolynomialFunctor, which have rank 9. But there is the MatrixFunctor, which
     # has rank 10. So, do fine tuning...
     rank = 9.5
 
@@ -976,7 +1150,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
         """
         if len(gens)<1:
-            raise ValueError, "Infinite Polynomial Rings have at least one generator"
+            raise ValueError("Infinite Polynomial Rings have at least one generator")
         ConstructionFunctor.__init__(self, Rings(), Rings())
         self._gens = tuple(gens)
         self._order = order
@@ -997,7 +1171,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             NotImplementedError: Morphisms for inifinite polynomial rings are not implemented yet.
 
         """
-        raise NotImplementedError, "Morphisms for inifinite polynomial rings are not implemented yet."
+        raise NotImplementedError("Morphisms for inifinite polynomial rings are not implemented yet.")
 
     def _apply_functor(self, R):
         """
@@ -1014,7 +1188,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
         return InfinitePolynomialRing(R, self._gens, order=self._order, implementation=self._imple)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -1075,7 +1249,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
                 # if there is overlap of generators, it must only be at the ends, so that
                 # the resulting order after the merging is unique
                 if other._gens[-len(INT):] != self._gens[:len(INT)]:
-                    raise CoercionException, "Overlapping variables (%s,%s) are incompatible" % (self._gens, other._gens)
+                    raise CoercionException("Overlapping variables (%s,%s) are incompatible" % (self._gens, other._gens))
                 OUTGENS = list(other._gens) + list(self._gens[len(INT):])
             else:
                 OUTGENS = list(other._gens) + list(self._gens)
@@ -1136,10 +1310,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
                         BadOverlap = True
 
             if BadOverlap: # the overlapping variables appear in the wrong order
-                raise CoercionException, "Overlapping variables (%s,%s) are incompatible" % (self._gens, OverlappingVars)
+                raise CoercionException("Overlapping variables (%s,%s) are incompatible" % (self._gens, OverlappingVars))
             if len(OverlappingVars)>1: # multivariate, hence, the term order matters
                 if other.term_order.name()!=self._order:
-                    raise CoercionException, "Incompatible term orders %s, %s" % (self._order, other.term_order.name())
+                    raise CoercionException("Incompatible term orders %s, %s" % (self._order, other.term_order.name()))
             # ok, the overlap is fine, we will return something.
             if RemainingVars: # we can only partially merge other into self
                 if len(RemainingVars)>1:
@@ -1377,7 +1551,7 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
                   Defn: x |--> x + 2*y
                         y |--> 3*x - y
         sage: F(f)(x*F(P).gen()^-2+y*F(P).gen()^3)
-        (3*x - y)*t^3 + (x + 2*y)*t^-2
+        (x + 2*y)*t^-2 + (3*x - y)*t^3
 
     """
     rank = 9
@@ -1406,10 +1580,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
-            raise TypeError, "variable name or list of variable names expected"
+        if not isinstance(var, (six.string_types,tuple,list)):
+            raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -1582,7 +1756,7 @@ class VectorFunctor(ConstructionFunctor):
             NotImplementedError: Can not create induced morphisms of free modules yet
         """
         ## TODO: Implement this!
-        raise NotImplementedError, "Can not create induced morphisms of free modules yet"
+        raise NotImplementedError("Can not create induced morphisms of free modules yet")
 
     def __cmp__(self, other):
         """
@@ -1698,6 +1872,10 @@ class SubspaceFunctor(ConstructionFunctor):
     """
     rank = 11 # ranking of functor, not rank of module
 
+    # The subspace construction returns an object admitting a coercion
+    # map into the original, not vice versa.
+    coercion_reversed = True
+
     def __init__(self, basis):
         """
         INPUT:
@@ -1758,7 +1936,7 @@ class SubspaceFunctor(ConstructionFunctor):
             ...
             NotImplementedError: Can not create morphisms of free sub-modules yet
         """
-        raise NotImplementedError, "Can not create morphisms of free sub-modules yet"
+        raise NotImplementedError("Can not create morphisms of free sub-modules yet")
 
     def __cmp__(self, other):
         """
@@ -1857,7 +2035,7 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: S1 = (ZZ^3).submodule([(1,2,3),(4,5,6)])
             sage: S2 = (Frac(P)^3).submodule([(t,t^2,t^3+1),(4*t,0,1)])
             sage: v = S1([0,3,6]) + S2([2,0,1/(2*t)]); v   # indirect doctest
-            (2, 3, (12*t + 1)/(2*t))
+            (2, 3, (-12*t - 1)/(-2*t))
             sage: v.parent()
             Vector space of degree 3 and dimension 3 over Fraction Field of Univariate Polynomial Ring in t over Integer Ring
             User basis matrix:
@@ -1879,7 +2057,9 @@ class SubspaceFunctor(ConstructionFunctor):
             except CoercionException:
                 return None
             try:
-                submodule = P.submodule
+                # Use span instead of submodule because we want to
+                # allow denominators.
+                submodule = P.span
             except AttributeError:
                 return None
             S = submodule(self.basis+other.basis).echelonized_basis()
@@ -1929,6 +2109,8 @@ class FractionField(ConstructionFunctor):
             sage: F(ZZ['t'])
             Fraction Field of Univariate Polynomial Ring in t over Integer Ring
         """
+        from sage.categories.integral_domains import IntegralDomains
+        from sage.categories.fields import Fields
         Functor.__init__(self, IntegralDomains(), Fields())
 
     def _apply_functor(self, R):
@@ -2032,8 +2214,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'type': 'MPFR', 'sci_not': False, 'rnd': 'RNDN'}
-
+            {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
@@ -2052,7 +2233,7 @@ class CompletionFunctor(ConstructionFunctor):
                 if self.type not in self._dvr_types:
                     raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -2090,14 +2271,14 @@ class CompletionFunctor(ConstructionFunctor):
                 return R.completion(self.p, self.prec, extras)
         except (NotImplementedError,AttributeError):
             if R.construction() is None:
-                raise NotImplementedError, "Completion is not implemented for %s"%R.__class__
+                raise NotImplementedError("Completion is not implemented for %s"%R.__class__)
             F, BR = R.construction()
             M = self.merge(F) or F.merge(self)
             if M is not None:
                 return M(BR)
             if self.commutes(F) or F.commutes(self):
                 return F(self(BR))
-            raise NotImplementedError, "Don't know how to apply %s to %s"%(repr(self),repr(R))
+            raise NotImplementedError("Don't know how to apply %s to %s"%(repr(self),repr(R)))
 
     def __cmp__(self, other):
         """
@@ -2129,7 +2310,7 @@ class CompletionFunctor(ConstructionFunctor):
             c = cmp(self.p, other.p)
         return c
 
-    _real_types = ['Interval','MPFR','RDF','RLF']
+    _real_types = ['Interval','Ball','MPFR','RDF','RLF']
     _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
 
     def merge(self, other):
@@ -2210,10 +2391,8 @@ class CompletionFunctor(ConstructionFunctor):
                 new_type = self._real_types[min(self._real_types.index(self.type), \
                                                 self._real_types.index(other.type))]
                 new_scinot = max(self.extras.get('sci_not',0), other.extras.get('sci_not',0))
-                from sage.rings.real_mpfr import _rounding_modes
-                new_rnd = _rounding_modes[min(_rounding_modes.index(self.extras.get('rnd', 'RNDN')), \
-                                              _rounding_modes.index(other.extras.get('rnd', 'RNDN')))]
-                return CompletionFunctor(self.p, new_prec, {'type': new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
+                new_rnd = min(self.extras.get('rnd', 0), other.extras.get('rnd', 0))
+                return CompletionFunctor(self.p, new_prec, {'type':new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
             else:
                 new_type = self._dvr_types[min(self._dvr_types.index(self.type), self._dvr_types.index(other.type))]
                 if new_type == 'fixed-mod':
@@ -2262,8 +2441,17 @@ class CompletionFunctor(ConstructionFunctor):
             sage: (C*F)(ZZ['x']) is (F*C)(ZZ['x'])
             True
 
+        The following was fixed in :trac:`15329` (it used to result
+        in an infinite recursion)::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(Qp(7),RLF)
+            Traceback (most recent call last):
+            ...
+            CoercionException: ('Ambiguous Base Extension', 7-adic Field with capped relative precision 20, Real Lazy Field)
+
         """
-        return isinstance(other,(FractionField,CompletionFunctor))
+        return isinstance(other,FractionField)
 
 class QuotientFunctor(ConstructionFunctor):
     """
@@ -2327,7 +2515,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2373,7 +2561,7 @@ class QuotientFunctor(ConstructionFunctor):
         try:
             Q = R.quo(I,names=self.names)
         except IndexError: # That may happen!
-            raise CoercionException, "Can not apply this quotient functor to %s"%R
+            raise CoercionException("Can not apply this quotient functor to %s"%R)
         if self.as_field:# and hasattr(Q, 'field'):
             try:
                 Q = Q.field()
@@ -2424,7 +2612,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if type(self)!=type(other):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -2443,7 +2631,7 @@ class QuotientFunctor(ConstructionFunctor):
             # quotient by gcd would result in the trivial ring/group/...
             # Rather than create the zero ring, we claim they can't be merged
             # TODO: Perhaps this should be detected at a higher level...
-            raise TypeError, "Trivial quotient intersection."
+            raise TypeError("Trivial quotient intersection.")
         # GF(p) has a coercion from Integers(p). Hence, merging should
         # yield a field if either self or other yields a field.
         return QuotientFunctor(gcd, names=self.names, as_field=self.as_field or other.as_field)
@@ -2529,7 +2717,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F1(QQ)
             Number Field in a with defining polynomial x^3 - x^2 + 1
             sage: F1(QQ).coerce_embedding()
-            sage: F2(QQ).coerce_embedding()
+            sage: phi = F2(QQ).coerce_embedding().__copy__(); phi
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 - x^2 + 1
               To:   Real Lazy Field
@@ -2567,9 +2755,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         """
         Functor.__init__(self, Rings(), Rings())
         if not (isinstance(polys,(list,tuple)) and isinstance(names,(list,tuple)) and isinstance(embeddings,(list,tuple))):
-            raise ValueError, "Arguments must be lists or tuples"
+            raise ValueError("Arguments must be lists or tuples")
         if not (len(names)==len(polys)==len(embeddings)):
-            raise ValueError, "The three arguments must be of the same length"
+            raise ValueError("The three arguments must be of the same length")
         self.polys = list(polys)
         self.names = list(names)
         self.embeddings = list(embeddings)
@@ -2590,6 +2778,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2598,8 +2795,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """
@@ -2654,14 +2851,14 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         The following demonstrate coercions for finite fields using Conway or
         pseudo-Conway polynomials::
 
-            sage: k = GF(3^2, conway=True, prefix='z'); a = k.gen()
-            sage: l = GF(3^3, conway=True, prefix='z'); b = l.gen()
+            sage: k = GF(3^2, prefix='z'); a = k.gen()
+            sage: l = GF(3^3, prefix='z'); b = l.gen()
             sage: a + b # indirect doctest
             z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 1
 
         Note that embeddings are compatible in lattices of such finite fields::
 
-            sage: m = GF(3^5, conway=True, prefix='z'); c = m.gen()
+            sage: m = GF(3^5, prefix='z'); c = m.gen()
             sage: (a+b)+c == a+(b+c) # indirect doctest
             True
             sage: from sage.categories.pushout import pushout
@@ -2770,7 +2967,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             return self
         if isinstance(other, AlgebraicExtensionFunctor):
             if set(self.names).intersection(other.names):
-                raise CoercionException, "Overlapping names (%s,%s)" % (self.names, other.names)
+                raise CoercionException("Overlapping names (%s,%s)" % (self.names, other.names))
             return AlgebraicExtensionFunctor(self.polys + other.polys, self.names + other.names,
                                              self.embeddings + other.embeddings, **self.kwds)
         elif isinstance(other, CompositeConstructionFunctor) \
@@ -2896,7 +3093,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
         self._gens = gens
         self._domain = domain
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -2984,6 +3181,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -2994,7 +3192,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
         """
         ConstructionFunctor.__init__(self,Objects(),Objects())
         if not callable(box):
-            raise TypeError, "input must be callable"
+            raise TypeError("input must be callable")
         self.box = box
 
     def _apply_functor(self, R):
@@ -3015,6 +3213,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __cmp__(self, other):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3031,48 +3230,53 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
 def pushout(R, S):
     r"""
-    Given a pair of Objects R and S, try and construct a
-    reasonable object Y and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This incorporates the idea of functors discussed Sage Days 4.
-    Every object R can be viewed as an initial object and
-    a series of functors (e.g. polynomial, quotient, extension,
-    completion, vector/matrix, etc.). Call the series of
-    increasingly-simple rings (with the associated functors)
-    the "tower" of R. The construction method is used to
-    create the tower.
+    This incorporates the idea of functors discussed at Sage Days 4.
+    Every object `R` can be viewed as an initial object and a series
+    of functors (e.g. polynomial, quotient, extension, completion,
+    vector/matrix, etc.). Call the series of increasingly simple
+    objects (with the associated functors) the "tower" of `R`. The
+    construction method is used to create the tower.
 
-    Given two objects R and S, try and find a common initial
-    object Z. If the towers of R and S meet, let Z be their
-    join. Otherwise, see if the top of one coerces naturally into
-    the other.
+    Given two objects `R` and `S`, try to find a common initial object
+    `Z`. If the towers of `R` and `S` meet, let `Z` be their join.
+    Otherwise, see if the top of one coerces naturally into the other.
 
-    Now we have an initial object and two ordered lists of
-    functors to apply. We wish to merge these in an unambiguous order,
-    popping elements off the top of one or the other tower as we
-    apply them to Z.
+    Now we have an initial object and two ordered lists of functors to
+    apply. We wish to merge these in an unambiguous order, popping
+    elements off the top of one or the other tower as we apply them to
+    `Z`.
 
-    - If the functors are distinct types, there is an absolute ordering
-      given by the rank attribute. Use this.
+    - If the functors are of distinct types, there is an absolute
+      ordering given by the rank attribute. Use this.
 
     - Otherwise:
 
       - If the tops are equal, we (try to) merge them.
 
-      - If exactly one occurs lower in the other tower
-        we may unambiguously apply the other (hoping for a later merge).
+      - If exactly one occurs lower in the other tower, we may
+        unambiguously apply the other (hoping for a later merge).
 
       - If the tops commute, we can apply either first.
 
       - Otherwise fail due to ambiguity.
 
+    The algorithm assumes by default that when a construction `F` is
+    applied to an object `X`, the object `F(X)` admits a coercion map
+    from `X`.  However, the algorithm can also handle the case where
+    `F(X)` has a coercion map *to* `X` instead.  In this case, the
+    attribute ``coercion_reversed`` of the class implementing `F`
+    should be set to ``True``.
+
     EXAMPLES:
 
-    Here our "towers" are $R = Complete_7(Frac(\ZZ))$ and $Frac(Poly_x(\ZZ))$,
-    which give us $Frac(Poly_x(Complete_7(Frac(\ZZ))))$::
+    Here our "towers" are `R = Complete_7(Frac(\ZZ))` and `Frac(Poly_x(\ZZ))`,
+    which give us `Frac(Poly_x(Complete_7(Frac(\ZZ))))`::
 
         sage: from sage.categories.pushout import pushout
         sage: pushout(Qp(7), Frac(ZZ['x']))
@@ -3111,12 +3315,301 @@ def pushout(R, S):
         sage: pushout(Frac(ZZ['x']), QQ[['x']])
         Laurent Series Ring in x over Rational Field
 
+    A construction with ``coercion_reversed = True`` (currently only
+    the :class:`SubspaceFunctor` construction) is only applied if it
+    leads to a valid coercion::
+
+        sage: A = ZZ^2
+        sage: V = span([[1, 2]], QQ)
+        sage: P = sage.categories.pushout.pushout(A, V)
+        sage: P
+        Vector space of dimension 2 over Rational Field
+        sage: P.has_coerce_map_from(A)
+        True
+
+        sage: V = (QQ^3).span([[1, 2, 3/4]])
+        sage: A = ZZ^3
+        sage: pushout(A, V)
+        Vector space of dimension 3 over Rational Field
+        sage: B = A.span([[0, 0, 2/3]])
+        sage: pushout(B, V)
+        Vector space of degree 3 and dimension 2 over Rational Field
+        User basis matrix:
+        [1 2 0]
+        [0 0 1]
+
+    Some more tests with ``coercion_reversed = True``::
+
+        sage: from sage.categories.pushout import ConstructionFunctor
+        sage: class EvenPolynomialRing(type(QQ['x'])):
+        ....:     def __init__(self, base, var):
+        ....:         super(EvenPolynomialRing, self).__init__(base, var)
+        ....:         self.register_embedding(base[var])
+        ....:     def __repr__(self):
+        ....:         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
+        ....:     def construction(self):
+        ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
+        ....:     def _coerce_map_from_(self, R):
+        ....:         return self.base().has_coerce_map_from(R)
+        ....:
+        sage: class EvenPolynomialFunctor(ConstructionFunctor):
+        ....:     rank = 10
+        ....:     coercion_reversed = True
+        ....:     def __init__(self):
+        ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ....:     def _apply_functor(self, R):
+        ....:         return EvenPolynomialRing(R.base(), R.variable_name())
+        ....:
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR)
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR['x'])
+        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(QQ, 'x'))
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(RR, 'x'))
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR^2)
+        Ambient free module of rank 2 over the principal ideal domain Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR['x']^2)
+        Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+    Some more tests related to univariate/multivariate
+    constructions. We consider a generalization of polynomial rings,
+    where in addition to the coefficient ring `C` we also specify
+    an additive monoid `E` for the exponents of the indeterminate.
+    In particular, the elements of such a parent are given by
+
+    .. MATH::
+
+        \sum_{i=0}^I c_i X^{e_i}
+
+    with `c_i \in C` and `e_i \in E`. We define
+    ::
+
+        sage: class GPolynomialRing(Parent):
+        ....:     def __init__(self, coefficients, var, exponents):
+        ....:         self.coefficients = coefficients
+        ....:         self.var = var
+        ....:         self.exponents = exponents
+        ....:         super(GPolynomialRing, self).__init__(category=Rings())
+        ....:     def _repr_(self):
+        ....:         return 'Generalized Polynomial Ring in %s^(%s) over %s' % (
+        ....:                self.var, self.exponents, self.coefficients)
+        ....:     def construction(self):
+        ....:         return GPolynomialFunctor(self.var, self.exponents), self.coefficients
+        ....:     def _coerce_map_from_(self, R):
+        ....:         return self.coefficients.has_coerce_map_from(R)
+
+    and
+    ::
+
+        sage: class GPolynomialFunctor(ConstructionFunctor):
+        ....:     rank = 10
+        ....:     def __init__(self, var, exponents):
+        ....:         self.var = var
+        ....:         self.exponents = exponents
+        ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ....:     def _repr_(self):
+        ....:         return 'GPoly[%s^(%s)]' % (self.var, self.exponents)
+        ....:     def _apply_functor(self, coefficients):
+        ....:         return GPolynomialRing(coefficients, self.var, self.exponents)
+        ....:     def merge(self, other):
+        ....:         if isinstance(other, GPolynomialFunctor) and self.var == other.var:
+        ....:             exponents = pushout(self.exponents, other.exponents)
+        ....:             return GPolynomialFunctor(self.var, exponents)
+
+    We can construct a parent now in two different ways::
+
+        sage: GPolynomialRing(QQ, 'X', ZZ)
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+        sage: GP_ZZ = GPolynomialFunctor('X', ZZ); GP_ZZ
+        GPoly[X^(Integer Ring)]
+        sage: GP_ZZ(QQ)
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+
+    Since the construction
+    ::
+
+        sage: GP_ZZ(QQ).construction()
+        (GPoly[X^(Integer Ring)], Rational Field)
+
+    uses the coefficient ring, we have the usual coercion with respect
+    to this parameter::
+
+        sage: pushout(GP_ZZ(ZZ), GP_ZZ(QQ))
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+        sage: pushout(GP_ZZ(ZZ['t']), GP_ZZ(QQ))
+        Generalized Polynomial Ring in X^(Integer Ring) over Univariate Polynomial Ring in t over Rational Field
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(ZZ['b,c']))
+        Generalized Polynomial Ring in X^(Integer Ring)
+          over Multivariate Polynomial Ring in a, b, c over Integer Ring
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(QQ['b,c']))
+        Generalized Polynomial Ring in X^(Integer Ring)
+          over Multivariate Polynomial Ring in a, b, c over Rational Field
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(ZZ['c,d']))
+        Traceback (most recent call last):
+        ...
+        CoercionException: ('Ambiguous Base Extension', ...)
+
+    ::
+
+        sage: GP_QQ = GPolynomialFunctor('X', QQ)
+        sage: pushout(GP_ZZ(ZZ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Integer Ring
+        sage: pushout(GP_QQ(ZZ), GP_ZZ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Integer Ring
+
+    ::
+
+        sage: GP_ZZt = GPolynomialFunctor('X', ZZ['t'])
+        sage: pushout(GP_ZZt(ZZ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Integer Ring
+
+    ::
+
+        sage: pushout(GP_ZZ(ZZ), GP_QQ(QQ))
+        Generalized Polynomial Ring in X^(Rational Field) over Rational Field
+        sage: pushout(GP_ZZ(QQ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(QQ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(ZZ), GP_QQ(QQ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(ZZ['a,b']), GP_QQ(ZZ['c,d']))
+        Traceback (most recent call last):
+        ...
+        CoercionException: ('Ambiguous Base Extension', ...)
+        sage: pushout(GP_ZZt(ZZ['a,b']), GP_QQ(ZZ['b,c']))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t over Rational Field)
+          over Multivariate Polynomial Ring in a, b, c over Integer Ring
+
+    Some tests with Cartesian products::
+
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: A = CartesianProduct((ZZ['x'], QQ['y'], QQ['z']), Sets().CartesianProducts())
+        sage: B = CartesianProduct((ZZ['x'], ZZ['y'], ZZ['t']['z']), Sets().CartesianProducts())
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Rational Field))
+        sage: pushout(A, B)
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
+        sage: pushout(ZZ, cartesian_product([ZZ, QQ]))
+        Traceback (most recent call last):
+        ...
+        CoercionException: 'NoneType' object is not iterable
+
+    ::
+
+        sage: from sage.categories.pushout import PolynomialFunctor
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: class CartesianProductPoly(CartesianProduct):
+        ....:     def __init__(self, polynomial_rings):
+        ....:         sort = sorted(polynomial_rings, key=lambda P: P.variable_name())
+        ....:         super(CartesianProductPoly, self).__init__(sort, Sets().CartesianProducts())
+        ....:     def vars(self):
+        ....:         return tuple(P.variable_name() for P in self.cartesian_factors())
+        ....:     def _pushout_(self, other):
+        ....:         if isinstance(other, CartesianProductPoly):
+        ....:             s_vars = self.vars()
+        ....:             o_vars = other.vars()
+        ....:             if s_vars == o_vars:
+        ....:                 return
+        ....:             return pushout(CartesianProductPoly(
+        ....:                     self.cartesian_factors() +
+        ....:                     tuple(f for f in other.cartesian_factors()
+        ....:                           if f.variable_name() not in s_vars)),
+        ....:                 CartesianProductPoly(
+        ....:                     other.cartesian_factors() +
+        ....:                     tuple(f for f in self.cartesian_factors()
+        ....:                           if f.variable_name() not in o_vars)))
+        ....:         C = other.construction()
+        ....:         if C is None:
+        ....:             return
+        ....:         elif isinstance(C[0], PolynomialFunctor):
+        ....:             return pushout(self, CartesianProductPoly((other,)))
+
+    ::
+
+        sage: pushout(CartesianProductPoly((ZZ['x'],)),
+        ....:         CartesianProductPoly((ZZ['y'],)))
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring)
+        sage: pushout(CartesianProductPoly((ZZ['x'], ZZ['y'])),
+        ....:         CartesianProductPoly((ZZ['x'], ZZ['z'])))
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring,
+          Univariate Polynomial Ring in z over Integer Ring)
+        sage: pushout(CartesianProductPoly((QQ['a,b']['x'], QQ['y'])),
+        ....:         CartesianProductPoly((ZZ['b,c']['x'], SR['z'])))
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over
+            Multivariate Polynomial Ring in a, b, c over Rational Field,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Symbolic Ring)
+
+    ::
+
+        sage: pushout(CartesianProductPoly((ZZ['x'],)), ZZ['y'])
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring)
+        sage: pushout(QQ['b,c']['y'], CartesianProductPoly((ZZ['a,b']['x'],)))
+        The Cartesian product of
+         (Univariate Polynomial Ring in x over
+            Multivariate Polynomial Ring in a, b over Integer Ring,
+          Univariate Polynomial Ring in y over
+            Multivariate Polynomial Ring in b, c over Rational Field)
+
+    ::
+
+        sage: pushout(CartesianProductPoly((ZZ['x'],)), ZZ)
+        Traceback (most recent call last):
+        ...
+        CoercionException: No common base ("join") found for
+        The cartesian_product functorial construction(...) and None(Integer Ring):
+        (Multivariate) functors are incompatible.
+
     AUTHORS:
 
-    -- Robert Bradshaw
+    - Robert Bradshaw
+    - Peter Bruin
+    - Simon King
+    - Daniel Krenn
+    - David Roe
     """
     if R is S or R == S:
         return R
+
+    if hasattr(R, '_pushout_'):
+        P = R._pushout_(S)
+        if P is not None:
+            return P
+
+    if hasattr(S, '_pushout_'):
+        P = S._pushout_(R)
+        if P is not None:
+            return P
 
     if isinstance(R, type):
         R = type_to_parent(R)
@@ -3129,16 +3622,28 @@ def pushout(R, S):
     Rs = [c[1] for c in R_tower]
     Ss = [c[1] for c in S_tower]
 
+    # If there is a multivariate construction functor in the tower, we must chop off the end
+    # because tuples don't have has_coerce_map_from functions and to align with the
+    # modification of Rs and Ss below
+    from sage.structure.parent import Parent
+    if not isinstance(Rs[-1], Parent):
+        Rs = Rs[:-1]
+    if not isinstance(Ss[-1], Parent):
+        Ss = Ss[:-1]
+
     if R in Ss:
-        return S
+        if not any(c[0].coercion_reversed for c in S_tower[1:]):
+            return S
     elif S in Rs:
-        return R
+        if not any(c[0].coercion_reversed for c in R_tower[1:]):
+            return R
 
     if Rs[-1] in Ss:
         Rs, Ss = Ss, Rs
         R_tower, S_tower = S_tower, R_tower
 
     # look for join
+    Z = None
     if Ss[-1] in Rs:
         if Rs[-1] == Ss[-1]:
             while Rs and Ss and Rs[-1] == Ss[-1]:
@@ -3163,17 +3668,28 @@ def pushout(R, S):
             Ss.pop()
         Z = Rs.pop()
 
+    if Z is None and R_tower[-1][0] is not None:
+        Z = R_tower[-1][0].common_base(S_tower[-1][0], R_tower[-1][1], S_tower[-1][1])
+        R_tower = expand_tower(R_tower[:len(Rs)])
+        S_tower = expand_tower(S_tower[:len(Ss)])
     else:
-        raise CoercionException, "No common base"
-
-    # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
-    Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
-    Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
-
-    Rc = sum([c.expand() for c in Rc], [])
-    Sc = sum([c.expand() for c in Sc], [])
+        # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
+        R_tower = expand_tower(R_tower[:len(Rs)+1])
+        S_tower = expand_tower(S_tower[:len(Ss)+1])
+    Rc = [c[0] for c in R_tower[1:]]
+    Sc = [c[0] for c in S_tower[1:]]
 
     all = IdentityConstructionFunctor()
+
+    def apply_from(Xc):
+        c = Xc.pop()
+        if c.coercion_reversed:
+            Yc = Sc if Xc is Rc else Rc
+            Y_tower = S_tower if Xc is Rc else R_tower
+            Y_partial = Y_tower[len(Yc)][1]
+            if not (c * all)(Z).has_coerce_map_from(Y_partial):
+                return all
+        return c * all
 
     try:
 
@@ -3181,14 +3697,14 @@ def pushout(R, S):
             # print Z
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
-                all = Rc.pop() * all
+                all = apply_from(Rc)
             elif len(Rc) == 0:
-                all = Sc.pop() * all
+                all = apply_from(Sc)
             # if one of the functors has lower rank, do it first
             elif Rc[-1].rank < Sc[-1].rank:
-                all = Rc.pop() * all
+                all = apply_from(Rc)
             elif Sc[-1].rank < Rc[-1].rank:
-                all = Sc.pop() * all
+                all = apply_from(Sc)
             else:
                 # the ranks are the same, so things are a bit subtler
                 if Rc[-1] == Sc[-1]:
@@ -3201,7 +3717,7 @@ def pushout(R, S):
                     if c:
                         all = c * all
                     else:
-                        raise CoercionException, "Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+                        raise CoercionException("Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS))
                 else:
                     # Now we look ahead to see if either top functor is
                     # applied later on in the other tower.
@@ -3209,11 +3725,11 @@ def pushout(R, S):
                     # postpone that operation, but if both then we abort.
                     if Rc[-1] in Sc:
                         if Sc[-1] in Rc:
-                            raise CoercionException, ("Ambiguous Base Extension", R, S)
+                            raise CoercionException("Ambiguous Base Extension", R, S)
                         else:
-                            all = Sc.pop() * all
+                            all = apply_from(Sc)
                     elif Sc[-1] in Rc:
-                        all = Rc.pop() * all
+                        all = apply_from(Rc)
                     # If, perchance, the two functors commute, then we may do them in any order.
                     elif Rc[-1].commutes(Sc[-1]) or Sc[-1].commutes(Rc[-1]):
                         all = Sc.pop() * Rc.pop() * all
@@ -3226,13 +3742,13 @@ def pushout(R, S):
                             all = c * all
                         else:
                             # Otherwise, we cannot proceed.
-                            raise CoercionException, ("Ambiguous Base Extension", R, S)
+                            raise CoercionException("Ambiguous Base Extension", R, S)
 
         return all(Z)
 
     except CoercionException:
         raise
-    except (TypeError, ValueError, AttributeError, NotImplementedError), ex:
+    except (TypeError, ValueError, AttributeError, NotImplementedError) as ex:
         # We do this because we may be trying all kinds of things that don't
         # make sense, and in this case simply want to return that a pushout
         # couldn't be found.
@@ -3242,18 +3758,18 @@ def pushout(R, S):
 
 def pushout_lattice(R, S):
     r"""
-    Given a pair of Objects $R$ and $S$, try and construct a
-    reasonable object $Y$ and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This is based on the model that arose from much discussion at Sage Days 4.
-    Going up the tower of constructions of $R$ and $S$ (e.g. the reals
-    come from the rationals come from the integers) try and find a
-    common parent, and then try and fill in a lattice with these
-    two towers as sides with the top as the common ancestor and
-    the bottom will be the desired ring.
+    This is based on the model that arose from much discussion at
+    Sage Days 4.  Going up the tower of constructions of `R` and `S`
+    (e.g. the reals come from the rationals come from the integers),
+    try to find a common parent, and then try to fill in a lattice
+    with these two towers as sides with the top as the common ancestor
+    and the bottom will be the desired ring.
 
     See the code for a specific worked-out example.
 
@@ -3367,7 +3883,7 @@ def pushout_lattice(R, S):
                             print i, j, R
                         except KeyError:
                             break
-                raise CoercionException, "%s does not support %s" % (lattice[i,j], 'F')
+                raise CoercionException("%s does not support %s" % (lattice[i,j], 'F'))
 
     # If we are successful, we should have something that looks like this.
     #
@@ -3440,15 +3956,54 @@ def construction_tower(R):
     """
     tower = [(None, R)]
     c = R.construction()
+    from sage.structure.parent import Parent
     while c is not None:
         f, R = c
         if not isinstance(f, ConstructionFunctor):
             f = BlackBoxConstructionFunctor(f)
         tower.append((f,R))
+        if not isinstance(R, Parent):
+            break
         c = R.construction()
     return tower
 
+def expand_tower(tower):
+    """
+    An auxiliary function that is used in :func:`pushout`.
 
+    INPUT:
+
+    A construction tower as returned by :func:`construction_tower`.
+
+    OUTPUT:
+
+    A new construction tower with all the construction functors expanded.
+
+    EXAMPLE::
+
+        sage: from sage.categories.pushout import construction_tower, expand_tower
+        sage: construction_tower(QQ['x,y,z'])
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[x,y,z], Rational Field),
+         (FractionField, Integer Ring)]
+        sage: expand_tower(construction_tower(QQ['x,y,z']))
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[z], Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[y], Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[x], Rational Field),
+         (FractionField, Integer Ring)]
+    """
+    new_tower = []
+    for f, R in reversed(tower):
+        if f is None:
+            new_tower.append((f, R))
+        else:
+            fs = f.expand()
+            for ff in reversed(fs[1:]):
+                new_tower.append((ff, R))
+                R = ff(R)
+            new_tower.append((fs[0], R))
+    return list(reversed(new_tower))
 
 def type_to_parent(P):
     """
@@ -3484,4 +4039,4 @@ def type_to_parent(P):
     elif P is complex:
         return sage.rings.all.CDF
     else:
-        raise TypeError, "Not a scalar type."
+        raise TypeError("Not a scalar type.")

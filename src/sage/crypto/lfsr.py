@@ -148,7 +148,7 @@ import copy
 
 from sage.structure.all import Sequence
 from sage.rings.all import Integer, PolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 
 def lfsr_sequence(key, fill, n):
@@ -203,11 +203,11 @@ def lfsr_sequence(key, fill, n):
       Cookbook, http://aspn.activestate.com/ASPN/Python/Cookbook/
     """
     if not isinstance(key, list):
-        raise TypeError, "key must be a list"
+        raise TypeError("key must be a list")
     key = Sequence(key)
     F = key.universe()
     if not is_FiniteField(F):
-        raise TypeError, "universe of sequence must be a finite field"
+        raise TypeError("universe of sequence must be a finite field")
 
     s = fill
     k = len(fill)
@@ -251,7 +251,7 @@ def lfsr_autocorrelation(L, p, k):
     - Timothy Brock (2006-04-17)
     """
     if not isinstance(L, list):
-        raise TypeError, "L (=%s) must be a list"%L
+        raise TypeError("L (=%s) must be a list"%L)
     p = Integer(p)
     _p = int(p)
     k = int(k)
