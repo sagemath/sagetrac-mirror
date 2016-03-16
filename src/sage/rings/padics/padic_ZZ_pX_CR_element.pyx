@@ -2851,6 +2851,15 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [0 0 0 0 0]
             [0 0 0 0 0]
 
+        Check that :trac:`13659` has been fixed::
+
+            sage: K = ZpCR(3,3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: L(3).matrix_mod_pn()
+            [3 0]
+            [0 3]
+
         """
         if self.valuation_c() < 0:
             raise ValueError, "self must be integral"
@@ -2861,18 +2870,18 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             return matrix(IntegerRing(), n, n)
         R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.ordp + self.relprec)))
         L = []
-        cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep_abs()[0]
-        cur.c.restore_c()
-        cdef ZZ_pX_Modulus_c* m = self.prime_pow.get_modulus_capdiv(self.ordp + self.relprec)
-        cdef ZZ_pX_c x
-        ZZ_pX_SetX(x)
-        cdef Py_ssize_t i, j
+        cur = self
+        x = self.parent().gen()
         zero = int(0)
         for i from 0 <= i < n:
-            curlist = cur.list()
-            L.extend(curlist + [zero]*(n - len(curlist)))
-            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m[0])
-        return matrix(R, n, n,  L)
+            if cur.is_zero():
+                curlist = []
+            else:
+                curlist = cur._ntl_rep_abs()[0].list()
+            L.extend(curlist)
+            L.extend([zero]*(n - len(curlist)))
+            cur *= x
+        return matrix(R, n, n, L)
 
 #     def matrix(self, base = None):
 #         """
