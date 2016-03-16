@@ -132,7 +132,7 @@ class Posets(Category):
 
             sage: P = Posets()
             sage: it = iter(P)
-            sage: for _ in range(10): print it.next();
+            sage: for _ in range(10): print next(it);
             Finite poset containing 0 elements
             Finite poset containing 1 elements
             Finite poset containing 2 elements
@@ -285,8 +285,6 @@ class Posets(Category):
                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
             """
 
-        lower_set = order_ideal
-
         @abstract_method(optional = True)
         def order_filter(self, elements):
             r"""
@@ -303,8 +301,6 @@ class Posets(Category):
                 sage: B.order_filter([3,8])
                 [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             """
-
-        upper_set = order_filter
 
         def directed_subset(self, elements, direction):
             r"""
@@ -333,8 +329,9 @@ class Posets(Category):
             """
             if direction == 'up':
                 return self.order_filter(elements)
-            else:
+            if direction == 'down':
                 return self.order_ideal(elements)
+            raise ValueError("Direction must be either 'up' or 'down'.")
 
         def principal_order_ideal(self, x):
             r"""
@@ -404,18 +401,18 @@ class Posets(Category):
                 sage: P.order_ideal_toggle(I, 4)
                 {1, 2, 4}
                 sage: P4 = Posets(4)
-                sage: all( all( all( P.order_ideal_toggle(P.order_ideal_toggle(I, i), i) == I
-                ....:                for i in range(4) )
-                ....:           for I in P.order_ideals_lattice() )
-                ....:      for P in P4 )
+                sage: all(all(all(P.order_ideal_toggle(P.order_ideal_toggle(I, i), i) == I
+                ....:               for i in range(4))
+                ....:          for I in P.order_ideals_lattice(facade=True))
+                ....:     for P in P4)
                 True
             """
             if not v in I:
-                if all( u in I for u in self.lower_covers(v) ):
+                if all(u in I for u in self.lower_covers(v)):
                     from sage.sets.set import Set
                     return I.union(Set({v}))
             else:
-                if all( u not in I for u in self.upper_covers(v) ):
+                if all(u not in I for u in self.upper_covers(v)):
                     from sage.sets.set import Set
                     return I.difference(Set({v}))
             return I
@@ -681,6 +678,9 @@ class Posets(Category):
                 False
             """
             return all(not self.lt(x,y) for x in o for y in o)
+
+        CartesianProduct = LazyImport(
+            'sage.combinat.posets.cartesian_product', 'CartesianProductPoset')
 
     class ElementMethods:
         pass

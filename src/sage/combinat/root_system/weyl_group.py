@@ -42,7 +42,6 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
-from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
@@ -338,19 +337,26 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
     def reflections(self):
         """
-        The reflections of W are the conjugates of the simple reflections.
-        They are in bijection with the positive roots, for given a positive
-        root, we may have the reflection in the hyperplane orthogonal to it.
-        This method returns a dictionary indexed by the reflections taking
-        values in the positive roots. This requires self to be a finite
-        Weyl group.
+        Return the reflections of ``self``.
+
+        The reflections of a Coxeter group `W` are the conjugates of
+        the simple reflections. They are in bijection with the positive
+        roots, for given a positive root, we may have the reflection in
+        the hyperplane orthogonal to it. This method returns a family
+        indexed by the positive roots taking values in the reflections.
+        This requires ``self`` to be a finite Weyl group.
+
+        .. NOTE::
+
+            Prior to :trac:`20027`, the reflections were the keys
+            of the family and the values were the positive roots.
 
         EXAMPLES::
 
             sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
-            Finite family {s1: (1, -1), s2*s1*s2: (1, 1), s1*s2*s1: (1, 0), s2: (0, 1)}
-            sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
+            Finite family {(1, -1): s1, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1, (0, 1): s2}
+            sage: [r+refdict[r].action(r) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
         """
@@ -360,7 +366,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 m = Matrix([self.domain().reflection(alp)(x).to_vector()
                             for x in self.domain().basis()])
                 r = self(m)
-                ret[r] = alp
+                ret[alp] = r
             return Family(ret)
         except Exception:
             raise NotImplementedError("reflections are only implemented for finite Weyl groups")
@@ -413,6 +419,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         Returns the unit element of the Weyl group
 
         EXAMPLES::
+
             sage: W = WeylGroup(['A',3])
             sage: e = W.one(); e
             [1 0 0 0]
@@ -439,17 +446,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: G = WeylGroup(['A',3,1])
             sage: G.domain()
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
-
-        This method used to be called ``lattice``::
-
-            sage: G.lattice()
-            doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
-            See http://trac.sagemath.org/8414 for details.
-            Root space over the Rational Field of the Root system of type ['A', 3, 1]
         """
         return self._domain
-
-    lattice = deprecated_function_alias(8414, domain)
 
     def simple_reflection(self, i):
         """
@@ -523,64 +521,69 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             m = matrix(QQ, 3, l)
         else:
             m = diagonal_matrix([-1 for i in range(self.n)])
-        return self.__call__(m)
-
-    def __cmp__(self, other):
-        """
-        TESTS::
-
-            sage: G1 = WeylGroup(CartanType(['A',2]))
-            sage: G2 = WeylGroup(CartanType(['A',2]))
-            sage: G1 == G2
-            True
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.cartan_type() != other.cartan_type():
-            return cmp(self.cartan_type(), other.cartan_type())
-        return 0
+        return self(m)
 
     def classical(self):
         """
-        If self is a Weyl group from an affine Cartan Type, this give
-        the classical parabolic subgroup of self.
+        If ``self`` is a Weyl group from an affine Cartan Type, this give
+        the classical parabolic subgroup of ``self``.
 
         Caveat: we assume that 0 is a special node of the Dynkin diagram
 
         TODO: extract parabolic subgroup method
-        """
-        assert(self.cartan_type().is_affine())
-        return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
-
-    def bruhat_graph(self, x, y):
-        """
-        The Bruhat graph Gamma(x,y), defined if x <= y in the Bruhat order, has
-        as its vertices the Bruhat interval, {t | x <= t <= y}, and as its
-        edges the pairs u, v such that u = r.v where r is a reflection, that
-        is, a conjugate of a simple reflection.
-
-        Returns the Bruhat graph as a directed graph, with an edge u --> v
-        if and only if u < v in the Bruhat order, and u = r.v.
-
-        See:
-
-        Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar, and
-        rational smoothness of Schubert varieties. Algebraic groups and their
-        generalizations: classical methods (University Park, PA, 1991), 53--61,
-        Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
 
         EXAMPLES::
 
-            sage: W = WeylGroup("A3", prefix = "s")
-            sage: [s1,s2,s3] = W.simple_reflections()
-            sage: W.bruhat_graph(s1*s3,s1*s2*s3*s2*s1)
+            sage: G = WeylGroup(['A',3,1])
+            sage: G.classical()
+            Parabolic Subgroup of the Weyl Group of type ['A', 3, 1]
+             (as a matrix group acting on the root space)
+            sage: WeylGroup(['A',3]).classical()
+            Traceback (most recent call last):
+            ...
+            ValueError: classical subgroup only defined for affine types
+        """
+        if not self.cartan_type().is_affine():
+            raise ValueError("classical subgroup only defined for affine types")
+        return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
+
+    def bruhat_graph(self, x, y):
+        r"""
+        Return the Bruhat graph as a directed graph, with an edge `u \to v`
+        if and only if `u < v` in the Bruhat order, and `u = r \cdot v`.
+
+        The Bruhat graph `\Gamma(x,y)`, defined if `x \leq y` in the
+        Bruhat order, has as its vertices the Bruhat interval
+        `\{ t | x \leq t \leq y \}`, and as its edges are the pairs
+        `(u, v)` such that `u = r \cdot v` where `r` is a reflection,
+        that is, a conjugate of a simple reflection.
+
+        REFERENCES:
+
+        Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar,
+        and rational smoothness of Schubert varieties. Algebraic groups and
+        their generalizations: classical methods (University Park, PA, 1991),
+        53--61, Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc.,
+        Providence, RI, 1994.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A3", prefix="s")
+            sage: s1, s2, s3 = W.simple_reflections()
+            sage: G = W.bruhat_graph(s1*s3, s1*s2*s3*s2*s1); G
             Digraph on 10 vertices
+
+        Check that the graph has the correct number of edges
+        (see :trac:`17744`)::
+
+            sage: len(G.edges())
+            16
         """
         g = self.bruhat_interval(x, y)
         ref = self.reflections()
         d = {}
-        for x in g:
-            d[x] = [y for y in g if x.length() < y.length() and x*y.inverse() in ref]
+        for u in g:
+            d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]
         return DiGraph(d)
 
 
@@ -692,8 +695,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['B', 3, 1]).classical()._test_is_finite()
         """
         tester = self._tester(**options)
-        assert(not self.weyl_group(self._prefix).is_finite())
-        assert(self.is_finite())
+        tester.assertTrue(not self.weyl_group(self._prefix).is_finite())
+        tester.assertTrue(self.is_finite())
 
 class WeylGroupElement(MatrixGroupElement_gap):
     """
@@ -756,14 +759,16 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def _latex_(self):
         """
+        Return the latex representation of ``self``.
+
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2,1], prefix="s")
-            sage: [s0,s1,s2]=W.simple_reflections()
-            sage: latex(s0*s1) # indirect doctest
+            sage: [s0,s1,s2] = W.simple_reflections()
+            sage: latex(s0*s1)  # indirect doctest
             s_{0}s_{1}
             sage: W = WeylGroup(['A',2,1])
-            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: [s0,s1,s2] = W.simple_reflections()
             sage: latex(s0*s1)
             \left(\begin{array}{rrr}
             0 & -1 & 2 \\
@@ -800,7 +805,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
                self._parent   == other._parent   and \
                self.__matrix  == other.__matrix
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -811,17 +816,18 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1] == s[2]
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
         if self._parent.cartan_type() != other._parent.cartan_type():
             return cmp(self._parent.cartan_type(), other._parent.cartan_type())
         return cmp(self.matrix(), other.matrix())
+
+    __cmp__ = _cmp_
 
     def action(self, v):
         """
         Returns the action of self on the vector v.
 
         EXAMPLES::
+
             sage: W = WeylGroup(['A',2])
             sage: s = W.simple_reflections()
             sage: v = W.domain()([1,0,0])
@@ -842,7 +848,8 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1].action(alpha[0])
             alpha[0] + alpha[1]
         """
-        assert(v in self.domain())
+        if v not in self.domain():
+            raise ValueError("{} is not in the domain".format(v))
         return self.domain().from_vector(self.__matrix*v.to_vector())
 
 
@@ -919,6 +926,27 @@ class WeylGroupElement(MatrixGroupElement_gap):
             s = self.action(L.alpha()[i]).is_positive_root()
 
         return s is positive
+
+    def has_left_descent(self,i):
+        """
+        Tests if self has a left descent at position `i`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: [W.one().has_descent(i) for i in W.domain().index_set()]
+            [False, False, False]
+            sage: [s[1].has_descent(i) for i in W.domain().index_set()]
+            [True, False, False]
+            sage: [s[2].has_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+            sage: [s[3].has_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+            sage: [s[3].has_descent(i, True) for i in W.domain().index_set()]
+            [True, True, False]
+        """
+        return self.has_descent(i, side = "left")
 
     def apply_simple_reflection(self, i, side = "right"):
         s = self.parent().simple_reflections()
