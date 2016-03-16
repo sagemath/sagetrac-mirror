@@ -54,11 +54,11 @@ AUTHORS:
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 class Lisp(Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None):
@@ -81,7 +81,6 @@ class Lisp(Expect):
                         # This is the command that starts up your program
                         command = "ecl",
 
-                        maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -133,7 +132,7 @@ class Lisp(Expect):
                             M = M[len(L):]      # skip L in case it was echoed
                         x.append(M.strip())
                         self.__in_seq = s
-                    except TypeError, s:
+                    except TypeError as s:
                         return 'error evaluating "%s":\n%s'%(code,s)
             return '\n'.join(x)
 
@@ -166,7 +165,7 @@ class Lisp(Expect):
         cmd = '(setq %s %s)'%(var, value)
         out = self.eval(cmd)
         if '***' in out:
-            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Sage\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -258,18 +257,6 @@ class Lisp(Expect):
         """
         raise NotImplementedError
 
-    def trait_names(self):
-        """
-        EXAMPLES::
-
-            sage: lisp.trait_names()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        raise NotImplementedError
-
     def kill(self, var):
         """
         EXAMPLES::
@@ -323,15 +310,6 @@ class Lisp(Expect):
         """
         return LispElement
 
-    def _function_class(self):
-        """
-        EXAMPLES::
-
-            sage: lisp._function_class()
-            <class 'sage.interfaces.lisp.LispFunction'>
-        """
-        return LispFunction
-
     def _function_element_class(self):
         """
         EXAMPLES::
@@ -372,7 +350,7 @@ class Lisp(Expect):
             ...
             NotImplementedError: ...
         """
-        raise NotImplementedError, ("We should never reach here in the Lisp interface. " +
+        raise NotImplementedError("We should never reach here in the Lisp interface. " +
                                     "Please report this as a bug.")
 
     def help(self, command):
@@ -423,7 +401,7 @@ class LispElement(ExpectElement):
 
         """
         P = self._check_valid()
-        if not hasattr(other, 'parent') or P is not other.parent():
+        if parent(other) is not P:
             other = P(other)
 
         if P.eval('(= %s %s)'%(self.name(), other.name())) == P._true_symbol():
@@ -571,4 +549,7 @@ def lisp_console():
         Type :h for Help.  Top level.
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%lisp magics instead.')
     os.system('ecl')

@@ -1,5 +1,5 @@
 """
-Transcendental Functions
+Number-Theoretic Functions
 """
 
 #*****************************************************************************
@@ -18,23 +18,18 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-import sage.libs.pari.all
-from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
-import sage.rings.real_double as real_double
-from sage.gsl.integration import numerical_integral
-from sage.structure.parent import Parent
-from sage.structure.coerce import parent
-from sage.symbolic.expression import Expression
-from sage.functions.log import exp
+from sage.functions.other import factorial, psi
 
-from sage.rings.all import (ComplexField,
-                            ZZ, RR, RDF, CDF, prime_range)
+from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
 from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 
+import sage.libs.mpmath.utils as mpmath_utils
+from sage.misc.superseded import deprecation
+from sage.combinat.combinat import bernoulli_polynomial
 
 CC = complex_field.ComplexField()
 I = CC.gen(0)
@@ -68,6 +63,10 @@ class Function_zeta(GinacFunction):
             zeta(I)
             sage: zeta(I).n()
             0.00330022368532410 - 0.418155449141322*I
+            sage: zeta(sqrt(2))
+            zeta(sqrt(2))
+            sage: zeta(sqrt(2)).n()  # rel tol 1e-10
+            3.02073767948603
 
         It is possible to use the ``hold`` argument to prevent
         automatic evaluation::
@@ -81,6 +80,21 @@ class Function_zeta(GinacFunction):
             sage: a = zeta(2,hold=True); a.simplify()
             1/6*pi^2
 
+        The Laurent expansion of `\zeta(s)` at `s=1` is
+        implemented by means of the
+        :wikipedia:`Stieltjes constants <Stieltjes_constants>`::
+
+            sage: s = SR('s')
+            sage: zeta(s).series(s==1, 2)
+            1*(s - 1)^(-1) + (euler_gamma) + (-1/2*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
+        Generally, the Stieltjes constants occur in the Laurent
+        expansion of `\zeta`-type singularities::
+
+            sage: zeta(2*s/(s+1)).series(s==1, 2)
+            2*(s - 1)^(-1) + (euler_gamma + 1) + (-1/4*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+
+
         TESTS::
 
             sage: latex(zeta(x))
@@ -93,10 +107,200 @@ class Function_zeta(GinacFunction):
             Infinity
             sage: zeta(x).subs(x=1)
             Infinity
+
+        Check that :trac:`19799` is resolved::
+
+            sage: zeta(pi)
+            zeta(pi)
+            sage: zeta(pi).n()  # rel tol 1e-10
+            1.17624173838258
+
+        Check that :trac:`20082` is fixed::
+
+            sage: zeta(x).series(x==pi, 2)
+            (zeta(pi)) + (zetaderiv(1, pi))*(-pi + x) + Order((pi - x)^2)
+            sage: (zeta(x) * 1/(1 - exp(-x))).residue(x==2*pi*I)
+            zeta(2*I*pi)
         """
         GinacFunction.__init__(self, "zeta")
 
 zeta = Function_zeta()
+
+
+class Function_stieltjes(GinacFunction):
+    def __init__(self):
+        r"""
+        Stieltjes constant of index ``n``.
+
+        ``stieltjes(0)`` is identical to the Euler-Mascheroni constant
+        (:class:`sage.symbolic.constants.EulerGamma`). The Stieltjes
+        constants are used in the series expansions of `\zeta(s)`.
+
+        INPUT:
+
+        -  ``n`` - non-negative integer
+
+        EXAMPLES::
+
+            sage: _ = var('n')
+            sage: stieltjes(n)
+            stieltjes(n)
+            sage: stieltjes(0)
+            euler_gamma
+            sage: stieltjes(2)
+            stieltjes(2)
+            sage: stieltjes(int(2))
+            stieltjes(2)
+            sage: stieltjes(2).n(100)
+            -0.0096903631928723184845303860352
+            sage: RR = RealField(200)
+            sage: stieltjes(RR(2))
+            -0.0096903631928723184845303860352125293590658061013407498807014
+
+        It is possible to use the ``hold`` argument to prevent
+        automatic evaluation::
+
+            sage: stieltjes(0,hold=True)
+            stieltjes(0)
+
+            sage: latex(stieltjes(n))
+            \gamma_{n}
+            sage: a = loads(dumps(stieltjes(n)))
+            sage: a.operator() == stieltjes
+            True
+
+            sage: stieltjes(x).subs(x==0)
+            euler_gamma
+        """
+        GinacFunction.__init__(self, "stieltjes", nargs=1,
+                            conversions=dict(mathematica='StieltjesGamma',
+                                sympy='stieltjes'),
+                            latex_name='\gamma')
+
+stieltjes = Function_stieltjes()
+
+
+class Function_HurwitzZeta(BuiltinFunction):
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: latex(hurwitz_zeta(x, 2))
+            \zeta\left(x, 2\right)
+            sage: hurwitz_zeta(x, 2)._sympy_()
+            zeta(x, 2)
+        """
+        BuiltinFunction.__init__(self, 'hurwitz_zeta', nargs=2,
+                                 conversions=dict(mathematica='HurwitzZeta',
+                                                  sympy='zeta'),
+                                 latex_name='\zeta')
+
+    def _eval_(self, s, x):
+        r"""
+        TESTS::
+
+            sage: hurwitz_zeta(x, 1)
+            zeta(x)
+            sage: hurwitz_zeta(4, 3)
+            1/90*pi^4 - 17/16
+            sage: hurwitz_zeta(-4, x)
+            -1/5*x^5 + 1/2*x^4 - 1/3*x^3 + 1/30*x
+            sage: hurwitz_zeta(3, 0.5)
+            8.41439832211716
+        """
+        if x == 1:
+            return zeta(s)
+        if s in ZZ and s > 1:
+            return ((-1) ** s) * psi(s - 1, x) / factorial(s - 1)
+        elif s in ZZ and s < 0:
+            return -bernoulli_polynomial(x, -s + 1) / (-s + 1)
+        else:
+            return
+
+    def _evalf_(self, s, x, parent=None, algorithm=None):
+        r"""
+        TESTS::
+
+            sage: hurwitz_zeta(11/10, 1/2).n()
+            12.1038134956837
+            sage: hurwitz_zeta(11/10, 1/2).n(100)
+            12.103813495683755105709077413
+            sage: hurwitz_zeta(11/10, 1 + 1j).n()
+            9.85014164287853 - 1.06139499403981*I
+        """
+        from mpmath import zeta
+        return mpmath_utils.call(zeta, s, x, parent=parent)
+
+    def _derivative_(self, s, x, diff_param):
+        r"""
+        TESTS::
+
+            sage: y = var('y')
+            sage: diff(hurwitz_zeta(x, y), y)
+            -x*hurwitz_zeta(x + 1, y)
+        """
+        if diff_param == 1:
+            return -s * hurwitz_zeta(s + 1, x)
+        else:
+            raise NotImplementedError('derivative with respect to first '
+                                      'argument')
+
+hurwitz_zeta_func = Function_HurwitzZeta()
+
+
+def hurwitz_zeta(s, x, prec=None, **kwargs):
+    r"""
+    The Hurwitz zeta function `\zeta(s, x)`, where `s` and `x` are complex.
+
+    The Hurwitz zeta function is one of the many zeta functions. It
+    defined as
+
+    .. math::
+
+             \zeta(s, x) = \sum_{k=0}^{\infty} (k + x)^{-s}.
+
+
+    When `x = 1`, this coincides with Riemann's zeta function.
+    The Dirichlet L-functions may be expressed as a linear combination
+    of Hurwitz zeta functions.
+
+    EXAMPLES:
+
+    Symbolic evaluations::
+
+        sage: hurwitz_zeta(x, 1)
+        zeta(x)
+        sage: hurwitz_zeta(4, 3)
+        1/90*pi^4 - 17/16
+        sage: hurwitz_zeta(-4, x)
+        -1/5*x^5 + 1/2*x^4 - 1/3*x^3 + 1/30*x
+        sage: hurwitz_zeta(7, -1/2)
+        127*zeta(7) - 128
+        sage: hurwitz_zeta(-3, 1)
+        1/120
+
+    Numerical evaluations::
+
+        sage: hurwitz_zeta(3, 1/2).n()
+        8.41439832211716
+        sage: hurwitz_zeta(11/10, 1/2).n()
+        12.1038134956837
+        sage: hurwitz_zeta(3, x).series(x, 60).subs(x=0.5).n()
+        8.41439832211716
+        sage: hurwitz_zeta(3, 0.5)
+        8.41439832211716
+
+    REFERENCES:
+
+    - :wikipedia:`Hurwitz_zeta_function`
+    """
+    if prec:
+        deprecation(15095, 'the syntax hurwitz_zeta(s, x, prec) has been '
+                           'deprecated. Use hurwitz_zeta(s, x).n(digits=prec) '
+                           'instead.')
+        return hurwitz_zeta_func(s, x).n(digits=prec)
+    return hurwitz_zeta_func(s, x, **kwargs)
+
 
 class Function_zetaderiv(GinacFunction):
     def __init__(self):
@@ -113,6 +317,10 @@ class Function_zetaderiv(GinacFunction):
             n
             sage: zetaderiv(n,x)
             zetaderiv(n, x)
+            sage: zetaderiv(1, 4).n()
+            -0.0689112658961254
+            sage: import mpmath; mpmath.diff(lambda x: mpmath.zeta(x), 4)
+            mpf('-0.068911265896125382')
 
         TESTS::
 
@@ -123,6 +331,18 @@ class Function_zetaderiv(GinacFunction):
             True
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
+
+    def _evalf_(self, n, x, parent=None, algorithm=None):
+        r"""
+        TESTS::
+
+            sage: zetaderiv(0, 3, hold=True).n() == zeta(3).n()
+            True
+            sage: zetaderiv(2, 3 + I).n()
+            0.0213814086193841 - 0.174938812330834*I
+        """
+        from mpmath import zeta
+        return mpmath_utils.call(zeta, x, 1, n, parent=parent)
 
 zetaderiv = Function_zetaderiv()
 
@@ -225,6 +445,7 @@ class DickmanRho(BuiltinFunction):
         sage: dickman_rho(10.00000000000000000000000000000000000000)
         2.77017183772595898875812120063434232634e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
+        Graphics object consisting of 1 graphics primitive
 
     AUTHORS:
 
@@ -273,7 +494,7 @@ class DickmanRho(BuiltinFunction):
         elif x <= 2:
             return 1 - x.log()
         n = x.floor()
-        if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+        if self._cur_prec < x.parent().prec() or n not in self._f:
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = x.parent()(1.1)*x + 10

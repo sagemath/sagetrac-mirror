@@ -7,16 +7,18 @@ AUTHORS:
 
 Sage supports a wide range of specific free string monoids.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# from sage.rings.integer import Integer
-# from sage.structure.parent_gens import ParentWithGens, normalize_names
+
 from free_monoid import FreeMonoid_class
 from string_monoid_element import StringMonoidElement
 from string_ops import strip_encoding
@@ -55,9 +57,6 @@ def BinaryStrings():
         True
     """
     # Here we cache the binary strings to make them unique
-    # if _cache.has_key(2):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 2 in _cache:
         S = _cache[2]()
         if not S is None:
@@ -87,9 +86,6 @@ def OctalStrings():
         033355556
     """
     # Here we cache the octal strings to make them unique
-    # if _cache.has_key(8):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 8 in _cache:
         S = _cache[8]()
         if not S is None:
@@ -120,9 +116,6 @@ def HexadecimalStrings():
         0aaaf
     """
     # Here we cache the hexadecimal strings to make them unique
-    # if _cache.has_key(16):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 16 in _cache:
         S = _cache[16]()
         if not S is None:
@@ -158,9 +151,6 @@ def Radix64Strings():
         /
     """
     # Here we cache the radix-64 strings to make them unique
-    # if _cache.has_key(64):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 64 in _cache:
         S = _cache[64]()
         if not S is None:
@@ -189,9 +179,6 @@ def AlphabeticStrings():
         Z
     """
     # Here we cache the alphabetic strings to make them unique
-    # if _cache.has_key(26):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 26 in _cache:
         S = _cache[26]()
         if not S is None:
@@ -237,6 +224,23 @@ class StringMonoid_class(FreeMonoid_class):
 
     def alphabet(self):
         return tuple(self._alphabet)
+
+    def one(self):
+        r"""
+        Return the identity element of ``self``.
+
+        EXAMPLES::
+
+            sage: b = BinaryStrings(); b
+            Free binary string monoid
+            sage: b.one() * b('1011')
+            1011
+            sage: b.one() * b('110') == b('110')
+            True
+            sage: b('10101') * b.one() == b('101011')
+            False
+        """
+        return StringMonoidElement(self, '')
 
     def gen(self, i=0):
         r"""
@@ -364,10 +368,9 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             00000100
         """
-        from Crypto.Util.number import bytes_to_long
         bit_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             bits = []
             for i in range(8):
                 bits.append(n%2)
@@ -543,10 +546,9 @@ class HexadecimalStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             02
         """
-        from Crypto.Util.number import bytes_to_long
         hex_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             n0 = n % 16
             n1 = n // 16
             if not padic:

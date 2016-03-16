@@ -18,7 +18,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import GCD
+from sage.arith.all import GCD
 
 
 def cholesky_decomposition(self, bit_prec = 53):
@@ -27,19 +27,23 @@ def cholesky_decomposition(self, bit_prec = 53):
     of precision ``bit_prec``.
 
     RESTRICTIONS:
+
         Q must be given as a QuadraticForm defined over `\ZZ`, `\QQ`, or some
         real field. If it is over some real field, then an error is raised if
         the precision given is not less than the defined precision of the real
         field defining the quadratic form!
 
     REFERENCE:
+
         From Cohen's "A Course in Computational Algebraic Number Theory" book,
         p 103.
 
     INPUT:
+
         ``bit_prec`` -- a natural number (default 53).
 
     OUTPUT:
+
         an upper triangular real matrix of precision ``bit_prec``.
 
 
@@ -83,7 +87,7 @@ def cholesky_decomposition(self, bit_prec = 53):
 
     ## Check that the precision passed is allowed.
     if isinstance(self.base_ring(), RealField_class) and (self.base_ring().prec() < bit_prec):
-        raise RuntimeError, "Oops! The precision requested is greater than that of the given quadratic form!"
+        raise RuntimeError("Oops! The precision requested is greater than that of the given quadratic form!")
 
     ## 1. Initialization
     n = self.dim()
@@ -122,9 +126,11 @@ def vectors_by_length(self, bound):
     but does not use the LLL-reduction algorithm.
 
     INPUT:
+
        bound -- an integer >= 0
 
     OUTPUT:
+
         A list L of length (bound + 1) whose entry L `[i]` is a list of
         all vectors of length `i`.
 
@@ -255,7 +261,7 @@ def vectors_by_length(self, bound):
         if abs(Q_val_double -  Q_val) > 0.001:
             print " x = ", x
             print " Float = ", Q_val_double, "   Long = ", Q_val
-            raise RuntimeError, "The roundoff error is bigger than 0.001, so we should use more precision somewhere..."
+            raise RuntimeError("The roundoff error is bigger than 0.001, so we should use more precision somewhere...")
 
         #print " Float = ", Q_val_double, "   Long = ", Q_val, "  XX "
         #print " The float value is ", Q_val_double
@@ -302,9 +308,11 @@ def complementary_subform_to_vector(self, v):
     now extend `v` to a unimodular matrix.
 
     INPUT:
+
         `v` -- a list of self.dim() integers
 
     OUTPUT:
+
         a QuadraticForm over `ZZ`
 
 
@@ -346,7 +354,7 @@ def complementary_subform_to_vector(self, v):
 
     ## Abort if v is the zero vector
     if nz == n:
-        raise TypeError, "Oops, v cannot be the zero vector! =("
+        raise TypeError("Oops, v cannot be the zero vector! =(")
 
     ## Make the change of basis matrix
     new_basis = extend_to_primitive(matrix(ZZ,n,1,v))
@@ -383,7 +391,7 @@ def complementary_subform_to_vector(self, v):
             done_flag = False
 
     if done_flag == False:
-        raise RuntimeError, "There is a problem cancelling out the matrix entries! =O"
+        raise RuntimeError("There is a problem cancelling out the matrix entries! =O")
 
 
     ## Return the complementary matrix
@@ -407,9 +415,11 @@ def split_local_cover(self):
     lattice and the original quadratic form Q.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a QuadraticForm over ZZ
 
     EXAMPLES::

@@ -102,7 +102,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import ZZ
-from sage.libs.pari.gen import pari
 
 class Small_primes_of_degree_one_iter():
     r"""
@@ -143,6 +142,7 @@ class Small_primes_of_degree_one_iter():
         self._poly = ZZ['x'](self._poly.denominator() * self._poly()) # make integer polynomial
 
         # this uses that [ O_K : Z[a] ]^2 = | disc(f(x)) / disc(O_K) |
+        from sage.libs.pari.all import pari
         self._prod_of_small_primes = ZZ(pari('TEMPn = %s; TEMPps = primes(TEMPn); prod(X = 1, TEMPn, TEMPps[X])' % num_integer_primes))
         self._prod_of_small_primes //= self._prod_of_small_primes.gcd(self._poly.discriminant())
 
@@ -185,7 +185,7 @@ class Small_primes_of_degree_one_iter():
         """
         count = 0
         while count < self._max_iterations:
-            n = self._integer_iter.next()
+            n = next(self._integer_iter)
             g = self._prod_of_small_primes.gcd(self._poly(n))
             self._prod_of_small_primes //= g
             self._queue = self._queue + [ (p, n) for p in g.prime_divisors() ]
@@ -203,7 +203,7 @@ class Small_primes_of_degree_one_iter():
             sage: x = QQ['x'].gen()
             sage: K.<a> = NumberField(x^2 - 3)
             sage: it = K.primes_of_degree_one_iter()
-            sage: [ it.next() for i in range(3) ] # random
+            sage: [ next(it) for i in range(3) ] # random
             [Fractional ideal (2*a + 1), Fractional ideal (-a + 4), Fractional ideal (3*a + 2)]
 
         We test that #6396 is fixed. Note that the doctest is flagged as random

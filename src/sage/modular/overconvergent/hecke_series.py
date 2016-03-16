@@ -64,17 +64,21 @@ REFERENCES:
    forms", LMS J. of Comput. Math. 14 (2011), 214-231.
 
 """
-#########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2011 Alan Lauder <lauder@maths.ox.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 from sage.functions.all import floor, ceil
-from sage.rings.all import ZZ,Zmod,valuation,Infinity,Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.arith.all import valuation
+from sage.rings.all import ZZ, Zmod, Infinity, Integer
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modular.modform.all import ModularForms, ModularFormsRing, delta_qexp, eisenstein_series_qexp
 from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly
@@ -826,7 +830,7 @@ def compute_Wi(k,p,h,hj,E4,E6):
 
     - list of q-expansions (to same finite precision), and q-expansion.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import compute_Wi
         sage: p = 17
@@ -1048,11 +1052,11 @@ def is_valid_weight_list(klist,p):
         ValueError: List of weights must be all congruent modulo p-1 = 4, but given list contains -3 and 2 which are not congruent
     """
     if len(klist) == 0:
-        raise ValueError, "List of weights must be non-empty"
+        raise ValueError("List of weights must be non-empty")
     k0 = klist[0] % (p-1)
     for i in xrange(1,len(klist)):
         if (klist[i] % (p-1)) != k0:
-            raise ValueError, "List of weights must be all congruent modulo p-1 = %s, but given list contains %s and %s which are not congruent" % (p-1, klist[0], klist[i])
+            raise ValueError("List of weights must be all congruent modulo p-1 = %s, but given list contains %s and %s which are not congruent" % (p-1, klist[0], klist[i]))
 
 def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
     r"""
@@ -1123,18 +1127,18 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
 
     oneweight = False
     # convert single weight to list
-    if ((type(klist) == int) or (type(klist) == Integer)):
+    if ((isinstance(klist, int)) or (isinstance(klist, Integer))):
         klist = [klist]
         oneweight = True # input is single weight
 
     # algorithm may finish with false output unless:
     is_valid_weight_list(klist,p)
     if not p.is_prime():
-        raise ValueError, "p (=%s) is not prime" % p
+        raise ValueError("p (=%s) is not prime" % p)
     if p < 5:
-        raise ValueError, "p = 2 and p = 3 not supported"
+        raise ValueError("p = 2 and p = 3 not supported")
     if not N%p:
-        raise ValueError, "Level (=%s) should be prime to p (=%s)" % (N, p)
+        raise ValueError("Level (=%s) should be prime to p (=%s)" % (N, p))
 
     # return all 1 list for odd weights
     if klist[0] % 2 == 1:

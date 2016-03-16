@@ -247,7 +247,7 @@ class SymmetricIdeal( Ideal_generic ):
         """
         try:
             return self.reduce(p) == 0
-        except StandardError:
+        except Exception:
             return False
 
     def __mul__ (self, other):
@@ -281,7 +281,7 @@ class SymmetricIdeal( Ideal_generic ):
         oGen = list(other.gens())
         SymL = oGen
         for i in range(sN):
-            oGen = [X.__pow__(P) for X in oGen]
+            oGen = [X ** P for X in oGen]
             SymL = SymL + oGen
         # Now, SymL contains all necessary permutations of the second factor
         OUT = []
@@ -636,7 +636,7 @@ class SymmetricIdeal( Ideal_generic ):
             N = Integer(N)
         if hasattr(R,'_max') and R._max<N:
             R.gen()[N]
-        if report!=None:
+        if report is not None:
             print "Symmetrise %d polynomials at level %d"%(len(newOUT.gens()),N)
         if use_full_group:
             from sage.combinat.permutation import Permutations
@@ -920,7 +920,7 @@ class SymmetricIdeal( Ideal_generic ):
             algorithm=''
         PARENT = self.ring()
         if not (hasattr(PARENT.base_ring(),'is_field') and PARENT.base_ring().is_field()):
-            raise TypeError, "The base ring (= %s) must be a field"%PARENT.base_ring()
+            raise TypeError("The base ring (= %s) must be a field"%PARENT.base_ring())
         OUT = self.symmetrisation(tailreduce=tailreduce,report=report,use_full_group=use_full_group)
         if not (report is None):
             print "Symmetrisation done"
@@ -953,22 +953,18 @@ class SymmetricIdeal( Ideal_generic ):
 
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
-            except StandardError:
-                if report != None:
+            except Exception:
+                if report is not None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR
-            if hasattr(DenseIdeal,'groebner_basis'):
-                if report != None:
-                    print "Classical Groebner basis"
-                    if algorithm!='':
-                        print "(using %s)"%algorithm
-                newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
-                if report != None:
-                    print "->",len(newOUT.gens()),'generators'
-            else:
-                if report != None:
-                    print "Univariate polynomial ideal"
-                newOUT = DenseIdeal.gens()*PARENT
+
+            if report is not None:
+                print "Classical Groebner basis"
+                if algorithm!='':
+                    print "(using %s)"%algorithm
+            newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
+            if report is not None:
+                print "->",len(newOUT.gens()),'generators'
             # Symmetrise out to the next index:
             N += 1
             newOUT = newOUT.symmetrisation(N=N,tailreduce=tailreduce,report=report,use_full_group=use_full_group)

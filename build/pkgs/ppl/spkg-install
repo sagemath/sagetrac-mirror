@@ -18,7 +18,6 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 
 # Make sure that we prefer Sage's mpir library over system-wide gmp/mpir installs
-export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
 
 cd src
@@ -28,6 +27,7 @@ cd src
 # * break when setting MAKE="make -jN"
 # They cover code that is not exposed by the Cython wrapper
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"

@@ -13,8 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 import weakref
@@ -24,7 +22,7 @@ from sage.rings.integer_ring import IntegerRing
 ZZ_sage = IntegerRing()
 
 
-cdef class ntl_ZZ_pContext_class:
+cdef class ntl_ZZ_pContext_class(object):
     def __init__(self, ntl_ZZ v):
         """
         EXAMPLES:
@@ -48,12 +46,9 @@ cdef class ntl_ZZ_pContext_class:
         pass
 
     def __cinit__(self, ntl_ZZ v):
-        ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
+        self.x = ZZ_pContext_c(v.x)
         self.p = v
         self.p_bits = self.p._integer_().nbits()
-
-    def __dealloc__(self):
-        ZZ_pContext_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -112,7 +107,7 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self):
         self.x.restore()
 
-cdef class ntl_ZZ_pContext_factory:
+cdef class ntl_ZZ_pContext_factory(object):
     def __init__(self):
         self.context_dict = {}
 
@@ -124,7 +119,7 @@ cdef class ntl_ZZ_pContext_factory:
         v -- an ntl_ZZ
         """
         cdef ntl_ZZ_pContext_class context
-        if self.context_dict.has_key(v):
+        if v in self.context_dict:
             context = <ntl_ZZ_pContext_class> self.context_dict[v]()
             if context is not None:
                 return context

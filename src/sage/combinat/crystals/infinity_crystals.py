@@ -2,7 +2,7 @@ r"""
 `\mathcal{B}(\infty)` Crystals of Tableaux in Nonexceptional Types and `G_2`
 
 A tableau model for `\mathcal{B}(\infty)`. For more information, see
-:class:`InfinityCrystalOfTableaux`.
+:class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
 AUTHORS:
 
@@ -12,7 +12,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Ben Salisbury <benjamin_salisbury at brown.edu>
+#       Copyright (C) 2013 Ben Salisbury <bsalisbury1 at gmail.com>
 #                          Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -30,14 +30,15 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
-from sage.rings.infinity import Infinity
 
 from sage.combinat.partition import Partition
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.crystals.tensor_product import CrystalOfWords, CrystalOfTableauxElement
+
 
 class InfinityCrystalOfTableaux(CrystalOfWords):
     r"""
@@ -96,7 +97,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     `\mathcal{T}(\infty)` is the set of marginally large semistandard
     tableaux with exactly `n-1` rows over the alphabet `\{1 \prec \cdots
     \prec n, \overline{n} \prec \cdots \prec \overline{1} \}` and subject
-    to the following constaints:
+    to the following constraints:
 
     - for each `1 \le i \le n`, the contents of the boxes in the `i`-th
       row are `\preceq \overline{i}`,
@@ -146,7 +147,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     EXAMPLES::
 
-        sage: B = InfinityCrystalOfTableaux(['A',2])
+        sage: B = crystals.infinity.Tableaux(['A',2])
         sage: b = B.highest_weight_vector(); b.pp()
         1  1
         2
@@ -154,7 +155,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
         1  1  1  1  1  2  3
         2  3  3  3
 
-        sage: B = InfinityCrystalOfTableaux(['G',2])
+        sage: B = crystals.infinity.Tableaux(['G',2])
         sage: b = B(rows=[[1,1,1,1,1,2,3,3,0,-3,-1,-1,-1],[2,3,3,3]])
         sage: b.e_string([2,1,1,1,1,1,1]).pp()
         1  1  1  1  2  3  3  3  3 -2 -2 -2
@@ -164,37 +165,40 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     We check that a few classical crystals embed into `\mathcal{T}(\infty)`::
 
         sage: def crystal_test(B, C):
-        ....:     g = {C.module_generators[0] : B.module_generators[0]}
-        ....:     f = C.crystal_morphism(g)
+        ....:     T = crystals.elementary.T(C.cartan_type(), C.module_generators[0].weight())
+        ....:     TP = crystals.TensorProduct(T, B)
+        ....:     mg = TP(T[0], B.module_generators[0])
+        ....:     g = {C.module_generators[0]: mg}
+        ....:     f = C.crystal_morphism(g, category=HighestWeightCrystals())
         ....:     G = B.digraph(subset=[f(x) for x in C])
         ....:     return G.is_isomorphic(C.digraph(), edge_labels=True)
-        sage: B = InfinityCrystalOfTableaux(['A',2])
-        sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+        sage: B = crystals.infinity.Tableaux(['A',2])
+        sage: C = crystals.Tableaux(['A',2], shape=[2,1])
         sage: crystal_test(B, C)
         True
-        sage: C = CrystalOfTableaux(['A',2], shape=[6,2])
+        sage: C = crystals.Tableaux(['A',2], shape=[6,2])
         sage: crystal_test(B, C)
         True
-        sage: B = InfinityCrystalOfTableaux(['B',2])
-        sage: C = CrystalOfTableaux(['B',2], shape=[3])
+        sage: B = crystals.infinity.Tableaux(['B',2])
+        sage: C = crystals.Tableaux(['B',2], shape=[3])
         sage: crystal_test(B, C)
         True
-        sage: C = CrystalOfTableaux(['B',2], shape=[2,1])
+        sage: C = crystals.Tableaux(['B',2], shape=[2,1])
         sage: crystal_test(B, C)
         True
-        sage: B = InfinityCrystalOfTableaux(['C',3])
-        sage: C = CrystalOfTableaux(['C',3], shape=[2,1])
+        sage: B = crystals.infinity.Tableaux(['C',3])
+        sage: C = crystals.Tableaux(['C',3], shape=[2,1])
         sage: crystal_test(B, C)
         True
-        sage: B = InfinityCrystalOfTableaux(['D',4])
-        sage: C = CrystalOfTableaux(['D',4], shape=[2])
+        sage: B = crystals.infinity.Tableaux(['D',4])
+        sage: C = crystals.Tableaux(['D',4], shape=[2])
         sage: crystal_test(B, C)
         True
-        sage: C = CrystalOfTableaux(['D',4], shape=[1,1,1,1])
+        sage: C = crystals.Tableaux(['D',4], shape=[1,1,1,1])
         sage: crystal_test(B, C)
         True
-        sage: B = InfinityCrystalOfTableaux(['G',2])
-        sage: C = CrystalOfTableaux(['G',2], shape=[3])
+        sage: B = crystals.infinity.Tableaux(['G',2])
+        sage: C = crystals.Tableaux(['G',2], shape=[3])
         sage: crystal_test(B, C)
         True
     """
@@ -205,8 +209,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['A',4])
-            sage: B2 = InfinityCrystalOfTableaux(CartanType(['A',4]))
+            sage: B = crystals.infinity.Tableaux(['A',4])
+            sage: B2 = crystals.infinity.Tableaux(CartanType(['A',4]))
             sage: B is B2
             True
         """
@@ -221,10 +225,11 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['A',2])
+            sage: B = crystals.infinity.Tableaux(['A',2])
             sage: TestSuite(B).run() # long time
         """
-        Parent.__init__( self, category=(HighestWeightCrystals(), InfiniteEnumeratedSets()) )
+        Parent.__init__(self, category=(HighestWeightCrystals(),
+                                        InfiniteEnumeratedSets()))
         self._cartan_type = cartan_type
         self.letters = CrystalOfLetters(cartan_type)
         self.module_generators = (self.module_generator(),)
@@ -235,10 +240,10 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['A',4]); B
+            sage: B = crystals.infinity.Tableaux(['A',4]); B
             The infinity crystal of tableaux of type ['A', 4]
         """
-        return "The infinity crystal of tableaux of type %s"%self._cartan_type
+        return "The infinity crystal of tableaux of type %s" % self._cartan_type
 
     @cached_method
     def module_generator(self):
@@ -250,7 +255,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: T = InfinityCrystalOfTableaux(['A',3])
+            sage: T = crystals.infinity.Tableaux(['A',3])
             sage: T.module_generator()
             [[1, 1, 1], [2, 2], [3]]
         """
@@ -266,13 +271,32 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
+            sage: T = crystals.Tableaux(['A',3], shape = [2,2])
             sage: T(rows=[[1,2],[3,4]])
             [[1, 2], [3, 4]]
             sage: T(columns=[[3,1],[4,2]])
             [[1, 2], [3, 4]]
         """
         return self.element_class(self, *args, **options)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T._coerce_map_from_(RC)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of rigged configurations of type ['A', 3]
+              To:   The infinity crystal of tableaux of type ['A', 3]
+        """
+        from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRiggedConfigurations
+        if isinstance(P, InfinityCrystalOfRiggedConfigurations):
+            from sage.combinat.rigged_configurations.bij_infinity import FromRCIsomorphism
+            return FromRCIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfTableaux, self)._coerce_map_from_(P)
 
     class Element(CrystalOfTableauxElement):
         r"""
@@ -289,7 +313,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['B',3])
+                sage: B = crystals.infinity.Tableaux(['B',3])
                 sage: b = B(rows=[[1,1,1,1,1,1,1,2,0,-3,-1,-1,-1,-1],[2,2,2,2,-2,-2],[3,-3,-3]])
                 sage: b.e(3).pp()
                 1  1  1  1  1  1  1  2  0 -3 -1 -1 -1 -1
@@ -327,7 +351,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['C',4])
+                sage: B = crystals.infinity.Tableaux(['C',4])
                 sage: b = B.highest_weight_vector()
                 sage: b.f(1).pp()
                 1  1  1  1  2
@@ -377,11 +401,11 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux("A3")
+                sage: B = crystals.infinity.Tableaux("A3")
                 sage: [B.highest_weight_vector().f_string([1,3,2,3,1,3,2,1]).phi(i) for i in B.index_set()]
                 [-3, 4, -3]
 
-                sage: B = InfinityCrystalOfTableaux("G2")
+                sage: B = crystals.infinity.Tableaux("G2")
                 sage: [B.highest_weight_vector().f_string([2,2,1,2,1,1,1,2]).phi(i) for i in B.index_set()]
                 [5, -3]
             """
@@ -421,7 +445,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux("C7")
+                sage: B = crystals.infinity.Tableaux("C7")
                 sage: b = B.highest_weight_vector().f_string([1,6,4,7,4,2,4,6,2,4,6,7,1,2,4,7])
                 sage: b.weight()
                 (-2, -1, 3, -5, 5, -3, -3)
@@ -435,7 +459,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             Check that it works for type `B`::
 
-                sage: B = InfinityCrystalOfTableaux("B2")
+                sage: B = crystals.infinity.Tableaux("B2")
                 sage: B.highest_weight_vector().weight()
                 (0, 0)
                 sage: b = B.highest_weight_vector().f_string([1,2,2,2,1,2])
@@ -446,7 +470,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             Check that it works for type `D`::
 
-                sage: B = InfinityCrystalOfTableaux("D4")
+                sage: B = crystals.infinity.Tableaux("D4")
                 sage: B.highest_weight_vector().weight()
                 (0, 0, 0, 0)
                 sage: b = B.highest_weight_vector().f_string([1,4,4,2,4,3,2,4,1,3,2,4])
@@ -470,7 +494,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                     cur_col_len = 1
                 else:
                     cur_col_len += 1
-            shape_wt += La[1] # Since we miss the last column (which is always height 1)
+            shape_wt += La[1]
+            # Since we miss the last column (which is always height 1)
             return CrystalOfTableauxElement.weight(self) - shape_wt
 
         def reduced_form(self):
@@ -485,28 +510,31 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['A',3])
+                sage: B = crystals.infinity.Tableaux(['A',3])
                 sage: b = B.highest_weight_vector().f_string([2,2,2,3,3,3,3,3])
                 sage: b.pp()
                 1  1  1  1  1  1  1  1
                 2  2  2  2  4  4  4
                 3  4  4
-                sage: b.reduced_form().pp()
-                *
-                4  4  4
-                4  4
+                sage: b.reduced_form()
+                [['*'], [4, 4, 4], [4, 4]]
             """
-            tab = self.to_tableau()
-            for i in range(len(tab)):
-                j=0
-                while j < len(tab[i]):
-                    if tab[i][j] == i+1:
-                        tab[i].pop(j)
-                        if tab[i] == []:
-                            tab[i].append('*')
+            oldtab = self.to_tableau()
+            newtab = []
+            for i, row in enumerate(oldtab):
+                j = 0
+                row = list(row)
+                while j < len(row):
+                    if row[j] == i+1:
+                        row.pop(j)
+                        if not row:
+                            row.append('*')
                     else:
                         j += 1
-            return tab
+                newtab.append(row)
+            from sage.misc.stopgap import stopgap
+            stopgap("Return value is no longer a Tableau.", 17997)
+            return newtab
 
         def seg(self):
             r"""
@@ -533,7 +561,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['A',3])
+                sage: B = crystals.infinity.Tableaux(['A',3])
                 sage: b = B.highest_weight_vector().f_string([1,3,2,2,3,1,1,3])
                 sage: b.pp()
                 1  1  1  1  1  1  2  2  4
@@ -542,7 +570,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 sage: b.seg()
                 4
 
-                sage: B = InfinityCrystalOfTableaux(['D',4])
+                sage: B = crystals.infinity.Tableaux(['D',4])
                 sage: b = B(rows=[[1,1,1,1,1,1,3,-2,-1],[2,2,2,4,-2],[3,3],[4]])
                 sage: b.pp()
                 1  1  1  1  1  1  3 -2 -1
@@ -552,7 +580,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 sage: b.seg()
                 6
 
-                sage: B = InfinityCrystalOfTableaux(['G',2])
+                sage: B = crystals.infinity.Tableaux(['G',2])
                 sage: b = B.highest_weight_vector().f_string([2,1,1,1,2,1,2,2,1,2,2,2,1,2,2,1])
                 sage: b.pp()
                 1  1  1  1  1  1  1  1  2  3  0 -3
@@ -596,27 +624,34 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             The content `|T|` of `T \in \mathcal{B}(\infty)` is the number of
             blocks added to the highest weight to obtain `T` with any
             `\overline{\imath}`-boxes in the `i`-th row counted with
-            multiplicity `2`.
+            multiplicity `2` provided the underlying Cartan type is of type
+            `B`, `D`, or `G`.
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux("D5")
+                sage: B = crystals.infinity.Tableaux("D5")
                 sage: b = B.highest_weight_vector().f_string([5,4,3,1,1,3,4,5,3,4,5,1,4,5,2,3,5,3,2,4])
                 sage: b.content()
                 13
 
-                sage: B = InfinityCrystalOfTableaux("B2")
+                sage: B = crystals.infinity.Tableaux("B2")
                 sage: b = B(rows=[[1,1,1,1,1,1,2,2,2,-2,-2],[2,0,-2,-2,-2]])
                 sage: b.content()
                 12
+
+                sage: B = crystals.infinity.Tableaux("C2")
+                sage: b = B(rows=[[1,1,1,1,1,1,2,2,2,-2,-2],[2,-2,-2,-2]])
+                sage: b.content()
+                8
             """
             tab = self.to_tableau()
             count = 0
-            for i in range(len(tab)):
-                for j in range(len(tab[i])):
-                    if tab[i][j] == -i-1:
+            ct = self.parent().cartan_type().type()
+            for i,row in enumerate(tab):
+                for entry in row:
+                    if entry == -i-1 and ct in ('B', 'D', 'G'):
                         count += 2
-                    elif tab[i][j] != i+1:
+                    elif entry != i+1:
                         count += 1
             return count
 
@@ -646,12 +681,12 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux("A5")
+                sage: B = crystals.infinity.Tableaux("A5")
                 sage: b = B(rows=[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,6,6,6,6,6,6],[2,2,2,2,2,2,2,2,2,4,5,5,5,6],[3,3,3,3,3,3,3,5],[4,4,4,6,6,6],[5,6]])
                 sage: b.string_parameters([1,2,1,3,2,1,4,3,2,1,5,4,3,2,1])
                 [0, 1, 1, 1, 1, 0, 4, 4, 3, 0, 11, 10, 7, 7, 6]
 
-                sage: B = InfinityCrystalOfTableaux("G2")
+                sage: B = crystals.infinity.Tableaux("G2")
                 sage: b = B(rows=[[1,1,1,1,1,3,3,0,-3,-3,-2,-2,-1,-1,-1,-1],[2,3,3,3]])
                 sage: b.string_parameters([2,1,2,1,2,1])
                 [5, 13, 11, 15, 4, 4]
@@ -661,11 +696,12 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             ret = []
             for i in word:
                 a = 0
-                while self.e(i) != None:
+                while self.e(i) is not None:
                     self = self.e(i)
                     a += 1
                 ret.append(a)
             return ret
+
 
 class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
     r"""
@@ -682,11 +718,12 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
     - the entries `n` and `\overline{n}` may not appear simultaneously in
       a single row.
 
-    For more information, see :class:`InfinityCrystalOfTableaux`.
+    For more information, see
+    :class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
     EXAMPLES::
 
-        sage: B = InfinityCrystalOfTableaux("D4")
+        sage: B = crystals.infinity.Tableaux("D4")
         sage: b = B.highest_weight_vector().f_string([4,3,2,1,4])
         sage: b.pp()
         1  1  1  1  1  1  2
@@ -702,8 +739,8 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['D',4])
-            sage: B2 = InfinityCrystalOfTableaux(CartanType(['D',4]))
+            sage: B = crystals.infinity.Tableaux(['D',4])
+            sage: B2 = crystals.infinity.Tableaux(CartanType(['D',4]))
             sage: B is B2
             True
         """
@@ -719,7 +756,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
         EXAMPLES::
 
-            sage: T = InfinityCrystalOfTableaux(['D',4])
+            sage: T = crystals.infinity.Tableaux(['D',4])
             sage: T.module_generator()
             [[1, 1, 1], [2, 2], [3]]
         """
@@ -743,7 +780,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['D',4])
+                sage: B = crystals.infinity.Tableaux(['D',4])
                 sage: b = B.highest_weight_vector().f_string([1,4,3,1,2]); b.pp()
                 1  1  1  1  2  3
                 2  2  2
@@ -782,7 +819,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
             EXAMPLES::
 
-                sage: B = InfinityCrystalOfTableaux(['D',5])
+                sage: B = crystals.infinity.Tableaux(['D',5])
                 sage: b = B.highest_weight_vector().f_string([1,4,3,1,5]); b.pp()
                 1  1  1  1  1  1  2  2
                 2  2  2  2  2
@@ -805,4 +842,3 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
                 for j in range(i-1):
                     ret._list.insert(0,self.parent().letters(j+1))
             return ret
-

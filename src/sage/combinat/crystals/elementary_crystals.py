@@ -33,12 +33,14 @@ some other properties of these crystals:
   b_i(0) \otimes u_{\infty}`, where `u_\infty` is the highest weight vector
   of `B(\infty)`.
 
-For more information on `B(\infty)`, see :class:`InfinityCrystalOfTableaux`.
+For more information on `B(\infty)`, see
+:class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
 .. NOTE::
 
-    As with :class:`TensorProductOfCrystals`, we are using the opposite of
-    Kashiwara's convention.
+    As with
+    :class:`~sage.combinat.crystals.tensor_product.TensorProductOfCrystals`,
+    we are using the opposite of Kashiwara's convention.
 
 AUTHORS:
 
@@ -81,7 +83,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity
+from sage.rings.integer_ring import ZZ
 
 class AbstractSingleCrystalElement(Element):
     r"""
@@ -92,7 +94,7 @@ class AbstractSingleCrystalElement(Element):
         EXAMPLES::
 
             sage: La = RootSystem("D4").ambient_space().fundamental_weights()
-            sage: T = TCrystal("D4",La[3]+La[4])
+            sage: T = crystals.elementary.T("D4",La[3]+La[4])
             sage: t = T.highest_weight_vector()
             sage: t < t.e(1)
             False
@@ -101,15 +103,26 @@ class AbstractSingleCrystalElement(Element):
         """
         return False
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: C = crystals.elementary.Component("D7")
+            sage: c = C.highest_weight_vector()
+            sage: hash(c) # random
+            879
+        """
+        return hash(self.parent())
+
     def __eq__(self,other):
         r"""
         EXAMPLES::
 
             sage: La = RootSystem("A2").weight_lattice().fundamental_weights()
-            sage: T = TCrystal("A2",La[1])
-            sage: U = TCrystal("A2",La[2])
+            sage: T = crystals.elementary.T("A2",La[1])
+            sage: U = crystals.elementary.T("A2",La[2])
             sage: la = RootSystem("B2").weight_lattice().fundamental_weights()
-            sage: V = TCrystal("B2",la[1])
+            sage: V = crystals.elementary.T("B2",la[1])
             sage: t = T.highest_weight_vector()
             sage: u = U.highest_weight_vector()
             sage: v = V.highest_weight_vector()
@@ -118,7 +131,7 @@ class AbstractSingleCrystalElement(Element):
             sage: [t == u, u == v, t == v]
             [False, False, False]
 
-            sage: C = ComponentCrystal("D7")
+            sage: C = crystals.elementary.Component("D7")
             sage: c = C.highest_weight_vector()
             sage: c == c
             True
@@ -134,13 +147,13 @@ class AbstractSingleCrystalElement(Element):
         EXAMPLES::
 
             sage: La = RootSystem("A2").weight_lattice().fundamental_weights()
-            sage: T = TCrystal("A2",La[1])
+            sage: T = crystals.elementary.T("A2",La[1])
             sage: T.highest_weight_vector() != T.highest_weight_vector()
             False
             sage: T.highest_weight_vector() != T.highest_weight_vector().e(1)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def e(self,i):
         r"""
@@ -154,7 +167,7 @@ class AbstractSingleCrystalElement(Element):
 
             sage: ct = CartanType(['A',2])
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-            sage: T = TCrystal(ct,la[1])
+            sage: T = crystals.elementary.T(ct,la[1])
             sage: t = T.highest_weight_vector()
             sage: t.e(1)
             sage: t.e(2)
@@ -173,14 +186,14 @@ class AbstractSingleCrystalElement(Element):
 
             sage: ct = CartanType(['A',2])
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-            sage: T = TCrystal(ct,la[1])
+            sage: T = crystals.elementary.T(ct,la[1])
             sage: t = T.highest_weight_vector()
             sage: t.f(1)
             sage: t.f(2)
         """
         return None
 
-class TCrystal(Parent, UniqueRepresentation):
+class TCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `T_{\lambda}`.
 
@@ -208,14 +221,14 @@ class TCrystal(Parent, UniqueRepresentation):
     EXAMPLES::
 
         sage: ct = CartanType(['A',2])
-        sage: C = CrystalOfTableaux(ct, shape=[1])
+        sage: C = crystals.Tableaux(ct, shape=[1])
         sage: for x in C: x.weight()
         (1, 0, 0)
         (0, 1, 0)
         (0, 0, 1)
         sage: La = RootSystem(ct).ambient_space().fundamental_weights()
-        sage: TLa = TCrystal(ct, 3*(La[1] + La[2]))
-        sage: TP = TensorProductOfCrystals(TLa, C)
+        sage: TLa = crystals.elementary.T(ct, 3*(La[1] + La[2]))
+        sage: TP = crystals.TensorProduct(TLa, C)
         sage: for x in TP: x.weight()
         (7, 3, 0)
         (6, 4, 0)
@@ -236,13 +249,16 @@ class TCrystal(Parent, UniqueRepresentation):
             sage: ct = CartanType(['A',3])
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
             sage: wts = RootSystem(ct).ambient_space().fundamental_weights()
-            sage: X = TCrystal(['A',3], la[1])
-            sage: Y = TCrystal(ct, wts[1])
+            sage: X = crystals.elementary.T(['A',3], la[1])
+            sage: Y = crystals.elementary.T(ct, wts[1])
             sage: X is Y
             True
         """
         cartan_type = CartanType(cartan_type)
-        La = RootSystem(cartan_type).ambient_space()(weight)
+        F = RootSystem(cartan_type).ambient_space()
+        if F is None:
+            F = RootSystem(cartan_type).weight_space()
+        La = F(weight)
         return super(TCrystal, cls).__classcall__(cls, cartan_type, La)
 
     def __init__(self, cartan_type, weight):
@@ -252,7 +268,7 @@ class TCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem("A2").weight_lattice().fundamental_weights()
-            sage: B = TCrystal("A2", 5*la[2])
+            sage: B = crystals.elementary.T("A2", 5*la[2])
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = (FiniteCrystals(), HighestWeightCrystals()))
@@ -267,7 +283,7 @@ class TCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem(['E',6]).weight_lattice().fundamental_weights()
-            sage: B = TCrystal(['E',6], la[6])
+            sage: B = crystals.elementary.T(['E',6], la[6])
             sage: B
             The T crystal of type ['E', 6] and weight (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
         """
@@ -284,7 +300,7 @@ class TCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem("E8").weight_lattice().fundamental_weights()
-            sage: T = TCrystal("E8",la[7]+la[8])
+            sage: T = crystals.elementary.T("E8",la[7]+la[8])
             sage: T(la[7]+la[8])
             (0, 0, 0, 0, 0, 1, 2, 3)
         """
@@ -299,11 +315,33 @@ class TCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
-            sage: T = TCrystal(['C',12], La[9])
+            sage: T = crystals.elementary.T(['C',12], La[9])
             sage: T.cardinality()
             1
         """
         return Integer(1)
+
+    def weight_lattice_realization(self):
+        """
+        Return a realization of the lattice containing the weights
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
+            sage: T = crystals.elementary.T(['C',12], La[9])
+            sage: T.weight_lattice_realization()
+            Ambient space of the Root system of type ['C', 12]
+
+            sage: ct = CartanMatrix([[2, -4], [-5, 2]])
+            sage: La = RootSystem(ct).weight_lattice().fundamental_weights()
+            sage: T = crystals.elementary.T(ct, La[1])
+            sage: T.weight_lattice_realization()
+            Weight space over the Rational Field of the Root system of type
+            [ 2 -4]
+            [-5  2]
+        """
+        return self._weight.parent()
 
     class Element(AbstractSingleCrystalElement):
         r"""
@@ -315,7 +353,7 @@ class TCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['F',4])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,2*la[1]-3*la[3])
+                sage: T = crystals.elementary.T(ct,2*la[1]-3*la[3])
                 sage: t = T.highest_weight_vector()
                 sage: t
                 (-5/2, 1/2, -3/2, -3/2)
@@ -330,7 +368,7 @@ class TCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['B',5,1])
                 sage: la = RootSystem(ct).ambient_space().fundamental_weights()
-                sage: T = TCrystal(ct, 2*la[1]-3*la[3]+la[0])
+                sage: T = crystals.elementary.T(ct, 2*la[1]-3*la[3]+la[0])
                 sage: t = T.highest_weight_vector()
                 sage: latex(t)
                 {t_{-e_{0} - 3e_{1} - 3e_{2} - 3e_{deltacheck}}}
@@ -349,7 +387,7 @@ class TCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['C',5])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,la[4]+la[5]-la[1]-la[2])
+                sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: [t.epsilon(i) for i in T.index_set()]
                 [-inf, -inf, -inf, -inf, -inf]
@@ -368,7 +406,7 @@ class TCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['C',5])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,la[4]+la[5]-la[1]-la[2])
+                sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: [t.phi(i) for i in T.index_set()]
                 [-inf, -inf, -inf, -inf, -inf]
@@ -383,14 +421,14 @@ class TCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['C',5])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,la[4]+la[5]-la[1]-la[2])
+                sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: t.weight()
                 (0, 1, 2, 2, 1)
             """
             return self.parent()._weight
 
-class RCrystal(Parent, UniqueRepresentation):
+class RCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `R_{\lambda}`.
 
@@ -425,9 +463,9 @@ class RCrystal(Parent, UniqueRepresentation):
     We check by tensoring `R_{\lambda}` with `B(\infty)` results in a
     component of `B(\lambda)`::
 
-        sage: B = InfinityCrystalOfTableaux("A2")
-        sage: R = RCrystal("A2", B.Lambda()[1]+B.Lambda()[2])
-        sage: T = TensorProductOfCrystals(R, B)
+        sage: B = crystals.infinity.Tableaux("A2")
+        sage: R = crystals.elementary.R("A2", B.Lambda()[1]+B.Lambda()[2])
+        sage: T = crystals.TensorProduct(R, B)
         sage: mg = T(R.highest_weight_vector(), B.highest_weight_vector())
         sage: S = T.subcrystal(generators=[mg])
         sage: for x in S: x.weight()
@@ -439,7 +477,7 @@ class RCrystal(Parent, UniqueRepresentation):
         (1, 0, 2)
         (0, 2, 1)
         (0, 1, 2)
-        sage: C = CrystalOfTableaux("A2", shape=[2,1])
+        sage: C = crystals.Tableaux("A2", shape=[2,1])
         sage: for x in C: x.weight()
         (2, 1, 0)
         (1, 2, 0)
@@ -465,13 +503,16 @@ class RCrystal(Parent, UniqueRepresentation):
             sage: ct = CartanType(['A',3])
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
             sage: wts = RootSystem(ct).ambient_space().fundamental_weights()
-            sage: X = RCrystal(['A',3], la[1])
-            sage: Y = RCrystal(ct, wts[1])
+            sage: X = crystals.elementary.R(['A',3], la[1])
+            sage: Y = crystals.elementary.R(ct, wts[1])
             sage: X is Y
             True
         """
         cartan_type = CartanType(cartan_type)
-        La = RootSystem(cartan_type).ambient_space()(weight)
+        F = RootSystem(cartan_type).ambient_space()
+        if F is None:
+            F = RootSystem(cartan_type).weight_space()
+        La = F(weight)
         return super(RCrystal, cls).__classcall__(cls, cartan_type, La)
 
     def __init__(self, cartan_type, weight):
@@ -481,7 +522,7 @@ class RCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem("A2").weight_lattice().fundamental_weights()
-            sage: B = RCrystal("A2",5*la[2])
+            sage: B = crystals.elementary.R("A2",5*la[2])
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = (FiniteCrystals(),HighestWeightCrystals()))
@@ -496,7 +537,7 @@ class RCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem(['E',6]).weight_lattice().fundamental_weights()
-            sage: B = RCrystal(['E',6],la[6])
+            sage: B = crystals.elementary.R(['E',6],la[6])
             sage: B
             The R crystal of weight (0, 0, 0, 0, 1, -1/3, -1/3, 1/3) and type ['E', 6]
         """
@@ -513,7 +554,7 @@ class RCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: la = RootSystem("E8").weight_lattice().fundamental_weights()
-            sage: R = RCrystal("E8",la[7]+la[8])
+            sage: R = crystals.elementary.R("E8",la[7]+la[8])
             sage: R(la[7]+la[8])
             (0, 0, 0, 0, 0, 1, 2, 3)
         """
@@ -528,11 +569,33 @@ class RCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
-            sage: R = RCrystal(['C',12],La[9])
+            sage: R = crystals.elementary.R(['C',12],La[9])
             sage: R.cardinality()
             1
         """
         return Integer(1)
+
+    def weight_lattice_realization(self):
+        """
+        Return a realization of the lattice containing the weights
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
+            sage: R = crystals.elementary.R(['C',12], La[9])
+            sage: R.weight_lattice_realization()
+            Ambient space of the Root system of type ['C', 12]
+
+            sage: ct = CartanMatrix([[2, -4], [-5, 2]])
+            sage: La = RootSystem(ct).weight_lattice().fundamental_weights()
+            sage: R = crystals.elementary.R(ct, La[1])
+            sage: R.weight_lattice_realization()
+            Weight space over the Rational Field of the Root system of type
+            [ 2 -4]
+            [-5  2]
+        """
+        return self._weight.parent()
 
     class Element(AbstractSingleCrystalElement):
         r"""
@@ -544,7 +607,7 @@ class RCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['F',4])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,2*la[1]-3*la[3])
+                sage: T = crystals.elementary.T(ct,2*la[1]-3*la[3])
                 sage: t = T.highest_weight_vector()
                 sage: t
                 (-5/2, 1/2, -3/2, -3/2)
@@ -558,7 +621,7 @@ class RCrystal(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: la = RootSystem("G2").weight_lattice().fundamental_weights()
-                sage: R = RCrystal("G2",la[1])
+                sage: R = crystals.elementary.R("G2",la[1])
                 sage: r = R.highest_weight_vector()
                 sage: latex(r)
                 {r_{e_{0} - e_{2}}}
@@ -579,7 +642,7 @@ class RCrystal(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: la = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-                sage: R = RCrystal("A2",la[1])
+                sage: R = crystals.elementary.R("A2",la[1])
                 sage: r = R.highest_weight_vector()
                 sage: [r.epsilon(i) for i in R.index_set()]
                 [-1, 0]
@@ -599,7 +662,7 @@ class RCrystal(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: la = RootSystem("C5").weight_lattice().fundamental_weights()
-                sage: R = RCrystal("C5",la[4]+la[5])
+                sage: R = crystals.elementary.R("C5",la[4]+la[5])
                 sage: r = R.highest_weight_vector()
                 sage: [r.phi(i) for i in R.index_set()]
                 [0, 0, 0, 0, 0]
@@ -614,14 +677,14 @@ class RCrystal(Parent, UniqueRepresentation):
 
                 sage: ct = CartanType(['C',5])
                 sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-                sage: T = TCrystal(ct,la[4]+la[5]-la[1]-la[2])
+                sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: t.weight()
                 (0, 1, 2, 2, 1)
             """
             return self.parent()._weight
 
-class ElementaryCrystal(Parent, UniqueRepresentation):
+class ElementaryCrystal(UniqueRepresentation, Parent):
     r"""
     The elementary crystal `B_i`.
 
@@ -682,8 +745,8 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = ElementaryCrystal(['A',4], 3)
-            sage: C = ElementaryCrystal(CartanType("A4"), int(3))
+            sage: B = crystals.elementary.Elementary(['A',4], 3)
+            sage: C = crystals.elementary.Elementary(CartanType("A4"), int(3))
             sage: B is C
             True
         """
@@ -698,7 +761,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = ElementaryCrystal("D4",3)
+            sage: B = crystals.elementary.Elementary("D4",3)
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = (Crystals(), InfiniteEnumeratedSets()))
@@ -712,7 +775,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = ElementaryCrystal(['B',5,1], 4)
+            sage: B = crystals.elementary.Elementary(['B',5,1], 4)
             sage: B
             The 4-elementary crystal of type ['B', 5, 1]
         """
@@ -728,7 +791,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = ElementaryCrystal(['F',4], 2)
+            sage: B = crystals.elementary.Elementary(['F',4], 2)
             sage: B(0)
             0
             sage: B(-15)
@@ -736,7 +799,20 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             sage: B(721)
             721
         """
-        return self.element_class(self, m)
+        return self.element_class(self, ZZ(m))
+
+    def weight_lattice_realization(self):
+        """
+        Return a realization of the lattice containing the weights
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.Elementary(['A',4, 1], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['A', 4, 1]
+        """
+        return self.cartan_type().root_system().root_lattice()
 
     class Element(Element):
         r"""
@@ -746,18 +822,28 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             r"""
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['B',7],7)
+                sage: B = crystals.elementary.Elementary(['B',7],7)
                 sage: elt = B(17); elt
                 17
             """
             self._m = m
             Element.__init__(self, parent)
 
+        def __hash__(self):
+            r"""
+            TESTS::
+
+                sage: B = crystals.elementary.Elementary(['B',7],7)
+                sage: hash(B(17))
+                17
+            """
+            return hash(self._m)
+
         def _repr_(self):
             r"""
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['A',4],3)
+                sage: B = crystals.elementary.Elementary(['A',4],3)
                 sage: B(-47)
                 -47
             """
@@ -767,7 +853,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             r"""
             EXAMPLES::
 
-                sage: B = ElementaryCrystal("D4",3)
+                sage: B = crystals.elementary.Elementary("D4",3)
                 sage: b = B(1)
                 sage: c = B(-1)
                 sage: b.__lt__(c)
@@ -777,19 +863,15 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             """
             if self.parent() is not other.parent():
                 return False
-            else:
-                if Integer(self._m) < Integer(other._m):
-                    return True
-                else:
-                    return False
+            return Integer(self._m) < Integer(other._m)
 
         def __eq__(self,other):
             r"""
             EXAMPLES::
 
-                sage: B = ElementaryCrystal("A2",1)
-                sage: C = ElementaryCrystal("A2",2)
-                sage: D = ElementaryCrystal("B2",1)
+                sage: B = crystals.elementary.Elementary("A2",1)
+                sage: C = crystals.elementary.Elementary("A2",2)
+                sage: D = crystals.elementary.Elementary("B2",1)
                 sage: [B(0) == B(1), B(0) == C(0), B(0) == D(0), C(0) == D(0)]
                 [False, False, False, False]
                 sage: [B(1) == B(1), C(12) == C(12), D(-1) == D(-1)]
@@ -803,13 +885,13 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             r"""
             EXAMPLES::
 
-                sage: B = ElementaryCrystal("A2",1)
+                sage: B = crystals.elementary.Elementary("A2",1)
                 sage: B(0) != B(2)
                 True
                 sage: B(0) != B(0)
                 False
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _latex_(self):
             r"""
@@ -817,7 +899,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['B',11,1],6)
+                sage: B = crystals.elementary.Elementary(['B',11,1],6)
                 sage: latex(B(26))
                 {b_{6}(26)}
             """
@@ -833,7 +915,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['E',7],1)
+                sage: B = crystals.elementary.Elementary(['E',7],1)
                 sage: B(3).e(1)
                 4
                 sage: B(172).e_string([1]*171)
@@ -855,7 +937,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['E',7],1)
+                sage: B = crystals.elementary.Elementary(['E',7],1)
                 sage: B(3).f(1)
                 2
                 sage: B(172).f_string([1]*171)
@@ -877,7 +959,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['F',4],3)
+                sage: B = crystals.elementary.Elementary(['F',4],3)
                 sage: [[B(j).epsilon(i) for i in B.index_set()] for j in range(5)]
                 [[-inf, -inf, 0, -inf],
                  [-inf, -inf, -1, -inf],
@@ -900,7 +982,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['E',8,1],4)
+                sage: B = crystals.elementary.Elementary(['E',8,1],4)
                 sage: [[B(m).phi(j) for j in B.index_set()] for m in range(44,49)]
                 [[-inf, -inf, -inf, -inf, 44, -inf, -inf, -inf, -inf],
                  [-inf, -inf, -inf, -inf, 45, -inf, -inf, -inf, -inf],
@@ -919,14 +1001,14 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['C',14],12)
+                sage: B = crystals.elementary.Elementary(['C',14],12)
                 sage: B(-385).weight()
                 -385*alpha[12]
             """
-            Q = self.parent().cartan_type().root_system().root_lattice()
+            Q = self.parent().weight_lattice_realization()
             return self._m * Q.simple_root(self.parent()._i)
 
-class ComponentCrystal(Parent,UniqueRepresentation):
+class ComponentCrystal(UniqueRepresentation, Parent):
     r"""
     The component crystal.
 
@@ -954,8 +1036,8 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C = ComponentCrystal("A2")
-            sage: D = ComponentCrystal(CartanType(['A',2]))
+            sage: C = crystals.elementary.Component("A2")
+            sage: D = crystals.elementary.Component(CartanType(['A',2]))
             sage: C is D
             True
         """
@@ -968,7 +1050,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = ComponentCrystal("D4")
+            sage: B = crystals.elementary.Component("D4")
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = ClassicalCrystals())
@@ -981,7 +1063,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C = ComponentCrystal("D4")
+            sage: C = crystals.elementary.Component("D4")
             sage: C
             The component crystal of type ['D', 4]
         """
@@ -993,7 +1075,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C = ComponentCrystal("E6")
+            sage: C = crystals.elementary.Component("E6")
             sage: c = C.highest_weight_vector()
             sage: c
             c
@@ -1008,7 +1090,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C = ComponentCrystal("E6")
+            sage: C = crystals.elementary.Component("E6")
             sage: c = C.highest_weight_vector()
             sage: C.cardinality()
             1
@@ -1023,7 +1105,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
             r"""
             EXAMPLES::
 
-                sage: C = ComponentCrystal("F4")
+                sage: C = crystals.elementary.Component("F4")
                 sage: c = C.highest_weight_vector()
                 sage: c
                 c
@@ -1036,7 +1118,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = ComponentCrystal("E7")
+                sage: C = crystals.elementary.Component("E7")
                 sage: c = C.highest_weight_vector()
                 sage: latex(c)
                 {c}
@@ -1053,7 +1135,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = ComponentCrystal("C5")
+                sage: C = crystals.elementary.Component("C5")
                 sage: c = C.highest_weight_vector()
                 sage: [c.epsilon(i) for i in C.index_set()]
                 [0, 0, 0, 0, 0]
@@ -1070,7 +1152,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = ComponentCrystal("C5")
+                sage: C = crystals.elementary.Component("C5")
                 sage: c = C.highest_weight_vector()
                 sage: [c.phi(i) for i in C.index_set()]
                 [0, 0, 0, 0, 0]
@@ -1083,7 +1165,7 @@ class ComponentCrystal(Parent,UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = ComponentCrystal("F4")
+                sage: C = crystals.elementary.Component("F4")
                 sage: c = C.highest_weight_vector()
                 sage: c.weight()
                 (0, 0, 0, 0)

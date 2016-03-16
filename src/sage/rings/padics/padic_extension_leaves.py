@@ -9,6 +9,17 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
+#                          William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from pow_computer_ext import PowComputer_ext_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
@@ -47,7 +58,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         """
         A capped relative representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -95,7 +106,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         """
         A representation of Qq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -154,7 +165,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         """
         A capped absolute representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -203,7 +214,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         """
         A fixed modulus representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -257,7 +268,7 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         """
         A capped relative representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -314,7 +325,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
         """
         A capped relative representation of an eisenstein extension of Qp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -382,7 +393,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         """
         A capped absolute representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -405,8 +416,8 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         EXAMPLES::
 
             sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
-            sage: W.<w> = R.ext(f); W #indirect doctest
-            Eisenstein Extension of 3-adic Ring with capped absolute precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (3^2 + O(3^10000))*x + (-3 + 3^10000 + O(3^10000))
+            sage: W.<w> = R.ext(f); W
+            Eisenstein Extension of 3-adic Ring with capped absolute precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (3^2 + O(3^10000))*x + (-3 + O(3^10000))
             sage: W.precision_cap()
             30000
 
@@ -439,7 +450,7 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         """
         A fixed modulus representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
