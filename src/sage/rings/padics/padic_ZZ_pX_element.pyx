@@ -38,6 +38,7 @@ from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ext
 from sage.rings.rational_field import QQ
+from sage.rings.all import IntegerModRing
 
 zero = Integer(0)
 one = Integer(1)
@@ -344,6 +345,107 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                 break
         return ans
 
+    def matrix(self, base = None):
+        """
+        If ``base`` is ``None``, return the matrix of right multiplication by
+        the element on the power basis `1, x, x^2, \ldots, x^{d-1}` for this
+        extension field.  Thus the *rows* of this matrix give the images of
+        each of the `x^i`.
+
+        If ``base`` is not ``None``, then ``base`` must be either a field that
+        embeds into the field where the element is defined or a morphism into
+        that field, in which case this function returns the matrix of
+        multiplication on the power basis, where we view the parent
+        field as a field over ``base``.
+
+        INPUT:
+
+            ``base`` -- field or morphism or ``None`` (default: ``None``)
+
+        .. SEEALSO:: :meth:`matrix_mod_pn`
+
+        AUTHORS:
+
+            - Julian Rueth (2012-10-27): initial version
+
+        EXAMPLES::
+
+            sage: K = ZpCR(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: t = a.add_bigoh(2); t
+            a + O(a^2)
+            sage: t.matrix()
+            [      O(3) 1 + O(3)]
+            [3 + O(3^2)     O(3)]
+            sage: L(3).matrix(base=K)
+            [3 + O(3^6)     O(3^6)]
+            [    O(3^7) 3 + O(3^6)]
+            sage: L(3).matrix(base=L)
+            [a^2 + O(a^12)]
+
+        Unlike :meth:`matrix_mod_pn` this also works for elements with negative
+        valuation::
+
+            sage: K = QpCR(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: (~a).matrix()
+            [       O(3^5) 3^-1 + O(3^4)]
+            [   1 + O(3^5)        O(3^5)]
+            sage: t = a.add_bigoh(2)
+            sage: (~t).matrix()
+            [       O(3^0) 3^-1 + O(3^0)]
+            [     1 + O(3)        O(3^0)]
+
+        TESTS:
+
+        Check that this also works for capped absolute elements::
+
+            sage: K = ZpCA(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: t = a.add_bigoh(2); t
+            a + O(a^2)
+            sage: t.matrix()
+            [      O(3) 1 + O(3)]
+            [3 + O(3^2)     O(3)]
+
+        Check that this also works for fixed-mod elements::
+
+            sage: K = ZpFM(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: a.matrix()
+            [    O(3^5) 1 + O(3^5)]
+            [3 + O(3^5)     O(3^5)]
+
+        """
+        from sage.matrix.all import matrix
+
+        if base is self.parent():
+            return matrix(base,1,1,[self])
+        elif (base is self.parent().ground_ring_of_tower() or base is None) and self.parent().ground_ring_of_tower() is self.parent().base_ring():
+            base = self.parent().ground_ring_of_tower()
+
+            if self.valuation() < 0:
+                # multiply self with a power of the uniformizer in base to make its valuation non-negative
+                pow = (-self.valuation() + (self.prime_pow.e - 1)) // self.prime_pow.e
+                t = self * base.uniformizer_pow(pow)
+                # and shift the entries of the matrix of the new element back
+                return t.matrix() * base.uniformizer_pow(-pow)
+            else:
+                ret = self.matrix_mod_pn().change_ring(base)
+                # fix the precision of the entries of ret
+                x_valuation = self.parent().gen().valuation()
+                for r in range(ret.nrows()):
+                    absprec = self.precision_absolute() + r*x_valuation
+                    for c in range(ret.ncols()):
+                        ret[r,c] = ret[r,c].add_bigoh( ((absprec - c*x_valuation) + (self.prime_pow.e - 1)) // self.prime_pow.e )
+                return ret
+        else:
+            raise NotImplementedError
+
     def norm(self, base = None):
         """
         Return the absolute or relative norm of this element.
@@ -483,10 +585,10 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         elif self._is_inexact_zero():
             return self.ground_ring(0, (self.valuation() - 1) // self.parent().e() + 1)
         if self.valuation() >= 0:
-            return self.parent().ground_ring()(self.matrix_mod_pn().trace())
+            return self.parent().ground_ring()(self.matrix().trace())
         else:
             shift = -(self.valuation() // self.parent().e())
-            return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix_mod_pn().trace()) / self.parent().prime()**shift
+            return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix().trace()) / self.parent().prime()**shift
 
     def _rational_(self):
         """

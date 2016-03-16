@@ -206,10 +206,10 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.padics.unramified_extension_generic import UnramifiedExtensionGeneric
 
 from sage.rings.real_double cimport RealDoubleElement
+from sage.rings.all import IntegerModRing
 
 cdef object infinity
 from sage.rings.infinity import infinity
@@ -2816,34 +2816,52 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     def matrix_mod_pn(self):
         """
         Returns the matrix of right multiplication by the element on
-        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
-        extension field.  Thus the *rows* of this matrix give the
-        images of each of the `x^i`.  The entries of the matrices are
-        IntegerMod elements, defined modulo `p^{N / e}` where `N` is
-        the absolute precision of this element (unless this element is
-        zero to arbitrary precision; in that case the entries are
-        integer zeros.)
+        basis `1, x, x^2, \ldots, x^{d-1}` for this extension field.
 
-        Raises an error if this element has negative valuation.
+        OUTPUT:
+
+        A square matrix; the *rows* of this matrix give the images of each of
+        the `x^i`. The entries of the matrices are IntegerMod elements (or
+        integers if the element is zero to any precision).
+
+        Raises an error for elements with negative valuation.
 
         EXAMPLES::
 
             sage: R = ZpCR(5,5)
             sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 +125*x - 5)
             sage: a = (3+w)^7
             sage: a.matrix_mod_pn()
-            [2757  333 1068  725 2510]
-            [  50 1507  483  318  725]
-            [ 500   50 3007 2358  318]
-            [1590 1375 1695 1032 2358]
-            [2415  590 2370 2970 1032]
+            [ 2757   333  1068   725  2510]
+            [12550  1507  6733   318   725]
+            [ 3625    50 12382 14858   318]
+            [ 1590 10750  4820  4157 14858]
+            [11790  3715 14870 15470  4157]
+
+        The entries of the returned matrix may not be accurate to full
+        precision. This is an inherent problem when trying to return the matrix
+        over a single IntegerMod ring since the rows would need to be accurate
+        to different precisions. In the following example, the ``3`` in the
+        matrix is known to precision ``O(3^2)`` whereas the other entries are
+        known to precision ``O(3)``::
+
+            sage: K = ZpCR(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: t = a.add_bigoh(2); t
+            a + O(a^2)
+            sage: t.matrix_mod_pn()
+            [0 1]
+            [3 0]
 
         TESTS:
 
         Check that :trac:`13617` has been fixed::
 
+            sage: R = ZpCR(5,5)
+            sage: S.<x> = R[]
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 +125*x - 5)
             sage: W.zero().matrix_mod_pn()
             [0 0 0 0 0]
             [0 0 0 0 0]
@@ -2861,14 +2879,22 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [0 3]
 
         """
-        if self.valuation_c() < 0:
+        if self.valuation() < 0:
             raise ValueError, "self must be integral"
         n = self.prime_pow.deg
         from sage.matrix.all import matrix
         if self._is_exact_zero():
             from sage.rings.integer_ring import IntegerRing
             return matrix(IntegerRing(), n, n)
-        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.ordp + self.relprec)))
+
+        # the absolute precision of self
+        prec = self.precision_absolute()
+        # if we are in an Eisenstein extension, then the absolute precision of
+        # x^i*self exceeds this precision
+        prec += self.prime_pow.e - 1
+
+        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(prec)))
+
         L = []
         cur = self
         x = self.parent().gen()
@@ -2882,24 +2908,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             L.extend([zero]*(n - len(curlist)))
             cur *= x
         return matrix(R, n, n, L)
-
-#     def matrix(self, base = None):
-#         """
-#         If base is None, return the matrix of right multiplication by
-#         the element on the power basis `1, x, x^2, \ldots, x^{d-1}`
-#         for this extension field.  Thus the \emph{rows} of this matrix
-#         give the images of each of the `x^i`.
-
-#         If base is not None, then base must be either a field that
-#         embeds in the parent of self or a morphism to the parent of
-#         self, in which case this function returns the matrix of
-#         multiplication by self on the power basis, where we view the
-#         parent field as a field over base.
-
-#         INPUT:
-#             base -- field or morphism
-#         """
-#         raise NotImplementedError
 
 #     def multiplicative_order(self, prec=None):
 #         """

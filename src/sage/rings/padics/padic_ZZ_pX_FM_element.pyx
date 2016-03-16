@@ -978,21 +978,20 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def matrix_mod_pn(self):
         """
-        Returns the matrix of right multiplication by the element on
-        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
-        extension field.  Thus the \emph{rows} of this matrix give the
-        images of each of the `x^i`.  The entries of the matrices are
-        ``IntegerMod`` elements, defined modulo ``p^(self.absprec() /
-        e)``.
+        Returns the matrix of right multiplication by the element on the power
+        basis `1, x, x^2, \ldots, x^{d-1}` for this extension field.
 
-        Raises an error if self has negative valuation.
+        OUTPUT:
+
+        A square matrix; the *rows* of this matrix give the images of each of
+        the `x^i`. The entries of the matrices are IntegerMod elements (defined
+        modulo ``p^(self.absprec()/e)``).
 
         EXAMPLES::
 
             sage: R = ZpFM(5,5)
             sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 +125*x - 5)
             sage: a = (3+w)^7
             sage: a.matrix_mod_pn()
             [2757  333 1068  725 2510]
@@ -1000,6 +999,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             [ 500   50 3007 2358  318]
             [1590 1375 1695 1032 2358]
             [2415  590 2370 2970 1032]
+
         """
         from sage.matrix.all import matrix
         R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.prec_cap))
@@ -1017,25 +1017,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             L.extend(curlist + [zero]*(n - len(curlist)))
             ZZ_pX_MulMod_pre(cur.x, cur.x, x, m[0])
         return matrix(R, n, n,  L)
-
-#     def matrix(self, base = None):
-#         """
-#         If base is None, return the matrix of right multiplication by
-#         the element on the power basis `1, x, x^2, \ldots, x^{d-1}`
-#         for this extension field.  Thus the \emph{rows} of this matrix
-#         give the images of each of the `x^i`.
-
-#         If base is not None, then base must be either a field that
-#         embeds in the parent of self or a morphism to the parent of
-#         self, in which case this function returns the matrix of
-#         multiplication by self on the power basis, where we view the
-#         parent field as a field over base.
-
-#         INPUT:
-
-#             base -- field or morphism
-#         """
-#         raise NotImplementedError
 
     def norm(self, base = None):
         """
@@ -1108,10 +1089,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         elif self._is_inexact_zero():
             return self.ground_ring(0, (self.valuation() - 1) // self.parent().e() + 1)
         if self.valuation() >= 0:
-            return self.parent().ground_ring()(self.matrix_mod_pn().trace())
+            return self.parent().ground_ring()(self.matrix().trace())
         else:
             shift = -(self.valuation() // self.parent().e())
-            return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix_mod_pn().trace()) / self.parent().prime()**shift
+            return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix().trace()) / self.parent().prime()**shift
 
     def _ntl_rep(self):
         """
