@@ -14,17 +14,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-# singular's build system uses the output of grep
-unset GREP_OPTIONS
-
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" != "Linux" ]; then
     SINGULAR_CONFIGURE="--without-dynamic-kernel $SINGULAR_CONFIGURE"
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
-    export MACOSX_DEPLOYMENT_TARGET=10.4
-
     # Singular needs $LD set to "libtool", not "ld" on Darwin.
     # If we unset it, Singular will figure it out correctly.
     unset LD
@@ -71,18 +66,16 @@ if [ "x$SAGE64" = xyes ]; then
     fi
 fi
 
-CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
+export CXXFLAGS="$CXXFLAGS -fPIC"
+export CFLAGS="$CFLAGS -fPIC"
 
-CXXFLAGS="$CXXFLAGS -fPIC"
-CFLAGS="$CFLAGS -fPIC"
-
-export CXXFLAGS
-export CFLAGS
-export CPPFLAGS
-
+# Singular does not respect LDFLAGS; Ugly hack:
+# Used on Linux and Darwin (see singular-3.1.7-use_cxx_for_linking.patch)
+export CXX="$CXX $LDFLAGS"
 
 # The Sun assembler has problems with -pipe, so disable it.
 # This only affects compile time, not the compiled programs/libraries.
@@ -91,14 +84,14 @@ if [ "$UNAME" = "SunOS" ]; then
 fi
 
 
-apply_patches()
+# There is a race condition in the Singular Makefiles, building in
+# parallel sometimes fails (Trac #17774)
+export MAKE="$MAKE -j1"
+
+
+choose_patches()
 {
     cd "$PATCHES" || return $?
-
-    # Move some patches which are conditionally applied
-    if [ "$UNAME" = "CYGWIN" ]; then
-        mv conditional/cygwin.patch . || return $?
-    fi
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         mv conditional/sage_debug.patch . || return $?
@@ -107,13 +100,16 @@ apply_patches()
         rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
+        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
+}
 
+apply_patches()
+{
     # Apply all patches
-    cd "$SRC" || return $?
-    for patch in `ls "$PATCHES"/*.patch`; do
+    for patch in "$PATCHES"/*.patch; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-	echo "Applying $patch"
+        echo "Applying $patch"
         patch -p1 <"$patch"
         if [ $? -ne 0 ]; then
             echo >&2 "Error applying '$patch'"
@@ -132,8 +128,6 @@ remove_old_version()
 
 config()
 {
-    cd "$SRC" || return $?
-
     # configure notes:
     # 1) We really need to add --exec-prefix and --bindir as Singular
     #    uses some wierd defaults.
@@ -151,10 +145,10 @@ config()
                 --with-apint=gmp \
                 --with-malloc=system \
                 --with-NTL \
+                --with-flint="$SAGE_LOCAL" \
                 --without-MP \
                 --without-lex \
                 --without-Boost \
-                --without-flint \
                 --enable-Singular \
                 --enable-factory \
                 --enable-libfac \
@@ -217,6 +211,11 @@ build_libsingular()
     OLD_CXXFLAGS=$CXXFLAGS
     export CXXFLAGS="$CXXFLAGS -DLIBSINGULAR"
 
+    if [ "$UNAME" = "Darwin" ]; then
+        # on darwin we need to adjust the install name of the library
+	export LIBSINGULAR_LDFLAGS="-install_name ${SAGE_LOCAL}/lib/libsingular.dylib"
+    fi
+
     config || return $?
 
     $MAKE clean
@@ -226,13 +225,17 @@ build_libsingular()
         echo >&2 "Unable to build and install libsingular."
         return 1
     fi
+
+    # singular does not install this header
+    cp Singular/sing_dbm.h $SAGE_LOCAL/include/singular/
+
     export CFLAGS="$OLD_CFLAGS"
     export CXXFLAGS="$OLD_CXXFLAGS"
 }
 
 build_factory()
 {
-    cd "$SRC/factory" || return $?
+    cd factory || return $?
 
     $MAKE distclean
 
@@ -245,7 +248,7 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --enable-NTL \
                 --with-NTL="$SAGE_LOCAL" \
-                --without-flint \
+                --with-flint="$SAGE_LOCAL" \
                 --with-gmp="$SAGE_LOCAL" \
                 $ENABLE_DEBUGOUTPUT
 
@@ -275,7 +278,7 @@ build_factory()
 
 build_libfac()
 {
-    cd "$SRC/libfac" || return $?
+    cd libfac || return $?
 
     $MAKE distclean
 
@@ -311,7 +314,7 @@ install_docs()
 
 
 # Actually run all the functions defined above
-for i in apply_patches remove_old_version config \
+for i in choose_patches apply_patches remove_old_version config \
   build_singular build_libsingular build_factory build_libfac \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"

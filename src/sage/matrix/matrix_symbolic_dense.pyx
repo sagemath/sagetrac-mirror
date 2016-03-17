@@ -104,6 +104,9 @@ Determinant::
     sage: M = matrix(SR, 2, 2, [cos(t), sin(t), -sin(t), cos(t)])
     sage: M.det()
     cos(t)^2 + sin(t)^2
+    sage: M = matrix([[sqrt(x),0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
+    sage: det(M)
+    sqrt(x)
 
 Permanents::
 
@@ -145,32 +148,19 @@ Conversion to Maxima::
 
 """
 
-
+from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
-cimport matrix_generic_dense
+from matrix_generic_dense cimport Matrix_generic_dense
 cimport matrix
 
 cdef maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
-cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
-    def _new_c(self):
-        """
-        Called when creating a new matrix.
-
-        EXAMPLES::
-
-            sage: matrix(SR,0)   # this implicitly calls _new_c
-            []
-        """
-        cdef Matrix_symbolic_dense M = Matrix_symbolic_dense.__new__(Matrix_symbolic_dense, 0, 0, 0)
-        matrix.Matrix.__init__(M, self._parent)
-        return M
-
-    def eigenvalues(self, solution_set=False):
+cdef class Matrix_symbolic_dense(Matrix_generic_dense):
+    def eigenvalues(self):
         """
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima
@@ -182,12 +172,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
         """
-        if solution_set is not False:
-            from sage.misc.superseded import deprecation
-            deprecation(6115, "solution_set parameter is deprecated")
         maxima_evals = self._maxima_(maxima).eigenvalues()._sage_()
         if len(maxima_evals)==0:
-            raise ArithmeticError, "could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible"
+            raise ArithmeticError("could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible")
         return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
     def eigenvectors_left(self):
@@ -210,7 +197,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
-            abs(sqrt(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
+            sqrt(abs(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
             sage: abs(abs(delta)).n() < 1e-10
             True
 
@@ -361,9 +348,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         In this example we take the symbolic answer and make it
         numerical at the end::
 
-            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
-            [346.557487298 661.734590934]
-            [354.500673715 677.424782765]
+            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)  # rel tol 1e-15
+            [ 346.5574872980695  661.7345909344504]
+            [354.50067371488416  677.4247827652946]
 
         Another example involving the reversed identity matrix, which
         we clumsily create::
@@ -422,23 +409,72 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: A._cache['charpoly']
             x^2 - 3*x - 2
 
+        Ensure the variable name of the polynomial does not conflict
+        with variables used within the matrix (:trac:`14403`)::
+
+            sage: Matrix(SR, [[sqrt(x), x],[1,x]]).charpoly().list()
+            [x^(3/2) - x, -x - sqrt(x), 1]
+
+        Test that :trac:`13711` is fixed::
+
+            sage: matrix([[sqrt(2), -1], [pi, e^2]]).charpoly()
+            x^2 + (-sqrt(2) - e^2)*x + pi + sqrt(2)*e^2
         """
         cache_key = 'charpoly'
         cp = self.fetch(cache_key)
         if cp is not None:
             return cp.change_variable_name(var)
-
         from sage.symbolic.ring import SR
+
+        # We must not use a variable name already present in the matrix
+        vname = 'do_not_use_this_name_in_a_matrix_youll_compute_a_charpoly_of'
+        vsym = SR(vname)
+
+        cp = self._maxima_(maxima).charpoly(vname)._sage_().expand()
+        cp = [cp.coefficient(vsym, i) for i in range(self.nrows() + 1)]
+        cp = SR[var](cp)
+
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We
         # correct for the discrepancy.
-        cp = self._maxima_(maxima).charpoly(var)._sage_()
-        cp = cp.expand().polynomial(None, ring=SR[var])
         if self.nrows() % 2 == 1:
             cp = -cp
 
         self.cache(cache_key, cp)
         return cp
+
+    def minpoly(self, var='x'):
+        """
+        Return the minimal polynomial of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Matrix.identity(SR, 2)
+            sage: M.minpoly()
+            x - 1
+
+            sage: t = var('t')
+            sage: m = matrix(2, [1, 2, 4, t])
+            sage: m.minimal_polynomial()
+            x^2 + (-t - 1)*x + t - 8
+
+        TESTS:
+
+        Check that the variable `x` can occur in the matrix::
+
+            sage: m = matrix([[x]])
+            sage: m.minimal_polynomial('y')
+            y - x
+
+        """
+        mp = self.fetch('minpoly')
+        if mp is None:
+            mp = self._maxima_lib_().jordan().minimalPoly().expand()
+            d = mp.hipow('x')
+            mp = [mp.coeff('x', i) for i in xrange(0, d + 1)]
+            mp = PolynomialRing(self.base_ring(), 'x')(mp)
+            self.cache('minpoly', mp)
+        return mp.change_variable_name(var)
 
     def fcp(self, var='x'):
         """
@@ -471,34 +507,113 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
 
-    def is_simplified(self):
+    def jordan_form(self, subdivide=True, transformation=False):
         """
-        Return True if self is the result of running simplify() on a symbolic
-        matrix.  This has the semantics of 'has_been_simplified'.
+        Return a Jordan normal form of ``self``.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
-            [      z       1]
-            [    x^2 y^2 + 2]
-            sage: m.is_simplified()
-            doctest:...: DeprecationWarning: is_simplified is deprecated
-            See http://trac.sagemath.org/6115 for details.
-            False
-            sage: ms = m.simplify(); ms
-            [      z       1]
-            [    x^2 y^2 + 2]
+        - ``self`` -- a square matrix
 
-            sage: m.is_simplified()
-            False
-            sage: ms.is_simplified()
-            False
+        - ``subdivide`` -- boolean (default: ``True``)
+
+        - ``transformation`` -- boolean (default: ``False``)
+
+        OUTPUT:
+
+        If ``transformation`` is ``False``, only a Jordan normal form
+        (unique up to the ordering of the Jordan blocks) is returned.
+        Otherwise, a pair ``(J, P)`` is returned, where ``J`` is a
+        Jordan normal form and ``P`` is an invertible matrix such that
+        ``self`` equals ``P * J * P^(-1)``.
+
+        If ``subdivide`` is ``True``, the Jordan blocks in the
+        returned matrix ``J`` are indicated by a subdivision in
+        the sense of :meth:`~sage.matrix.matrix2.subdivide`.
+
+        EXAMPLES:
+
+        We start with some examples of diagonalisable matrices::
+
+            sage: a,b,c,d = var('a,b,c,d')
+            sage: matrix([a]).jordan_form()
+            [a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=True)
+            [d|0]
+            [-+-]
+            [0|a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=False)
+            [d 0]
+            [0 a]
+            sage: matrix([[a, x, x], [0, b, x], [0, 0, c]]).jordan_form()
+            [c|0|0]
+            [-+-+-]
+            [0|b|0]
+            [-+-+-]
+            [0|0|a]
+
+        In the following examples, we compute Jordan forms of some
+        non-diagonalisable matrices::
+
+            sage: matrix([[a, a], [0, a]]).jordan_form()
+            [a 1]
+            [0 a]
+            sage: matrix([[a, 0, b], [0, c, 0], [0, 0, a]]).jordan_form()
+            [c|0 0]
+            [-+---]
+            [0|a 1]
+            [0|0 a]
+
+        The following examples illustrate the ``transformation`` flag.
+        Note that symbolic expressions may need to be simplified to
+        make consistency checks succeed::
+
+            sage: A = matrix([[x - a*c, a^2], [-c^2, x + a*c]])
+            sage: J, P = A.jordan_form(transformation=True)
+            sage: J, P
+            (
+            [x 1]  [-a*c    1]
+            [0 x], [-c^2    0]
+            )
+            sage: A1 = P * J * ~P; A1
+            [             -a*c + x (a*c - x)*a/c + a*x/c]
+            [                 -c^2               a*c + x]
+            sage: A1.simplify_rational() == A
+            True
+
+            sage: B = matrix([[a, b, c], [0, a, d], [0, 0, a]])
+            sage: J, T = B.jordan_form(transformation=True)
+            sage: J, T
+            (
+            [a 1 0]  [b*d   c   0]
+            [0 a 1]  [  0   d   0]
+            [0 0 a], [  0   0   1]
+            )
+            sage: (B * T).simplify_rational() == T * J
+            True
+
+        Finally, some examples involving square roots::
+
+            sage: matrix([[a, -b], [b, a]]).jordan_form()
+            [a - I*b|      0]
+            [-------+-------]
+            [      0|a + I*b]
+            sage: matrix([[a, b], [c, d]]).jordan_form(subdivide=False)
+            [1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)                                                   0]
+            [                                                  0 1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)]
         """
-        from sage.misc.superseded import deprecation
-        deprecation(6115, "is_simplified is deprecated")
-        return False
+        A = self._maxima_lib_()
+        jordan_info = A.jordan()
+        J = jordan_info.dispJordan()._sage_()
+        if subdivide:
+            v = [x[1] for x in jordan_info]
+            w = [sum(v[0:i]) for i in xrange(1, len(v))]
+            J.subdivide(w, w)
+        if transformation:
+            P = A.diag_mode_matrix(jordan_info)._sage_()
+            return J, P
+        else:
+            return J
 
     def simplify(self):
         """
@@ -554,6 +669,37 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         """
         return self._maxima_(maxima).fullratsimp()._sage_()
 
+    def simplify_full(self):
+        """
+        Simplify a symbolic matrix by calling
+        :meth:`Expression.simplify_full()` componentwise.
+
+        INPUT:
+
+        - ``self`` - The matrix whose entries we should simplify.
+
+        OUTPUT:
+
+        A copy of ``self`` with all of its entries simplified.
+
+        EXAMPLES:
+
+        Symbolic matrices will have their entries simplified::
+
+            sage: a,n,k = SR.var('a,n,k')
+            sage: f1 = sin(x)^2 + cos(x)^2
+            sage: f2 = sin(x/(x^2 + x))
+            sage: f3 = binomial(n,k)*factorial(k)*factorial(n-k)
+            sage: f4 = x*sin(2)/(x^a)
+            sage: A = matrix(SR, [[f1,f2],[f3,f4]])
+            sage: A.simplify_full()
+            [                1    sin(1/(x + 1))]
+            [     factorial(n) x^(-a + 1)*sin(2)]
+
+        """
+        M = self.parent()
+        return M([expr.simplify_full() for expr in self])
+
     def factor(self):
         """
         Operates point-wise on each element.
@@ -606,9 +752,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: m.variables()
             (a, b, c, x, y)
         """
-        vars = list(set(sum([op.variables() for op in self.list()], ())))
-        vars.sort(var_cmp)
-        return tuple(vars)
+        vars = set(sum([op.variables() for op in self.list()], ()))
+        return tuple(sorted(vars, key=repr))
 
     def arguments(self):
         """

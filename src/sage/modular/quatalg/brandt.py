@@ -195,34 +195,27 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 """
 
-################################################################################
-#       Sage: Open Source Mathematical Software
-#
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 
 # imports
-from sage.misc.all     import prod, verbose
-from sage.rings.all    import (Integer, ZZ, QQ, is_CommutativeRing, prime_divisors,
-                            kronecker, PolynomialRing, GF, next_prime, lcm, gcd)
+from sage.misc.all import prod, verbose
+from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
 
-from sage.rings.arith import gcd, factor, kronecker_symbol
+from sage.arith.all import gcd, factor, prime_divisors, kronecker, next_prime, lcm
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
+from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.rings.rational_field import is_RationalField
 from sage.misc.mrange import cartesian_product_iterator
@@ -295,21 +288,21 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
     """
     N, M, weight = Integer(N), Integer(M), Integer(weight)
     if not N.is_prime():
-        raise NotImplementedError, "Brandt modules currently only implemented when N is a prime"
+        raise NotImplementedError("Brandt modules currently only implemented when N is a prime")
     if M < 1:
-        raise ValueError, "M must be positive"
+        raise ValueError("M must be positive")
     if gcd(M,N) != 1:
-        raise ValueError, "M must be coprime to N"
+        raise ValueError("M must be coprime to N")
     if weight < 2:
-        raise ValueError, "weight must be at least 2"
-    if not is_CommutativeRing(base_ring):
-        raise TypeError, "base_ring must be a commutative ring"
+        raise ValueError("weight must be at least 2")
+    if not isinstance(base_ring, CommutativeRing):
+        raise TypeError("base_ring must be a commutative ring")
     key = (N, M, weight, base_ring)
     if use_cache:
-        if cache.has_key(key):  # TODO: re-enable caching!
+        if key in cache:  # TODO: re-enable caching!
             return cache[key]
     if weight != 2:
-        raise NotImplementedError, "weight != 2 not yet implemented"
+        raise NotImplementedError("weight != 2 not yet implemented")
     B = BrandtModule_class(*key)
     if use_cache:
         cache[key] = B
@@ -475,7 +468,7 @@ class BrandtModule_class(AmbientHeckeModule):
         self.__N = N
         self.__M = M
         if not N.is_prime():
-            raise NotImplementedError, "right now N must be prime"
+            raise NotImplementedError("right now N must be prime")
         rank = class_number(N, 1, M)
         self.__key = (N, M, weight, base_ring)
         AmbientHeckeModule.__init__(self, base_ring, rank, N * M, weight=2)
@@ -531,6 +524,17 @@ class BrandtModule_class(AmbientHeckeModule):
             5
         """
         return self.__M
+
+    def character(self):
+        r"""
+        The character of this space. Always trivial.
+
+        EXAMPLE::
+
+            sage: BrandtModule(11,5).character()
+            Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1
+        """
+        return TrivialCharacter(self.__N*self.__M)
 
     def _repr_(self):
         """
@@ -675,9 +679,9 @@ class BrandtModule_class(AmbientHeckeModule):
             ValueError: p must be coprime to the level
         """
         if not Integer(p).is_prime():
-            raise ValueError, "p must be a prime"
+            raise ValueError("p must be a prime")
         if self.level() % p == 0:
-            raise ValueError, "p must be coprime to the level"
+            raise ValueError("p must be coprime to the level")
 
         R = self.order_of_level_N()
         A = R.quaternion_algebra()
@@ -826,8 +830,8 @@ class BrandtModule_class(AmbientHeckeModule):
         """
         n = ZZ(n)
         if n <= 0:
-            raise IndexError, "n must be positive."
-        if not self._hecke_matrices.has_key(n):
+            raise IndexError("n must be positive.")
+        if n not in self._hecke_matrices:
             if algorithm == 'default':
                 try: pr = len(self.__brandt_series_vectors[0][0])
                 except (AttributeError, IndexError): pr = 0
@@ -845,7 +849,7 @@ class BrandtModule_class(AmbientHeckeModule):
             elif algorithm == 'brandt':
                 T = self._compute_hecke_matrix_brandt(n, sparse=sparse)
             else:
-                raise ValueError, "unknown algorithm '%s'"%algorithm
+                raise ValueError("unknown algorithm '%s'"%algorithm)
             T.set_immutable()
             self._hecke_matrices[n] = T
         return self._hecke_matrices[n]
@@ -895,6 +899,7 @@ class BrandtModule_class(AmbientHeckeModule):
             - ``sparse`` -- bool (default: False); whether matrix should be sparse
 
         EXAMPLES::
+
             sage: B = BrandtModule(37)
             sage: t = B._compute_hecke_matrix_directly(2); t
             [1 1 1]
@@ -935,7 +940,7 @@ class BrandtModule_class(AmbientHeckeModule):
         """
         level = self.level()
         if gcd(n, level) != 1:
-            raise ValueError, "n must be coprime to the level"
+            raise ValueError("n must be coprime to the level")
 
         # For rigor it does not matter at all what bound we chose.
         # This B is used only for the first phase of checking equality
@@ -1167,15 +1172,18 @@ class BrandtModule_class(AmbientHeckeModule):
 
     def _ideal_products(self):
         """
-        Return all products of right ideals, which are used in computing the Brandt matrices.
+        Return all products of right ideals, which are used in computing
+        the Brandt matrices.
 
         This function is used internally by the Brandt matrices
         algorithms.
 
         OUTPUT:
-            list of ideals
+
+        - list of ideals
 
         EXAMPLES::
+
             sage: B = BrandtModule(37)
             sage: B._ideal_products()
             [[Fractional ideal (8 + 8*j + 8*k, 4*i + 8*j + 4*k, 16*j, 16*k)],
@@ -1185,13 +1193,15 @@ class BrandtModule_class(AmbientHeckeModule):
               Fractional ideal (8 + 4*i + 16*j + 28*k, 8*i + 16*j + 8*k, 32*j, 64*k),
               Fractional ideal (16 + 16*j + 16*k, 4*i + 24*j + 4*k, 32*j + 32*k, 64*k)]]
         """
-        try: return self.__ideal_products
-        except AttributeError: pass
+        try:
+            return self.__ideal_products
+        except AttributeError:
+            pass
 
         L = self.right_ideals()
         n = len(L)
         if n == 0:
-            return matrix(self.base_ring()[[`q`]],0)
+            return matrix(self.base_ring()[['q']], 0)
 
         # 1. Compute the theta series
         P = []
@@ -1205,6 +1215,7 @@ class BrandtModule_class(AmbientHeckeModule):
         Return Brandt series coefficient vectors out to precision *at least* prec.
 
         EXAMPLES::
+
             sage: B = BrandtModule(37, use_cache=False)
             sage: B._brandt_series_vectors(5)
             [[(1/2, 1, 1, 2, 1), (1/2, 0, 1, 1, 3), (1/2, 0, 1, 1, 3)],
@@ -1225,7 +1236,7 @@ class BrandtModule_class(AmbientHeckeModule):
             except AttributeError:
                 prec = 2
         elif prec < 2:
-            raise ValueError, "prec must be at least 2"
+            raise ValueError("prec must be at least 2")
         L = self.right_ideals()
         n = len(L)
         K = QQ
@@ -1317,7 +1328,7 @@ class BrandtModule_class(AmbientHeckeModule):
         try: return self.__eisenstein_subspace
         except AttributeError: pass
         if self.base_ring().characteristic() != 0:
-            raise ValueError, "characteristic must be 0"
+            raise ValueError("characteristic must be 0")
         # cut down until we get a 1-d space using Hecke operators T_p
         # with p coprime to the level.
         V = self
@@ -1404,12 +1415,12 @@ def quaternion_order_with_given_level(A, level):
     """
 
     if not is_RationalField(A.base_ring()):
-        raise NotImplementedError, "base field must be rational numbers"
+        raise NotImplementedError("base field must be rational numbers")
 
     from sage.modular.quatalg.brandt import maximal_order
 
     if len(A.ramified_primes()) > 1:
-        raise NotImplementedError, "Currently this algorithm only works when the quaternion algebra is only ramified at one finite prime."
+        raise NotImplementedError("Currently this algorithm only works when the quaternion algebra is only ramified at one finite prime.")
 
     # (The algorithm we use is similar to that in Magma (by David Kohel).)
     # in the following magma code, M denotes is the level
@@ -1422,7 +1433,7 @@ def quaternion_order_with_given_level(A, level):
     if 0 and N1 != 1: # we don't know why magma does the following, so we don't do it.
         for p in A.ramified_primes():
             if level % p**2 == 0:
-                raise NotImplementedError, "Currently sage can only compute orders whose level is divisible by at most one power of any prime that ramifies in the quaternion algebra"
+                raise NotImplementedError("Currently sage can only compute orders whose level is divisible by at most one power of any prime that ramifies in the quaternion algebra")
 
         P = basis_for_left_ideal(O, [N1] + [x*y - y*x for x, y in cartesian_product_iterator([A.basis(), A.basis()]) ])
         O = A.quaternion_order(P)
@@ -1436,7 +1447,7 @@ def quaternion_order_with_given_level(A, level):
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()
             #x = O.random_element((-p/2).floor(), (p/2).ceil())
-            if kronecker_symbol(D, p) == 1: break
+            if kronecker(D, p) == 1: break
         X = PolynomialRing(GF(p), 'x').gen()
         a = ZZ((X**2 - ZZ(x.reduced_trace()) * X + ZZ(x.reduced_norm())).roots()[0][0])
         I = basis_for_left_ideal(O,  [p**r, (x-a)**r] )
@@ -1468,7 +1479,7 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: parent(x)
             Brandt module of dimension 3 of level 37 of weight 2 over Rational Field
         """
-        if isinstance(x, BrandtModuleElement):
+        if isinstance(x, HeckeModuleElement):
             x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 

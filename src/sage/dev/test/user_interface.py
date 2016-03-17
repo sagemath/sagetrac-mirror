@@ -18,9 +18,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import six
 from getpass import getpass
 
-from sage.dev.cmd_line_interface import CmdLineInterface
+from sage.dev.cmd_line_interface import CmdLineInterface, INFO
 
 class DoctestUserInterface(CmdLineInterface, list):
     r"""
@@ -41,10 +43,9 @@ class DoctestUserInterface(CmdLineInterface, list):
         sage: UI._get_input("Question?")
         Traceback (most recent call last):
         ...
-        RuntimeError: no answers left in DoctestUserInterface for question `Question? `.
-
+        RuntimeError: no answers left in DoctestUserInterface for question "Question? ".
     """
-    def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
+    def _get_input(self, prompt, options=None, default=None, input_func=six.moves.input):
         r"""
         Overwrites
         :meth:`sage.dev.cmd_line_interface.CmdLineInterface._get_input` for
@@ -62,13 +63,14 @@ class DoctestUserInterface(CmdLineInterface, list):
             sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
             Traceback (most recent call last):
             ...
-            RuntimeError: no answers left in DoctestUserInterface for question `Should I delete your home directory? [Yes/no/maybe] `.
-
+            RuntimeError: no answers left in DoctestUserInterface for question "Should
+            I delete your home directory? [Yes/no/maybe] ".
         """
         old_input_func = input_func
         def input_func(prompt):
             if not self:
-                raise RuntimeError("no answers left in DoctestUserInterface for question `{0}`.".format(prompt))
+                raise RuntimeError('no answers left in DoctestUserInterface for'
+                                   ' question "{0}".'.format(prompt))
             ret = self.pop()
             if old_input_func is getpass:
                 self.show(prompt)
@@ -77,6 +79,33 @@ class DoctestUserInterface(CmdLineInterface, list):
             return ret
         return CmdLineInterface._get_input(self, prompt, options, default, input_func)
 
+    def _show(self, message, log_level, *args):
+        r"""
+        Overwrites :meth:`sage.dev.cmd_line_interface.CmdLineInterface._show`
+        for doctesting. In particular, no line wrapping is performed.
+
+        TESTS::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
+            sage: UI.info("I ate {0} for dinner, a whole {1} for dessert, and then took a nice walk around the lake.", 'filet mignon', 'apple pie') # indirect doctest
+            #  I ate filet mignon for dinner, a whole apple pie for dessert, and then took a nice walk around the lake.
+        """
+        if len(args) > 0:
+            message = message.format(*args)
+
+        if log_level == INFO:
+            prefix = '# '
+        else:
+            prefix = ''
+
+        message = (prefix + line for line in message.splitlines())
+
+        print(self._color_code(log_level) +
+              '\n'.join(message) +
+              self._color_code())
+
     def edit(self, filename):
         r"""
         Overwrites :meth:`sage.dev.cmd_line_interface.CmdLineInterface.edit`
@@ -84,8 +113,7 @@ class DoctestUserInterface(CmdLineInterface, list):
 
         TESTS::
 
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
@@ -100,7 +128,6 @@ class DoctestUserInterface(CmdLineInterface, list):
             ...
             RuntimeError: no answers left in DoctestUserInterface
             sage: os.unlink(tmp)
-
         """
         if not self:
             raise RuntimeError("no answers left in DoctestUserInterface")

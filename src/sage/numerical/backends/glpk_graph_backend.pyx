@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend for access to GLPK graph functions
 
@@ -58,16 +59,21 @@ Classes and methods
 -------------------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2012 Christian Kuper <christian.kuper@t-online.de>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
 
-include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef class GLPKGraphBackend(object):
     """
@@ -191,7 +197,7 @@ cdef class GLPKGraphBackend(object):
 
         from sage.graphs.graph import Graph
 
-        self.graph = <_glp_graph*> glp_create_graph(sizeof(c_v_data),
+        self.graph = <glp_graph*> glp_create_graph(sizeof(c_v_data),
                        sizeof(c_a_data))
 
         if self.graph is NULL:
@@ -299,7 +305,7 @@ cdef class GLPKGraphBackend(object):
         cdef int n
         cdef int i
         cdef double rhs
-        cdef _glp_vertex* vert
+        cdef glp_vertex* vert
         cdef char* name
 
         verts = g.vertices()
@@ -408,7 +414,7 @@ cdef class GLPKGraphBackend(object):
         if n < 0:
             raise KeyError("Vertex " + vertex + " does not exist.")
 
-        cdef _glp_vertex* vert = self.graph.v[n+1]
+        cdef glp_vertex* vert = self.graph.v[n+1]
         cdef double val = demand
         (<c_v_data *>vert.data).rhs = val
 
@@ -476,7 +482,7 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             return None
 
-        cdef _glp_vertex* vert = self.graph.v[i+1]
+        cdef glp_vertex* vert = self.graph.v[i+1]
         cdef c_v_data * vdata = <c_v_data *> vert.data
 
         return {
@@ -595,17 +601,17 @@ cdef class GLPKGraphBackend(object):
             self.add_vertex(v)
             j = self._find_vertex(v)
 
-        cdef _glp_arc *a
+        cdef glp_arc *a
 
         a = glp_add_arc(self.graph, i+1, j+1)
 
         if params is not None:
             try:
-                if params.has_key("low"):
+                if "low" in params:
                     (<c_a_data *>a.data).low = params["low"]
-                if params.has_key("cap"):
+                if "cap" in params:
                     (<c_a_data *>a.data).cap = params["cap"]
-                if params.has_key("cost"):
+                if "cost" in params:
                     (<c_a_data *>a.data).cost = params["cost"]
             except TypeError:
                 glp_del_arc(self.graph, a)
@@ -665,21 +671,17 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
         """
-        cdef _glp_arc* a
+        cdef glp_arc* a
         cdef int u
         cdef int v
-        cdef char* u_name
-        cdef char* v_name
         cdef double cost
         cdef double cap
         cdef double low
         cdef int isdirected = g.is_directed()
 
         for (eu,ev,label) in g.edges():
-            s = str(eu)
-            u_name = s
-            s = str(ev)
-            v_name = s
+            u_name = str(eu)
+            v_name = str(ev)
             u = glp_find_vertex(self.graph, u_name)
             v = glp_find_vertex(self.graph, v_name)
             if u < 1 or v < 1:
@@ -688,24 +690,24 @@ cdef class GLPKGraphBackend(object):
             a = glp_add_arc(self.graph, u, v)
 
             if isinstance(label, dict):
-                if label.has_key("cost"):
+                if "cost" in label:
                     cost = label["cost"]
                     (<c_a_data *>a.data).cost = cost
-                if label.has_key("cap"):
+                if "cap" in label:
                     cap = label["cap"]
                     (<c_a_data *>a.data).cap = cap
-                if label.has_key("low"):
+                if "low" in label:
                     low = label["low"]
                     (<c_a_data *>a.data).low = low
 
             if not isdirected:
                 a = glp_add_arc(self.graph, v, u)
                 if isinstance(label, dict):
-                    if label.has_key("cost"):
+                    if "cost" in label:
                         (<c_a_data *>a.data).cost = cost
-                    if label.has_key("cap"):
+                    if "cap" in label:
                         (<c_a_data *>a.data).cap = cap
-                    if label.has_key("low"):
+                    if "low" in label:
                         (<c_a_data *>a.data).low = low
 
     cpdef tuple get_edge(self, char* u, char* v):
@@ -751,9 +753,9 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return None
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
         while a is not NULL:
             if a.head == vert_v:
                 return (u, v, {"low":(<c_a_data *>a.data).low,
@@ -786,9 +788,9 @@ cdef class GLPKGraphBackend(object):
         """
 
         cdef int i = 1
-        cdef _glp_vertex* vert_u
-        cdef _glp_vertex* vert_v
-        cdef _glp_arc* a
+        cdef glp_vertex* vert_u
+        cdef glp_vertex* vert_v
+        cdef glp_arc* a
         edge_list = []
 
         while i <= self.graph.nv:
@@ -910,7 +912,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see meth:``add_edge``). If this parameter
+          parameters (see :meth:``add_edge``). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 
@@ -938,21 +940,21 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
-        cdef _glp_arc* a2 = a
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
+        cdef glp_arc* a2 = a
 
         cdef double low, cap, cost, x
 
         if params is not None:
-            if params.has_key("low"):
+            if "low" in params:
                 low = params["low"]
-            if params.has_key("cap"):
+            if "cap" in params:
                 cap = params["cap"]
-            if params.has_key("cost"):
+            if "cost" in params:
                 cost = params["cost"]
-            if params.has_key("x"):
+            if "x" in params:
                 x = params["x"]
 
         while a is not NULL:
@@ -961,16 +963,16 @@ cdef class GLPKGraphBackend(object):
                 glp_del_arc(self.graph, a)
             elif a.head == vert_v:
                 del_it = True
-                if params.has_key("low"):
+                if "low" in params:
                     if (<c_a_data *>a.data).low != low:
                         del_it = False
-                if params.has_key("cap"):
+                if "cap" in params:
                     if (<c_a_data *>a.data).cap != cap:
                         del_it = False
-                if params.has_key("cost"):
+                if "cost" in params:
                     if (<c_a_data *>a.data).cost != cost:
                         del_it = False
-                if params.has_key("x"):
+                if "x" in params:
                     if (<c_a_data *>a.data).x != x:
                         del_it = False
                 if del_it:

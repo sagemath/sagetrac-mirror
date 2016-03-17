@@ -30,20 +30,21 @@ REFERENCES:
     http://www.gnu.org/software/gsl/manual/html_node/Random-Number-Distributions.html
 """
 
-##############################################################################
-#         Copyright (C) 2004, 2005, 2006 Joshua Kantor <kantor.jm@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#                        http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+#       Copyright (C) 2004, 2005, 2006 Joshua Kantor <kantor.jm@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 import sage.plot.plot
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'gsl.pxi'
-#cimport sage.rings.real_double
-#import sage.rings.real_double
-import random, sys
+from sage.libs.gsl.all cimport *
+import sage.misc.prandom as random
+import sys
 import integration
 from sage.modules.free_module_element import vector
 
@@ -90,7 +91,7 @@ cdef class ProbabilityDistribution:
             NotImplementedError: implement in derived class
         """
 
-        raise NotImplementedError, "implement in derived class"
+        raise NotImplementedError("implement in derived class")
 
     def generate_histogram_data(self, num_samples = 1000, bins = 50):
         """
@@ -116,9 +117,18 @@ cdef class ProbabilityDistribution:
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: h, b = X.generate_histogram_data(bins = 10)
-            sage: h # random
-            [1.5249999999999995, 0.0, 0.0, 0.0, 0.0, 1.8649999999999995, 0.0, 0.0, 0.0, 1.6099999999999994]
-            sage: b # random
+            sage: h
+            [1.6299999999999999,
+             0.0,
+             0.0,
+             0.0,
+             0.0,
+             1.9049999999999985,
+             0.0,
+             0.0,
+             0.0,
+             1.4650000000000003]
+            sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
 
@@ -175,11 +185,11 @@ cdef class SphericalDistribution(ProbabilityDistribution):
     EXAMPLES::
 
         sage: T = SphericalDistribution()
-        sage: T.get_random_element() # random
-        (-0.872578667429, -0.29632873418, -0.388324285164)
+        sage: T.get_random_element()  # rel tol 1e-14
+        (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153454)
         sage: T = SphericalDistribution(dimension = 4, rng = 'luxury')
-        sage: T.get_random_element() # random
-        (-0.196597969334, -0.536955365418, -0.672242159448, -0.470232552109)
+        sage: T.get_random_element()  # rel tol 1e-14
+        (-0.0363300434761631, 0.6459885817544098, 0.24825817345598158, 0.7209346430129753)
 
     TESTS:
 
@@ -198,20 +208,36 @@ cdef class SphericalDistribution(ProbabilityDistribution):
     cdef double* vec
 
     def __init__(self, dimension=3, rng='default', seed=None):
-        """
+        r"""
         EXAMPLES::
 
             sage: T = SphericalDistribution()
-            sage: T.get_random_element() # random
-            (-0.872578667429, -0.29632873418, -0.388324285164)
-        """
+            sage: T.get_random_element()  # rel tol 1e-14
+            (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153454)
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: T = SphericalDistribution(seed=876)
+            sage: one = [T.get_random_element() for _ in range(10)]
+            sage: T = SphericalDistribution(seed=876)
+            sage: two = [T.get_random_element() for _ in range(10)]
+            sage: T = SphericalDistribution(seed=123)
+            sage: three = [T.get_random_element() for _ in range(10)]
+            sage: one == two
+            True
+            sage: one == three
+            False
+        """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
-        if seed == None:
-            self.seed = random.randint(1, sys.maxint)
-        self.set_seed(self.seed)
+        if seed is None:
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
         self.dimension = dimension
         self.vec = <double *>sage_malloc(self.dimension*(sizeof(double)))
 
@@ -237,12 +263,12 @@ cdef class SphericalDistribution(ProbabilityDistribution):
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
             sage: T.set_random_number_generator('luxury')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
         if rng == 'default':
             self.T = gsl_rng_default
@@ -251,7 +277,7 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         elif rng == 'taus':
             self.T = gsl_rng_taus2
         else:
-            raise TypeError, "Not a valid random number generator"
+            raise TypeError("Not a valid random number generator")
 
     def __dealloc__(self):
         if self.r != NULL:
@@ -265,8 +291,8 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = SphericalDistribution(seed = 0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
 
         cdef int i
@@ -283,11 +309,11 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = SphericalDistribution(seed = 0)
-            sage: [T.get_random_element() for _ in range(4)]
-            [(0.0796156410464, -0.0523767162758, 0.995448657286), (0.412359949059, 0.560681785936, -0.718049585566), (-0.961986089162, -0.272647349404, -0.0156903512115), (0.567429757944, -0.0112067838004, -0.823345539732)]
+            sage: [T.get_random_element() for _ in range(4)]  # rel tol 4e-16
+            [(0.07961564104639995, -0.05237671627581255, 0.9954486572862178), (0.4123599490593727, 0.5606817859360097, -0.7180495855658982), (-0.9619860891623148, -0.2726473494040498, -0.015690351211529927), (0.5674297579435619, -0.011206783800420301, -0.8233455397322326)]
             sage: T.reset_distribution()
-            sage: [T.get_random_element() for _ in range(4)]
-            [(0.0796156410464, -0.0523767162758, 0.995448657286), (0.412359949059, 0.560681785936, -0.718049585566), (-0.961986089162, -0.272647349404, -0.0156903512115), (0.567429757944, -0.0112067838004, -0.823345539732)]
+            sage: [T.get_random_element() for _ in range(4)]  # rel tol 4e-16
+            [(0.07961564104639995, -0.05237671627581255, 0.9954486572862178), (0.4123599490593727, 0.5606817859360097, -0.7180495855658982), (-0.9619860891623148, -0.2726473494040498, -0.015690351211529927), (0.5674297579435619, -0.011206783800420301, -0.8233455397322326)]
         """
         if self.r != NULL:
             gsl_rng_free(self.r)
@@ -310,8 +336,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 0
         sage: b = 2
         sage: T = RealDistribution('uniform', [a, b])
-        sage: T.get_random_element() # random
-        0.416921074037
+        sage: T.get_random_element()
+        0.8175557665526867
         sage: T.distribution_function(0)
         0.5
         sage: T.cum_distribution_function(1)
@@ -324,12 +350,12 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: sigma = 1
         sage: T = RealDistribution('gaussian', sigma)
-        sage: T.get_random_element() # random
-        0.818610064197
+        sage: T.get_random_element()
+        -0.5860943109756299
         sage: T.distribution_function(0)
-        0.398942280401
+        0.3989422804014327
         sage: T.cum_distribution_function(1)
-        0.841344746069
+        0.8413447460685429
         sage: T.cum_distribution_function_inv(.5)
         0.0
 
@@ -337,14 +363,14 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: sigma = 3
         sage: T = RealDistribution('rayleigh', sigma)
-        sage: T.get_random_element() # random
-        1.65471291529
+        sage: T.get_random_element()
+        5.748307572643492
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
-        0.0540405310932
+        0.054040531093234534
         sage: T.cum_distribution_function_inv(.5)
-        3.53223006755
+        3.532230067546424
 
     The lognormal distribution has two parameters ``sigma``
     and ``zeta``::
@@ -352,8 +378,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: zeta = 0
         sage: sigma = 1
         sage: T = RealDistribution('lognormal', [zeta, sigma])
-        sage: T.get_random_element() # random
-        1.23541716538
+        sage: T.get_random_element()  # abs tol 1e-16
+        0.3876433713532701
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -366,8 +392,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 1
         sage: T = RealDistribution('pareto', [a, b])
-        sage: T.get_random_element() # random
-        1.16429443511
+        sage: T.get_random_element()
+        10.418714048916407
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -379,11 +405,11 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu = 1
         sage: T = RealDistribution('t', nu)
-        sage: T.get_random_element() # random
-        -0.994514581164
-        sage: T.distribution_function(0)
-        0.318309886184
-        sage: T.cum_distribution_function(1)
+        sage: T.get_random_element()  # rel tol 1e-15
+        -8.404911172800615
+        sage: T.distribution_function(0)      # rel tol 1e-15
+        0.3183098861837906
+        sage: T.cum_distribution_function(1)  # rel tol 1e-15
         0.75
         sage: T.cum_distribution_function_inv(.5)
         0.0
@@ -392,27 +418,27 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu1 = 9; nu2 = 17
         sage: F = RealDistribution('F', [nu1,nu2])
-        sage: F.get_random_element() # random
-        1.65211335491
-        sage: F.distribution_function(1)
-        0.669502550519
-        sage: F.cum_distribution_function(3.68)
-        0.98997177723
-        sage: F.cum_distribution_function_inv(0.99)
-        3.68224152405
+        sage: F.get_random_element()  # rel tol 1e-14
+        1.239233786115256
+        sage: F.distribution_function(1)  # rel tol 1e-14
+        0.6695025505192798
+        sage: F.cum_distribution_function(3.68)  # rel tol 1e-14
+        0.9899717772300652
+        sage: F.cum_distribution_function_inv(0.99)  # rel tol 1e-14
+        3.682241524045864
 
     The chi-squared distribution has one parameter ``nu``::
 
         sage: nu = 1
         sage: T = RealDistribution('chisquared', nu)
-        sage: T.get_random_element() # random
-        0.103230507883
+        sage: T.get_random_element()
+        0.4603367753992381
         sage: T.distribution_function(0)
         +infinity
-        sage: T.cum_distribution_function(1)
-        0.682689492137
-        sage: T.cum_distribution_function_inv(.5)
-        0.45493642312
+        sage: T.cum_distribution_function(1)  # rel tol 1e-14
+        0.6826894921370856
+        sage: T.cum_distribution_function_inv(.5)  # rel tol 1e-14
+        0.45493642311957305
 
     The exponential power distribution has two parameters ``a`` and
     ``b``::
@@ -420,20 +446,20 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 2.5
         sage: T = RealDistribution('exppow', [a, b])
-        sage: T.get_random_element() # random
-        0.570108609774
-        sage: T.distribution_function(0)
-        0.563530248993
-        sage: T.cum_distribution_function(1)
-        0.940263052543
+        sage: T.get_random_element()
+        0.16442075306686463
+        sage: T.distribution_function(0)  # rel tol 1e-14
+        0.5635302489930136
+        sage: T.cum_distribution_function(1)  # rel tol 1e-14
+        0.940263052542855
 
     The beta distribution has two parameters ``a`` and ``b``::
 
         sage: a = 2
         sage: b = 2
         sage: T = RealDistribution('beta', [a, b])
-        sage: T.get_random_element() # random
-        0.518139435862
+        sage: T.get_random_element()  # rel tol 1e-14
+        0.7110581877139808
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -444,14 +470,14 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 1
         sage: T = RealDistribution('weibull', [a, b])
-        sage: T.get_random_element() # random
-        1.86974582214
+        sage: T.get_random_element()
+        1.1867854542468694
         sage: T.distribution_function(0)
         1.0
         sage: T.cum_distribution_function(1)
-        0.632120558829
+        0.6321205588285577
         sage: T.cum_distribution_function_inv(.5)
-        0.69314718056
+        0.6931471805599453
 
     It is possible to select which random number generator drives the
     sampling as well as the seed.  The default is the Mersenne
@@ -488,22 +514,38 @@ cdef class RealDistribution(ProbabilityDistribution):
     #cdef _get_random_element_c(self)
 
     def __init__(self, type = 'uniform', parameters = [], rng = 'default', seed = None):
-        """
+        r"""
         EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
-            sage: T.get_random_element()
-            0.133918608119
+            sage: T.get_random_element()  # rel tol 4e-16
+            0.13391860811867587
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=876)
+            sage: one = [T.get_random_element() for _ in range(10)]
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=876)
+            sage: two = [T.get_random_element() for _ in range(10)]
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=123)
+            sage: three = [T.get_random_element() for _ in range(10)]
+            sage: one == two
+            True
+            sage: one == three
+            False
         """
 
         gsl_rng_env_setup()
         self.parameters = NULL
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
-        if seed == None:
-            self.seed = random.randint(1, sys.maxint)
-        self.set_seed(self.seed)
+        if seed is None:
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
         self.name = " "
         self.set_distribution(type, parameters)
 
@@ -530,15 +572,13 @@ cdef class RealDistribution(ProbabilityDistribution):
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
             sage: T.set_random_number_generator('luxury')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
-
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
-
         if rng == 'default':
             self.T = gsl_rng_default
         elif rng == 'luxury':
@@ -546,7 +586,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif rng == 'taus':
             self.T = gsl_rng_taus2
         else:
-            raise TypeError, "Not a valid random number generator"
+            raise TypeError("Not a valid random number generator")
 
     def __dealloc__(self):
         if self.r != NULL:
@@ -576,8 +616,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
-            sage: T.get_random_element()
-            0.133918608119
+            sage: T.get_random_element()  # rel tol 4e-16
+            0.13391860811867587
 
         """
         cdef double result
@@ -605,7 +645,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif self.distribution_type == beta:
             result = gsl_ran_beta(self.r, self.parameters[0], self.parameters[1])
         else:
-            raise TypeError, "Not a supported probability distribution"
+            raise TypeError("Not a supported probability distribution")
 
         return sage.rings.real_double.RDF(result)
 
@@ -627,26 +667,26 @@ cdef class RealDistribution(ProbabilityDistribution):
           for x in parameters:
               try:
                   float(x)
-              except StandardError:
-                  raise TypeError, "Uniform distribution requires parameters coercible to float"
+              except Exception:
+                  raise TypeError("Uniform distribution requires parameters coercible to float")
           self.parameters = <double*>sage_malloc(sizeof(double)*2)
           self.parameters[0] = parameters[0]
           self.parameters[1] = parameters[1]
         elif name == 'gaussian':
             try:
                 float(parameters)
-            except StandardError:
-                raise TypeError, "gaussian distribution requires parameter sigma coercible to float"
+            except Exception:
+                raise TypeError("gaussian distribution requires parameter sigma coercible to float")
             self.parameters = <double*>sage_malloc(sizeof(double))
             self.parameters[0] = float(parameters)
             self.distribution_type = gaussian
         elif name == 'pareto':
             if len(parameters) != 2:
-                raise TypeError, "pareto distribution has two parameters"
+                raise TypeError("pareto distribution has two parameters")
             try:
                 map(float, parameters)
-            except StandardError:
-                raise TypeError, "parameters must be coercible to float"
+            except Exception:
+                raise TypeError("parameters must be coercible to float")
             self.parameters = <double*>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
@@ -655,19 +695,19 @@ cdef class RealDistribution(ProbabilityDistribution):
             self.distribution_type = rayleigh
             try:
                 float(parameters)
-            except StandardError:
-                raise TypeError, "rayleigh distribution requires parameter sigma coercible to float"
+            except Exception:
+                raise TypeError("rayleigh distribution requires parameter sigma coercible to float")
             self.parameters = <double*>sage_malloc(sizeof(double))
             self.parameters[0] = float(parameters)
             self.distribution_type = rayleigh
         elif name == 'lognormal':
             if len(parameters) != 2:
-                raise TypeError, "Lognormal distribution requires two parameters"
+                raise TypeError("Lognormal distribution requires two parameters")
             for x in parameters:
                 try:
                     float(x)
-                except StandardError:
-                    raise TypeError, "Lognormal distribution requires real parameters"
+                except Exception:
+                    raise TypeError("Lognormal distribution requires real parameters")
             self.parameters = <double*>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
@@ -675,18 +715,18 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif name == 't':
             try:
                 float(parameters)
-            except StandardError:
-                raise TypeError, "parameter to t distribution must be coercible to float"
+            except Exception:
+                raise TypeError("parameter to t distribution must be coercible to float")
             self.parameters = <double*>sage_malloc(sizeof(double))
             self.parameters[0] = float(parameters)
             self.distribution_type = t
         elif name == 'F':
             if len(parameters) != 2:
-                raise TypeError, "F-distribution requires two real parameters"
+                raise TypeError("F-distribution requires two real parameters")
             try:
                 map(float, parameters)
-            except StandardError:
-                raise TypeError, "F-distribution requires real parameters"
+            except Exception:
+                raise TypeError("F-distribution requires real parameters")
             self.parameters = <double *>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
@@ -694,47 +734,47 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif name == 'chisquared':
             try:
                 float(parameters)
-            except StandardError:
-                raise TypeError, "parameters to t distribution must be coercible to float"
+            except Exception:
+                raise TypeError("parameters to t distribution must be coercible to float")
             self.parameters = <double *>sage_malloc(sizeof(double))
             self.parameters[0] = float(parameters)
             self.distribution_type = chisquared
         elif name == 'exppow':
             if len(parameters) != 2:
-                raise TypeError, "exponential power distribution requires two parameters"
+                raise TypeError("exponential power distribution requires two parameters")
             for x in parameters:
                 try:
                     float(x)
-                except StandardError:
-                    raise TypeError, "exponential power distribution requires real parameters"
+                except Exception:
+                    raise TypeError("exponential power distribution requires real parameters")
             self.parameters = <double*>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
             self.distribution_type = exppow
         elif name == 'weibull':
             if len(parameters) != 2:
-                raise TypeError, "weibull distribution requires two real parameters"
+                raise TypeError("weibull distribution requires two real parameters")
             try:
                 map(float, parameters)
-            except StandardError:
-                raise TypeError, "weibull distribution requires real parameters"
+            except Exception:
+                raise TypeError("weibull distribution requires real parameters")
             self.parameters = <double *>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
             self.distribution_type = weibull
         elif name == 'beta':
             if len(parameters) != 2:
-                raise TypeError, "beta distribution requires two real parameters"
+                raise TypeError("beta distribution requires two real parameters")
             try:
                 map(float, parameters)
-            except StandardError:
-                raise TypeError, "beta distribution requires real parameters"
+            except Exception:
+                raise TypeError("beta distribution requires real parameters")
             self.parameters = <double *>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
             self.distribution_type = beta
         else:
-            raise TypeError, "Not a supported probability distribution"
+            raise TypeError("Not a supported probability distribution")
 
         self.name = name
 
@@ -747,13 +787,12 @@ cdef class RealDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = RealDistribution('gaussian', 1, seed = 10)
-            sage: [T.get_random_element() for _ in range(10)]
-            [0.133918608119, -0.0881009918314, 1.67440840625, 0.733641107293, 0.997524631602, -1.277502081, -2.39671528273, -0.679280164729, -0.0390913184336, 0.893555545521]
+            sage: [T.get_random_element() for _ in range(10)]  # rel tol 4e-16
+            [-0.7460999595745819, -0.004644606626413462, -0.8720538317207641, 0.6916259921666037, 2.67668674666043, 0.6325002813661014, -0.7974263521959355, -0.5284976893366636, 1.1353119849528792, 0.9912505673230749]
             sage: T.reset_distribution()
-            sage: [T.get_random_element() for _ in range(10)]
-            [0.133918608119, -0.0881009918314, 1.67440840625, 0.733641107293, 0.997524631602, -1.277502081, -2.39671528273, -0.679280164729, -0.0390913184336, 0.893555545521]
+            sage: [T.get_random_element() for _ in range(10)]  # rel tol 4e-16
+            [-0.7460999595745819, -0.004644606626413462, -0.8720538317207641, 0.6916259921666037, 2.67668674666043, 0.6325002813661014, -0.7974263521959355, -0.5284976893366636, 1.1353119849528792, 0.9912505673230749]
         """
-
         if self.r != NULL:
             gsl_rng_free(self.r)
         self.r = gsl_rng_alloc(self.T)
@@ -800,7 +839,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif self.distribution_type == beta:
             return sage.rings.real_double.RDF(gsl_ran_beta_pdf(x, self.parameters[0], self.parameters[1]))
         else:
-            raise TypeError, "Not a supported probability distribution"
+            raise TypeError("Not a supported probability distribution")
 
     def cum_distribution_function(self, x):
         """
@@ -836,7 +875,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif self.distribution_type == beta:
             return sage.rings.real_double.RDF(gsl_cdf_beta_P(x, self.parameters[0], self.parameters[1]))
         else:
-            raise TypeError, "Not a supported probability distribution"
+            raise TypeError("Not a supported probability distribution")
 
     def cum_distribution_function_inv(self, x):
         """
@@ -866,14 +905,14 @@ cdef class RealDistribution(ProbabilityDistribution):
         elif self.distribution_type == chisquared:
             return sage.rings.real_double.RDF(gsl_cdf_chisq_Pinv(x, self.parameters[0]))
         elif self.distribution_type == exppow:
-            raise NotImplementedError, "gsl does not provide inverse for exponential power"
+            raise NotImplementedError("gsl does not provide inverse for exponential power")
 #            return sage.rings.real_double.RDF(gsl_cdf_exppow_Pinv(x, self.parameters[0], self.parameters[1]))
         elif self.distribution_type == weibull:
             return sage.rings.real_double.RDF(gsl_cdf_weibull_Pinv(x, self.parameters[0], self.parameters[1]))
         elif self.distribution_type == beta:
             return sage.rings.real_double.RDF(gsl_cdf_beta_Pinv(x, self.parameters[0], self.parameters[1]))
         else:
-            raise TypeError, "Not a supported probability distribution"
+            raise TypeError("Not a supported probability distribution")
 
     def plot(self, *args, **kwds):
         """
@@ -916,8 +955,8 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         sage: P = [0.3, 0.4, 0.3]
         sage: X = GeneralDiscreteDistribution(P)
-        sage: X.get_random_element() # random
-        2
+        sage: X.get_random_element()
+        1
 
     Checking the distribution of samples::
 
@@ -927,8 +966,9 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: nr_samples = 10000
         sage: for _ in range(nr_samples):
         ...       counts[X.get_random_element()] += 1
-        sage: [1.0*x/nr_samples for x in counts] # random
-        [0.295400000000000, 0.400200000000000, 0.304400000000000]
+        sage: [1.0*x/nr_samples for x in counts]
+        [0.304200000000000, 0.397300000000000, 0.298500000000000]
+
 
     The distribution probabilities will automatically be normalised::
 
@@ -964,7 +1004,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
     cdef long seed
 
     def __init__(self, P, rng = 'default', seed = None):
-        """
+        r"""
         Given a list of probabilities P construct an instance of a gsl
         discrete random variable generator.
 
@@ -973,14 +1013,31 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: assert X.get_random_element() in range(len(P))
-        """
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: P = [0.2, 0.3, 0.1, 0.4]
+            sage: T = GeneralDiscreteDistribution(P, seed=876)
+            sage: one = [T.get_random_element() for _ in range(50)]
+            sage: T = GeneralDiscreteDistribution(P, seed=876)
+            sage: two = [T.get_random_element() for _ in range(50)]
+            sage: T = GeneralDiscreteDistribution(P, seed=123)
+            sage: three = [T.get_random_element() for _ in range(50)]
+            sage: one == two
+            True
+            sage: one == three
+            False
+        """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
-        if seed == None:
-            self.seed = random.randint(1, sys.maxint)
-        self.set_seed(self.seed)
+        if seed is None:
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
 
         cdef int n
         n = len(P)
@@ -1007,7 +1064,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
             sage: X = GeneralDiscreteDistribution([0.3, 0.4, 0.3])
             sage: X.set_seed(1)
-            sage: X.get_random_element() # random
+            sage: X.get_random_element()
             1
         """
 
@@ -1031,7 +1088,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         elif rng == 'taus':
             self.T = gsl_rng_taus2
         else:
-            raise TypeError, "Not a valid random number generator"
+            raise TypeError("Not a valid random number generator")
 
     def __dealloc__(self):
         if self.r != NULL:
@@ -1048,13 +1105,12 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
-            sage: [X.get_random_element() for _ in range(10)] # random
-            [1, 0, 1, 1, 2, 0, 0, 2, 2, 0]
+            sage: [X.get_random_element() for _ in range(10)]
+            [1, 0, 1, 1, 0, 1, 1, 1, 1, 1]
             sage: isinstance(X.get_random_element(), sage.rings.integer.Integer)
             True
 
         """
-
         return sage.rings.integer.Integer(gsl_ran_discrete(self.r, self.dist))
 
     def reset_distribution(self):
@@ -1071,8 +1127,6 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             sage: [T.get_random_element() for _ in range(10)]
             [2, 2, 2, 2, 2, 1, 2, 2, 1, 2]
         """
-
         if self.r != NULL: gsl_rng_free(self.r)
         self.r = gsl_rng_alloc(self.T)
         self.set_seed(self.seed)
-

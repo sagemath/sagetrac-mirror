@@ -27,11 +27,12 @@ compute a basis.
     sage: V2 = FreeModule(IntegerRing(),2)
     sage: H = Hom(V3,V2)
     sage: H
-    Set of Morphisms from Ambient free module of rank 3
-    over the principal ideal domain Integer Ring to
-    Ambient free module of rank 2
-    over the principal ideal domain Integer Ring
-    in Category of modules with basis over Integer Ring
+    Set of Morphisms from Ambient free module of rank 3 over
+     the principal ideal domain Integer Ring
+     to Ambient free module of rank 2
+     over the principal ideal domain Integer Ring
+     in Category of finite dimensional modules with basis over
+     (euclidean domains and infinite enumerated sets and metric spaces)
     sage: B = H.basis()
     sage: len(B)
     6
@@ -85,10 +86,10 @@ def is_FreeModuleHomspace(x):
 
     EXAMPLES:
 
-    Notice that every vector space is a field, but when we construct a set of
-    morphisms between two vector spaces, it is a ``VectorSpaceHomspace``,
-    which qualifies as a ``FreeModuleHomspace``, since the former is
-    special case of the latter.
+    Notice that every vector space is a free module, but when we construct
+    a set of morphisms between two vector spaces, it is a
+    ``VectorSpaceHomspace``, which qualifies as a ``FreeModuleHomspace``,
+    since the former is special case of the latter.
 
         sage: H = Hom(ZZ^3, ZZ^2)
         sage: type(H)
@@ -169,24 +170,21 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Echelon ...
 
         """
-        if not matrix.is_Matrix(A):
+        if not sage.matrix.matrix.is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()
-            if isfunction(A):
-                try:
+            try:
+                if isfunction(A):
                     v = [C(A(g)) for g in self.domain().gens()]
-                    A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError, msg:
-                    # Let us hope that FreeModuleMorphism knows to handle that case
-                    pass
-            else:
-                try:
+                else:
                     v = [C(a) for a in A]
-                    A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError, msg:
-                    # Let us hope that FreeModuleMorphism knows to handle that case
-                    pass
+                A = matrix.matrix([C.coordinates(a) for a in v],
+                                  ncols=C.rank())
+            except TypeError:
+                # Let us hope that FreeModuleMorphism knows to handle
+                # that case
+                pass
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     @cached_method
@@ -240,7 +238,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         try:
             return self.__matrix_space
         except AttributeError:
-            R = self.domain().base_ring()
+            R = self.codomain().base_ring()
             M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
             self.__matrix_space = M
             return M
@@ -296,5 +294,5 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         if self.is_endomorphism_set():
             return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
         else:
-            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+            raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

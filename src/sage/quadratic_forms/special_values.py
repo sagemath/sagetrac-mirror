@@ -10,7 +10,7 @@ Routines for computing special values of L-functions
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
 from sage.rings.all import RealField
-from sage.rings.arith import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
+from sage.arith.all import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -265,9 +265,9 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
     Test for several characters that the result agrees with the exact
     value, to a given accuracy ::
 
-        sage: for d in range(-20,0):
-        ...       if abs(RR(quadratic_L_function__numerical(1, d, 10000) - quadratic_L_function__exact(1, d))) > 0.001:
-        ...           print "Oops!  We have a problem at d = ", d, "    exact = ", RR(quadratic_L_function__exact(1, d)), "    numerical = ", RR(quadratic_L_function__numerical(1, d))
+        sage: for d in range(-20,0):  # long time (2s on sage.math 2014)
+        ....:     if abs(RR(quadratic_L_function__numerical(1, d, 10000) - quadratic_L_function__exact(1, d))) > 0.001:
+        ....:         print "Oops!  We have a problem at d = ", d, "    exact = ", RR(quadratic_L_function__exact(1, d)), "    numerical = ", RR(quadratic_L_function__numerical(1, d))
     """
     # Set the correct precision if it is given (for n).
     if is_RealField(n.parent()):

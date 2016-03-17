@@ -1,4 +1,6 @@
 """
+Newton Polygons
+
 This module implements finite Newton polygons and
 infinite Newton polygons having a finite number of
 slopes (and hence a last infinite slope).
@@ -15,11 +17,10 @@ slopes (and hence a last infinite slope).
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.sage_object import op_EQ, op_NE, op_LE, op_GE, op_LT
 from sage.misc.cachefunc import cached_method
-from sage.structure.misc import getattr_from_other_class
 
 from sage.rings.infinity import Infinity
-from sage.rings.integer_ring import ZZ
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 
@@ -378,114 +379,76 @@ class NewtonPolygon_element(Element):
         (xd,yd) = vertices[b]
         return ((x-xg)*yd + (xd-x)*yg) / (xd-xg)
 
-    def __eq__(self, other):
-        """
-        TESTS:
+    def _richcmp_(self, other, op):
+        r"""
+        Comparisons of two Newton polygons.
+
+        TESTS::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
+
             sage: NP1 = NewtonPolygon([ (0,0), (1,1), (3,6) ])
             sage: NP2 = NewtonPolygon([ (0,0), (1,1), (2,6), (3,6) ])
             sage: NP1 == NP2
             True
-        """
-        if not isinstance(other, NewtonPolygon_element):
-            return False
-        return self._polyhedron == other._polyhedron
-
-    def __ne__(self, other):
-        """
-        TESTS:
-
-            sage: from sage.geometry.newton_polygon import NewtonPolygon
-            sage: NP1 = NewtonPolygon([ (0,0), (1,1), (3,6) ])
-            sage: NP2 = NewtonPolygon([ (0,0), (1,1), (2,6), (3,6) ])
             sage: NP1 != NP2
             False
-        """
-        return not (self == other)
 
-    def __le__(self, other):
-        """
-        INPUT:
-
-        - ``other`` -- an other Newton polygon
-
-        OUTPUT:
-
-        Return True is this Newton polygon lies below ``other``
-
-        EXAMPLES:
-
-            sage: from sage.geometry.newton_polygon import NewtonPolygon
-            sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ])
-            sage: NP2 = NewtonPolygon([ (0,0), (1,3/2) ], last_slope=2)
-            sage: NP1 <= NP2
+            sage: NP1 >= NP1 and NP2 >= NP2
+            True
+            sage: NP1 > NP1 or NP2 > NP2
             False
 
-            sage: NP1 + NP2 <= NP1
-            True
-            sage: NP1 + NP2 <= NP2
-            True
-        """
-        if not isinstance(other, NewtonPolygon_element):
-            raise TypeError("Impossible to compare a Newton Polygon with something else")
-        if self.last_slope() > other.last_slope():
-            return False
-        for v in other.vertices():
-            if not v in self._polyhedron:
-                return False
-        return True
-
-    def __lt__(self, other):
-        """
-        TESTS:
-
-            sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ])
             sage: NP2 = NewtonPolygon([ (0,0), (1,3/2) ], last_slope=2)
+            sage: NP3 = NP1 + NP2
+
+            sage: NP1 <= NP2
+            False
+            sage: NP3 <= NP1
+            True
+            sage: NP3 <= NP2
+            True
+
             sage: NP1 < NP1
             False
             sage: NP1 < NP2
             False
 
-            sage: NP1 + NP2 < NP2
-            True
-        """
-        return self <= other and self != other
-
-    def __ge__(self, other):
-        """
-        TESTS:
-
-            sage: from sage.geometry.newton_polygon import NewtonPolygon
-            sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ])
-            sage: NP2 = NewtonPolygon([ (0,0), (1,3/2) ], last_slope=2)
             sage: NP1 >= NP2
             False
 
-            sage: NP1 >= NP1 + NP2
+            sage: NP1 >= NP3
             True
-            sage: NP2 >= NP1 + NP2
-            True
-        """
-        return other <= self
 
-    def __gt__(self, other):
-        """
-        TESTS:
-
-            sage: from sage.geometry.newton_polygon import NewtonPolygon
-            sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ])
-            sage: NP2 = NewtonPolygon([ (0,0), (1,3/2) ], last_slope=2)
             sage: NP1 > NP1
             False
             sage: NP1 > NP2
             False
 
-            sage: NP1 > NP1 + NP2
+            sage: NP1 >= NP3 and NP2 >= NP3 and NP3 <= NP1 and NP3 <= NP2
+            True
+            sage: NP1 > NP3 and NP2 > NP3
+            True
+            sage: NP3 < NP2 and NP3 < NP1
             True
         """
-        return other <= self and self != other
+        if self._polyhedron == other._polyhedron:
+            return op == op_EQ or op == op_LE or op == op_GE
+        elif op == op_NE:
+            return True
+        elif op == op_EQ:
+            return False
+
+        if op == op_LT or op == op_LE:
+            if self.last_slope() > other.last_slope():
+                return False
+            return all(v in self._polyhedron for v in other.vertices())
+
+        else:
+            if self.last_slope() < other.last_slope():
+                return False
+            return all(v in other._polyhedron for v in self.vertices())
 
     def plot(self, **kwargs):
         """
@@ -579,6 +542,12 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
 
     The corresponding Newton polygon.
 
+    .. note::
+
+        By convention, a Newton polygon always contains the point
+        at infinity `(0, \infty)`. These polygons are attached to
+        polynomials or series over discrete valuation rings (e.g. padics).
+
     EXAMPLES:
 
     We specify here a Newton polygon by its vertices::
@@ -592,6 +561,12 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
 
         sage: NewtonPolygon([ (0,0), (1,1), (2,8), (3,5) ])
         Finite Newton polygon with 3 vertices: (0, 0), (1, 1), (3, 5)
+
+    Note that the value ``+Infinity`` is allowed as the second coordinate
+    of a vertex::
+
+        sage: NewtonPolygon([ (0,0), (1,Infinity), (2,8), (3,5) ])
+        Finite Newton polygon with 2 vertices: (0, 0), (3, 5)
 
     If last_slope is set, the returned Newton polygon is infinite
     and ends with an infinite line having the specified slope::
@@ -620,7 +595,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentionned::
+    except if the contrary is explicitely mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)
@@ -632,6 +607,19 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         Infinite Newton polygon with 3 vertices: (0, 0), (1, 0), (3, 1) ending by an infinite line of slope 2/3
         sage: NP.slopes()
         [0, 1/2, 1/2]
+
+    Be careful, do not confuse Newton polygons provided by this class
+    with Newton polytopes. Compare::
+
+        sage: NP = NewtonPolygon([ (0,0), (1,45), (3,6) ]); NP
+        Finite Newton polygon with 2 vertices: (0, 0), (3, 6)
+
+        sage: x, y = polygen(QQ,'x, y')
+        sage: p = 1 + x*y**45 + x**3*y**6
+        sage: p.newton_polytope()
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+        sage: p.newton_polytope().vertices()
+        (A vertex at (0, 0), A vertex at (1, 45), A vertex at (3, 6))
     """
 
     Element = NewtonPolygon_element
@@ -743,7 +731,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         if len(arg) > 0 and arg[0] in self.base_ring():
             if sort_slopes: arg.sort()
             x = y = 0
-            vertices = [ (x,y) ]
+            vertices = [(x, y)]
             for slope in arg:
                 if not slope in self.base_ring():
                     raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
@@ -751,7 +739,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                 y += slope
                 vertices.append((x,y))
         else:
-            vertices = arg
+            vertices = [(x, y) for (x, y) in arg if y is not Infinity]
         if len(vertices) == 0:
             polyhedron = Polyhedron(base_ring=self.base_ring(), ambient_dim=2)
         else:

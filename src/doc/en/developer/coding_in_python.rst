@@ -22,7 +22,7 @@ scratch. Try to figure out how your code should fit in with other Sage
 code, and design it accordingly.
 
 
-Special Sage functions
+Special Sage Functions
 ======================
 
 Functions with leading and trailing double underscores ``__XXX__`` are
@@ -33,24 +33,20 @@ double leading underscore are considered really private. Users can
 create functions with leading and trailing underscores.
 
 Just as Python has many standard special methods for objects, Sage
-also has special methods. They are typically of the form
-``_XXX_``. (In a few cases, the trailing underscore is not included,
-but this will be changed so that the trailing underscore is always
-included.) This section describes these special methods.
+also has special methods. They are typically of the form ``_XXX_``.
+In a few cases, the trailing underscore is not included, but this will
+eventually be changed so that the trailing underscore is always
+included. This section describes these special methods.
 
 All objects in Sage should derive from the Cython extension class
-``SageObject``:
-
-::
+``SageObject``::
 
     from sage.ext.sage_object import SageObject
 
     class MyClass(SageObject,...):
         ...
 
-or from some other already existing Sage class:
-
-::
+or from some other already existing Sage class::
 
     from sage.rings.ring import Algebra
 
@@ -61,7 +57,7 @@ You should implement the ``_latex_`` and ``_repr_`` method for every
 object. The other methods depend on the nature of the object.
 
 
-LaTeX representation
+LaTeX Representation
 --------------------
 
 Every object ``x`` in Sage should support the command ``latex(x)``, so
@@ -113,7 +109,7 @@ representing the object ``a``. Calling ``view(a)`` will display the
 typeset version of this.
 
 
-Print representation
+Print Representation
 --------------------
 
 The standard Python printing method is ``__repr__(self)``. In Sage,
@@ -126,9 +122,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/devel/sage/sage/functions/constants.py``:
-
-::
+``SAGE_ROOT/src/sage/functions/constants.py``::
 
     class Pi(Constant):
         """
@@ -149,7 +143,7 @@ Here is an example of the ``_latex_`` and ``_repr_`` functions for the
             return "\\pi"
 
 
-Matrix or vector from object
+Matrix or Vector from Object
 ----------------------------
 
 Provide a ``_matrix_`` method for an object that can be coerced to a
@@ -157,9 +151,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/devel/sage/sage/graphs/graph.py``:
-
-::
+``SAGE_ROOT/src/sage/graphs/graph.py``::
 
     class GenericGraph(SageObject):
         ...
@@ -175,11 +167,7 @@ The following is from
 
 Similarly, provide a ``_vector_`` method for an object that can be
 coerced to a vector over a ring `R`. Then the Sage function ``vector``
-will work for this object.
-
-.. Provide example from a .py file
-
-The following is from the file
+will work for this object. The following is from the file
 ``SAGE_ROOT/sage/sage/modules/free_module_element.pyx``::
 
     cdef class FreeModuleElement(element_Vector):   # abstract base class
@@ -190,74 +178,87 @@ The following is from the file
 
 .. _section-preparsing:
 
-Sage preparsing
+Sage Preparsing
 ===============
 
-The following files are relevant to preparsing in Sage:
+To make Python even more usable interactively, there are a number of
+tweaks to the syntax made when you use Sage from the commandline or
+via the notebook (but not for Python code in the Sage
+library). Technically, this is implemented by a ``preparse()``
+function that rewrites the input string. Most notably, the following
+replacements are made:
 
-#. ``SAGE_ROOT/spkg/bin/sage``
+- Sage supports a special syntax for generating rings or, more
+  generally, parents with named generators::
 
-#. ``SAGE_ROOT/local/bin/sage-preparse``
+      sage: R.<x,y> = QQ[]
+      sage: preparse('R.<x,y> = QQ[]')
+      "R = QQ['x, y']; (x, y,) = R._first_ngens(2)"
 
-#. ``SAGE_ROOT/devel/sage/sage/misc/preparser.py``
+- Integer and real literals are Sage integers and Sage floating point
+  numbers. For example, in pure Python these would be an attribute
+  error::
 
-.. Talk about ``SAGE_ROOT/devel/sage/sage/misc/preparser_ipython.py`` file
+      sage: 16.sqrt()
+      4
+      sage: 87.factor()
+      3 * 29
 
-In particular, the file ``preparser.py`` contains the Sage preparser
-code. The following are some notes from it:
+- Raw literals are not preparsed, which can be useful from an
+  efficiency point of view. Just like Python ints are denoted by an L,
+  in Sage raw integer and floating literals are followed by an "r" (or
+  "R") for raw, meaning not preparsed. For example::
 
--  In Sage, methods can be called on integer and real literals. Note
-   that in pure Python this would be a syntax error. For example:
+      sage: a = 393939r
+      sage: a
+      393939
+      sage: type(a)
+      <type 'int'>
+      sage: b = 393939
+      sage: type(b)
+      <type 'sage.rings.integer.Integer'>
+      sage: a == b
+      True
 
-   ::
-
-           sage: 16.sqrt()
-           4
-           sage: 87.factor()
-           3 * 29
-
--  Raw literals are not preparsed, which can be useful from an
-   efficiency point of view. Just like Python ints are denoted by an
-   L, in Sage raw integer and floating literals are followed by an "r"
-   (or "R") for raw, meaning not preparsed. For example:
-
-   ::
-
-           sage: a = 393939r
-           sage: a
-           393939
-           sage: type(a)
-           <type 'int'>
-           sage: b = 393939
-           sage: type(b)
-           <type 'sage.rings.integer.Integer'>
-           sage: a == b
-           True
-
--  Raw literals can be very useful in certain cases. For instance,
-   Python integers can be more efficient than Sage integers when they
-   are very small.  Large Sage integers are much more efficient than
-   Python integers since they are implemented using the GMP C
-   library.
+- Raw literals can be very useful in certain cases. For instance,
+  Python integers can be more efficient than Sage integers when they
+  are very small.  Large Sage integers are much more efficient than
+  Python integers since they are implemented using the GMP C library.
 
 Consult the file ``preparser.py`` for more details about Sage
 preparsing, more examples involving raw literals, etc.
 
-When a file ``foo.sage`` is loaded in a Sage session, a preparsed
-version of ``foo.sage`` is created and named ``foo.py``. The beginning
-of ``foo.py`` states:
-
-::
+When a file ``foo.sage`` is loaded or attached in a Sage session, a
+preparsed version of ``foo.sage`` is created with the name
+``foo.sage.py``. The beginning of the preparsed file states::
 
     This file was *autogenerated* from the file foo.sage.
 
+You can explicitly preparse a file with the ``--preparse``
+command-line option: running ::
 
-The Sage coercion model
+    sage --preparse foo.sage
+
+creates the file ``foo.sage.py``.
+
+The following files are relevant to preparsing in Sage:
+
+#. ``SAGE_ROOT/src/bin/sage``
+
+#. ``SAGE_ROOT/src/bin/sage-preparse``
+
+#. ``SAGE_ROOT/src/sage/repl/preparse.py``
+
+In particular, the file ``preparse.py`` contains the Sage preparser
+code.
+
+
+The Sage Coercion Model
 =======================
 
 The primary goal of coercion is to be able to transparently do
 arithmetic, comparisons, etc. between elements of distinct sets. For
-example, when one writes `1 + 1/2`, one wants to perform arithmetic on
+example, when one writes `3 + 1/2`, one wants to perform arithmetic on
 the operands as rational numbers, despite the left term being an
 integer.  This makes sense given the obvious and natural inclusion of
 the integers into the rational numbers. The goal of the coercion
@@ -288,14 +289,14 @@ scope variable.
 
 Certain objects, e.g. matrices, may start out mutable and become
 immutable later. See the file
-``SAGE_ROOT/devel/sage/sage/structure/mutability.py``.
+``SAGE_ROOT/src/sage/structure/mutability.py``.
 
 
-The  __hash__ special method
+The  __hash__ Special Method
 ============================
 
 Here is the definition of ``__hash__`` from the Python reference
-manual.
+manual:
 
     Called by built-in function ``hash()`` and for operations on members of
     hashed collections including set, frozenset, and dict. ``__hash__()``
@@ -381,40 +382,36 @@ For example,
 
 The output 2 is better than some random hash that also involves the
 moduli, but it is of course not right from the Python point of view,
-since ``9 == Mod(2,7)``.
-
-The goal is to make a hash function that is fast, but within reason
-respects any obvious natural inclusions and coercions.
+since ``9 == Mod(2,7)``. The goal is to make a hash function that is
+fast, but within reason respects any obvious natural inclusions and
+coercions.
 
 
 Exceptions
 ==========
 
-Please avoid code like this:
-
-::
+Please avoid catch-all code like this::
 
     try:
         some_code()
     except:               # bad
         more_code()
 
-Instead, catch specific exceptions. For example,
-
-::
-
-    try:
-        return self.__coordinate_ring
-    except (AttributeError, OtherExceptions) as msg:           # Good
-        more_code_to_compute_something()
-
-Note that the syntax in ``except`` is to list all the exceptions that
-are caught as a tuple, followed by an error message.
-
 If you do not have any exceptions explicitly listed (as a tuple), your
 code will catch absolutely anything, including ``ctrl-C``, typos in
 the code, and alarms, and this will lead to confusion. Also, this
 might catch real errors which should be propagated to the user.
+
+To summarize, only catch specific exceptions as in the following
+example::
+
+    try:
+        return self.__coordinate_ring
+    except (AttributeError, OtherExceptions) as msg:           # good
+        more_code_to_compute_something()
+
+Note that the syntax in ``except`` is to list all the exceptions that
+are caught as a tuple, followed by an error message.
 
 
 Importing
@@ -423,29 +420,22 @@ Importing
 We mention two issues with importing: circular imports and importing
 large third-party modules.
 
-First, you must avoid circular imports. For example, suppose that
-the file
-``SAGE_ROOT/devel/sage/sage/algebras/steenrod_algebra.py``
-started with a line
-
-::
+First, you must avoid circular imports. For example, suppose that the
+file ``SAGE_ROOT/src/sage/algebras/steenrod_algebra.py``
+started with a line::
 
     from sage.sage.algebras.steenrod_algebra_bases import *
 
 and that the file
-``SAGE_ROOT/devel/sage/sage/algebras/steenrod_algebra_bases.py``
-started with a line
-
-::
+``SAGE_ROOT/src/sage/algebras/steenrod_algebra_bases.py``
+started with a line::
 
     from sage.sage.algebras.steenrod_algebra import SteenrodAlgebra
 
 This sets up a loop: loading one of these files requires the other,
 which then requires the first, etc.
 
-With this set-up, running Sage will produce an error:
-
-::
+With this set-up, running Sage will produce an error::
 
     Exception exceptions.ImportError: 'cannot import name SteenrodAlgebra'
     in 'sage.rings.polynomial.polynomial_element.
@@ -459,13 +449,11 @@ With this set-up, running Sage will produce an error:
 Instead, you might replace the ``import *`` line at the top of the
 file by more specific imports where they are needed in the code. For
 example, the ``basis`` method for the class ``SteenrodAlgebra`` might
-look like this (omitting the documentation string):
+look like this (omitting the documentation string)::
 
-::
-
-        def basis(self, n):
-            from steenrod_algebra_bases import steenrod_algebra_basis
-            return steenrod_algebra_basis(n, basis=self._basis_name, p=self.prime)
+    def basis(self, n):
+        from steenrod_algebra_bases import steenrod_algebra_basis
+        return steenrod_algebra_basis(n, basis=self._basis_name, p=self.prime)
 
 Second, do not import at the top level of your module a third-party
 module that will take a long time to initialize (e.g. matplotlib). As
@@ -474,162 +462,130 @@ they are needed, rather than at the top level of your file.
 
 It is important to try to make ``from sage.all import *`` as fast as
 possible, since this is what dominates the Sage startup time, and
-controlling the top-level imports helps to do this.
+controlling the top-level imports helps to do this. One important
+mechanism in Sage are lazy imports, which don't actually perform the
+import but delay it until the object is actually used. See
+:mod:`sage.misc.lazy_import` for more details of lazy imports, and
+:ref:`chapter-directory-structure` for an example using lazy imports
+for a new module.
 
 
 Deprecation
 ===========
 
-Sooner or later you will find places in the Sage library that are, in
-hindsight, not designed as well as they could be. Of course you want
-to improve the overall state, but at the same time we don't want to
-pull out the carpet under our users' feet. The process of removing old
-code is called deprecation.
+When making a **backward-incompatible** modification in Sage, the old code should
+keep working and display a message indicating how it should be updated/written
+in the future. We call this a *deprecation*.
 
-.. note::
+.. NOTE::
 
-    Before removing any functionality, you should keep a deprecation
-    warning in place for at least one year (if possible). The
-    deprecation must include the trac ticket number where it was
-    introduced.
+    Deprecated code can only be removed one year after the first
+    stable release in which it appeared.
 
-For example, let's say you run across the following while working on a
-module in the Sage library::
+Each deprecation warning contains the number of the trac ticket that defines
+it. We use 666 in the examples below. For each entry, consult the function's
+documentation for more information on its behaviour and optional arguments.
 
-    class Foo(SageObject):
-        def terrible_idea(self):
-            return 1
-        def bad_name(self):
-            return 1
-        def f(self, weird_keyword=True):
-            return 1
+* **Rename a keyword:** by decorating a function/method with
+  :class:`~sage.misc.decorators.rename_keyword`, any user calling
+  ``my_function(my_old_keyword=5)`` will see a warning::
 
-You note that the ``terrible_idea()`` method does not make any sense,
-and should be removed altogether. You open the trac ticket number 3333
-(say), and replace the code with::
+      from sage.misc.decorators import rename_keyword
+      @rename_keyword(deprecation=666, my_old_keyword='my_new_keyword')
+      def my_function(my_new_keyword=True):
+          return my_new_keyword
 
-        def terrible_idea(self):
-            from sage.misc.superseded import deprecation
-            deprecation(3333, 'You can just call f() instead')
-            return 1
+* **Rename a function/method:** call
+  :func:`~sage.misc.superseded.deprecated_function_alias` to obtain a copy of a
+  function that raises a deprecation warning::
 
-Later, you come up with a much better name for the second method. You
-open the trac ticket number 4444, and replace it with::
+      from sage.misc.superseded import deprecated_function_alias
+      def my_new_function():
+          ...
 
-        def much_better_name(self):
-            return 1
+      my_old_function = deprecated_function_alias(666, my_new_function)
 
-        bad_name = deprecated_function_alias(4444, much_better_name)
+* **Moving an object to a different module:**
+  if you rename a source file or move some function (or class) to a
+  different file, it should still be possible to import that function
+  from the old module. This can be done using a
+  :func:`~sage.misc.lazy_import.lazy_import` with deprecation.
+  In the old module, you would write::
 
-Finally, you like the ``f()`` method name but you don't like the
-``weird_keyword`` name. You fix this by opening the trac ticket 5555,
-and replacing it with::
+    from sage.misc.lazy_import import lazy_import
+    lazy_import('sage.new.module.name', 'name_of_the_function', deprecation=666)
 
-        @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
-        def f(self, nice_keyword=True):
-            return 1
+  You can also lazily import everything using ``*`` or a few functions
+  using a tuple::
 
-Now, any user that still relies on the deprecated functionality will
-be informed that this is about to change, yet the deprecated commands
-still work. With all necessary imports, the final result looks like
-this::
+    from sage.misc.lazy_import import lazy_import
+    lazy_import('sage.new.module.name', '*', deprecation=666)
+    lazy_import('sage.other.module', ('func1', 'func2'), deprecation=666)
 
-    sage: from sage.misc.superseded import deprecation, deprecated_function_alias
-    sage: from sage.misc.decorators import rename_keyword
+* **Remove a name from the global namespace:** the function
+  :func:`~sage.misc.superseded.deprecated_callable_import` imports an object into
+  the global namespace. Any user who calls it sees a message inviting him to
+  import the object manually::
 
-    sage: class Foo(SageObject):
-    ...
-    ...     def terrible_idea(self):
-    ...         deprecation(3333, 'You can just call f() instead')
-    ...         return 1
-    ...
-    ...     def much_better_name(self):
-    ...         return 1
-    ...
-    ...     bad_name = deprecated_function_alias(4444, much_better_name)
-    ...
-    ...     @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
-    ...     def f(self, nice_keyword=True):
-    ...         return 1
+      from sage.misc.superseded import deprecated_callable_import
+      deprecated_callable_import(666,
+                           'sage.combinat.name_of_the_module',
+                           globals(),
+                           locals(),
+                           ["name_of_the_function"])
 
-    sage: foo = Foo()
-    sage: foo.terrible_idea()
-    doctest:...: DeprecationWarning: You can just call f() instead
-    See http://trac.sagemath.org/3333 for details.
-    1
+  Alternatively, a lazy_import with deprecation would also work in this case.
 
-    sage: foo.bad_name()
-    doctest:...: DeprecationWarning: bad_name is deprecated. Please use much_better_name instead.
-    See http://trac.sagemath.org/4444 for details.
-    1
+* **Any other case:** if none of the cases above apply, call
+  :func:`~sage.misc.superseded.deprecation` in the function that you want to
+  deprecate. It will display the message of your choice (and interact properly
+  with the doctest framework)::
 
-    sage: foo.f(weird_keyword=False)
-    doctest:...: DeprecationWarning: use the option 'nice_keyword' instead of 'weird_keyword'
-    See http://trac.sagemath.org/5555 for details.
-    1
-
-Editing existing files
-======================
-
-There are several copies of Sage library files, and it can be
-confusing for beginners to know which one to modify.  In the directory
-``SAGE_ROOT/devel/sage``, there is a subdirectory ``build`` which
-contains copies of Python files and their byte-compiled versions,
-along with compiled version of Cython files.  These are the files that
-Sage actually uses, but *you* *never* *need* *to* *touch* *these*.
-Instead, always work with files in the directory
-``SAGE_ROOT/devel/sage/sage``.  For example, if you want to add a new
-method for simplicial complexes, then edit the file
-``SAGE_ROOT/devel/sage/sage/homology/simplicial_complex.py``.  Save
-your changes, and then type ``sage -b`` to incorporate those changes.
-This automatically copies the appropriate files into the appropriate
-places under ``SAGE_ROOT/devel/sage/build``.
-
-You should also read :ref:`chapter-mercurial` for information about
-how to create a copy of the Sage library and make your changes there,
-so that first, it is easy to undo your changes, and second, it is easy
-to produce a "patch" file so you can share your changes with other
-people.
+      from sage.misc.superseded import deprecation
+      deprecation(666, "Do not use your computer to compute 1+1. Use your brain.")
 
 
-Creating a new directory
-========================
+Experimental/Unstable Code
+--------------------------
 
-If you want to create a new directory in the Sage library
-``SAGE_ROOT/devel/sage/sage`` (say, ``measure_theory``), that directory
-should contain an empty file ``__init__.py`` in addition to whatever
-files you want to add (say, ``borel_measure.py`` and
-``banach_tarski.py``), and also a file ``all.py`` listing imports from
-that directory.  The file ``all.py`` might look like this::
+You can mark your newly created code (classes/functions/methods) as
+experimental/unstable. In this case, no deprecation warning is needed
+when changing this code, its functionality or its interface.
 
-    from borel_measure import BorelMeasure
+This should allow you to put your stuff in Sage early, without worrying about
+making (design) changes later.
 
-    from banach_tarski import BanachTarskiParadox
+When satisfied with the code (when stable for some time, say, one
+year), you can delete this warning.
 
-Then in the file ``SAGE_ROOT/devel/sage/sage/all.py``, add a line ::
+As usual, all code has to be fully doctested and go through our
+reviewing process.
 
-    from sage.measure_theory.all  import *
+* **Experimental function/method:** use the decorator
+  :class:`~sage.misc.superseded.experimental`. Here is an example::
 
-Finally, add the directory name ("measure_theory") to the ``packages``
-list in the Distutils section of the file
-``SAGE_ROOT/devel/sage/setup.py``: add a line ::
+      from sage.misc.superseded import experimental
+      @experimental(66666)
+      def experimental_function():
+          # do something
 
-    'sage.measure_theory',
+* **Experimental class:** use the decorator
+  :class:`~sage.misc.superseded.experimental` for its ``__init__``.
+  Here is an example::
 
-between ::
+      from sage.misc.superseded import experimental
+      class experimental_class(SageObject):
+          @experimental(66666)
+          def __init__(self, some, arguments):
+              # do something
 
-    'sage.matrix',
+* **Any other case:** if none of the cases above apply, call :func:`~sage.misc.superseded.experimental_warning` in the code where you want to warn. It will display the message of your choice::
 
-and ::
-
-    'sage.media',
-
-As noted above, you should also read :ref:`chapter-mercurial` for
-information about how to do this in a copy of the Sage library and how
-to disseminate your changes.
+      from sage.misc.superseded import experimental_warning
+      experimental_warning(66666, 'This code is not foolproof.')
 
 
-Using optional packages
+Using Optional Packages
 =======================
 
 If a function requires an optional package, that function should fail

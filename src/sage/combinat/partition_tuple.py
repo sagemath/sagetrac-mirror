@@ -9,18 +9,18 @@ A :class:`PartitionTuple` is a tuple of partitions. That is, an ordered
     n = \lvert \mu \rvert = \lvert \mu^{(1)} \rvert +
     \lvert \mu^{(2)} \rvert + \cdots + \lvert \mu^{(k)} \rvert
 
-then `\mu` is an `k`-partition of `n`.
+then we say that `\mu` is a `k`-partition of `n`.
 
 In representation theory partition tuples arise as the natural indexing
 set for the ordinary irreducible representations of:
 
-- the wreath products of cyclic groups with symmetric groups
+- the wreath products of cyclic groups with symmetric groups,
 - the Ariki-Koike algebras, or the cyclotomic Hecke algebras of
-  the complex reflection groups of type `G(r,1,n)`
-- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`
+  the complex reflection groups of type `G(r,1,n)`,
+- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`.
 
-When these algebras are not semisimple partition, tuples index an important
-class of modules for the algebras which are generalisations of the Specht
+When these algebras are not semisimple, partition tuples index an important
+class of modules for the algebras, which are generalisations of the Specht
 modules of the symmetric groups.
 
 Tuples of partitions also index the standard basis of the higher level
@@ -117,6 +117,17 @@ enumerated sets::
      ([], [1], [1]),
      ([], [], [2]),
      ([], [], [1, 1])]
+    sage: PartitionTuples(2,3).list()
+    [([3], []),
+     ([2, 1], []),
+     ([1, 1, 1], []),
+     ([2], [1]),
+     ([1, 1], [1]),
+     ([1], [2]),
+     ([1], [1, 1]),
+     ([], [3]),
+     ([], [2, 1]),
+     ([], [1, 1, 1])]
 
 One tuples of partitions are naturally in bijection with partitions and, as far
 as possible, partition tuples attempts to identify one tuples with partitions::
@@ -234,32 +245,35 @@ subgroup::
     [1, 2, 3, 6, 8, 11, 12]
 
 """
+
 #*****************************************************************************
-#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>,
+#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
-from combinat import CombinatorialObject
+import itertools
+
+from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import NN, ZZ
 from sage.rings.integer import Integer
-from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 #--------------------------------------------------
 # Partition tuple - element class
 #--------------------------------------------------
-class PartitionTuple(CombinatorialObject,Element):
+class PartitionTuple(CombinatorialElement):
     r"""
     A tuple of :class:`Partition`.
 
@@ -274,7 +288,7 @@ class PartitionTuple(CombinatorialObject,Element):
         n = \lvert \mu \rvert = \lvert \mu^{(1)} \rvert +
         \lvert \mu^{(2)} \rvert + \cdots + \lvert \mu^{(k)} \rvert
 
-    then `\mu` is an `k`-partition of `n`.
+    then `\mu` is a `k`-partition of `n`.
 
     In representation theory PartitionTuples arise as the natural indexing
     set for the ordinary irreducible representations of:
@@ -383,7 +397,6 @@ class PartitionTuple(CombinatorialObject,Element):
         - :class:`PartitionTuples`
         - :class:`Partitions`
     """
-    __metaclass__ = ClasscallMetaclass
     Element = Partition
 
     @staticmethod
@@ -440,9 +453,8 @@ class PartitionTuple(CombinatorialObject,Element):
             ValueError: [[], [], [2, 1, 2, 1]] is not a tuple of Partitions
 
         """
-        Element.__init__(self, parent)
-        mu=[Partition(nu) for nu in mu]
-        CombinatorialObject.__init__(self, mu)
+        mu = [Partition(nu) for nu in mu]
+        CombinatorialElement.__init__(self, parent, mu)
 
     def level(self):
         """
@@ -473,7 +485,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         return self.level()
 
-    def _repr_(self, compact=False):
+    def _repr_(self, compact=None):
         """
         Return a string representation of ``self`` depending on
         :meth:`PartitionTuples.global_options`.
@@ -515,11 +527,6 @@ class PartitionTuple(CombinatorialObject,Element):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact:
-            from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
-            return self._repr_compact_high()
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):
@@ -528,8 +535,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -553,6 +562,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_exp_low()
             '1, 2 | 2, 3 | 1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_low()
+            '- | 2, 3 | 1^3'
         """
         return ' | '.join(nu._repr_exp_low() for nu in self)
 
@@ -565,6 +576,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1,1,1,1,1,1,1,1]))._repr_exp_high()
             '2, 1 | 3, 2 | 1^10'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_high()
+            '- | 3, 2 | 1^3'
         """
         return ' | '.join(nu._repr_exp_high() for nu in self)
 
@@ -577,8 +590,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_low()
             '1,2|2,3|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_low()
+            '-|2,3|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_low() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_low() for mu in self)
 
     def _repr_compact_high(self):
         """
@@ -589,8 +604,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_high()
             '2,1|3,2|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_high()
+            '-|3,2|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_high() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_high() for mu in self)
 
     # override default string representation which is str(self._list)
     __str__=lambda self: self._repr_()
@@ -659,7 +676,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
     def _latex_young_diagram(self):
         """
-        LaTeX output as a young diagram.
+        LaTeX output as a Young diagram.
 
         EXAMPLES::
 
@@ -1033,7 +1050,7 @@ class PartitionTuple(CombinatorialObject,Element):
         ``cell``.
 
         If ``cell`` `= (k,a,c)` then `(k,a+1,c)` must belong to the diagram of
-        the :class:`PartitionTuple`. If this is not the case when we return
+        the :class:`PartitionTuple`. If this is not the case then we return
         ``False``.
 
         .. NOTE::
@@ -1097,11 +1114,12 @@ class PartitionTuple(CombinatorialObject,Element):
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
         from tableau_tuple import TableauTuple
-        g = TableauTuple(self.initial_tableau().to_list())
-        a=g[comp][row][col]
-        g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
-        g[comp][row+1][:col+1]=range(a,a+col+1)
-        g._garnir_cell=(comp,row,col)
+        g = self.initial_tableau().to_list()
+        a = g[comp][row][col]
+        g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
+        g[comp][row+1][:col+1] = range(a, a+col+1)
+        g = TableauTuple(g)
+        g._garnir_cell = (comp,row,col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -1160,8 +1178,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
         REFERENCE:
 
-        .. [KMR] A. Kleshchev, A. Mathas, and A. Ram, Universal Specht modules
-           for cyclotomic Hecke algebras, Proc. LMS (to appear).
+        .. [KMR] A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
+           modules for cyclotomic Hecke algebras*,
+           Proc. London Math. Soc. (2012) 105 (6): 1245-1289.
+           :arxiv:`1102.3519v1`
 
         """
         (comp,row,col)=cell
@@ -1191,7 +1211,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 
@@ -1223,7 +1243,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         INPUT:
 
-        - ``k`` -- The compoenent
+        - ``k`` -- The component
         - ``r`` -- The row
         - ``c`` -- The cell
 
@@ -1464,7 +1484,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: ( [] ) in PartitionTuples()
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in PartitionTuples()
         False
@@ -1541,7 +1561,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         """
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
+        if mu == [] or mu == () or mu == [[]]:
             return Partition([])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
@@ -1660,9 +1680,9 @@ class PartitionTuples(UniqueRepresentation, Parent):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()  # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return PartitionTuple( ([1,1,1,1],[2,1,1],[3,1],[4]) )
 
@@ -1735,9 +1755,9 @@ class PartitionTuples_all(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()   # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return self.element_class(self,([1,1,1,1],[2,1,1],[3,1],[4]))
 
@@ -1805,28 +1825,28 @@ class PartitionTuples_level(PartitionTuples):
 
         EXAMPLES::
 
-        sage: parts=PartitionTuples(3)
-        sage: [parts[k] for k in range(20)]
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([2], [], []),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([1], [], [1]),
-         ([], [2], []),
-         ([], [1, 1], []),
-         ([], [1], [1]),
-         ([], [], [2]),
-         ([], [], [1, 1]),
-         ([3], [], []),
-         ([2, 1], [], []),
-         ([1, 1, 1], [], []),
-         ([2], [1], []),
-         ([1, 1], [1], []),
-         ([2], [], [1]),
-         ([1, 1], [], [1])]
+            sage: parts=PartitionTuples(3)
+            sage: [parts[k] for k in range(20)]
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([1], [], [1]),
+             ([], [2], []),
+             ([], [1, 1], []),
+             ([], [1], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([1, 1, 1], [], []),
+             ([2], [1], []),
+             ([1, 1], [1], []),
+             ([2], [], [1]),
+             ([1, 1], [], [1])]
         """
         for size in NN:
             for mu in PartitionTuples_level_size(self.level(),size):
@@ -1837,9 +1857,9 @@ class PartitionTuples_level(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(level=4).an_element()  # indirect doctest
             ([], [1], [2], [3])
-
         """
         return self.element_class(self, tuple([l] for l in range(self.level()) ))
 
@@ -1853,6 +1873,7 @@ class PartitionTuples_size(PartitionTuples):
         Initializes this class.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4)
             Partition tuples of size 4
             sage: PartitionTuples(size=6)
@@ -1936,9 +1957,9 @@ class PartitionTuples_size(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4).an_element()  # indirect doctest
             ([1], [1], [1], [1])
-
         """
         return self.element_class(self, tuple([1] for l in range(self.size()) ))
 
@@ -2027,7 +2048,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         p = [Partitions(i) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
 
@@ -2084,7 +2105,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
-        __setstate__.
+        ``__setstate__``.
 
         TESTS::
 

@@ -47,16 +47,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
-from sage.rings.all import ZZ, is_Integer, is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+import types
+from sage.rings.all import ZZ
+from sage.rings.integer import is_Integer
+from sage.rings.ring import is_Ring
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
-from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
+from sage.groups.generic import structure_description
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
@@ -165,46 +169,6 @@ class MatrixGroup_base(Group):
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
         return MatrixGroup(self.gens())
 
-    def field_of_definition(self, **kwds):
-        """
-        Return a field that contains all the matrices in this matrix
-        group.
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_ring()
-            Finite Field in a of size 5^2
-            sage: G.field_of_definition()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-            sage: G = GO(4,GF(7),1)
-            sage: G.field_of_definition()
-            Finite Field of size 7
-            sage: G.base_ring()
-            Finite Field of size 7
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
-    def base_field(self):
-        """
-        Deprecated alias of :meth:`base_ring`
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_field()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
     def _repr_(self):
         """
         Return a string representation.
@@ -228,9 +192,9 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_obj
+            from sage.repl.display.util import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
-                self.base_ring(), self.ngens(), format_obj(self.gens()))
+                self.base_ring(), self.ngens(), format_list(self.gens()))
 
     def _repr_option(self, key):
         """
@@ -436,9 +400,9 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         INPUT:
 
-        - ``G`` -- group. The codomain.
+        - ``G`` -- group; the codomain
 
-        - ``cat`` -- a category. Must be unset.
+        - ``cat`` -- category; must be unset
 
         OUTPUT:
 
@@ -456,13 +420,22 @@ class MatrixGroup_generic(MatrixGroup_base):
             [1 0]  [1 2]
             [0 1], [3 4]
             )
+
+        TESTS:
+
+        Check that :trac:`19407` is fixed::
+
+            sage: G = GL(2, GF(2))
+            sage: H = GL(3, ZZ)
+            sage: Hom(G, H)
+            Set of Homomorphisms from General Linear Group of degree 2
+             over Finite Field of size 2 to General Linear Group of degree 3
+             over Integer Ring
         """
-        if not (cat is None or (cat is G.category() and cat is self.category())):
-            raise TypeError
         if not is_MatrixGroup(G):
-            raise TypeError, "G (=%s) must be a matrix group."%G
+            raise TypeError("G (=%s) must be a matrix group."%G)
         import homset
-        return homset.MatrixGroupHomset(self, G)
+        return homset.MatrixGroupHomset(self, G, cat)
 
     def hom(self, x):
         """
@@ -492,7 +465,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         v = Sequence(x)
         U = v.universe()
         if not is_MatrixGroup(U):
-            raise TypeError, "u (=%s) must have universe a matrix group."%U
+            raise TypeError("u (=%s) must have universe a matrix group."%U)
         return self.Hom(U)(x)
 
 
@@ -609,7 +582,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         EXAMPLES::
 
             sage: i = iter(GL(6,5))
-            sage: [ i.next() for j in range(8) ]
+            sage: [ next(i) for j in range(8) ]
             [
             [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
             [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
@@ -679,8 +652,8 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             24
             sage: v[:5]
             (
-            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
-            [2 0], [2 1], [2 2], [1 0], [1 1]
+            [1 0]  [2 0]  [0 1]  [0 2]  [1 2]
+            [0 1], [0 2], [2 0], [1 0], [2 2]
             )
             sage: all(g in G for g in G.list())
             True
@@ -693,12 +666,12 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: MG = MatrixGroup([M1, M2, M3])
             sage: MG.list()
             (
-            [-1  0]  [-1  0]  [ 1  0]  [1 0]
-            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
+            [1 0]  [ 1  0]  [-1  0]  [-1  0]
+            [0 1], [ 0 -1], [ 0  1], [ 0 -1]
             )
             sage: MG.list()[1]
-            [-1  0]
-            [ 0  1]
+            [ 1  0]
+            [ 0 -1]
             sage: MG.list()[1].parent()
             Matrix group over Integer Ring with 3 generators (
             [-1  0]  [ 1  0]  [-1  0]
@@ -729,3 +702,5 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         if not self.is_finite():
             raise NotImplementedError('group must be finite')
         return tuple(iter(self))
+
+MatrixGroup_gap.structure_description = types.MethodType(structure_description, None, MatrixGroup_gap)

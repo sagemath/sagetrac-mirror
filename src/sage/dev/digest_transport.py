@@ -18,7 +18,13 @@ AUTHORS:
 #*****************************************************************************
 
 from xmlrpclib import SafeTransport, Fault
-import urllib2
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import (build_opener, HTTPDigestAuthHandler,
+                            Request)
+from six.moves.urllib.parse import urlunparse
+from six.moves.urllib.error import HTTPError
+
 
 class DigestTransport(object, SafeTransport):
     """
@@ -29,7 +35,6 @@ class DigestTransport(object, SafeTransport):
         sage: from sage.dev.digest_transport import DigestTransport
         sage: DigestTransport()
         <sage.dev.digest_transport.DigestTransport object at ...>
-
     """
     def __init__(self):
         """
@@ -40,10 +45,8 @@ class DigestTransport(object, SafeTransport):
             sage: from sage.dev.digest_transport import DigestTransport
             sage: type(DigestTransport())
             <class 'sage.dev.digest_transport.DigestTransport'>
-
         """
         SafeTransport.__init__(self)
-
         self._opener = None
 
     @property
@@ -59,10 +62,9 @@ class DigestTransport(object, SafeTransport):
             sage: from sage.dev.digest_transport import DigestTransport
             sage: DigestTransport().opener
             <urllib2.OpenerDirector instance at 0x...>
-
         """
         if self._opener is None:
-            self._opener = urllib2.build_opener(urllib2.HTTPDigestAuthHandler())
+            self._opener = build_opener(HTTPDigestAuthHandler())
         return self._opener
 
     def add_authentication(self, realm, url, username, password):
@@ -77,13 +79,11 @@ class DigestTransport(object, SafeTransport):
             sage: dt.add_authentication("realm", "url", "username", "password")
             sage: dt.opener
             <urllib2.OpenerDirector instance at 0x...>
-
         """
         assert self._opener is None
-
-        authhandler = urllib2.HTTPDigestAuthHandler()
-        authhandler.add_password(realm,url,username,password)
-        self._opener = urllib2.build_opener(authhandler)
+        authhandler = HTTPDigestAuthHandler()
+        authhandler.add_password(realm, url, username, password)
+        self._opener = build_opener(authhandler)
 
     def single_request(self, host, handler, request_body, verbose):
         """
@@ -93,8 +93,8 @@ class DigestTransport(object, SafeTransport):
 
             sage: from sage.dev.digest_transport import DigestTransport
             sage: from sage.env import TRAC_SERVER_URI
-            sage: import urlparse
-            sage: url = urlparse.urlparse(TRAC_SERVER_URI).netloc
+            sage: from urlparse import urlparse
+            sage: url = urlparse(TRAC_SERVER_URI).netloc
             sage: d = DigestTransport()
             sage: d.single_request(url, 'xmlrpc', "<?xml version='1.0'?><methodCall><methodName>ticket.get</methodName><params><param><value><int>1000</int></value></param></params></methodCall>", 0) # optional: internet
             ([1000,
@@ -115,22 +115,20 @@ class DigestTransport(object, SafeTransport):
                'time': <DateTime '20071025T16:48:05' at ...>,
                'keywords': '',
                'resolution': 'fixed'}],)
-
         """
         try:
-            import urlparse
-            req = urllib2.Request(
-                    urlparse.urlunparse(('http', host, handler, '', '', '')),
-                    request_body, {'Content-Type': 'text/xml',
-                        'User-Agent': self.user_agent})
-
+            req = Request(urlunparse(('http', host, handler, '', '', '')),
+                          request_body, {'Content-Type': 'text/xml',
+                                         'User-Agent': self.user_agent})
             response = self.opener.open(req)
-
             self.verbose = verbose
             return self.parse_response(response)
         except Fault as e:
             from trac_error import TracInternalError
             raise TracInternalError(e)
-        except IOError as e:
-            from trac_error import TracConnectionError
-            raise TracConnectionError()
+        except HTTPError as e:
+            if e.code == 401:
+                from trac_error import TracAuthenticationError as TracError
+            else:
+                from trac_error import TracConnectionError as TracError
+            raise TracError()

@@ -1,5 +1,5 @@
 """
-Matching Polynomial Routine
+Matching Polynomial
 
 This module contains the following methods:
 
@@ -31,17 +31,19 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.misc import prod
-include 'sage/ext/interrupt.pxi'
+from sage.misc.all import prod
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/libs/flint/fmpz.pxi'
-include 'sage/libs/flint/fmpz_poly.pxi'
 
-R = ZZ['x']
-x = R.gen()
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
+
+x = polygen(ZZ, 'x')
+
 
 def matching_polynomial(G, complement=True, name=None):
     """
@@ -104,21 +106,23 @@ def matching_polynomial(G, complement=True, name=None):
         sage: g.matching_polynomial(name='tom')
         tom^10 - 15*tom^8 + 75*tom^6 - 145*tom^4 + 90*tom^2 - 6
         sage: g = Graph()
-        sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
+        sage: L = [graphs.RandomGNP(8, .3) for i in range(1, 6)]
         sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()  # long time (up to 10s on sage.math, 2011)
         True
 
     ::
 
-        sage: from sage.graphs.matchpoly import matching_polynomial
-        sage: for i in [1..12]:  # long time (10s on sage.math, 2011)
-        ...    for t in graphs.trees(i):
-        ...        c = t.complement()
-        ...        assert matching_polynomial(t) == t.characteristic_polynomial()
-        ...        assert matching_polynomial(c, complement=False) == matching_polynomial(c)
+        sage: for i in range(1, 12):  # long time (10s on sage.math, 2011)
+        ....:     for t in graphs.trees(i):
+        ....:         if t.matching_polynomial() != t.characteristic_polynomial():
+        ....:             raise RuntimeError('bug for a tree A of size {0}'.format(i))
+        ....:         c = t.complement()
+        ....:         if c.matching_polynomial(complement=False) != c.matching_polynomial():
+        ....:             raise RuntimeError('bug for a tree B of size {0}'.format(i))
 
     ::
 
+        sage: from sage.graphs.matchpoly import matching_polynomial
         sage: matching_polynomial(graphs.CompleteGraph(0))
         1
         sage: matching_polynomial(graphs.CompleteGraph(1))
@@ -147,16 +151,6 @@ def matching_polynomial(G, complement=True, name=None):
         x^12 - 66*x^10 + 1485*x^8 - 13860*x^6 + 51975*x^4 - 62370*x^2 + 10395
         sage: matching_polynomial(graphs.CompleteGraph(13))
         x^13 - 78*x^11 + 2145*x^9 - 25740*x^7 + 135135*x^5 - 270270*x^3 + 135135*x
-        sage: 13*11*9*7*5*3
-        135135
-        sage: binomial(13,5)*7*5*3
-        135135
-        sage: 11*9*7*5*3
-        10395
-        sage: binomial(9,3)*5*3
-        1260
-        sage: 9*7*5*3
-        945
 
     ::
 
@@ -203,10 +197,23 @@ def matching_polynomial(G, complement=True, name=None):
         x^12 - 66*x^10 + 1485*x^8 - 13860*x^6 + 51975*x^4 - 62370*x^2 + 10395
         sage: matching_polynomial(graphs.CompleteGraph(13), complement=False)
         x^13 - 78*x^11 + 2145*x^9 - 25740*x^7 + 135135*x^5 - 270270*x^3 + 135135*x
+        
+    TESTS:
+    
+    Non-integer labels should work, (:trac:`15545`):: 
+    
+        sage: G = Graph(10);
+        sage: G.add_vertex((0,1))
+        sage: G.add_vertex('X')
+        sage: G.matching_polynomial()
+        x^12
     """
 
-    cdef int nverts, nedges, i, j, v, cur
-    cdef int *edges1, *edges2, *edges_mem, **edges
+    cdef int nverts, nedges, i, j, cur
+    cdef int *edges1
+    cdef int *edges2
+    cdef int *edges_mem
+    cdef int **edges
     cdef fmpz_poly_t pol
 
     if G.has_multiple_edges():
@@ -216,12 +223,12 @@ def matching_polynomial(G, complement=True, name=None):
 
     # Using Godsil's duality theorem when the graph is dense
 
-    if complement and G.density() > 0.5: # this cutoff could probably be tuned
+    if complement and G.density() > 0.5:  # this cutoff could probably be tuned
         f_comp = matching_polynomial(G.complement()).list()
-        f = R(0)
-        for i from 0 <= i <= nverts/2: # implicit floor
-            j = nverts - 2*i
-            f += complete_poly(j)*f_comp[j]*(-1)**i
+        f = x.parent().zero()
+        for i from 0 <= i <= nverts / 2:  # implicit floor
+            j = nverts - 2 * i
+            f += complete_poly(j) * f_comp[j] * (-1)**i
         return f
 
     nedges = G.num_edges()
@@ -231,7 +238,7 @@ def matching_polynomial(G, complement=True, name=None):
 
     L = []
     for v, d in G.degree_iterator(labels=True):
-        L.append((d,v))
+        L.append((d, v))
     L.sort()
     d = {}
     for i from 0 <= i < nverts:
@@ -249,25 +256,24 @@ def matching_polynomial(G, complement=True, name=None):
     # Only the first block of size (2*nedges) is here filled. The function
     # delete_and_add will need the rest of the memory.
 
-    fmpz_poly_init(pol) # sets to zero
+    fmpz_poly_init(pol)  # sets to zero
     edges_mem = <int *> sage_malloc(2 * nedges * nedges * sizeof(int))
     edges = <int **> sage_malloc(2 * nedges * sizeof(int *))
-    if edges_mem is NULL or \
-       edges is NULL:
+    if edges_mem is NULL or edges is NULL:
         if edges_mem is not NULL:
             sage_free(edges_mem)
         if edges is not NULL:
             sage_free(edges)
         raise MemoryError("Error allocating memory for matchpoly.")
 
-    for i from 0 <= i < 2*nedges:
+    for i from 0 <= i < 2 * nedges:
         edges[i] = edges_mem + i * nedges
 
     edges1 = edges[0]
     edges2 = edges[1]
 
     cur = 0
-    for i,j in sorted(map(sorted, G.edges(labels = False))):
+    for i, j in sorted(map(sorted, G.edges(labels=False))):
         edges1[cur] = i
         edges2[cur] = j
         cur += 1
@@ -285,9 +291,9 @@ def matching_polynomial(G, complement=True, name=None):
     for i from 0 <= i <= nverts:
         c_ZZ = Integer(0)
         fmpz_poly_get_coeff_mpz(c_ZZ.value, pol, i)
-        coeffs_ZZ.append(c_ZZ*(-1)**((nverts-i)/2))
+        coeffs_ZZ.append(c_ZZ * (-1)**((nverts - i) / 2))
 
-    f = R(coeffs_ZZ)
+    f = x.parent()(coeffs_ZZ)
     sage_free(edges_mem)
     sage_free(edges)
     fmpz_poly_clear(pol)
@@ -297,7 +303,8 @@ def matching_polynomial(G, complement=True, name=None):
 
 # The following is a cache of complete graph matching polynomials.
 
-cdef list complete_matching_polys = [R(1), x]
+cdef list complete_matching_polys = [x.parent().one(), x]
+
 
 def complete_poly(n):
     """
@@ -333,8 +340,8 @@ def complete_poly(n):
     Checking the numerical results up to 20::
 
         sage: from sage.functions.orthogonal_polys import hermite
-        sage: p = lambda n: 2^(-n/2)*hermite(n,x/sqrt(2))
-        sage: all( p(i) == complete_poly(i) for i in range(2,20))
+        sage: p = lambda n: 2^(-n/2)*hermite(n, x/sqrt(2))
+        sage: all(p(i) == complete_poly(i) for i in range(2, 20))
         True
     """
     # global complete_matching_polys # if we do eventually make it a C array...
@@ -344,9 +351,9 @@ def complete_poly(n):
         return complete_matching_polys[n]
     lcmp -= 2
     a = complete_matching_polys[lcmp]
-    b = complete_matching_polys[lcmp+1]
-    while lcmp+2 <= n:
-        a, b, lcmp = b, x*b - (lcmp+1)*a, lcmp+1
+    b = complete_matching_polys[lcmp + 1]
+    while lcmp + 2 <= n:
+        a, b, lcmp = b, x * b - (lcmp + 1) * a, lcmp + 1
         complete_matching_polys.append(b)
     return b
 
@@ -358,7 +365,10 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
     matching polynomial.
     """
     cdef int i, j, k, edge1, edge2, new_edge1, new_edge2, new_nedges
-    cdef int *edges1, *edges2, *new_edges1, *new_edges2
+    cdef int *edges1
+    cdef int *edges2
+    cdef int *new_edges1
+    cdef int *new_edges2
     cdef fmpz * coeff
 
     if nverts == 3:
@@ -382,10 +392,10 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
             fmpz_add_ui(coeff, coeff, 1)
         return
 
-    edges1 = edges[2*depth]
-    edges2 = edges[2*depth + 1]
-    new_edges1 = edges[2*depth + 2]
-    new_edges2 = edges[2*depth + 3]
+    edges1 = edges[2 * depth]
+    edges2 = edges[2 * depth + 1]
+    new_edges1 = edges[2 * depth + 2]
+    new_edges2 = edges[2 * depth + 3]
 
     nedges -= 1
 
@@ -398,8 +408,9 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
 
     for i from 0 <= i < nedges:
         if edge1 == edges1[i]:
-            break # since the rest of the edges are incident to edge1 (the edges
-                  # are sorted by increasing order of their first component)
+            break  # since the rest of the edges are incident to edge1
+                   # (the edges
+                   # are sorted by increasing order of their first component)
 
         if edge1 != edges2[i] and edge2 != edges2[i]:
             # since edge2 > edge1 > edges1[i], only need to check edges2[i]
@@ -407,5 +418,5 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
             new_edges2[new_nedges] = edges2[i]
             new_nedges += 1
 
-    delete_and_add(edges, nverts-2, new_nedges, totverts, depth+1, pol)
-    delete_and_add(edges, nverts  , nedges    , totverts, depth  , pol)
+    delete_and_add(edges, nverts - 2, new_nedges, totverts, depth + 1, pol)
+    delete_and_add(edges, nverts, nedges, totverts, depth, pol)

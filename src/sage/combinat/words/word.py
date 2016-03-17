@@ -16,12 +16,13 @@ AUTHORS:
 #                          Sébastien Labbé <slabqc@gmail.com>,
 #                          Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.combinat.words.word_char import WordDatatype_char
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.infinite_word import InfiniteWord_class
@@ -33,6 +34,7 @@ from word_infinite_datatypes import (
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
+from sage.monoids.free_monoid_element import FreeMonoidElement
 
 # TODO. Word needs to be replaced by Word. Consider renameing
 # Word_class to Word and imbedding Word as its __call__ method.
@@ -43,8 +45,9 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
     INPUT:
 
-    -  ``data`` -- (default: ``None``) list, string, tuple, iterator, ``None``
-       (shorthand for ``[]``), or a callable defined on ``[0,1,...,length]``.
+    -  ``data`` -- (default: ``None``) list, string, tuple, iterator, free
+       monoid element, ``None`` (shorthand for ``[]``), or a callable defined
+       on ``[0,1,...,length]``.
 
     -  ``alphabet`` -- any argument accepted by Words
 
@@ -143,14 +146,20 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab", alphabet="abc"); w
         word: abbabaab
         sage: w.parent()
-        Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
+
+    Word from a free monoid element::
+
+        sage: M.<x,y,z> = FreeMonoid(3)
+        sage: Word(x^3*y*x*z^2*x)
+        word: xxxyxzzx
 
     The default parent is the combinatorial class of all words::
 
         sage: w = Word("abbabaab"); w
         word: abbabaab
         sage: w.parent()
-        Words
+        Finite words over Set of Python objects of type 'object'
 
     We can also input a semistandard tableau and a standard tableau to
     obtain a word from the inverse RSK algorithm using the
@@ -176,15 +185,18 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w is Word(w, alphabet='abc')
         False
     """
+    if isinstance(data, FreeMonoidElement):
+        return data.to_word(alphabet)
+
     if RSK_data is not None:
         #if a list of a semistandard and a standard tableau or a pair of lists
         from sage.combinat.tableau import Tableau
         if isinstance(RSK_data, (tuple, list)) and len(RSK_data) == 2 and \
-            all(map(lambda x: isinstance(x, Tableau), RSK_data)):
+            all((isinstance(x, Tableau) for x in RSK_data)):
             from sage.combinat.rsk import RSK_inverse
             return RSK_inverse(*RSK_data, output='word')
         elif isinstance(RSK_data, (tuple, list)) and len(RSK_data) == 2 and \
-            all(map(lambda x: isinstance(x, (list, tuple)), RSK_data)):
+            all((isinstance(x, (list, tuple)) for x in RSK_data)):
             from sage.combinat.rsk import RSK_inverse
             P,Q = map(Tableau, RSK_data)
             return RSK_inverse(P, Q, 'word')
@@ -192,7 +204,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
     # Create the parent object
     from words import Words
-    parent = Words() if alphabet is None else Words(alphabet)
+    parent = Words(alphabet)
 
     return parent(data=data, length=length, datatype=datatype, caching=caching)
 
@@ -203,6 +215,67 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 #######################################################################
 
 ##### Finite Words #####
+
+class FiniteWord_char(WordDatatype_char, FiniteWord_class):
+    r"""
+    Finite word represented by an array ``unsigned char *`` (i.e. integers
+    between 0 and 255).
+
+    For any word ``w``, type ``w.<TAB>`` to see the functions that can be applied
+    to ``w``.
+
+    EXAMPLES::
+
+        sage: W = Words(range(20))
+
+        sage: w = W(range(1,10)*2)
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_char'>
+        sage: w
+        word: 123456789123456789
+
+        sage: w.is_palindrome()
+        False
+        sage: (w*w[::-1]).is_palindrome()
+        True
+        sage: (w[:-1:]*w[::-1]).is_palindrome()
+        True
+
+        sage: w.is_lyndon()
+        False
+        sage: W(range(10)+[10,10]).is_lyndon()
+        True
+
+        sage: w.is_square_free()
+        False
+        sage: w[:-1].is_square_free()
+        True
+
+        sage: u = W([randint(0,10) for i in range(10)])
+        sage: (u*u).is_square()
+        True
+        sage: (u*u*u).is_cube()
+        True
+
+        sage: len(w.factor_set())
+        127
+        sage: w.rauzy_graph(5)
+        Looped digraph on 9 vertices
+
+        sage: u = W([1,2,3])
+        sage: u.first_pos_in(w)
+        0
+        sage: u.first_pos_in(w[1:])
+        8
+
+    TESTS::
+
+        sage: W = Words([0,1,2])
+        sage: w = W([0,1,1,0])
+        sage: w == loads(dumps(w))
+        True
+    """
+    pass
 
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
@@ -430,7 +503,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: from itertools import count
         sage: w = Word(count())
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+        <class 'sage.combinat.words.word.Word_iter_with_caching'>
 
     Pickle is not supported for infinite word defined by an iterator::
 
@@ -468,7 +541,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: from itertools import count
         sage: w = Word(count(), caching=False)
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter'>
+        <class 'sage.combinat.words.word.Word_iter'>
 
     Pickle is not supported for infinite word defined by an iterator::
 

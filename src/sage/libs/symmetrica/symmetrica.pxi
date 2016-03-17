@@ -1,7 +1,9 @@
-cdef extern from 'symmetrica/macro.h':
+# We put all definitions together, whether they appear in def.h or
+# macro.h
+cdef extern from 'symmetrica/def.h':
     pass
 
-cdef extern from 'symmetrica/def.h':
+cdef extern from 'symmetrica/macro.h':
     ctypedef int INT
     ctypedef INT OBJECTKIND
 
@@ -170,7 +172,8 @@ cdef extern from 'symmetrica/def.h':
         INT exist
         INT reihenart
         INT z
-        reihe *x, *y
+        reihe *x
+        reihe *y
         reihe *p
         INT (*eingabefkt)()
         char ope
@@ -375,7 +378,7 @@ cdef object sqrt
 cdef object Rational
 cdef object QQ
 cdef object ZZ
-cdef object SymmetricFunctionAlgebra
+cdef object SymmetricFunctions
 cdef object PolynomialRing
 cdef object SchubertPolynomialRing, SchubertPolynomial_class
 cdef object two, fifteen, thirty, zero, sage_maxint
@@ -395,7 +398,7 @@ cdef void late_import():
            Rational, \
            QQ, \
            ZZ, \
-           SymmetricFunctionAlgebra, \
+           SymmetricFunctions, \
            sqrt, \
            builtinlist, \
            MPolynomialRing_generic, is_MPolynomial,\
@@ -430,8 +433,8 @@ cdef void late_import():
     import sage.functions.all
     sqrt = sage.functions.all.sqrt
 
-    import sage.misc.misc
-    prod = sage.misc.misc.prod
+    import sage.misc.all
+    prod = sage.misc.all.prod
 
     import sage.rings.polynomial.polynomial_ring_constructor
     PolynomialRing =  sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing
@@ -441,9 +444,9 @@ cdef void late_import():
     Rational = sage.rings.all.Rational
     ZZ = sage.rings.all.ZZ
 
-    #Symmetric Function Algebra
-    import sage.combinat.sf.sfa
-    SymmetricFunctionAlgebra = sage.combinat.sf.sfa.SymmetricFunctionAlgebra
+    #Symmetric Functions
+    import sage.combinat.sf.sf
+    SymmetricFunctions = sage.combinat.sf.sf.SymmetricFunctions
 
     import __builtin__
     builtinlist = __builtin__.list
@@ -526,7 +529,8 @@ def test_integer(object x):
     Tests functionality for converting between Sage's integers
     and symmetrica's integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.libs.symmetrica.symmetrica import test_integer
         sage: test_integer(1)
         1
@@ -540,6 +544,9 @@ def test_integer(object x):
         1267650600228229401496703205376
         sage: test_integer(-2^100)
         -1267650600228229401496703205376
+        sage: for i in range(100):
+        ....:     if test_integer(2^i) != 2^i:
+        ....:         print "Failure at", i
     """
     cdef OP a = callocobject()
     _op_integer(x, a)
@@ -831,7 +838,7 @@ cdef object _op_polynom(object d, OP res):
 
     poly_ring = d.parent()
 
-    if not PY_TYPE_CHECK(poly_ring, MPolynomialRing_generic):
+    if not isinstance(poly_ring, MPolynomialRing_generic):
         raise TypeError, "you must pass a multivariate polynomial"
     base_ring = poly_ring.base_ring()
 
@@ -867,12 +874,12 @@ cdef object _py_schur(OP a):
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='s')(0)
+        return SymmetricFunctions(ZZ).s()(0)
 
     #Figure out the parent ring of a coefficient
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    s = SymmetricFunctionAlgebra(R, basis='s')
+    s = SymmetricFunctions(R).s()
     z = s(0)
     z._monomial_coefficients = z_elt
     return z
@@ -884,11 +891,11 @@ cdef object _py_monomial(OP a): #Monomial symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='m')(0)
+        return SymmetricFunctions(ZZ).m()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    m = SymmetricFunctionAlgebra(R, basis='m')
+    m = SymmetricFunctions(R).m()
     z = m(0)
     z._monomial_coefficients = z_elt
     return z
@@ -904,11 +911,11 @@ cdef object _py_powsym(OP a):  #Power-sum symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='p')(0)
+        return SymmetricFunctions(ZZ).p()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    p = SymmetricFunctionAlgebra(R, basis='p')
+    p = SymmetricFunctions(R).p()
     z = p(0)
     z._monomial_coefficients = z_elt
     return z
@@ -925,11 +932,11 @@ cdef object _py_elmsym(OP a): #Elementary symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='e')(0)
+        return SymmetricFunctions(ZZ).e()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    e = SymmetricFunctionAlgebra(R, basis='e')
+    e = SymmetricFunctions(R).e()
     z = e(0)
     z._monomial_coefficients = z_elt
     return z
@@ -946,11 +953,11 @@ cdef object _py_homsym(OP a): #Homogenous symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='h')(0)
+        return SymmetricFunctions(ZZ).h()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    h = SymmetricFunctionAlgebra(R, basis='h')
+    h = SymmetricFunctions(R).h()
     z = h(0)
     z._monomial_coefficients = z_elt
     return z

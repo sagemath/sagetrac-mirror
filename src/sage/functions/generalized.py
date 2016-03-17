@@ -82,6 +82,8 @@ class FunctionDiracDelta(BuiltinFunction):
         dirac_delta(0)
         sage: dirac_delta(x)
         dirac_delta(x)
+        sage: integrate(dirac_delta(x), x, -1, 1, algorithm='sympy')
+        1
 
     REFERENCES:
 
@@ -109,10 +111,13 @@ class FunctionDiracDelta(BuiltinFunction):
 
             sage: loads(dumps(dirac_delta(x)))
             dirac_delta(x)
+            sage: dirac_delta(x)._sympy_()
+            DiracDelta(x)
         """
         BuiltinFunction.__init__(self, "dirac_delta", latex_name=r"\delta",
                                    conversions=dict(maxima='delta',
-                                    mathematica='DiracDelta'))
+                                                  mathematica='DiracDelta',
+                                                  sympy='DiracDelta'))
 
     def _eval_(self, x):
         """
@@ -143,7 +148,7 @@ class FunctionDiracDelta(BuiltinFunction):
                     return None
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -174,9 +179,14 @@ class FunctionHeaviside(BuiltinFunction):
         sage: heaviside(x)
         heaviside(x)
 
+    TESTS::
+
+        sage: heaviside(x)._sympy_()
+        Heaviside(x)
+
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Heaviside_function
+    -  :wikipedia:`Heaviside_function`
 
     """
     def __init__(self):
@@ -201,7 +211,9 @@ class FunctionHeaviside(BuiltinFunction):
             H\left(x\right)
         """
         BuiltinFunction.__init__(self, "heaviside", latex_name="H",
-                                   conversions=dict(mathematica='HeavisideTheta'))
+                                 conversions=dict(maxima='hstep',
+                                                  mathematica='HeavisideTheta',
+                                                  sympy='Heaviside'))
 
     def _eval_(self, x):
         """
@@ -249,7 +261,7 @@ class FunctionHeaviside(BuiltinFunction):
                     return 1
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -358,7 +370,7 @@ class FunctionUnitStep(BuiltinFunction):
                     return 1
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -414,11 +426,10 @@ class FunctionSignum(BuiltinFunction):
 
     TESTS:
 
-    Check if conversion to sympy works #11921::
+    Check if conversion to sympy works :trac:`11921`::
 
         sage: sgn(x)._sympy_()
         sign(x)
-
 
     REFERENCES:
 
@@ -494,7 +505,7 @@ class FunctionSignum(BuiltinFunction):
                     return ZZ(1)
                 else:
                     return ZZ(-1)
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -554,10 +565,14 @@ class FunctionKroneckerDelta(BuiltinFunction):
             0
             sage: kronecker_delta(1,1)
             1
+            sage: y = var('y')
+            sage: kronecker_delta(x, y)._sympy_()
+            KroneckerDelta(x, y)
         """
         BuiltinFunction.__init__(self, "kronecker_delta", nargs=2,
                                         conversions=dict(maxima='kron_delta',
-                                        mathematica='KroneckerDelta'))
+                                        mathematica='KroneckerDelta',
+                                        sympy='KroneckerDelta'))
 
     def _eval_(self, m, n):
         """
@@ -571,7 +586,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
             1
 
         Kronecker delta is a symmetric function. We keep arguments sorted to
-        ensure that (k_d(m, n) - k_d(n, m) cancels automatically::
+        ensure that k_d(m, n) - k_d(n, m) cancels automatically::
 
             sage: x,y=var('x,y')
             sage: kronecker_delta(x, y)
@@ -599,7 +614,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
                     return 0
             else:
                 return 0            # x is complex
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -634,4 +649,3 @@ class FunctionKroneckerDelta(BuiltinFunction):
         return "\\delta_{%s,%s}"%(latex(m), latex(n))
 
 kronecker_delta = FunctionKroneckerDelta()
-

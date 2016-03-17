@@ -1,109 +1,225 @@
-.. _chapter-trac:
+.. _chapter-sage-trac:
 
-=====================================================
-The Sage Trac Server: Submitting Patches and Packages
-=====================================================
+====================
+The Sage Trac Server
+====================
 
-What should you do with your Mercurial patches for Sage? You should
-post them on the Sage trac server.
+All changes to Sage source code have to go through the `Sage Trac
+development server <http://trac.sagemath.org>`_. The purpose
+of the Sage trac server is to
 
-The Sage trac server, located at
-http://trac.sagemath.org/sage_trac/, is where Sage bugs are listed
-and patched, new code is posted and reviewed, and ideas for
-extending and improving Sage are discussed. Thus if you find a bug
-in Sage, or if you have new code to submit, or if you have
-corrections for the documentation, you should post on the trac
-server.
+1. Provide a place for discussion on issues and store a permanent
+   record.
 
-Items on the server are called "tickets", and anyone may browse the
-tickets: just visit http://trac.sagemath.org/sage_trac/report. You
-need to open an account, though, if you want to comment on a
-ticket, submit a patch, or create a new ticket. See the
-`trac server <http://trac.sagemath.org/sage_trac>`_
-for more information about obtaining an account. This chapter contains
-various guidelines on using the trac server.
+2. Provide a repository of source code and all proposed changes.
+
+3. Link these two together.
+
+There is also a `wiki <http://trac.sagemath.org/wiki>`_ for more general
+organizational web pages, like Sage development workshops.
+
+Thus if you find a bug in Sage, if you have new code to submit, want
+to review new code already written but not yet included in Sage, or if
+you have corrections for the documentation, you should post on the
+trac server. Items on the server are called *tickets*, and anyone may
+search or browse the tickets. For a list of recent changes, just visit
+the `Sage trac timeline <http://trac.sagemath.org/timeline>`_.
+
+.. _section-trac-account:
+
+Obtaining an Account
+====================
+
+You need a trac account if you want to *change* anything on the Sage trac
+server, even if you just want to comment on a ticket. To obtain one, send an
+email to ``sage-trac-account@googlegroups.com`` containing:
+
+* your full name,
+* preferred username,
+* contact email,
+* and reason for needing a trac account
+
+Your trac account also grants you access to the `sage wiki
+<wiki.sagemath.org>`_. Make sure you understand the review process, and the
+procedures for opening and closing tickets before making changes. The remainder
+of this chapter contains various guidelines on using the trac server.
+
+Trac authentication through SSH
+===============================
+
+There are two avenues to prove to the trac server that you are who you
+claim to be. First, to change the ticket web pages you need to log in
+to trac using a username/password. Second, there is public key
+cryptography used by git when copying new source files to the
+repository. This section will show you how to setup both.
+
+Generating and Uploading your SSH Keys
+--------------------------------------
+
+The git installation on the development server uses SSH keys to decide if and
+where you are allowed to upload code. No SSH key is required to report a bug or
+comment on a ticket, but as soon as you want to contribute code yourself you
+need to provide trac with the public half of your own personal key. In recent
+versions of Sage, you can use Sage to generate an upload an SSH key
+
+.. skip   # do not doctest
+
+::
+
+    sage: dev.upload_ssh_key()
+    The trac git server requires your SSH public key to be able to identify you.
+    Upload "/home/vbraun/.ssh/id_dsa.pub" to trac? [Yes/no] y
+    Trac username: user
+    Trac password:
+    Your key has been uploaded.
+
+You can also manually generate an SSH key and upload it to trac. This is
+described in the following two sections.
 
 
-Reporting bugs
+Manually Generating your SSH Keys
+---------------------------------
+
+If you don't have a private key yet, you can
+create it with the ``ssh-keygen`` tool::
+
+    [user@localhost ~]$ ssh-keygen
+    Generating public/private rsa key pair.
+    Enter file in which to save the key (/home/user/.ssh/id_rsa):
+    Enter passphrase (empty for no passphrase):
+    Enter same passphrase again:
+    Your identification has been saved in /home/user/.ssh/id_rsa.
+    Your public key has been saved in /home/user/.ssh/id_rsa.pub.
+    The key fingerprint is:
+    ce:32:b3:de:38:56:80:c9:11:f0:b3:88:f2:1c:89:0a user@localhost
+    The key's randomart image is:
+    +--[ RSA 2048]----+
+    |  ....           |
+    |   ..            |
+    |   .o+           |
+    | o o+o.          |
+    |E + .  .S        |
+    |+o .   o.        |
+    |. o   +.o        |
+    |      oB         |
+    |     o+..        |
+    +-----------------+
+
+This will generate a new random private RSA key
+in the ``.ssh`` folder in your home directory. By default, they are
+
+``~/.ssh/id_rsa``
+  Your private key. Keep safe. **Never** hand it out to anybody.
+
+``~/.ssh/id_rsa.pub``
+  The corresponding public key. This and only this file can be safely
+  disclosed to third parties.
+
+The ``ssh-keygen`` tool will let you generate a key with a different
+file name, or protect it with a passphrase. Depending on how much you
+trust your own computer or system administrator, you can leave the
+passphrase empty to be able to login without any human intervention.
+
+If you have accounts on multiple computers you can use the SSH keys to
+log in. Just copy the **public** key file (ending in ``.pub``) to
+``~/.ssh/authorized_keys`` on the remote computer and make sure that
+the file is only read/writeable by yourself. Voila, the next time you
+ssh into that machine you don't have to provide your password.
+
+
+.. _section-trac-ssh-key:
+
+Manually Linking your Public Key to your Trac Account
+-----------------------------------------------------
+
+The Sage trac server needs to know one of your public keys. You can
+upload it in the preferences, that is
+
+1. Go to http://trac.sagemath.org
+
+2. Log in with your trac username/password
+
+3. Click on "Preferences"
+
+4. Go to the "SSH Keys" tab
+
+5. Paste the content of your public key file
+   (e.g. ``~/.ssh/id_rsa.pub``)
+
+6. Click on "Save changes"
+
+Note that this does **not** allow you to ssh into any account on trac,
+it is only used to authenticate you to the gitolite installation on
+trac. You can test that you are being authenticated correctly by
+issuing some basic gitolite commands, for example::
+
+    [user@localhost ~]$ ssh git@trac.sagemath.org info
+    hello user, this is git@trac running gitolite3 (unknown) on git 1.7.9.5
+
+     R W      sage
+    [user@localhost ~]$ ssh git@trac.sagemath.org help
+    hello user, this is gitolite3 (unknown) on git 1.7.9.5
+
+    list of remote commands available:
+
+        desc
+        help
+        info
+        perms
+        writable
+
+.. _trac-bug-report:
+
+Reporting Bugs
 ==============
 
-"The first step is admitting you have a problem."
+If you think you have found a bug in Sage, here is the procedure:
 
-If you think you have found a bug in Sage, you should first search
-through the following Google groups for postings related to your
-possible bug:
+- Search through our Google groups for postings related to your possible bug (it
+  may have been fixed/reported already):
 
-* ``sage-devel``: http://groups.google.com/group/sage-devel
-* ``sage-support``: http://groups.google.com/group/sage-support
+  * ``sage-devel``: `<http://groups.google.com/group/sage-devel>`_
+  * ``sage-support``: `<http://groups.google.com/group/sage-support>`_
 
-Maybe the problem you have encountered has already been discussed. You
-should also search the trac server to see if anyone else has opened a
-ticket about your bug.
+  Similarly, you can search :ref:`chapter-sage-trac` to see if anyone else has
+  opened a ticket about your bug.
 
-If you do not find anything, and you are not sure that you have found
-a bug, ask about it on ``sage-devel``. You might be asked to open a
-new ticket on the trac server. As mentioned above, you need an account
-to do this. To report a bug, login and click on the "New ticket"
-button. Type a meaningful one-liner in the "Short summary" box, with
-more information in the larger box below. You should include at least
-one explicit, reproducible example illustrating your bug (and/or the
-steps required to reproduce the buggy behavior). You should also
-include the version of Sage (and any relevant packages) you are using,
-and operating system information, being precise as possible (32-bit,
-64-bit, ...).
+- If you do not find anything, and you are not sure that you have found a bug,
+  ask about it on `sage-devel <http://groups.google.com/group/sage-devel>`_. A
+  bug report should contain:
 
-Between the "Summary" and "Full description" boxes, there is a
-place to choose the "Type" of the ticket: "Defect", "Enhancement",
-or "Task". Use your best judgment here; a bug should probably be
-reported as a "Defect".
+  - An explicit and **reproducible example** illustrating your bug (and/or the
+    steps required to reproduce the buggy behavior).
 
-Choose a priority for your bug, keeping in mind that the "blocker"
-label should be used very sparingly. Also pick a component for your
-bug; this is sometimes straightforward. If your bug deals with
-Sage's calculus implementation, choose "calculus". If it is not
-obvious, do your best. Choose a milestone; if you are not sure what
-to choose, just choose the numbered version of Sage from the menu
-("sage-4.3.3", for example). Type in some helpful keywords. In the
-box labeled "Assign to", type "somebody" if you are not sure what
-else to do.
+  - The **version** of Sage you run, as well as the version of the optional
+    packages that may be involved in the bug.
 
-Hit the "Preview" button to make sure everything looks okay, and
-then hit "Submit ticket".
+  - Describe your **operating system** as accurately as you can and your
+    architecture (32-bit, 64-bit, ...).
 
-If you do not have an account on the trac system to report directly,
-you are still encouraged to report any possible bug to the
-``sage-devel`` mailing list at ``sage-devel@googlegroups.com``.
-The list is moderated for new users and requires subscription.
-In your bug report to ``sage-devel``, make sure to include the
-following information:
-
-- **operating system**: as precise as possible and architecture
-  (32-bit, 64-bit, ...)
-
-- affected version: the exact **version number** and the downloaded
-  package (source, precompiled, virtual machine image, or an upgrade
-  from a previous version (which one?))
-
-- provide a **reproducible example** and/or define the steps to
-  reproduce the erroneous behaviour.
+- You might be asked to open a new ticket. In this case, follow the
+  :ref:`section-trac-new-ticket`.
 
 Thank you in advance for reporting bugs to improve Sage in the future!
 
+.. _section-trac-new-ticket:
 
-Guidelines for opening tickets
+Guidelines for Opening Tickets
 ==============================
 
-In addition to bug reports, you should also open a ticket if you
-have some new code which extends Sage's capabilities. If you have a
-feature request, start a discussion on ``sage-devel`` first,
-and then if there seems to be general agreement that you have a
-good idea, open a ticket describing the idea.
+In addition to bug reports (see :ref:`trac-bug-report`), you should also open a
+ticket if you have some new code that makes Sage a better tool. If you have a
+feature request, start a discussion on ``sage-devel`` first, and then if there
+seems to be general agreement that you have a good idea, open a ticket
+describing the idea.
 
-When you consider opening a new ticket, please bear the following
-points in mind.
+- Do you already have a **trac account**? If not, :ref:`click here
+  <section-trac-account>`.
 
-- Before opening a ticket, make sure that nobody else has opened a
-  ticket about the same or closely related issue.
+**Before** opening a new ticket, consider the following points:
+
+- Make sure that nobody else has opened a ticket about the same or closely
+  related issue.
 
 - It is much better to open several specific tickets than one that
   is very broad. Indeed, a single ticket which deals with lots of
@@ -118,28 +234,136 @@ points in mind.
   "Make Sage the best mathematical software in the world". There is
   no metric to measure this properly and it is highly subjective.
 
-- If appropriate, provide URLs to background information or email
-  threads relevant to the problem you are reporting.
+- For bug reports: the ticket's description should contain the information
+  described at :ref:`trac-bug-report`.
 
+- If appropriate, provide URLs to background information or sage-devel
+  conversation relevant to the problem you are reporting.
+
+**When creating** the ticket, you may find useful to read
+:ref:`section-trac-fields`.
+
+Unless you know what you are doing, leave the milestone field to its default
+value.
+
+.. _section-trac-fields:
+
+The Ticket Fields
+=================
+
+When you open a new ticket or change an existing ticket, you will find a variety
+of fields that can be changed. Here is a comprehensive overview (for the
+'status' field, see :ref:`section-trac-ticket-status`):
+
+* **Reported by:** The trac account name of whoever created the
+  ticket. Cannot be changed.
+
+* **Owned by:** Trac account name of owner, by default the person in charge of
+  the Component (see below). Generally not used in the Sage trac.
+
+* **Type:** One of ``enhancement`` (e.g. a new feature), ``defect`` (e.g. a bug
+  fix), or ``task`` (rarely used).
+
+* **Priority:** The priority of the ticket. Keep in mind that the
+  "blocker" label should be used very sparingly.
+
+* **Milestone:** Milestones are usually goals to be met while working
+  toward a release. In Sage’s trac, we use milestones instead of
+  releases. Each ticket must have a milestone assigned. If you are
+  unsure, assign it to the current milestone.
+
+* **Component:** A list of components of Sage, pick one that most
+  closely matches the ticket.
+
+* **Keywords:** List of keywords. Fill in any keywords that you think
+  will make your ticket easier to find. Tickets that have been worked
+  on at Sage days ``NN`` (some number) ofter have ``sdNN`` as keyword.
+
+* **Cc:** List of trac user names to Cc (send emails for changes on
+  the ticket). Note that users that enter a comment are automatically
+  substcribed to email updates and don't need to be listed under Cc.
+
+* **Merged in:** The Sage release where the ticket was merged in. Only
+  changed by the release manager.
+
+* **Authors:** Real name of the ticket author(s).
+
+* **Reviewers:** Real name of the ticket reviewer(s).
+
+* **Report Upstream:** If the ticket is a bug in an upstream component
+  of Sage, this field is used to summarize the communication with the
+  upstream developers.
+
+* **Work issues:** Issues that need to be resolved before the ticket
+  can leave the "needs work" status.
+
+* **Branch:** The Git branch containing the ticket's code (see
+  :ref:`section-walkthrough-branch`). It is displayed in green color,
+  unless there is a conflict between the branch and the latest beta
+  release (red color). In this case, the branch should be merged or
+  rebased.
+
+* **Dependencies:** Does the ticket depend on another ticket?
+  Sometimes, a ticket requires that another ticket be applied
+  first. If this is the case, put the dependencies as a
+  comma-separated list (``#1234, #5678``) into the "Dependencies:"
+  field.
+
+* **Stopgaps:** See :ref:`section-trac-stopgaps`.
+
+.. _section-trac-ticket-status:
+
+The status of a ticket
+======================
+
+The status of a ticket appears right next to its number, at the top-left corner
+of its page. It indicates who has to work on it.
+
+- **new** -- the ticket has only been created (or the author forgot to change
+  the status to something else).
+
+  If you want to work on it yourself it is better to leave a comment to say
+  so. It could avoid having two persons doing the same job.
+
+- **needs_review** -- the code is ready to be peer-reviewed. If the code is not
+  yours, then you can review it. See :ref:`chapter-review`.
+
+- **needs_work** -- something needs to be changed in the code. The reason should
+  appear in the comments.
+
+- **needs_info** -- somebody has to answer a question before anything else can
+  happen. It should be clear from the comments.
+
+- **positive_review** -- the ticket has been reviewed, and the release manager
+  will close it.
+
+The status of a ticket can be changed using a form at the bottom of the ticket's
+page. Leave a comment explaining your reasons whenever you change it.
+
+.. _section-trac-stopgaps:
 
 Stopgaps
 ========
 
-If a component of Sage produces a mathematical error, you should open
-two tickets: a main ticket with all available details, and also a
-"stopgap" ticket. This second ticket should have a patch which will be
-merged into Sage if no one fixes the main issue; this patch should print a
-warning when anyone uses the relevant code. To produce the warning
-message, use code like the following::
+When Sage returns wrong results, two tickets should be opened:
+
+- A main ticket with all available details.
+- A "stopgap" ticket (e.g. :trac:`12699`)
+
+This second ticket does not fix the problem but adds a warning that will be
+printed whenever anyone uses the relevant code. This, until the problem is
+finally fixed.
+
+To produce the warning message, use code like the following::
 
     from sage.misc.stopgap import stopgap
     stopgap("This code contains bugs and may be mathematically unreliable.",
         TICKET_NUM)
 
-Replace ``TICKET_NUM`` by the ticket number for the main ticket.  See
-:trac:`12699`, for example.  On the main trac ticket, you should also
-enter the ticket number for the stopgap ticket in the "Stopgaps"
-field.  Stopgap tickets should be marked as blockers.
+Replace ``TICKET_NUM`` by the ticket number for the main ticket. On the main
+trac ticket, enter the ticket number for the stopgap ticket in the "Stopgaps"
+field (see :ref:`section-trac-fields`). Stopgap tickets should be marked as
+blockers.
 
 .. note::
 
@@ -149,182 +373,57 @@ field.  Stopgap tickets should be marked as blockers.
     Sage crashes, this is not an issue.
 
 
-Patching bugs/working on tickets
-================================
+Working on Tickets
+==================
 
-If you have code which fixes a bug or deals with some issue in
-Sage, here is what to do. First, use Mercurial to create a patch
-file. See :ref:`chapter-walk-through` for more information on using
-Mercurial to produce/manage patches. If the issue has been reported as
-a ticket on the trac server, attach your patch file to that ticket: go
-to the ticket, click on the "Attach File" button, and follow the
-directions. On the ticket page, you should add a comment explaining
-your patch. Some relevant information include:
+If you manage to fix a bug or enhance Sage you are our hero. See
+:ref:`chapter-walkthrough` for making changes to the Sage source
+code, uploading them to the Sage trac server, and finally putting your
+new branch on the trac ticket. The following are some other relevant
+issues:
 
-* The version of Sage you used to create the patch. If the patch is
-  based on Sage x.y.z, ensure you include such information.
+* The Patch buildbot wil automatically test your ticket. See `the
+  patchbot wiki <http://wiki.sagemath.org/buildbot>`_ for more
+  information about its features and limitations. Make sure that you
+  look at the log, especially if the patch buildbot did not give you
+  the green blob.
 
-* If the ticket has more than one patch, explicitly specify which ones
-  are to be used. Are all of the patches to be applied? Or only a
-  subset of the patches on the ticket?
+* Every bug fixed should result in a doctest.
 
-* If more than one patch is to be applied, state the order in which
-  those patches are to be applied.
+* This is not an issue with defects, but there are many enhancements
+  possible for Sage and too few developers to implement all the good
+  ideas. The trac server is useful for keeping ideas in a central
+  place because in the Google groups they tend to get lost once they
+  drop off the first page.
 
-* Does the ticket depend on another ticket? Sometimes, a ticket
-  requires that the patches on another ticket be applied first. Be
-  sure to include such information if relevant.
+* If you are a developer, be nice and try to solve a stale/old ticket
+  every once in a while.
 
-* It is best to supply information about ticket dependencies and patch
-  order in a way that the Patch Buildbot can understand. This bot
-  automatically applies patches from trac and tests them.
-  See its wiki: http://wiki.sagemath.org/buildbot
+* Some people regularly do triage. In this context, this means that we
+  look at new bugs and classify them according to our perceived
+  priority. It is very likely that different people will see
+  priorities of bugs very differently from us, so please let us know
+  if you see a problem with specific tickets.
 
-If there is no trac ticket associated to this issue, create one (as
-explained in the previous sections) describing the issue and your
-solution, and attach your patch.
+Reviewing and closing Tickets
+=============================
 
-The following are some other relevant issues:
+Tickets can be closed when they have positive review or for other reasons. To
+learn how to review, please see :ref:`chapter-review`.
 
-- Every bug fixed should result in a doctest.
+Only the Sage release manager will close tickets. Most likely, this is
+not you nor will your trac account have the necessary permissions. If
+you feel strongly that a ticket should be closed or deleted, then
+change the status of the ticket to *needs review* and change the
+milestone to *sage-duplictate/invalid/wontfix*. You should also
+comment on the ticket, explaining why it should be closed. If another
+developer agrees, he sets the ticket to *positive review*.
 
-- Cooperative debugging via IRC is faster by at least an order of
-  magnitude. If you have not learned how to use IRC, please do so.
-  If you have problems using IRC because of firewalls, but you do
-  have an account on the machine ``sage.math``, you can use irssi via
-  ssh there. If you have a flaky connection, you can use it together
-  with the program screen.
+A related issue is re-opening tickets. You should refrain from
+re-opening a ticket that is already closed. Instead, open a new ticket
+and provide a link in the description to the old ticket.
 
-- This is not an issue with defects, but there are many enhancements
-  possible for Sage and too few developers to implement all the
-  good ideas. The trac server is useful for keeping ideas
-  in a central place because in the Google groups they tend to get
-  lost once they drop off the first page.
-
-- If you are a developer, be nice and try to solve a stale/old
-  ticket every once in a while.
-
-- Some people regularly do triage. Triage in this context means
-  that we look at new bugs and classify them according to our
-  perceived priority. It is very likely that different people will
-  see priorities of bugs very differently from us, so please let
-  us know if you see a problem with specific tickets.
-
-- **Patches Preferred**: Patches are easier to review, edit and
-  can be merged without affecting the history. So we greatly prefer
-  patches over Mercurial bundles. If you do have a large number of
-  patches, a bundle can still be better than patches. One
-  alternative to bundles is to use Mercurial queues to flatten the
-  history. That might or might not be desirable. See
-  :ref:`chapter-walk-through` for further information on using
-  Mercurial queues to produce/manage patches.
-
-
-.. _section-review-patches:
-
-Reviewing patches
-=================
-
-All code that goes into Sage is peer-reviewed, to ensure that the
-conventions discussed in this manual are followed, to make sure that
-there are sufficient examples and doctests in the documentation, and
-to try to make sure that the code does, mathematically, what it is
-supposed to.
-
-If someone (other than you) has posted a patch for a ticket on the trac
-server, you can review it! Look at the patch (by clicking on the file name
-in the list of attachments) to see if it makes sense.  Download it (from
-the window displaying the patch, see the "Download" option at the bottom of
-the page). Apply it (using ``hg_sage.patch('filename')``, for example) to
-your copy of Sage, and build Sage with the new code by typing ``sage -b``.
-See the walkthrough section :ref:`section-review-patch-walkthrough` for
-more details on downloading and applying patches.
-
-Now ask yourself questions such as the following:
-
-- Does the new source code make sense?
-
-- When you run it in Sage, does it fix the problem reported on the
-  ticket?
-
-- Does it introduce any new problems?
-
-- Is it documented sufficiently, including both explanation and
-  doctests? This is **very** important: all code in Sage must have
-  doctests, so even if the patch is for code which did not have a
-  doctest before, the new version must include one. In particular,
-  all new code must be **100% doctested**. Use the command
-  ``sage -coverage <files>`` to see the coverage percentage of
-  ``<files>``.
-
-- In particular, is there a doctest illustrating that the bug has been
-  fixed? If a function used to give the wrong answer and this patch fixes
-  that, then it should include a doctest illustrating its new success.
-  That doctest should be marked with the ticket number as an in-line
-  comment.
-
-- Is the ticket number noted in the comment line near the top of the patch?
-  Is the patch author noted in all the files which were edited?
-
-- If the patch claims to speed up some computation, does the ticket
-  contain code examples to illustrate the claim? The ticket should
-  explain the speed efficiency before applying the patch. It should
-  also explain the speed efficiency gained after applying the patch.
-  In both the "before" and "after" explanation, there should be
-  code samples to illustrate the claims. It is not sufficient to
-  just mention that the patch results in a speed-up of up to x
-  percent or y factor.
-
-- Does the reference manual build without errors? You can test the
-  reference manual using the command ``sage -docbuild reference html``
-  to build the HTML version. The PDF version of the reference manual
-  must also build without errors. Use the command
-  ``sage -docbuild reference pdf`` to test it out. The latter command
-  requires that you have LaTeX installed on your system.
-
-- Do all doctests pass without errors? This too is **very** important.  It
-  is extremely difficult to predict which components of Sage will be
-  affected by a given patch (especially if you don't have working knowledge
-  of the **entire** Sage library), so you should run tests on the whole
-  library--including those flagged as ``#long``--before giving a positive
-  review.  (For that matter, the patch writer should run these tests before
-  uploading the patch.)  You can test the Sage library with ``make
-  testlong`` or ``make ptestlong`` (edit the number of threads in
-  ``$SAGE_ROOT/Makefile`` before using ``ptestlong``). See
-  :ref:`chapter-doctesting` for more information.
-
-- Do the code and documentation follow conventions documented in the
-  following sections?
-
-  - :ref:`chapter-conventions`
-  - :ref:`chapter-python`
-  - :ref:`chapter-cython`
-
-If the answers to these and other such reasonable questions are yes, then
-you might want to give the patch a positive review. On the main ticket
-page, write a comment in the box explaining your review. If you don't feel
-experienced enough for this, make a comment explaining what you checked,
-and end by asking if someone more experienced will take a look.  If you
-think there are issues with the patch, explain them in the comment box and
-change the status to "needs work". Browse the tickets on the trac server to
-see how things are done.
-
-
-Closing tickets
-===============
-
-Closing tickets is not possible unless you have "TICKET_ADMIN" rights in
-Trac. This is because only the current Sage release manager should ever
-close tickets. If you feel strongly that a ticket should be closed or
-deleted, then change the status of the ticket to ``needs review`` and
-change the milestone to ``sage-duplictate/invalid/wontfix``.
-You should also comment on the ticket, explaining why it
-should be closed. A related issue is re-opening tickets. You should
-refrain from re-opening a ticket that is already closed. Instead
-ask the release manager what to do.
-
-
-Reasons to invalidate tickets
+Reasons to Invalidate Tickets
 =============================
 
 **One Issue Per Ticket**: A ticket must cover only one issue
@@ -371,49 +470,3 @@ some of the other rules listed above. An example would be to
 measure this properly and it is highly subjective.
 
 
-Milestones vs. releases
-=======================
-
-Milestones are usually goals to be met while working toward a
-release. In Sage's trac, we use milestones instead of releases, but
-unless somebody volunteers to clean up all the old milestones, we
-will stick with the current model. It does not make a whole lot of
-difference if we use milestone instead of release.
-
-Finely grained releases are good. Release early and often is the way
-to go, especially as more and more patches are coming in.
-
-It is a good idea to make a big release and schedule at least one
-more bug fix release after that to sort out the inevitable
-"doctest X is broken on distribution Y and compiler Z" problem.
-Given the number of compilers and operating systems out there, one
-has to be realistic to expect problems. A compile farm would
-certainly help to catch issues early.
-
-
-Assigning tickets
-=================
-
-- Each ticket must have a milestone assigned. If you are unsure,
-  assign it to the current milestone.
-
-- If a ticket has a patch or spkg that is ready to be reviewed,
-  assign it against the current milestone.
-
-- Defect vs. enhancement vs. task: this can be tricky, but a defect
-  should be something that leads to an exception or a mathematically
-  wrong result.
-
-- If you are unsure to whom to assign the ticket, assign it to
-  "somebody" or "tba", which stands for "to be assigned".
-
-- Certain categories have default people who get assigned all
-  issues. For example, Jane Smith might be the default person who gets
-  assigned all tickets relating to calculus. This means that Jane
-  looks after tickets in that category, but not necessarily the person
-  who is to fix all open tickets relating to calculus.
-
-- If you have been assigned a ticket, you should either accept it
-  or assign it back to "somebody" or "tba". Many people do not accept
-  pending tickets at the moment. You have accepted a ticket if your
-  name has a star next to it.

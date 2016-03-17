@@ -160,29 +160,33 @@ this choice in order to not produce incorrect results.
 
 TESTS::
 
-    sage: R = Qp(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
-    sage: R == S
-    True
-    sage: repr(S(2777))[3:]
+    sage: R = Qp(5, 15, print_mode='bars', print_sep='&')
+    sage: repr(R(2777))[3:]
     '4&2&1&0&2'
     sage: TestSuite(R).run()
 
-    sage: R = Zp(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
-    sage: R == S
-    True
-    sage: repr(S(2777))[3:]
+    sage: R = Zp(5, 15, print_mode='bars', print_sep='&')
+    sage: repr(R(2777))[3:]
     '4&2&1&0&2'
     sage: TestSuite(R).run()
 
-    sage: R = ZpCA(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
-    sage: R == S
-    True
-    sage: repr(S(2777))[3:]
+    sage: R = ZpCA(5, 15, print_mode='bars', print_sep='&')
+    sage: repr(R(2777))[3:]
     '4&2&1&0&2'
     sage: TestSuite(R).run()
 
-.. todo:: remove the loads tests above; the TestSuite should be sufficient
 """
+
+#*****************************************************************************
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
+#                          William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
@@ -204,7 +208,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         """
         Initialization.
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -214,6 +218,25 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         EXAMPLES::
 
             sage: R = ZpCR(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingCappedRelative_with_category'>
+
+        TESTS::
+
+            sage: R = ZpCR(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = ZpCR(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = ZpCR(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = ZpCR(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
 
@@ -274,7 +297,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         """
         Initialization.
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -284,6 +307,25 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         EXAMPLES::
 
             sage: R = ZpCA(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingCappedAbsolute_with_category'>
+
+        TESTS::
+
+            sage: R = ZpCA(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = ZpCA(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = ZpCA(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = ZpCA(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
 
@@ -346,7 +388,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         """
         Initialization
 
-        INPUTS:
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -356,6 +398,25 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         EXAMPLES::
 
             sage: R = ZpFM(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingFixedMod_with_category'>
+
+        TESTS::
+
+            sage: R = ZpFM(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = ZpFM(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = ZpFM(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = ZpFM(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFixedModElement)
 
@@ -426,7 +487,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
             sage: a = ZpFM(5)(4); b = ZpFM(5)(5)
         """
-        raise TypeError, "This implementation of the p-adic ring does not support fields of fractions."
+        raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
 
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
@@ -435,15 +496,16 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
     EXAMPLES::
 
-        sage: K = Qp(17, 1000000)
-        sage: K = Qp(next_prime(10^60))
+        sage: K = Qp(17, 1000000) #indirect doctest
+        sage: K = Qp(101) #indirect doctest
+
     """
 
     def __init__(self, p, prec, print_mode, names):
         """
         Initialization.
 
-        INPUTS::
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap
@@ -452,7 +514,27 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
         EXAMPLES::
 
-            sage: K = Qp(101) #indirect doctest
+            sage: K = Qp(next_prime(10^60)) # indirect doctest
+            sage: type(K)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicFieldCappedRelative_with_category'>
+
+        TESTS::
+
+            sage: R = Qp(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = Qp(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = Qp(3, 2)
+            sage: TestSuite(R).run(elements=[R.random_element() for i in range(3^9)],
+            ....:                  skip="_test_metric") # Skip because too long
+            sage: R._test_metric(elements=[R.random_element() for i in range(3^3)])
+
+            sage: R = Qp(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
         """
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
 
@@ -531,4 +613,4 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             a = ZZ.random_element(self.prime()**self.precision_cap())
             return self(self.prime()**k * a, absprec = k + self.precision_cap())
         else:
-            raise NotImplementedError, "Don't know %s algorithm"%algorithm
+            raise NotImplementedError("Don't know %s algorithm"%algorithm)

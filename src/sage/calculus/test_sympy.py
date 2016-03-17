@@ -3,7 +3,7 @@ r"""
 A Sample Session using SymPy
 
 In this first part, we do all of the examples in the SymPy tutorial
-(http://code.google.com/p/sympy/wiki/Tutorial), but using Sage
+(https://github.com/sympy/sympy/wiki/Tutorial), but using Sage
 instead of SymPy.
 
 ::
@@ -125,8 +125,8 @@ some archictures, we disable it::
 
     sage: pprint(f)
            2       4        6         8
-        3*x    11*x    241*x    8651*x
-    1 + ---- + ----- + ------ + ------- + O(x**10)
+        3*x    11*x    241*x    8651*x     / 10\
+    1 + ---- + ----- + ------ + ------- + O\x  /
          2       8      240      13440
     sage: pprint_use_unicode(prev_use)
     False
@@ -184,4 +184,16 @@ Mixing SymPy with Sage::
     2
     sage: sympify(-2)
     -2
+
+TESTS:
+
+This was fixed in Sympy, see :trac:`14437`::
+
+    sage: from sympy import Function, Symbol, rsolve
+    sage: u = Function('u')
+    sage: n = Symbol('n', integer=True)
+    sage: f = u(n+2) - u(n+1) + u(n)/4
+    sage: rsolve(f,u(n))
+    2**(-n)*(C0 + C1*n)
+
 """

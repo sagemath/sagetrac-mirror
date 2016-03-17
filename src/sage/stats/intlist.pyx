@@ -27,12 +27,11 @@ max_print = 10
 
 
 # Imports
+from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/python_slice.pxi"
+include "cysignals/signals.pxi"
 from cpython.string cimport *
 
 cdef class IntList:
@@ -94,7 +93,7 @@ cdef class IntList:
         if isinstance(values, (int,long,Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             T = values
             self._length = T._length
         else:
@@ -107,7 +106,7 @@ cdef class IntList:
         if values is None:
             for i in range(self._length):
                 self._values[i] = 0
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             for i in range(self._length):
                 self._values[i] = <int> T._values[i]
         else:
@@ -201,7 +200,7 @@ cdef class IntList:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step
@@ -495,7 +494,7 @@ cdef class IntList:
             sage: type(T)
             <type 'sage.finance.time_series.TimeSeries'>
         """
-        cdef TimeSeries T = PY_NEW(TimeSeries)
+        cdef TimeSeries T = TimeSeries.__new__(TimeSeries)
         # We just reach into the data structure underlying T, since we
         # want this function to be *very* fast.
         T._length = self._length
@@ -514,7 +513,9 @@ cdef class IntList:
         EXAMPLES::
 
             sage: stats.IntList([3,7,19,-2]).plot()
+            Graphics object consisting of 1 graphics primitive
             sage: stats.IntList([3,7,19,-2]).plot(color='red',pointsize=50,points=True)
+            Graphics object consisting of 1 graphics primitive
         """
         return self.time_series().plot(*args, **kwds)
 
@@ -527,6 +528,7 @@ cdef class IntList:
         EXAMPLES::
 
             sage: stats.IntList([1..15]).plot_histogram()
+            Graphics object consisting of 50 graphics primitives
         """
         return self.time_series().plot_histogram(*args, **kwds)
 
@@ -546,7 +548,7 @@ cdef IntList new_int_list(Py_ssize_t length):
     """
     if length < 0:
         raise ValueError, "length must be nonnegative"
-    cdef IntList t = PY_NEW(IntList)
+    cdef IntList t = IntList.__new__(IntList)
     t._length = length
     t._values = <int*> sage_malloc(sizeof(int)*length)
     return t
@@ -559,7 +561,7 @@ def unpickle_intlist_v1(v, Py_ssize_t n):
     INPUT:
         v -- a raw char buffer
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]

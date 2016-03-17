@@ -56,7 +56,6 @@ Methods
 #*****************************************************************************
 
 from matroid import Matroid
-import sage.matroids.unpickling
 
 
 class DualMatroid(Matroid):
@@ -490,7 +489,7 @@ class DualMatroid(Matroid):
             sage: M3 != M4
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # COPYING, LOADING, SAVING
 
@@ -562,6 +561,7 @@ class DualMatroid(Matroid):
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
 
         """
+        import sage.matroids.unpickling
         data = (self._matroid, getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_dual_matroid, (version, data)

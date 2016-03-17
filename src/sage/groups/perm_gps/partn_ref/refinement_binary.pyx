@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for binary codes
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -302,7 +303,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
@@ -562,7 +564,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(n * sizeof(int))
@@ -648,7 +651,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                 invariant += 8
                 i = current_cell
                 necessary_to_split_cell = 0
-                while 1:
+                while True:
                     col_degrees[i-current_cell] = col_degree(col_ps, BCS, i, ctrb[current_cell_against], word_ps)
                     if col_degrees[i-current_cell] != col_degrees[0]:
                         necessary_to_split_cell = 1
@@ -668,7 +671,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                             break
                         against_index += 1
                     r = current_cell
-                    while 1:
+                    while True:
                         if r == current_cell or col_ps.levels[r-1] == col_ps.depth:
                             if r != first_largest_subcell:
                                 ctrb[ctrb_len] = r
@@ -683,7 +686,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                 invariant += 64
                 i = current_cell
                 necessary_to_split_cell = 0
-                while 1:
+                while True:
                     word_degrees[i-current_cell] = word_degree(word_ps, BCS, i, ctrb[current_cell_against], col_ps)
                     if word_degrees[i-current_cell] != word_degrees[0]:
                         necessary_to_split_cell = 1
@@ -703,7 +706,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                             break
                         against_index += 1
                     r = current_cell
-                    while 1:
+                    while True:
                         if r == current_cell or word_ps.levels[r-1] == col_ps.depth:
                             if r != first_largest_subcell:
                                 ctrb[ctrb_len] = r
@@ -811,7 +814,10 @@ cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2,
     cdef bitset_s *B_2_0 = &BCS1.scratch_bitsets[2*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *B_2_1 = &BCS1.scratch_bitsets[3*BCS1.nwords]    # nwords of len degree
     cdef bitset_s *dividers = &BCS1.scratch_bitsets[4*BCS1.nwords] # 1 of len nwords
-    cdef bitset_s *B_1_this, *B_1_other, *B_2_this, *B_2_other
+    cdef bitset_s *B_1_this
+    cdef bitset_s *B_1_other
+    cdef bitset_s *B_2_this
+    cdef bitset_s *B_2_other
     for i from 0 <= i < BCS1.nwords:
         bitset_copy(&B_1_0[i], &BCS1.words[i])
         bitset_copy(&B_2_0[i], &BCS2.words[i])
@@ -960,7 +966,7 @@ cdef inline int col_degree(PartitionStack *col_ps, BinaryCodeStruct BCS, int ent
     bitset_init(word, BCS.degree)
     cdef int degree = 0, word_basis, i, b
     entry = col_ps.entries[entry]
-    while 1:
+    while True:
         BCS.ith_word(BCS, word_ps.entries[cell_index], word)
         degree += bitset_check(word, entry)
         if not word_ps.levels[cell_index] > col_ps.depth:
@@ -1046,7 +1052,7 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
     from sage.misc.prandom import random, randint
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     cdef int h, i, j, n, k, num_tests = 0, num_codes = 0
     cdef LinearBinaryCodeStruct B, C
     cdef NonlinearBinaryCodeStruct B_n, C_n

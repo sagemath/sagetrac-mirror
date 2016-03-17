@@ -34,6 +34,8 @@ from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import Alphabet
 from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import identity_matrix, matrix
+from sage.misc.nested_class import NestedClassMetaclass
+
 
 def interval_conversion(interval=None):
     r"""
@@ -249,7 +251,7 @@ class Permutation(SageObject):
     r"""
     Template for all permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -473,7 +475,7 @@ class Permutation(SageObject):
             sage: p.letters()
             [0, 1]
         """
-        return map(self._alphabet.unrank, range(len(self)))
+        return [self._alphabet.unrank(_) for _ in range(len(self))]
 
     def left_right_inverse(self):
         r"""
@@ -788,7 +790,7 @@ class PermutationIET(Permutation):
     """
     Template for permutation from Interval Exchange Transformation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -951,7 +953,7 @@ class PermutationIET(Permutation):
         left_corner = ((self[1][0], self[0][0]), 'L')
         for s in self.separatrix_diagram(side=True):
             if left_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def attached_in_degree(self):
         r"""
@@ -975,7 +977,7 @@ class PermutationIET(Permutation):
 
         for s in self.separatrix_diagram(side=True):
             if right_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def attached_type(self):
         r"""
@@ -1024,11 +1026,11 @@ class PermutationIET(Permutation):
             if left_corner in s and right_corner in s:
                 i1 = s.index(left_corner)
                 i2 = s.index(right_corner)
-                return ([len(s)/2-1], ((i2-i1+1)/2) % 2)
+                return ([len(s)//2 - 1], ((i2-i1+1)//2) % 2)
             elif left_corner in s:
-                left_degree = len(s)/2-1
+                left_degree = len(s)//2 - 1
             elif right_corner in s:
-                right_degree = len(s)/2-1
+                right_degree = len(s)//2 - 1
 
         return ([left_degree,right_degree], 0)
 
@@ -1175,12 +1177,12 @@ class PermutationIET(Permutation):
         from sage.dynamics.flat_surfaces.strata import AbelianStratum
 
         if not self.is_irreducible():
-            return map(lambda x: x.stratum(marked_separatrix), self.decompose())
+            return [x.stratum(marked_separatrix) for x in self.decompose()]
 
         if len(self) == 1:
             return AbelianStratum([])
 
-        singularities = [len(x)/2 - 1 for x in self.separatrix_diagram()]
+        singularities = [len(x)//2 - 1 for x in self.separatrix_diagram()]
 
         return AbelianStratum(singularities,marked_separatrix=marked_separatrix)
 
@@ -1359,8 +1361,7 @@ class PermutationIET(Permutation):
                                                         OddCCA, EvenCCA)
 
         if not self.is_irreducible():
-            return map(lambda x: x.connected_component(marked_separatrix),
-                       self.decompose())
+            return [x.connected_component(marked_separatrix) for x in self.decompose()]
 
         stratum = self.stratum(marked_separatrix=marked_separatrix)
         cc = stratum._cc
@@ -1436,7 +1437,7 @@ class PermutationIET(Permutation):
         right_corner = ((l[0][-1], l[1][-1]), 'R')
 
         s = res.separatrix_diagram(side=True)
-        lengths = map(len, s)
+        lengths = [len(_) for _ in s]
 
         while 2 in lengths:
             if lengths == [2]:
@@ -1454,7 +1455,7 @@ class PermutationIET(Permutation):
             l = res.list()
 
             s = res.separatrix_diagram(side=True)
-            lengths = map(len, s)
+            lengths = [len(_) for _ in s]
 
         return res
 
@@ -1559,7 +1560,7 @@ class PermutationIET(Permutation):
 
     def to_permutation(self):
         r"""
-        Returns the permutation as an element of the symetric group.
+        Returns the permutation as an element of the symmetric group.
 
         EXAMPLES::
 
@@ -1575,13 +1576,13 @@ class PermutationIET(Permutation):
             True
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(map(lambda x: x+1,self._twin[1]))
+        return Permutation([x+1 for x in self._twin[1]])
 
 class PermutationLI(Permutation):
     r"""
     Template for quadratic permutation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1856,7 +1857,7 @@ class FlippedPermutation(Permutation):
     r"""
     Template for flipped generalized permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1915,7 +1916,7 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
     r"""
     Template for flipped Abelian permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1944,7 +1945,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     r"""
     Template for flipped quadratic permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1975,11 +1976,12 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
                 res.append(l[1][i])
         return list(set(res))
 
+
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
 
-    .. warning:
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1987,7 +1989,9 @@ class RauzyDiagram(SageObject):
 
     - Vincent Delecroix (2008-12-20): initial version
     """
-#TODO: pickle problem of Path (it does not understand what is its parent)
+    # TODO: pickle problem of Path (it does not understand what is its parent)
+    __metaclass__ = NestedClassMetaclass
+
     class Path(SageObject):
         r"""
         Path in Rauzy diagram.
@@ -2004,9 +2008,15 @@ class RauzyDiagram(SageObject):
 
             TEST::
 
-                sage: p = iet.Permutation('a b c','c b a')
+                sage: p = iet.Permutation('a b c', 'c b a')
                 sage: r = p.rauzy_diagram()
-                sage: g = r.path(p,0,1,0)
+                sage: g = r.path(p, 0, 1, 0); g
+                Path of length 3 in a Rauzy diagram
+
+            Check for :trac:`8388`::
+
+                sage: loads(dumps(g)) == g
+                True
             """
             self._parent = parent
 
@@ -2118,7 +2128,7 @@ class RauzyDiagram(SageObject):
                 False
             """
             return (
-                type(self) == type(other) and
+                type(self) is type(other) and
                 self._parent == other._parent and
                 self._start == other._start and
                 self._edge_types == other._edge_types)
@@ -2141,7 +2151,7 @@ class RauzyDiagram(SageObject):
                 True
             """
             return (
-                type(self) != type(other) or
+                type(self) is not type(other) or
                 self._parent != other._parent or
                 self._start != other._start or
                 self._edge_types != other._edge_types)
@@ -2590,27 +2600,30 @@ class RauzyDiagram(SageObject):
                  top_bottom_inversion=False,
                  symmetric=False):
         r"""
-        self._succ contains successors
-        self._pred contains predecessors
+        - ``self._succ`` contains successors
 
-        self._element_class is the class of elements of self
-        self._element is an instance of this class (hence contains the alphabet,
-        the representation mode, ...). It is used to store data about property
-        of permutations and also as a fast iterator.
+        - ``self._pred`` contains predecessors
 
-         INPUT:
+        - ``self._element_class`` is the class of elements of ``self``
 
-         - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+        - ``self._element`` is an instance of this class (hence
+          contains the alphabet, the representation mode, ...). It is
+          used to store data about property of permutations and also as
+          a fast iterator.
 
-         - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+        INPUT:
 
-         - ``left_right_inversion`` - consider the left right inversion
+        - ``right_induction`` - boolean or 'top' or 'bottom': consider the
+          right induction
 
-         - ``top_bottom_inversion`` - consider the top bottom inversion
+        - ``left_induction`` - boolean or 'top' or 'bottom': consider the
+          left induction
 
-         - ``symmetric`` - consider the symmetric
+        - ``left_right_inversion`` - consider the left right inversion
+
+        - ``top_bottom_inversion`` - consider the top bottom inversion
+
+        - ``symmetric`` - consider the symmetric
 
         TESTS::
 
@@ -2718,7 +2731,7 @@ class RauzyDiagram(SageObject):
             True
         """
         return (
-            type(self) == type(other) and
+            type(self) is type(other) and
             self._edge_types == other._edge_types and
             self._succ.keys()[0] in other._succ)
 
@@ -2742,7 +2755,7 @@ class RauzyDiagram(SageObject):
             False
         """
         return (
-            type(self) != type(other) or
+            type(self) is not type(other) or
             self._edge_types != other._edge_types or
             self._succ.keys()[0] not in other._succ)
 
@@ -2757,9 +2770,7 @@ class RauzyDiagram(SageObject):
             a b
             b a
         """
-        return map(
-            lambda x: self._vertex_to_permutation(x),
-            self._succ.keys())
+        return [self._vertex_to_permutation(x) for x in self._succ.keys()]
 
     def vertex_iterator(self):
         r"""
@@ -3374,8 +3385,7 @@ class RauzyDiagram(SageObject):
             raise ValueError("Your element does not have the good type")
 
         perm = self._permutation_to_vertex(p)
-        return map(lambda x: self._vertex_to_permutation(x),
-                   self._succ[perm])
+        return [self._vertex_to_permutation(x) for x in self._succ[perm]]
 
     def __len__(self):
         r"""
@@ -3522,7 +3532,7 @@ class FlippedRauzyDiagram(RauzyDiagram):
     r"""
     Template for flipped Rauzy diagrams.
 
-    .. warning:
+    .. WARNING::
 
         Internal class! Do not use directly!
 

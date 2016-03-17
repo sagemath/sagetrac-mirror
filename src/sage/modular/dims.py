@@ -30,21 +30,20 @@ dimension_modular_forms and so on of the corresponding congruence subgroup
 classes.
 """
 
-##########################################################################
-#       Copyright (C) 2004,2005,2006,2007,2008 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################
+#*****************************************************************************
 
+from sage.arith.all import (factor, is_prime, valuation, kronecker_symbol,
+        gcd, euler_phi, lcm)
 
-from sage.rings.arith import (factor, is_prime,
-                              valuation, kronecker_symbol, gcd, euler_phi, lcm)
-
-from sage.misc.misc import mul
+from sage.misc.all import prod as mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
 import dirichlet
@@ -75,7 +74,7 @@ def eisen(p):
         [(2, 1), (3, 1), (5, 1), (7, 1), (11, 5), (13, 1), (17, 4), (19, 3), (23, 11)]
     """
     if not is_prime(p):
-        raise ValueError, "p must be prime"
+        raise ValueError("p must be prime")
     return frac(p-1,12).numerator()
 
 ##########################################################################
@@ -111,7 +110,7 @@ def CO_delta(r,p,N,eps):
         2
     """
     if not is_prime(p):
-        raise ValueError, "p must be prime"
+        raise ValueError("p must be prime")
     K = eps.base_ring()
     if p%4 == 3:
         return K(0)
@@ -300,7 +299,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         sage: dimension_new_cusp_forms(Gamma1(30),3)
         12
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_new_cusp_forms(DirichletGroup(1)(1), 12)
         1
@@ -314,12 +313,12 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         if N <= 2:
             return Gamma0(N).dimension_new_cusp_forms(k,p=p)
         else:
-            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See Trac #12640.
+            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See trac #12640.
             return Gamma1(N).dimension_new_cusp_forms(k,eps=X,p=p)
     elif isinstance(X, (int,long,Integer)):
         return Gamma0(X).dimension_new_cusp_forms(k,p=p)
     else:
-        raise TypeError, "X (=%s) must be an integer, a Dirichlet character or a congruence subgroup of type Gamma0, Gamma1 or GammaH" % X
+        raise TypeError("X (=%s) must be an integer, a Dirichlet character or a congruence subgroup of type Gamma0, Gamma1 or GammaH" % X)
 
 def dimension_cusp_forms(X, k=2):
     r"""
@@ -413,7 +412,7 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(e^2,2)
         1
 
-    Check that Trac #12640 is fixed::
+    Check that :trac:`12640` is fixed::
 
         sage: dimension_cusp_forms(DirichletGroup(1)(1), 12)
         1
@@ -431,7 +430,7 @@ def dimension_cusp_forms(X, k=2):
     elif isinstance(X, (Integer,int,long)):
         return Gamma0(X).dimension_cusp_forms(k)
     else:
-        raise TypeError, "Argument 1 must be a Dirichlet character, an integer or a finite index subgroup of SL2Z"
+        raise TypeError("Argument 1 must be a Dirichlet character, an integer or a finite index subgroup of SL2Z")
 
 def dimension_eis(X, k=2):
     """
@@ -515,7 +514,7 @@ def dimension_eis(X, k=2):
     elif isinstance(X, (int, long, Integer)):
         return Gamma0(X).dimension_eis(k)
     else:
-        raise TypeError, "Argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X
+        raise TypeError("Argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X)
 
 def dimension_modular_forms(X, k=2):
     r"""
@@ -562,7 +561,7 @@ def dimension_modular_forms(X, k=2):
     elif isinstance(X,dirichlet.DirichletCharacter):
         return Gamma1(X.modulus()).dimension_modular_forms(k, eps=X)
     else:
-        raise TypeError, "Argument 1 must be an integer, a Dirichlet character or an arithmetic subgroup."
+        raise TypeError("Argument 1 must be an integer, a Dirichlet character or an arithmetic subgroup.")
 
 def sturm_bound(level, weight=2):
     r"""
@@ -596,6 +595,6 @@ def sturm_bound(level, weight=2):
         if level.is_congruence():
             return level.sturm_bound(weight)
         else:
-            raise ValueError, "No Sturm bound defined for noncongruence subgroups"
+            raise ValueError("No Sturm bound defined for noncongruence subgroups")
     if isinstance(level, (int, long, Integer)):
         return Gamma0(level).sturm_bound(weight)

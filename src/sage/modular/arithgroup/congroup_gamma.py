@@ -2,25 +2,23 @@ r"""
 Congruence Subgroup `\Gamma(N)`
 """
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
+
 
 from congroup_generic import CongruenceSubgroup
-from sage.misc.misc import prod
-from sage.rings.all import ZZ, Zmod, gcd, QQ
+from sage.misc.all import prod
+from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
+from sage.arith.all import gcd
 
 from congroup_sl2z import SL2Z
 
@@ -73,6 +71,19 @@ class Gamma_class(CongruenceSubgroup):
         """
         return "Congruence Subgroup Gamma(%s)"%self.level()
 
+    def _latex_(self):
+        r"""
+        Return the \LaTeX representation of self.
+        
+        EXAMPLES::
+
+            sage: Gamma(20)._latex_()
+            '\\Gamma(20)'
+            sage: latex(Gamma(20))
+            \Gamma(20)
+        """
+        return "\\Gamma(%s)"%self.level()
+
     def __reduce__(self):
         """
         Used for pickling self.
@@ -114,7 +125,8 @@ class Gamma_class(CongruenceSubgroup):
 
           \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: [Gamma(n).index() for n in [1..19]]
             [1, 6, 24, 48, 120, 144, 336, 384, 648, 720, 1320, 1152, 2184, 2016, 2880, 3072, 4896, 3888, 6840]
             sage: Gamma(32041).index()
@@ -330,5 +342,5 @@ def _lift_pair(U,V,N):
             v = N
     while gcd(u, v) > 1:
         u = u+N
-        if u > N*v: raise ValueError, "(U, V, N) must be coprime"
+        if u > N*v: raise ValueError("(U, V, N) must be coprime")
     return (u, v)
