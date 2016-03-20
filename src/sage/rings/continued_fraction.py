@@ -1143,11 +1143,15 @@ class ContinuedFraction_base(SageObject):
             preperiod_length = _i.output_preperiod_length
             preperiod = l[:preperiod_length]
             period = l[preperiod_length:]
-            import pdb; pdb.set_trace()
             return continued_fraction((preperiod, period), z)
         else:
             from sage.misc.lazy_list import lazy_list
-            return continued_fraction(lazy_list(_i), z)
+            # Here we create lazy_list of unknown length, even though the length is known to be infinite
+            # Some internal methods may use length
+            # Maybe better try create an infinite word from the lazy list
+            # return continued_fraction(lazy_list(_i), z)
+            from sage.combinat.words.word import Word
+            return continued_fraction(Word(_i, length='infinite'))
 
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
@@ -2033,7 +2037,18 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             return self._value
         else:
             from sage.rings.real_lazy import RLF
+            if self._w[0] < 0:
+                return -RLF(-self)
             return RLF(self)
+
+    def __neg__(self):
+        from sage.combinat.words.word import *
+        _w = self._w
+        if _w[1] == 1:
+            _w = Word((-_w[0]-1, _w[2]+1)).concatenate(_w[3:])
+        else:
+            _w = Word((-_w[0]-1, ZZ_1, _w[1]-1)).concatenate(_w[2:])
+        return self.__class__(_w)
 
 def check_and_reduce_pair(x1,x2=None):
     r"""
@@ -2651,7 +2666,6 @@ class Gosper_iterator:
                     if self.compare_dicts(state, current_state, 'currently_emitted'):
                         self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
                         self.output_preperiod_length = current_state['currently_emitted'] - self.output_period_length
-                        import pdb; pdb.set_trace()
                         raise StopIteration
                 self.states.append(current_state)
                 if len(self.states) > 30:
