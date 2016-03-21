@@ -1257,6 +1257,15 @@ ext_modules = [
               ["sage/rings/complex_arb.pyx"],
               libraries=['mpfi', 'mpfr', 'gmp']),
 
+    Extension('sage.rings.bounded_series_poly',
+              sources = ['sage/rings/bounded_series_poly.pyx']),
+
+    Extension('sage.rings.bounded_series_ring_element',
+              sources = ['sage/rings/bounded_series_ring_element.pyx']),
+
+    Extension('sage.rings.bounded_series_ring_morphism',
+              sources = ['sage/rings/bounded_series_ring_morphism.pyx']),
+
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99", "-D_XPG6"],

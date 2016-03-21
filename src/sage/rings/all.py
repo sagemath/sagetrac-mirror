@@ -114,6 +114,10 @@ from power_series_ring_element import PowerSeries
 from laurent_series_ring import LaurentSeriesRing
 from laurent_series_ring_element import LaurentSeries
 
+# Bounded series rings
+from bounded_series_ring import BoundedSeriesRing, is_BoundedSeriesRing
+from bounded_series_ring_element import is_BoundedSeries
+
 # Pseudo-ring of PARI objects.
 from pari_ring import PariRing, Pari
 
