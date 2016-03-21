@@ -72,7 +72,7 @@ from sage.rings.all import Integer, ZZ
 
 # We do not implement this separately, because this is the same
 # reduction as in the case of weak Jacobi forms.
-# from sage.modular.jacobi.classical_weak import classical_jacobi_reduce_fe_index
+from sage.modular.jacobi.classical_weak import classical_jacobi_reduce_fe_index
 
 
 def classical_jacobi_fe_indices(m, prec, reduced=False):

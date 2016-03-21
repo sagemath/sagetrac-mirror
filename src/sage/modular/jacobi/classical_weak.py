@@ -116,6 +116,7 @@ def classical_jacobi_reduce_fe_index((n, r), m):
 
     return ((nred, rred), sgn)
 
+
 def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
     r"""
     Indices `(n,r)` of Fourier expansions of weak Jacobi forms of index `m`.
