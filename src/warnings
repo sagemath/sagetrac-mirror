@@ -1,0 +1,12 @@
+/home/xavier/sage/src/bin/sage-ipython:1: DeprecationWarning: 
+Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
+See http://trac.sagemath.org/19675 for details.
+  #!/usr/bin/env python
+
+/home/xavier/sage/local/lib/python2.7/site-packages/sage/repl/display/pretty_print.py:147: DeprecationWarning: Use _repr_option to return metadata about string rep
+See http://trac.sagemath.org/14040 for details.
+  ok = representation(obj, self, cycle)
+/home/xavier/sage/local/lib/python2.7/site-packages/IPython/lib/pretty.py:503: DeprecationWarning: Use _repr_option to return metadata about string rep
+See http://trac.sagemath.org/14040 for details.
+  _repr_pprint(obj, p, cycle)
+
