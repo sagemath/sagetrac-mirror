@@ -72,9 +72,9 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
 
-from pari_instance cimport (PariInstance, pari_instance,
+from pari_instance cimport (SagePariInstance, pari_instance,
         prec_bits_to_words, prec_words_to_bits, default_bitprec)
-cdef PariInstance P = pari_instance
+cdef SagePariInstance P = pari_instance
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
