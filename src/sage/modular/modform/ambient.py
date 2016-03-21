@@ -65,22 +65,24 @@ AUTHORS:
 
 """
 
-#########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
-import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.rings.all as rings
+from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
 from sage.structure.unique_representation import CachedRepresentation
@@ -364,9 +366,7 @@ class ModularFormsAmbient(CachedRepresentation,
             sage: M.module()
             Vector space of dimension 36 over Rational Field
             sage: M.basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+            <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         """
         try:
             d = self.dimension()
@@ -662,7 +662,7 @@ class ModularFormsAmbient(CachedRepresentation,
             1
         """
         if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
-            if rings.is_prime(self.level()):
+            if is_prime(self.level()):
                 return 1
             else:
                 return 0

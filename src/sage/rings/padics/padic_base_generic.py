@@ -310,7 +310,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             else:
                 raise ValueError("No, %sth root of unity in self"%n)
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return self.teichmuller(GF(self.prime()).zeta(n).lift())
 
     def zeta_order(self):
@@ -353,8 +353,11 @@ class pAdicBaseGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: Zp(3).plot()
+            Graphics object consisting of 1 graphics primitive
             sage: Zp(5).plot(max_points=625)
+            Graphics object consisting of 1 graphics primitive
             sage: Zp(23).plot(rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         if 'pointsize' not in args:
             args['pointsize'] = 1

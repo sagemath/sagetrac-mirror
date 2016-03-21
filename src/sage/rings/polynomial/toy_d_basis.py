@@ -117,7 +117,7 @@ AUTHOR:
 """
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import xgcd, lcm, gcd
+from sage.arith.all import xgcd, lcm, gcd
 from sage.rings.polynomial.toy_buchberger import inter_reduction
 from sage.structure.sequence import Sequence
 
@@ -316,8 +316,10 @@ def update(G,B,h):
         sage: B = set([])
         sage: h = x^2*y - x^2 + y - 3
         sage: update(G,B,h)
-        (set([3*x^2 + 7, 2*y + 1, x^2*y - x^2 + y - 3, x^3 - y^2 + 7*x - y + 1]),
-         set([(x^2*y - x^2 + y - 3, x^3 - y^2 + 7*x - y + 1),  (x^2*y - x^2 + y - 3, 3*x^2 + 7), (x^2*y - x^2 + y - 3, 2*y + 1)]))
+        ({2*y + 1, 3*x^2 + 7, x^2*y - x^2 + y - 3, x^3 - y^2 + 7*x - y + 1},
+         {(x^2*y - x^2 + y - 3, 2*y + 1),
+          (x^2*y - x^2 + y - 3, 3*x^2 + 7),
+          (x^2*y - x^2 + y - 3, x^3 - y^2 + 7*x - y + 1)})
     """
     R = h.parent()
     LCM = R.monomial_lcm

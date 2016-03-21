@@ -74,20 +74,25 @@ We test corner cases for multiplication::
 
 """
 
-###############################################################################
-#   SAGE: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2011 Martin Albrecht <martinralbrecht@googlemail.com>
 #       Copyright (C) 2011 Rob Beezer
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
+include "cysignals/signals.pxi"
 from libc.stdint cimport uint64_t
 from cpython.string cimport *
 
+from sage.ext.memory cimport sage_malloc, sage_free
+from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
 
@@ -101,7 +106,7 @@ from libc.stdio cimport snprintf
 
 from sage.modules.vector_modn_dense cimport Vector_modn_dense
 
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 from sage.structure.element cimport ModuleElement
 
 cimport matrix_dense
@@ -115,6 +120,7 @@ from matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring  import ZZ
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
+import sage.matrix.matrix_space as matrix_space
 
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
@@ -408,17 +414,17 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         """
         TESTS::
 
-        sage: import gc
-        sage: for i in range(10):
-        ...      A = random_matrix(GF(7),1000,1000)
-        ...      B = random_matrix(Integers(10),1000,1000)
-        ...      C = random_matrix(GF(16007),1000,1000)
-        ...      D = random_matrix(Integers(1000),1000,1000)
-        ...      del A
-        ...      del B
-        ...      del C
-        ...      del D
-        ...      _ = gc.collect()
+            sage: import gc
+            sage: for i in range(10):
+            ...      A = random_matrix(GF(7),1000,1000)
+            ...      B = random_matrix(Integers(10),1000,1000)
+            ...      C = random_matrix(GF(16007),1000,1000)
+            ...      D = random_matrix(Integers(1000),1000,1000)
+            ...      del A
+            ...      del B
+            ...      del C
+            ...      del D
+            ...      _ = gc.collect()
 
         """
         if self._entries == NULL:
@@ -503,12 +509,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             v = self._matrix[i]
             for j in range(self._ncols):
                 x = entries[k]
-                if PY_TYPE_CHECK_EXACT(x, int):
+                if type(x) is int:
                     tmp = (<long>x) % p
                     v[j] = tmp + (tmp<0)*p
-                elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int) and (<IntegerMod_int>x)._parent is R:
+                elif type(x) is IntegerMod_int and (<IntegerMod_int>x)._parent is R:
                     v[j] = <celement>(<IntegerMod_int>x).ivalue
-                elif PY_TYPE_CHECK_EXACT(x, Integer):
+                elif type(x) is Integer:
                     if coerce:
                         v[j] = mpz_fdiv_ui((<Integer>x).value, p)
                     else:
@@ -518,22 +524,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
                 else:
                     v[j] = <float>(entries[k])
                 k = k + 1
-
-    def __richcmp__(Matrix_modn_dense_template self, right, int op):  # always need for mysterious reasons.
-        """
-        EXAMPLES::
-
-            sage: A = matrix(ZZ, 10, 10, range(1000, 1100))
-            sage: A.change_ring(GF(17)) == A.change_ring(GF(17))
-            True
-            sage: A.change_ring(GF(17)) == A.change_ring(GF(19))
-            False
-            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
-            False
-            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
-            False
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -947,7 +937,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 
@@ -973,6 +963,18 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             False
             sage: B + 3 == A
             True
+
+        ::
+
+            sage: A = matrix(ZZ, 10, 10, range(1000, 1100))
+            sage: A.change_ring(GF(17)) == A.change_ring(GF(17))
+            True
+            sage: A.change_ring(GF(17)) == A.change_ring(GF(19))
+            False
+            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
+            False
+            sage: A.change_ring(GF(17)) == A.change_ring(Integers(2000))
+            False
         """
         cdef Py_ssize_t i
         cdef celement* other_ent = (<Matrix_modn_dense_template>right)._entries
@@ -1708,7 +1710,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             elimination implemented in Sage.
 
           - ``all`` - compute using both algorithms and verify that
-           the results are the same.
+            the results are the same.
 
         - ``**kwds`` - these are all ignored
 
@@ -2151,7 +2153,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: A.characteristic_polynomial()
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
             sage: P.<x> = GF(17)[]
-            sage: A._charpoly_hessenberg(x)
+            sage: A._charpoly_hessenberg('x')
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
         """
         if self._nrows != self._ncols:
@@ -2426,7 +2428,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
           row1 + t \* row2 where g = sa + tb
         """
         cdef int p = <int>self.p
-        cdef celement * row1_p, * row2_p
+        cdef celement *row1_p
+        cdef celement *row2_p
         cdef celement tmp
         cdef int g, s, t, v, w
         cdef Py_ssize_t nc, i
@@ -2586,7 +2589,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [34 19 14 11 35 30 35 34 25 33]
         """
         cdef celement p
-        cdef celement *v_from, *v_to
+        cdef celement *v_from
+        cdef celement *v_to
 
         p = self.p
         v_from = self._matrix[row_from]
@@ -2825,7 +2829,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef int ndigits = len(str(self.p))
 
         cdef Py_ssize_t i, n
-        cdef char *s, *t
+        cdef char *s
+        cdef char *t
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
@@ -2898,17 +2903,13 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j
 
         cdef Matrix_integer_dense L
-        L = Matrix_integer_dense.__new__(Matrix_integer_dense,
-                                         self.parent().change_ring(ZZ),
-                                         0, 0, 0)
-        cdef mpz_t* L_row
+        cdef object P =  matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
+        L = Matrix_integer_dense(P,ZZ(0),False,False)
         cdef celement* A_row
-        for i from 0 <= i < self._nrows:
-            L_row = L._matrix[i]
+        for i in range(self._nrows):
             A_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpz_init_set_d(L_row[j], A_row[j])
-        L._initialized = 1
+            for j in range(self._ncols):
+                L.set_unsafe_double(i, j, A_row[j])
         L.subdivide(self.subdivisions())
         return L
 

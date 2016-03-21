@@ -802,9 +802,7 @@ class SimplifiedDES(SageObject):
         Input must be a non-empty list of bits::
 
             sage: sdes.list_to_string([0, 1, 2])
-            Traceback (most recent call last):
-            ...
-            IndexError: tuple index out of range
+            <repr(<sage.monoids.string_monoid_element.StringMonoidElement at 0x...>) failed: IndexError: tuple index out of range>
         """
         # sanity check
         if not isinstance(B, list):
@@ -1257,7 +1255,7 @@ class SimplifiedDES(SageObject):
         if len(key) != 8:
             raise ValueError("input key must be an 8-bit subkey")
 
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         GF = FiniteField(2, "x")
         bin = BinaryStrings()
         bin_to_GF2 = {bin("0"): GF(0), bin("1"): GF(1)}
