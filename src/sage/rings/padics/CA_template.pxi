@@ -990,19 +990,30 @@ cdef class CAElement(pAdicTemplateElement):
 
     def __hash__(self):
         """
+        Hashing of `p`-adic elements is not meaningful with the usual
+        implementation of the operator ``==``. However, ``with
+        sage.structure.strict_equality(True)``, ``==`` check whether `p`-adic
+        elements are indistinguishable and there can be a meaningful hash
+        function.
         Hashing.
-
-        .. WARNING::
-
-            Hashing of `p`-adic elements will likely be deprecated soon.  See :trac:`11895`.
 
         EXAMPLES::
 
             sage: R = ZpCA(11, 5)
-            sage: hash(R(3)) == hash(3)
-            True
+            sage: hash(R(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: p-adic numbers are unhashable
+            sage: with strict_equality(True):
+            ....:      hash(R(3))
+            3
+
         """
-        return chash(self.value, 0, self.absprec, self.prime_pow)
+        from sage.structure.all import strict_equality
+        if strict_equality():
+            return chash(self.value, 0, self.absprec, self.prime_pow)
+        else:
+            raise TypeError("p-adic numbers are unhashable")
 
 cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
     """

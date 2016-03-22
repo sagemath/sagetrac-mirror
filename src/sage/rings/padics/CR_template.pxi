@@ -1512,25 +1512,32 @@ cdef class CRElement(pAdicTemplateElement):
 
     def __hash__(self):
         """
+        Hashing of `p`-adic elements is not meaningful with the usual
+        implementation of the operator ``==``. However, ``with
+        sage.structure.strict_equality(True)``, ``==`` check whether `p`-adic
+        elements are indistinguishable and there can be a meaningful hash
+        function.
         Hashing.
-
-        .. WARNING::
-
-            Hashing of `p`-adic elements will likely be deprecated soon.  See :trac:`11895`.
 
         EXAMPLES::
 
-            sage: R = Zp(5)
-            sage: hash(R(17)) #indirect doctest
-            17
+            sage: R = ZpCR(11, 5)
+            sage: hash(R(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: p-adic numbers are unhashable
+            sage: with strict_equality(True):
+            ....:      hash(R(3))
+            3
 
-            sage: hash(R(-1))
-            1977822444 # 32-bit
-            95367431640624 # 64-bit
         """
-        if exactzero(self.ordp):
-            return 0
-        return chash(self.unit, self.ordp, self.relprec, self.prime_pow) ^ self.ordp
+        from sage.structure.all import strict_equality
+        if strict_equality():
+            if exactzero(self.ordp):
+                return 0
+            return chash(self.unit, self.ordp, self.relprec, self.prime_pow) ^ self.ordp
+        else:
+            raise TypeError("p-adic numbers are unhashable")
 
 cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
     """

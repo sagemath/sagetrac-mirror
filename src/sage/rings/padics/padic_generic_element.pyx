@@ -97,23 +97,55 @@ cdef class pAdicGenericElement(LocalGenericElement):
             False
             sage: a < b
             True
+
+        Note that this behaves differently ``with strict_equality(True)``::
+
+            sage: R = ZpCA(3)
+            sage: x = R(3,1)
+            sage: y = R(3,2)
+            sage: x == y
+            True
+            sage: with strict_equality(True):
+            ....:    x == y
+            False
         """
-        m = min(left.precision_absolute(), right.precision_absolute())
+        from sage.structure.all import strict_equality
+
         x_ordp = left.valuation()
-        if x_ordp >= m :
-            x_ordp = infinity
         y_ordp = right.valuation()
-        if y_ordp >= m :
-            y_ordp = infinity
-        if x_ordp < y_ordp:
-            return -1
-        elif x_ordp > y_ordp:
-            return 1
-        else:  # equal ordp
-            if x_ordp is infinity:
-                return 0 # since both are zero
-            else:
-                return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
+
+        if strict_equality():
+            if x_ordp < y_ordp:
+                return -1
+            elif x_ordp > y_ordp:
+                return 1
+
+            x_prec = left.precision_absolute()
+            y_prec = right.precision_absolute()
+            if x_prec < y_prec:
+                return -1
+            if x_prec > y_prec:
+                return 1
+
+            if x_prec == x_ordp:
+                return 0
+
+            return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
+        else:
+            m = min(left.precision_absolute(), right.precision_absolute())
+            if x_ordp >= m :
+                x_ordp = infinity
+            if y_ordp >= m :
+                y_ordp = infinity
+            if x_ordp < y_ordp:
+                return -1
+            elif x_ordp > y_ordp:
+                return 1
+            else:  # equal ordp
+                if x_ordp is infinity:
+                    return 0 # since both are zero (with respect to the lower precision)
+                else:
+                    return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
 
     cdef int _cmp_units(left, pAdicGenericElement right) except -2:
         raise NotImplementedError

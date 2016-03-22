@@ -400,7 +400,8 @@ cdef class UniqueFactory(SageObject):
         except KeyError:
             pass
         obj = self.create_object(version, key, **extra_args)
-        self._cache[version, cache_key] = obj
+        with strict_equality(True):
+            self._cache[version, cache_key] = obj
         try:
             for key in self.other_keys(key, obj):
                 with strict_equality(True):
