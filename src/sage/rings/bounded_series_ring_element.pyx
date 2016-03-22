@@ -210,7 +210,10 @@ cdef class BoundedSeries(AlgebraElement):
         if self.is_zero():
             return bigoh if bigoh != "" else "0"
 
-        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        try:
+            atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
+        except KeyError:
+            atomic_repr = False
 
         s = " "
         v = self.list()

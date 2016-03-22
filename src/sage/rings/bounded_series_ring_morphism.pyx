@@ -133,7 +133,7 @@ cdef class BoundedSeriesHomomorphism_im_gens(RingHomomorphism_im_gens):
             self._morphism = morphism_on_coefficients
 
     def _repr_defn(self):
-        s = "%s |--> %s" % (self._domain.variable_name(), self.__im_gens[0])
+        s = "%s |--> %s" % (self.domain().variable_name(), self.__im_gens[0])
         if self._morphism is not None:
             s += "\nAction on coefficients: %s" % (self._morphism._repr_short())
         return s

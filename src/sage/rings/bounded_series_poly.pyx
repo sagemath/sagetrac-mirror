@@ -55,7 +55,7 @@ cdef class BoundedSeries_poly(BoundedSeries):
     #def __reduce__(self):
 
     cpdef BoundedSeries _new_constant_series(self,RingElement a,Parent P,char check=0):
-        cdef BoundedSeries_poly f = self.__new__()
+        cdef BoundedSeries_poly f = self.__new__(self.__class__)
         f._parent = P
         f._f = P._polynomial_ring(a)
         f._prec = Infinity
