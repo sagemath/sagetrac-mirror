@@ -1709,11 +1709,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 v = M([int(round(x.argument()/zeta_argument))
                        for x in self.values_on_gens()])
             else:
-                dlog = P._zeta_dlog
-                v = M([dlog[x] for x in self.values_on_gens()])
+                v = M([P._zeta_dlog(x) for x in self.values_on_gens()])
             self.__element = v
             return v
-
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
@@ -1979,6 +1977,15 @@ class DirichletGroup_class(WithEqualityById, Parent):
             True
             sage: DirichletGroup(13) == DirichletGroup(13, QQ)
             False
+
+        TESTS:
+
+        Verify that :trac:`16342` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: DirichletGroup(1,zeta=K(-1),base_ring=K,zeta_order=2)
+            Group of Dirichlet characters of modulus 1 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
         from sage.categories.groups import Groups
         category = Groups().Commutative()
@@ -1995,22 +2002,16 @@ class DirichletGroup_class(WithEqualityById, Parent):
         self._zeta_order = rings.Integer(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
-        a = base_ring.one()
-        v = {a:0}
-        w = [a]
-        if is_ComplexField(base_ring):
-            for i in range(1, self._zeta_order):
-                a = a * zeta
+        self._zeta_powers = []
+
+        a = zeta.parent().one()
+        for i in range(self._zeta_order):
+            if is_ComplexField(base_ring):
                 a._set_multiplicative_order(zeta_order/gcd(zeta_order, i))
-                v[a] = i
-                w.append(a)
-        else:
-            for i in range(1, self._zeta_order):
-                a = a * zeta
-                v[a] = i
-                w.append(a)
-        self._zeta_powers = w  # gives quickly the ith power of zeta
-        self._zeta_dlog = v    # dictionary that computes log_{zeta}(power of zeta).
+            self._zeta_dlog.set_cache(i, a)
+            self._zeta_powers.append(a)
+            a = a * zeta
+
         self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
                                               len(self._integers.unit_gens()))
 
@@ -2548,6 +2549,51 @@ class DirichletGroup_class(WithEqualityById, Parent):
         """
         return self._zeta_order
 
+    @cached_method
+    def _zeta_dlog(self, x):
+        r"""
+        Return the discrete logarithm of ``x`` with respect to ``zeta``.
 
+        INPUT:
 
+        - ``x`` -- a power of ``zeta``
 
+        EXAMPLES::
+
+            sage: G = DirichletGroup(7, base_ring = Integers(9), zeta = Integers(9)(2))
+            sage: G._zeta_dlog(G._zeta)
+            1
+            sage: G._zeta_dlog(G._zeta^2)
+            2
+
+        The cache attached to this methods already contains all powers of zeta,
+        so the body of this method is hardly ever executed::
+
+            sage: sorted(G._zeta_dlog.cache.items()) # sorted for output stability
+            [(((1,), ()), 0),
+             (((2,), ()), 1),
+             (((4,), ()), 2),
+             (((5,), ()), 5),
+             (((7,), ()), 4),
+             (((8,), ()), 3)]
+
+        It is only executed for rings whose elements can not define a proper
+        hash function such as `p`-adics or if ``x`` is not a power of
+        ``zeta``::
+
+            sage: K.<a> = Qq(9)
+            sage: G = DirichletGroup(1,zeta=K(-1),base_ring=K,zeta_order=2)
+            sage: G._zeta_dlog(K.one())
+            0
+            sage: G._zeta_dlog(K(-1))
+            1
+            sage: G._zeta_dlog(K(2))
+            Traceback (most recent call last):
+            ...
+            ValueError: x is not a power of zeta
+
+        """
+        for (i,y) in enumerate(self._zeta_powers):
+            if x == y:
+                return i
+        raise ValueError("x is not a power of zeta")
