@@ -57,7 +57,7 @@ class Polynomial_generic_sparse(Polynomial):
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
 
@@ -71,6 +71,7 @@ class Polynomial_generic_sparse(Polynomial):
         s + Tbar
         sage: (s + T)**2
         s^2 + 2*Tbar*s + 4
+
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
@@ -372,8 +373,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __getitem__(self,n):
         """
-        Return the `n`-th coefficient of this polynomial if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of this polynomial.
 
         Negative indexes are allowed and always return 0 (so you can
         view the polynomial as embedding Laurent series).
@@ -393,30 +393,53 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
             sage: f = (2-3.5*x)^3; f
             -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
-            sage: f[1:3]
-            73.500*x^2 - 42.000*x
+
+        Using slices, we can truncate polynomials::
+
             sage: f[:2]
             -42.000*x + 8.0000
-            sage: f[2:]
-            -42.875*x^3 + 73.500*x^2
+
+        Any other kind of slicing is deprecated or an error::
+
+            sage: f[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
+            73.500*x^2 - 42.000*x
+            sage: f[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
+            sage: f["hello"]
+            Traceback (most recent call last):
+            ...
+            TypeError: list indices must be integers, not str
         """
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            if start < 0:
+            d = self.degree() + 1
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
+            if start is None:
                 start = 0
-            if stop is None:
-                stop = len(self.__coeffs) + 1
-            v = {}
+            else:
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
             x = self.__coeffs
-            for k in x.keys():
-                if start <= k and k < stop:
-                    v[k] = x[k]
-            P = self.parent()
-            return P(v)
-        else:
-            if n not in self.__coeffs:
-                return self.base_ring()(0)
+            v = {k: x[k] for k in x.keys() if start <= k < stop}
+            return self.parent()(v)
+
+        try:
+            n = n.__index__()
+        except AttributeError:
+            raise TypeError("list indices must be integers, not {0}".format(type(n).__name__))
+        try:
             return self.__coeffs[n]
+        except KeyError:
+            return self.base_ring().zero()
 
     def _unsafe_mutate(self, n, value):
         r"""
@@ -682,7 +705,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
             sage: p.shift(0)
              x^100000 + 2*x + 4
             sage: p.shift(-1)
@@ -802,6 +825,84 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    @coerce_binop
+    def gcd(self,other,algorithm=None):
+        """
+        Return the gcd of this polynomial and ``other``
+
+        INPUT:
+
+        - ``other`` -- a polynomial defined over the same ring as this
+          polynomial.
+
+        ALGORITHM:
+
+        Two algorithms are provided:
+
+        - ``generic``: Uses the generic implementation, which depends on the
+          base ring being a UFD or a field.
+        - ``dense``: The polynomials are converted to the dense representation,
+          their gcd is computed and is converted back to the sparse
+          representation.
+
+        Default is ``dense`` for polynomials over ZZ and ``generic`` in the
+        other cases.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^6 + 7*x^5 + 8*x^4 + 6*x^3 + 2*x^2 + x + 2
+            sage: q = 2*x^4 - x^3 - 2*x^2 - 4*x - 1
+            sage: gcd(p,q)
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "dense")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "generic")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
+
+        TESTS:
+
+        Check that :trac:`19676` is fixed::
+
+            sage: S.<y> = R[]
+            sage: x.gcd(y)
+            1
+            sage: (6*x).gcd(9)
+            3
+        """
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.arith.all import lcm
+
+        if algorithm is None:
+            if self.base_ring() == ZZ:
+                algorithm = "dense"
+            else:
+                algorithm = "generic"
+        if algorithm=="dense":
+            S = self.parent()
+            # FLINT is faster but a bug makes the conversion extremely slow,
+            # so NTL is used in those cases where the conversion is too slow. Cf
+            # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>
+            sd = self.degree()
+            od = other.degree()
+            if max(sd,od)<100 or \
+               min(len(self.__coeffs)/sd, len(other.__coeffs)/od)>.06:
+                implementation="FLINT"
+            else:
+                implementation="NTL"
+            D = PolynomialRing(S.base_ring(),'x',implementation=implementation)
+            g = D(self).gcd(D(other))
+            return S(g)
+        elif algorithm=="generic":
+            return Polynomial.gcd(self,other)
+        else:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
+
     def reverse(self, degree=None):
         """
         Return this polynomial but with the coefficients reversed.
@@ -840,6 +941,18 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return self[:n]
 
+    def number_of_terms(self):
+        """
+        Return the number of nonzero terms.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^100 - 3*x^10 + 12
+            sage: p.number_of_terms()
+            3
+        """
+        return len(self.__coeffs)
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
@@ -924,7 +1037,7 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
         sage: R.<x> = PolynomialRing(Frac(RR['t']), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
     """
