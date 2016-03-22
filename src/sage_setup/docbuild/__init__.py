@@ -194,10 +194,13 @@ class DocBuilder(object):
 
     def pdf(self):
         """
-        Builds the PDF files for this document.  This is done by first
-        (re)-building the LaTeX output, going into that LaTeX
-        directory, and running 'make all-pdf' (or for the special case of
-        the ja docs, 'all-pdf-ja(ex,to run platex)' there.
+        Builds the PDF files for this document.
+
+        This is done by first (re)-building the LaTeX output, going
+        into that LaTeX directory, and running 'make all-pdf'.
+
+        For the special case of the ja docs, run 'all-pdf-ja(ex,to run
+        platex)' there.
 
         EXAMPLES::
 
@@ -208,9 +211,14 @@ class DocBuilder(object):
         self.latex()
         tex_dir = self._output_dir('latex')
         pdf_dir = self._output_dir('pdf')
+
         make_target = "cd '%s' && $MAKE %s && mv -f *.pdf '%s'"
         error_message = "failed to run $MAKE %s in %s"
-        MB_LANG = {'ja': 'all-pdf-ja'} # language name : the modified target
+        MB_LANG = {'ja': 'all-pdf-ja',
+                   'zh': 'all-pdf-zh'}  # language name : the modified target
+
+        import CJKsupport
+        CJKsupport.enable_if_necessary(self.lang, tex_dir)
 
         # Replace the command for languages that require special processing
         if self.lang in MB_LANG:
