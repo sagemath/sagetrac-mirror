@@ -820,7 +820,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpCA(11, 5)
+            sage: R = ZpFM(11, 5)
             sage: hash(R(3)) == hash(3)
             True
         """
