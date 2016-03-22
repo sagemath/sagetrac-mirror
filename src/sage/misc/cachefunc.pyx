@@ -10,8 +10,8 @@ AUTHORS:
 - Tom Boothby: added DiskCachedFunction.
 - Simon King: improved performance, more doctests, cython version,
   CachedMethodCallerNoArgs, weak cached function, cached special methods.
-- Julian Rueth (2014-03-19, 2014-05-09): added ``key`` parameter, allow caching
-  for unhashable elements
+- Julian Rueth (2014-03-19, 2016-03-22): added ``key`` parameter, allow caching
+  for elements which are hashable with strict equality
 
 EXAMPLES:
 
@@ -419,9 +419,8 @@ in some computations::
     False
 
 If such objects defined a non-trivial hash function, this would break
-caching in many places. However, such objects should still be usable
-in caches. This can be achieved by defining an appropriate method
-``_cache_key``::
+caching in many placesi. However, such objects should still be usable
+in caches. Internally, this is achieved by using ``sage.structure.strict_precision`` which modifies the behaviour of ``==` and provides a consistent hash function::
 
     sage: hash(b)
     Traceback (most recent call last):
@@ -431,28 +430,9 @@ in caches. This can be achieved by defining an appropriate method
     ....: def f(x): return x == a
     sage: f(b)
     True
-    sage: f(c) # if b and c were hashable, this would return True
+    sage: f(c) # this would return True if caching relied on the usual definition of ==
     False
 
-    sage: b._cache_key()
-    (..., ((0, 1),), 0, 1)
-    sage: c._cache_key()
-    (..., ((0, 1), (1,)), 0, 20)
-
-.. NOTE::
-
-    This attribute will only be accessed if the object itself
-    is not hashable.
-
-An implementation must make sure that for elements ``a`` and ``b``,
-if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
-In practice this means that the ``_cache_key`` should always include
-the parent as its first argument::
-
-    sage: S.<a> = Qq(4)
-    sage: d = a.add_bigoh(1)
-    sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
-    False
 """
 
 #*****************************************************************************
@@ -480,6 +460,8 @@ from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 from inspect import isfunction
 
+from sage.structure.strict_equality cimport enter_strict_equality, leave_strict_equality
+from sage.structure.strict_equality import strict_equality
 from sage.misc.weak_dict cimport WeakValueDictionary
 from sage.misc.decorators import decorator_keywords
 
@@ -524,87 +506,6 @@ def _cached_function_unpickle(module,name):
     """
     return getattr(__import__(module, fromlist=['']),name)
 
-
-cdef unhashable_key = object()
-
-cpdef inline dict_key(o):
-    """
-    Return a key to cache object ``o`` in a dict.
-
-    This is different from ``cache_key`` since the ``cache_key`` might
-    get confused with the key of a hashable object. Therefore, such keys
-    include ``unhashable_key`` which acts as a unique marker which is
-    certainly not stored in the dictionary otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.misc.cachefunc import dict_key
-        sage: dict_key(42)
-        42
-        sage: K.<u> = Qq(9)
-        sage: dict_key(u)
-        (<object object at ...>, (..., 20))
-    """
-    try:
-        hash(o)
-    except TypeError:
-        o = (unhashable_key, cache_key_unhashable(o))
-    return o
-
-
-cpdef inline cache_key(o):
-    r"""
-    Helper function to return a hashable key for ``o`` which can be used for
-    caching.
-
-    This function is intended for objects which are not hashable such as
-    `p`-adic numbers. The difference from calling an object's ``_cache_key``
-    method directly, is that it also works for tuples and unpacks them
-    recursively (if necessary, i.e., if they are not hashable).
-
-    EXAMPLES::
-
-        sage: from sage.misc.cachefunc import cache_key
-        sage: K.<u> = Qq(9)
-        sage: a = K(1); a
-        1 + O(3^20)
-        sage: cache_key(a)
-        (..., ((1,),), 0, 20)
-
-    This function works if ``o`` is a tuple. In this case it unpacks its
-    entries recursively::
-
-        sage: o = (1, 2, (3, a))
-        sage: cache_key(o)
-        (1, 2, (3, (..., ((1,),), 0, 20)))
-
-    Note that tuples are only partially unpacked if some of its entries are
-    hashable::
-
-        sage: o = (1/2, a)
-        sage: cache_key(o)
-        (1/2, (..., ((1,),), 0, 20))
-    """
-    try:
-        hash(o)
-    except TypeError:
-        o = cache_key_unhashable(o)
-    return o
-
-
-cdef cache_key_unhashable(o):
-    """
-    Return a key for caching an item which is unhashable.
-    """
-    if isinstance(o, tuple):
-        return tuple(cache_key(item) for item in o)
-    try:
-        k = o._cache_key()
-    except AttributeError:
-        raise TypeError("unhashable type: {!r}".format(type(o).__name__))
-    return cache_key(k)
-
-
 cdef class CachedFunction(object):
     """
     Create a cached version of a function, which only recomputes
@@ -627,8 +528,8 @@ cdef class CachedFunction(object):
         def f(...):
             ....
 
-    The inputs to the function must be hashable or they must define
-    :meth:`sage.structure.sage_object.SageObject._cache_key`.
+    The inputs to the function must be hashable (at least ``with
+    sage.structure.strict_equality(True)``).
 
     EXAMPLES::
 
@@ -683,9 +584,6 @@ cdef class CachedFunction(object):
             @CachedFunction
             def f(...):
                 ....
-
-        The inputs to the function must be hashable or they must define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
         TESTS::
 
@@ -943,8 +841,8 @@ cdef class CachedFunction(object):
             True
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+        immutable unhashable objects which become hashable ``with
+        sage.structure.strict_equality(True)``::
 
             sage: @cached_function
             ....: def f(x): return x+x
@@ -964,14 +862,18 @@ cdef class CachedFunction(object):
         k = self.get_key_args_kwds(args, kwds)
 
         try:
+            enter_strict_equality(True)
             try:
                 return self.cache[k]
-            except TypeError:  # k is not hashable
-                k = dict_key(k)
-                return self.cache[k]
+            finally:
+                leave_strict_equality();
         except KeyError:
             w = self.f(*args, **kwds)
-            self.cache[k] = w
+            enter_strict_equality(True)
+            try:
+                self.cache[k] = w
+            finally:
+                leave_strict_equality()
             return w
 
     def cached(self, *args, **kwds):
@@ -995,11 +897,11 @@ cdef class CachedFunction(object):
         """
         k = self.get_key_args_kwds(args, kwds)
 
+        enter_strict_equality(True)
         try:
             return self.cache[k]
-        except TypeError:  # k is not hashable
-            k = dict_key(k)
-            return self.cache[k]
+        finally:
+            leave_strict_equality()
 
     def get_cache(self):
         """
@@ -1046,8 +948,8 @@ cdef class CachedFunction(object):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+        immutable unhashable objects which are hashable ``with
+        sage.structure.strict_equality()``::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1063,11 +965,11 @@ cdef class CachedFunction(object):
 
         """
         k = self.get_key_args_kwds(args, kwds)
+        enter_strict_equality(True)
         try:
             return k in self.cache
-        except TypeError:  # k is not hashable
-            k = dict_key(k)
-            return k in self.cache
+        finally:
+            leave_strict_equality()
 
     def set_cache(self, value, *args, **kwds):
         """
@@ -1090,8 +992,8 @@ cdef class CachedFunction(object):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+        immutable unhashable objects which are hashable ``with
+        sage.structure.strict_equality()``::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1113,11 +1015,11 @@ cdef class CachedFunction(object):
             19
         """
         k = self.get_key_args_kwds(args, kwds)
+        enter_strict_equality(True)
         try:
             self.cache[k] = value
-        except TypeError:  # k is not hashable
-            k = dict_key(k)
-            self.cache[k] = value
+        finally:
+            leave_strict_equality()
 
     def get_key(self, *args, **kwds):
         """
@@ -1320,26 +1222,6 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: a = f()
         doing a computation
 
-    Check that :trac:`16316` has been fixed, i.e., caching works for
-    immutable unhashable objects which define
-    :meth:`sage.structure.sage_object.SageObject._cache_key`::
-
-        sage: from sage.misc.cachefunc import weak_cached_function
-        sage: @weak_cached_function
-        ....: def f(x): return x+x
-        sage: K.<u> = Qq(4)
-        sage: R.<t> = K[]
-        sage: x = t + K(1,1); x
-        (1 + O(2^20))*t + 1 + O(2)
-        sage: y = t + K(1,2); y
-        (1 + O(2^20))*t + 1 + O(2^2)
-        sage: x == y
-        True
-        sage: f(x) is f(x)
-        True
-        sage: f(y) is not f(x)
-        True
-
     Examples and tests for ``is_in_cache``::
 
         sage: from sage.misc.cachefunc import weak_cached_function
@@ -1366,9 +1248,34 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: f.is_in_cache(5)
         False
 
-    Check that :trac:`16316` has been fixed, i.e., caching works for
-    immutable unhashable objects which define
-    :meth:`sage.structure.sage_object.SageObject._cache_key`::
+    Examples and tests for ``set_cache``::
+
+        sage: from sage.misc.cachefunc import weak_cached_function
+        sage: @weak_cached_function
+        ....: def f(n):
+        ....:     raise RuntimeError
+        sage: f.set_cache(ZZ, 5)
+        sage: f(5)
+        Integer Ring
+
+    Check that :trac:`16316` has been fixed, i.e., caching works for immutable
+    unhashable objects which are hashable ``with sage.structure.strict_equality(True)``::
+
+        sage: from sage.misc.cachefunc import weak_cached_function
+        sage: @weak_cached_function
+        ....: def f(x): return x+x
+        sage: K.<u> = Qq(4)
+        sage: R.<t> = K[]
+        sage: x = t + K(1,1); x
+        (1 + O(2^20))*t + 1 + O(2)
+        sage: y = t + K(1,2); y
+        (1 + O(2^20))*t + 1 + O(2^2)
+        sage: x == y
+        True
+        sage: f(x) is f(x)
+        True
+        sage: f(y) is not f(x)
+        True
 
         sage: from sage.misc.cachefunc import weak_cached_function
         sage: @weak_cached_function
@@ -1382,20 +1289,6 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: f.is_in_cache(t)
         True
 
-    Examples and tests for ``set_cache``::
-
-        sage: from sage.misc.cachefunc import weak_cached_function
-        sage: @weak_cached_function
-        ....: def f(n):
-        ....:     raise RuntimeError
-        sage: f.set_cache(ZZ, 5)
-        sage: f(5)
-        Integer Ring
-
-    Check that :trac:`16316` has been fixed, i.e., caching works for
-    immutable unhashable objects which define
-    :meth:`sage.structure.sage_object.SageObject._cache_key`::
-
         sage: from sage.misc.cachefunc import weak_cached_function
         sage: @weak_cached_function
         ....: def f(x): return x
@@ -1407,9 +1300,8 @@ cdef class WeakCachedFunction(CachedFunction):
     """
     def __init__(self, f, *, classmethod=False, name=None, key=None):
         """
-        The inputs to the function must be hashable or they must define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
-        The outputs to the function must be weakly referenceable.
+        The inputs to the function must be hashable (at least ``with
+        sage.structure.strict_equality()``).
 
         TESTS::
 
@@ -1870,8 +1762,8 @@ cdef class CachedMethodCaller(CachedFunction):
             2
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+        immutable unhashable objects which are hashale ``with
+        sage.structure.strict_equality()``::
 
             sage: K.<u> = Qq(4)
             sage: class A(object):
@@ -1900,14 +1792,18 @@ cdef class CachedMethodCaller(CachedFunction):
 
         cdef dict cache = <dict>self.cache
         try:
+            enter_strict_equality(True)
             try:
                 return cache[k]
-            except TypeError:  # k is not hashable
-                k = dict_key(k)
-                return cache[k]
+            finally:
+                leave_strict_equality()
         except KeyError:
             w = self._instance_call(*args, **kwds)
-            cache[k] = w
+            enter_strict_equality(True)
+            try:
+                cache[k] = w
+            finally:
+                leave_strict_equality()
             return w
 
     def cached(self, *args, **kwds):
@@ -1945,11 +1841,11 @@ cdef class CachedMethodCaller(CachedFunction):
 
         k = self.get_key_args_kwds(args, kwds)
 
+        enter_strict_equality(True)
         try:
             return self.cache[k]
-        except TypeError:  # k is not hashable
-            k = dict_key(k)
-            return self.cache[k]
+        finally:
+            leave_strict_equality()
 
     def __get__(self, inst, cls):
         r"""
@@ -2446,9 +2342,8 @@ cdef class CachedMethod(object):
     .. NOTE::
 
         For proper behavior, the method must be a pure function (no side
-        effects). Arguments to the method must be hashable or transformed into
-        something hashable using ``key`` or they must define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        effects). Arguments to the method must be hashable (at least ``with
+        sage.structure.strict_equality()``.)
 
     EXAMPLES::
 
@@ -2946,17 +2841,17 @@ cdef class CachedInParentMethod(CachedMethod):
     This way of caching works only if
 
     - the instances *have* a parent, and
-    - the instances are hashable (they are part of the cache key) or they
-      define :meth:`sage.structure.sage_object.SageObject._cache_key`
+    - the instances are hashable (they are part of the cache key) at least
+      ``with sage.structure.strict_equality(True)``.
 
     NOTE:
 
     For proper behavior, the method must be a pure function (no side effects).
     If this decorator is used on a method, it will have identical output on
     equal elements. This is since the element is part of the hash key.
-    Arguments to the method must be hashable or define
-    :meth:`sage.structure.sage_object.SageObject._cache_key`.  The instance it
-    is assigned to must be hashable.
+    Arguments to the method must be hashable (at least ``with
+    sage.structure.strict_equality()``.)  The instance it is assigned to must be
+    hashable in the same sense.
 
     Examples can be found at :mod:`~sage.misc.cachefunc`.
 
@@ -3200,7 +3095,8 @@ class FileCache(object):
             sage: I.sort(); print I
             [(((), ()), 1), (((1,), (('a', 1),)), 3), (((1, 2), ()), 2)]
         """
-        return [(k,self[k]) for k in self]
+        with strict_equality(True):
+            return [(k,self[k]) for k in self]
 
     def values(self):
         """
@@ -3219,7 +3115,8 @@ class FileCache(object):
             sage: v.sort(); print v
             [1, 2, 3, 4]
         """
-        return [self[k] for k in self]
+        with strict_equality(True):
+            return [self[k] for k in self]
 
     def __iter__(self):
         """
@@ -3307,7 +3204,8 @@ class FileCache(object):
             sage: ((),()) in FC
             False
         """
-        return os.path.exists(self._filename(key) + '.key.sobj')
+        with strict_equality(True):
+            return os.path.exists(self._filename(key) + '.key.sobj')
 
     def __getitem__(self, key):
         """
@@ -3335,19 +3233,22 @@ class FileCache(object):
 
         cache = self._cache
         if cache is not None:
-            if key in cache:
-                return cache[key]
+            with strict_equality(True):
+                if key in cache:
+                    return cache[key]
 
         f = self._filename(key) + '.sobj'
         try:
             k,v = load(f)
         except IOError:
             raise KeyError, key
-        if k != key:
-            raise RuntimeError, "cache corrupted"
+        with strict_equality(True):
+            if k != key:
+                raise RuntimeError, "cache corrupted"
 
         if cache is not None:
-            cache[key] = v
+            with strict_equality(True):
+                cache[key] = v
         return v
 
     def __setitem__(self, key, value):
@@ -3377,7 +3278,8 @@ class FileCache(object):
         save(key, f+'.key.sobj')
         save((key,value), f + '.sobj')
         if self._cache is not None:
-            self._cache[key] = value
+            with strict_equality(True):
+                self._cache[key] = value
 
     def __delitem__(self, key):
         """
@@ -3399,8 +3301,9 @@ class FileCache(object):
        """
         f = self._filename(key)
         cache = self._cache
-        if cache is not None and key in cache:
-            del self._cache[key]
+        with strict_equality(True):
+            if cache is not None and key in cache:
+                del self._cache[key]
         if os.path.exists(f + '.sobj'):
             os.remove(f + '.sobj')
         if  os.path.exists(f + '.key.sobj'):

@@ -1738,6 +1738,10 @@ ext_modules = [
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
 
+    Extension('sage.structure.strict_equality',
+              sources = ['sage/structure/strict_equality.pyx'],
+               language='c++'),
+
     Extension('*', ['sage/structure/*.pyx']),
 
     ################################

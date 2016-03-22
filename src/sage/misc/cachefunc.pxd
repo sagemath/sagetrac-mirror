@@ -1,8 +1,5 @@
 from function_mangling cimport ArgumentFixer
 
-cpdef dict_key(o)
-cpdef cache_key(o)
-
 cdef class CachedFunction(object):
     cdef public str __name__
     cdef public str __module__

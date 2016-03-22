@@ -39,7 +39,6 @@ AUTHORS:
 
 - Robert Bradshaw (2008): initial version.
 - Simon King (2013): extended documentation.
-- Julian Rueth (2014-05-09): use ``_cache_key`` if parameters are unhashable
 
 """
 
@@ -57,6 +56,7 @@ AUTHORS:
 import types, copy_reg
 
 from sage_object cimport SageObject
+from sage.structure.strict_equality import strict_equality
 
 cdef sage_version
 from sage.version import version as sage_version
@@ -70,7 +70,6 @@ for i in range(len(sage_version)):
 sage_version = tuple(sage_version)
 
 cimport sage.misc.weak_dict
-from sage.misc.cachefunc cimport cache_key as _cache_key
 
 
 cdef class UniqueFactory(SageObject):
@@ -386,7 +385,7 @@ cdef class UniqueFactory(SageObject):
         TESTS:
 
         Check that :trac:`16317` has been fixed, i.e., caching works for
-        unhashable objects::
+        unhashable objects which are hashable ``with sage.structure.strict_equality(True)``::
 
             sage: K.<u> = Qq(4)
             sage: test_factory.get_object(3.0, (K(1), 'c'), {})  is test_factory.get_object(3.0, (K(1), 'c'), {})
@@ -396,10 +395,7 @@ cdef class UniqueFactory(SageObject):
         """
         cache_key = key
         try:
-            try:
-                return self._cache[version, cache_key]
-            except TypeError: # key is unhashable
-                cache_key = _cache_key(cache_key)
+            with strict_equality(True):
                 return self._cache[version, cache_key]
         except KeyError:
             pass
@@ -407,10 +403,8 @@ cdef class UniqueFactory(SageObject):
         self._cache[version, cache_key] = obj
         try:
             for key in self.other_keys(key, obj):
-                try:
+                with strict_equality(True):
                     self._cache[version, key] = obj
-                except TypeError: # key is unhashable
-                    self._cache[version, _cache_key(key)] = obj
             obj._factory_data = self, version, key, extra_args
             if obj.__class__.__reduce__.__objclass__ is object:
                 # replace the generic object __reduce__ to use this one

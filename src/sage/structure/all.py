@@ -24,6 +24,8 @@ from parent_gens import (ParentWithGens,
 
 import proof.all as proof
 
+from strict_equality import strict_equality
+
 from formal_sum  import FormalSums, FormalSum
 
 from mutability  import Mutability
