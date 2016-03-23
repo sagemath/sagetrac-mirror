@@ -296,6 +296,20 @@ class HyperbolicPoint(Element):
                 and self.parent() is other.parent()
                 and bool(self._coordinates == other._coordinates))
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this element.
+
+        TESTS::
+
+            sage: p1 = HyperbolicPlane().HM().get_point((0,0,1))
+            sage: p2 = HyperbolicPlane().HM().get_point((0,0,1/1))
+            sage: hash(p1) == hash(p2)
+            True
+
+        """
+        return hash(tuple(self._coordinates))
+
     def __rmul__(self, other):
         r"""
         Implement the action of matrices on points of hyperbolic space.
