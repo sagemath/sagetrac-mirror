@@ -2303,6 +2303,21 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             other = self.parent()(other)
         return self._f == other._f
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this element.
+
+        TESTS::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: hash(x) == hash(y)
+            False
+
+        """
+        return hash(self._f)
+
     def _add_(self, other):
         """
         Return the sum of two elements
