@@ -738,6 +738,7 @@ class Sha(SageObject):
             False
         """
         E = self.E
+        print E.cremona_label(), E
         IsProvable = False
         # does not work if p = 2
         if p == 2:
