@@ -1142,6 +1142,24 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         return(self._polys[0].degree())
 
+    def _dehomogenize_normalize_arguments(self, n):
+        r"""
+        Normalize parameters to :meth:`dehomogenize`.
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2, y^2])
+            sage: f._dehomogenize_normalize_arguments(0)
+
+        """
+        if isinstance(n, (tuple,list)):
+            return tuple(n)
+        else:
+            return (n, n)
+
+    @cached_method(key = _dehomogenize_normalize_arguments)
     def dehomogenize(self, n):
         r"""
         Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
@@ -1221,42 +1239,26 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.dehomogenize(0).homogenize(0) == f
             True
         """
-        #the dehomogenizations are stored for future use.
-        try:
-            return self.__dehomogenization[n]
-        except AttributeError:
-            self.__dehomogenization = {}
-        except KeyError:
-            pass
-        #it is possible to dehomogenize the domain and codomain at different coordinates
-        if isinstance(n,(tuple,list)):
-            ind=tuple(n)
-        else:
-            ind=(n,n)
+        n = self._dehomogenize_normalize_arguments(n)
+
         PS_domain = self.domain()
         A_domain = PS_domain.ambient_space()
-        if self._polys[ind[1]].substitute({A_domain.gen(ind[0]):1}) == 0:
+
+        if self._polys[n[1]]([1 if i == n[0] else A_domain.gen(i) for i in range(A_domain.ngens())]) == 0:
             raise ValueError("can't dehomogenize at 0 coordinate")
-        else:
-            Aff_domain = PS_domain.affine_patch(ind[0])
-            S = Aff_domain.ambient_space().coordinate_ring()
-            N = A_domain.dimension_relative()
-            R = A_domain.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
-            F = []
-            G = phi(self._polys[ind[1]])
-            for i in range(0, N + 1):
-                if i != ind[1]:
-                    F.append(phi(self._polys[i]) / G)
-            H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))
-            #since often you dehomogenize at the same coordinate in domain
-            #and codomain it should be stored appropriately.
-            if ind == (n,n):
-                self.__dehomogenization[ind]=H(F)
-                return self.__dehomogenization[ind]
-            else:
-                self.__dehomogenization[n]=H(F)
-                return self.__dehomogenization[n]
+
+        Aff_domain = PS_domain.affine_patch(n[0])
+        S = Aff_domain.ambient_space().coordinate_ring()
+        N = A_domain.dimension_relative()
+        R = A_domain.coordinate_ring()
+        phi = R.hom([S.gen(j) for j in range(0, n[0])] + [1] + [S.gen(j) for j in range(n[0], N)], S)
+        F = []
+        G = phi(self._polys[n[1]])
+        for i in range(0, N + 1):
+            if i != n[1]:
+                F.append(phi(self._polys[i]) / G)
+        H = Hom(Aff_domain, self.codomain().affine_patch(n[1]))
+        return H(F)
 
     def orbit(self, P, N, **kwds):
         r"""
