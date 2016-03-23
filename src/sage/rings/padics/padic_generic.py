@@ -841,3 +841,8 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         if option not in print_options:
             print_options[option] = obj._printer.dict()[option]
     return pAdicPrinter(obj, print_options)
+
+# a set of all legacy p-adic elements which come from pickles and which need to
+# be hashable because they might be used in dictionaries which are used during
+# the process of unpickling objects
+legacy_hash_elements = set()

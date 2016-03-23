@@ -158,7 +158,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: loads(dumps(a)) == a
             True
         """
-        return unpickle_cae_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow), self.absprec)
+        return unpickle_cae_v3, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow), self.absprec)
 
     cpdef ModuleElement _neg_(self):
         """
@@ -1013,6 +1013,10 @@ cdef class CAElement(pAdicTemplateElement):
         if strict_equality():
             return chash(self.value, 0, self.absprec, self.prime_pow)
         else:
+            with strict_equality(True):
+                if (id(self),self) in sage.rings.padics.padic_generic.legacy_hash_elements:
+                    return hash(self)
+
             raise TypeError("p-adic numbers are unhashable")
 
 cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
@@ -1333,6 +1337,35 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         return ans
 
 def unpickle_cae_v2(cls, parent, value, absprec):
+    r"""
+    Unpickle capped absolute elements.
+
+    EXAMPLES:
+
+    Elements prior to version 2 are made hashable. Otherwise, structures
+    relying on them would not unpickle correctly::
+
+        sage: from sage.rings.padics.padic_capped_absolute_element import unpickle_cae_v2, pAdicCappedAbsoluteElement
+        sage: R = ZpCA(5,8)
+        sage: a = unpickle_cae_v2(pAdicCappedAbsoluteElement, R, 42, int(6)); a
+        2 + 3*5 + 5^2 + O(5^6)
+        sage: a.parent() is R
+        True
+        sage: hash(a)
+
+    Once they are used in a computation, they are not hashable anymore::
+
+        sage: hash(a+a)
+
+    """
+    ret = unpickle_cae_v3(cls, parent, value, absprec)
+    from sage.structure.strict_equality import strict_equality
+    with strict_equality(True):
+        # keep track of all legacy (hashable) p-adics in a global set
+        sage.rings.padics.padic_generic.legacy_hash_elements.add((id(ret),ret))
+    return ret
+
+def unpickle_cae_v3(cls, parent, value, absprec):
     """
     Unpickle capped absolute elements.
 
@@ -1349,9 +1382,9 @@ def unpickle_cae_v2(cls, parent, value, absprec):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.padic_capped_absolute_element import unpickle_cae_v2, pAdicCappedAbsoluteElement
+        sage: from sage.rings.padics.padic_capped_absolute_element import unpickle_cae_v3, pAdicCappedAbsoluteElement
         sage: R = ZpCA(5,8)
-        sage: a = unpickle_cae_v2(pAdicCappedAbsoluteElement, R, 42, int(6)); a
+        sage: a = unpickle_cae_v3(pAdicCappedAbsoluteElement, R, 42, int(6)); a
         2 + 3*5 + 5^2 + O(5^6)
         sage: a.parent() is R
         True

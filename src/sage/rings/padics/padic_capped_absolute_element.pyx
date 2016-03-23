@@ -254,4 +254,4 @@ def make_pAdicCappedAbsoluteElement(parent, x, absprec):
         sage: a = make_pAdicCappedAbsoluteElement(R, 17*25, 5); a
         2*5^2 + 3*5^3 + O(5^5)
     """
-    return unpickle_cae_v2(pAdicCappedAbsoluteElement, parent, x, absprec)
+    return unpickle_cae_v3(pAdicCappedAbsoluteElement, parent, x, absprec)

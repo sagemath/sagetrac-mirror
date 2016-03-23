@@ -425,7 +425,7 @@ in caches. Internally, this is achieved by using ``sage.structure.strict_precisi
     sage: hash(b)
     Traceback (most recent call last):
     ...
-    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    TypeError: p-adic numbers are unhashable
     sage: @cached_method
     ....: def f(x): return x == a
     sage: f(b)
