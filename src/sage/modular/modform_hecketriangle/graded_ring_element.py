@@ -164,6 +164,26 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         else:
             return False
 
+    def __hash__(self):
+        r"""
+        A hash value for this element.
+
+        TESTS:
+
+        Test that the hash values are consistent with equality::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
+            sage: (x,y,z,d) = MeromorphicModularFormsRing().pol_ring().gens()
+            sage: MeromorphicModularFormsRing(base_ring=CC)(-1/x) == MeromorphicModularFormsRing()(1/(-x))
+            True
+            sage: hash(MeromorphicModularFormsRing(base_ring=CC)(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
+            True
+        """
+        if (self.group().is_arithmetic()):
+            return hash((self.group(), self.rat().subs(d=self.group().dvalue())))
+        else:
+            return hash((self.group(), self.rat()))
+
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
