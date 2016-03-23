@@ -761,9 +761,11 @@ class Sha(SageObject):
                 elif E.has_nonsplit_multiplicative_reduction(ell):
                     print "non split at ", ell, E.tate_curve(ell).parameter().valuation()
                     c = E.tate_curve(ell).parameter().valuation()
+                    print p.divides(c), p, c
                     if p.divides(c):
                         IsProvable = True
                         break
+        print "Prove?", IsProvable
         if IsProvable:
             return p_primary_bound(self, p)
         else:
