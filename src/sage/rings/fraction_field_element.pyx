@@ -348,16 +348,18 @@ cdef class FractionFieldElement(FieldElement):
             sage: hash(R(1)/R(2))==hash(1/2)
             True
         """
-        # This is same algorithm as used for members of QQ
-        #cdef long n, d
-        n = hash(self.__numerator)
-        d = hash(self.__denominator)
-        if d == 1:
+        from sage.structure.strict_equality import strict_equality
+        if self == 0 or self.__denominator == 1 or strict_equality():
+            n = hash(self.__numerator)
+            d = hash(self.__denominator)
+            if d == 1:
+                return n
+            n = n ^ d
+            if n == -1:
+                return -2
             return n
-        n = n ^ d
-        if n == -1:
-            return -2
-        return n
+        else:
+            raise TypeError("general elements of fraction fields are not hashable")
 
     def __call__(self, *x, **kwds):
         """
@@ -861,9 +863,16 @@ cdef class FractionFieldElement(FieldElement):
             sage: 1 > y
             False
         """
-        return cmp(self.__numerator * \
-                (<FractionFieldElement>other).__denominator,
-                self.__denominator*(<FractionFieldElement>other).__numerator)
+        from sage.structure.strict_equality import strict_equality
+        if strict_equality():
+            numerator_cmp = cmp(self.__numerator, (<FractionFieldElement>other).__numerator)
+            if numerator_cmp: return numerator_cmp
+            denominator_cmp = cmp(self.__denominator, (<FractionFieldElement>other).__denominator)
+            return denominator_cmp
+        else:
+            return cmp(self.__numerator * \
+                    (<FractionFieldElement>other).__denominator,
+                    self.__denominator*(<FractionFieldElement>other).__numerator)
 
     def valuation(self, v=None):
         """
