@@ -903,15 +903,48 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: y == z
             True
         """
-        # This function needs improvement.  In particular, there are a lot of
-        # speed improvements to be had, and it should be changed so that it
-        # returns 1 only half the time (and -1 the other half) when left and
-        # right are not equal.
-        cdef pAdicZZpXCAElement diff = <pAdicZZpXCAElement> (left - right)
-        if diff._is_inexact_zero():
-            return 0
-        # for now, just return 1
-        return 1
+        cdef pAdicZZpXCRElement diff
+
+        from sage.structure.all import strict_equality
+        if strict_equality():
+            return cmp(left.unit_part().list(),right.unit_part().list())
+        else:
+            # This function needs improvement.  In particular, there are a lot of
+            # speed improvements to be had, and it should be changed so that it
+            # returns 1 only half the time (and -1 the other half) when left and
+            # right are not equal.
+            diff = <pAdicZZpXCRElement> (left - right)
+            diff._normalize()
+            if diff._is_inexact_zero():
+                return 0
+            # for now, just return 1
+            return 1
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this element.
+
+        EXAMPLES:
+
+        `p`-adic numbers are not hashable::
+
+            sage: R = ZpCA(5,5)
+            sage: S.<x> = ZZ[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: hash(w)
+
+        However, with ``strict_equality`` they are hashable::
+
+            sage: with strict_equality(True):
+            ....:     hash(w)
+
+        """
+        from sage.structure.all import strict_equality
+        if strict_equality():
+            return hash(tuple([tuple(x) for x in self.list()]))
+        else:
+            raise TypeError("p-adic numbers are unhashable")
 
     def __invert__(self):
         """
