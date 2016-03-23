@@ -738,14 +738,11 @@ class Sha(SageObject):
             False
         """
         E = self.E
-        print E.cremona_label(), E
-        print E.galois_representation().is_surjective(p)
         IsProvable = False
         # does not work if p = 2
         if p == 2:
             raise ValueError("%s is not an odd prime"%p)
         if E.galois_representation().is_surjective(p):
-            print "Is surjective"
             N = E.conductor()
             fac = N.factor()
             # the auxillary prime will be one dividing the conductor
@@ -753,22 +750,16 @@ class Sha(SageObject):
                 # two cases to check, split and non-split
                 # we're looking for ramification
                 if E.has_split_multiplicative_reduction(ell):
-                    print "has split at ", ell, E.tamagawa_number(ell)
                     c = E.tamagawa_number(ell)
-                    print p.divides(c), p, c
                     if p.divides(c):
-                        IsProvable = True
                         break
                 elif E.has_nonsplit_multiplicative_reduction(ell):
-                    print "non split at ", ell, E.tate_curve(ell).parameter().valuation()
                     c = E.tate_curve(ell).parameter().valuation()
-                    print p.divides(c), p, c
                     if p.divides(c):
                         IsProvable = True
                         break
-        print "Prove?", IsProvable
         if IsProvable:
-            return p_primary_bound(self, p)
+            return self.p_primary_bound(p)
         else:
             raise ValueError("Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.")
 
