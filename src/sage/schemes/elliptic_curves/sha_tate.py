@@ -757,11 +757,13 @@ class Sha(SageObject):
                     c = E.tamagawa_number(ell)
                     if p.divides(c):
                         IsProvable = True
+                        break
                 elif E.has_nonsplit_multiplicative_reduction(ell):
                     print "non split at ", ell, E.tate_curve(ell).parameter().valuation()
                     c = E.tate_curve(ell).parameter().valuation()
                     if p.divides(c):
                         IsProvable = True
+                        break
         if IsProvable:
             return p_primary_bound(self, p)
         else:
