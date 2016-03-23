@@ -739,6 +739,7 @@ class Sha(SageObject):
         """
         E = self.E
         print E.cremona_label(), E
+        print E.galois_representation().is_surjective(p)
         IsProvable = False
         # does not work if p = 2
         if p == 2:
