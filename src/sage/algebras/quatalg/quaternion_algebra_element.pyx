@@ -392,6 +392,19 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             if c: return c
         return 0
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this element.
+
+        TESTS::
+
+            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
+            sage: hash((1/a)*a) == hash(Q.one())
+            True
+
+        """
+        return hash(self[i] for i in range(4))
+
     cpdef conjugate(self):
         """
         Return the conjugate of the quaternion: if `\\theta = x + yi + zj + wk`,
