@@ -719,8 +719,10 @@ class Sha(SageObject):
         Examples:
 
             sage: E = EllipticCurve('11a1') # not surjective at 5
-            sage: print E._check_Skinner_Urban(5)
-            False
+            sage: print E.sha().p_primary_order(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.
             sage: E = EllipticCurve('114c1') # split mult
             sage: print E._check_Skinner_Urban(5)
             True
@@ -751,18 +753,18 @@ class Sha(SageObject):
         if p == 2:
             raise ValueError("%s is not an odd prime"%p)
         if E.galois_representation().is_surjective(p):
-            N = self.conductor()
+            N = E.conductor()
             fac = N.factor()
             # the auxillary prime will be one dividing the conductor
             for ell, e in fac:
                 # two cases to check, split and non-split
                 # we're looking for ramification
-                if self.has_split_multiplicative_reduction(ell):
-                    c = self.tamagawa_number(ell)
+                if E.has_split_multiplicative_reduction(ell):
+                    c = E.tamagawa_number(ell)
                     if p.divides(c):
                         IsProvable = True
-                elif self.has_nonsplit_multiplicative_reduction(ell):
-                    c = self.tate_curve(ell).parameter().valuation()
+                elif E.has_nonsplit_multiplicative_reduction(ell):
+                    c = E.tate_curve(ell).parameter().valuation()
                     if p.divides(c):
                         IsProvable = True
         if IsProvable:
