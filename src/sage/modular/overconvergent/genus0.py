@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Overconvergent p-adic modular forms for small primes
+Overconvergent `p`-adic modular forms for small primes
 
 This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
@@ -187,21 +187,23 @@ from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
+from sage.structure.factory import UniqueFactory
 import weakref
 
 from weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
-__ocmfdict = {}
 
-####################
-# Factory function #
-####################
-
-def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, char = None):
+class OverconvergentModularFormsSpace(Module):
     r"""
     Create a space of overconvergent `p`-adic modular forms of level
     `\Gamma_0(p)`, over the given base ring. The base ring need not be a
     `p`-adic ring (the spaces we compute with typically have bases over
     `\QQ`).
+
+    Elements are represented as power series, with a formal power series `F`
+    corresponding to the modular form `E_k^\ast \times F(g)` where `E_k^\ast`
+    is the `p`-deprived Eisenstein series of weight-character `k`, and `g` is a
+    uniformiser of `X_0(p)` normalised so that the `r`-overconvergent region
+    `X_0(p)_{\ge r}` corresponds to `|g| \le 1`.
 
     INPUT:
 
@@ -237,50 +239,25 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
         Space of 3-adic 1/2-overconvergent modular forms of weight-character 16 over Rational Field
         sage: OverconvergentModularForms(3, 3, 1/2, char = DirichletGroup(3,QQ).0)
         Space of 3-adic 1/2-overconvergent modular forms of weight-character (3, 3, [-1]) over Rational Field
-    """
-    if is_Gamma0(prime) or is_Gamma1(prime):
-        prime = prime.level()
-    else:
-        prime = ZZ(prime)
-    if char is None:
-        char = trivial_character(prime, base_ring=QQ)
-    if int(prime) not in [2, 3, 5, 7, 13]:
-        raise ValueError("p must be one of {2, 3, 5, 7, 13}")
-    key = (prime, weight, radius, base_ring, prec, char)
-    if key in __ocmfdict:
-        w = __ocmfdict[key]
-        M = w()
-        if not (M is None):
-            return M
-    M = OverconvergentModularFormsSpace(*key)
-    __ocmfdict[key] = weakref.ref(M)
-    return M
-
-#########################
-# Main class definition #
-#########################
-
-class OverconvergentModularFormsSpace(Module):
-    r"""
-    A space of overconvergent modular forms of level `\Gamma_0(p)`,
-    where `p` is a prime such that `X_0(p)` has genus 0.
-
-    Elements are represented as power series, with a formal power series `F`
-    corresponding to the modular form `E_k^\ast \times F(g)` where `E_k^\ast`
-    is the `p`-deprived Eisenstein series of weight-character `k`, and `g` is a
-    uniformiser of `X_0(p)` normalised so that the `r`-overconvergent region
-    `X_0(p)_{\ge r}` corresponds to `|g| \le 1`.
 
     TESTS::
 
         sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
         sage: M is loads(dumps(M))
         True
-    """
 
-    ###############
-    # Init script #
-    ###############
+    """
+    @staticmethod
+    def __classcall__(cls, prime, weight, radius, base_ring=QQ, prec=20, char=None):
+        if is_Gamma0(prime) or is_Gamma1(prime):
+            prime = prime.level()
+        else:
+            prime = ZZ(prime)
+        if char is None:
+            char = trivial_character(prime, base_ring=QQ)
+        if int(prime) not in [2, 3, 5, 7, 13]:
+            raise ValueError("p must be one of {2, 3, 5, 7, 13}")
+        return super(OverconvergentModularFormsSpace, cls).__classcall__(cls, prime, weight, radius, base_ring, prec, char)
 
     def __init__(self, prime, weight, radius, base_ring, prec, char):
         r"""
@@ -485,26 +462,6 @@ class OverconvergentModularFormsSpace(Module):
             w + O(w^41)
         """
         return self._const
-
-    def __cmp__(self, other):
-        r"""
-        Compare self to other.
-
-        EXAMPLES::
-
-            sage: OverconvergentModularForms(3, 12, 1/2) == ModularForms(3, 12)
-            False
-            sage: OverconvergentModularForms(3, 0, 1/2) == OverconvergentModularForms(3, 0, 1/3)
-            False
-            sage: OverconvergentModularForms(3, 0, 1/2) == OverconvergentModularForms(3, 0, 1/2, base_ring = Qp(3))
-            False
-            sage: OverconvergentModularForms(3, 0, 1/2) == OverconvergentModularForms(3, 0, 1/2)
-            True
-        """
-        if not isinstance(other, OverconvergentModularFormsSpace):
-            return cmp(type(self), type(other))
-        else:
-            return cmp(self._params(), other._params())
 
     def _params(self):
         r"""
@@ -1664,3 +1621,5 @@ class OverconvergentModularFormElement(ModuleElement):
             (3^3 + O(3^23))*q + (3^4 + 3^5 + O(3^24))*q^2 + (3^5 + 3^7 + O(3^25))*q^3 + (3^3 + 3^4 + 2*3^5 + 2*3^8 + O(3^23))*q^4 + (2*3^4 + 3^5 + 3^6 + 2*3^7 + 3^10 + O(3^24))*q^5 + (3^6 + 3^7 + 3^8 + 3^9 + 3^10 + 3^11 + O(3^26))*q^6 + (2*3^3 + 3^4 + 2*3^6 + 2*3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 3^12 + O(3^23))*q^7 + (2*3^4 + 3^5 + 3^8 + 2*3^9 + 2*3^10 + 2*3^13 + O(3^24))*q^8 + (3^7 + 2*3^9 + 2*3^12 + 2*3^14 + O(3^27))*q^9 + (2*3^5 + 3^8 + 3^9 + 2*3^10 + 2*3^13 + 2*3^15 + O(3^25))*q^10 + (3^4 + 2*3^5 + 2*3^6 + 3^8 + 2*3^9 + 3^12 + 3^14 + 2*3^16 + O(3^24))*q^11 + (3^5 + 3^6 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^12 + 3^14 + 2*3^15 + 2*3^16 + 3^17 + O(3^25))*q^12 + (2*3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + 2*3^14 + 2*3^17 + 3^18 + O(3^23))*q^13 + (2*3^4 + 2*3^6 + 2*3^7 + 3^8 + 2*3^9 + 3^10 + 3^12 + 3^14 + 2*3^15 + 2*3^16 + 3^18 + 3^19 + O(3^24))*q^14 + (2*3^6 + 3^7 + 3^9 + 3^10 + 3^11 + 2*3^14 + 3^15 + 2*3^16 + 3^17 + 3^18 + 3^20 + O(3^26))*q^15 + (3^3 + 2*3^4 + 2*3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 3^12 + 2*3^14 + 2*3^15 + 3^17 + 3^18 + 2*3^19 + 2*3^20 + O(3^23))*q^16 + (2*3^5 + 2*3^7 + 2*3^8 + 3^10 + 3^11 + 2*3^12 + 2*3^13 + 3^14 + 3^15 + 3^17 + 2*3^18 + 3^19 + 2*3^21 + O(3^25))*q^17 + (3^8 + 3^9 + 2*3^10 + 2*3^11 + 3^12 + 3^14 + 3^15 + 3^16 + 3^17 + 2*3^21 + 3^22 + O(3^28))*q^18 + (2*3^3 + 3^5 + 2*3^6 + 2*3^8 + 2*3^9 + 3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^15 + 3^16 + 3^17 + 2*3^18 + 3^19 + 2*3^21 + O(3^23))*q^19 + O(q^20)
         """
         return self.q_expansion()._pari_()
+
+OverconvergentModularForms = OverconvergentModularFormsSpace
