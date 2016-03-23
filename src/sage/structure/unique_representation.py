@@ -563,6 +563,7 @@ accordingly, for example by inheriting from
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
+from sage.structure.strict_equality import strict_equality
 
 class CachedRepresentation:
     """
@@ -1112,7 +1113,8 @@ class CachedRepresentation:
             if issubclass(k[0][0],cls):
                 del_list.append(k)
         for k in del_list:
-            del cache[k]
+            with strict_equality(True):
+                del cache[k]
 
     def __reduce__(self):
         """
