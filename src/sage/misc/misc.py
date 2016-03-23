@@ -634,8 +634,9 @@ def union(x, y=None):
 
 def uniq(x):
     """
-    Return the sublist of all elements in the list x that is sorted and
-    is such that the entries in the sublist are unique.
+    Return the sublist of all elements in the list ``x`` that is sorted (if the
+    elements support it) and is such that the entries in the sublist are
+    unique.
 
     EXAMPLES::
 
@@ -644,9 +645,74 @@ def uniq(x):
         ['a', 'x', -5, 1, 3, 8]
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
+
+    TESTS:
+
+    Test that this also works for unhashable elements, i.e., elements which
+    support comparison but which can not define a consistent hash function such
+    as `p`-adics or general fraction field elements::
+
+        sage: R.<x,y> = ZZ[]
+        sage: K = R.fraction_field()
+        sage: f = K(x, x-y)
+        sage: g = K(-x, y-x)
+        sage: f == g
+        True
+        sage: uniq([f,g])
+        [x/(x - y)]
+        sage: uniq([g,f])
+        [(-x)/(-x + y)]
+
+    ::
+
+        sage: R = Zp(3)
+        sage: a = R(1,1); a
+        1 + O(3)
+        sage: b = R(4,2); b
+        1 + 3 + O(3^2)
+        sage: a == b
+        True
+        sage: uniq([a,b])
+        [1 + O(3)]
+        sage: uniq([b,a])
+        [1 + 3 + O(3^2)]
+
+    Note however, that a non-transitive equality operator can lead to
+    surprising results. The elements of the returned list are "unique" in the
+    sense that the list contains no duplicates with respect to the equality
+    operator.
+
+        sage: c = R(7,2); c
+        1 + 2*3 + O(3^2)
+        sage: a == b and a == c
+        True
+        sage: b == c
+        False
+        sage: uniq([a,b,c])
+        [1 + O(3)]
+        sage: uniq([b,c,a])
+        [1 + 3 + O(3^2), 1 + 2*3 + O(3^2)]
+        sage: with strict_equality(True):
+        ....:     uniq([a,b,c])
+        [1 + O(3), 1 + 3 + O(3^2), 1 + 2*3 + O(3^2)]
+
     """
-    v = sorted(set(x))
-    return v
+    try:
+        s = set(x)
+    except TypeError:
+        # an element of x is unhashable
+        s = []
+        for item in x:
+            if item not in s:
+                s.append(item)
+
+    try:
+        s = sorted(s)
+    except TypeError:
+        # the elements do not define a ordering
+        s = list(s)
+
+    return s
 
 
 def coeff_repr(c, is_latex=False):

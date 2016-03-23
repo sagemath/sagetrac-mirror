@@ -1546,7 +1546,8 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
                 if s(phi(z)) == phi(s(z)):
                     automorphisms_prime_to_p.append(rational_function_reduce(s))
 
-    return list(set(automorphisms_prime_to_p))
+    from sage.misc.misc import uniq
+    return uniq(automorphisms_prime_to_p)
 
 def automorphism_group_FF_alg3(rational_function):
     r"""
@@ -1781,18 +1782,19 @@ def which_group(list_of_elements):
     max_reg_cyclic = [1, z, [z]]    # initialize order of cyclic p-regular subgroup and generator
     discard = []    # list of elements already considered
 
+    from sage.misc.misc import uniq
     for g in G:
         if g not in discard:
             H = [g]
             for i in range(n-1):
                 h = g(H[-1])
                 H.append(h)
-            H    = list(set(H))
+            H    = uniq(H)
             if len(H) == n:
                 return 'Cyclic of order {0}'.format(n)
             if len(H) > max_reg_cyclic[0] and gcd(len(H), p) != p:
                 max_reg_cyclic = [len(H), g, H]
-            discard = list(set(discard +H)) # adjoin all new elements to discard
+            discard = uniq(discard + H) # adjoin all new elements to discard
 
     n_reg = max_reg_cyclic[0]
     # Test for dihedral subgroup. A subgroup of index 2 is always normal, so the
