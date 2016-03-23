@@ -277,6 +277,24 @@ class Ideal_nc(Ideal_generic):
             return 0
         return cmp(self.gens(), right.gens())
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this ideal.
+
+        TESTS::
+
+             sage: A = SteenrodAlgebra(2)
+             sage: IR = [A.1+A.2,A.1^2]*A
+             sage: IL = A*[A.1+A.2,A.1^2]
+             sage: IT = A*[A.1+A.2,A.1^2]*A
+             sage: hash(IT) != hash(IL)
+             True
+             sage: hash(IR) == hash([A.1+A.2,A.1^2]*A)
+             True
+
+        """
+        return hash((self.side(),self.gens()))
+
     def side(self):
         """
         Return a string that describes the sidedness of this ideal.
