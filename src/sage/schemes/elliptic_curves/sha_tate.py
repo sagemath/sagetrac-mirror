@@ -723,26 +723,16 @@ class Sha(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.
-            sage: E = EllipticCurve('114c1') # split mult
+            sage: print E.sha().p_primary_order(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 is not an odd prime
+            sage: E = EllipticCurve('114c1') # split mult at 11
             sage: print E._check_Skinner_Urban(5)
             True
             sage: E = EllipticCurve('33a1') # non-split mult
             sage: print E._check_Skinner_Urban(3)
             True
-            sage: E = EllipticCurve('11a1') # split at 11
-            sage: print E._check_Skinner_Urban_aux_prime(5)
-            True
-            sage: E = EllipticCurve('14a1') # nonsplit at 2
-            sage: print E._check_Skinner_Urban_aux_prime(3)
-            True
-            sage: E = EllipticCurve('14a1') # 2 doesn't work
-            sage: print E._check_Skinner_Urban_aux_prime(2)
-            Traceback (most recent call last):
-            ...
-            ValueError: 2 is not an odd prime
-            sage: E = EllipticCurve('14a1') # no ell at p = 5
-            sage: print E._check_Skinner_Urban_aux_prime(5)
-            False
             sage: E = EllipticCurve('24a1') # has some additive reduction
             sage: print E._check_Skinner_Urban_aux_prime(3)
             False
@@ -753,6 +743,7 @@ class Sha(SageObject):
         if p == 2:
             raise ValueError("%s is not an odd prime"%p)
         if E.galois_representation().is_surjective(p):
+            print "Is surjective"
             N = E.conductor()
             fac = N.factor()
             # the auxillary prime will be one dividing the conductor
@@ -760,10 +751,12 @@ class Sha(SageObject):
                 # two cases to check, split and non-split
                 # we're looking for ramification
                 if E.has_split_multiplicative_reduction(ell):
+                    print "has split at ", ell, E.tamagawa_number(ell)
                     c = E.tamagawa_number(ell)
                     if p.divides(c):
                         IsProvable = True
                 elif E.has_nonsplit_multiplicative_reduction(ell):
+                    print "non split at ", ell, E.tate_curve(ell).parameter().valuation()
                     c = E.tate_curve(ell).parameter().valuation()
                     if p.divides(c):
                         IsProvable = True
