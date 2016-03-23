@@ -952,18 +952,6 @@ cdef class Element(SageObject):
                 return 1
             raise
 
-    def _cache_key(self):
-        """
-        Provide a hashable key for an element if it is not hashable
-        
-        EXAMPLES::
-        
-            sage: a=sage.structure.element.Element(ZZ)
-            sage: a._cache_key()
-            (Integer Ring, 'Generic element of a structure')
-        """
-        return(self.parent(),str(self))
-
     ####################################################################
     # In a Cython or a Python class, you must define either _cmp_
     # (if your subclass is totally ordered), _richcmp_ (if your subclass

@@ -1020,31 +1020,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __iter__(self):
         return iter(self.list())
 
-    def _cache_key(self):
-        """
-        Return a hashable key which identifies this element.
-
-        EXAMPLES::
-
-            sage: K.<u> = Qq(4)
-            sage: R.<x> = K[]
-            sage: f = x
-            sage: hash(f)
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
-            sage: f._cache_key()
-            (Univariate Polynomial Ring in x over Unramified Extension of 2-adic Field with capped relative precision 20 in u defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)),
-             0,
-             1 + O(2^20))
-            sage: @cached_function
-            ....: def foo(t): return t
-            ....:
-            sage: foo(x)
-            (1 + O(2^20))*x
-        """
-        return (self._parent,) + tuple(self)
-
     def __hash__(self):
         return self._hash_c()
 

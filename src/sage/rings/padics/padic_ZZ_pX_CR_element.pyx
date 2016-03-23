@@ -492,58 +492,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             else:
                 self._set_from_list_both(x, aprec, rprec)
 
-    def _cache_key(self):
-        r"""
-        Return a hashable key which identifies this element.
-
-        This makes it possible to use this element in caches such as
-        functions or methods decorated with ``@cached_function`` or
-        ``@cached_method`` respectively.
-
-        EXAMPLE:
-
-        In the following example, ``a`` and ``b`` compare equal. They cannot
-        have a meaningful hash value since then their hash value would have to
-        be the same::
-
-            sage: K.<a> = Qq(9)
-            sage: b = a + O(3)
-            sage: a == b
-            True
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
-
-        However, we want to cache computations which depend on them. Therefore
-        they define a ``_cache_key`` which is hashable and uniquely identifies
-        them::
-
-            sage: a._cache_key()
-            (..., ((0, 1),), 0, 20)
-            sage: b._cache_key()
-            (..., ((0, 1),), 0, 1)
-
-        TESTS:
-
-        Check that zero values are handled correctly::
-
-            sage: K.zero()._cache_key()
-            (..., 0)
-            sage: K(0,1)._cache_key()
-            (..., 0, 1)
-
-        """
-        if self._is_exact_zero():
-            return (self.parent(), 0)
-        elif self._is_inexact_zero():
-            return (self.parent(), 0, self.valuation())
-        else:
-            return (self.parent(),
-                    tuple(tuple(c) if isinstance(c, list) else c
-                          for c in self.unit_part().list()),
-                    self.valuation(), self.precision_relative())
-
     cdef int _set_inexact_zero(self, long absprec) except -1:
         """
         Sets ``self`` to be zero with valuation absprec.
