@@ -2534,7 +2534,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: H = End(PS)
             sage: f = H([x^2,2*y^2,z^2])
             sage: X = PS.subscheme([2*x-y,z])
-            sage: f(X)
+            sage: f(X) # not tested: Buchberger algorithm is not implemented for Qp
             Closed subscheme of Projective Space of dimension 2 over 3-adic Field
             with capped relative precision 20 defined by:
               z,
