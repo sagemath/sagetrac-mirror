@@ -393,15 +393,14 @@ cdef class UniqueFactory(SageObject):
             True
 
         """
-        cache_key = key
         try:
             with strict_equality(True):
-                return self._cache[version, cache_key]
+                return self._cache[version, key]
         except KeyError:
             pass
         obj = self.create_object(version, key, **extra_args)
         with strict_equality(True):
-            self._cache[version, cache_key] = obj
+            self._cache[version, key] = obj
         try:
             for key in self.other_keys(key, obj):
                 with strict_equality(True):
