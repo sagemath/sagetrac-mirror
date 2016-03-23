@@ -6857,7 +6857,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if p == 2:
             raise ValueError("%s is not an odd prime"%p)
-        if E.galois_representation().is_surjective(p):
+        if self.galois_representation().is_surjective(p):
             if self._check_Skinner_Urban_aux_prime(p):
                 return True
         return False
