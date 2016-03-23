@@ -700,10 +700,85 @@ class Sha(SageObject):
         return shan
 
 
+    def p_primary_order(self, p):
+        # If the two conditions are satisfied, give back the same as p_primary_bound
+        # in documentation, note that this is a proved equality.
+        # TODO: just put the functions here.
+        """
+        Checks the two conditions necessary for Skinner-Urban, that the residual Galois representation is surjective
+        and the existance of an auxillary prime.  More specifically, the auxillary prime `\ell` is a  semistable prime, 
+        i.e., divides the conductor of `E` exactly once, not equal to `p` for which the residual representation is ramified.
+
+        INPUT:
+         - ``E`` - elliptic curve
+         - ``p`` - an odd prime
+
+        OUTPUT:
+        Returns True if both conditions are satisfied False otherwise.
+
+        Examples:
+
+            sage: E = EllipticCurve('11a1') # not surjective at 5
+            sage: print E._check_Skinner_Urban(5)
+            False
+            sage: E = EllipticCurve('114c1') # split mult
+            sage: print E._check_Skinner_Urban(5)
+            True
+            sage: E = EllipticCurve('33a1') # non-split mult
+            sage: print E._check_Skinner_Urban(3)
+            True
+            sage: E = EllipticCurve('11a1') # split at 11
+            sage: print E._check_Skinner_Urban_aux_prime(5)
+            True
+            sage: E = EllipticCurve('14a1') # nonsplit at 2
+            sage: print E._check_Skinner_Urban_aux_prime(3)
+            True
+            sage: E = EllipticCurve('14a1') # 2 doesn't work
+            sage: print E._check_Skinner_Urban_aux_prime(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 is not an odd prime
+            sage: E = EllipticCurve('14a1') # no ell at p = 5
+            sage: print E._check_Skinner_Urban_aux_prime(5)
+            False
+            sage: E = EllipticCurve('24a1') # has some additive reduction
+            sage: print E._check_Skinner_Urban_aux_prime(3)
+            False
+        """
+        E = self.E
+        IsProvable = False
+        # does not work if p = 2
+        if p == 2:
+            raise ValueError("%s is not an odd prime"%p)
+        if E.galois_representation().is_surjective(p):
+            N = self.conductor()
+            fac = N.factor()
+            # the auxillary prime will be one dividing the conductor
+            for ell, e in fac:
+                # two cases to check, split and non-split
+                # we're looking for ramification
+                if self.has_split_multiplicative_reduction(ell):
+                    c = self.tamagawa_number(ell)
+                    if p.divides(c):
+                        IsProvable = True
+                elif self.has_nonsplit_multiplicative_reduction(ell):
+                    c = self.tate_curve(ell).parameter().valuation()
+                    if p.divides(c):
+                        IsProvable = True
+        if IsProvable:
+            return p_primary_bound(self, p)
+        else:
+            raise ValueError("Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.")
+
+
+    
+
+
+    
     def p_primary_bound(self, p):
         r"""
         Returns a provable upper bound for the order of the
-        `p`-primary part `Sha(E)(p)` of the Tate-Shafarevich group.
+        `p`-primary part `Sha(E)(p)` of the Tate-Shafarevich group. 
 
         INPUT:
 
