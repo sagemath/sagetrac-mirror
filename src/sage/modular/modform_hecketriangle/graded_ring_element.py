@@ -174,15 +174,24 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
             sage: (x,y,z,d) = MeromorphicModularFormsRing().pol_ring().gens()
-            sage: MeromorphicModularFormsRing(base_ring=CC)(-1/x) == MeromorphicModularFormsRing()(1/(-x))
+            sage: MeromorphicModularFormsRing()(-1/x) == MeromorphicModularFormsRing()(1/(-x))
             True
-            sage: hash(MeromorphicModularFormsRing(base_ring=CC)(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
-            True
+            sage: hash(MeromorphicModularFormsRing()(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
+            Traceback (most recent call last):
+            ...
+            TypeError: general elements of fraction fields are not hashable
+            sage: with strict_equality(True):
+            ....:     MeromorphicModularFormsRing()(-1/x) == MeromorphicModularFormsRing()(1/(-x))
+            False
+            sage: with strict_equality(True):
+            ....:     hash(MeromorphicModularFormsRing()(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
+            False
+
         """
+        rat = self.rat()
         if (self.group().is_arithmetic()):
-            return hash((self.group(), self.rat().subs(d=self.group().dvalue())))
-        else:
-            return hash((self.group(), self.rat()))
+            rat = rat.subs(d=self.group().dvalue())
+        return hash((self.group(), rat))
 
     def _repr_(self):
         r"""
