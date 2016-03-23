@@ -15,8 +15,11 @@ python's recommendations::
 
     sage: R = Zp(3)
     sage: a = R(0,1); a
+    O(3)
     sage: b = R(3,2); b
+    3 + O(3^2)
     sage: c = R(6,2); c
+    2*3 + O(3^2)
     sage: a == b
     True
     sage: a == c
@@ -28,11 +31,14 @@ This makes it impossible to use such elements consistently as keys in dictionari
 
     sage: D = {}
     sage: a in D
+    Traceback (most recent call last):
+    ...
+    TypeError: p-adic numbers are unhashable
 
 With a stricter version of equality, the equality operator respects python's recommendations::
 
     sage: with strict_equality(True):
-    ....:     a == b || a == c || b == c
+    ....:     a == b or a == c or b == c
     False
 
 In this way these elements can be used in dictionaries for example for the purpose of caching results::
@@ -151,6 +157,7 @@ class StrictEqualityContextManager(object):
     EXAMPLES::
 
         sage: type(strict_equality(True))
+        <class 'sage.structure.strict_equality.StrictEqualityContextManager'>
         sage: strict_equality()
         False
     """
@@ -173,7 +180,7 @@ class StrictEqualityContextManager(object):
 
         sage: with strict_equality(True):
         ....:     pass
-        ....: strict_equality()
+        sage: strict_equality()
         False
         """
         leave_strict_equality()
