@@ -755,6 +755,7 @@ class Sha(SageObject):
                 if E.has_split_multiplicative_reduction(ell):
                     print "has split at ", ell, E.tamagawa_number(ell)
                     c = E.tamagawa_number(ell)
+                    print p.divides(c), p, c
                     if p.divides(c):
                         IsProvable = True
                         break
