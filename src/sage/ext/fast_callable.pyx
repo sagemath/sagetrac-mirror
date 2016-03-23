@@ -2087,39 +2087,41 @@ cdef class InstructionStream:
         cdef int n_outputs = spec.n_outputs
 
         self._bytecode.append(opcode)
-        for i in range(len(args)):
-            if spec.parameters[i] == 'constants':
-                # XXX bad for strict-mode floating-point constants
-                # (doesn't handle signed 0, NaN)
-                arg = args[i]
-                if (arg,parent(arg)) in self._constant_locs:
-                    self._bytecode.append(self._constant_locs[(arg,parent(arg))])
+        from sage.structure.strict_equality import strict_equality
+        with strict_equality(True):
+            for i in range(len(args)):
+                if spec.parameters[i] == 'constants':
+                    # XXX bad for strict-mode floating-point constants
+                    # (doesn't handle signed 0, NaN)
+                    arg = args[i]
+                    if (arg,parent(arg)) in self._constant_locs:
+                        self._bytecode.append(self._constant_locs[(arg,parent(arg))])
+                    else:
+                        loc = len(self._constants)
+                        self._constants.append(arg)
+                        self._constant_locs[(arg,parent(arg))] = loc
+                        self._bytecode.append(loc)
+                elif spec.parameters[i] == 'args':
+                    self._bytecode.append(args[i])
+                elif spec.parameters[i] == 'code':
+                    self._bytecode.append(args[i])
+                elif spec.parameters[i] == 'n_inputs':
+                    self._bytecode.append(args[i])
+                    n_inputs = args[i]
+                elif spec.parameters[i] == 'n_outputs':
+                    self._bytecode.append(args[i])
+                    n_outputs = args[i]
+                elif spec.parameters[i] == 'py_constants':
+                    arg = args[i]
+                    if arg in self._py_constant_locs:
+                        self._bytecode.append(self._py_constant_locs[arg])
+                    else:
+                        loc = len(self._py_constants)
+                        self._py_constants.append(arg)
+                        self._py_constant_locs[arg] = loc
+                        self._bytecode.append(loc)
                 else:
-                    loc = len(self._constants)
-                    self._constants.append(arg)
-                    self._constant_locs[(arg,parent(arg))] = loc
-                    self._bytecode.append(loc)
-            elif spec.parameters[i] == 'args':
-                self._bytecode.append(args[i])
-            elif spec.parameters[i] == 'code':
-                self._bytecode.append(args[i])
-            elif spec.parameters[i] == 'n_inputs':
-                self._bytecode.append(args[i])
-                n_inputs = args[i]
-            elif spec.parameters[i] == 'n_outputs':
-                self._bytecode.append(args[i])
-                n_outputs = args[i]
-            elif spec.parameters[i] == 'py_constants':
-                arg = args[i]
-                if arg in self._py_constant_locs:
-                    self._bytecode.append(self._py_constant_locs[arg])
-                else:
-                    loc = len(self._py_constants)
-                    self._py_constants.append(arg)
-                    self._py_constant_locs[arg] = loc
-                    self._bytecode.append(loc)
-            else:
-                raise ValueError
+                    raise ValueError
 
         self._stack_cur_size -= n_inputs
         self._stack_cur_size += n_outputs
