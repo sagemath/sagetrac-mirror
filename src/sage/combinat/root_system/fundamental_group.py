@@ -289,6 +289,21 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             return cmp(self.__class__,x.__class__)
         return cmp(self.value(), x.value())
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this element.
+
+        TEST::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: x = F(0); y = F(2)
+            sage: hash(x) == hash(y)
+            False
+
+        """
+        return hash(self.value())
+
     def act_on_affine_weyl(self, w):
         r"""
         Act by ``self`` on the element `w` of the affine Weyl group.
