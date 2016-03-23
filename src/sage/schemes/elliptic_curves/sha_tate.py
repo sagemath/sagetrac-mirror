@@ -728,14 +728,16 @@ class Sha(SageObject):
             ...
             ValueError: 2 is not an odd prime
             sage: E = EllipticCurve('114c1') # split mult at 11
-            sage: print E._check_Skinner_Urban(5)
-            True
+            sage: print E.sha().p_primary_order(3)
+            0
             sage: E = EllipticCurve('33a1') # non-split mult
-            sage: print E._check_Skinner_Urban(3)
-            True
+            sage: print E.sha().p_primary_order(3)
+            0
             sage: E = EllipticCurve('24a1') # has some additive reduction
-            sage: print E._check_Skinner_Urban_aux_prime(3)
-            False
+            sage: print E.sha().p_primary_order(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.
         """
         E = self.E
         IsProvable = False
