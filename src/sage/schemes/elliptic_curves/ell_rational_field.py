@@ -6885,6 +6885,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
             sage: E = EllipticCurve('14a1') # 2 doesn't work
             sage: print E._check_Skinner_Urban_aux_prime(2)
+            Traceback (most recent call last):
+            ...
             ValueError: 2 is not an odd prime
             sage: E = EllipticCurve('14a1') # no ell at p = 5
             sage: print E._check_Skinner_Urban_aux_prime(5)
