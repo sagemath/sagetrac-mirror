@@ -436,7 +436,8 @@ class CFiniteSequence(FieldElement):
         EXAMPLES::
 
             sage: C.<x> = CFiniteSequences(QQ)
-            sage: hash(C((2-x)/(1-x-x^2)))  # random
+            sage: with strict_equality(True): # random output
+            ....:     hash(C((2-x)/(1-x-x^2)))
             42
         """
         return hash(self.parent()) ^ hash(self._ogf)
