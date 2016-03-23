@@ -367,8 +367,10 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            sage: with strict_equality(True):
+            ....:     len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
             True
+
         """
         return hash(self._x)
 
@@ -582,7 +584,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         15 distinct hashes::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
+            sage: with strict_equality(True):
+            ....:     len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
             10
         """
         return hash(self._x)
@@ -776,7 +779,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: (t*(x+1) - 1) in I
             True
         """
-        assert  len(I.gens()) == 1
+        assert len(I.gens()) == 1
         f = I.gens()[0]._x
         assert f.denominator() == 1
         assert self._x.denominator() == 1

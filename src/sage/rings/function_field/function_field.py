@@ -447,7 +447,6 @@ class FunctionField_polymod(FunctionField):
         Field.__init__(self, base_field,
                                 names=names, category = category)
 
-        self._hash = hash(polynomial)
         self._ring = self._polynomial.parent()
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
@@ -481,7 +480,7 @@ class FunctionField_polymod(FunctionField):
             True
 
         """
-        return self._hash
+        return hash(self._polynomial)
 
     def monic_integral_model(self, names):
         """
@@ -1116,7 +1115,6 @@ class RationalFunctionField(FunctionField):
         self._element_init_pass_parent = False
         Field.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]
-        self._hash = hash((constant_field, names))
         self._constant_field = constant_field
         self._ring = R
         self._field = R.fraction_field()
@@ -1150,7 +1148,7 @@ class RationalFunctionField(FunctionField):
             True
 
         """
-        return self._hash
+        return hash((self._constant_field,self.variable_names()))
 
     def _repr_(self):
         """
