@@ -715,7 +715,8 @@ class Sha(SageObject):
          - ``p`` -- an odd prime
 
         OUTPUT:
-        Returns True if both conditions are satisfied False otherwise.
+        Returns the p-primary order  if both conditions are satisfied 
+        and raises a ValueError otherwise.
 
         Examples:
 
@@ -764,7 +765,8 @@ class Sha(SageObject):
         if IsProvable:
             return self.p_primary_bound(p)
         else:
-            raise ValueError("Not provable using Skinner-Urban.  Try running p_primary_bound to get a bound.")
+            raise ValueError("Not provable using Skinner-Urban.  
+            Try running p_primary_bound to get a bound.")
 
 
     
@@ -775,6 +777,11 @@ class Sha(SageObject):
         r"""
         Returns a provable upper bound for the order of the
         `p`-primary part `Sha(E)(p)` of the Tate-Shafarevich group. 
+
+        If you want the provable `p`-primary part of the Tate-Shafarevich group,
+        you can try using p_primary_order which checks the Skinner-Urban 
+        conditions and if they are satisfied, returns the actual `p`-primary 
+        order.
 
         INPUT:
 
