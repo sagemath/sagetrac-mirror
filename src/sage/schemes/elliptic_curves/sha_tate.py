@@ -703,17 +703,16 @@ class Sha(SageObject):
 
 
     def p_primary_order(self, p):
-        # If the two conditions are satisfied, give back the same as p_primary_bound
-        # in documentation, note that this is a proved equality.
-        # TODO: just put the functions here.
         """
-        Checks the two conditions necessary for Skinner-Urban, that the residual Galois representation is surjective
-        and the existance of an auxillary prime.  More specifically, the auxillary prime `\ell` is a  semistable prime, 
-        i.e., divides the conductor of `E` exactly once, not equal to `p` for which the residual representation is ramified.
+        Checks the two conditions necessary for Skinner-Urban, that the 
+        residual Galois representation is surjective and the existance of an 
+        auxillary prime.  More specifically, the auxillary prime `\ell` is a  
+        semistable prime, i.e., divides the conductor of `E` exactly once, not 
+        equal to `p` for which the residual representation is ramified.
 
         INPUT:
-         - ``E`` - elliptic curve
-         - ``p`` - an odd prime
+         - ``E`` -- elliptic curve over the rationals
+         - ``p`` -- an odd prime
 
         OUTPUT:
         Returns True if both conditions are satisfied False otherwise.
