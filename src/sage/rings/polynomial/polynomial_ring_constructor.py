@@ -478,7 +478,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
 def _get_from_cache(key):
     try:
-        return _cache[key] #()
+        from sage.structure.strict_equality import strict_equality
+        with strict_equality(True):
+            return _cache[key] #()
     except TypeError as msg:
         raise TypeError('key = %s\n%s'%(key,msg))
     except KeyError:
@@ -486,7 +488,9 @@ def _get_from_cache(key):
 
 def _save_in_cache(key, R):
     try:
-         _cache[key] = R
+        from sage.structure.strict_equality import strict_equality
+        with strict_equality(True):
+            _cache[key] = R
     except TypeError as msg:
         raise TypeError('key = %s\n%s'%(key,msg))
 
@@ -543,8 +547,6 @@ def _single_variate(base_ring, name, sparse, implementation):
     return R
 
 def _multi_variate(base_ring, names, n, sparse, order, implementation):
-#    if not sparse:
-#        raise ValueError, "A dense representation of multivariate polynomials is not supported"
     sparse = False
     # "True" would be correct, since there is no dense implementation of
     # multivariate polynomials. However, traditionally, "False" is used in the key,
@@ -691,7 +693,6 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         sage: x2 > x3
         True
     """
-
     if isinstance(n, str):
         names = n
         n = -1
