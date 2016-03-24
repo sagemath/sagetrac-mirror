@@ -1,0 +1,15 @@
+See https://github.com/cython/cython/commit/1adf6cc73e65e0eefe2f426e3ff5b03f97044128
+
+diff --git a/Cython/Compiler/Nodes.py b/Cython/Compiler/Nodes.py
+index 428461c..3772daf 100644
+--- a/Cython/Compiler/Nodes.py
++++ b/Cython/Compiler/Nodes.py
+@@ -1895,7 +1895,7 @@ class FuncDefNode(StatNode, BlockNode):
+             elif is_cdef and entry.type.is_memoryviewslice and len(entry.cf_assignments) > 1:
+                 code.put_incref_memoryviewslice(entry.cname, have_gil=code.funcstate.gil_owned)
+         for entry in lenv.var_entries:
+-            if entry.is_arg and len(entry.cf_assignments) > 1:
++            if entry.is_arg and len(entry.cf_assignments) > 1 and not entry.in_closure:
+                 if entry.xdecref_cleanup:
+                     code.put_var_xincref(entry)
+                 else:
