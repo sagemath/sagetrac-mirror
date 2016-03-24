@@ -704,6 +704,9 @@ class Sha(SageObject):
 
     def p_primary_order(self, p):
         """
+        Returns the `p`-primary order of the Tate-Shafarevich group when the 
+        Skinner-Urban conditions are satisfied.
+
         Checks the two conditions necessary for Skinner-Urban, that the 
         residual Galois representation is surjective and the existance of an 
         auxillary prime.  More specifically, the auxillary prime `\ell` is a  
@@ -778,10 +781,10 @@ class Sha(SageObject):
         Returns a provable upper bound for the order of the
         `p`-primary part `Sha(E)(p)` of the Tate-Shafarevich group. 
 
-        If you want the provable `p`-primary part of the Tate-Shafarevich group,
-        you can try using p_primary_order which checks the Skinner-Urban 
-        conditions and if they are satisfied, returns the actual `p`-primary 
-        order.
+        If you want the provable `p`-primary part of the Tate-Shafarevich 
+        group, you can try using p_primary_order which checks the 
+        Skinner-Urban conditions and if they are satisfied, returns the 
+        actual `p`-primary order.
 
         INPUT:
 
