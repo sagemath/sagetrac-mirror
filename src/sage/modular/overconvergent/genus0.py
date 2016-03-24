@@ -187,12 +187,12 @@ from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
-from sage.structure.factory import UniqueFactory
+from sage.structure.unique_representation import UniqueRepresentation
 import weakref
 
 from weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
 
-class OverconvergentModularFormsSpace(Module):
+class OverconvergentModularFormsSpace(UniqueRepresentation, Module):
     r"""
     Create a space of overconvergent `p`-adic modular forms of level
     `\Gamma_0(p)`, over the given base ring. The base ring need not be a
@@ -271,7 +271,6 @@ class OverconvergentModularFormsSpace(Module):
             sage: OverconvergentModularForms(3, 0, 1/2)
             Space of 3-adic 1/2-overconvergent modular forms of weight-character 0 over Rational Field
         """
-
         self._p = prime
 
         if not ( base_ring == QQ or is_pAdicField(base_ring) ):
@@ -486,7 +485,13 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L).__reduce__()
-            (<function OverconvergentModularForms at ...>, (7, 0, 1/4, Eisenstein Extension ..., 20, Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
+	    (<class 'sage.modular.overconvergent.genus0.OverconvergentModularFormsSpace'>,
+	     (7,
+	      0,
+	      1/4,
+	      Eisenstein Extension of 7-adic Field with capped relative precision 20 in w defined by (1 + O(7^20))*x^2 + (O(7^21))*x + (6*7 + 6*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + 6*7^9 + 6*7^10 + 6*7^11 + 6*7^12 + 6*7^13 + 6*7^14 + 6*7^15 + 6*7^16 + 6*7^17 + 6*7^18 + 6*7^19 + 6*7^20 + O(7^21)),
+	      20,
+	      Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
 
         """
         return (OverconvergentModularForms, self._params())
@@ -833,8 +838,6 @@ class OverconvergentModularFormsSpace(Module):
                 raise TypeError("Not an element of this space")
         else:
             return hecke_operator_on_qexp(f, m, self.weight().k(), eps=self.weight().chi())
-
-
 
     def _convert_to_basis(self, qexp):
         r"""
