@@ -1491,7 +1491,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
         sage: L = [[4, 1], [2, 1]]
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphisms_fixing_pair
         sage: automorphisms_fixing_pair(f, L, False)
-        [(6*z + 6)/z, 4/(3*z + 3)]
+        [4/(3*z + 3), (6*z + 6)/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():
