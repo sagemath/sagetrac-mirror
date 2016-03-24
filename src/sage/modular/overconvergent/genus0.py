@@ -485,13 +485,13 @@ class OverconvergentModularFormsSpace(UniqueRepresentation, Module):
 
             sage: L.<w> = Qp(7).extension(x^2 - 7)
             sage: OverconvergentModularForms(7, 0, 1/4, base_ring=L).__reduce__()
-	    (<class 'sage.modular.overconvergent.genus0.OverconvergentModularFormsSpace'>,
-	     (7,
-	      0,
-	      1/4,
-	      Eisenstein Extension of 7-adic Field with capped relative precision 20 in w defined by (1 + O(7^20))*x^2 + (O(7^21))*x + (6*7 + 6*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + 6*7^9 + 6*7^10 + 6*7^11 + 6*7^12 + 6*7^13 + 6*7^14 + 6*7^15 + 6*7^16 + 6*7^17 + 6*7^18 + 6*7^19 + 6*7^20 + O(7^21)),
-	      20,
-	      Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
+            (<class 'sage.modular.overconvergent.genus0.OverconvergentModularFormsSpace'>,
+             (7,
+              0,
+              1/4,
+              Eisenstein Extension of 7-adic Field with capped relative precision 20 in w defined by (1 + O(7^20))*x^2 + (O(7^21))*x + (6*7 + 6*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + 6*7^9 + 6*7^10 + 6*7^11 + 6*7^12 + 6*7^13 + 6*7^14 + 6*7^15 + 6*7^16 + 6*7^17 + 6*7^18 + 6*7^19 + 6*7^20 + O(7^21)),
+              20,
+              Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
 
         """
         return (OverconvergentModularForms, self._params())
