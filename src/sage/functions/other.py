@@ -446,6 +446,12 @@ class Function_ceil(BuiltinFunction):
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
         the ceiling of ``n``.
 
+        .. TODO::
+
+            The test ``bool(x = a)`` below is not reliable for symbolic
+            expressions. Instead, we should use the future machinery from
+            :trac:`19040`.
+
         TESTS::
 
             sage: ceil(SR(10^50 + 10^(-50)))
@@ -505,10 +511,10 @@ class Function_ceil(BuiltinFunction):
         if bool(x == a):
             return a
 
-        x = SR(x).full_simplify().canonicalize_radical()
-
-        if bool(x == a):
-            return a
+        if isinstance(x, Expression):
+            x = SR(x).full_simplify().canonicalize_radical()
+            if bool(x == a):
+                return a
 
         while True:
             bits *= 2
@@ -648,6 +654,12 @@ class Function_floor(BuiltinFunction):
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
         obtain the floor of ``n``.
 
+        .. TODO::
+
+            The test ``bool(x = a)`` below is not reliable for symbolic
+            expressions. Instead, we should use the future machinery from
+            :trac:`19040`.
+
         TESTS::
 
             sage: floor(SR(10^50 + 10^(-50)))
@@ -707,10 +719,10 @@ class Function_floor(BuiltinFunction):
         if bool(x == a):
             return a
 
-        x = SR(x).full_simplify().canonicalize_radical()
-
-        if bool(x == a):
-            return a
+        if isinstance(x, Expression):
+            x = SR(x).full_simplify().canonicalize_radical()
+            if bool(x == a):
+                return a
 
         while True:
             bits *= 2
