@@ -33,9 +33,6 @@ AUTHORS:
 
 - Simon Spicer (2014-08): Added new analytic rank computatation functionality
 
-- Aly Deines, Chris Wuthrick, Jeaninne Van Order (2016-03): Added 
-  functionality that tests the Skinner-Urban condition.
-
 """
 
 ##############################################################################
@@ -6829,91 +6826,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if verbose:
             print 'Total number of S-integral points:',len(S_int_points)
         return S_int_points
-
-    def _check_Skinner_Urban(self, p):
-        """
-        Checks the two conditions necessary for Skinner-Urban, that the residual Galois representation is surjective
-        and the existance of an auxillary prime.  More specifically, the auxillary prime `\ell` is a  semistable prime, 
-        i.e., divides the conductor of `E` exactly once, not equal to `p` for which the residual representation is ramified.
-
-        INPUT:
-         - ``E`` - elliptic curve
-         - ``p`` - an odd prime
-
-        OUTPUT:
-        Returns True if both conditions are satisfied False otherwise.
-
-        Examples:
-
-            sage: E = EllipticCurve('11a1') # not surjective at 5
-            sage: print E._check_Skinner_Urban(5)
-            False
-            sage: E = EllipticCurve('114c1') # split mult
-            sage: print E._check_Skinner_Urban(5)
-            True
-            sage: E = EllipticCurve('33a1') # non-split mult
-            sage: print E._check_Skinner_Urban(3)
-            True
-        """
-        if p == 2:
-            raise ValueError("%s is not an odd prime"%p)
-        if self.galois_representation().is_surjective(p):
-            if self._check_Skinner_Urban_aux_prime(p):
-                return True
-        return False
-
-    def _check_Skinner_Urban_aux_prime(self, p):
-        """
-        Checks the existance of an auxillary prime for which the Skinner-Urban condition holds.
-        More specifically, the auxillary prime `\ell` is a  semistable prime, i.e., divides the 
-        conductor of `E` exactly once, not equal to `p` for which the residual representation is ramified.
-
-        INPUT:
-         - ``E`` - elliptic curve
-         - ``p`` - an odd prime
-
-        OUTPUT:
-        Returns True if exists and auxillary prime and False otherwise.
-
-        Examples:
-
-            sage: E = EllipticCurve('11a1') # split at 11
-            sage: print E._check_Skinner_Urban_aux_prime(5)
-            True
-            sage: E = EllipticCurve('14a1') # nonsplit at 2
-            sage: print E._check_Skinner_Urban_aux_prime(3)
-            True
-            sage: E = EllipticCurve('14a1') # 2 doesn't work
-            sage: print E._check_Skinner_Urban_aux_prime(2)
-            Traceback (most recent call last):
-            ...
-            ValueError: 2 is not an odd prime
-            sage: E = EllipticCurve('14a1') # no ell at p = 5
-            sage: print E._check_Skinner_Urban_aux_prime(5)
-            False
-            sage: E = EllipticCurve('24a1') # has some additive reduction
-            sage: print E._check_Skinner_Urban_aux_prime(3)
-            False
-        """
-        # does not work for p = 2
-        if p == 2:
-            raise ValueError("%s is not an odd prime"%p)
-        N = self.conductor()
-        fac = N.factor()
-        # the auxillary prime will be one dividing the conductor
-        for ell, e in fac:
-            # two cases to check, split and non-split
-            # we're looking for ramification
-            if self.has_split_multiplicative_reduction(ell):
-                c = self.tamagawa_number(ell)
-                if p.divides(c):
-                    return True
-            elif self.has_nonsplit_multiplicative_reduction(ell):
-                c = self.tate_curve(ell).parameter().valuation()
-                if p.divides(c):
-                    return True
-        return False
-
     
 
 def cremona_curves(conductors):
