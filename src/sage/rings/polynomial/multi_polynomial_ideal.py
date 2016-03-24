@@ -2435,7 +2435,7 @@ class MPolynomialIdeal_singular_repr(
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_series()
-            (-t^4 - t^3 - t^2 - t - 1)/(-t^2 + 2*t - 1)
+            (t^4 + t^3 + t^2 + t + 1)/(t^2 - 2*t + 1)
             sage: R.<a,b> = PolynomialRing(QQ)
             sage: J = R.ideal([a^2*b,a*b^2])
             sage: J.hilbert_series()

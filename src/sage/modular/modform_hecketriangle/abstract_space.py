@@ -1183,7 +1183,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_basis_pol(2)
             x^13*y*d^2 - 2*x^8*y^3*d^2 + x^3*y^5*d^2
             sage: MF.F_basis_pol(1)
-            (-81*x^13*y*d + 62*x^8*y^3*d + 19*x^3*y^5*d)/(-100)
+            (81*x^13*y*d - 62*x^8*y^3*d - 19*x^3*y^5*d)/100
             sage: MF.F_basis_pol(0)
             (141913*x^13*y + 168974*x^8*y^3 + 9113*x^3*y^5)/320000
 
@@ -1216,20 +1216,20 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_basis_pol(3)
             -y^7*d^3 + 3*x*y^5*d^3 - 3*x^2*y^3*d^3 + x^3*y*d^3
             sage: MF.F_basis_pol(2)
-            (3*y^7*d^2 - 17*x*y^5*d^2 + 25*x^2*y^3*d^2 - 11*x^3*y*d^2)/(-8)
+            (-3*y^7*d^2 + 17*x*y^5*d^2 - 25*x^2*y^3*d^2 + 11*x^3*y*d^2)/8
             sage: MF.F_basis_pol(1)
             (-75*y^7*d + 225*x*y^5*d - 1249*x^2*y^3*d + 1099*x^3*y*d)/1024
             sage: MF.F_basis_pol(0)
-            (41*y^7 - 147*x*y^5 - 1365*x^2*y^3 - 2625*x^3*y)/(-4096)
+            (-41*y^7 + 147*x*y^5 + 1365*x^2*y^3 + 2625*x^3*y)/4096
             sage: MF.F_basis_pol(-1)
             (-9075*y^9 + 36300*x*y^7 - 718002*x^2*y^5 - 4928052*x^3*y^3 - 2769779*x^4*y)/(8388608*y^2*d - 8388608*x*d)
 
             sage: MF.F_basis_pol(3, order_1=-1)
-            (-3*y^9*d^3 + 16*x*y^7*d^3 - 30*x^2*y^5*d^3 + 24*x^3*y^3*d^3 - 7*x^4*y*d^3)/(-4*x)
+            (3*y^9*d^3 - 16*x*y^7*d^3 + 30*x^2*y^5*d^3 - 24*x^3*y^3*d^3 + 7*x^4*y*d^3)/(4*x)
             sage: MF.F_basis_pol(1, order_1=2)
             -x^2*y^3*d + x^3*y*d
             sage: MF.F_basis_pol(0, order_1=2)
-            (-3*x^2*y^3 - 5*x^3*y)/(-8)
+            (3*x^2*y^3 + 5*x^3*y)/8
             sage: MF.F_basis_pol(-1, order_1=2)
             (-81*x^2*y^5 - 606*x^3*y^3 - 337*x^4*y)/(1024*y^2*d - 1024*x*d)
         """

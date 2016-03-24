@@ -211,7 +211,7 @@ class SetsWithGrading(Category):
                 sage: N = SetsWithGrading().example(); N
                 Non negative integers
                 sage: N.generating_series()
-                1/(-z + 1)
+                -1/(z - 1)
             """
             from sage.combinat.species.series import LazyPowerSeriesRing
             from sage.rings.integer_ring import ZZ

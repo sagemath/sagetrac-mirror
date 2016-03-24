@@ -4107,11 +4107,11 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([3,2,1]).arms_legs_coeff(1,1)
-            (-t + 1)/(-q + 1)
+            (t - 1)/(q - 1)
             sage: Partition([3,2,1]).arms_legs_coeff(0,0)
-            (-q^2*t^3 + 1)/(-q^3*t^2 + 1)
+            (q^2*t^3 - 1)/(q^3*t^2 - 1)
             sage: Partition([3,2,1]).arms_legs_coeff(*[0,0])
-            (-q^2*t^3 + 1)/(-q^3*t^2 + 1)
+            (q^2*t^3 - 1)/(q^3*t^2 - 1)
         """
         QQqt = PolynomialRing(QQ, ['q', 't'])
         (q, t) = QQqt.gens()

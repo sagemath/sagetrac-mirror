@@ -2018,12 +2018,13 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: f = E.multiplication_by_m(2)
             sage: f
-            ((x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12), (8*x^6*y - 40*x^4*y + 480*x^3*y - 40*x^2*y + 96*x*y - 568*y)/(64*x^6 - 128*x^4 + 384*x^3 + 64*x^2 - 384*x + 576))
+            ((1/4*x^4 + 1/2*x^2 - 6*x + 1/4)/(x^3 - x + 3),
+             (1/8*x^6*y - 5/8*x^4*y + 15/2*x^3*y - 5/8*x^2*y + 3/2*x*y - 71/8*y)/(x^6 - 2*x^4 + 6*x^3 + x^2 - 6*x + 9))
 
         Grab only the x-coordinate (less work)::
 
             sage: mx = E.multiplication_by_m(2, x_only=True); mx
-            (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+            (1/4*x^4 + 1/2*x^2 - 6*x + 1/4)/(x^3 - x + 3)
             sage: mx.parent()
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
 

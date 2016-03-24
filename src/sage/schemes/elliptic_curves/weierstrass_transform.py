@@ -136,7 +136,7 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
             sage: P = [2,2,-1]
             sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True).inverse()
             sage: f.post_rescaling()
-            1/60480/(180*x^2*z)
+            1/10886400/(x^2*z)
 
         So here is what it does. If we just plug in the coordinate
         transformation, we get the defining polynomial up to

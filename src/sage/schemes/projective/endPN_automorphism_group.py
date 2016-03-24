@@ -1116,7 +1116,7 @@ def three_stable_points(rational_function, invariant_list):
         sage: L = [[0,1],[4,1],[1,1],[1,0]]
         sage: from sage.schemes.projective.endPN_automorphism_group import three_stable_points
         sage: three_stable_points(f,L)
-        [z, 4*z, 2/(2*z), 3/(2*z)]
+        [z, 4*z, 1/z, 4/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():
@@ -1491,7 +1491,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
         sage: L = [[4, 1], [2, 1]]
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphisms_fixing_pair
         sage: automorphisms_fixing_pair(f, L, False)
-        [4/(3*z + 3), (6*z + 6)/z]
+        [6/(z + 1), (6*z + 6)/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():
@@ -1568,7 +1568,7 @@ def automorphism_group_FF_alg3(rational_function):
         sage: f = (3456*z^4)
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF_alg3
         sage: automorphism_group_FF_alg3(f)
-        [z, 3/(3*z)]
+        [z, 1/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():

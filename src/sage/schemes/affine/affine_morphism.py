@@ -667,10 +667,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([(3*x^2-2)/(x)])
             sage: f.nth_iterate_map(3)
-            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x) to
-                    ((2187*x^8 - 6174*x^6 + 6300*x^4 - 2744*x^2 + 432)/(81*x^7 -
-            168*x^5 + 112*x^3 - 24*x))
+	    Scheme endomorphism of Affine Space of dimension 1 over Rational Field
+	      Defn: Defined on coordinates by sending (x) to
+		    ((27*x^8 - 686/9*x^6 + 700/9*x^4 - 2744/81*x^2 + 16/3)/(x^7 - 56/27*x^5 + 112/81*x^3 - 8/27*x))
 
         ::
 
@@ -807,9 +806,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([(x-t*y^2)/x, t*x*y])
             sage: f.orbit(A(1, t), 3)
-            [(1, t), (-t^3 + 1, t^2), ((-t^5 - t^3 + 1)/(-t^3 + 1), -t^6 + t^3),
-            ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 -
-            t^7 + t^4)]
+	    [(1, t),
+	     (-t^3 + 1, t^2),
+	     ((t^5 + t^3 - 1)/(t^3 - 1), -t^6 + t^3),
+	     ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 - t^7 + t^4)]
         """
         return(P.orbit(self, n))
 

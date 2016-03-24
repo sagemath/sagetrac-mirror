@@ -74,7 +74,7 @@ cdef class FractionFieldElement(FieldElement):
         True
         sage: x = K.gen()
         sage: f = (x^3 + x)/(17 - x^19); f
-        (x^3 + x)/(-x^19 + 17)
+        (-x^3 - x)/(x^19 - 17)
         sage: loads(f.dumps()) == f
         True
 
@@ -905,7 +905,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: x = PolynomialRing(RationalField(),'x').gen()
             sage: f = (x^3 + x)/(x^2 - 2*x^3)
             sage: f
-            (x^2 + 1)/(-2*x^2 + x)
+            (-1/2*x^2 - 1)/(x^2 - 1/2*x)
             sage: f.valuation()
             -1
             sage: f.valuation(x^2+1)

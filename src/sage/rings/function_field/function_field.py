@@ -32,7 +32,7 @@ simple arithmetic in it::
     sage: y^3
     2*x*y + (x^4 + 1)/x
     sage: a = 1/y; a
-    (4*x/(4*x^4 + 4))*y^2 + 2*x^2/(4*x^4 + 4)
+    (x/(x^4 + 1))*y^2 + 3*x^2/(x^4 + 1)
     sage: a * y
     1
 
@@ -46,7 +46,7 @@ that arithmetic with a tower of 3 fields is fully supported::
     sage: t^2
     x*y
     sage: 1/t
-    ((1/(x^4 + 1))*y^2 + 2*x/(4*x^4 + 4))*t
+    ((1/(x^4 + 1))*y^2 + 3*x/(x^4 + 1))*t
     sage: M.base_field()
     Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
     sage: M.base_field().base_field()
@@ -346,7 +346,7 @@ class FunctionField_polymod(FunctionField):
         sage: M.<z> = L.extension(z^2 + y*z + y); M
         Function field in z defined by z^2 + y*z + y
         sage: 1/z
-        ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
+        ((-x/(x^4 + 1))*y^4 + 2*x^2/(x^4 + 1))*z - 1
         sage: z * (1/z)
         1
 
@@ -733,12 +733,12 @@ class FunctionField_polymod(FunctionField):
         We define an interesting element of the function field::
 
             sage: a = 1/L.0; a
-            (-x/(-x^4 - 1))*y^4 + 2*x^2/(-x^4 - 1)
+            (x/(x^4 + 1))*y^4 - 2*x^2/(x^4 + 1)
 
         We convert it to the vector space, and get a vector over the base field::
 
             sage: to_V(a)
-            (2*x^2/(-x^4 - 1), 0, 0, 0, -x/(-x^4 - 1))
+            (-2*x^2/(x^4 + 1), 0, 0, 0, x/(x^4 + 1))
 
         We convert to and back, and get the same element::
 

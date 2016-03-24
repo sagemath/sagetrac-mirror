@@ -661,7 +661,7 @@ def uniq(x):
         sage: uniq([f,g])
         [x/(x - y)]
         sage: uniq([g,f])
-        [(-x)/(-x + y)]
+        [x/(x - y)]
 
     ::
 
