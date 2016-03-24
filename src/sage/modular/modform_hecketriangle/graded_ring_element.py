@@ -144,7 +144,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: MeromorphicModularFormsRing(n=3)(x) == MeromorphicModularFormsRing(n=4)(x)
             False
             sage: MeromorphicModularFormsRing()(-1/x) is MeromorphicModularFormsRing()(1/(-x))
-            False
+            True
             sage: MeromorphicModularFormsRing()(-1/x) == MeromorphicModularFormsRing()(1/(-x))
             True
             sage: MeromorphicModularFormsRing(base_ring=CC)(-1/x) == MeromorphicModularFormsRing()(1/(-x))
@@ -176,16 +176,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: (x,y,z,d) = MeromorphicModularFormsRing().pol_ring().gens()
             sage: MeromorphicModularFormsRing()(-1/x) == MeromorphicModularFormsRing()(1/(-x))
             True
-            sage: hash(MeromorphicModularFormsRing()(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
-            Traceback (most recent call last):
-            ...
-            TypeError: general elements of fraction fields are not hashable
             sage: with strict_equality(True):
             ....:     MeromorphicModularFormsRing()(-1/x) == MeromorphicModularFormsRing()(1/(-x))
-            False
-            sage: with strict_equality(True):
-            ....:     hash(MeromorphicModularFormsRing()(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
-            False
+            True
+            sage: hash(MeromorphicModularFormsRing()(-1/x)) == hash(MeromorphicModularFormsRing()(1/(-x)))
+            True
 
         """
         rat = self.rat()

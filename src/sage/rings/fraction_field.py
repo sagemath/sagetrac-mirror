@@ -660,7 +660,7 @@ class FractionField_generic(ring.Field):
         """
         x = self._R.gen(i)
         one = self._R.one()
-        r = self._element_class(self, x, one, coerce=False, reduce=False)
+        r = self._element_class(self, x, one, coerce=False, reduce=False, assume_normal_form=True)
         return r
 
     def _is_valid_homomorphism_(self, codomain, im_gens):

@@ -96,12 +96,8 @@ cdef class FractionFieldElement(FieldElement):
         sage: F.one().quo_rem(F.one())
         (1, 0)
     """
-    cdef object __numerator
-    cdef object __denominator
-    cdef bint __is_normalized
-
     def __init__(self, parent, numerator, denominator=1,
-                 coerce=True, reduce=True):
+                 coerce=True, reduce=True, assume_normal_form=False):
         """
         Initialize ``self``.
 
@@ -125,7 +121,10 @@ cdef class FractionFieldElement(FieldElement):
 
         """
         FieldElement.__init__(self, parent)
-        self.__is_normalized = False
+        if assume_normal_form:
+            self.__reduction = NormalForm
+        else:
+            self.__reduction = Unreduced
         if coerce:
             self.__numerator   = parent.ring()(numerator)
             self.__denominator = parent.ring()(denominator)
@@ -182,6 +181,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: f.reduce(); f
             x + 1.0
         """
+        self.__reduction = ReductionFailed
         try:
             g = self.__numerator.gcd(self.__denominator)
             if not g.is_unit():
@@ -190,39 +190,60 @@ cdef class FractionFieldElement(FieldElement):
             else:
                 num = self.__numerator
                 den = self.__denominator
-        except AttributeError:
+        except AttributeError as e:
             raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
-        except TypeError:
+        except TypeError as e:
             raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
-        except NotImplementedError:
+        except NotImplementedError as e:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
-        try:
-            # normalize the denominator
-            c = None
-            if den.is_one():
-                pass
-            elif den.is_unit():
-                c = den
-            elif hasattr(den, "leading_coefficient") and den.leading_coefficient().is_unit():
+        # The above has made the numerator and the denominator coprime.
+        # Two representations of the same fraction field element might now
+        # still differ by a unit factor in the numerator and denominator.
+        # We try to bring the element into some normal form by finding a
+        # unit such that the denominator is in a normal form.
+        # This is of course somewhat arbitrary but works nicely for the
+        # most important fraction fields.
+        normal_form = True
+
+        # normalize the denominator
+        c = None
+        if den.is_one():
+            pass
+        elif den.is_unit():
+            c = den
+        elif den.parent().base_ring() is ZZ:
+            if hasattr(den, "leading_coefficient"):
+                c = den.leading_coefficient().sign()
+            elif hasattr(den, "lc"):
+                c = den.lc().sign()
+            elif hasattr(den, "constant_coefficient") and not den.constant_coefficient().is_zero():
+                c = den.constant_coefficient().sign()
+            else:
+                normal_form = False
+        else:
+            if hasattr(den, "leading_coefficient") and den.leading_coefficient().is_unit():
                 c = den.leading_coefficient()
             elif hasattr(den, "lc") and den.lc().is_unit():
                 c = den.lc()
             elif hasattr(den, "constant_coefficient") and den.constant_coefficient().is_unit():
                 c = den.constant_coefficient()
+            else:
+                normal_form = False
 
-            if c is not None and not c.is_one():
-                c = c.inverse_of_unit()
-                num *= c
-                den *= c
+        if c is not None and not c.is_one():
+            c = c.inverse_of_unit()
+            num *= c
+            den *= c
 
-            self.__numerator   = self.parent().ring()(num)
-            self.__denominator = self.parent().ring()(den)
-            self.__is_normalized = True
-        except Exception as e:
-            #TODO: Remove DEBUG
-            print e
-            raise
+        self.__numerator   = num
+        self.__denominator = den
+        assert self.__numerator.parent() is self.parent().ring()
+        assert self.__denominator.parent() is self.parent().ring()
+        if normal_form:
+            self.__reduction = NormalForm
+        else:
+            self.__reduction = Reduced
 
     def __copy__(self):
         """
@@ -370,8 +391,15 @@ cdef class FractionFieldElement(FieldElement):
             True
         """
         from sage.structure.strict_equality import strict_equality
-        # an element is only hashable if we use strict equality or if is normalized
-        if strict_equality() or self.__is_normalized or self == 0 or self.denominator() == 1:
+
+        if self.__reduction == Unreduced:
+            try:
+                self.reduce()
+            except ArithmeticError:
+                pass
+
+        # an element is only hashable if we use strict equality or if is in a normal form
+        if strict_equality() or self.__reduction == NormalForm or self == 0 or self.denominator() == 1:
             n = hash(self.__numerator)
             d = hash(self.__denominator)
             if d == 1:
@@ -437,6 +465,11 @@ cdef class FractionFieldElement(FieldElement):
         """
         if self.is_zero():
             return "0"
+        if self.__reduction == Unreduced:
+            try:
+                self.reduce()
+            except ArithmeticError:
+                pass
         s = "%s"%self.__numerator
         if self.__denominator != 1:
             denom_string = str( self.__denominator )
