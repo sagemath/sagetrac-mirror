@@ -1152,6 +1152,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2, y^2])
             sage: f._dehomogenize_normalize_arguments(0)
+            (0, 0)
 
         """
         if isinstance(n, (tuple,list)):
@@ -2630,7 +2631,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(R)
             sage: f=H([x^2-2*x*y-2*y^2, -2*x^2-2*x*y+y^2])
             sage: f.automorphism_group(return_functions=True)
-            [x, 2/(2*x), -x - 1, -2*x/(2*x + 2), (-x - 1)/x, -1/(x + 1)]
+            [x, 1/x, -x - 1, -x/(x + 1), (-x - 1)/x, -1/(x + 1)]
 
         ::
 
