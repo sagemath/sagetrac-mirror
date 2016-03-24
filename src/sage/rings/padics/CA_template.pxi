@@ -1352,10 +1352,14 @@ def unpickle_cae_v2(cls, parent, value, absprec):
         sage: a.parent() is R
         True
         sage: hash(a)
+        42
 
     Once they are used in a computation, they are not hashable anymore::
 
         sage: hash(a+a)
+        Traceback (most recent call last):
+        ...
+        TypeError: p-adic numbers are unhashable
 
     """
     ret = unpickle_cae_v3(cls, parent, value, absprec)

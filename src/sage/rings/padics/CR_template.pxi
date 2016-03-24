@@ -2119,17 +2119,21 @@ def unpickle_cre_v2(cls, parent, value, absprec):
     Elements prior to version 2 are made hashable. Otherwise, structures
     relying on them would not unpickle correctly::
 
-        sage: from sage.rings.padics.padic_capped_absolute_element import unpickle_cre_v2, pAdicCappedAbsoluteElement
+        sage: from sage.rings.padics.padic_capped_relative_element import unpickle_cre_v2, pAdicCappedRelativeElement
         sage: R = ZpCA(5,8)
-        sage: a = unpickle_cre_v2(pAdicCappedAbsoluteElement, R, 42, int(6)); a
+        sage: a = unpickle_cre_v2(pAdicCappedRelativeElement, R, 42, int(0), int(6)); a
         2 + 3*5 + 5^2 + O(5^6)
         sage: a.parent() is R
         True
         sage: hash(a)
+        42
 
     Once they are used in a computation, they are not hashable anymore::
 
         sage: hash(a+a)
+        Traceback (most recent call last):
+        ...
+        TypeError: p-adic numbers are unhashable
 
     """
     ret = unpickle_cre_v3(cls, parent, value, absprec)

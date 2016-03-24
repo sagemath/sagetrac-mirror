@@ -1525,16 +1525,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: hash(w)
+            Traceback (most recent call last):
+            ...
+            TypeError: p-adic numbers are unhashable
 
         However, with ``strict_equality`` they are hashable::
 
             sage: with strict_equality(True):
-            ....:     hash(w)
+            ....:     hash(w) == hash(w)
+            True
 
         """
         from sage.structure.all import strict_equality
         if strict_equality():
-            return hash(tuple([tuple(x) for x in self.list()]))
+            return hash(tuple(self.list()))
         else:
             raise TypeError("p-adic numbers are unhashable")
 
