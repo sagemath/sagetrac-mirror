@@ -188,35 +188,37 @@ cdef class FractionFieldElement(FieldElement):
             else:
                 num = self.__numerator
                 den = self.__denominator
-            if not den.is_one() and den.is_unit():
-                try:
-                    num *= den.inverse_of_unit()
-                    den  = den.parent().one()
-                except Exception:
-                    pass
+        except AttributeError:
+            raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
+        except TypeError:
+            raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
+        except NotImplementedError:
+            raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
+        try:
             # normalize the denominator
             c = None
-            if hasattr(den, "leading_coefficient") and den.leading_coefficient().is_unit():
+            if den.is_one():
+                pass
+            elif den.is_unit():
+                c = den
+            elif hasattr(den, "leading_coefficient") and den.leading_coefficient().is_unit():
                 c = den.leading_coefficient()
             elif hasattr(den, "lc") and den.lc().is_unit():
                 c = den.lc()
             elif hasattr(den, "constant_coefficient") and den.constant_coefficient().is_unit():
                 c = den.constant_coefficient()
 
-            if c is not None:
-                c = ~c
+            if c is not None and not c.is_one():
+                c = c.inverse_of_unit()
                 num *= c
                 den *= c
 
-            self.__numerator   = num
-            self.__denominator = den
-        except AttributeError:
-            raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
-        except TypeError:
-            raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
-        except NotImplementedError:
-            raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
+            self.__numerator   = self.parent().ring()(num)
+            self.__denominator = self.parent().ring()(den)
+        except Exception as e:
+            print e
+            raise
 
     def __copy__(self):
         """
