@@ -82,14 +82,15 @@ cdef class FpTElement(RingElement):
     """
     An element of an FpT fraction field.
     """
-
-    def __init__(self, parent, numer, denom=1, coerce=True, reduce=True):
+    def __init__(self, parent, numer, denom=1, coerce=True, reduce=True, assume_normal_form=None):
         """
         INPUT:
 
-        - parent -- the Fraction field containing this element
-        - numer -- something that can be converted into the polynomial ring, giving the numerator
-        - denom -- something that can be converted into the polynomial ring, giving the numerator (default 1)
+        - ``parent`` -- the Fraction field containing this element
+        - ``numer`` -- something that can be converted into the polynomial ring, giving the numerator
+        - ``denom`` -- something that can be converted into the polynomial ring, giving the numerator (default 1)
+        - ``assume_normal_form`` -- (ignored) for compatibility with general fraction field elements
+
 
         EXAMPLES::
 
