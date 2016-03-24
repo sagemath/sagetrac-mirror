@@ -946,7 +946,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         from sage.structure.all import strict_equality
         if strict_equality():
-            return hash(tuple(self.list()))
+            return hash(tuple(tuple(x) if isinstance(x,list) else x for x in self.list()))
         else:
             raise TypeError("p-adic numbers are unhashable")
 
