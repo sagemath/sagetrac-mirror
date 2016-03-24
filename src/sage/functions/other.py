@@ -456,6 +456,11 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
+
+            sage: ceil(x == x+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: ceil of a relation is not defined
         """
         if maximum_bits is not None:
             from sage.misc.superseded import deprecation
@@ -472,6 +477,9 @@ class Function_ceil(BuiltinFunction):
                 import numpy
                 return numpy.ceil(x)
 
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("ceil of a relation is not defined")
+
         from sage.rings.all import RealIntervalField
 
         bits = 64
@@ -482,7 +490,8 @@ class Function_ceil(BuiltinFunction):
             # expression unevaluated.
             return BuiltinFunction.__call__(self, SR(x))
 
-        while x_interval.absolute_diameter() >= 1:
+        prec = 2.**(-30)
+        while x_interval.absolute_diameter() >= prec:
             bits *= 2
             x_interval = RealIntervalField(bits)(x)
 
@@ -649,6 +658,11 @@ class Function_floor(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
+
+            sage: floor(x == x+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: floor of a relation is not defined
         """
         if maximum_bits is not None:
             from sage.misc.superseded import deprecation
@@ -665,6 +679,9 @@ class Function_floor(BuiltinFunction):
                 import numpy
                 return numpy.floor(x)
 
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("floor of a relation is not defined")
+
         from sage.rings.all import RealIntervalField
 
         bits = 64
@@ -675,7 +692,8 @@ class Function_floor(BuiltinFunction):
             # expression unevaluated.
             return BuiltinFunction.__call__(self, SR(x))
 
-        while x_interval.absolute_diameter() >= 1:
+        prec = 2.**(-30)
+        while x_interval.absolute_diameter() >= prec:
             bits *= 2
             x_interval = RealIntervalField(bits)(x)
 
