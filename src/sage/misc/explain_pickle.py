@@ -1962,7 +1962,7 @@ class PickleExplainer(object):
             if isinstance(obj, PickleObject):
                 if isinstance(obj.value, type):
                     simple_call = True
-                elif isinstance(obj.value, types.ClassType):
+                elif isinstance(obj.value, type):
                     if hasattr(obj.value, '__getinitargs__'):
                         simple_call = True
                     else:
@@ -2460,7 +2460,7 @@ def unpickle_instantiate(fn, args):
         sage: unpickle_instantiate(Integer, ('42',))
         42
     """
-    if isinstance(fn, types.ClassType) and len(args) == 0 and not hasattr(fn, '__getinitargs__'):
+    if isinstance(fn, type) and len(args) == 0 and not hasattr(fn, '__getinitargs__'):
         return types.InstanceType(fn)
 
     return fn(*args)

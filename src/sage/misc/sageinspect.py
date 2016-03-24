@@ -192,10 +192,10 @@ def _extract_embedded_position(docstring):
 
     EXAMPLES::
 
-       sage: from sage.misc.sageinspect import _extract_embedded_position
-       sage: import inspect
-       sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
-       'sage/calculus/var.pyx'
+        sage: from sage.misc.sageinspect import _extract_embedded_position
+        sage: import inspect
+        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
+        'sage/calculus/var.pyx'
 
     The following has been fixed in :trac:`13916`::
 
