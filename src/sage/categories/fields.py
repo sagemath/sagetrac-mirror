@@ -694,3 +694,18 @@ class Fields(CategoryWithAxiom):
                 return (P.one(), P.zero(), ~other)
             # else both are 0
             return (P.zero(), P.zero(), P.zero())
+
+        def inverse_of_unit(self):
+            r"""
+            Return inverse if this is a unit, i.e., if it is non-zero.
+
+            EXAMPLES::
+
+                sage: GF(5)(2).inverse_of_unit()
+                3
+                sage: GF(5)(0).inverse_of_unit()
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: Inverse does not exist.
+            """
+            return ~self

@@ -6069,8 +6069,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def inverse_of_unit(self):
         """
-        Return inverse of self if self is a unit in the integers, i.e.,
-        self is -1 or 1. Otherwise, raise a ZeroDivisionError.
+        Return inverse if this is a unit, i.e., if it is -1 or 1. Otherwise,
+        raise a ``ZeroDivisionError``.
 
         EXAMPLES::
 
