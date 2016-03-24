@@ -107,8 +107,19 @@ cdef class FractionFieldElement(FieldElement):
             sage: K.<x> = Frac(ZZ['x'])
             sage: FractionFieldElement(K, x, 4)
             x/4
-            sage: FractionFieldElement(K, x, x, reduce=False)
-            x/x
+            sage: f= FractionFieldElement(K, x, x, reduce=False)
+            sage: f.numerator()
+            x
+            sage: f.denominator()
+            x
+
+        Note that ``f`` is automatically reduced upon printing::
+
+            sage: f
+            1
+
+        ::
+
             sage: f = FractionFieldElement(K, 'hi', 1, coerce=False, reduce=False)
             sage: f.numerator()
             'hi'
@@ -346,10 +357,17 @@ cdef class FractionFieldElement(FieldElement):
             (False, None)
 
             sage: R.<x> = QQ[]
-            sage: a = 2*(x+1)^2 / (2*(x-1)^2); a
-            (2*x^2 + 4*x + 2)/(2*x^2 - 4*x + 2)
+            sage: a = (2*(x+1)^2) / (2*(x-1)^2)
+            sage: a.numerator()
+            2*x^2 + 4*x + 2
             sage: a.numerator().is_square()
             False
+            sage: a.is_square()
+            True
+            sage: a # printing triggers reduction of the element
+            (x^2 + 2*x + 1)/(x^2 - 2*x + 1)
+            sage: a.numerator().is_square()
+            True
             sage: a.is_square()
             True
             sage: (0/x).is_square()
@@ -755,9 +773,14 @@ cdef class FractionFieldElement(FieldElement):
             sage: int(K(-3))
             -3
             sage: K.<x> = Frac(RR['x'])
-            sage: x/x
+            sage: a = x/x; a
             x/x
-            sage: int(x/x)
+            sage: int(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: denominator must equal 1
+            sage: a.reduce(unsafe=True)
+            sage: int(a)
             1
             sage: int(K(.5))
             0
@@ -777,7 +800,9 @@ cdef class FractionFieldElement(FieldElement):
             sage: K(5)._integer_()
             5
             sage: K.<x> = Frac(RR['x'])
-            sage: ZZ(2*x/x)
+            sage: a = 2*x/x
+            sage: a.reduce(unsafe=True)
+            sage: ZZ(a)
             2
         """
         if self.__denominator != 1:
