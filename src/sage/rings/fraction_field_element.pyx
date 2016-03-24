@@ -194,6 +194,21 @@ cdef class FractionFieldElement(FieldElement):
                     den  = den.parent().one()
                 except Exception:
                     pass
+
+            # normalize the denominator
+            c = None
+            if hasattr(den, "leading_coefficient") and den.leading_coefficient().is_unit():
+                c = den.leading_coefficient()
+            elif hasattr(den, "lc") and den.lc().is_unit():
+                c = den.lc()
+            elif hasattr(den, "constant_coefficient") and den.constant_coefficient().is_unit():
+                c = den.constant_coefficient()
+
+            if c is not None:
+                c = ~c
+                num *= c
+                den *= c
+
             self.__numerator   = num
             self.__denominator = den
         except AttributeError:
@@ -349,7 +364,11 @@ cdef class FractionFieldElement(FieldElement):
             True
         """
         from sage.structure.strict_equality import strict_equality
-        if self == 0 or self.__denominator == 1 or strict_equality():
+        # an element is only hashable if we use strict equality or if its denominator is normalized
+        if strict_equality() or self == 0 or self.denominator() == 1 or \
+            (hasattr(self.denominator(), "leading_coefficient") and self.denominator().leading_coefficient() == 1) or \
+            (hasattr(self.denominator(), "lc") and self.denominator().lc() == 1) or \
+            (hasattr(self.denominator(), "constant_coefficient") and self.denominator().constant_coefficient() == 1):
             n = hash(self.__numerator)
             d = hash(self.__denominator)
             if d == 1:
