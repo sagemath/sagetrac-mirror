@@ -98,6 +98,7 @@ cdef class FractionFieldElement(FieldElement):
     """
     cdef object __numerator
     cdef object __denominator
+    cdef bint __is_normalized
 
     def __init__(self, parent, numerator, denominator=1,
                  coerce=True, reduce=True):
@@ -124,6 +125,7 @@ cdef class FractionFieldElement(FieldElement):
 
         """
         FieldElement.__init__(self, parent)
+        self.__is_normalized = False
         if coerce:
             self.__numerator   = parent.ring()(numerator)
             self.__denominator = parent.ring()(denominator)
@@ -216,7 +218,9 @@ cdef class FractionFieldElement(FieldElement):
 
             self.__numerator   = self.parent().ring()(num)
             self.__denominator = self.parent().ring()(den)
+            self.__is_normalized = True
         except Exception as e:
+            #TODO: Remove DEBUG
             print e
             raise
 
@@ -366,11 +370,8 @@ cdef class FractionFieldElement(FieldElement):
             True
         """
         from sage.structure.strict_equality import strict_equality
-        # an element is only hashable if we use strict equality or if its denominator is normalized
-        if strict_equality() or self == 0 or self.denominator() == 1 or \
-            (hasattr(self.denominator(), "leading_coefficient") and self.denominator().leading_coefficient() == 1) or \
-            (hasattr(self.denominator(), "lc") and self.denominator().lc() == 1) or \
-            (hasattr(self.denominator(), "constant_coefficient") and self.denominator().constant_coefficient() == 1):
+        # an element is only hashable if we use strict equality or if is normalized
+        if strict_equality() or self.__is_normalized or self == 0 or self.denominator() == 1:
             n = hash(self.__numerator)
             d = hash(self.__denominator)
             if d == 1:
