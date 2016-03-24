@@ -308,7 +308,11 @@ class HyperbolicPoint(Element):
             True
 
         """
-        return hash(tuple(self._coordinates))
+        # _coordinates can be a vector or a symbolic expression such as "I"
+        try:
+            return hash(self._coordinates)
+        except TypeError:
+            return hash(tuple(self._coordinates))
 
     def __rmul__(self, other):
         r"""
