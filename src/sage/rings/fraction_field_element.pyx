@@ -131,11 +131,8 @@ cdef class FractionFieldElement(FieldElement):
         else:
             self.__numerator   = numerator
             self.__denominator = denominator
-        if reduce and parent.is_exact():
-            try:
-                self.reduce()
-            except ArithmeticError:
-                pass
+        if reduce:
+            self.reduce(ignore_exceptions = True, unsafe = False)
         if self.__denominator.is_zero():
             raise ZeroDivisionError, "fraction field element division by zero"
 
@@ -165,7 +162,7 @@ cdef class FractionFieldElement(FieldElement):
         nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
         return codomain.coerce(nnum/nden)
 
-    def reduce(self):
+    def reduce(self, ignore_exceptions = False, unsafe = False):
         """
         Divides out the gcd of the numerator and denominator.
 
@@ -173,15 +170,32 @@ cdef class FractionFieldElement(FieldElement):
         numerically unstable for inexact rings it must be called manually
         in that case.
 
+        INPUT:
+
+        - ``ignore_exceptions`` -- (default: ``False``) ignore any exceptions raised due to the lack
+          of a gcd or quotient remainder implementation
+
+        - ``unsafe`` -- (default: ``True``) reduce even if the base ring is not
+          exact
+
         EXAMPLES::
 
             sage: R.<x> = RealField(10)[]
             sage: f = (x^2+2*x+1)/(x+1); f
             (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f
+            (x^2 + 2.0*x + 1.0)/(x + 1.0)
+            sage: f.reduce(unsafe=True); f
             x + 1.0
         """
+        if self.__reduction != Unreduced:
+            return
+
+        if not self.parent().is_exact() and not unsafe:
+            return
+
         self.__reduction = ReductionFailed
+
         try:
             g = self.__numerator.gcd(self.__denominator)
             if not g.is_unit():
@@ -190,11 +204,14 @@ cdef class FractionFieldElement(FieldElement):
             else:
                 num = self.__numerator
                 den = self.__denominator
-        except AttributeError as e:
+        except AttributeError:
+            if ignore_exceptions: return
             raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
-        except TypeError as e:
+        except TypeError:
+            if ignore_exceptions: return
             raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
-        except NotImplementedError as e:
+        except NotImplementedError:
+            if ignore_exceptions: return
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
         # The above has made the numerator and the denominator coprime.
@@ -212,7 +229,7 @@ cdef class FractionFieldElement(FieldElement):
             pass
         elif den.is_unit():
             c = den
-        elif den.parent().base_ring() is ZZ:
+        elif hasattr(self.parent(),"ring") and self.parent().ring() is ZZ:
             if hasattr(den, "leading_coefficient"):
                 c = den.leading_coefficient().sign()
             elif hasattr(den, "lc"):
@@ -392,11 +409,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         from sage.structure.strict_equality import strict_equality
 
-        if self.__reduction == Unreduced:
-            try:
-                self.reduce()
-            except ArithmeticError:
-                pass
+        self.reduce(ignore_exceptions = True, unsafe = False)
 
         # an element is only hashable if we use strict equality or if is in a normal form
         if strict_equality() or self.__reduction == NormalForm or self == 0 or self.denominator() == 1:
@@ -465,11 +478,9 @@ cdef class FractionFieldElement(FieldElement):
         """
         if self.is_zero():
             return "0"
-        if self.__reduction == Unreduced:
-            try:
-                self.reduce()
-            except ArithmeticError:
-                pass
+
+        self.reduce(ignore_exceptions = True, unsafe = False)
+
         s = "%s"%self.__numerator
         if self.__denominator != 1:
             denom_string = str( self.__denominator )
