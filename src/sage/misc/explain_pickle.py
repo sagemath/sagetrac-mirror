@@ -1434,25 +1434,24 @@ class PickleExplainer(object):
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
             sage: test_pickle(pickle.dumps(EmptyOldstyleClass(), protocol=0))
-                0: (    MARK
-                1: i        INST       'sage.misc.explain_pickle EmptyOldstyleClass' (MARK at 0)
-               46: p    PUT        0
-               49: (    MARK
-               50: d        DICT       (MARK at 49)
-               51: p    PUT        1
-               54: b    BUILD
-               55: .    STOP
-            highest protocol among opcodes = 0
-            explain_pickle in_current_sage=True:
-            from types import InstanceType
-            from sage.misc.explain_pickle import EmptyOldstyleClass
-            InstanceType(EmptyOldstyleClass)
-            explain_pickle in_current_sage=False:
-            pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
-            pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
-            unpickle_build(pg, {})
-            pg
-            result: EmptyOldstyleClass
+                    0: (    MARK
+                    1: i        INST       'sage.misc.explain_pickle EmptyOldstyleClass' (MARK at 0)
+                   46: p    PUT        0
+                   49: (    MARK
+                   50: d        DICT       (MARK at 49)
+                   51: p    PUT        1
+                   54: b    BUILD
+                   55: .    STOP
+                highest protocol among opcodes = 0
+                explain_pickle in_current_sage=True:
+                from sage.misc.explain_pickle import EmptyOldstyleClass
+                unpickle_instantiate(EmptyOldstyleClass, ())
+                explain_pickle in_current_sage=False:
+                pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
+                pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
+                unpickle_build(pg, {})
+                pg
+                result: EmptyOldstyleClass
         """
         self.TUPLE()
         v = self.pop()
@@ -1707,27 +1706,26 @@ class PickleExplainer(object):
 
             sage: from sage.misc.explain_pickle import *
             sage: test_pickle(EmptyOldstyleClass())
-                0: \x80 PROTO      2
-                2: (    MARK
-                3: c        GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
-               48: q        BINPUT     1
-               50: o        OBJ        (MARK at 2)
-               51: q    BINPUT     2
-               53: }    EMPTY_DICT
-               54: q    BINPUT     3
-               56: b    BUILD
-               57: .    STOP
-            highest protocol among opcodes = 2
-            explain_pickle in_current_sage=True:
-            from types import InstanceType
-            from sage.misc.explain_pickle import EmptyOldstyleClass
-            InstanceType(EmptyOldstyleClass)
-            explain_pickle in_current_sage=False:
-            pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
-            pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
-            unpickle_build(pg, {})
-            pg
-            result: EmptyOldstyleClass
+                    0: \x80 PROTO      2
+                    2: (    MARK
+                    3: c        GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
+                   48: q        BINPUT     1
+                   50: o        OBJ        (MARK at 2)
+                   51: q    BINPUT     2
+                   53: }    EMPTY_DICT
+                   54: q    BINPUT     3
+                   56: b    BUILD
+                   57: .    STOP
+                highest protocol among opcodes = 2
+                explain_pickle in_current_sage=True:
+                from sage.misc.explain_pickle import EmptyOldstyleClass
+                unpickle_instantiate(EmptyOldstyleClass, ())
+                explain_pickle in_current_sage=False:
+                pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
+                pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
+                unpickle_build(pg, {})
+                pg
+                result: EmptyOldstyleClass
         """
         klass_args = self.pop_to_mark()
         klass = klass_args[0]
@@ -1898,7 +1896,7 @@ class PickleExplainer(object):
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
             from sage.misc.explain_pickle import TestReduceGetinitargs
-            TestReduceGetinitargs()
+            unpickle_instantiate(TestReduceGetinitargs, ())
             explain_pickle in_current_sage=False:
             pg_TestReduceGetinitargs = unpickle_global('sage.misc.explain_pickle', 'TestReduceGetinitargs')
             pg = unpickle_instantiate(pg_TestReduceGetinitargs, ())
@@ -1928,16 +1926,17 @@ class PickleExplainer(object):
                62: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from types import InstanceType
             from sage.misc.explain_pickle import TestReduceNoGetinitargs
-            InstanceType(TestReduceNoGetinitargs)
+            unpickle_instantiate(TestReduceNoGetinitargs, ())
             explain_pickle in_current_sage=False:
             pg_TestReduceNoGetinitargs = unpickle_global('sage.misc.explain_pickle', 'TestReduceNoGetinitargs')
             pg = unpickle_instantiate(pg_TestReduceNoGetinitargs, ())
             unpickle_build(pg, {})
             pg
             evaluating explain_pickle in_current_sage=True:
+            Running __init__ for TestReduceNoGetinitargs
             evaluating explain_pickle in_current_sage=False:
+            Running __init__ for TestReduceNoGetinitargs
             loading pickle with cPickle:
             result: TestReduceNoGetinitargs
         """
@@ -2113,48 +2112,47 @@ class PickleExplainer(object):
             sage: key.recdict = recdict
             sage: recdict[key] = 'circular_key'
             sage: test_pickle(pickle.dumps(recdict, protocol=2))
-                0: \x80 PROTO      2
-                2: }    EMPTY_DICT
-                3: q    BINPUT     0
-                5: (    MARK
-                6: (        MARK
-                7: c            GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
-               52: q            BINPUT     1
-               54: o            OBJ        (MARK at 6)
-               55: q        BINPUT     2
-               57: }        EMPTY_DICT
-               58: q        BINPUT     3
-               60: U        SHORT_BINSTRING 'recdict'
-               69: q        BINPUT     4
-               71: h        BINGET     0
-               73: s        SETITEM
-               74: b        BUILD
-               75: U        SHORT_BINSTRING 'circular_key'
-               89: q        BINPUT     5
-               91: U        SHORT_BINSTRING 'Circular value'
-              107: q        BINPUT     6
-              109: h        BINGET     0
-              111: u        SETITEMS   (MARK at 5)
-              112: .    STOP
-            highest protocol among opcodes = 2
-            explain_pickle in_current_sage=True:
-            si1 = {}
-            from types import InstanceType
-            from sage.misc.explain_pickle import EmptyOldstyleClass
-            si2 = InstanceType(EmptyOldstyleClass)
-            si2.__dict__['recdict'] = si1
-            si1[si2] = 'circular_key'
-            si1['Circular value'] = si1
-            si1
-            explain_pickle in_current_sage=False:
-            si = {}
-            pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
-            pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
-            unpickle_build(pg, {'recdict':si})
-            si[pg] = 'circular_key'
-            si['Circular value'] = si
-            si
-            result: {EmptyOldstyleClass: 'circular_key', 'Circular value': {...}}
+                    0: \x80 PROTO      2
+                    2: }    EMPTY_DICT
+                    3: q    BINPUT     0
+                    5: (    MARK
+                    6: (        MARK
+                    7: c            GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
+                   52: q            BINPUT     1
+                   54: o            OBJ        (MARK at 6)
+                   55: q        BINPUT     2
+                   57: }        EMPTY_DICT
+                   58: q        BINPUT     3
+                   60: U        SHORT_BINSTRING 'recdict'
+                   69: q        BINPUT     4
+                   71: h        BINGET     0
+                   73: s        SETITEM
+                   74: b        BUILD
+                   75: U        SHORT_BINSTRING 'circular_key'
+                   89: q        BINPUT     5
+                   91: U        SHORT_BINSTRING 'Circular value'
+                  107: q        BINPUT     6
+                  109: h        BINGET     0
+                  111: u        SETITEMS   (MARK at 5)
+                  112: .    STOP
+                highest protocol among opcodes = 2
+                explain_pickle in_current_sage=True:
+                si = {}
+                from sage.misc.explain_pickle import EmptyOldstyleClass
+                pg = unpickle_instantiate(EmptyOldstyleClass, ())
+                pg.__dict__['recdict'] = si
+                si[pg] = 'circular_key'
+                si['Circular value'] = si
+                si
+                explain_pickle in_current_sage=False:
+                si = {}
+                pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
+                pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
+                unpickle_build(pg, {'recdict':si})
+                si[pg] = 'circular_key'
+                si['Circular value'] = si
+                si
+                result: {EmptyOldstyleClass: 'circular_key', 'Circular value': {...}}
         """
         slice = self.pop_to_mark()
         self._SETITEMS_helper(slice)
