@@ -72,11 +72,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: Zp(2).some_elements()
-            [0, 1 + O(2^20), 2 + O(2^21)]
-
+            sage: Zp(2,4).some_elements()
+            [0, 1 + O(2^4), 2 + O(2^5), 1 + 2^2 + 2^3 + O(2^4), 2 + 2^2 + 2^3 + 2^4 + O(2^5)]
         """
-        return [self.zero(), self.one(), self(self.prime())]
+        p = self(self.prime())
+        a = self.gen()
+        one = self.one()
+        L = [self.zero(), one, p, (one+p+p).inverse_of_unit(), p-p**2]
+        if a != p:
+            L.extend([a, (one + a + p).inverse_of_unit()])
+        if self.is_field():
+            L.extend([~(p-p-a),p**(-20)])
+        return L
 
     def _modified_print_mode(self, print_mode):
         """
@@ -452,7 +459,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, **kwds):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.
 
@@ -491,7 +498,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
-        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, **print_mode)
+        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, implementation=implementation, **print_mode)
 
     def _test_add(self, **options):
         """
@@ -499,7 +506,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -535,7 +542,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -571,7 +578,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -606,7 +613,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -633,7 +640,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -665,7 +672,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -685,6 +692,37 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.precision_relative(),y.precision_relative())
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
+
+    def _test_teichmuller(self, **options):
+        """
+        Test Teichmuller lifts.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_teichmuller()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            try:
+                y = self.teichmuller(x)
+            except ValueError:
+                tester.assertTrue(x.valuation() < 0 or x.precision_absolute()==0)
+            else:
+                try:
+                    tester.assertEqual(x.residue(), y.residue())
+                except (NotImplementedError, AttributeError):
+                    pass
+                tester.assertEqual(y**self.residue_field().order(), y)
 
     @cached_method
     def _log_unit_part_p(self):

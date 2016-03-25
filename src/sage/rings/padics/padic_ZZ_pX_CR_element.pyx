@@ -182,7 +182,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
@@ -1288,11 +1288,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCR(125); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
+            sage: R.<a> = ZqCR(125,implementation="NTL"); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
             sage: d._is_normalized()
             False
-            sage: d
-            (2*a^2 + a + 2)*5 + O(5^20)
+            sage: d.valuation()
+            1
             sage: d._is_normalized()
             True
         """
@@ -2678,7 +2678,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(0,4).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXCRElement zero
         cdef Integer ordp
@@ -2906,7 +2906,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS:
 
-        We check that #8239 is resolved::
+        We check that :trac:`8239` is resolved::
 
             sage: K.<a> = Qq(25)
             sage: K.teichmuller(K(2/5))
