@@ -196,7 +196,8 @@ class WeylGroups(Category_singleton):
                     elt, is_quantum, scalar = NPR_data[alpha]
                     wr = x * elt
                     wrc = wr.coset_representative(index_set)
-                    if wrc == wr and length(wr) == w_length_plus_one:
+                    # coset_representative returns wr if nothing gets changed
+                    if wrc is wr and length(wr) == w_length_plus_one:
                         successors.append((wr, alpha))
                     elif is_quantum and length(wrc) == w_length_plus_one - scalar:
                         successors.append((wrc, alpha))
@@ -204,7 +205,8 @@ class WeylGroups(Category_singleton):
 
             from sage.graphs.digraph import DiGraph
             return DiGraph([[x,i[0],i[1]] for x in WP for i in succ(x)],
-                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set))
+                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set),
+                           format="list_of_edges")
 
     class ElementMethods:
 
