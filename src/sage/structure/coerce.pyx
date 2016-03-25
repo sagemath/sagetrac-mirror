@@ -269,8 +269,9 @@ cpdef bint is_numpy_type(t):
     """
     if not isinstance(t, type):
         return False
-    return strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0
-
+    if strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0:
+        return True
+    return strncmp(t.__module__, "numpy", 5) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):

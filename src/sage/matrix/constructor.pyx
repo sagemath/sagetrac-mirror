@@ -446,7 +446,7 @@ class MatrixFactory(object):
         [1 2]
         [3 4]
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float32')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'float32')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -458,7 +458,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Real Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex64')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'complex64')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
