@@ -1146,9 +1146,6 @@ class ContinuedFraction_base(SageObject):
             return continued_fraction((preperiod, period), z)
         else:
             from sage.misc.lazy_list import lazy_list
-            # Here we create lazy_list of unknown length, even though the length is known to be infinite
-            # Some internal methods may use length
-            # Maybe better try create an infinite word from the lazy list
             # return continued_fraction(lazy_list(_i), z)
             from sage.combinat.words.word import Word
             return continued_fraction(Word(_i, length='infinite'))
