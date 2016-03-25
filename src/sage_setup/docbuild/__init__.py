@@ -214,8 +214,7 @@ class DocBuilder(object):
 
         make_target = "cd '%s' && $MAKE %s && mv -f *.pdf '%s'"
         error_message = "failed to run $MAKE %s in %s"
-        MB_LANG = {'ja': 'all-pdf-ja',
-                   'zh': 'all-pdf-zh'}  # language name : the modified target
+        MB_LANG = {'ja': 'all-pdf-ja'}  # language name : the modified target
 
         import CJKsupport
         CJKsupport.enable_if_necessary(self.lang, tex_dir)

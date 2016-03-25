@@ -8,6 +8,7 @@ from subprocess import check_output
 
 CJK_LANGUAGES = ['zh_CN']
 
+
 def enable_if_necessary(lang, latex_directory):
     """
     Check whether the CJK hack is necessary, and perform it optionally.
