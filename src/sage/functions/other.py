@@ -420,11 +420,6 @@ class Function_ceil(BuiltinFunction):
             sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
             sage: ceil(z)
             1
-
-            sage: ceil(3, maximum_bits=10)
-            doctest:...: DeprecationWarning: the argument maximum_bits is deprecated
-            See http://trac.sagemath.org/12121 for details.
-            3
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
@@ -440,17 +435,11 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=None):
+    def __call__(self, x, maximum_bits=20000):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
         the ceiling of ``n``.
-
-        .. TODO::
-
-            The test ``bool(x = a)`` below is not reliable for symbolic
-            expressions. Instead, we should use the future machinery from
-            :trac:`19040`.
 
         TESTS::
 
@@ -463,15 +452,11 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
 
-            sage: ceil(x == x+1)
+            sage: ceil(x == x + 1)
             Traceback (most recent call last):
             ...
-            ValueError: ceil of a relation is not defined
+            ValueError: ceil(x == x + 1) is not defined
         """
-        if maximum_bits is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(12121, "the argument maximum_bits is deprecated")
-
         try:
             return x.ceil()
         except AttributeError:
@@ -483,46 +468,38 @@ class Function_ceil(BuiltinFunction):
                 import numpy
                 return numpy.ceil(x)
 
-        if isinstance(x, Expression) and x.is_relational():
-            raise ValueError("ceil of a relation is not defined")
-
         from sage.rings.all import RealIntervalField
+        from sage.rings.real_double import RDF
 
         bits = 64
-        try:
-            x_interval = RealIntervalField(bits)(x)
-        except TypeError:
-            # If we cannot compute a numerical enclosure, leave the
-            # expression unevaluated.
-            return BuiltinFunction.__call__(self, SR(x))
-
-        prec = 2.**(-30)
-        while x_interval.absolute_diameter() >= prec:
-            bits *= 2
-            x_interval = RealIntervalField(bits)(x)
-
-        l,r = x_interval.endpoints()
-        if l.ceil() == r.ceil():
-            return l.ceil()
-
-        a = x_interval.is_int()[1]
-        assert a is not None, "a = {}, lc = {}, rc = {}".format(a, l.ceil(), r.ceil())
-
-        if bool(x == a):
-            return a
-
-        if isinstance(x, Expression):
-            x = SR(x).full_simplify().canonicalize_radical()
-            if bool(x == a):
-                return a
-
-        while True:
-            bits *= 2
-            x_interval = RealIntervalField(bits)(x)
+        while bits < maximum_bits:
             try:
-                return x_interval.unique_ceil()
+                interval = RealIntervalField(bits)(x)
+            except TypeError:
+                break
+            try:
+                return interval.unique_ceil()
             except ValueError:
                 pass
+            if RDF(interval.absolute_diameter().log2()) < -RDF(bits)/2.:
+                candidate = interval.unique_integer()
+                try:
+                    delta = x - candidate
+                    if (delta.is_zero()
+                            or SR(delta).full_simplify()
+                                        .canonicalize_radical()
+                                        .is_trivial_zero()
+                            or QQbar(delta).is_zero()):
+                        return candidate
+                except (TypeError, ValueError):
+                    pass
+            bits *= 2
+
+        # Raise an error if the expression clearly doesn't make sense,
+        # otherwise leave it unevaluated.
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("ceil({}) is not defined".format(x))
+        return BuiltinFunction.__call__(self, SR(x))
 
     def _eval_(self, x):
         """
