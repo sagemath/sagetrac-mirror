@@ -7,7 +7,9 @@
 # See below for targets to build the documentation in other formats,
 # to run various types of test suites, and to remove parts of the build etc.
 
-default: all
+default:
+	@if [ -f relocate-once.py ]; then ./relocate-once.py; fi
+	$(MAKE) all
 
 build: all-build
 
