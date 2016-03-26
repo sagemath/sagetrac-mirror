@@ -56,6 +56,8 @@ cdef extern from "Python.h":
 from cpython.list cimport *
 
 from libc cimport limits
+from sage.rings.all import Infinity
+
 
 cdef class lazy_list_iterator(object):
     """

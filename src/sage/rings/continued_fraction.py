@@ -2669,13 +2669,18 @@ class Gosper_iterator:
                     raise StopIteration
 
             import math
-            ub = math.floor(self.bound(self.a, self.c))
-            lb = math.floor(self.bound(self.b, self.d))
+            i1 = self.bound(self.a, self.c)
+            i2 = self.bound(self.b, self.d)
+            s = -self.bound(self.c, self.d)
+            if i2 < i1:
+                i1,i2 = i2, i1
+            ub = math.floor(i1)
+            lb = math.floor(i2)
 
             if (self.c == 0 and self.d == 0) or (ub == lb and ub == +Infinity):
                 raise StopIteration
             else:
-                if ub == lb:
+                if ub == lb and not (i1 <= s <= i2):
                     self.emit(ub)
                     return Integer(ub)
                 else:
