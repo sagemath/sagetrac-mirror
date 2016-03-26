@@ -795,7 +795,7 @@ class AbelianStratum(SageObject):
         else:
             self._zeroes.sort(reverse=True)
 
-        self._genus = sum(l)/2 + 1
+        self._genus = sum(l) / 2 + 1
 
         self._genus = Integer(self._genus)
 

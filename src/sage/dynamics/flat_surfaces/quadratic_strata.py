@@ -5,6 +5,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 
+
 class QuadraticStratum(SageObject):
     r"""
     Stratum of quadratic differentials.
