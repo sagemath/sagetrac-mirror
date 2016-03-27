@@ -270,10 +270,13 @@ cpdef bint is_numpy_type(t):
     """
     if not isinstance(t, type):
         return False
-    modname = PyObject_GetAttrString(t,"__module__")
-    if not modname or not PyString_Check(modname):
+    try:
+        modname = PyObject_GetAttrString(t,"__module__")
+        if not PyString_Check(modname):
+           return False
+        return strncmp(PyString_AsString(modname), "numpy", 5) == 0
+    except:
         return False
-    return strncmp(PyString_AsString(modname), "numpy", 5) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):
