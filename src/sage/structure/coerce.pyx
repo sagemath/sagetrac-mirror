@@ -75,7 +75,8 @@ see the documentation for Parent.
 #*****************************************************************************
 
 from cpython.object cimport (PyObject, PyTypeObject,
-        PyObject_CallObject, PyObject_RichCompare)
+        PyObject_CallObject, PyObject_RichCompare, PyObject_GetAttrString)
+from cpython.string cimport PyString_AsString, PyString_Check
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
@@ -271,10 +272,10 @@ cpdef bint is_numpy_type(t):
         return False
     if strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0:
         return True
-    try:
-        return strncmp(t.__module__, "numpy", 5) == 0
-    except:
+    modname = PyObject_GetAttrString(t,"__module__")
+    if not modname or not PyString_Check(modname):
         return False
+    return strncmp(PyString_AsString(modname), "numpy", 5) == 0
 
 cdef object _Integer
 cdef bint is_Integer(x):
