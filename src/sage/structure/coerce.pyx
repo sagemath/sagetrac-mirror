@@ -270,8 +270,6 @@ cpdef bint is_numpy_type(t):
     """
     if not isinstance(t, type):
         return False
-    if strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0:
-        return True
     modname = PyObject_GetAttrString(t,"__module__")
     if not modname or not PyString_Check(modname):
         return False
