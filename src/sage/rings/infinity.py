@@ -7,13 +7,15 @@ The unsigned infinity "ring" is the set of two elements
 
 2. A number less than infinity
 
-The rules for arithmetic are that the unsigned infinity ring does
-not canonically coerce to any other ring, and all other rings
-canonically coerce to the unsigned infinity ring, sending all
-elements to the single element "a number less than infinity" of the
-unsigned infinity ring. Arithmetic and comparisons then take place
-in the unsigned infinity ring, where all arithmetic operations that
-are well-defined are defined.
+The rules for arithmetic are that the unsigned infinity ring does not
+canonically coerce to any other ring, with the exception of the
+:mod:`symbolic ring <sage.symbolic.ring>`. Most other rings, at least
+those whose elements represent real or complex numbers, canonically
+coerce to the unsigned infinity ring, sending all elements to the
+single element "a number less than infinity" of the unsigned infinity
+ring. Arithmetic and comparisons then take place in the unsigned
+infinity ring, where all arithmetic operations that are well-defined
+are defined.
 
 The infinity "ring" is the set of five elements
 
@@ -30,8 +32,7 @@ The infinity "ring" is the set of five elements
 The infinity ring coerces to the unsigned infinity ring, sending
 the infinite elements to infinity and the non-infinite elements to
 "a number less than infinity." Any ordered ring coerces to the
-infinity ring in the obvious way. The exception is the Symbolic
-Ring (SR) which is not a ring in the usual sense.
+infinity ring in the obvious way.
 
 .. NOTE::
 
