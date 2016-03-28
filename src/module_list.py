@@ -1173,6 +1173,9 @@ ext_modules = [
     Extension("sage.numerical.backends.interactivelp_backend",
               ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
+    Extension("sage.numerical.backends.hybrid_backend",
+              ["sage/numerical/backends/hybrid_backend.pyx"]),
+
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
               libraries = ["stdc++", "gurobi"],
