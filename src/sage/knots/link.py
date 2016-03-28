@@ -2043,7 +2043,7 @@ class Link(object):
         regions = regions[:-1]
         edges = list(set(flatten(self.pd_code())))
         edges.sort()
-        MLP = MixedIntegerLinearProgram(maximization = True)
+        MLP = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
         # v will be the list of variables in the MLP problem. There will be
         # two variables for each edge: number of right bendings and number of
         # left bendings (at the end, since we are minimizing the total, only one
@@ -2142,7 +2142,7 @@ class Link(object):
             nregions.append(r1)
             nregions.append(r2)
             badregions = [nr for nr in nregions if any(x[1] == -1 for x in nr)]
-        MLP = MixedIntegerLinearProgram(maximization = True)
+        MLP = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
         variables = {}
         for e in segments:
             variables[e] = MLP.new_variable(nonnegative=True)
