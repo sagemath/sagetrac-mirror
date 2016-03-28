@@ -1759,6 +1759,17 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
             kwds['base_ring']=base_ring
         return solver(**kwds)
 
+    elif type(solver) is tuple:
+        # Handle tuples as designators for HybridBackend. Not sure if we shouldn't
+        # just use a factory instead now that we have callables.
+        from sage.rings.all import RDF
+        from sage.numerical.backends.hybrid_backend import HybridBackend
+        if base_ring is not tuple:
+            base_ring = [RDF] * (len(solver) - 1) + [base_ring]
+        backends = [ get_solver(constraint_generation=constraint_generation, solver=b, base_ring=r)
+                     for b, r in zip(solver, base_ring) ]
+        return HybridBackend(backends=backends)
+
     else:
         solver = solver.capitalize()
 
