@@ -824,15 +824,19 @@ class Factorization(SageObject):
         except AttributeError:
             atomic = False
 
-        if isinstance(x, Element):
-            one = x.parent()(1)
-        else:
-            one = 1
+        try:
+            unit_is_one = self.__unit.is_one()
+        except AttributeError:
+            try:
+                one = x.universe().one()
+            except AttributeError:
+                one = Integer(1)
+            unit_is_one = bool(self.__unit == one)
 
         for i in range(len(self)):
             t = repr(self.__x[i][0])
             n = self.__x[i][1]
-            if not atomic and (n != 1 or len(self) > 1 or self.__unit != one):
+            if not atomic and (n != 1 or len(self) > 1 or not unit_is_one):
                 if '+' in t or '-' in t or ' ' in t:
                     t = '(%s)'%t
             if n != 1:
@@ -840,7 +844,7 @@ class Factorization(SageObject):
             s += t
             if i < len(self)-1:
                 s += mul
-        if self.__unit != one:
+        if not unit_is_one:
             if atomic:
                 u = repr(self.__unit)
             else:
