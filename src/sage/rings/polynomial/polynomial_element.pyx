@@ -3717,6 +3717,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = (x - a)*(b*x + c)*(a*b*x + a*c) / (a + 2)
             sage: factor(p)
             (a/(a + 2)) * (x - a) * (b*x + c)^2
+
+        Check that :trac:`20214` is fixed::
+
+            sage: P.<x> = ZZ[]
+            sage: P(42).factor().unit().parent()
+            Integer Ring
+            sage: (x^2 + 2).factor().unit().parent()
+            Integer Ring
+            sage: (x^42 + 2).factor().unit().parent()
+            Integer Ring
+            sage: (x^500 + 2).factor().unit().parent()
+            Integer Ring
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
