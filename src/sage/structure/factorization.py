@@ -311,7 +311,7 @@ class Factorization(SageObject):
         if unit is None:
             if len(x) > 0:
                 try:
-                    unit = self.__universe(1)
+                    unit = self.__universe.base_ring(1)
                 except (AttributeError, TypeError):
                     unit = Integer(1)
             else:
