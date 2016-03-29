@@ -4829,6 +4829,28 @@ class GenericGraph(GenericGraph_pyx):
         if (len(path) != 0): faces.append(path)
         return faces
 
+    def num_faces(self,embedding=None):
+        """
+        Returns the number of faces of an embedded graph.
+
+        EXAMPLES::
+
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.num_faces()
+            4
+
+        TESTS::
+
+            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G.num_faces()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+        """
+
+        return len(self.faces(embedding))
+
+
     ### Connectivity
 
     def is_connected(self):
@@ -10935,7 +10957,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree_histogram(self):
         """
-        Returns a list, whose ith entry is the frequency of degree i.
+        Return a list, whose ith entry is the frequency of degree i.
 
         EXAMPLES::
 
@@ -10948,7 +10970,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.Grid2dGraph(9,12).to_directed()
             sage: G.degree_histogram()
             [0, 0, 0, 0, 4, 0, 34, 0, 70]
+
+        TESTS::
+
+            sage: Graph().degree_histogram()
+            []
         """
+        if self.order() == 0:
+            return []
         degree_sequence = self.degree()
         dmax = max(degree_sequence) + 1
         frequency = [0]*dmax
@@ -19085,6 +19114,11 @@ class GenericGraph(GenericGraph_pyx):
         A list of the eigenvalues, including multiplicities, sorted
         with the largest eigenvalue first.
 
+        .. SEEALSO::
+
+            The method :meth:`spectral_radius` returns floating point
+            approximation of the maximum eigenvalue.
+
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
@@ -20957,6 +20991,9 @@ GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all
 from sage.graphs.base.boost_graph import dominator_tree
 GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
+from sage.graphs.base.static_sparse_graph import spectral_radius
+GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
+
 # From Python modules
 import sage.graphs.line_graph
 GenericGraph.line_graph = sage.graphs.line_graph.line_graph
@@ -21060,8 +21097,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     - ``g`` -- Graph or DiGraph
     - ``partition`` -- (default:None) if given, the partition of the vertices is as well relabeled
     - ``standard_label`` -- (default:None) the standard label is not considered to be changed
-    - ``return_relabeling`` -- (defaut:False) if True, a dictionary containing the relabeling is returned
-    - ``return_edge_labels`` -- (defaut:False) if True, the different edge_labels are returned (useful if inplace is True)
+    - ``return_relabeling`` -- (default: False) if True, a dictionary containing the relabeling is returned
+    - ``return_edge_labels`` -- (default: False) if True, the different edge_labels are returned (useful if inplace is True)
     - ``inplace`` -- (default:False) if True, g is modified, otherwise the result is returned. Note that attributes of g are *not* copied for speed issues, only edges and vertices.
 
     OUTPUT:
