@@ -3449,6 +3449,83 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         else:
             return "%s%s"%(self._label, self[:])
 
+    def _left_right_node_number(self, direction):
+        r"""
+        Return the number of left nodes if ``direction`` is set to 0,
+        and the number of right nodes if ``direction`` is set to 1.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: bt._left_right_node_number(0)
+            3
+            sage: bt._left_right_node_number(1)
+            4
+            sage: all([
+            ....:     bt.node_number() == 1 + bt._left_right_node_number(0)
+            ....:                           + bt._left_right_node_number(1)
+            ....:     for bt in BinaryTrees(3)])
+            True
+        """
+        if self.is_empty():
+            return 0
+        res = 0
+        if not self[direction].is_empty():
+            res += 1
+        res += self[0]._left_right_node_number(direction)
+        res += self[1]._left_right_node_number(direction)
+        return res
+
+    def left_node_number(self):
+        r"""
+        Return the number of left nodes in the tree.
+
+        EXAMPLES::
+
+            sage: BinaryTree([[],None]).left_node_number()
+            1
+            sage: BinaryTree([None,[]]).left_node_number()
+            0
+            sage: BinaryTree([]).left_node_number()
+            0
+            sage: BinaryTree().left_node_number()
+            0
+            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: bt.left_node_number()
+            3
+            sage: all([
+            ....:     bt.node_number() == 1 + bt.right_node_number()
+            ....:                           + bt.left_node_number()
+            ....:     for bt in BinaryTrees(5)])
+            True
+        """
+        return self._left_right_node_number(0)
+
+    def right_node_number( self ):
+        r"""
+        Return the number of right nodes in the tree.
+
+        EXAMPLES::
+
+            sage: BinaryTree([[],None]).right_node_number()
+            0
+            sage: BinaryTree([None,[]]).right_node_number()
+            1
+            sage: BinaryTree([]).right_node_number()
+            0
+            sage: BinaryTree().right_node_number()
+            0
+            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: bt.right_node_number()
+            4
+            sage: all([
+            ....:     bt.node_number() == 1 + bt.right_node_number()
+            ....:                           + bt.left_node_number()
+            ....:     for bt in BinaryTrees(4)])
+            True
+        """
+        return self._left_right_node_number(1)
+
     def binary_search_insert(self, letter):
         """
         Return the result of inserting a letter ``letter`` into the
@@ -3832,6 +3909,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
             Labelled binary trees
         """
         return "Labelled binary trees"
+
 
     def _an_element_(self):
         """
