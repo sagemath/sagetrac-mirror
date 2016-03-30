@@ -3476,6 +3476,25 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         res += self[1]._left_right_node_number(direction)
         return res
 
+    def get_path_to_label_dict( self ):
+        return {y:x for x, y in self.get_label_to_path_dict().items()}
+
+    def get_label_to_path_dict( self ):
+        def get_paths_dict_rec(tree, d, path):
+            if tree == LabelledBinaryTree(None):
+                return
+            label = tree.label()
+            if not label[1] == 'r':
+                direction = (0,) if label[1] == 'g' else (1,)
+                path += direction
+                d[label] = path
+            get_paths_dict_rec(tree[0], d, path)
+            get_paths_dict_rec(tree[1], d, path)
+            
+        d = {}
+        get_paths_dict_rec(self, d, ())
+        return d
+
     def left_node_number(self):
         r"""
         Return the number of left nodes in the tree.
