@@ -1163,9 +1163,23 @@ class AbstractTree(object):
                 """
                 name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
+                ### HACK
+                noeud = self.label()
+                if type(noeud)==tuple and len(noeud)==2:
+                    if noeud[1]=='r':
+                        new_label = ""
+                    if noeud[1]=='g':
+                        new_label="${\color{red}%d}$"%noeud[0]
+                    if noeud[1]=='d':
+                        new_label="${\color{blue}%d}$"%noeud[0]
+                else:
+                    noeud = str(noeud)
                 nodes.append((name,
-                    (str(self.label()) if hasattr(self, "label") else ""))
+                    (new_label if hasattr(self, "label") else ""))
                 )
+#                nodes.append((name,
+#                    (str(self.label()) if hasattr(self, "label") else ""))
+#                )
                 num[0] += 1
                 return node, name
 
