@@ -832,6 +832,8 @@ class SageDev(MercurialPatchMixin):
 
             sage: dev.git.silent.branch("branch1")
             sage: dev.git.silent.branch("branch2")
+            sage: dev.git.stash('list')
+            ''
 
         Checking out a branch::
 
@@ -842,6 +844,8 @@ class SageDev(MercurialPatchMixin):
             #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'branch1'
+            sage: dev.git.stash('list')
+            ''
 
         The branch must exist::
 
@@ -849,6 +853,8 @@ class SageDev(MercurialPatchMixin):
             Branch "branch3" does not exist locally.
             <BLANKLINE>
             #  (use "sage --dev tickets" to list local branches)
+            sage: dev.git.stash('list')
+            ''
 
         Checking out branches with untracked files::
 
@@ -858,6 +864,8 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.stash('list')
+            ''
 
         Checking out a branch with uncommitted changes::
 
@@ -875,6 +883,8 @@ class SageDev(MercurialPatchMixin):
             Aborting checkout of branch "branch1".
             <BLANKLINE>
             #  (use "sage --dev commit" to save changes in a new commit)
+            sage: dev.git.stash('list')
+            ''
 
         We can stash uncommitted changes::
 
@@ -891,6 +901,8 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.stash('list')
+            'stash@{0}: WIP on branch2: ... added tracked\n'
 
         And retrieve the stashed changes later::
 
@@ -913,6 +925,8 @@ class SageDev(MercurialPatchMixin):
               untracked
             <BLANKLINE>
             no changes added to commit (use "git add" and/or "git commit -a")
+            sage: dev.git.stash('list')
+            'stash@{0}: WIP on branch2: ... added tracked\n'
 
         Or we can just discard the changes::
 
@@ -927,6 +941,8 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.stash('list')
+            'stash@{0}: WIP on branch2: ... added tracked\n'
 
         Checking out a branch when in the middle of a merge::
 
