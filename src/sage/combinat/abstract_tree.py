@@ -1170,7 +1170,7 @@ class AbstractTree(object):
                         new_label = ""
                     if noeud[1]=='g':
                         new_label="${\color{red}%d}$"%noeud[0]
-                    if noeud[1]=='d': 
+                    if noeud[1]=='d':
                         new_label="${\color{blue}%d}$"%noeud[0]
                 else:
                     noeud = str(noeud)
