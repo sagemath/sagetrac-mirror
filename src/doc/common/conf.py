@@ -650,11 +650,6 @@ def find_sage_dangling_links(app, env, node, contnode):
 
     debug_inf(app, "Searching %s from %s"%(reftarget, doc))
 
-    # Workaround: in Python's doc 'object', 'list', ... are documented as a
-    # function rather than a class
-    if reftarget in base_class_as_func and reftype == 'class':
-        node['reftype'] = 'func'
-
     res = call_intersphinx(app, env, node, contnode)
     if res:
         debug_inf(app, "++ DONE %s"%(res['refuri']))
@@ -713,12 +708,6 @@ def find_sage_dangling_links(app, env, node, contnode):
     newnode['reftitle'] = name
     newnode.append(contnode)
     return newnode
-
-# lists of basic Python class which are documented as functions
-base_class_as_func = [
-    'bool', 'complex', 'dict', 'file', 'float',
-    'frozenset', 'int', 'list', 'long', 'object',
-    'set', 'slice', 'str', 'tuple', 'type', 'unicode', 'xrange']
 
 # Nit picky option configuration: Put here broken links we want to ignore. For
 # link to the Python documentation several links where broken because there
