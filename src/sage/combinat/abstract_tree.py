@@ -1092,6 +1092,10 @@ class AbstractTree(object):
             return 1
         return nb * prod(s.tree_factorial() for s in self)
 
+    def _latex_label_(self):
+        print "Called"
+        return str(self.label())
+
     def _latex_(self):
         r"""
         Generate `\LaTeX` output which can be easily modified.
@@ -1127,7 +1131,7 @@ class AbstractTree(object):
         begin_env = "\\begin{tikzpicture}[auto]\n"
         end_env = "\\end{tikzpicture}"
         # it uses matrix trick to place each node
-        matrix_begin = "\\matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{\n"
+        matrix_begin = "\\matrix[column sep=.1cm, row sep=.1cm,ampersand replacement=\&]{\n"
         matrix_end = "\\\\\n};\n"
         # a basic path to each edges
         path_begin = "\\path[ultra thick, red] "
@@ -1136,7 +1140,7 @@ class AbstractTree(object):
         # each node
         cmd = "\\node"
         new_cmd1 = "\\newcommand{" + cmd
-        new_cmd2 = "}{\\node[draw,circle] ("
+        new_cmd2 = "}{\\node[draw,circle,scale=0.7,inner sep=0.3mm] ("
         new_cmd3 = ") {$"
         new_cmd4 = "$}\n;}"
         # some variables to simplify code
@@ -1164,7 +1168,7 @@ class AbstractTree(object):
                 name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 nodes.append((name,
-                    (str(self.label()) if hasattr(self, "label") else ""))
+                    (self._latex_label_() if hasattr(self, "label") else ""))
                 )
                 num[0] += 1
                 return node, name
@@ -1213,7 +1217,7 @@ class AbstractTree(object):
                     # ==> n & n & ... & n' & n' & ...
                     try:
                         mat[i] += sep + mat2[i]
-                    except Exception:
+                    except IndexError:
                         if i >= lmat:
                             if i != 0:
                                 # mat[i] does not exist but
