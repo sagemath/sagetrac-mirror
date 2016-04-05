@@ -330,6 +330,132 @@ class Function_abs(GinacFunction):
 
 abs = abs_symbolic = Function_abs()
 
+def incremental_rounding(x, mode, maximum_bits=None):
+    r"""
+    Return the rounding of the number ``x`` according to the given ``mode`` as a
+    Sage integer.
+
+    INPUT:
+
+    - ``x`` -- a number (that might be a floating point, a symbolic expression,
+      ...) that can be converted to a real interval field element of any
+      precision.
+
+    - ``mode`` -- either ``'floor'`` (toward minus infinity), ``'ceil'`` (toward
+      plus infinity) or ``'round'`` (nearest).
+
+    - ``maximum_bits`` -- the maximum precision that is used in the incremental
+      search
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import incremental_rounding
+        sage: incremental_rounding(1.34, 'floor')
+        1
+        sage: incremental_rounding(1.34, 'ceil')
+        2
+        sage: incremental_rounding(1.34, 'round')
+        1
+        sage: incremental_rounding(1.64, 'round')
+        2
+
+        sage: incremental_rounding(pi, 'floor')
+        3
+        sage: incremental_rounding(pi, 'ceil')
+        4
+
+    A more involved expression::
+
+        sage: e1 = pi - continued_fraction(pi).convergent(110)
+        sage: e2 = e - continued_fraction(e).convergent(99)
+        sage: f = e1/e2
+        sage: incremental_rounding(f, 'floor', maximum_bits=500)
+        Traceback (most recent call last):
+        ...
+        ValueError: computing floor(...) requires more than 500 bits of
+        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'ceil', maximum_bits=500)
+        Traceback (most recent call last):
+        ...
+        ValueError: computing ceil(...) requires more than 500 bits of
+        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'round', maximum_bits=500)
+        Traceback (most recent call last):
+        ...
+        ValueError: computing round(...) requires more than 500 bits of
+        precision (increase maximum_bits to proceed)
+
+        sage: incremental_rounding(e1/e2, 'floor', maximum_bits=1000)
+        -21
+        sage: incremental_rounding(e1/e2, 'ceil', maximum_bits=1000)
+        -20
+        sage: incremental_rounding(e1/e2, 'round', maximum_bits=1000)
+        -20
+
+    .. TODO::
+
+        The test ``bool(x = a)`` below is not reliable for symbolic
+        expressions. Instead, we should use the future machinery from
+        :trac:`19040`.
+    """
+    if not mode in ['floor', 'ceil', 'round']:
+        raise ValueError("mode (={!r}) should be one of 'ceil', 'floor' or 'round'".format(mode))
+    if maximum_bits is None:
+        maximum_bits = Integer(16384)
+    else:
+        maximum_bits = ZZ(maximum_bits)
+
+    from sage.rings.real_mpfi import RealIntervalField, RealIntervalFieldElement
+
+    bits = 64
+    interval = RealIntervalField(bits)(x)
+
+    f = getattr(RealIntervalFieldElement, 'unique_' + mode)
+
+    try:
+        return f(interval)
+    except ValueError:
+        pass
+
+    r = RR.one() >> 20
+    while interval.absolute_diameter() > r:
+        bits *= 2
+        if bits > maximum_bits:
+            raise ValueError("computing {}({}) requires more than {} bits "
+                    "of precision (increase maximum_bits to proceed)".format(
+                        mode, x, maximum_bits))
+        interval = RealIntervalField(bits)(x)
+        try:
+            return f(interval)
+        except ValueError:
+            pass
+
+    # since the absolute enclosing interval is smaller than 2^-20 we know that
+    # we are either in 'floor' or 'ceil' mode. We look for possible equality
+    # with an integer.
+    a = interval.is_int()[1]
+    assert a is not None
+
+    if bool(x == a):
+        return a
+
+    if isinstance(x, Expression):
+        x = SR(x).full_simplify().canonicalize_radical()
+        if bool(x == a):
+            return a
+
+    while True:
+        bits *= 2
+        if bits > maximum_bits:
+            raise ValueError("computing {}({}) requires more than {} bits"
+                    "of precision (increase maximum_bits to proceed)".format(
+                        mode, x, maximum_bits))
+        interval = RealIntervalField(bits)(x)
+        try:
+            return f(interval)
+        except ValueError:
+            pass
+
 class Function_ceil(BuiltinFunction):
     def __init__(self):
         r"""
@@ -412,6 +538,14 @@ class Function_ceil(BuiltinFunction):
 
             sage: loads(dumps(ceil))
             ceil
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: ceil(z)
+            1
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
@@ -443,6 +577,17 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
+
+            sage: import numpy
+            sage: ceil(numpy.float128(1.2))
+            2.0
+            sage: type(_)
+            <type 'numpy.float128'>
+
+            sage: ceil(x == x+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: ceil of a relation is not defined
         """
         maximum_bits = kwds.get('maximum_bits', 20000)
         try:
@@ -451,34 +596,20 @@ class Function_ceil(BuiltinFunction):
             if isinstance(x, (int, long)):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
+                return math.ceil(x)
             elif type(x).__module__ == 'numpy':
                 import numpy
                 return numpy.ceil(x)
 
-        from sage.rings.all import RealIntervalField
-
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_ceil()
-            except ValueError:
-                bits *= 2
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("ceil of a relation is not defined")
 
         try:
-            return ceil(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
-
-
+            return incremental_rounding(x, 'ceil', maximum_bits)
+        except TypeError:
+            # If we cannot compute a numerical enclosure, leave the
+            # expression unevaluated.
+            return BuiltinFunction.__call__(self, SR(x))
 
     def _eval_(self, x):
         """
@@ -509,7 +640,6 @@ class Function_ceil(BuiltinFunction):
         return self._eval_(x)
 
 ceil = Function_ceil()
-
 
 class Function_floor(BuiltinFunction):
     def __init__(self):
@@ -577,6 +707,14 @@ class Function_floor(BuiltinFunction):
 
             sage: loads(dumps(floor))
             floor
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: floor(z)
+            1
         """
         BuiltinFunction.__init__(self, "floor",
                                  conversions=dict(sympy='floor'))
@@ -607,6 +745,17 @@ class Function_floor(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
+
+            sage: import numpy
+            sage: floor(numpy.float128(1.2))
+            1.0
+            sage: type(_)
+            <type 'numpy.float128'>
+
+            sage: floor(x == x+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: floor of a relation is not defined
         """
         maximum_bits = kwds.get('maximum_bits',20000)
         try:
@@ -615,32 +764,20 @@ class Function_floor(BuiltinFunction):
             if isinstance(x, (int, long)):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
+                return math.floor(x)
             elif type(x).__module__ == 'numpy':
                 import numpy
                 return numpy.floor(x)
 
-        from sage.rings.all import RealIntervalField
-
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_floor()
-            except ValueError:
-                bits *= 2
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("floor of a relation is not defined")
 
         try:
-            return floor(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
+            return incremental_rounding(x, 'floor', maximum_bits)
+        except TypeError:
+            # If we cannot compute a numerical enclosure, leave the
+            # expression unevaluated.
+            return BuiltinFunction.__call__(self, SR(x))
 
     def _eval_(self, x):
         """
@@ -1111,7 +1248,7 @@ def gamma(a, *args, **kwds):
 
             sage: gamma(3/4).n(100)
             1.2254167024651776451290983034
-            
+
         The gamma function only works with input that can be coerced to the
         Symbolic Ring::
 
