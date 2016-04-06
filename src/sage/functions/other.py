@@ -6,7 +6,7 @@ from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ZZ, QQ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
@@ -364,33 +364,35 @@ def incremental_rounding(x, mode, maximum_bits=None):
         sage: incremental_rounding(pi, 'ceil')
         4
 
+        sage: floor(log(4) / log(2))          # indirect doctest
+        2
+        sage: round(log(2**(3/2)) / log(2))   # indirect doctest
+        2
+        sage: round(log(2**(-3/2)) / log(2))  # indirect doctest
+        -2
+
     A more involved expression::
 
-        sage: e1 = pi - continued_fraction(pi).convergent(110)
-        sage: e2 = e - continued_fraction(e).convergent(99)
+        sage: e1 = pi - continued_fraction(pi).convergent(2785)
+        sage: e2 = e - continued_fraction(e).convergent(1500)
         sage: f = e1/e2
-        sage: incremental_rounding(f, 'floor', maximum_bits=500)
+        sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+        sage: f = f - continued_fraction(f).convergent(1)
+        sage: incremental_rounding(f, 'floor')
         Traceback (most recent call last):
         ...
-        ValueError: computing floor(...) requires more than 500 bits of
+        ValueError: computing floor(...) requires more than 16384 bits of
         precision (increase maximum_bits to proceed)
-        sage: incremental_rounding(f, 'ceil', maximum_bits=500)
-        Traceback (most recent call last):
-        ...
-        ValueError: computing ceil(...) requires more than 500 bits of
-        precision (increase maximum_bits to proceed)
-        sage: incremental_rounding(f, 'round', maximum_bits=500)
-        Traceback (most recent call last):
-        ...
-        ValueError: computing round(...) requires more than 500 bits of
-        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'floor', maximum_bits=40000)
+        -1
 
-        sage: incremental_rounding(e1/e2, 'floor', maximum_bits=1000)
-        -21
-        sage: incremental_rounding(e1/e2, 'ceil', maximum_bits=1000)
-        -20
-        sage: incremental_rounding(e1/e2, 'round', maximum_bits=1000)
-        -20
+        sage: incremental_rounding(f, 'ceil')
+        Traceback (most recent call last):
+        ...
+        ValueError: computing ceil(...) requires more than 16384 bits of
+        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'ceil', maximum_bits=40000)
+        0
 
     .. TODO::
 
@@ -401,9 +403,9 @@ def incremental_rounding(x, mode, maximum_bits=None):
     if not mode in ['floor', 'ceil', 'round']:
         raise ValueError("mode (={!r}) should be one of 'ceil', 'floor' or 'round'".format(mode))
     if maximum_bits is None:
-        maximum_bits = Integer(16384)
+        maximum_bits = 16384
     else:
-        maximum_bits = ZZ(maximum_bits)
+        maximum_bits = int(maximum_bits)
 
     from sage.rings.real_mpfi import RealIntervalField, RealIntervalFieldElement
 
@@ -430,18 +432,22 @@ def incremental_rounding(x, mode, maximum_bits=None):
         except ValueError:
             pass
 
-    # since the absolute enclosing interval is smaller than 2^-20 we know that
-    # we are either in 'floor' or 'ceil' mode. We look for possible equality
-    # with an integer.
-    a = interval.is_int()[1]
-    assert a is not None
+    if mode == 'round':
+        if interval > 0:
+            a = (interval + RR.one()/2).is_int()[1]
+            b = a - QQ((1,2))
+        else:
+            a = (interval - RR.one()/2).is_int()[1]
+            b = a + QQ((1,2))
+    else:
+        a = b = interval.is_int()[1]
 
-    if bool(x == a):
+    if bool(x == b):
         return a
 
     if isinstance(x, Expression):
         x = SR(x).full_simplify().canonicalize_radical()
-        if bool(x == a):
+        if bool(x == b):
             return a
 
     while True:
@@ -560,21 +566,16 @@ class Function_ceil(BuiltinFunction):
         """
         return r"\left \lceil %s \right \rceil"%latex(x)
 
-    #FIXME: this should be moved to _eval_
-    def __call__(self, x, **kwds):
+    def _eval_(self, x):
         """
-        Allows an object of this class to behave like a function. If
-        ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
-        the ceiling of ``n``.
-
-        TESTS::
+        EXAMPLES::
 
             sage: ceil(SR(10^50 + 10^(-50)))
             100000000000000000000000000000000000000000000000001
             sage: ceil(SR(10^50 - 10^(-50)))
             100000000000000000000000000000000000000000000000000
             sage: ceil(int(10^50))
-            100000000000000000000000000000000000000000000000000
+            100000000000000000000000000000000000000000000000000L
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
 
@@ -588,56 +589,47 @@ class Function_ceil(BuiltinFunction):
             Traceback (most recent call last):
             ...
             ValueError: ceil of a relation is not defined
-        """
-        maximum_bits = kwds.get('maximum_bits', 20000)
-        try:
-            return x.ceil()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return math.ceil(x)
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.ceil(x)
-
-        if isinstance(x, Expression) and x.is_relational():
-            raise ValueError("ceil of a relation is not defined")
-
-        try:
-            return incremental_rounding(x, 'ceil', maximum_bits)
-        except TypeError:
-            # If we cannot compute a numerical enclosure, leave the
-            # expression unevaluated.
-            return BuiltinFunction.__call__(self, SR(x))
-
-    def _eval_(self, x):
-        """
-        EXAMPLES::
 
             sage: ceil(x).subs(x==7.5)
             8
             sage: ceil(x)
             ceil(x)
-        """
-        try:
-            return x.ceil()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
-        return None
 
-    def _evalf_(self, x, **kwds):
+        If the expression is too demanding in precision, the argument is held::
+
+            sage: e1 = pi - continued_fraction(pi).convergent(2785)
+            sage: e2 = e - continued_fraction(e).convergent(1500)
+            sage: f = e1/e2
+            sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+            sage: f = f - continued_fraction(f).convergent(1)
+            sage: ceil(f)
+            ceil(...)
+
+        Though it can be evaluated::
+
+            sage: ceil(f).n(prec=40000)
+            0
+        """
+        if isinstance(x, Expression) and x.is_relational():
+            raise ValueError("ceil of a relation is not defined")
+
+        try:
+            return self._evalf_(x)
+        except (TypeError,ValueError):
+            pass
+
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         TESTS::
 
             sage: h(x) = ceil(x)
             sage: h(pi)._numerical_approx()
             4.00000000000000
+            sage: h(pi)
+            4
         """
-        return self._eval_(x)
+        maximum_bits = None if parent is None else parent.prec()
+        return incremental_rounding(x, 'ceil', maximum_bits)
 
 ceil = Function_ceil()
 
@@ -694,7 +686,7 @@ class Function_floor(BuiltinFunction):
             sage: floor(SR(10^50 - 10^(-50)))
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
-            100000000000000000000000000000000000000000000000000
+            100000000000000000000000000000000000000000000000000L
 
         ::
 
@@ -728,21 +720,22 @@ class Function_floor(BuiltinFunction):
         """
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
-    #FIXME: this should be moved to _eval_
-    def __call__(self, x, **kwds):
+    def _eval_(self, x):
         """
-        Allows an object of this class to behave like a function. If
-        ``floor`` is an instance of this class, we can do ``floor(n)`` to
-        obtain the floor of ``n``.
+        EXAMPLES::
 
-        TESTS::
+            sage: floor(x).subs(x==7.5)
+            7
+            sage: floor(x)
+            floor(x)
 
             sage: floor(SR(10^50 + 10^(-50)))
             100000000000000000000000000000000000000000000000000
             sage: floor(SR(10^50 - 10^(-50)))
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
-            100000000000000000000000000000000000000000000000000
+            100000000000000000000000000000000000000000000000000L
+
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
 
@@ -752,60 +745,50 @@ class Function_floor(BuiltinFunction):
             sage: type(_)
             <type 'numpy.float128'>
 
+            sage: floor(12.8r)
+            12.0
+            sage: type(_)
+            <type 'float'>
+
             sage: floor(x == x+1)
             Traceback (most recent call last):
             ...
             ValueError: floor of a relation is not defined
-        """
-        maximum_bits = kwds.get('maximum_bits',20000)
-        try:
-            return x.floor()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return math.floor(x)
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.floor(x)
 
+        If the expression is too demanding in precision, the argument is held::
+
+            sage: e1 = pi - continued_fraction(pi).convergent(2785)
+            sage: e2 = e - continued_fraction(e).convergent(1500)
+            sage: f = e1/e2
+            sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+            sage: f = f - continued_fraction(f).convergent(1)
+            sage: floor(f)
+            floor(...)
+
+        Though it can be evaluated via::
+
+            sage: floor(f).n(prec=40000)
+            -1
+        """
         if isinstance(x, Expression) and x.is_relational():
             raise ValueError("floor of a relation is not defined")
 
         try:
-            return incremental_rounding(x, 'floor', maximum_bits)
-        except TypeError:
-            # If we cannot compute a numerical enclosure, leave the
-            # expression unevaluated.
-            return BuiltinFunction.__call__(self, SR(x))
+            return self._evalf_(x)
+        except (TypeError,ValueError):
+            pass
 
-    def _eval_(self, x):
-        """
-        EXAMPLES::
-
-            sage: floor(x).subs(x==7.5)
-            7
-            sage: floor(x)
-            floor(x)
-        """
-        try:
-            return x.floor()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
-        return None
-
-    def _evalf_(self, x, **kwds):
+    def _evalf_(self, x, parent=None, algorithm=None, maximum_bits=None):
         """
         TESTS::
 
             sage: h(x) = floor(x)
             sage: h(pi)._numerical_approx()
             3.00000000000000
+            sage: h(pi)
+            3
         """
-        return self._eval_(x)
+        return incremental_rounding(x, 'floor', maximum_bits)
 
 floor = Function_floor()
 

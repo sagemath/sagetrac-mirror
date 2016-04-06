@@ -956,15 +956,31 @@ cdef class BuiltinFunction(Function):
         res = None
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
             arg = args[0]
-            # If arg is a Python type (e.g. float), convert it to Sage
+
+            module = None
+            if isinstance(arg, float):
+                import math as module
+            elif is_numpy_type(type(arg)):
+                import numpy as module
+
+            if module is not None:
+                func = getattr(module, self._name, None)
+                if func is None and self._alt_name is not None:
+                    func = getattr(module, self._name, None)
+
+                if callable(func):
+                    try:
+                        return func(arg)
+                    except ValueError:
+                        pass
+
             arg = py_scalar_to_element(arg)
             method = getattr(arg, self._name, None)
+            if method is None and self._alt_name is not None:
+                method = getattr(arg, self._alt_name, None)
+
             if callable(method):
                 res = method()
-            elif self._alt_name is not None:
-                method = getattr(arg, self._alt_name, None)
-                if method is not None:
-                    res = method()
 
         if res is None:
             res = self._evalf_try_(*args)

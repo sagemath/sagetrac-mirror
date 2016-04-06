@@ -1093,30 +1093,24 @@ cdef class Expression(CommutativeRingElement):
             sage: int(sqrt(-3))
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert sqrt(-3) to int
-        """
-        from sage.functions.all import floor, ceil
-        try:
-            rif_self = sage.rings.all.RIF(self)
-        except TypeError:
-            raise ValueError("cannot convert %s to int" % self)
-        if rif_self > 0 or (rif_self.contains_zero() and self > 0):
-            result = floor(self)
-        else:
-            result = ceil(self)
-        if not isinstance(result, sage.rings.integer.Integer):
-            raise ValueError("cannot convert %s to int" % self)
-        else:
-            return int(result)
-
-    def __long__(self):
-        """
-        EXAMPLES::
+            TypeError: unable to simplify to a real interval approximation
 
             sage: long(sin(2)*100)
             90L
         """
-        return long(int(self))
+        try:
+            obj = self.pyobject()
+        except TypeError:
+            pass
+        else:
+            return int(obj)
+
+        rif_self = sage.rings.all.RIF(self)
+        from sage.functions.other import incremental_rounding
+        if rif_self > 0 or (rif_self.contains_zero() and self > 0):
+            return int(incremental_rounding(self, 'floor'))
+        else:
+            return int(incremental_rounding(self, 'ceil'))
 
     def _rational_(self):
         """
@@ -5468,26 +5462,15 @@ cdef class Expression(CommutativeRingElement):
             sage: (sqrt(-3)).round()
             Traceback (most recent call last):
             ...
-            ValueError: could not convert sqrt(-3) to a real number
+            TypeError: unable to simplify to a real interval approximation
         """
         try:
             return self.pyobject().round()
         except (TypeError, AttributeError):
             pass
-        from sage.functions.all import floor, ceil
-        try:
-            rif_self = sage.rings.all.RIF(self)
-        except TypeError:
-            raise ValueError("could not convert %s to a real number" % self)
-        half = 1 / sage.rings.integer.Integer(2)
-        if rif_self < 0 or (rif_self.contains_zero() and self < 0):
-            result = ceil(self - half)
-        else:
-            result = floor(self + half)
-        if not isinstance(result, sage.rings.integer.Integer):
-            raise ValueError("could not convert %s to a real number" % self)
-        else:
-            return result
+
+        from sage.functions.other import incremental_rounding
+        return incremental_rounding(self, 'round')
 
     def function(self, *args):
         """

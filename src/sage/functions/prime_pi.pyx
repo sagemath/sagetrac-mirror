@@ -214,8 +214,6 @@ cdef class PrimePi(BuiltinFunction):
             2
             sage: prime_pi._eval_(sqrt(2357))
             15
-            sage: prime_pi._eval_(str(-2^100))
-            0
             sage: prime_pi._eval_(mod(30957, 9750979))
             3337
 
@@ -241,6 +239,16 @@ cdef class PrimePi(BuiltinFunction):
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of prime_pi for x >= 2^63 is not implemented
+
+        Change of behavior with :trac:`12121`::
+
+            sage: prime_pi._eval_('2') is None
+            True
+            sage: floor('2')
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments: no canonical coercion from
+            <type 'str'> to Symbolic Ring
         """
         cdef uint64_t z
         try:
@@ -501,10 +509,18 @@ cpdef Integer legendre_phi(x, a):
         2893
         sage: legendre_phi(7.5, 2)
         3
-        sage: legendre_phi(str(-2^100), 92372)
-        0
         sage: legendre_phi(4215701455, 6450023226)
         1
+
+    TESTS:
+
+    Change of behavior in :trac:`12121`::
+
+        sage: legendre_phi(str(-2^100), 92372)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot coerce arguments: no canonical coercion from
+        <type 'str'> to Symbolic Ring
 
     NOTES:
 
