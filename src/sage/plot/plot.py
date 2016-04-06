@@ -753,16 +753,19 @@ def xydata_from_point_list(points):
         sage: from itertools import izip; xydata_from_point_list(izip([2,3,5,7], [11, 13, 17, 19]))
         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
         
-    See :trac:`16804` ticket, the code accepts now mixed lists of complex and real numbers
+    See :trac:`16804` ticket, the code accepts now mixed lists of complex and real numbers.
+    Now real items are considered complex numbers on the real line
     
         sage: xydata_from_point_list(map(N, [0,1,1+I,I,I-1,-1,-1-I,-I,1-I]))
         ([0.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0],
         [0.0, 0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0])
-        
+        sage: xydata_from_point_list([1+I,I,I-1,-1-I,-I,1-I])
+        ([1.0, 0.0, -1.0, -1.0, 0.0, 1.0], [1.0, 1.0, 1.0, -1.0, -1.0, -1.0])
     """
-    from sage.rings.complex_number import ComplexNumber
-    from sage.rings.real_mpfr import RealNumber
-
+    import numbers
+    from sage.misc.functional import N
+    
+    points = map(N,points)
     if not isinstance(points, (list, tuple)):
         points = list(points)
         try:
@@ -770,7 +773,7 @@ def xydata_from_point_list(points):
         except TypeError:
             pass
     elif len(points) == 2 and not isinstance(points[0], (list, tuple,
-                                                         ComplexNumber)):
+                                                         numbers.Complex)):
         try:
             points = [[float(z) for z in points]]
         except TypeError:
@@ -779,16 +782,15 @@ def xydata_from_point_list(points):
     xdata=list()
     ydata=list()
     for z in points:
-        if isinstance(z,(ComplexNumber)):
-            xdata=xdata+[float(z.real())]
-            ydata=ydata+[float(z.imag())]
+        if isinstance(z,(numbers.Complex)):
+            xdata = xdata + [float(z.real())]
+            ydata = ydata + [float(z.imag())]
+        elif isinstance(z,(numbers.Real)):
+            xdata = xdata + [float(z)]
+            ydata = ydata + [float(0)]
         else:
-            if isinstance(z,(RealNumber)):
-                xdata=xdata+[float(z)]
-                ydata=ydata+[float(0)]
-            else:
-                xdata=xdata+[float(z[0])]
-                ydata=ydata+[float(z[1])]
+            xdata = xdata + [float(z[0])]
+            ydata = ydata + [float(z[1])]
     return xdata, ydata
 
 @rename_keyword(color='rgbcolor')
