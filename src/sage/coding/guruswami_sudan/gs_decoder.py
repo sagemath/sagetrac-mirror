@@ -343,7 +343,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
                 int_max = Integer(real_max)
                 return (int_max, f(int_max))
             else:
-                x_f = floor(real_max)
+                x_f = ZZ(floor(real_max))
                 x_c = x_f + 1
                 f_f, f_c = f(x_f), f(x_c)
                 return (x_f, f_f) if f_f >= f_c else (x_c, f_c)
@@ -433,9 +433,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
         w = k - 1
         atau = n - tau
         smin = tau * w / (atau ** 2 - n * w)
-        s = floor(1 + smin)
+        s = ZZ(floor(1 + smin))
         D = (s - smin) * (atau ** 2 - n * w) * s + (w**2) /4
-        l = floor(atau / w * s + 0.5 - sqrt(D)/w)
+        l = ZZ(floor(atau / w * s + 0.5 - sqrt(D)/w))
         return (s, l)
 
     @staticmethod

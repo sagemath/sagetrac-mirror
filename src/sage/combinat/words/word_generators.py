@@ -569,9 +569,9 @@ class WordGenerator(object):
             return w
 
         elif construction_method == "function":
-            from sage.functions.other import sqrt, floor
+            from sage.functions.other import sqrt
             phi = (1 + sqrt(5))/2 # the golden ratio
-            f = lambda n:a if floor((n+2)*phi) - floor((n+1)*phi) == 2 else b
+            f = lambda n:a if int((n+2)*phi) - int((n+1)*phi) == 2 else b
             return W(f)
 
         else:
@@ -1136,17 +1136,16 @@ class WordGenerator(object):
         if not 0 <= alpha <= 1:
             raise ValueError("Parameter alpha (=%s) must be in [0,1]."%alpha)
 
-        from sage.functions.other import floor
         from sage.combinat.words.alphabet import build_alphabet
         if alphabet is None or alphabet in ((0, 1), [0, 1]):
             alphabet = build_alphabet([0, 1])
-            s = lambda n: floor(alpha*(n+1) + rho) - floor(alpha*n + rho)
+            s = lambda n: int(alpha*(n+1) + rho) - int(alpha*n + rho)
         else:
             alphabet = build_alphabet(alphabet)
             card = alphabet.cardinality()
             if card != 2:
                 raise TypeError("size of alphabet (=%s) must be two"%card)
-            s = lambda n: alphabet[floor(alpha*(n+1) + rho) - floor(alpha*n + rho)]
+            s = lambda n: alphabet[int(alpha*(n+1) + rho) - int(alpha*n + rho)]
         return InfiniteWords(alphabet)(s)
 
     def UpperMechanicalWord(self, alpha, rho=0, alphabet=None):

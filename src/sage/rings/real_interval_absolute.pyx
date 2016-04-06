@@ -290,9 +290,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         else:
             upper = value
         from sage.functions.other import floor, ceil
+        from sage.rings.all import ZZ
         try:
-            self._mantissa = floor(value)
-            self._diameter = ceil(upper) - self._mantissa
+            self._mantissa = ZZ(floor(value))
+            self._diameter = ZZ(ceil(upper)) - self._mantissa
         except OverflowError:
             raise TypeError(type(value))
 

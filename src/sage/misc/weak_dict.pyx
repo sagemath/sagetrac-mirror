@@ -295,13 +295,13 @@ def test_del_dictitem_by_exact_value(D, value, h):
         sage: D1=dict()
         sage: D2=dict()
         sage: for i in range(100000):        # long time
-        ....:     ki=L[floor(random()*B)]
-        ....:     vi=L[floor(random()*B)]
-        ....:     D1[ki]=vi
-        ....:     D2[ki]=vi
-        ....:     ko=L[floor(random()*B)]
+        ....:     ki = L[int(random()*B)]
+        ....:     vi = L[int(random()*B)]
+        ....:     D1[ki] = vi
+        ....:     D2[ki] = vi
+        ....:     ko = L[int(random()*B)]
         ....:     if ko in D1:
-        ....:         vo=D1[ko]
+        ....:         vo = D1[ko]
         ....:         del D1[ko]
         ....:         test_del_dictitem_by_exact_value(D2,vo,hash(ko))
         ....:     assert D1 == D2
@@ -477,13 +477,13 @@ cdef class WeakValueDictionary(dict):
         sage: D1 = WeakValueDictionary()
         sage: D2 = WeakValueDictionary()
         sage: for i in range(10000):
-        ....:     ki = floor(random()*B)
-        ....:     vi = C(floor(random()*B))
+        ....:     ki = int(random()*B)
+        ....:     vi = C(int(random()*B))
         ....:     D1[ki] = vi
         ....:     D2[ki] = vi
         ....:     L[ki]  = vi
         ....:     del vi
-        ....:     ko = floor(random()*B)
+        ....:     ko = int(random()*B)
         ....:     if ko in D1:
         ....:         del D1[ko]
         ....:         L[ko] = None
