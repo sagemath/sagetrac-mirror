@@ -1289,8 +1289,8 @@ def CossidentePenttilaGraph(q):
     from sage.libs.gap.libgap import libgap
     from sage.misc.package import is_package_installed, PackageNotFoundError
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    from sage.misc.feature.gap_package import GapPackage
+    GapPackage("grape").require()
 
     adj_list=libgap.function_factory("""function(q)
         local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
