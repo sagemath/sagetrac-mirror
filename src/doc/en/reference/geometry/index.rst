@@ -92,4 +92,12 @@ Internals
    sage/geometry/integral_points
    sage/geometry/hyperplane_arrangement/check_freeness
 
+Flag Manifolds in Algebraic Geometry
+------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/flag_manifold/bott_bundle
+
 .. include:: ../footer.txt
