@@ -1031,7 +1031,7 @@ class Polyhedron_base(Element):
         """
         return len(self.lines())
 
-    def to_linear_program(self, solver=None):
+    def to_linear_program(self, solver=None, return_variable=False):
         r"""
         Return the polyhedron as a :class:`MixedIntegerLinearProgram`.
 
@@ -1040,8 +1040,13 @@ class Polyhedron_base(Element):
         - ``solver`` -- select a solver (data structure). See the documentation
           of for :class:`MixedIntegerLinearProgram`. Set to ``None`` by default.
 
+        - ``return_variable`` -- (default: ``False``) If ``True``, return a tuple
+          ``(p, x)``, where ``p`` is the :class:`MixedIntegerLinearProgram` object
+          and ``x`` is the vector-valued MIP variable in this problem, indexed
+          from 0.  If ``False``, only return ``p``.
+
         Note that the :class:`MixedIntegerLinearProgram` object will have the
-        null function as an objective.
+        null function as an objective to be maximized.
 
         .. SEEALSO::
 
@@ -1051,8 +1056,15 @@ class Polyhedron_base(Element):
 
         EXAMPLE::
 
-            sage: polytopes.cube().to_linear_program()
+            sage: p = polytopes.cube()
+            sage: p.to_linear_program()
             Mixed Integer Program  ( maximization, 3 variables, 6 constraints )
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(2*x[0] + 1*x[1] + 39*x[2])
+            sage: lp.solve()
+            42.0
+            sage: lp.get_values(x[0], x[1], x[2])
+            [1.0, 1.0, 1.0]
 
         TESTS::
 
@@ -1085,7 +1097,10 @@ class Polyhedron_base(Element):
             b = -eqn.pop(0)
             p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
 
-        return p
+        if return_variable:
+            return p, x
+        else:
+            return p
 
     def Hrepresentation(self, index=None):
         """
