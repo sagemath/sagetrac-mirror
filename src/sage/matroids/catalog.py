@@ -86,6 +86,8 @@ def Q6():
     ])
     M = QuaternaryMatroid(A, 'abcdef')
     M.rename('Q6: ' + repr(M))
+    pos={'b':(-1,0), 'e':(0,0.5), 'c':(1,1), 'd':(0,-0.5), 'a':(1,-1), 'f':(1.5,0)}
+    M._fix_positions(pos_dict=pos)
     return M
 
 
@@ -120,6 +122,8 @@ def P6():
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('P6: ' + repr(M))
+    pos={'a': (-1.39430090009295, 0.805000000000000), 'c': (1.39430090009295, 0.805000000000000), 'b': (-0.000000000000000, 0.805000000000000), 'e': (-0.000000000000000, -1.61000000000000), 'd': (1.39430090009295, -0.805000000000000), 'f': (-1.39430090009295, -0.805000000000000)}
+    M._fix_positions(pos_dict=pos)
     return M
 
 
@@ -151,6 +155,8 @@ def R6():
     ])
     M = TernaryMatroid(A, 'abcdef')
     M.rename('R6: ' + repr(M))
+    pos={'a':(-1,0), 'e':(0,0), 'b':(1,0), 'd':(-1,1), 'f':(0,1), 'c':(1,1)}
+    M._fix_postions(pos_dict=pos)
     return M
 
 
@@ -276,6 +282,8 @@ def P7():
     ])
     M = TernaryMatroid(A, 'abcdefg')
     M.rename('P7: ' + repr(M))
+    pos={'a': (0, 1), 'c': (1, -1), 'b': (-1, -1), 'e': (-0.5, 0), 'd': (0, 0), 'f': (0.5, 0), 'g': (0,-1)}
+    M._fix_positions(pos_dict=pos)
     return M
 
 # AG(3, 2) - use AG()
@@ -781,7 +789,7 @@ def Wheel(n, field=None, ring=None):
     INPUT:
 
     - ``n`` -- a positive integer. The rank of the desired matroid.
-    - ``ring`` -- any ring. If provided, output will be a linear matroid 
+    - ``ring`` -- any ring. If provided, output will be a linear matroid
       over the ring or field ``ring``. If the ring is `\ZZ`, then output
       will be a regular matroid.
     - ``field`` -- any field. Same as ``ring``, but only fields are allowed.
@@ -1352,6 +1360,8 @@ def BetsyRoss():
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('BetsyRoss: ' + repr(M))
+    pos={'a': (0.000000000000000, 1.61000000000000), 'c': (0.946334256190882, -1.30251736094367), 'b': (1.53120099123520, 0.497517360943665), 'e': (-1.53120099123520, 0.497517360943665), 'd': (-0.946334256190882, -1.30251736094367), 'g': (0.590718333102580, -0.191936021350899), 'f': (0.365084007635076, 0.502495027562079), 'i': (-0.590718333102580, -0.191936021350899), 'h': (0.000000000000000, -0.621118012422360), 'k': (0, 0), 'j': (-0.365084007635076, 0.502495027562079)}
+    M._fix_positions(pos_dict=pos)
     return M
 
 
