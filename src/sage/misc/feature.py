@@ -35,10 +35,10 @@ can use the ``require`` method::
     sage: Executable(name="random", executable="randomOochoz6x", spkg="random", url="http://rand.om").require()
     Traceback (most recent call last):
     ...
-    FeatureNotPresentError: random is not available. To use this feature make
-    sure that randomOochoz6x is in the PATH. To install random you can try to
-    run sage -i random. Further installation instructions might be available at
-    http://rand.om.
+    FeatureNotPresentError: random is not available.
+    To use this feature make sure that `randomOochoz6x` is in the PATH.
+    To install random you can try to run `sage -i random`.
+    Further installation instructions might be available at http://rand.om.
 
 As can be seen above, features try to produce helpful error messages.
 """
@@ -123,7 +123,7 @@ class Feature(object):
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
             True
-            sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present() # optional: gap_packages
+            sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
             False
         """
         return True
@@ -271,7 +271,7 @@ class Executable(Feature):
 
         EXAMPLES:
 
-        This default implementation always return ``True``::
+        This default implementation always returns ``True``::
 
             sage: from sage.misc.feature import Executable
             sage: Executable(name="sh", executable="sh").is_functional()
