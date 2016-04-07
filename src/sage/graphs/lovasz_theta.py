@@ -64,11 +64,8 @@ def lovasz_theta(graph):
     from networkx import write_edgelist
     from sage.misc.temporary_file import tmp_filename
     import os, subprocess
-    from sage.env import SAGE_LOCAL
-    from sage.misc.package import is_package_installed, PackageNotFoundError
 
-    if not is_package_installed('csdp'):
-        raise PackageNotFoundError("csdp")
+    CSDP().require()
 
     g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
     tf_name = tmp_filename()
@@ -76,5 +73,50 @@ def lovasz_theta(graph):
     tf.write(str(n)+'\n'+str(g.number_of_edges())+'\n')
     write_edgelist(g, tf, data=False)
     tf.close()
-    lines = subprocess.check_output([os.path.join(SAGE_LOCAL, 'bin', 'theta'), tf_name])
+    lines = subprocess.check_output(['theta', tf_name])
     return float(lines.split()[-1])
+
+from sage.misc.feature import Executable
+class CSDP(Executable):
+    r"""
+    A ``Feature`` which checks for the theta binary of CSDP.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.lovasz_theta import CSDP
+        sage: CSDP().is_present() # optional: csdp
+        True
+
+    """
+    def __init__(self):
+        Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
+
+    def is_functional(self):
+        r"""
+        Checks whether ``theta`` works on a trivial example.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: CSDP().is_functional() # optional: csdp
+            True
+
+        """
+        from sage.misc.temporary_file import tmp_filename
+        from sage.misc.misc import verbose
+        import os, subprocess
+        tf_name = tmp_filename()
+        with open(tf_name, 'wb') as tf:
+            tf.write("2\n1\n1 1")
+        try:
+            lines = subprocess.check_output(['theta', tf_name])
+        except subprocess.CalledProcessError as e:
+            verbose("Call to theta failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
+            return False
+        result = lines.strip().split('\n')[-1]
+        import re
+        match = re.match("^The Lovasz Theta Number is (.*)$", result)
+        if match is None:
+            verbose("Last line of theta output did not match the expected format: `%s`"%(result,), level=Feature.VERBOSE_LEVEL)
+            return False
+        return True
