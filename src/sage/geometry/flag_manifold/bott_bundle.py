@@ -96,7 +96,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from copy import deepcopy
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -586,7 +586,7 @@ def plethysmization(lmbd, dec, a, n, s):
 ###################################################################
 
 
-class BottBundle():
+class BottBundle(SageObject):
     r"""
     This class represents homogeneous vector bundles on a given homogeneous space (flag manifold) that can be decomposed as a sum of irreducible homogeneous vector bundles whose cohomology can be computed by means of Bott's Theorem. 
     
@@ -643,7 +643,7 @@ class BottBundle():
     
     .. TODO::
     
-        Method __repr__ should be different when self.space is a grassmannian (it should speak about universal bundles) or a projective space (about tangent bundle and hyperplane section).
+        Method _repr_ should be different when self.space is a grassmannian (it should speak about universal bundles) or a projective space (about tangent bundle and hyperplane section).
 
         A function to compute a concrete cohomology group.
 
@@ -680,7 +680,7 @@ class BottBundle():
 
 
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Represent ``self``
 
@@ -697,7 +697,7 @@ class BottBundle():
         
             Special names when ``self.space`` is a grassmannian or a projective space.
         """
-        cadena = 'Homogeneous rank-' + str(self.rank()) + ' vector bundle on ' + self.space.__repr__()+'.\n' + 'It is the sum of the following irreducible homogeneous vector bundles:' + '\n'
+        cadena = 'Homogeneous rank-' + str(self.rank()) + ' vector bundle on ' + self.space._repr_()+'.\n' + 'It is the sum of the following irreducible homogeneous vector bundles:' + '\n'
         for i in self.decomposition:
             particiones = ''
             ant = 0
@@ -1430,7 +1430,7 @@ class LineBundleGrass(BottBundle):
 
 
 
-class FlagMfldForBottBundles():
+class FlagMfldForBottBundles(SageObject):
     r"""
     This is the class containing all quotients of the general linear group by a parabolic subgroup. 
         
@@ -1510,7 +1510,7 @@ class FlagMfldForBottBundles():
         self.a = a
         self.n = n
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Represents ``self``.
     
@@ -1681,7 +1681,7 @@ class GrassForBottBundles(FlagMfldForBottBundles):
         print 'Method tangent_bundle() gives the tangent bundle.'
 
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Represents ``self``
     
@@ -1946,7 +1946,7 @@ class ProjForBottBundles(GrassForBottBundles):
         print 'Method tangent_bundle() gives the tangent bundle.'
 
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Represents ``self``
         
