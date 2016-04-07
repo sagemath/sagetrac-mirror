@@ -52,7 +52,6 @@ from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 from sql_db import SQLDatabase, verify_column
-from sage.misc.package import is_package_installed
 from sage.env import SAGE_SHARE
 from sage.misc.all import walltime
 
@@ -827,7 +826,7 @@ class MiniCremonaDatabase(SQLDatabase):
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
                     + " in the database"
-            elif is_package_installed('database_cremona_ellcurve'):
+            elif os.path.isfile(os.path.join(SAGE_SHARE, "cremona", "cremona.db"))
                 message = "There is no elliptic curve with label " + label \
                     + " in the currently available databases"
             else:
@@ -1676,7 +1675,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
     if name is None and not set_global:
         return _db
     if set_global and name is None:
-        if is_package_installed('database_cremona_ellcurve'):
+        if os.path.isfile(os.path.join(SAGE_SHARE, "cremona", "cremona.db"))
             name = 'cremona'
         else:
             name = 'cremona mini'

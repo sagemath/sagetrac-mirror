@@ -1287,10 +1287,9 @@ def CossidentePenttilaGraph(q):
         raise ValueError('q(={}) must be an odd prime power'.format(q))
 
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    from sage.interfaces.gap import gap
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    gap.load_package("grape")
 
     adj_list=libgap.function_factory("""function(q)
         local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;

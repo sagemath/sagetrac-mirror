@@ -1396,15 +1396,15 @@ def structure_description(G, latex=False):
         sage: groups.matrix.GL(4,2).structure_description() # optional - database_gap
         'A8'
     """
-    import re
-    from sage.misc.package import is_package_installed
+    import re, os
+    from sage.env import SAGE_LOCAL
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
     try:
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
-        if not is_package_installed('database_gap'):
+	if not os.path.isfile(os.path.join(SAGE_LOCAL, "gap", "latest", "small", "readsml.g"))
             raise RuntimeError("You must install the optional database_gap package first.")
         raise
 

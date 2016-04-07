@@ -20,7 +20,6 @@ import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed
 
 from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.real_double import RDF
@@ -3636,7 +3635,9 @@ class Polyhedron_base(Element):
 
              David Avis's lrs program.
         """
-        if not is_package_installed('lrslib'):
+        import os
+        from sage.env import SAGE_LOCAL
+        if os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'lrs')) != True:
             raise NotImplementedError('You must install the optional lrslib package '
                                        'for this function to work')
 

@@ -612,8 +612,9 @@ from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
-from sage.misc.package import is_package_installed
 from sage.misc.temporary_file import tmp_filename
+import os
+from sage.env import SAGE_LOCAL
 
 try:
     from gambit import Game
@@ -1315,13 +1316,13 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError("utilities have not been populated")
 
         if not algorithm:
-            if is_package_installed('lrslib'):
+            if os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'lrs')):
                 algorithm = "lrs"
             else:
                 algorithm = "enumeration"
 
         if algorithm == "lrs":
-            if not is_package_installed('lrslib'):
+            if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'lrs')):
                 raise NotImplementedError("lrslib is not installed")
 
             return self._solve_lrs(maximization)

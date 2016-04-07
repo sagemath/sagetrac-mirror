@@ -1192,8 +1192,9 @@ class GraphGenerators():
         .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("buckygen"):
+        import os
+        from sage.env import SAGE_LOCAL
+        if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'buckygen')):
             raise TypeError("the optional buckygen package is not installed")
 
         # number of vertices should be positive
@@ -1277,8 +1278,9 @@ class GraphGenerators():
         .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("benzene"):
+        import os
+        from sage.env import SAGE_LOCAL
+        if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'benzene')):
             raise TypeError("the optional benzene package is not installed")
 
         # number of hexagons should be positive
@@ -1430,8 +1432,9 @@ class GraphGenerators():
         .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
+        import os
+        from sage.env import SAGE_LOCAL
+        if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'plantri')):
             raise TypeError("the optional plantri package is not installed")
 
         # number of vertices should be positive
@@ -1629,8 +1632,9 @@ class GraphGenerators():
             sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
             [12, 12]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
+        import os
+        from sage.env import SAGE_LOCAL
+        if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'plantri')):
             raise TypeError("the optional plantri package is not installed")
 
         # number of vertices should be positive
@@ -1783,8 +1787,9 @@ class GraphGenerators():
             sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
             [10, 10]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
+        import os
+        from sage.env import SAGE_LOCAL
+        if not os.path.isfile(os.path.join(SAGE_LOCAL, 'bin', 'plantri')):
             raise TypeError("the optional plantri package is not installed")
 
         # number of vertices should be positive
