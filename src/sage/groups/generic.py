@@ -1404,7 +1404,7 @@ def structure_description(G, latex=False):
     try:
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
-	if not os.path.isfile(os.path.join(SAGE_LOCAL, "gap", "latest", "small", "readsml.g"))
+	if not os.path.isfile(os.path.join(SAGE_LOCAL, "gap", "latest", "small", "readsml.g")):
             raise RuntimeError("You must install the optional database_gap package first.")
         raise
 
