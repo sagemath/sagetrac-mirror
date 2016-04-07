@@ -781,7 +781,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
     [M, L, P] = slp(M1, pos_dict=pd, B=B1)
     if B1 is None:
         B1 = list(M.basis())
-    M._cached_info = M1._cached_info
+    M._fix_positions(pos_dict=M1._cached_info['plot_positions'], lineorders=M1._cached_info['lineorders'])
 
     if M.rank() == 0:
         limits = None
@@ -904,8 +904,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 G += text(i, (float(pt[0]), float(pt[1])), color='black',
                           fontsize=13)
         if sp is True:
-            M1._cached_info['plot_positions'] = pts2
-            M1._cached_info['plot_lineorders'] = lineorders1
+            M1._fix_postions(pos_dict=pts2, lineorders=lineorders1)
     # deal with loops and parallel elements
     G, lims = addlp(M1, M, L, P, pts2, G, lims)
     G.axes(False)
