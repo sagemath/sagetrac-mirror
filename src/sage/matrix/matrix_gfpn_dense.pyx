@@ -1309,7 +1309,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: ~M                    # optional: meataxe
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division by zero in file matinv.c (line 50)
+            ZeroDivisionError: Division by zero in file matinv.c (line 41)
 
         """
         if self.Data == NULL:

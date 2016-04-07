@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+#if [ -z "$SAGE_LOCAL" ]; then
+#    echo >&2 "SAGE_LOCAL undefined ... exiting"
+#    echo >&2 "Maybe run 'sage --sh'?"
+#    exit 1
+#fi
+
+COMMIT=$(cat package-version.txt | cut -d'.' -f4)
+
+echo "Creating source ball for meataxe version 2.5.0 at commit" $COMMIT
+
+git clone https://github.com/momtx/meataxe.git
+if [ $? -ne 0 ]; then
+    echo >&2 "Error cloning upstream repository."
+    exit 1
+fi
+cd meataxe
+git checkout -b package $COMMIT
+if [ $? -ne 0 ]; then
+    echo >&2 "Error checking out commit."
+    exit 1
+fi
+
+for patch in ../patches/src/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    echo "Applying $patch"
+    git apply "$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        return 1
+    fi
+done
+git commit -a -m "Add make target *dist*"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error commiting changes."
+    exit 1
+fi
+
+sed -i 's/-SNAPSHOT/.'$COMMIT'/' Makefile
+if [ $? -ne 0 ]; then
+    echo >&2 "Error writing version number into the makefile."
+    exit 1
+fi
+make dist
+if [ $? -ne 0 ]; then
+    echo >&2 "Error making source ball."
+    exit 1
+fi
+
+cd ..
+mv meataxe/meataxe-2.5.0.$COMMIT.tar.gz .
+#mv meataxe/meataxe-2.5.0.$COMMIT.tar.gz $SAGE_ROOT/upstream/
+#if [ $? -ne 0 ]; then
+#    echo >&2 "Error moving source ball."
+#    exit 1
+#fi
+rm -rf meataxe
+exit 0

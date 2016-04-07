@@ -1,0 +1,36 @@
+diff --git a/Makefile b/Makefile
+index 935964b..49c2b86 100644
+--- a/Makefile
++++ b/Makefile
+@@ -221,7 +221,7 @@ tmp/test-%.done: tests/common.sh tests/%/run $(PROGRAMS:%=${MTXBIN}/%)
+ 	@touch "$@"
+ 
+ 
+-.PHONY: tar clean install test
++.PHONY: tar dist clean install test
+ .PRECIOUS: tmp/%.o
+ 
+ 
+@@ -264,6 +264,8 @@ EXPORTED_FILES =\
+   Makefile README.md COPYING\
+   src/meataxe.doc src/changelog.doc\
+ 
++TESTS = tests
++
+ tar: all doc
+ 	rm -f meataxe-${MTXVERSION} meataxe-${MTXVERSION}.tar meataxe-${MTXVERSION}.tar.gz \
+ 	&& ln -s . meataxe-${MTXVERSION} \
+@@ -271,3 +273,11 @@ tar: all doc
+ 	&& rm meataxe-${MTXVERSION} \
+ 	&& gzip meataxe-${MTXVERSION}.tar \
+ 	&& echo "Created meataxe-${MTXVERSION}.tar.gz"
++
++dist: all doc
++	rm -f meataxe-${MTXVERSION} meataxe-${MTXVERSION}.tar meataxe-${MTXVERSION}.tar.gz \
++	&& ln -s . meataxe-${MTXVERSION} \
++	&& tar cf meataxe-${MTXVERSION}.tar $(EXPORTED_FILES:%=meataxe-${MTXVERSION}/%) meataxe-${MTXVERSION}/${TESTS} \
++	&& rm meataxe-${MTXVERSION} \
++	&& gzip meataxe-${MTXVERSION}.tar \
++	&& echo "Created meataxe-${MTXVERSION}.tar.gz including tests"
+-- 
+2.5.0

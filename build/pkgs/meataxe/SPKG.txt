@@ -23,5 +23,11 @@ Michael Ringe (mringe@math.rwth-aachen.de)
 
 == Special Update/Build Instructions ==
 
-The original upstream tarball was re-packaged, so that it unpacks into a single
-folder called meataxe-2.4.24
+- Use spkg-src to create a source ball that takes an upstream development
+  version and adds a "make dist" target to include upstream's test suite.
+- The package version is provided by the file <package-version.txt> and
+  is of the form 2.5.0.<commit>.
+- To upgreade to a different commit in the upstream repository for
+  MeatAxe-2.5.0, just change <package-version.txt> accordingly, and
+  spkg-src should do the right thing.
+- To upgreade to a future 2.5.1 version, spkg-src needs to be modified.

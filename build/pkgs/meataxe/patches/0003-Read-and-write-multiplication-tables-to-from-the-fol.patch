@@ -1,0 +1,73 @@
+From 6aadec5e945105574583abb22cf3f0eeae2c3242 Mon Sep 17 00:00:00 2001
+From: Simon King <simon.king@uni-koeln.de>
+Date: Thu, 7 Apr 2016 14:08:13 +0200
+Subject: [PATCH 3/3] Read and write multiplication tables to/from the folder
+ determined by MtxLibDir at runtime
+
+
+diff --git a/src/maketab-0.c b/src/maketab-0.c
+index 93f5077..9dd63af 100644
+--- a/src/maketab-0.c
++++ b/src/maketab-0.c
+@@ -320,7 +320,7 @@ static int writeheader()
+     int i, j;
+ 
+     sprintf(filename,"p%3.3ld.zzz",Q);
+-    fd = SysFopen(filename,FM_CREATE);
++    fd = SysFopen(filename,FM_CREATE|FM_LIB);
+     if (fd == NULL)
+     {
+ 	perror(filename);
+diff --git a/src/os.c b/src/os.c
+index 660409c..607a98b 100644
+--- a/src/os.c
++++ b/src/os.c
+@@ -219,18 +219,24 @@ FILE *SysFopen(const char *name, int mode)
+       MTX_ERROR1("Invalid file mode %d",mode);
+       return NULL;
+    }
+-   f = fopen(name,fmodes[m]);
+-   if (f != NULL) {
+-      return f;
+-   }
+ 
+    // Search in the library directory if requested
+    if (((mode & FM_LIB) != 0) && (MtxLibDir[ 0 ] != 0)) {
+-      strcpy(buf,MtxLibDir);
+-      strcat(buf,"/");
+-      strcat(buf,name);
+-      f = fopen(buf,fmodes[m]);
++      if (*MtxLibDir != 0)
++         {
++         strcpy(buf,MtxLibDir);
++         strcat(buf,"/");
++         strcat(buf,name);
++         f = fopen(buf,fmodes[m]);
++         }
++      else
++         f = fopen(name,fmodes[m]);
++   }
++   else
++   {
++      f = fopen(name,fmodes[m]);
+    }
++   if (f != NULL) return f;
+ 
+    // Error handling
+    if ((f == NULL) && ((mode & FM_NOERROR) == 0)) {
+diff --git a/src/zcv.c b/src/zcv.c
+index 5f9dbb2..531932c 100644
+--- a/src/zcv.c
++++ b/src/zcv.c
+@@ -541,7 +541,7 @@ static int Init(int argc, const char **argv)
+    // input file
+    inpname = App->ArgV[0];
+    if (strcmp(inpname,"-")) {
+-      src = SysFopen(inpname, FM_READ | FM_TEXT | FM_LIB);
++      src = SysFopen(inpname, FM_READ | FM_TEXT);
+       if (src == NULL) {
+          MTX_ERROR1("Cannot open %s",inpname);
+          return -1;
+-- 
+2.5.0
+

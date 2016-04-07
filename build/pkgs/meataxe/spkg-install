@@ -14,22 +14,16 @@ for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
-        return 1
+        exit 1
     fi
 done
 
 ## The following *could* be put into Makefile.conf
 
-# This is the place where arithmetic tables and some other input files are
-# searched by default.
-export MTXLIB="$DOT_SAGE/meataxe"
-# Directory where executables are installed.
-export MTXBIN="$SAGE_LOCAL/bin"
 # Default compiler flags
-export CFLAGS1="-std=gnu99 -O -Wall -fPIC"
+CFLAGS1="-std=gnu99 -O3 -Wall -fPIC"
 # Field size up to GF(256)
-export ZZZ=0
-
+ZZZ=0
 # In principle, one should uncomment for field sizes up to GF(2^16).
 # But upstream doesn't provide the required sources.
 #export ZZZ=1
@@ -37,48 +31,22 @@ export ZZZ=0
 # The following is just to make MeatAxe's Makefile happy
 touch Makefile.conf
 
-# We create a directory for the multiplication tables
-mkdir -p $MTXLIB
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory for multiplication tables."
-    exit 1
-fi
-
-## Install! Aparently MeatAxe would rebuild everything when
-## testing, and "make check" also installs. So, if a test
-## is requested then we do it in one go.
+## Install! To work around a bug in the test suite, we test
+## single-threaded. And since we don't want the MeatAxe
+## multiplication tables to reside in SAGE_LOCAL/lib, but
+## MeatAxe's test suite is putting them there, we need to
+## remove them after testing.
 
 if [ "x$SAGE_CHECK" = xyes ]; then
-    $MAKE check
+    $MAKE MTXROOT=$SAGE_LOCAL V=1 CFLAGS1="$CFLAGS1" V=1 
+    $MAKE MTXROOT=$SAGE_LOCAL -j1 test
+    rm $SAGE_LOCAL/lib/p*.zzz
 else
-    $MAKE
+    $MAKE MTXROOT=$SAGE_LOCAL CFLAGS1="$CFLAGS1" V=1
 fi
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MeatAxe."
-    exit 1
-fi
-
-## Surprisingly, MeatAxe's Makefile does NOT install the binaries
-## in MTXBIN. Hence, we do it manually.
-
-mv bin/* "$MTXBIN"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying MeatAxe executables."
-    exit 1
-fi
-
-# We move the meataxe library to a permanent location
-mv tmp/libmtx.a "$SAGE_LOCAL/lib"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying MeatAxe library."
-    exit 1
-fi
-
-cp src/meataxe.h "$SAGE_LOCAL/include/"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying MeatAxe header."
     exit 1
 fi
 

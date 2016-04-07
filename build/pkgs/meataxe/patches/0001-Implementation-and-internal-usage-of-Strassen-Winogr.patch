@@ -1,17 +1,15 @@
-Implement Strassen-Winograd multiplication in MeatAxe.
+From d440134ce0dd99740eb791663ad96ad5e71b639c Mon Sep 17 00:00:00 2001
+From: Simon King <simon.king@uni-jena.de>
+Date: Mon, 21 Mar 2016 13:13:10 +0100
+Subject: [PATCH 1/3] Implementation and internal usage of Strassen-Winograd
+ multiplication
 
-We use the schedule from Douglas-Heroux-Slishman-Smith;
-see also Boyer-Pernet-Zhou, "Memory efficient scheduling of
-Strassen-Winograd's matrix multiplication algorithm",
-Table 1 (ISSAC 2009).
-
-AUTHOR: Simon King 2015-09-19, simon.king@uni-jena.de
 
 diff --git a/Makefile b/Makefile
-index b78e244..2ada31e 100644
+index 49c2b86..caef701 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -88,6 +88,7 @@ LIB_OBJS=\
+@@ -137,6 +137,7 @@ LIB_OBJS=\
  	temap \
  	tkinfo vec2mat \
  	wgen \
@@ -19,32 +17,260 @@ index b78e244..2ada31e 100644
  	zcleanrow zcmprow zgap zpermrow \
  	zzz2 \
  	version
+diff --git a/src/chbasis.c b/src/chbasis.c
+index 51ee8da..ec334d2 100644
+--- a/src/chbasis.c
++++ b/src/chbasis.c
+@@ -8,6 +8,8 @@
+ 
+ 
+ #include <meataxe.h>
++#include <stdlib.h>
++#include <string.h>
+ 
+ MTX_DEFINE_FILE_INFO
+ 
+@@ -26,9 +28,6 @@ MTX_DEFINE_FILE_INFO
+ 
+ int MrChangeBasis(MatRep_t *rep, const Matrix_t *trans)
+ {
+-    Matrix_t *bi;
+-    int i;
+-
+     /* Check arguments
+        --------------- */
+     if (!MrIsValid(rep))
+@@ -36,11 +35,6 @@ int MrChangeBasis(MatRep_t *rep, const Matrix_t *trans)
+ 	MTX_ERROR1("rep: %E",MTX_ERR_BADARG);
+ 	return -1;
+     }
+-    if (!MatIsValid(trans))
+-    {
+-	MTX_ERROR1("trans: %E",MTX_ERR_BADARG);
+-	return -1;
+-    }
+     if (rep->NGen <= 0)
+ 	return 0;
+     if (trans->Field != rep->Gen[0]->Field || 
+@@ -50,54 +44,50 @@ int MrChangeBasis(MatRep_t *rep, const Matrix_t *trans)
+ 	MTX_ERROR1("%E",MTX_ERR_INCOMPAT);
+ 	return -1;
+     }
+-
+-
+-    /* Basis transformation
+-       -------------------- */
+-    if ((bi = MatInverse(trans)) == NULL) 
+-    {
+-	MTX_ERROR("Basis transformation is singular");
+-	return -1;
+-    }
+-    for (i = 0; i < rep->NGen; ++i)
+-    {
+-	Matrix_t *tmp = MatDup(trans);
+-	MatMul(tmp,rep->Gen[i]);
+-	MatMul(tmp,bi);
+-        MatFree(rep->Gen[i]);
+-	rep->Gen[i] = tmp;
+-    }
+-    MatFree(bi);
+-    return 0;
++    return ChangeBasis(trans, rep->NGen, (const Matrix_t **)(rep->Gen), rep->Gen);
+ }
+ 
+ 
+-
+-int ChangeBasisOLD(const Matrix_t *M, int ngen, const Matrix_t *gen[],
++/** Conjugate a list @em gen of @em ngen square matrices over the same
++ *  field and of the same dimensions by a mattrix @em trans
++ *  and write the result into @em newgen. If @em gen == @em newgen, then
++ *  the previous content of @em newgen will be overridden. **/
++int ChangeBasis(const Matrix_t *trans, int ngen, const Matrix_t *gen[],
+ 	Matrix_t *newgen[])
+ 
+ {
+-    Matrix_t *bi, *tmp;
++    Matrix_t *bi;
+     int i;
+ 
+     MTX_VERIFY(ngen >= 0);
+-    if (!MatIsValid(M))
++    if (!MatIsValid(trans))
++    {
++	MTX_ERROR1("trans: %E",MTX_ERR_BADARG);
+ 	return -1;
+-    if ((bi = MatInverse(M)) == NULL) 
++    }
++
++    if ((bi = MatInverse(trans)) == NULL)
+     {
+-	MTX_ERROR("Matrix is singular");
++	MTX_ERROR("Basis transformation is singular");
+ 	return -1;
+     }
++
++    Matrix_t *tmp = MatAlloc(trans->Field, trans->Nor, trans->Noc);
++    size_t tmpsize = FfCurrentRowSize*trans->Nor;
+     for (i = 0; i < ngen; ++i)
+     {
+-	tmp = MatDup(M);
+-	MatMul(tmp,gen[i]);
+-	MatMul(tmp,bi);
+-	if ((const Matrix_t **)newgen == gen)
+-	    MatFree(newgen[i]);
+-	newgen[i] = tmp;
++        MTX_VERIFY(gen[i]->Nor==trans->Nor);
++        MTX_VERIFY(gen[i]->Noc==trans->Noc);
++        memset(tmp->Data, FF_ZERO, tmpsize);
++        MatMulStrassen(tmp, trans, gen[i]);
++        if ((const Matrix_t **)newgen == gen)
++            memset(newgen[i]->Data, FF_ZERO, tmpsize);
++        else
++            newgen[i] = MatAlloc(trans->Field, trans->Nor, trans->Noc);
++        MatMulStrassen(newgen[i], tmp, bi);
+     }
+     MatFree(bi);
++    MatFree(tmp);
+     return 0;
+ }
+ 
+diff --git a/src/chop.c b/src/chop.c
+index 27be817..269b432 100644
+--- a/src/chop.c
++++ b/src/chop.c
+@@ -537,7 +537,7 @@ static int checkspl(const MatRep_t *rep, Matrix_t *nsp)
+        ------------------------------------------------------------ */
+     sb1 = SpinUp(nsp,rep,SF_FIRST|SF_CYCLIC|SF_STD,NULL,NULL);
+     MTX_VERIFY(sb1 != NULL && sb1->Nor == sb1->Noc);
+-    ChangeBasisOLD(sb1,LI.NGen,(const Matrix_t **)rep->Gen,g1);
++    ChangeBasis(sb1,LI.NGen,(const Matrix_t **)rep->Gen,g1);
+     endo = MrAlloc(0,NULL,0);
+ 
+     sb2 = NULL;	/* Mark as unused */
+@@ -575,7 +575,7 @@ static int checkspl(const MatRep_t *rep, Matrix_t *nsp)
+ 	sb2 = SpinUp(v2,rep,SF_FIRST|SF_CYCLIC|SF_STD,NULL,NULL);
+ 	MTX_VERIFY(sb2 != NULL && sb2->Nor == sb2->Noc);
+ 	MatFree(v2);
+-	ChangeBasisOLD(sb2,rep->NGen,(const Matrix_t **)rep->Gen,g2);
++	ChangeBasis(sb2,rep->NGen,(const Matrix_t **)rep->Gen,g2);
+ 
+ 	/* Compare the two representations. If they are different,
+ 	   we know that the splitting field degree must be smaller
+@@ -761,7 +761,7 @@ static void newirred(node_t *n)
+     LI.Cf[i].spl = n->spl = n->nsp->Nor;
+     b = SpinUp(n->nsp,n->Rep,SF_FIRST|SF_CYCLIC|SF_STD,NULL,NULL);
+     MTX_VERIFY(b != NULL && b->Nor == b->Noc);
+-    ChangeBasisOLD(b,LI.NGen,(const Matrix_t **)n->Rep->Gen,n->Rep->Gen);
++    ChangeBasis(b,LI.NGen,(const Matrix_t **)n->Rep->Gen,n->Rep->Gen);
+     MatFree(b);
+ 
+     /* Write out the generators
+diff --git a/src/homcomp.c b/src/homcomp.c
+index d2a6ce2..cb0d3fa 100644
+--- a/src/homcomp.c
++++ b/src/homcomp.c
+@@ -92,10 +92,10 @@ Matrix_t *HomogeneousPart(MatRep_t *m, MatRep_t *s, Matrix_t *npw,
+ 	{
+ 	    PTR matptr = MatGetPtr(A,j);
+ 	    int u;
+-	    a = MatDup(V[j]);
+-	    b = MatDup(s->Gen[i]);
+-	    MatMul(a,m->Gen[i]);		/* the equations that describe  */
+-	    MatMul(b,V[j]);			/* that a vector in the null-   */
++	    a = MatAlloc(V[j]->Field, V[j]->Nor, m->Gen[i]->Noc);
++	    b = MatAlloc(s->Gen[i]->Field, s->Gen[i]->Nor, V[j]->Noc);
++	    MatMulStrassen(a, V[j], m->Gen[i]);		/* the equations that describe  */
++	    MatMulStrassen(b,s->Gen[i], V[j]);			/* that a vector in the null-   */
+ 	    MatMulScalar(b,FfNeg(FF_ONE));	/* space is the first element   */
+ 	    MatAdd(a, b);			/* of a standard basis of a     */ 
+ 					/* module isomorphic to S       */
+diff --git a/src/isisom.c b/src/isisom.c
+index c3454fb..f605da5 100644
+--- a/src/isisom.c
++++ b/src/isisom.c
+@@ -8,7 +8,7 @@
+ 
+ 
+ #include <meataxe.h>
+-
++#include <string.h>
+ 
+ MTX_DEFINE_FILE_INFO
+ 
+@@ -103,7 +103,7 @@ int IsIsomorphic(const MatRep_t *rep1, const CfInfo *info1,
+ {
+     int j;
+     WgData_t *wg;
+-    Matrix_t  *word, *m, *seed, *b, *bi;
++    Matrix_t  *word, *m, *seed, *b, *g1, *g2;
+     int result;
+ 
+     if (CheckArgs(rep1->NGen,rep1->Gen,info1,rep2->Gen,use_pw) != 0)
+@@ -137,28 +137,36 @@ int IsIsomorphic(const MatRep_t *rep1, const CfInfo *info1,
+ 	MatFree(b);
+ 	return 0;
+     }
+-    bi = MatInverse(b);
+ 
+     /* Compare generators
+        ------------------ */
++    /**
++     * We test whether b*rep2_j*b^-1 == rep1_j
++     * by testing whether b*rep2_j == rep1_j*b
++     * */
++    g1 = MatAlloc(b->Field, b->Nor, b->Noc);
++    g2 = MatAlloc(b->Field, b->Nor, b->Noc);
++    size_t memsize = FfCurrentRowSize*b->Nor;
+     for (j = 0, result = 0; result == 0 && j < rep2->NGen; ++j)
+     {
+-	Matrix_t *g = MatDup(b);
+-	MatMul(g,rep2->Gen[j]);
+-	MatMul(g,bi);
+-	if (MatCompare(g,rep1->Gen[j]) != 0)
+-	    result = 1;
+-	MatFree(g);
++	MatMulStrassen(g2, b, rep2->Gen[j]);
++	MatMulStrassen(g1, rep1->Gen[j], b);
++	if (MatCompare(g1, g2) != 0)
++	    {   result = 1;
++            break;
++        }
++	memset(g1->Data, FF_ZERO, memsize);
++    memset(g2->Data, FF_ZERO, memsize);
+     }
+ 
+     /* Clean up 
+        -------- */
+     if (trans != NULL && result == 0)
+-	*trans = b;
++        *trans = b;
+     else
+-	MatFree(b);
+-    MatFree(bi);
+-
++        MatFree(b);
++    MatFree(g1);
++    MatFree(g2);
+     return (result == 0);
+ }
+ 
 diff --git a/src/kernel-0.c b/src/kernel-0.c
-index 4f0a973..178b6cb 100644
+index c5660c8..98978db 100644
 --- a/src/kernel-0.c
 +++ b/src/kernel-0.c
-@@ -24,8 +24,8 @@
+@@ -20,8 +20,8 @@
  MTX_DEFINE_FILE_INFO
  
  typedef unsigned char BYTE;
--static int MPB = 0;		/* No. of marks per byte */
--static int LPR = 0;		/* Long ints per row */
-+int MPB = 0;		/* No. of marks per byte */
-+int LPR = 0;		/* Long ints per row */
+-static int MPB = 0;             /* No. of marks per byte */
+-static int LPR = 0;             /* Long ints per row */
++int MPB = 0;             /* No. of marks per byte */
++int LPR = 0;             /* Long ints per row */
  
- 
- 
-@@ -646,7 +646,7 @@ PTR FfAddRow(PTR dest, PTR src)
- 
- 
- /**
-- ** Add a part two rows.
-+ ** Add a part of two rows.
-  ** This works like FfAddRow(), but the operation is performed only on a given range of
-  ** columns. Note that the working range is not specified as column indexes but in units of
-  ** long integers!
-@@ -707,7 +707,217 @@ PTR FfAddRowPartial(PTR dest, PTR src, int first, int len)
-     return dest;
+ ////////////////////////////////////////////////////////////////////////////////////////////////////
+ // Argument checking (for debbugging)
+@@ -595,6 +595,216 @@ PTR FfAddRowPartial(PTR dest, PTR src, int first)
+    return dest;
  }
  
 +/**
@@ -60,14 +286,13 @@ index 4f0a973..178b6cb 100644
 +    register int i;
 +
 +    if (FfChar == 2)	/* characteristic 2 is simple... */
-+    {	
++    {
 +#ifdef ASM_MMX
 +    /* This assumes Intel with 4 bytes per long, but MMX implies Intel anyway.*/
 +	__asm__(
 +	"    pushl %ebx\n"
 +	"    pushl %ecx\n"
 +	"    pushl %edx\n"
- 
 +	"    movl 8(%ebp),%ecx\n"
 +        "    movl 12(%ebp),%ebx\n"
 +        "    movl LPR,%edx\n"
@@ -259,33 +484,30 @@ index 4f0a973..178b6cb 100644
 +    return dest;
 +}
  
- 
- /**
-diff --git a/src/meataxe.h b/src/meataxe.h
-index 819e88e..e2f5a84 100644
---- a/src/meataxe.h
-+++ b/src/meataxe.h
-@@ -107,6 +107,9 @@ extern int FfChar;		/**< Current characteristic */
- extern FEL FfGen;		/**< Generator */
- extern int FfNoc;		/**< Number of columns for row ops */
+ ////////////////////////////////////////////////////////////////////////////////////////////////////
+ /// Multiply a row by a coefficient.
+diff --git a/src/meataxe.h.in b/src/meataxe.h.in
+index 9030ead..cdad674 100644
+--- a/src/meataxe.h.in
++++ b/src/meataxe.h.in
+@@ -105,6 +105,8 @@ extern FEL FfGen;
+ extern int FfNoc;
  extern size_t FfCurrentRowSize;
-+extern int FfCurrentRowSizeIo;
+ extern size_t FfCurrentRowSizeIo;
 +extern int MPB;         /** No. of marks per byte */
 +extern int LPR;         /** Long ints per row */
  
- 
  /* Arithmetic */
-@@ -125,6 +128,9 @@ int FfSetNoc(int noc);
- void FfAddMulRow(PTR dest, PTR src, FEL f);
+ FEL FfAdd(FEL a, FEL b);
+@@ -122,6 +124,7 @@ void FfAddMulRow(PTR dest, PTR src, FEL f);
+ void FfAddMulRowPartial(PTR dest, PTR src, FEL f, int firstcol);
  PTR FfAddRow(PTR dest, PTR src);
- PTR FfAddRowPartial(PTR dest, PTR src, int first, int len);
+ PTR FfAddRowPartial(PTR dest, PTR src, int first);
 +PTR FfSubRow(PTR dest, PTR src);
-+PTR FfSubRowPartial(PTR dest, PTR src, int first, int len);
-+PTR FfSubRowPartialReverse(PTR dest, PTR src, int first, int len);
  PTR FfAlloc(int nor);
  int FfCmpRows(PTR p1, PTR p2);
  void FfCleanRow(PTR row, PTR matrix, int nor, const int *piv);
-@@ -519,6 +525,8 @@ int MatIsValid(const Matrix_t *m);
+@@ -498,6 +501,8 @@ int MatIsValid(const Matrix_t *m);
  Matrix_t *MatLoad(const char *fn);
  Matrix_t *MatMul(Matrix_t *dest, const Matrix_t *src);
  Matrix_t *MatMulScalar(Matrix_t *dest, FEL coeff);
@@ -294,12 +516,114 @@ index 819e88e..e2f5a84 100644
  long MatNullity(const Matrix_t *mat);
  long MatNullity__(Matrix_t *mat);
  Matrix_t *MatNullSpace(const Matrix_t *mat);
+diff --git a/src/mktree.c b/src/mktree.c
+index ed505c2..ce45dc2 100644
+--- a/src/mktree.c
++++ b/src/mktree.c
+@@ -210,8 +210,8 @@ static int MakeTree()
+ 	{
+ 	    /* Calculate next element
+ 	       ---------------------- */
+-	    Matrix_t *newelem = MatDup(Elms[src].Matrix);
+-	    MatMul(newelem,Rep->Gen[g]);
++	    Matrix_t *newelem = MatAlloc(Elms[src].Matrix->Field, Elms[src].Matrix->Nor, Rep->Gen[g]->Noc);
++	    MatMulStrassen(newelem, Elms[src].Matrix, Rep->Gen[g]);
+ 
+ 	    /* If it is new, add to tree, else discard
+ 	       --------------------------------------- */
+diff --git a/src/precond.c b/src/precond.c
+index f56ffdd..752e3bc 100644
+--- a/src/precond.c
++++ b/src/precond.c
+@@ -388,8 +388,8 @@ static void MakePQ(int n, int mj, int nj)
+ 	for (k = 0; k < spl; ++k)
+ 	{
+ 	    FEL f;
+-	    Matrix_t *x = MatDup(endo[i]);  
+-	    MatMul(x,endo[k]);
++	    Matrix_t *x = MatAlloc(endo[i]->Field, endo[i]->Nor, endo[k]->Noc);
++	    MatMulStrassen(x,endo[i],endo[k]);
+ 	    f = MatTrace(x);
+ 	    FfInsert(pptr,k,f);
+ 	    MatFree(x);
+diff --git a/src/pseudochop.c b/src/pseudochop.c
+index 6aa2f72..5a3c942 100644
+--- a/src/pseudochop.c
++++ b/src/pseudochop.c
+@@ -97,8 +97,8 @@ int main(int argc, const char *argv[])
+         {
+ 	    Matrix_t *newmat;
+             oldnul = newnul;
+-            newmat = MatDup(old);
+-            MatMul(newmat,old);
++            newmat = MatAlloc(old->Field, old->Nor, old->Noc);
++            MatMulStrassen(newmat, old, old);
+             MatFree(old);
+             MatFree(nulsp);
+             old = MatDup(newmat);
+diff --git a/src/pwkond.c b/src/pwkond.c
+index 5ea667b..5fd7dee 100644
+--- a/src/pwkond.c
++++ b/src/pwkond.c
+@@ -307,8 +307,8 @@ static void gkond(const Lat_Info *li, int i, Matrix_t *b, Matrix_t *k,
+     char fn[LAT_MAXBASENAME+10];
+     Matrix_t *x1, *x2;
+ 
+-    x1 = MatDup(k);
+-    MatMul(x1,w);
++    x1 = MatAlloc(k->Field, k->Nor, w->Noc);
++    MatMulStrassen(x1, k, w);
+     x2 = QProjection(b,x1);
+     sprintf(fn,"%s%s.%s",li->BaseName,Lat_CfName(li,i),name);
+     MatSave(x2,fn);
+@@ -338,7 +338,7 @@ static void Standardize(int cf)
+     MESSAGE(0,("  Transforming to standard basis\n"));
+     sb = SpinUp(CfList[cf].PWNullSpace,CfList[cf].Gen,
+ 	SF_FIRST|SF_CYCLIC|SF_STD,&script,NULL);
+-    ChangeBasisOLD(sb,CfList[cf].Gen->NGen,
++    ChangeBasis(sb,CfList[cf].Gen->NGen,
+ 	(const Matrix_t **)CfList[cf].Gen->Gen,std);
+     MatFree(sb);
+ 
+@@ -780,7 +780,7 @@ static int try2(long w, FEL f)
+ 	    	MESSAGE(3,("failed\n"));
+ 		return -1;  /* Nullity should be 0 */
+ 	    }
+-	    nul = MatNullity__(MatMul(MatDup(word),word));
++	    nul = MatNullity__(MatMulStrassen(MatAlloc(word->Field, word->Nor, word->Noc), word, word));
+ 	    if (nul != CfList[i].Info->spl)
+ 	    {
+ 		MatFree(word);
+@@ -913,7 +913,7 @@ static int try_p(long w)
+ 	       /* Check if the nullity is stable
+ 	          ------------------------------ */
+ 	       wp = MatInsert(word,mp->Factor[k]);
+-	       wp2 = MatMul(MatDup(wp),wp);
++	       wp2 = MatMulStrassen(MatAlloc(wp->Field, wp->Nor, wp->Noc), wp, wp);
+ 	       MatFree(wp);
+ 	       nul = MatNullity__(wp2);
+ 	       if (nul != CfList[i].Info->spl) 
+diff --git a/src/soc.c b/src/soc.c
+index 79812b2..ea4aaf9 100644
+--- a/src/soc.c
++++ b/src/soc.c
+@@ -290,8 +290,8 @@ static int NextLayer()
+ 	Matrix_t *mat, *stgen;
+ 
+ 	mat = MatCutRows(basis,basis->Nor - Dimension,Dimension);
+-	stgen = MatDup(bas);
+-	MatMul(stgen, mat);
++	stgen = MatAlloc(bas->Field, bas->Nor, mat->Noc);
++	MatMulStrassen(stgen, bas, mat);
+ 	MatCopyRegion(basis,basis->Nor - Dimension,0,stgen,0,0,Dimension,-1);
+ 	MatFree(mat);
+ 	MatFree(stgen);
 diff --git a/src/window.c b/src/window.c
 new file mode 100644
-index 0000000..f374028
+index 0000000..ea0e1b9
 --- /dev/null
 +++ b/src/window.c
-@@ -0,0 +1,944 @@
+@@ -0,0 +1,1133 @@
 +/* ========================== C MeatAxe =============================
 +   window.c -  Matrix window operations and Strassen-Winograd multiplication
 +
@@ -352,7 +676,7 @@ index 0000000..f374028
 +   ------------------------------------------------------------------ */
 +/**
 + * Note that the rowsize is given in long, not in byte. The reason is
-+ * functions such as FfAddRowPartial or FfAddMapRowWindow internally
++ * functions such as FfAddRowWindow or FfAddMapRowWindow are internally
 + * operating on longs. By consequence, in the Strassen-Winograd
 + * multiplication algorithm, we have to divide our matrix rows
 + * into longs, not into bytes.
@@ -565,6 +889,194 @@ index 0000000..f374028
 +    }
 +}
 +
++/**
++ ** Add a part of two rows.
++ ** This works like FfAddRow(), but the operation is performed only on a given range of
++ ** columns. Note that the working range is not specified as column indexes but in units of
++ ** long integers!
++ ** @param dest The row to add to.
++ ** @param src The row to add.
++ ** @param first Number of long integers to skip.
++ ** @param len Number of long integers to add.
++ ** @return Always returns dest.
++ **/
++
++PTR FfAddRowWindow(PTR dest, PTR src, int first, int len)
++{
++    register long i;
++
++    if (FfChar == 2)	/* characteristic 2 is simple... */
++#ifdef ASM_MMX
++	__asm__("\n	movl 8(%ebp),%ecx\n"
++		"	movl 12(%ebp),%ebx\n"
++		"	movl 16(%ebp),%edx\n"
++		"       sall $2,%edx\n"
++		"       addl %edx,%ecx\n"
++		"       addl %edx,%ebx\n"
++		"       movl 20(%ebp),%edx\n"
++		"	sarl $1,%edx\n"
++		"	je .ADDROWPART_1\n"
++		"	.align 16\n"
++		".ADDROWPART_2:\n"
++		"	movq (%ebx),%mm0\n"
++		"	addl $8,%ebx\n"
++		"	pxor (%ecx),%mm0\n"
++		"	movq %mm0,(%ecx)\n"
++		"	addl $8,%ecx\n"
++		"	decl %edx\n"
++		"	jne .ADDROWPART_2\n"
++		".ADDROWPART_1:\n"
++	       );
++#else
++    {	register long *l1 = (long *) dest + first;
++	register long *l2 = (long *) src + first;
++	for (i = len; i != 0; --i)
++	{
++	    register long x = *l2++;
++	    *l1 ^= x;
++	    l1++;
++	}
++    }
++#endif
++    else		/* any other characteristic */
++    {	register BYTE *p1 = dest + first * sizeof(long);
++	register BYTE *p2 = src + first * sizeof(long);
++	for (i = len*sizeof(long); i != 0; --i)
++	{
++	    register int x = *p2++;
++	    *p1 = mtx_tadd[*p1][x];
++	    p1++;
++	}
++    }
++    return dest;
++}
++
++/**
++ ** Subtract a part of two rows.
++ ** This works like FfSubRow(), but the operation is performed only on a given range of
++ ** columns. Note that the working range is not specified as column indexes but in units of
++ ** long integers!
++ ** @param dest The row to subtract from.
++ ** @param src The row to subtract.
++ ** @param first Number of long integers to skip.
++ ** @param len Number of long integers to add.
++ ** @return Always returns dest.
++ **/
++
++PTR FfSubRowWindow(PTR dest, PTR src, int first, int len)
++{
++    register long i;
++
++    if (FfChar == 2)	/* characteristic 2 is simple... */
++#ifdef ASM_MMX
++	__asm__("\n	movl 8(%ebp),%ecx\n"
++		"	movl 12(%ebp),%ebx\n"
++		"	movl 16(%ebp),%edx\n"
++		"       sall $2,%edx\n"
++		"       addl %edx,%ecx\n"
++		"       addl %edx,%ebx\n"
++		"       movl 20(%ebp),%edx\n"
++		"	sarl $1,%edx\n"
++		"	je .SUBROWPART_1\n"
++		"	.align 16\n"
++		".SUBROWPART_2:\n"
++		"	movq (%ebx),%mm0\n"
++		"	addl $8,%ebx\n"
++		"	pxor (%ecx),%mm0\n"
++		"	movq %mm0,(%ecx)\n"
++		"	addl $8,%ecx\n"
++		"	decl %edx\n"
++		"	jne .SUBROWPART_2\n"
++		".SUBROWPART_1:\n"
++	       );
++#else
++    {	register long *l1 = (long *) dest + first;
++	register long *l2 = (long *) src + first;
++	for (i = len; i != 0; --i)
++	{
++	    register long x = *l2++;
++	    *l1 ^= x;
++	    l1++;
++	}
++    }
++#endif
++    else		/* any other characteristic */
++    {   FEL *table_inv = mtx_tmult[mtx_taddinv[FF_ONE]];
++        register BYTE *p1 = dest + first * sizeof(long);
++        register BYTE *p2 = src + first * sizeof(long);
++        for (i = len*sizeof(long); i != 0; --i)
++        {
++            register int x = *p2++;
++            *p1 = mtx_tadd[*p1][table_inv[x]];
++            p1++;
++        }
++    }
++    return dest;
++}
++
++
++/**
++ ** Subtract a part of two rows.
++ ** The difference to FfSubRowWindow is that dest is replaced
++ ** by src-dest, not by dest-src.
++ ** @param dest The row to subtract.
++ ** @param src The row to subtract from.
++ ** @param first Number of long integers to skip.
++ ** @param len Number of long integers to add.
++ ** @return Always returns dest.
++ **/
++
++PTR FfSubRowWindowReverse(PTR dest, PTR src, int first, int len)
++{
++    register long i;
++
++    if (FfChar == 2)	/* characteristic 2 is simple... */
++#ifdef ASM_MMX
++	__asm__("\n	movl 8(%ebp),%ecx\n"
++		"	movl 12(%ebp),%ebx\n"
++		"	movl 16(%ebp),%edx\n"
++		"       sall $2,%edx\n"
++		"       addl %edx,%ecx\n"
++		"       addl %edx,%ebx\n"
++		"       movl 20(%ebp),%edx\n"
++		"	sarl $1,%edx\n"
++		"	je .SUBROWPART_1\n"
++		"	.align 16\n"
++		".SUBROWPART_2:\n"
++		"	movq (%ebx),%mm0\n"
++		"	addl $8,%ebx\n"
++		"	pxor (%ecx),%mm0\n"
++		"	movq %mm0,(%ecx)\n"
++		"	addl $8,%ecx\n"
++		"	decl %edx\n"
++		"	jne .SUBROWPART_2\n"
++		".SUBROWPART_1:\n"
++	       );
++#else
++    {	register long *l1 = (long *) dest + first;
++	register long *l2 = (long *) src + first;
++	for (i = len; i != 0; --i)
++	{
++	    register long x = *l2++;
++	    *l1 ^= x;
++	    l1++;
++	}
++    }
++#endif
++    else		/* any other characteristic */
++    {   FEL *table_inv = mtx_tmult[mtx_taddinv[FF_ONE]];
++        register BYTE *p1 = dest + first * sizeof(long);
++        register BYTE *p2 = src + first * sizeof(long);
++        for (i = len*sizeof(long); i != 0; --i)
++        {
++            register int x = *p2++;
++            *p1 = mtx_tadd[table_inv[*p1]][x];
++            p1++;
++        }
++    }
++    return dest;
++}
++
 +/** dest := left+right
 +   left and right must be distinct, but one of them may coincide with dest -- under the assumption
 +   that, in that case, the ambient matrices coincide as well. **/
@@ -594,7 +1106,7 @@ index 0000000..f374028
 +        x = right->ULCorner;
 +        for (i = left->Nor; i != 0; --i)
 +        {
-+            FfAddRowPartial(result, x, 0, rowsize);
++            FfAddRowWindow(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(rnoc);
@@ -606,7 +1118,7 @@ index 0000000..f374028
 +        x = left->ULCorner;
 +        for (i = left->Nor; i != 0; --i)
 +        {
-+            FfAddRowPartial(result, x, 0, rowsize);
++            FfAddRowWindow(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(lnoc);
@@ -623,7 +1135,7 @@ index 0000000..f374028
 +            memcpy(result, tmp, l_rowsize);
 +            FfSetNoc(lnoc);
 +            FfStepPtr(&tmp);
-+            FfAddRowPartial(result, x, 0, rowsize);
++            FfAddRowWindow(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(rnoc);
@@ -662,7 +1174,7 @@ index 0000000..f374028
 +        x = right->ULCorner;
 +        for (i = left->Nor; i != 0; --i)
 +        {
-+            FfSubRowPartial(result, x, 0, rowsize);
++            FfSubRowWindow(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(rnoc);
@@ -674,7 +1186,7 @@ index 0000000..f374028
 +        x = left->ULCorner;
 +        for (i = left->Nor; i != 0; --i)
 +        {
-+            FfSubRowPartialReverse(result, x, 0, rowsize);
++            FfSubRowWindowReverse(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(lnoc);
@@ -691,7 +1203,7 @@ index 0000000..f374028
 +            memcpy(result, tmp, l_rowsize);
 +            FfSetNoc(lnoc);
 +            FfStepPtr(&tmp);
-+            FfSubRowPartial(result, x, 0, rowsize);
++            FfSubRowWindow(result, x, 0, rowsize);
 +            FfSetNoc(dnoc);
 +            FfStepPtr(&result);
 +            FfSetNoc(rnoc);
@@ -704,9 +1216,10 @@ index 0000000..f374028
 +/**
 +   Add left*right to dest.
 +
-+   It is assumed that "dest->Matrix" is allocated (with the correct field and dimensions as well), so that we
-+   can write the result into it. Moreover, the chunk of memory pointed at by dest MUST be disjoint
-+   from the chunks for left and right!
++   It is assumed that "dest->Matrix" is allocated (with the correct
++   field and dimensions as well), so that we can write the result into
++   it. Moreover, the chunk of memory pointed at by dest MUST be
++   disjoint from the chunks for left and right!
 +
 +   Dimensions are not tested!
 +**/
@@ -1244,3 +1757,6 @@ index 0000000..f374028
 +  if (StrassenStep(dest_win, A_win, B_win)) return NULL;
 +  return dest;
 +}
+-- 
+2.5.0
+
