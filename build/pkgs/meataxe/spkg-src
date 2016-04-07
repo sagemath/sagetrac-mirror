@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-#if [ -z "$SAGE_LOCAL" ]; then
-#    echo >&2 "SAGE_LOCAL undefined ... exiting"
-#    echo >&2 "Maybe run 'sage --sh'?"
-#    exit 1
-#fi
+# Execute this script in $SAGE_ROOT
 
-COMMIT=$(cat package-version.txt | cut -d'.' -f4)
+cd build/pkgs/meataxe
+if [ $? -ne 0 ]; then
+    echo >&2 "Error accessing the meataxe package directory"
+    exit 1
+fi
+
+export COMMIT=$(cat package-version.txt | cut -d'.' -f4)
 
 echo "Creating source ball for meataxe version 2.5.0 at commit" $COMMIT
 
@@ -31,11 +33,6 @@ for patch in ../patches/src/*.patch; do
         return 1
     fi
 done
-git commit -a -m "Add make target *dist*"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error commiting changes."
-    exit 1
-fi
 
 sed -i 's/-SNAPSHOT/.'$COMMIT'/' Makefile
 if [ $? -ne 0 ]; then
@@ -48,12 +45,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd ..
-mv meataxe/meataxe-2.5.0.$COMMIT.tar.gz .
-#mv meataxe/meataxe-2.5.0.$COMMIT.tar.gz $SAGE_ROOT/upstream/
-#if [ $? -ne 0 ]; then
-#    echo >&2 "Error moving source ball."
-#    exit 1
-#fi
-rm -rf meataxe
+cd ../../../..
+echo "Moving source ball into Sage's DISTFILES directory"
+./sage --sh -c 'mv build/pkgs/meataxe/meataxe/meataxe-2.5.0.$COMMIT.tar.gz "$SAGE_DISTFILES"'
+if [ $? -ne 0 ]; then
+    echo >&2 "Error moving upstream tarball into the distfiles directory."
+    exit 1
+fi
+
+rm -rf build/pkgs/meataxe/meataxe
 exit 0
