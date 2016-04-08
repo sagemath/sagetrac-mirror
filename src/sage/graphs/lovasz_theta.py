@@ -79,7 +79,8 @@ def lovasz_theta(graph):
 from sage.misc.feature import Executable
 class CSDP(Executable):
     r"""
-    A ``Feature`` which checks for the theta binary of CSDP.
+    A class:`sage.misc.feature.Feature` which checks for the ``theta`` binary
+    of CSDP.
 
     EXAMPLES::
 
@@ -93,7 +94,7 @@ class CSDP(Executable):
 
     def is_functional(self):
         r"""
-        Checks whether ``theta`` works on a trivial example.
+        Check whether ``theta`` works on a trivial example.
 
         EXAMPLES::
 
