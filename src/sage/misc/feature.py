@@ -25,17 +25,17 @@ To test for the existence of a binary, one can rely on a :class:`Executable`
 feature::
 
     sage: Executable(name="sh", executable="sh").is_present()
-    True
+    FeatureTestResult('sh', True)
 
 Features try to produce a helpful error message if a feature is not present::
 
     sage: Executable(name="random", executable="randomOochoz6x", spkg="random", url="http://rand.om").require()
     Traceback (most recent call last):
     ...
-    FeatureNotPresentError: random is not available. To use this feature make
-    sure that randomOochoz6x is in the PATH. To install random you can try to
-    run sage -i random. Further installation instructions might be available at
-    http://rand.om.
+    FeatureNotPresentError: random is not available.
+    No `randomOochoz6x` found on PATH.
+    To install random you can try to run `sage -i random`.
+    Further installation instructions might be available at http://rand.om.
 
 """
 from sage.misc.cachefunc import cached_method
@@ -46,9 +46,9 @@ class FeatureNotPresentError(RuntimeError):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Feature
+        sage: from sage.misc.feature import Feature, FeatureTestResult
         sage: class Missing(Feature):
-        ....:     def is_present(self): return False
+        ....:     def is_present(self): return FeatureTestResult(self, False)
 
         sage: Missing(name="missing").require() # indirect doctest
         Traceback (most recent call last):
@@ -56,13 +56,13 @@ class FeatureNotPresentError(RuntimeError):
         FeatureNotPresentError: missing is not available.
 
     """
-    def __init__(self, feature):
+    def __init__(self, feature, explanation=None, resolution=None):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Feature, FeatureNotPresentError
+            sage: from sage.misc.feature import Feature, FeatureNotPresentError, FeatureTestResult
             sage: class Missing(Feature):
-            ....:     def is_present(self): return False
+            ....:     def is_present(self): return FeatureTestResult(self, False)
 
             sage: try:
             ....:     Missing(name="missing").require() # indirect doctest
@@ -70,6 +70,8 @@ class FeatureNotPresentError(RuntimeError):
 
         """
         self.feature = feature
+        self.explanation = explanation
+        self.resolution = resolution
 
     def __str__(self):
         r"""
@@ -82,10 +84,78 @@ class FeatureNotPresentError(RuntimeError):
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: GAP package gapZuHoh8Uu is not available.
+            `TestPackageAvailability("gapZuHoh8Uu")` evaluated to `fail` in GAP.
 
         """
-        return ("%s is not available. %s"%(self.feature.name, self.feature.resolution())).strip()
+        return "\n".join(filter(None,(
+            "%s is not available."%self.feature.name,
+            self.explanation,
+            self.resolution
+            )))
 
+class FeatureTestResult(object):
+    r"""
+    The result of a :method:`Feature.is_present` call.
+
+    Behaves like a boolean with some extra data which may explain why a feature
+    is not present and how this may be resolved.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import GapPackage
+        sage: presence = GapPackage("NOT_A_PACKAGE").is_present(); presence # indirect doctest
+        FeatureTestResult('GAP package NOT_A_PACKAGE', False)
+        sage: bool(presence)
+        False
+
+    Explanatory messages might be available as ``explanation`` and
+    ``resolution``::
+
+        sage: presence.explanation
+        '`TestPackageAvailability("NOT_A_PACKAGE")` evaluated to `fail` in GAP.'
+        sage: presence.resolution is None
+        True
+
+    """
+    def __init__(self, feature, is_present, explanation=None, resolution=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import Executable, FeatureTestResult
+            sage: isinstance(Executable(name="sh", executable="sh").is_present(), FeatureTestResult)
+            True
+
+        """
+        self.feature = feature
+        self.is_present = is_present
+        self.explanation = explanation
+        self.resolution = resolution
+
+    def __nonzero__(self):
+        r"""
+        Whether the tested :class:`Feature` is present.
+
+        TESTS::
+
+            sage: from sage.misc.feature import Feature, FeatureTestResult
+            sage: bool(FeatureTestResult(Feature("SomePresentFeature"), True)) # indirect doctest
+            True
+            sage: bool(FeatureTestResult(Feature("SomeMissingFeature"), False))
+            False
+
+        """
+        return bool(self.is_present)
+
+    def __repr__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import Feature, FeatureTestResult
+            sage: FeatureTestResult(Feature("SomePresentFeature"), True) # indirect doctest
+            FeatureTestResult('SomePresentFeature', True)
+
+        """
+        return "FeatureTestResult(%s, %s)"%(repr(self.feature.name), repr(self.is_present))
 
 class Feature(object):
     r"""
@@ -114,9 +184,14 @@ class Feature(object):
         self.name = name;
         self.spkg = spkg
 
-    def is_present(self):
+    def is_present(self, explain=False):
         r"""
         Whether the feature is present.
+
+        OUTPUT:
+
+        A :class:`FeatureTestResult` which can be used as a boolean and
+        contains additional information about the feature test.
 
         EXAMPLES::
 
@@ -125,7 +200,7 @@ class Feature(object):
             True
 
         """
-        return True
+        return FeatureTestResult(self, True)
 
     def require(self):
         r"""
@@ -138,23 +213,12 @@ class Feature(object):
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: GAP package ve1EeThu is not available.
+            `TestPackageAvailability("ve1EeThu")` evaluated to `fail` in GAP.
 
         """
-        if not self.is_present():
-            raise FeatureNotPresentError(self)
-
-    def resolution(self):
-        r"""
-        A string which gives a hint on how to enable this feature.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").resolution()
-            'You can try to install this package with sage -i gap_packages.'
-
-        """
-        return ""
+        presence = self.is_present()
+        if not presence:
+            raise FeatureNotPresentError(self, presence.explanation, presence.resolution)
 
     def __repr__(self):
         r"""
@@ -200,21 +264,13 @@ class GapPackage(Feature):
 
         """
         from sage.libs.gap.libgap import libgap
-        return bool(libgap.eval('TestPackageAvailability("%s")'%self.package))
-
-    def resolution(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").resolution()
-            'You can try to install this package with sage -i gap_packages.'
-
-        """
-        if self.spkg:
-            return "You can try to install this package with sage -i %s."%(self.spkg,)
+        command = 'TestPackageAvailability("%s")'%self.package
+        presence = libgap.eval(command)
+        if presence:
+            return FeatureTestResult(self, True, explanation = "`%s` evaluated to `%s` in GAP."%(command, presence))
         else:
-            return ""
+            resolution = "You can try to install this package with sage -i %s."%(self.spkg,) if self.spkg else None
+            return FeatureTestResult(self, False, explanation = "`%s` evaluated to `%s` in GAP."%(command, presence), resolution = resolution)
 
 class Executable(Feature):
     r"""
@@ -232,7 +288,7 @@ class Executable(Feature):
 
         sage: from sage.misc.feature import Executable
         sage: Executable(name="sh", executable="sh").is_present()
-        True
+        FeatureTestResult('sh', True)
 
     """
     def __init__(self, name, executable, spkg=None, url=None):
@@ -252,20 +308,18 @@ class Executable(Feature):
     @cached_method
     def is_present(self):
         r"""
-        Test whether the executable is on the current PATH.
+        Test whether the executable is on the current PATH and functional.
 
         EXAMPLES::
 
             sage: from sage.misc.feature import Executable
             sage: Executable(name="sh", executable="sh").is_present()
-            True
+            FeatureTestResult('sh', True)
 
         """
         from distutils.spawn import find_executable
         if find_executable(self.executable) is None:
-            from sage.misc.misc import verbose
-            verbose("No %s found on path.`"%(self.executable,), level=Feature.VERBOSE_LEVEL)
-            return False
+            return FeatureTestResult(self, False, "No `%s` found on PATH."%(self.executable,), self.resolution())
         return self.is_functional()
 
     def is_functional(self):
@@ -275,14 +329,14 @@ class Executable(Feature):
 
         EXAMPLES:
 
-        Always return ``True`` unless explicitly overwritten::
+        Returns ``True`` unless explicitly overwritten::
 
             sage: from sage.misc.feature import Executable
             sage: Executable(name="sh", executable="sh").is_functional()
-            True
+            FeatureTestResult('sh', True)
 
         """
-        return True
+        return FeatureTestResult(self, True)
 
     def resolution(self):
         r"""
@@ -290,10 +344,9 @@ class Executable(Feature):
 
             sage: from sage.misc.feature import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
-            'To use this feature make sure that theta is in the PATH. To install CSDP you can try to run sage -i csdp. Further installation instructions might be available at http://github.org/dimpase/csdp.'
+            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
 
         """
-        return "".join([
-            "To use this feature make sure that %s is in the PATH."%(self.executable,),
-            " To install %s you can try to run sage -i %s."%(self.name, self.spkg) if self.spkg else "",
-            " Further installation instructions might be available at %s."%(self.url,) if self.url else ""])
+        return "\n".join(filter(None,[
+            "To install %s you can try to run `sage -i %s`."%(self.name, self.spkg) if self.spkg else "",
+            "Further installation instructions might be available at %s."%(self.url,) if self.url else ""]))
