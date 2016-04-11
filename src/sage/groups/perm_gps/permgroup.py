@@ -151,18 +151,16 @@ from sage.functions.other import factorial
 from sage.groups.generic import structure_description
 
 def load_hap():
-    """
-    Load the GAP hap package into the default GAP interpreter
-    interface. If this fails, try one more time to load it.
+    r"""
+    Load the GAP hap package into the default GAP interpreter interface.
 
     EXAMPLES::
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    try:
-        gap.load_package("hap")
-    except Exception:
-        gap.load_package("hap")
+    from sage.misc.feature import GapPackage
+    GapPackage("hap", spkg="gap_packages").require()
+    gap.load_package("hap")
 
 def hap_decorator(f):
     """
@@ -188,8 +186,6 @@ def hap_decorator(f):
     """
     @wraps(f)
     def wrapped(self, n, p=0):
-        if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -4100,8 +4096,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - David Joyner and Graham Ellis
 
         """
-        if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
