@@ -1195,7 +1195,7 @@ class GraphGenerators():
         """
         # number of vertices should be non-negative
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("Number of vertices should be non-negative.")
 
         # buckygen can only output fullerenes on up to 254 vertices
         if order > 254:
@@ -1206,7 +1206,7 @@ class GraphGenerators():
         if order % 2 == 1 or order < 20 or order == 22:
             return
 
-        Buckygen.require()
+        Buckygen().require()
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
@@ -1276,13 +1276,9 @@ class GraphGenerators():
         .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("benzene"):
-            raise TypeError("the optional benzene package is not installed")
-
-        # number of hexagons should be positive
+        # number of hexagons should be non-negative
         if hexagon_count < 0:
-            raise ValueError("Number of hexagons should be positive.")
+            raise ValueError("Number of hexagons should be non-negative.")
 
         # benzene is only built for fusenes with up to 30 hexagons
         if hexagon_count > 30:
@@ -1299,6 +1295,8 @@ class GraphGenerators():
             G.set_embedding(g)
             yield(G)
             return
+
+        Benzene().require()
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
@@ -2517,7 +2515,7 @@ class Buckygen(Executable):
         EXAMPLES::
 
             sage: from sage.graphs.graph_generators import Buckygen
-            sage: Buckygen.is_functional() # optional: buckygen
+            sage: Buckygen().is_functional() # optional: buckygen
             True
         """
         from sage.misc.misc import verbose
@@ -2529,5 +2527,48 @@ class Buckygen(Executable):
             return False
         return lines.find("Number of fullerenes generated with 13 vertices: 0") != -1
 
+class Benzene(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``benzene``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Benzene
+        sage: Benzene().is_present() # optional: benzene
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Benzene
+            sage: Benzene()
+            Feature("Benzene")
+        """
+        Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``benzene`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Benzene
+            sage: Benzene().is_functional() # optional: benzene
+            True
+        """
+        from sage.misc.misc import verbose
+        import os, subprocess
+        devnull = open(os.devnull, 'wb')
+        try:
+            lines = subprocess.check_output(['benzene', "2", "p"], stderr=devnull)
+        except subprocess.CalledProcessError as e:
+            verbose("Call to benzene failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
+            return False
+        return lines.startswith(">>planar_code<<")
+
+# Easy access to the graph generators from the command line:
+graphs = GraphGenerators()
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
