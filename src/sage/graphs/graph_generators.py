@@ -15,6 +15,7 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
+from sage.misc.feature import Executable
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -1192,11 +1193,7 @@ class GraphGenerators():
         .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("buckygen"):
-            raise TypeError("the optional buckygen package is not installed")
-
-        # number of vertices should be positive
+        # number of vertices should be non-negative
         if order < 0:
             raise ValueError("Number of vertices should be positive.")
 
@@ -1208,6 +1205,8 @@ class GraphGenerators():
         # and different from 22
         if order % 2 == 1 or order < 20 or order == 22:
             return
+
+        Buckygen.require()
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
@@ -2490,6 +2489,45 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
                 if not dig and new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
 
+class Buckygen(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``buckygen``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Buckygen
+        sage: Buckygen().is_present() # optional: buckygen
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Buckygen
+            sage: Buckygen()
+            Feature("Buckygen")
+        """
+        Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``buckygen`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Buckygen
+            sage: Buckygen.is_functional() # optional: buckygen
+            True
+        """
+        from sage.misc.misc import verbose
+        import os, subprocess
+        try:
+            lines = subprocess.check_output(['buckygen', "-d", "22d"], stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            verbose("Call to buckygen failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
+            return False
+        return lines.find("Number of fullerenes generated with 13 vertices: 0") != -1
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
