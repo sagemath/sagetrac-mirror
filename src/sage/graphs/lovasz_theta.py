@@ -114,8 +114,9 @@ class CSDP(Executable):
         tf_name = tmp_filename()
         with open(tf_name, 'wb') as tf:
             tf.write("2\n1\n1 1")
+        devnull = open(os.devnull, 'wb')
         try:
-            lines = subprocess.check_output(['theta', tf_name])
+            lines = subprocess.check_output(['theta', tf_name], stderr=devnull)
         except subprocess.CalledProcessError as e:
             verbose("Call to theta failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
             return False
