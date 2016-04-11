@@ -108,22 +108,25 @@ class CSDP(Executable):
             sage: CSDP().is_functional() # optional: csdp
             True
         """
+        from sage.misc.feature import FeatureTestResult
         from sage.misc.temporary_file import tmp_filename
-        from sage.misc.misc import verbose
         import os, subprocess
         tf_name = tmp_filename()
         with open(tf_name, 'wb') as tf:
             tf.write("2\n1\n1 1")
         devnull = open(os.devnull, 'wb')
+        command = ['theta', tf_name]
         try:
-            lines = subprocess.check_output(['theta', tf_name], stderr=devnull)
+            lines = subprocess.check_output(command, stderr=devnull)
         except subprocess.CalledProcessError as e:
-            verbose("Call to theta failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
-            return False
+            return FeatureTestResult(self, False,
+                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
+
         result = lines.strip().split('\n')[-1]
         import re
         match = re.match("^The Lovasz Theta Number is (.*)$", result)
         if match is None:
-            verbose("Last line of theta output did not match the expected format: `%s`"%(result,), level=Feature.VERBOSE_LEVEL)
-            return False
-        return True
+            return FeatureTestResult(self, False,
+                reason = "Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
+        else:
+            return FeatureTestResult(self, True)

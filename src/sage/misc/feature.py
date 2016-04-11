@@ -59,7 +59,7 @@ class FeatureNotPresentError(RuntimeError):
         ...
         FeatureNotPresentError: missing is not available.
     """
-    def __init__(self, feature, explanation=None, resolution=None):
+    def __init__(self, feature, reason=None, resolution=None):
         r"""
         TESTS::
 
@@ -73,7 +73,7 @@ class FeatureNotPresentError(RuntimeError):
 
         """
         self.feature = feature
-        self.explanation = explanation
+        self.reason = reason
         self.resolution = resolution
 
     def __str__(self):
@@ -91,8 +91,8 @@ class FeatureNotPresentError(RuntimeError):
 
         """
         return "\n".join(filter(None,(
-            "%s is not available."%self.feature.name,
-            self.explanation,
+            "{feature} is not available.".format(feature=self.feature.name),
+            self.reason,
             self.resolution
             )))
 
@@ -111,16 +111,29 @@ class FeatureTestResult(object):
         sage: bool(presence)
         False
 
-    Explanatory messages might be available as ``explanation`` and
+    Explanatory messages might be available as ``reason`` and
     ``resolution``::
 
-        sage: presence.explanation
+        sage: presence.reason
         '`TestPackageAvailability("NOT_A_PACKAGE")` evaluated to `fail` in GAP.'
         sage: presence.resolution is None
         True
 
+    If a feature is not present, ``resolution`` defaults to
+    ``feature.resolution()`` if this is defined. If you do not want to use this
+    default you need explicitly set ``resolution`` to a string::
+
+        sage: from sage.misc.feature import FeatureTestResult
+        sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
+        sage: FeatureTestResult(package, True).resolution
+
+        sage; FeatureTestResult(package, False).resolution
+
+        sage: FeatureTestResult(package, False, resolution="rtm").resolution
+        'rtm'
+
     """
-    def __init__(self, feature, is_present, explanation=None, resolution=None):
+    def __init__(self, feature, is_present, reason=None, resolution=None):
         r"""
         TESTS::
 
@@ -131,8 +144,10 @@ class FeatureTestResult(object):
         """
         self.feature = feature
         self.is_present = is_present
-        self.explanation = explanation
+        self.reason = reason
         self.resolution = resolution
+        if not is_present and self.resolution is None and hasattr(feature, "resolution"):
+            self.resolution = self.feature.resolution()
 
     def __nonzero__(self):
         r"""
@@ -158,7 +173,7 @@ class FeatureTestResult(object):
             FeatureTestResult('SomePresentFeature', True)
 
         """
-        return "FeatureTestResult(%s, %s)"%(repr(self.feature.name), repr(self.is_present))
+        return "FeatureTestResult({feature!r}, {is_present!r})".format(feature=self.feature.name, is_present=self.is_present)
 
 class Feature(object):
     r"""
@@ -172,8 +187,6 @@ class Feature(object):
         sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
         Feature("GAP package grape")
     """
-    VERBOSE_LEVEL = 50
-
     def __init__(self, name, spkg = None):
         r"""
         TESTS::
@@ -220,7 +233,7 @@ class Feature(object):
         """
         presence = self.is_present()
         if not presence:
-            raise FeatureNotPresentError(self, presence.explanation, presence.resolution)
+            raise FeatureNotPresentError(self, presence.reason, presence.resolution)
 
     def __repr__(self):
         r"""
@@ -232,7 +245,7 @@ class Feature(object):
             sage: GapPackage("grape") # indirect doctest
             Feature("GAP package grape")
         """
-        return 'Feature("%s")'%(self.name,)
+        return 'Feature({name!r})'.format(name=self.name)
 
 class GapPackage(Feature):
     r"""
@@ -245,7 +258,7 @@ class GapPackage(Feature):
         Feature("GAP package grape")
     """
     def __init__(self, package, spkg=None):
-        Feature.__init__(self, "GAP package %s"%package)
+        Feature.__init__(self, "GAP package {package}".format(package=package))
         self.package = package
         self.spkg = spkg
 
@@ -264,13 +277,16 @@ class GapPackage(Feature):
 
         """
         from sage.libs.gap.libgap import libgap
-        command = 'TestPackageAvailability("%s")'%self.package
+        command = 'TestPackageAvailability("{package}")'.format(package=self.package)
         presence = libgap.eval(command)
         if presence:
-            return FeatureTestResult(self, True, explanation = "`%s` evaluated to `%s` in GAP."%(command, presence))
+            return FeatureTestResult(self, True,
+                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
         else:
-            resolution = "You can try to install this package with sage -i %s."%(self.spkg,) if self.spkg else None
-            return FeatureTestResult(self, False, explanation = "`%s` evaluated to `%s` in GAP."%(command, presence), resolution = resolution)
+            resolution = "You can try to install this package with sage -i {spkg}.".format(spkg=self.spkg) if self.spkg else None
+            return FeatureTestResult(self, False,
+                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence),
+                    resolution = resolution)
 
 class Executable(Feature):
     r"""
@@ -321,7 +337,7 @@ class Executable(Feature):
         """
         from distutils.spawn import find_executable
         if find_executable(self.executable) is None:
-            return FeatureTestResult(self, False, "No `%s` found on PATH."%(self.executable,), self.resolution())
+            return FeatureTestResult(self, False, "No `{executable}` found on PATH.".format(executable=self.executable))
         return self.is_functional()
 
     def is_functional(self):
@@ -349,5 +365,5 @@ class Executable(Feature):
 
         """
         return "\n".join(filter(None,[
-            "To install %s you can try to run `sage -i %s`."%(self.name, self.spkg) if self.spkg else "",
-            "Further installation instructions might be available at %s."%(self.url,) if self.url else ""]))
+            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
+            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))

@@ -1193,7 +1193,6 @@ class GraphGenerators():
         .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
-        # number of vertices should be non-negative
         if order < 0:
             raise ValueError("Number of vertices should be non-negative.")
 
@@ -1276,7 +1275,6 @@ class GraphGenerators():
         .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
-        # number of hexagons should be non-negative
         if hexagon_count < 0:
             raise ValueError("Number of hexagons should be non-negative.")
 
@@ -1427,13 +1425,8 @@ class GraphGenerators():
         .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("Number of vertices should be non-negative.")
 
         # plantri can only output general planar graphs on up to 64 vertices
         if order > 64:
@@ -1442,7 +1435,6 @@ class GraphGenerators():
         if exact_connectivity and minimum_connectivity is None:
             raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
 
-        # minimum connectivity should be None or a number between 1 and 3
         if minimum_connectivity is  not None and not (1 <= minimum_connectivity <= 3):
             raise ValueError("Minimum connectivity should be a number between 1 and 3.")
 
@@ -1489,6 +1481,8 @@ class GraphGenerators():
                 G.set_embedding({0: []})
                 yield(G)
             return
+
+        Plantri().require()
 
         cmd = 'plantri -p{}m{}c{}{}{} {}'
         command = cmd.format('b' if only_bipartite else '',
@@ -1626,13 +1620,8 @@ class GraphGenerators():
             sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
             [12, 12]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("Number of vertices should be non-negative.")
 
         # plantri can only output planar triangulations on up to 64 vertices
         if order > 64:
@@ -1641,11 +1630,9 @@ class GraphGenerators():
         if exact_connectivity and minimum_connectivity is None:
             raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
 
-        # minimum connectivity should be None or a number between 3 and 5
         if minimum_connectivity is  not None and not (3 <= minimum_connectivity <= 5):
             raise ValueError("Minimum connectivity should be None or a number between 3 and 5.")
 
-        # minimum degree should be None or a number between 3 and 5
         if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
             raise ValueError("Minimum degree should be None or a number between 3 and 5.")
 
@@ -1676,6 +1663,8 @@ class GraphGenerators():
 
         if only_eulerian and order < 6:
             return
+
+        Plantri().require()
 
         cmd = 'plantri -{}m{}c{}{}{} {}'
         command = cmd.format('b' if only_eulerian else '',
@@ -1780,23 +1769,16 @@ class GraphGenerators():
             sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
             [10, 10]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("Number of vertices should be non-negative.")
 
         # plantri can only output planar quadrangulations on up to 64 vertices
         if order > 64:
             raise ValueError("Number of vertices should be at most 64.")
 
-        # minimum connectivity should be None, 2 or 3
         if minimum_connectivity not in {None, 2, 3}:
             raise ValueError("Minimum connectivity should be None, 2 or 3.")
 
-        # minimum degree should be None, 2 or 3
         if minimum_degree not in {None, 2, 3}:
             raise ValueError("Minimum degree should be None, 2 or 3.")
 
@@ -1825,6 +1807,7 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
+        Plantri().require()
 
         cmd = 'plantri -qm{}c{}{} {}'
         command = cmd.format(minimum_degree,
@@ -2518,14 +2501,21 @@ class Buckygen(Executable):
             sage: Buckygen().is_functional() # optional: buckygen
             True
         """
-        from sage.misc.misc import verbose
-        import os, subprocess
+        from sage.misc.feature import FeatureTestResult
+        import subprocess
+        command = ["buckygen", "-d", "22d"]
         try:
-            lines = subprocess.check_output(['buckygen', "-d", "22d"], stderr=subprocess.STDOUT)
+            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
-            verbose("Call to buckygen failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
-            return False
-        return lines.find("Number of fullerenes generated with 13 vertices: 0") != -1
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+
+        expected = "Number of fullerenes generated with 13 vertices: 0"
+        if lines.find(expected) == -1:
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)
 
 class Benzene(Executable):
     r"""
@@ -2558,17 +2548,69 @@ class Benzene(Executable):
             sage: Benzene().is_functional() # optional: benzene
             True
         """
-        from sage.misc.misc import verbose
+        from sage.misc.feature import FeatureTestResult
         import os, subprocess
         devnull = open(os.devnull, 'wb')
+        command = ["benzene", "2", "p"]
         try:
-            lines = subprocess.check_output(['benzene', "2", "p"], stderr=devnull)
+            lines = subprocess.check_output(command, stderr=devnull)
         except subprocess.CalledProcessError as e:
-            verbose("Call to benzene failed with exit code %s and output:\n%s"%(e.returncode, lines), level=Feature.VERBOSE_LEVEL)
-            return False
-        return lines.startswith(">>planar_code<<")
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-# Easy access to the graph generators from the command line:
-graphs = GraphGenerators()
+        expected = ">>planar_graph<<"
+        if not lines.startswith(expected):
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)
+
+class Plantri(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``plantri``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Plantri
+        sage: Benzene().is_present() # optional: plantri
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Plantry
+            sage: Plantri()
+            Feature("plantri")
+        """
+        Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``plantri`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Plantri
+            sage: Plantri().is_functional() # optional: plantri
+            True
+        """
+        from sage.misc.feature import FeatureTestResult
+        import os, subprocess
+        command = ["plantri", "4"]
+        try:
+            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+
+        expected = "1 triangulation written"
+        if lines.find(expected) == -1:
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)
+
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
