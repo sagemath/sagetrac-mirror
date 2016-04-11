@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
-Testing for Features of the Environment at Runtime
+Testing for features of the environment at runtime
 
 A computation can require a certain package to be installed in the runtime
-environment. Abstractly such a package describes a :class`Feature` which can be
-tested for at runtime. It can be of various kinds, most prominently a
+environment. Abstractly such a package describes a :class`Feature` which can
+be tested for at runtime. It can be of various kinds, most prominently an
 :class:`Executable` in the PATH or an additional package for some installed
 system such as a :class:`GapPackage`.
 
@@ -14,20 +14,23 @@ AUTHORS:
 
 EXAMPLES:
 
-There are special features already defined for commonly used package types such
-as packages in GAP::
-
-    sage: from sage.misc.feature import GapPackage, Executable
-    sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-    True
-
-To test for the existence of a binary, one can rely on a :class:`Executable`
+Some generic features are available for common cases. For example, to
+test for the existence of a binary, one can use an :class:`Executable`
 feature::
 
+    sage: from sage.misc.feature import GapPackage, Executable
     sage: Executable(name="sh", executable="sh").is_present()
-    FeatureTestResult('sh', True)
+    True
 
-Features try to produce a helpful error message if a feature is not present::
+Here we test whether the grape GAP package is available::
+
+    sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
+    FeatureTestResult("GAP package grape", True)
+
+When one wants to raise an error if the feature is not available, one
+can use the ``require`` method::
+
+    sage: Executable(name="sh", executable="sh").require()
 
     sage: Executable(name="random", executable="randomOochoz6x", spkg="random", url="http://rand.om").require()
     Traceback (most recent call last):
@@ -37,12 +40,13 @@ Features try to produce a helpful error message if a feature is not present::
     To install random you can try to run `sage -i random`.
     Further installation instructions might be available at http://rand.om.
 
+As can be seen above, features try to produce helpful error messages.
 """
 from sage.misc.cachefunc import cached_method
 
 class FeatureNotPresentError(RuntimeError):
     r"""
-    Indicates a missing feature.
+    A missing feature error.
 
     EXAMPLES::
 
@@ -50,11 +54,10 @@ class FeatureNotPresentError(RuntimeError):
         sage: class Missing(Feature):
         ....:     def is_present(self): return FeatureTestResult(self, False)
 
-        sage: Missing(name="missing").require() # indirect doctest
+        sage: Missing(name="missing").require()
         Traceback (most recent call last):
         ...
         FeatureNotPresentError: missing is not available.
-
     """
     def __init__(self, feature, explanation=None, resolution=None):
         r"""
@@ -75,12 +78,12 @@ class FeatureNotPresentError(RuntimeError):
 
     def __str__(self):
         r"""
-        An error message.
+        Return the error message.
 
         EXAMPLES::
 
             sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("gapZuHoh8Uu").require()
+            sage: GapPackage("gapZuHoh8Uu").require()   # indirect doctest
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: GAP package gapZuHoh8Uu is not available.
@@ -168,7 +171,6 @@ class Feature(object):
         sage: from sage.misc.feature import GapPackage
         sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
         Feature("GAP package grape")
-
     """
     VERBOSE_LEVEL = 50
 
@@ -179,14 +181,13 @@ class Feature(object):
             sage: from sage.misc.feature import GapPackage, Feature
             sage: isinstance(GapPackage("grape", spkg="gap_packages"), Feature) # indirect doctest
             True
-
         """
         self.name = name;
         self.spkg = spkg
 
     def is_present(self, explain=False):
         r"""
-        Whether the feature is present.
+        Return whether the feature is present.
 
         OUTPUT:
 
@@ -198,7 +199,8 @@ class Feature(object):
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
             True
-
+            sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
+            False
         """
         return FeatureTestResult(self, True)
 
@@ -222,14 +224,13 @@ class Feature(object):
 
     def __repr__(self):
         r"""
-        A printable representation of this object.
+        Return a printable representation of this object.
 
         EXAMPLES::
 
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape") # indirect doctest
             Feature("GAP package grape")
-
         """
         return 'Feature("%s")'%(self.name,)
 
@@ -242,7 +243,6 @@ class GapPackage(Feature):
         sage: from sage.misc.feature import GapPackage
         sage: GapPackage("grape", spkg="gap_packages")
         Feature("GAP package grape")
-
     """
     def __init__(self, package, spkg=None):
         Feature.__init__(self, "GAP package %s"%package)
@@ -252,7 +252,7 @@ class GapPackage(Feature):
     @cached_method
     def is_present(self):
         r"""
-        Whether the package is available in GAP.
+        Return whether the package is available in GAP.
 
         This does not check whether this package is functional.
 
@@ -274,15 +274,16 @@ class GapPackage(Feature):
 
 class Executable(Feature):
     r"""
-    A feature describing the presence of an executable in the PATH.
+    A feature describing an executable in the PATH.
 
     .. NOTE::
 
-        Overwrite :meth:`is_functional` if you also want to check if the executable
-        shows proper behaviour.
+        Overwrite :meth:`is_functional` if you also want to check whether
+        the executable shows proper behaviour.
+
         Calls to :meth:`is_present` are cached. You might want to cache the
         :class:`Executable` object to prevent unnecessary calls to the
-        excutable.
+        executable.
 
     EXAMPLES::
 
@@ -298,7 +299,6 @@ class Executable(Feature):
             sage: from sage.misc.feature import Executable
             sage: isinstance(Executable(name="sh", executable="sh"), Executable)
             True
-
         """
         Feature.__init__(self, name=name)
         self.executable = executable
@@ -309,6 +309,8 @@ class Executable(Feature):
     def is_present(self):
         r"""
         Test whether the executable is on the current PATH and functional.
+
+        .. SEEALSO:: :meth:`is_functional`
 
         EXAMPLES::
 
@@ -324,8 +326,7 @@ class Executable(Feature):
 
     def is_functional(self):
         r"""
-        Run as part of :meth:`is_present` to decide whether the executable on
-        PATH is functional.
+        Return whether an executable in the path is functional.
 
         EXAMPLES:
 

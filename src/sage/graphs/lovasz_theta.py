@@ -87,9 +87,15 @@ class CSDP(Executable):
         sage: from sage.graphs.lovasz_theta import CSDP
         sage: CSDP().is_present() # optional: csdp
         True
-
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: CSDP()
+            Feature("CSDP")
+        """
         Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
 
     def is_functional(self):
@@ -101,7 +107,6 @@ class CSDP(Executable):
             sage: from sage.graphs.lovasz_theta import CSDP
             sage: CSDP().is_functional() # optional: csdp
             True
-
         """
         from sage.misc.temporary_file import tmp_filename
         from sage.misc.misc import verbose
