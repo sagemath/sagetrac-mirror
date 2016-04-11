@@ -24,13 +24,14 @@ AUTHORS:
 #*****************************************************************************
 
 
-import re, sys
+import re
 import doctest
 import collections
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+optional_role_regex = re.compile('\.\. OPTIONAL:: (.*)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
@@ -532,6 +533,34 @@ class SageDocTestParser(doctest.DocTestParser):
             4321
             sage: print m
             87654321
+
+        Support for the ``.. OPTIONAL::`` role::
+
+            sage: example = 'Explanatory text::\n\n    sage: E = 1+1\n\n.. OPTIONAL:: magma\n::\n    sage: E = 1+2\n\nLater text'
+            sage: SageDocTestParser(True, ('sage','magma','guava')).parse(example)
+            ['Explanatory text::\n\n',
+             <doctest.Example instance at ...>,
+             '\n.. OPTIONAL:: magma\n::\n',
+             <doctest.Example instance at ...>,
+             '\nLater text']
+            sage: SageDocTestParser(True, ('sage','guava')).parse(example)
+            ['Explanatory text::\n\n',
+             <doctest.Example instance at ...>,
+             '\n.. OPTIONAL:: magma\n::\n',
+             '\nLater text']
+
+        TESTS:
+
+        .. OPTIONAL:: xxx
+
+        All those tests will be ignored thanks to the above markup::
+
+            sage: 1 + 1
+            0
+            sage: 1 + 2
+            0
+            sage: 1 + 3
+            0
         """
         # Hack for non-standard backslash line escapes accepted by the current
         # doctest system.
@@ -549,10 +578,15 @@ class SageDocTestParser(doctest.DocTestParser):
         string = find_sage_prompt.sub(r"\1>>> sage: ", string)
         string = find_sage_continuation.sub(r"\1...", string)
         res = doctest.DocTestParser.parse(self, string, *args)
+        global_optional_tags = set()
         filtered = []
         for item in res:
+            if isinstance(item, str): # Search for docstring-wide optional declarations
+                s = optional_role_regex.search(item)
+                if s is not None:
+                    global_optional_tags.update(parse_optional_tags("# optional "+s.groups()[0]))
             if isinstance(item, doctest.Example):
-                optional_tags = parse_optional_tags(item.source)
+                optional_tags = global_optional_tags.union(parse_optional_tags(item.source))
                 if optional_tags:
                     for tag in optional_tags:
                         self.optionals[tag] += 1
