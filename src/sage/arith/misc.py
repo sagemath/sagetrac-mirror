@@ -332,8 +332,11 @@ def bernoulli(n, algorithm='default', num_threads=1):
         x = sage.interfaces.gap.gap('Bernoulli(%s)'%n)
         return Rational(x)
     elif algorithm == 'magma':
-        import sage.interfaces.magma
-        x = sage.interfaces.magma.magma('Bernoulli(%s)'%n)
+        try:
+            x = magma('Bernoulli(%s)'%n)
+        except NameError:
+            import sage.interfaces.magma
+            x = sage.interfaces.magma.magma('Bernoulli(%s)'%n)
         return Rational(x)
     elif algorithm == 'gp':
         import sage.interfaces.gp

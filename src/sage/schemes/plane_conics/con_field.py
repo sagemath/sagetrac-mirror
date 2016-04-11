@@ -471,8 +471,11 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
         B = self.base_ring()
 
         if algorithm == 'magma':
-            from sage.interfaces.magma import magma
-            M = magma(self)
+            try:
+                M = magma(self)
+            except NameError:
+                from sage.interfaces.magma import magma
+                M = magma(self)
             b = M.HasRationalPoint().sage()
             if not point:
                 return b
