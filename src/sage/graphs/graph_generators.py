@@ -15,8 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from sage.misc.feature import Executable
-
 # This method appends a list of methods to the doc as a 3xN table.
 
 # Here's the point :
@@ -1205,6 +1203,7 @@ class GraphGenerators():
         if order % 2 == 1 or order < 20 or order == 22:
             return
 
+        from sage.misc.feature import Buckygen
         Buckygen().require()
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
@@ -1294,6 +1293,7 @@ class GraphGenerators():
             yield(G)
             return
 
+        from sage.misc.feature import Benzene
         Benzene().require()
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
@@ -1482,6 +1482,7 @@ class GraphGenerators():
                 yield(G)
             return
 
+        from sage.misc.feature import Plantri
         Plantri().require()
 
         cmd = 'plantri -p{}m{}c{}{}{} {}'
@@ -1664,6 +1665,7 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
+        from sage.misc.feature import Plantri
         Plantri().require()
 
         cmd = 'plantri -{}m{}c{}{}{} {}'
@@ -1807,6 +1809,7 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
+        from sage.misc.feature import Plantri
         Plantri().require()
 
         cmd = 'plantri -qm{}c{}{} {}'
@@ -2469,148 +2472,6 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
                     yield new_perm
                 if not dig and new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
-
-class Buckygen(Executable):
-    r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``buckygen``
-    binary.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_generators import Buckygen
-        sage: Buckygen().is_present() # optional: buckygen
-        True
-    """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.graphs.graph_generators import Buckygen
-            sage: Buckygen()
-            Feature("Buckygen")
-        """
-        Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
-
-    def is_functional(self):
-        r"""
-        Check whether ``buckygen`` works on trivial input.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_generators import Buckygen
-            sage: Buckygen().is_functional() # optional: buckygen
-            True
-        """
-        from sage.misc.feature import FeatureTestResult
-        import subprocess
-        command = ["buckygen", "-d", "22d"]
-        try:
-            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            return FeatureTestResult(self, False,
-                    reason = "Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
-
-        expected = "Number of fullerenes generated with 13 vertices: 0"
-        if lines.find(expected) == -1:
-            return FeatureTestResult(self, False,
-                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
-
-        return FeatureTestResult(self, True)
-
-class Benzene(Executable):
-    r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``benzene``
-    binary.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_generators import Benzene
-        sage: Benzene().is_present() # optional: benzene
-        True
-    """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.graphs.graph_generators import Benzene
-            sage: Benzene()
-            Feature("Benzene")
-        """
-        Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
-
-    def is_functional(self):
-        r"""
-        Check whether ``benzene`` works on trivial input.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_generators import Benzene
-            sage: Benzene().is_functional() # optional: benzene
-            True
-        """
-        from sage.misc.feature import FeatureTestResult
-        import os, subprocess
-        devnull = open(os.devnull, 'wb')
-        command = ["benzene", "2", "p"]
-        try:
-            lines = subprocess.check_output(command, stderr=devnull)
-        except subprocess.CalledProcessError as e:
-            return FeatureTestResult(self, False,
-                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
-
-        expected = ">>planar_graph<<"
-        if not lines.startswith(expected):
-            return FeatureTestResult(self, False,
-                    reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))
-
-        return FeatureTestResult(self, True)
-
-class Plantri(Executable):
-    r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``plantri``
-    binary.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.graph_generators import Plantri
-        sage: Benzene().is_present() # optional: plantri
-        True
-    """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.graphs.graph_generators import Plantry
-            sage: Plantri()
-            Feature("plantri")
-        """
-        Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
-
-    def is_functional(self):
-        r"""
-        Check whether ``plantri`` works on trivial input.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_generators import Plantri
-            sage: Plantri().is_functional() # optional: plantri
-            True
-        """
-        from sage.misc.feature import FeatureTestResult
-        import os, subprocess
-        command = ["plantri", "4"]
-        try:
-            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            return FeatureTestResult(self, False,
-                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
-
-        expected = "1 triangulation written"
-        if lines.find(expected) == -1:
-            return FeatureTestResult(self, False,
-                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
-
-        return FeatureTestResult(self, True)
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()

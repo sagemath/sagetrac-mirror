@@ -421,3 +421,253 @@ class PythonModule(Feature):
         return "\n".join(filter(None,[
             "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
             "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
+
+class CSDP(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``theta`` binary
+    of CSDP.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.lovasz_theta import CSDP
+        sage: CSDP().is_present() # optional: csdp
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: CSDP()
+            Feature("CSDP")
+        """
+        Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
+
+    def is_functional(self):
+        r"""
+        Check whether ``theta`` works on a trivial example.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: CSDP().is_functional() # optional: csdp
+            True
+        """
+        from sage.misc.feature import FeatureTestResult
+        from sage.misc.temporary_file import tmp_filename
+        import os, subprocess
+        tf_name = tmp_filename()
+        with open(tf_name, 'wb') as tf:
+            tf.write("2\n1\n1 1")
+        devnull = open(os.devnull, 'wb')
+        command = ['theta', tf_name]
+        try:
+            lines = subprocess.check_output(command, stderr=devnull)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
+
+        result = lines.strip().split('\n')[-1]
+        import re
+        match = re.match("^The Lovasz Theta Number is (.*)$", result)
+        if match is None:
+            return FeatureTestResult(self, False,
+                reason = "Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
+
+        return FeatureTestResult(self, True)
+
+class Plantri(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``plantri``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Plantri
+        sage: Benzene().is_present() # optional: plantri
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Plantry
+            sage: Plantri()
+            Feature("plantri")
+        """
+        Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``plantri`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Plantri
+            sage: Plantri().is_functional() # optional: plantri
+            True
+        """
+        from sage.misc.feature import FeatureTestResult
+        import os, subprocess
+        command = ["plantri", "4"]
+        try:
+            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+
+        expected = "1 triangulation written"
+        if lines.find(expected) == -1:
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)
+
+class Lrs(Executable):
+    r"""
+    A :class:`sage.misc.feature.Feature` describing the presence of the ``lrs``
+    binary which comes as a part of ``lrslib``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.base import Lrs
+        sage: Lrs().is_present() # optional: lrslib
+        True
+
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.base import Lrs
+            sage: Lrs()
+
+        """
+        Executable.__init__(self, "lrslib", executable="lrs", spkg="lrslib", url="http://cgm.cs.mcgill.ca/~avis/C/lrs.html")
+
+    def is_functional(self):
+        r"""
+        Test whether ``lrs`` works on a trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.base import Lrs
+            sage: Lrs().is_functional() # optional: lrslib
+            True
+
+        """
+        from sage.misc.feature import FeatureTestResult
+        from sage.misc.temporary_file import tmp_filename
+        import os, subprocess
+        tf_name = tmp_filename()
+        with open(tf_name, 'wb') as tf:
+            tf.write("V-representation\nbegin\n 1 1 rational\n 1 \nend\nvolume")
+        devnull = open(os.devnull, 'wb')
+        command = ['lrs', tf_name]
+        try:
+            lines = subprocess.check_output(command, stderr=devnull)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
+
+        expected = "Volume= 1"
+        if lines.find(expected) == -1:
+            return FeatureTestResult(self, False,
+                reason = "Output of `{command}` did not contain the expected result `{expected}`.".format(command=" ".join(command),expected=expected))
+
+        return FeatureTestResult(self, True)
+
+class Buckygen(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``buckygen``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Buckygen
+        sage: Buckygen().is_present() # optional: buckygen
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Buckygen
+            sage: Buckygen()
+            Feature("Buckygen")
+        """
+        Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``buckygen`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Buckygen
+            sage: Buckygen().is_functional() # optional: buckygen
+            True
+        """
+        from sage.misc.feature import FeatureTestResult
+        import subprocess
+        command = ["buckygen", "-d", "22d"]
+        try:
+            lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+
+        expected = "Number of fullerenes generated with 13 vertices: 0"
+        if lines.find(expected) == -1:
+            return FeatureTestResult(self, False,
+                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)
+
+class Benzene(Executable):
+    r"""
+    A class:`sage.misc.feature.Feature` which checks for the ``benzene``
+    binary.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_generators import Benzene
+        sage: Benzene().is_present() # optional: benzene
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.graphs.graph_generators import Benzene
+            sage: Benzene()
+            Feature("Benzene")
+        """
+        Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
+
+    def is_functional(self):
+        r"""
+        Check whether ``benzene`` works on trivial input.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_generators import Benzene
+            sage: Benzene().is_functional() # optional: benzene
+            True
+        """
+        from sage.misc.feature import FeatureTestResult
+        import os, subprocess
+        devnull = open(os.devnull, 'wb')
+        command = ["benzene", "2", "p"]
+        try:
+            lines = subprocess.check_output(command, stderr=devnull)
+        except subprocess.CalledProcessError as e:
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+
+        expected = ">>planar_graph<<"
+        if not lines.startswith(expected):
+            return FeatureTestResult(self, False,
+                    reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))
+
+        return FeatureTestResult(self, True)

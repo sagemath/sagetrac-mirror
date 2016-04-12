@@ -65,6 +65,7 @@ def lovasz_theta(graph):
     from sage.misc.temporary_file import tmp_filename
     import os, subprocess
 
+    from sage.misc.feature import CSDP
     CSDP().require()
 
     g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
@@ -75,58 +76,3 @@ def lovasz_theta(graph):
     tf.close()
     lines = subprocess.check_output(['theta', tf_name])
     return float(lines.split()[-1])
-
-from sage.misc.feature import Executable
-class CSDP(Executable):
-    r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``theta`` binary
-    of CSDP.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.lovasz_theta import CSDP
-        sage: CSDP().is_present() # optional: csdp
-        True
-    """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.graphs.lovasz_theta import CSDP
-            sage: CSDP()
-            Feature("CSDP")
-        """
-        Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
-
-    def is_functional(self):
-        r"""
-        Check whether ``theta`` works on a trivial example.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.lovasz_theta import CSDP
-            sage: CSDP().is_functional() # optional: csdp
-            True
-        """
-        from sage.misc.feature import FeatureTestResult
-        from sage.misc.temporary_file import tmp_filename
-        import os, subprocess
-        tf_name = tmp_filename()
-        with open(tf_name, 'wb') as tf:
-            tf.write("2\n1\n1 1")
-        devnull = open(os.devnull, 'wb')
-        command = ['theta', tf_name]
-        try:
-            lines = subprocess.check_output(command, stderr=devnull)
-        except subprocess.CalledProcessError as e:
-            return FeatureTestResult(self, False,
-                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
-
-        result = lines.strip().split('\n')[-1]
-        import re
-        match = re.match("^The Lovasz Theta Number is (.*)$", result)
-        if match is None:
-            return FeatureTestResult(self, False,
-                reason = "Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
-
-        return FeatureTestResult(self, True)

@@ -19,7 +19,7 @@ import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
-from sage.misc.all import cached_method, prod, Executable
+from sage.misc.all import cached_method, prod
 
 from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.real_double import RDF
@@ -4701,57 +4701,3 @@ class Polyhedron_base(Element):
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
-
-class Lrs(Executable):
-    r"""
-    A :class:`sage.misc.feature.Feature` describing the presence of the ``lrs``
-    binary which comes as a part of ``lrslib``.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.polyhedron.base import Lrs
-        sage: Lrs().is_present() # optional: lrslib
-        True
-
-    """
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.geometry.polyhedron.base import Lrs
-            sage: Lrs()
-
-        """
-        Executable.__init__(self, "lrslib", executable="lrs", spkg="lrslib", url="http://cgm.cs.mcgill.ca/~avis/C/lrs.html")
-
-    def is_functional(self):
-        r"""
-        Test whether ``lrs`` works on a trivial input.
-
-        EXAMPLES::
-
-            sage: from sage.geometry.polyhedron.base import Lrs
-            sage: Lrs().is_functional() # optional: lrslib
-            True
-
-        """
-        from sage.misc.feature import FeatureTestResult
-        from sage.misc.temporary_file import tmp_filename
-        import os, subprocess
-        tf_name = tmp_filename()
-        with open(tf_name, 'wb') as tf:
-            tf.write("V-representation\nbegin\n 1 1 rational\n 1 \nend\nvolume")
-        devnull = open(os.devnull, 'wb')
-        command = ['lrs', tf_name]
-        try:
-            lines = subprocess.check_output(command, stderr=devnull)
-        except subprocess.CalledProcessError as e:
-            return FeatureTestResult(self, False,
-                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
-
-        expected = "Volume= 1"
-        if lines.find(expected) == -1:
-            return FeatureTestResult(self, False,
-                reason = "Output of `{command}` did not contain the expected result `{expected}`.".format(command=" ".join(command),expected=expected))
-
-        return FeatureTestResult(self, True)
