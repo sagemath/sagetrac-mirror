@@ -3484,13 +3484,11 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             if tree == LabelledBinaryTree(None):
                 return
             label = tree.label()
-            if not label[1] == 'r':
-                direction = (0,) if label[1] == 'g' else (1,)
-                path += direction
-                d[label] = path
+            direction = () if label[1]=='r' else (0,) if label[1] == 'g' else (1,)
+            path += direction
+            d[label] = path
             get_paths_dict_rec(tree[0], d, path)
             get_paths_dict_rec(tree[1], d, path)
-            
         d = {}
         get_paths_dict_rec(self, d, ())
         return d
