@@ -1173,7 +1173,7 @@ class AbstractTree(object):
                     if noeud[1]=='d':
                         new_label="${\color{blue}%d}$"%noeud[0]
                 else:
-                    noeud = str(noeud)
+                    new_label = str(noeud)
                 nodes.append((name,
                     (new_label if hasattr(self, "label") else ""))
                 )
