@@ -452,7 +452,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Real Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float64')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'float64')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -464,7 +464,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Complex Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex128')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'complex128')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -480,6 +480,8 @@ class MatrixFactory(object):
         [1.0 2.0]
         [3.0 4.0]
         sage: matrix(numpy.array([[5]]))
+        [5]
+        sage: matrix(numpy.matrix([[5]]))
         [5]
 
     A ring and a numpy array::
@@ -612,7 +614,7 @@ class MatrixFactory(object):
         if nrows is None and args:
             arg = args[0]
             try:
-                if is_numpy_type(type(arg)):
+                if might_be_numpy_array(arg):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
                         raise TypeError
@@ -626,7 +628,7 @@ class MatrixFactory(object):
         if ncols is None and args:
             arg = args[0]
             try:
-                if is_numpy_type(type(arg)):
+                if might_be_numpy_array(arg):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
                         raise TypeError
@@ -717,39 +719,38 @@ class MatrixFactory(object):
 
                 # See the construction after the numpy case below.
             else:
-                if is_numpy_type(type(arg)):
-                    import numpy
-                    if isinstance(arg, numpy.ndarray):
-                        str_dtype = str(arg.dtype)
+                import numpy
+                if isinstance(arg, numpy.ndarray):
+                    str_dtype = str(arg.dtype)
 
-                        if not (arg.flags.c_contiguous is True or arg.flags.f_contiguous is True):
-                            raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
+                    if not (arg.flags.c_contiguous is True or arg.flags.f_contiguous is True):
+                        raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
 
-                        if str_dtype.count('float32') == 1:
-                            m = matrix(RDF, arg.shape[0], arg.shape[1], 0)
-                            m._replace_self_with_numpy32(arg)
-                        elif str_dtype.count('float64') == 1:
-                            m = matrix(RDF, arg.shape[0], arg.shape[1], 0)
-                            m._replace_self_with_numpy(arg)
-                        elif str_dtype.count('complex64') == 1:
-                            m = matrix(CDF, arg.shape[0], arg.shape[1], 0)
-                            m._replace_self_with_numpy32(arg)
-                        elif str_dtype.count('complex128') == 1:
-                            m = matrix(CDF, arg.shape[0], arg.shape[1], 0)
-                            m._replace_self_with_numpy(arg)
-                        elif str_dtype.count('int') == 1:
-                            m = matrix(ZZ, [list(row) for row in list(arg)])
-                        elif str_dtype.count('object') == 1:
-                            # Get the raw nested list from the numpy array
-                            # and feed it back into matrix
-                            m = matrix([list(row) for row in list(arg)])
-                        else:
-                            raise TypeError("cannot convert NumPy matrix to Sage matrix")
+                    if str_dtype.count('float32') == 1:
+                        m = matrix(RDF, arg.shape[0], arg.shape[1], 0)
+                        m._replace_self_with_numpy32(arg)
+                    elif str_dtype.count('float64') == 1:
+                        m = matrix(RDF, arg.shape[0], arg.shape[1], 0)
+                        m._replace_self_with_numpy(arg)
+                    elif str_dtype.count('complex64') == 1:
+                        m = matrix(CDF, arg.shape[0], arg.shape[1], 0)
+                        m._replace_self_with_numpy32(arg)
+                    elif str_dtype.count('complex128') == 1:
+                        m = matrix(CDF, arg.shape[0], arg.shape[1], 0)
+                        m._replace_self_with_numpy(arg)
+                    elif str_dtype.count('int') == 1:
+                        m = matrix(ZZ, arg.tolist())
+                    elif str_dtype.count('object') == 1:
+                        # Get the raw nested list from the numpy array
+                        # and feed it back into matrix
+                        m = matrix(arg.tolist())
+                    else:
+                        raise TypeError("cannot convert NumPy matrix to Sage matrix")
 
-                        if ring is not None and m.base_ring() is not ring:
-                            m = m.change_ring(ring)
+                    if ring is not None and m.base_ring() is not ring:
+                        m = m.change_ring(ring)
 
-                        return m
+                    return m
                 elif nrows is not None and ncols is not None:
                     # assume that we should just pass the thing into the
                     # MatrixSpace constructor and hope for the best
@@ -909,5 +910,22 @@ def ncols_from_dict(d):
         return 0
     return max([0] + [ij[1] for ij in d.keys()]) + 1
 
+def might_be_numpy_array(obj):
+    """
+    A test whether the argument might be a numpy array or matrix. The intention is
+    to avoid importing numpy in the matrix constructor, in those cases where
+    numpy is not actually involved.
+
+    EXAMPLES::
+
+        sage: import numpy
+        sage: sage.matrix.constructor.might_be_numpy_array(5)
+        False
+        sage: sage.matrix.constructor.might_be_numpy_array(numpy.array([[5]]))
+        True
+        sage: sage.matrix.constructor.might_be_numpy_array(numpy.matrix([[3,2,]]))
+        True
+    """
+    return hasattr(obj,"newbyteorder")
 
 from .special import *
