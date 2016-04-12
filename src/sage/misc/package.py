@@ -222,6 +222,8 @@ def is_package_installed(package):
     Otherwise, installing "pillow" will cause this function to think
     that "pil" is installed, for example.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(20382, "sage.misc.package.is_package_installed() is deprecated. Use the framework provided by sage.misc.feature instead.")
     return any(p.split('-')[0] == package for p in installed_packages())
 
 def package_versions(package_type, local=False):
