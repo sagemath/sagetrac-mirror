@@ -1133,10 +1133,10 @@ class ContinuedFraction_base(SageObject):
 
         - ``a, b, c, d`` - integer coefficients
         """
+        from rational_field import QQ
         x = self.value()
         z = (a*x+b)/(c*x+d)
         _i = iter(Gosper_iterator(a,b,c,d,self))
-        from rational_field import QQ
         from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
         if z in QQ or isinstance(z, NumberFieldElement_quadratic):
             l = list(_i)
@@ -2618,9 +2618,6 @@ class Gosper_iterator:
         self.x = iter(x)
 
         self.output = []
-
-        self.done = False
-
         self.states = []                # State consists of a,b,c,d and next input
 
         self.emitted_before_period = 0
@@ -2650,6 +2647,7 @@ class Gosper_iterator:
         while True:
             if self.i >= self.input_preperiod_length:
                 if self.i == self.input_preperiod_length:
+                    # print "Starting to read period now."
                     self.emitted_before_period = self.currently_emitted
                 current_state = {
                 'a': self.a,
@@ -2657,30 +2655,47 @@ class Gosper_iterator:
                 'c': self.c,
                 'd': self.d,
                 'next': self.cf.quotient(self.i),
-                'currently_emitted': self.currently_emitted
+                'currently_emitted': self.currently_emitted,
+                # 'just_read': self.cf.quotient(self.i-1)
                 }
                 for state in self.states:
-                    if self.compare_dicts(state, current_state, 'currently_emitted'):
+                    if self.compare_dicts(state, current_state, ['currently_emitted']):
                         self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
                         self.output_preperiod_length = current_state['currently_emitted'] - self.output_period_length
+                        # print "Stopping iteration, I've been in this state before."
+                        # print "States entered:"
+                        # print repr(self.states)
+                        # print "Current state: "
+                        # print repr(state)
                         raise StopIteration
                 self.states.append(current_state)
                 if len(self.states) > 30:
+                    # print "Stopping iteration, danger of memory overflow."
                     raise StopIteration
 
-            import math
+            # from sage.functions.other import floor
             i1 = self.bound(self.a, self.c)
             i2 = self.bound(self.b, self.d)
             s = -self.bound(self.c, self.d)
             if i2 < i1:
                 i1,i2 = i2, i1
-            ub = math.floor(i1)
-            lb = math.floor(i2)
-
+            if i1 != +Infinity:
+                ub = i1.floor()
+            else:
+                ub = +Infinity
+            if i2 != +Infinity:
+                lb = i2.floor()
+            else:
+                lb = +Infinity
+            # print "a = {}, b = {}, c = {}, d = {}".format(self.a, self.b, self.c, self.d)
+            # print "lb = " + repr(lb) + ", ub = " + repr(ub)
+            # print "i1 = {}, i2 = {}, s = {}".format(i1, i2)
             if (self.c == 0 and self.d == 0) or (ub == lb and ub == +Infinity):
+                # print "Dividing by zeros, emitting infinity, end."
                 raise StopIteration
             else:
                 if ub == lb and not (i1 <= s <= i2):
+                    # print "Emitting " + repr(ub)
                     self.emit(ub)
                     return Integer(ub)
                 else:
@@ -2704,6 +2719,7 @@ class Gosper_iterator:
     def ingest(self):
         try:
             p = next(self.x)
+            # print "Ingesting " + repr(p)
             self.i += 1
             a = self.a
             c = self.c
@@ -2712,7 +2728,7 @@ class Gosper_iterator:
             self.c = c*p + self.d
             self.d = c
         except StopIteration:
-            self.done = True
+            # print "No more terms to input, inputting infinity."
             self.b = self.a
             self.d = self.c
 
@@ -2720,7 +2736,8 @@ class Gosper_iterator:
         if d == 0:
             return Infinity
         else:
-            return float(n)/float(d)
+            from sage.rings.real_mpfr import RR
+            return RR(n)/RR(d)
 
     def compare_dicts(self, d1, d2, ignore_keys):
         d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
