@@ -187,7 +187,7 @@ class Feature(object):
         sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
         Feature("GAP package grape")
     """
-    def __init__(self, name, spkg = None):
+    def __init__(self, name, spkg = None, url = None):
         r"""
         TESTS::
 
@@ -197,6 +197,7 @@ class Feature(object):
         """
         self.name = name;
         self.spkg = spkg
+        self.url = url
 
     def is_present(self, explain=False):
         r"""
@@ -247,6 +248,19 @@ class Feature(object):
         """
         return 'Feature({name!r})'.format(name=self.name)
 
+    def resolution(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.misc.feature import Executable
+            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
+            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
+
+        """
+        return "\n".join(filter(None,[
+            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
+            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
+
 class GapPackage(Feature):
     r"""
     A feature describing the presence of a GAP package.
@@ -257,10 +271,9 @@ class GapPackage(Feature):
         sage: GapPackage("grape", spkg="gap_packages")
         Feature("GAP package grape")
     """
-    def __init__(self, package, spkg=None):
-        Feature.__init__(self, "GAP package {package}".format(package=package))
+    def __init__(self, package, spkg=None, url=None):
+        Feature.__init__(self, "GAP package {package}".format(package=package), spkg=spkg, url=url)
         self.package = package
-        self.spkg = spkg
 
     @cached_method
     def is_present(self):
@@ -283,10 +296,8 @@ class GapPackage(Feature):
             return FeatureTestResult(self, True,
                     reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
         else:
-            resolution = "You can try to install this package with sage -i {spkg}.".format(spkg=self.spkg) if self.spkg else None
             return FeatureTestResult(self, False,
-                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence),
-                    resolution = resolution)
+                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
 
 class Executable(Feature):
     r"""
@@ -316,10 +327,8 @@ class Executable(Feature):
             sage: isinstance(Executable(name="sh", executable="sh"), Executable)
             True
         """
-        Feature.__init__(self, name=name)
+        Feature.__init__(self, name=name, spkg=spkg, url=url)
         self.executable = executable
-        self.spkg = spkg
-        self.url = url
 
     @cached_method
     def is_present(self):
@@ -355,19 +364,6 @@ class Executable(Feature):
         """
         return FeatureTestResult(self, True)
 
-    def resolution(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.misc.feature import Executable
-            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
-            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
-
-        """
-        return "\n".join(filter(None,[
-            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
-            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
-
 class PythonModule(Feature):
     r"""
     A feature describing a Python module.
@@ -384,10 +380,8 @@ class PythonModule(Feature):
             module = name
         self.name = name
         self.module = module
-        self.spkg = spkg
-        self.url = url
 
-        Feature.__init__(self, name="Python module {module}".format(module=module))
+        Feature.__init__(self, name="Python module {module}".format(module=module), spkg=spkg, url=url)
 
     @cached_method
     def is_present(self):
@@ -408,19 +402,6 @@ class PythonModule(Feature):
             return FeatureTestResult(self, False, "Failed to import module `{module}`".format(module=self.module))
 
         return FeatureTestResult(self, True)
-
-    def resolution(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.misc.feature import PythonModule
-            sage: PythonModule(name="igraph", spkg="ipython_igraph", url="http://igraph.org").resolution()
-            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
-
-        """
-        return "\n".join(filter(None,[
-            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
-            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
 
 class CSDP(Executable):
     r"""
