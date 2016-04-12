@@ -363,12 +363,12 @@ def prec_words_to_dec(long prec_in_words):
 
 
 # The unique running Pari instance.
-cdef PariInstance pari_instance, P
-pari_instance = PariInstance()
-P = pari_instance   # shorthand notation
+#cdef PariInstance pari_instance#, P
+#pari_instance = PariInstance()
+#P = pari_instance   # shorthand notation
 
 # Also a copy of PARI accessible from external pure python code.
-pari = pari_instance
+#pari = pari_instance
 
 
 # Callbacks from PARI to print stuff using sys.stdout.write() instead
@@ -508,6 +508,10 @@ cdef class PariInstance(PariInstance_auto):
         self.PARI_ONE = self.new_gen_noclear(gen_1)
         self.PARI_TWO = self.new_gen_noclear(gen_2)
         sig_off()
+
+        # Quick hack do not pull into master
+        self._pari = self
+
 
     def debugstack(self):
         r"""
@@ -683,6 +687,7 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen y = gen.__new__(gen)
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
+        y._pari = self
         y._parent = self
         # y.refers_to (a dict which is None now) is initialised as needed
         return y
