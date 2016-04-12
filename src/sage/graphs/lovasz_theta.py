@@ -128,5 +128,5 @@ class CSDP(Executable):
         if match is None:
             return FeatureTestResult(self, False,
                 reason = "Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
-        else:
-            return FeatureTestResult(self, True)
+
+        return FeatureTestResult(self, True)
