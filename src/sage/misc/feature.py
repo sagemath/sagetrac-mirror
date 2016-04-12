@@ -367,3 +367,57 @@ class Executable(Feature):
         return "\n".join(filter(None,[
             "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
             "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
+
+class PythonModule(Feature):
+    r"""
+    A feature describing a Python module.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import PythonModule
+        sage: PythonModule(name="sys").is_present()
+        FeatureTestResult('sys', True)
+
+    """
+    def __init__(self, name, module=None, spkg=None, url=None):
+        if module is None:
+            module = name
+        self.name = name
+        self.module = module
+        self.spkg = spkg
+        self.url = url
+
+        Feature.__init__(self, name="Python module {module}".format(module=module))
+
+    @cached_method
+    def is_present(self):
+        r"""
+        Test whether the Python module can be loaded.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import PythonModule
+            sage: PythonModule(name="sh", executable="sh").is_present()
+            FeatureTestResult('sh', True)
+
+        """
+        import importlib
+        try:
+            importlib.import_module(self.module)
+        except ImportError:
+            return FeatureTestResult(self, False, "Failed to import module `{module}`".format(module=self.module))
+
+        return FeatureTestResult(self, True)
+
+    def resolution(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.misc.feature import PythonModule
+            sage: PythonModule(name="igraph", spkg="ipython_igraph", url="http://igraph.org").resolution()
+            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
+
+        """
+        return "\n".join(filter(None,[
+            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
+            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
