@@ -652,3 +652,84 @@ class Benzene(Executable):
                     reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))
 
         return FeatureTestResult(self, True)
+
+class StaticFile(Feature):
+    r"""
+    A :class:`Feature` which describes the presence of a certain file such as a
+    database.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import StaticFile
+        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").require()
+
+    """
+    def __init__(self, name, filename, search_path, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import StaticFile
+            sage: StaticFile(name="null", filename="null", search_path=["/dev"])
+
+        """
+        Feature.__init__(name=name, spkg=spkg, url=url)
+        self.filename = filename
+        self.search_path = search_path
+
+    def is_present(self):
+        r"""
+        Whether the static file is present.
+
+        sage: from sage.misc.feature import StaticFile
+        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
+        False
+
+        """
+        for directory in self.search_path:
+            import os.path
+            import shutil
+            path = os.path.join(directory, self.filename)
+            if os.path.isfile(path):
+                return FeatureTestResult(self, True, reason="`{path}` found.".format(path=path))
+        return FeatureTestResult(self, False, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path))
+
+    def absolute_path(self):
+        r"""
+        The absolute path of the file.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import DatabaseCremona
+            sage: DatabaseCremona().absolute_path() # optional: cremona_database
+
+        A ``FeatureNotPresentError`` is raised if the file can not be found::
+
+            sage: from sage.misc.feature import StaticFile
+            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
+
+        """
+
+class DatabaseCremona(StaticFile):
+    r"""
+    A :class:`Feature` which describes the presence of John Cremona's database
+    of elliptic curves.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import DatabaseCremona
+        sage: DatabaseCremona().is_present() # optional: cremona_database
+        True
+
+    """
+    def __init__(self, name="cremona", spkg=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import DatabaseCremona
+            sage: DatabaseCremona()
+
+        """
+        if spkg is None and name == "cremona":
+            spkg = "cremona_database"
+        filename = name.replace(' ','_') + ".db"
+        StaticFile.__init__(self, "Cremona's database of elliptic curves", filename=filename, search_path=[TODO], spkg=spkg, url="https://github.com/JohnCremona/ecdata")
