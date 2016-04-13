@@ -28,8 +28,7 @@ from itertools import combinations
 from sage.sets.set import Set
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
-from sage.rings.arith import GCD
-from sage.rings.arith import factor
+from sage.arith.all import GCD, factor
 from sage.rings.integer_ring import ZZ
 from sage.misc.mrange import cartesian_product_iterator
 
