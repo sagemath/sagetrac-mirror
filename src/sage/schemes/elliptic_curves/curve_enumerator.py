@@ -26,7 +26,8 @@ import time
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil
 from sage.categories.cartesian_product import cartesian_product
-from sage.misc.misc import powerset, srange
+from sage.misc.misc import powerset
+from sage.arith.srange import srange
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.rings.arith import valuation
 
