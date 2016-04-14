@@ -7113,7 +7113,7 @@ class NumberField_absolute(NumberField_generic):
         Test that caching works::
 
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: K.order(a) is K.order(a)
+            sage: K.order(a) is K.order(a) # indirect doctest
             True
 
         Keywords have no influence on the caching::
@@ -8586,6 +8586,14 @@ class NumberField_cyclotomic(NumberField_absolute):
         zeta._set_multiplicative_order(n)
 
     def construction(self):
+        """
+        The construction of self.
+
+        EXAMPLES::
+
+            sage: k = CyclotomicField(3)
+            sage: F, R = k.construction()
+        """
         F,R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
         return F,R
