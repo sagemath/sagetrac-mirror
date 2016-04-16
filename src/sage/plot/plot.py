@@ -806,7 +806,6 @@ def xydata_from_point_list(points):
             pass
     try:
         if len(points) > 0 and len(list(points[0])) != 2:
-            if debug:print "P4",points
             raise ValueError, "points must have 2 coordinates in a 2d line"
     except TypeError as err:
             if reduce(lambda x, y: x or isinstance(N(y),ComplexNumber), points, False):
