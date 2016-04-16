@@ -725,55 +725,6 @@ def SelectiveFormatter(formatter, skip_values):
     return _SelectiveFormatterClass(formatter, skip_values)
 
 def xydata_from_point_list(points):
-#     r""" 
-#     Returns two lists (xdata, ydata), each coerced to a list of floats,
-#     which correspond to the x-coordinates and the y-coordinates of the
-#     points.
-#     
-#     The points parameter can be a list of 2-tuples or some object that
-#     yields a list of one or two numbers.
-#     
-#     This function can potentially be very slow for large point sets.
-# 
-#     TESTS::
-# 
-#         sage: from sage.plot.plot import xydata_from_point_list
-#         sage: xydata_from_point_list([CC(0), CC(1)])   # ticket 8082
-#         ([0.0, 1.0], [0.0, 0.0])
-# 
-#     This function should work for anything than can be turned into a
-#     list, such as iterators and such (see ticket #10478)::
-# 
-#         sage: xydata_from_point_list(iter([(0,0), (sqrt(3), 2)]))
-#         ([0.0, 1.7320508075688772], [0.0, 2.0])
-#         sage: xydata_from_point_list((x, x^2) for x in range(5))
-#         ([0.0, 1.0, 2.0, 3.0, 4.0], [0.0, 1.0, 4.0, 9.0, 16.0])
-#         sage: xydata_from_point_list(enumerate(prime_range(1, 15)))
-#         ([0.0, 1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 3.0, 5.0, 7.0, 11.0, 13.0])
-#         sage: from itertools import izip; xydata_from_point_list(izip([2,3,5,7], [11, 13, 17, 19]))
-#         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
-#     """
-#     from sage.rings.complex_number import ComplexNumber
-#     if not isinstance(points, (list,tuple)):
-#         points = list(points)
-#         try:
-#             points = [[float(z) for z in points]]
-#         except TypeError:
-#             pass
-#     elif len(points)==2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
-#         try:
-#             points = [[float(z) for z in points]]
-#         except TypeError:
-#             pass
-#     
-#     if len(points)>0 and len(list(points[0]))!=2:
-#         raise ValueError, "points must have 2 coordinates in a 2d line"
-# 
-#     
-#     xdata = [float(z[0]) for z in points]
-#     ydata = [float(z[1]) for z in points]            
-# 
-#     return xdata, ydata
     r"""
     Returns two lists (xdata, ydata), each coerced to a list of floats,
     which correspond to the x-coordinates and the y-coordinates of the
