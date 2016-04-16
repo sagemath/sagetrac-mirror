@@ -725,6 +725,55 @@ def SelectiveFormatter(formatter, skip_values):
     return _SelectiveFormatterClass(formatter, skip_values)
 
 def xydata_from_point_list(points):
+#     r""" 
+#     Returns two lists (xdata, ydata), each coerced to a list of floats,
+#     which correspond to the x-coordinates and the y-coordinates of the
+#     points.
+#     
+#     The points parameter can be a list of 2-tuples or some object that
+#     yields a list of one or two numbers.
+#     
+#     This function can potentially be very slow for large point sets.
+# 
+#     TESTS::
+# 
+#         sage: from sage.plot.plot import xydata_from_point_list
+#         sage: xydata_from_point_list([CC(0), CC(1)])   # ticket 8082
+#         ([0.0, 1.0], [0.0, 0.0])
+# 
+#     This function should work for anything than can be turned into a
+#     list, such as iterators and such (see ticket #10478)::
+# 
+#         sage: xydata_from_point_list(iter([(0,0), (sqrt(3), 2)]))
+#         ([0.0, 1.7320508075688772], [0.0, 2.0])
+#         sage: xydata_from_point_list((x, x^2) for x in range(5))
+#         ([0.0, 1.0, 2.0, 3.0, 4.0], [0.0, 1.0, 4.0, 9.0, 16.0])
+#         sage: xydata_from_point_list(enumerate(prime_range(1, 15)))
+#         ([0.0, 1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 3.0, 5.0, 7.0, 11.0, 13.0])
+#         sage: from itertools import izip; xydata_from_point_list(izip([2,3,5,7], [11, 13, 17, 19]))
+#         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
+#     """
+#     from sage.rings.complex_number import ComplexNumber
+#     if not isinstance(points, (list,tuple)):
+#         points = list(points)
+#         try:
+#             points = [[float(z) for z in points]]
+#         except TypeError:
+#             pass
+#     elif len(points)==2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
+#         try:
+#             points = [[float(z) for z in points]]
+#         except TypeError:
+#             pass
+#     
+#     if len(points)>0 and len(list(points[0]))!=2:
+#         raise ValueError, "points must have 2 coordinates in a 2d line"
+# 
+#     
+#     xdata = [float(z[0]) for z in points]
+#     ydata = [float(z[1]) for z in points]            
+# 
+#     return xdata, ydata
     r"""
     Returns two lists (xdata, ydata), each coerced to a list of floats,
     which correspond to the x-coordinates and the y-coordinates of the
@@ -752,6 +801,34 @@ def xydata_from_point_list(points):
         ([0.0, 1.0, 2.0, 3.0, 4.0, 5.0], [2.0, 3.0, 5.0, 7.0, 11.0, 13.0])
         sage: from itertools import izip; xydata_from_point_list(izip([2,3,5,7], [11, 13, 17, 19]))
         ([2.0, 3.0, 5.0, 7.0], [11.0, 13.0, 17.0, 19.0])
+        sage: xydata_from_point_list((1,2))
+        ([1.0], [2.0])
+        sage: xydata_from_point_list(((1,2),(4,2),(-1,8)))
+        ([1.0, 4.0, -1.0], [2.0, 2.0, 8.0])
+        sage: xydata_from_point_list(((vector([2,-1]),vector([-3,5]))))
+        ([2.0, -3.0], [-1.0, 5.0])
+        sage: xydata_from_point_list(iter([(0,-1), (1,-2), (3,-3)]))
+        ([0.0, 1.0, 3.0], [-1.0, -2.0, -3.0])
+        sage: xydata_from_point_list((x^5-1).roots(multiplicities=False))
+        ([0.30901699437494745,
+        -0.8090169943749475,
+        -0.8090169943749475,
+        0.30901699437494745,
+        1.0],
+        [0.9510565162951536,
+        0.5877852522924731,
+        -0.5877852522924731,
+        -0.9510565162951536,
+        0.0])
+        sage: import numpy; xydata_from_point_list(numpy.array([[1,2], [3,4]]))
+        ([1.0, 3.0], [2.0, 4.0])
+                
+    but 
+        sage: xydata_from_point_list((1,5,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: points must have 2 coordinates in a 2d line
+        
         
     See :trac:`16804` ticket, the code accepts now mixed lists of complex and real numbers.
     Now real items are considered complex numbers on the real line
@@ -762,37 +839,42 @@ def xydata_from_point_list(points):
         sage: xydata_from_point_list([1+I,I,I-1,-1-I,-I,1-I])
         ([1.0, 0.0, -1.0, -1.0, 0.0, 1.0], [1.0, 1.0, 1.0, -1.0, -1.0, -1.0])
     """
-    import numbers
     from sage.misc.functional import N
-    
-    points = map(N,points)
-    if not isinstance(points, (list, tuple)):
+    from sage.rings.complex_number import ComplexNumber
+
+    if not isinstance(points, (list,tuple)):
         points = list(points)
         try:
             points = [[float(z) for z in points]]
         except TypeError:
             pass
-    elif len(points) == 2 and not isinstance(points[0], (list, tuple,
-                                                         numbers.Complex)):
+    elif len(points) == 2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
         try:
             points = [[float(z) for z in points]]
-        except TypeError:
+        except TypeError: 
             pass
-
-    xdata=list()
-    ydata=list()
-    for z in points:
-        if isinstance(z,(numbers.Complex)):
-            xdata = xdata + [float(z.real())]
-            ydata = ydata + [float(z.imag())]
-        elif isinstance(z,(numbers.Real)):
-            xdata = xdata + [float(z)]
-            ydata = ydata + [float(0)]
-        else:
-            xdata = xdata + [float(z[0])]
-            ydata = ydata + [float(z[1])]
+    try:
+        if len(points) > 0 and len(list(points[0])) != 2:
+            if debug:print "P4",points
+            raise ValueError, "points must have 2 coordinates in a 2d line"
+    except TypeError as err:
+            if reduce(lambda x, y: x or isinstance(N(y),ComplexNumber), points, False):
+                points = [N(z) for z in points]
+            elif len(points) != 2:
+                raise ValueError, "points must have 2 coordinates in a 2d line"
+            else:
+                xdata = [float(points[0])]
+                ydata = [float(points[1])]
+    try:
+        xdata = [float(z[0]) for z in points]
+        ydata = [float(z[1]) for z in points]
+    except TypeError:
+        try:
+            xdata = [float(z.real()) for z in points]
+            ydata = [float(z.imag()) for z in points] 
+        except AttributeError: # case list_plot([1, I, pi + I/2, CC(.25, .25)])
+            raise TypeError, "tuples of type (real,complex) are not allowed"
     return xdata, ydata
-
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
@@ -2789,7 +2871,6 @@ def list_plot(data, plotjoined=False, **kwargs):
         # element of the Symbolic Ring.
         if data[0] in sage.symbolic.ring.SR:
             data = list(enumerate(data))
-
     try:
         if plotjoined:
             return line(data, **kwargs)

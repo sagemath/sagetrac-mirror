@@ -342,6 +342,22 @@ def point(points, **kwds):
         Graphics3d Object
         sage: point(iter([(1,2),(3,5)]))
         Graphics object consisting of 1 graphics primitive
+        
+    One can now use real numbers in the complex plane (:trac: `16804`)::
+    
+        sage: points([0, 1, I])
+        Graphics object consisting of 1 graphics primitive
+        sage: points([0, 1., CC(0,1)])
+        Graphics object consisting of 1 graphics primitive
+        sage: points((x^5-1).roots(multiplicities=False))
+        Graphics object consisting of 1 graphics primitive
+        sage: z=var('z');points(map(lambda x:x[0].N(),(z^20-1).roots()), figsize=4, aspect_ratio=1)
+        Graphics object consisting of 1 graphics primitive
+        sage: points(map(N, [0,1,1+I,I,I-1,-1,-1-I,-I,1-I]),figsize=4)
+        Graphics object consisting of 1 graphics primitive
+        sage: points([1+I,I,I-1,-1-I,-I,1-I],figsize=4)
+        Graphics object consisting of 1 graphics primitive
+        
     """
     if isinstance(points, collections.Iterator):
         points = list(points)
