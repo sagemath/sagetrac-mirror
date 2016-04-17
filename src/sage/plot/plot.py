@@ -815,6 +815,7 @@ def xydata_from_point_list(points):
             else:
                 xdata = [float(points[0])]
                 ydata = [float(points[1])]
+                return xdata,ydata #If it is a (real,real) tuple exit here
     try:
         xdata = [float(z[0]) for z in points]
         ydata = [float(z[1]) for z in points]
