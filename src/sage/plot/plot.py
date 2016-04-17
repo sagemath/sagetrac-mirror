@@ -806,12 +806,12 @@ def xydata_from_point_list(points):
             pass
     try:
         if len(points) > 0 and len(list(points[0])) != 2:
-            raise ValueError, "points must have 2 coordinates in a 2d line"
+            raise ValueError("points must have 2 coordinates in a 2d line")
     except TypeError as err:
             if reduce(lambda x, y: x or isinstance(N(y),ComplexNumber), points, False):
                 points = [N(z) for z in points]
             elif len(points) != 2:
-                raise ValueError, "points must have 2 coordinates in a 2d line"
+                raise ValueError("points must have 2 coordinates in a 2d line")
             else:
                 xdata = [float(points[0])]
                 ydata = [float(points[1])]
@@ -823,7 +823,7 @@ def xydata_from_point_list(points):
             xdata = [float(z.real()) for z in points]
             ydata = [float(z.imag()) for z in points] 
         except AttributeError: # case list_plot([1, I, pi + I/2, CC(.25, .25)])
-            raise TypeError, "tuples of type (real,complex) are not allowed"
+            raise TypeError("tuples of type (real,complex) are not allowed")
     return xdata, ydata
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
