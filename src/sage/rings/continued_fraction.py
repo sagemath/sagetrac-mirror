@@ -1134,10 +1134,13 @@ class ContinuedFraction_base(SageObject):
         - ``a, b, c, d`` - integer coefficients
         """
         from rational_field import QQ
+        from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+        from sage.misc.gosper_iterator import gosper_iterator
+
         x = self.value()
         z = (a*x+b)/(c*x+d)
-        _i = iter(Gosper_iterator(a,b,c,d,self))
-        from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+        _i = iter(gosper_iterator(a,b,c,d,self))
+
         if z in QQ or isinstance(z, NumberFieldElement_quadratic):
             l = list(_i)
             preperiod_length = _i.output_preperiod_length
@@ -1145,7 +1148,7 @@ class ContinuedFraction_base(SageObject):
             period = l[preperiod_length:]
             return continued_fraction((preperiod, period), z)
         else:
-            from sage.misc.lazy_list import lazy_list
+            # from sage.misc.lazy_list import lazy_list
             # return continued_fraction(lazy_list(_i), z)
             from sage.combinat.words.word import Word
             return continued_fraction(Word(_i, length='infinite'))
@@ -2605,144 +2608,6 @@ def farey(v, lim):
             if lim < mediant[1]:
                 return lower
             upper = mediant
-
-class Gosper_iterator:
-
-    def __init__(self, a, b, c, d, x):
-        self.a = a
-        self.b = b
-        self.c = c
-        self.d = d
-
-        self.cf = x
-        self.x = iter(x)
-
-        self.output = []
-        self.states = []                # State consists of a,b,c,d and next input
-
-        self.emitted_before_period = 0
-        self.currently_emitted = 0
-        self.i = 0
-
-        # Rational or quadratic case
-        if isinstance(self.cf.quotients(), tuple):
-            self.input_preperiod_length = len(self.cf.quotients()[0])
-            if self.cf.quotients()[1][0] == +Infinity:
-                self.input_period_length = 0
-            else:
-                self.input_period_length = len(self.cf.quotients()[1])
-        # Infinite case
-        else:
-            self.input_period_length = 0
-            self.input_preperiod_length = +Infinity
-
-        self.output_preperiod_length = 0
-        self.output_period_length = 0
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        limit = 100
-        while True:
-            if self.i >= self.input_preperiod_length:
-                if self.i == self.input_preperiod_length:
-                    # print "Starting to read period now."
-                    self.emitted_before_period = self.currently_emitted
-                current_state = {
-                'a': self.a,
-                'b': self.b,
-                'c': self.c,
-                'd': self.d,
-                'next': self.cf.quotient(self.i),
-                'currently_emitted': self.currently_emitted,
-                # 'just_read': self.cf.quotient(self.i-1)
-                }
-                for state in self.states:
-                    if self.compare_dicts(state, current_state, ['currently_emitted']):
-                        self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
-                        self.output_preperiod_length = current_state['currently_emitted'] - self.output_period_length
-                        # print "Stopping iteration, I've been in this state before."
-                        # print "States entered:"
-                        # print repr(self.states)
-                        # print "Current state: "
-                        # print repr(state)
-                        raise StopIteration
-                self.states.append(current_state)
-                if len(self.states) > 30:
-                    # print "Stopping iteration, danger of memory overflow."
-                    raise StopIteration
-
-            # from sage.functions.other import floor
-            i1 = self.bound(self.a, self.c)
-            i2 = self.bound(self.b, self.d)
-            s = -self.bound(self.c, self.d)
-            if i2 < i1:
-                i1,i2 = i2, i1
-            if i1 != +Infinity:
-                ub = i1.floor()
-            else:
-                ub = +Infinity
-            if i2 != +Infinity:
-                lb = i2.floor()
-            else:
-                lb = +Infinity
-            # print "a = {}, b = {}, c = {}, d = {}".format(self.a, self.b, self.c, self.d)
-            # print "lb = " + repr(lb) + ", ub = " + repr(ub)
-            # print "i1 = {}, i2 = {}, s = {}".format(i1, i2)
-            if (self.c == 0 and self.d == 0) or (ub == lb and ub == +Infinity):
-                # print "Dividing by zeros, emitting infinity, end."
-                raise StopIteration
-            else:
-                if ub == lb and not (i1 <= s <= i2):
-                    # print "Emitting " + repr(ub)
-                    self.emit(ub)
-                    return Integer(ub)
-                else:
-                    self.ingest()
-            limit -= 1
-            if limit < 1:
-                print "ERROR: Next loop in holo ran too many times."
-                raise StopIteration
-
-    def emit(self, q):
-        self.currently_emitted += 1
-        if self.i <= self.input_preperiod_length:
-            self.output_preperiod_length = self.currently_emitted
-        a = self.a
-        b = self.b
-        self.a = self.c
-        self.b = self.d
-        self.c = a - q*self.c
-        self.d = b - q*self.d
-
-    def ingest(self):
-        try:
-            p = next(self.x)
-            # print "Ingesting " + repr(p)
-            self.i += 1
-            a = self.a
-            c = self.c
-            self.a = a*p + self.b
-            self.b = a
-            self.c = c*p + self.d
-            self.d = c
-        except StopIteration:
-            # print "No more terms to input, inputting infinity."
-            self.b = self.a
-            self.d = self.c
-
-    def bound(self, n,d):
-        if d == 0:
-            return Infinity
-        else:
-            from sage.rings.real_mpfr import RR
-            return RR(n)/RR(d)
-
-    def compare_dicts(self, d1, d2, ignore_keys):
-        d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
-        d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
-        return d1_filtered == d2_filtered
 
 
 
