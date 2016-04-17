@@ -530,6 +530,8 @@ class ContinuedFraction_base(SageObject):
             if a == ZZ_0 and b == ZZ_0 and i:  # rational case
                 return 0
             i += 1
+            if i == 300:
+                return 0
 
     def _mpfr_(self, R):
         r"""
@@ -1132,6 +1134,19 @@ class ContinuedFraction_base(SageObject):
         INPUT:
 
         - ``a, b, c, d`` - integer coefficients
+
+        EXAMPLES::
+
+            sage: a = 2; b = -3; c = 5; d = 2; vals = [pi, sqrt(2), 4.2312];
+            sage: for val in vals:
+            ....:     x = continued_fraction(val)
+            ....:     y = continued_fraction((a*val+b)/(c*val+d))
+            ....:     z = x.apply_homography(a,b,c,d)
+            ....:     y == z
+            ....:
+            True
+            True
+            True
         """
         from rational_field import QQ
         from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -1266,13 +1281,13 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             return self._x1[n]
         return self._x2[(n-len(self._x1)) % len(self._x2)]
 
-    def quotients(self):
-        r"""
-        Return the tuple _x1 and _x2, the preperiod and period, as
-        a tuple.
-        """
-
-        return self._x1, self._x2
+    # def quotients(self):
+    #     r"""
+    #     Return the tuple _x1 and _x2, the preperiod and period, as
+    #     a tuple.
+    #     """
+    #
+    #     return self._x1, self._x2
 
     def length(self):
         r"""
@@ -1691,6 +1706,8 @@ class ContinuedFraction_real(ContinuedFraction_base):
             #     -1
             #     sage: cmp(pi, pi+4)
             #     1
+            if type(self) != type(other):
+                raise Exception
             if self.value() == other.value():
                 return 0
             if self.value() - other.value() > 0:
