@@ -1137,7 +1137,10 @@ class ContinuedFraction_base(SageObject):
 
         EXAMPLES::
 
-            sage: a = 2; b = -3; c = 5; d = 2; vals = [pi, sqrt(2), 4.2312];
+            from random import randint
+            sage: a = randint(-100,100); b = randint(-100,100);
+            sage: c = randint(-100,100); d = randint(-100,100);
+            sage: vals = [pi, sqrt(2), 541/227];
             sage: for val in vals:
             ....:     x = continued_fraction(val)
             ....:     y = continued_fraction((a*val+b)/(c*val+d))
