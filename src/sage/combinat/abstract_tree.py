@@ -1164,16 +1164,20 @@ class AbstractTree(object):
                 name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 ### HACK
-                noeud = self.label()
-                if type(noeud)==tuple and len(noeud)==2:
-                    if noeud[1]=='r':
-                        new_label = ""
-                    if noeud[1]=='g':
-                        new_label="${\color{red}%d}$"%noeud[0]
-                    if noeud[1]=='d':
-                        new_label="${\color{blue}%d}$"%noeud[0]
+                if hasattr(self, "label"):
+                    print("toto")
+                    noeud = self.label()
+                    if type(noeud)==tuple and len(noeud)==2:
+                        if noeud[1]=='r':
+                            new_label = ""
+                        if noeud[1]=='g':
+                            new_label="${\color{red}%d}$"%noeud[0]
+                        if noeud[1]=='d':
+                            new_label="${\color{blue}%d}$"%noeud[0]
+                    else:
+                        new_label = str(noeud)
                 else:
-                    new_label = str(noeud)
+                    new_label = ""
                 nodes.append((name,
                     (new_label if hasattr(self, "label") else ""))
                 )
