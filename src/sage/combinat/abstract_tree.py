@@ -1165,7 +1165,6 @@ class AbstractTree(object):
                 node = cmd + name
                 ### HACK
                 if hasattr(self, "label"):
-                    print("toto")
                     noeud = self.label()
                     if type(noeud)==tuple and len(noeud)==2:
                         if noeud[1]=='r':
