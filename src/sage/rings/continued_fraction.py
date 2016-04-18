@@ -1155,6 +1155,10 @@ class ContinuedFraction_base(SageObject):
         from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
         from sage.misc.gosper_iterator import gosper_iterator
 
+        if not (isinstance(a,Integer) and isinstance(b,Integer)
+            and isinstance(c,Integer) and isinstance(d,Integer)):
+            raise AttributeError("The coefficients a, b, c, d must be integers.")
+
         x = self.value()
         z = (a*x+b)/(c*x+d)
         _i = iter(gosper_iterator(a,b,c,d,self))
