@@ -185,7 +185,7 @@ class PeriodMapping(object):
         _, self._m, self._gamma, self._s = candidates[0]
         a, b, c, d = self._gamma
         if DEBUG:
-            print("Using X^{}Y^{}*{oo, [{},{};{},{}](oo)} = {} = {} to compute period integrals".format(self._m, k - 2 - self._m, a, b, c, d, self._s.modular_symbol_rep(), self._s))
+            print("Using X^{}Y^{}*{{oo, [{},{};{},{}](oo)}} = {} = {} to compute period integrals".format(self._m, k - 2 - self._m, a, b, c, d, self._s.modular_symbol_rep(), self._s))
 
         # Evaluate periods of this symbol for each conjugate newform
         periods = [period_integral(self._m, k, a, b, c, d, g, M.character())
