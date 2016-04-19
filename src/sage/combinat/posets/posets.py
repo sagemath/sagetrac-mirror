@@ -76,6 +76,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
     :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if the poset has a meet operation.
+    :meth:`~FinitePoset.is_distributive_lattice` | Return ``True`` if the poset is distributive lattice.
 
 **Minimal and maximal elements**
 
@@ -3320,6 +3321,104 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
         """
         return self._hasse_diagram.is_join_semilattice()
+
+    def is_distributive_lattice(self):
+        """
+        Return ``True`` if the poset is distributive lattice, and ``False``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: P=Posets.BooleanLattice(3)
+            sage: P.is_distributive_lattice()
+            True
+            sage: P=Posets.PentagonPoset()
+            sage: P.is_distributive_lattice()
+            False
+
+        ALGORITHM:
+
+        Taken from Linear Time Recognition Algorithm for Distributive
+        Lattices by Michel Habib and Lhouari Nourine, 1998. Recursively
+        reduces the poset by removing closed interval from bottom element
+        to some minimal meet-irreducible element.
+
+        See http://www.lirmm.fr/~nourine/Papiers/dist-recognition.ps.
+        """
+        if self.cardinality() < 2:
+            return True
+        if self.cardinality() == 2:
+            return self.is_chain()
+        if ( not self.is_graded() or not self.is_bounded() or not
+        self.rank() == len([e for e in self if len(self.lower_covers(e))==1]) ==
+        len([e for e in self if len(self.upper_covers(e))==1]) ):
+            return False
+        return self._is_distributive_lattice_recursion()
+
+    def _is_distributive_lattice_recursion(self):
+        """
+        TESTS::
+
+            sage: P=Poset( ([0,1,2,3,4,5,6,7],  [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [1, 6], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]]) )
+            sage: P.is_distributive_lattice()
+            False
+            sage: P=Poset( ([0,1,2,3,4,5,6,7], [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 5], [3, 6], [4, 5], [5, 6], [6, 7]]) )
+            sage: P.is_distributive_lattice()
+            False
+            sage: Poset({}).is_distributive_lattice()
+            True
+            sage: Poset({0:[]}).is_distributive_lattice()
+            True
+            sage: Poset({0:[1]}).is_distributive_lattice()
+            True
+            sage: Poset({0:[], 1:[]}).is_distributive_lattice()
+            False
+        """
+        # Recursive algorithm, to not be called directly
+        if self.cardinality() == 2:
+            return True
+
+        # Find a minimal 'm' of meet-irreducibles. 'm_' will
+        # be the only element covering it.
+        for m in self:
+            temp=self.upper_covers(m)
+            if len(self.upper_covers(m))==1:
+                m_=temp[0]
+                break
+
+        M_=self.subposet([x for x in self if not x in self.closed_interval(self.bottom(), m)])
+        if len(M_.minimal_elements()) > 1:
+            return False
+        j=M_.minimal_elements()[0]
+
+        # Check that f is isomorphism from S1=[ bottom, m ] to S2=[ j, m_ ].
+        # f should be "unique upper cover from element of S1 to outside of S1"
+        S1=self.interval(self.bottom(), m)
+        f={}
+        for e in S1:
+            t=[x for x in self.upper_covers(e) if not x in S1]
+            if len(t) != 1:  # Not *unique* as it should be.
+                return False
+            f[e]=t[0]
+        S2=self.interval(j, m_)
+
+        # Is |f[S1]|==|S2|? Do they have same number of internal coverings?
+        if set(f.values()) != set(S2):
+            return False
+        S1c={l:[u for u in self.upper_covers(l) if u in S1] for l in S1}
+        S2c={l:[u for u in self.upper_covers(l) if u in S2] for l in S2}
+        if len(S1c) != len(S2c):
+            return False
+
+        # Now full isomorphic check, i.e. covering relations
+        for e in S1c:
+            if set(f[x] for x in S1c[e]) != set(S2c[f[e]]):
+                return False
+
+        # OK, continue with smaller poset
+        S2=self.interval(j, m_)
+        P_=self.subposet(x for x in self if not x in self.interval(self.bottom(), m))
+        return P_._is_distributive_lattice_recursion()
 
     def is_isomorphic(self,other):
         """

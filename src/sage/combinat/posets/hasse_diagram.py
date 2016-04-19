@@ -1259,6 +1259,10 @@ class HasseDiagram(DiGraph):
 
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
+        Deprecated, way too slow. For posets use directly
+        :meth:`~FinitePoset.is_distributive_lattice`, for lattices
+        :meth:`~FiniteLatticePoset.is_distributive`.
+
         Returns ``True`` if ``self`` is the Hasse diagram of a
         distributive lattice, and ``False`` otherwise.
 
@@ -1275,6 +1279,9 @@ class HasseDiagram(DiGraph):
             sage: H.is_distributive_lattice()
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17173, 'Slow, use function from posets.py or lattices.py.')
+
         try:
             jn = self.join_matrix()
             mt = self.meet_matrix()
