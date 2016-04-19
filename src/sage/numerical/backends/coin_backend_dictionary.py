@@ -9,7 +9,7 @@ class LPCoinBackendDictionary(LPAbstractBackendDictionary):
 
     INPUT:
 
-        - ``backend`` -- the backend where the dictionary is
+        - ``backend`` -- the backend that the dictionary is
             constructed from
 
     OUTPUT:
