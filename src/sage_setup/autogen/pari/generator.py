@@ -178,18 +178,20 @@ class PariFunctionGenerator(object):
         if len(args) > 0 and isinstance(args[0], PariArgumentGEN):
             # If yes, write a method of the gen class.
             cargs = args
+            pari_instance = args[0].name + '._pari'
             f = self.gen_file
         else:
             # If no, write a method of the PariInstance class.
             # Parse again with an extra "self" argument.
             args, ret = parse_prototype(prototype, help, [PariInstanceArgument()])
             cargs = args[1:]
+            pari_instance = 'pari_instance'
             f = self.instance_file
 
-        self.write_method(function, cname, args, ret, cargs, f,
+        self.write_method(function, cname, args, ret, cargs, pari_instance, f,
                 get_rest_doc(function))
 
-    def write_method(self, function, cname, args, ret, cargs, file, doc):
+    def write_method(self, function, cname, args, ret, cargs, pari_instance, file, doc):
         """
         Write Cython code with a method to call one PARI function.
 
@@ -203,6 +205,8 @@ class PariFunctionGenerator(object):
           including the initial args like ``self``
 
         - ``cargs`` -- like ``args`` but excluding the initial args
+
+        - ``pari_instance`` -- pointer for the unique pari instance
 
         - ``file`` -- a file object where the code should be written to
 
@@ -224,7 +228,7 @@ class PariFunctionGenerator(object):
         s += ret.assign_code("{cname}({callargs})")
         s += ret.return_code()
 
-        s = s.format(function=function, protoargs=protoargs, cname=cname, callargs=callargs, doc=doc)
+        s = s.format(function=function, protoargs=protoargs, cname=cname, callargs=callargs, doc=doc, pari_instance=pari_instance)
         print (s, file=file)
 
     def __call__(self):

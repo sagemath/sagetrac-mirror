@@ -1,2 +1,4 @@
 from sage.libs.pari.gen cimport gen
-cpdef gen objtoclosure(f)
+from .pari_instance cimport PariInstance
+
+cpdef gen objtoclosure(PariInstance pari, f)

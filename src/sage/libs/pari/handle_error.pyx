@@ -26,7 +26,6 @@ from .paripriv cimport *
 include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
-from pari_instance cimport pari_instance
 
 
 # We derive PariError from RuntimeError, for backward compatibility with
@@ -116,7 +115,9 @@ class PariError(RuntimeError):
         return self.errtext().rstrip(" .:")
 
 
-cdef void _pari_init_error_handling():
+cdef PariInstance pari_instance
+
+cdef void _pari_init_error_handling(PariInstance pari):
     """
     Set up our code for handling PARI errors.
 
@@ -135,6 +136,7 @@ cdef void _pari_init_error_handling():
     """
     global cb_pari_err_handle
     global cb_pari_err_recover
+    pari_instance = pari
     cb_pari_err_handle = _pari_err_handle
     cb_pari_err_recover = _pari_err_recover
 
