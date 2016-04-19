@@ -36,11 +36,11 @@ from cpython.ref cimport Py_INCREF
 include "cysignals/signals.pxi"
 from .paridecl cimport *
 
-from pari_instance cimport pari_instance
+from pari_instance cimport PariInstance
 from gen cimport objtogen
 
 
-cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_func) except NULL:
+cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_func, PariInstance pari) except NULL:
     """
     Call ``py_func(*args)`` where ``py_func`` is a Python function
     and ``args`` is an array of ``GEN``s terminated by ``NULL``.
@@ -57,7 +57,7 @@ cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_fu
     cdef tuple t = PyTuple_New(n)
     cdef Py_ssize_t i
     for i in range(n):
-        a = pari_instance.new_gen_noclear(args[i])
+        a = pari.new_gen_noclear(args[i])
         Py_INCREF(a)  # Need to increase refcount because the tuple steals it
         PyTuple_SET_ITEM(t, i, a)
 
@@ -68,16 +68,16 @@ cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_fu
     # (with a special case for None)
     if r is None:
         return gnil
-    return gcopy(objtogen(r).g)
+    return gcopy(objtogen(pari, r).g)
 
 # We rename this function to be able to call it with a different
 # signature. In particular, we want manual exception handling and we
 # implicitly convert py_func from a PyObject* to an object.
 cdef extern from *:
-    GEN call_python_func(GEN* args, PyObject* py_func)
+    GEN call_python_func(GEN* args, PyObject* py_func, PariInstance pari)
 
 
-cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, ulong py_func):
+cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, ulong py_func, ulong pari):
     """
     This function, which will be installed in PARI, is a front-end for
     ``call_python_func_impl``.
@@ -103,17 +103,17 @@ cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, ulong py_
     # call_python_func_impl(). We need to do this because this function
     # is very likely called within sig_on() and interrupting arbitrary
     # Python code is bad.
-    cdef GEN r = call_python_func(args, <PyObject*>py_func)
+    cdef GEN r = call_python_func(args, <PyObject*>py_func, <PariInstance>pari)
     sig_unblock()
     if not r:  # An exception was raised
         sig_error()
     return r
 
 # Install the function "call_python" for use in the PARI library.
-cdef entree* ep_call_python = install(<void*>call_python, "call_python", "DGDGDGDGDGU")
+cdef entree* ep_call_python = install(<void*>call_python, "call_python", "DGDGDGDGDGUU")
 
 
-cpdef gen objtoclosure(f):
+cpdef gen objtoclosure(PariInstance pari, f):
     """
     Convert a Python function (more generally, any callable) to a PARI
     ``t_CLOSURE``.
@@ -166,7 +166,8 @@ cpdef gen objtoclosure(f):
     sig_on()
     # Convert f to a t_INT containing the address of f
     cdef GEN f_int = utoi(<ulong><PyObject*>f)
+    cdef GEN pari_int = utoi(<ulong>pari)
     # Create a t_CLOSURE which calls call_python() with py_func equal to f
-    cdef gen c = pari_instance.new_gen(snm_closure(ep_call_python, mkvec(f_int)))
+    cdef gen c = pari.new_gen(snm_closure(ep_call_python, mkvec2(f_int, pari_int)))
     c.refers_to = {0:f}  # c needs to keep a reference to f
     return c

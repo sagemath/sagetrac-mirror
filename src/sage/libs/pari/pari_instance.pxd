@@ -42,7 +42,5 @@ cdef class PariInstance(PariInstance_auto):
     cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
     cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
 
-cdef PariInstance pari_instance
-
 cdef void INT_to_mpz(mpz_ptr value, GEN g)
 cdef void INTFRAC_to_mpq(mpq_ptr value, GEN g)

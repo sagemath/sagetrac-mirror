@@ -363,12 +363,8 @@ def prec_words_to_dec(long prec_in_words):
 
 
 # The unique running Pari instance.
-cdef PariInstance pari_instance, P
-pari_instance = PariInstance()
-P = pari_instance   # shorthand notation
 
 # Also a copy of PARI accessible from external pure python code.
-pari = pari_instance
 
 
 # Callbacks from PARI to print stuff using sys.stdout.write() instead
@@ -461,7 +457,7 @@ cdef class PariInstance(PariInstance_auto):
         # with multi-threading.
         pari_stackcheck_init(NULL)
 
-        _pari_init_error_handling()
+        _pari_init_error_handling(self)
 
         # pari_init_opts() overrides MPIR's memory allocation functions,
         # so we need to reset them.
@@ -508,6 +504,7 @@ cdef class PariInstance(PariInstance_auto):
         self.PARI_ONE = self.new_gen_noclear(gen_1)
         self.PARI_TWO = self.new_gen_noclear(gen_2)
         sig_off()
+
 
     def debugstack(self):
         r"""
@@ -683,6 +680,7 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen y = gen.__new__(gen)
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
+        y._pari = self
         y._parent = self
         # y.refers_to (a dict which is None now) is initialised as needed
         return y
@@ -938,7 +936,7 @@ cdef class PariInstance(PariInstance_auto):
 
         See :func:`pari` for more examples.
         """
-        return objtogen(s)
+        return objtogen(self, s)
 
     cdef GEN _new_GEN_from_fmpz_mat_t(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc):
         r"""
@@ -1361,14 +1359,14 @@ cdef class PariInstance(PariInstance_auto):
         """
         cdef gen t0, t1
         if end is None:
-            t0 = objtogen(n)
+            t0 = objtogen(self, n)
             sig_on()
             return self.new_gen(primes0(t0.g))
         elif n is None:
             t0 = self.PARI_TWO  # First prime
         else:
-            t0 = objtogen(n)
-        t1 = objtogen(end)
+            t0 = objtogen(self, n)
+        t1 = objtogen(self, end)
         sig_on()
         return self.new_gen(primes_interval(t0.g, t1.g))
 
@@ -1444,7 +1442,7 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         plist = self.new_gen(polsubcyclo(n, d, self.get_var(v)))
         if typ(plist.g) != t_VEC:
-            return pari.vector(1, [plist])
+            return self.vector(1, [plist])
         else:
             return plist
 
@@ -1534,7 +1532,7 @@ cdef class PariInstance(PariInstance_auto):
             A.refers_to = {}
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    x = pari(entries[k])
+                    x = self(entries[k])
                     A.refers_to[(i,j)] = x
                     (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
                     k = k + 1
@@ -1566,7 +1564,7 @@ cdef class PariInstance(PariInstance_auto):
             from sage.misc.superseded import deprecation
             deprecation(16997, 'The 2-argument version of genus2red() is deprecated, use genus2red(P) or genus2red([P,Q]) instead')
             P = [P0, P]
-        cdef gen t0 = objtogen(P)
+        cdef gen t0 = objtogen(self, P)
         sig_on()
         return self.new_gen(genus2red(t0.g, NULL))
 
@@ -1593,7 +1591,7 @@ cdef class PariInstance(PariInstance_auto):
         if x is None:
             sig_on()
             return self.new_gen(listcreate())
-        cdef gen t0 = objtogen(x)
+        cdef gen t0 = objtogen(self, x)
         sig_on()
         return self.new_gen(gtolist(t0.g))
 
