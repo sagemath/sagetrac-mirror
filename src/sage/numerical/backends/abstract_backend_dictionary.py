@@ -3,11 +3,11 @@ from sage.numerical.interactive_simplex_method import *
 
 class LPAbstractBackendDictionary(LPAbstractDictionary):
     r"""
-    Construct an abstract dictionary for an LP problem from an backend.
+    Construct an abstract dictionary for an LP problem from a backend.
 
     INPUT:
 
-        - ``backend`` -- the backend where the dictionary is
+        - ``backend`` -- the backend that the dictionary is
             constructed from
 
     OUTPUT:
@@ -94,13 +94,13 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: b = p.get_backend()
             sage: d = LPAbstractBackendDictionary(b)
 
-        Test when two problems have the same reference:
+        Test when two problems have the same reference::
 
             sage: d2 = d
             sage: d2 == d
             True
 
-        Test when two problems have the same constrct:
+        Test when two problems have the same construction::
 
             sage: d3 = LPAbstractBackendDictionary(copy(p).get_backend())
             sage: d3 == d
@@ -112,7 +112,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
     @staticmethod
     def _format_(name='', symbol='x', infix='_', index='0'):
         r"""
-        Returns a proper name for a given parameters.
+        Returns a proper name for a given parameter.
 
         INPUT::
 
@@ -137,7 +137,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
 
         However, if the name given is in the form 'symbol[index]', then it
         will be converted to 'symbol+infix+index' i.e. 'symbol_index'
-        by default:
+        by default::
 
             sage: LPAbstractBackendDictionary._format_('x[3]')
             'x_3'
@@ -145,7 +145,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             'x~2'
 
         If no name is given, then a newly create name will be returned in the
-        form of 'symbol+infix+index':
+        form of 'symbol+infix+index'::
 
             sage: LPAbstractBackendDictionary._format_(symbol='w', index='7')
             'w_7'
@@ -236,7 +236,7 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             sage: d = LPGLPKBackendDictionary(b)
             sage: view(d.dictionary()) # not tested
 
-        Zeta is used as default problem name, and it can be changed:
+        Zeta is used as default problem name, and it can be changed::
 
             sage: b.problem_name("beta")
             sage: view(d.dictionary()) # not tested
@@ -364,4 +364,4 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
         coef_pairs = [(i, coefs[i]) for i in range(self._backend.ncols())
                       if coefs[i] != 0]
         return coef_pairs, constant
-# just find common backend functions in coin and glpk?
+
