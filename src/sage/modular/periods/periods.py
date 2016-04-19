@@ -71,7 +71,7 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
     gamma_alpha = (a + I) / c
 
     if DEBUG:
-        print "alpha = %s, gamma(alpha) = %s" % (alpha, gamma_alpha)
+        print("alpha = {}, gamma(alpha) = {}".format(alpha, gamma_alpha))
 
     # Next, compute eps(d)*(gamma^(-1)(X^m*Y^(k-2-m)))*{alpha,oo} -
     # X^m*Y^(k-2-m)*{gamma(alpha), oo}
@@ -86,7 +86,7 @@ def period_integral(m, k, a, b, c, d, v, eps=None, DEBUG=False):
     Q = (a * X + b * Y) ** m * (c * X + d * Y) ** (k - 2 - m)
     for i in range(k - 1):
         coeff = Q.coefficient(X ** i * Y ** (k - 2 - i))
-        if coeff != 0:
+        if coeff:
             ans += int(coeff) * extended_period_integral(i, alpha, v)
             # this is the bottleneck.
 
@@ -100,7 +100,7 @@ class PeriodMapping(object):
     """
     The period mapping associated to a space `A` of modular symbols
     corresponding to a newform, computed to complex double precision
-    using ``prec`` terms of the `q̀-expansions.
+    using ``prec`` terms of the `q`-expansions.
 
     THIS IS CURRENTLY RANDOM !
 
@@ -174,24 +174,24 @@ class PeriodMapping(object):
                             # not in +1 or -1 subspaces for star
                             candidates.append((abs(c), m, gamma.list(), elt))
                             if abs(c) == N:
-                                # can't beat this
+                                # can not beat this
                                 done = True
                                 break
                 if done:
                     break
         candidates.sort()
         if DEBUG:
-            print "candidates = ", candidates
+            print("candidates = {}".format(candidates))
         _, self._m, self._gamma, self._s = candidates[0]
         a, b, c, d = self._gamma
         if DEBUG:
-            print "Using X^%sY^%s*{oo, [%s,%s;%s,%s](oo)} = %s = %s to compute period integrals" % (self._m, k - 2 - self._m, a, b, c, d, self._s.modular_symbol_rep(), self._s)
+            print("Using X^{}Y^{}*{oo, [{},{};{},{}](oo)} = {} = {} to compute period integrals".format(self._m, k - 2 - self._m, a, b, c, d, self._s.modular_symbol_rep(), self._s))
 
         # Evaluate periods of this symbol for each conjugate newform
         periods = [period_integral(self._m, k, a, b, c, d, g, M.character())
                    for g in v]
         if DEBUG:
-            print "periods = ", periods
+            print("periods = ".format(periods))
 
         # Find Hecke operator T that acts with irreducible charpoly on M+.
         p = 2
@@ -199,7 +199,7 @@ class PeriodMapping(object):
         Tplus = Mplus.hecke_matrix(p)
         T = M.hecke_matrix(p)
         if DEBUG:
-            print "T_2"
+            print("T_2")
         a = f[2]
         while not Tplus.charpoly().is_irreducible():
             p = next_prime(p)
@@ -209,9 +209,9 @@ class PeriodMapping(object):
             Tplus += Mplus.hecke_matrix(p)
             T += M.hecke_matrix(p)
             if DEBUG:
-                print " + T_%s" % p,
+                print(" + T_{}".format(p))
         if DEBUG:
-            print "acts irreducibly"
+            print("acts irreducibly")
 
         # Make matrix with rows the periods of ((s+*s)/2)*T^i and
         # ((s-*s)/2)*T^i
