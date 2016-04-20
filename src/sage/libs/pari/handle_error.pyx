@@ -136,6 +136,7 @@ cdef void _pari_init_error_handling(PariInstance pari):
     """
     global cb_pari_err_handle
     global cb_pari_err_recover
+    global pari_instance
     pari_instance = pari
     cb_pari_err_handle = _pari_err_handle
     cb_pari_err_recover = _pari_err_recover
