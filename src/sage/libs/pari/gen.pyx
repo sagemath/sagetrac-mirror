@@ -291,7 +291,7 @@ cdef class gen(gen_auto):
         cdef gen selfgen = objtogen(self._pari, self)
         cdef gen othergen = objtogen(self._pari, other)
         sig_on()
-        return (<PariInstance>self._pari).new_gen(gmod(selfgen.g, othergen.g))
+        return selfgen._pari.new_gen(gmod(selfgen.g, othergen.g))
 
     def __pow__(self, n, m):
         """
@@ -316,7 +316,7 @@ cdef class gen(gen_auto):
         if m is not None:
             t0 = t0.Mod(m)
         sig_on()
-        return (<PariInstance>self._pari).new_gen(gpow(t0.g, t1.g, prec_bits_to_words(0)))
+        return t0._pari.new_gen(gpow(t0.g, t1.g, prec_bits_to_words(0)))
 
     def __neg__(gen self):
         sig_on()
@@ -342,7 +342,7 @@ cdef class gen(gen_auto):
         """
         cdef gen t0 = objtogen(self._pari, self)
         sig_on()
-        return (<PariInstance>self._pari).new_gen(gshift(t0.g, -n))
+        return t0._pari.new_gen(gshift(t0.g, -n))
 
     def __lshift__(self, long n):
         """
@@ -363,7 +363,7 @@ cdef class gen(gen_auto):
         """
         cdef gen t0 = objtogen(self._pari, self)
         sig_on()
-        return (<PariInstance>self._pari).new_gen(gshift(t0.g, n))
+        return t0._pari.new_gen(gshift(t0.g, n))
 
     def __invert__(gen self):
         sig_on()
