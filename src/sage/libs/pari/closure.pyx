@@ -109,8 +109,8 @@ cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, ulong py_
         sig_error()
     return r
 
-# Install the function "call_python" for use in the PARI library.
-cdef entree* ep_call_python = install(<void*>call_python, "call_python", "DGDGDGDGDGUU")
+# entree for the C function "call_python"
+cdef entree* ep_call_python = NULL
 
 
 cpdef gen objtoclosure(PariInstance pari, f):
@@ -164,6 +164,10 @@ cpdef gen objtoclosure(PariInstance pari, f):
         PariError: call_python: forbidden multiplication t_VEC (1 elts) * t_VEC (1 elts)
     """
     sig_on()
+    global ep_call_python
+    if ep_call_python is NULL:
+        # Install the function "call_python" for use in the PARI library.
+        ep_call_python = install(<void*>call_python, "call_python", "DGDGDGDGDGUU")
     # Convert f to a t_INT containing the address of f
     cdef GEN f_int = utoi(<ulong><PyObject*>f)
     cdef GEN pari_int = utoi(<ulong>pari)
