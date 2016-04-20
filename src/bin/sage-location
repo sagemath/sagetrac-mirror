@@ -317,7 +317,7 @@ if __name__ == '__main__':
     except OSError:
         force_relocate = False
 
-    if OLD_SAGE_ROOT != SAGE_ROOT or force_relocate:
+    if (OLD_SAGE_ROOT is None) or (not os.path.samefile(OLD_SAGE_ROOT,SAGE_ROOT)) or force_relocate:
         if OLD_SAGE_ROOT is None:
             print("This looks like the first time you are running Sage.")
         elif OLD_SAGE_ROOT != SAGE_ROOT:
