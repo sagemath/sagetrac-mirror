@@ -90,6 +90,16 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
+##JACKSONSTART
+from sage.sets.set import Set
+from sage.combinat.permutation import Permutation
+from sage.combinat.permutation import Permutations 
+from sage.combinat.combinatorial_algebra import CombinatorialFreeModule
+from sage.rings.rational_field import QQ
+
+##JACKSONEND
+
+
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -387,8 +397,70 @@ class Tableau(ClonableList):
             return list(self) != list(other)
         else:
             return list(self) != other
+#JACKSONSTART   
+    def as_permutation_module_element(self):
+        r"""
+        Decomposes a tableau into an polytabloid element of the permutation module on tabloids.
+        Process is as described in Sagan p.61
 
-    def check(self):
+
+        """
+        colstab=self.column_stabilizer()
+        M=CombinatorialFreeModule(QQ,Tableaux(self.size()))
+        polytabloid = M(0)        
+        for pi in colstab:
+            polytabloid+=pi.sign()*M(self.symmetric_group_action_on_entries(Permutation(pi)))
+        return polytabloid
+
+    def to_tabloid(self):
+        r"""
+        Returns the tabloid that contains the tableau
+        """
+        rowstab=self.row_stabilizer()
+
+               #create the tabloid that contains the tableau
+        tabloid=Set([]) 
+
+        for pi in rowstab:
+            tabloid+=Set([self.symmetric_group_action_on_entries(Permutation(pi))])
+        
+        return tabloid
+    
+    def to_tabloid_representative(self):
+        r"""
+        Returns the minimal tableau in the tabloid that contains the tableau.
+        """
+        
+        tabloid=self.to_tabloid()
+        
+        #represent by least element
+        mintab=tabloid[0]
+        for t in tabloid:
+            if t<mintab:
+                mintab = t
+        return mintab
+    
+    def to_tabloids(self):
+        r"""
+        Returns the set of tabloids (given by minimal representative) with same
+        shape as the tableau
+        """
+        SYT=StandardTableaux(self.shape())
+        perms=Permutations(self.size())        
+        YT=Set([])
+        
+        for t in SYT:
+            for pi in perms:
+                YT+=Set([t.symmetric_group_action_on_entries(pi)])
+
+        tabloids=Set([])
+
+        for t in YT:
+            tabloids+=Set([t.to_tabloid_representative()])
+        
+        return tabloids
+#####JACKSONEND
+    def check(self):       
         r"""
         Check that ``self`` is a valid straight-shape tableau.
 
