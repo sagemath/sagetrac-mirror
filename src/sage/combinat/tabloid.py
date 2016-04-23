@@ -12,30 +12,27 @@ This file consists of the following major classes:
 
 Element classes:
 
-* :class:`Tableau`
-* :class:`SemistandardTableau`
-* :class:`StandardTableau`
+* :class:`YoungTableau`
+* :class:`Tabloid`
+* :class:`StandardTabloid`
 
 Factory classes:
 
-* :class:`Tableaux`
-* :class:`SemistandardTableaux`
-* :class:`StandardTableaux`
+* :class:`YoungTableaux`
+* :class:`Tabloids`
+* :class:`StandardTabloids`
 
 Parent classes:
 
-* :class:`Tableaux_all`
-* :class:`Tableaux_size`
-* :class:`SemistandardTableaux_all` (facade class)
-* :class:`SemistandardTableaux_size`
-* :class:`SemistandardTableaux_size_inf`
-* :class:`SemistandardTableaux_size_weight`
-* :class:`SemistandardTableaux_shape`
-* :class:`SemistandardTableaux_shape_inf`
-* :class:`SemistandardTableaux_shape_weight`
-* :class:`StandardTableaux_all` (facade class)
-* :class:`StandardTableaux_size`
-* :class:`StandardTableaux_shape`
+* :class:`YoungTableaux_all` (facade class)
+* :class:`YoungTableaux_size`
+* :class:`YoungTableaux_shape`
+* :class:`Tabloids_all` (facade class)
+* :class:`Tabloids_size`
+* :class:`Tabloids_shape`
+* :class:`StandardTabloids_all` (facade class)
+* :class:`StandardTabloids_size`
+* :class:`StandardTabloids_shape`
 
 For display options, see :meth:`Tableaux.global_options`.
 
@@ -45,8 +42,7 @@ For display options, see :meth:`Tableaux.global_options`.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
-#                     2011 Jason Bandlow <jbandlow@gmail.com>
+#       Copyright (C) 2016 Jackson Criswell <crisw1ja@cmich.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,39 +85,6 @@ from sage.rings.rational_field import QQ
 
 from sage.combinat.tableau import *
 ##############
-class Tabloid2(Tableau):
-
-    def __init__(self,parent,t):
-        tabloid=[]
-        for row in t:
-            tabloid+=[[Set(row)]]
-
-        ClonableList.__init__(self, parent,t)
-
-
-    def size(self):
-        """
-        Return the size of the tableaux contained in the tabloid.
-
-
-
-        """""
-
-        return sum(shape(self))
-
-    def shape(self):
-        """
-        Return the shape of the tableaux contained in the tabloid.
-
-
-
-        """
-        from sage.combinat.partition import Partition
-        shape=[]
-        for row in self:
-            shape+=len(row[0][0])
-        return Partition(shape)
-
 class Tabloid(Tableau):
     """
     Class to model a tabloid of specified shape, as described in Sagan (2000).
@@ -252,4 +215,367 @@ class Tabloid(Tableau):
         for row in self:
             shape+=len(row[0][0])
         return Partition(shape)
+        
+        
+
+##########################
+# Tabloids #
+##########################
+class Tabloids(Tableaux):
+    """
+    A factory class for tabloids.
+
+    INPUT:
+
+    Keyword arguments:
+
+    - ``size`` -- The size of the tableaux
+    - ``shape`` -- The shape of the tableaux
+    - ``eval`` -- The weight (also called content or evaluation) of
+      the tableaux
+    - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
+      positive integer or infinity (``oo``). If ``size`` or ``shape`` are
+      specified, ``max_entry`` defaults to be ``size`` or the size of
+      ``shape``.
+
+    Positional arguments:
+
+    - The first argument is interpreted as either ``size`` or ``shape``
+      according to whether it is an integer or a partition
+    - The second keyword argument will always be interpreted as ``eval``
+
+    OUTPUT:
+
+    - The appropriate class, after checking basic consistency tests. (For
+      example, specifying ``eval`` implies a value for `max_entry`).
+
+    A tabloid is a tableau of shape (1,1,1,...) whose entries are sets of weakly decreasing size.  The sets contain the integers [n].
+    The n is the size of the tableau contained in the tabloid, and the shape is the partition formed by the sizes of the sets.
+   
+    Note that Sage uses the English convention for partitions and tableaux;
+    the longer rows are displayed on top.
+
+
+    .. SEEALSO:
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableau`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`Tabloids`
+        for more information.
+
+        TESTS::
+
+  
+        """
+        from sage.combinat.partition import Partition, _Partitions
+        # Process the keyword arguments -- allow for original syntax where
+        #   n == size,  p== shape and mu == eval
+        n = kwargs.get('n', None)
+        size = kwargs.get('size', n)
+
+        p = kwargs.get('p', None)
+        shape = kwargs.get('shape', p)
+
+        # Process the positional arguments
+        if args:
+            # The first arg could be either a size or a shape
+            if isinstance(args[0], (int, Integer)):
+                if size is not None:
+                    raise ValueError( "size was specified more than once" )
+                else:
+                    size = args[0]
+            else:
+                if shape is not None:
+                    raise ValueError( "the shape was specified more than once" )
+                shape = args[0] # we check it's a partition later
+
+
+        # Consistency checks
+        if size is not None:
+            if not isinstance(size, (int, Integer)):
+                raise ValueError( "size must be an integer" )
+            elif size < 0:
+                raise ValueError( "size must be non-negative" )
+
+        if shape is not None:
+            from sage.combinat.skew_partition import SkewPartitions
+            # use in (and not isinstance) below so that lists can be used as
+            # shorthand
+            if shape in _Partitions:
+                shape = Partition(shape)         
+            else:
+                raise ValueError( "shape must be a partition" )
+
+        if (size is not None) and (shape is not None):
+            if sum(shape) != size:
+                # This could return an empty class instead of an error
+                raise ValueError( "size and shape are different sizes" )
+
+        # Dispatch appropriately
+
+        if (shape is not None):
+            return Tabloids_shape(shape)
+
+        if (size is not None):
+            return Tabloids_size(size)
+
+        return Tabloids_all()
+
+    Element = Tabloid
+
+    def __init__(self, **kwds):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+        """
+        Tableaux.__init__(self, **kwds)
+
+    def __getitem__(self, r):
+        r"""
+        The default implementation of ``__getitem__`` for enumerated sets
+        does not allow slices so we override it.
+
+        EXAMPLES::
+
+
+        TESTS::
+
+     
+        """
+        if isinstance(r,(int,Integer)):
+            return self.unrank(r)
+        elif isinstance(r,slice):
+            start=0 if r.start is None else r.start
+            stop=r.stop
+            if stop is None and not self.is_finite():
+                raise ValueError( 'infinite set' )
+        else:
+            raise ValueError( 'r must be an integer or a slice' )
+        count=0
+        tabs=[]
+        for t in self:
+            if count==stop:
+                break
+            if count>=start:
+                tabs.append(t)
+            count+=1
+
+        # this is to cope with empty slices endpoints like [:6] or [:}
+        if count==stop or stop is None:
+            return tabs
+        raise IndexError('value out of range')
+
+    def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as a
+        :class:`Tabloid`.
+
+        TESTS::
+
+        """
+        if isinstance(t, Tabloid):
+            return True
+        elif Tableaux.__contains__(self, t):
+            entries=[]
+            size=t.size
+            lastlen=0
+            for row in t:
+                if len(row)>1:
+                    return False
+                row=row[0][0]
+                if lastrow!=0 and lastrow<len(row):
+                    return False                    
+                lastlen=len(row)
+                entries.append(row)            
+            if Set([1..size])!=Set(entries):
+                return False   
+            return True
+        else:
+            return False
+
+class Tabloids_all(Tabloids, DisjointUnionEnumeratedSets):
+    """
+    All tabloids.
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`Tabloids` to
+        ensure the options are properly parsed.
+    """
+    def __init__(self):
+        r"""
+        Initializes the class of all tabloids.
+
+        TESTS::
+
+ 
+        """
+        tabloids_n = lambda n: Tabloids_size(n)
+        DisjointUnionEnumeratedSets.__init__( self,
+            Family(NonNegativeIntegers(), tabloids_n),
+            facade=True, keepkey = False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+        """
+        if self.max_entry is not None:
+            return "Tabloids for Young tableaux of size %s"%str(self.size)
+        return "Tabloids"
+
+
+    def list(self):
+        """
+        TESTS::
+
+            sage: SemistandardTableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
+class Tabloids_size(Tabloids):
+    """
+    Tabloids of fixed size `n`.
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`SemistandardTableaux`
+        to ensure the options are properly parsed.
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all tabloids whose tableau have size ``n``.
+
+        TESTS::
+
+            sage: TestSuite( StandardTableaux(0) ).run()
+            sage: TestSuite( StandardTableaux(3) ).run()
+        """
+        super(Tabloids_size, self).__init__(
+              category = FiniteEnumeratedSets())
+        self.size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+       
+        """
+        return "Tabloids whose tableaux have size %s"%str(self.size)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+        """
+        return Tabloids.__contains__(self, x) and sum(map(len, x)) == self.size
+
+    def random_element(self):
+        """
+        
+        """
+        return StandardTableaux(self.shape.size()).random_element().to_tabloid_representative()
+
+        
+        
+        
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+        """
+        from sage.combinat.partition import Partitions
+        c = 0
+        for part in Partitions(self.size):
+            c += Tabloids_shape(part).cardinality()
+        return c
+
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+        """
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
+            for tabloid in Tabloids_shape(part):
+                yield self.element_class(self, tabloid)
+
+class Tabloids_shape(Tabloids):
+    """
+    Tabloids whose tableaux have fixed shape `p`, and contain the integers [n]
+    where `n` is the size of `p`.
+
+    Tabloid contains all positive integers i, i at most n.
+    
+    INPUT:
+
+    - ``p`` -- A partition
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`Tabloids` to
+        ensure the options are properly parsed.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of tabloids of shape ``p``.
+
+        TESTS::
+
+        """
+        from sage.combinat.partition import Partition
+        super(Tabloids_shape, self).__init__(category = FiniteEnumeratedSets())
+        self.shape = Partition(p)
+
+
+    def __iter__(self):
+        """
+        An iterator for the tabloids of the specified shape.
+
+        EXAMPLES::
+        """
+        raise NotImplementedError
+        
+    def list(self):
+        raise NotImplementedError
+        
+        
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+        """
+        return Tabloids.__contains__(self, x) and Tabloids(x).shape() == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+        """
+        return "Tabloids of shape %s." %str(self.shape)
+
+    def random_element(self):
+        """
+        
+        """
+        return StandardTableaux(self.shape).random_element().to_tabloid_representative()
+
+    def cardinality(self):
+        raise NotImplementedError
+
 
