@@ -2464,7 +2464,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_chain()
 
-    def is_chain_of_poset(self, elms, ordered=False):
+    def is_chain_of_poset(self, elms, ordered=False, saturated=False):
         """
         Return ``True`` if `elms` is a chain of the poset, and ``False`` otherwise.
 
@@ -2479,22 +2479,28 @@ class FinitePoset(UniqueRepresentation, Parent):
           (the default), then elements can be repeated and be in any
           order.
 
+        - ``saturated`` -- a Boolean. If ``True``, then return ``True``
+          only if `elms` is a saturated chain. A chain `C` is saturated
+          when `a < b < c` and `a, c \in C` implies `b \in C`.
+
         EXAMPLES::
 
-            sage: P = Poset((divisors(12), attrcall("divides")))
-            sage: sorted(P.list())
-            [1, 2, 3, 4, 6, 12]
-            sage: P.is_chain_of_poset([12, 3])
+            sage: P = Posets.DivisorLattice(12)
+
+            sage: P.is_chain_of_poset([1, 3, 12])
             True
-            sage: P.is_chain_of_poset({3, 4, 12})
+            sage: P.is_chain_of_poset([1, 3, 4, 12])
             False
-            sage: P.is_chain_of_poset([12, 3], ordered=True)
+
+            sage: P.is_chain_of_poset([1, 1, 3], ordered=True)
             False
-            sage: P.is_chain_of_poset((1, 1, 3))
+            sage: P.is_chain_of_poset([1, 3, 12], ordered=True)
             True
-            sage: P.is_chain_of_poset((1, 1, 3), ordered=True)
+            sage: P.is_chain_of_poset([1, 3, 12], saturated=True)
             False
-            sage: P.is_chain_of_poset((1, 3), ordered=True)
+            sage: P.is_chain_of_poset([2, 12, 4], ordered=True, saturated=True)
+            False
+            sage: P.is_chain_of_poset([2, 12, 4], ordered=False, saturated=True)
             True
 
         TESTS::
@@ -2506,20 +2512,41 @@ class FinitePoset(UniqueRepresentation, Parent):
             False
             sage: P.is_chain_of_poset({10})
             True
-            sage: P.is_chain_of_poset([32])
+            sage: P.is_chain_of_poset([2, 3, 7, 32], ordered=False, saturated=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=32) not in poset
+            sage: P.is_chain_of_poset([2, 3, 7, 32], ordered=False, saturated=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=32) not in poset
+            sage: P.is_chain_of_poset([2, 3, 7, 32], ordered=True, saturated=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=32) not in poset
+            sage: P.is_chain_of_poset([2, 3, 7, 32], ordered=True, saturated=True)
             Traceback (most recent call last):
             ...
             ValueError: element (=32) not in poset
         """
-        if ordered:
-            sorted_o = elms
-            return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
-        else:
-            # _element_to_vertex can be assumed to be a linear extension
-            # of the poset according to the documentation of class
-            # HasseDiagram.
-            sorted_o = sorted(elms, key=self._element_to_vertex)
-            return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+        from sage.misc.misc import uniq
+
+        # _element_to_vertex can be assumed to be a linear extension
+        # of the poset according to the documentation of class
+        # HasseDiagram.
+        H = self._hasse_diagram
+        elms = [self._element_to_vertex(e) for e in elms]
+
+        if ordered and saturated:
+            return all(H.covers(a, b) for a, b in zip(elms, elms[1:]))
+        if ordered and not saturated:
+            return all(H.is_less_than(a, b) for a, b in zip(elms, elms[1:]))
+        if not ordered and saturated:
+            sorted_elms = uniq(elms)
+            return all(H.covers(a, b) for a, b in zip(sorted_elms, sorted_elms[1:]))
+        if not ordered and not saturated:
+            sorted_elms = uniq(elms)
+            return all(H.is_lequal(a, b) for a, b in zip(sorted_elms, sorted_elms[1:]))
 
     def is_connected(self):
         """
