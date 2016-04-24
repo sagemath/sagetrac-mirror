@@ -21277,10 +21277,10 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         return_data.append( edge_labels )
     return return_data
 
-from sage.misc.feature import PythonPackage
-class Bliss(PythonPackage):
+from sage.misc.feature import PythonModule
+class Bliss(PythonModule):
     r"""
-    A :class:`sage.misc.feature.PythonPackage` which describes the availability
+    A :class:`sage.misc.feature.PythonModule` which describes the availability
     of the bliss library.
 
     EXAMPLES::
@@ -21298,5 +21298,5 @@ class Bliss(PythonPackage):
             sage: Bliss()
 
         """
-        PythonPackage.__init__(module="sage.graphs.bliss", name="bliss", spkg="bliss", url="http://www.tcs.tkk.fi/Software/bliss/index.html")
+        PythonModule.__init__(module="sage.graphs.bliss", name="bliss", spkg="bliss", url="http://www.tcs.tkk.fi/Software/bliss/index.html")
 
