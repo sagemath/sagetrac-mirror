@@ -96,6 +96,7 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.permutation import Permutations 
 from sage.combinat.combinatorial_algebra import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
+#from sage.combinat.tabloid import Tabloid
 
 ##JACKSONEND
 
@@ -416,29 +417,29 @@ class Tableau(ClonableList):
         r"""
         Returns the tabloid that contains the tableau
         """
-        rowstab=self.row_stabilizer()
+#        rowstab=self.row_stabilizer()
 
                #create the tabloid that contains the tableau
-        tabloid=Set([]) 
+#        tabloid=Set([]) 
 
-        for pi in rowstab:
-            tabloid+=Set([self.symmetric_group_action_on_entries(Permutation(pi))])
-        
-        return tabloid
+#        for pi in rowstab:
+#            tabloid+=Set([self.symmetric_group_action_on_entries(Permutation(pi))])
+        from sage.combinat.tabloid import Tabloid
+        return Tabloid(self)
     
     def to_tabloid_representative(self):
         r"""
         Returns the minimal tableau in the tabloid that contains the tableau.
         """
         
-        tabloid=self.to_tabloid()
+#        tabloid=self.to_tabloid()
         
         #represent by least element
-        mintab=tabloid[0]
-        for t in tabloid:
-            if t<mintab:
-                mintab = t
-        return mintab
+#        mintab=tabloid[0]
+#        for t in tabloid:
+#            if t<mintab:
+#                mintab = t
+        return self.to_tabloid().to_tableau()
     
     def to_tabloids(self):
         r"""
@@ -454,9 +455,10 @@ class Tableau(ClonableList):
                 YT+=Set([t.symmetric_group_action_on_entries(pi)])
 
         tabloids=Set([])
-
+        from sage.combinat.tabloid import Tabloid
         for t in YT:
-            tabloids+=Set([t.to_tabloid_representative()])
+#            tabloids+=Set([t.to_tabloid_representative()])
+            tabloids+=Set([Tabloid(t)])
         
         return tabloids
 #####JACKSONEND

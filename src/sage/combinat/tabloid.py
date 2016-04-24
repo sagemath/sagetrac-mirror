@@ -145,7 +145,8 @@ class Tabloid(Tableau):
         tabloid=[]
         for row in t:
             tabloid+=[[Set(row)]]
-        return Tableau(tabloid)
+#        return Tableau(tabloid)
+        return Tabloids_all().element_class(Tabloids_all(), t)
         # t is not a semistandard tableau so we give an appropriate error message
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
@@ -184,12 +185,12 @@ class Tabloid(Tableau):
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers which are weakly increasing
         # along rows
-        from sage.sets.positive_integers import PositiveIntegers
-        PI = PositiveIntegers()
+#        from sage.sets.positive_integers import PositiveIntegers
+#        PI = PositiveIntegers()
 
-        for row in t:
-            if any(c not in PI for c in row):
-                raise ValueError("the entries of a tabloid must be non-negative integers")
+#        for row in t:
+#            if any(c not in PI for c in row):
+#                raise ValueError("the entries of a tabloid must be non-negative integers")
  
 
 
@@ -201,7 +202,7 @@ class Tabloid(Tableau):
 
         """""
 
-        return sum(shape(self))
+        return sum(self.shape())
 
     def shape(self):
         """
@@ -213,10 +214,60 @@ class Tabloid(Tableau):
         from sage.combinat.partition import Partition
         shape=[]
         for row in self:
-            shape+=len(row[0][0])
+            shape.append(len(row[0]))
         return Partition(shape)
         
         
+    def to_tableau(self):
+        tableau=[]
+        for row in self:
+            tableau.append(row[0].list())
+        return Tableau(tableau)
+        
+    def symmetric_group_action_on_entries(self, pi):
+        tableau=self.to_tableau()
+        tableau=tableau.symmetric_group_action_on_entries(pi)
+        
+        return Tabloid(tableau)
+        
+    def column_stabilizer(self):
+        return self.to_tableau().column_stabilizer()
+        
+        
+    def row_stabilizer(self):
+        return self.to_tableau().row_stabilizer()
+    
+        
+    def symmetric_group_action_on_values(self, pi):
+        tableau=self.to_tableau()
+        tableau=tableau.symmetric_group_action_on_values(pi)
+        
+        return Tabloid(tableau)
+    
+    def is_standard(self):
+        return self.to_tableau().is_standard()
+        
+    def is_semistandard(self):
+        return self.to_tableau().is_semistandard()
+    
+    def entry(self, cell):
+        return self.to_tableau().entry(cell)
+        
+    def entries(self):
+        return self.to_tableau().entries()
+        
+    def reading_word_permutation(self):
+        return self.to_tableau().reading_word_permutation()
+        
+    def to_word(self):
+        return self.to_tableau().to_word()
+        
+    def pp(self):
+        return self.to_tableau().pp()
+        
+    def conjugate(self):
+        return self.to_tableau().conjugate()
+  
 
 ##########################
 # Tabloids #
@@ -231,19 +282,12 @@ class Tabloids(Tableaux):
 
     - ``size`` -- The size of the tableaux
     - ``shape`` -- The shape of the tableaux
-    - ``eval`` -- The weight (also called content or evaluation) of
-      the tableaux
-    - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
-      positive integer or infinity (``oo``). If ``size`` or ``shape`` are
-      specified, ``max_entry`` defaults to be ``size`` or the size of
-      ``shape``.
 
     Positional arguments:
 
     - The first argument is interpreted as either ``size`` or ``shape``
       according to whether it is an integer or a partition
-    - The second keyword argument will always be interpreted as ``eval``
-
+    
     OUTPUT:
 
     - The appropriate class, after checking basic consistency tests. (For
@@ -387,21 +431,26 @@ class Tabloids(Tableaux):
             return True
         elif Tableaux.__contains__(self, t):
             entries=[]
-            size=t.size
+            t=Tableau(t)
+            tsize=t.size()
             lastlen=0
             for row in t:
                 if len(row)>1:
                     return False
-                row=row[0][0]
-                if lastrow!=0 and lastrow<len(row):
+                row=row[0]
+                if lastlen!=0 and lastlen<len(row):
                     return False                    
                 lastlen=len(row)
-                entries.append(row)            
-            if Set([1..size])!=Set(entries):
+                entries.append(row)
+            entries=Set(entries)
+            numbers=Set(range(1,tsize+1))
+            if entries!=numbers:
                 return False   
             return True
         else:
             return False
+            
+            
 
 class Tabloids_all(Tabloids, DisjointUnionEnumeratedSets):
     """
@@ -430,8 +479,8 @@ class Tabloids_all(Tabloids, DisjointUnionEnumeratedSets):
         TESTS::
 
         """
-        if self.max_entry is not None:
-            return "Tabloids for Young tableaux of size %s"%str(self.size)
+#        if self.size is not None:
+#            return "Tabloids for Young tableaux of size %s"%str(self.size)
         return "Tabloids"
 
 
@@ -561,7 +610,10 @@ class Tabloids_shape(Tabloids):
         EXAMPLES::
 
         """
-        return Tabloids.__contains__(self, x) and Tabloids(x).shape() == self.shape
+        if not(x.shape()==self.shape):
+            return false
+        else:
+            return Tabloids.__contains__(self, x)# and Tabloid(x).shape() == self.shape()
 
     def _repr_(self):
         """
