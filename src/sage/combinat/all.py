@@ -93,7 +93,8 @@ from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 #Tabloids
 
 from tabloid import *
-
+from permutation_module import *
+from specht_module import *
 #Words
 from words.all import *
 

@@ -6,8 +6,6 @@ AUTHORS:
 
 - Jackson Criswell (2016): initial version
 
-
-
 This file consists of the following major classes:
 
 Element classes:
@@ -38,7 +36,7 @@ For display options, see :meth:`Tableaux.global_options`.
 
 .. TODO:
 
-    
+    take over the world
 """
 
 #*****************************************************************************
@@ -123,37 +121,29 @@ class Tabloid(Tableau):
     @staticmethod
     def __classcall_private__(self, t):
         r"""
-        This ensures that a SemistandardTableau is only ever constructed as an
+        This ensures that a Tabloid is only ever constructed as an
         element_class call of an appropriate parent.
 
         TESTS::
 
-            sage: t = SemistandardTableau([[1,1],[2]])
-            sage: TestSuite(t).run()
-
-            sage: t.parent()
-            Semistandard tableaux
-            sage: t.category()
-            Category of elements of Semistandard tableaux
-            sage: type(t)
-            <class 'sage.combinat.tableau.SemistandardTableaux_all_with_category.element_class'>
         """
         if isinstance(t, Tabloid):
             return t
         elif t in Tabloids():
             return Tabloids_all().element_class(Tabloids_all(), t)
-        tabloid=[]
-        for row in t:
-            tabloid+=[[Set(row)]]
-#        return Tableau(tabloid)
-        return Tabloids_all().element_class(Tabloids_all(), t)
-        # t is not a semistandard tableau so we give an appropriate error message
+
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
 
         if not all(isinstance(c,(int,Integer)) and c>0 for row in t for c in row):
             raise ValueError("entries must be positive integers"%t)
 
+        tabloid=[]
+        for row in t:
+            tabloid+=[Set(row)]
+#        return Tableau(tabloid)
+        return Tabloids_all().element_class(Tabloids_all(), tabloid)
+ 
 
     def __init__(self, parent, t):
         r"""
@@ -161,36 +151,16 @@ class Tabloid(Tableau):
 
         TESTS::
 
-            sage: t = Tableaux()([[1,1],[2]])
-            sage: s = SemistandardTableaux(3)([[1,1],[2]])
-            sage: s==t
-            True
-            sage: s.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: r = SemistandardTableaux(3)(t); r.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: isinstance(r, Tableau)
-            True
-            sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
-            sage: s2 == s
-            True
-            sage: s2.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
         """
-        tabloid=[]
-        for row in t:
-            tabloid+=[[Set(row)]]
-        super(Tabloid, self).__init__(parent, tabloid)
+        
+        if isinstance(t, Tabloid):
+            super(Tabloid, self).__init__(parent, t)
+        else:
+            tabloid=[]
+            for row in t:
+                tabloid+=[[Set(row)]]
+            super(Tabloid, self).__init__(parent, tabloid)
 
-        # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers which are weakly increasing
-        # along rows
-#        from sage.sets.positive_integers import PositiveIntegers
-#        PI = PositiveIntegers()
-
-#        for row in t:
-#            if any(c not in PI for c in row):
-#                raise ValueError("the entries of a tabloid must be non-negative integers")
  
 
 
@@ -488,10 +458,6 @@ class Tabloids_all(Tabloids, DisjointUnionEnumeratedSets):
         """
         TESTS::
 
-            sage: SemistandardTableaux().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
         """
         raise NotImplementedError
 
@@ -502,7 +468,7 @@ class Tabloids_size(Tabloids):
 
     .. WARNING::
 
-        Input is not checked; please use :class:`SemistandardTableaux`
+        Input is not checked; please use :class:`Tabloids`
         to ensure the options are properly parsed.
     """
     def __init__(self, n):
@@ -511,8 +477,6 @@ class Tabloids_size(Tabloids):
 
         TESTS::
 
-            sage: TestSuite( StandardTableaux(0) ).run()
-            sage: TestSuite( StandardTableaux(3) ).run()
         """
         super(Tabloids_size, self).__init__(
               category = FiniteEnumeratedSets())
@@ -610,8 +574,8 @@ class Tabloids_shape(Tabloids):
         EXAMPLES::
 
         """
-        if not(x.shape()==self.shape):
-            return false
+        if not(Tabloid(x).shape()==self.shape):
+            return False
         else:
             return Tabloids.__contains__(self, x)# and Tabloid(x).shape() == self.shape()
 

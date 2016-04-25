@@ -399,7 +399,7 @@ class Tableau(ClonableList):
         else:
             return list(self) != other
 #JACKSONSTART   
-    def as_permutation_module_element(self):
+    def _as_permutation_module_element(self):
         r"""
         Decomposes a tableau into an polytabloid element of the permutation module on tabloids.
         Process is as described in Sagan p.61
@@ -461,6 +461,9 @@ class Tableau(ClonableList):
             tabloids+=Set([Tabloid(t)])
         
         return tabloids
+        
+    def permute(self,pi):
+        return self.symmetric_group_action_on_entries(pi)
 #####JACKSONEND
     def check(self):       
         r"""
