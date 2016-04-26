@@ -490,7 +490,7 @@ class Fields(CategoryWithAxiom):
             by ``other``.
 
             Since ``self`` and ``other`` are elements of a field, the
-            quotient is``(self/other)`` and the remainder ``0``.
+            quotient is ``(self/other)`` and the remainder ``0``.
 
             INPUT:
 
@@ -510,7 +510,7 @@ class Fields(CategoryWithAxiom):
             :meth:`sage.structure.element.FieldElement.quo_rem` is a
             duplicate of this method, Cythonized for speed.
 
-            TESTS::
+            TESTS:
 
             The above example actually uses
             :meth:`FieldElement.quo_rem`. We rerun it with a field
