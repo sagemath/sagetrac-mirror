@@ -69,7 +69,7 @@ from sage.categories.sets_cat import EmptySetError
 from itertools import izip_longest
 import os
 from sage.misc.function_mangling import ArgumentFixer
-from sage.data_structures.lazy_list import lazy_list
+from sage.misc.lazy_list import lazy_list
 
 class EnumeratedSetFromIterator(Parent):
     """
@@ -81,7 +81,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
@@ -1014,5 +1014,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)

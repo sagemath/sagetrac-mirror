@@ -1498,7 +1498,7 @@ class Graph(GenericGraph):
         REFERENCES:
 
         .. [RT75] Read, R. C. and Tarjan, R. E.
-          Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+          Bounds on Backtrack Algorithms for Listing Cycles, Paths, and Spanning Trees
           Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
@@ -3341,7 +3341,7 @@ class Graph(GenericGraph):
         b = {}
 
 
-        # Checking the input type. We make a dictionay out of it
+        # Checking the input type. We make a dictionary out of it
         if isinstance(bound, dict):
             b = bound
         else:
@@ -3648,7 +3648,7 @@ class Graph(GenericGraph):
             sage: s(XG)
             30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
 
-        Not all graphs have a postive Schur expansion::
+        Not all graphs have a positive Schur expansion::
 
             sage: G = graphs.ClawGraph()
             sage: XG = G.chromatic_symmetric_function(); XG
@@ -3906,7 +3906,7 @@ class Graph(GenericGraph):
                     return sum(weight(self.edge_label(u, v))
                                 for u, v in d.iteritems()) * 0.5
                 else:
-                    return Integer(len(d)/2)
+                    return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]
@@ -3987,7 +3987,7 @@ class Graph(GenericGraph):
         OUTPUT:
 
         This method returns ``False`` when the homomorphism does not exist, and
-        returns the homomorphism otherwise as a dictionnary associating a vertex
+        returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
         EXAMPLE:
@@ -6469,7 +6469,7 @@ class Graph(GenericGraph):
         return D[0] == "Prime" and len(D[1]) == self.order()
 
     @rename_keyword(deprecation=19550, method='algorithm')
-    def _gomory_hu_tree(self, vertices, algorithm="FF"):
+    def _gomory_hu_tree(self, vertices, algorithm=None):
         r"""
         Return a Gomory-Hu tree associated to self.
 
@@ -6486,15 +6486,9 @@ class Graph(GenericGraph):
           fakes one introduced during the computations. This variable is
           useful for the algorithm and for recursion purposes.
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
-
-          * If ``algorithm = "FF"`` (default), a Python
-            implementation of the Ford-Fulkerson algorithm is
-            used.
-
-          * If ``algorithm = "LP"``, the flow problem is solved using
-            Linear Programming.
+        - ``algorithm`` -- select the algorithm used by the :meth:`edge_cut`
+          method. Refer to its documentation for allowed values and default
+          behaviour.
 
         EXAMPLE:
 
@@ -6566,7 +6560,7 @@ class Graph(GenericGraph):
 
     @doc_index("Connectivity, orientations, trees")
     @rename_keyword(deprecation=19550, method='algorithm')
-    def gomory_hu_tree(self, algorithm="FF"):
+    def gomory_hu_tree(self, algorithm=None):
         r"""
         Returns a Gomory-Hu tree of self.
 
@@ -6584,15 +6578,9 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
-
-          * If ``algorithm = "FF"`` (default), a Python
-            implementation of the Ford-Fulkerson algorithm is
-            used.
-
-          * If ``algorithm = "LP"``, the flow problems are solved
-            using Linear Programming.
+        - ``algorithm`` -- select the algorithm used by the :meth:`edge_cut`
+          method. Refer to its documentation for allowed values and default
+          behaviour.
 
         OUTPUT:
 
@@ -6905,6 +6893,78 @@ class Graph(GenericGraph):
                         T[2 * j + 1, 2 * i] = 1
         return T.charpoly('t').reverse()
 
+    @doc_index("Leftovers")
+    def perfect_matchings(self, labels=False):
+        """
+        Return an interator over all perfect matchings of the graph.
+
+        ALGORITHM:
+
+        Choose a vertex `v`, then recurse through all edges incident to `v`,
+        removing one edge at a time whenever an edge is added to a matching.
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``False``); when ``True``, the
+          edges in each perfect matching are triples (containing the label
+          as the third element), otherwise the edges are pairs
+
+        .. SEEALSO::
+
+            :meth:`matching`
+
+        EXAMPLES::
+
+            sage: G=graphs.GridGraph([2,3])
+            sage: list(G.perfect_matchings())
+            [[((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))],
+             [((0, 1), (0, 2)), ((1, 1), (1, 2)), ((0, 0), (1, 0))],
+             [((0, 1), (1, 1)), ((0, 2), (1, 2)), ((0, 0), (1, 0))]]
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: list(G.perfect_matchings(labels=True))
+            [[(0, 1, None), (2, 3, None)],
+             [(0, 2, None), (1, 3, None)],
+             [(0, 3, None), (1, 2, None)]]
+
+            sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
+            sage: list(G.perfect_matchings(labels=True))
+            [[(-2, 1, 'x'), (-1, 2, 'y')],
+             [(-1, 1, 'a'), (-2, 2, 'b')]]
+
+            sage: G = graphs.CompleteGraph(8)
+            sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]
+            sage: len(list(G.perfect_matchings())) == mpc
+            True
+
+            sage: G = graphs.PetersenGraph().copy(immutable=True)
+            sage: list(G.perfect_matchings())
+            [[(0, 1), (2, 3), (4, 9), (6, 8), (5, 7)],
+             [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
+             [(0, 4), (1, 2), (3, 8), (6, 9), (5, 7)],
+             [(0, 4), (1, 6), (2, 3), (5, 8), (7, 9)],
+             [(0, 5), (1, 2), (3, 4), (6, 8), (7, 9)],
+             [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]]
+
+            sage: list(Graph().perfect_matchings())
+            [[]]
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: list(G.perfect_matchings())
+            []
+        """
+        if not self:
+            yield []
+            return
+        # if every connected component has an even number of vertices
+        if all(len(cc) % 2 == 0 for cc in self.connected_components()):
+            v = next(self.vertex_iterator())
+            for e in self.edges_incident(v, labels=labels):
+                Gp = self.copy(immutable=False)
+                Gp.delete_vertices([e[0], e[1]])
+                for mat in Gp.perfect_matchings(labels):
+                    yield [e] + mat
+
 
 # Aliases to functions defined in Cython modules
 import types
@@ -6951,6 +7011,9 @@ Graph.tutte_polynomial          = tutte_polynomial
 from sage.graphs.lovasz_theta import lovasz_theta
 Graph.lovasz_theta              = lovasz_theta
 
+from sage.graphs.partial_cube import is_partial_cube
+Graph.is_partial_cube           = is_partial_cube
+
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",
     Graph.is_long_antihole_free     : "Graph properties",
@@ -6965,6 +7028,7 @@ _additional_categories = {
     Graph.is_distance_regular       : "Graph properties",
     Graph.is_strongly_regular       : "Graph properties",
     Graph.is_line_graph             : "Graph properties",
+    Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
     }
