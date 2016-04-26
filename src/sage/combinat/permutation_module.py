@@ -1,14 +1,14 @@
 from sage.combinat.free_module import CombinatorialFreeModule
 
 #from sage.combinat.partitions import Partition
-from sage.combinat.tableau import Tableau,Tableaux,StandardTableaux
-from sage.combinat.tabloid import Tabloid,Tabloids
+#from sage.combinat.tableau import Tableau,Tableaux,StandardTableaux
+
 
 
 
 class PermutationModule(CombinatorialFreeModule):
-
     def __init__(self, R, shape):
+        from sage.combinat.tabloid import Tabloid,Tabloids
         """
         TESTS::
 
@@ -17,7 +17,8 @@ class PermutationModule(CombinatorialFreeModule):
 #   this is a cludge, will -  ideally we will override other methos
 #  to give right representation name
 #  and have elements have a convienient method that is shortcut for
-# current use of map_support 
+# current use of map_support and lambda function
+
         tabloids = Tabloids(shape)
         super(PermutationModule,self).__init__(R,tabloids)
   
@@ -28,10 +29,17 @@ class PermutationModule(CombinatorialFreeModule):
 #        CombinatorialFreeModule.__init__(self, R, tabloids)
 
 
-class SpechtModule(PermutationModule):
+class SpechtModule(CombinatorialFreeModule):
     
     def __init__(self,R,shape):
-    
-    
-        tabloids= StandardTabloids(shape)
-        super(SpechtModule,self).__init__(R,tabloids)
+        from sage.combinat.tableau import StandardTableaux
+        from sage.sets.set import Set
+        SYT= StandardTableaux(shape)
+        basis=Set([])
+        for T in SYT:
+            basis+=Set([T.to_polytabloid()])
+            
+        super(SpechtModule,self).__init__(R,basis) 
+        
+        
+        

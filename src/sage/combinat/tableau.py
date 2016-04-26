@@ -96,6 +96,7 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.permutation import Permutations 
 from sage.combinat.combinatorial_algebra import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
+
 #from sage.combinat.tabloid import Tabloid
 
 ##JACKSONEND
@@ -398,7 +399,25 @@ class Tableau(ClonableList):
             return list(self) != list(other)
         else:
             return list(self) != other
-#JACKSONSTART   
+#JACKSONSTART
+    def to_polytabloid(self):
+        """
+        
+        """
+        from sage.combinat.permutation_module import PermutationModule
+        
+        CS=self.column_stabilizer()
+        M=PermutationModule(QQ,self.shape())
+        polytabloid = M(0)
+        tabloid = self.to_tabloid()        
+        for pi in CS:
+            tabloid=tabloid.permute(Permutation(pi))
+            polytabloid+=pi.sign()*M(tabloid)
+        return polytabloid
+
+    
+
+   
     def _as_permutation_module_element(self):
         r"""
         Decomposes a tableau into an polytabloid element of the permutation module on tabloids.
@@ -411,8 +430,9 @@ class Tableau(ClonableList):
         polytabloid = M(0)        
         for pi in colstab:
             polytabloid+=pi.sign()*M(self.symmetric_group_action_on_entries(Permutation(pi)))
+        print "use to_polytabloid() instead"
         return polytabloid
-
+        
     def to_tabloid(self):
         r"""
         Returns the tabloid that contains the tableau
