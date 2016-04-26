@@ -27,9 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-
+from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -269,7 +267,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (a // b) * b + a % b
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
-            The alternative definition:
+        The alternative definition::
 
             sage: a
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
@@ -1723,9 +1721,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. TODO::
 
-        There is a soft-linear time algorith for logarithm described
-        by Dan Berstein at
-        http://cr.yp.to/lineartime/multapps-20041007.pdf
+            There is a soft-linear time algorithm for logarithm described
+            by Dan Berstein at
+            http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 

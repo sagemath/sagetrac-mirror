@@ -67,7 +67,7 @@ import os, sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
@@ -76,7 +76,8 @@ if sys.version_info[:2] < (2, 5):
 ###################################################################
 
 # This import also setups the interrupt handler
-from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
+from cysignals.signals import (AlarmInterrupt, SignalError,
+        sig_on_reset as sig_on_count)
 
 from time                import sleep
 
@@ -174,6 +175,12 @@ from sage.matroids.all   import *
 
 from sage.game_theory.all import *
 
+from sage.knots.all import *
+
+from sage.manifolds.all import *
+
+from cysignals.alarm import alarm, cancel_alarm
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
@@ -261,7 +268,9 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -271,7 +280,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
