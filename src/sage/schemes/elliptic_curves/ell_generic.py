@@ -552,23 +552,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
     def _reduce_point(self, R, p):
         r"""
-        Reduces a point R on an ellipitc curve to the corresponding point on
-        the elliptic curve reduced modulo p. Used to coerce points between
+        Reduces a point R on an elliptic curve to the corresponding point on
+        the elliptic curve reduced modulo p.
+
+        Used to coerce points between
         curves when p is a factor of the denominator of one of the
         coordinates.
 
-        This functionality is used internally in the \code{call} method for
+        This functionality is used internally in the ``call`` method for
         elliptic curves.
 
         INPUT:
-            R -- a point on an elliptic curve
-            p -- a prime
+
+        - R -- a point on an elliptic curve
+        - p -- a prime
 
         OUTPUT:
-            S -- the corresponding point of the elliptic curve containing R, but
-                 reduced modulo p
+
+        S -- the corresponding point of the elliptic curve containing
+           R, but reduced modulo p
 
         EXAMPLES:
+
         Suppose we have a point with large height on a rational elliptic curve
         whose denominator contains a factor of 11::
 
@@ -2125,7 +2130,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         NOTE: This function is currently *much* slower than the
         result of ``self.multiplication_by_m()``, because
         constructing an isogeny precomputes a significant amount
-        of information. See trac tickets #7368 and #8014 for the
+        of information. See :trac:`7368` and :trac:`8014` for the
         status of improving this situation.
 
         INPUT:
@@ -2406,7 +2411,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
 
-        This used to be different see trac #3973::
+        This used to be different see :trac:`3973`::
 
             sage: E.short_weierstrass_model()
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
