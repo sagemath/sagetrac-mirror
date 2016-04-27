@@ -143,6 +143,7 @@ from functional import (additive_order,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
+                        tr,
                         transpose,
                         zero)
 

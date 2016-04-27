@@ -1584,10 +1584,22 @@ def squarefree_part(x):
             n *= p
     return n * F.unit()
 
+def tr(x):
+    """
+    Return the trace of x.
+
+    EXAMPLES::
+
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: tr(A)
+        15
+    """
+    return x.trace()  
 
 def transpose(x):
     """
-    Returns the transpose of x.
+    Return the transpose of x.
 
     EXAMPLES::
 
@@ -1599,7 +1611,6 @@ def transpose(x):
         [3 6 9]
     """
     return x.transpose()
-
 
 def zero(R):
     """
