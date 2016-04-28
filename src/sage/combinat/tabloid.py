@@ -430,12 +430,18 @@ class Tabloids(Tableaux):
             tsize=t.size()
             lastlen=0
             for row in t:
-                if len(row)>1:
+                if type(row) == int:
+                    length=1
+                else:
+                    length=len(row)
+            
+                if length>1:
                     return False
                 row=row[0]
-                if lastlen!=0 and lastlen<len(row):
+                if lastlen!=0 and lastlen<length:
                     return False                    
-                lastlen=len(row)
+                
+                lastlen=length
                 entries.append(row)
             entries=Set(entries)
             numbers=Set(range(1,tsize+1))
@@ -529,6 +535,13 @@ class Tabloids_size(Tabloids):
         return StandardTableaux(self.shape.size()).random_element().to_tabloid_representative()
 
         
+    def list(self):
+        from sage.combinat.partition import Partitions
+        tabloids = []
+        for part in Partitions(self.size):
+            tabloids += Tabloids_shape(part).list()
+        return tabloids
+
         
         
     def cardinality(self):
@@ -537,11 +550,7 @@ class Tabloids_size(Tabloids):
 
         EXAMPLES::
         """
-        from sage.combinat.partition import Partitions
-        c = 0
-        for part in Partitions(self.size):
-            c += Tabloids_shape(part).cardinality()
-        return c
+        return len(self.list())
 
 
     def __iter__(self):
@@ -580,6 +589,7 @@ class Tabloids_shape(Tabloids):
         from sage.combinat.partition import Partition
         super(Tabloids_shape, self).__init__(category = FiniteEnumeratedSets())
         self.shape = Partition(p)
+        self.size=self.shape.size()
 
 
     def __iter__(self):
@@ -591,7 +601,15 @@ class Tabloids_shape(Tabloids):
         raise NotImplementedError
         
     def list(self):
-        raise NotImplementedError
+        SYT=StandardTableaux(self.shape)
+        tabloids=Set([])
+        for T in SYT:
+            for pi in Permutations(T.size()):
+                tabloids+= Set([T.permute(pi).to_tabloid()])                
+        return tabloids.list()
+
+
+#        raise NotImplementedError
         
         
     def __contains__(self, x):
@@ -617,7 +635,8 @@ class Tabloids_shape(Tabloids):
         return StandardTableaux(self.shape).random_element().to_tabloid_representative()
 
     def cardinality(self):
-        raise NotImplementedError
+        return len(self.list())
+#        raise NotImplementedError
 
 ##############
 class StandardTabloid(Tabloid):
@@ -678,7 +697,7 @@ class StandardTabloid(Tabloid):
         flattened_list = [i for row in self.to_tableau() for i in row]
         if sorted(flattened_list) != range(1, len(flattened_list)+1):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
-        print "here"
+
         if self.is_standard()==False:
             raise ValueError("Tabloid is not standard")
 
@@ -939,7 +958,7 @@ class StandardTabloids_shape(Tabloids):
                 row = 0
                 col += 1
 
-        yield self.element_class(self, tableau.to_tabloid())
+        yield self.element_class(self, Tableau(tableau).to_tabloid())
 
         # iterate until we reach the last tableau which is
         # filled with the row indices.
@@ -1003,7 +1022,7 @@ class StandardTabloids_shape(Tabloids):
                 tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
                 row_count[tableau_vector[i]] += 1
 
-            yield self.element_class(self, tableau.to_tabloid())
+            yield self.element_class(self, Tableau(tableau).to_tabloid())
 
         return
 
@@ -1027,3 +1046,21 @@ class StandardTabloids_shape(Tabloids):
         S=StandardTabloids(self.shape)
 
         return StandardTableaux(self.shape).random_element().to_tabloid()
+        
+        
+        
+        
+"""
+
+MODULES
+
+- moved into this file to resolve library loading issues
+- will figure out more permanent fix
+xxxx
+-moved back out did not seem to help
+"""
+
+
+        
+        
+        

@@ -480,7 +480,7 @@ class Tableau(ClonableList):
 #            tabloids+=Set([t.to_tabloid_representative()])
             tabloids+=Set([Tabloid(t)])
         
-        return tabloids
+        return tabloids.list()
         
     def permute(self,pi):
         return self.symmetric_group_action_on_entries(pi)
