@@ -2344,6 +2344,66 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                                                         for coef in copy_Ai):
                             self._integer_variables.add(x[j])
 
+    def add_constraint(self, new_row, new_b, new_slack_variable, new_integer_variable=False):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+
+        - ``new_b`` -- a constant term of the new constraint
+
+        - ``new_slack_variable`` -- a string giving the new slack variable name
+
+        - ``integer_variables`` -- (default: False) a boolean value
+          indicating if the new slack variable is integer or not
+
+        OUTPUT:
+
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, 'c', new_integer_variable=True)
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.slack_variables()
+            (x3, x4, c)
+            sage: P1.integer_variables()
+            {c}
+        """
+        A = self.Abcx()[0]
+        b = self.Abcx()[1]
+        c = self.Abcx()[2]
+        R = self._R
+        G = list(R.gens())
+        slack = list(self.slack_variables())
+        integer_variables_set = self._integer_variables
+        
+        # Construct a larger ring for variables
+        G.append(new_slack_variable)
+        R1 = PolynomialRing(self.base_ring(), G, order="neglex")
+        
+        new_slack_variable = R1.gens()[len(R1.gens())-1]
+        slack.append(new_slack_variable)
+        if new_integer_variable:
+            integer_variables_set.add(variable(R1, new_slack_variable))
+        A = A.stack(matrix(new_row))
+        b = vector(tuple(b) + (new_b,))
+
+        return InteractiveLPProblemStandardForm(
+            A, b, c, slack_variables=slack,
+            integer_variables=integer_variables_set)
+
     def all_variables(self):
         r"""
         Return a set of both decision variables and slack variables of ``self``.
