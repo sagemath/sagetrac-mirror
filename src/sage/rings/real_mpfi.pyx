@@ -1108,7 +1108,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
 
 #*****************************************************************************
@@ -5117,6 +5117,44 @@ cdef class RealIntervalFieldElement(RingElement):
         from sage.rings.real_arb import RealBallField
         return RealBallField(self.precision())(self).zeta(a).\
             _real_mpfi_(self._parent)
+
+    def polylog(self, s=None):
+        """
+        Return the image of this interval by the polylogarithm function.
+
+        For ``s = 2`` (or ``s = None``), this computes the dilogarithm
+        function.
+
+        EXAMPLES::
+
+            sage: polylog(RIF(2/10), 2)
+            0.7980219851462757? - 0.1137443080529385?*I
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+            sage: RIF(1/11).polylog(3)
+            0.091971094889317?
+        """
+        from sage.rings.real_arb import RealBallField
+        return RealBallField(self.prec())(self).polylog(s).\
+            _real_mpfi_(self._parent)
+
+    def dilog(self, s=None):
+        """
+        Return the image of this interval by the dilogarithm function.
+
+        EXAMPLES::
+
+            sage: dilog(RIF(1/10))
+            0.102617791099391?
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+            sage: RIF(2/11).dilog()
+            0.190827888509686?
+        """
+        from sage.rings.complex_arb import RealBallField
+        return RealBallField(self.prec())(self).polylog(2).\
+            _real_mpfi_(self._parent)
+
 
 def _simplest_rational_test_helper(low, high, low_open=False, high_open=False):
     """

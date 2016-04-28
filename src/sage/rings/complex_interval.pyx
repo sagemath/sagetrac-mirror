@@ -2036,6 +2036,44 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return ComplexBallField(self.prec())(self).zeta(a).\
             _complex_mpfi_(self._parent)
 
+    def polylog(self, s=None):
+        """
+        Return the image of this interval by the polylogarithm function.
+
+        For ``s = 2`` (or ``s = None``), this computes the dilogarithm
+        function.
+
+        EXAMPLES::
+
+            sage: polylog(CIF(2, 3), 2)
+            0.7980219851462757? - 0.1137443080529385?*I
+            sage: _.parent()
+            Complex Interval Field with 53 bits of precision
+            sage: CIF(2, 3).polylog(3)
+            0.6766001469? + 3.4098814160?*I
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        return ComplexBallField(self.prec())(self).polylog(s).\
+            _complex_mpfi_(self._parent)
+
+    def dilog(self, s=None):
+        """
+        Return the image of this interval by the dilogarithm function.
+
+        EXAMPLES::
+
+            sage: dilog(CIF(2, 3))
+            -0.280988055378? + 3.017251206369?*I
+            sage: _.parent()
+            Complex Interval Field with 53 bits of precision
+            sage: CIF(2, 3).dilog()
+            -0.280988055378? + 3.017251206369?*I
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        return ComplexBallField(self.prec())(self).polylog(2).\
+            _complex_mpfi_(self._parent)
+
+
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
     """
