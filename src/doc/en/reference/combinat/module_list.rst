@@ -349,5 +349,15 @@ Comprehensive Module list
     sage/combinat/words/word_infinite_datatypes
     sage/combinat/words/word_options
     sage/combinat/words/words
+    sage/combinat/words/free_group_automorphism
+    sage/combinat/words/free_group_word
+    sage/combinat/words/inverse_alphabet
+    sage/combinat/words/inverse_graph
+    sage/combinat/words/free_group
+    sage/combinat/words/marked_graph
+    sage/combinat/words/graph_map
+    sage/combinat/words/graph_self_map
+    sage/combinat/words/train_track_map
+    sage/combinat/words/convex_core
     sage/combinat/yang_baxter_graph
     sage/rings/cfinite_sequence

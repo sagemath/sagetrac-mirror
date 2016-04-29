@@ -64,7 +64,7 @@ Other Algebraic Structures
 Discrete Mathematics
 --------------------
 
-* :doc:`Combinatorics <combinat/index>`
+* :doc:`Combinatorics  <combinat/index>`
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Quivers <quivers/index>`
 * :doc:`Matroid Theory <matroids/index>`
