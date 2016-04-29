@@ -73,7 +73,7 @@ class gosper_iterator:
 
             # from sage.functions.other import floor
             ub = self.bound(self.a, self.c)
-            lb = self.bound(self.b, self.d)
+            lb = self.bound(self.a + self.b, self.c + self.d)
             s = -self.bound(self.c, self.d)
 
             # print "a = {}, b = {}, c = {}, d = {}".format(self.a, self.b, self.c, self.d)
