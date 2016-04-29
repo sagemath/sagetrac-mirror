@@ -1061,5 +1061,205 @@ class Posets(object):
         H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
         return LatticePoset(H.reverse())
 
+    @staticmethod
+    def generate_lattices(n):
+        """
+        Generate all non-isomorphic lattices of size `n`.
+    
+        INPUT:
+            
+        - ``n`` -- size of lattices to create
+    
+        EXAMPLES:
+    
+            sage: Lats4 = Posets.generate_lattices(4)
+            sage: Lats4[0] == Posets.BooleanLattice(2)
+            True
+            sage: Lats4[1] == Posets.ChainPoset(4)
+            True
+            
+        TESTS::
+    
+            sage: len(Posets.generate_lattices(6))
+            15
+    
+            sage: for i in range(4):
+            ....:     Lats = Posets.generate_lattices(i)
+            ....:     print(len(Lats), Lats[0])
+            1 Finite lattice containing 0 elements
+            1 Finite lattice containing 1 elements
+            1 Finite lattice containing 2 elements
+            1 Finite lattice containing 3 elements
+            
+        ALGORITHM::
+    
+            Documented in Generating all finite modular lattices of a given
+            size by Peter Jipsen and Nathann Lawless: :arxiv:`1309.5036`.
+        """
+        # The code was written by Peter Jipsen.
+        
+        # It has been only slightly modified by Jori
+        # Mäntysalo for incorporating into Sage main
+        # codebase.
+    
+        # No nonlocal-keyword in Python <3, and that's sad.
+        # So we use global variables, and that's bad.
+    
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("n must be a non-negative integer")
+    
+        if n < 4:
+            return [Posets.ChainPoset(n)]
+        
+        def achains(A, x, B):
+            # Find disjoint subsets of A U {x} U B (if they intersect Sk, i.e. bottom two levels).
+            # A is a set of pairwise disjoint elements (disjoint means "meet to bottom") and 
+            # each a in A is disjoint from all elements of {x} U B.
+            A1 = A+[x]
+            U = [y for y in range(m) if any([le[c][y] for c in A1])]    # U = upper(A1)
+            # base case of recursion: check that A1 is a lattice_antichain, i.e., 
+            # for a,b in U there exists c in A1 below a,b or no minimal element below a,b
+            if not Sk.isdisjoint(A1) \
+               and all(all(any(le[c][U[i]] and le[c][U[j]] for c in A1) \
+                           or not any(le[c][U[i]] and le[c][U[j]] for c in M) \
+               for j in range(i)) for i in range(len(U))): 
+                   As.append(tuple(A1)) # then append copy of A1 to antichains in As
+            if B != []:                                      # there are more elements of L to handle
+                if not Sk.isdisjoint(A+B): achains(A, B[0], B[1:])
+                C = [c for c in M if le[c][x]]               # all minimal elements of L that are below x
+                # now find all elements of B that are not above any of the elements in C
+                B1 = [b for b in B if not any(le[c][b] for c in C)] # so A1 is disjoint from all elements in B1
+                if B1 != []: achains(A1, B1[0], B1[1:])
+        
+        def lattice_antichains(L, lev):
+            # We only have to consider lattice_antichains that intersect the bottom two levels, so we
+            # find subsets A of L-{bot,top} such that a,b in upper(A) implies a^b in {bot} U upper(A)
+            # and A intersects lev(k-1) U lev(k) where k = len(lev)-1
+            
+            global m, Bk, Sk, As, M      # avoid passing a lot of parameter into achains
+            m = len(L)                           # number of elements in L (without top or bottom)
+            k = len(lev)-1                         # depth of last element added to L
+            Sk = set(lev[k-1]+lev[k])            # bottom two levels as a set
+            As = []                              # accumulate antichains here
+            M = set(range(m)).difference(reduce(lambda x, y:set(x)|set(y), L))  # minimal elements of L
+            Bk = sorted(list(M))
+            # NOTE: L has no top or bottom, so M is {0,...,m-1} without uppercovers of {0,...,m-1}
+            achains([], 0, range(1,m))
+            # recursive procedure to compute antichains and store them in As
+            if len(lev)==1: return [()]+As  # since top of L is not stored, we have to use empty antichain
+            return As
+        
+        def automorphism_group(G, partition): # G is an adjacency list for a graph (undirected)
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
+            from sage.graphs.all import Graph
+            n = len(G)
+            H = Graph(n, implementation='c_graph')
+            HB = H._backend
+            for u in xrange(n):
+                for v in G[u]:
+                    HB.add_edge(u, v, None, False) #False = undirected
+            GC = HB.c_graph()[0]
+            a = search_tree(GC, partition, dict_rep=False, lab=False, dig=False, verbosity=0, order=False)
+            return a, get_orbits(a, n)
+        
+        def canonical_label(G, partition): # G is an adjacency list for a graph (undirected)
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+            from sage.graphs.all import Graph
+            n = len(G)
+            H = Graph(n, implementation='c_graph')
+            HB = H._backend
+            for u in xrange(n):
+                for v in G[u]:
+                    HB.add_edge(u, v, None, False) #False = undirected
+            GC = HB.c_graph()[0]
+            a, b, c = search_tree(GC, partition, certify=True, dig=False, verbosity=0)
+            return c
+        
+        def is_canonical(L, lev):
+            if len(lev)==1: return True
+            if len(lev[-1])==1: return True  # works since minimal weight antichains are used
+            f = canonical_label(L, lev)
+            m = len(L)-1 #last element added
+            for k in f:
+                if f[k]==m:
+                    finvm = k
+                    break
+            orb = automorphism_group(L, lev)[1]
+            for S in orb:
+                if finvm in S:
+                    orbit = S
+                    break
+            return m in orbit
+        
+        def orbit(x, perms, L):
+            # x is a key in each perm; perms is a list of dicts acting on base
+            # return orbit of x = set(p[x] for p in group generated by perms)
+            orb = [x]
+            orbset = set(orb)
+            i=0
+            while i<len(orb):
+                for p in perms:
+                    try:
+                        y = p[orb[i]]
+                    except: print i, orb, p, L, le
+                    if y not in orbset:
+                        orb.append(y)
+                        orbset.add(y)
+                i = i+1
+            return orbset
+        
+        def orbits(base, perms, L):
+            orbs = []
+            while len(base)!=0:
+                orbs.append(orbit(base.pop(), perms, L))
+                base -= orbs[-1]
+            return orbs
+        
+        def noniso_lattice_antichains(L, lev):
+            ach = lattice_antichains(L, lev)
+            m = len(L)
+            gns = automorphism_group(L, lev)[0]
+            if gns == []: return ach   # no automorphisms, so return all achains
+            perms = [dict((A, tuple(sorted(p[i] for i in A))) for A in ach) for p in gns]
+            return [sorted(x)[0] for x in orbits(set(ach), perms, L)]
+        
+        def next_lattice(L, lev, n):
+            global lat_list
+            m = len(L) # new element to be added
+            lat_list[m-1].append([c[:] for c in L])
+            if m < n:
+                for A in noniso_lattice_antichains(L, lev):
+                    L_A = L+[list(A)] # add covers of new element
+                    if A!=() and A[-1] in lev[-1]: lev_A = lev+[[m]] # update level
+                    else: lev_A = lev[:-1]+[lev[-1]+[m]]
+                    if is_canonical(L_A, lev_A):
+                        for j in range(m): # update less_or_equal relation
+                            le[m][j] = any([le[i][j] for i in A])
+                        next_lattice(L_A, lev_A, n)
+        
+        def addbounds(L):
+            # add top and bottom element and relabel so that i <= j if le[i][j]
+            m = len(L)
+            p = range(m, 0, -1)
+            Lp = [[m+1] if u==[] else sorted([p[j] for j in u]) for u in L]
+            Lp.reverse()
+            Lp.append([])
+            M = set(range(1, m+1))-reduce(lambda x, y:set(x)|set(y), Lp) # minimal elements
+            return [list(M)]+Lp
+    
+        # construct all lattices of size n
+        # lattices are represented by list of upper-cover lists.
+        # Top and bottom elements are omitted at first, and will
+        # be added last with add_bounds.
+        global lat_list, le
+        lat_list = [[] for i in range(n-2)]
+        le = [[True if i==j else False for j in range(n-2)] for i in range(n-2)]    # initialize <= relation
+        next_lattice([[]], [[0]], n-2)
+        return [LatticePoset(addbounds(x)) for x in lat_list[-1]]
 
 posets = Posets
+
