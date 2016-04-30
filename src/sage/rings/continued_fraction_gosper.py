@@ -1,10 +1,37 @@
+"""
+Gosper iterator
+
+A class which serves as a stateful iterable for computing the terms of the continued fraction of `(a*x+b)/(c*x+d)`,
+where `a, b, c, d` are integers, and `x` is a continued fraction.
+
+EXAMPLES:
+::
+    sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+    sage: x = continued_fraction(pi)
+    sage: it = iter(gosper_iterator(3,2,3,1,x)
+    sage: Word(it, length='infinite')
+    word: 1,10,2,2,1,4,1,1,1,97,4,1,2,1,2,45,6,4,9,1,27,2,6,1,4,2,3,1,3,1,15,2,1,1,2,1,1,2,32,1,...
+"""
+
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR
 
 class gosper_iterator:
 
+
     def __init__(self, a, b, c, d, x):
+        """
+        Constructs the class.
+        INPUT:
+
+        - ``a, b, c, d`` -- Integer coefficients of the transformation.
+        - ``x`` -- An instance of a continued fraction.
+
+        OUTPUT:
+
+        - The instance of gosper_iterator class.
+        """
         self.a = a
         self.b = b
         self.c = c
@@ -34,9 +61,15 @@ class gosper_iterator:
         self.output_period_length = 0
 
     def __iter__(self):
+        """
+        Returns the iterable instance of the class. Is called upon `iter(gosper_iterator(a,b,c,d,x))`.
+        """
         return self
 
     def next(self):
+        """
+        Returns the next term of the transformation.
+        """
         limit = 100
         while True:
             if self.currently_read >= self.input_preperiod_length:
@@ -93,6 +126,9 @@ class gosper_iterator:
 
 
     def emit(self, q):
+        """
+        Changes the state of the iterator, correspondingly to emitting the term `q`.
+        """
         self.currently_emitted += 1
         # This is being computed for the case when no states are being saved (still reading preperiod).
         if self.currently_read <= self.input_preperiod_length:
@@ -106,6 +142,9 @@ class gosper_iterator:
 
 
     def ingest(self):
+        """
+        Changes the state of the iterator, correspondingly to ingesting another term from the input continued fraction.
+        """
         try:
             p = next(self.x)
             # print "Ingesting " + repr(p)
@@ -123,6 +162,9 @@ class gosper_iterator:
 
 
     def bound(self, n,d):
+        """
+        Helper function for division. Returns infinity if denominator is zero.
+        """
         if d == 0:
             return Infinity
         else:
@@ -130,6 +172,9 @@ class gosper_iterator:
 
 
     def compare_dicts(self, d1, d2, ignore_keys):
+        """
+        Helper function, used to compare two dictionaries, ignoring the keys in `ignore_keys`.
+        """
         d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
         d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
         return d1_filtered == d2_filtered

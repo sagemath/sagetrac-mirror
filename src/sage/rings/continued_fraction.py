@@ -1138,8 +1138,8 @@ class ContinuedFraction_base(SageObject):
         EXAMPLES::
 
             from random import randint
-            sage: a = randint(-100,100); b = randint(-100,100);
-            sage: c = randint(-100,100); d = randint(-100,100);
+            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
+            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
             sage: vals = [pi, sqrt(2), 541/227];
             sage: for val in vals:
             ....:     x = continued_fraction(val)
@@ -1153,7 +1153,7 @@ class ContinuedFraction_base(SageObject):
         """
         from rational_field import QQ
         from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
-        from sage.misc.gosper_iterator import gosper_iterator
+        from continued_fraction_gosper import gosper_iterator
 
         if not (isinstance(a,Integer) and isinstance(b,Integer)
             and isinstance(c,Integer) and isinstance(d,Integer)):
