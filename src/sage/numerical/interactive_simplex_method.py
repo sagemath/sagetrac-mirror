@@ -977,6 +977,67 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
+    def add_constraint(self, new_row, new_b, new_constraint_type="<="):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+
+        - ``new_b`` -- a constant term of the new constraint
+
+        - ``new_constraint_type`` -- (default: ``"<="``) a string indicating
+          the constraint type of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem <InteractiveLPProblem>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<=")
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.constraint_types()
+            ('<=', '<=', '<=')
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.constraint_types()
+            ('<=', '<=')
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, new_constraint_type="<=")
+            Traceback (most recent call last):
+            ...
+            ValueError: A and new_row have incompatible dimensions
+            sage: P3 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown constraint type
+        """
+        if self.n_variables() != matrix(new_row).ncols():
+            raise ValueError("A and new_row have incompatible dimensions")
+        if new_constraint_type in ["<=", ">=", "=="]:
+            constraint_type = self._constraint_types + (new_constraint_type,)
+        else:
+            raise ValueError("unknown constraint type")
+        A = self.Abcx()[0]
+        b = self.Abcx()[1]
+        c = self.Abcx()[2]
+        A = A.stack(matrix(new_row))
+        b = vector(tuple(b) + (new_b,))
+        return InteractiveLPProblem(A, b, c, constraint_type=constraint_type)
+
     def all_variables(self):
         r"""
         Return a set of all decision variables of ``self``.
