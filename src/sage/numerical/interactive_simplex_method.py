@@ -3289,7 +3289,7 @@ class LPAbstractDictionary(SageObject):
     def add_a_cut(self, cut_generating_function_separator=None,
                   basic_variable=None, new_slack_variable=None):
         r"""
-        Update the dictionary by adding a Gomory fractional cut.
+        Return the dictionary by adding a Gomory fractional cut.
 
         INPUT:
 
@@ -3306,10 +3306,9 @@ class LPAbstractDictionary(SageObject):
 
         OUTPUT:
 
-        - none, but the dictionary will be updated with an additional
-          row that is constructed from a Gomory fractional cut, while the
-          source row can be chosen by the user or picked by the most
-          fractional basic variable
+        - a :class:`dictionary <LPDictionary>` or 
+          a :class:`revised dictionary <LPRevisedDictionary>`
+          depends on `self`
 
         EXAMPLES::
 
@@ -3319,13 +3318,13 @@ class LPAbstractDictionary(SageObject):
             sage: P = InteractiveLPProblemStandardForm(A, b, c,
             ....: integer_variables=True)
             sage: D = P.final_dictionary()
-            sage: D.add_a_cut(cut_generating_function_separator="gomory_fractional")
-            sage: D.basic_variables()
+            sage: D1 = D.add_a_cut(cut_generating_function_separator="gomory_fractional")
+            sage: D1.basic_variables()
             (x2, x1, x5)
-            sage: D.leave(5)
-            sage: D.leaving_coefficients()
+            sage: D1.leave(5)
+            sage: D1.leaving_coefficients()
             (-1/10, -4/5)
-            sage: D.constant_terms()
+            sage: D1.constant_terms()
             (33/10, 13/10, -3/10)
 
         :meth:`add_a_cut` refuses making a cut if the basic variable
@@ -3382,9 +3381,11 @@ class LPAbstractDictionary(SageObject):
         However, the previous condition is not necessary for Gomory
         mixed integer cuts::
 
-            sage: D.add_a_cut(cut_generating_function_separator="gomory_mixed_integer")
-            sage: D.basic_variables()
+            sage: D2 = D.add_a_cut(cut_generating_function_separator="gomory_mixed_integer")
+            sage: D2.basic_variables()
             (x3, x5, x1, x7)
+            sage: D.basic_variables()
+            (x3, x5, x1)
         """
         choose_variable, index = self.pick_eligible_source_row(
             basic_variable=basic_variable,
@@ -3411,8 +3412,8 @@ class LPAbstractDictionary(SageObject):
                         len(self.basic_variables()) + 1
             add_slack_variable = SR("x" + str(cut_index))
 
-        self.add_row(cut_coefficients, cut_constant, add_slack_variable,
-                     integer_slack_variable=integer_slack_variable)
+        return self.add_row(cut_coefficients, cut_constant, add_slack_variable,
+                            integer_slack=integer_slack_variable)
 
     def add_row(self):
         r"""
@@ -4397,6 +4398,12 @@ class LPAbstractDictionary(SageObject):
             ....: cut_generating_function_separator="gomory_fractional")
             sage: number_of_cuts
             5
+            sage: D = P.final_revised_dictionary()
+            sage: number_of_cuts = D.run_cutting_plane_algorithm(
+            ....: plot_cuts=False,
+            ....: cut_generating_function_separator="gomory_fractional")
+            sage: number_of_cuts
+            5
             sage: from sage.numerical.interactive_simplex_method \
             ....:     import _form_thin_long_triangle
             sage: A1, b1 = _form_thin_long_triangle(4)
@@ -4419,16 +4426,17 @@ class LPAbstractDictionary(SageObject):
             9
         """
         number_of_cuts = 0
+        D = self
         while True:
-            self.add_a_cut(
+            D = D.add_a_cut(
             cut_generating_function_separator=cut_generating_function_separator)
-            self.run_dual_simplex_method()
-            b = self.constant_terms()
+            D.run_dual_simplex_method()
+            b = D.constant_terms()
             number_of_cuts += 1
             if all(i.is_integer() for i in b):
                 break
         if plot_cuts:
-            result = self.plot(
+            result = D.plot(
                 number_of_cuts=number_of_cuts,
                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
             result.show()
@@ -5635,7 +5643,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             latex(self.B_inverse()),
             r"\end{equation*}"]))
 
-    def add_row(self, nonbasic_coefficients, constant,
+    def add_row(self, nonbasic_coefficients, new_b,
                 slack_variable, integer_slack=True):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
@@ -5665,7 +5673,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (5/133, 1/10, 1/18, 47/3)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_revised_dictionary()
-            sage: D1 = D.add_row1([7, 11, 13, 9], 42, 'c')
+            sage: D1 = D.add_row([7, 11, 13, 9], 42, 'c')
             sage: D1.row_coefficients("c")
             (7, 11, 13, 9)
             sage: set(D1.constant_terms()).symmetric_difference(
@@ -5677,7 +5685,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D1.integer_variables().symmetric_difference(
             ....: D.integer_variables())
             {c}
-            sage:
             sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
             ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
             ....: [119, 7, 121, 5, 111])
@@ -5685,7 +5692,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_revised_dictionary()
-            sage: D2 = D.add_row1([5 ,7, 11, 13, 9], 99, 'c',
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, 'c',
             ....: integer_slack=True)
             sage: D2.row_coefficients("c")
             (5, 7, 11, 13, 9)
