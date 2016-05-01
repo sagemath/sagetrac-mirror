@@ -2344,7 +2344,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                                                         for coef in copy_Ai):
                             self._integer_variables.add(x[j])
 
-    def add_constraint(self, new_row, new_b, new_slack_variable, new_integer_variable=False):
+    def add_constraint(self, new_row, new_b, new_slack_variable, integer_slack=False):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
@@ -2356,7 +2356,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
         - ``new_slack_variable`` -- a string giving the new slack variable name
 
-        - ``integer_variables`` -- (default: False) a boolean value
+        - ``integer_slack`` -- (default: False) a boolean value
           indicating if the new slack variable is integer or not
 
         OUTPUT:
@@ -2369,7 +2369,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P1 = P.add_constraint(([2, 4]), 2000, 'c', new_integer_variable=True)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, 'c', integer_slack=True)
             sage: P1.Abcx()
             (
             [1 1]
@@ -2380,14 +2380,29 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             (x3, x4, c)
             sage: P1.integer_variables()
             {c}
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.slack_variables()
+            (x3, x4)
+            sage: P.integer_variables()
+            set()
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, 'c', integer_slack=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: A and new_row have incompatible dimensions
         """
+        if self.n_variables() != matrix(new_row).ncols():
+            raise ValueError("A and new_row have incompatible dimensions")
         A = self.Abcx()[0]
         b = self.Abcx()[1]
         c = self.Abcx()[2]
         R = self._R
         G = list(R.gens())
         slack = list(self.slack_variables())
-        integer_variables_set = self._integer_variables
+        integer_variables_set = copy(self._integer_variables)
         
         # Construct a larger ring for variables
         G.append(new_slack_variable)
@@ -2395,7 +2410,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         
         new_slack_variable = R1.gens()[len(R1.gens())-1]
         slack.append(new_slack_variable)
-        if new_integer_variable:
+        if integer_slack:
             integer_variables_set.add(variable(R1, new_slack_variable))
         A = A.stack(matrix(new_row))
         b = vector(tuple(b) + (new_b,))
