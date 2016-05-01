@@ -4804,9 +4804,9 @@ class LPDictionary(LPAbstractDictionary):
 
     def add_row(self, nonbasic_coefficients,
                 constant, slack_variable,
-                integer_slack_variable=False):
+                integer_slack=False):
         r"""
-        Update a dictionary with an additional row based on a given dictionary.
+        Return a dictionary with an additional row based on a given dictionary.
 
         INPUT:
 
@@ -4817,12 +4817,12 @@ class LPDictionary(LPAbstractDictionary):
 
         - ``slack_variable``-- a string of the name for the new slack variable
 
-        - ``integer_slack_variable``-- (default: False) a boolean value
+        - ``integer_slack``-- (default: False) a boolean value
           indicating if the new slack variable is integer or not.
 
         OUTPUT:
 
-        - none, but the dictionary will be updated with an added row
+        - a :class:`dictionary <LPDictionary>`
 
         EXAMPLES::
 
@@ -4831,15 +4831,32 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (55/10, 21/10)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_dictionary()
-            sage: D.add_row([7, 11], 42, 'c', integer_slack_variable=True)
-            sage: D.row_coefficients("c")
-            (7, 11)
-            sage: D.constant_terms()[2]
-            42
-            sage: D.basic_variables()[2]
-            c
-            sage: D.integer_variables()
+            sage: D1 = D.add_row([7, 11], 42, 'c', integer_slack=True)
+            sage: D1._AbcvBNz[0]
+            [1/10  4/5]
+            [1/10 -1/5]
+            [   7   11]
+            sage: D._AbcvBNz[0]
+            [1/10  4/5]
+            [1/10 -1/5]
+            sage: D1.constant_terms()
+            (33/10, 13/10, 42)
+            sage: D.constant_terms()
+            (33/10, 13/10)
+            sage: D1.basic_variables()
+            (x2, x1, c)
+            sage: D.basic_variables()
+            (x2, x1)
+            sage: D1.integer_variables()
             {c}
+            sage: D.integer_variables()
+            set()
+            sage: D1.objective_value() == D.objective_value()
+            True
+            sage: D1.objective_coefficients() == D.objective_coefficients()
+            True
+            sage: D1.nonbasic_variables() == D.nonbasic_variables()
+            True
         """
         B = self.basic_variables()
         N = self.nonbasic_variables()
@@ -4864,12 +4881,12 @@ class LPDictionary(LPAbstractDictionary):
         B2 = vector([R(x) for x in B])
         N2 = vector([R(x) for x in N])
 
-        self._AbcvBNz[0] = matrix(QQ, A)
-        self._AbcvBNz[1] = b
-        self._AbcvBNz[4] = B2
-        self._AbcvBNz[5] = N2
-        if integer_slack_variable:
-            self._integer_variables.add(variable(R, slack_variable))
+        new_dict = LPDictionary(matrix(QQ, A), b, self.objective_coefficients(), 
+                        self.objective_value(), B2, N2, self._AbcvBNz[6],
+                        integer_variables=copy(self._integer_variables))
+        if integer_slack:
+            new_dict._integer_variables.add(variable(R, slack_variable))
+        return new_dict
 
     def basic_variables(self):
         r"""
