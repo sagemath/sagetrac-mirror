@@ -137,11 +137,11 @@ the following interface provided by Sage:
         sage: E = C.encoder()
         sage: D = C.decoder()
         sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-        sage: codes.Benchmark(E, D, Chan)
+        sage: B = codes.Benchmark(E, D, Chan)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
-        See http://trac.sagemath.org/PLEASE_CHANGE for details.
+        See http://trac.sagemath.org/20526 for details.
 
 """
 
@@ -215,7 +215,7 @@ class Benchmark(SageObject):
 
     _super_id = 0
 
-    @experimental(trac_number=42042)
+    @experimental(trac_number=20526)
     def __init__(self, encoder=None, decoder=None, channel=None, identifier=None):
         r"""
         TESTS:
