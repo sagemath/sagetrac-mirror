@@ -5636,9 +5636,9 @@ class LPRevisedDictionary(LPAbstractDictionary):
             r"\end{equation*}"]))
 
     def add_row(self, nonbasic_coefficients, constant,
-                slack_variable, integer_slack_variable=True):
+                slack_variable, integer_slack=True):
         r"""
-        Update a dictionary with an additional row based on a given dictionary.
+        Return a dictionary with an additional row based on a given dictionary.
 
         INPUT:
 
@@ -5648,12 +5648,12 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         - ``slack_variable``-- a string of the name for the new slack variable
 
-        - ``integer_slack_variable``-- (default: False) a boolean value
+        - ``integer_slack``-- (default: False) a boolean value
           indicating if the new slack variable is integer or not.
 
         OUTPUT:
 
-        - none, but the revised dictionary will be updated with an added row
+        - a :class:`revised dictionary <LPRevisedDictionary>`
 
         TESTS:
 
@@ -5664,73 +5664,59 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: b = (2, 17, 11, 27)
             sage: c = (5/133, 1/10, 1/18, 47/3)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P.Abcx()[3]
-            (x1, x2, x3, x4)
             sage: D = P.final_revised_dictionary()
-            sage: D.nonbasic_variables()
-            (x2, x3, x5, x6)
-            sage: D.add_row([7, 11, 13, 9], 42, 'c')
-            sage: D.row_coefficients("c")
+            sage: D1 = D.add_row1([7, 11, 13, 9], 42, 'c')
+            sage: D1.row_coefficients("c")
             (7, 11, 13, 9)
-            sage: D.constant_terms()[4]
-            42
-            sage: D.basic_variables()[4]
-            c
+            sage: set(D1.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {42}
+            sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
+            sage: D1.integer_variables().symmetric_difference(
+            ....: D.integer_variables())
+            {c}
+            sage:
             sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
             ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
             ....: [119, 7, 121, 5, 111])
             sage: b = (33, 27, 1, 272, 61)
             sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P.Abcx()[3]
-            (x1, x2, x3, x4, x5)
             sage: D = P.final_revised_dictionary()
-            sage: D.nonbasic_variables()
-            (x1, x2, x4, x7, x8)
-            sage: D.add_row([5 ,7, 11, 13, 9], 99, 'c',
-            ....: integer_slack_variable=True)
-            sage: D.row_coefficients("c")
+            sage: D2 = D.add_row1([5 ,7, 11, 13, 9], 99, 'c',
+            ....: integer_slack=True)
+            sage: D2.row_coefficients("c")
             (5, 7, 11, 13, 9)
-            sage: D.constant_terms()[5]
-            99
-            sage: D.basic_variables()[5]
-            c
-            sage: D.integer_variables()
+            sage: set(D2.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {99}
+            sage: set(D2.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
+            sage: D2.integer_variables().symmetric_difference(
+            ....: D.integer_variables())
             {c}
         """
-        basic = self.basic_variables()
-        nonbasic = self.nonbasic_variables()
-
-        new_basic_variables = tuple(basic) + (slack_variable,)
-
-        # Construct a larger ring for variable
-        R = basic[0].parent()
-        G = list(R.gens())
-        G.append(slack_variable)
-        R = PolynomialRing(self.base_ring(), G, order="neglex")
-
-        # Update B to the larger ring
-        new_basic = vector([R(x) for x in new_basic_variables])
-
         problem = self._problem
         A = problem.Abcx()[0]
         b = problem.Abcx()[1]
-        c = problem.Abcx()[2]
-        original = list(problem.Abcx()[3])
-        slack = list(problem.slack_variables())
+        nonbasic = self.nonbasic_variables()
+        original = list(self._problem.Abcx()[3])
+        slack = list(self._problem.slack_variables())
         variables = original + slack
         n = len(original)
-        set_nonbasic = set(nonbasic)
+        set_nonbasic = set(self.nonbasic_variables())
 
         # Update nonbasic_coefficients with the right orders
         # in original and slack variables
         dic = {item: coef for item, coef
                in zip(nonbasic, nonbasic_coefficients)}
-        new_nonbasic_coef = [dic[item] for item
-                             in variables if item in set_nonbasic]
-        d = new_nonbasic_coef   # Rename new_nonbasic_coef to d
+        #new nonbasic coefficient after reordering
+        d = [dic[item] for item
+             in variables if item in set_nonbasic]
         new_row = vector(QQ, [0] * n)
-        new_b = constant
 
         def standard_unit_vector(index, length):
             v = vector(QQ, [0] * length)
@@ -5751,19 +5737,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 new_b -= d[d_index] * b[slack_index]
                 d_index += 1
             slack_index += 1
-
-        A = A.stack(new_row)
-        b = vector(tuple(b) + (new_b,))
-        if integer_slack_variable:
-            self._integer_variables.add(variable(R, slack_variable))
-        slack.append(R.gens()[len(R.gens())-1])
-        new_problem = InteractiveLPProblemStandardForm(
-            A, b, c, slack_variables=slack,
-            integer_variables=self._integer_variables)
-        self._problem = new_problem
-        self._x_B = new_basic
-        B = self.B()
-        self._B_inverse = B.inverse()
+        new_problem = problem.add_constraint(new_row, new_b, slack_variable, integer_slack=True)
+        return new_problem.final_revised_dictionary()
 
     def A(self, v):
         r"""
