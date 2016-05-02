@@ -174,7 +174,7 @@ AUTHORS:
 from copy import copy
 
 from sage.categories.homset import HomsetWithBase, End
-from sage.misc.functional import parent
+from sage.structure.all import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
 import abvar as abelian_variety
@@ -750,7 +750,7 @@ class EndomorphismSubring(Homspace, Ring):
         TESTS:
 
         The following tests against a problem on 32 bit machines that
-        occured while working on trac ticket #9944::
+        occured while working on :trac:`9944`::
 
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J1(12345))
             Endomorphism ring of Abelian variety J1(12345) of dimension 5405473

@@ -36,17 +36,17 @@ rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
 
 REFERENCES:
 
-.. [Beck] M. Beck, Stanford Math Circle - Parking Functions, October 2010,
+.. [Beck] \M. Beck, Stanford Math Circle - Parking Functions, October 2010,
     http://math.stanford.edu/circle/parkingBeck.pdf
 
 .. [Hag08] The `q,t` -- Catalan Numbers and the Space of Diagonal Harmonics:
     With an Appendix on the Combinatorics of Macdonald Polynomials, James Haglund,
     University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 
-.. [Shin] H. Shin, Forests and Parking Functions, slides from talk September 24, 2008,
+.. [Shin] \H. Shin, Forests and Parking Functions, slides from talk September 24, 2008,
     http://www.emis.de/journals/SLC/wpapers/s61vortrag/shin.pdf
 
-.. [GXZ] A. M. Garsia, G. Xin, M. Zabrocki, A three shuffle case of the
+.. [GXZ] \A. M. Garsia, G. Xin, M. Zabrocki, A three shuffle case of the
     compositional parking function conjecture, :arxiv:`1208.5796v1`
 
 AUTHORS:
@@ -236,7 +236,7 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             sage: (ParkingFunctions())._infinite_cclass_slice(4) == ParkingFunctions(4)
             True
             sage: it = iter(ParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
          """
         return ParkingFunctions_n(n)
@@ -1568,5 +1568,5 @@ def from_labelled_dyck_word(LDW):
         [2, 1, 4, 1]
     """
     L = [ell for ell in LDW if ell != 0]
-    D = DyckWord(map(lambda x: Integer(not x.is_zero()), LDW))
+    D = DyckWord([Integer(not x.is_zero()) for x in LDW])
     return from_labelling_and_area_sequence(L, D.to_area_sequence())

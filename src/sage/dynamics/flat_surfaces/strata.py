@@ -33,15 +33,15 @@ All the code here was first available on Mathematica [ZS]_.
 
 REFERENCES:
 
-.. [KonZor03] M. Kontsevich, A. Zorich "Connected components of the moduli space
+.. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
    of Abelian differentials with prescripebd singularities" Invent. math. 153,
    631-678 (2003)
 
-.. [Lan08] E. Lanneau "Connected components of the strata of the moduli spaces
+.. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces
    of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
    41, 1-56 (2008)
 
-.. [Zor08] A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
+.. [Zor08] \A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
    Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
    no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
 
@@ -888,7 +888,7 @@ class AbelianStratum(SageObject):
             ...
             TypeError: the right member must be a stratum
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix == other._marked_separatrix and
@@ -921,7 +921,7 @@ class AbelianStratum(SageObject):
             ...
             TypeError: the right member must be a stratum
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix != other._marked_separatrix or
@@ -945,7 +945,7 @@ class AbelianStratum(SageObject):
             sage: a3_out == a3_in
             False
         """
-        if (not isinstance(self, type(other)) or
+        if (type(self) is not type(other) or
             self._marked_separatrix != other._marked_separatrix):
             raise TypeError("the other must be a stratum with same marking")
 
@@ -990,7 +990,7 @@ class AbelianStratum(SageObject):
             sage: AbelianStratum(1,1,1,1).connected_components()
             [H_c(1, 1, 1, 1)]
         """
-        return map(lambda x: x(self), self._cc)
+        return [x(self) for x in self._cc]
 
     def is_connected(self):
         r"""
@@ -1412,7 +1412,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         if not isinstance(other, CCA):
             raise TypeError("other must be a connected component")
 
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self._parent._zeroes > other._parent._zeroes:
                 return 1
             elif self._parent._zeroes < other._parent._zeroes:
@@ -1443,10 +1443,10 @@ class HypConnectedComponentOfAbelianStratum(CCA):
 
         INPUT:
 
-        - ``reduced`` - boolean (defaut: ``True``): whether you obtain
+        - ``reduced`` - boolean (default: ``True``): whether you obtain
           a reduced or labelled permutation
 
-        - ``alphabet`` - alphabet or ``None`` (defaut: ``None``):
+        - ``alphabet`` - alphabet or ``None`` (default: ``None``):
           whether you want to specify an alphabet for your
           representative
 

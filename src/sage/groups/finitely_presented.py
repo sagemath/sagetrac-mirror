@@ -128,6 +128,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import types
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -146,6 +147,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
+from sage.groups.generic import structure_description
 
 class FinitelyPresentedGroupElement(FreeGroupElement):
     """
@@ -1065,7 +1067,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         REFERENCES:
 
-        .. [JohnsonPG90] D.L. Johnson. *Presentations of Groups*.
+        .. [JohnsonPG90] \D.L. Johnson. *Presentations of Groups*.
            Cambridge University Press. (1990).
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
@@ -1079,7 +1081,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         GAP_gens = fp_product.FreeGeneratorsOfFpGroup()
         if new_names:
             name_itr = _lexi_gen() # Python generator for lexicographical variable names
-            gen_names = [name_itr.next() for i in GAP_gens]
+            gen_names = [next(name_itr) for i in GAP_gens]
         else:
             gen_names= [str(g) for g in self.gens()] + [str(g) for g in H.gens()]
         # Build the direct product in Sage for better variable names
@@ -1097,7 +1099,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         If there exists a homomorphism `\phi` from a group `G` to the
         automorphism group of a group `H`, then we can define the semidirect
-        product of `G` with `H` via `\phi` as the cartesian product of `G`
+        product of `G` with `H` via `\phi` as the Cartesian product of `G`
         and `H` with the operation
 
         .. MATH::
@@ -1166,9 +1168,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         You can attempt to reduce the presentation of the output group::
 
             sage: D = C2.semidirect_product(C8, hom); D
-            Finitely presented group < a, b, c, d |
-             a^2, b^-1*a^-1*b*a*d^-1*c^-1, c^-1*a^-1*c*a*d^-1, d^-1*a^-1*d*a,
-             b^2*c^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^2*d^-1, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b | a^2, b^8, a^-1*b*a*b >
             sage: D = C2.semidirect_product(C8, hom, reduced=True); D
             Finitely presented group < a, b | a^2, (a*b)^2, b^8 >
 
@@ -1176,10 +1176,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C4 = groups.presentation.Cyclic(4)
             sage: hom = (C3.gens(), [(C4.gens(), C4.gens())])
             sage: C3.semidirect_product(C4, hom)
-            Finitely presented group < a, b, c |
-             a^3, b^-1*a^-1*b*a, c^-1*a^-1*c*a, b^2*c^-1, c^-1*b^-1*c*b, c^2 >
+            Finitely presented group < a, b | a^3, b^4, a^-1*b*a*b^-1 >
             sage: D = C3.semidirect_product(C4, hom, reduced=True); D
-            Finitely presented group < a, b | a^3, b^4, b^-1*a^-1*b*a >
+            Finitely presented group < a, b | a^3, b^4, a^-1*b*a*b^-1 >
             sage: D.as_permutation_group().is_cyclic()
             True
 
@@ -1191,9 +1190,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C12 = groups.presentation.Cyclic(12)
             sage: hom = (C5.gens(), [(C12.gens(), C12.gens())])
             sage: sp = C5.semidirect_product(C12, hom, check=False); sp
-            Finitely presented group < a, b, c, d |
-             a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a, d^-1*a^-1*d*a, b^2*d^-1,
-             c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^3, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b | a^5, b^12, a^-1*b*a*b^-1 >
             sage: sp.as_permutation_group().is_cyclic(), sp.order()
             (True, 60)
 
@@ -1261,7 +1258,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         # lists for readability of variable names
         GAP_gens = prod.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator for lexicographical variable names
-        ret_F = FreeGroup([name_itr.next() for i in GAP_gens])
+        ret_F = FreeGroup([next(name_itr) for i in GAP_gens])
         ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
             for rel_word in prod.RelatorsOfFpGroup()])
         ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)
@@ -1350,7 +1347,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
               From: Finitely presented group < x | x >
               To:   Finitely presented group <  |  >
 
-        ALGORITM:
+        ALGORITHM:
 
         Uses GAP.
         """
@@ -1479,3 +1476,4 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         return RewritingSystem(self)
 
+FinitelyPresentedGroup.structure_description = types.MethodType(structure_description, None, FinitelyPresentedGroup)

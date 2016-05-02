@@ -3,10 +3,10 @@ Gray codes
 
 REFERENCES:
 
-.. [Knuth-TAOCP2A] D. Knuth "The art of computer programming", fascicules 2A,
+.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicules 2A,
    "generating all n-tuples"
 
-.. [Knuth-TAOCP3A] D. Knuth "The art of computer programming", fascicule 3A
+.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicule 3A
    "generating all combinations"
 
 Functions
@@ -162,7 +162,7 @@ def combinations(n,t):
         sage: c = combinations(Infinity,4)
         sage: s = set([0,1,2,3])
         sage: for _ in xrange(10):
-        ....:     i,j = c.next()
+        ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
         ....:     print s
         set([0, 1, 3, 4])
@@ -176,7 +176,7 @@ def combinations(n,t):
         set([1, 3, 4, 5])
         set([0, 3, 4, 5])
         sage: for _ in xrange(1000):
-        ....:     i,j = c.next()
+        ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
         sage: print s
         set([0, 4, 13, 14])
