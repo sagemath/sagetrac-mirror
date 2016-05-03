@@ -1,4 +1,7 @@
-from piecewise import piecewise, Piecewise
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
+lazy_import('sage.functions.piecewise', 'piecewise')
 
 from trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,
@@ -21,22 +24,22 @@ from other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     arg, real_part, real,
                     imag_part, imag, imaginary, conjugate)
 
-from log import (exp, log, ln, polylog, dilog, lambert_w)
+from log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w)
 
 
 from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
-                            dickman_rho)
+                            dickman_rho, stieltjes)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
+from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                                   Bessel, struve_H, struve_L)
 
 from special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic,
-                     lngamma, error_fcn, elliptic_e,
+                     error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
-                     elliptic_kc, elliptic_pi, elliptic_j,
-                     airy_ai, airy_bi)
+                     elliptic_kc, elliptic_pi, elliptic_j)
 
 from jacobi import (jacobi, inverse_jacobi, jacobi_nd, jacobi_ns, jacobi_nc,
                     jacobi_dn, jacobi_ds, jacobi_dc, jacobi_sn, jacobi_sd,
@@ -70,6 +73,8 @@ from generalized import (dirac_delta, heaviside, unit_step, sgn, sign,
                          kronecker_delta)
 
 from min_max import max_symbolic, min_symbolic
+
+from airy import airy_ai, airy_ai_prime, airy_bi, airy_bi_prime
 
 from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           log_integral_offset,

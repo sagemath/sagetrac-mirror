@@ -70,13 +70,21 @@ class Bimodules(CategoryWithParameters):
         EXAMPLES::
 
             sage: Bimodules(QQ,ZZ)._make_named_class_key('parent_class')
-            (Category of quotient fields, Category of euclidean domains)
+            (Join of Category of quotient fields and Category of metric spaces,
+             Join of Category of euclidean domains
+                 and Category of infinite enumerated sets
+                 and Category of metric spaces)
+
 
             sage: Bimodules(Fields(), ZZ)._make_named_class_key('element_class')
-            (Category of fields, Category of euclidean domains)
+            (Category of fields,
+             Join of Category of euclidean domains
+             and Category of infinite enumerated sets
+             and Category of metric spaces)
 
             sage: Bimodules(QQ, Rings())._make_named_class_key('element_class')
-            (Category of quotient fields, Category of rings)
+            (Join of Category of quotient fields and Category of metric spaces,
+             Category of rings)
 
             sage: Bimodules(Fields(), Rings())._make_named_class_key('element_class')
             (Category of fields, Category of rings)
@@ -155,6 +163,24 @@ class Bimodules(CategoryWithParameters):
         R = self.left_base_ring()
         S = self.right_base_ring()
         return [LeftModules(R), RightModules(S)]
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of bimodules defines no additional
+        structure: a left and right module morphism between two
+        bimodules is a bimodule morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: Bimodules(QQ, ZZ).additional_structure()
+        """
+        return None
 
     class ParentMethods:
         pass
