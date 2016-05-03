@@ -411,7 +411,7 @@ class Tableau(ClonableList):
         polytabloid = M(0)
         tabloid = self.to_tabloid()        
         for pi in CS:
-            tabloid=tabloid.permute(Permutation(pi))
+            tabloid=self.permute(Permutation(pi)).to_tabloid()
             polytabloid+=pi.sign()*M(tabloid)
         return polytabloid
 
