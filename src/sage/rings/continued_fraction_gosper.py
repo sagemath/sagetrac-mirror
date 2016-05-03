@@ -72,7 +72,6 @@ class gosper_iterator:
             self.input_preperiod_length = +Infinity
 
         self.output_preperiod_length = 0
-        # self.output_period_length = 0
 
     def __iter__(self):
         """
@@ -108,9 +107,6 @@ class gosper_iterator:
         limit = 100
         while True:
             if self.currently_read >= self.input_preperiod_length:
-                # if self.currently_read == self.input_preperiod_length:
-                    # print "Starting to read period now."
-                    # self.emitted_before_period = self.currently_emitted
                 current_state = {
                 'a': self.a,
                 'b': self.b,
@@ -118,17 +114,10 @@ class gosper_iterator:
                 'd': self.d,
                 'next': self.cf.quotient(self.currently_read),
                 'currently_emitted': self.currently_emitted,
-                # 'just_read': self.cf.quotient(self.i-1)
                 }
                 for state in self.states:
                     if self.compare_dicts(state, current_state, ['currently_emitted']):
-                        # self.output_period_length = current_state['currently_emitted']
                         self.output_preperiod_length = state['currently_emitted']
-                        # print "Stopping iteration, I've been in this state before."
-                        # print "States entered:"
-                        # print repr(self.states)
-                        # print "Current state: "
-                        # print repr(state)
                         raise StopIteration
                 self.states.append(current_state)
                 if len(self.states) > 100:
@@ -136,21 +125,13 @@ class gosper_iterator:
                     raise StopIteration
 
             if (self.c == 0 and self.d == 0):
-                # print "Dividing by zeros, emitting infinity, end."
                 raise StopIteration
 
-            # from sage.functions.other import floor
             ub = self.bound(self.a, self.c)
             lb = self.bound(self.a + self.b, self.c + self.d)
             s = -self.bound(self.c, self.d)
 
-            # print "a = {}, b = {}, c = {}, d = {}".format(self.a, self.b, self.c, self.d)
-            # print "lb = " + repr(lb) + ", ub = " + repr(ub)
-
-            # import pdb; pdb.set_trace()
-
             if ub == lb and s<1:
-                # print "Emitting " + repr(ub)
                 self.emit(ub)
                 return Integer(ub)
             else:
@@ -184,7 +165,6 @@ class gosper_iterator:
         """
         try:
             p = next(self.x)
-            # print "Ingesting " + repr(p)
             self.currently_read += 1
             a = self.a
             c = self.c
@@ -193,7 +173,6 @@ class gosper_iterator:
             self.c = c*p + self.d
             self.d = c
         except StopIteration:
-            # print "No more terms to input, inputting infinity."
             self.b = self.a
             self.d = self.c
 

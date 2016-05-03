@@ -1170,8 +1170,6 @@ class ContinuedFraction_base(SageObject):
             period = l[preperiod_length:]
             return continued_fraction((preperiod, period), z)
         else:
-            # from sage.misc.lazy_list import lazy_list
-            # return continued_fraction(lazy_list(_i), z)
             from sage.combinat.words.word import Word
             return continued_fraction(Word(_i, length='infinite'))
 
