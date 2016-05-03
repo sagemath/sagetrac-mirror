@@ -290,24 +290,24 @@ class LabelledMatrix(SageObject):
         sage: d=LabelledMatrix(rows=P4,columns=K4, unitriangular=True, default_value=0)
         sage: d.display()
         <BLANKLINE>
-        ------------------------------------------------------------------
-                     |       [3, 1]       [2, 2]    [2, 1, 1] [1, 1, 1, 1]
-        -------------|----------------------------------------------------
-        [4]          |                                                    
-        [3, 1]       |            1                                       
-        [2, 2]       |            .            1                          
-        [2, 1, 1]    |            .            .            1             
-        [1, 1, 1, 1] |            .            .            .            1
+        -------------------------------------------------------------------------------
+                     |          [4]       [3, 1]       [2, 2]    [2, 1, 1] [1, 1, 1, 1]
+        -------------|-----------------------------------------------------------------
+        [4]          |            1
+        [3, 1]       |            .            1
+        [2, 2]       |            .            .            1
+        [2, 1, 1]    |            .            .            .            1
+        [1, 1, 1, 1] |            .            .            .            .            1
         sage: d.options(row_label='compact_high'); d.display()
         <BLANKLINE>
-        -----------------------------------------------------------
-              |       [3, 1]       [2, 2]    [2, 1, 1] [1, 1, 1, 1]
-        ------|----------------------------------------------------
-        4     |                                                    
-        3,1   |            1                                       
-        2^2   |            .            1                          
-        2,1^2 |            .            .            1             
-        1^4   |            .            .            .            1
+        ------------------------------------------------------------------------
+              |          [4]       [3, 1]       [2, 2]    [2, 1, 1] [1, 1, 1, 1]
+        ------|-----------------------------------------------------------------
+        4     |            1
+        3,1   |            .            1
+        2^2   |            .            .            1
+        2,1^2 |            .            .            .            1
+        1^4   |            .            .            .            .            1
         sage: d[[1,1,1,1]]
         P[[1, 1, 1, 1]]
         sage: d[[2,2],[1,1,1,1]]=2
@@ -400,10 +400,10 @@ class LabelledMatrix(SageObject):
 
         elif index_set in ModulesWithBasis:
             if index_set.dimension() in NN:
-                setattr(self,'_'+index+'s', index_set._basis_keys)
-                setattr(self,'_'+index+'_length',len(index_set._basis_keys))
-                setattr(self,'_'+index+'_rank',index_set._basis_keys.rank)
-                setattr(self,'_'+index+'_unrank',index_set._basis_keys.unrank)
+                setattr(self,'_'+index+'s', index_set._indices)
+                setattr(self,'_'+index+'_length',len(index_set._indices))
+                setattr(self,'_'+index+'_rank',index_set._indices.rank)
+                setattr(self,'_'+index+'_unrank',index_set._indices.unrank)
                 setattr(self,'_'+index+'_space', index_set)
                 setattr(self,'_'+index+'_sum',index_set.sum_of_terms)
             else:
@@ -617,15 +617,15 @@ class LabelledMatrix(SageObject):
             sage: from sage.matrix.labelled_matrix import LabelledMatrix
             sage: LabelledMatrix([1,2,3],unitriangular=True,default_value=0)._current_options()
             {'default_value': 0,
-            'rows': [1, 2, 3],
-            'unitriangular': True,
-            'triangular': 'lower',
-            'is_matrix': True}
+             'is_matrix': True,
+             'rows': [1, 2, 3],
+             'triangular': 'lower',
+             'unitriangular': True}
             sage: LabelledMatrix([1,2,3,4],columns=[4,5],unitriangular=True)._current_options(transpose=True)
-            {'rows': [4, 5],
-            'unitriangular': True,
-            'triangular': 'upper',
-            'columns': [1, 2, 3, 4]}
+            {'columns': [1, 2, 3, 4],
+             'rows': [4, 5],
+             'triangular': 'upper',
+             'unitriangular': True}
         """
         options={}
         for opt in self._default_options:
@@ -688,9 +688,7 @@ class LabelledMatrix(SageObject):
             [0 1 0]
             [0 0 1]
             sage: matrix(d, ring=PolynomialRing(ZZ,'q'))
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         """
         if ring is None:
             return self._array
