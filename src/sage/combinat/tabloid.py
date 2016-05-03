@@ -434,7 +434,7 @@ class Tabloids(Tableaux):
                     length=1
                 else:
                     length=len(row)
-            
+#                print length
                 if length>1:
                     return False
                 row=row[0]
