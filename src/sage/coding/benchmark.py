@@ -261,6 +261,7 @@ class Benchmark(SageObject):
             self._decoders[local_id] = None
             self._codes[local_id] = None
             self._channels[local_id] = None
+            self._experimental_data = dict()
             return
         if None in inp:
             raise ValueError("encoder, decoder and channel have to be all set to None or all specified")
@@ -371,59 +372,112 @@ class Benchmark(SageObject):
             sage: B4 = B1 + B2 + B3
             sage: B4
             Benchmarking structure consisting of 3 benchmark primitives
+
+        TESTS:
+
+        Adding two empty benchmarks is impossible::
+
+            sage: B1 = codes.Benchmark()
+            sage: B2 = codes.Benchmark()
+            sage: B1 + B2
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot add two enpty benchmarks
+
+        Adding two benchmarks with the same custom id is impossible::
+
+            sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
+            sage: E1 = C1.encoder()
+            sage: E2 = C2.encoder()
+            sage: D1 = C1.decoder()
+            sage: D2 = C2.decoder()
+            sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
+            sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
+            sage: B1 = codes.Benchmark(E1, D1, Chan1, identifier = "my_id")
+            sage: B2 = codes.Benchmark(E2, D2, Chan2, identifier = "my_id")
+            sage: B1 + B2
+            Traceback (most recent call last):
+            ...
+            ValueError("Benchmark with custom id 'my_id' is already in self" % i
         """
         if not isinstance(other, Benchmark):
             raise TypeError("%s must be a Benchmark object" % other)
+        #if both self and other are empty, do nothing
+        if (len(self.identifier()) == 1 and self.encoder() is None
+                and len(other.identifier()) == 1 and other.encoder() is None):
+            raise ValueError("Cannot add two empty benchmarks")
         if self == other:
             return self
-
+        import re
+        pattern_default_id = re.compile('_[0-9]+')
         b = Benchmark()
-        b._encoders = copy(self._encoders)
-        b._decoders = copy(self._decoders)
-        b._channels = copy(self._channels)
-        b._codes = copy(self._codes)
-        b._ids = copy(self.identifier())
-        b._experimental_data = copy(self.experimental_data())
+        #if self is None, we put other in b and immediately return this object
+        if len(self.identifier()) == 1 and self.encoder() is None:
+            b._encoders = copy(other._encoders)
+            b._decoders = copy(other._decoders)
+            b._channels = copy(other._channels)
+            b._codes = copy(other._codes)
+            b._ids = copy(other.identifier())
+            b._experimental_data = copy(other.experimental_data())
+            return b
+        else:
+            b._encoders = copy(self._encoders)
+            b._decoders = copy(self._decoders)
+            b._channels = copy(self._channels)
+            b._codes = copy(self._codes)
+            b._ids = copy(self.identifier())
+            b._experimental_data = copy(self.experimental_data())
         for i in other.identifier():
-            if i in b.identifier() and i == "aaaaa":
-                raise ValueError("Benchmark with custom id %s is already in %s" % (i, self))
+            #if i is a custom id, which is already known by self, raise an Exception
+            if i in b.identifier() and isinstance(i, str) and pattern_default_id.match(i) is None:
+                raise ValueError("Benchmark with custom id %s is already in self" % i)
+            #if other's encoder, decoder, channel and code are already know by self, do nothing
             elif (i in b.identifier() and self.encoder(i) == other.encoder(i)
                     and self.decoder(i) == other.decoder(i)
                     and self.channel(i) == other.channel(i)
                     and self.code(i) == self.code(i)):
                 pass
+            #if i is a default id, change it and add other to self
             elif i in b.identifier():
-                Benchmark._super_id += 1
-                new_id = "_"+str(Benchmark._super_id)
-                b._ids.add(new_id)
-                b._encoders[new_id] = other._encoders[i]
-                b._decoders[new_id] = other._decoders[i]
-                b._channels[new_id] = other._channels[i]
-                b._codes[new_id] = other._codes[i]
-                other_exp_data = other.experimental_data()
-                if len(other_exp_data) is not 0:
-                    run = 0
-                    while True:
-                        try:
-                            b._experimental_data[new_id, run] = other_exp_data[i, run]
-                            run += 1
-                        except KeyError:
-                            break
+                if other.encoder(identifier = i) is None:
+                    pass
+                else:
+                    Benchmark._super_id += 1
+                    new_id = "_"+str(Benchmark._super_id)
+                    b._ids.add(new_id)
+                    b._encoders[new_id] = other._encoders[i]
+                    b._decoders[new_id] = other._decoders[i]
+                    b._channels[new_id] = other._channels[i]
+                    b._codes[new_id] = other._codes[i]
+                    other_exp_data = other.experimental_data()
+                    if len(other_exp_data) is not 0:
+                        run = 0
+                        while True:
+                            try:
+                                b._experimental_data[new_id, run] = other_exp_data[i, run]
+                                run += 1
+                            except KeyError:
+                                break
+            #if i in a custom id, add other as is to self
             else:
-                b._ids.add(i)
-                b._encoders[i] = other._encoders[i]
-                b._decoders[i] = other._decoders[i]
-                b._channels[i] = other._channels[i]
-                b._codes[i] = other._codes[i]
-                other_exp_data = other.experimental_data()
-                if len(other_exp_data) is not 0:
-                    run = 0
-                    while True:
-                        try:
-                            b._experimental_data[i, run] = other_exp_data[i, run]
-                            run += 1
-                        except KeyError:
-                            break
+                if other.encoder(identifier = i) is None:
+                    pass
+                else:
+                    b._ids.add(i)
+                    b._encoders[i] = other._encoders[i]
+                    b._decoders[i] = other._decoders[i]
+                    b._channels[i] = other._channels[i]
+                    b._codes[i] = other._codes[i]
+                    other_exp_data = other.experimental_data()
+                    if len(other_exp_data) is not 0:
+                        run = 0
+                        while True:
+                            try:
+                                b._experimental_data[i, run] = other_exp_data[i, run]
+                                run += 1
+                            except KeyError:
+                                break
         return b
 
     def encoder(self, identifier=None):
@@ -671,7 +725,7 @@ class Benchmark(SageObject):
                 decode_time = time.clock() - start
                 dec_y = None #as decoding failed
                 decoding_success = False
-            data[identifier, i] = (C, E, D, Chan, m, c, encode_time, y, dec_y, decode_time, decoding_success)
+            data[identifier, i] = (m, c, encode_time, y, dec_y, decode_time, decoding_success)
 
             #verbosity
             if verbosity ==1:
@@ -778,9 +832,9 @@ class Benchmark(SageObject):
             0.0008940000000000059
         """
         if target is "encoding":
-            pos = 6
+            pos = 2
         elif target is "decoding":
-            pos = 9
+            pos = 5
         else:
             raise ValueError("target has to be set to either \"encoding\" or \"decoding\"")
         i = 0
@@ -890,7 +944,7 @@ class Benchmark(SageObject):
             success_sum = 0
             while True:
                 try:
-                    success_sum += data[identifier, i][10]
+                    success_sum += data[identifier, i][6]
                     i += 1
                 except KeyError:
                     break
