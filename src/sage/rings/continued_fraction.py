@@ -1288,13 +1288,13 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             return self._x1[n]
         return self._x2[(n-len(self._x1)) % len(self._x2)]
 
-    # def quotients(self):
-    #     r"""
-    #     Return the tuple _x1 and _x2, the preperiod and period, as
-    #     a tuple.
-    #     """
-    #
-    #     return self._x1, self._x2
+    def quotients(self):
+        r"""
+        Return the tuple _x1 and _x2, the preperiod and period, as
+        a tuple.
+        """
+
+        return self._x1, self._x2
 
     def length(self):
         r"""

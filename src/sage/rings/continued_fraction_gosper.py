@@ -8,7 +8,7 @@ EXAMPLES:
 ::
     sage: from sage.rings.continued_fraction_gosper import gosper_iterator
     sage: x = continued_fraction(pi)
-    sage: it = iter(gosper_iterator(3,2,3,1,x)
+    sage: it = iter(gosper_iterator(3,2,3,1,x))
     sage: Word(it, length='infinite')
     word: 1,10,2,2,1,4,1,1,1,97,4,1,2,1,2,45,6,4,9,1,27,2,6,1,4,2,3,1,3,1,15,2,1,1,2,1,1,2,32,1,...
 """
@@ -31,6 +31,20 @@ class gosper_iterator:
         OUTPUT:
 
         - The instance of gosper_iterator class.
+
+        TESTS:
+        ::
+            sage: from random import randint
+            sage: a = Integer(randint(-10,10)); b = Integer(randint(-10,10));
+            sage: c = Integer(randint(-10,10)); d = Integer(randint(-10,10));
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: x = continued_fraction(([1,2],[3,4])); i = iter(gosper_iterator(a,b,c,d,x))
+            sage: l = list(i)
+            sage: preperiod_length = i.output_preperiod_length
+            sage: preperiod = l[:preperiod_length]
+            sage: period = l[preperiod_length:]
+            sage: continued_fraction((preperiod, period), x.value()) == continued_fraction((a*x.value()+b)/(c*x.value()+d))
+            True
         """
         self.a = a
         self.b = b
@@ -58,17 +72,38 @@ class gosper_iterator:
             self.input_preperiod_length = +Infinity
 
         self.output_preperiod_length = 0
-        self.output_period_length = 0
+        # self.output_period_length = 0
 
     def __iter__(self):
         """
         Returns the iterable instance of the class. Is called upon `iter(gosper_iterator(a,b,c,d,x))`.
+
+        TESTS::
+
+            sage: from random import randint
+            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
+            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: ig = iter(gosper_iterator(a,b,c,d,continued_fraction(pi))); icf = iter(continued_fraction((a*pi+b)/(c*pi+d)));
+            sage: lg = [next(ig) for _ in xrange(10)]; lcf = [next(icf) for _ in xrange(10)];
+            sage: lg == lcf
+            True
         """
         return self
 
     def next(self):
         """
         Returns the next term of the transformation.
+
+        TESTS::
+
+            sage: from random import randint
+            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
+            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: ig = iter(gosper_iterator(a,b,c,d,continued_fraction(pi))); icf = iter(continued_fraction((a*pi+b)/(c*pi+d)));
+            sage: for i in range(10):
+            ....:     assert next(ig) == next(icf)
         """
         limit = 100
         while True:
@@ -87,8 +122,8 @@ class gosper_iterator:
                 }
                 for state in self.states:
                     if self.compare_dicts(state, current_state, ['currently_emitted']):
-                        self.output_period_length = current_state['currently_emitted'] - state['currently_emitted']
-                        self.output_preperiod_length = current_state['currently_emitted'] - self.output_period_length
+                        # self.output_period_length = current_state['currently_emitted']
+                        self.output_preperiod_length = state['currently_emitted']
                         # print "Stopping iteration, I've been in this state before."
                         # print "States entered:"
                         # print repr(self.states)
@@ -96,7 +131,7 @@ class gosper_iterator:
                         # print repr(state)
                         raise StopIteration
                 self.states.append(current_state)
-                if len(self.states) > 30:
+                if len(self.states) > 100:
                     print "ERROR: Stopping iteration, danger of memory overflow."
                     raise StopIteration
 
@@ -112,7 +147,9 @@ class gosper_iterator:
             # print "a = {}, b = {}, c = {}, d = {}".format(self.a, self.b, self.c, self.d)
             # print "lb = " + repr(lb) + ", ub = " + repr(ub)
 
-            if ub == lb and s<=0:
+            # import pdb; pdb.set_trace()
+
+            if ub == lb and s<1:
                 # print "Emitting " + repr(ub)
                 self.emit(ub)
                 return Integer(ub)
@@ -160,20 +197,32 @@ class gosper_iterator:
             self.b = self.a
             self.d = self.c
 
-
-    def bound(self, n,d):
+    @staticmethod
+    def bound(n,d):
         """
         Helper function for division. Returns infinity if denominator is zero.
+
+        TESTS::
+
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: gosper_iterator.bound(1,0)
+            +Infinity
         """
         if d == 0:
-            return Infinity
+            return +Infinity
         else:
             return (RR(n)/RR(d)).floor()
 
-
-    def compare_dicts(self, d1, d2, ignore_keys):
+    @staticmethod
+    def compare_dicts(d1, d2, ignore_keys):
         """
         Helper function, used to compare two dictionaries, ignoring the keys in `ignore_keys`.
+
+        TESTS::
+
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: gosper_iterator.compare_dicts({"compared": 1, "ignored": 2},{"compared": 1, "ignored": 3}, ["ignored"])
+            True
         """
         d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
         d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
