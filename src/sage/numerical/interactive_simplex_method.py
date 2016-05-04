@@ -6082,7 +6082,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         self.problem().objective_name())
+                         self.problem().objective_name(),
+                         integer_variables=self.integer_variables())
         D._entering = self._entering
         D._leaving = self._leaving
         return D
