@@ -5644,7 +5644,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             r"\end{equation*}"]))
 
     def add_row(self, nonbasic_coefficients, new_b,
-                slack_variable, integer_slack=True):
+                slack_variable, integer_slack=False):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
