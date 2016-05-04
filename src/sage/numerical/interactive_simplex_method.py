@@ -4834,37 +4834,23 @@ class LPDictionary(LPAbstractDictionary):
 
         EXAMPLES::
 
-            sage: A = ([-1, 1], [8, 2])
-            sage: b = (2, 17)
-            sage: c = (55/10, 21/10)
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.final_dictionary()
-            sage: D1 = D.add_row([7, 11], 42, 'c', integer_slack=True)
-            sage: D1._AbcvBNz[0]
-            [1/10  4/5]
-            [1/10 -1/5]
-            [   7   11]
-            sage: D._AbcvBNz[0]
-            [1/10  4/5]
-            [1/10 -1/5]
-            sage: D1.constant_terms()
-            (33/10, 13/10, 42)
-            sage: D.constant_terms()
-            (33/10, 13/10)
-            sage: D1.basic_variables()
-            (x2, x1, c)
-            sage: D.basic_variables()
-            (x2, x1)
-            sage: D1.integer_variables()
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, 'c', integer_slack=True)
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+            sage: set(D1.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {42}
+            sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c} 
+            sage: D1.integer_variables().symmetric_difference(
+            ....: D.integer_variables())
             {c}
-            sage: D.integer_variables()
-            set()
-            sage: D1.objective_value() == D.objective_value()
-            True
-            sage: D1.objective_coefficients() == D.objective_coefficients()
-            True
-            sage: D1.nonbasic_variables() == D.nonbasic_variables()
-            True
         """
         B = self.basic_variables()
         N = self.nonbasic_variables()
@@ -4893,7 +4879,10 @@ class LPDictionary(LPAbstractDictionary):
                         self.objective_value(), B2, N2, self._AbcvBNz[6],
                         integer_variables=copy(self._integer_variables))
         if integer_slack:
-            new_dict._integer_variables.add(variable(R, slack_variable))
+            if new_dict._integer_variables:
+                new_dict._integer_variables.add(variable(R, slack_variable))
+            else:
+                new_dict._integer_variables = set([variable(R, slack_variable)])
         return new_dict
 
     def basic_variables(self):
