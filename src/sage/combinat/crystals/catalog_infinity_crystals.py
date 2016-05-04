@@ -6,6 +6,7 @@ We currently have the following models:
 * :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.InfinityCrystalOfGeneralizedYoungWalls>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.InfinityCrystalOfLSPaths>`
+* :class:`Multisegments <sage.combinat.crystals.multisegments.InfinityCrystalOfMultisegments>`
 * :class:`MVPolytopes <sage.combinat.crystals.mv_polytopes.MVPolytopes>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.InfinityCrystalOfNakajimaMonomials>`
 * :class:`PBW <sage.combinat.crystals.pbw_crystal.PBWCrystal>`
