@@ -5673,7 +5673,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (5/133, 1/10, 1/18, 47/3)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_revised_dictionary()
-            sage: D1 = D.add_row([7, 11, 13, 9], 42, 'c')
+            sage: D1 = D.add_row([7, 11, 13, 9], 42, 'c', integer_slack=True)
             sage: D1.row_coefficients("c")
             (7, 11, 13, 9)
             sage: set(D1.constant_terms()).symmetric_difference(
@@ -5691,7 +5691,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: b = (33, 27, 1, 272, 61)
             sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.final_revised_dictionary()
+            sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
             sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, 'c',
             ....: integer_slack=True)
             sage: D2.row_coefficients("c")
@@ -5701,7 +5701,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             {99}
             sage: set(D2.basic_variables()).symmetric_difference(
             ....: set(D.basic_variables()))
-            {c}
+            {c} 
             sage: D2.integer_variables().symmetric_difference(
             ....: D.integer_variables())
             {c}
@@ -5745,7 +5745,9 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 d_index += 1
             slack_index += 1
         new_problem = problem.add_constraint(new_row, new_b, slack_variable, integer_slack=True)
-        return new_problem.final_revised_dictionary()
+        new_basic_var = [str(i) for i in self.basic_variables()] + [slack_variable]
+        R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
+        return new_problem.revised_dictionary(*R.gens())
 
     def A(self, v):
         r"""
