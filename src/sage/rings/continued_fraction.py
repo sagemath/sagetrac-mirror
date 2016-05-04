@@ -1137,9 +1137,8 @@ class ContinuedFraction_base(SageObject):
 
         EXAMPLES::
 
-            from random import randint
-            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
-            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
+            sage: a = Integer(randint(-10,10)); b = Integer(randint(-10,10));
+            sage: c = Integer(randint(-10,10)); d = Integer(randint(-10,10));
             sage: vals = [pi, sqrt(2), 541/227];
             sage: for val in vals:
             ....:     x = continued_fraction(val)
@@ -1149,6 +1148,12 @@ class ContinuedFraction_base(SageObject):
             ....:
             True
             True
+            True
+            sage: x = continued_fraction(([1,2,3],[4,5]))
+            sage: val = x.value()
+            sage: y = continued_fraction((a*val+b)/(c*val+d))
+            sage: z = x.apply_homography(a,b,c,d)
+            sage: y == z
             True
         """
         from rational_field import QQ
@@ -1286,14 +1291,6 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             return self._x1[n]
         return self._x2[(n-len(self._x1)) % len(self._x2)]
 
-    def quotients(self):
-        r"""
-        Return the tuple _x1 and _x2, the preperiod and period, as
-        a tuple.
-        """
-
-        return self._x1, self._x2
-
     def length(self):
         r"""
         Returns the number of partial quotients of ``self``.
@@ -1309,6 +1306,21 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         """
         if len(self._x2) > 1 or self._x2[0] is not Infinity:
             return Infinity
+        return Integer(len(self._x1))
+
+    def preperiod_length(self):
+        r"""
+        Returns the number of partial quotients of the preperiodic part of ``self``.
+
+        EXAMPLES::
+
+            sage: continued_fraction(2/5).preperiod_length()
+            3
+            sage: cf = continued_fraction([(0,1),(2,)]); cf
+            [0; 1, (2)*]
+            sage: cf.preperiod_length()
+            2
+        """
         return Integer(len(self._x1))
 
     def __cmp__(self, other):

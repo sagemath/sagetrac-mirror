@@ -16,6 +16,7 @@ EXAMPLES:
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR
+from sage.rings.continued_fraction import ContinuedFraction_periodic
 
 class gosper_iterator:
 
@@ -34,7 +35,6 @@ class gosper_iterator:
 
         TESTS:
         ::
-            sage: from random import randint
             sage: a = Integer(randint(-10,10)); b = Integer(randint(-10,10));
             sage: c = Integer(randint(-10,10)); d = Integer(randint(-10,10));
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
@@ -60,15 +60,10 @@ class gosper_iterator:
         self.currently_read = 0
 
         # Rational or quadratic case
-        if isinstance(self.cf.quotients(), tuple):
-            self.input_preperiod_length = len(self.cf.quotients()[0])
-            if self.cf.quotients()[1][0] == +Infinity:
-                self.input_period_length = 0
-            else:
-                self.input_period_length = len(self.cf.quotients()[1])
+        if isinstance(self.cf, ContinuedFraction_periodic):
+            self.input_preperiod_length = self.cf.preperiod_length()
         # Infinite case
         else:
-            self.input_period_length = 0
             self.input_preperiod_length = +Infinity
 
         self.output_preperiod_length = 0
@@ -77,9 +72,8 @@ class gosper_iterator:
         """
         Returns the iterable instance of the class. Is called upon `iter(gosper_iterator(a,b,c,d,x))`.
 
-        TESTS::
-
-            sage: from random import randint
+        TESTS:
+        ::
             sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
             sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
@@ -94,9 +88,8 @@ class gosper_iterator:
         """
         Returns the next term of the transformation.
 
-        TESTS::
-
-            sage: from random import randint
+        TESTS:
+        ::
             sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
             sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
@@ -146,6 +139,17 @@ class gosper_iterator:
     def emit(self, q):
         """
         Changes the state of the iterator, correspondingly to emitting the term `q`.
+
+        TESTS:
+        ::
+            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
+            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: gi = gosper_iterator(a,b,c,d,continued_fraction(pi))
+            sage: for i in range(10):
+            ....:     gi.emit(i)
+            sage: gi.currently_emitted
+            10
         """
         self.currently_emitted += 1
         # This is being computed for the case when no states are being saved (still reading preperiod).
@@ -162,6 +166,17 @@ class gosper_iterator:
     def ingest(self):
         """
         Changes the state of the iterator, correspondingly to ingesting another term from the input continued fraction.
+
+        TESTS:
+        ::
+            sage: a = Integer(randint(-100,100)); b = Integer(randint(-100,100));
+            sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
+            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+            sage: gi = gosper_iterator(a,b,c,d,continued_fraction(pi))
+            sage: for i in range(10):
+            ....:     gi.ingest()
+            sage: gi.currently_read
+            10
         """
         try:
             p = next(self.x)
@@ -181,8 +196,8 @@ class gosper_iterator:
         """
         Helper function for division. Returns infinity if denominator is zero.
 
-        TESTS::
-
+        TESTS:
+        ::
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
             sage: gosper_iterator.bound(1,0)
             +Infinity
@@ -197,8 +212,8 @@ class gosper_iterator:
         """
         Helper function, used to compare two dictionaries, ignoring the keys in `ignore_keys`.
 
-        TESTS::
-
+        TESTS:
+        ::
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
             sage: gosper_iterator.compare_dicts({"compared": 1, "ignored": 2},{"compared": 1, "ignored": 3}, ["ignored"])
             True
