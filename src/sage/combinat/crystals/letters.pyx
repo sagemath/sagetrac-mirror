@@ -429,7 +429,7 @@ cdef class Letter(Element):
         """
         return self.value
 
-    cpdef bool _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -1324,7 +1324,7 @@ cdef class LetterTuple(Element):
         """
         return hash(self.value)
 
-    cpdef bool _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Check comparison between ``left`` and ``right`` based on ``op``
 
@@ -2301,7 +2301,7 @@ cdef class LetterWrapped(Element):
             sage: C = crystals.Letters(['E', 8])
             sage: a = C((1,-4,5))
             sage: a.__reduce__()
-            (The crystal of letters for type ['E', 8], (Y(1,6) Y(4,6)^-1 Y(5,5) ,))
+            (The crystal of letters for type ['E', 8], (Y(1,6) Y(4,6)^-1 Y(5,5),))
         """
         return (self._parent, (self.value,))
 
