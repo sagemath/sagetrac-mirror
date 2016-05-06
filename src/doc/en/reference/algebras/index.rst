@@ -44,11 +44,9 @@ Named associative algebras
    sage/algebras/clifford_algebra
    sage/combinat/descent_algebra
    sage/algebras/hall_algebra
-   sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras
    sage/algebras/group_algebra
    sage/combinat/posets/moebius_algebra
-   sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon
    sage/combinat/partition_algebra
    sage/algebras/quatalg/quaternion_algebra
@@ -58,6 +56,16 @@ Named associative algebras
    sage/algebras/steenrod/steenrod_algebra_misc
    sage/algebras/steenrod/steenrod_algebra_mult
    sage/algebras/weyl_algebra
+
+Hecke algebras
+--------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/algebras/hecke_algebras/ariki_koike_algebra
+   sage/algebras/iwahori_hecke_algebra
+   sage/algebras/nil_coxeter_algebra
    sage/algebras/yokonuma_hecke_algebra
 
 Various associative algebras
@@ -81,3 +89,4 @@ Non-associative algebras
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
+
