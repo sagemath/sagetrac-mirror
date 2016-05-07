@@ -1,0 +1,39 @@
+Even though the GNU assembler's configure script allows the GNU
+assembler to be build on Mac OS X, the binutils' configure script
+in the parent directory explicitly disables the GNU assembler on
+Mac OS X. This patch removes the lines that disabled the assembler.
+
+diff -u -r binutils-2.24/configure binutils-2.24-patched/configure
+--- binutils-2.24/configure	2013-11-08 02:13:48.000000000 -0800
++++ binutils-2.24-patched/configure	2016-05-06 17:27:36.713444311 -0700
+@@ -3570,11 +3570,11 @@
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   x86_64-*-darwin[912]*)
+-    noconfigdirs="$noconfigdirs ld gas gprof"
++    noconfigdirs="$noconfigdirs ld gprof"
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   *-*-darwin*)
+-    noconfigdirs="$noconfigdirs ld gas gdb gprof"
++    noconfigdirs="$noconfigdirs ld gdb gprof"
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   *-*-dragonfly*)
+diff -u -r binutils-2.24/configure.ac binutils-2.24-patched/configure.ac
+--- binutils-2.24/configure.ac	2013-12-02 01:32:22.000000000 -0800
++++ binutils-2.24-patched/configure.ac	2016-05-06 17:30:51.801647297 -0700
+@@ -906,11 +906,11 @@
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   x86_64-*-darwin[[912]]*)
+-    noconfigdirs="$noconfigdirs ld gas gprof"
++    noconfigdirs="$noconfigdirs ld gprof"
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   *-*-darwin*)
+-    noconfigdirs="$noconfigdirs ld gas gdb gprof"
++    noconfigdirs="$noconfigdirs ld gdb gprof"
+     noconfigdirs="$noconfigdirs sim target-rda"
+     ;;
+   *-*-dragonfly*)

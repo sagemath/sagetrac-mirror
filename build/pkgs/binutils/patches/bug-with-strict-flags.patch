@@ -1,0 +1,94 @@
+binutils-2.24 does not compile with newer versions of gcc and stricter
+compiler flags. This patch fixes it. Newer versions of binutils fix it
+more elegantly.
+
+diff -u -r binutils-2.24/binutils/objcopy.c binutils-2.24-patched/binutils/objcopy.c
+--- binutils-2.24/binutils/objcopy.c	2013-11-04 07:33:37.000000000 -0800
++++ binutils-2.24-patched/binutils/objcopy.c	2016-05-06 16:26:01.046639064 -0700
+@@ -1890,7 +1890,7 @@
+ 		/* Umm, not sure what to do in this case.  */
+ 		debuglink_vma = 0x1000;
+ 
+-	      bfd_set_section_vma (obfd, gnu_debuglink_section, debuglink_vma);
++	      (void) bfd_set_section_vma (obfd, gnu_debuglink_section, debuglink_vma);
+ 	    }
+ 	}
+     }
+diff -u -r binutils-2.24/gas/config/obj-elf.c binutils-2.24-patched/gas/config/obj-elf.c
+--- binutils-2.24/gas/config/obj-elf.c	2013-11-04 07:33:37.000000000 -0800
++++ binutils-2.24-patched/gas/config/obj-elf.c	2016-04-29 11:19:45.087701804 -0700
+@@ -1937,7 +1937,7 @@
+ 
+   /* Force the section to align to a longword boundary.  Without this,
+      UnixWare ar crashes.  */
+-  bfd_set_section_alignment (stdoutput, seg, 2);
++  (void) bfd_set_section_alignment (stdoutput, seg, 2);
+ 
+   /* Make space for this first symbol.  */
+   p = frag_more (12);
+diff -u -r binutils-2.24/gas/config/tc-i386.c binutils-2.24-patched/gas/config/tc-i386.c
+--- binutils-2.24/gas/config/tc-i386.c	2013-11-26 03:37:33.000000000 -0800
++++ binutils-2.24-patched/gas/config/tc-i386.c	2016-04-29 13:17:03.913386652 -0700
+@@ -6140,7 +6140,7 @@
+ 	      op.bitfield.regmem = 0;
+ 	      if ((dest + 1) >= i.operands
+ 		  || (op.bitfield.reg32 != 1
+-		      && !op.bitfield.reg64 != 1
++		      && (!op.bitfield.reg64) != 1
+ 		      && !operand_type_equal (&op, &regxmm)
+ 		      && !operand_type_equal (&op, &regymm)
+ 		      && !operand_type_equal (&op, &regzmm)
+diff -u -r binutils-2.24/gas/subsegs.c binutils-2.24-patched/gas/subsegs.c
+--- binutils-2.24/gas/subsegs.c	2013-11-04 07:33:37.000000000 -0800
++++ binutils-2.24-patched/gas/subsegs.c	2016-04-29 11:20:20.266951743 -0700
+@@ -67,7 +67,7 @@
+     {
+       seginfo = (segment_info_type *) xcalloc (1, sizeof (*seginfo));
+       seginfo->bfd_section = seg;
+-      bfd_set_section_userdata (stdoutput, seg, seginfo);
++      (void) bfd_set_section_userdata (stdoutput, seg, seginfo);
+     }
+ }
+ 
+@@ -169,7 +169,7 @@
+       secptr->output_section = secptr;
+       seginfo = (segment_info_type *) xcalloc (1, sizeof (*seginfo));
+       seginfo->bfd_section = secptr;
+-      bfd_set_section_userdata (stdoutput, secptr, seginfo);
++      (void) bfd_set_section_userdata (stdoutput, secptr, seginfo);
+     }
+   return secptr;
+ }
+diff -u -r binutils-2.24/gas/write.c binutils-2.24-patched/gas/write.c
+--- binutils-2.24/gas/write.c	2013-11-04 07:33:38.000000000 -0800
++++ binutils-2.24-patched/gas/write.c	2016-04-29 11:20:34.690770411 -0700
+@@ -363,7 +363,7 @@
+     return;
+ 
+   if ((unsigned int) align > bfd_get_section_alignment (stdoutput, seg))
+-    bfd_set_section_alignment (stdoutput, seg, align);
++      (void) bfd_set_section_alignment (stdoutput, seg, align);
+ }
+ 
+ int
+diff -u -r binutils-2.24/ld/ldlang.c binutils-2.24-patched/ld/ldlang.c
+--- binutils-2.24/ld/ldlang.c	2013-11-04 07:33:39.000000000 -0800
++++ binutils-2.24-patched/ld/ldlang.c	2016-05-06 17:13:52.901446786 -0700
+@@ -4831,7 +4831,7 @@
+ 			   " section %s\n"), os->name);
+ 
+ 		input = os->children.head->input_section.section;
+-		bfd_set_section_vma (os->bfd_section->owner,
++		(void) bfd_set_section_vma (os->bfd_section->owner,
+ 				     os->bfd_section,
+ 				     bfd_section_vma (input->owner, input));
+ 		os->bfd_section->size = input->size;
+@@ -4916,7 +4916,7 @@
+ 			     os->name, (unsigned long) (newdot - savedot));
+ 		  }
+ 
+-		bfd_set_section_vma (0, os->bfd_section, newdot);
++		(void) bfd_set_section_vma (0, os->bfd_section, newdot);
+ 
+ 		os->bfd_section->output_offset = 0;
+ 	      }
