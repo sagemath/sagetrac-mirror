@@ -799,21 +799,13 @@ class table(SageObject):
             first_column_tag = '<th class="ch">%s</th>\n' if header else '<td class="ch">%s</td>\n'
         else:
             first_column_tag = column_tag
-
-        # First entry of row:
-        entry = row[0]
-        if isinstance(entry, Graphics):
-            file.write(first_column_tag % entry.show(linkmode = True))
-        elif isinstance(entry, str):
-            file.write(first_column_tag % math_parse(entry))
-        else:
-            file.write(first_column_tag % ('<script type="math/tex">%s</script>' % latex(entry)))
-
-        # Other entries:
-        for column in xrange(1,len(row)):
+            
+        for column in range(0, len(row)):
+            template = first_column_tag if (column == 0) else column_tag
             if isinstance(row[column], Graphics):
-                file.write(column_tag % row[column].show(linkmode = True))
+                file.write(template % row[column]._html_())
             elif isinstance(row[column], str):
-                file.write(column_tag % math_parse(row[column]))
+                file.write(template % math_parse(row[column]))
             else:
-                file.write(column_tag % ('<script type="math/tex">%s</script>' % latex(row[column])))
+                file.write(template % ('<script type="math/tex">%s</script>' % latex(row[column])))
+                

@@ -3291,10 +3291,33 @@ class Graphics(WithEqualityById, SageObject):
         tmpfilename = tmp_filename(ext='.pgf')
         self.save(filename=tmpfilename, **kwds)
         with open(tmpfilename, "r") as tmpfile:
-                latex_list = tmpfile.readlines()
+            latex_list = tmpfile.readlines()
         from sage.misc.latex import latex
         latex.add_package_to_preamble_if_available('pgf')
         return ''.join(latex_list)
+
+    def _html_(self):
+        """
+        Return html code for the image
+        
+        EXAMPLES::
+
+            sage: l = line([(0,0), (1,1)])
+            sage: type(l._html_())
+            <class 'sage.misc.html.HtmlFragment'>
+            sage: pretty_print(html(l))     # indirect doctest
+            <img src="data:image/svg+xml,%3C%3Fxml%20version...">
+        """
+        from io import BytesIO
+        buf = BytesIO()
+        buf.name = 'graphics.svg'
+        self.save(buf)
+        buf.seek(0)
+        svg = buf.read()
+        from urllib import quote
+        html = '<img src="data:image/svg+xml,{0}">'.format(quote(svg))
+        from sage.misc.html import HtmlFragment
+        return HtmlFragment(html)
     
     def description(self):
         r"""
