@@ -51,20 +51,22 @@ class gosper_iterator:
         self.c = c
         self.d = d
 
-        self.cf = x
         self.x = iter(x)
 
-        self.states = []
+        self.states = set()
+        self.states_to_currently_emitted = dict()
 
         self.currently_emitted = 0
         self.currently_read = 0
 
         # Rational or quadratic case
-        if isinstance(self.cf, ContinuedFraction_periodic):
-            self.input_preperiod_length = self.cf.preperiod_length()
+        if isinstance(x, ContinuedFraction_periodic):
+            self.input_preperiod_length = x.preperiod_length()
+            self.input_period_length = x.period_length()
         # Infinite case
         else:
             self.input_preperiod_length = +Infinity
+            self.input_period_length = 0
 
         self.output_preperiod_length = 0
 
@@ -100,19 +102,22 @@ class gosper_iterator:
         limit = 100
         while True:
             if self.currently_read >= self.input_preperiod_length:
-                current_state = {
-                'a': self.a,
-                'b': self.b,
-                'c': self.c,
-                'd': self.d,
-                'next': self.cf.quotient(self.currently_read),
-                'currently_emitted': self.currently_emitted,
-                }
-                for state in self.states:
-                    if self.compare_dicts(state, current_state, ['currently_emitted']):
-                        self.output_preperiod_length = state['currently_emitted']
-                        raise StopIteration
-                self.states.append(current_state)
+                current_state = (
+                    ('a', self.a),
+                    ('b', self.b),
+                    ('c', self.c),
+                    ('d', self.d),
+                    ('index', (self.currently_read-self.input_preperiod_length)%self.input_period_length)
+                )
+                # for state in self.states:
+                #     if self.compare_dicts(state, current_state, ['currently_emitted']):
+                #         self.output_preperiod_length = state['currently_emitted']
+                #         raise StopIteration
+                if current_state in self.states:
+                    self.output_preperiod_length = self.states_to_currently_emitted[current_state]
+                    raise StopIteration
+                self.states.add(current_state)
+                self.states_to_currently_emitted[current_state] = self.currently_emitted
                 if len(self.states) > 100:
                     print "ERROR: Stopping iteration, danger of memory overflow."
                     raise StopIteration
@@ -207,17 +212,17 @@ class gosper_iterator:
         else:
             return (RR(n)/RR(d)).floor()
 
-    @staticmethod
-    def compare_dicts(d1, d2, ignore_keys):
-        """
-        Helper function, used to compare two dictionaries, ignoring the keys in `ignore_keys`.
-
-        TESTS:
-        ::
-            sage: from sage.rings.continued_fraction_gosper import gosper_iterator
-            sage: gosper_iterator.compare_dicts({"compared": 1, "ignored": 2},{"compared": 1, "ignored": 3}, ["ignored"])
-            True
-        """
-        d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
-        d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
-        return d1_filtered == d2_filtered
+    # @staticmethod
+    # def compare_dicts(d1, d2, ignore_keys):
+    #     """
+    #     Helper function, used to compare two dictionaries, ignoring the keys in `ignore_keys`.
+    #
+    #     TESTS:
+    #     ::
+    #         sage: from sage.rings.continued_fraction_gosper import gosper_iterator
+    #         sage: gosper_iterator.compare_dicts({"compared": 1, "ignored": 2},{"compared": 1, "ignored": 3}, ["ignored"])
+    #         True
+    #     """
+    #     d1_filtered = dict((k, v) for k,v in d1.iteritems() if k not in ignore_keys)
+    #     d2_filtered = dict((k, v) for k,v in d2.iteritems() if k not in ignore_keys)
+    #     return d1_filtered == d2_filtered

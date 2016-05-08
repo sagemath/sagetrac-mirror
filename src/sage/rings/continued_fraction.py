@@ -1175,9 +1175,10 @@ class ContinuedFraction_base(SageObject):
             period = l[preperiod_length:]
             return continued_fraction((preperiod, period), z)
         else:
-            from sage.combinat.words.word import Word
-            return continued_fraction(Word(_i, length='infinite'))
-
+            # from sage.combinat.words.word import Word
+            # return continued_fraction(Word(_i, length='infinite'), z)
+            from sage.misc.lazy_list import lazy_list
+            return continued_fraction(lazy_list(_i), z)
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
@@ -1322,6 +1323,21 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             2
         """
         return Integer(len(self._x1))
+
+    def period_length(self):
+        r"""
+        Returns the number of partial quotients of the preperiodic part of ``self``.
+
+        EXAMPLES::
+
+            sage: continued_fraction(2/5).period_length()
+            1
+            sage: cf = continued_fraction([(0,1),(2,)]); cf
+            [0; 1, (2)*]
+            sage: cf.period_length()
+            1
+        """
+        return Integer(len(self._x2))
 
     def __cmp__(self, other):
         r"""
