@@ -1521,6 +1521,17 @@ class InteractiveLPProblem(SageObject):
 
             sage: InteractiveLPProblem(A, b, (0, 0), ["C", "B"], variable_type=">=").plot()
             Graphics object consisting of 8 graphics primitives
+
+        We check that irrational polygons can be plotted::
+
+            sage: poly = polytopes.regular_polygon(7)
+            sage: lp, x = poly.to_linear_program(solver='InteractiveLP', return_variable=True)
+            sage: lp.set_objective(x[0] + x[1])
+            sage: b = lp.get_backend()
+            sage: P = b.interactive_lp_problem()
+            sage: p = P.plot()
+            sage: p.show()
+
         """
         FP = self.plot_feasible_set(*args, **kwds)
         c = self.c().n().change_ring(QQ)
