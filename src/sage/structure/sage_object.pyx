@@ -462,7 +462,7 @@ cdef class SageObject:
             sage: import io
             sage: buf = io.BytesIO()
             sage: f.save(buf)
-            sage: buf.seek(0);
+            sage: _ = buf.seek(0)
             sage: loads(buf.read())
             x^3 + 5
         """

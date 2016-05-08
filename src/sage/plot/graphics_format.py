@@ -53,7 +53,7 @@ def graphics_format(filename):
 
         sage: from sage.plot.graphics_format import graphics_format
         sage: graphics_format('/tmp/foo.svg')
-        '.svg'
+        GraphicsFormat(ext='.svg', matplotlib='svg')
         sage: graphics_format('/tmp/foo.bar')
         Traceback (most recent call last):
         ...
@@ -63,10 +63,10 @@ def graphics_format(filename):
     on file-like objects is sobj::
 
         sage: graphics_format('/tmp/foo')
-        '.sobj'
+        GraphicsFormat(ext='.sobj', matplotlib=None)
         sage: import io
         sage: graphics_format(io.BytesIO())
-        '.sobj'
+        GraphicsFormat(ext='.sobj', matplotlib=None)
     """
     if hasattr(filename, 'write'):
         # is a file-like object

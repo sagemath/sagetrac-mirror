@@ -3183,7 +3183,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: buf = io.BytesIO()
             sage: buf.name = 'test.svg'
             sage: p.save(buf)
-            sage: buf.seek(0);
+            sage: _ = buf.seek(0)
             sage: buf.read(100)
             '<?xml version="1.0" encoding="utf-8" standalone="no"?>\n<!DOCTYPE svg ...'
         """
