@@ -1150,6 +1150,33 @@ class InteractiveLPProblem(SageObject):
             eqns = [[R(_) for _ in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
 
+    def get_plot_bounding_box(self, F, b,
+                              xmin=None, xmax=None, ymin=None, ymax=None):
+        r"""
+        Return the min and max for x and y of the bounding box for ``self``.
+
+        INPUT:
+
+        - ``F`` -- the feasible set of self
+        - ``b`` -- the constant terms of self
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - four rational numbers
+        """
+        if ymax is None:
+            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
+        if ymin is None:
+            ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
+        if xmax is None:
+            xmax = max([1.5*ymax] + [v[0] for v in F.vertices()])
+        if xmin is None:
+            xmin = min([-xmax/4.0] + [v[0] for v in F.vertices()])
+        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
+        return xmin, xmax, ymin, ymax
+
     def is_bounded(self):
         r"""
         Check if ``self`` is bounded.
@@ -1491,35 +1518,8 @@ class InteractiveLPProblem(SageObject):
         c = self.c().n().change_ring(QQ)
         if c.is_zero():
             return FP
-        xmin = FP.xmin()
-        xmax = FP.xmax()
-        ymin = FP.ymin()
-        ymax = FP.ymax()
-        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
-        start = self.optimal_solution()
-        start = vector(QQ, start.n() if start is not None
-                            else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
-        length = min(xmax - xmin, ymax - ymin) / 5
-        end = start + (c * length / c.norm()).n().change_ring(QQ)
-        result = FP + point(start, color="black", size=50, zorder=10)
-        result += arrow(start, end, color="black", zorder=10)
-        ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
-                (ymax, 0, -1), (- ymin, 0, 1)]
-        box = Polyhedron(ieqs=ieqs)
-        d = vector([c[1], -c[0]])
-        for i in range(-10, 11):
-            level = Polyhedron(vertices=[start + i*(end-start)], lines=[d])
-            level = box.intersection(level)
-            if level.vertices():
-                if i == 0 and self.is_bounded():
-                    result += line(level.vertices(), color="black",
-                                   thickness=2)
-                else:
-                    result += line(level.vertices(), color="black",
-                                   linestyle="--")
-        result.set_axes_range(xmin, xmax, ymin, ymax)
-        result.axes_labels(FP.axes_labels())    #FIXME: should be preserved!
-        return result
+        return self.plot_objective_growth_and_solution(FP, c, *args, **kwds)
+
 
     def plot_feasible_set(self, xmin=None, xmax=None, ymin=None, ymax=None,
                           alpha=0.2):
@@ -1565,15 +1565,8 @@ class InteractiveLPProblem(SageObject):
             A = A.n().change_ring(QQ)
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
-        if ymax is None:
-            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
-        if ymin is None:
-            ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
-        if xmax is None:
-            xmax = max([1.5*ymax] + [v[0] for v in F.vertices()])
-        if xmin is None:
-            xmin = min([-xmax/4.0] + [v[0] for v in F.vertices()])
-        xmin, xmax, ymin, ymax = map(QQ, [xmin, xmax, ymin, ymax])
+        xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
+            F, b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         pad = max(xmax - xmin, ymax - ymin) / 20
         ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
                 (ymax, 0, -1), (- ymin, 0, 1)]
@@ -1624,6 +1617,57 @@ class InteractiveLPProblem(SageObject):
                                   shadow=True)
         result._extra_kwds["aspect_ratio"] = 1
         result.set_aspect_ratio(1)
+        return result
+
+    def plot_objective_growth_and_solution(self, FP, c,
+                                           xmin=None, xmax=None,
+                                           ymin=None, ymax=None):
+        r"""
+        Return a plot with the growth of the objective function and the objective solution. 
+
+        ..Note::
+
+            For more information, refer to the docstrings of :meth:`plot`.
+
+        INPUT:
+
+        - ``FP`` -- the plot of the feasbiel set of ``self``
+
+        - ``c`` -- the objective value of ``self``
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        OUTPUT:
+
+        - a plot
+        """
+        b = self.b()
+        xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
+            self.feasible_set(), b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        start = self.optimal_solution()
+        start = vector(QQ, start.n() if start is not None
+                       else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
+        length = min(xmax - xmin, ymax - ymin) / 5
+        end = start + (c * length / c.norm()).n().change_ring(QQ)
+        result = FP + point(start, color="black", size=50, zorder=10)
+        result += arrow(start, end, color="black", zorder=10)
+        ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
+                (ymax, 0, -1), (- ymin, 0, 1)]
+        box = Polyhedron(ieqs=ieqs)
+        d = vector([c[1], -c[0]])
+        for i in range(-10, 11):
+            level = Polyhedron(vertices=[start + i*(end-start)], lines=[d])
+            level = box.intersection(level)
+            if level.vertices():
+                if i == 0 and self.is_bounded():
+                    result += line(level.vertices(), color="black",
+                                   thickness=2)
+                else:
+                    result += line(level.vertices(), color="black",
+                                   linestyle="--")
+        result.set_axes_range(xmin, xmax, ymin, ymax)
+        result.axes_labels(FP.axes_labels())
         return result
 
     def problem_type(self):
