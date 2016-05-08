@@ -37,9 +37,10 @@ from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
-from colors import rgbcolor
+from sage.plot.colors import rgbcolor
+from sage.plot.graphics_format import graphics_format, SOBJ, PGF
 
-ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
+
 DEFAULT_DPI = 100
 
 def show_default(default=None):
@@ -3063,7 +3064,6 @@ class Graphics(WithEqualityById, SageObject):
         self.save(filename, *args, **kwds)
 
 
-    # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
     @suboptions('legend',
@@ -3083,8 +3083,9 @@ class Graphics(WithEqualityById, SageObject):
 
         INPUT:
 
-        - ``filename`` -- string. The filename and the image format
-          given by the extension, which can be one of the following:
+        - ``filename`` -- string or file-like object. The filename and
+          the image format given by the extension, which can be one of
+          the following (see :mod:`~sage.plot.graphics_format`):
 
             * ``.eps``,
 
@@ -3101,6 +3102,9 @@ class Graphics(WithEqualityById, SageObject):
             * ``.svg``,
 
             * empty extension will be treated as ``.sobj``.
+
+          A file-like object will have the format set by its ``name``
+          attribute. A missing name is treated as empty extension.
 
         All other keyword arguments will be passed to the plotter.
 
@@ -3162,6 +3166,26 @@ class Graphics(WithEqualityById, SageObject):
             sage: plot(x^2, (x, 1, 2), ticks=[[], []])
             Graphics object consisting of 1 graphics primitive
 
+        TESTS:
+
+        An empty extension is allowed::
+
+            sage: p = plot(x,(x,0,1),legend_label='$xyz$')
+            sage: filename = tmp_filename('graphics_save_without_extension')
+            sage: p.save(filename)
+
+        Filename can also be a file-like object::
+
+            sage: import io
+            sage: buf = io.BytesIO()
+            sage: p.save(buf)
+
+            sage: buf = io.BytesIO()
+            sage: buf.name = 'test.svg'
+            sage: p.save(buf)
+            sage: buf.seek(0);
+            sage: buf.read(100)
+            '<?xml version="1.0" encoding="utf-8" standalone="no"?>\n<!DOCTYPE svg ...'
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)
@@ -3176,12 +3200,9 @@ class Graphics(WithEqualityById, SageObject):
             deprecation(17234,'the filename argument is now mandatory')
             from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
-        ext = os.path.splitext(filename)[1].lower()
 
-        if ext not in ALLOWED_EXTENSIONS:
-            raise ValueError("allowed file extensions for images are '"
-                             + "', '".join(ALLOWED_EXTENSIONS) + "'!")
-        elif ext in ['', '.sobj']:
+        fmt = graphics_format(filename)            
+        if fmt == SOBJ:
             SageObject.save(self, filename)
         else:
             from matplotlib import rcParams
@@ -3191,7 +3212,7 @@ class Graphics(WithEqualityById, SageObject):
             # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
             # on the file extension.
             # PGF is handled by a different backend
-            if ext == '.pgf':
+            if fmt == PGF:
                 from sage.misc.sage_ostools import have_program
                 latex_implementations = [i for i in ["xelatex", "pdflatex",
                                                      "lualatex"]
@@ -3233,7 +3254,11 @@ class Graphics(WithEqualityById, SageObject):
             # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
             figure.tight_layout()
 
-            opts = dict(dpi=dpi, transparent=transparent)
+            opts = dict(
+                dpi=dpi,
+                transparent=transparent,
+                format=fmt.matplotlib,
+            )
             if fig_tight is True:
                 opts['bbox_inches'] = 'tight'
             if self._bbox_extra_artists:
@@ -3270,7 +3295,7 @@ class Graphics(WithEqualityById, SageObject):
         from sage.misc.latex import latex
         latex.add_package_to_preamble_if_available('pgf')
         return ''.join(latex_list)
-
+    
     def description(self):
         r"""
         Print a textual description to stdout.

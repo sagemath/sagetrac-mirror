@@ -444,18 +444,37 @@ cdef class SageObject:
         """
         Save self to the given filename.
 
+        INPUT:
+
+        - ``filename`` -- string, file-like object, or ``None``
+          (default). The file to save to. By default, the last used
+          filename string is used.
+
+        - ``compress`` -- boolean (default: ``True``). Whether to compress the file.
+
         EXAMPLES::
 
             sage: f = x^3 + 5
             sage: f.save(os.path.join(SAGE_TMP, 'file'))
             sage: load(os.path.join(SAGE_TMP, 'file.sobj'))
             x^3 + 5
+        
+            sage: import io
+            sage: buf = io.BytesIO()
+            sage: f.save(buf)
+            sage: buf.seek(0);
+            sage: loads(buf.read())
+            x^3 + 5
         """
         if filename is None:
             try:
                 filename = self._default_filename
             except AttributeError:
-                raise RuntimeError, "no default filename, so it must be specified"
+                raise RuntimeError("no default filename, so it must be specified")
+        if hasattr(filename, 'write'):
+            # is a file-like object
+            filename.write(self.dumps(compress))
+            return
         filename = process(filename)
         try:
             self._default_filename = filename
@@ -474,7 +493,9 @@ cdef class SageObject:
         Dump ``self`` to a string ``s``, which can later be reconstituted
         as ``self`` using ``loads(s)``.
 
-        There is an optional boolean argument ``compress`` which defaults to ``True``.
+        INPUT:
+
+        - ``compress`` -- boolean (default: ``True``). Whether to compress the output.
 
         EXAMPLES::
 
