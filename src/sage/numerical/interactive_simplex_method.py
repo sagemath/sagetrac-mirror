@@ -1150,15 +1150,19 @@ class InteractiveLPProblem(SageObject):
             eqns = [[R(_) for _ in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
 
-    def get_plot_bounding_box(self, F, b,
+    def get_plot_bounding_box(self, F=None, b=None,
                               xmin=None, xmax=None, ymin=None, ymax=None):
         r"""
         Return the min and max for x and y of the bounding box for ``self``.
 
         INPUT:
 
-        - ``F`` -- the feasible set of self
-        - ``b`` -- the constant terms of self
+        - ``F`` -- a polyhedron that represents as subset of the feasible set 
+                   of ``self``; if not given, defaults to the feasible set.
+
+        - ``b`` -- the constant terms of the constraints be considered; if not
+                   given, defaults to the constant terms of ``self``.
+
         - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
           not given, an attempt will be made to pick reasonable values
 
@@ -1166,6 +1170,10 @@ class InteractiveLPProblem(SageObject):
 
         - four rational numbers
         """
+        if F is None:
+            F = self.feasible_set()
+        if b is None:
+            b = self.b()
         if ymax is None:
             ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
         if ymin is None:
@@ -1566,7 +1574,7 @@ class InteractiveLPProblem(SageObject):
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
         xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
-            F, b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         pad = max(xmax - xmin, ymax - ymin) / 20
         ieqs = [(xmax, -1, 0), (- xmin, 1, 0),
                 (ymax, 0, -1), (- ymin, 0, 1)]
@@ -1623,7 +1631,7 @@ class InteractiveLPProblem(SageObject):
                                            xmin=None, xmax=None,
                                            ymin=None, ymax=None):
         r"""
-        Return a plot with the growth of the objective function and the objective solution. 
+        Return a plot with the growth of the objective function and the objective solution.
 
         ..Note::
 
@@ -1631,7 +1639,7 @@ class InteractiveLPProblem(SageObject):
 
         INPUT:
 
-        - ``FP`` -- the plot of the feasbiel set of ``self``
+        - ``FP`` -- the plot of the feasible set of ``self``
 
         - ``c`` -- the objective value of ``self``
 
@@ -1642,9 +1650,8 @@ class InteractiveLPProblem(SageObject):
 
         - a plot
         """
-        b = self.b()
         xmin, xmax, ymin, ymax = self.get_plot_bounding_box(
-            self.feasible_set(), b, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         start = self.optimal_solution()
         start = vector(QQ, start.n() if start is not None
                        else [xmin + (xmax-xmin)/2, ymin + (ymax-ymin)/2])
