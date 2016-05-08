@@ -773,17 +773,18 @@ def xydata_from_point_list(points):
         0.0])
         sage: import numpy; xydata_from_point_list(numpy.array([[1,2], [3,4]]))
         ([1.0, 3.0], [2.0, 4.0])
-                
-    but 
+
+    but::
+
         sage: xydata_from_point_list((1,5,2))
         Traceback (most recent call last):
         ...
         ValueError: points must have 2 coordinates in a 2d line
-        
-        
+
+
     See :trac:`16804` ticket, the code accepts now mixed lists of complex and real numbers.
-    Now real items are considered complex numbers on the real line
-    
+    Now real items are considered complex numbers on the real line::
+
         sage: xydata_from_point_list(map(N, [0,1,1+I,I,I-1,-1,-1-I,-I,1-I]))
         ([0.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0],
         [0.0, 0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0])
@@ -802,7 +803,7 @@ def xydata_from_point_list(points):
     elif len(points) == 2 and not isinstance(points[0],(list,tuple,ComplexNumber)):
         try:
             points = [[float(z) for z in points]]
-        except TypeError: 
+        except TypeError:
             pass
     try:
         if len(points) > 0 and len(list(points[0])) != 2:
@@ -822,7 +823,7 @@ def xydata_from_point_list(points):
     except TypeError:
         try:
             xdata = [float(z.real()) for z in points]
-            ydata = [float(z.imag()) for z in points] 
+            ydata = [float(z.imag()) for z in points]
         except AttributeError: # case list_plot([1, I, pi + I/2, CC(.25, .25)])
             raise TypeError("tuples of type (real,complex) are not allowed")
     return xdata, ydata
