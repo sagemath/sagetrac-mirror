@@ -361,15 +361,6 @@ class Benchmark(SageObject):
 
         TESTS:
 
-        Adding two empty benchmarks is impossible::
-
-            sage: B1 = codes.Benchmark()
-            sage: B2 = codes.Benchmark()
-            sage: B1 + B2
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot add two enpty benchmarks
-
         Adding two benchmarks with the same custom id is impossible::
 
             sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
@@ -387,11 +378,11 @@ class Benchmark(SageObject):
         """
         if not isinstance(other, Benchmark):
             raise TypeError("%s must be a Benchmark object" % other)
-        #if both self and other are empty, do nothing
+        #if both self and other are empty, return an empty benchmark
+        #if they are the same, return self
         if (len(self.identifier()) == 1 and self.code() is None
-                and len(other.identifier()) == 1 and other.code() is None):
-            raise ValueError("Cannot add two empty benchmarks")
-        if self == other:
+                and len(other.identifier()) == 1 and other.code() is None
+                or self == other):
             return self
         import re
         pattern_default_id = re.compile('_[0-9]+')
