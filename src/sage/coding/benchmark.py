@@ -704,16 +704,21 @@ class Benchmark(SageObject):
             c = C.random_element()
             generate_c_time = time.clock() - start
             y = Chan(c)
+            decoding_failure = True
             try:
                 start = time.clock()
                 dec_y = D.decode_to_code(y)
                 decode_time = time.clock() - start
-                decoding_success = True
+                decoding_error = False
+                if "list-decoder" in D.decoder_type():
+                    decoding_failure = (c != dec_y)
+                else:
+                    decoding_failure = (c != dec_y)
             except DecodingError:
                 decode_time = time.clock() - start
                 dec_y = None #as decoding failed
-                decoding_success = False
-            data[identifier, i] = (c, generate_c_time, y, dec_y, decode_time, decoding_success)
+                decoding_error = True
+            data[identifier, i] = (c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure)
 
             #verbosity
             if verbosity ==1:
@@ -889,11 +894,18 @@ class Benchmark(SageObject):
             return self._process_experimental_data(identifier,target, processing)
 
     @cached_method
-    def decoding_success_rate(self, identifier = None):
+    def decoding_success_rate(self, target, identifier = None):
         r"""
         Returns the success rate of the decoding attempts.
 
         INPUT:
+
+        - ``target`` -- the operation whose success rate will be computed, can be
+          either:
+            - ``"error"``, which will compute a ratio on the number of decoding attempts
+              which returned a word, whichever word it was
+            - ``"failure"``, which will compute a ratio on the number of decoding attempts
+              which returned the original codeword
 
         - ``identifier`` -- (default: ``None``) the identifier of the benchmark
           whose success rate will be computed. If it is let to ``None``, success
@@ -913,15 +925,18 @@ class Benchmark(SageObject):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
-            sage: B.decoding_success_rate()
+            sage: B.decoding_success_rate("failure")
             {'_0': 1.00}
         """
-        def compute_success_rate(identifier):
+        if not target in ("error", "failure"):
+            raise ValueError("target has to be set to either \"error\" or \"failure\"")
+        t = (5 if target is "error" else 6)
+        def compute_success_rate(identifier, target):
             i = 0
             success_sum = 0
             while True:
                 try:
-                    success_sum += data[identifier, i][5]
+                    success_sum += not(data[identifier, i][target])
                     i += 1
                 except KeyError:
                     break
@@ -936,10 +951,10 @@ class Benchmark(SageObject):
         elif identifier is None:
             rates = dict()
             for i in ids:
-                rates[i] = compute_success_rate(i)
+                rates[i] = compute_success_rate(i, t)
             return rates
         elif identifier is not None:
-            return compute_success_rate(i)
+            return compute_success_rate(i, t)
 
     def plot(self, points_generator, **kwargs):
         r"""
