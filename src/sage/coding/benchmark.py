@@ -671,7 +671,6 @@ class Benchmark(SageObject):
             - ``1`` means small verbosity, one message will be written every time 25% of the tests are done
             - ``2`` means very verbose, one message will be written every time 10% of the tests are done
 
-
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
@@ -691,7 +690,8 @@ class Benchmark(SageObject):
             pass
         C = self.code(identifier)
         if C is None:
-            raise ValueError("Impossible to run tests on an empty benchmark")
+            print "Benchmark %s is empty, skipping computation" % identifier
+            return
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
         no_tests = self.number_of_tests(identifier)
