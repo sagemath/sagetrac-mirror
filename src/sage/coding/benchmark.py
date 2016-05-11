@@ -4,6 +4,21 @@ Benchmarking mechanism for Linear codes
 This module provides a structure to easily run experiments
 on linear codes, gather and manipulate results from these experiments.
 
+.. WARNING::
+
+    As this code is experimental, a warning is thrown when a
+    benchmark is created for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+        sage: D = C.decoder()
+        sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+        sage: B = codes.Benchmark(C, D, Chan)
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/20526 for details.
+
 Overview
 ========
 
@@ -55,7 +70,7 @@ it impacts the decoding speed?
 To cover this case, and all similar cases, it is possible to add
 Benchmark objects.
 
-Let's consider the following codes:
+Let's consider the following codes::
 
     sage: C1 = codes.GeneralizedReedSolomonCode(GF(101).list()[:100], 50)
     sage: C2 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 125)
@@ -63,7 +78,7 @@ Let's consider the following codes:
     sage: C4 = codes.GeneralizedReedSolomonCode(GF(751).list()[:750], 375)
     sage: C5 = codes.GeneralizedReedSolomonCode(GF(1009).list()[:1008], 504)
 
-We build benchmarks based on them:
+We build benchmarks based on them::
 
     sage: chan = channels.StaticErrorRateChannel
     sage: B1 = codes.Benchmark(C1, C1.decoder(), chan(C1.ambient_space(), C1.decoder().decoding_radius()))
@@ -72,7 +87,7 @@ We build benchmarks based on them:
     sage: B4 = codes.Benchmark(C4, C4.decoder(), chan(C4.ambient_space(), C4.decoder().decoding_radius()))
     sage: B5 = codes.Benchmark(C5, C5.decoder(), chan(C5.ambient_space(), C5.decoder().decoding_radius()))
 
-We can add those benchmarks to create a big benchmark structure:
+We can add those benchmarks to create a big benchmark structure::
 
     sage: B_final = B1 + B2 + B3 + B4 + B5
     sage: B_final
@@ -92,7 +107,8 @@ the addition for benchmarks:
       are all different. If two benchmarks share the same custom id, an exception will be
       raised.
 
-    - In the final benchmark object, any call to getter methods (:meth:`encoder`, :meth:`decoder` etc)
+    - In the final benchmark object, any call to getter methods
+      (:meth:`sage.coding.benchmark.Benchmark.code`, :meth:`sage.coding.benchmark.Benchmark.decoder` etc)
       will return a dictionary whose keys are the ids and values the associated object. It is possible to
       specify the id as input (e.g. ``B_final.decoder("_3")`` to get a specific value).
 
@@ -107,43 +123,26 @@ Once one gets experimental data, it's possible to plot this data, using the prov
 
 To use it, one has to pass to it a method which generates the points to plot.
 See :meth:`plot` for details.
+We give here an exemple of what one can do::
 
-    sage:  B_final.plot(lambda i:(B_final.decoder(i).decoding_radius(), B_final.compute_timings("decoding", median, i)), legend_label = 'number errors vs. median decoding time', plotjoined=True)
+    B_final.plot(lambda i:(B_final.decoder(i).decoding_radius(), B_final.compute_timings("decoding", median, i)), legend_label = 'number errors vs. median decoding time', plotjoined=True)
+
 
 Saving benchmarks
 =================
 
 It's possible to save your experiments on your hard drive by using
-the following interface provided by Sage:
+the following interface provided by Sage::
 
 
     C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
     D = C.decoder()
     Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-    from sage.coding.benchmark import Benchmark
-    B = Benchmark(C, D, Chan)
+    B = codes.Benchmark(C, D, Chan)
     B.start_experiments()
     f = os.path.join("path_to_file", 'bench.sobj')
     save(B, f)
     load(f)
-
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when an
-    benchmark is created for the first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-        sage: D = C.decoder()
-        sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-        sage: B = codes.Benchmark(C, D, Chan)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/20526 for details.
-
 """
 
 #*****************************************************************************
@@ -194,7 +193,7 @@ class Benchmark(SageObject):
 
     .. NOTE::
 
-        Leaving both ``encoder``, ``decoder`` and ``channel`` set to ``None`` will generate an empty
+        Leaving both ``code``, ``decoder`` and ``channel`` set to ``None`` will generate an empty
         benchmark. If only several of these fields are filled and the others left to ``None``, an
         error will be raised.
 
@@ -208,13 +207,10 @@ class Benchmark(SageObject):
     EXAMPLES::
 
         sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-        sage: E = C.encoder()
         sage: D = C.decoder()
         sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
         sage: codes.Benchmark(C, D, Chan)
-
-
-
+        Benchmarking structure using [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59 and Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59, over Static error rate channel creating 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
     """
 
     _super_id = 0
@@ -336,6 +332,7 @@ class Benchmark(SageObject):
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: codes.Benchmark(C, D, Chan)
+            Benchmarking structure using [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59 and Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59, over Static error rate channel creating 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
 
         If ``self`` is an empty benchmark, a specific string representation
         is given::
@@ -408,7 +405,7 @@ class Benchmark(SageObject):
             sage: B1 + B2
             Traceback (most recent call last):
             ...
-            ValueError("Benchmark with custom id 'my_id' is already in self" % i
+            ValueError: Benchmark with custom id my_id is already in self
         """
         if not isinstance(other, Benchmark):
             raise TypeError("%s must be a Benchmark object" % other)
@@ -507,8 +504,7 @@ class Benchmark(SageObject):
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(C, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.decoder()
             Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
@@ -539,8 +535,7 @@ class Benchmark(SageObject):
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(C, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.channel()
             Static error rate channel creating 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
         """
@@ -571,8 +566,7 @@ class Benchmark(SageObject):
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(C, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.code()
             [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
@@ -759,7 +753,7 @@ class Benchmark(SageObject):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: B = codes.Benchmark(C, D, Chan)
             sage: B.identifier()
-            {"_0"}
+            {'_0'}
         """
         return self._ids
 
@@ -773,7 +767,7 @@ class Benchmark(SageObject):
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: B = codes.Benchmark(C, D, Chan)
-            sage: B.start_experiments()
+            sage: B.run()
             sage: len(B.experimental_data())
             100
             sage: B.clear_experimental_data()
@@ -802,9 +796,8 @@ class Benchmark(SageObject):
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(C, D, Chan)
-            sage: B._perform_experiments_for_single_id('_0', 100, 0)
+            sage: B = codes.Benchmark(C, D, Chan)
+            sage: B._perform_experiments_for_single_id('_0', 0)
         """
         #setting local variables and checking validity of data to use
         data = self.experimental_data()
@@ -903,11 +896,11 @@ class Benchmark(SageObject):
         Another one in verbose mode::
 
             sage: B.clear_experimental_data()
-            sage: B.run(100, 1)
+            sage: B.run(1)
             Starting run for benchmark _0
-            25.0 percent complete
-            50.0 percent complete
-            75.0 percent complete
+            25 percent complete
+            50 percent complete
+            75 percent complete
             Run complete for benchmark _0
         """
         if not verbosity_level in {0,1,2}:
@@ -1001,7 +994,7 @@ class Benchmark(SageObject):
             sage: def my_silly_processing(l):
             ....:    return -1
             sage: B.compute_timings("decoding", my_silly_processing)
-            {'_0', -1}
+            {'_0': -1}
         """
         if not target in ("decoding", "codeword_generation"):
             raise ValueError("target has to be set to either \"codeword_generation\" or \"decoding\"")
@@ -1098,10 +1091,9 @@ class Benchmark(SageObject):
 
         EXAMPLES::
 
-
-            sage: C1 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 125)
-            sage: C2 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 150)
-            sage: C3 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 175)
+            sage: C1 = codes.GeneralizedReedSolomonCode(GF(251).list()[:200], 125)
+            sage: C2 = codes.GeneralizedReedSolomonCode(GF(251).list()[:200], 150)
+            sage: C3 = codes.GeneralizedReedSolomonCode(GF(251).list()[:200], 175)
             sage: D1 = C1.decoder()
             sage: D2 = C2.decoder()
             sage: D3 = C3.decoder()
@@ -1114,6 +1106,7 @@ class Benchmark(SageObject):
             sage: B4 = B1 + B2 + B3
             sage: B4.run()
             sage: B4.plot(lambda i: (B4.decoder(i).decoding_radius(), B4.compute_timings("decoding", median, i)))
+            Graphics object consisting of 1 graphics primitive
         """
         if not hasattr(points_generator, '__call__'):
             raise ValueError("points_generator has to be a method")
