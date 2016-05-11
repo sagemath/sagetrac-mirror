@@ -81,18 +81,22 @@ We can add those benchmarks to create a big benchmark structure:
 Before going up to data exploitation (with plotting!), let's stop on some properties of
 the addition for benchmarks:
 
-    - it is possible to add any number of benchmarks
-    - if those benchmarks identifiers are the default one (``"_0"``), Sage will
+    - It is possible to add any number of benchmarks.
+
+    - If those benchmarks identifiers are the default one (``"_0"``), Sage will
       rename them by incrementing their id by one for each benchmark but the
       first one. So, in the example above, ``B1`` will get the id ``"_0"``,
       ``B2`` will get ``"_1"``, ``B3`` will get ``"_2"`` etc.
-    - if one changed their ids, it of course possible to add them as long as their ids
+
+    - If one changed their ids, it is of course possible to add them as long as their ids
       are all different. If two benchmarks share the same custom id, an exception will be
       raised.
-    - in the final benchmark object, any call to getter methods (:meth:`encoder`, :meth:`decoder` etc)
+
+    - In the final benchmark object, any call to getter methods (:meth:`encoder`, :meth:`decoder` etc)
       will return a dictionary whose keys are the ids and values the associated object. It is possible to
-      specify the id as input (e.g. ``B_final.encoder("_3") to get a specific value).
-    - when the addition is performed, if some benchmark already had experimental data computed, this
+      specify the id as input (e.g. ``B_final.decoder("_3")`` to get a specific value).
+
+    - When the addition is performed, if some benchmark already had experimental data computed, this
       data will be propagated.
 
 Plotting data
@@ -859,7 +863,7 @@ class Benchmark(SageObject):
 
     def run(self, verbosity_level = 0):
         r"""
-        Runs  rounds of experimental data computation using ``self``'s
+        Runs rounds of experimental data computation using ``self``'s
         parameters. The user can be informed about the current run's status by setting
         ``verbosity_level`` to the appropriate value.
 
@@ -873,6 +877,7 @@ class Benchmark(SageObject):
 
         - ``verbosity_level`` -- (default: ``0``) a number which indicates how verbose this run will
           be:
+
             - ``0`` means completely silent, nothing will be written on the output,
             - ``1`` means small verbosity, one message will be written every time 25% of the tests are done,
             - ``2`` means very verbose, one message will be written every time 10% of the tests are done.
@@ -894,7 +899,8 @@ class Benchmark(SageObject):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
-        Another one in verbose::
+
+        Another one in verbose mode::
 
             sage: B.clear_experimental_data()
             sage: B.run(100, 1)
@@ -1024,6 +1030,7 @@ class Benchmark(SageObject):
 
         - ``target`` -- the operation whose success rate will be computed, can be
           either:
+
             - ``"error"``, which will compute a ratio on the number of decoding attempts
               which returned a word, whichever word it was
             - ``"failure"``, which will compute a ratio on the number of decoding attempts
