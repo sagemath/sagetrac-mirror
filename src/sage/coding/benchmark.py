@@ -424,6 +424,7 @@ class Benchmark(SageObject):
             b._channels = copy(other._channels)
             b._ids = copy(other.identifier())
             b._experimental_data = copy(other.experimental_data())
+            b._no_tests = copy(other._no_tests)
             return b
         else:
             b._codes = copy(self._codes)
@@ -431,6 +432,7 @@ class Benchmark(SageObject):
             b._channels = copy(self._channels)
             b._ids = copy(self.identifier())
             b._experimental_data = copy(self.experimental_data())
+            b._no_tests = copy(self._no_tests)
         for i in other.identifier():
             #if i is a custom id, which is already known by self, raise an Exception
             if i in b.identifier() and isinstance(i, str) and pattern_default_id.match(i) is None:
@@ -451,6 +453,7 @@ class Benchmark(SageObject):
                     b._codes[new_id] = other._codes[i]
                     b._decoders[new_id] = other._decoders[i]
                     b._channels[new_id] = other._channels[i]
+                    b._no_tests[new_id] = other.number_of_tests(i)
                     other_exp_data = other.experimental_data()
                     if len(other_exp_data) is not 0:
                         run = 0
@@ -469,6 +472,7 @@ class Benchmark(SageObject):
                     b._codes[i] = other._codes[i]
                     b._decoders[i] = other._decoders[i]
                     b._channels[i] = other._channels[i]
+                    b._no_tests[new_id] = other.number_of_tests(i)
                     other_exp_data = other.experimental_data()
                     if len(other_exp_data) is not 0:
                         run = 0
@@ -607,20 +611,138 @@ class Benchmark(SageObject):
                 raise ValueError("Given identifier is not known by self")
             return nt[identifier]
 
-    def experimental_data(self):
+    def experimental_data(self, identifier=None, data=None):
         r"""
         Returns the dictionary which contains all the experimental data generated.
 
+        INPUT:
+
+        - ``identifier`` -- (default: ``None``) the identifier of the benchmark whose
+          experimental_data will be returned. If it is set to ``None``, the complete dictionary
+          of experimental_data will be returned.
+
+        - ``data`` -- (default: ``None``) the specific data to return.
+          It can be either:
+
+          - ``"codeword"``, which will return the whole list of codewords,
+          - ``"generate_codeword_time"``, which will return the whole list of timings measured while
+            generating the codeword,
+          - ``"scrambled_codeword"``, which will return the whole list of codewords as they were
+            after being scrambled by ``self``'s channel,
+          - ``"decoded_word"``, which will return the whole list of scrambled codewords as they were
+            after being decoded by ``self``'s decoder,
+          - ``"decoding_time"``, which will return the whole list of timings measured while performing
+            decoding attempts,
+          - ``"decoding_error"``, which will return the whole list of decoding errors registered while
+            performing decoding attempts,
+          - ``"decoding_failure"``, which will return the whole list of decoding failures registered while
+            performing decoding attempts, or
+          - ``None``, which will return the whole dictionary of experimental data.
+
+        .. NOTE::
+
+            If ``identifier`` is set to ``None``, and ``data`` is set to a specific keyword
+
         EXAMPLES::
-            sage: C = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
-            sage: D = C.decoder()
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(C, D, Chan)
-            sage: B.start_experiments()
+
+            sage: C1 = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
+            sage: D1 = C1.decoder()
+            sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
+            sage: B1 = codes.Benchmark(C1, D1, Chan1, no_tests = 2)
+            sage: C2 = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
+            sage: D2 = C2.decoder()
+            sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
+            sage: B2 = codes.Benchmark(C2, D2, Chan2, no_tests = 2)
+            sage: B = B1 + B2
+            sage: B.run()
             sage: B.experimental_data() #random
+            {('_0', 0): ((5, 3, 6, 0, 6, 3),
+              0.0006960000000000299,
+              (5, 5, 6, 0, 6, 3),
+              (5, 3, 6, 0, 6, 3),
+              0.0025980000000001002,
+              False,
+              False),
+             ('_0', 1): ((5, 6, 5, 2, 4, 4),
+              0.0002469999999998862,
+              (5, 1, 5, 2, 4, 4),
+              (5, 6, 5, 2, 4, 4),
+              0.0006909999999999972,
+              False,
+              False),
+             ('_1', 0): ((2, 4, 4, 2, 5, 6),
+              0.021160000000000068,
+              (2, 4, 4, 1, 5, 6),
+              (2, 4, 4, 2, 5, 6),
+              0.026135999999999937,
+              False,
+              False),
+             ('_1', 1): ((5, 4, 4, 5, 0, 3),
+              0.0007790000000000852,
+              (5, 4, 4, 1, 0, 3),
+              (5, 4, 4, 5, 0, 3),
+              0.0008300000000001084,
+              False,
+              False)}
+
+        To access directly some specific data, one can set the data to fetch::
+
+            sage: B.experimental_data(data="decoding_time") #random
+            {('_0', 0): 0.0025980000000001002,
+             ('_0', 1): 0.0006909999999999972,
+             ('_1', 0): 0.026135999999999937,
+             ('_1', 1): 0.0008300000000001084}
+
+        And even set the id of the sub-benchmark::
+
+            sage: B.experimental_data(identifier="_0", data="decoding_time") #random
+            {('_0', 0): 0.0025980000000001002,
+             ('_0', 1): 0.0006909999999999972}
         """
-        return self._experimental_data
+        exp_data = self._experimental_data
+        ids = self.identifier()
+        if data not in ["codeword", "generate_codeword_time", "scrambled_codeword",
+                "decoded_word", "decoding_time", "decoding_error", "decoding_failure", None]:
+            raise ValueError("data must be one of the allowed values. See documentation for details")
+
+        if data is "codeword":
+            data_id = 0
+        elif data is "generate_codeword_time":
+            data_id = 1
+        elif data is "scrambled_codeword":
+            data_id = 2
+        elif data is "decoded_word":
+            data_id = 3
+        elif data is "decoding_time":
+            data_id = 4
+        elif data is "decoding_error":
+            data_id = 5
+        elif data is "decoding_failure":
+            data_id = 6
+
+        if identifier is None and data is None:
+            return exp_data
+        elif identifier is None:
+            selected_data = dict()
+            for i in ids:
+                no_tests = self.number_of_tests(i)
+                for j in range(no_tests):
+                    selected_data[i, j] = exp_data[i, j][data_id]
+            return selected_data
+
+        if identifier not in self.identifier():
+            raise ValueError("Given identifier is not known by self")
+
+        selected_data = dict()
+        no_tests = self.number_of_tests(identifier)
+        if data is None:
+            for n in range(no_tests):
+                selected_data[identifier, n] = exp_data[identifier, n]
+            return selected_data
+        else:
+            for n in range(no_tests):
+                selected_data[identifier, n] = exp_data[identifier, n][data_id]
+            return selected_data
 
     def identifier(self):
         r"""
