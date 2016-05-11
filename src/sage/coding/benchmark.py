@@ -7,14 +7,13 @@ on linear codes, gather and manipulate results from these experiments.
 Overview
 ========
 
-A ``Benchmark`` takes an ``Encoder``, a ``Decoder`` and a ``Channel`` as
+A ``Benchmark`` takes a ``Code``, a ``Decoder`` and a ``Channel`` as
 input::
 
     sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-    sage: E = C.encoder()
     sage: D = C.decoder()
     sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-    sage: B = codes.Benchmark(E, D, Chan)
+    sage: B = codes.Benchmark(C, D, Chan)
 
 Once the benchmark is created, it is possible to perform experiments using it::
 
@@ -22,14 +21,14 @@ Once the benchmark is created, it is possible to perform experiments using it::
 
 This command will trigger the following behaviour:
 
-    - generate a random message ``m`` from the encoder's message space,
-    - encode ``m``, this will return a codeword ``c``,
+    - generate a random codeword ``c`` in ``self``'s code,
     - use the channel to scramble ``c``, giving a new word ``y``, and
     - decode ``y`` into ``y_dec`` using the decoder.
 
 At every step, some data is stored to keep track of every event which
 occured during a run. In the end, ``m``, ``c``, ``y``, ``y_dec`` are
-stored. Furthermore, the encoding time, the decoding time and the result
+stored. Furthermore, the time used to generate ``c``, the decoding time
+and the result
 of the decoding attempt (success or failure) are stored as well.
 For more details on stored data, see
 :meth:`sage.coding.benchmark.Benchmark.experimental_data`.
@@ -67,11 +66,11 @@ Let's consider the following codes:
 We build benchmarks based on them:
 
     sage: chan = channels.StaticErrorRateChannel
-    sage: B1 = codes.Benchmark(C1.encoder(), C1.decoder(), chan(C1.ambient_space(), C1.decoder().decoding_radius()))
-    sage: B2 = codes.Benchmark(C2.encoder(), C2.decoder(), chan(C2.ambient_space(), C2.decoder().decoding_radius()))
-    sage: B3 = codes.Benchmark(C3.encoder(), C3.decoder(), chan(C3.ambient_space(), C3.decoder().decoding_radius()))
-    sage: B4 = codes.Benchmark(C4.encoder(), C4.decoder(), chan(C4.ambient_space(), C4.decoder().decoding_radius()))
-    sage: B5 = codes.Benchmark(C5.encoder(), C5.decoder(), chan(C5.ambient_space(), C5.decoder().decoding_radius()))
+    sage: B1 = codes.Benchmark(C1, C1.decoder(), chan(C1.ambient_space(), C1.decoder().decoding_radius()))
+    sage: B2 = codes.Benchmark(C2, C2.decoder(), chan(C2.ambient_space(), C2.decoder().decoding_radius()))
+    sage: B3 = codes.Benchmark(C3, C3.decoder(), chan(C3.ambient_space(), C3.decoder().decoding_radius()))
+    sage: B4 = codes.Benchmark(C4, C4.decoder(), chan(C4.ambient_space(), C4.decoder().decoding_radius()))
+    sage: B5 = codes.Benchmark(C5, C5.decoder(), chan(C5.ambient_space(), C5.decoder().decoding_radius()))
 
 We can add those benchmarks to create a big benchmark structure:
 
@@ -115,11 +114,10 @@ the following interface provided by Sage:
 
 
     C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-    E = C.encoder()
     D = C.decoder()
     Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
     from sage.coding.benchmark import Benchmark
-    B = Benchmark(E, D, Chan)
+    B = Benchmark(C, D, Chan)
     B.start_experiments()
     f = os.path.join("path_to_file", 'bench.sobj')
     save(B, f)
@@ -134,10 +132,9 @@ the following interface provided by Sage:
     TESTS::
 
         sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-        sage: E = C.encoder()
         sage: D = C.decoder()
         sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-        sage: B = codes.Benchmark(E, D, Chan)
+        sage: B = codes.Benchmark(C, D, Chan)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
@@ -157,7 +154,7 @@ the following interface provided by Sage:
 
 import time
 from copy import copy
-from encoder import Encoder
+from linear_code import AbstractLinearCode
 from decoder import Decoder, DecodingError
 from channel_constructions import Channel
 from sage.rings.integer import Integer
@@ -176,7 +173,7 @@ class Benchmark(SageObject):
 
     INPUT:
 
-    - ``encoder`` -- (default: ``None``) an instance of :class:`sage.coding.encoder.Encoder`.
+    - ``code`` -- (default: ``None``) a linear code.
                      If set to ``None``, it creates an empty benchmark.
 
     - ``decoder`` -- (default: ``None``) an instance of :class:`sage.coding.decoder.Decoder`.
@@ -207,7 +204,7 @@ class Benchmark(SageObject):
         sage: E = C.encoder()
         sage: D = C.decoder()
         sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-        sage: codes.Benchmark(E, D, Chan)
+        sage: codes.Benchmark(C, D, Chan)
 
 
 
@@ -216,38 +213,36 @@ class Benchmark(SageObject):
     _super_id = 0
 
     @experimental(trac_number=20526)
-    def __init__(self, encoder=None, decoder=None, channel=None, identifier=None):
+    def __init__(self, code=None, decoder=None, channel=None, identifier=None):
         r"""
         TESTS:
 
-        If one passes an encoder and a decoder which are not associated with the
-        same code, an exception is raised:
+        If ``decoder`` is not associated with ``code``, an exception is raised::
 
-            sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
-            sage: Ch = channels.StaticErrorRateChannel(C1.ambient_space(), 5)
-            sage: codes.Benchmark(C1.encoder(), C2.decoder(), Ch)
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 18)
+            sage: Ch = channels.StaticErrorRateChannel(GF(59) ** 42, 5)
+            sage: codes.Benchmark(C, C1.decoder(), Ch)
             Traceback (most recent call last):
             ...
-            ValueError: encoder and decoder have to be associated with the same code
+            ValueError: decoder has to be associated with code
 
-        If one passes a channel which input space is not the ambient space of
-        the code associated with ``encoder`` and ``decoder``, an exception
-        is raised::
+
+        If one passes a channel whose input space is not the ambient space of
+        ``code``, an exception is raised::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: Ch = channels.StaticErrorRateChannel(GF(59) ** 42, 5)
-            sage: codes.Benchmark(C.encoder(), C.decoder(), Ch)
+            sage: codes.Benchmark(C, C.decoder(), Ch)
             Traceback (most recent call last):
             ...
             ValueError: channel's input space has to be the ambient space of the code
         """
 
-        inp = [encoder, decoder, channel]
-        self._encoders = dict()
+        inp = [code, decoder, channel]
+        self._codes = dict()
         self._decoders = dict()
         self._channels = dict()
-        self._codes = dict()
         self._ids = set()
         if identifier is None:
             self._ids.add("_0")
@@ -257,26 +252,24 @@ class Benchmark(SageObject):
             local_id = identifier
 
         if all(i is None for i in inp):
-            self._encoders[local_id] = None
-            self._decoders[local_id] = None
             self._codes[local_id] = None
+            self._decoders[local_id] = None
             self._channels[local_id] = None
             self._experimental_data = dict()
             return
         if None in inp:
-            raise ValueError("encoder, decoder and channel have to be all set to None or all specified")
-        elif not isinstance(encoder, Encoder):
-            raise ValueError("encoder has to be an Encoder object")
+            raise ValueError("code, decoder and channel have to be all set to None or all specified")
+        elif not isinstance(code, AbstractLinearCode):
+            raise ValueError("code has to be an AbstractLinearCode object")
         elif not isinstance(decoder, Decoder):
             raise ValueError("decoder has to be a Decoder object")
         elif not isinstance(channel, Channel):
             raise ValueError("channel has to be a Channel object")
-        elif not encoder.code() == decoder.code():
-            raise ValueError("encoder and decoder have to be associated with the same code")
-        self._encoders[local_id] = encoder
+        elif not code == decoder.code():
+            raise ValueError("decoder has to be associated with code")
+        self._codes[local_id] = code
         self._decoders[local_id] = decoder
-        self._codes[local_id] = encoder.code()
-        if not channel.input_space() == encoder.code().ambient_space():
+        if not channel.input_space() == code.ambient_space():
             raise ValueError("channel's input space has to be the ambient space of the code")
         self._channels[local_id] = channel
         self._experimental_data = dict()
@@ -288,16 +281,15 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B1 = codes.Benchmark(E, D, Chan)
-            sage: B2 = codes.Benchmark(E, D, Chan)
+            sage: B1 = codes.Benchmark(C, D, Chan)
+            sage: B2 = codes.Benchmark(C, D, Chan)
             sage: B1.__eq__(B2)
             True
         """
         return isinstance(other, Benchmark)\
-                and self.encoder() == other.encoder()\
+                and self.code() == other.code()\
                 and self.decoder() == other.decoder()\
                 and self.channel() == other.channel()\
                 and self.identifier() == other.identifier()
@@ -310,14 +302,12 @@ class Benchmark(SageObject):
 
             sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
-            sage: E1 = C1.encoder()
-            sage: E2 = C2.encoder()
             sage: D1 = C1.decoder()
             sage: D2 = C2.decoder()
             sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
             sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
-            sage: B1 = codes.Benchmark(E1, D1, Chan1)
-            sage: B2 = codes.Benchmark(E2, D2, Chan2)
+            sage: B1 = codes.Benchmark(C1, D1, Chan1)
+            sage: B2 = codes.Benchmark(C2, D2, Chan2)
             sage: B1.__ne__(B2)
             True
         """
@@ -330,17 +320,16 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: codes.Benchmark(E, D, Chan)
+            sage: codes.Benchmark(C, D, Chan)
 
         """
         l = len(self.identifier())
         if l > 1:
             return "Benchmarking structure consisting of %s benchmark primitives" % l
         return "Benchmarking structure using %s and %s, over %s"\
-                % (self.encoder(), self.decoder(), self.channel())
+                % (self.code(), self.decoder(), self.channel())
 
     def __add__(self, other):
         r"""
@@ -357,18 +346,15 @@ class Benchmark(SageObject):
             sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
             sage: C3 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 16)
-            sage: E1 = C1.encoder()
-            sage: E2 = C2.encoder()
-            sage: E3 = C3.encoder()
             sage: D1 = C1.decoder()
             sage: D2 = C2.decoder()
             sage: D3 = C3.decoder()
             sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
             sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
             sage: Chan3 = channels.StaticErrorRateChannel(C3.ambient_space(), D3.decoding_radius())
-            sage: B1 = codes.Benchmark(E1, D1, Chan1)
-            sage: B2 = codes.Benchmark(E2, D2, Chan2)
-            sage: B3 = codes.Benchmark(E3, D3, Chan3)
+            sage: B1 = codes.Benchmark(C1, D1, Chan1)
+            sage: B2 = codes.Benchmark(C2, D2, Chan2)
+            sage: B3 = codes.Benchmark(C3, D3, Chan3)
             sage: B4 = B1 + B2 + B3
             sage: B4
             Benchmarking structure consisting of 3 benchmark primitives
@@ -388,14 +374,12 @@ class Benchmark(SageObject):
 
             sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
-            sage: E1 = C1.encoder()
-            sage: E2 = C2.encoder()
             sage: D1 = C1.decoder()
             sage: D2 = C2.decoder()
             sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
             sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
-            sage: B1 = codes.Benchmark(E1, D1, Chan1, identifier = "my_id")
-            sage: B2 = codes.Benchmark(E2, D2, Chan2, identifier = "my_id")
+            sage: B1 = codes.Benchmark(C1, D1, Chan1, identifier = "my_id")
+            sage: B2 = codes.Benchmark(C2, D2, Chan2, identifier = "my_id")
             sage: B1 + B2
             Traceback (most recent call last):
             ...
@@ -404,8 +388,8 @@ class Benchmark(SageObject):
         if not isinstance(other, Benchmark):
             raise TypeError("%s must be a Benchmark object" % other)
         #if both self and other are empty, do nothing
-        if (len(self.identifier()) == 1 and self.encoder() is None
-                and len(other.identifier()) == 1 and other.encoder() is None):
+        if (len(self.identifier()) == 1 and self.code() is None
+                and len(other.identifier()) == 1 and other.code() is None):
             raise ValueError("Cannot add two empty benchmarks")
         if self == other:
             return self
@@ -413,43 +397,39 @@ class Benchmark(SageObject):
         pattern_default_id = re.compile('_[0-9]+')
         b = Benchmark()
         #if self is None, we put other in b and immediately return this object
-        if len(self.identifier()) == 1 and self.encoder() is None:
-            b._encoders = copy(other._encoders)
+        if len(self.identifier()) == 1 and self.code() is None:
+            b._codes = copy(other._codes)
             b._decoders = copy(other._decoders)
             b._channels = copy(other._channels)
-            b._codes = copy(other._codes)
             b._ids = copy(other.identifier())
             b._experimental_data = copy(other.experimental_data())
             return b
         else:
-            b._encoders = copy(self._encoders)
+            b._codes = copy(self._codes)
             b._decoders = copy(self._decoders)
             b._channels = copy(self._channels)
-            b._codes = copy(self._codes)
             b._ids = copy(self.identifier())
             b._experimental_data = copy(self.experimental_data())
         for i in other.identifier():
             #if i is a custom id, which is already known by self, raise an Exception
             if i in b.identifier() and isinstance(i, str) and pattern_default_id.match(i) is None:
                 raise ValueError("Benchmark with custom id %s is already in self" % i)
-            #if other's encoder, decoder, channel and code are already know by self, do nothing
-            elif (i in b.identifier() and self.encoder(i) == other.encoder(i)
+            #if other's codes, decoder, channel and code are already know by self, do nothing
+            elif (i in b.identifier() and self.code(i) == other.code(i)
                     and self.decoder(i) == other.decoder(i)
-                    and self.channel(i) == other.channel(i)
-                    and self.code(i) == self.code(i)):
+                    and self.channel(i) == other.channel(i)):
                 pass
             #if i is a default id, change it and add other to self
             elif i in b.identifier():
-                if other.encoder(identifier = i) is None:
+                if other.code(identifier = i) is None:
                     pass
                 else:
                     Benchmark._super_id += 1
                     new_id = "_"+str(Benchmark._super_id)
                     b._ids.add(new_id)
-                    b._encoders[new_id] = other._encoders[i]
+                    b._codes[new_id] = other._codes[i]
                     b._decoders[new_id] = other._decoders[i]
                     b._channels[new_id] = other._channels[i]
-                    b._codes[new_id] = other._codes[i]
                     other_exp_data = other.experimental_data()
                     if len(other_exp_data) is not 0:
                         run = 0
@@ -461,14 +441,13 @@ class Benchmark(SageObject):
                                 break
             #if i in a custom id, add other as is to self
             else:
-                if other.encoder(identifier = i) is None:
+                if other.code(identifier = i) is None:
                     pass
                 else:
                     b._ids.add(i)
-                    b._encoders[i] = other._encoders[i]
+                    b._codes[i] = other._codes[i]
                     b._decoders[i] = other._decoders[i]
                     b._channels[i] = other._channels[i]
-                    b._codes[i] = other._codes[i]
                     other_exp_data = other.experimental_data()
                     if len(other_exp_data) is not 0:
                         run = 0
@@ -479,39 +458,6 @@ class Benchmark(SageObject):
                             except KeyError:
                                 break
         return b
-
-    def encoder(self, identifier=None):
-        r"""
-        Returns the encoder used by ``self`` to perform experiments.
-
-        If ``self`` is a combination of several benchmarks, it possesses a list
-        of several encoders. In that case, one can specify the ``identifier`` of
-        a sub-benchmark to access its encoder.
-
-        INPUT:
-
-        - ``identifier`` -- (default: ``None``) the identifier of the benchmark which
-          encoder will be returned. If it is set to ``None``, the complete dictionary
-          of encoders will be returned.
-
-        EXAMPLES::
-
-            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
-            sage: D = C.decoder()
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
-            sage: B.encoder()
-            Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
-        """
-        enc = self._encoders
-        if identifier is None:
-            return (enc.values()[0] if len(enc) == 1 else enc)
-        else:
-            if identifier not in self.identifier():
-                raise ValueError("Given identifier is not known by self")
-            return enc[identifier]
 
     def decoder(self, identifier=None):
         r"""
@@ -530,11 +476,10 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
+            sage: B = Benchmark(C, D, Chan)
             sage: B.decoder()
             Gao decoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
@@ -563,11 +508,10 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
+            sage: B = Benchmark(C, D, Chan)
             sage: B.channel()
             Static error rate channel creating 14 errors, of input and output space Vector space of dimension 40 over Finite Field of size 59
         """
@@ -596,11 +540,10 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
+            sage: B = Benchmark(C, D, Chan)
             sage: B.code()
             [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
@@ -618,11 +561,10 @@ class Benchmark(SageObject):
 
         EXAMPLES::
             sage: C = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
+            sage: B = Benchmark(C, D, Chan)
             sage: B.start_experiments(no_tests = 1)
             sage: B.experimental_data() #random
         """
@@ -635,10 +577,9 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.identifier()
             {"_0"}
         """
@@ -651,10 +592,9 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(7).list()[:6], 3)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.start_experiments()
             sage: len(B.experimental_data())
             100
@@ -685,11 +625,10 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
-            sage: B = Benchmark(E, D, Chan)
+            sage: B = Benchmark(C, D, Chan)
             sage: B._perform_experiments_for_single_id('_0', 100, 0)
         """
         #setting local variables and checking validity of data to use
@@ -703,7 +642,6 @@ class Benchmark(SageObject):
         C = self.code(identifier)
         if C is None:
             raise ValueError("Impossible to run tests on an empty benchmark")
-        E = self.encoder(identifier)
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
         previous = 0 #used for verbosity
@@ -711,10 +649,9 @@ class Benchmark(SageObject):
             print "Starting run for benchmark %s" % identifier
 
         for i in range(no_tests):
-            m = E.message_space().random_element()
             start = time.clock()
-            c = E(m)
-            encode_time = time.clock() - start
+            c = C.random_element()
+            generate_c_time = time.clock() - start
             y = Chan(c)
             try:
                 start = time.clock()
@@ -725,7 +662,7 @@ class Benchmark(SageObject):
                 decode_time = time.clock() - start
                 dec_y = None #as decoding failed
                 decoding_success = False
-            data[identifier, i] = (m, c, encode_time, y, dec_y, decode_time, decoding_success)
+            data[identifier, i] = (c, generate_c_time, y, dec_y, decode_time, decoding_success)
 
             #verbosity
             if verbosity ==1:
@@ -750,8 +687,7 @@ class Benchmark(SageObject):
 
         A round of experimental data computation consists in:
 
-        - generating a random message ``m`` from the ``self``'s encoder's message space,
-        - encoding ``m``, this will return a codeword ``c``,
+        - generating a random codeword in ``self``'s code,
         - using the ``self``'s channel to scramble ``c``, giving a new word ``y``, and
         - decoding ``y`` into ``y_dec`` using ``self``'s decoder.
 
@@ -778,10 +714,9 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
         Another one in verbose::
 
@@ -813,7 +748,7 @@ class Benchmark(SageObject):
           whose success rate will be computed.
 
         - ``target`` -- the operation whose timings will be computed, can be
-          either ``"encoding"`` or ``"decoding"``
+          either ``"codeword_generation"`` or ``"decoding"``
 
         - ``processing`` -- the processing to apply on ``target``'s timings.
           It has to be a Sage/Python method. It can be either a native one
@@ -823,20 +758,19 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
             sage: B._process_experimental_data('_0', "decoding", median) #random
             0.0008940000000000059
         """
-        if target is "encoding":
-            pos = 2
+        if target is "codeword_generation":
+            pos = 1
         elif target is "decoding":
-            pos = 5
+            pos = 4
         else:
-            raise ValueError("target has to be set to either \"encoding\" or \"decoding\"")
+            raise ValueError("target has to be set to either \"codeword_generation\" or \"decoding\"")
         i = 0
         timings = []
         data = self.experimental_data()
@@ -856,7 +790,7 @@ class Benchmark(SageObject):
         INPUT:
 
         - ``target`` -- the operation whose timings will be computed, can be
-          either ``"encoding"`` or ``"decoding"``
+          either ``"codeword_generation"`` or ``"decoding"``
 
         - ``processing`` -- the processing to apply on ``target``'s timings.
           It has to be a Sage/Python method. It can be either a native one
@@ -877,23 +811,22 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
             sage: B.compute_timings("decoding", median) #random
             {'_0', 0.0008940000000000059}
 
         It is also possible to use your own processing method::
 
-            sage: def my_dumb_processing(l):
+            sage: def my_silly_processing(l):
             ....:    return -1
-            sage: B.compute_timings("decoding", my_dumb_processing)
+            sage: B.compute_timings("decoding", my_silly_processing)
             {'_0', -1}
         """
-        if not target in ("decoding", "encoding"):
-            raise ValueError("target has to be set to either \"encoding\" or \"decoding\"")
+        if not target in ("decoding", "codeword_generation"):
+            raise ValueError("target has to be set to either \"codeword_generation\" or \"decoding\"")
         if not hasattr(processing, '__call__'):
             raise ValueError("processing has to be a method")
         data = self.experimental_data()
@@ -931,10 +864,9 @@ class Benchmark(SageObject):
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: E = C.encoder()
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
-            sage: B = codes.Benchmark(E, D, Chan)
+            sage: B = codes.Benchmark(C, D, Chan)
             sage: B.run()
             sage: B.decoding_success_rate()
             {'_0': 1.00}
@@ -944,7 +876,7 @@ class Benchmark(SageObject):
             success_sum = 0
             while True:
                 try:
-                    success_sum += data[identifier, i][6]
+                    success_sum += data[identifier, i][5]
                     i += 1
                 except KeyError:
                     break
@@ -981,18 +913,15 @@ class Benchmark(SageObject):
             sage: C1 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 125)
             sage: C2 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 150)
             sage: C3 = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 175)
-            sage: E1 = C1.encoder()
-            sage: E2 = C2.encoder()
-            sage: E3 = C3.encoder()
             sage: D1 = C1.decoder()
             sage: D2 = C2.decoder()
             sage: D3 = C3.decoder()
             sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
             sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
             sage: Chan3 = channels.StaticErrorRateChannel(C3.ambient_space(), D3.decoding_radius())
-            sage: B1 = codes.Benchmark(E1, D1, Chan1)
-            sage: B2 = codes.Benchmark(E2, D2, Chan2)
-            sage: B3 = codes.Benchmark(E3, D3, Chan3)
+            sage: B1 = codes.Benchmark(C1, D1, Chan1)
+            sage: B2 = codes.Benchmark(C2, D2, Chan2)
+            sage: B3 = codes.Benchmark(C3, D3, Chan3)
             sage: B4 = B1 + B2 + B3
             sage: B4.run()
             sage: B4.plot(lambda i: (B4.decoder(i).decoding_radius(), B4.compute_timings("decoding", median, i)))
