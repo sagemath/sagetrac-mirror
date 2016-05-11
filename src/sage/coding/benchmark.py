@@ -324,7 +324,28 @@ class Benchmark(SageObject):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: codes.Benchmark(C, D, Chan)
 
+        If ``self`` is an empty benchmark, a specific string representation
+        is given::
+
+            sage: codes.Benchmark()
+            Empty Benchmark object
+
+        If ``self`` is the result of an addition between several benchmarks,
+        a specific string representation is given::
+
+            sage: C1 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: C2 = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 14)
+            sage: D1 = C1.decoder()
+            sage: D2 = C2.decoder()
+            sage: Chan1 = channels.StaticErrorRateChannel(C1.ambient_space(), D1.decoding_radius())
+            sage: Chan2 = channels.StaticErrorRateChannel(C2.ambient_space(), D2.decoding_radius())
+            sage: B1 = codes.Benchmark(C1, D1, Chan1)
+            sage: B2 = codes.Benchmark(C2, D2, Chan2)
+            sage: B1 + B2
+            Benchmarking structure consisting of 2 benchmark primitives
         """
+        if self.code() is None:
+            return "Empty Benchmark object"
         l = len(self.identifier())
         if l > 1:
             return "Benchmarking structure consisting of %s benchmark primitives" % l
