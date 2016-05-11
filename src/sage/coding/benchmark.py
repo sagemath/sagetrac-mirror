@@ -185,6 +185,9 @@ class Benchmark(SageObject):
     - ``identifier`` -- (default: ``None``) the name used to identify this specific benchmark.
                      If set to ``None``, this benchmark will be identified as ``"_0"``.
 
+    - ``no_tests`` -- (default: ``100``) the number of tests to perform on ``self`` when doing
+                      experiments.
+
     .. NOTE::
 
         Leaving both ``encoder``, ``decoder`` and ``channel`` set to ``None`` will generate an empty
@@ -213,7 +216,7 @@ class Benchmark(SageObject):
     _super_id = 0
 
     @experimental(trac_number=20526)
-    def __init__(self, code=None, decoder=None, channel=None, identifier=None):
+    def __init__(self, code=None, decoder=None, channel=None, identifier=None, no_tests=100):
         r"""
         TESTS:
 
@@ -243,6 +246,7 @@ class Benchmark(SageObject):
         self._codes = dict()
         self._decoders = dict()
         self._channels = dict()
+        self._no_tests = dict()
         self._ids = set()
         if identifier is None:
             self._ids.add("_0")
@@ -267,8 +271,13 @@ class Benchmark(SageObject):
             raise ValueError("channel has to be a Channel object")
         elif not code == decoder.code():
             raise ValueError("decoder has to be associated with code")
+        if not isinstance(no_tests, (int, Integer)):
+            raise ValueError("no_tests has to be a positive Python int or Sage Integer")
+        if not no_tests > 0:
+            raise ValueError("no_tests has to be a positive Python int or Sage Integer")
         self._codes[local_id] = code
         self._decoders[local_id] = decoder
+        self._no_tests[local_id] = no_tests
         if not channel.input_space() == code.ambient_space():
             raise ValueError("channel's input space has to be the ambient space of the code")
         self._channels[local_id] = channel
@@ -567,6 +576,37 @@ class Benchmark(SageObject):
                 raise ValueError("Given identifier is not known by self")
             return c[identifier]
 
+    def number_of_tests(self, identifier=None):
+        r"""
+        Returns the number of tests done by ``self`` while performing experiments.
+
+        If ``self`` is a combination of several benchmarks, it possesses a list
+        of several number of tests. In that case, one can specify the ``identifier`` of
+        a sub-benchmark to access its specific number of tests argument.
+
+        INPUT:
+
+        - ``identifier`` -- (default: ``None``) the identifier of the benchmark whose
+          number of tests will be returned. If it is set to ``None``, the complete dictionary
+          of number of tests will be returned.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: D = C.decoder()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: B = codes.Benchmark(C, D, Chan)
+            sage: B.number_of_tests()
+            100
+        """
+        nt = self._no_tests
+        if identifier is None:
+            return (nt.values()[0] if len(nt) == 1 else nt)
+        else:
+            if identifier not in self.identifier():
+                raise ValueError("Given identifier is not known by self")
+            return nt[identifier]
+
     def experimental_data(self):
         r"""
         Returns the dictionary which contains all the experimental data generated.
@@ -577,7 +617,7 @@ class Benchmark(SageObject):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: from sage.coding.benchmark import Benchmark
             sage: B = Benchmark(C, D, Chan)
-            sage: B.start_experiments(no_tests = 1)
+            sage: B.start_experiments()
             sage: B.experimental_data() #random
         """
         return self._experimental_data
@@ -616,16 +656,14 @@ class Benchmark(SageObject):
         """
         self.experimental_data().clear()
 
-    def _perform_experiments_for_single_id(self, identifier, no_tests, verbosity):
+    def _perform_experiments_for_single_id(self, identifier, verbosity):
         r"""
-        Runs a ``no_tests`` rounds of experimental data computation using ``self``'s
+        Performs rounds of experimental data computation using ``self``'s
         parameters.
 
         See :meth:`run` for details.
 
         INPUT:
-
-        - ``no_tests`` -- the number of rounds to perform during this run.
 
         - ``verbosity_level`` -- a number which indicates how verbose this run will
           be:
@@ -656,6 +694,7 @@ class Benchmark(SageObject):
             raise ValueError("Impossible to run tests on an empty benchmark")
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
+        no_tests = self.number_of_tests(identifier)
         previous = 0 #used for verbosity
         if verbosity != 0:
             print "Starting run for benchmark %s" % identifier
@@ -691,9 +730,9 @@ class Benchmark(SageObject):
         if verbosity != 0:
             print "Run complete for benchmark %s" % identifier
 
-    def run(self, no_tests = 100, verbosity_level = 0):
+    def run(self, verbosity_level = 0):
         r"""
-        Runs a ``no_tests`` rounds of experimental data computation using ``self``'s
+        Runs  rounds of experimental data computation using ``self``'s
         parameters. The user can be informed about the current run's status by setting
         ``verbosity_level`` to the appropriate value.
 
@@ -704,8 +743,6 @@ class Benchmark(SageObject):
         - decoding ``y`` into ``y_dec`` using ``self``'s decoder.
 
         INPUT:
-
-        - ``no_tests`` -- (default: ``100``) the number of rounds to perform during this run.
 
         - ``verbosity_level`` -- (default: ``0``) a number which indicates how verbose this run will
           be:
@@ -740,14 +777,10 @@ class Benchmark(SageObject):
             75.0 percent complete
             Run complete for benchmark _0
         """
-        if not isinstance(no_tests, (int, Integer)):
-            raise ValueError("no_tests has to be a positive Python int or Sage Integer")
-        if not no_tests > 0:
-            raise ValueError("no_tests has to be a positive Python int or Sage Integer")
         if not verbosity_level in {0,1,2}:
             raise ValueError("verbosity_level has to be either 0, 1 or 2")
         for i in self.identifier():
-            self._perform_experiments_for_single_id(i, no_tests, verbosity_level)
+            self._perform_experiments_for_single_id(i, verbosity_level)
 
     def _process_experimental_data(self, identifier, target, processing):
         r"""
