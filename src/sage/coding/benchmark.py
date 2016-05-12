@@ -812,20 +812,20 @@ class Benchmark(SageObject):
             c = C.random_element()
             generate_c_time = time.clock() - start
             y = Chan(c)
-            decoding_failure = True
+            decoding_error = True
             try:
                 start = time.clock()
                 dec_y = D.decode_to_code(y)
                 decode_time = time.clock() - start
-                decoding_error = False
+                decoding_failure = False
                 if "list-decoder" in D.decoder_type():
-                    decoding_failure = (c != dec_y)
+                    decoding_error = (c != dec_y)
                 else:
-                    decoding_failure = (c != dec_y)
+                    decoding_error = (c != dec_y)
             except DecodingError:
                 decode_time = time.clock() - start
                 dec_y = None #as decoding failed
-                decoding_error = True
+                decoding_failure = True
             data[identifier, i] = (c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure)
 
             #verbosity
@@ -1013,9 +1013,9 @@ class Benchmark(SageObject):
         - ``target`` -- the operation whose success rate will be computed, can be
           either:
 
-            - ``"error"``, which will compute a ratio on the number of decoding attempts
+            - ``"failure``, which will compute a ratio on the number of decoding attempts
               which returned a word, whichever word it was
-            - ``"failure"``, which will compute a ratio on the number of decoding attempts
+            - ``"error"``, which will compute a ratio on the number of decoding attempts
               which returned the original codeword
 
         - ``identifier`` -- (default: ``None``) the identifier of the benchmark
