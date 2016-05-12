@@ -699,24 +699,13 @@ class Benchmark(SageObject):
         """
         exp_data = self._experimental_data
         ids = self.identifier()
-        if data not in ["codeword", "generate_codeword_time", "scrambled_codeword",
-                "decoded_word", "decoding_time", "decoding_error", "decoding_failure", None]:
+        allowed_input = ["codeword", "generate_codeword_time", "scrambled_codeword",
+                "decoded_word", "decoding_time", "decoding_error", "decoding_failure", None]
+        if data not in allowed_input:
             raise ValueError("data must be one of the allowed values. See documentation for details")
 
-        if data is "codeword":
-            data_id = 0
-        elif data is "generate_codeword_time":
-            data_id = 1
-        elif data is "scrambled_codeword":
-            data_id = 2
-        elif data is "decoded_word":
-            data_id = 3
-        elif data is "decoding_time":
-            data_id = 4
-        elif data is "decoding_error":
-            data_id = 5
-        elif data is "decoding_failure":
-            data_id = 6
+        if data is not None:
+            data_id = allowed_input.index(data)
 
         if identifier is None and data is None:
             return exp_data
