@@ -1480,7 +1480,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if len(coeffs) != 1:
             return False
         return coeffs[0].is_unit()
-        
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -2508,9 +2508,23 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.factor()
             (x^3*y^-7*z^-2) * (4*x^4*y^7*z + 3*y^8*z^2 + 2*x*y^7 + x^3*z^2)
+
+        TESTS::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: f = x + y/x
+            sage: f.factor()
+            (x^-1) * (x^2 + y)
+            sage: g = 2*x + 2*y/x
+            sage: g.factor()
+            (x^-1) * 2 * (x^2 + y)
+
         """
         pf = self._poly.factor()
-        u = self.parent(pf.unit().dict()) # self.parent won't currently take polynomials
+        if pf.unit().parent() is self.base_ring():
+            u = self.parent({self.parent().ngens()*(0,): pf.unit()})
+        else:
+            u = self.parent(pf.unit().dict()) # self.parent won't currently take polynomials
 
         g = self.parent().gens()
         for i in self._mon.nonzero_positions():
@@ -2518,10 +2532,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         f = []
         for t in pf:
-            d = t[0].dict()
-            if len(d) == 1:  # monomials are units
-                u *= self.parent(d)**t[1]
-            else:
+            if t[0] in self.base_ring():
+                d = {self.parent().ngens()*(0,): t[0]}
                 f.append( (self.parent(d),t[1]) )
+            else:
+                d = t[0].dict()
+                if len(d) == 1:  # monomials are units
+                    u *= self.parent(d)**t[1]
+                else:
+                    f.append( (self.parent(d),t[1]) )
 
         return Factorization(f, unit=u)
