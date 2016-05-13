@@ -324,7 +324,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         TESTS:
 
-        We check that `trac:19138` is fixed::
+        We check that :trac:`19138` is fixed::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: B = Matrix([[1,1],[1,0]])
