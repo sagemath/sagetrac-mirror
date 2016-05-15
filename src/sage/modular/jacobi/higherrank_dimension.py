@@ -38,7 +38,10 @@ from sage.functions.all import exp, sqrt
 from sage.matrix.all import diagonal_matrix, identity_matrix, matrix
 from sage.misc.all import sum, mrange, prod, cython_lambda
 from sage.modules.all import vector
-from sage.rings.all import ComplexIntervalField, ZZ, QQ, lcm
+from sage.arith.misc import lcm
+from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.quadratic_forms.all import QuadraticForm
 from sage.symbolic.all import I, pi
 from copy import copy
