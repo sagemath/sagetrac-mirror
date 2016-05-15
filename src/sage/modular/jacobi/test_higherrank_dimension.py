@@ -25,11 +25,15 @@ AUTHOR:
 #
 #===============================================================================
 
-from sage.all import (prod, matrix,
-                      ZZ, ComplexField,
-                      gcd, lcm,
-                      QuadraticForm)
+from sage.arith.misc import gcd, lcm
+from sage.matrix.constructor import matrix
+from sage.misc.misc_c import prod
+from sage.quadratic_forms.quadratic_form import QuadraticForm
+from sage.rings.complex_field import ComplexField
+from sage.rings.integer_ring import ZZ
+
 import operator
+
 
 def _test_set__quadratic_forms():
     r"""
@@ -47,13 +51,14 @@ def _test_set__quadratic_forms():
             QuadraticForm(-matrix(2, [2, 0, 0, 4])),
             QuadraticForm(matrix(3, [2,1,1, 1,2,1, 1,1,2]))]
 
+
 def test__discriminant_form():
     r"""
     Test discriminant forms.  See individual tests for more details.
 
-    .. NOTE:
+    .. NOTE::
 
-    This is a test generator to be used by nosetest.
+        This is a test generator to be used by nosetest.
 
     TESTS::
 
@@ -117,9 +122,9 @@ def test__discriminant_form_pmone():
     r"""
     Test meth:`discriminant_form_pmone`.  See individual tests for more details.
 
-    .. NOTE:
+    .. NOTE::
 
-    This is a test generator to be used by nosetest.
+        This is a test generator to be used by nosetest.
 
     TESTS::
 
@@ -158,9 +163,9 @@ def test__weil_representation():
     r"""
     Test Weil representation.  See individual tests for more details.
 
-    .. NOTE:
+    .. NOTE::
 
-    This is a test generator to be used by nosetest.
+        This is a test generator to be used by nosetest.
 
     TESTS::
 

@@ -26,14 +26,19 @@ AUTHOR:
 #
 #===============================================================================
 
-from sage.all import (PolynomialRing, LaurentPolynomialRing,
-                      PowerSeriesRing,
-                      ZZ, QQ, gcd,
-                      factorial,
-                      vector, span, FreeModule,
-                      matrix,
-                      ModularForms, Gamma1
-)
+from sage.arith.misc import gcd
+from sage.functions.other import factorial
+from sage.matrix.constructor import matrix
+from sage.modular.arithgroup.congroup_gamma1 import Gamma1
+from sage.modular.modform.constructor import ModularForms
+from sage.modules.free_module import span, FreeModule
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.rational_field import QQ
+
 
 from sage.modular.jacobi.classical_weak import (
     classical_weak_jacobi_fe_indices,
