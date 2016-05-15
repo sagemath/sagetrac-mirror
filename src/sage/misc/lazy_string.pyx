@@ -64,7 +64,9 @@ Note that the function is recomputed each time::
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
+import six
 import types
+
 
 def is_lazy_string(obj):
     """
@@ -139,6 +141,8 @@ def _make_lazy_string(ftype, fpickle, args, kwargs):
         f = fpickle
     return _LazyString(f, args, kwargs)
 
+
+@six.python_2_unicode_compatible
 cdef class _LazyString(object):
     """
     Lazy class for strings created by a function call or a format string.
@@ -323,17 +327,18 @@ cdef class _LazyString(object):
         """
         return str(self.val())
 
-    def __unicode__(self):
+    def __str__(self):
         """
         EXAMPLES::
 
+            sage: import six
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda: "laziness"
             sage: s = lazy_string(f)
-            sage: unicode(s) # indirect doctest
+            sage: six.u(s) # indirect doctest
             u'laziness'
         """
-        return unicode(self.val())
+        return six.u(self.val())
 
     def __add__(self, other):
         """

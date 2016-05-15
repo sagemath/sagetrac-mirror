@@ -117,6 +117,7 @@ import ast
 import inspect
 import functools
 import os
+import six
 import tokenize
 import types
 import re
@@ -1687,7 +1688,7 @@ def _sage_getdoc_unformatted(obj):
     # not a 'getset_descriptor' or similar.
     if not isinstance(r, types.StringTypes):
         return ''
-    elif isinstance(r, unicode):
+    elif isinstance(r, six.text_type):
         return r.encode('utf-8', 'ignore')
     else:
         return r
