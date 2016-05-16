@@ -2446,40 +2446,54 @@ class KleshchevPartitions(PartitionTuples):
         [([], [], [1]), ([], [1], []), ([1], [], [])]
         sage: KleshchevPartitions(5,[3,2,1],3)[:]
         [([], [], [2, 1]),
-        ([1], [], [1, 1]),
-        ([], [], [1, 1, 1]),
-        ([], [1], [2]),
-        ([], [], [3]),
-        ([1], [], [2]),
-        ([2], [], [1]),
-        ([], [1], [1, 1]),
-        ([], [1, 1], [1]),
-        ([], [2], [1]),
-        ([1], [2], []),
-        ([], [3], []),
-        ([1], [1], [1]),
-        ([1, 1], [1], []),
-        ([2], [1], []),
-        ([3], [], [])]
+         ([1], [], [1, 1]),
+         ([], [], [1, 1, 1]),
+         ([], [1], [2]),
+         ([], [], [3]),
+         ([1], [], [2]),
+         ([2], [], [1]),
+         ([], [1], [1, 1]),
+         ([], [1, 1], [1]),
+         ([], [2], [1]),
+         ([1], [2], []),
+         ([], [3], []),
+         ([1], [1], [1]),
+         ([1, 1], [1], []),
+         ([2], [1], []),
+         ([3], [], [])]
         sage: KleshchevPartitions(5,[3,2,1],3,direction="down")[:]
-        [([], [1], [1, 1]),
-        ([1], [], [1, 1]),
-        ([], [], [1, 1, 1]),
-        ([], [1, 1], [1]),
-        ([], [1], [2]),
-        ([1], [1], [1]),
-        ([1, 1], [], [1]),
-        ([2], [], [1]),
-        ([], [1, 1, 1], []),
-        ([], [1, 1], [1]),
-        ([1], [1, 1], []),
-        ([1, 1], [1], []),
-        ([1], [2], []),
-        ([2], [1], []),
-        ([1, 1, 1], [], []),
-        ([1, 1], [1], []),
-        ([2, 1], [], []),
-        ([3], [], [])]
+        [([], [], [1, 1, 1]),
+         ([], [1], [1, 1]),
+         ([], [1], [2]),
+         ([1], [1], [1]),
+         ([], [1, 1, 1], []),
+         ([], [1, 1], [1]),
+         ([1], [1, 1], []),
+         ([1], [2], []),
+         ([2], [1], []),
+         ([1], [], [1, 1]),
+         ([1, 1], [], [1]),
+         ([1, 1, 1], [], []),
+         ([1, 1], [1], []),
+         ([3], [], []),
+         ([2], [], [1]),
+         ([2, 1], [], [])]
+        sage: KleshchevPartitions(0,[3,2,1],2)[:]
+        [([], [], [1, 1]),
+        ([], [], [2]),
+        ([1], [], [1]),
+        ([], [1], [1]),
+        ([], [2], []),
+        ([1], [1], []),
+        ([2], [], [])]
+        sage: KleshchevPartitions(0,[3,2,1],2,direction="down")[:]
+        [([], [], [1, 1]),
+        ([], [1], [1]),
+        ([], [1, 1], []),
+        ([1], [1], []),
+        ([1], [], [1]),
+        ([1, 1], [], []),
+        ([2], [], [])]
     """
     @staticmethod
     def __classcall_private__(klass, e, multicharge=(0,), size=None, direction='up'):
@@ -2620,19 +2634,10 @@ class KleshchevPartitions_size(KleshchevPartitions):
         super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())
         self._size=size
         self._level=len(multicharge)
-        # As lists do not take negative indices the case e=0 needs to be handled
-        # differently. Rather than doing this we set e equal to a "really big"
-        # number. Mathematically, this is equivalent and it means that we don't
-        # have an exception to cater for.
-        self.e=e
         self.e=e
         self._I=IntegerModRing(e)
         self._multicharge=tuple(self._I(m) for m in multicharge)
         self._direction=direction
-        if self._level==1:
-            self.__iter__=self.__iter__level_one
-        else:
-            self.__iter__=self.__iter__higher_levels
 
     def _repr_(self):
         """
@@ -2674,7 +2679,33 @@ class KleshchevPartitions_size(KleshchevPartitions):
         return mu.level()==self._level and mu.is_restricted(self.e,self._multicharge) and mu.size()==self._size
 
 
-    def __iter__level_one(self):
+    def __iter__level_one_down(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of level one 
+        and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,0, direction='down')[:] #indirect doctest
+            [[]]
+            sage: KleshchevPartitions(2,1, direction='down')[:] #indirect doctest
+            [[1]]
+            sage: KleshchevPartitions(2,2, direction='down')[:] #indirect doctest
+            [[2]]
+            sage: KleshchevPartitions(3,2, direction='down')[:] #indirect doctest
+            [[2], [1, 1]]
+        """
+        if self._size==0:
+                yield Partition([])
+        else:
+            # For level one restriction, with direction not 'up', means that the
+            # partition is `e`-regular. That is, no non-zero part appears with
+            # multiplicity greater or equal to e.
+            for mu in Partitions(self._size, regular=self.e):
+                yield mu
+        return   # all done
+
+    def __iter__level_one_up(self):
         r"""
         Returns an iterator for the finite class of KleshchevPartitions of level one 
         and a fixed size.
@@ -2692,20 +2723,44 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._size==0:
                 yield Partition([])
-        elif self._direction!='up':
-            # For level one restriction, with direction not up, means that the
-            # partition is `e`-regular, which means that no non-zero part
-            # appears with multiplicity greater or equal to e.
-            for mu in Partitions(self._size, regular=self.e):
-                yield mu
         else:
-            # For level one restriction simply means that the difference of 
+            # For level one restriction, with direction 'up', means that the difference of 
             # consecutive parts is always less than e
             for mu in Partitions(self._size, min_slope=1-self.e):
-                if mu[-1]<self.e: yield mu
+                if mu[-1]<self.e:
+                    yield mu
         return   # all done
 
-    def __iter__higher_levels(self):
+    def __iter__higher_levels_down(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of a fixed 
+        :meth:`level` greater than 1 and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,[0,0],1, direction='down')[:] #indirect doctest
+            [([1], [])]
+            sage: KleshchevPartitions(2,[0,0],2, direction='down')[:] #indirect doctest
+            [([1], [1]), ([2], [])]
+            sage: KleshchevPartitions(3,[0,0],2, direction='down')[:] #indirect doctest
+            [([1], [1]), ([2], []), ([1, 1], [])]
+        """
+        if self._size==0:
+            yield PartitionTuples_level_size(level=self._level,size=0)[0]
+        else:
+            # For higher levels we have to recursively construct the restricted partitions by
+            # adding on co-good nodes to smaller restricted partition. To avoid over counting
+            # we return a new restricted partition only when we add on the highest co-good node.
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,size=self._size-1, direction=self._direction):
+                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge, direction=self._direction).values():
+                    if cell is not None:
+                        nu=mu.add_cell(*cell)
+                        if all(cell>=c for c in nu.good_cells(self.e, multicharge=self._multicharge,
+                                                              direction=self._direction).values() if c is not None):
+                            yield nu
+        return   # all done
+
+    def __iter__higher_levels_up(self):
         r"""
         Returns an iterator for the finite class of KleshchevPartitions of a fixed 
         :meth:`level` greater than 1 and a fixed size.
@@ -2722,15 +2777,15 @@ class KleshchevPartitions_size(KleshchevPartitions):
         if self._size==0:
             yield PartitionTuples_level_size(level=self._level,size=0)[0]
         else:
-            # For higher levels we have to recursively construct the restricted partitions
-            # by adding on co-good nodes to smaller restricted partition. To avoid over 
-            # counting we return a new restricted partition only if we added on its lowest
-            # good node.
+            # For higher levels we have to recursively construct the restricted partitions by
+            # adding on co-good nodes to smaller restricted partition. To avoid over counting
+            # we return a new restricted partition only when we add on the lowest co-good node.
             for mu in KleshchevPartitions_size(self.e,self._multicharge,size=self._size-1, direction=self._direction):
                 for cell in mu.cogood_cells(self.e, multicharge=self._multicharge, direction=self._direction).values():
                     if cell is not None:
                         nu=mu.add_cell(*cell)
-                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge, direction=self._direction).values() if c is not None):
+                        if all(cell<=c for c in nu.good_cells(self.e, multicharge=self._multicharge,
+                                                              direction=self._direction).values() if c is not None):
                             yield nu
         return   # all done
 
@@ -2752,9 +2807,15 @@ class KleshchevPartitions_size(KleshchevPartitions):
             [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
         """
         if self.level()==1:
-            return self.__iter__level_one
+            if self._direction=='up':
+                return self.__iter__level_one_up
+            else:
+                return self.__iter__level_one_down
         else:
-            return self.__iter__higher_levels
+            if self._direction=='up':
+                return self.__iter__higher_levels_up
+            else:
+                return self.__iter__higher_levels_down
 
     def _an_element_(self):
         """
