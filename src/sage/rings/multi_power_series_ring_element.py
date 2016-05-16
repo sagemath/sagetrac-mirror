@@ -32,7 +32,7 @@ Power series arithmetic, tracking precision::
     sage: f*=s; f
     s + 2*s^2 + 3*s^3 + O(s, t)^8
     sage: f%2
-    s + s^3 + O(s, t)^8
+    1*s + 1*s^3 + O(1*s, 1*t)^8
     sage: (f%2).parent()
     Multivariate Power Series Ring in s, t over Ring of integers modulo 2
 
@@ -1078,7 +1078,7 @@ class MPowerSeries(PowerSeries):
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
             sage: f = -a^3*b*c^2 + a^2*b^2*c^4 - 12*a^3*b^3*c^3 + R.O(10)
             sage: g = f % 2; g
-            a^3*b*c^2 + a^2*b^2*c^4 + O(a, b, c)^10
+            1*a^3*b*c^2 + 1*a^2*b^2*c^4 + O(1*a, 1*b, 1*c)^10
             sage: g in R
             False
             sage: g in R.base_extend(Zmod(2))
@@ -1694,9 +1694,9 @@ class MPowerSeries(PowerSeries):
             sage: aa.is_gen()
             False
             sage: aa.integral(aa)
-            -2*a^2
+            3*a^2
             sage: aa.integral(a)
-            -2*a^2
+            3*a^2
         """
         P = self.parent()
         R = P.base_ring()

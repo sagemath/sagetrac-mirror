@@ -935,6 +935,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
                 d[str(self.base_ring().gen())]=self.base_ring().gen()
+            # a hack for singular gens beginning with '1*'
+            origd = d.copy()
+            for key in origd.keys():
+                if len(key)>2:
+                    if key[0]=='1' and key[1]=='*' and key[2]!='*':
+                        key2 = key[2:]
+                        d[key2] = d[key]
             try:
                 if '/' in element:
                     element = sage_eval(element,d)
@@ -3608,7 +3615,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Univariate Polynomial Ring in x over Rational Field
         """
         cdef poly *p = self._poly
+        cdef poly *p2 = self._poly
         cdef ring *r = self._parent_ring
+        cdef long pTotDegMax
+
         k = self.base_ring()
 
         if not self.is_univariate():
@@ -3622,12 +3632,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 R = self.base_ring()[str(self.variables()[0])]
 
         zero = k(0)
-        coefficients = [zero] * (self.degree() + 1)
 
         if(r != currRing): rChangeCurrRing(r)
 
+        pTotDegMax = -1
+        while p2:
+            pTotDegMax = max(pTotDegMax, p_Totaldegree(p2, r))
+            p2 = pNext(p2)
+
+        coefficients = [zero] * (pTotDegMax + 1)
         while p:
-            coefficients[p_Totaldegree(p, r)] = si2sa(p_GetCoeff(p, r), r, k)
+            pTotDeg = p_Totaldegree(p, r)
+            if ( pTotDeg >= len(coefficients)  or  pTotDeg < 0 ):
+                raise IndexError("list index("+str(pTotDeg)+" out of range(0-"+str(len(coefficients))+")")
+            coefficients[pTotDeg] = si2sa(p_GetCoeff(p, r), r, k)
             p = pNext(p)
 
         return R(coefficients)
