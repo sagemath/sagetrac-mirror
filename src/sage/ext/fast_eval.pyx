@@ -1,5 +1,5 @@
 r"""
-Fast Numerical Evaluation.
+Fast Numerical Evaluation
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,
@@ -77,34 +77,27 @@ AUTHORS:
 - Robert Bradshaw (2008-10): Initial version
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from sage.ext.fast_callable import fast_callable, Wrapper
 
-include "stdsage.pxi"
+include "cysignals/memory.pxi"
 
-cdef extern from "Python.h":
-    int PyInt_AS_LONG(PyObject*)
-    PyObject* PyTuple_New(Py_ssize_t size)
-    PyObject* PyTuple_GET_ITEM(PyObject* t, Py_ssize_t index)
-    void PyTuple_SET_ITEM(PyObject* t, Py_ssize_t index, PyObject* item)
-    object PyObject_CallObject(PyObject* func, PyObject* args)
-    PyObject* PyFloat_FromDouble(double d)
-    void Py_DECREF(PyObject *)
+cimport cython
+from cpython.ref cimport Py_INCREF
+from cpython.object cimport PyObject_CallObject
+from cpython.int cimport PyInt_AS_LONG
+from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
+
 
 cdef extern from "math.h":
     double sqrt(double)
@@ -293,11 +286,11 @@ cdef op_to_tuple(fast_double_op op):
         return s, param
 
 def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
-    cdef FastDoubleFunc self = PY_NEW(FastDoubleFunc)
+    cdef FastDoubleFunc self = FastDoubleFunc.__new__(FastDoubleFunc)
     self.nops = len(op_list)
     self.nargs = nargs
     self.max_height = max_height
-    self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * self.nops)
+    self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * self.nops)
     self.allocate_stack()
     cfunc_addresses = reverse_map(cfunc_names)
     op_enums = reverse_map(op_names)
@@ -312,33 +305,24 @@ def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
         elif type in [ONE_ARG_FUNC, TWO_ARG_FUNC]:
             param_count, cfunc = op[1]
             address = cfunc_addresses[cfunc]
-            self.ops[i].params.func = <void *>address
+            self.ops[i].params.func = <PyObject*>address
             self.ops[i].type = ['', ONE_ARG_FUNC, TWO_ARG_FUNC][param_count]
         elif type == PY_FUNC:
             if self.py_funcs is None:
                 self.py_funcs = op[1]
             else:
                 self.py_funcs = self.py_funcs + (op[1],)
-            self.ops[i].params.func = <void *>op[1]
+            self.ops[i].params.func = <PyObject*>op[1]
         i += 1
     return self
 
 
-# This is where we wish we had case statements...
-# It looks like gcc might be smart enough to figure it out.
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef inline int process_op(fast_double_op op, double* stack, double* argv, int top) except -2:
-
-#    print [stack[i] for i from 0 <= i <= top], ':', op.type
-
     cdef int i, n
-    cdef PyObject* py_args
-
-    # We have to do some trickery because Pyrex disallows function pointer casts
-    # This will be removed in a future version of Cython.
-    cdef double (*f)(double)
-    cdef void** fp = <void **>&f
-    cdef double (*ff)(double, double)
-    cdef void** ffp = <void **>&ff
+    cdef object arg
+    cdef tuple py_args
 
     if op.type == LOAD_ARG:
         stack[top+1] = argv[op.params.n]
@@ -418,26 +402,24 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
         return top-1
 
     elif op.type == ONE_ARG_FUNC:
-        fp[0] = op.params.func
-        stack[top] = f(stack[top])
+        stack[top] = (op.params.f)(stack[top])
         return top
 
     elif op.type == TWO_ARG_FUNC:
-        ffp[0] = op.params.func
-        stack[top-1] = ff(stack[top-1], stack[top])
+        stack[top-1] = (op.params.ff)(stack[top-1], stack[top])
         return top-1
 
     elif op.type == PY_FUNC:
-        # Even though it's python, optimize this because it'll be used often...
-        # We also want to avoid cluttering the header and footer
-        # of this function Python variables bring.
-        n = PyInt_AS_LONG(PyTuple_GET_ITEM(op.params.func, 0))
+        # We use a few direct C/API calls here because Cython itself
+        # doesn't generate optimal code for this.
+        n = PyInt_AS_LONG((<tuple>op.params.func)[0])
         top = top - n + 1
         py_args = PyTuple_New(n)
-        for i from 0 <= i < n:
-            PyTuple_SET_ITEM(py_args, i, PyFloat_FromDouble(stack[top+i]))
-        stack[top] = PyObject_CallObject(PyTuple_GET_ITEM(op.params.func, 1), py_args)
-        Py_DECREF(py_args)
+        for i in range(n):
+            arg = stack[top+i]
+            Py_INCREF(arg)  # PyTuple_SET_ITEM() steals a reference
+            PyTuple_SET_ITEM(py_args, i, arg)
+        stack[top] = PyObject_CallObject((<tuple>op.params.func)[1], py_args)
         return top
 
     raise RuntimeError("Bad op code %s" % op.type)
@@ -510,7 +492,7 @@ cdef class FastDoubleFunc:
             self.nargs = param+1
             self.nops = 1
             self.max_height = 1
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op))
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op))
             self.ops[0].type = LOAD_ARG
             self.ops[0].params.n = param
 
@@ -518,7 +500,7 @@ cdef class FastDoubleFunc:
             self.nargs = 0
             self.nops = 1
             self.max_height = 1
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op))
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op))
             self.ops[0].type = PUSH_CONST
             self.ops[0].params.c = param
 
@@ -538,7 +520,7 @@ cdef class FastDoubleFunc:
                     self.py_funcs += arg.py_funcs
                 self.nargs = max(self.nargs, arg.nargs)
                 self.max_height = max(self.max_height, arg.max_height+i)
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * self.nops)
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * self.nops)
             if self.ops == NULL:
                 raise MemoryError
             i = 0
@@ -546,7 +528,7 @@ cdef class FastDoubleFunc:
                 memcpy(self.ops + i, arg.ops, sizeof(fast_double_op) * arg.nops)
                 i += arg.nops
             self.ops[self.nops-1].type = PY_FUNC
-            self.ops[self.nops-1].params.func = <void *>py_func
+            self.ops[self.nops-1].params.func = <PyObject*>py_func
 
         else:
             raise ValueError("Unknown operation: %s" % type)
@@ -554,20 +536,20 @@ cdef class FastDoubleFunc:
         self.allocate_stack()
 
     cdef int allocate_stack(FastDoubleFunc self) except -1:
-        self.argv = <double*>sage_malloc(sizeof(double) * self.nargs)
+        self.argv = <double*>sig_malloc(sizeof(double) * self.nargs)
         if self.argv == NULL:
             raise MemoryError
-        self.stack = <double*>sage_malloc(sizeof(double) * self.max_height)
+        self.stack = <double*>sig_malloc(sizeof(double) * self.max_height)
         if self.stack == NULL:
             raise MemoryError
 
     def __dealloc__(self):
         if self.ops:
-            sage_free(self.ops)
+            sig_free(self.ops)
         if self.stack:
-            sage_free(self.stack)
+            sig_free(self.stack)
         if self.argv:
-            sage_free(self.argv)
+            sig_free(self.argv)
 
     def __reduce__(self):
         """
@@ -784,6 +766,17 @@ cdef class FastDoubleFunc:
             34.0
         """
         return binop(left, right, MUL)
+
+    def __truediv__(left, right):
+        """
+        EXAMPLES::
+
+            sage: from sage.ext.fast_eval import fast_float_arg
+            sage: f = fast_float_arg(0).__truediv__(7)
+            sage: f(14)
+            2.0
+        """
+        return binop(left, right, DIV)
 
     def __div__(left, right):
         """
@@ -1219,7 +1212,7 @@ cdef class FastDoubleFunc:
 
     cdef FastDoubleFunc cfunc(FastDoubleFunc self, void* func):
         cdef FastDoubleFunc feval = self.unop(ONE_ARG_FUNC)
-        feval.ops[feval.nops - 1].params.func = func
+        feval.ops[feval.nops - 1].params.func = <PyObject*>func
         feval.allocate_stack()
         return feval
 
@@ -1228,13 +1221,13 @@ cdef class FastDoubleFunc:
     ###################################################################
 
     cdef FastDoubleFunc unop(FastDoubleFunc self, char type):
-        cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
+        cdef FastDoubleFunc feval = FastDoubleFunc.__new__(FastDoubleFunc)
         feval.nargs = self.nargs
         feval.nops = self.nops + 1
         feval.max_height = self.max_height
         if type == DUP:
             feval.max_height += 1
-        feval.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * feval.nops)
+        feval.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * feval.nops)
         memcpy(feval.ops, self.ops, sizeof(fast_double_op) * self.nops)
         feval.ops[feval.nops - 1].type = type
         feval.py_funcs = self.py_funcs
@@ -1290,11 +1283,11 @@ cdef FastDoubleFunc binop(_left, _right, char type):
     if left is None or right is None:
         raise TypeError
 
-    cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
+    cdef FastDoubleFunc feval = FastDoubleFunc.__new__(FastDoubleFunc)
     feval.nargs = max(left.nargs, right.nargs)
     feval.nops = left.nops + right.nops + 1
     feval.max_height = max(left.max_height, right.max_height+1)
-    feval.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * feval.nops)
+    feval.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * feval.nops)
     memcpy(feval.ops, left.ops, sizeof(fast_double_op) * left.nops)
     memcpy(feval.ops + left.nops, right.ops, sizeof(fast_double_op) * right.nops)
     feval.ops[feval.nops - 1].type = type
@@ -1422,7 +1415,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     cdef int i
     for i from 0 <= i < len(vars):
-        if not PY_TYPE_CHECK(vars[i], str):
+        if not isinstance(vars[i], str):
             v = str(vars[i])
             # inexact generators display as 1.00..0*x
             if '*' in v:
@@ -1455,4 +1448,4 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+    return isinstance(x, FastDoubleFunc) or isinstance(x, Wrapper)

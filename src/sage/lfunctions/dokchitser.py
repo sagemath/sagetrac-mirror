@@ -125,8 +125,8 @@ class Dokchitser(SageObject):
         sage: L.derivative(1,E.rank())
         1.51863300057685
         sage: L.taylor_series(1,4)
-        2.90760251490292e-20 + (-1.64772944938078e-20)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 32-bit
-        -3.11661104824958e-21 + (1.76617394576638e-21)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 64-bit
+        -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 32-bit
+        -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 64-bit
 
     RAMANUJAN DELTA L-FUNCTION:
 
@@ -316,7 +316,8 @@ class Dokchitser(SageObject):
             sage: sum(a[n]/float(n)^14 for n in range(1,1000))
             0.9985830631627459
 
-        Illustrate that one can give a list of complex numbers for v (see trac 10937)::
+        Illustrate that one can give a list of complex numbers for v
+        (see :trac:`10937`)::
 
             sage: L2 = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:])
@@ -326,7 +327,7 @@ class Dokchitser(SageObject):
         TESTS:
 
         Verify that setting the `w` parameter does not raise an error
-        (see trac 10937).  Note that the meaning of `w` does not seem to
+        (see :trac:`10937`).  Note that the meaning of `w` does not seem to
         be documented anywhere in Dokchitser's package yet, so there is
         no claim that the example below is meaningful! ::
 

@@ -28,6 +28,25 @@ from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a fixed-modulus padic ring.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_fixed_mod_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'fixed-mod'
+        """
+        self._prec_type = 'fixed-mod'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
+
 cdef class pAdicFixedModElement(FMElement):
     r"""
     INPUT:
@@ -99,12 +118,12 @@ cdef class pAdicFixedModElement(FMElement):
         sage: R(Integers(49)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 49
 
         sage: R(Integers(48)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 48
 
     Some other conversions::
 
@@ -223,26 +242,49 @@ cdef class pAdicFixedModElement(FMElement):
 
     def residue(self, absprec=1):
         r"""
-        Reduce ``self`` mod `p^{\mathrm{absprec}}`.
+        Reduce ``self`` modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
-        - ``absprec`` -- an integer (default: 1)
+        - ``absprec`` -- an integer (default: ``1``)
 
         OUTPUT:
 
-        element of ``Z/(p^prec Z)`` -- ``self`` reduced mod ``p^prec``
+        This element reduced modulo `p^\mathrm{absprec}` as an element of
+        `\ZZ/p^\mathrm{absprec}\ZZ`.
 
         EXAMPLES::
 
-            sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
+            sage: R = Zp(7,4,'fixed-mod')
+            sage: a = R(8)
+            sage: a.residue(1)
             1
+            sage: a.residue(2)
+            8
+
+        TESTS::
+
+            sage: R = Zp(7,4,'fixed-mod')
+            sage: a = R(8)
+            sage: a.residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot reduce modulo a negative power of p.
+            sage: a.residue(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision known in order to compute residue.
+
         """
         cdef Integer selfvalue, modulus
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_sgn((<Integer>absprec).value) < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p"
+        if absprec > self.precision_absolute():
+            raise PrecisionError, "Not enough precision known in order to compute residue."
+        elif absprec < 0:
+            raise ValueError, "Cannot reduce modulo a negative power of p."
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))

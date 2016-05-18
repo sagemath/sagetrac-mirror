@@ -402,8 +402,8 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
         from sage.rings.polynomial.all import PolynomialRing
         R = PolynomialRing(K,'X')
         X = R.gen()
-        one = K.one_element()
-        zero = K.zero_element()
+        one = K.one()
+        zero = K.zero()
 
         # the point with  Z = 0 = Y
         try:
@@ -600,7 +600,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
 
 
         .. NOTE::
-            Currently this only works over prime field and divisors supported on rational points.
+
+            Currently this only works over prime field and divisors
+            supported on rational points.
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()

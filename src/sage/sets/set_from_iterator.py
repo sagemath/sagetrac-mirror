@@ -81,7 +81,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
@@ -179,6 +179,24 @@ class EnumeratedSetFromIterator(Parent):
             self._cache = lazy_list(iter(self._func(
                                          *getattr(self, '_args', ()),
                                         **getattr(self, '_kwds', {}))))
+
+    def __hash__(self):
+        r"""
+        A simple hash using the first elements of the set.
+
+        EXAMPLES::
+
+            sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+            sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
+            sage: hash(E)
+            4600916458883504074 # 64-bit
+            -2063607862         # 32-bit
+        """
+        try:
+            return hash(self._cache[:13])
+        except AttributeError:
+            from itertools import islice
+            return hash(tuple(islice(self, 13)))
 
     def __reduce__(self):
         r"""
@@ -336,7 +354,7 @@ class EnumeratedSetFromIterator(Parent):
             sage: E5 != E5
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""
@@ -443,13 +461,12 @@ class Decorator:
             sage: print sage_getdoc(d)   # indirect doctest
                Test whether "self" is prime.
             ...
-               IMPLEMENTATION: Calls the PARI "isprime" function.
-            <BLANKLINE>
+               Calls the PARI "isprime" function.
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_LIB, SAGE_SRC
@@ -795,23 +812,22 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import set_from_method
-            sage: from sage.structure.misc import getattr_from_other_class
             sage: class A:
-            ...      stop = 10000
-            ...      @set_from_method
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: a = A()
-            sage: getattr_from_other_class(a, A, 'f')(4)
+            sage: A.f(a,4)
             {4, 5, 6, 7, 8, ...}
 
             sage: class B:
-            ...      stop = 10000
-            ...      @set_from_method(category=FiniteEnumeratedSets())
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method(category=FiniteEnumeratedSets())
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: b = B()
-            sage: getattr_from_other_class(b, B, 'f')(2)
+            sage: B.f(b,2)
             {2, 3, 4, 5, 6, ...}
         """
         return EnumeratedSetFromIterator_method_caller(
@@ -998,5 +1014,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)
