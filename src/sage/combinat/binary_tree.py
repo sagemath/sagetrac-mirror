@@ -39,6 +39,9 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 from sage.categories.category import Category
 from sage.categories.combinatorial_structures import CombinatorialStructures
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -1464,7 +1467,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         REFERENCES:
 
-        .. [DG94] S. Dulucq and O. Guibert. Mots de piles, tableaux
+        .. [DG94] \S. Dulucq and O. Guibert. Mots de piles, tableaux
            standards et permutations de Baxter, proceedings of
            Formal Power Series and Algebraic Combinatorics, 1994.
         """
