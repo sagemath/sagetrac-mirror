@@ -22,7 +22,9 @@ def partition_to_permutation(pi):
                         for part in pi])
 
 class ClassOfIsoTypes(Structs):
-
+    """
+    An abstract class for all parents modelling the set of isormophism types of a species
+    """
     def __init__(self, species):
         Structs.__init__(self)
         self._species_ = species
@@ -36,9 +38,17 @@ class ClassOfIsoTypes(Structs):
         return self._species_.isomorphism_type_generating_series()
 
     class GradedComponent(Structs.GradedComponent):
+        # In this default implementation, the iso types are computed
+        # by computing the orbits in the list of structures for the
+        # action of the symmetric group. This is done lazily by
+        # compute_equivalence_class the first time __iter__ is called,
+        # and using DisjointSet.
+        #
+        # Whenever possible, a better implementation should be provided
 
         def __init__(self, ambient, n):
             Structs.GradedComponent.__init__(self, ambient, n)
+            # This could invoke directly self.species().structures()
             FU = self.ambient()._species_.structures(Set(range(1, self.grading()+1)))
             self._isotypes_ = DisjointSet(FU)
             self._is_computed_ = False
@@ -65,17 +75,25 @@ class ClassOfIsoTypes(Structs):
 
 
 class SpeciesDesign(UniqueRepresentation, Parent):
+    """
+    An abstract class for a species.
+
+    Would be naturally called Species, but we currently use that name
+    for the category (Species is spelled the same way in singular or plural) 
+    """
 
     def __init__(self):
         Parent.__init__(self, category=Category.join([Species(), CombinatorialStructures()]))
         self._structures = {}
 
+    # At some point there was a (good?) reason for not using a @cached_method?
+    # We may want to have a weak cache or ...
     def structures(self, U):
         if U in self._structures:
             return self._structures[U]
         FU = self.Structures(self, U)
         self._structures[U] = FU
-        FU._ambient_ = self
+        FU._ambient_ = self     # could this be handled by the constructor of Structures?
         return FU
 
     def graded_component(self, k):
@@ -92,11 +110,15 @@ class SpeciesDesign(UniqueRepresentation, Parent):
         return self.element_class(parent=self, *args, **options)
 
     class Structures(UniqueRepresentation, Parent):
-
+        """
+        An abstract class for all parents modelling the set of structures of a species
+        """
+        # TODO (to be confirmed): rename ambient into species
         def __init__(self, ambient, U):
             """
 
             :param U: a finite set
+
 
             """
             Parent.__init__(self, category=FiniteEnumeratedSets())
@@ -107,15 +129,22 @@ class SpeciesDesign(UniqueRepresentation, Parent):
             return self._ambient_
 
         def finite_set(self):
+            """
+            Return the set of labels
+
+            Check Bergeron what the right name for this method could be. label_set?
+            """
             return self._finite_set_
 
         def cardinality(self):
+            # self.species instead of self.ambient
             return self.ambient().exponential_generating_series().coefficient(self.grading())
 
         def grading(self):
             return self._finite_set_.cardinality()
 
         def _repr_(self):
+            # self.species instead of self.ambient
             return repr(self.ambient()) + "-structures on " + repr(self.finite_set())
 
         @lazy_attribute

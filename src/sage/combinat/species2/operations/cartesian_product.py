@@ -30,7 +30,6 @@ class CartProdStructure(ClonableArray):
     def check(self):
         assert(all(s in self.parent()._species_[i] for i, s in enumerate(self)))
 
-
 class CartesianProduct(SpeciesDesign):
     """
     The *cartesian product* of species

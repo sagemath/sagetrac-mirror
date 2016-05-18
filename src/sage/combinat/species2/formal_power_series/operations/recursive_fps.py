@@ -67,6 +67,13 @@ class RecursiveFormalPowerSeries(ValuationFPS, CategoryObject):
         #####################
 
         self._def_ = None
+
+        # self._active is either false, or a list of 'active' integers
+        # 'n' for which we are in the process of computing a given
+        # coefficient?
+
+        # Used in recursion; could possibly be avoided by using the valuation; check with Florent
+        # But this may require handling the valuation in all operations.
         self._active_ = False
         self._name_ = name
 
@@ -83,6 +90,7 @@ class RecursiveFormalPowerSeries(ValuationFPS, CategoryObject):
         if isinstance(definition, ValuationFPS):
             definition._valuation_add_listener_(self)
         self._valuation_update_()
+        # Invariant: the valuation has been fully computed
 
     @lazy_attribute
     def _valuation_compute_(self):
