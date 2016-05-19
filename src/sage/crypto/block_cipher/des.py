@@ -28,6 +28,7 @@ AUTHORS:
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from string import join
@@ -313,7 +314,6 @@ class DES(SageObject):
             tmp = cs + ds
             h = join([tmp[i] for i in self.__PC2], '')
             ks.append(h)
-            # print hex(Integer('0b'+h)).zfill(12)
         return ks
 
     def xor(self, str1, str2):
@@ -396,8 +396,7 @@ class DES(SageObject):
             tmp = R
             R = self.xor(self._mixright(tmp, ks, i), L)
             L = tmp
-    #       print "i,L+R=",i,hex(Integer('0b'+L)).zfill(8),hex(Integer('0b'+R)).zfill(8)
-        out = R+L
+        out = R + L
         return join([out[i] for i in self.__FP], '')
 
     def decrypt(self, ciphertext):
@@ -437,8 +436,7 @@ class DES(SageObject):
             R = self.xor(self._mixright(tmp, ks, 15-i), L)
                 # Apply subkeys in opposite order from encryption
             L = tmp
-            # print "i,L+R=",i,hex(Integer('0b'+L)).zfill(8),hex(Integer('0b'+R)).zfill(8)
-        out = R+L
+        out = R + L
         return join([out[i] for i in self.__FP], '')
 
     def getkey(self):  # Returns the key used
@@ -535,9 +533,9 @@ class DES(SageObject):
             L2 = tmp2
             X = self.xor(L1+R1, L2+R2)
             wt = sum(Integer(i) for i in X)
-            print i+1, wt, X
-        out1 = R1+L1
-        out2 = R2+L2
+            print(i+1, wt, X)
+        out1 = R1 + L1
+        out2 = R2 + L2
         return [join([out1[i] for i in self.__FP], ''), join([out2[i] for i in self.__FP], '')]
 
     # def avalanche_k(plaintext, key1, key2):
@@ -560,7 +558,7 @@ class DES(SageObject):
     #         L2=tmp2
     #         X=xor(L1+R1,L2+R2)
     #         wt=sum(Integer(i) for i in X)
-    #         print i+1,wt,X
+    #         print(i+1,wt,X)
     #     out1=R1+L1
     #     out2=R2+L2
     #     return [join([out1[i] for i in FP],''),join([out2[i] for i in FP],'')]
