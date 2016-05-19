@@ -133,9 +133,9 @@ class Ruby(Expect):
             pid = self._expect.pid
             if verbose:
                 if self.is_remote():
-                    print "Exiting spawned %s process (local pid=%s, running on %s)" % (self, pid, self._server)
+                    print("Exiting spawned %s process (local pid=%s, running on %s)" % (self, pid, self._server))
                 else:
-                    print "Exiting spawned %s process (pid=%s)." % (self, pid)
+                    print("Exiting spawned %s process (pid=%s)." % (self, pid))
             try:
                 for i in range(10):   
                     # multiple times, since clears out junk injected
