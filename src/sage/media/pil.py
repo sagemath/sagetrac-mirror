@@ -107,7 +107,6 @@ def image_convert(files, format="jpg"):
             try:
                 Image.open(infile).save(outfile)
             except IOError:
-                #print "cannot convert", infile
                 pass
 
 
@@ -321,7 +320,6 @@ def image_draw_text(infile, outfile, pt=(10, 10),
     """
     im = file_loader(infile)
     draw = ImageDraw.Draw(im)
-    #print font_type,  font_type[int(-3):], font_type[int(-3):] == "ttf"
     if font_type[int(-3):] == "ttf":
         fonttype = ImageFont.truetype(font_type, font_size)
     if font_type[int(-3):] == "pil":
