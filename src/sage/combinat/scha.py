@@ -290,13 +290,13 @@ class LabelledSetPartitions_n(UniqueRepresentation, CombinatorialClass):
 
         EXAMPLES::
 
-            sage: for phi in LabelledSetPartitions(3,2): print phi
+            sage: for phi in LabelledSetPartitions(3,2): print(phi)
             [3, [(1, 2, 1), (2, 3, 1)]]
             [3, [(2, 3, 1)]]
             [3, [(1, 3, 1)]]
             [3, [(1, 2, 1)]]
             [3, []]
-            sage: for phi in LabelledSetPartitions(2,4): print phi
+            sage: for phi in LabelledSetPartitions(2,4): print(phi)
             [2, [(1, 2, a)]]
             [2, [(1, 2, a + 1)]]
             [2, [(1, 2, 1)]]
@@ -433,7 +433,7 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         EXAMPLES::
 
             sage: it = iter(LabelledSetPartitions(3))
-            sage: for i in range(7): print it.next()
+            sage: for i in range(7): print(next(it))
             [0, []]
             [1, []]
             [2, [(1, 2, 1)]]
@@ -445,7 +445,7 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         ::
 
             sage: it = iter(LabelledSetPartitions(4))
-            sage: for i in range(7): print it.next()
+            sage: for i in range(7): print(next(it))
             [0, []]
             [1, []]
             [2, [(1, 2, a)]]
@@ -508,11 +508,11 @@ def LatticeOfSetPartitions(n):
         sage: L = LatticeOfSetPartitions(2)
         sage: for T in L:
         ....:    for S in L:
-        ....:       print (T,S), L.is_lequal(T,S)
-        ({{1}, {2}}, {{1}, {2}}) True
-        ({{1}, {2}}, {{1, 2}}) True
-        ({{1, 2}}, {{1}, {2}}) False
-        ({{1, 2}}, {{1, 2}}) True
+        ....:       print (T,S, L.is_lequal(T,S))
+        ({{1}, {2}}, {{1}, {2}}, True)
+        ({{1}, {2}}, {{1, 2}}, True)
+        ({{1, 2}}, {{1}, {2}}, False)
+        ({{1, 2}}, {{1, 2}}, True)
     """
     elements = SetPartitions(n)
 
@@ -922,7 +922,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     sage: X = SupercharacterHopfAlgebra(2).X()
                     sage: for n in range(4):
                     ....:     for phi in X.basis(n).keys():
-                    ....:         print "S(%s) = %s" % (X.basis()[phi],X.antipode_on_basis(phi))
+                    ....:         print("S(%s) = %s" % (X.basis()[phi],X.antipode_on_basis(phi)))
                     S(X[]) = X[]
                     S(X[1]) = -X[1]
                     S(X[12]) = 2*X[1|2] - X[12]
@@ -1081,7 +1081,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     sage: X = SupercharacterHopfAlgebra(q=2).X()
                     sage: for m in range(4):
                     ....:     for phi in X.basis(m).keys():
-                    ....:         print "%s --> %s" % (X[phi], X.omega2_on_basis(phi))
+                    ....:         print("%s --> %s" % (X[phi], X.omega2_on_basis(phi)))
                     X[] --> X[]
                     X[1] --> X[1]
                     X[12] --> X[1|2]
@@ -1882,7 +1882,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X = SupercharacterHopfAlgebra(2).X()
                 sage: arc = LabelledSetPartition(3,[(1,3,GF(2)(1))])
                 sage: for A in Subsets(3):
-                ....:     print "Res_%s(%s) = %s" % (A,X[arc],X.restriction_on_basis(arc,A))
+                ....:     print("Res_%s(%s) = %s" % (A,X[arc],X.restriction_on_basis(arc,A)))
                 Res_{}(X[13|2]) = 2*X[]
                 Res_{1}(X[13|2]) = 2*X[1]
                 Res_{2}(X[13|2]) = 2*X[1]
