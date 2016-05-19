@@ -423,7 +423,7 @@ class SiegelModularFormPrecision (SageObject):
 
             sage: from sage.modular.siegel.siegel_modular_form_prec import SiegelModularFormPrecision
             sage: prec = SiegelModularFormPrecision(11)
-            sage: for k in prec.__iter__(): print k
+            sage: for k in prec.__iter__(): print(k)
             (0, 0, 0)
             (0, 0, 1)
             (0, 0, 2)
@@ -470,7 +470,7 @@ class SiegelModularFormPrecision (SageObject):
 
             sage: from sage.modular.siegel.siegel_modular_form_prec import SiegelModularFormPrecision
             sage: prec = SiegelModularFormPrecision(11)
-            sage: for k in prec.positive_forms(): print k
+            sage: for k in prec.positive_forms(): print(k)
             (1, 0, 1)
             (1, 0, 2)
             (1, 1, 1)

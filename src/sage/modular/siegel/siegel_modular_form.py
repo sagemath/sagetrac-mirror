@@ -1206,8 +1206,6 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     We need to compute Ifg = \sum_{r=0,1; n} c(r^2-4n) q^n zeta^r up to
     4n-r^2 <= Dtop, i.e. n < precision
     """
-    ## print 'Creating I(f,g)'
-
     from sage.rings.all import PowerSeriesRing, QQ
     PS = PowerSeriesRing(QQ, name='q')
     q = PS.gens()[0]
@@ -1236,7 +1234,6 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     b0 = 2*sum(q**(t**2+t) for t in xsrange(precision) if t*t + t < precision)
     b1 = b1 - 1
 
-    ## print 'Done'
     ## Form A and B - the Jacobi forms used in [Sko]'s I map.
 
     (A0, A1, B0, B1) = (a0*etapow, a1*etapow, b0*etapow, b1*etapow)
