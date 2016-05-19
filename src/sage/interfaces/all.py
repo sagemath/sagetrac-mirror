@@ -29,6 +29,7 @@ from mwrank import mwrank, Mwrank
 from octave import octave, octave_version, Octave
 from qepcad import qepcad, qepcad_version, qepcad_formula
 from qsieve import qsieve
+from ruby import ruby
 from singular import singular, singular_version, Singular
 from sage0 import sage0 as sage0, sage0_version, Sage
 from scilab import scilab
@@ -43,7 +44,7 @@ from read_data import read_data
 interfaces = ['gap', 'gap3', 'giac', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', 'r', \
-              'singular', 'sage0', 'sage']
+              'ruby', 'singular', 'sage0', 'sage']
 
 
 from sage.repl.rich_output.display_manager import get_display_manager
