@@ -57,6 +57,8 @@ zlib_include_dirs = list(zlib_pc['include_dirs'])
 ### Commonly used definitions and aliases
 #########################################################
 
+singular_incs = [os.path.join(SAGE_INC, 'singular')]
+
 aliases = dict(
     GSL_LIBRARIES=gsl_libs,
     GSL_LIBDIR=gsl_library_dirs,
@@ -82,7 +84,7 @@ except ValueError:
 ### Singular
 #########################################################
 
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
+singular_libs = ['Singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 
 #########################################################
 ### Givaro flags
@@ -160,22 +162,25 @@ ext_modules = [
     ################################
 
     Extension('sage.algebras.quatalg.quaternion_algebra_element',
-               sources = ['sage/algebras/quatalg/quaternion_algebra_element.pyx'],
+               sources = ['sage/algebras/quatalg/quaternion_algebra_element.pyx'],               
                language='c++',
                libraries = ["flint", "gmp", "gmpxx", "m", "ntl"]),
 
     Extension('sage.algebras.letterplace.free_algebra_letterplace',
               sources = ['sage/algebras/letterplace/free_algebra_letterplace.pyx'],
+              include_dirs = singular_incs,
               libraries = singular_libs,
               language="c++"),
 
     Extension('sage.algebras.letterplace.free_algebra_element_letterplace',
               sources = ['sage/algebras/letterplace/free_algebra_element_letterplace.pyx'],
+              include_dirs = singular_incs,
               libraries = singular_libs,
               language="c++"),
 
     Extension('sage.algebras.letterplace.letterplace_ideal',
               sources = ['sage/algebras/letterplace/letterplace_ideal.pyx'],
+              include_dirs = singular_incs,
               libraries = singular_libs,
               language="c++"),
 
@@ -647,32 +652,38 @@ ext_modules = [
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = ['givaro'] + singular_libs,
               language="c++",
+              include_dirs = singular_incs,
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.libs.singular.polynomial',
               sources = ['sage/libs/singular/polynomial.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.libs.singular.ring',
               sources = ['sage/libs/singular/ring.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.libs.singular.groebner_strategy',
               sources = ['sage/libs/singular/groebner_strategy.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.libs.singular.function',
               sources = ['sage/libs/singular/function.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++",
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.libs.singular.option',
               sources = ['sage/libs/singular/option.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.libs.symmetrica.symmetrica',
@@ -943,6 +954,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.matrix.matrix_rational_dense',
@@ -1542,18 +1554,21 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
+              include_dirs = singular_incs,
               libraries = singular_libs,
               language="c++"),
 
     Extension('sage.rings.polynomial.plural',
               sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'Singular', 'givaro', 'gmpxx', 'gmp'],
+              include_dirs = singular_incs,
               language="c++",
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = singular_libs,
+              include_dirs = singular_incs,
               language="c++"),
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
