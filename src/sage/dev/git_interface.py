@@ -104,7 +104,7 @@ class GitProxy(object):
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
 
-            sage: git._run_git('status', (), {})
+            sage: git._run_git('status', (), {})     # random output
             (0,
              'On branch master\n\nInitial commit\n\nnothing to commit (create/copy files and use "git add" to track)\n',
              '',
@@ -202,7 +202,7 @@ class GitProxy(object):
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
 
-            sage: git._execute('status')
+            sage: git._execute('status')   # random output
             On branch master
             <BLANKLINE>
             Initial commit
@@ -297,7 +297,7 @@ class GitProxy(object):
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
 
-            sage: git._read_output('status')
+            sage: git._read_output('status')   # random output
             'On branch master\n\nInitial commit\n\nnothing to commit (create/copy files and use "git add" to track)\n'
             sage: git._read_output('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
@@ -678,7 +678,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: os.mkdir('ignored_dir')
             sage: open('ignored_dir/untracked','w').close()
             sage: with open('tracked','w') as f: f.write('version 0')
-            sage: git.echo.status()
+            sage: git.echo.status()   # random output
             On branch master
             Changes not staged for commit:
               (use "git add <file>..." to update what will be committed)
@@ -710,7 +710,7 @@ class GitInterface(ReadStdoutGitProxy):
         state::
 
             sage: git.clean_wrapper()
-            sage: git.echo.status()
+            sage: git.echo.status()   # random output
             On branch master
             Untracked files:
               (use "git add <file>..." to include in what will be committed)
@@ -722,12 +722,12 @@ class GitInterface(ReadStdoutGitProxy):
 
         Untracked items can be removed by setting the parameters::
 
-            sage: git.clean_wrapper(remove_untracked_files=True)
+            sage: git.clean_wrapper(remove_untracked_files=True)   # random output
             Removing untracked
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_untracked_directories=True)
             Removing untracked_dir/
-            sage: git.clean_wrapper(
+            sage: git.clean_wrapper(   # random output
             ....:     remove_untracked_files=True, remove_ignored=True)
             Removing ignored
             sage: git.clean_wrapper(
@@ -1167,7 +1167,7 @@ for git_cmd_ in (
             sage: config = DoctestConfig()
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
-            sage: git.echo.status() # indirect doctest
+            sage: git.echo.status() # indirect doctest, random output
             On branch master
             <BLANKLINE>
             Initial commit

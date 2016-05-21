@@ -160,7 +160,7 @@ class MercurialPatchMixin(object):
 
             sage: UI.append("abort")
             sage: UI.append("y")
-            sage: dev.import_patch(local_file=patchfile, path_format="new")
+            sage: dev.import_patch(local_file=patchfile, path_format="new")   # random output
             Applying: No Subject. Modified: tracked, tracked2
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:
@@ -178,7 +178,7 @@ class MercurialPatchMixin(object):
 
             sage: UI.append("resolved")
             sage: UI.append("y")
-            sage: dev.import_patch(local_file=patchfile, path_format="new")
+            sage: dev.import_patch(local_file=patchfile, path_format="new")   # random output
             Applying: No Subject. Modified: tracked, tracked2
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:

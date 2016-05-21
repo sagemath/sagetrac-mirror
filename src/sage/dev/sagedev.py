@@ -899,7 +899,7 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
-            sage: dev.git.echo.stash('apply')
+            sage: dev.git.echo.stash('apply')   # random output
             On branch branch2
             Changes not staged for commit:
               (use "git add <file>..." to update what will be committed)
