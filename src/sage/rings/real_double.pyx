@@ -688,6 +688,21 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(10^100)
             1e+100
         """
+        if isinstance(x,basestring):
+            # a hack for parsing float strings beginning with braces
+            if len(x)>2 and x.count('(')==1 and  x.count(')')==1:
+                try:
+                    if (x[0] == '(' or x[1] == '(') and x[-1] == ')':
+                        if (x[0] == '-' and x[1] == '(') :
+                            x = x[2:-1]
+                            self._value = - float(x)
+                            return
+                        else:
+                            x = x[1:-1]
+                            self._value = float(x)
+                            return
+                except:
+                    pass
         self._value = float(x)
 
     def _magma_init_(self, magma):
