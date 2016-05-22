@@ -352,4 +352,12 @@ Comprehensive Module list
     sage/combinat/words/word_options
     sage/combinat/words/words
     sage/combinat/yang_baxter_graph
+
     sage/rings/cfinite_sequence
+
+    sage/combinat/demo_short
+    sage/combinat/demo
+    sage/combinat/demo_algebraic_combinatorics
+    sage/combinat/tutorial_enumerated_sets
+    sage/combinat/words/demo
+

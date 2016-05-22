@@ -50,6 +50,7 @@ database engine.
 .. toctree::
    :maxdepth: 1
 
+   sage/databases/demo_short
    sage/databases/cremona
    sage/databases/stein_watkins
    sage/databases/jones
