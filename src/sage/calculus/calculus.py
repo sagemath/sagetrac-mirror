@@ -1315,6 +1315,7 @@ def laplace(ex, t, s):
         sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
         sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
         sage: (p1+p2).save(os.path.join(SAGE_TMP, "de_plot.png"))
+        Saved file at /.../de_plot.png
 
     Another example::
 

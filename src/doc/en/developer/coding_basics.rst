@@ -705,7 +705,8 @@ written.
   ``SAGE_ROOT/src/sage/plot/graphics.py``)::
 
       sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
-
+      Saved file at /...png
+      
 - **Multiline doctests:** You may write tests that span multiple lines, using
   the line continuation marker ``....:`` ::
 

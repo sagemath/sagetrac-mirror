@@ -685,6 +685,7 @@ however, you could use any string for a name that you wanted, like
     sage: name = tmp_filename() # this is a string
     sage: png_savename = name+'.png'
     sage: p.save(png_savename)
+    Saved file at /...png
 
 In the notebook, these are usually ready for downloading in little links
 by the cells.
@@ -693,6 +694,7 @@ by the cells.
 
     sage: pdf_savename = name+'.pdf'
     sage: p.save(pdf_savename)
+    Saved file at /...pdf
 
 Notably, we can export in formats ready for inclusion in web pages.
 
@@ -700,4 +702,5 @@ Notably, we can export in formats ready for inclusion in web pages.
 
     sage: svg_savename = name+'.svg'
     sage: p.save(svg_savename)
+    Saved file at /...svg
 

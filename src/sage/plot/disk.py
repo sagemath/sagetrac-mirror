@@ -157,7 +157,7 @@ class Disk(GraphicPrimitive):
             sage: f = tmp_filename(ext='.pdf')
             sage: p = disk((0,0), 5, (0, pi/4), alpha=0.5)
             sage: p.save(f)
-
+            Saved file at /...pdf
         """
         import matplotlib.patches as patches
         options = self.options()

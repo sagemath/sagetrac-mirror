@@ -501,6 +501,7 @@ class Animation(WithEqualityById, SageObject):
             Graphics Array of size 2 x 2
             sage: f = tmp_filename(ext='.png')
             sage: g.save(f)
+            Saved file at /...png
 
         Frames can be specified as a generator too; it is internally converted to a list::
 

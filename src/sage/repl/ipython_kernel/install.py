@@ -50,9 +50,11 @@ class SageKernelSpec(object):
         def mkdir_p(path):
             try:
                 os.makedirs(path)
-            except OSError:
-                if not os.path.isdir(path):
-                    raise
+            except OSError as err:
+                if err.errno == errno.EEXIST and os.path.isdir(path):
+                    pass
+                else:
+                   raise
         mkdir_p(self.nbextensions_dir)
         mkdir_p(os.path.join(self.nbextensions_dir, 'sage-saved-files'))
         mkdir_p(self.kernel_dir)

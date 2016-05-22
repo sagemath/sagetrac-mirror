@@ -63,7 +63,7 @@ def test_convert_to_png(tool):
         sage: test_convert_to_png(cat)
         Traceback (most recent call last):
         ...
-        IOError: cannot identify image file
+        IOError: cannot identify image file ...
     """
     from sage.env import SAGE_EXTCODE
     filename = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.pdf')

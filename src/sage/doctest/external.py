@@ -56,14 +56,12 @@ def has_latex():
         sage: has_latex() # random
         True
     """
-    from sage.misc.latex import _run_latex_, _latex_file_
+    from sage.interfaces.cmdline.latex import latex
+    from sage.misc.latex import _latex_file_
     from sage.misc.temporary_file import tmp_filename
     try:
-        f = tmp_filename(ext='.tex')
-        O = open(f, 'w') 
-        O.write(_latex_file_('2+3'))
-        O.close() 
-        _run_latex_(f) 
+        source = _latex_file_('2+3')
+        dvi = latex(source)
         return True
     except Exception:
         return False
