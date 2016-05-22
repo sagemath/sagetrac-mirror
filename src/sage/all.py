@@ -33,7 +33,7 @@ We exclude the known files and check to see that there are no others::
     ....:         if nm in filename:
     ....:             break
     ....:     else:
-    ....:         print filename
+    ....:         print(filename)
     ....:
 
 Check that the Sage Notebook is not imported at startup (see
@@ -63,25 +63,25 @@ Check lazy import of ``interacts``::
 #
 #*****************************************************************************
 
-import os, sys
+import os
+import sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "Sage requires Python 2.5 or newer"
-    sys.exit(1)
 
 ###################################################################
 
 # This import also setups the interrupt handler
-from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
+from cysignals.signals import (AlarmInterrupt, SignalError,
+        sig_on_reset as sig_on_count)
 
 from time                import sleep
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.typeset.all    import *
 from sage.repl.all       import *
 
 from sage.misc.sh import sh
@@ -96,6 +96,7 @@ except ImportError:
 
 from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
@@ -105,6 +106,7 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
@@ -171,12 +173,18 @@ from sage.matroids.all   import *
 
 from sage.game_theory.all import *
 
+from sage.knots.all import *
+
+from sage.manifolds.all import *
+
+from cysignals.alarm import alarm, cancel_alarm
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
-lazy_import('sagenb.notebook.interact', 'interact')
 lazy_import('sage.interacts', 'all', 'interacts')
+lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
@@ -223,11 +231,13 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1/60); t1s=t1-t1m*60
+        t1m = int(t1) // 60
+        t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
-               t1m,t1s,t2m,t2s)
+        t2m = int(t2) // 60
+        t2s = t2 - t2m * 60
+        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
+              (t1m, t1s, t2m, t2s))
 
     import gc
     gc.collect()
@@ -258,7 +268,9 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -268,7 +280,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
@@ -298,16 +309,13 @@ def _write_started_file():
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-    # Do nothing if the file already exists
-    if os.path.isfile(started_file):
-        return
 
     # Current time with a resolution of 1 second
     import datetime
     t = datetime.datetime.now().replace(microsecond=0)
 
     O = open(started_file, 'w')
-    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
     O.close()
 
 

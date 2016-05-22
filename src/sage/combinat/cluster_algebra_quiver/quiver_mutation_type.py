@@ -15,13 +15,16 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
-from sage.rings.arith import binomial, Euler_Phi
+from sage.arith.all import binomial, Euler_Phi
 from sage.all import prod
 from sage.matrix.all import matrix
 
@@ -136,9 +139,9 @@ class QuiverMutationTypeFactory(SageObject):
             elif data == ('A',2,2):
                 data = ('BC',1,1)
             elif data[0] == 'A' and data[1] in ZZ and data[1] > 1 and data[1]%2 == 0 and data[2] == 2:
-                data = ('BC',data[1]/2,1)
+                data = ('BC',data[1]//2,1)
             elif data[0] == 'A' and data[1] in ZZ and data[1] > 3 and data[1]%2 == 1 and data[2] == 2:
-                data = ('CD',(data[1]+1)/2,1)
+                data = ('CD',(data[1]+1)//2,1)
             # We think of ('A',3,2) as ('D',3,2)
             elif data == ('A',3,2):
                 data = ('BB',2,1)
@@ -1088,8 +1091,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             print '\t- elliptic:         ', self.is_elliptic()
 
 
-class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
-                                     UniqueRepresentation, SageObject):
+class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
     """
     The mutation type for a cluster algebra or a quiver. Should not be
     called directly, but through QuiverMutationType.
@@ -1607,7 +1609,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
             if twist is None and rank == 1:
                 self._graph.add_vertex( 0 )
             elif twist is None and rank > 1:
-                self._rank = rank*(rank+1)/2
+                self._rank = rank*(rank+1)//2
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 level = 0
@@ -1727,12 +1729,12 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
             # cluster-tilted algebras of type A
             if self.is_finite():
                 n = self._rank
-                a = binomial( 2*(n+1), n+1 ) / (n+2)
+                a = binomial( 2*(n+1), n+1 ) // (n+2)
                 if n % 2 == 1:
                     a += binomial( n+1, (n+1)//2 )
                 if n % 3 == 0:
                     a += 2 * binomial( 2*n/3, n/3 )
-                return a / (n+3)
+                return a // (n+3)
             # the formula is taken from Bastian, Prellberg, Rubey, Stump
             elif self.is_affine():
                 i,j = self._bi_rank
@@ -1757,7 +1759,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
             # is clear enough that I don't think a warning is needed
             if self.is_finite():
                 n = self._rank
-                return binomial(2 * n, n) / (n + 1)
+                return binomial(2 * n, n) // (n + 1)
 
         elif self._letter in ['BB','CC']:
             # these two formulas are not yet proven
@@ -1800,8 +1802,8 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
                 else:
                     f = Euler_Phi()
                     n = ZZ(self._rank)
-                    return sum( f( n/k ) * binomial( 2*k, k )
-                                for k in n.divisors() ) / (2*n)
+                    return sum( f( n//k ) * binomial( 2*k, k )
+                                for k in n.divisors() ) // (2*n)
             # this formula is not yet proven
             elif self.is_affine():
                 n = self._rank - 3
@@ -1933,8 +1935,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
             return self
 
 
-class QuiverMutationType_Reducible(QuiverMutationType_abstract,
-                                   UniqueRepresentation, SageObject):
+class QuiverMutationType_Reducible(QuiverMutationType_abstract):
     """
     The mutation type for a cluster algebra or a quiver. Should not be
     called directly, but through QuiverMutationType.  Inherits from
@@ -1947,7 +1948,7 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,
         INPUT:
 
         - ``data`` -- a list each of whose entries is a
-        QuiverMutationType_Irreducible
+          QuiverMutationType_Irreducible
 
         EXAMPLES::
 

@@ -35,6 +35,7 @@ Cartan datum
 - :ref:`sage.combinat.root_system.dynkin_diagram`
 - :ref:`sage.combinat.root_system.cartan_matrix`
 - :ref:`sage.combinat.root_system.coxeter_matrix`
+- :ref:`sage.combinat.root_system.coxeter_type`
 
 Root systems
 ------------
@@ -53,15 +54,28 @@ Coxeter groups
 
 - :ref:`sage.combinat.root_system.coxeter_group`
 - :ref:`sage.combinat.root_system.weyl_group`
+- :ref:`sage.combinat.root_system.extended_affine_weyl_group`
+- :ref:`sage.combinat.root_system.fundamental_group`
 
 .. SEEALSO::
 
     The categories :class:`CoxeterGroups` and :class:`WeylGroups`
 
+Finite reflection groups
+------------------------
+
+- :ref:`sage.combinat.root_system.reflection_group_complex`
+- :ref:`sage.combinat.root_system.reflection_group_real`
+
+.. SEEALSO::
+
+    The category :class:`~sage.categories.complex_reflection_groups.ComplexReflectionGroups`
+
 Representation theory
 ---------------------
 
 - :ref:`sage.combinat.root_system.weyl_characters`
+- :ref:`sage.combinat.root_system.integrable_representations`
 - :ref:`sage.combinat.root_system.branching_rules`
 - :ref:`sage.combinat.root_system.hecke_algebra_representation`
 - :ref:`sage.combinat.root_system.non_symmetric_macdonald_polynomials`

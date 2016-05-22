@@ -15,21 +15,22 @@ Ribbon Tableaux
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.rings.all import QQ, ZZ
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
 import permutation
 import functools
+
 
 class RibbonTableau(SkewTableau):
     r"""
@@ -108,20 +109,20 @@ class RibbonTableau(SkewTableau):
             sage: RibbonTableau([[1,0],[2,0]]).length()
             2
         """
-        if self.to_expr() == [[],[]]:
+        if self.to_expr() == [[], []]:
             return 0
 
         tableau = self.to_expr()[1]
         l = 0
         t = 0
         for k in range(len(tableau)):
-            t += len( [ x for x in tableau[k] if x is not None and x > -1 ] )
-            l += len( [ x for x in tableau[k] if x is not None and x > 0  ] )
+            t += len([ x for x in tableau[k] if x is not None and x > -1])
+            l += len([ x for x in tableau[k] if x is not None and x > 0])
 
         if l == 0:
             return t
         else:
-            return t/l
+            return t // l
 
     def to_word(self):
         """
@@ -149,7 +150,7 @@ class RibbonTableau(SkewTableau):
 # Ribbon Tableaux   #
 #####################
 
-class RibbonTableaux(Parent, UniqueRepresentation):
+class RibbonTableaux(UniqueRepresentation, Parent):
     r"""
     Ribbon tableaux.
 
@@ -793,7 +794,7 @@ def graph_implementation_rec(skp, weight, length, function):
 
 
 
-class MultiSkewTableau(CombinatorialObject, Element):
+class MultiSkewTableau(CombinatorialElement):
     """
     A multi skew tableau which is a tuple of skew tableaux.
 
@@ -806,9 +807,12 @@ class MultiSkewTableau(CombinatorialObject, Element):
         [2, 3, 1]
         sage: s.shape()
         [[2, 2] / [1], [2, 1] / []]
-    """
-    __metaclass__ = ClasscallMetaclass
 
+    TESTS::
+
+        sage: mst = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
+        sage: TestSuite(mst).run()
+    """
     @staticmethod
     def __classcall_private__(cls, x):
         """
@@ -822,18 +826,6 @@ class MultiSkewTableau(CombinatorialObject, Element):
             return x
 
         return MultiSkewTableaux()([SkewTableau(i) for i in x] )
-
-    def __init__(self, parent, x):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: mst = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
-            sage: TestSuite(mst).run()
-        """
-        CombinatorialObject.__init__(self, x)
-        Element.__init__(self, parent)
 
     def size(self):
         """
@@ -963,7 +955,7 @@ class MultiSkewTableau(CombinatorialObject, Element):
         return res
 
 
-class MultiSkewTableaux(Parent, UniqueRepresentation):
+class MultiSkewTableaux(UniqueRepresentation, Parent):
     r"""
     Multiskew tableaux.
     """

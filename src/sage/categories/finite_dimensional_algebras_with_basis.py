@@ -1,21 +1,41 @@
 # -*- coding: utf-8 -*-
 r"""
 Finite dimensional algebras with basis
+
+.. TODO::
+
+    Quotients of polynomial rings.
+
+    Quotients in general.
+
+    Matrix rings.
+
+REFERENCES:
+
+..  [CR62] Curtis, Charles W.; Reiner, Irving
+    "Representation theory of finite groups and associative
+    algebras."
+    Pure and Applied Mathematics, Vol. XI Interscience Publishers, a
+    division of John Wiley & Sons, New York-London 1962
+    pp 545--547
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2011-2015 Nicolas M. Thiéry <nthiery at users.sf.net>
 #                2011-2015 Franco Saliola <saliola@gmail.com>
+#                2014-2015 Aladin Virmaux <aladin.virmaux at u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
 import operator
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.algebras import Algebras
 from sage.categories.associative_algebras import AssociativeAlgebras
+from sage.matrix.constructor import Matrix
+from sage.functions.other import sqrt
 
 class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
@@ -45,7 +65,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ParentMethods:
 
         @cached_method
-        def radical_basis(self, cache_products=True):
+        def radical_basis(self):
             r"""
             Return a basis of the Jacobson radical of this algebra.
 
@@ -54,22 +74,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                This implementation handles algebras over fields of
                characteristic zero (using Dixon's lemma) or fields of
                characteristic `p` in which we can compute `x^{1/p}`
-               [FR85], [Eb89].
+               [FR85]_, [Eb89]_.
 
             REFERENCES:
 
-            [Eb89] Eberly, Wayne. "Computations for algebras and group
-            representations." Ph.D. Thesis, University of Toronto, 1989.
+            .. [Eb89] Eberly, Wayne. "Computations for algebras and group
+               representations". Ph.D. Thesis, University of Toronto, 1989.
+               http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf
 
-            [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
-            solutions of some problems of computational algebra." Proceedings
-            of the seventeenth annual ACM symposium on Theory of computing.
-            ACM, 1985.
-
-            INPUT:
-
-            - ``cache_products`` -- a boolean (default: ``True``); if
-              ``True`` then all products computed in this method are cached.
+            .. [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
+               solutions of some problems of computational algebra". Proceedings
+               of the seventeenth annual ACM symposium on Theory of computing.
+               ACM, 1985.
 
             OUTPUT:
 
@@ -79,12 +95,12 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
                 An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.radical_basis()
-                [a, b]
+                (a, b)
 
             We construct the group algebra of the Klein Four-Group
             over the rationals::
@@ -94,7 +110,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             This algebra belongs to the category of finite dimensional
             algebras over the rationals::
 
-                sage: A in FiniteDimensionalAlgebrasWithBasis(QQ)
+                sage: A in Algebras(QQ).FiniteDimensional().WithBasis()
                 True
 
             Since the field has characteristic `0`, Maschke's Theorem
@@ -104,7 +120,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A in Algebras(QQ).Semisimple()
                 True
                 sage: A.radical_basis()
-                []
+                ()
 
             Let's work instead over a field of characteristic `2`::
 
@@ -112,9 +128,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A in Algebras(GF(2)).Semisimple()
                 False
                 sage: A.radical_basis()
-                [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
+                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
 
-            We now implement the algebra `A = K[x] / x^p-1`, where `K`
+            We now implement the algebra `A = K[x] / (x^p-1)`, where `K`
             is a finite field of characteristic `p`, and check its
             radical; alas, we currently need to wrap `A` to make it a
             proper :class:`ModulesWithBasis`::
@@ -126,34 +142,30 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ....:         self._xbar = R.quotient(I).gen()
                 ....:         basis_keys = [self._xbar**i for i in range(F.characteristic())]
                 ....:         CombinatorialFreeModule.__init__(self, F, basis_keys,
-                ....:                 category=FiniteDimensionalAlgebrasWithBasis(F))
+                ....:                 category=Algebras(F).FiniteDimensional().WithBasis())
                 ....:     def one(self):
                 ....:         return self.basis()[self.base_ring().one()]
                 ....:     def product_on_basis(self, w1, w2):
                 ....:         return self.from_vector(vector(w1*w2))
                 sage: AnAlgebra(GF(3)).radical_basis()
-                [B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2]]
+                (B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2])
                 sage: AnAlgebra(GF(16,'a')).radical_basis()
-                [B[1] + B[xbar]]
+                (B[1] + B[xbar],)
                 sage: AnAlgebra(GF(49,'a')).radical_basis()
-                [B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6],
-                 B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6]]
+                (B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6],
+                 B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6])
 
             TESTS::
 
                 sage: A = KleinFourGroup().algebra(GF(2))
-                sage: A.radical_basis(cache_products=True)
-                [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
-                sage: A.radical_basis(cache_products=False)
-                [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
+                sage: A.radical_basis()
+                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
 
                 sage: A = KleinFourGroup().algebra(QQ, category=Monoids())
                 sage: A.radical_basis.__module__
                 'sage.categories.finite_dimensional_algebras_with_basis'
-                sage: A.radical_basis(cache_products=True)
-                []
-                sage: A.radical_basis(cache_products=False)
-                []
+                sage: A.radical_basis()
+                ()
             """
             F = self.base_ring()
             if not F.is_field():
@@ -163,16 +175,20 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module_element import vector
 
             product_on_basis = self.product_on_basis
-            if cache_products is True:
-                product_on_basis = cached_function(product_on_basis)
 
             if p == 0:
-                keys = self.basis().keys()
-                mat = matrix(self.base_ring(), [
-                        [sum(product_on_basis(x,j).coefficient(i) * product_on_basis(y,i).coefficient(j)
-                            for i in keys for j in keys) for x in keys] for y in keys
-                        ])
+                keys = list(self.basis().keys())
+                cache = [{(i,j): c
+                    for i in keys
+                    for j,c in product_on_basis(y,i)}
+                    for y in keys]
+                mat = [ [ sum(x.get((j, i), 0) * c for (i,j),c in y.items())
+                    for x in cache]
+                    for y in cache]
+
+                mat = matrix(self.base_ring(), mat)
                 rad_basis = mat.kernel().basis()
+
             else:
                 # TODO: some finite field elements in Sage have both an
                 # ``nth_root`` method and a ``pth_root`` method (such as ``GF(9,'a')``),
@@ -199,7 +215,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 e = vector(self.one())
                 rad_basis = [b*e for b in B]
 
-            return [self.from_vector(vec) for vec in rad_basis]
+            return tuple([self.from_vector(vec) for vec in rad_basis])
 
         @cached_method
         def radical(self):
@@ -215,7 +231,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
                 An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
@@ -270,7 +286,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
                 An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
@@ -326,12 +342,12 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
                 An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.center_basis()
-                [x + y]
+                (x + y,)
             """
             return self.annihilator_basis(self.algebra_generators(), self.bracket)
 
@@ -344,7 +360,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
                 An example of a finite dimensional algebra with basis:
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
@@ -386,7 +402,640 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             center.rename("Center of {}".format(self))
             return center
 
+        def principal_ideal(self, a, side='left'):
+            r"""
+            Construct the ``side`` principal ideal generated by ``a``.
+
+            EXAMPLES:
+
+            In order to highlight the difference between left and
+            right principal ideals, our first example deals with a non
+            commutative algebra::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
+                sage: x, y, a, b = A.basis()
+
+            In this algebra, multiplication on the right by `x`
+            annihilates all basis elements but `x`::
+
+                sage: x*x, y*x, a*x, b*x
+                (x, 0, 0, 0)
+
+            so the left ideal generated by `x` is one-dimensional::
+
+                sage: Ax = A.principal_ideal(x, side='left'); Ax
+                Free module generated by {0} over Rational Field
+                sage: [B.lift() for B in Ax.basis()]
+                [x]
+
+            Multiplication on the left by `x` annihilates
+            only `x` and fixes the other basis elements::
+
+                sage: x*x, x*y, x*a, x*b
+                (x, 0, a, b)
+
+            so the right ideal generated by `x` is 3-dimensional::
+
+                sage: xA = A.principal_ideal(x, side='right'); xA
+                Free module generated by {0, 1, 2} over Rational Field
+                sage: [B.lift() for B in xA.basis()]
+                [x, a, b]
+
+            .. SEEALSO::
+
+                - :meth:`peirce_summand`
+            """
+            return self.submodule([(a * b if side=='right' else b * a)
+                                   for b in self.basis()])
+
+        @cached_method
+        def orthogonal_idempotents_central_mod_radical(self):
+            r"""
+            Return a family of orthogonal idempotents of ``self`` that project
+            on the central orthogonal idempotents of the semisimple quotient.
+
+            OUTPUT:
+
+            - a list of orthogonal idempotents obtained by lifting the central
+              orthogonal idempotents of the semisimple quotient.
+
+            ALGORITHM:
+
+            The orthogonal idempotents of `A` are obtained by lifting the
+            central orthogonal idempotents of the semisimple quotient
+            `\overline{A}`.
+
+            Namely, let `(\overline{f_i})` be the central orthogonal
+            idempotents of the semisimple quotient of `A`. We
+            recursively construct orthogonal idempotents of `A` by the
+            following procedure: assuming `(f_i)_{i < n}` is a set of
+            already constructed orthogonal idempotent, we construct
+            `f_k` by idempotent lifting of `(1-f) g (1-f)`, where `g`
+            is any lift of `\overline{e_k}` and `f=\sum_{i<k} f_i`.
+
+            See [CR62]_ for correctness and termination proofs.
+
+            .. SEEALSO::
+
+                - :meth:`Algebras.SemiSimple.FiniteDimensional.WithBasis.ParentMethods.central_orthogonal_idempotents`
+                - :meth:`idempotent_lift`
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
+                sage: A.orthogonal_idempotents_central_mod_radical()
+                (x, y)
+
+            ::
+
+                sage: Z12 = Monoids().Finite().example(); Z12
+                An example of a finite multiplicative monoid: the integers modulo 12
+                sage: A = Z12.algebra(QQ)
+                sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
+                sage: sorted(idempotents, key=str)
+                [-1/2*B[3] + 1/2*B[9],
+                 -1/2*B[8] + 1/2*B[4],
+                 -B[0] + 1/2*B[3] + 1/2*B[9],
+                 -B[0] + 1/2*B[4] + 1/2*B[8],
+                 1/4*B[1] + 1/2*B[3] + 1/4*B[5] - 1/4*B[7] - 1/2*B[9] - 1/4*B[11],
+                 1/4*B[1] + 1/4*B[11] - 1/4*B[5] - 1/4*B[7],
+                 1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7] + 1/2*B[8] - 1/4*B[11],
+                 B[0],
+                 B[0] + 1/4*B[1] - 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9] + 1/4*B[11]]
+                sage: sum(idempotents) == 1
+                True
+                sage: all(e*e == e for e in idempotents)
+                True
+                sage: all(e*f == 0 and f*e == 0 for e in idempotents for f in idempotents if e != f)
+                True
+
+            This is best tested with::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
+                True
+
+            We construct orthogonal idempotents for the algebra of the
+            `0`-Hecke monoid::
+
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
+                sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
+                True
+            """
+            one = self.one()
+            # Construction of the orthogonal idempotents
+            idempotents = []
+            f = self.zero()
+            for g in self.semisimple_quotient().central_orthogonal_idempotents():
+                fi = self.idempotent_lift((one - f) * g.lift() * (one - f))
+                idempotents.append(fi)
+                f = f + fi
+            return tuple(idempotents)
+
+        def idempotent_lift(self, x):
+            r"""
+            Lift an idempotent of the semisimple quotient into an idempotent of ``self``.
+
+            Let `A` be this finite dimensional algebra and `\pi` be
+            the projection `A \rightarrow \overline{A}` on its
+            semisimple quotient. Let `\overline{x}` be an idempotent
+            of `\overline A`, and `x` any lift thereof in `A`. This
+            returns an idempotent `e` of `A` such that `\pi(e)=\pi(x)`
+            and `e` is a polynomial in `x`.
+
+            INPUT:
+
+            - `x` -- an element of `A` that projects on an idempotent
+              `\overline x` of the semisimple quotient of `A`.
+              Alternatively one may give as input the idempotent
+              `\overline{x}`, in which case some lift thereof will be
+              taken for `x`.
+
+            OUTPUT: the idempotent `e` of ``self``
+
+            ALGORITHM:
+
+            Iterate the formula `1 - (1 - x^2)^2` until having an
+            idempotent.
+
+            See [CR62]_ for correctness and termination proofs.
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: S = A.semisimple_quotient()
+                sage: A.idempotent_lift(S.basis()['x'])
+                x
+                sage: A.idempotent_lift(A.basis()['y'])
+                y
+
+            .. TODO::
+
+                Add some non trivial example
+            """
+            if not self.is_parent_of(x):
+                x = x.lift()
+            p = self.semisimple_quotient().retract(x)
+            if p * p != p:
+                raise ValueError("%s does not retract to an idempotent."%p)
+            x_prev = None
+            one = self.one()
+            while x != x_prev:
+                tmp = x
+                x = (one - (one - x**2)**2)
+                x_prev = tmp
+            return x
+
+        @cached_method
+        def cartan_invariants_matrix(self):
+            r"""
+            Return the Cartan invariants matrix of the algebra.
+
+            OUTPUT: a matrix of non negative integers
+
+            Let `A` be this finite dimensional algebra and
+            `(S_i)_{i\in I}` be representatives of the right simple
+            modules of `A`. Note that their adjoints `S_i^*` are
+            representatives of the left simple modules.
+
+            Let `(P^L_i)_{i\in I}` and `(P^R_i)_{i\in I}` be
+            respectively representatives of the corresponding
+            indecomposable projective left and right modules of `A`.
+            In particular, we assume that the indexing is consistent
+            so that `S_i^*=\operatorname{top} P^L_i` and
+            `S_i=\operatorname{top} P^R_i`.
+
+            The *Cartan invariant matrix* `(C_{i,j})_{i,j\in I}` is a
+            matrix of non negative integers that encodes much of the
+            representation theory of `A`; namely:
+
+            - `C_{i,j}` counts how many times `S_i^*\otimes S_j`
+              appears as composition factor of `A` seen as a bimodule
+              over itself;
+
+            - `C_{i,j}=\dim Hom_A(P^R_j, P^R_i)`;
+
+            - `C_{i,j}` counts how many times `S_j` appears as
+              composition factor of `P^R_i`;
+
+            - `C_{i,j}=\dim Hom_A(P^L_i, P^L_j)`;
+
+            - `C_{i,j}` counts how many times `S_i^*` appears as
+              composition factor of `P^L_j`.
+
+            In the commutative case, the Cartan invariant matrix is
+            diagonal. In the context of solving systems of
+            multivariate polynomial equations of dimension zero, `A`
+            is the quotient of the polynomial ring by the ideal
+            generated by the equations, the simple modules correspond
+            to the roots, and the numbers `C_{i,i}` give the
+            multiplicities of those roots.
+
+            .. NOTE::
+
+                For simplicity, the current implementation assumes
+                that the index set `I` is of the form
+                `\{0,\dots,n-1\}`. Better indexations will be possible
+                in the future.
+
+            ALGORITHM:
+
+            The Cartan invariant matrix of `A` is computed from the
+            dimension of the summands of its peirce decomposition.
+
+            .. SEEALSO::
+
+                - :meth:`peirce_decomposition`
+                - :meth:`isotypic_projective_modules`
+
+            EXAMPLES:
+
+            For a semisimple algebra, in particular for group algebras
+            in chararacteristic zero, the Cartan invariants matrix is
+            the identity::
+
+                sage: A3 = SymmetricGroup(3).algebra(QQ)
+                sage: A3.cartan_invariants_matrix()
+                [1 0 0]
+                [0 1 0]
+                [0 0 1]
+
+            For the path algebra of a quiver, the Cartan invariants
+            matrix counts the number of paths between two vertices::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: A.cartan_invariants_matrix()
+                [1 2]
+                [0 1]
+
+            In the commutative case, the Cartan invariant matrix is diagonal::
+
+                sage: Z12 = Monoids().Finite().example(); Z12
+                An example of a finite multiplicative monoid: the integers modulo 12
+                sage: A = Z12.algebra(QQ)
+                sage: A.cartan_invariants_matrix()
+                [1 0 0 0 0 0 0 0 0]
+                [0 1 0 0 0 0 0 0 0]
+                [0 0 2 0 0 0 0 0 0]
+                [0 0 0 1 0 0 0 0 0]
+                [0 0 0 0 2 0 0 0 0]
+                [0 0 0 0 0 1 0 0 0]
+                [0 0 0 0 0 0 1 0 0]
+                [0 0 0 0 0 0 0 2 0]
+                [0 0 0 0 0 0 0 0 1]
+
+            With the algebra of the `0`-Hecke monoid::
+
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
+                sage: A.cartan_invariants_matrix()
+                [1 0 0 0 0 0 0 0]
+                [0 2 1 0 1 1 0 0]
+                [0 1 1 0 1 0 0 0]
+                [0 0 0 1 0 1 1 0]
+                [0 1 1 0 1 0 0 0]
+                [0 1 0 1 0 2 1 0]
+                [0 0 0 1 0 1 1 0]
+                [0 0 0 0 0 0 0 1]
+            """
+            from sage.rings.integer_ring import ZZ
+            A_quo = self.semisimple_quotient()
+            idempotents_quo = A_quo.central_orthogonal_idempotents()
+            # Dimension of simple modules
+            dim_simples = [sqrt(A_quo.principal_ideal(e).dimension())
+                          for e in idempotents_quo]
+            # Orthogonal idempotents
+            idempotents = self.orthogonal_idempotents_central_mod_radical()
+            def C(i,j):
+                summand = self.peirce_summand(idempotents[i], idempotents[j])
+                return summand.dimension() / (dim_simples[i]*dim_simples[j])
+            m = Matrix(ZZ, len(idempotents), C)
+            m.set_immutable()
+            return m
+
+        def isotypic_projective_modules(self, side='left'):
+            r"""
+            Return the isotypic projective ``side`` ``self``-modules.
+
+            Let `P_i` be representatives of the indecomposable
+            projective ``side``-modules of this finite dimensional
+            algebra `A`, and `S_i` be the associated simple modules.
+
+            The regular ``side`` representation of `A` can be
+            decomposed as a direct sum `A = \bigoplus_i Q_i` where
+            each `Q_i` is an isotypic projective module; namely `Q_i`
+            is the direct sum of `\dim S_i` copies of the
+            indecomposable projective module `P_i`. This decomposition
+            is not unique.
+
+            The isotypic projective modules are constructed as
+            `Q_i=e_iA`, where the `(e_i)_i` is the decomposition of
+            the identity into orthogonal idempotents obtained by
+            lifting the central orthogonal idempotents of the
+            semisimple quotient of `A`.
+
+            INPUT:
+
+            - ``side`` -- 'left' or 'right' (default: 'left')
+
+            OUTPUT: a list of subspaces of ``self``.
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
+                sage: Q = A.isotypic_projective_modules(side="left"); Q
+                [Free module generated by {0} over Rational Field,
+                 Free module generated by {0, 1, 2} over Rational Field]
+                sage: [[x.lift() for x in Qi.basis()]
+                ....:  for Qi in Q]
+                [[x],
+                 [y, a, b]]
+
+            We check that the sum of the dimensions of the isotypic
+            projective modules is the dimension of ``self``::
+
+                sage: sum([Qi.dimension() for Qi in Q]) == A.dimension()
+                True
+
+            .. SEEALSO::
+
+                - :meth:`orthogonal_idempotents_central_mod_radical`
+                - :meth:`peirce_decomposition`
+            """
+            return [self.principal_ideal(e, side) for e in
+                    self.orthogonal_idempotents_central_mod_radical()]
+
+        @cached_method
+        def peirce_summand(self, ei, ej):
+            r"""
+            Return the Peirce decomposition summand `e_i A e_j`.
+
+            INPUT:
+
+            - ``self`` -- an algebra `A`
+
+            - ``ei``, ``ej`` -- two idempotents of `A`
+
+            OUTPUT: `e_i A e_j`, as a subspace of `A`.
+
+            .. SEEALSO::
+
+                - :meth:`peirce_decomposition`
+                - :meth:`principal_ideal`
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: idemp = A.orthogonal_idempotents_central_mod_radical()
+                sage: A.peirce_summand(idemp[0], idemp[1])
+                Free module generated by {0, 1} over Rational Field
+                sage: A.peirce_summand(idemp[1], idemp[0])
+                Free module generated by {} over Rational Field
+
+            We recover the `2\times2` block of `\QQ[S_4]`
+            corresponding to the unique simple module of dimension `2`
+            of the symmetric group `S_4`::
+
+                sage: A4 = SymmetricGroup(4).algebra(QQ)
+                sage: e = A4.central_orthogonal_idempotents()[2]
+                sage: A4.peirce_summand(e, e)
+                Free module generated by {0, 1, 2, 3} over Rational Field
+            """
+            B = self.basis()
+            phi = self.module_morphism(on_basis=lambda k: ei * B[k] * ej,
+                                       codomain=self, triangular='lower')
+            ideal = phi.matrix().image()
+            return self.submodule([self.from_vector(v) for v in ideal.basis()],
+                                  already_echelonized=True)
+
+
+        def peirce_decomposition(self, idempotents=None, check=True):
+            r"""
+            Return a Peirce decomposition of ``self``.
+
+            Let `(e_i)_i` be a collection of orthogonal idempotents of
+            `A` with sum `1`. The *Peirce decomposition* of `A` is the
+            decomposition of `A` into the direct sum of the subspaces
+            `e_i A e_j`.
+
+            With the default collection of orthogonal idempotents, one has
+
+            .. MATH::
+
+                \dim e_i A e_j = C_{i,j} \dim S_i \dim S_j
+
+            where `(S_i)_i` are the simple modules of `A` and
+            `(C_{i,j})_{i, j}` is the Cartan invariants matrix.
+
+            INPUT:
+
+            - ``idempotents`` -- a list of orthogonal idempotents
+              `(e_i)_{i=0,\ldots,n}` of the algebra that sum to `1`
+              (default: the idempotents returned by
+              :meth:`orthogonal_idempotents_central_mod_radical`)
+
+            - ``check`` -- (default: ``True``) whether to check that the
+              idempotents are indeed orthogonal and idempotent and
+              sum to `1`
+
+            OUTPUT:
+
+            A list of lists `l` such that ``l[i][j]`` is the subspace
+            `e_i A e_j`.
+
+            .. SEEALSO::
+
+                - :meth:`orthogonal_idempotents_central_mod_radical`
+                - :meth:`cartan_invariants_matrix`
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).FiniteDimensional().WithBasis().example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
+                sage: A.orthogonal_idempotents_central_mod_radical()
+                (x, y)
+                sage: decomposition = A.peirce_decomposition(); decomposition
+                [[Free module generated by {0} over Rational Field,
+                  Free module generated by {0, 1} over Rational Field],
+                 [Free module generated by {} over Rational Field,
+                  Free module generated by {0} over Rational Field]]
+                sage: [ [[x.lift() for x in decomposition[i][j].basis()]
+                ....:    for j in range(2)]
+                ....:   for i in range(2)]
+                [[[x], [a, b]],
+                 [[], [y]]]
+
+            We recover that the group algebra of the symmetric group
+            `S_4` is a block matrix algebra::
+
+                sage: A = SymmetricGroup(4).algebra(QQ)
+                sage: decomposition = A.peirce_decomposition()   # long time
+                sage: [[decomposition[i][j].dimension()          # long time (4s)
+                ....:   for j in range(len(decomposition))]
+                ....:  for i in range(len(decomposition))]
+                [[1, 0, 0, 0, 0],
+                 [0, 9, 0, 0, 0],
+                 [0, 0, 4, 0, 0],
+                 [0, 0, 0, 9, 0],
+                 [0, 0, 0, 0, 1]]
+
+            The dimension of each block is `d^2`, where `d` is the
+            dimension of the corresponding simple module of `S_4`. The
+            latter are given by::
+
+                sage: [p.standard_tableaux().cardinality() for p in Partitions(4)]
+                [1, 3, 2, 3, 1]
+            """
+            if idempotents is None:
+                idempotents = self.orthogonal_idempotents_central_mod_radical()
+            if check:
+                if not self.is_identity_decomposition_into_orthogonal_idempotents(idempotents):
+                    raise ValueError("Not a decomposition of the identity into orthogonal idempotents")
+            return [[self.peirce_summand(ei, ej) for ej in idempotents]
+                    for ei in idempotents]
+
+        def is_identity_decomposition_into_orthogonal_idempotents(self, l):
+            r"""
+            Return whether ``l`` is a decomposition of the identity
+            into orthogonal idempotents.
+
+            INPUT:
+
+            - ``l`` -- a list or iterable of elements of ``self``
+
+            EXAMPLES::
+
+                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                An example of a finite dimensional algebra with basis:
+                the path algebra of the Kronecker quiver
+                (containing the arrows a:x->y and b:x->y) over Rational Field
+
+                sage: x,y,a,b = A.algebra_generators(); x,y,a,b
+                (x, y, a, b)
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([A.one()])
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x,y])
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x+a, y-a])
+                True
+
+            Here the idempotents do not sum up to `1`::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([x])
+                False
+
+            Here `1+x` and `-x` are neither idempotent nor orthogonal::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents([1+x,-x])
+                False
+
+            With the algebra of the `0`-Hecke monoid::
+
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: A = HeckeMonoid(SymmetricGroup(4)).algebra(QQ)
+                sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
+                True
+
+            Here are some more counterexamples:
+
+            1. Some orthogonal elements summing to `1` but not being
+            idempotent::
+
+                sage: class PQAlgebra(CombinatorialFreeModule):
+                ....:     def __init__(self, F, p):
+                ....:         # Construct the quotient algebra F[x] / p,
+                ....:         # where p is a univariate polynomial.
+                ....:         R = parent(p); x = R.gen()
+                ....:         I = R.ideal(p)
+                ....:         self._xbar = R.quotient(I).gen()
+                ....:         basis_keys = [self._xbar**i for i in range(p.degree())]
+                ....:         CombinatorialFreeModule.__init__(self, F, basis_keys,
+                ....:                 category=Algebras(F).FiniteDimensional().WithBasis())
+                ....:     def x(self):
+                ....:         return self(self._xbar)
+                ....:     def one(self):
+                ....:         return self.basis()[self.base_ring().one()]
+                ....:     def product_on_basis(self, w1, w2):
+                ....:         return self.from_vector(vector(w1*w2))
+                sage: R.<x> = PolynomialRing(QQ)
+                sage: A = PQAlgebra(QQ, x**3 - x**2 + x + 1); y = A.x()
+                sage: a, b = y, 1-y
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                False
+
+            For comparison::
+
+                sage: A = PQAlgebra(QQ, x**2 - x); y = A.x()
+                sage: a, b = y, 1-y
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, A.zero(), b))
+                True
+                sage: A = PQAlgebra(QQ, x**3 - x**2 + x - 1); y = A.x()
+                sage: a = (y**2 + 1) / 2
+                sage: b = 1 - a
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, b))
+                True
+
+            2. Some idempotents summing to 1 but not orthogonal::
+
+                sage: R.<x> = PolynomialRing(GF(2))
+                sage: A = PQAlgebra(GF(2), x)
+                sage: a = A.one()
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a,))
+                True
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a, a, a))
+                False
+
+            3. Some orthogonal idempotents not summing to the identity::
+
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents((a,a))
+                False
+                sage: A.is_identity_decomposition_into_orthogonal_idempotents(())
+                False
+            """
+            return (self.sum(l) == self.one()
+                    and all(e*e == e for e in l)
+                    and all(e*f == 0 and f*e == 0 for i, e in enumerate(l)
+                                                  for f in l[:i]))
+
+        @cached_method
+        def is_commutative(self):
+            """
+            Return whether ``self`` is a commutative algebra.
+
+            EXAMPLES::
+
+                sage: S4 = SymmetricGroupAlgebra(QQ, 4)
+                sage: S4.is_commutative()
+                False
+                sage: S2 = SymmetricGroupAlgebra(QQ, 2)
+                sage: S2.is_commutative()
+                True
+            """
+            B = list(self.basis())
+            try: # See if 1 is a basis element, if so, remove it
+                B.remove(self.one())
+            except ValueError:
+                pass
+            return all(b*bp == bp*b for i,b in enumerate(B) for bp in B[i+1:])
+
     class ElementMethods:
+
         def to_matrix(self, base_ring=None, action=operator.mul, side='left'):
             """
             Return the matrix of the action of ``self`` on the algebra.
@@ -395,7 +1044,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``base_ring`` -- the base ring for the matrix to be constructed
             - ``action`` -- a bivariate function (default: :func:`operator.mul`)
-            - ``side`` -- 'left' or 'right' (default: 'right')
+            - ``side`` -- 'left' or 'right' (default: 'left')
 
             EXAMPLES::
 

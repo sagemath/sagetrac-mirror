@@ -163,6 +163,50 @@ class Tool(SageObject):
             'tools can only be defined within Sage'
         Tool._instances.add(self)
 
+    def __hash__(self):
+        """
+        Make tool instances hashable
+
+        OUTPUT:
+
+        Integer. The hash of the tool instance.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.cmdline.posix import cat
+            sage: cat.__hash__()   # random output
+            -4675830580846295185
+        """
+        return hash(self._name) ^ hash(self._args)
+
+    def __eq__(self, other):
+        """
+        Define Equality of tool instances
+
+        INPUT:
+
+        - ``other`` -- another tool instance.
+        
+        OUTPUT:
+
+        Boolean. Whether ``other`` equals this tool.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.cmdline.posix import cat, cp
+            sage: cat.__eq__(cat)
+            True
+            sage: cat.__eq__(cp)
+            False
+            sage: cat == cp
+            False
+            sage: cat == None
+            False
+        """
+        if type(self) != type(other):
+            return False
+        return (self._name == other._name) and (self._args == other._args)
+
     @classmethod
     def _disallow_further_instances(cls):
         """

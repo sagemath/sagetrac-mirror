@@ -124,7 +124,8 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces with basis over quotient fields
+        Category of finite dimensional vector spaces with basis over
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()
@@ -230,7 +231,7 @@ def decomposition(x):
         [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1,
         Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
         sage: d[0].parent()
-        Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
+        Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2
     """
     return x.decomposition()
 
@@ -438,14 +439,14 @@ def symbolic_sum(expression, *args, **kwds):
         zeta(5)
 
     .. WARNING::
-    
+
         This function only works with symbolic expressions. To sum any
         other objects like list elements or function return values,
         please use python summation, see
         http://docs.python.org/library/functions.html#sum
 
         In particular, this does not work::
-        
+
             sage: n = var('n')
             sage: list=[1,2,3,4,5]
             sage: sum(list[n],n,0,3)
@@ -454,12 +455,12 @@ def symbolic_sum(expression, *args, **kwds):
             TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
-        
+
             sage: sum(list[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::
-        
+
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
@@ -1574,7 +1575,7 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)
