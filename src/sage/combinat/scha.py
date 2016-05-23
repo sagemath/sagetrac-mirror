@@ -63,7 +63,7 @@ from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWi
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.sets.set import Set_object_enumerated
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
@@ -495,8 +495,8 @@ def LatticeOfSetPartitions(n):
         -  this should be improved and eventually included in Sage someplace
 
         -  Example 3.10.4 of Stanley's Enumerative Combinatorics I gives an
-           explicit description of the Mobius function of the lattice of set
-           partitions. Use it to implement :meth:`mobius_function`.
+           explicit description of the Moebius function of the lattice of set
+           partitions. Use it to implement :meth:`moebius_function`.
 
     EXAMPLES::
 
@@ -527,8 +527,8 @@ def LatticeOfSetPartitions(n):
 
     relns = [(S, T) for S in elements for T in upper_covers_iter(S)]
     L = LatticePoset((elements, relns), cover_relations=False, facade=True)
-    # pre-compute the mobius function for speedup
-    L.mobius_function_matrix()
+    # pre-compute the moebius function for speedup
+    L.moebius_function_matrix()
 
     def partial_order(T, S):
         return all(any(set(t).issubset(set(s)) for s in S) for t in T)
@@ -2440,7 +2440,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             H = self.realization_of().homogeneous_basis()
             L = LatticeOfSetPartitions(phi.size())
             phi = L(phi.to_set_partition())
-            mu = L.mobius_function
+            mu = L.moebius_function
             return H.sum(mu(sigma, phi) * H[label_set_partition(sigma)]
                          for sigma in L.order_ideal([phi])) / abs(mu(L.bottom(), phi))
 
@@ -2561,7 +2561,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             """
             P = self.realization_of().powersum_basis()
             L = LatticeOfSetPartitions(phi.size())
-            mu = L.mobius_function
+            mu = L.moebius_function
             pi = L(phi.to_set_partition())
             hat0 = L.bottom()
             return P.sum(mu(hat0, sigma) * P[label_set_partition(sigma)]
@@ -2589,7 +2589,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             E = self.realization_of().elementary_basis()
             L = LatticeOfSetPartitions(phi.size())
             pi = L(phi.to_set_partition())
-            mu = L.mobius_function
+            mu = L.moebius_function
             return E.sum(mu(sigma, pi) * E[label_set_partition(sigma)]
                          for sigma in L.order_ideal([pi])) / mu(L.bottom(), pi)
 
