@@ -508,7 +508,7 @@ def LatticeOfSetPartitions(n):
         sage: L = LatticeOfSetPartitions(2)
         sage: for T in L:
         ....:    for S in L:
-        ....:       print (T,S, L.is_lequal(T,S))
+        ....:       print(T,S, L.is_lequal(T,S))
         ({{1}, {2}}, {{1}, {2}}, True)
         ({{1}, {2}}, {{1, 2}}, True)
         ({{1, 2}}, {{1}, {2}}, False)
@@ -619,7 +619,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: scha = SupercharacterHopfAlgebra(q=3)
             sage: TestSuite(scha).run() # long time
 
-        This example is taken from the paper of Rosas and Sagan::
+        This example is taken from the paper [NCSym]_ of Rosas and Sagan::
 
             sage: scha = SupercharacterHopfAlgebra(2)
             sage: K = scha.K()
@@ -630,7 +630,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
         """
         if isinstance(base_ring, (int, Integer)):
             if q is not None:
-                raise ValueError
+                raise ValueError("cannot use q with integer base ring")
             q = base_ring
             base_ring = None
 
@@ -2230,9 +2230,9 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-            noncommuting variables, Transactions of the American Mathematical
-            Society, Volume 358, Number 1, Pages 215--232
+        .. [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
+           noncommuting variables, Transactions of the American Mathematical
+           Society, Volume 358, Number 1, Pages 215--232
         """
         _basis_name = "powersum"
         _prefix = "P"
@@ -2254,11 +2254,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: P._powersum_to_superclass_on_basis(psi)
                 K[13|2] + K[123]
 
-            REFERENCES:
-
-            -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-                noncommuting variables, Transactions of the American Mathematical
-                Society, Volume 358, Number 1, Pages 215--232
+            REFERENCES: [NCSym]_
             """
             K = self.realization_of().superclass_basis()
             L = LatticeOfSetPartitions(phi.size())
@@ -2414,11 +2410,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: H._homogeneous_to_superclass_on_basis(psi)
                 K[1|2|3] + K[1|23] + 2*K[13|2] + K[12|3] + 2*K[123]
 
-            REFERENCES:
-
-            -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-                noncommuting variables, Transactions of the American Mathematical
-                Society, Volume 358, Number 1, Pages 215--232
+            REFERENCES: [NCSym]_
             """
             K = self.realization_of().superclass_basis()
             return K.sum(prod(factorial(len(a.intersection(b)))
@@ -2443,11 +2435,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: H._powersum_to_homogeneous_on_basis(psi)
                 -H[1|2|3] + H[13|2]
 
-            REFERENCES:
-
-            -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-                noncommuting variables, Transactions of the American Mathematical
-                Society, Volume 358, Number 1, Pages 215--232
+            REFERENCES: [NCSym]_
             """
             H = self.realization_of().homogeneous_basis()
             L = LatticeOfSetPartitions(phi.size())
@@ -2519,11 +2507,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             sage: E = SupercharacterHopfAlgebra(q=2).E()
             sage: TestSuite(E).run() # long time
 
-        REFERENCES:
-
-        -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-            noncommuting variables, Transactions of the American Mathematical
-            Society, Volume 358, Number 1, Pages 215--232
+        REFERENCES: [NCSym]_
         """
         _basis_name = "elementary"
         _prefix = "E"
@@ -2573,11 +2557,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X(E.one())
                 X[]
 
-            REFERENCES:
-
-            -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-                noncommuting variables, Transactions of the American Mathematical
-                Society, Volume 358, Number 1, Pages 215--232
+            REFERENCES: [NCSym]_
             """
             P = self.realization_of().powersum_basis()
             L = LatticeOfSetPartitions(phi.size())
@@ -2604,11 +2584,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: E._powersum_to_elementary_on_basis(psi)
                 E[1|2|3] - E[13|2]
 
-            REFERENCES:
-
-            -   [NCSym] Mercedes H. Rosas and Bruce E. Sagan, Symmetric functions in
-                noncommuting variables, Transactions of the American Mathematical
-                Society, Volume 358, Number 1, Pages 215--232
+            REFERENCES: [NCSym]_
             """
             E = self.realization_of().elementary_basis()
             L = LatticeOfSetPartitions(phi.size())
