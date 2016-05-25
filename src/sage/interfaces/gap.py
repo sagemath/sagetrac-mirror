@@ -509,7 +509,8 @@ class Gap_generic(ExtraTabCompletion, Expect):
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages and/or database_gap SPKGs.")
+                               "You may want to install the gap_packages and/or database_gap SPKGs. "+
+                               "Alternatively, You may install the package locally, into ~/.gap/pkg directory.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
