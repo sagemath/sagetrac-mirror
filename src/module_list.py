@@ -1066,6 +1066,9 @@ ext_modules = [
     Extension('sage.modules.free_module_element',
               sources = ['sage/modules/free_module_element.pyx']),
 
+    Extension('sage.modules.indexed_free_module_element',
+              sources = ['sage/modules/indexed_free_module_element.pyx']),
+
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']),
 

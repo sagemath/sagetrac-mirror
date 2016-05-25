@@ -25,8 +25,7 @@ from __future__ import division
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import generic_power
-from sage.combinat.free_module import (CombinatorialFreeModule,
-    CombinatorialFreeModuleElement)
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
@@ -1459,7 +1458,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
     # The following subclass provides a few additional methods for
     # partition algebra elements.
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
         r"""
         An element of a diagram algebra.
 

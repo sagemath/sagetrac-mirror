@@ -11,7 +11,7 @@ from __future__ import print_function
 
 from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
 import functools
@@ -234,7 +234,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             return basis[i]
         return self.module_morphism(on_basis = functools.partial(basis_value, basis) , codomain=L)
 
-class RootSpaceElement(CombinatorialFreeModuleElement):
+class RootSpaceElement(CombinatorialFreeModule.Element):
     def scalar(self, lambdacheck):
         """
         The scalar product between the root lattice and

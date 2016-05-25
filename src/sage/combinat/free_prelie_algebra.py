@@ -18,8 +18,7 @@ AUTHORS:
 
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.all import GradedModulesWithBasis
-from sage.combinat.free_module import (CombinatorialFreeModule,
-                                       CombinatorialFreeModuleElement)
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.rooted_tree import RootedTrees, LabelledRootedTrees
 from sage.misc.lazy_attribute import lazy_attribute

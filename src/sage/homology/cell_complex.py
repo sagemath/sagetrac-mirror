@@ -38,7 +38,7 @@ by developers producing new classes, not casual users.
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.abstract_method import abstract_method
 
 class GenericCellComplex(SageObject):
@@ -1194,7 +1194,7 @@ class Chains(CombinatorialFreeModule):
             CombinatorialFreeModule.__init__(self, base_ring, n_cells,
                                              prefix='', bracket=False)
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
 
         def eval(self, other):
             """

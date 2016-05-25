@@ -24,7 +24,7 @@ from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
-from sage.combinat.free_module import _divide_if_possible
+from sage.modules.indexed_free_module_element import _divide_if_possible
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
@@ -240,7 +240,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
                 return p + ' ' + d
         return repr_from_monomials(self.list(), term, True)
 
-    # Copied from CombinatorialFreeModuleElement
+    # Copied from IndexedFreeModuleElement
     def __eq__(self, other):
         """
         Check equality.
@@ -484,7 +484,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         return self.__monomials.keys()
 
     # This is essentially copied from
-    #   sage.combinat.free_module.CombinatorialFreeModuleElement
+    #   sage.modules.indexed_free_module_element.IndexedFreeModuleElement
     def __truediv__(self, x):
         """
         Division by coefficients.
