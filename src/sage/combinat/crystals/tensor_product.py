@@ -28,6 +28,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 import operator
 from sage.misc.latex import latex
@@ -919,7 +920,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: D = crystals.Tableaux(['A',3], shape=[1])
             sage: E = crystals.Tableaux(['A',3], shape=[2,2,2])
             sage: T = crystals.TensorProduct(C,D,E)
-            sage: print T.module_generators[0]._repr_diagram()
+            sage: print(T.module_generators[0]._repr_diagram())
               1  1  1 (X)   1 (X)   1  1
               2                     2  2
                                     3  3
@@ -1770,7 +1771,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
             sage: C = crystals.Tableaux(['A', 4], shape=[4,2,1])
             sage: elt = C(rows=[[1,1,1,2], [2,3], [4]])
-            sage: print elt._repr_diagram()
+            sage: print(elt._repr_diagram())
               1  1  1  2
               2  3
               4
