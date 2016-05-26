@@ -58,11 +58,7 @@ export INSTALL_DIR="$SAGE_LOCAL/"
 cd src
 
 # Apply Sage-specific patches: (See SPKG.txt for details on the patches.)
-echo "Patching the upstream source code for Sage..."
-for patch in ../patches/*.patch; do
-    patch -p1 < "$patch"
-    success "patch $patch failed to apply"
-done
+sage-apply-patches || exit 1
 
 # There's currently no 'configure' script for Lcalc; we (also) configure
 # it by patching the Makefile. This may change in a later release of Lcalc.

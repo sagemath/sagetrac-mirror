@@ -33,14 +33,7 @@ cp ../patches/cdd_both_reps.c src/
 cp ../patches/cdd_both_reps.c src-gmp/cdd_both_reps.c
 
 # apply patch files
-for patch in ../patches/*.patch; do
-    # skip patches that aren't needed at build time
-    if echo "$patch" | grep 'Makefile.am.patch$' > /dev/null; then
-        continue
-    fi
-    patch -p1 < "$patch" ||
-      die "Error patching cddlib"
-done
+sage-apply-patches || exit 1
 
 # Use newer version of config.guess and config.sub (see Trac #19718)
 cp "$SAGE_ROOT"/config/config.* .

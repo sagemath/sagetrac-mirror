@@ -68,17 +68,7 @@ unset SHARED_FLAG # Currently leave the Makefile default ('-shared'); for safety
 
 cd src/
 
-ls ../patches/*.patch &>/dev/null &&
-echo "Applying patches to upstream sources..." &&
-for patch in ../patches/*.patch; do
-    basename "$patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done &&
-echo
+sage-apply-patches || exit 1
 
 # use 2to3 if we are running on python3
 if python -c 'import sys; sys.exit(sys.version_info.major != 3)'; then

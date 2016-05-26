@@ -8,15 +8,8 @@ fi
 
 cd src
 
-for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    # Apply patch as binary since source has incorrect line endings
-    patch -p1 --binary <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+# Apply patch as binary since source has incorrect line endings
+sage-apply-patches -- --binary || exit 1
 
 $PIP_INSTALL .
 
