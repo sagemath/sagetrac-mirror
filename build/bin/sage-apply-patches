@@ -55,7 +55,7 @@ patches=( "${patchdir}"/*.patch )
 
 if [[ -r "${patches[0]}" ]]; then
     echo "Applying patches from ${patchdir}..."
-    for patch in $patches; do
+    for patch in ${patches[@]}; do
         # Skip non-existing or non-readable patches
         [ -r "$patch" ] || continue
         echo "Applying $patch"
