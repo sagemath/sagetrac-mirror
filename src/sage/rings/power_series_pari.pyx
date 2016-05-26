@@ -1,6 +1,58 @@
 """
 Power series implemented using PARI
 
+EXAMPLES:
+
+This implementation can be selected for any base ring supported by
+PARI by passing the keyword ``implementation='pari'`` to the
+:func:`~sage.rings.power_series_ring.PowerSeriesRing` constructor::
+
+    sage: R.<q> = PowerSeriesRing(ZZ, implementation='pari'); R
+    Power Series Ring in q over Integer Ring
+    sage: S.<t> = PowerSeriesRing(CC, implementation='pari'); S
+    Power Series Ring in t over Complex Field with 53 bits of precision
+
+Note that only the type of the elements depends on the implementation,
+not the type of the parents::
+
+    sage: type(R)
+    <class 'sage.rings.power_series_ring.PowerSeriesRing_domain_with_category'>
+    sage: type(q)
+    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+    sage: type(S)
+    <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field_with_category'>
+    sage: type(t)
+    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+
+If `k` is a finite field implemented using PARI, this is the default
+implementation for power series over `k`::
+
+    sage: k.<c> = GF(5^12)
+    sage: type(c)
+    <type 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
+    sage: A.<x> = k[[]]
+    sage: type(x)
+    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+
+WARNING:
+
+Because this implementation uses the PARI interface, the PARI variable
+ordering must be respected in the sense that the variable name of the
+power series ring must have higher priority than any variable names
+occurring in the base ring::
+
+    sage: R.<y> = QQ[]
+    sage: S.<x> = PowerSeriesRing(R, implementation='pari'); S
+    Power Series Ring in x over Univariate Polynomial Ring in y over Rational Field
+
+Reversing the variable ordering leads to errors::
+
+    sage: R.<x> = QQ[]
+    sage: S.<y> = PowerSeriesRing(R, implementation='pari')
+    Traceback (most recent call last):
+    ...
+    PariError: incorrect priority in gtopoly: variable x <= y
+
 AUTHORS:
 
 - Peter Bruin (December 2013): initial version
@@ -8,7 +60,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
+#       Copyright (C) 2013-2016 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
