@@ -712,9 +712,13 @@ class Benchmark(SageObject):
         elif identifier is None:
             selected_data = dict()
             for i in ids:
-                no_tests = self.number_of_tests(i)
-                for j in range(no_tests):
-                    selected_data[i, j] = exp_data[i, j][data_id]
+                if exp_data.has_key((i, 0)):
+                    no_tests = self.number_of_tests(i)
+                    for j in range(no_tests):
+                        try:
+                            selected_data[i, j] = exp_data[i, j][data_id]
+                        except KeyError:
+                            break
             return selected_data
 
         if identifier not in self.identifier():
@@ -722,14 +726,20 @@ class Benchmark(SageObject):
 
         selected_data = dict()
         no_tests = self.number_of_tests(identifier)
-        if data is None:
-            for n in range(no_tests):
-                selected_data[identifier, n] = exp_data[identifier, n]
-            return selected_data
-        else:
-            for n in range(no_tests):
-                selected_data[identifier, n] = exp_data[identifier, n][data_id]
-            return selected_data
+        if exp_data.has_key((identifier, 0)):
+            if data is None:
+                for n in range(no_tests):
+                    try:
+                        selected_data[identifier, n] = exp_data[identifier, n]
+                    except KeyError:
+                        break
+            else:
+                for n in range(no_tests):
+                    try:
+                        selected_data[identifier, n] = exp_data[identifier, n][data_id]
+                    except KeyError:
+                        break
+        return selected_data
 
     def identifier(self):
         r"""
@@ -789,25 +799,24 @@ class Benchmark(SageObject):
             sage: B._perform_experiments_for_single_id('_0', 0)
         """
         #setting local variables and checking validity of data to use
-        data = self.experimental_data()
-        try:
-            data[identifier, 0]
-            print "Some experimental data already exist for benchmark %s.\nIf you want to perform new experiments, please run clear_experimental_data first" % identifier
+        data = self.experimental_data(identifier = identifier)
+        no_tests = self.number_of_tests(identifier = identifier)
+        cur_no_tests = len(data)
+        if cur_no_tests == no_tests:
+            print "Experimental data already exist for benchmark %s.\nIf you want to perform new experiments, please run clear_experimental_data first" % identifier
             return
-        except KeyError:
-            pass
+        if cur_no_tests == 0:
+            data = self._experimental_data
         C = self.code(identifier)
         if C is None:
             print "Benchmark %s is empty, skipping computation" % identifier
             return
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
-        no_tests = self.number_of_tests(identifier)
         previous = 0 #used for verbosity
         if verbosity != 0:
             print "Starting run for benchmark %s" % identifier
-
-        for i in range(no_tests):
+        while(cur_no_tests < no_tests):
             start = time.clock()
             c = C.random_element()
             generate_c_time = time.clock() - start
@@ -826,19 +835,20 @@ class Benchmark(SageObject):
                 decode_time = time.clock() - start
                 dec_y = None #as decoding failed
                 decoding_failure = True
-            data[identifier, i] = (c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure)
+            data[identifier, cur_no_tests] = (c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure)
 
             #verbosity
             if verbosity ==1:
-                cur = (i*4) // no_tests
-                if (i*4) // no_tests != previous:
+                cur = (cur_no_tests*4) // no_tests
+                if (cur_no_tests*4) // no_tests != previous:
                     previous = cur
                     print "%s percent complete" % (cur * 25)
             if verbosity ==2:
-                cur = (i*10) // no_tests
-                if (i*10) // no_tests != previous:
+                cur = (cur_no_tests*10) // no_tests
+                if (cur_no_tests*10) // no_tests != previous:
                     previous = cur
                     print "%s percent complete" % (cur * 10)
+            cur_no_tests += 1
 
         if verbosity != 0:
             print "Run complete for benchmark %s" % identifier
