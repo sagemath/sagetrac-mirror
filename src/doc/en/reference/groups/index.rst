@@ -16,6 +16,7 @@ Groups
    sage/groups/finitely_presented
    sage/groups/finitely_presented_named
    sage/groups/braid
+   sage/groups/cactus_group
    sage/groups/indexed_free_group
    sage/groups/raag
    sage/groups/group_exp

@@ -6099,6 +6099,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             True
             sage: P.has_coerce_map_from(Permutations(7))
             False
+            sage: P.has_coerce_map_from(groups.misc.Cactus(5))
+            True
+            sage: P.has_coerce_map_from(groups.misc.Cactus(7))
+            False
         """
         if isinstance(G, SymmetricGroup):
             D = G.domain()
@@ -6107,6 +6111,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self._from_permutation_group_element
         if isinstance(G, StandardPermutations_n) and G.n <= self.n:
             return True
+        from sage.groups.cactus_group import CactusGroup
+        if isinstance(G, CactusGroup) and G.n() <= self.n:
+            return lambda self, x: self(x.to_permutation())
         return super(StandardPermutations_n, self)._coerce_map_from_(G)
 
     def _from_permutation_group_element(self, x):

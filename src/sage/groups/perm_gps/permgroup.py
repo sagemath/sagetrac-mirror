@@ -668,6 +668,11 @@ class PermutationGroup_generic(group.FiniteGroup):
         if isinstance(x, (int, long, Integer)) and x == 1:
             return self.identity()
 
+        try:
+            return self._coerce_impl(x)
+        except TypeError:
+            pass
+
         return self._element_class()(x, self, check=check)
 
     def _coerce_impl(self, x):
@@ -700,16 +705,47 @@ class PermutationGroup_generic(group.FiniteGroup):
             Traceback (most recent call last):
             ...
             TypeError: no implicit coercion of element into permutation group
+
+        Some examples from the Cactus group::
+
+            sage: J3 = groups.misc.Cactus(3)
+            sage: S7 = SymmetricGroup(7)
+            sage: s12,s13,s23 = J3.gens()
+            sage: S7(s12)
+            (1,2)
+            sage: S7(s23)
+            (2,3)
+            sage: S7(s13)
+            (1,3)
+            sage: elt = s12*s23*s13
+            sage: S7(elt)
+            (2,3)
+
+            sage: J7 = groups.misc.Cactus(7)
+            sage: S7(J7.group_generators()[3,6])
+            (3,6)(4,5)
         """
-        from permgroup_named import SymmetricGroup
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
             if x_parent is self:
                 return x
 
+            from permgroup_named import SymmetricGroup
             compatible_domains = all(point in self._domain_to_gap for point in x_parent.domain())
             if  compatible_domains and (self.__class__ == SymmetricGroup or x._gap_() in self._gap_()):
                 return self._element_class()(x.cycle_tuples(), self, check=False)
+
+        from sage.groups.cactus_group import CactusGroup
+        if isinstance(x, CactusGroup.Element):
+            G = x.parent()
+            n = G.n()
+            if isinstance(G, CactusGroup) and all(i in self.domain() for i in range(1,n+1)):
+                ret = self.one()
+                for a in x._word:
+                    lst = list(range(1, n+1))
+                    lst[a[0]-1:a[1]] = list(reversed(lst[a[0]-1:a[1]]))
+                    ret *= self._element_class()(lst, self, check=False)
+                return ret
         raise TypeError("no implicit coercion of element into permutation group")
 
     def list(self):
