@@ -51,7 +51,7 @@ done
 
 patchdir="${patchdir}/${patch_subdir}"
 patchdir="${patchdir%/}"
-patches=( "${patchdir}/${patch_subdir}"/*.patch )
+patches=( "${patchdir}"/*.patch )
 
 if [[ -r "${patches[0]}" ]]; then
     echo "Applying patches from ${patchdir}..."
