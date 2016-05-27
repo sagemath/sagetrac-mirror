@@ -6,6 +6,24 @@
 Welcome to the Sage FAQ!
 ========================
 
+Sage can do computations::
+
+    1+0
+
+::
+
+    sage: 1+0
+    1
+
+::
+
+    sage: 1+1
+    2
+    sage: 1+2
+    3
+    sage: for i in range(10):
+    ....:     print i
+
 This work is licensed under a `Creative Commons Attribution-Share Alike
 3.0 License`__.  With grateful thanks, we acknowledge it as being
 originally compiled by Minh Van Nguyen.
