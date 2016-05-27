@@ -5,8 +5,8 @@ def autogen_all():
     """
     Regenerate the automatically generated files of the Sage library.
     """
-    import pari
+    from . import pari
     pari.rebuild()
 
-    import interpreters
+    from . import interpreters
     interpreters.rebuild(os.path.join(SAGE_SRC, "sage", "ext", "interpreters"))
