@@ -33,9 +33,6 @@ export CFLAGS
 
 cd src
 
-sage-apply-patches || exit 1
-
-
 echo "Configuring GSL..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then

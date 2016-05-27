@@ -10,9 +10,6 @@ rm -f "$SAGE_LOCAL/bin/sqlite3"
 
 cd src
 
-# Apply patches
-sage-apply-patches || exit 1
-
 # Use newer version of config.guess and config.sub (see Trac #19711)
 cp "$SAGE_ROOT"/config/config.* .
 

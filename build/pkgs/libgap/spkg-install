@@ -30,9 +30,6 @@ CPPFLAGS="$CPPFLAGS"' -DSYS_DEFAULT_PATHS=\"'"$SAGE_LOCAL/gap/latest"'\"'
 
 cd src
 
-# Apply fixes to upstream source
-sage-apply-patches || exit 1
-
 echo "Configuring libGAP..."
 ./configure --disable-static \
     CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" \

@@ -8,8 +8,6 @@ fi
 
 cd src || exit
 
-sage-apply-patches || exit 1
-
 INCLUDES="-I$SAGE_LOCAL/include/"
 
 CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"

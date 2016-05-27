@@ -19,9 +19,6 @@ export CFLAGS="-O2 -g $CFLAGS"
 
 cd src/src
 
-# Patch bzip2
-sage-apply-patches || exit 1
-
 # Autotoolify bzip2
 cp -r -f ../autotools/* ./
 
