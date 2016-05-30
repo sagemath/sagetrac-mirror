@@ -98,10 +98,6 @@ from sage.misc.sh import sh
 from sage.libs.all       import *
 from sage.data_structures.all import *
 from sage.doctest.all    import *
-try:
-    from sage.dev.all    import *
-except ImportError:
-    pass   # dev scripts are disabled
 
 from sage.structure.all  import *
 from sage.rings.all      import *
@@ -329,6 +325,15 @@ def _write_started_file():
 # in set_random_seed() will result in the same sequence you got at
 # Sage startup).
 set_random_seed()
+
+import warnings
+warnings.filterwarnings('ignore',
+    '.*_default is deprecated: use @default decorator instead\.')
+warnings.filterwarnings('ignore',
+    module='(.*IPython.*|ipykernel|jupyter_client|jupyter_core|nbformat|notebook)')
+# Why isn't it taken care of by IPython???
+warnings.filterwarnings('ignore', module='storemagic')
+warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
