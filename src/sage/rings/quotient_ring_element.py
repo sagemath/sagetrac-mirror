@@ -642,19 +642,24 @@ class QuotientRingElement(RingElement):
 
         """
 
-        # A containment test is not implemented for univariate polynomial
-        # ideals. There are cases in which one would not like to add
-        # elements of different degrees. The whole quotient stuff relies
-        # in I.reduce(x) returning a normal form of x with respect to I.
-        # Hence, we will not use more than that.
-        #return cmp(self.__rep, other.__rep)
-        # Since we have to compute normal forms anyway, it makes sense
-        # to use it for comparison in the case of an inequality as well.
-        if self.__rep == other.__rep: # Use a shortpath, so that we
-                                      # avoid expensive reductions
+        #short path in case of obvious equality
+        if self.__rep == other.__rep:
              return 0
         I = self.parent().defining_ideal()
-        return cmp(I.reduce(self.__rep), I.reduce(other.__rep))
+        if (self.__rep-other.__rep) in I:
+            return 0
+        #this should really change. We shouldn't have an "ordering"
+        #on these elements, since we don't even have unique representatives
+        #(so we shouldn't be hashable either). Once we move over to
+        #rich comparison it will be possible to implement equality
+        #testing without also implementing an ordering.
+        c=cmp(self.__rep, other.__rep)
+        if c:
+            return c
+        else:
+            #this error will probably be caught, but at least we're not
+            #silently passing bad info up.
+            raise RuntimeError("Distinct residue classes compare as equal")
 
     def lt(self):
         """
