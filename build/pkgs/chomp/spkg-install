@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+NAME="CHomP"
+
+if [[ -z $SAGE_LOCAL ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src/
+
+cp ../patches/CMakeLists.txt source/CMakeLists.txt
+
+
+export CFLAGS="-I$SAGE_LOCAL/include"
+export VERBOSE=1
+
+cmake \
+    -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL" \
+    -DUSER_INCLUDE_PATH="$SAGE_LOCAL/include" \
+    -DUSER_LIBRARY_PATH="$SAGE_LOCAL/lib" \
+    -DBoost_INCLUDE_DIRS="$SAGE_LOCAL/include/boost" \
+    .
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring $NAME."
+    exit 1
+fi
+
+make chomp-cubical
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building $NAME."
+    exit 1
+fi
+
+echo "Now installing $NAME..."
+make install
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error installing $NAME."
+    exit 1
+fi
+
+echo "Making symlinks for the old $NAME binaries..."
+cd $SAGE_LOCAL/bin
+ln -sf chomp-cubical homcubes
+ln -sf chomp-simplicial homsimpl

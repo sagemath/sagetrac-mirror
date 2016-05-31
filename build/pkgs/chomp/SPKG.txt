@@ -1,0 +1,32 @@
+= CHomP =
+
+== Description ==
+
+CHomP is a library for computational homology.
+
+== License ==
+
+
+
+== SPKG Maintainers ==
+
+* Volker Braun
+
+== Upstream Contact ==
+
+http://chomp.rutgers.edu
+
+== Dependencies ==
+
+* Boost
+
+== Special Update/Build Instructions ==
+
+* CImg.h.patch, Makefile.in.patch: don't require the use of X11. Since
+  X11 is not installed by default on OS X, these patches are necessary.
+
+== Changelog ==
+
+=== chomp-1.0 (Volker Braun, 16 Sept 2013) ===
+
+ * Initial version
