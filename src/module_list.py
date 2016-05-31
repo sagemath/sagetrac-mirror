@@ -548,10 +548,17 @@ ext_modules = [
     ################################
 
     OptionalExtension('sage.libs.chomp.matrix_complex',
-              sources = ['sage/libs/chomp/matrix_complex.pyx'],
+              sources = [
+                  'sage/libs/chomp/matrix_complex.pyx',
+                  'sage/libs/chomp/sage_matrix_complex.cpp',
+              ],
               include_dirs = [os.path.join(SAGE_INC, 'chomp')],
               language="c++",
-              libraries = ['chomp'],
+              libraries = [
+                  'boost_serialization', 'boost_system',
+                  'boost_chrono', 'boost_thread',
+              ],
+              extra_compile_args = ["-std=c++11"],
               package = 'chomp'),
 
     OptionalExtension('sage.libs.coxeter3.coxeter',
