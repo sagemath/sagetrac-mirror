@@ -6,7 +6,7 @@ CHomP is a library for computational homology.
 
 == License ==
 
-
+The MIT License (MIT)
 
 == SPKG Maintainers ==
 
@@ -30,3 +30,4 @@ http://chomp.rutgers.edu
 === chomp-1.0 (Volker Braun, 16 Sept 2013) ===
 
  * Initial version
+

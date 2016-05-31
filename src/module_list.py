@@ -547,6 +547,13 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension('sage.libs.chomp.matrix_complex',
+              sources = ['sage/libs/chomp/matrix_complex.pyx'],
+              include_dirs = [os.path.join(SAGE_INC, 'chomp')],
+              language="c++",
+              libraries = ['chomp'],
+              package = 'chomp'),
+
     OptionalExtension('sage.libs.coxeter3.coxeter',
               sources = ['sage/libs/coxeter3/coxeter.pyx'],
               include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
