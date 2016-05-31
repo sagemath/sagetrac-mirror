@@ -27,7 +27,7 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-make chomp-cubical
+make chomp-cubical VERBOSE=1
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error building $NAME."
     exit 1
