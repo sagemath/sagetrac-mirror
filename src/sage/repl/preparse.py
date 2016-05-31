@@ -599,6 +599,55 @@ def extract_numeric_literals(code):
     """
     return preparse_numeric_literals(code, True)
 
+
+def preparse_infix_mod_operator(code):
+    """
+    This preparses the "mod" infix operator
+
+    The infix mod operator has precedence over any other operator. It differs from the
+    percent-operator in that the result is an element of the integer mod ring, and not
+    of the original (integer) ring.
+
+    INPUT:
+
+    - ``code`` - a string; a code block to preparse
+
+    OUTPUT:
+
+    A string. The preparsed block.
+
+    EXAMPLES::
+      
+        sage: 42 mod 8
+        2
+        sage: type(42 mod 8)
+        <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+        sage: from sage.repl.preparse import preparse_infix_mod_operator
+        sage: preparse_infix_mod_operator('5 mod 3')
+        '5 * IntegerModRing(3).one()'
+        sage: preparse_infix_mod_operator('3+5 mod 3-42')
+        '3+5 * IntegerModRing(3).one()-42'
+        sage: preparse_infix_mod_operator('3+5 mod 3-42 mod 7*3')
+        '3+5 * IntegerModRing(3).one()-42 * IntegerModRing(7).one()*3'
+   """
+    mod_regex = re.compile(
+        r'\s+'                   # One or more spaces
+        r'mod'                   # The string "mod"
+        r'\s+'                   # One or more spaces
+        r'(?P<modulus>\d+)'      # Capture one or more digits
+    )
+    prev_end = 0
+    result = []
+    for match in mod_regex.finditer(code):
+        result.extend([
+            code[prev_end:match.start()],
+            ' * IntegerModRing({0}).one()'.format(match.group('modulus')),
+        ])
+        prev_end = match.end()
+    result.append(code[prev_end:])
+    return ''.join(result)
+
+
 all_num_regex = None
 
 def preparse_numeric_literals(code, extract=False):
@@ -1053,7 +1102,7 @@ def preparse_generators(code):
 quote_state = None
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
-             numeric_literals=True):
+             numeric_literals=True, mod_operator=True):
     r"""
     Preparses a line of input.
 
@@ -1068,6 +1117,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     - ``ignore_prompts`` - a boolean (default: False)
 
     - ``numeric_literals`` - a boolean (default: True)
+
+    - ``mod_operator`` - a boolean (default: True)
 
     OUTPUT:
 
@@ -1138,6 +1189,11 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     except SyntaxError:
         pass
 
+    if mod_operator:
+        # Infix mod operator
+        # 5 mod 3 -> 5 * IntegerModRing(3).one()
+        L = preparse_infix_mod_operator(L)
+    
     if implicit_mul_level:
         # Implicit Multiplication
         # 2x -> 2*x
