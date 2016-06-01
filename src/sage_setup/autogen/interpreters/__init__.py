@@ -116,6 +116,7 @@ import os
 from .generator import InterpreterGenerator, AUTOGEN_WARN
 from .instructions import *
 from .memory import *
+from .specs.base import *
 from .specs.cdf import *
 from .specs.element import *
 from .specs.python import *
@@ -123,6 +124,34 @@ from .specs.rdf import *
 from .specs.rr import *
 from .storage import *
 from .utils import *
+
+
+def print_names():
+    """
+    For the benefit of the sagelib Makefile, print a list of the names
+    of all known interpreters.
+
+    This assumes that the classes implementing those interpreters
+    have been imported into this module.
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen import interpreters
+        sage: interpreters.print_names()
+        cdf
+        el
+        py
+        rdf
+        rr
+    """
+
+    # A a better way might be to recursively iterate
+    # InterpreterSpec.__subclasses__()
+    interps = filter(lambda c: (isinstance(c, type) and
+                                issubclass(c, InterpreterSpec)),
+                    globals().values())
+    names = sorted(filter(None, (cls.name for cls in interps)))
+    print('\n'.join(names))
 
 
 def build_interp(interp_spec, dir):
