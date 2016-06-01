@@ -5,10 +5,10 @@
 # in sage_setup.autogen.interpreters
 INTERP_PATH:=sage/ext/interpreters
 INTERPS:=$(shell python -c 'from sage_setup.autogen import interpreters; interpreters.print_names()')
-INTERP_SRCS=$(INTERP_PATH)/__init__.py \
-            $(patsubst %,$(INTERP_PATH)/interp_%.c,$(INTERPS)) \
-            $(patsubst %,$(INTERP_PATH)/wrapper_%.pxd,$(INTERPS)) \
-            $(patsubst %,$(INTERP_PATH)/wrapper_%.pyx,$(INTERPS))
+INTERP_SRCS:=$(INTERP_PATH)/__init__.py \
+             $(patsubst %,$(INTERP_PATH)/interp_%.c,$(INTERPS)) \
+             $(patsubst %,$(INTERP_PATH)/wrapper_%.pxd,$(INTERPS)) \
+             $(patsubst %,$(INTERP_PATH)/wrapper_%.pyx,$(INTERPS))
 
 AUTOGEN_INTERPS:=sage_setup/autogen/interpreters
 INTERP_GENS:=$(shell find $(AUTOGEN_INTERPS) -type f -name '*.py')
