@@ -51,8 +51,8 @@ REFERENCES:
 
 AUTHORS:
 
-    - used non-decreasing_parking_functions code by Florent Hivert (2009 - 04)
-    - Dorota Mazur (2012 - 09)
+- used non-decreasing_parking_functions code by Florent Hivert (2009 - 04)
+- Dorota Mazur (2012 - 09)
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Dorota Mazur <dorota@yorku.ca>
@@ -63,454 +63,94 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.integer import Integer
-from sage.rings.all import QQ
 from copy import copy
-from sage.combinat.combinat import (CombinatorialClass, CombinatorialObject,
-                                    InfiniteAbstractCombinatorialClass)
-from sage.combinat.permutation import Permutation, Permutations
-from sage.combinat.dyck_word import DyckWord
+
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.dyck_word import DyckWord
+from sage.combinat.permutation import Permutation, Permutations
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.misc.prandom import randint
+from sage.rings.all import QQ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 
-def ParkingFunctions(n=None):
-    r"""
-    Return the combinatorial class of Parking Functions.
-
-    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
-    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
-    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
-
-    A *parking function* of size `n` is a pair `(L, D)` of two sequences
-    `L` and `D` where `L` is a permutation and `D` is an area sequence
-    of a Dyck Path of size n such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
-    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
-
-    The number of parking functions of size `n` is equal to the number
-    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
-
-    EXAMPLES:
-
-    Here are all parking functions of size 3::
-
-        sage: from sage.combinat.parking_functions import ParkingFunctions
-        sage: ParkingFunctions(3).list()
-        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3], [1, 3, 1], [3, 1, 1],
-         [1, 2, 2], [2, 1, 2], [2, 2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1],
-         [3, 1, 2], [3, 2, 1]]
-
-    If no size is specified, then ParkingFunctions returns the
-    combinatorial class of all parking functions. ::
-
-        sage: PF = ParkingFunctions(); PF
-        Parking functions
-        sage: [] in PF
-        True
-        sage: [1] in PF
-        True
-        sage: [2] in PF
-        False
-        sage: [1,3,1] in PF
-        True
-        sage: [1,4,1] in PF
-        False
-
-    If the size `n` is specified, then ParkingFunctions returns
-    the combinatorial class of all parking functions of size `n`.
-
-    ::
-
-        sage: PF = ParkingFunctions(0)
-        sage: PF.list()
-        [[]]
-        sage: PF = ParkingFunctions(1)
-        sage: PF.list()
-        [[1]]
-        sage: PF = ParkingFunctions(3)
-        sage: PF.list()
-        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
-         [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
-         [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
-
-    ::
-
-        sage: PF3 = ParkingFunctions(3); PF3
-        Parking functions of size 3
-        sage: [] in PF3
-        False
-        sage: [1] in PF3
-        False
-        sage: [1,3,1] in PF3
-        True
-        sage: [1,4,1] in PF3
-        False
-
-    TESTS::
-
-        sage: PF = ParkingFunctions(5)
-        sage: len(PF.list()) == PF.cardinality()
-        True
+class ParkingFunction(ElementWrapper):
     """
-    if n is None:
+    Class of parking function.
+    """
+    #the data structure of the element is a list (accessible via x.value)
+    wrapped_class = list
+    __lt__ = ElementWrapper._lt_by_value
+    #During the creation of the instance of the class, the function
+    #__classcall_private__ will be called instead of __init__ directly.
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, p):
+        """
+        Ensure that rooted trees created by the enumerated sets and directly
+        are the same and that they are instances of :class:`ParkingFunction`.
+
+        TESTS::
+
+            sage: from sage.combinat.parking_functions import (ParkingFunctions_all,
+            ....:    ParkingFunctions_size)
+            sage: issubclass(ParkingFunctions_all().element_class, ParkingFunction)
+            True
+            sage: issubclass(ParkingFunctions_size(3).element_class, ParkingFunction)
+            True
+            sage: t0 = ParkingFunction([1,1,2,1])
+            sage: t0.parent()
+            Parking functions
+            sage: type(t0)
+            <class 'sage.combinat.parking_functions.ParkingFunctions_all_with_category.element_class'>
+
+            sage: t1 = ParkingFunctions()([4,3,1,2])
+            sage: t1.parent() is t0.parent()
+            True
+            sage: type(t1) is type(t0)
+            True
+
+            sage: t1 = ParkingFunctions(4)([2,1,2,1])
+            sage: t1.parent() is t0.parent()
+            True
+            sage: type(t1) is type(t0)
+            True
+        """
+        if isinstance(p, (list, tuple)):
+            if check_if_parking_function(list(p)):
+                return cls._auto_parent.element_class(cls._auto_parent, p)
+            else:
+                raise ValueError('{}  is not a parking function'.format(p))
+        elif isinstance(p, ParkingFunction):
+            return p
+
+    @lazy_class_attribute
+    def _auto_parent(cls):
+        """
+        The automatic parent of the elements of this class.
+
+        When calling the constructor of an element of this class, one needs a
+        parent. This class attribute specifies which parent is used.
+
+        EXAMPLES::
+
+            sage: ParkingFunction._auto_parent
+            Parking functions
+            sage: ParkingFunction([2,1]).parent()
+            Parking functions
+        """
         return ParkingFunctions_all()
-
-    if not isinstance(n, (Integer, int)) or n < 0:
-        raise ValueError("%s is not a non-negative integer." % n)
-    return ParkingFunctions_n(n)
-
-
-def is_a(x, n=None):
-    r"""
-    Check whether a list is a parking function.
-
-    If a size `n` is specified, checks if a list is a parking function
-    of size `n`.
-
-    TESTS::
-
-        sage: from sage.combinat.parking_functions import is_a
-        sage: is_a([1,1,2])
-        True
-        sage: is_a([1,2,1])
-        True
-        sage: is_a([1,1,4])
-        False
-        sage: is_a([3,1,1], 3)
-        True
-    """
-    if not isinstance(x, list):  # from Florent Hivert non_decreasing_parking_function
-        return False
-    A = sorted(x)
-    from sage.combinat.non_decreasing_parking_function import is_a
-    return is_a(A, n)
-
-
-class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
-    def __init__(self):
-        """
-        TESTS::
-
-            sage: from sage.combinat.parking_functions import ParkingFunctions
-            sage: DW = ParkingFunctions()
-            sage: DW == loads(dumps(DW))
-            True
-        """
-        pass
-
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: repr(ParkingFunctions())
-            'Parking functions'
-        """
-        return "Parking functions"
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: [] in ParkingFunctions()
-            True
-            sage: [1] in ParkingFunctions()
-            True
-            sage: [2] in ParkingFunctions()
-            False
-            sage: [1,3,1] in ParkingFunctions()
-            True
-            sage: [1,4,1] in ParkingFunctions()
-            False
-        """
-        if isinstance(x, ParkingFunction_class):
-            return True
-        return is_a(x)
-
-    def _infinite_cclass_slice(self, n):
-        """
-        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
-
-        TESTS::
-
-            sage: (ParkingFunctions())._infinite_cclass_slice(4) == ParkingFunctions(4)
-            True
-            sage: it = iter(ParkingFunctions()) # indirect doctest
-            sage: [next(it) for i in range(8)]
-            [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
-         """
-        return ParkingFunctions_n(n)
-
-
-class ParkingFunctions_n(CombinatorialClass):
-    r"""
-    The combinatorial class of parking functions of size `n`.
-
-    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
-    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
-    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
-
-    A *parking function* of size `n` is a pair `(L, D)` of two sequences
-    `L` and `D` where `L` is a permutation and `D` is an area sequence
-    of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
-    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
-
-    The number of parking functions of size `n` is equal to the number
-    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
-
-    EXAMPLES::
-
-        sage: PF = ParkingFunctions(3)
-        sage: PF.list()
-        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
-        [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
-        [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
-
-        sage: [ParkingFunctions(i).cardinality() for i in range(6)]
-        [1, 1, 3, 16, 125, 1296]
-
-    .. warning::
-
-        The precise order in which the parking function are generated or
-        listed is not fixed, and may change in the future.
-    """
-    def __init__(self, n):
-        """
-        TESTS::
-
-            sage: PF = ParkingFunctions(3)
-            sage: PF == loads(dumps(PF))
-            True
-        """
-        self.n = n
-
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: repr(ParkingFunctions(3))
-            'Parking functions of size 3'
-        """
-        return "Parking functions of size %s" % self.n
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: PF3 = ParkingFunctions(3); PF3
-            Parking functions of size 3
-            sage: [] in PF3
-            False
-            sage: [1] in PF3
-            False
-            sage: [1,3,1] in PF3
-            True
-            sage: [1,1,1] in PF3
-            True
-            sage: [1,4,1] in PF3
-            False
-            sage: all([p in PF3 for p in PF3])
-            True
-        """
-        if isinstance(x, ParkingFunction_class):
-            return True
-        return is_a(x, self.n)
-
-    def cardinality(self):
-        r"""
-        Return the number of parking functions of size ``n``.
-
-        The cardinality is equal to `(n+1)^{n-1}`.
-
-        EXAMPLES::
-
-            sage: [ParkingFunctions(i).cardinality() for i in range(6)]
-            [1, 1, 3, 16, 125, 1296]
-        """
-        return Integer((self.n + 1) ** (self.n - 1))
-
-    def __iter__(self):
-        """
-        Return an iterator for parking functions of size `n`.
-
-        .. warning::
-
-            The precise order in which the parking function are
-            generated is not fixed, and may change in the future.
-
-        EXAMPLES::
-
-            sage: PF = ParkingFunctions(0)
-            sage: [e for e in PF]      # indirect doctest
-            [[]]
-            sage: PF = ParkingFunctions(1)
-            sage: [e for e in PF]      # indirect doctest
-            [[1]]
-            sage: PF = ParkingFunctions(2)
-            sage: [e for e in PF]      # indirect doctest
-            [[1, 1], [1, 2], [2, 1]]
-            sage: PF = ParkingFunctions(3)
-            sage: [e for e in PF]      # indirect doctest
-            [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
-            [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
-            [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
-
-        TESTS::
-
-            sage: PF = ParkingFunctions(5)
-            sage: [e for e in PF] == PF.list()
-            True
-            sage: PF = ParkingFunctions(6)
-            sage: [e for e in PF] == PF.list()
-            True
-        """
-        def iterator_rec(n):
-            """
-            TESTS::
-
-                sage: PF = ParkingFunctions(2)
-                sage: [e for e in PF]      # indirect doctest
-                [[1, 1], [1, 2], [2, 1]]
-            """
-            if n == 0:
-                yield []
-                return
-            if n == 1:
-                yield [1]
-                return
-            for res1 in iterator_rec(n - 1):
-                for i in range(res1[-1], n + 1):
-                    res = copy(res1)
-                    res.append(i)
-                    yield res
-            return
-        for res in iterator_rec(self.n):
-            for pi in Permutations(res):
-                yield ParkingFunction(list(pi))
-        return
-
-    def random_element(self):
-        r"""
-        Return a random parking function of size `n`.
-
-        The algorithm uses a circular parking space with `n+1`
-        spots. Then all `n` cars can park and there remains one empty
-        spot. Spots are then renumbered so that the empty spot is `0`.
-
-        The probability distribution is uniform on the set of
-        `(n+1)^{n-1}` parking functions of size `n`.
-
-        EXAMPLES::
-
-            sage: pf = ParkingFunctions(8)
-            sage: a = pf.random_element(); a  # random
-            [5, 7, 2, 4, 2, 5, 1, 3]
-            sage: a in pf
-            True
-        """
-        n = self.n
-        Zm = Zmod(n + 1)
-        fun = [Zm(randint(0, n)) for i in range(n)]
-        free = [Zm(j) for j in range(n + 1)]
-        for car in fun:
-            position = car
-            while not(position in free):
-                position += Zm.one()
-            free.remove(position)
-        return ParkingFunction([(i - free[0]).lift() for i in fun])
-
-
-def ParkingFunction(pf=None, labelling=None, area_sequence=None,
-                    labelled_dyck_word=None):
-    r"""
-    Return the combinatorial class of Parking Functions.
-
-    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
-    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
-    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
-
-    A *parking function* of size `n` is a pair `(L, D)` of two sequences
-    `L` and `D` where `L` is a permutation and `D` is an area sequence
-    of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
-    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
-
-    The number of parking functions of size `n` is equal to the number
-    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
-
-    INPUT:
-
-    - ``pf`` -- (default: None) a list whose increasing rearrangement satisfies `b_i \leq i`
-
-    - ``labelling`` -- (default: None) a labelling of the Dyck path
-
-    - ``area_sequence`` -- (default: None) an area sequence of a Dyck path
-
-    - ``labelled_dyck_word`` -- (default: None) a Dyck word with 1's replaced by labelling
-
-    OUTPUT:
-
-    - A parking function
-
-    EXAMPLES::
-
-        sage: ParkingFunction([])
-        []
-        sage: ParkingFunction([1])
-        [1]
-        sage: ParkingFunction([2])
-        Traceback (most recent call last):
-        ...
-        ValueError: [2] is not a parking function.
-        sage: ParkingFunction([1,2])
-        [1, 2]
-        sage: ParkingFunction([1,1,2])
-        [1, 1, 2]
-        sage: ParkingFunction([1,4,1])
-        Traceback (most recent call last):
-        ...
-        ValueError: [1, 4, 1] is not a parking function.
-        sage: ParkingFunction(labelling=[3,1,2], area_sequence=[0,0,1])
-        [2, 2, 1]
-        sage: ParkingFunction([2,2,1]).to_labelled_dyck_word()
-        [3, 0, 1, 2, 0, 0]
-        sage: ParkingFunction(labelled_dyck_word = [3,0,1,2,0,0])
-        [2, 2, 1]
-        sage: ParkingFunction(labelling=[3,1,2], area_sequence=[0,1,1])
-        Traceback (most recent call last):
-        ...
-        ValueError: [3, 1, 2] is not a valid labeling of area sequence [0, 1, 1]
-    """
-    if pf is not None:
-        return ParkingFunction_class(pf)
-    elif labelling is not None:
-        if (area_sequence is None):
-            raise ValueError("must also provide area sequence along with labelling.")
-        if (len(area_sequence) != len(labelling)):
-            raise ValueError("%s must be the same size as the labelling %s" % (area_sequence, labelling))
-        if any(area_sequence[i] < area_sequence[i+1] and labelling[i] > labelling[i + 1] for i in range(len(labelling) - 1)):
-            raise ValueError("%s is not a valid labeling of area sequence %s" % (labelling, area_sequence))
-        return from_labelling_and_area_sequence(labelling, area_sequence)
-    elif labelled_dyck_word is not None:
-        return from_labelled_dyck_word(labelled_dyck_word)
-    elif area_sequence is not None:
-        DW = DyckWord(area_sequence)
-        return ParkingFunction(labelling=range(1, DW.size() + 1),
-                               area_sequence=DW)
-
-    raise ValueError("did not manage to make this into a parking function")
-
-
-class ParkingFunction_class(CombinatorialObject):
-    def __init__(self, lst):
-        """
-        TESTS::
-
-            sage: ParkingFunction([1, 1, 2, 2, 5, 6])
-            [1, 1, 2, 2, 5, 6]
-        """
-        if not is_a(lst):
-            raise ValueError("%s is not a parking function." % lst)
-        CombinatorialObject.__init__(self, lst)
 
     def __getitem__(self, n):
         """
@@ -530,7 +170,7 @@ class ParkingFunction_class(CombinatorialObject):
             sage: PF[2]
             2
         """
-        return self._list[n]
+        return self.value[n]
 
     def __call__(self, n):
         """
@@ -544,7 +184,7 @@ class ParkingFunction_class(CombinatorialObject):
             sage: PF(6)
             6
         """
-        return self._list[n-1]
+        return self.value[n - 1]
 
     def diagonal_reading_word(self):
         r"""
@@ -664,12 +304,12 @@ class ParkingFunction_class(CombinatorialObject):
             [2, 1, 4, 3]
         """
         out = {}
-        for i in range(len(self)):
+        for i in range(len(self.value)):
             j = 0
             while self[i] + j in out.keys():
                 j += 1
             out[self[i] + j] = i
-        return Permutation([out[i + 1] + 1 for i in range(len(self))])
+        return Permutation([out[i + 1] + 1 for i in range(len(self.value))])
 
     def jump_list(self):  # cars displacements
         r"""
@@ -706,7 +346,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         out = []
         pi = self.parking_permutation()
-        for i in range(len(self)):
+        for i in range(len(self.value)):
             out.append(pi[i] - self[i])
         return out
 
@@ -1148,7 +788,7 @@ class ParkingFunction_class(CombinatorialObject):
             [2, 4, 1, 3]
         """
         from sage.combinat.words.word import Word
-        return Word(self).standard_permutation().inverse()
+        return Word(self.value).standard_permutation().inverse()
 
     def to_area_sequence(self):
         r"""
@@ -1502,77 +1142,609 @@ class ParkingFunction_class(CombinatorialObject):
         else:
             dw.pretty_print(labelling=L, underpath=False)
 
+
+class ParkingFunctions(UniqueRepresentation, Parent):
+    r"""
+    Return the combinatorial class of Parking Functions.
+
+    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
+    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
+    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
+
+    A *parking function* of size `n` is a pair `(L, D)` of two sequences
+    `L` and `D` where `L` is a permutation and `D` is an area sequence
+    of a Dyck Path of size n such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
+    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
+
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
+
+    EXAMPLES:
+
+    Here are all parking functions of size 3::
+
+        sage: from sage.combinat.parking_functions import ParkingFunctions
+        sage: ParkingFunctions(3).list()
+        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3], [1, 3, 1], [3, 1, 1],
+         [1, 2, 2], [2, 1, 2], [2, 2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1],
+         [3, 1, 2], [3, 2, 1]]
+
+    If no size is specified, then ParkingFunctions returns the
+    combinatorial class of all parking functions. ::
+
+        sage: PF = ParkingFunctions(); PF
+        Parking functions
+        sage: [] in PF
+        True
+        sage: [1] in PF
+        True
+        sage: [2] in PF
+        False
+        sage: [1,3,1] in PF
+        True
+        sage: [1,4,1] in PF
+        False
+
+    If the size `n` is specified, then ParkingFunctions returns
+    the combinatorial class of all parking functions of size `n`.
+
+    ::
+
+        sage: PF = ParkingFunctions(0)
+        sage: PF.list()
+        [[]]
+        sage: PF = ParkingFunctions(1)
+        sage: PF.list()
+        [[1]]
+        sage: PF = ParkingFunctions(3)
+        sage: PF.list()
+        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
+         [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
+         [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
+    ::
+
+        sage: PF3 = ParkingFunctions(3); PF3
+        Parking functions of size 3
+        sage: [] in PF3
+        False
+        sage: [1] in PF3
+        False
+        sage: [1,3,1] in PF3
+        True
+        sage: [1,4,1] in PF3
+        False
+
+    TESTS::
+
+        sage: PF = ParkingFunctions(5)
+        sage: len(PF.list()) == PF.cardinality()
+        True
+    """
+    @staticmethod
+    def __classcall_private__(cls, n=None):
+        """
+        TESTS::
+
+            sage: from sage.combinat.parking_functions import (ParkingFunctions_all,
+            ....:    ParkingFunctions_size)
+            sage: ParkingFunctions(2) is ParkingFunctions_size(2)
+            True
+            sage: ParkingFunctions(5).cardinality()
+            1296
+            sage: ParkingFunctions() is ParkingFunctions_all()
+            True
+
+        TESTS::
+
+            sage: ParkingFunctions(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
+        """
+        if n is None:
+            return ParkingFunctions_all()
+
+        if n not in ZZ or n < 0:
+            raise ValueError("n must be a non-negative integer")
+        return ParkingFunctions_size(Integer(n))
+
+    def from_labelling_and_area_sequence(self, L, D):
+        r"""
+        Return the parking function corresponding to the labelling area
+        sequence pair.
+
+        INPUT:
+
+        - ``L`` -- a labelling permutation
+
+        - ``D`` -- an area sequence for a Dyck word
+
+        OUTPUT:
+
+        - the parking function corresponding the labelling permutation ``L``
+          and ``D`` an area sequence of the corresponding Dyck path
+
+        EXAMPLES::
+
+            sage: PF = ParkingFunctions()
+            sage: PF.from_labelling_and_area_sequence([2, 6, 4, 5, 3, 7, 1], [0, 1, 1, 2, 0, 1, 1])
+            [6, 1, 5, 2, 2, 1, 5]
+
+        ::
+
+            sage: PF.from_labelling_and_area_sequence([1, 2, 3], [0, 1, 2])
+            [1, 1, 1]
+            sage: PF.from_labelling_and_area_sequence([1, 2, 3], [0, 0, 0])
+            [1, 2, 3]
+            sage: PF.from_labelling_and_area_sequence([1, 2, 3], [0, 1, 1])
+            [1, 1, 2]
+            sage: PF.from_labelling_and_area_sequence([1, 2, 4, 3], [0, 1, 2, 1])
+            [1, 1, 3, 1]
+        """
+        return ParkingFunction([L.index(i) + 1 - D[L.index(i)]
+                                for i in range(1, len(L) + 1)])
+
+    def from_labelled_dyck_word(self, LDW):
+        r"""
+        Return the parking function corresponding to the labelled Dyck word.
+
+        INPUT:
+
+        - ``LDW`` -- labelled Dyck word
+
+        OUTPUT:
+
+        - the parking function corresponding to the labelled Dyck
+          word that is half the size of ``LDW``
+
+        EXAMPLES::
+
+            sage: PF = ParkingFunctions()
+            sage: LDW = [2, 6, 0, 4, 5, 0, 0, 0, 3, 7, 0, 1, 0, 0]
+            sage: PF.from_labelled_dyck_word(LDW)
+            [6, 1, 5, 2, 2, 1, 5]
+
+        ::
+
+            sage: PF.from_labelled_dyck_word([2, 3, 0, 0, 1, 0, 4, 0])
+            [3, 1, 1, 4]
+            sage: PF.from_labelled_dyck_word([2, 3, 4, 0, 0, 0, 1, 0])
+            [4, 1, 1, 1]
+            sage: PF.from_labelled_dyck_word([2, 4, 0, 1, 0, 0, 3, 0])
+            [2, 1, 4, 1]
+        """
+        L = [ell for ell in LDW if ell]
+        D = DyckWord([Integer(not x.is_zero()) for x in LDW])
+        return self.from_labelling_and_area_sequence(L, D.to_area_sequence())
+
+
+def check_if_parking_function(x, n=None):
+    r"""
+    Check whether a list is a parking function.
+
+    If a size `n` is specified, checks if a list is a parking function
+    of size `n`.
+
+    TESTS::
+
+        sage: from sage.combinat.parking_functions import check_if_parking_function
+        sage: check_if_parking_function([1,1,2])
+        True
+        sage: check_if_parking_function([1,2,1])
+        True
+        sage: check_if_parking_function([1,1,4])
+        False
+        sage: check_if_parking_function([3,1,1], 3)
+        True
+    """
+    if not isinstance(x, list):  # from Florent Hivert non_decreasing_parking_function
+        return False
+    A = sorted(x)
+    from sage.combinat.non_decreasing_parking_function import is_a
+    return is_a(A, n)
+
+
+class ParkingFunctions_all(DisjointUnionEnumeratedSets, ParkingFunctions):
+    """
+    Class of all parking functions.
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.parking_functions import ParkingFunctions
+            sage: DW = ParkingFunctions()
+            sage: DW == loads(dumps(DW))
+            True
+        """
+        DisjointUnionEnumeratedSets.__init__(
+            self, Family(NonNegativeIntegers(), ParkingFunctions_size),
+            facade=True, keepkey=False)
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: repr(ParkingFunctions())
+            'Parking functions'
+        """
+        return "Parking functions"
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: [] in ParkingFunctions()
+            True
+            sage: [1] in ParkingFunctions()
+            True
+            sage: [2] in ParkingFunctions()
+            False
+            sage: [1,3,1] in ParkingFunctions()
+            True
+            sage: [1,4,1] in ParkingFunctions()
+            False
+        """
+        if isinstance(x, (list, tuple)):
+            return check_if_parking_function(list(x))
+        return isinstance(x, self.element_class)
+
+    def _element_constructor_(self, p):
+        """
+        EXAMPLES::
+
+            sage: B = ParkingFunctions()
+            sage: B._element_constructor_([])
+            []
+            sage: B([[],[]]) # indirect doctest
+            [[], []]
+        """
+        return self.element_class(self, p)
+
+    Element = ParkingFunction
+
+
+class ParkingFunctions_size(ParkingFunctions):
+    r"""
+    The combinatorial class of parking functions of size `n`.
+
+    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
+    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
+    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
+
+    A *parking function* of size `n` is a pair `(L, D)` of two sequences
+    `L` and `D` where `L` is a permutation and `D` is an area sequence
+    of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
+    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
+
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
+
+    EXAMPLES::
+
+        sage: PF = ParkingFunctions(3)
+        sage: PF.list()
+        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
+        [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
+        [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
+        sage: [ParkingFunctions(i).cardinality() for i in range(6)]
+        [1, 1, 3, 16, 125, 1296]
+
+    .. warning::
+
+        The precise order in which the parking function are generated or
+        listed is not fixed, and may change in the future.
+    """
+    def __init__(self, n):
+        """
+        TESTS::
+
+            sage: PF = ParkingFunctions(3)
+            sage: PF == loads(dumps(PF))
+            True
+        """
+        super(ParkingFunctions_size, self).__init__(category=FiniteEnumeratedSets())
+        self.n = Integer(n)
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: repr(ParkingFunctions(3))
+            'Parking functions of size 3'
+        """
+        return "Parking functions of size %s" % self.n
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: PF3 = ParkingFunctions(3); PF3
+            Parking functions of size 3
+            sage: [] in PF3
+            False
+            sage: [1] in PF3
+            False
+            sage: [1,3,1] in PF3
+            True
+            sage: [1,1,1] in PF3
+            True
+            sage: [1,4,1] in PF3
+            False
+            sage: all([p in PF3 for p in PF3])
+            True
+        """
+        if isinstance(x, (list, tuple)):
+            return check_if_parking_function(list(x), self.n)
+        return isinstance(x, self.element_class) and len(x.value) == self.n
+
+    def __an_element__(self):
+        """
+        TESTS::
+
+            sage: ParkingFunctions(4).an_element()  # indirect doctest
+            [1, 1, 1, 1]
+        """
+        return self.first()
+
+    def __iter__(self):
+        """
+        Return an iterator for parking functions of size `n`.
+
+        .. warning::
+
+            The precise order in which the parking function are
+            generated is not fixed, and may change in the future.
+
+        EXAMPLES::
+
+            sage: PF = ParkingFunctions(0)
+            sage: [e for e in PF]      # indirect doctest
+            [[]]
+            sage: PF = ParkingFunctions(1)
+            sage: [e for e in PF]      # indirect doctest
+            [[1]]
+            sage: PF = ParkingFunctions(2)
+            sage: [e for e in PF]      # indirect doctest
+            [[1, 1], [1, 2], [2, 1]]
+            sage: PF = ParkingFunctions(3)
+            sage: [e for e in PF]      # indirect doctest
+            [[1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [1, 1, 3],
+            [1, 3, 1], [3, 1, 1], [1, 2, 2], [2, 1, 2], [2, 2, 1],
+            [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
+        TESTS::
+
+            sage: PF = ParkingFunctions(5)
+            sage: [e for e in PF] == PF.list()
+            True
+            sage: PF = ParkingFunctions(6)
+            sage: [e for e in PF] == PF.list()
+            True
+        """
+        def iterator_rec(n):
+            """
+            TESTS::
+
+                sage: PF = ParkingFunctions(2)
+                sage: [e for e in PF]      # indirect doctest
+                [[1, 1], [1, 2], [2, 1]]
+            """
+            if n == 0:
+                yield []
+                return
+            if n == 1:
+                yield [1]
+                return
+            for res1 in iterator_rec(n - 1):
+                for i in range(res1[-1], n + 1):
+                    res = copy(res1)
+                    res.append(i)
+                    yield res
+            return
+        for res in iterator_rec(self.n):
+            for pi in Permutations(res):
+                yield self.element_class(self, list(pi))
+        return
+
+    def check_element(self, el, check=True):
+        """
+        Check that a given parking function actually belongs to ``self``.
+
+        This just checks the length.
+
+        EXAMPLES::
+
+            sage: PF3 = ParkingFunctions(3)
+            sage: PF3([1,1,1])   # indirect doctest
+            [1, 1, 1]
+            sage: PF3([1,2,3,4])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong length
+        """
+        if len(el.value) != self._n:
+            raise ValueError("wrong length")
+    
+    def random_element(self):
+        r"""
+        Return a random parking function of size `n`.
+
+        The algorithm uses a circular parking space with `n+1`
+        spots. Then all `n` cars can park and there remains one empty
+        spot. Spots are then renumbered so that the empty spot is `0`.
+
+        The probability distribution is uniform on the set of
+        `(n+1)^{n-1}` parking functions of size `n`.
+
+        EXAMPLES::
+
+            sage: pf = ParkingFunctions(8)
+            sage: a = pf.random_element(); a  # random
+            [5, 7, 2, 4, 2, 5, 1, 3]
+            sage: a in pf
+            True
+        """
+        n = self.n
+        Zm = Zmod(n + 1)
+        fun = [Zm(randint(0, n)) for i in range(n)]
+        free = [Zm(j) for j in range(n + 1)]
+        for car in fun:
+            position = car
+            while not(position in free):
+                position += Zm.one()
+            free.remove(position)
+        return ParkingFunction([(i - free[0]).lift() for i in fun])
+    
+    def cardinality(self):
+        r"""
+        Return the number of parking functions of size ``n``.
+
+        The cardinality is equal to `(n+1)^{n-1}`.
+
+        EXAMPLES::
+
+            sage: [ParkingFunctions(i).cardinality() for i in range(6)]
+            [1, 1, 3, 16, 125, 1296]
+        """
+        return (self.n + 1) ** (self.n - 1)
+
+    @lazy_attribute
+    def _parent_for(self):
+        """
+        The parent of the elements generated by ``self``.
+
+        TESTS::
+
+            sage: S = ParkingFunctions(3)
+            sage: S._parent_for
+            Parking functions
+        """
+        return ParkingFunctions_all()
+
+    @lazy_attribute
+    def element_class(self):
+        """
+        TESTS::
+
+            sage: S = ParkingFunctions(3)
+            sage: S.element_class
+            <class 'sage.combinat.parking_functions.ParkingFunctions_all_with_category.element_class'>
+            sage: S.first().__class__ == ParkingFunctions().first().__class__
+            True
+        """
+        return self._parent_for.element_class
+
+    def _element_constructor_(self, p):
+        """
+        EXAMPLES::
+
+            sage: S = ParkingFunctions(2)
+            sage: S([1])   # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong length
+            sage: S([1,2])   # indirect doctest
+            [1, 2]
+
+            sage: S = ParkingFunctions(1)   # indirect doctest
+            sage: S([1])
+            [1]
+        """
+        res = self.element_class(self._parent_for, p)
+        if len(res.value) != self.n:
+            raise ValueError("wrong length")
+        return res
+
+
+def ParkingFunction_old(pf=None, labelling=None, area_sequence=None,
+                    labelled_dyck_word=None):
+    r"""
+    Return the combinatorial class of Parking Functions.
+
+    A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
+    of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
+    the increasing rearrangement of `a_1, \ldots, a_n`, then `b_i \leq i`.
+
+    A *parking function* of size `n` is a pair `(L, D)` of two sequences
+    `L` and `D` where `L` is a permutation and `D` is an area sequence
+    of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
+    and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
+
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
+
+    INPUT:
+
+    - ``pf`` -- (default: None) a list whose increasing rearrangement satisfies `b_i \leq i`
+
+    - ``labelling`` -- (default: None) a labelling of the Dyck path
+
+    - ``area_sequence`` -- (default: None) an area sequence of a Dyck path
+
+    - ``labelled_dyck_word`` -- (default: None) a Dyck word with 1's replaced by labelling
+
+    OUTPUT:
+
+    - A parking function
+
+    EXAMPLES::
+
+        sage: ParkingFunction([])
+        []
+        sage: ParkingFunction([1])
+        [1]
+        sage: ParkingFunction([2])
+        Traceback (most recent call last):
+        ...
+        ValueError: [2] is not a parking function
+        sage: ParkingFunction([1,2])
+        [1, 2]
+        sage: ParkingFunction([1,1,2])
+        [1, 1, 2]
+        sage: ParkingFunction([1,4,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: [1, 4, 1] is not a parking function
+
+        sage: PF = ParkingFunctions()
+        sage: PF.from_labelling_and_area_sequence([3,1,2], [0,0,1])
+        [2, 2, 1]
+        sage: ParkingFunction([2,2,1]).to_labelled_dyck_word()
+        [3, 0, 1, 2, 0, 0]
+
+        sage: PF.from_labelled_dyck_word([3,0,1,2,0,0])
+        [2, 2, 1]
+        sage: PF.from_labelling_and_area_sequence([3,1,2], [0,1,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: [3, 1, 2] is not a valid labeling of area sequence [0, 1, 1]
+    """
+    if pf is not None:
+        return ParkingFunction(pf)
+    elif labelling is not None:
+        if (area_sequence is None):
+            raise ValueError("must also provide area sequence along with labelling.")
+        if (len(area_sequence) != len(labelling)):
+            raise ValueError("%s must be the same size as the labelling %s" % (area_sequence, labelling))
+        if any(area_sequence[i] < area_sequence[i+1] and labelling[i] > labelling[i + 1] for i in range(len(labelling) - 1)):
+            raise ValueError("%s is not a valid labeling of area sequence %s" % (labelling, area_sequence))
+        return from_labelling_and_area_sequence(labelling, area_sequence)
+    elif labelled_dyck_word is not None:
+        return from_labelled_dyck_word(labelled_dyck_word)
+    elif area_sequence is not None:
+        DW = DyckWord(area_sequence)
+        return ParkingFunction(labelling=range(1, DW.size() + 1),
+                               area_sequence=DW)
+
+    raise ValueError("did not manage to make this into a parking function")
+
+
+
 #******************************************************************************
 # CONSTRUCTIONS
 #******************************************************************************
 
 
-def from_labelling_and_area_sequence(L, D):
-    r"""
-    Return the parking function corresponding to the labelling area
-    sequence pair.
-
-    INPUT:
-
-    - ``L`` -- a labelling permutation
-
-    - ``D`` -- an area sequence for a Dyck word
-
-    OUTPUT:
-
-    - the parking function corresponding the labelling permutation ``L``
-      and ``D`` an area sequence of the corresponding Dyck path
-
-    EXAMPLES::
-
-        sage: from sage.combinat.parking_functions import from_labelling_and_area_sequence
-        sage: from_labelling_and_area_sequence([2, 6, 4, 5, 3, 7, 1], [0, 1, 1, 2, 0, 1, 1])
-        [6, 1, 5, 2, 2, 1, 5]
-
-    ::
-
-        sage: from_labelling_and_area_sequence([1, 2, 3], [0, 1, 2])
-        [1, 1, 1]
-        sage: from_labelling_and_area_sequence([1, 2, 3], [0, 0, 0])
-        [1, 2, 3]
-        sage: from_labelling_and_area_sequence([1, 2, 3], [0, 1, 1])
-        [1, 1, 2]
-        sage: from_labelling_and_area_sequence([1, 2, 4, 3], [0, 1, 2, 1])
-        [1, 1, 3, 1]
-    """
-    return ParkingFunction_class([L.index(i) + 1 - D[L.index(i)]
-                                  for i in range(1, len(L) + 1)])
-
-
-def from_labelled_dyck_word(LDW):
-    r"""
-    Return the parking function corresponding to the labelled Dyck word.
-
-    INPUT:
-
-    - ``LDW`` -- labelled Dyck word
-
-    OUTPUT:
-
-    - the parking function corresponding to the labelled Dyck
-      word that is half the size of ``LDW``
-
-    EXAMPLES::
-
-        sage: from sage.combinat.parking_functions import from_labelled_dyck_word
-        sage: LDW = [2, 6, 0, 4, 5, 0, 0, 0, 3, 7, 0, 1, 0, 0]
-        sage: from_labelled_dyck_word(LDW)
-        [6, 1, 5, 2, 2, 1, 5]
-
-    ::
-
-        sage: from_labelled_dyck_word([2, 3, 0, 0, 1, 0, 4, 0])
-        [3, 1, 1, 4]
-        sage: from_labelled_dyck_word([2, 3, 4, 0, 0, 0, 1, 0])
-        [4, 1, 1, 1]
-        sage: from_labelled_dyck_word([2, 4, 0, 1, 0, 0, 3, 0])
-        [2, 1, 4, 1]
-    """
-    L = [ell for ell in LDW if ell != 0]
-    D = DyckWord([Integer(not x.is_zero()) for x in LDW])
-    return from_labelling_and_area_sequence(L, D.to_area_sequence())
