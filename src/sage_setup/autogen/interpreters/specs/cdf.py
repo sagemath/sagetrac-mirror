@@ -81,9 +81,14 @@ class CDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
-        self.c_header = ri(0, """
+        self.h_header = ri(0, """
             #include <stdlib.h>
             #include <complex.h>
+
+            typedef double complex double_complex;
+            """)
+
+        self.c_header = ri(0, """
             #include "interpreters/wrapper_cdf.h"
 
             /* On Solaris, we need to define _Imaginary_I when compiling with GCC,
@@ -93,8 +98,6 @@ class CDFInterpreter(StackInterpreter):
             #undef  _Imaginary_I
             #define _Imaginary_I  (__extension__ 1.0iF)
             #endif
-
-            typedef double complex double_complex;
 
             static inline double complex csquareX(double complex z) {
                 double complex res;
