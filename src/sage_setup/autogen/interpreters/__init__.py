@@ -126,32 +126,49 @@ from .storage import *
 from .utils import *
 
 
-def print_names():
-    """
-    For the benefit of the sagelib Makefile, print a list of the names
-    of all known interpreters.
+# Gather up a list of all interpreter classes imported into this module
+# A better way might be to recursively iterate InterpreterSpec.__subclasses__
+# or to use a registry, but this is fine for now.
+_INTERPRETERS = sorted(filter(lambda c: (isinstance(c, type) and
+                                         issubclass(c, InterpreterSpec) and
+                                         c.name),
+                              globals().values()),
+                       key=lambda c: c.name)
 
-    This assumes that the classes implementing those interpreters
-    have been imported into this module.
+# Tuple of (filename_root, extension, method) where filename_root is the
+# root of the filename to be joined with "_<interpeter_name>".ext and
+# method is the name of a get_ method on InterpreterGenerator that returns
+# the contents of that file
+_INTERPRETER_SOURCES = [
+    ('interp', 'c', 'interpreter'),
+    ('wrapper', 'pxd', 'pxd'),
+    ('wrapper', 'pyx', 'wrapper')
+]
 
-    EXAMPLES::
+
+def list_sources(dirname=''):
+    r"""
+    Prints a list of all generated interpreter sources, given the name
+    of their output directory.
+
+    EXAMPLE::
 
         sage: from sage_setup.autogen import interpreters
-        sage: interpreters.print_names()
-        cdf
-        el
-        py
-        rdf
-        rr
+        sage: interpreters.list_sources()
+        __init__.py
+        interp_cdf.h
+        interp_cdf.c
+        wrapper_cdf.pxd
+        wrapper_cdf.pyx
+        interp_el.h
+        ...
     """
 
-    # A a better way might be to recursively iterate
-    # InterpreterSpec.__subclasses__()
-    interps = filter(lambda c: (isinstance(c, type) and
-                                issubclass(c, InterpreterSpec)),
-                    globals().values())
-    names = sorted(filter(None, (cls.name for cls in interps)))
-    print('\n'.join(names))
+    print(os.path.join(dirname, '__init__.py'))
+    for interp in _INTERPRETERS:
+        for filename_root, ext, _ in _INTERPRETER_SOURCES:
+            filename = '{}_{}.{}'.format(filename_root, interp.name, ext)
+            print(os.path.join(dirname, filename))
 
 
 def build_interp(interp_spec, dir):
@@ -171,16 +188,11 @@ def build_interp(interp_spec, dir):
 
     ig = InterpreterGenerator(interp_spec)
 
-    interp_files = [
-        ('interp', 'c', ig.get_interpreter()),
-        ('wrapper', 'pxd', ig.get_pxd()),
-        ('wrapper', 'pyx', ig.get_wrapper())
-    ]
-
-    for filename_root, ext, contents in interp_files:
+    for filename_root, ext, method in _INTERPRETER_SOURCES:
         filename = '{}_{}.{}'.format(filename_root, interp_spec.name, ext)
+        method = getattr(ig, 'get_{}'.format(method))
         path = os.path.join(dir, filename)
-        write_if_changed(path, contents)
+        write_if_changed(path, method())
 
 
 def rebuild(dirname):
@@ -206,20 +218,8 @@ def rebuild(dirname):
     except OSError:
         pass
 
-    interp = RDFInterpreter()
-    build_interp(interp, dirname)
-
-    interp = CDFInterpreter()
-    build_interp(interp, dirname)
-
-    interp = RRInterpreter()
-    build_interp(interp, dirname)
-
-    interp = PythonInterpreter()
-    build_interp(interp, dirname)
-
-    interp = ElementInterpreter()
-    build_interp(interp, dirname)
+    for interp in _INTERPRETERS:
+        build_interp(interp(), dirname)
 
     with open(os.path.join(dirname, '__init__.py'), 'w') as f:
         f.write("# " + AUTOGEN_WARN)
