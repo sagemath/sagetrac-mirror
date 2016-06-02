@@ -25,9 +25,9 @@ AUTHORS:
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 #from sage.misc.misc import repr_lincomb
 from copy import copy
-#from functools import total_ordering
+from functools import total_ordering
 #from sage.structure.element import ModuleElement, RingElement, coerce_binop
-#from sage.structure.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 

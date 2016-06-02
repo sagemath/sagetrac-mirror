@@ -74,6 +74,7 @@ from hopf_algebras import HopfAlgebras
 from lie_algebras import LieAlgebras
 
 # specific algebras
+from lie_algebras import LieAlgebras
 from monoid_algebras import MonoidAlgebras
 from group_algebras import GroupAlgebras
 from matrix_algebras import MatrixAlgebras

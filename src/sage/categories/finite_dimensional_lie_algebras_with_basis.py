@@ -316,6 +316,27 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.centralizer(self)
 
+        def normalizer(self, V):
+            """
+            Return the normalizer of ``V`` in ``self``.
+            """
+            from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
+            if not isinstance(V, LieSubalgebra) and V is not self:
+                V = self.subalgebra(V)
+
+            m = V.basis_matrix()
+            S = self.structure_coefficients()
+            sc = {k: S[k].to_vector() for k in S}
+            X = self.basis()
+            d = self.dimension()
+            t = m.nrows()
+            n_mat = matrix([[sum(r[j]*sc[x,X[j]][k] for j in range(d)) for x in X]
+                            + [0]*(t*l) + [m[j][k] for j in range(t)] + [0]*(t*(t-l-1))
+                            for l,r in enumerate(m.rows()) for k in range(d)])
+            N = n_mat.right_kernel()
+            # TODO: convert N back to elements of ``self`` by taking the first ``n`` coefficients
+            return self.subalgebra(N)
+
         def product_space(self, L):
             r"""
             Return the product space ``[self, L]``.
@@ -500,6 +521,30 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     break
                 L.append(s)
             return tuple(L)
+
+        @cached_method
+        def upper_central_series(self):
+            """
+            Return the upper central series `(C_i)_i` of ``self``
+            where the rightmost `C_k = C_{k+1} = \cdots`.
+
+            EXAMPLES::
+            """
+            C = [self.center()]
+            d = self.dimension()
+            while C[-1].dimension() < d:
+                s = self.centralizer(self.quotient(C[-1]))
+                s = C[-1].product_space(s, self)
+                if C[-1].dimension() == s.dimension():
+                    break
+                C.append(s)
+            return tuple(C)
+
+        def hypercenter(self):
+            """
+            Return the hypercenter of ``self``.
+            """
+            return upper_central_series()[-1]
 
         def is_abelian(self):
             """

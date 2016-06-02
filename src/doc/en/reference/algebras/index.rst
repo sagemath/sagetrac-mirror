@@ -69,6 +69,8 @@ Various associative algebras
    sage/algebras/associated_graded
    sage/algebras/commutative_dga
 
+   sage/algebras/quantum_groups
+
 Non-associative algebras
 ------------------------
 
