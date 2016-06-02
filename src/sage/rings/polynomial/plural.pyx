@@ -457,7 +457,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P._element_constructor_(0)
             0
         """
-
+        print ("plural._element_constructor_")
         if element == 0:
             return self._zero_element
         if element == 1:

@@ -116,6 +116,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
         sage: P(0)*x
         0
     """
+    print ("singular_polynomial_rmul")
     if(r != currRing): rChangeCurrRing(r)
     cdef number *_n = sa2si(n,r)
     ret[0] = pp_Mult_nn(p, _n, r)
@@ -524,13 +525,18 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     cdef int deg, _deg, i
-
+    cdef long result
+    print ("#debug: singular_polynomial_deg() called")
     deg = 0
     if p == NULL:
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        return p_Deg(p, r)
+        print ("#debug:  return p_Deg()") 
+        result = p_Deg(p, r) 
+        print ("p_Deg: ")
+        print (result) 
+        return result
 
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):

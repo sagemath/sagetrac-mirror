@@ -623,9 +623,19 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                                                   check=False)
         if n==1:
             return self
+        print ("# debug:  letterplace_pow: n")
+        print (n)
+        print ("# debug: letterplace_pow: self._poly")
+        print (self._poly)
+        print ("# debug: letterplace_pow: self._poly.degree()")
+        print (self._poly.degree())
         A.set_degbound(self._poly.degree()*n)
         cdef MPolynomial_libsingular p,q
         self._poly = A._current_ring(self._poly)
+        print ("# debug: letterplace_pow: self._poly")
+        print (self._poly)
+        print ("# debug: letterplace_pow: self._poly.degree()")
+        print (self._poly.degree())
         cdef int d = self._poly.degree()
         q = p = self._poly
         cdef int i
@@ -633,6 +643,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             q = singular_system("stest",q,d,A._degbound,A.__ngens,
                                      ring=A._current_ring)
             p *= q
+            print ("# debug: letterplace_pow: p")
+        print (p)
         return FreeAlgebraElement_letterplace(A, p, check=False)
 
     ## Groebner related stuff

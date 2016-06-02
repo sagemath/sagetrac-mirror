@@ -70,6 +70,7 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
         sage: type(P(3).lc())
         <type 'sage.rings.rational.Rational'>
     """
+    print ("si2sa_QQ")
     cdef number *nom
     cdef number *denom
     cdef mpq_t _z
@@ -126,6 +127,7 @@ cdef Integer si2sa_ZZ(number *n, ring *_ring):
         sage: type(P(3).lc())
         <type 'sage.rings.integer.Integer'>
     """
+    print ("si2sa_ZZ")
     cdef Integer z
     z = Integer()
     z.set_from_mpz(<mpz_ptr>n)
@@ -142,6 +144,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         sage: K(R(0))
         0
     """
+    print ("si2sa_GFqGivaro")
     cdef poly *z
     cdef int c, e
     cdef int a
@@ -183,6 +186,7 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
         sage: type(f.lc())
         <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement'>
     """
+    print ("si2sa_GFqNTLGF2E")
     cdef poly *z
     cdef long c
     cdef int e
@@ -227,6 +231,7 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
         2147483646
 
     """
+    print ("si2sa_GFq_generic")
     cdef poly *z
     cdef long c
     cdef int e
@@ -266,6 +271,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         sage: type(f.lc())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """
+    print ("si2sa_NF")
     cdef poly *z
     cdef number *c
     cdef int e
@@ -330,6 +336,7 @@ cdef inline object si2sa_ZZmod(number *n, ring *_ring, object base):
         sage: P(3)
         3
     """
+    print ("si2sa_ZZmod")
     cdef Integer ret
     if _ring.cf.type == n_Z2m:
         return base(<long>n)
@@ -354,12 +361,14 @@ cdef number *sa2si_QQ(Rational r, ring *_ring):
         sage: P(12345678901234567890/23) + 5/2 - 5/2
         12345678901234567890/23
     """
+    print ("sa2si_QQ")
     if _ring != currRing: rChangeCurrRing(_ring)
     return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value),_ring.cf )
 
 cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
+    print ("sa2si_GFqGivaro")
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
     cdef int b = _ring.cf.ch
@@ -393,6 +402,7 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     """
+    print ("sa2si_GFqNTLGF2E")
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef int i
     cdef number *n1
@@ -441,6 +451,8 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     cdef number *coeff
     cdef number *apow1
     cdef number *apow2
+    print ("sa2si_GFq_generic")
+    
     elem = elem.polynomial()
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -483,7 +495,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     cdef number *naCoeff
     cdef number *apow1
     cdef number *apow2
-
+    print ("sa2si_NF")
     cdef nMapFunc nMapFuncPtr = NULL;
 
     nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function
@@ -549,6 +561,7 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
         sage: P(12345678901234567890) + 2 - 2
         12345678901234567890
     """
+    print ("sa2si_ZZ")
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n = nrzInit(0, _ring.cf)
     mpz_set(<mpz_ptr>n, d.value)
@@ -594,7 +607,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     #
     # sage: sage: R.<a> = Zmod(5)['a', 'b']
     # sage: R(1)
-
+    print ("sa2si_ZZmod")
     nr2mModul = d.parent().characteristic()
     if _ring != currRing: rChangeCurrRing(_ring)
 
@@ -642,6 +655,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         raise ValueError
 
 cdef object si2sa(number *n, ring *_ring, object base):
+    print ("si2sa")
     if isinstance(base, FiniteField_prime_modn):
         return base(_ring.cf.cfInt(n, _ring.cf))
 
@@ -672,32 +686,44 @@ cdef object si2sa(number *n, ring *_ring, object base):
         raise ValueError, "cannot convert from SINGULAR number"
 
 cdef number *sa2si(Element elem, ring * _ring):
+    print ("sa2si")
     cdef int i = 0
     if isinstance(elem._parent, FiniteField_prime_modn):
+        print ("FiniteField_prime_modn")
         return n_Init(int(elem),_ring)
 
     elif isinstance(elem._parent, RationalField):
+        print ("RationalField")
         return sa2si_QQ(elem, _ring)
 
     elif isinstance(elem._parent, IntegerRing_class):
+        print ("IntegerRing_class")
         return sa2si_ZZ(elem, _ring)
 
     elif isinstance(elem._parent, FiniteField_givaro):
+        print ("FiniteField_givaro")
         return sa2si_GFqGivaro( (<FFgivE>elem)._cache.objectptr.convert(i, (<FFgivE>elem).element ), _ring )
 
     elif isinstance(elem._parent, FiniteField_ntl_gf2e):
+        print ("FiniteField_ntl_gf2e")
         return sa2si_GFqNTLGF2E(elem, _ring)
 
     elif isinstance(elem._parent, FiniteField):
+        print ("FiniteField")
         return sa2si_GFq_generic(elem, _ring)
 
     elif isinstance(elem._parent, NumberField) and elem._parent.is_absolute():
+        print ("NumberField")
         return sa2si_NF(elem, _ring)
     elif isinstance(elem._parent, IntegerModRing_generic):
+        print ("IntegerModRing_generic")
         if _ring.cf.type == n_unknown:
+            print ("n_unknown")
             return n_Init(int(elem),_ring)
+        print ("sa2si_ZZmod")
         return sa2si_ZZmod(elem, _ring)
     else:
+        print ("cannot convert to SINGULAR number")
         raise ValueError, "cannot convert to SINGULAR number"
 
 

@@ -3895,9 +3895,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.subs(x=1)
             Ideal (y^2 - y + 4) of Multivariate Polynomial Ring in x, y over Rational Field
         """
+        print "multi_polynomial_ideal.subs"
         ring = self.ring()
-        generators = [f.subs(in_dict, **kwds) for f in self.gens()]
+        generators = [f.subs(in_dict, **kwds) for f in self.gens()]        
         if not all(gen in ring for gen in generators):
+            print "not all(gen in ring for gen in generators):"
             ring = Sequence(generators).universe()
         try:
             return ring.ideal(generators)
@@ -4528,10 +4530,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         nvars = R.ngens()
         L = R.base_ring()
         if L.is_finite():
+            print "k = L.prime_subfield()"
             k = L.prime_subfield()
             d = L.degree()
             poly = L.polynomial()
         else:
+            print "k = L.base_field()",poly
             k = L.base_field()
             d = L.relative_degree()
             poly = L.relative_polynomial()
@@ -4539,14 +4543,24 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if d == 1:
             return self
 
+        print "# debug: BUILD HELPER "
         helper = PolynomialRing(k, nvars + 1, (L.variable_name(),) + R.variable_names(), order='lex')
+        print "# debug: poly ",poly
+        print "# debug: poly,degree ",poly.degree()
+        print "# debug: helper.gen(0)",helper.gen(0)
+        print "# debug: SUBS "
         myminpoly = poly.subs(helper.gen(0))
-
-        l = [helper(str(f))  for f in self.gens()]
+        print "# debug: myminpoly ",myminpoly       
         r = myminpoly.degree()
+        print "# debug: here "
+        print "# debug: degree ",r
+        print "# debug: prepare for kaboom... "
         intermediate_ring = PolynomialRing(k, nvars*r+1, 'x')
+        print "# debug: never got here if crashed above "
         a = intermediate_ring.gen(0)
-
+ 
+        l = [helper(str(f))  for f in self.gens()]
+ 
         # map e.g. x -> a^2*x_2 + a*x_1 + x_0, where x_0,..,x_2
         # represent the components of x if viewed as a vector in k^r
         map_ideal = [a]
@@ -4554,10 +4568,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         variables = iter(intermediate_ring.gens()[1:])
         for _ in xrange(nvars):
            map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
-
         myminpoly = myminpoly(*map_ideal)
         l = [f(*map_ideal).reduce([myminpoly]) for f in l]
-
         result = []
         # split e.g. a^2*x2+a*x1+x0 to x0,x1,x2
         for f in l:
@@ -4572,8 +4584,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         new_var_names = [str(var) + "%d"%i for var in R.gens() for i in range(r)]
 
         result_ring = PolynomialRing(k, nvars*r, new_var_names)
-
         map_ideal = (0,) + result_ring.gens()
         result = [f(*map_ideal) for f in result]
-
         return result_ring.ideal(result)

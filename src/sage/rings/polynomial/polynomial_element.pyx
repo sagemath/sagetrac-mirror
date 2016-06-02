@@ -428,13 +428,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: keys do not match self's parent
         """
+        print ("polynomial_element.subs")
         if len(x) == 1 and isinstance(x[0], dict):
+            print ("len(x) == 1 and isinstance(x[0], dict):")            
             g = self.parent().gen()
+            print ("g = self.parent().gen() ")
+            #print g
             if g in x[0]:
+                print (" g in x[0]:")
                 return self(x[0][g])
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
             return self
+        print ("  len(x) != 1 or not isinstance(x[0], dict):")
         return self(*x, **kwds)
     substitute = subs
 
@@ -697,6 +703,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         -  Francis Clarke (2012-08-26): fix keyword substitution in the
            leading coefficient.
         """
+        print ("# debug: evaluate polynomial entered")
         cdef long i
         cdef long d = self.degree()
         cdef Polynomial pol
@@ -731,37 +738,46 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # necessary, but power series and perhaps other inexact rings use
         # is_zero() in the sense of "is zero up to the precision to which it is
         # known".
-
+        print ("# debug: evaluate polynomial, arguments parsed")
         if d <= 0 or (isinstance(a, Element) and a.parent().is_exact()
                       and a.is_zero()):
+            print ("evaluate at 1")
             return cst + parent(a)(0)
 
         # Evaluate the coefficients
 
         if eval_coeffs:
+            print ("# debug: evaluate  (eval_coeffs)")
             pol = self.map_coefficients(lambda c: c(*args, **kwds),
                                         new_base_ring=cst.parent())
         else:
+            print ("# debug: evaluate (line 755)")
             pol = self
 
         # Evaluate the resulting univariate polynomial
 
         if parent(a) is pol._parent and a.is_gen():
+            print ("evaluate  (line 761)")
             return pol
 
         try:
+            print ("# debug: evaluate (line 765)")
             return a._evaluate_polynomial(pol)
         except (AttributeError, NotImplementedError):
+            print ("evaluate (line 768) failed")
             pass
 
         if pol._compiled is None:
+            print ("# debug: evaluate (line 772)")
             if d < 4 or d > 50000:
+                print ("d < 4 or d > 50000")
                 result = pol[d]
                 for i in xrange(d - 1, -1, -1):
                     result = result * a + pol[i]
                 return result
             pol._compiled = CompiledPolynomialFunction(pol.list())
 
+        print ("# debug: evaluate (line 781)")
         return pol._compiled.eval(a)
 
     def _compile(self):
@@ -9400,6 +9416,7 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: (Qp(2).one()*3)*t
             (1 + 2 + O(2^20))*t
         """
+        print ("polynomial_element.init")
         assert codomain.base_ring() is domain, "domain must be basering"
         Morphism.__init__(self, domain, codomain)
         self._an_element = codomain.gen()

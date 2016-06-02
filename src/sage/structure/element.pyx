@@ -674,6 +674,7 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
+        print("element.subs")
         if not hasattr(self, '__call__'):
             return self
         parent = self._parent

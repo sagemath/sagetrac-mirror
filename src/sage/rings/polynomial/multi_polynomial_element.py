@@ -1087,6 +1087,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.subs({x:5})
             25*y^2 + y + 30
         """
+        print("multi_polynomial_elem.subs")
         variables = list(self.parent().gens())
         for i in range(0,len(variables)):
             if str(variables[i]) in kw:

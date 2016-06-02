@@ -756,6 +756,7 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F = F.subs(s); F
             Polynomial Sequence with 40 Polynomials in 16 Variables
         """
+        print ("multi.subs")
         return PolynomialSequence(self._ring, [tuple([f.subs(*args,**kwargs) for f in r]) for r in self._parts])
 
     def _singular_(self):

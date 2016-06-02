@@ -133,6 +133,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef n_coeffType _type = n_unknown
 
     #cdef cfInitCharProc myfunctionptr;
+    print ("singular new ring entered")
 
     _ring  = NULL
 
@@ -169,7 +170,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
     _block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
 
-
+    print ("nvars")
+    print (nvars)
+    if (nvars<10):
+            print ("names")
+            print (names)
 
     cdef int idx = 0
     for i from 0 <= i < nbaseblcks:
@@ -221,11 +226,13 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
     if isinstance(base_ring, RationalField):
+        print "creating RationalField"
         characteristic = 0
         _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "ring with rational coefficient field created"
+        print "ring with rational coefficient field created"
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
+        print "creating NumberField"
         characteristic = 1
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
@@ -255,14 +262,15 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "NumberField ring constructed"
+        print "NumberField ring constructed"
     elif isinstance(base_ring, IntegerRing_class):
+        print "creating n_Z"
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "polynomial ring over integers created"
+        print "polynomial ring over integers created"
 
     elif isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field():
-
+        print "creating generic finite prime field"
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
@@ -270,12 +278,14 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         # example for simpler ring creation interface without monomial orderings:
         #_ring = rDefault(characteristic, nvars, _names)
-
+        print ("characteristic")
+        print (characteristic)
+        
         _ring = rDefault( characteristic , nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "ring with prime coefficient field created"
+        print "ring with prime coefficient field created"
 
     elif isinstance(base_ring, FiniteField_generic):
-        #print "creating generic finite field"
+        print "creating generic finite field"
         # raise "Ring disabled "
         #print "Warning: minpoly in Sage and in Singular may differ(not checked yet) "
         if base_ring.characteristic() <= 2147483647:
@@ -337,11 +347,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             raise RuntimeError, "Failed to allocate _cf ring."
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
-        #print "FiniteField_generic ring constructed"
+        print "FiniteField_generic ring constructed"
 
 
     elif is_IntegerModRing(base_ring):
-        #print  " creating IntegerModRing "
+        print  " creating IntegerModRing "
 
         ch = base_ring.characteristic()
         if ch != 2 and ch.is_power_of(2):
@@ -380,7 +390,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
         elif ch.is_prime_power()  and ch < ZZ(2)**160:
-            #print  " creating IntegerModRing : char is prime power, using n_Znm"
+            print  " creating IntegerModRing : char is prime power, using n_Znm"
             F = ch.factor()
             #print "base_ring.characteristic().is_prime_power()"
             #print "F ",F
@@ -395,7 +405,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _cf = nInitChar( n_Znm, <void *>&_info )
 
         else:
-            #print "creating IntegerModRing: normal modulus n_Zn"
+            print "creating IntegerModRing: normal modulus n_Zn"
             # normal modulus
             try:
                 characteristic = ch
@@ -410,7 +420,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
     else:
-        #print "Base ring is not supported."
+        print "Base ring is not supported."
         raise NotImplementedError("Base ring is not supported.")
 
 
@@ -439,10 +449,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
     wrapped_ring = wrap_ring(_ring)
     if wrapped_ring in ring_refcount_dict:
+        print "newly created ring already in dictionary??"
         raise ValueError('newly created ring already in dictionary??')
     ring_refcount_dict[wrapped_ring] = 1
 
-
+    print "singular ring created"
     return _ring
 
 

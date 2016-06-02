@@ -2195,9 +2195,11 @@ cdef class Field(PrincipalIdealDomain):
         """
         if self.characteristic() == 0:
             import sage.rings.rational_field
+            print ("prime_subfield: RationalField")
             return sage.rings.rational_field.RationalField()
         else:
             from sage.rings.finite_rings.finite_field_constructor import GF
+            print ("prime_subfield: return GF(self.characteristic())")
             return GF(self.characteristic())
 
     def algebraic_closure(self):

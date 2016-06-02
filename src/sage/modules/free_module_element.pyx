@@ -1431,6 +1431,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.subs(a=b, b=d)
             (b, d, d, e)
         """
+        print ("free_module.subs")
         return self.parent()([ a.subs(in_dict, **kwds) for a in self.list() ])
 
     def set_immutable(self):
