@@ -32,6 +32,9 @@ class InterpreterSpec(object):
 
         Initializes the following fields:
 
+        - ``h_header`` -- a code snippet to go above the interp function
+          declaration in the header for the C interpreter file; typically
+          for any includes needed by the declaration
         - ``c_header`` -- a code snippet to go at the top of the C
            interpreter source file
         - ``pxd_header`` -- a code snippet to go at the top of the
@@ -66,6 +69,7 @@ class InterpreterSpec(object):
             sage: interp.extra_members_initialize
             ''
         """
+        self.h_header = ''
         self.c_header = ''
         self.pxd_header = ''
         self.pyx_header = ''

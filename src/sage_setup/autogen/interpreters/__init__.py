@@ -142,6 +142,7 @@ _INTERPRETERS = sorted(filter(lambda c: (isinstance(c, type) and
 # method is the name of a get_ method on InterpreterGenerator that returns
 # the contents of that file
 _INTERPRETER_SOURCES = [
+    ('interp', 'h', 'interpreter_h'),
     ('interp', 'c', 'interpreter'),
     ('wrapper', 'pxd', 'pxd'),
     ('wrapper', 'pyx', 'wrapper')

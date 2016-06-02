@@ -184,9 +184,9 @@ class RRInterpreter(StackInterpreter):
                         S=self.mc_stack,
                         P=self.mc_py_constants)
         self.pg = pg
+        self.h_header = '#include <mpfr.h>'
         self.c_header = ri(0,
             '''
-            #include <mpfr.h>
             #include "interpreters/wrapper_rr.h"
             ''')
 
