@@ -438,6 +438,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
     _ring.ShortOut = 0
+    
+    
 
     if order.is_local():
         assert(_ring.OrdSgn == -1)
@@ -453,6 +455,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         raise ValueError('newly created ring already in dictionary??')
     ring_refcount_dict[wrapped_ring] = 1
 
+    rComplete(_ring, 1)
     print "singular ring created"
     return _ring
 
