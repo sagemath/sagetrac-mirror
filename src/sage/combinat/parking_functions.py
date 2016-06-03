@@ -87,6 +87,11 @@ from sage.structure.unique_representation import UniqueRepresentation
 class ParkingFunction(ElementWrapper):
     """
     Class of parking function.
+
+    TESTS::
+
+        sage: p = ParkingFunction([4,2,1,2])
+        sage: TestSuite(p).run()
     """
     #the data structure of the element is a list (accessible via x.value)
     wrapped_class = list
@@ -98,8 +103,9 @@ class ParkingFunction(ElementWrapper):
     @staticmethod
     def __classcall_private__(cls, p):
         """
-        Ensure that rooted trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`ParkingFunction`.
+        Ensure that parking functions created by the enumerated sets
+        and directly are the same and that they are instances of
+        :class:`ParkingFunction`.
 
         TESTS::
 
@@ -1145,7 +1151,7 @@ class ParkingFunction(ElementWrapper):
 
 class ParkingFunctions(UniqueRepresentation, Parent):
     r"""
-    Return the combinatorial class of Parking Functions.
+    Return the class of Parking Functions.
 
     A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
     of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
@@ -1170,7 +1176,7 @@ class ParkingFunctions(UniqueRepresentation, Parent):
          [3, 1, 2], [3, 2, 1]]
 
     If no size is specified, then ParkingFunctions returns the
-    combinatorial class of all parking functions. ::
+    class of all parking functions. ::
 
         sage: PF = ParkingFunctions(); PF
         Parking functions
@@ -1186,9 +1192,7 @@ class ParkingFunctions(UniqueRepresentation, Parent):
         False
 
     If the size `n` is specified, then ParkingFunctions returns
-    the combinatorial class of all parking functions of size `n`.
-
-    ::
+    the class of all parking functions of size `n`. ::
 
         sage: PF = ParkingFunctions(0)
         sage: PF.list()
@@ -1323,6 +1327,10 @@ def check_if_parking_function(x, n=None):
     r"""
     Check whether a list is a parking function.
 
+    INPUT:
+
+    x -- a list of integers
+
     If a size `n` is specified, checks if a list is a parking function
     of size `n`.
 
@@ -1348,6 +1356,10 @@ def check_if_parking_function(x, n=None):
 class ParkingFunctions_all(DisjointUnionEnumeratedSets, ParkingFunctions):
     """
     Class of all parking functions.
+
+    TESTS::
+
+        sage: TestSuite(ParkingFunctions()).run()  # long time
     """
     def __init__(self):
         """
@@ -1407,7 +1419,7 @@ class ParkingFunctions_all(DisjointUnionEnumeratedSets, ParkingFunctions):
 
 class ParkingFunctions_size(ParkingFunctions):
     r"""
-    The combinatorial class of parking functions of size `n`.
+    The class of parking functions of size `n`.
 
     A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
     of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
@@ -1455,7 +1467,7 @@ class ParkingFunctions_size(ParkingFunctions):
             sage: repr(ParkingFunctions(3))
             'Parking functions of size 3'
         """
-        return "Parking functions of size %s" % self.n
+        return "Parking functions of size {}".format(self.n)
 
     def __contains__(self, x):
         """
@@ -1567,7 +1579,9 @@ class ParkingFunctions_size(ParkingFunctions):
         """
         if len(el.value) != self._n:
             raise ValueError("wrong length")
-    
+        if not check_if_parking_function(self.value):
+            raise ValueError("what ! wrong parking function !")
+
     def random_element(self):
         r"""
         Return a random parking function of size `n`.
@@ -1662,7 +1676,7 @@ class ParkingFunctions_size(ParkingFunctions):
 def ParkingFunction_old(pf=None, labelling=None, area_sequence=None,
                     labelled_dyck_word=None):
     r"""
-    Return the combinatorial class of Parking Functions.
+    Return the class of Parking Functions.
 
     A *parking function* of size `n` is a sequence `(a_1, \ldots,a_n)`
     of positive integers such that if `b_1 \leq b_2 \leq \cdots \leq b_n` is
