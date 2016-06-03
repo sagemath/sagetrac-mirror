@@ -1286,6 +1286,12 @@ class ParkingFunctions(UniqueRepresentation, Parent):
             sage: PF.from_labelling_and_area_sequence([1, 2, 4, 3], [0, 1, 2, 1])
             [1, 1, 3, 1]
         """
+        if len(D) != len(L):
+            raise ValueError("%s must be the same size as the labelling %s" %
+                             (D, L))
+        if any(D[i] < D[i + 1] and L[i] > L[i + 1] for i in range(len(L) - 1)):
+            raise ValueError("%s is not a valid labeling of area sequence %s" %
+                             (L, D))
         return ParkingFunction([L.index(i) + 1 - D[L.index(i)]
                                 for i in range(1, len(L) + 1)])
 
@@ -1739,12 +1745,6 @@ def ParkingFunction_old(pf=None, labelling=None, area_sequence=None,
     if pf is not None:
         return ParkingFunction(pf)
     elif labelling is not None:
-        if (area_sequence is None):
-            raise ValueError("must also provide area sequence along with labelling.")
-        if (len(area_sequence) != len(labelling)):
-            raise ValueError("%s must be the same size as the labelling %s" % (area_sequence, labelling))
-        if any(area_sequence[i] < area_sequence[i+1] and labelling[i] > labelling[i + 1] for i in range(len(labelling) - 1)):
-            raise ValueError("%s is not a valid labeling of area sequence %s" % (labelling, area_sequence))
         return from_labelling_and_area_sequence(labelling, area_sequence)
     elif labelled_dyck_word is not None:
         return from_labelled_dyck_word(labelled_dyck_word)
@@ -1752,7 +1752,6 @@ def ParkingFunction_old(pf=None, labelling=None, area_sequence=None,
         DW = DyckWord(area_sequence)
         return ParkingFunction(labelling=range(1, DW.size() + 1),
                                area_sequence=DW)
-
     raise ValueError("did not manage to make this into a parking function")
 
 
