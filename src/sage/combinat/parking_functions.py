@@ -1583,7 +1583,7 @@ class ParkingFunctions_size(ParkingFunctions):
             ...
             ValueError: wrong length
         """
-        if len(el.value) != self._n:
+        if len(el.value) != self.n:
             raise ValueError("wrong length")
         if not check_if_parking_function(self.value):
             raise ValueError("what ! wrong parking function !")
