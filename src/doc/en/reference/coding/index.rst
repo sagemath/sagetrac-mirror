@@ -54,6 +54,14 @@ Channels and related constructions
 
    sage/coding/channel_constructions
 
+Benchmarking tool
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/benchmark
+
 Source coding
 -------------
 
