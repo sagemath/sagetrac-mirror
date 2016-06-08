@@ -209,7 +209,7 @@ from sage.graphs.graph import Graph
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.ordered_tree import OrderedTree, OrderedTrees
-from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_class, ParkingFunctions
+from sage.combinat.parking_functions import ParkingFunction, ParkingFunctions
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.posets.posets import Poset, FinitePoset
@@ -2315,7 +2315,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              lambda x, l: x.node_number() in l,
              str,
              lambda x: OrderedTree(literal_eval(x))],
-        23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
+        23: [None, None, None, ParkingFunction, ParkingFunctions,        None,
              lambda x: len(x),
              lambda x, l: len(x) in l,
              str,
