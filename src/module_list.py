@@ -1062,6 +1062,9 @@ ext_modules = [
     Extension('sage.modular.modsym.p1list',
               sources = ['sage/modular/modsym/p1list.pyx']),
 
+    Extension('sage.modular.periods.periods_cython',
+              sources = ['sage/modular/periods/periods_cython.pyx']),
+
     ################################
     ##
     ## sage.modules
