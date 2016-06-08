@@ -167,6 +167,8 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.functional import numerical_approx
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import list_plot
+from sage.parallel.decorate import parallel
+from sage.functions.other import ceil
 
 class Benchmark(SageObject):
     r"""
@@ -775,6 +777,130 @@ class Benchmark(SageObject):
         """
         self.experimental_data().clear()
 
+    @parallel
+    def _perform_parallel_experiments_for_single_id(self, identifier, verbosity, no_tests):
+        r"""
+        Performs rounds of experimental data computation using ``self``'s
+        parameters.
+
+        This method is used when :meth:`run` is asked to be run in its multithreaded version.
+
+        See :meth:`run` for details.
+
+        INPUT:
+
+        - ``verbosity_level`` -- a number which indicates how verbose this run will
+          be:
+            - ``0`` means completely silent, nothing will be written on the output
+            - ``1`` means small verbosity, one message will be written every time 25% of the tests are done
+            - ``2`` means very verbose, one message will be written every time 10% of the tests are done
+
+        - ``identifier`` -- (default: ``None``) the identifier of the benchmark on which experiments
+          will be performed.
+
+        - ``no_tests`` -- the number of experiments to run
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: D = C.decoder()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: B = codes.Benchmark(C, D, Chan)
+            sage: B._perform_experiments_for_single_id('_0', 0)
+        """
+        #setting local variables and checking validity of data to use
+        data = self.experimental_data(identifier = identifier)
+        cur_no_tests = len(data)
+        if cur_no_tests == self.number_of_tests(identifier):
+            print "Experimental data already exist for benchmark %s.\nIf you want to perform new experiments, please run clear_experimental_data first" % identifier
+            return
+        if cur_no_tests == 0:
+            data = self._experimental_data
+        C = self.code(identifier)
+        if C is None:
+            print "Benchmark %s is empty, skipping computation" % identifier
+            return
+        D = self.decoder(identifier)
+        Chan = self.channel(identifier)
+        previous = 0 #used for verbosity
+        results = []
+        if verbosity != 0:
+            print "Starting run for benchmark %s" % identifier
+        while(cur_no_tests < no_tests):
+            start = time.clock()
+            c = C.random_element()
+            generate_c_time = time.clock() - start
+            y = Chan(c)
+            decoding_error = True
+            try:
+                start = time.clock()
+                dec_y = D.decode_to_code(y)
+                decode_time = time.clock() - start
+                decoding_failure = False
+                if "list-decoder" in D.decoder_type():
+                    decoding_error = (c not in dec_y)
+                else:
+                    decoding_error = (c != dec_y)
+            except DecodingError:
+                decode_time = time.clock() - start
+                dec_y = None #as decoding failed
+                decoding_failure = True
+            results.append((c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure))
+
+            #verbosity
+            if verbosity ==1:
+                cur = (cur_no_tests*4) // no_tests
+                if (cur_no_tests*4) // no_tests != previous:
+                    previous = cur
+                    print "Benchmark %s: %s percent complete" % (identifier, cur * 25)
+            if verbosity ==2:
+                cur = (cur_no_tests*10) // no_tests
+                if (cur_no_tests*10) // no_tests != previous:
+                    previous = cur
+                    print "Benchmark %s: %s percent complete" % (identifier, cur * 10)
+            cur_no_tests += 1
+
+        if verbosity != 0:
+            print "Run complete for benchmark %s" % identifier
+
+        return results
+
+    def task_master(self, verbosity_level):
+        r"""
+        Setups and runs experiments for the multithreaded version of :meth:`run`.
+
+
+        """
+        chunk_size = 100
+        tasks = []
+        tasks_preparsing= []
+        for b in self.identifier():
+            tasks_preparsing.append([b, self.number_of_tests(b)])
+        while not len(tasks_preparsing) == 0:
+            for i in tasks_preparsing:
+                if i[1] - chunk_size <= 0:
+                    no_tests = i[1]
+                    tasks_preparsing.remove(i)
+                else:
+                    no_tests = chunk_size
+                    i[1] = i[1] - no_tests
+                task = (i[0], verbosity_level, no_tests)
+                tasks.append(task)
+        results_g = self._perform_parallel_experiments_for_single_id(tasks)
+        no_test_dict = dict()
+        data = self.experimental_data()
+        for (task, results) in results_g:
+            bench = task[0][0]
+            try:
+                no_test_dict[bench] += task[0][2]
+            except KeyError:
+                no_test_dict[bench] = 0
+            no_test = no_test_dict[bench]
+            for res in results:
+                data[bench, no_test] = res
+                no_tests += 1
+
+
     def _perform_experiments_for_single_id(self, identifier, verbosity):
         r"""
         Performs rounds of experimental data computation using ``self``'s
@@ -789,6 +915,9 @@ class Benchmark(SageObject):
             - ``0`` means completely silent, nothing will be written on the output
             - ``1`` means small verbosity, one message will be written every time 25% of the tests are done
             - ``2`` means very verbose, one message will be written every time 10% of the tests are done
+
+        - ``identifier`` -- (default: ``None``) the identifier of the benchmark on which experiments
+          will be performed.
 
         EXAMPLES::
 
@@ -842,18 +971,18 @@ class Benchmark(SageObject):
                 cur = (cur_no_tests*4) // no_tests
                 if (cur_no_tests*4) // no_tests != previous:
                     previous = cur
-                    print "%s percent complete" % (cur * 25)
+                    print "Benchmark %s: %s percent complete" % (identifier, cur * 25)
             if verbosity ==2:
                 cur = (cur_no_tests*10) // no_tests
                 if (cur_no_tests*10) // no_tests != previous:
                     previous = cur
-                    print "%s percent complete" % (cur * 10)
+                    print "Benchmark %s: %s percent complete" % (identifier, cur * 10)
             cur_no_tests += 1
 
         if verbosity != 0:
             print "Run complete for benchmark %s" % identifier
 
-    def run(self, verbosity_level = 0):
+    def run(self, verbosity_level = 0, parallel = False):
         r"""
         Runs rounds of experimental data computation using ``self``'s
         parameters. The user can be informed about the current run's status by setting
@@ -874,9 +1003,6 @@ class Benchmark(SageObject):
             - ``1`` means small verbosity, one message will be written every time 25% of the tests are done,
             - ``2`` means very verbose, one message will be written every time 10% of the tests are done.
 
-        - ``identifier`` -- (default: ``None``) the identifier of the benchmark
-          whose success rate will be computed. If it is let to ``None``, success
-          rate of every subbenchmark will be computed.
 
         .. NOTE::
 
@@ -904,8 +1030,11 @@ class Benchmark(SageObject):
         """
         if not verbosity_level in {0,1,2}:
             raise ValueError("verbosity_level has to be either 0, 1 or 2")
-        for i in self.identifier():
-            self._perform_experiments_for_single_id(i, verbosity_level)
+        if parallel == True:
+            self.task_master(verbosity_level)
+        else:
+            for i in self.identifier():
+                self._perform_experiments_for_single_id(i, verbosity_level)
 
     def _process_experimental_data(self, identifier, target, processing):
         r"""
