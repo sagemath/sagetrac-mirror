@@ -15,6 +15,7 @@ from sage.modular.periods.periods_cython import extended_period_integral
 from sage.modular.arithgroup.all import Gamma0
 from sage.rings.all import CDF, ZZ, infinity as oo, next_prime
 from sage.matrix.constructor import matrix
+
 from random import choice
 
 
@@ -125,8 +126,8 @@ class PeriodMapping(object):
             sage: f(A([1,0,infinity]))   # abs tol 1e-10
             (0.7287286616327568 + 0.1419501409026777*I, -0.7971832513181062 + 0.15528451234005033*I)
         """
-        DEBUG = True
-        if not M.dimension() > 0:
+        DEBUG = False
+        if not M.dimension():
             raise ValueError("M must have positive dimension")
         if not prec >= 1:
             raise ValueError("prec must be at least 1")
@@ -134,7 +135,7 @@ class PeriodMapping(object):
             raise ValueError("M must be cuspidal")
         if not M.is_new():
             raise ValueError("M must be new")
-        if not M.sign() == 0:
+        if M.sign() != 0:
             raise ValueError("M must have sign 0")
 
         I = complex(0, 1)
