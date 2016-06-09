@@ -847,42 +847,55 @@ class Benchmark(SageObject):
 
 
         """
-        number_of_chunks = 100
-        tasks = []
+        def preparse_tasks(tasks_preparsing, test_run = False):
+            tasks = []
+            while len(tasks_preparsing) != 0:
+                for i in tasks_preparsing:
+                    remaining_no_tests = i[1]
+                    task_size = i[2]
+                    if remaining_no_tests - task_size <= 0:
+                        tasks_preparsing.remove(i)
+                        task_size = remaining_no_tests
+                    else:
+                        i[1] = remaining_no_tests - task_size
+                    task = (i[0], task_size)
+                    tasks.append(task)
+                if test_run:
+                    return tasks
+            return tasks
+
+        def register_results(results, global_no_tests_dict):
+            data = self.experimental_data()
+            if verbosity:
+                no_tasks = len(tasks)
+                cur_task = 1
+            for (task, local_results) in results:
+                if verbosity:
+                    print "Finished task %s of %s" % (cur_task, no_tasks)
+                    cur_task += 1
+                bench = task[0][0]
+                try:
+                    no_test = global_no_test_dict[bench]
+                except KeyError:
+                    global_no_test_dict[bench] = 0
+                    no_test = 0
+                for res in local_results:
+                    data[bench, no_test] = res
+                    global_no_test_dict[bench] = global_no_test_dict[bench] + 1
+                    no_test = global_no_test_dict[bench]
+
+        number_of_chunks = 10
         tasks_preparsing= []
+
         for b in self.identifier():
             remaining_no_tests = self.number_of_tests(b)
             tasks_preparsing.append([b, remaining_no_tests, ceil(remaining_no_tests/number_of_chunks)])
-        while not len(tasks_preparsing) == 0:
-            for i in tasks_preparsing:
-                remaining_no_tests = i[1]
-                task_size = i[2]
-                if remaining_no_tests - task_size <= 0:
-                    tasks_preparsing.remove(i)
-                    task_size = remaining_no_tests
-                else:
-                    i[1] = remaining_no_tests - task_size
-                task = (i[0], task_size)
-                tasks.append(task)
-        print tasks
-        results_g = self._perform_parallel_experiments_for_single_id(tasks)
-        no_test_dict = dict()
-        data = self.experimental_data()
-        if verbosity:
-            no_tasks = len(tasks)
-            cur_task = 1
-        for (task, results) in results_g:
-            if verbosity:
-                print "Finished task %s of %s" % (cur_task, no_tasks)
-                cur_task += 1
-            bench = task[0][0]
-            try:
-                no_test_dict[bench] += task[0][1]
-            except KeyError:
-                no_test_dict[bench] = 0
-            no_test = no_test_dict[bench]
-            for res in results:
-                data[bench, no_test] = res
+
+        tasks = preparse_tasks(tasks_preparsing)
+
+        results = self._perform_parallel_experiments_for_single_id(tasks)
+        global_no_test_dict = dict()
+        register_results(results, global_no_test_dict)
 
 
     def _perform_experiments_for_single_id(self, identifier, verbosity):
