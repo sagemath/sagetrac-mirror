@@ -803,17 +803,9 @@ class Benchmark(SageObject):
             sage: B._perform_experiments_for_single_id('_0', 0)
         """
         #setting local variables and checking validity of data to use
-        data = self.experimental_data(identifier = identifier)
-        cur_no_tests = len(data)
-        if cur_no_tests == self.number_of_tests(identifier):
-            print "Experimental data already exist for benchmark %s.\nIf you want to perform new experiments, please run clear_experimental_data first" % identifier
-            return
-        if cur_no_tests == 0:
-            data = self._experimental_data
+        #TODO: checks on data (empty benchmark, existing data...)
+        cur_no_tests = 0
         C = self.code(identifier)
-        if C is None:
-            print "Benchmark %s is empty, skipping computation" % identifier
-            return
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
         results = []
@@ -839,6 +831,7 @@ class Benchmark(SageObject):
             results.append((c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure))
             cur_no_tests += 1
 
+        print results
         return results
 
     def task_master(self, verbosity):
