@@ -778,7 +778,7 @@ class Benchmark(SageObject):
         self.experimental_data().clear()
 
     @parallel
-    def _perform_parallel_experiments_for_single_id(self, identifier, verbosity, no_tests):
+    def _perform_parallel_experiments_for_single_id(self, identifier, no_tests):
         r"""
         Performs rounds of experimental data computation using ``self``'s
         parameters.
@@ -788,12 +788,6 @@ class Benchmark(SageObject):
         See :meth:`run` for details.
 
         INPUT:
-
-        - ``verbosity_level`` -- a number which indicates how verbose this run will
-          be:
-            - ``0`` means completely silent, nothing will be written on the output
-            - ``1`` means small verbosity, one message will be written every time 25% of the tests are done
-            - ``2`` means very verbose, one message will be written every time 10% of the tests are done
 
         - ``identifier`` -- (default: ``None``) the identifier of the benchmark on which experiments
           will be performed.
@@ -822,10 +816,7 @@ class Benchmark(SageObject):
             return
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
-        previous = 0 #used for verbosity
         results = []
-        if verbosity != 0:
-            print "Starting run for benchmark %s" % identifier
         while(cur_no_tests < no_tests):
             start = time.clock()
             c = C.random_element()
@@ -846,26 +837,11 @@ class Benchmark(SageObject):
                 dec_y = None #as decoding failed
                 decoding_failure = True
             results.append((c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure))
-
-            #verbosity
-            if verbosity ==1:
-                cur = (cur_no_tests*4) // no_tests
-                if (cur_no_tests*4) // no_tests != previous:
-                    previous = cur
-                    print "Benchmark %s: %s percent complete" % (identifier, cur * 25)
-            if verbosity ==2:
-                cur = (cur_no_tests*10) // no_tests
-                if (cur_no_tests*10) // no_tests != previous:
-                    previous = cur
-                    print "Benchmark %s: %s percent complete" % (identifier, cur * 10)
             cur_no_tests += 1
-
-        if verbosity != 0:
-            print "Run complete for benchmark %s" % identifier
 
         return results
 
-    def task_master(self, verbosity_level):
+    def task_master(self, verbosity):
         r"""
         Setups and runs experiments for the multithreaded version of :meth:`run`.
 
@@ -884,15 +860,21 @@ class Benchmark(SageObject):
                 else:
                     no_tests = chunk_size
                     i[1] = i[1] - no_tests
-                task = (i[0], verbosity_level, no_tests)
+                task = (i[0], no_tests)
                 tasks.append(task)
         results_g = self._perform_parallel_experiments_for_single_id(tasks)
         no_test_dict = dict()
         data = self.experimental_data()
+        if verbosity:
+            no_tasks = len(tasks)
+            cur_task = 1
         for (task, results) in results_g:
+            if verbosity:
+                print "Finished task %s of %s" % (cur_task, no_tasks)
+                cur_task += 1
             bench = task[0][0]
             try:
-                no_test_dict[bench] += task[0][2]
+                no_test_dict[bench] += task[0][1]
             except KeyError:
                 no_test_dict[bench] = 0
             no_test = no_test_dict[bench]
@@ -1031,6 +1013,10 @@ class Benchmark(SageObject):
         if not verbosity_level in {0,1,2}:
             raise ValueError("verbosity_level has to be either 0, 1 or 2")
         if parallel == True:
+            if verbosity_level != 0:
+                verbosity_level = True
+            else:
+                verbosity_level = False
             self.task_master(verbosity_level)
         else:
             for i in self.identifier():
