@@ -831,7 +831,6 @@ class Benchmark(SageObject):
             results.append((c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure))
             cur_no_tests += 1
 
-        print results
         return results
 
     def task_master(self, verbosity):
@@ -840,7 +839,10 @@ class Benchmark(SageObject):
 
 
         """
-        def preparse_tasks(tasks_preparsing, test_run = False):
+        #TODO: stop and restart mechanism
+        #Easily done using len(self.experimental_data(bench)
+        #to know how much have been done so far
+        def preparse_tasks(tasks_preparsing, setting_run = False):
             tasks = []
             while len(tasks_preparsing) != 0:
                 for i in tasks_preparsing:
@@ -853,7 +855,7 @@ class Benchmark(SageObject):
                         i[1] = remaining_no_tests - task_size
                     task = (i[0], task_size)
                     tasks.append(task)
-                if test_run:
+                if setting_run:
                     return tasks
             return tasks
 
@@ -874,20 +876,42 @@ class Benchmark(SageObject):
                     no_test = 0
                 for res in local_results:
                     data[bench, no_test] = res
-                    global_no_test_dict[bench] = global_no_test_dict[bench] + 1
-                    no_test = global_no_test_dict[bench]
+                    no_test += 1
+                global_no_test_dict[bench] = no_test
 
         number_of_chunks = 10
         tasks_preparsing= []
 
+        if verbosity:
+            print "Starting setting run"
+
+        #Setting run
         for b in self.identifier():
             remaining_no_tests = self.number_of_tests(b)
             tasks_preparsing.append([b, remaining_no_tests, ceil(remaining_no_tests/number_of_chunks)])
 
-        tasks = preparse_tasks(tasks_preparsing)
+        tasks = preparse_tasks(tasks_preparsing, setting_run = True)
 
         results = self._perform_parallel_experiments_for_single_id(tasks)
         global_no_test_dict = dict()
+        register_results(results, global_no_test_dict)
+
+        if verbosity:
+            print "Starting main run"
+        #Main run
+
+        #Adjusting chunk size
+        threshold = 1.0
+        for t in tasks_preparsing:
+            bench = t[0]
+            total_time = sum(self.experimental_data(data = 'decoding_time',
+                identifier = bench).values())
+            if total_time < threshold:
+                ind = tasks_preparsing.index(t)
+                tasks_preparsing[ind][2] = ceil(t[1]/(number_of_chunks / 2))
+
+        tasks = preparse_tasks(tasks_preparsing)
+        results = self._perform_parallel_experiments_for_single_id(tasks)
         register_results(results, global_no_test_dict)
 
 
