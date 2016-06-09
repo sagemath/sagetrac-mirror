@@ -847,21 +847,24 @@ class Benchmark(SageObject):
 
 
         """
-        chunk_size = 100
+        number_of_chunks = 100
         tasks = []
         tasks_preparsing= []
         for b in self.identifier():
-            tasks_preparsing.append([b, self.number_of_tests(b)])
+            remaining_no_tests = self.number_of_tests(b)
+            tasks_preparsing.append([b, remaining_no_tests, ceil(remaining_no_tests/number_of_chunks)])
         while not len(tasks_preparsing) == 0:
             for i in tasks_preparsing:
-                if i[1] - chunk_size <= 0:
-                    no_tests = i[1]
+                remaining_no_tests = i[1]
+                task_size = i[2]
+                if remaining_no_tests - task_size <= 0:
                     tasks_preparsing.remove(i)
+                    task_size = remaining_no_tests
                 else:
-                    no_tests = chunk_size
-                    i[1] = i[1] - no_tests
-                task = (i[0], no_tests)
+                    i[1] = remaining_no_tests - task_size
+                task = (i[0], task_size)
                 tasks.append(task)
+        print tasks
         results_g = self._perform_parallel_experiments_for_single_id(tasks)
         no_test_dict = dict()
         data = self.experimental_data()
@@ -880,7 +883,6 @@ class Benchmark(SageObject):
             no_test = no_test_dict[bench]
             for res in results:
                 data[bench, no_test] = res
-                no_tests += 1
 
 
     def _perform_experiments_for_single_id(self, identifier, verbosity):
