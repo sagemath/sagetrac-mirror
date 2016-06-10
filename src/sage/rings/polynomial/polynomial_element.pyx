@@ -8549,8 +8549,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         `r`. The valuation of the zero polynomial is
         `\infty`.
 
-        If a prime (or non-prime) `p` is given, then the valuation
-        is the largest power of `p` which divides self.
+        If a polynomial or an integer `p` is given, then the valuation
+        is the largest power of `p` which divides self. If `p` is a
+        principal ideal, the valuation is the valuation with respect to
+        its generator.
 
         The valuation at `\infty` is -self.degree().
 
@@ -8567,6 +8569,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -3
             sage: P(0).valuation()
             +Infinity
+
+        TESTS::
+
+            sage: (36*(x^2+x+1)).valuation(6)
+            2
+            sage: R.<y> = P[]
+            sage: p = 125 * (2*y+1) * ((y+2)*x^2 + (2*y-1)*x - 3*y+1)
+            sage: p.valuation(2*y+1)
+            1
+            sage: p.valuation(2*y-1)
+            0
+            sage: p.valuation(5)
+            3
+            sage: I = Ideal(2*y+1)
+            sage: p.valuation(I)
+            1
         """
         cdef int k
 
@@ -8580,27 +8598,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
             for k from 0 <= k <= self.degree():
                 if self.get_unsafe(k):
                     return ZZ(k)
-        if isinstance(p, Polynomial):
-            p = self._parent.coerce(p)
-        elif is_Ideal(p) and p.ring() is self._parent: # eventually need to handle fractional ideals in the fraction field
-            if self._parent.base_ring().is_field(): # common case
+
+        if is_Ideal(p):
+            if p.is_principal():
                 p = p.gen()
             else:
                 raise NotImplementedError
-        else:
-            from sage.rings.fraction_field import is_FractionField
-            if is_FractionField(p.parent()) and self._parent.has_coerce_map_from(p.parent().ring()):
-                p = self._parent.coerce(p.parent().ring()(p)) # here we require that p be integral.
-            else:
-                raise TypeError("The polynomial, p, must have the same parent as self.")
 
-        if p.degree() == 0:
-            raise ArithmeticError("The polynomial, p, must have positive degree.")
-        k = 0
-        while self % p == 0:
-            k = k + 1
-            self //= p
-        return sage.rings.integer.Integer(k)
+        if is_FractionField(p.parent()):
+            if p.denominator().is_unit():
+                p = p.numerator()
+            else:
+                raise TypeError("The denominator should be a unit.")
+
+        if self.base_ring().has_coerce_map_from(p.parent()):
+            return min(c.valuation(p) for c in self.coefficients())
+
+        elif self.parent().has_coerce_map_from(p.parent()):
+            p = self.parent().coerce(p)
+            k = 0
+            while p.divides(self):
+                k += 1
+                self = self.__floordiv__(p)
+            return sage.rings.integer.Integer(k)
+
+        else:
+            raise TypeError("Cannot compute the valuation with respect to {}".format(p))
 
     def ord(self, p=None):
         r"""
