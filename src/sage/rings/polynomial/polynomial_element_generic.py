@@ -185,7 +185,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return sorted(self.__coeffs)
 
-    def valuation(self):
+    def valuation(self, p=None):
         """
         Return the valuation of ``self``.
 
@@ -200,9 +200,16 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R(0).valuation()
             +Infinity
         """
-        if not self.__coeffs:
+        if not self:
             return infinity
-        return ZZ(min(self.__coeffs))
+
+        if p is infinity:
+            return -self.degree()
+
+        if p is None:
+            return ZZ(min(self.__coeffs))
+
+        return Polynomial.valuation(self, p)
 
     def _derivative(self, var=None):
         """
