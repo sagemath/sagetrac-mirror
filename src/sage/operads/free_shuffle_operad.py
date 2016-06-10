@@ -4,7 +4,7 @@ Shuffle operads
 REFERENCES:
 
 .. [DoKo] V. Dotsenko and A. Khoroshkin, Anton, *Gröbner bases for operads*.
-   Duke Math. J. 153 (2010), no. 2, 363–396.
+   Duke Math. J. 153 (2010), no. 2, 363-396.
 """
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ordered_tree import LabelledOrderedTrees
