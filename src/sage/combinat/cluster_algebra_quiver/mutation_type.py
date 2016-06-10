@@ -281,7 +281,7 @@ def _check_special_BC_cases(dg, n, check_letter_list, check_twist_list,
         if not mut_type == 'unknown':
             mut_type, conn_verts = mut_type
     else:
-        # when conn_vert_list == False, the output of _connected_mutation_type _AAtildeD is simply 'unknown' or the mutation type.
+        # when conn_vert_list is False, the output of _connected_mutation_type _AAtildeD is simply 'unknown' or the mutation type.
         # no 'connecting vertices' need to be computed.
         mut_type = _connected_mutation_type_AAtildeD( dg, ret_conn_vert = False )
         conn_verts = []
