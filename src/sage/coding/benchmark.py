@@ -802,14 +802,12 @@ class Benchmark(SageObject):
             sage: B = codes.Benchmark(C, D, Chan)
             sage: B._perform_experiments_for_single_id('_0', 0)
         """
-        #setting local variables and checking validity of data to use
-        #TODO: checks on data (empty benchmark, existing data...)
         cur_no_tests = 0
         C = self.code(identifier)
         D = self.decoder(identifier)
         Chan = self.channel(identifier)
         results = []
-        while(cur_no_tests < no_tests):
+        for i in range(no_tests):
             start = time.clock()
             c = C.random_element()
             generate_c_time = time.clock() - start
@@ -829,7 +827,6 @@ class Benchmark(SageObject):
                 dec_y = None #as decoding failed
                 decoding_failure = True
             results.append((c, generate_c_time, y, dec_y, decode_time, decoding_error, decoding_failure))
-            cur_no_tests += 1
 
         return results
 
@@ -839,9 +836,6 @@ class Benchmark(SageObject):
 
 
         """
-        #TODO: stop and restart mechanism
-        #Easily done using len(self.experimental_data(bench)
-        #to know how much have been done so far
         def preparse_tasks(tasks_preparsing):
             tasks = []
             while len(tasks_preparsing) != 0:
@@ -867,30 +861,38 @@ class Benchmark(SageObject):
                     print "Finished task %s of %s" % (cur_task, no_tasks)
                     cur_task += 1
                 bench = task[0][0]
-                try:
-                    no_test = global_no_test_dict[bench]
-                except KeyError:
-                    global_no_test_dict[bench] = 0
-                    no_test = 0
+                no_test = global_no_test_dict[bench]
                 for res in local_results:
                     data[bench, no_test] = res
                     no_test += 1
                 global_no_test_dict[bench] = no_test
 
-        initial_tests = 4
+        setup_phase_tests = 4
         tasks_preparsing= []
         tasks = []
+        global_no_test_dict = dict()
         if verbosity:
-            print "Starting setting run"
+            print "Starting setup run"
 
-        #Setting run
+        #Setup run phase
         for b in self.identifier():
-            remaining_no_tests = self.number_of_tests(b) - initial_tests
-            tasks_preparsing.append([b, remaining_no_tests, initial_tests])
-            tasks.append((b, initial_tests))
+            if self.code(b) is None:
+                pass
+            else:
+                already_performed_tests = len(self.experimental_data(b))
+                total_tests_to_perform = self.number_of_tests(b)
+                remaining_tests = total_tests_to_perform - already_performed_tests
+                if remaining_tests <= setup_phase_tests and remaining_tests > 0:
+                    tasks.append((b, remaining_tests))
+                    global_no_test_dict[b] = remaining_tests
+                elif remaining_tests <= 0:
+                    pass
+                else:
+                    global_no_test_dict[b] = already_performed_tests
+                    tasks_preparsing.append([b, remaining_tests-setup_phase_tests, setup_phase_tests])
+                    tasks.append((b, setup_phase_tests))
 
         results = self._perform_parallel_experiments_for_single_id(tasks)
-        global_no_test_dict = dict()
         register_results(results, global_no_test_dict)
 
         if verbosity:
@@ -905,9 +907,8 @@ class Benchmark(SageObject):
                     median, identifier = bench)
             worst_time = self.experimental_data()[(b, 0)][4]
 
-            #if median_time < target_task_time:
             ind = tasks_preparsing.index(t)
-            tasks_preparsing[ind][2] = worst_time + ceil(target_task_time/median_time)
+            tasks_preparsing[ind][2] = ceil(worst_time) + ceil(target_task_time/median_time)
 
         tasks = preparse_tasks(tasks_preparsing)
         results = self._perform_parallel_experiments_for_single_id(tasks)
