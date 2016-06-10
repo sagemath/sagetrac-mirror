@@ -839,7 +839,6 @@ class Benchmark(SageObject):
 
 
         """
-        import time
         #TODO: stop and restart mechanism
         #Easily done using len(self.experimental_data(bench)
         #to know how much have been done so far
@@ -874,7 +873,6 @@ class Benchmark(SageObject):
                     global_no_test_dict[bench] = 0
                     no_test = 0
                 for res in local_results:
-                    print res[4]
                     data[bench, no_test] = res
                     no_test += 1
                 global_no_test_dict[bench] = no_test
@@ -905,16 +903,15 @@ class Benchmark(SageObject):
             bench = t[0]
             median_time = self.compute_timings("decoding",
                     median, identifier = bench)
+            worst_time = self.experimental_data()[(b, 0)][4]
 
-            if median_time < target_task_time:
-                ind = tasks_preparsing.index(t)
-                tasks_preparsing[ind][2] = ceil(target_task_time/median_time)
+            #if median_time < target_task_time:
+            ind = tasks_preparsing.index(t)
+            tasks_preparsing[ind][2] = worst_time + ceil(target_task_time/median_time)
 
-        start_p = time.ctime()
         tasks = preparse_tasks(tasks_preparsing)
         results = self._perform_parallel_experiments_for_single_id(tasks)
         register_results(results, global_no_test_dict)
-        end_p = time.ctime()
 
     def _perform_experiments_for_single_id(self, identifier, verbosity):
         r"""
