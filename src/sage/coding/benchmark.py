@@ -277,6 +277,9 @@ class Benchmark(SageObject):
             raise ValueError("no_tests has to be a positive Python int or Sage Integer")
         if not no_tests > 0:
             raise ValueError("no_tests has to be a positive Python int or Sage Integer")
+        #Puts generator matrix and parity check matrix in the local cache
+        G = C.generator_matrix()
+        H = C.parity_check_matrix()
         self._codes[local_id] = code
         self._decoders[local_id] = decoder
         self._no_tests[local_id] = no_tests
@@ -952,7 +955,8 @@ class Benchmark(SageObject):
             worst_time = self.experimental_data()[(b, 0)][4]
 
             ind = tasks_preparsing.index(t)
-            tasks_preparsing[ind][2] = ceil(worst_time) + ceil(target_task_time/median_time)
+            tasks_preparsing[ind][2] = ceil(target_task_time/median_time)
+            #ceil(worst_time) + ceil(target_task_time/median_time)
 
         tasks = preparse_tasks(tasks_preparsing)
         results = self._perform_parallel_experiments_for_single_id(tasks)
