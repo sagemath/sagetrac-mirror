@@ -2453,6 +2453,78 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
 
+    def valuation(self, arg=None):
+        """
+        Return the valuation of the polynomial with respect to ``arg``.
+
+        INPUT:
+
+        - ``arg`` -- either ``None`` (default), a variable, or a polynomial.
+
+        OUTPUT:
+
+        The valuation with respect to ``arg``, defined as follows:
+
+        - If ``arg`` is a variable, the valuation is the largest power of this
+          variable that divides the polynomial;
+        - More generally, if ``arg`` is a polynomial, the valuation is the
+          largest power of ``arg`` that divides the input polynomial (this
+          definition remains valid for a constant polynomial);
+        - If ``arg`` is ``None``, the output is the tuple of valuations with
+          respect to each variable.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = ZZ[]
+            sage: p = 4*x*y + z^2 - 9*x + 39*z
+            sage: p.valuation()
+            (0, 0, 0)
+            sage: (x*y^2*p).valuation()
+            (1, 2, 0)
+            sage: (x*y^2*p).valuation(y)
+            2
+            sage: (12*p).valuation(6)
+            1
+            sage: ((x*y + x*z + 1)*p).valuation(x*y + x*z + 1)
+            1
+        """
+        if arg is None:
+            ex = self.exponents()
+            return tuple(min(e[i] for e in ex) for i in range(self.nvariables()))
+
+        if arg in self.base_ring():
+            return min(c.valuation(arg) for c in self.coefficients())
+
+        if self.base_ring().has_coerce_map_from(arg.parent()):
+            return min(c.valuation(self.base_ring()(arg)) for c in self.coefficients())
+
+        if arg not in self.parent():
+            if self.parent().has_coerce_map_from(arg.parent()):
+                arg = self.parent()(arg)
+            else:
+                raise TypeError("The parent of the polynomial {} is not {}".format(arg,self.parent()))
+
+        if arg.is_generator():
+            ind = self.parent().gens().index(arg)
+            return min(e[ind] for e in self.exponents())
+
+        if arg.nvariables() == 1:
+            ind = self.parent().gens().index(arg.variable(0))
+            variables = self.parent().variable_names()
+            variables = variables[:ind]+variables[ind+1:]
+            new_base = PolynomialRing(self.base_ring(),self.parent().variable_names()[ind])
+            R = PolynomialRing(new_base, variables)
+            return min(c.valuation(new_base(arg)) for c in R(self).coefficients())
+
+        try:
+            k = 0
+            tmp = arg
+            while tmp.divides(self):
+                k += 1
+                tmp *= arg
+            return k
+        except TypeError:
+            raise NotImplementedError("The valuation with respect to {} is not (yet) implemented.".format(arg))
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)
