@@ -794,13 +794,24 @@ class Benchmark(SageObject):
 
         - ``no_tests`` -- the number of experiments to run
 
+        OUTPUT:
+
+        - the experimental data computed during this run
+
         EXAMPLES::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: D = C.decoder()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
             sage: B = codes.Benchmark(C, D, Chan)
-            sage: B._perform_experiments_for_single_id('_0', 0)
+            sage: B._perform_parallel_experiments_for_single_id('_0', 1)#random
+            [((30, 35, 30, 25, 36, 52, 31, 4, 15, 23, 8, 0, 26, 30, 32, 12, 11, 45, 47, 23, 35, 52, 54, 33, 37, 17, 46, 45, 29, 30, 49, 58, 36, 1, 34, 34, 20, 16, 18, 45),
+            0.0020709999999999895,
+            (30, 54, 30, 6, 36, 52, 23, 4, 49, 23, 8, 0, 57, 30, 32, 12, 32, 45, 47, 23, 48, 52, 53, 3, 37, 17, 46, 45, 55, 30, 49, 58, 40, 47, 45, 10, 20, 16, 18, 45),
+            (30, 35, 30, 25, 36, 52, 31, 4, 15, 23, 8, 0, 26, 30, 32, 12, 11, 45, 47, 23, 35, 52, 54, 33, 37, 17, 46, 45, 29, 30, 49, 58, 36, 1, 34, 34, 20, 16, 18, 45),
+            0.004525000000000001,
+            False,
+            False)]
         """
         cur_no_tests = 0
         C = self.code(identifier)
@@ -830,13 +841,40 @@ class Benchmark(SageObject):
 
         return results
 
-    def task_master(self, verbosity):
+    def _task_master(self, verbosity):
         r"""
         Setups and runs experiments for the multithreaded version of :meth:`run`.
 
+        The multithreaded run as follows:
 
+            - It begins with a setup phase. During the setup phase, 4 tests are
+              runned per sub-benchmark of ``self``.
+
+            - Then, it takes the median of the decoding timings measured on the
+              previous step. It uses this timings to generate tasks which takes
+              approximately 3 seconds to be performed.
+
+            - And it runs all the tasks generated above.
+
+        INPUT:
+
+        - ``verbosity`` -- a boolean. If set to ``True``, it will send an information
+          to the user everytime a task has been completed by a thread.
+
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: D = C.decoder()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: B = codes.Benchmark(C, D, Chan)
+            sage: B._task_master(False)
         """
         def preparse_tasks(tasks_preparsing):
+            r"""
+            Prepares the list of tasks to execute
+            according to ``tasks_preparsing``.
+            """
             tasks = []
             while len(tasks_preparsing) != 0:
                 for i in tasks_preparsing:
@@ -852,6 +890,11 @@ class Benchmark(SageObject):
             return tasks
 
         def register_results(results, global_no_tests_dict):
+            r"""
+            Registers the experimental results computed
+            by a thread into ``self``'s dictionary of
+            experimental data.
+            """
             data = self.experimental_data()
             if verbosity:
                 no_tasks = len(tasks)
@@ -867,6 +910,7 @@ class Benchmark(SageObject):
                     no_test += 1
                 global_no_test_dict[bench] = no_test
 
+        #Setting variables
         setup_phase_tests = 4
         tasks_preparsing= []
         tasks = []
@@ -1036,9 +1080,9 @@ class Benchmark(SageObject):
             sage: B.clear_experimental_data()
             sage: B.run(1)
             Starting run for benchmark _0
-            25 percent complete
-            50 percent complete
-            75 percent complete
+            Benchmark  _0: 25 percent complete
+            Benchmark  _0: 50 percent complete
+            Benchmark  _0: 75 percent complete
             Run complete for benchmark _0
         """
         if not verbosity_level in {0,1,2}:
@@ -1048,7 +1092,7 @@ class Benchmark(SageObject):
                 verbosity_level = True
             else:
                 verbosity_level = False
-            self.task_master(verbosity_level)
+            self._task_master(verbosity_level)
         else:
             for i in self.identifier():
                 self._perform_experiments_for_single_id(i, verbosity_level)
