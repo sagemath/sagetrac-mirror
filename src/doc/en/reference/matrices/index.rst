@@ -90,6 +90,7 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix_mpolynomial_dense
 
    sage/matrix/operation_table
+   sage/matrix/labelled_matrix
 
    sage/matrix/action
    sage/matrix/change_ring

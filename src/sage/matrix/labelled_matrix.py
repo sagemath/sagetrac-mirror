@@ -1,18 +1,18 @@
 r"""
-Labelled matrices
+Associative arrays and matrices
 
 Matrices and (two dimensional) arrays are typically indexed by the integers. The
 class :class:`LabelledMatrix` allows two dimensional arrays to be indexed
-by arbitrary sage objects. The purpose of this class is to do the following::
+by arbitrary sage objects. The purpose of this class is to do the following:
 
-#.  display ``labelled matrices`` nicely, together their row and column
-indices,
+-  display ``labelled matrices`` nicely, together their row and column indices,
 
-#.  allow a more intuitive way of accessing and setting the entries of such
-matrices uses their natural indexing sets (rather than just using the integers).
+-  allow a more intuitive way of accessing and setting the entries of such
+   matrices uses their natural indexing sets (rather than just using the
+   integers).
 
-#. allow the row and column spaces of a matrix to be naturally identified
-with a :class:`CombinatorialFreeModule`.
+-  allow the row and column spaces of a matrix to be naturally identified with
+   a :class:`CombinatorialFreeModule`.
 
 These *labelled* arrays and matrices should be useful for decomposition
 matrices, character tables, Cayley tables, homomorphisms of combinatorial free
@@ -25,7 +25,7 @@ do not have to be the same and the entries of the array can, in principle, be
 arbitrary sage objects, although typically they would be elements of some ring.
 The entries in the underlying array can also be ``None`` in which case they are
 treated as unknown quantities which, potentially, sage or the user is in the
-process of calculating.
+process of calculating::
 
     sage: from sage.matrix.labelled_matrix import LabelledMatrix
     sage: LabelledMatrix(Partitions(5)).display()
@@ -113,40 +113,39 @@ The indexing sets for the rows and columns can be quite general::
 
 
 
-Labelled matrices and matrices
------------------------------------
-
 Not every :class:`LabelledMatrix` will be a matrix, however, if a
 particular :class:`LabelledMatrix` is a matrix then matrix methods can be
 applied to the underlying matrix -- although, tab-completion will not work for
-most of these methods. ::
+most of these methods.
 
 
 Indexing of row and column entries
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Row and column labels
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 
 Reordering rows and columns
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Indexing rows or columns by a :class:`CombinatorialFreeModule`
---------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Options for a :class:`LabelledMatrix`
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A :class:`LabelledMatrix` has many options which can be set when the
 matrix is created or changed while working with the matrix.::
 
+    sage:
+
 
 Extending the :class:`LabelledMatrix` class
-------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`LabelledMatrix` is not really intended to be used from the
 command line. Instead, it is envisaged that this class will be used as the
@@ -858,7 +857,7 @@ class LabelledMatrix(SageObject):
         r"""
         Display the matrix in a web browser.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.matrix.labelled_matrix import LabelledMatrix
             sage: d=LabelledMatrix(Partitions(3), default_value=0, base_ring=ZZ['q'])
@@ -1077,7 +1076,7 @@ class LabelledMatrix(SageObject):
         """
         Return the indexing set for the rows of the array ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.matrix.labelled_matrix import LabelledMatrix
             sage: LabelledMatrix(Partitions(5)).rows()
@@ -1088,7 +1087,8 @@ class LabelledMatrix(SageObject):
     def columns(self):
         """
         Return the indexing set for the columns of the array ``self``.
-        EXAMPLES:
+
+        EXAMPLES::
 
             sage: from sage.matrix.labelled_matrix import LabelledMatrix
             sage: LabelledMatrix(Partitions(5)).columns()
@@ -1101,7 +1101,7 @@ class LabelledMatrix(SageObject):
         Returns ``True`` or ``False`` depending upon whether the underling
         array in ``self`` is a matrix. With no option
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.matrix.labelled_matrix import LabelledMatrix
             sage: S=LabelledMatrix(rows=Partitions(5), unitriangular=True, default_value=0)
@@ -1202,9 +1202,9 @@ class CharacterTable(LabelledMatrix):
     `order` is the order of any element of the conjugacy class and `letter` runs
     through the letters of the alphabet. The order of the irreducible caraters
     and the conjugacy classes is as determined by
-    :meth:
+    :meth:`conjugacy_classes_representatives`
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.matrix.labelled_matrix import CharacterTable
         sage: ct=CharacterTable( SymmetricGroup(4) ); ct.display()
