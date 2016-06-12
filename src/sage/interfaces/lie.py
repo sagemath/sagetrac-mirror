@@ -537,11 +537,11 @@ class LiE(ExtraTabCompletion, Expect):
         else:
             return self._tab_completion_list
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         """
         EXAMPLES::
 
-            sage: lie._an_element_impl() # optional - lie
+            sage: lie.an_element() # optional - lie
             0
         """
         return self(0)

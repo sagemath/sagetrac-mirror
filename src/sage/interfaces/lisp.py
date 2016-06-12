@@ -136,11 +136,11 @@ class Lisp(Expect):
                         return 'error evaluating "%s":\n%s'%(code,s)
             return '\n'.join(x)
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         """
         EXAMPLES::
 
-            sage: lisp._an_element_impl()
+            sage: lisp.an_element()  # indirect doctest
             0
         """
         return self(0)

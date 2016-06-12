@@ -323,6 +323,39 @@ cdef class Parent(parent.Parent):
             return False
         return True
 
+    # TODO: remove once all parents in Sage will inherit properly from
+    # Sets().ParentMethods.an_element
+    cpdef an_element(self):
+        r"""
+        Returns a (preferably typical) element of this parent.
+
+        This is used both for illustration and testing purposes. If
+        the set ``self`` is empty, :meth:`an_element` raises the
+        exception :class:`EmptySetError`.
+
+        This calls :meth:`_an_element_` (which see), and caches the
+        result. Parent are thus encouraged to override :meth:`_an_element_`.
+
+        EXAMPLES::
+
+            sage: CDF.an_element()
+            1.0*I
+            sage: ZZ[['t']].an_element()
+            t
+
+        In case the set is empty, an :class:`EmptySetError` is raised::
+
+            sage: Set([]).an_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
+        """
+        # _cache_an_element, not _cache__an_element, to prevent a possible
+        # conflict with @cached_method
+        if self._cache_an_element is None:
+            self._cache_an_element = self._an_element_()
+        return self._cache_an_element
+
     def _an_element_impl(self):     # override this in Python
         check_old_coerce(self)
         return self._an_element_c_impl()

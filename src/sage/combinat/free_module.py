@@ -1336,14 +1336,14 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
                     pass
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
-    def _an_element_impl(self):
+    def an_element(self):
         """
         Return an element of ``self``, namely the zero element.
 
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F._an_element_impl()
+            sage: F.an_element()
             0
             sage: _.parent() is F
             True

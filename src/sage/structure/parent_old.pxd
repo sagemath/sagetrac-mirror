@@ -9,6 +9,7 @@
 cimport parent
 from sage.structure.coerce_dict cimport MonoDict
 cdef class Parent(parent.Parent):
+    cdef public object _cache_an_element
 
     # returns a Morphism from S to self, or None
     cpdef coerce_map_from_c(self, S)
@@ -30,5 +31,6 @@ cdef class Parent(parent.Parent):
     cpdef _coerce_c(self, x)
     cdef _coerce_c_impl(self, x)
 
+    cpdef an_element(self)
     cdef _an_element_c_impl(self)
     cpdef _an_element_c(self)

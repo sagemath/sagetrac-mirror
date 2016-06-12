@@ -210,13 +210,13 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         self.__M = M
         sage.rings.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         r"""
         Return an element of this algebra. Used by the coercion machinery.
 
         EXAMPLE::
 
-            sage: CuspForms(1, 12).hecke_algebra().an_element() # indirect doctest
+            sage: CuspForms(1, 12).hecke_algebra().an_element()
             Hecke operator T_2 on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
         """
         return self.hecke_operator(self.level() + 1)

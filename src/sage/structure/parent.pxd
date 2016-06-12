@@ -59,9 +59,6 @@ cdef class Parent(category_object.CategoryObject):
     # coerce x into self
     cpdef coerce(self, x)
 
-    cpdef an_element(self)
-    cdef public object _cache_an_element
-
     # For internal use
     cpdef _generic_convert_map(self, S)
     cdef discover_coerce_map_from(self, S)

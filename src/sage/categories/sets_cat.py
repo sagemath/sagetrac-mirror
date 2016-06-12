@@ -1028,10 +1028,10 @@ class Sets(Category_singleton):
 
             EXAMPLES::
 
-               sage: CDF.an_element()
-               1.0*I
-               sage: ZZ[['t']].an_element()
-               t
+                sage: CDF.an_element()
+                1.0*I
+                sage: ZZ[['t']].an_element()
+                t
             """
             return self._an_element_()
 
