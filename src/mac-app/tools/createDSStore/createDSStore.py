@@ -20,7 +20,7 @@ See getBackgroundImage_alias.
 """
 
 import ds_store, mac_alias, biplist
-import datetime, sys, os
+import datetime, sys, os, platform
 
 # Hard-coded data for finder
 # The .background.png's dpi should be set to 72, otherwise, we get weird
@@ -134,6 +134,14 @@ def createDSStore(target_dir, volume_name, app_name):
             d[name]['Iloc'] = iconPosition
 
 if __name__ == '__main__':
+    if sys.platform == 'darwin':
+        OS_X_ver = int(platform.mac_ver()[0].split('.')[1])
+        if OS_X_ver < 9:
+            print >>sys.stderr, (
+                "%s not supported on versions prior to Mac OS 10.9" % sys.argv[0])
+            # Failing silently so that binary_pkg still works on Mac OS 10.7
+            sys.exit(0)
+            
     if len(sys.argv) != 4:
         print >>sys.stderr, (
             "Usage: %s TARGET_DIR VOLUME_NAME APP_NAME.app" % sys.argv[0])
