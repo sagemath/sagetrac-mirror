@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from dirichlet_series import dirichlet_L, dirichlet_series, DirichletSeries
+from .dirichlet_series import dirichlet_L, dirichlet_series, DirichletSeries
 
 from .dokchitser import Dokchitser
 
