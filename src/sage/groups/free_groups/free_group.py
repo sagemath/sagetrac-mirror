@@ -99,6 +99,7 @@ def is_FreeGroup(x):
     from sage.groups.indexed_free_group import IndexedFreeGroup
     return isinstance(x, IndexedFreeGroup)
 
+
 def _lexi_gen(zeroes=False):
     """
     Return a generator object that produces variable names suitable for the
@@ -162,7 +163,9 @@ class FreeGroupElement(ElementLibGAP):
 
     - ``x`` -- something that determines the group element. Either a
       :class:`~sage.libs.gap.element.GapElement` or the Tietze list
-      (see :meth:`Tietze`) of the group element.
+      (see :meth:`Tietze`) of the group element or anything accepted
+      by list(). In the last case, by convention capital letters are
+      considered as inverses.
 
     - ``parent`` -- the parent :class:`FreeGroup`.
 
@@ -175,6 +178,11 @@ class FreeGroupElement(ElementLibGAP):
         sage: y = G([2, 2, 2, 1, -2, -2, -2])
         sage: y
         b^3*a*b^-3
+        sage: z = G("abAbBAB")
+        sage: z
+        a*b*a^-2*b^-1
+        sage: z == G(['a','b','A','A','B'])
+        True
         sage: x*y
         a*b*a^-1*b^2*a*b^-3
         sage: y*x
@@ -200,7 +208,11 @@ class FreeGroupElement(ElementLibGAP):
             sage: y = G([2, 2, 2, 1, -2, -2, -1])
             sage: y # indirect doctest
             b^3*a*b^-2*a^-1
-
+            sage: G("abAbBAB") 
+            a*b*a^-2*b^-1
+            sage: G(['a','b','A','a','A','B'])
+            a*b*a^-1*b^-1
+            
             sage: TestSuite(G).run()
             sage: TestSuite(x).run()
         """
@@ -208,21 +220,36 @@ class FreeGroupElement(ElementLibGAP):
             try:
                 l = x.Tietze()
             except AttributeError:
+                if isinstance(x,str): # First check wether x is a string of a generator like 'x0'
+                    try:
+                        x = [parent._names.index(x) + 1]
+                    except ValueError:
+                        try:
+                            x = [-parent._names.index(x.lower()) - 1]
+                        except ValueError:
+                            pass
                 l = list(x)
-            if len(l)>0:
-                if min(l) < -parent.ngens() or parent.ngens() < max(l):
-                    raise ValueError('generators not in the group')
-            if 0 in l:
-                raise ValueError('zero does not denote a generator')
+            for i,a in enumerate(l):
+                if isinstance(a,(int,Integer)):
+                    if a < -parent.ngens() or parent.ngens() < a or a == 0:
+                        raise ValueError('%s does not denote a generator of %s'%(a,parent))
+                elif isinstance(a,str):
+                    try:
+                        l[i] = parent._names.index(a) + 1
+                    except ValueError:
+                        try:
+                            l[i] = -parent._names.index(a.lower()) - 1
+                        except ValueError:
+                            raise  ValueError('%s is not a generator of %s'%(a,parent))
             i=0
-            while i<len(l)-1:
-                if l[i]==-l[i+1]:
+            while i < len(l)-1:
+                if l[i] == -l[i+1]:
                     l.pop(i)
                     l.pop(i)
                     if i>0:
-                        i=i-1
+                        i = i-1
                 else:
-                    i=i+1
+                    i = i+1
             AbstractWordTietzeWord = libgap.eval('AbstractWordTietzeWord')
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
@@ -291,6 +318,226 @@ class FreeGroupElement(ElementLibGAP):
             (Free Group on generators {a, b}, ((1, 2, -1),))
         """
         return (self.parent(), (self.Tietze(),))
+
+    def __len__(self):
+        """
+        Reduced word length of self.
+
+        OUTPUT:
+
+        A non-negative integer.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: len(w)
+            4
+            sage: len(F(['x0','X1','x1','x2']))
+            2
+
+        """
+        return len(self.Tietze())
+
+    def __getitem__(self, item):
+        """
+        Letter(s) at position ``item`` of ``self``.
+
+        An element of a free group can be viewed as a reduced word in
+        the generators and their inverses.
+
+        As such it is a container.
+
+        INPUT:
+
+        - ``item`` -- an integer or a slice object
+
+        OUTPUT:
+
+        A free group element.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: w[2]
+            x2
+            sage: w[1:]
+            x1*x2*x1^-1
+        """
+        if type(item) is slice:
+            return self.parent(self.Tietze()[item])
+        else:
+            return self.parent([self.Tietze()[item]])
+
+    def __le__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` <= ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: w <= F([])
+            False
+        """
+        if not isinstance(other,FreeGroupElement):
+            if (other==1 or other==() or other==[]):
+                return self.is_one()
+            else:
+                raise NotImplementedError
+        return self.Tietze() <= other.Tietze()
+
+    def __lt__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` < ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: w[:-1] < w
+            True
+        """
+        if not isinstance(other,FreeGroupElement):
+            if (other==1 or other==() or other==[]):
+                return False
+            else:
+                raise NotImplementedError
+
+        return self.Tietze() < other.Tietze()
+
+
+    def __ge__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` >= ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: w*w >= w
+            True
+
+        """
+        if not isinstance(other,FreeGroupElement):
+            if (other==1 or other==() or other==[]):
+                return True
+            else:
+                raise NotImplementedError
+        return self.Tietze() >= other.Tietze()
+
+
+    def __gt__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` > ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,2,1,-1,3,-2])
+            sage: F([2]) > w
+            True
+        """
+        if not isinstance(other,FreeGroupElement):
+            if other==1 or other==() or other==[]:
+                return self.is_one()
+            else:
+                raise NotImplementedError("%s is not a free group "
+                                          "element."%other)
+        return self.Tietze() > other.Tietze()
+
+
+    def __eq__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` == ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: F([1,2,1,-1,3,-2]) == F([1,2,3,-2])
+            True
+        """
+        if not isinstance(other,FreeGroupElement):
+            if (other==1 or other==() or other==[]):
+                return self.is_one()
+            else:
+                return False
+        return self.Tietze() == other.Tietze()
+
+
+    def __ne__(self, other):
+        """
+        Lexicographic comparison of the reduced words ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- a free group element
+
+        OUTPUT:
+
+        ``True`` if ``self`` != ``other``
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: F([1,2,1,-1,3,-2]) != F([1,2,3,-2])
+            False
+        """
+        if not isinstance(other,FreeGroupElement):
+            if (other==1 or other==() or other==[]):
+                return not self.is_one()
+            else:
+                return True
+        return self.Tietze() != other.Tietze()
+
+
+
 
     @cached_method
     def Tietze(self):
@@ -444,7 +691,8 @@ class FreeGroupElement(ElementLibGAP):
             0
         """
         if not gen in self.parent().generators():
-            raise ValueError("Fox derivative can only be computed with respect to generators of the group")
+            raise ValueError("Fox derivative can only be computed with "
+                             "respect to generators of the group")
         l = list(self.Tietze())
         if im_gens is None:
             F = self.parent()
@@ -559,11 +807,72 @@ class FreeGroupElement(ElementLibGAP):
                 pass
         G = self.parent()
         if len(values) != G.ngens():
-            raise ValueError('number of values has to match the number of generators')
+            raise ValueError('number of values has to match the number of '
+                             'generators')
         replace = dict(zip(G.gens(), values))
         from sage.misc.all import prod
-        return prod( replace[gen] ** power for gen, power in self.syllables() )
+        return prod(replace[gen] ** power for gen, power in self.syllables())
 
+    def to_word(self, use_str=True, upper_case_as_inverse=True):
+        """
+        Convert ``self`` to a Word.
+
+        A free group element is a reduced words in the generators and their
+        inverses. This is naturally a finite word. Some choices have to be
+        done:
+
+        1. ``use_str==True``: the letters of the words are strings (
+        possibly a single character, but not necessarily).
+
+        ``use_str==False``: the letters of the word are the generators
+        and their inverses themselves, that is to say the letters are
+        FreeGroupElement.
+
+         2. ``upper_case_as_inverse==True``: the inverse of a generator is
+         written as the same string in upper case. This is used only with the
+         ``use_string==True`` option.
+
+
+        INPUT:
+
+            - ``use_str`` -- (default: True) use strings rather than
+            FreeGroupElement as letters.
+            - ``upper_case_as_inverse`` -- (default: True) use upper case letters
+            as inverses.
+
+        OUTPUT:
+
+        A finite Word.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: w = F([1,-2,1,3,-1])
+            sage: w.to_word()
+            word: x0,X1,x0,x2,X0
+            sage: type(w.to_word()[1])
+            <type 'str'>
+            sage: w.to_word(use_str=False)
+            word: x0,x1^-1,x0,x2,x0^-1
+            sage: w.to_word(use_str=False)[1] == w[1]
+            True
+
+        """
+        from sage.combinat.words.word import Word
+
+        if use_str and upper_case_as_inverse:
+            wt = self.Tietze()
+            A = self.parent().variable_names()
+            w = []
+            for a in wt:
+                if a > 0:
+                    w.append(A[a - 1])
+                else:
+                    w.append(A[-a - 1].upper())
+            return Word(w)
+        if use_str:
+            return Word([str(a) for a in self])
+        return Word(list(self))
 
 def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     """
@@ -573,13 +882,10 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
 
     - ``n`` -- integer or ``None`` (default). The nnumber of
       generators. If not specified the ``names`` are counted.
-
     - ``names`` -- string or list/tuple/iterable of strings (default:
       ``'x'``). The generator names or name prefix.
-
     - ``index_set`` -- (optional) an index set for the generators; if
       specified then the optional keyword ``abelian`` can be used
-
     - ``abelian`` -- (default: ``False``) whether to construct a free
       abelian group or a free group
 
