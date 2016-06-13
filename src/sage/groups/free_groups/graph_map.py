@@ -26,10 +26,11 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import print_function, absolute_import
 from sage.combinat.words.morphism import WordMorphism
 from sage.combinat.words.word import Word
-from inverse_alphabet import AlphabetWithInverses
-from inverse_graph import GraphWithInverses
+from .inverse_alphabet import AlphabetWithInverses
+from .inverse_graph import GraphWithInverses
 
 
 class GraphMap:

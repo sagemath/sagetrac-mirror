@@ -28,13 +28,14 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import print_function, absolute_import
 from sage.combinat.words.word import Word
 from sage.graphs.graph import DiGraph
-from inverse_graph import GraphWithInverses
-from inverse_alphabet import AlphabetWithInverses
-from inverse_graph import MetricGraph
-from graph_map import GraphMap
-from free_group_automorphism import FreeGroupAutomorphism
+from .inverse_graph import GraphWithInverses
+from .inverse_alphabet import AlphabetWithInverses
+from .inverse_graph import MetricGraph
+from .graph_map import GraphMap
+from .free_group_automorphism import FreeGroupAutomorphism
 import bisect
 
 
@@ -164,7 +165,7 @@ class ConvexCore():
         A1 = G1.alphabet()
 
         if verbose:
-            print "Building signed ends"
+            print ("Building signed ends")
         self._build_signed_ends(
             verbose=(verbose and verbose > 1 and (verbose - 1)))
 
@@ -206,12 +207,12 @@ class ConvexCore():
         # close the slices by convexity
         for b in A1.positive_letters():
             if verbose:
-                print "Building the slice of", b
+                print ("Building the slice of", b)
             empty_slice = True
             if len(signed_ends[b]) > 0:
                 signed_ends[b].sort()
                 if verbose > 1:
-                    print "Signed ends of ", b, ":", signed_ends[b]
+                    print ("Signed ends of ", b, ":", signed_ends[b])
                 common = signed_ends[b][0][0]
             for (w, sign) in signed_ends[b]:
                 common_len = G0.common_prefix_length(common, w)
@@ -233,18 +234,18 @@ class ConvexCore():
                         heavy_squares.append(
                             (w[:i], G1.initial_vertex(b), a, b))
                         if verbose:
-                            print "Heavy square", heavy_squares[-1]
+                            print ("Heavy square", heavy_squares[-1])
                     else:
                         aa = A0.inverse_letter(a)
                         existing_edges[(aa, 0)] = True
                         heavy_squares.append(
                             (w[:i + 1], G1.initial_vertex(b), aa, b))
                         if verbose:
-                            print "Heavy square", heavy_squares[-1]
+                            print ("Heavy square", heavy_squares[-1])
             if empty_slice:  # we need to check wether we add an isolated edge
                 if verbose:
-                    print "The slice of", b, \
-                        "is empty, looking for an isolated edge"
+                    print ("The slice of", b,
+                           "is empty, looking for an isolated edge")
                 if len(signed_ends[b]) > 1:
                     isolated_b = len(common) > 0
                     if not isolated_b:  # we need at least two edges
@@ -260,7 +261,7 @@ class ConvexCore():
                             common, G1.initial_vertex(b), (b, 1)))  # common
                         # stands for its terminal vertex
                         if verbose:
-                            print "Isolated edge", (common, b, 1)
+                            print ("Isolated edge", (common, b, 1))
                     else:  # len(signed_ends[b])+1==len(outgoing_from_origin)
                         # and len(common)==0
                         positive_outgoing_edges = [e[0][0] for e in
@@ -278,14 +279,14 @@ class ConvexCore():
                                                         b))  # note that
                             #  common=Word([])
                             if verbose:
-                                print "Twice-light square (type 1)", \
-                                    twice_light_squares[-1]
+                                print ("Twice-light square (type 1)",
+                                       twice_light_squares[-1])
                         else:
                             twice_light_squares.append(
                                 (common, G1.initial_vertex(b), a, b))
                             if verbose:
-                                print "Twice-light square (type 2)", \
-                                    twice_light_squares[-1]
+                                print ("Twice-light square (type 2)",
+                                       twice_light_squares[-1])
                         if A0.is_positive_letter(a):
                             existing_edges[(a, 0)] = True
                         else:
@@ -299,14 +300,14 @@ class ConvexCore():
                                                     G1.initial_vertex(b),
                                                     A0.inverse_letter(a), b))
                         if verbose:
-                            print "Twice-light square (type 3)", \
-                                twice_light_squares[-1]
+                            print ("Twice-light square (type 3)",
+                                   twice_light_squares[-1])
                     else:
                         twice_light_squares.append(
                             (common[:-1], G1.initial_vertex(b), a, b))
                         if verbose:
-                            print "Twice-light square (type 4)", \
-                                twice_light_squares[-1]
+                            print ("Twice-light square (type 4)",
+                                   twice_light_squares[-1])
                     if A0.is_positive_letter(a):
                         existing_edges[(a, 0)] = True
                     else:
@@ -321,7 +322,7 @@ class ConvexCore():
         semi_isolated_vertices = []
         adjacent_twice_light_squares = dict([])
         if verbose:
-            print "Looking for isolated vertices"
+            print ("Looking for isolated vertices")
         for (w, v, a, b) in twice_light_squares:
             if (v, 1) in adjacent_twice_light_squares:
                 adjacent_twice_light_squares[(v, 1)].append(w)
@@ -368,11 +369,11 @@ class ConvexCore():
                     u0 = G0.initial_vertex(A0[0])
                 if adjacent_twice_light_squares[(u0, 0)] == G0.degree(u0):
                     isolated_vertices.append((w, v))
-                    if verbose: print "Isolated vertex", (w, v)
+                    if verbose: print ("Isolated vertex", (w, v))
                 else:
                     for w in adjacent_twice_light_squares[v]:
                         semi_isolated_vertices.append((w, v))
-                        if verbose: print "Semi-isolated vertex", (w, v)
+                        if verbose: print ("Semi-isolated vertex", (w, v))
 
         # create the convex core as a square complex
 
@@ -424,12 +425,12 @@ class ConvexCore():
         vertex_labels.sort()
 
         if verbose:
-            print "Vertices", vertex_labels
+            print ("Vertices", vertex_labels)
         # There are still isolated edges of the form (a,0) missing
         for a in A0.positive_letters():
             if not existing_edges[(a, 0)]:
                 if verbose:
-                    print "Looking for the isolated edge", (a, 0)
+                    print ("Looking for the isolated edge", (a, 0))
                 vi = G0.initial_vertex(a)
                 vt = G0.terminal_vertex(a)
                 u = G1.reduce_path(
@@ -465,8 +466,8 @@ class ConvexCore():
                             if l < len(end_prefix):
                                 end_prefix = end_prefix[:l]
                 if verbose:
-                    print "On side 1", (a, 0), "is separated from self by", \
-                        start_prefix, "and", end_prefix
+                    print ("On side 1", (a, 0), "is separated from self by", \
+                        start_prefix, "and", end_prefix)
 
                 if len(start_prefix) > len(end_prefix):
                     prefix = start_prefix
@@ -478,7 +479,7 @@ class ConvexCore():
                     edges.add(e)
                     isolated_edges.append(e)
                     if verbose:
-                        print "Isolated edge:", e
+                        print ("Isolated edge:", e)
                 else:
                     v1 = G1.terminal_vertex(prefix[-1])
                     u = G0.reduce_path(
@@ -487,7 +488,7 @@ class ConvexCore():
                     edges.add((u, v1, (a, 0)))
                     isolated_edges.append((u, v1, (a, 0)))
                     if verbose:
-                        print "Isolated edge:", (u, v1, (a, 0))
+                        print ("Isolated edge:", (u, v1, (a, 0)))
 
         # We now number the vertices and change edges such that they
         #  are of the form [vi,vt,(a,side)]
@@ -1321,7 +1322,7 @@ class ConvexCore():
             if oriented < len(squares):  # there is more than one
                 # strongly connected component
                 if verbose:
-                    print "There is another strongly connected component"
+                    print ("There is another strongly connected component")
                 for i in xrange(1, len(squares)):
                     if squares_orientation[i] == 0:
                         break
@@ -1504,17 +1505,17 @@ class ConvexCore():
 
         if verbose:
             if cyclic_order_0 is not None:
-                print "The tree on side 0 is embedded in the surface:",\
-                    cyclic_order_0
+                print ("The tree on side 0 is embedded in the surface:",
+                        cyclic_order_0)
             else:
-                print "The tree on side 0 is not embedded in the surface," \
-                      " we will try to guess an embedding"
+                print ("The tree on side 0 is not embedded in the surface,"
+                       " we will try to guess an embedding")
             if cyclic_order_1 is not None:
-                print "The tree on side 1 is embedded in the surface:",\
-                    cyclic_order_1
+                print ("The tree on side 1 is embedded in the surface:",
+                       cyclic_order_1)
             else:
-                print "The tree on side 1 is not embedded in the surface, " \
-                      "we will try to guess an embedding"
+                print ("The tree on side 1 is not embedded in the surface, "
+                       "we will try to guess an embedding")
 
         squares = self.squares()
 
@@ -1525,18 +1526,18 @@ class ConvexCore():
             verbose=verbose and verbose > 1 and verbose - 1)
 
         if verbose:
-            print "Orientation of the squares:"
+            print ("Orientation of the squares:")
             if verbose > 1:
                 for i, sq in enumerate(squares):
-                    print i, ":", sq, ":", orientation[i]
+                    print (i, ":", sq, ":", orientation[i])
 
         boundary = self.surface_boundary(
             orientation=orientation,
             verbose=verbose and verbose > 1 and verbose - 1)
 
         if verbose:
-            print "Edges of the boundary:"
-            print boundary
+            print ("Edges of the boundary:")
+            print (boundary)
 
         # The boundary of the surface is an Eulerian circuit in the
         #  surface_boundary_graph
@@ -1552,14 +1553,14 @@ class ConvexCore():
             next.append((boundary[1], 0))
 
         if verbose:
-            print "Looking for an eulerian circuit in the boundary"
+            print ("Looking for an eulerian circuit in the boundary")
 
         while len(next) > 0:
 
             e, current = next.pop()
 
             if verbose:
-                print e, current
+                print (e, current)
 
             for i in xrange(current + 1, len(boundary)):
                 if boundary[i] == e:
@@ -1585,8 +1586,8 @@ class ConvexCore():
                     # are isolated edges
                     acceptable = False
                     if verbose:
-                        print "The current boundary does not respect" \
-                              " orientation", e[2][2]
+                        print ("The current boundary does not respect" \
+                              " orientation", e[2][2])
                     break
                 else:
                     oriented.add(e[2][2])
@@ -1619,8 +1620,8 @@ class ConvexCore():
                         if boundary[i][2][0] != cyclic_order_0[j0]:
                             acceptable = False
                             if verbose:
-                                print "The current boundary does not respect" \
-                                      " the given cyclic order on side 0"
+                                print ("The current boundary does not respect"
+                                       " the given cyclic order on side 0")
                             break
 
             if not acceptable:
@@ -1647,8 +1648,8 @@ class ConvexCore():
                         if boundary[i][2][0] != cyclic_order_1[j1]:
                             acceptable = False
                             if verbose:
-                                print "The current boundary does not respect "\
-                                      "the given cyclic order on side 1"
+                                print ("The current boundary does not respect "
+                                       "the given cyclic order on side 1")
 
                             break
 
@@ -1679,10 +1680,10 @@ class ConvexCore():
                             if i == j:
                                 acceptable = False
                                 if verbose:
-                                    print "There is more than one boundary " \
-                                          "component on side 0"
-                                    print "Cyclic order on side 0:", \
-                                        tmp_cyclic_0
+                                    print ("There is more than one boundary "
+                                           "component on side 0")
+                                    print ("Cyclic order on side 0:",
+                                           tmp_cyclic_0)
                                 i = len(tmp_cyclic_0)
                                 break
 
@@ -1709,10 +1710,10 @@ class ConvexCore():
                             if i == j:
                                 acceptable = False
                                 if verbose:
-                                    print "There is more than one boundary " \
-                                          "component on side 1"
-                                    print "Cyclic order on side 1:", \
-                                        tmp_cyclic_1
+                                    print ("There is more than one boundary "
+                                           "component on side 1")
+                                    print ("Cyclic order on side 1:",
+                                           tmp_cyclic_1)
                                 i = len(tmp_cyclic_1)
                                 break
 
@@ -1746,24 +1747,24 @@ class ConvexCore():
                 next.append((e, current + 1))
 
         if verbose:
-            print "Possible boundaries:", eulerian_circuits
+            print ("Possible boundaries:", eulerian_circuits)
 
         if len(eulerian_circuits) > 1:
-            print "There is an ambiguity on the choice of the " \
-                  "boundary of the surface."
-            print "Specify using optionnal argument cyclic_order_0 " \
-                  "and cyclic_order_1."
-            print "Possible choices:"
+            print ("There is an ambiguity on the choice of the "
+                   "boundary of the surface.")
+            print ("Specify using optionnal argument cyclic_order_0 "
+                   "and cyclic_order_1.")
+            print ("Possible choices:")
             for cyclic_order in eulerian_circuits:
-                print "side 0:", [e[2][0] for e in cyclic_order if
-                                  e[2][1] == 0]
-                print "side 1:", [e[2][0] for e in cyclic_order if
-                                  e[2][1] == 1]
-            print "The first one is chosen"
+                print ("side 0:", [e[2][0] for e in cyclic_order if
+                                  e[2][1] == 0])
+                print ("side 1:", [e[2][0] for e in cyclic_order if
+                                  e[2][1] == 1])
+            print ("The first one is chosen")
         elif len(eulerian_circuits) == 0:
-            print "There are no eulerian circuit in the boundary " \
-                  "compatible with the given cyclic orders."
-            print "Probably changing the orientation will solve this problem"
+            print ("There are no eulerian circuit in the boundary "
+                   "compatible with the given cyclic orders.")
+            print ("Probably changing the orientation will solve this problem")
             return False
 
         cyclic_order = eulerian_circuits[0]
@@ -1780,9 +1781,9 @@ class ConvexCore():
                 orientation[i] = 1
 
         if verbose:
-            print "Orientation of the squares coherent " \
-                  "with the choice of the boundary"
-            print orientation
+            print ("Orientation of the squares coherent "
+                   "with the choice of the boundary")
+            print (orientation)
 
         self._squares_orientation = orientation
 
@@ -1837,7 +1838,7 @@ class ConvexCore():
                     j += 1
 
             if verbose:
-                print "Slice of", a, ":", slicea
+                print ("Slice of", a, ":", slicea)
 
                 # put a curve for each edge of the slice
             for i, sqi in enumerate(slicea):
@@ -1876,8 +1877,8 @@ class ConvexCore():
             polygon_side_0.append(a)
 
         if verbose:
-            print "Polygon bounding the fundamental domain of the surface:",\
-                polygon_side_0
+            print ("Polygon bounding the fundamental domain of the surface:",
+                   polygon_side_0)
 
         i = 0
         while polygon_side_0[i] != A0[0]:
@@ -2106,10 +2107,10 @@ class ConvexCore():
             verbose=verbose and verbose > 1 and verbose - 1)
 
         if verbose:
-            print "Orientation of the squares:"
+            print ("Orientation of the squares:")
             if verbose > 1:
                 for i, sq in enumerate(squares):
-                    print i, ":", sq, ":", orientation[i]
+                    print (i, ":", sq, ":", orientation[i])
 
                     # Edges of the boundary
 
@@ -2118,7 +2119,7 @@ class ConvexCore():
             verbose=verbose and verbose > 1 and verbose - 1)
 
         if verbose:
-            print "Edges of the boundary:"
-            print boundary
+            print ("Edges of the boundary:")
+            print (boundary)
 
         # TODO
