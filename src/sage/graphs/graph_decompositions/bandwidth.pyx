@@ -86,6 +86,17 @@ hope to get better performances.
     There is some symmetry to break as the reverse of a satisfiable ordering is
     also a satisfiable ordering.
 
+This module contains the following methods
+------------------------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`bandwidth` | Compute the bandwidth of an undirected graph
+    :meth:`~sage.graphs.base.boost_graph.bandwidth_heuristics` | Uses Boost heuristics to approximate the bandwidth of the input graph
+
 Functions
 ---------
 """
@@ -95,10 +106,11 @@ Functions
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from libc.stdint cimport uint16_t
 from sage.graphs.distances_all_pairs cimport all_pairs_shortest_path_BFS
+from sage.graphs.base.boost_graph import bandwidth_heuristics
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 ctypedef uint16_t index_t
