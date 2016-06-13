@@ -18,6 +18,7 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 
@@ -755,7 +756,7 @@ class AlphabetWithInverses(Parent):
 
             sage: A = AlphabetWithInverses(4)
             sage: A.remove_letter('b')
-            sage: print A
+            sage: print (A)
             Alphabet with inverses on ['a', 'c', 'd']
         """
         aa = self.to_positive_letter(a)

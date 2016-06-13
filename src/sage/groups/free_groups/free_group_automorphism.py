@@ -22,9 +22,9 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-
+from __future__ import print_function, absolute_import
 from sage.combinat.words.morphism import WordMorphism
-from free_group import FreeGroup, FreeGroupElement
+from .free_group import FreeGroup, FreeGroupElement
 
 
 class FreeGroupMorphism(object):
@@ -857,9 +857,9 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             base graph of the ``GraphSelfMap`` is a
             ``GraphWithInverses`` instead of a ``MarkedGraph``.
         """
-        from graph_self_map import GraphSelfMap
-        from inverse_graph import GraphWithInverses
-        from inverse_alphabet import AlphabetWithInverses
+        from .graph_self_map import GraphSelfMap
+        from .inverse_graph import GraphWithInverses
+        from .inverse_alphabet import AlphabetWithInverses
 
         A = AlphabetWithInverses(self._domain.variable_names())
         rose = GraphWithInverses.rose_graph(A)
@@ -883,9 +883,9 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             sage: g.train_track()
             WordMorphism: A->eADE, B->eBE, C->DE, a->edaE, b->ebE, c->ed
         """
-        from graph_self_map import GraphSelfMap
-        from marked_graph import MarkedGraph
-        from inverse_alphabet import AlphabetWithInverses
+        from .graph_self_map import GraphSelfMap
+        from .marked_graph import MarkedGraph
+        from .inverse_alphabet import AlphabetWithInverses
 
         A = AlphabetWithInverses(self._domain.variable_names())
         rose = MarkedGraph.rose_marked_graph(A)
@@ -930,7 +930,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             Edge map: a->bd, b->aded, d->a, e->d
             Irreducible representative
         """
-        from train_track_map import TrainTrackMap
+        from .train_track_map import TrainTrackMap
 
         f = self.rose_representative()
         f.train_track(verbose)
@@ -993,17 +993,17 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
             automorphisms, 2012, arXiv:1209.3732
         """
-        from train_track_map import TrainTrackMap
+        from .train_track_map import TrainTrackMap
 
         f = self.train_track(stable=True, relative=False,
                              verbose=(verbose and verbose < 1 and verbose - 1))
 
         if verbose:
-            print f
+            print (f)
 
         if len(f._strata) > 1:
             if verbose:
-                print "Reducible"
+                print ("Reducible")
             return False
 
         f = TrainTrackMap(f)
@@ -1058,10 +1058,10 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             have an expanding absolute train-track representative).
         """
 
-        from train_track_map import TrainTrackMap
+        from .train_track_map import TrainTrackMap
 
         if verbose:
-            print "Computing a train-track representative"
+            print ("Computing a train-track representative")
         f = self.train_track(relative=False, stable=False,
                              verbose=(verbose and verbose > 1 and verbose - 1))
         if f.is_train_track(verbose=(verbose and verbose > 1 and verbose - 1)):
@@ -1070,7 +1070,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
                 verbose=(verbose and verbose > 1 and verbose - 1))
         else:
             if verbose:
-                print "self is not iwip, not implemented yet in this case"
+                print ("self is not iwip, not implemented yet in this case")
         return False
 
     @staticmethod
@@ -1419,7 +1419,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
                     used_dehn_twists.append((k, 1))
 
         if verbose:
-            print "List of surface Dehn twists used:",used_dehn_twists
+            print ("List of surface Dehn twists used:",used_dehn_twists)
 
         return result
 
