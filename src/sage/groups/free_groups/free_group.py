@@ -822,23 +822,23 @@ class FreeGroupElement(ElementLibGAP):
         done:
 
         1. ``use_str==True``: the letters of the words are strings (
-        possibly a single character, but not necessarily).
+           possibly a single character, but not necessarily).
 
-        ``use_str==False``: the letters of the word are the generators
-        and their inverses themselves, that is to say the letters are
-        FreeGroupElement.
+           ``use_str==False``: the letters of the word are the generators
+           and their inverses themselves, that is to say the letters are
+           FreeGroupElement.
 
          2. ``upper_case_as_inverse==True``: the inverse of a generator is
-         written as the same string in upper case. This is used only with the
-         ``use_string==True`` option.
+            written as the same string in upper case. This is used only with
+            the ``use_string==True`` option.
 
 
         INPUT:
 
             - ``use_str`` -- (default: True) use strings rather than
-            FreeGroupElement as letters.
-            - ``upper_case_as_inverse`` -- (default: True) use upper case letters
-            as inverses.
+              FreeGroupElement as letters.
+            - ``upper_case_as_inverse`` -- (default: True) use upper case
+              letters as inverses.
 
         OUTPUT:
 

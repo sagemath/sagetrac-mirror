@@ -36,8 +36,8 @@ from sage.combinat.words.morphism import WordMorphism
 from sage.combinat.words.word import Word
 from sage.rings.qqbar import AA
 from .inverse_alphabet import AlphabetWithInverses
-from free_group import FreeGroup
-from free_group_automorphism import FreeGroupAutomorphism
+from .free_group import FreeGroup
+from .free_group_automorphism import FreeGroupAutomorphism
 from sage.graphs.graph import DiGraph
 from sage.graphs.graph import Graph
 from .inverse_graph import GraphWithInverses
@@ -2879,19 +2879,19 @@ class GraphSelfMap(GraphMap):
         3/ contract lowest strata that are forest.
 
         4/ Perform safe fusion of valence 2 vertices. The isotopy is
-        chosen such that the expansion factors of self do not increase
-        and so that property RTT-i (no need of core subdivision) is
-        not broken. A fusion is safe if either:
+           chosen such that the expansion factors of self do not increase
+           and so that property RTT-i (no need of core subdivision) is
+           not broken. A fusion is safe if either :
 
-            - the upper most stratum contains only one edge of the fusion
-              line.
-            or
-            - the upper most stratum is not exponential.
-            or
-            - the upper most stratum is exponential and one of the
-              safe_strata and the fusion is towards one of the edges
-              corresponding to the minimum coefficient of the right
-              Perron-Frobenius eigen-vector.
+           - the upper most stratum contains only one edge of the fusion
+             line.
+             or
+           - the upper most stratum is not exponential.
+             or
+           - the upper most stratum is exponential and one of the
+             safe_strata and the fusion is towards one of the edges
+             corresponding to the minimum coefficient of the right
+             Perron-Frobenius eigen-vector.
 
         5/ contract pretrivial forests.
 
