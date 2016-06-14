@@ -18,14 +18,6 @@ from free_groups.all import *
 
 lazy_import('sage.groups.conjugacy_classes', ['ConjugacyClass', 'ConjugacyClassGAP'])
 
-#lazy_import('sage.groups.free_group', 'FreeGroup',deprecation=20154 )
-#from sage.misc.superseded import deprecated_callable_import
-
-#deprecated_callable_import(20154,
-#                           "sage.groups.free_group",
-#                           globals(),
-#                           locals(),
-#                           ["FreeGroup"])
 lazy_import('sage.groups.braid', 'BraidGroup')
 
 lazy_import('sage.groups.affine_gps.affine_group', 'AffineGroup')
