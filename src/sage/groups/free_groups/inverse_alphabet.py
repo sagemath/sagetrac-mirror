@@ -330,7 +330,7 @@ class AlphabetWithInverses(Parent):
         .. automethod:: __getitem__
         """
         return  self.__getitem__(n)
-        
+
     def inverse_letter(self, letter):
         """
         Inverse of ``letter``.

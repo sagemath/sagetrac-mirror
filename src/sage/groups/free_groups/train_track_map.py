@@ -78,7 +78,7 @@ class TrainTrackMap(GraphSelfMap):
     def __init__(self, *args):
         """
         The following forms are accepted:
-        
+
         - ``TrainTrackMap(f)`` where ``f`` is a
           GraphSelfMap which is train-track (no check is
           done)
@@ -638,7 +638,7 @@ class TrainTrackMap(GraphSelfMap):
 
 
         .. SEEALSO::
-        
+
             :meth:`sage.combinat.words.train_track_map.TrainTrackMap.indivisible_nielsen_paths()`
         """
         G = self.domain()
@@ -1184,7 +1184,7 @@ class TrainTrackMap(GraphSelfMap):
             False
 
         .. SEEALSO::
-        
+
             - :meth:`sage.combinat.words.train_track_map.TrainTrackMap.local_whitehead_graph()`
             - :meth:`sage.combinat.words.train_track_map.TrainTrackMap.whitehead_connected_components()`
         """
@@ -1219,7 +1219,7 @@ class TrainTrackMap(GraphSelfMap):
             [(word: aBCAbc, (0,), 1)]
 
         .. WARNING::
-        
+
             If ``pnps`` are not given, computes the periodic Nielsen paths
             using ``TrainTrackMap.periodic_nielsen_paths(self)``.  Thus
             assumes that ``self`` is an expanding train-track.
@@ -1419,7 +1419,7 @@ class TrainTrackMap(GraphSelfMap):
         edges. Of course only connected components with >2 vertices
         are considered.
 
-        The germ of the edge 'a' is designated by 'a'. 
+        The germ of the edge 'a' is designated by 'a'.
 
         For the two germs out of a periodic point inside an edge we
         use the notation:
@@ -1587,10 +1587,10 @@ class TrainTrackMap(GraphSelfMap):
 
         The sequence ind(Phi^(n!)) is non-decreasing and eventually
         constant equal to what we call the stabilized index of Phi.
-        
+
         The index and stabilized index of Phi are invariant of the
         conjugacy class of the outer automorphism Phi.
-        
+
         ``self.index()`` is the stabilized index of the outer
         automorphism represented by Phi.
 
@@ -1790,7 +1790,7 @@ class TrainTrackMap(GraphSelfMap):
 
         Intended to be used to compute the end points of periodic
         Nielsen paths.
-        
+
         A periodic point of ``self`` inside an edge is denoted by
         ``(e,period,left,right)``. The point ``x`` is the unique point
         such that ``self^period(x)=x`` and ``x`` lies in the occurence

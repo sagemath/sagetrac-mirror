@@ -65,7 +65,7 @@ class ConvexCore():
     where e is an edge of G1 and f an edge of G2.
 
     MetricGraph with edges of length 0 can be used for trees with a
-    non-free action of FN. 
+    non-free action of FN.
 
     - ``ConvexCore(phi)``: where ``phi`` is an automorphism of the free
       group F. The convex core of the Cayley tree TA of the free group F
@@ -681,7 +681,7 @@ class ConvexCore():
         For each edge of G1 computes a list of edges in T0 assigned with a
         + or a - sign.
 
-        It is assumed that ``f=self._f01``: G0->G1 is 
+        It is assumed that ``f=self._f01``: G0->G1 is
 
         - a continuous ``GraphMap``
         - a homotopy equivalence
@@ -752,7 +752,7 @@ class ConvexCore():
         A cell is a square, an edge or a vertex. Squares are bounded
         by four vertices, edges by two vertices.
 
-        Cells are coded in two different ways, either tuples or lists. 
+        Cells are coded in two different ways, either tuples or lists.
 
         A d dimensional cell is a d+2 tuple:
 
@@ -863,7 +863,7 @@ class ConvexCore():
         Path from the origin of ``self`` to ``vertex`` on ``side``.
 
         Recall that on each side, each connected component of the
-        1-skeleton of ``self`` is a tree. The origin is a vertex 
+        1-skeleton of ``self`` is a tree. The origin is a vertex
 
         - (v0,w1) with v0 the origin of G0 and w1 a vertex of G1.
 
@@ -1164,8 +1164,8 @@ class ConvexCore():
         Volume of ``self``.
 
         If the trees are not metric trees then this is the simplicial
-        volume: the number of squares in the 2-squeleton. 
-        
+        volume: the number of squares in the 2-squeleton.
+
         If the trees are metric trees, then this is the volume.
 
         OUTPUT:
@@ -1261,7 +1261,7 @@ class ConvexCore():
 
         return boundary_squares
 
-    
+
     def squares_orientation(self, orientation=1, verbose=False):
         """
         Assuming that ``self`` is an orientable surface square-complex,
@@ -1270,16 +1270,16 @@ class ConvexCore():
         coherently oriented.  If there are more than one strongly
         connected component of squares then they get different
         numbers.  Intended to be used by
-        ``ConvexCore.plot_ideal_curve_diagram()``.  
+        ``ConvexCore.plot_ideal_curve_diagram()``.
 
-        INPUT: 
-        
+        INPUT:
+
         - ``orientation`` (default: 1): the orientation of the first
           square of ``self``. It can be either 1 or -1.
         - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:
-        
+
         A list of positive and negative numbers such that two adjacent
         squares are coherently oriented (same number).
 
@@ -1294,10 +1294,10 @@ class ConvexCore():
         """
 
         squares = self.squares()
-        
+
         if len(squares) == 0:
             return []
-        
+
         squares_orientation = [orientation] + \
                               [0 for i in xrange(1, len(squares))]
 
@@ -1352,7 +1352,7 @@ class ConvexCore():
                 oriented += 1
 
         return squares_orientation
-    
+
     def surface_boundary(self, orientation=None, verbose=False):
         """
         List of edges in the boundary of the square complex.
@@ -2091,7 +2091,7 @@ class ConvexCore():
         disc with N puntures. The fundamental group of this disc is
         the free group F_N and thus the braid group is naturally a
         subgroup of Out(F_N).
-        
+
         Let p_1,...,p_N be the punctures
 
         Assume that ``T0`` is a tree transverse to N ideal curves a_1,

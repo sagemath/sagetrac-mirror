@@ -181,7 +181,7 @@ class GraphWithInverses(DiGraph):
     def alphabet(self):
         """
         The ``AlphabetWithInverses`` that labels the edges of ``self``.
-        
+
         EXAMPLES::
 
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
@@ -275,7 +275,7 @@ class GraphWithInverses(DiGraph):
         """
         Sets the terminal vertex of the edge ``e`` to the vertex
         ``v``.
-        
+
         Consistantly sets the initial vertex of the edge label by
         the inverse of ``e`` to the vertex ``v``.
 
@@ -315,7 +315,7 @@ class GraphWithInverses(DiGraph):
 
         OUTPUT:
         Word with inverse letter of reversed path
-        
+
         EXAMPLES::
 
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
@@ -323,7 +323,7 @@ class GraphWithInverses(DiGraph):
             sage: G.reverse_path(['a','b','c','A'])
             word: aCBA
         """
-        
+
         return Word([self._alphabet.inverse_letter(e) for e in reversed(path)])
 
     def add_edge(self, u, v=None, label=None):
@@ -479,7 +479,7 @@ class GraphWithInverses(DiGraph):
             sage: G.remove_edge('b')
             sage: print (G)
             a: 0->0, c: 1->0
-        
+
             sage: G.alphabet()
             Alphabet with inverses on ['a', 'c']
         """
@@ -1232,7 +1232,7 @@ class GraphWithInverses(DiGraph):
           vertex.
 
         OUTPUT:
-        
+
         A dictionnary that maps an old edge to the path in the new
         graph.
 
@@ -1288,7 +1288,7 @@ class GraphWithInverses(DiGraph):
         the fundamental group.
 
         ALGORITHM:
-          
+
         Check whether the Whitehead graphs spanned by ``loop`` are
         connected.
 

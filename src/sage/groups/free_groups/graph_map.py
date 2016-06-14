@@ -271,7 +271,7 @@ class GraphMap:
         """Compose ``self`` with the morphism ``edge_morph``.
 
         Update the edge_map of ``self`` with (``edge_morph`` o ``self``).
-        
+
         INPUT:
 
         - ``edge_morph`` -- A ``WordMorphism`` from the alphabet labeling
@@ -353,7 +353,7 @@ class GraphMap:
         if ``iter>1`` then returns ``self^iter(letter)``
 
         INPUT:
-            
+
         - ``iter`` (default: 1) -- a positive integer
         - ``letter`` -- a letter of the alphabet of the domain of ``self``.
 
@@ -579,7 +579,7 @@ class GraphMap:
                     if prefixv:
                         for w in adjacent_vertex[v]:
                             prefix[w] = prefixv
-            
+
             for a in A1:
                 v = G1.initial_vertex(a)
                 if v in prefix and len(prefix[v]) > 0:
@@ -813,12 +813,12 @@ class GraphMap:
         The pullback method can be used to find intersection of two subgroups
         of a Free Group.
 
-        INPUT: 
+        INPUT:
 
         - ``other`` -- a graph map G2->G with ``self``: a graph map G1->G,
 
-        OUTPUT: 
-        
+        OUTPUT:
+
         A ``GraphMap`` f
 
         EXAMPLES::
