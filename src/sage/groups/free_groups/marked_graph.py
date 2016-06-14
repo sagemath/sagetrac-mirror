@@ -307,7 +307,7 @@ class MarkedGraph(GraphWithInverses):
         edges of ``path``.
 
         INPUT:
-          
+
         - ``edges_full``, are list of edges
         - ``edges_partial`` are list of edges (each
           possibly empty, but the union must have at least two edges).
@@ -380,7 +380,7 @@ class MarkedGraph(GraphWithInverses):
           vertex.
 
         OUTPUT:
-        
+
         A dictionary that maps an old edge to the path in the new
         graph.
 
@@ -555,7 +555,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
         OUTPUT:
 
         The ``MarkedMetricGraph`` corresponding to splitting
-        
+
         EXAMPLES::
 
             sage: from sage.groups.free_groups.marked_graph import  MarkedMetricGraph

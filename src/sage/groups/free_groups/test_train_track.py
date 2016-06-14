@@ -14,10 +14,10 @@ AUTHORS:
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Thierry Coulbois <thierry.coulbois@univ-amu.fr>
-# 
-#  Distributed under the terms of the GNU General Public License (GPL) 
-#                  http://www.gnu.org/licenses/ 
-#***************************************************************************** 
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from __future__ import print_function, absolute_import
 from .free_group import FreeGroup
 from .free_group_automorphism import FreeGroupAutomorphism
@@ -58,7 +58,7 @@ def test(rang, longueur, nombre):
             stat = stat + 1
         print (f)
         print ("-------------------------")
-        
+
     print ("rang: ", rang, "longueur: ", longueur, " time: ",
            cputime(t) / nombre, " train-tracks: %.1f" % (stat/nombre*100))
 
@@ -104,7 +104,7 @@ def bugs():
     Returns a list of free group automorphisms, that created bugs at
     some previous stage of developpment of this program while
     computing stable relative train-tracks.
-    
+
     This is a good list to test futur corrections.
 
     AUTHORS:
@@ -118,13 +118,13 @@ def bugs():
         0 : a->BafD,b->bcdFAbfbFBafDCB,c->dFAbbcdFAbfb,d->dFAbfeFdBBFBafDCB,e->eF,f->bcdFAbfbdFAbfb
 
     """
-    
+
     result = []
 
     # Problems while computing INPs of the RTT
     phi = FreeGroupAutomorphism("a->BafD,b->bcdFAbfbFBafDCB,c->dFAbbcdFAbfb,"
                                 "d->dFAbfeFdBBFBafDCB,e->eF,f->bcdFAbfbdFAbfb")
-    result.append(phi)    
+    result.append(phi)
 
     phi = FreeGroupAutomorphism("a->efea,b->Ebcc,c->c,d->CBedaBFECBedaBe,"
                                 "e->CCBeAEF,f->efbADEbcEbcc")
@@ -149,12 +149,12 @@ def bugs():
     phi = FreeGroupAutomorphism("a->baB,b->b,c->bAAAdcbbAbAAAdcbDa,"
                                 "d->AdBCDaaaB")
     result.append(phi)
-    
+
     # An essential INP in stratum 0, and two exponential strata
     phi = FreeGroupAutomorphism("a->BCBCaBCBCdabcba,b->bcb,c->cb,"
                                 "d->BCBCaBCBCdabcb")
     result.append(phi)
-    
+
     # Difficult inessential connecting path
     phi = FreeGroupAutomorphism("a->a,b->baEaba,c->Acdc,d->CDCBAecd,"
                               "e->ABAeCDCAcdc")

@@ -208,11 +208,11 @@ class FreeGroupElement(ElementLibGAP):
             sage: y = G([2, 2, 2, 1, -2, -2, -1])
             sage: y # indirect doctest
             b^3*a*b^-2*a^-1
-            sage: G("abAbBAB") 
+            sage: G("abAbBAB")
             a*b*a^-2*b^-1
             sage: G(['a','b','A','a','A','B'])
             a*b*a^-1*b^-1
-            
+
             sage: TestSuite(G).run()
             sage: TestSuite(x).run()
         """

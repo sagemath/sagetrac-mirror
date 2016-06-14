@@ -56,7 +56,7 @@ class GraphSelfMap(GraphMap):
     group.
 
     Topological representative for an automorphism of free group can
-    be created from the rose on the alphabet. 
+    be created from the rose on the alphabet.
 
     We provide a ``from_edge_map()`` static method to create a
     ``GraphSelfMap``: it computes the biggest connected graph on which
@@ -93,7 +93,7 @@ class GraphSelfMap(GraphMap):
 
         - ``GraphSelfMap(f)`` where ``f`` is a ``GraphMap`` from a graph
           to itself.
-        - ``GraphSelfMap(graph,edge_map,vertex_map=None)`` 
+        - ``GraphSelfMap(graph,edge_map,vertex_map=None)``
 
         EXAMPLES::
 
@@ -189,7 +189,7 @@ class GraphSelfMap(GraphMap):
             edge_map[aa] = Word([ alphabet.inverse_letter(b) for b in reversed(edge_map[a])])
         edge_morph = WordMorphism(edge_map)
         equiv = dict((a, i) for i, a in enumerate(alphabet))
-                
+
         # images of edges must be edge paths
         for a in edge_morph.domain().alphabet():
             w = edge_morph.image(a)
@@ -487,7 +487,7 @@ class GraphSelfMap(GraphMap):
 
             It is assumed that no edge and its inverse are present in
             ``edge_list``.
-  
+
             This has no effect on the possible strata of
             self.
 
@@ -639,7 +639,7 @@ class GraphSelfMap(GraphMap):
             Edge map: a->eDc, b->dEaCdE, c->b, d->D, e->C
 
         .. SEEALSO::
-        
+
             :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.fold()`
             :meth:`sage.combinat.words.graph_self_map.GraphWithInverses.fold()`
 
@@ -872,7 +872,7 @@ class GraphSelfMap(GraphMap):
         .. WARNING::
 
             Beware this has no effect on the possible strata of self.
-        
+
         EXAMPLES::
 
             sage: phi = FreeGroupAutomorphism("a->aba,b->ac,c->a")
@@ -975,7 +975,7 @@ class GraphSelfMap(GraphMap):
 
             sage: f.fusion_lines([['a','d']])
             WordMorphism: A->A, B->B, C->C, D->, a->a, b->b, c->c, d->
-        
+
             sage: print (f)
             Graph self map:
             a: 1->1, b: 1->1, c: 1->1
@@ -1441,9 +1441,9 @@ class GraphSelfMap(GraphMap):
         OUTPUT:
 
         The ``WordMorphism`` that maps old edges to the new edges.
-        
+
         EXAMPLES::
-        
+
             sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a').inverse()
             sage: f = phi.rose_conjugacy_representative()
             sage: f.train_track()
@@ -2476,7 +2476,7 @@ class GraphSelfMap(GraphMap):
         """
         Computes a maximal filtration for ``self`` and sets and the strata
         of ``self``.
- 
+
        ``filtration`` of invariant subgraphs of ``self`` with
         ``filtration[i]`` a subgraph of ``filtration[i+1]``. The subgraphs
         ``filtration[i]`` are given as sets of edges.
@@ -2493,7 +2493,7 @@ class GraphSelfMap(GraphMap):
         The maximal filtration as a list of sets.
 
         EXAMPLES::
-        
+
             sage: phi = FreeGroupAutomorphism("a->ab,b->b")
             sage: f = phi.rose_representative()
             sage: f.stratify()
@@ -2685,7 +2685,7 @@ class GraphSelfMap(GraphMap):
             [{'c'}, {'a', 'b', 'c'}]
             sage: f.core_subdivide(1)
             WordMorphism: A->A, B->DB, C->C, a->a, b->bd, c->c
-       
+
             sage: print (f)
             Graph self map:
             Marked graph: a: 0->0, b: 0->1, c: 0->0, d: 1->0
@@ -3239,7 +3239,7 @@ class GraphSelfMap(GraphMap):
         subgraph below the ``s`` stratum.
 
         An inessential connecting path is a path in the strata below
-        ``s`` which 
+        ``s`` which
 
         - connects two points of the stratum ``s``
 
@@ -3253,7 +3253,7 @@ class GraphSelfMap(GraphMap):
 
         OUPUT:
 
-        A list of paths. 
+        A list of paths.
 
         EXAMPLES::
 
@@ -3415,7 +3415,7 @@ class GraphSelfMap(GraphMap):
           by ``self`` to a path homotopic to a point.
 
         OUTPUT:
-        
+
         The WordMorphism that maps an old edge to a new edge.
 
         .. WARNING::
@@ -3585,7 +3585,7 @@ class GraphSelfMap(GraphMap):
             :meth:`sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism.train_track()`
 
         EXAMPLES::
-        
+
             sage: phi = FreeGroupAutomorphism("a->acb,b->a,c->cd,d->deD,e->d")
             sage: f = phi.rose_representative()
             sage: f.stratify()
@@ -3744,7 +3744,7 @@ class GraphSelfMap(GraphMap):
             :meth:`sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism.train_track()`
 
         EXAMPLES::
-        
+
             sage: phi = FreeGroupAutomorphism("a->acb,b->a,c->cd,d->deD,e->d")
             sage: f = phi.rose_representative()
             sage: f.stratify()
