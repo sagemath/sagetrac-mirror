@@ -370,18 +370,9 @@ class FreeGroupElement(ElementLibGAP):
         else:
             return self.parent([self.Tietze()[item]])
 
-    def __le__(self, other):
+    def _cmp_(self, other):
         """
-        Lexicographic comparison of the reduced words ``self`` and
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` <= ``other``
+        Lexicographic comparison
 
         EXAMPLES::
 
@@ -389,155 +380,24 @@ class FreeGroupElement(ElementLibGAP):
             sage: w = F([1,2,1,-1,3,-2])
             sage: w <= F([])
             False
-        """
-        if not isinstance(other,FreeGroupElement):
-            if (other==1 or other==() or other==[]):
-                return self.is_one()
-            else:
-                raise NotImplementedError
-        return self.Tietze() <= other.Tietze()
-
-    def __lt__(self, other):
-        """
-        Lexicographic comparison of the reduced words ``self`` and
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` < ``other``
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
             sage: w = F([1,2,1,-1,3,-2])
             sage: w[:-1] < w
             True
-        """
-        if not isinstance(other,FreeGroupElement):
-            if (other==1 or other==() or other==[]):
-                return False
-            else:
-                raise NotImplementedError
-
-        return self.Tietze() < other.Tietze()
-
-
-    def __ge__(self, other):
-        """
-        Lexicographic comparison of the reduced words ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` >= ``other``
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
             sage: w = F([1,2,1,-1,3,-2])
             sage: w*w >= w
             True
-
-        """
-        if not isinstance(other,FreeGroupElement):
-            if (other==1 or other==() or other==[]):
-                return True
-            else:
-                raise NotImplementedError
-        return self.Tietze() >= other.Tietze()
-
-
-    def __gt__(self, other):
-        """
-        Lexicographic comparison of the reduced words ``self`` and
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` > ``other``
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
             sage: w = F([1,2,1,-1,3,-2])
             sage: F([2]) > w
             True
-        """
-        if not isinstance(other,FreeGroupElement):
-            if other==1 or other==() or other==[]:
-                return self.is_one()
-            else:
-                raise NotImplementedError("%s is not a free group "
-                                          "element."%other)
-        return self.Tietze() > other.Tietze()
-
-
-    def __eq__(self, other):
-        """
-        Lexicographic comparison of the reduced words ``self`` and
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` == ``other``
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
             sage: F([1,2,1,-1,3,-2]) == F([1,2,3,-2])
             True
-        """
-        if not isinstance(other,FreeGroupElement):
-            if (other==1 or other==() or other==[]):
-                return self.is_one()
-            else:
-                return False
-        return self.Tietze() == other.Tietze()
-
-
-    def __ne__(self, other):
-        """
-        Lexicographic comparison of the reduced words ``self`` and
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- a free group element
-
-        OUTPUT:
-
-        ``True`` if ``self`` != ``other``
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
             sage: F([1,2,1,-1,3,-2]) != F([1,2,3,-2])
             False
+
+            sage: sorted([F([]), F([1,2]), F([2,-1]), F([1,1,1]), F([3]), F([-1,-1])])
+            [1, x0^-2, x0^3, x0*x1, x1*x0^-1, x2]
         """
-        if not isinstance(other,FreeGroupElement):
-            if (other==1 or other==() or other==[]):
-                return not self.is_one()
-            else:
-                return True
-        return self.Tietze() != other.Tietze()
-
-
-
+        return cmp(self.Tietze(), other.Tietze())
 
     @cached_method
     def Tietze(self):
