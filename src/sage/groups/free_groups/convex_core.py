@@ -10,6 +10,9 @@ AUTHORS:
 
 EXAMPLES::
 
+    sage: from sage.groups.free_groups.convex_core import ConvexCore
+    sage: from sage.groups.free_groups.marked_graph import MarkedGraph
+    sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
     sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")
     sage: C = ConvexCore(phi)
     sage: C.vertices()
@@ -84,6 +87,7 @@ class ConvexCore():
 
     EXAMPLES::
 
+        sage: from sage.groups.free_groups.convex_core import ConvexCore
         sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
         sage: phi=phi*phi
         sage: C=ConvexCore(phi)
@@ -799,6 +803,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C = ConvexCore(phi)
             sage: C.boundary((Word('C'), 0, 'c', 'a')) # boundary of a square
@@ -884,6 +889,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.path_from_origin(2,0)
@@ -934,6 +940,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: print C.tree(0)
@@ -957,6 +964,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.squares()
@@ -976,6 +984,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.twice_light_squares()
@@ -997,6 +1006,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.edges()
@@ -1026,6 +1036,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.vertices()
@@ -1044,6 +1055,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.isolated_edges()
@@ -1075,7 +1087,8 @@ class ConvexCore():
         square of ``self``,vertices by the corresponding edge.
 
         EXAMPLES::
-        
+
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: print C.slice('c',0)
@@ -1113,6 +1126,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.one_squeleton(0)
@@ -1160,6 +1174,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
             sage: C=ConvexCore(phi)
             sage: C.volume()
@@ -1206,6 +1221,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi = FreeGroupAutomorphism("a->abaababa,b->abaab")
             sage: C = ConvexCore(phi)
             sage: C.squares_of_the_boundary()
@@ -1269,6 +1285,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi = FreeGroupAutomorphism("a->abaababa,b->abaab")
             sage: C = ConvexCore(phi)
             sage: C.squares_orientation()
@@ -1358,6 +1375,7 @@ class ConvexCore():
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: phi = FreeGroupAutomorphism("a->abaababa,b->abaab")
             sage: C = ConvexCore(phi)
             sage: C.surface_boundary()
@@ -1466,7 +1484,8 @@ class ConvexCore():
         with one puncture.
 
         EXAMPLES::
-        
+
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
             sage: F=FreeGroup('a,b,c,d')
             sage: phi=mul([FreeGroupAutomorphism.surface_dehn_twist(F,i) for i in [2,1,1,4]])
             sage: C=ConvexCore(phi)
