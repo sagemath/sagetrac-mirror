@@ -388,13 +388,14 @@ class TrainTrackMap(GraphSelfMap):
         return len(self.gates(v))
 
     def local_whitehead_graph(self, v):
-        """The local whitehead graph at a vertex ``v``.
-        Vertices are directions at v, and two directions are joined by
-        an edge if some iterate of an edge by ``self` crosses that turn.
+        """
+        The local whitehead graph at a vertex ``v`` . Vertices are directions
+        at v, and two directions are joined by an edge if some iterate of
+        an edge by ``self`` crosses that turn.
 
         INPUT:
 
-        - ``v`` -- vertex
+        - ``v`` vertex.
 
         OUTPUT:
 
@@ -410,8 +411,7 @@ class TrainTrackMap(GraphSelfMap):
 
         AUTHORS:
 
-        - Brian Mann
-
+            - Brian Mann
         """
         edges = \
             [(e, f) for (e, f) in self.edge_turns()
@@ -420,12 +420,12 @@ class TrainTrackMap(GraphSelfMap):
         return Graph(edges)
 
     def stable_local_whitehead_graph(self, v):
-        """The stable local Whitehead graph at a vertex ``v``.
-        
-        Vertices are stable directions at ``v`` (stable directions are
+        """
+        The stable local Whitehead graph at a vertex ``v``. Vertices
+        are stable directions at ``v`` (stable directions are
         in one-to-one correspondence with gates). Two directions are
-        joined by an edge if some iterate of an edge`by
-        ``self``crosses that turn.
+        joined by an edge if some iterate of an edge by
+        ``self`` crosses that turn.
 
         The stable local Whitehead graph is a subgraph of the local
         Whitehead graph.
