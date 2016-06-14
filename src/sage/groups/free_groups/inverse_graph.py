@@ -9,9 +9,11 @@ AUTHORS:
 
 EXAMPLES::
 
+    sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
     sage: print (GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
     a: 0->0, c: 1->0, b: 0->1
 
+    sage: from sage.groups.free_groups.inverse_graph import MetricGraph
     sage: print (MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
     a: 0->0, b: 0->1, c: 1->1
     Lengths: a: 1, b: 1, c: 1
@@ -46,6 +48,7 @@ class GraphWithInverses(DiGraph):
 
     EXAMPLES::
 
+        sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
         sage: print (GraphWithInverses())
 
         sage: print (GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
@@ -100,7 +103,7 @@ class GraphWithInverses(DiGraph):
             data = new_data
 
         if alphabet is None:
-            from inverse_alphabet import AlphabetWithInverses
+            from .inverse_alphabet import AlphabetWithInverses
             alphabet = AlphabetWithInverses(letters)
 
         self._alphabet = alphabet
@@ -132,6 +135,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: print (G.copy())
             a: 0->0, c: 1->0, b: 0->1
@@ -144,6 +148,7 @@ class GraphWithInverses(DiGraph):
 
         TESTS::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: G.__repr__()
             'Graph with inverses: a: 0->0, c: 1->0, b: 0->1'
@@ -161,6 +166,7 @@ class GraphWithInverses(DiGraph):
 
         TESTS::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: str(G)
             'a: 0->0, c: 1->0, b: 0->1'
@@ -178,6 +184,7 @@ class GraphWithInverses(DiGraph):
         
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.alphabet()
             Alphabet with inverses on ['a', 'b', 'c']
@@ -203,6 +210,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.initial_vertex('a')
             0
@@ -224,6 +232,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.set_initial_vertex('a',1)
             sage: print (G)
@@ -255,6 +264,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.terminal_vertex('b')
             1
@@ -276,6 +286,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.set_terminal_vertex('a',1)
             sage: print (G)
@@ -307,6 +318,7 @@ class GraphWithInverses(DiGraph):
         
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.reverse_path(['a','b','c','A'])
             word: aCBA
@@ -341,6 +353,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: a = G.alphabet().add_new_letter()
             sage: G.add_edge(1,1,a)
@@ -377,6 +390,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.new_vertex()
             2
@@ -401,6 +415,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.new_vertices(3)
             [2, 3, 4]
@@ -430,6 +445,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.add_vertex()
             2
@@ -458,6 +474,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.remove_edge('b')
             sage: print (G)
@@ -490,6 +507,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[0,0,'c']])
             sage: G.remove_edge('b')
             sage: G.remove_vertex(1)
@@ -514,6 +532,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: R = GraphWithInverses.rose_graph(AlphabetWithInverses(3))
             sage: R.reduce_path("abBcAaCb")
             word: ab
@@ -554,6 +573,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: GraphWithInverses.rose_graph( \
             AlphabetWithInverses(3)).common_prefix_length("aBaa","aBcb")
             2
@@ -581,6 +601,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: R = GraphWithInverses.rose_graph(AlphabetWithInverses(3))
             sage: R.is_prefix("ab","abA")
             True
@@ -609,11 +630,13 @@ class GraphWithInverses(DiGraph):
         - ``edge_list``  -- (default None) list of edge
 
         OUTPUT:
+
         List of Connected components (each as a list of
         edges) of the subgraph of ``self`` spanned by ``edge_list``.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,0,'b'],[1,1,'c']])
             sage: G.connected_components()
             [[0], [1]]
@@ -656,11 +679,13 @@ class GraphWithInverses(DiGraph):
         - ``edge_list``  -- (default None) list of edge
 
         OUTPUT:
+
         Core subgraph (the list of edges that belong to at least one
         loop) of the subgraph of ``self`` spanned by ``edge_list``.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: G.core_subgraph(['a','b','c'])
             ['a']
@@ -705,10 +730,12 @@ class GraphWithInverses(DiGraph):
         vertex. a is less than b in the ``self.alphabet()`` order.
 
         OUTPUT:
+
         List of turns of the graph.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: G.turns()
             [('a', 'b'), ('a', 'A'), ('b', 'A'), ('c', 'B')]
@@ -732,11 +759,13 @@ class GraphWithInverses(DiGraph):
         - ``turns`` list of letters
 
         OUTPUT:
+
         List of edges a such that the turn between ``u`` and
         a is in ``turns``.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: G.extensions("aab",[('B','c')])
             ['c']
@@ -762,11 +791,13 @@ class GraphWithInverses(DiGraph):
         - ``edge_list`` list of  edge
 
         OUTPUT:
+
         A dictionnary that maps an old edge to a path in the new
         graph.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: G.subdivide(['a','c'])
             {'A': word: DA,
@@ -819,10 +850,12 @@ class GraphWithInverses(DiGraph):
         - ``edges_partial`` list of edges  partially folded
 
         OUTPUT:
+
         A dictionnary of words
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: G.fold(['b'],['a'])
             {'A': word: AB,
@@ -895,6 +928,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: G.contract_edges(['b'])
             {'A': word: A,
@@ -906,9 +940,9 @@ class GraphWithInverses(DiGraph):
             sage: print (G)
             a: 0->0, c: 0->0
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        GraphWithInverses.contract_forest()
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_forest()`
 
         """
         components = self.connected_components(edge_list)
@@ -933,6 +967,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: G.contract_forest([['b']])
             {'A': word: A,
@@ -945,9 +980,9 @@ class GraphWithInverses(DiGraph):
             sage: print (G)
             a: 0->0, c: 0->0
 
-        SEE ALSO:
+        .. SEEALSO::
 
-            `GraphWithInverses.contract_edges()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_edges()`
 
         """
         A = self._alphabet
@@ -991,6 +1026,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: G.tails()
             [['b', 'c']]
@@ -1029,10 +1065,12 @@ class GraphWithInverses(DiGraph):
         The list of paths with all inner vertices of valence 2.
 
         OUTPUT:
+
         The list of paths with all inner vertices of valence 2.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: G.valence_2_vertices()
             [['C', 'B']]
@@ -1094,13 +1132,14 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.maximal_tree()
             ['b']
 
-        SEE ALSO:
+        .. SEEALSO::
 
-            `GraphWithInverses.spanning_tree()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.spanning_tree()`
         """
 
         tree = []
@@ -1131,9 +1170,10 @@ class GraphWithInverses(DiGraph):
         a dictionnary that maps each vertex to an edge-path
         from the origin vertex.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-            ``maximal_tree()`` that returns a list of edges of a spanning tree.
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.maximal_tree()`
+            that returns a list of edges of a spanning tree.
 
         WARNING:
 
@@ -1141,6 +1181,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.spanning_tree()
             {0: word: , 1: word: b}
@@ -1192,11 +1233,12 @@ class GraphWithInverses(DiGraph):
 
         OUTPUT:
         
-        A dictionnay that maps an old edge to the path in the new
+        A dictionnary that maps an old edge to the path in the new
         graph.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses.rose_graph(AlphabetWithInverses(2))
             sage: G.blow_up_vertices([['a','A'],['b'],['B']])
             {'A': word: cAC, 'B': word: eBD, 'a': word: caC, 'b': word: dbE}
@@ -1252,6 +1294,7 @@ class GraphWithInverses(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses.rose_graph(AlphabetWithInverses(3))
             sage: G.lies_in_a_free_factor("abAb")
             True
@@ -1334,7 +1377,8 @@ class GraphWithInverses(DiGraph):
         valence 3 and of given rank.
 
         EXAMPLES::
-        
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: print (GraphWithInverses.valence_3(2))
             a: 0->1, b: 0->1, c: 0->1
         """
@@ -1362,10 +1406,12 @@ class GraphWithInverses(DiGraph):
         - ``alphabet`` given alphabet
 
         OUTPUT:
+
         The rose graph labeled by the alphabet.
 
         EXAMPLES::
-        
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: print (GraphWithInverses.rose_graph(AlphabetWithInverses(3)))
             a: 0->0, b: 0->0, c: 0->0
 
@@ -1392,14 +1438,15 @@ class MetricGraph(GraphWithInverses):
     containing the vertex.
 
     EXAMPLES::
-    
+
+        sage: from sage.groups.free_groups.inverse_graph import MetricGraph
         sage: print (MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
         a: 0->0, b: 0->1, c: 1->1
         Lengths: a: 1, b: 1, c: 1
 
-    .. SEE ALSO::
+        .. SEEALSO::
 
-        ``MarkedMetricGraph``
+            :meth:`sage.groups.free_groups.inverse_graph.MarkedMetricGraph`
     """
 
 
@@ -1417,6 +1464,7 @@ class MetricGraph(GraphWithInverses):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: G = MetricGraph([[0,0,'a'],[0,1,'b'],[1,2,'c']])
             sage: print (G)
             a: 0->0, b: 0->1, c: 1->2
@@ -1449,10 +1497,12 @@ class MetricGraph(GraphWithInverses):
         String representation of ``self``.
 
         OUTPUT:
+
         String representation of ``self``.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: MetricGraph([[0,0,'a'],[0,1,'b'],[1,2,'c']]).__repr__()
             'Metric Graph: a: 0->0, b: 0->1, c: 1->2\nLengths: a: 1, b: 1, c: 1'
         """
@@ -1473,10 +1523,12 @@ class MetricGraph(GraphWithInverses):
         String representation of ``self``.
 
         OUTPUT:
+
         String representation of ``self``.
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: MetricGraph([[0,0,'a'],[0,1,'b'],[1,2,'c']]).__str__()
             'a: 0->0, b: 0->1, c: 1->2\nLengths: a: 1, b: 1, c: 1'
         """
@@ -1502,6 +1554,7 @@ class MetricGraph(GraphWithInverses):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: l = dict((('a',1),('b', 2),('c', 3)))
             sage: G = MetricGraph(data=[[0,0,'a'],[0,1,'b'],[1,2,'c']], lengths=l)
             sage: print (G)

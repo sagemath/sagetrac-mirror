@@ -86,7 +86,7 @@ def is_FreeGroup(x):
 
     EXAMPLES::
 
-        sage: from sage.groups.free_group import is_FreeGroup
+        sage: from sage.groups.free_groups.free_group import is_FreeGroup
         sage: is_FreeGroup('a string')
         False
         sage: is_FreeGroup(FreeGroup(0))
@@ -119,7 +119,7 @@ def _lexi_gen(zeroes=False):
 
     EXAMPLES::
 
-        sage: from sage.groups.free_group import _lexi_gen
+        sage: from sage.groups.free_groups.free_group import _lexi_gen
         sage: itr = _lexi_gen()
         sage: F = FreeGroup([next(itr) for i in [1..10]]); F
         Free Group on generators {a, b, c, d, e, f, g, h, i, j}
@@ -137,7 +137,7 @@ def _lexi_gen(zeroes=False):
 
     TESTS::
 
-        sage: from sage.groups.free_group import _lexi_gen
+        sage: from sage.groups.free_groups.free_group import _lexi_gen
         sage: test = _lexi_gen()
         sage: ls = [next(test) for i in range(500)]
         sage: ls[234], ls[260]
@@ -986,7 +986,7 @@ def wrap_FreeGroup(libgap_free_group):
 
     Now wrap it::
 
-        sage: from sage.groups.free_group import wrap_FreeGroup
+        sage: from sage.groups.free_groups.free_group import wrap_FreeGroup
         sage: wrap_FreeGroup(F)
         Free Group on generators {a, b}
 
@@ -1108,7 +1108,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: G( G._gap_gens()[0] )
             a
             sage: type(_)
-            <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
+            <class 'sage.groups.free_groups.free_group.FreeGroup_class_with_category.element_class'>
 
         Check that conversion between free groups follow the convention that
         names are preserved::

@@ -11,6 +11,7 @@ AUTHORS:
 
 EXAMPLES::
 
+    sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
     sage: A = AlphabetWithInverses(5)
     sage: f = GraphSelfMap.from_edge_map("a->a,b->b,c->c,d->eCEAd,e->eCEAdbDaecEae", A)
     sage: print (f)
@@ -65,6 +66,7 @@ class GraphSelfMap(GraphMap):
 
     EXAMPLES::
 
+        sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
         sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a",FreeGroup('a,b,c'))
         sage: print (phi.rose_representative())
         Graph self map:
@@ -95,6 +97,8 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: A = AlphabetWithInverses(3)
             sage: R = GraphWithInverses.rose_graph(A)
             sage: print (GraphSelfMap(R,"a->ab,b->ac,c->a"))
@@ -163,6 +167,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: print (GraphSelfMap.from_edge_map("a->a,b->b,c->c,d->eCEAd,e->dbDae"))
             Graph self map:
             Marked graph: a: 0->0, b: 2->2, c: 1->1, d: 0->2, e: 0->1
@@ -273,6 +278,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: A=AlphabetWithInverses(5)
             sage: f=GraphSelfMap.from_edge_map("a->a,b->b,c->c,d->eCEAd,e->eCEAdbDaecEae",A)
             sage: f.matrix()
@@ -307,6 +313,8 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: A = AlphabetWithInverses(3)
             sage: R = GraphWithInverses.rose_graph(A)
             sage: f = GraphSelfMap(R,"a->ab,b->ac,c->a")
@@ -341,6 +349,8 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: A = AlphabetWithInverses(3)
             sage: R = GraphWithInverses.rose_graph(A)
             sage: f = GraphSelfMap(R,"a->ab,b->ac,c->a")
@@ -1047,6 +1057,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->adbD,b->adcD,c->a,d->")
             sage: f.pretrivial_forest()
             [{'d'}]
@@ -1109,6 +1120,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->adbD,b->adcD,c->a,d->")
             sage: f.contract_invariant_forest([['d']])
             WordMorphism: A->A, B->B, C->C, D->, a->a, b->b, c->c, d->
@@ -1162,6 +1174,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->adbD,b->adcD,c->a,d->")
             sage: f.maximal_filtration()
             [{'d'}, {'a', 'b', 'c', 'd'}]
@@ -1227,6 +1240,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->abaa,b->aca,c->a,d->da")
             sage: f.contract_tails([['D']])
             WordMorphism: A->A, B->B, C->C, D->, a->a, b->b, c->c, d->
@@ -1294,6 +1308,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->abaa,b->aca,c->a,d->da")
             sage: f.reduce()
             WordMorphism: A->A, B->B, C->C, D->, a->a, b->b, c->c, d->
@@ -2912,6 +2927,8 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: A = AlphabetWithInverses(4)
             sage: G = GraphWithInverses.rose_graph(A)
             sage: f = GraphSelfMap(G,"a->acbd,b->ad,c->cd,d->Dcad")
@@ -3240,6 +3257,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->acb,b->a,c->cdC,d->cdC")
             sage: f.stratify()
             [{'c', 'd'}, {'a', 'b', 'c', 'd'}]
@@ -3406,6 +3424,7 @@ class GraphSelfMap(GraphMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
             sage: f = GraphSelfMap.from_edge_map("a->acb,b->a,c->cdC,d->cdC")
             sage: f.stratify()
             [{'c', 'd'}, {'a', 'b', 'c', 'd'}]

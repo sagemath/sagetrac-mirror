@@ -11,6 +11,7 @@ AUTHORS:
   AMU University <dominique.benielli@univ-amu.fr>, Integration in SageMath
 
 EXAMPLES::
+
     sage: phi = FreeGroupAutomorphism('a->ab,b->A')
     sage: print phi
     a->a*b,b->a^-1
@@ -986,7 +987,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.train_track_map.TrainTrackMap.is_iwip()`
+            :meth:`sage.groups.free_groups.train_track_map.TrainTrackMap.is_iwip()`
 
         REFERENCES
 
@@ -1374,7 +1375,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
             sage: F = FreeGroup(4)
             sage: FreeGroupAutomorphism.random_mapping_class(F).__class__
-            <class 'sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism'>
+            <class 'sage.groups.free_groups.free_group_automorphism.FreeGroupAutomorphism'>
 
         .. WARNING:
 
@@ -1382,7 +1383,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         .. SEEALSO::
 
-           :meth:`sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism.surface_dehn_twist()`
+           :meth:`sage.groups.free_groups.free_group_automorphism.FreeGroupAutomorphism.surface_dehn_twist()`
 
         """
         from sage.misc.prandom import randint
@@ -1489,7 +1490,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
             sage: F = FreeGroup(4)
             sage: FreeGroupAutomorphism.random_braid(F).__class__
-            <class 'sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism'>
+            <class 'sage.groups.free_groups.free_group_automorphism.FreeGroupAutomorphism'>
         """
         from sage.misc.prandom import randint
 

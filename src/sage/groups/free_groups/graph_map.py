@@ -10,6 +10,8 @@ AUTHORS:
 
 EXAMPLES::
 
+    sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+    sage: from sage.groups.free_groups.graph_map import GraphMap
     sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
     sage: A = AlphabetWithInverses(2)
     sage: H = GraphWithInverses.rose_graph(A)
@@ -58,6 +60,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -100,6 +104,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -131,6 +137,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -158,6 +166,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -186,6 +196,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -205,6 +217,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -231,6 +245,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -263,6 +279,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -284,6 +302,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -316,6 +336,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -348,6 +370,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -385,19 +409,21 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: A = AlphabetWithInverses(2)
             sage: H = GraphWithInverses.rose_graph(A)
             sage: f = GraphMap(G,H,"a->ab,b->b,c->B")
-            sage: print f.inverse()
+            sage: print (f.inverse())
             Graph map:
             a: 0->0, b: 0->0
             a: 0->0, b: 0->1, c: 1->1
             edge map: a->abcB, b->bCB
         """
 
-        from free_group import FreeGroup
-        from free_group_automorphism import FreeGroupAutomorphism
+        from .free_group import FreeGroup
+        from .free_group_automorphism import FreeGroupAutomorphism
 
         G1 = self.domain()
         A1 = G1.alphabet()
@@ -483,6 +509,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: A = AlphabetWithInverses(2)
             sage: G = GraphWithInverses.rose_graph(A)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -591,6 +619,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: A = AlphabetWithInverses(2)
             sage: G = GraphWithInverses.rose_graph(A)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -661,6 +691,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: A = AlphabetWithInverses(2)
             sage: G = GraphWithInverses.rose_graph(A)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -700,6 +732,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: A = AlphabetWithInverses(2)
             sage: G = GraphWithInverses.rose_graph(A)
             sage: H = GraphWithInverses.rose_graph(A)
@@ -788,7 +822,9 @@ class GraphMap:
         A ``GraphMap`` f
 
         EXAMPLES::
-  
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G1 = GraphWithInverses.rose_graph(AlphabetWithInverses(2,type='x0'))
             sage: G2 = GraphWithInverses.rose_graph(AlphabetWithInverses(2,type='a0'))
             sage: G =  GraphWithInverses.rose_graph(AlphabetWithInverses(2))
@@ -856,6 +892,8 @@ class GraphMap:
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: phi=FreeGroupAutomorphism('a->ab,b->ac,c->a')
             sage: print GraphMap.rose_map(phi)
             Graph map:

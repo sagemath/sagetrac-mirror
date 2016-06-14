@@ -50,6 +50,7 @@ class TrainTrackMap(GraphSelfMap):
 
     EXAMPLES::
 
+        sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
         sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
         sage: f=phi.rose_representative()
         sage: tt=TrainTrackMap(f)
@@ -100,6 +101,8 @@ class TrainTrackMap(GraphSelfMap):
         A string representation of ``self``.
 
         EXAMPLES:
+
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
             sage: f=phi.rose_representative()
             sage: tt=TrainTrackMap(f)
@@ -137,6 +140,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
             sage: f=phi.rose_representative()
             sage: tt=TrainTrackMap(f)
@@ -177,6 +181,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: print (TrainTrackMap.from_edge_map("a->ec,b->Ea,c->b,e->C"))
             Train-track map:
             Marked graph: a: 0->0, b: 1->0, c: 1->0, e: 0->1
@@ -202,6 +207,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->ab,b->ac,c->c")
             sage: f.is_expanding()
             False
@@ -253,6 +259,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->ab,b->a,c->ac")
             sage: f.is_perron_frobenius()
             False
@@ -330,6 +337,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a').inverse()
             sage: f = phi.rose_conjugacy_representative()
             sage: ff = TrainTrackMap(f)
@@ -372,6 +380,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a').inverse()
             sage: f = phi.rose_conjugacy_representative()
             sage: ff = TrainTrackMap(f)
@@ -403,6 +412,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a')
             sage: f = phi.rose_conjugacy_representative()
             sage: ff = TrainTrackMap(f)
@@ -443,6 +453,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a')
             sage: f = phi.rose_conjugacy_representative()
             sage: ff = TrainTrackMap(f)
@@ -500,6 +511,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->caaa,b->caa,c->b")
             sage: f.indivisible_nielsen_paths()
             [(word: a, word: bca)]
@@ -617,6 +629,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->caaa,b->caa,c->b")
             sage: f.periodic_nielsen_paths()
             [((word: a, word: bca), 1), ((word: A, word: B), 2), ((word: A, word: C), 2)]
@@ -923,6 +936,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->caaa,b->caa,c->b")
             sage: f.fold_inp(('aab','cba'))
             WordMorphism: A->AC, B->B, C->C, a->ca, b->b, c->c
@@ -1032,6 +1046,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: f = TrainTrackMap.from_edge_map("a->caaa,b->caa,c->b")
             sage: f.stabilize()
             WordMorphism: A->ACBA, B->BA, C->C, a->abca, b->ab, c->c
@@ -1162,6 +1177,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.has_connected_local_whitehead_graphs()
@@ -1196,6 +1212,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.periodic_nielsen_loops()
@@ -1427,6 +1444,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.ideal_whitehead_graph()
@@ -1600,6 +1618,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.index()
@@ -1628,6 +1647,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.ideal_whitehead_graph()
@@ -1681,6 +1701,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.blow_up_vertices([['a', 'b', 'C'], ['A', 'c', 'B']])
@@ -1725,6 +1746,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLE::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.whitehead_connected_components()
@@ -1796,6 +1818,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.periodic_point_normal_form(('a',2,1,1))
@@ -1883,6 +1906,7 @@ class TrainTrackMap(GraphSelfMap):
 
         EXAMPLES::
 
+            sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
             sage: phi=FreeGroupAutomorphism("a->bca,b->bcacacb,c->cac")
             sage: f=TrainTrackMap(phi.rose_representative())
             sage: f.is_iwip()
