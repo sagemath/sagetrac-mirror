@@ -1,5 +1,8 @@
 r"""
-inverse_alphabet module, define Class for alphabet with inverse letters
+AlphabetWithInversesClass
+
+inverse_alphabet module, defines AlphabetWithInversesClass
+for alphabet with inverse letters.
 
 AUTHORS:
 
@@ -170,10 +173,10 @@ class AlphabetWithInverses(Parent):
             sage: next(A.__iter__())
             'a'
 
-        WARNING:
+        .. WARNING::
 
-        The iterator is on all the letters of the alphabet (both
-        positive and negative). This is NOT consistent with ```len()``.
+            The iterator is on all the letters of the alphabet (both
+            positive and negative). This is NOT consistent with ```len()``.
         """
         A = AlphabetWithInverses(['a','b','c'], ['A','B','C'])
 
@@ -211,9 +214,9 @@ class AlphabetWithInverses(Parent):
             sage: A.cardinality()
             3
 
-        WARNING:
+        .. WARNING::
 
-        This is equal to ``len()``.
+            This is equal to ``len()``.
         """
         return len(self._positive)
 

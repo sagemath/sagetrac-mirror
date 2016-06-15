@@ -1,4 +1,7 @@
-r"""train_track_map.py module define a TrainTrackMap Class.
+r"""
+TrainTrackMap
+
+train_track_map.py module defines a TrainTrackMap Class.
 
 AUTHORS:
 
@@ -1670,14 +1673,14 @@ class TrainTrackMap(GraphSelfMap):
 
         REFERENCES:
 
-            [GJLL] D. Gaboriau, A. Jaeger, G. Levitt, M. Lustig, An index
-            for counting fixed points of automorphisms of free
-            groups. Duke Math. J., 93(3):425-452, 1998.
+        .. [GJLL] D. Gaboriau, A. Jaeger, G. Levitt, M. Lustig, An index
+           for counting fixed points of automorphisms of free
+           groups. Duke Math. J., 93(3):425-452, 1998.
 
-            [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
-            AMS 1004, Amer Mathematical Society, 2011.
+        .. [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
+           AMS 1004, Amer Mathematical Society, 2011.
 
-            [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
+        .. [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
         """
         l = [len(c) - 2
              for c in self.ideal_whitehead_graph().connected_components()]
@@ -1933,8 +1936,8 @@ class TrainTrackMap(GraphSelfMap):
 
         REFERENCES
 
-            [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
-            automorphisms, 2012, arXiv:1209.3732
+        .. [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
+           automorphisms, 2012, arXiv:1209.3732
         """
 
         self.reduce(verbose and verbose > 1 and verbose - 1)

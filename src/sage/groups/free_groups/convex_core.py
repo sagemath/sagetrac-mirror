@@ -1,5 +1,8 @@
 # coding=utf-8
-r"""convex_core.py define ConvexCore class.
+r"""
+ConvexCore
+
+convex_core.py defines ConvexCore class.
 
 AUTHORS:
 
@@ -51,7 +54,7 @@ class ConvexCore():
 
     A ConvexCore is a CW-complex of dimension 2. 2-cells are
     squares. 1-cells are edges labeled by edges of G1 or G2. A square
-    is of the form
+    is of the form:
 
     ......e
     ...------>
@@ -1358,7 +1361,7 @@ class ConvexCore():
         List of edges in the boundary of the square complex.
 
         Attended to be used by
-        `ConvexCore.plot_ideal_curve_diagram()`.
+        :meth:`sage.groups.free_groups.convex_core.ConvexCore.plot_ideal_curve_diagram()`.
 
         INPUT:
 
