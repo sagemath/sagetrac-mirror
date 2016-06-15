@@ -864,7 +864,7 @@ class GraphWithInverses(DiGraph):
              'a': word: ba,
              'b': word: b,
              'c': word: c}
-            sage: print (G)
+            sage: print(G)
             a: 1->0, b: 0->1, c: 1->1
         """
 
@@ -937,7 +937,7 @@ class GraphWithInverses(DiGraph):
              'a': word: a,
              'b': word: ,
              'c': word: c}
-            sage: print (G)
+            sage: print(G)
             a: 0->0, c: 0->0
 
         .. SEEALSO::
@@ -977,7 +977,7 @@ class GraphWithInverses(DiGraph):
              'b': word: ,
              'c': word: c}
 
-            sage: print (G)
+            sage: print(G)
             a: 0->0, c: 0->0
 
         .. SEEALSO::
@@ -1242,7 +1242,7 @@ class GraphWithInverses(DiGraph):
             sage: G = GraphWithInverses.rose_graph(AlphabetWithInverses(2))
             sage: G.blow_up_vertices([['a','A'],['b'],['B']])
             {'A': word: cAC, 'B': word: eBD, 'a': word: caC, 'b': word: dbE}
-            sage: print (G)
+            sage: print(G)
             a: 1->1, b: 2->3, c: 0->1, d: 0->2, e: 0->3
         """
 
@@ -1306,11 +1306,11 @@ class GraphWithInverses(DiGraph):
 
         if len(reached_edges) < len(A):
             if verbose:
-                print ("The loop does not go through all edges")
+                print("The loop does not go through all edges")
             return True
 
         if verbose:
-            print ("The loop goes through all edges.")
+            print("The loop goes through all edges.")
 
         germ_class = dict([])
 
@@ -1347,15 +1347,15 @@ class GraphWithInverses(DiGraph):
                 germ_class.pop(c)
 
         if verbose:
-            print ("Whitehead equivalence classes of germs:", germ_classes)
+            print("Whitehead equivalence classes of germs:", germ_classes)
 
         if len(germ_classes) > len(self.vertices()):
             if verbose:
-                print ("Non connected Whitehead graphs")
+                print("Non connected Whitehead graphs")
             return True
 
         if verbose:
-            print ("Connected Whitehead graphs")
+            print("Connected Whitehead graphs")
 
         return False
 
@@ -1379,7 +1379,7 @@ class GraphWithInverses(DiGraph):
         EXAMPLES::
 
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
-            sage: print (GraphWithInverses.valence_3(2))
+            sage: print(GraphWithInverses.valence_3(2))
             a: 0->1, b: 0->1, c: 0->1
         """
         graph = dict()
@@ -1412,7 +1412,7 @@ class GraphWithInverses(DiGraph):
         EXAMPLES::
 
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
-            sage: print (GraphWithInverses.rose_graph(AlphabetWithInverses(3)))
+            sage: print(GraphWithInverses.rose_graph(AlphabetWithInverses(3)))
             a: 0->0, b: 0->0, c: 0->0
 
         """
@@ -1440,7 +1440,7 @@ class MetricGraph(GraphWithInverses):
     EXAMPLES::
 
         sage: from sage.groups.free_groups.inverse_graph import MetricGraph
-        sage: print (MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
+        sage: print(MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
         a: 0->0, b: 0->1, c: 1->1
         Lengths: a: 1, b: 1, c: 1
 
@@ -1466,18 +1466,18 @@ class MetricGraph(GraphWithInverses):
 
             sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: G = MetricGraph([[0,0,'a'],[0,1,'b'],[1,2,'c']])
-            sage: print (G)
+            sage: print(G)
             a: 0->0, b: 0->1, c: 1->2
             Lengths: a: 1, b: 1, c: 1
 
             sage: l = dict((('a',1),('b', 2),('c', 3)))
             sage: G = MetricGraph(data=[[0,0,'a'],[0,1,'b'],[1,2,'c']], lengths=l)
-            sage: print (G)
+            sage: print(G)
             a: 0->0, b: 0->1, c: 1->2
             Lengths: a: 1, b: 2, c: 3
 
             sage: A =  AlphabetWithInverses(3)
-            sage: print (MetricGraph(data=[[0,0,'a'],[0,1,'b'],[1,2,'c']], alphabet=A))
+            sage: print(MetricGraph(data=[[0,0,'a'],[0,1,'b'],[1,2,'c']], alphabet=A))
             a: 0->0, b: 0->1, c: 1->2
             Lengths: a: 1, b: 1, c: 1
         """
@@ -1557,7 +1557,7 @@ class MetricGraph(GraphWithInverses):
             sage: from sage.groups.free_groups.inverse_graph import MetricGraph
             sage: l = dict((('a',1),('b', 2),('c', 3)))
             sage: G = MetricGraph(data=[[0,0,'a'],[0,1,'b'],[1,2,'c']], lengths=l)
-            sage: print (G)
+            sage: print(G)
             a: 0->0, b: 0->1, c: 1->2
             Lengths: a: 1, b: 2, c: 3
             sage: G.length('a')
