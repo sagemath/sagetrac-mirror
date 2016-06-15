@@ -1,5 +1,6 @@
 r"""
-inverse_graph module, define Class for GraphWithInverses and MetricGraph
+GraphMap
+graph_map module, defines Class for GraphMap
 
 AUTHORS:
 
@@ -35,7 +36,7 @@ from .inverse_alphabet import AlphabetWithInverses
 from .inverse_graph import GraphWithInverses
 
 
-class GraphMap:
+class GraphMap():
     """
     A GraphMap is a map from a Graph to another.  It maps a vertex to
     a vertex and an edge to an edge-path. It respects incidence
@@ -97,10 +98,10 @@ class GraphMap:
         A vertex of ``self`` or an edge path
         Applies ``self`` to ``argument`` which is either .
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             To compute the image of a letter of the alphabet use
-            ``self.image(a)``.
+            :meth:`sage.groups.free_groups.graph_map.GraphMap.image(a)``.
 
         EXAMPLES::
 
@@ -605,9 +606,9 @@ class GraphMap:
         Intended to be used by Stalling's folding algorithm to get an
         immersion.
 
-        ...SEE ALSO::
+        .. SEEALSO::
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.subdivide_edge()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.subdivide_edge()`
 
         INPUT:
 
@@ -747,7 +748,7 @@ class GraphMap:
 
         REFERENCES:
 
-            [Stallings] J. Stallings, Topology of Finite Graphs,
+        .. [Stallings] J. Stallings, Topology of Finite Graphs,
 
         AUTHOR:
 

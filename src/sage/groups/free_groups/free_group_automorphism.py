@@ -1,7 +1,9 @@
 # coding=utf-8
 r"""
-free_group_automorphism.py define FreeGroupMorphism, FreeGroupAutomorphism
-and free_group_automorphisms class
+FreeGroupMorphism, FreeGroupAutomorphism and free_group_automorphisms
+
+free_group_automorphism.py defines FreeGroupMorphism, FreeGroupAutomorphism
+and free_group_automorphisms class.
 
 
 AUTHORS:
@@ -991,8 +993,9 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         REFERENCES
 
-            [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
-            automorphisms, 2012, arXiv:1209.3732
+        .. [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
+           automorphisms, 2012, arXiv:1209.3732
+
         """
         from .train_track_map import TrainTrackMap
 
@@ -1043,20 +1046,21 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         REFERENCES:
 
-            [GJLL] D. Gaboriau, A. Jaeger, G. Levitt, M. Lustig, An index
-            for counting fixed points of automorphisms of free
-            groups. Duke Math. J., 93(3):425-452, 1998.
+        .. [GJLL] D. Gaboriau, A. Jaeger, G. Levitt, M. Lustig, An index
+           for counting fixed points of automorphisms of free
+           groups. Duke Math. J., 93(3):425-452, 1998.
 
-            [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
-            AMS 1004, Amer Mathematical Society, 2011.
+        .. [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
+           AMS 1004, Amer Mathematical Society, 2011.
 
-            [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
+        .. [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
 
 
-        WARNING:
+        .. WARNING::
 
             ``self`` is assumed to be iwip (or at least to
             have an expanding absolute train-track representative).
+
         """
 
         from .train_track_map import TrainTrackMap
@@ -1336,9 +1340,9 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             sage: FreeGroupAutomorphism.surface_dehn_twist(F, k=0)
             Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x1*x0,x1->x1,x2->x2,x3->x3
 
-        WARNING:
+        .. WARNING::
 
-        ``F`` is assumed to be of even rank.
+            ``F`` is assumed to be of even rank.
 
         """
         assert F.rank() % 2 == 0
@@ -1555,11 +1559,12 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda()
             Automorphism of the Free Group on generators {a, b, c}: a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
 
-        REFERECENCES:
+        REFERENCES:
 
-        [HM-parageometric] M. Handel, L. Mosher, parageometric outer
-        automorphisms of free groups, Transactions of
-        Amer. Math. Soc. 359, 3153-3183, 2007.
+        .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
+           automorphisms of free groups, Transactions of
+           Amer. Math. Soc. 359, 3153-3183, 2007.
+
         """
         theta = pow(FreeGroupAutomorphism("a->b,b->c,c->Ba"), 4)
         psi = FreeGroupAutomorphism("a->b,b->a,c->c")
@@ -1587,8 +1592,9 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+
         """
         return FreeGroupAutomorphism("a->b,b->c,c->d,d->ADBC")
 
@@ -1613,8 +1619,9 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+
         """
         return FreeGroupAutomorphism("a->ba,b->bba,c->cAbaB")
 
@@ -1639,8 +1646,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
 
         """
         return FreeGroupAutomorphism("a->ba,b->bba")
@@ -1666,8 +1673,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
 
         """
         return FreeGroupAutomorphism("a->a,b->CAbac,c->CAbacacACABac")
@@ -1697,8 +1704,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [HM-axes] M. Handel, L. Mosher, axes
-        in Outer space, Mem. Amer. Math. Soc. 213, 2011.
+        .. [HM-axes] M. Handel, L. Mosher, axes
+           in Outer space, Mem. Amer. Math. Soc. 213, 2011.
 
         """
         return FreeGroupAutomorphism("a->afgfgf,f->fgf,g->gfafg")
@@ -1727,8 +1734,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [HM-axes] M. Handel, L. Mosher, axes
-        in Outer space, Mem. Amer. Math. Soc. 213, 2011.
+        .. [HM-axes] M. Handel, L. Mosher, axes
+           in Outer space, Mem. Amer. Math. Soc. 213, 2011.
 
         """
         return FreeGroupAutomorphism("a->bacaaca,b->baca,c->caaca")
@@ -1758,8 +1765,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [Hilion] A. Hilion, Dynamique des automorphismes des groupes
-        libres, Thesis (Toulouse, 2004).
+        .. [Hilion] A. Hilion, Dynamique des automorphismes des groupes
+           libres, Thesis (Toulouse, 2004).
 
         """
 
@@ -1795,9 +1802,9 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [HM-parageometric] M. Handel, L. Mosher, parageometric outer
-        automorphisms of free groups, Transactions of
-        Amer. Math. Soc. 359, 3153-3183, 2007.
+        .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
+           automorphisms of free groups, Transactions of
+           Amer. Math. Soc. 359, 3153-3183, 2007.
 
         """
         return FreeGroupAutomorphism("a->ac,b->a,c->b")
@@ -1823,9 +1830,9 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-        fixed subgroup of a free group automorphism, Inventiones
-        Math. 96, 613-638, 1989.
+        .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
+           fixed subgroup of a free group automorphism, Inventiones
+           Math. 96, 613-638, 1989.
 
         """
         return FreeGroupAutomorphism("a->cccaCCC,b->CaccAbC,"
@@ -1851,9 +1858,9 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-        fixed subgroup of a free group automorphism, Inventiones
-        Math. 96, 613-638, 1989.
+        .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
+           fixed subgroup of a free group automorphism, Inventiones
+           Math. 96, 613-638, 1989.
 
 
         """
@@ -1914,6 +1921,7 @@ class free_group_automorphisms:
            train tracks map, Proc. of a work- shop held at Heriot-Watt Univ.,
            Edinburg, 1993 (Lond. Math. Soc. Lect. Note Ser., 204), Cambridge,
            Cambridge Univ. Press., 1995, 300-313.
+
         """
         return FreeGroupAutomorphism("a->dac,b->CADac,c->CABac,d->CAbc")
 
@@ -1940,11 +1948,11 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BH] M. Bestvina, and M. Handel, Train-tracks for surface
-        homeomorphisms. Topology 34 (1995), no. 1, 109-140
+        .. [BH] M. Bestvina, and M. Handel, Train-tracks for surface
+           homeomorphisms. Topology 34 (1995), no. 1, 109-140
 
-        [Kapovich] Ilya Kapovich, Algorithmic detectability of iwip
-        automorphisms, arXiv:1209.3732
+        .. [Kapovich] Ilya Kapovich, Algorithmic detectability of iwip
+           automorphisms, arXiv:1209.3732
 
         """
 
@@ -1971,8 +1979,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [LL-periodic] G. Levitt, and M. Lustig, Automorphisms of free
-        groups have asymptotically periodic dynamics,
+        .. [LL-periodic] G. Levitt, and M. Lustig, Automorphisms of free
+           groups have asymptotically periodic dynamics,
 
         """
         return FreeGroupAutomorphism("a->cb,b->a,c->ba")
@@ -1998,8 +2006,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [CP-twisting] M. Clay, and A. Pettet, Twisting out fully
-        irreducible automorphisms, ArXiv:0906.4050
+        .. [CP-twisting] M. Clay, and A. Pettet, Twisting out fully
+           irreducible automorphisms, ArXiv:0906.4050
 
         """
         return FreeGroupAutomorphism("a->b,b->c,c->ab")
@@ -2026,7 +2034,8 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [Thurston] reference needed
+        .. [Thurston] reference needed
+
         """
         return FreeGroupAutomorphism("a->ab,b->c,c->d,d->e,e->a")
 
@@ -2055,7 +2064,7 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [Akiyama] reference needed
+        .. [Akiyama] reference needed
 
         """
 
@@ -2144,6 +2153,7 @@ class free_group_automorphisms:
 
         REFERENCES:
 
-        [BK] M. Boshernitzan and M. Kornfeld, TODO
+        .. [BK] M. Boshernitzan and M. Kornfeld, TODO
+
         """
         return FreeGroupAutomorphism("a->b,b->caaa,c->caa")

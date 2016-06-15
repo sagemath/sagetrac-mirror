@@ -1,5 +1,5 @@
 """
-Free Groups
+FreeGroup
 
 Free groups and finitely presented groups are implemented as a wrapper
 over the corresponding GAP objects.

@@ -1,5 +1,7 @@
 r"""
-inverse_graph module, define Class for GraphWithInverses and MetricGraph
+GraphWithInverses and MetricGraph
+
+inverse_graph module, defines Class for GraphWithInverses and MetricGraph
 
 AUTHORS:
 
@@ -129,9 +131,9 @@ class GraphWithInverses(DiGraph):
         """
         A copy of ``self``.
 
-        WARNING:
+        .. WARNING::
 
-        The alphabet is NOT copied.
+            The alphabet is NOT copied.
 
         EXAMPLES::
 
@@ -346,10 +348,10 @@ class GraphWithInverses(DiGraph):
 
         the label of the new edge.
 
-        WARNING:
+        .. WARNING::
 
-        Does not change the alphabet of ``self``. (the new label is
-        assumed to be already in the alphabet).
+            Does not change the alphabet of ``self``. (the new label is
+            assumed to be already in the alphabet).
 
         EXAMPLES::
 

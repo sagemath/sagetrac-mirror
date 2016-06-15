@@ -1,7 +1,7 @@
 r"""
-graph_self_map.py module
+GraphSelfMap
 
-Define a GraphSelfMap Class
+graph_self_map.py module defines a GraphSelfMap Class
 
 AUTHORS:
 
@@ -640,8 +640,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.fold()`
-            :meth:`sage.combinat.words.graph_self_map.GraphWithInverses.fold()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.fold()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphWithInverses.fold()`
 
         """
 
@@ -886,8 +886,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.multifold()`
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.fold()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.multifold()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.fold()`
 
         """
         A = self._domain.alphabet()
@@ -983,7 +983,7 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.contract_edges()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_edges()`
 
         """
 
@@ -1132,7 +1132,7 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.contract_forest()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_forest()`
 
         """
         if verbose:
@@ -1252,8 +1252,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.tails()`
-            :meth:`sage.combinat.words.inverse_graphGraphWithInverses.contract_forest()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.tails()`
+            :meth:`sage.groups.free_groups.inverse_graphGraphWithInverses.contract_forest()`
 
         """
         if verbose:
@@ -1708,7 +1708,7 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.illegal_turns()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.illegal_turns()`
 
         """
 
@@ -1759,7 +1759,7 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.fold_turns()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.fold_turns()`
 
         """
 
@@ -2109,8 +2109,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            - :meth:`sage.combinat.words.train_track_map.TrainTrackMap.indivisible_nielsen_paths()`
-            - :meth:`sage.combinat.words.train_track_map.GraphSelfMap.relative_indivisible_nielsen_paths()`
+            - :meth:`sage.groups.free_groups.train_track_map.TrainTrackMap.indivisible_nielsen_paths()`
+            - :meth:`sage.groups.free_groups.train_track_map.GraphSelfMap.relative_indivisible_nielsen_paths()`
         """
         A = self.domain().alphabet()
 
@@ -2508,7 +2508,7 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.maximal_filtration()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.maximal_filtration()`
         """
 
         filtration = self.maximal_filtration(
@@ -3581,8 +3581,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.stable_relative_train_track()`
-            :meth:`sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism.train_track()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.stable_relative_train_track()`
+            :meth:`sage.groups.free_groups.free_group_automorphism.FreeGroupAutomorphism.train_track()`
 
         EXAMPLES::
 
@@ -3740,8 +3740,8 @@ class GraphSelfMap(GraphMap):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.graph_self_map.GraphSelfMap.stable_train_track()`
-            :meth:`sage.combinat.words.free_group_automorphism.FreeGroupAutomorphism.train_track()`
+            :meth:`sage.groups.free_groups.graph_self_map.GraphSelfMap.stable_train_track()`
+            :meth:`sage.groups.free_groups..free_group_automorphism.FreeGroupAutomorphism.train_track()`
 
         EXAMPLES::
 

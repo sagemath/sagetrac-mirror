@@ -1,6 +1,6 @@
 # coding=utf-8
 r""" test_train_track.py testing module for train_track
-to run with long option
+to run with long option.
 
 ./sage -t --long src/sage/combinat/words/test_train_track.py
 

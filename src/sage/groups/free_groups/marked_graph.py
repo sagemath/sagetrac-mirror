@@ -1,5 +1,7 @@
 r"""
-marked_graph module, define Class for MarkedGraph and MarkedMetricGraph
+MarkedGraph and MarkedMetricGraph
+
+marked_graph module, defines Class for MarkedGraph and MarkedMetricGraph
 
 AUTHORS:
 
@@ -282,7 +284,7 @@ class MarkedGraph(GraphWithInverses):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.subdivide()`
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.subdivide()`
         """
 
         subdivide_map = GraphWithInverses.subdivide(self, edge_list)
@@ -336,7 +338,7 @@ class MarkedGraph(GraphWithInverses):
 
         .. SEE ALSO:
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.fold()``
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.fold()``
         """
 
         fold_map = GraphWithInverses.fold(self, edges_full, edges_partial)
@@ -362,7 +364,7 @@ class MarkedGraph(GraphWithInverses):
 
         .. SEE ALSO:
 
-            :meth:`sage.combinat.words.inverse_graph.GraphWithInverses.contract_forest()``
+            :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_forest()``
         """
 
         contract_map = GraphWithInverses.contract_forest(self, forest)
