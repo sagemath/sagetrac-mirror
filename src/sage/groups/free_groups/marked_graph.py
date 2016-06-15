@@ -75,7 +75,7 @@ class MarkedGraph(GraphWithInverses):
             sage: from sage.groups.free_groups.graph_map import GraphMap
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: M = MarkedGraph(graph=G)
-            sage: print (M)
+            sage: print(M)
             Marked graph: a: 0->0, c: 1->0, b: 0->1
             Marking: a->a, b->bc
             sage: A = AlphabetWithInverses(2)
@@ -83,13 +83,13 @@ class MarkedGraph(GraphWithInverses):
             sage: H = GraphWithInverses.rose_graph(A)
             sage: f = GraphMap(G,H,"a->aba,b->ab")
             sage: M = MarkedGraph(marking=f)
-            sage: print (M)
+            sage: print(M)
             Marked graph: a: 0->0, b: 0->0
             Marking: a->aba, b->ab
-            sage: print (MarkedGraph(marking=f, alphabet=A))
+            sage: print(MarkedGraph(marking=f, alphabet=A))
             Marked graph: a: 0->0, b: 0->0
             Marking: a->aba, b->ab
-            sage: print (MarkedGraph(marking=f, marking_alphabet=A))
+            sage: print(MarkedGraph(marking=f, marking_alphabet=A))
             Marked graph: a: 0->0, b: 0->0
             Marking: a->aba, b->ab
         """
@@ -150,7 +150,7 @@ class MarkedGraph(GraphWithInverses):
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: from sage.groups.free_groups.marked_graph import MarkedGraph
             sage: G=GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
-            sage: print (MarkedGraph(G))
+            sage: print(MarkedGraph(G))
             Marked graph: a: 0->0, c: 1->0, b: 0->1
             Marking: a->a, b->bc
             sage: MarkedGraph(G).__str__()
@@ -182,7 +182,7 @@ class MarkedGraph(GraphWithInverses):
             sage: from sage.groups.free_groups.marked_graph import MarkedGraph
             sage: G=GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: G=MarkedGraph(G)
-            sage: print (G.marking())
+            sage: print(G.marking())
             Graph map:
             a: 0->0, b: 0->0
             a: 0->0, c: 1->0, b: 0->1
@@ -205,7 +205,7 @@ class MarkedGraph(GraphWithInverses):
             sage: G=GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: G=MarkedGraph(G)
             sage: phi=FreeGroupAutomorphism("a->aba,b->ab")
-            sage: print (G.precompose(phi))
+            sage: print(G.precompose(phi))
             Marked graph: a: 0->0, c: 1->0, b: 0->1
             Marking: a->abca, b->abc
         """
@@ -238,7 +238,7 @@ class MarkedGraph(GraphWithInverses):
             sage: G=MarkedGraph(G)
             sage: H=GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,1,'c']])
             sage: H=MarkedGraph(H)
-            sage: print (G.difference_of_marking(H))
+            sage: print(G.difference_of_marking(H))
             Graph map:
             a: 0->0, c: 1->0, b: 0->1
             a: 0->0, b: 0->1, c: 1->1
@@ -276,7 +276,7 @@ class MarkedGraph(GraphWithInverses):
              'a': word: ad,
              'b': word: b,
              'c': word: ce}
-            sage: print (G)
+            sage: print(G)
             Marked graph: a: 0->2, b: 0->1, c: 1->3, d: 2->0, e: 3->1
             Marking: a->ad, b->bceB
 
@@ -330,7 +330,7 @@ class MarkedGraph(GraphWithInverses):
              'a': word: ba,
              'b': word: b,
              'c': word: c}
-            sage: print (G)
+            sage: print(G)
             Marked graph: a: 1->0, b: 0->1, c: 1->1
             Marking: a->ba, b->bcB
 
@@ -391,7 +391,7 @@ class MarkedGraph(GraphWithInverses):
             sage: G = MarkedGraph.rose_marked_graph(AlphabetWithInverses(2))
             sage: G.blow_up_vertices([['a','A'],['b'],['B']])
             {'A': word: cAC, 'B': word: eBD, 'a': word: caC, 'b': word: dbE}
-            sage: print (G)
+            sage: print(G)
             Marked graph: a: 1->1, b: 2->3, c: 0->1, d: 0->2, e: 0->3
             Marking: a->caC, b->dbE
         """
@@ -417,7 +417,7 @@ class MarkedGraph(GraphWithInverses):
 
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: from sage.groups.free_groups.marked_graph import MarkedGraph
-            sage: print (MarkedGraph.rose_marked_graph(AlphabetWithInverses(2)))
+            sage: print(MarkedGraph.rose_marked_graph(AlphabetWithInverses(2)))
             Marked graph: a: 0->0, b: 0->0
             Marking: a->a, b->b
         """
@@ -441,7 +441,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
         sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
         sage: G = MarkedGraph(G)
         sage: G = MarkedMetricGraph(G)
-        sage: print (G)
+        sage: print(G)
         Marked graph: a: 0->0, c: 1->0, b: 0->1
         Marking: a->a, b->bc
         Length: a:1, c:1, b:1
@@ -560,7 +560,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
             sage: from sage.groups.free_groups.marked_graph import  MarkedMetricGraph
             sage: A = AlphabetWithInverses(5)
-            sage: print (MarkedMetricGraph.splitting(2,A))
+            sage: print(MarkedMetricGraph.splitting(2,A))
             Marked graph: a: 0->0, b: 0->0, c: 1->1, d: 1->1, e:
             1->1, f: 0->1
             Marking: a->a, b->b, c->fcF, d->fdF, e->feF
@@ -612,7 +612,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
             sage: from sage.groups.free_groups.marked_graph import MarkedMetricGraph
             sage: A=AlphabetWithInverses(4)
-            sage: print (MarkedMetricGraph.HNN_splitting(A))
+            sage: print(MarkedMetricGraph.HNN_splitting(A))
             Marked graph: a: 0->0, b: 0->0, c: 0->0, d: 0->0
             Marking: a->a, b->b, c->c, d->d
             Length: a:1, b:0, c:0, d:0

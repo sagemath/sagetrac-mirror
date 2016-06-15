@@ -566,7 +566,7 @@ class TrainTrackMap(GraphSelfMap):
             tt = (uu[0][p:], uu[1][p:])
 
             if verbose:
-                print (t[0], t[1], " image: ", tt[0], ",", tt[1])
+                print(t[0], t[1], " image: ", tt[0], ",", tt[1])
 
             if len(tt[0]) == 0:
                 for a in extension[t[0][-1]]:
@@ -583,7 +583,7 @@ class TrainTrackMap(GraphSelfMap):
             elif (G.is_prefix(t[0], tt[0]) and G.is_prefix(t[1], tt[1])):
                 result.insert(i, t)
                 if verbose:
-                    print ("inp")
+                    print("inp")
                 i += 1
 
             elif G.is_prefix(tt[0], t[0]) and len(tt[0]) < len(t[0]) and \
@@ -685,12 +685,12 @@ class TrainTrackMap(GraphSelfMap):
             vv = vv[p:]
 
             if verbose:
-                print ("possible Nielsen path:", u, v,)
-                print (" reduced image:", uu, ",", vv,)
+                print("possible Nielsen path:", u, v,)
+                print(" reduced image:", uu, ",", vv,)
 
             if len(uu) == 0:
                 if verbose:
-                    print ("extend")
+                    print("extend")
                 done = False
                 possible_np.pop(i)
                 for a in extension[u[-1]]:
@@ -699,7 +699,7 @@ class TrainTrackMap(GraphSelfMap):
                     next.insert(i, (a, Word([])))
             elif len(vv) == 0:
                 if verbose:
-                    print ("extend")
+                    print("extend")
                 done = False
                 possible_np.pop(i)
                 for a in extension[v[-1]]:
@@ -720,7 +720,7 @@ class TrainTrackMap(GraphSelfMap):
                             possible_np.pop(i)  # we will add it
                             # back immediatly
                             if verbose:
-                                print ("compatible with:", tt[j], tt[1 - j])
+                                print("compatible with:", tt[j], tt[1 - j])
                             if p < len(tt[j]):  # uu is a strict prefix of
                                 #  tt[j]: we have to extend u
                                 done = False
@@ -747,22 +747,22 @@ class TrainTrackMap(GraphSelfMap):
                         break
                 else:
                     if verbose:
-                        print ("not compatible with possible Nielsen paths")
+                        print("not compatible with possible Nielsen paths")
                     possible_np.pop(i)
                     done = False
             if i >= len(possible_np):
                 i = 0
 
         if verbose:
-            print ("List of possible Nielsen paths:")
-            print (possible_np)
+            print("List of possible Nielsen paths:")
+            print(possible_np)
 
         # Now we look for periodic points among possible_np
 
         # We build a map on indices
 
         if verbose:
-            print ("Building the list of stable possible Nielsen "
+            print("Building the list of stable possible Nielsen "
                    "paths (given by their index):",)
 
         found = False
@@ -787,7 +787,7 @@ class TrainTrackMap(GraphSelfMap):
             stable, old_stable = set(m[i][0] for i in stable), len(stable)
 
         if verbose:
-            print (stable)
+            print(stable)
 
         pnps = []
 
@@ -814,7 +814,7 @@ class TrainTrackMap(GraphSelfMap):
             # (e,period,left,right)
 
             if verbose:
-                print ("Looking for endpoints")
+                print("Looking for endpoints")
 
             maxl = 1
             for ((u, v), period) in pnps:
@@ -824,7 +824,7 @@ class TrainTrackMap(GraphSelfMap):
 
             for i, ((u, v), period) in enumerate(pnps):
                 if verbose:
-                    print ("Periodic Nielsen path:", ((u, v), period),)
+                    print("Periodic Nielsen path:", ((u, v), period),)
                 if period == 1:
                     uu = self(u)
                     vv = self(v)
@@ -913,7 +913,7 @@ class TrainTrackMap(GraphSelfMap):
                 # build the germ classes of germs ending pnps
 
                 if verbose:
-                    print ("Ending germs:", vv1, "and", vv2)
+                    print("Ending germs:", vv1, "and", vv2)
 
                 pnps[i] = ((u, v), period, (vv1, vv2))
 
@@ -954,7 +954,7 @@ class TrainTrackMap(GraphSelfMap):
         while not done:
             done = True
             if verbose:
-                print ("Fold inp: ", inp[0], inp[1])
+                print("Fold inp: ", inp[0], inp[1])
             image = (self.image(inp[0][0]), self.image(inp[1][0]))
             prefix_length = self._domain.common_prefix_length(
                 image[0], image[1])
@@ -974,7 +974,7 @@ class TrainTrackMap(GraphSelfMap):
                 inp = [inp[0][prefix_length:], inp[1][prefix_length:]]
             else:
                 if verbose:
-                    print ("Partial fold")
+                    print("Partial fold")
                 full_edges = []
                 partial_edges = []
                 full_done = False
@@ -990,7 +990,7 @@ class TrainTrackMap(GraphSelfMap):
                         partial_edges.append(inp[i][0])
 
                 if verbose:
-                    print ("Fold: full edges: ", full_edges,
+                    print("Fold: full edges: ", full_edges,
                            " partial edges: ", partial_edges)
 
                 folding_map = self._domain.fold(full_edges, partial_edges)
@@ -1026,7 +1026,7 @@ class TrainTrackMap(GraphSelfMap):
                 self.set_edge_map(edge_map)
 
                 if verbose:
-                    print ("\n", self)
+                    print("\n", self)
 
         return result_morph
 
@@ -1061,7 +1061,7 @@ class TrainTrackMap(GraphSelfMap):
             inps = self.indivisible_nielsen_paths(
                 verbose=(verbose and verbose > 1 and verbose - 1))
             if verbose:
-                print ("INPs: ", inps)
+                print("INPs: ", inps)
             if len(inps) == 0:
                 if result_morph:
                     return result_morph
@@ -1089,7 +1089,7 @@ class TrainTrackMap(GraphSelfMap):
                 if prefix_length != critic:
                     done = False
                     if verbose:
-                        print ("Folding non essential INP: ", inp)
+                        print("Folding non essential INP: ", inp)
                     self._strata = False
                     folding_morph = self.fold_inp(inp, verbose = \
                         verbose and verbose >1 and verbose - 1)
@@ -1098,7 +1098,7 @@ class TrainTrackMap(GraphSelfMap):
                     else:
                         result_morph = folding_morph
                     if verbose:
-                        print (self)
+                        print(self)
                     break
             else:
                 for turn in self._domain.turns():
@@ -1111,7 +1111,7 @@ class TrainTrackMap(GraphSelfMap):
                                               for inp in inps):
                         done = False
                         if verbose:
-                            print ("Folding illegal turn: ", turn)
+                            print("Folding illegal turn: ", turn)
                         prefix = self.image(
                             turn[0])[0:self._domain.common_prefix_length(
                             self.image(turn[0]), self.image(turn[1]))]
@@ -1123,7 +1123,7 @@ class TrainTrackMap(GraphSelfMap):
                         else:
                             result_morph = folding_morph
                         if verbose:
-                            print (self)
+                            print(self)
                         break
                 else:
                     for turn in self._domain.turns():
@@ -1132,7 +1132,7 @@ class TrainTrackMap(GraphSelfMap):
                                         tt[1] == inp[1][0]) for inp in inps):
                             done = False
                             if verbose:
-                                print ("Folding illegal turn :", tt)
+                                print("Folding illegal turn :", tt)
                             prefix = self.image(
                                 tt[0])[0:self._domain.common_prefix_length(
                                 self.image(tt[0]), self.image(tt[1]))]
@@ -1144,7 +1144,7 @@ class TrainTrackMap(GraphSelfMap):
                             else:
                                 result_morph = folding_morph
                             if verbose:
-                                print (self)
+                                print(self)
                             break
 
             if not done:
@@ -1154,9 +1154,9 @@ class TrainTrackMap(GraphSelfMap):
 
             if verbose:
                 if len(self._strata) > 1:
-                    print ("Strata: ", self._strata)
+                    print("Strata: ", self._strata)
                 else:
-                    print ("Irreducible representative")
+                    print("Irreducible representative")
 
             if len(self._strata) > 1:
                 done = True
@@ -1234,7 +1234,7 @@ class TrainTrackMap(GraphSelfMap):
         A = G.alphabet()
 
         if verbose:
-            print ("Looking for periodic Nielsen loops")
+            print("Looking for periodic Nielsen loops")
 
         if pnps is None:
             pnps = self.periodic_nielsen_paths(
@@ -1242,7 +1242,7 @@ class TrainTrackMap(GraphSelfMap):
                 verbose=verbose and verbose > 1 and verbose - 1)
 
         if verbose:
-            print ("Periodic Nielsen paths:", pnps)
+            print("Periodic Nielsen paths:", pnps)
 
         components_tree = dict([])  # maps a vertex v to (vv,w) where w
         # is Nielsen path from v to vv
@@ -1265,12 +1265,12 @@ class TrainTrackMap(GraphSelfMap):
                 v2 = (G.initial_vertex(v2[0]),)
 
             if verbose:
-                print ("periodic Nielsen path (", u1, ",", u2,
+                print("periodic Nielsen path (", u1, ",", u2,
                        ") linking vertices", v1, "and", v2)
 
             if v1 == v2:  # this pNp is a loop
                 if verbose:
-                    print ("Loop at vertex", v1)
+                    print("Loop at vertex", v1)
                 if len(v1) == 4:
                     loops.append(
                         (G.reduce_path(G.reverse_path(u1) * u2[:-1]),
@@ -1303,10 +1303,10 @@ class TrainTrackMap(GraphSelfMap):
                             link = link[:-1]
                     if len(link) > 0:
                         if verbose:
-                            print ("loop at vertex", vv1, ":", link)
+                            print("loop at vertex", vv1, ":", link)
                         loops.append((link, vv1, period))
                     elif verbose:
-                        print ("contractable loop at vertex", vv1)
+                        print("contractable loop at vertex", vv1)
                 else:  # we fusion the two components
                     for (v, (vv, w, p)) in components_tree.iteritems():
                         if vv == vv2:
@@ -1348,7 +1348,7 @@ class TrainTrackMap(GraphSelfMap):
         # We order loops to remove multiple occurences of the same loop
 
         if verbose:
-            print ("Looking for multiple loops: Ordering the loops...")
+            print("Looking for multiple loops: Ordering the loops...")
 
         for n, loop in enumerate(loops):
             i = 0
@@ -1377,17 +1377,17 @@ class TrainTrackMap(GraphSelfMap):
                     i = j
                 j = j + 1
             if verbose:
-                print ("Smallests cyclic conjugate of", loop, ":",)
+                print("Smallests cyclic conjugate of", loop, ":",)
             loops[n] = (loop[0][i:] + loop[0][:i], loop[1], loop[2])
             if verbose:
-                print (loops[n])
+                print(loops[n])
 
         i = 0
         j = 1
         while j < len(loops):
             if loops[i][0] == loops[j][0]:
                 if verbose:
-                    print (loops[i], "occures twice")
+                    print(loops[i], "occures twice")
                 loops.pop(j)
             else:
                 j += 1
@@ -1478,8 +1478,8 @@ class TrainTrackMap(GraphSelfMap):
                 verbose=(verbose and verbose > 1 and verbose - 1))
 
         if verbose:
-            print ("Periodic Nielsen paths:")
-            print (pnps)
+            print("Periodic Nielsen paths:")
+            print(pnps)
 
         for ((u1, u2), period, (vv1, vv2)) in pnps:
             if len(vv1) == 4:  # vv1 is a germ in the middle of an edge:
@@ -1494,7 +1494,7 @@ class TrainTrackMap(GraphSelfMap):
             # build the germ classes of germs ending pnps
 
             if verbose:
-                print ("germs", vv1, "and", vv2, "are the ends of a pnp.")
+                print("germs", vv1, "and", vv2, "are the ends of a pnp.")
 
             for (j, c) in enumerate(germ_classes):
                 if vv1 in c:
@@ -1516,13 +1516,13 @@ class TrainTrackMap(GraphSelfMap):
                 germ_classes[i1].append(vv2)
 
         if verbose:
-            print ("Classes of germ at the end of pnps:", germ_classes)
+            print("Classes of germ at the end of pnps:", germ_classes)
 
         for v in G.vertices():
             iwg = iwg.union(self.stable_local_whitehead_graph(v))
 
         if verbose:
-            print ("Graph before identification of "
+            print("Graph before identification of "
                    "equivalent germs:", iwg.edges())
 
         # Now mod out the graph by inps
@@ -1838,7 +1838,7 @@ class TrainTrackMap(GraphSelfMap):
         (e, period, left, right) = point
 
         if verbose:
-            print ("Normal form of point", point)
+            print("Normal form of point", point)
 
         simplified = False
 
@@ -1872,14 +1872,14 @@ class TrainTrackMap(GraphSelfMap):
                             left_periodic_length + sum(M[k * i] * left_ab_i)[0]
                     if left_periodic_length == left:
                         if verbose:
-                            print ("simplified to (", e, ",",
+                            print("simplified to (", e, ",",
                                     diviseur, ",", i, ")")
                         period = i
                         left = sum(left_ab_i)[0]
                         simplified = True
                         break
                 if verbose:
-                    print ("no simplification with period=", i)
+                    print("no simplification with period=", i)
 
         if simplified:
             right = sum(M[period - 1].column(
@@ -1939,30 +1939,30 @@ class TrainTrackMap(GraphSelfMap):
 
         self.reduce(verbose and verbose > 1 and verbose - 1)
         if verbose:
-            print ("Reduced form:")
+            print("Reduced form:")
             print (self)
         if len(self._strata) > 1:
             if verbose:
-                print ("Reducible")
+                print("Reducible")
         if verbose:
-            print ("Irreducible train-track map")
+            print("Irreducible train-track map")
         if not self.is_perron_frobenius():
             if verbose:
-                print ("Not fully irreducible: the matrix of self does not"
+                print("Not fully irreducible: the matrix of self does not"
                        " have a strictly positive power")
             return False
         if verbose:
-            print ("Fully irreducible: the matrix of self has a strictly "
+            print("Fully irreducible: the matrix of self has a strictly "
                    "positive power")
         c = self.whitehead_connected_components(
             verbose and verbose > 1 and verbose - 1)
         if len(c) > len(self.domain().vertices()):
             if verbose:
-                print ("The local Whitehead graphs are not "
+                print("The local Whitehead graphs are not "
                        "connected. Connected components of germs:", c)
             return False
         if verbose:
-            print ("Local Whitehead graphs are connected")
+            print("Local Whitehead graphs are connected")
         pnps = self.periodic_nielsen_paths(
             end_points=True, verbose=verbose and verbose > 1 and verbose - 1)
         nielsen_loops = self.periodic_nielsen_loops(
@@ -1970,24 +1970,24 @@ class TrainTrackMap(GraphSelfMap):
         if len(nielsen_loops) > 0:
             if len(nielsen_loops) > 1:
                 if verbose:
-                    print ("There are more than two periodic Nielsen loops:",
+                    print("There are more than two periodic Nielsen loops:",
                         nielsen_loops)
                 return False
             else:
                 if verbose:
-                    print ("One Nielsen loop:", nielsen_loops[0][0])
+                    print("One Nielsen loop:", nielsen_loops[0][0])
                 if self.domain().lies_in_a_free_factor(
                         nielsen_loops[0][0],
                                         verbose and verbose > 1 and verbose - 1):
                     if verbose:
-                        print ("The Nielsen loops is primitive")
+                        print("The Nielsen loops is primitive")
                     return False
                 else:
                     if verbose:
-                        print ("Geometric iwip")
+                        print("Geometric iwip")
                     return True
         else:
             if verbose:
-                print ("No Nielsen loops")
-                print ("Atoroidal iwip")
+                print("No Nielsen loops")
+                print("Atoroidal iwip")
             return True

@@ -231,6 +231,6 @@ def bug_test():
     """
     bugs_list = bugs()
     for i, phi in enumerate(bugs_list):
-        print ("\n\n------------------------------------")
-        print (i, ":", phi)
+        print("\n\n------------------------------------")
+        print(i, ":", phi)
         f = phi.train_track(stable=True, relative=True, verbose=True)

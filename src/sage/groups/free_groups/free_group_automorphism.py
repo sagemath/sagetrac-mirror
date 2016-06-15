@@ -13,7 +13,7 @@ AUTHORS:
 EXAMPLES::
 
     sage: phi = FreeGroupAutomorphism('a->ab,b->A')
-    sage: print phi
+    sage: print(phi)
     a->a*b,b->a^-1
 
 """
@@ -332,7 +332,7 @@ class FreeGroupMorphism(object):
             sage: phi = FreeGroupAutomorphism('a->ab,b->A')
             sage: phi.__str__()
             'a->a*b,b->a^-1'
-            sage: print phi
+            sage: print(phi)
             a->a*b,b->a^-1
 
         """
@@ -355,7 +355,7 @@ class FreeGroupMorphism(object):
             sage: phi.__repr__()
             'Morphism from Free Group on generators {a, b} to Free Group on generators {a, b}: a->a*b,b->a^-1'
 
-            sage: print phi
+            sage: print(phi)
             a->a*b,b->a^-1
 
         """
@@ -737,7 +737,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             sage: phi = FreeGroupAutomorphism('a->ab,b->A')
             sage: phi.__repr__()
             'Automorphism of the Free Group on generators {a, b}: a->a*b,b->a^-1'
-            sage: print phi
+            sage: print(phi)
             a->a*b,b->a^-1
         """
         result = "Automorphism of the %s: " % str(self._domain)
@@ -763,7 +763,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         EXAMPLES::
 
             sage: phi = FreeGroupAutomorphism('a->ab,b->A')
-            sage: print phi
+            sage: print(phi)
             a->a*b,b->a^-1
             sage: phi1 = FreeGroupAutomorphism('a->aB,b->A')
             sage: phi * phi1
@@ -924,7 +924,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
             sage: phi = FreeGroupAutomorphism("a->Cabc,b->Cacc,c->Cac")
             sage: g = phi.train_track()
-            sage: print g
+            sage: print(g)
             Train-track map:
             Marked graph: a: 0->2, b: 2->2, d: 2->0, e: 0->2
             Marking: a->edaE, b->ebE, c->ed
@@ -1000,11 +1000,11 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
                              verbose=(verbose and verbose < 1 and verbose - 1))
 
         if verbose:
-            print (f)
+            print(f)
 
         if len(f._strata) > 1:
             if verbose:
-                print ("Reducible")
+                print("Reducible")
             return False
 
         f = TrainTrackMap(f)
@@ -1062,7 +1062,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         from .train_track_map import TrainTrackMap
 
         if verbose:
-            print ("Computing a train-track representative")
+            print("Computing a train-track representative")
         f = self.train_track(relative=False, stable=False,
                              verbose=(verbose and verbose > 1 and verbose - 1))
         if f.is_train_track(verbose=(verbose and verbose > 1 and verbose - 1)):
@@ -1071,7 +1071,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
                 verbose=(verbose and verbose > 1 and verbose - 1))
         else:
             if verbose:
-                print ("self is not iwip, not implemented yet in this case")
+                print("self is not iwip, not implemented yet in this case")
         return False
 
     @staticmethod
@@ -1420,7 +1420,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
                     used_dehn_twists.append((k, 1))
 
         if verbose:
-            print ("List of surface Dehn twists used:",used_dehn_twists)
+            print("List of surface Dehn twists used:",used_dehn_twists)
 
         return result
 

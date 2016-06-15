@@ -167,7 +167,7 @@ class AlphabetWithInverses(Parent):
         TEST::
 
             sage: A = AlphabetWithInverses(['a','b','c'], ['A','B','C'])
-            sage: A.__iter__().next()
+            sage: next(A.__iter__())
             'a'
 
         WARNING:
@@ -756,7 +756,7 @@ class AlphabetWithInverses(Parent):
 
             sage: A = AlphabetWithInverses(4)
             sage: A.remove_letter('b')
-            sage: print (A)
+            sage: print(A)
             Alphabet with inverses on ['a', 'c', 'd']
         """
         aa = self.to_positive_letter(a)
