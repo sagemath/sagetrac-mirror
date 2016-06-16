@@ -13,7 +13,7 @@ EXAMPLES::
     sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
     sage: from sage.groups.free_groups.marked_graph import MarkedGraph
     sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
-    sage: print MarkedGraph(G)
+    sage: print(MarkedGraph(G))
     Marked graph: a: 0->0, c: 1->0, b: 0->1
     Marking: a->a, b->bc
 """
@@ -46,7 +46,7 @@ class MarkedGraph(GraphWithInverses):
         sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
         sage: from sage.groups.free_groups.marked_graph import MarkedGraph
         sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
-        sage: print (MarkedGraph(G))
+        sage: print(MarkedGraph(G))
         Marked graph: a: 0->0, c: 1->0, b: 0->1
         Marking: a->a, b->bc
 
