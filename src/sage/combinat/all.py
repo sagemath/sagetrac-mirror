@@ -196,3 +196,6 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 
 # Constellations
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+
+#Schubert, Grothendieck, etc
+from .multivariate_polynomials.all import *
