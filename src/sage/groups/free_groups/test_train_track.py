@@ -52,14 +52,14 @@ def test(rang, longueur, nombre):
 
     for i in xrange(nombre):
         phi = FreeGroupAutomorphism.random_automorphism(F, longueur)
-        print (i, ":", phi)
+        print(i, ":", phi)
         f = phi.train_track(stable=True, relative=True)
         if len(f._strata) == 1:
             stat = stat + 1
-        print (f)
-        print ("-------------------------")
+        print(f)
+        print("-------------------------")
 
-    print ("rang: ", rang, "longueur: ", longueur, " time: ",
+    print("rang: ", rang, "longueur: ", longueur, " time: ",
            cputime(t) / nombre, " train-tracks: %.1f" % (stat/nombre*100))
 
 
@@ -92,9 +92,9 @@ def test_stat(rangs, longueurs, puissance):
                     if len(f._strata) == 1:
                         stat += 1
                 except Exception as err:
-                    print (phi)
-                    print (err)
-            print ("rang: ", n, "longueur: ", l, " time: ",
+                    print(phi)
+                    print(err)
+            print("rang: ", n, "longueur: ", l, " time: ",
                    cputime(t) / puissance,
                    " train-tracks: %.1f" % (stat / puissance * 100))
 

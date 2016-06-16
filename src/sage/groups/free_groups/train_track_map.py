@@ -14,7 +14,7 @@ EXAMPLES::
     sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")
     sage: phi = phi.inverse()
     sage: tt = phi.train_track()
-    sage: print tt
+    sage: print(tt)
     Train-track map:
     Marked graph: a: 0->0, b: 1->0, c: 1->0, e: 0->1
     Marking: a->a, b->eb, c->ec
@@ -57,7 +57,7 @@ class TrainTrackMap(GraphSelfMap):
         sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
         sage: f=phi.rose_representative()
         sage: tt=TrainTrackMap(f)
-        sage: print (tt)
+        sage: print(tt)
         Train-track map:
         Marked graph: a: 0->0, b: 0->0, c: 0->0
         Marking: a->a, b->b, c->c
@@ -65,7 +65,7 @@ class TrainTrackMap(GraphSelfMap):
         sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
         sage: phi=phi.inverse()
         sage: tt=phi.train_track()
-        sage: print (tt)
+        sage: print(tt)
         Train-track map:
         Marked graph: a: 0->0, b: 1->0, c: 1->0, e: 0->1
         Marking: a->a, b->eb, c->ec
@@ -185,7 +185,7 @@ class TrainTrackMap(GraphSelfMap):
         EXAMPLES::
 
             sage: from sage.groups.free_groups.train_track_map import TrainTrackMap
-            sage: print (TrainTrackMap.from_edge_map("a->ec,b->Ea,c->b,e->C"))
+            sage: print(TrainTrackMap.from_edge_map("a->ec,b->Ea,c->b,e->C"))
             Train-track map:
             Marked graph: a: 0->0, b: 1->0, c: 1->0, e: 0->1
             Marking: a->a, b->Bc, c->eb
@@ -1943,7 +1943,7 @@ class TrainTrackMap(GraphSelfMap):
         self.reduce(verbose and verbose > 1 and verbose - 1)
         if verbose:
             print("Reduced form:")
-            print (self)
+            print(self)
         if len(self._strata) > 1:
             if verbose:
                 print("Reducible")
