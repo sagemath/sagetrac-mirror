@@ -32,7 +32,9 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
         sage: # Fix a nice test
     """
-    def __init__(self, abstract_polynomial_ring, ambient_space_basis, basis_name, basis_repr, on_basis_method =None, extra_parameters = (), variables_auto_coerce = False,  **keywords ):
+    def __init__(self, abstract_polynomial_ring, ambient_space_basis,
+                 basis_name, basis_repr, on_basis_method=None,
+                 extra_parameters=(), variables_auto_coerce=False, **keywords):
         r"""
         TESTS::
 
@@ -41,13 +43,14 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
         self._ambient_space_basis = ambient_space_basis
         get_morphism_on_basis = self._get_morphism_on_basis
         
-        if(not keywords.has_key("triangular")): keywords["triangular"] = "upper"
-        if(not keywords["triangular"] is None):
-            if(not keywords.has_key("cmp")): keywords["cmp"] = self.cmp
+        if not keywords.has_key("triangular"):
+            keywords["triangular"] = "upper"
+        elif not keywords["triangular"] is None:
+            if(not keywords.has_key("cmp")):
+                keywords["cmp"] = self.cmp
         self._keywords = keywords
         
-        self._extra_parameters = {}
-        for (key,val) in extra_parameters: self._extra_parameters[key] = val
+        self._extra_parameters = {key: val for key,val in extra_parameters}
         self._on_basis_method = on_basis_method
         
         PolynomialRingWithBasisFromMorphism.__init__(
@@ -64,15 +67,15 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
         )
         
     def cmp(self, key1, key2):
-        l = len(key1.parent()._basis_keys)
-        d1 = sum( [key1[i] for i in xrange(l)]) 
-        d2 = sum( [key2[i] for i in xrange(l)]) 
-        if (d1 > d2): return -1
-        if (d1 < d2): return 1
+        l = len(key1.parent()._indices)
+        d1 = sum(key1[i] for i in xrange(l))
+        d2 = sum(key2[i] for i in xrange(l))
+        if d1 > d2: return -1
+        if d1 < d2: return 1
         for i in xrange(l-1,-1,-1):
-            if (key1[i]>key2[i]):
+            if key1[i] > key2[i]:
                 return 1
-            if (key1[i]<key2[i]):
+            if key1[i] < key2[i]:
                 return -1
         return 0   
 
@@ -82,7 +85,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
             sage: # Fix a nice example
         """
-        return self._ambient_space_basis.finite_basis(n)._basis_keys
+        return self._ambient_space_basis.finite_basis(n)._indices
 
     def ambient_space_basis(self):
         r"""
@@ -549,7 +552,7 @@ class MacdonaldBasisOnVectors(LinearBasisOnVectors):
         return abstract_polynomial_ring.macdonald_basis_on_vectors(self.group_type(), self._t1, self._t2, self._q)
 
     def cmp(self, key1, key2):
-        l = len(key1.parent()._basis_keys)
+        l = len(key1.parent()._indices)
             
         d1 = sum( [key1[i] for i in xrange(l) ] )
         d2 = sum( [key2[i] for i in xrange(l) ] )
@@ -1454,8 +1457,8 @@ class FiniteLinearBasisOnVectors(FinitePolynomialRingWithBasisFromMorphism):
             sage: # Fix a nice test
         """
         if len(rest) > 0 or type(c) is int or type(c) is Integer:
-            c = tuple([c])+tuple(rest)
-        return self.term( self._basis_keys( list(c) ) )    
+            c = tuple([c]) + tuple(rest)
+        return self.term( self._indices(list(c)) )    
         
     def __call__(self, obj):
         r"""
@@ -1463,8 +1466,8 @@ class FiniteLinearBasisOnVectors(FinitePolynomialRingWithBasisFromMorphism):
 
             sage: # Fix a nice test
         """
-        if( type(obj) is list ):
-            return self.term( self._basis_keys( obj))
+        if type(obj) is list:
+            return self.term(self._indices(obj))
         else:
             return super(FiniteLinearBasisOnVectors, self).__call__(obj)
             

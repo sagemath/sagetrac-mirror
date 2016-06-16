@@ -10,8 +10,10 @@ Multivariate Polynomials With Several Bases
 
 
 from sage.categories.all import Category
-from sage.categories.all import GradedModules, CommutativeAlgebras, Realizations, GradedAlgebras
+from sage.categories.all import GradedModules, Realizations
+from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.all import Rings
+from sage.categories.algebras import Algebras
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
@@ -24,81 +26,6 @@ from sage.all import var
 # Temporary!!!!
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-
-
-class Facade_polynomial_ring(GradedAlgebras):
-    r"""
-    This category is used only for (see :class:``AbstractPolynomialRing``)
-    it is both a facade for its realizations ``PolynomialRingWithBasis`` but also
-    for the ``FiniteAbstratPolynomialRing``. The ``WithRealizations`` Method adds the
-    facades categories and methods. We only have to override the parent method
-     ``facade_for`` for it to get both realizations and non realizations.
-
-    EXAMPLES::
-    
-        sage: A = AbstractPolynomialRing(ZZ)
-        sage: m = A.monomial_basis()
-        sage: m3 = m.finite_basis(3)
-        sage: A.realizations()
-        [The ring of multivariate polynomials on x over Integer Ring on the monomial basis]
-        sage: A.facade_for()
-        [The ring of multivariate polynomials on x over Integer Ring on the monomial basis,
-         The abstract ring of multivariate polynomials on x over Integer Ring with 3 variables,
-         The abstract ring of multivariate polynomials on x over Integer Ring with 1 variable,
-         The ring of multivariate polynomials on x over Integer Ring with 3 variables on the monomial basis]
-
-    Actual elements from ``A`` are not directly elements 
-    from its realizations but elements from realizations 
-    of ``FinitePolynomialRing``, we have both these shemas::
-
-        A -> facade for F3 -> realization FiniteMonomialBasis
-        A -> realization MonomialBasis -> facade for FintieMonomialBasis
-
-    TESTS::
-
-        sage: from sage.combinat.multivariate_polynomials.multivariate_polynomials import Facade_polynomial_ring
-        sage: C = Facade_polynomial_ring(QQ)
-        sage: TestSuite(C).run()
-    """
-    def super_categories(self):
-        r"""        
-        OUTPUT:
-
-        - a list of the super categories of ``self``
-            
-        EXAMPLES::
-
-            sage: from sage.combinat.multivariate_polynomials.multivariate_polynomials import Facade_polynomial_ring
-            sage: C = Facade_polynomial_ring(QQ)
-            sage: C.super_categories()
-            [Join of Category of graded algebras over Rational Field
-                 and Category of commutative additive monoids with realizations
-                 and Category of monoids with realizations,
-             Category of commutative algebras over Rational Field]
-        """
-        R = self.base_ring()
-        return [GradedAlgebras(R).WithRealizations(), CommutativeAlgebras(R)]
-        
-    class ParentMethods:
-        
-        def facade_for(self):
-            r"""
-            Return all the parents this set is a facade for.
-
-            EXAMPLES::
-
-                sage: A = AbstractPolynomialRing(CC)                                         
-                sage: A.facade_for()
-                []
-
-            The facade_for parents are added dynamically.
-            
-            """
-            l = [r for r in self.realizations()]
-            l.extend(self._finite_rings)
-            for r in self.realizations():
-                l.extend(r.facade_for())
-            return l
 
 class AbstractPolynomialRing(UniqueRepresentation, Parent):
     r"""
@@ -154,19 +81,17 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
         sage: A = AbstractPolynomialRing(QQ)
         sage: TestSuite(A).run()
     """    
-    def __init__(self, R, main_repr_var='x', bases_category_class=None, finite_bases_category_class=None, always_show_main_var=False):
+    def __init__(self, R, main_repr_var='x', bases_category_class=None,
+                 finite_bases_category_class=None, always_show_main_var=False):
         r"""
         TESTS::
 
             sage: A = AbstractPolynomialRing(QQ)
         """
         assert(R in Rings())
-        Parent.__init__(
-            self,
-            base=R,
-            category=Facade_polynomial_ring(R)
-        )
-        self._finite_rings = set([])
+        cat = Algebras(R).Commutative().Graded().WithRealizations().Facade()
+        Parent.__init__(self, base=R, category=cat)
+        self._finite_rings = set()
         self._main_repr_var = main_repr_var
         self._show_main_var = always_show_main_var
         from basis import Bases, Finite_bases
@@ -191,7 +116,25 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
             <class 'sage.combinat.multivariate_polynomials.basis.Bases'>
         """
         return self._bases_category_class
-        
+
+    def facade_for(self):
+        r"""
+        Return all the parents this set is a facade for.
+
+        EXAMPLES::
+
+            sage: A = AbstractPolynomialRing(CC)                                         
+            sage: A.facade_for()
+            []
+
+        The facade_for parents are added dynamically.
+        """
+        l = [r for r in self.realizations()]
+        l.extend(self._finite_rings)
+        for r in self.realizations():
+            l.extend(r.facade_for())
+        return l
+
     def finite_bases_category_class(self):
         r"""
         Return the class to use for the category of finite bases (bases
@@ -215,9 +158,8 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
             The abstract ring of multivariate polynomials on x over Rational Field
         """
         return "The abstract ring of multivariate polynomials on %s over %s"%(
-            self._main_repr_var,
-            self.base_ring()
-        )
+                    self._main_repr_var,
+                    self.base_ring())
 
     def _repr_with_basis(self):
         r"""
@@ -232,9 +174,8 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
             'The ring of multivariate polynomials on x over Rational Field'
         """
         return "The ring of multivariate polynomials on %s over %s"%(
-            self._main_repr_var,
-            self.base_ring()
-        )
+                    self._main_repr_var,
+                    self.base_ring())
 
     def a_realization(self):
         r"""
@@ -245,7 +186,6 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
             sage: A = AbstractPolynomialRing(QQ)
             sage: A.a_realization()
             The ring of multivariate polynomials on x over Rational Field on the monomial basis
-
         """
         return self.monomial_basis()
 
@@ -293,7 +233,7 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
             return element
         raise TypeError("do not know how to make '%s' an element of '%s'"%(element, self))
 
-    def var(self, i, nb_variables = 0):
+    def var(self, i, nb_variables=0):
         r"""
         Return the ``i``-th variable as a monomial base element.
 
@@ -1249,7 +1189,7 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
                 if ind[i] != 0:
                     if i + 1 > max_val: max_val = i + 1
                     break
-        if max_val == pol.nb_variables()):
+        if max_val == pol.nb_variables():
             return pol
         codomain = pol.parent().basis_tower().finite_basis(max)
         return sum(coeff * codomain([ind[i] for i in xrange(0,max)]) for ind, coeff in pol)
@@ -1310,7 +1250,7 @@ class AbstractPolynomialRing(UniqueRepresentation, Parent):
 class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
     r"""
     This class implements the ring of abstract polynomial on a given number
-    of variables. It is obtained by calling AbstractPolynomialRing.finite_polynmial_ring
+    of variables. It is obtained by calling AbstractPolynomialRing.finite_polynomial_ring
     See the documentation of the above method for more information
     
     INPUT:
@@ -1331,7 +1271,6 @@ class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
         sage: B = FiniteAbstractPolynomialRing(A,4)
         sage: B
         The abstract ring of multivariate polynomials on x over Rational Field with 4 variables
-        sage: TestSuite(B).run()
     """
     def __init__(self, polynomial_ring_tower, nb_variables, main_repr_var='x', bases_category_class=None):
         r"""
@@ -1339,23 +1278,24 @@ class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.multivariate_polynomials.multivariate_polynomials import FiniteAbstractPolynomialRing
             sage: A = AbstractPolynomialRing(QQ)
-            sage: B = FiniteAbstractPolynomialRing(A,4)
+            sage: B = FiniteAbstractPolynomialRing(A, 4)
+            sage: TestSuite(B).run()
         """
         self._polynomial_ring_tower = polynomial_ring_tower
         self._nb_variables = nb_variables
-        Parent.__init__(
-            self,
-            base = polynomial_ring_tower.base_ring(),
-            category = GradedAlgebras(polynomial_ring_tower.base_ring()).WithRealizations()
-        )
+        R = polynomial_ring_tower.base_ring()
+        cat = Algebras(R).Graded().WithRealizations()
+        Parent.__init__(self, base=R, category=cat)
         self._main_repr_var = main_repr_var
         self._polynomial_ring_tower._register_finite_ring(self)
         m = SetMorphism( Hom(self, polynomial_ring_tower), lambda x: x)
         m.register_as_coercion()
         
         from basis import Finite_bases
-        if(bases_category_class is None): self._bases_category_class = Finite_bases
-        else: self._bases_category_class = bases_category_class
+        if bases_category_class is None:
+            self._bases_category_class = Finite_bases
+        else:
+            self._bases_category_class = bases_category_class
 
     def bases_category_class(self):
         r"""
@@ -1408,7 +1348,8 @@ class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
             variables_str = "variables"
         else:
             variables_str = "variable"
-        return "%s with %s %s"%(self.polynomial_ring_tower()._repr_with_basis(),self.nb_variables(),variables_str)
+        return "%s with %s %s"%(self.polynomial_ring_tower()._repr_with_basis(), 
+                                self.nb_variables(), variables_str)
 
     def nb_variables(self):
         r"""
@@ -1525,7 +1466,7 @@ class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
         from monomial import FiniteMonomialBasis
         return FiniteMonomialBasis(self, basis_repr)
 
-    def ambient_space_basis(self, letter, basis_repr = None):
+    def ambient_space_basis(self, letter, basis_repr=None):
         r"""
         Returns the algebra ``self`` view in the proper ambient space of the
         root system design by ``letter``.
@@ -1608,20 +1549,19 @@ class FiniteAbstractPolynomialRing(UniqueRepresentation, Parent):
         - a basis named ``basis_name`` and defined by its conversion to an ambient space basis,
          the type of the ambient space basis and the method of conversion are all contained into the
          ``polynomial_ring_tower``
-         
 
         EXAMPLES::
-        
+
             sage: A = AbstractPolynomialRing(QQ)
             sage: def schubert_on_basis(v, basis, call_back):
             ....:     for i in xrange(len(v)-1):
-            ....:         if(v[i]<v[i+1]):
+            ....:         if v[i] < v[i+1]:
             ....:             v[i], v[i+1] = v[i+1] + 1, v[i]
             ....:             return call_back(v).divided_difference(i+1)
             ....:     return basis(v)
-            sage: myBasis = A.linear_basis_on_vectors("A","MySchub","Y",schubert_on_basis)
+            sage: myBasis = A.linear_basis_on_vectors("A", "MySchub", "Y", schubert_on_basis)
             sage: F3 = A.finite_polynomial_ring(3)
-            sage: myFiniteBasis = F3.linear_basis_on_vectors(myBasis,"MySchub","Y")
+            sage: myFiniteBasis = F3.linear_basis_on_vectors(myBasis, "MySchub", "Y")
             sage: myFiniteBasis
             The ring of multivariate polynomials on x over Rational Field with 3 variables on the MySchub
         """

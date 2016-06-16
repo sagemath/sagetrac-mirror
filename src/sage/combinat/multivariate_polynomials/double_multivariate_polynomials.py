@@ -304,7 +304,7 @@ class DoubleSchubertBasisOnVectors(LinearBasisOnVectors):
         )
    
     def cmp(self, key1, key2):
-        l = len(key1.parent()._basis_keys)
+        l = len(key1.parent()._indices)
         for i in xrange(l-1,-1,-1):
             if (key1[i]>key2[i]):
                 return 1

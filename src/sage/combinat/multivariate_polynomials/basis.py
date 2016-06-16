@@ -602,7 +602,7 @@ class Finite_bases(Category_realization_of_parent):
                 [([3, 3, 1], 3), ([1, 2, 1], 1)]
 
             """
-            kkeys = self.parent()._basis_keys._basis_keys # keys indexing the polynomials are themselves free modules
+            kkeys = self.parent()._indices._indices # keys indexing the polynomials are themselves free modules
             return [([key[kk] for kk in kkeys],c) for (key,c) in self]
        
         
@@ -768,7 +768,7 @@ class Finite_bases(Category_realization_of_parent):
 
             
             """
-            keys = new_basis._basis_keys
+            keys = new_basis._indices
             d = { keys(key):c for (key,c) in self.elements()}
             return new_basis._from_dict(d)
             
@@ -1776,7 +1776,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
         """
         if( hasattr(obj, 'nb_variables')):
             return self.finite_basis(obj.nb_variables())(obj)     
-        if( hasattr(obj, 'parent') and type( obj.parent()) == type(self._default_finite_basis()._basis_keys) ):
+        if( hasattr(obj, 'parent') and type( obj.parent()) == type(self._default_finite_basis()._indices) ):
             return self.term(obj)
         if(type(obj) is list or type(obj) is tuple):
             return self.__getitem__(obj) 
@@ -2065,7 +2065,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
             x[1, 2, 3]
 
         """
-        nb_variables = len(key.parent()._basis_keys)
+        nb_variables = len(key.parent()._indices)
         return self.finite_basis(nb_variables).term(key, coeff)
     
     def add_operator(self, name, method):
@@ -2898,8 +2898,8 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
 
             """
-            if not c in self.parent()._basis_keys:
-                c = self.parent()._basis_keys(c)
+            if not c in self.parent()._indices:
+                c = self.parent()._indices(c)
             
             return self._coefficient_fast(c)
        

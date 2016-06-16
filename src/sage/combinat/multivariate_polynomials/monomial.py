@@ -487,7 +487,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             [0, 0, 0]
 
         """
-        return self._basis_keys[list(0 for i in xrange(self.nb_variables()))]
+        return self._indices[list(0 for i in xrange(self.nb_variables()))]
 
     def __getitem__(self, c, *rest):
         r"""
@@ -504,7 +504,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
         """
         if len(rest) > 0 or type(c) is int or type(c) is Integer:
             c = tuple([c])+tuple(rest)
-        return self.term( self._basis_keys[ list(c) ] )    
+        return self.term( self._indices[ list(c) ] )    
 
     def __call__(self, obj):
         r"""
@@ -520,7 +520,7 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
 
         """
         if isinstance(obj, (list, tuple)):
-            return self.term(self._basis_keys[list(obj)])
+            return self.term(self._indices[list(obj)])
         else:
             return super(FiniteMonomialBasis, self).__call__(obj)
 

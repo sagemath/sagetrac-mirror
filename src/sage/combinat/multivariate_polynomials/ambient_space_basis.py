@@ -18,7 +18,8 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 
-from basis import PolynomialRingWithBasis, FinitePolynomialRingWithBasis
+from sage.combinat.multivariate_polynomials.basis import (PolynomialRingWithBasis,
+                                                          FinitePolynomialRingWithBasis)
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -31,9 +32,9 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
     and so has a group type embeded in it.
         
     The class is called by 
-    ``multivariate_polinomials.AbstractPolynomialRing.ambien_space_basis``
+    ``multivariate_polynomials.AbstractPolynomialRing.ambien_space_basis``
     
-    It is a representation of ``multivariate_polinomials.AbstractPolynomialRing``.
+    It is a representation of ``multivariate_polynomials.AbstractPolynomialRing``.
 
     The number of variables is not set, this class is a facade for 
     ``FiniteMonomialBasis``.  
@@ -198,7 +199,7 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
             res2 = res2.si(self._i) * self._t2
             return res1 - res2
 
-class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasis):    
+class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasis):
     r"""
     This class implements the ambient basis on a given number of variables
     it is obtained automatically by PolynomialRingWithBasisFromAmbientSpace when a polynomial is created
@@ -281,7 +282,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice test
         """
-        return self.term( self._basis_keys(vector.coeffs_to_list()) )
+        return self.term( self._indices(vector.coeffs_to_list()) )
 
     def to_monomial_morphism(self):
         """
@@ -311,7 +312,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice example
         """
-        return self._basis_keys.weyl_group()    
+        return self._indices.weyl_group()    
 
     def group_type(self):
         r"""
@@ -331,7 +332,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
         """
         if len(rest) > 0 or type(c) is int or type(c) is Integer:
             c = (c,) + tuple(rest)
-        return self.term( self._basis_keys(list(c)) )
+        return self.term( self._indices(list(c)) )
 
     def __call__(self, obj):
         r"""
@@ -339,8 +340,8 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
             sage: # Fix a nice test
         """
-        if type(obj) is list or type(obj) is tuple:
-            return self.term(self._basis_keys(obj))
+        if isinstance(obj, (list, tuple)):
+            return self.term(self._indices(obj))
         else:
             return super(FinitePolynomialRingWithBasisFromAmbientSpace, self).__call__(obj)  
 
