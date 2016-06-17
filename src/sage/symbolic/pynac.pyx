@@ -179,7 +179,10 @@ cdef GEx pyExpression_to_ex(object res) except *:
     try:
         t = ring.SR.coerce(res)
     except TypeError as err:
-        raise TypeError("function did not return a symbolic expression or an element that can be coerced into a symbolic expression")
+        try:
+            t = ring.SR(res)
+        except TypeError:
+            raise TypeError("function did not return a symbolic expression or an element that can be converted into a symbolic expression")
     return (<Expression>t)._gobj
 
 cdef object paramset_to_PyTuple(const_paramset_ref s):

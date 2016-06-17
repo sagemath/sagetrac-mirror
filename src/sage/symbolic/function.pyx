@@ -76,7 +76,7 @@ cdef class Function(SageObject):
             sage: bar(x)
             Traceback (most recent call last):
             ...
-            TypeError: function did not return a symbolic expression or an element that can be coerced into a symbolic expression
+            TypeError: function did not return a symbolic expression or an element that can be converted into a symbolic expression
 
             # eval_func is not callable
             sage: bar = function("bar", nargs=1, eval_func=5)
@@ -389,11 +389,11 @@ cdef class Function(SageObject):
             sage: bar(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce arguments: ...
+            TypeError: cannot convert arguments: ...
             sage: exp(QQbar(I))
             0.540302305868140 + 0.841470984807897*I
             sage: binomial(Qp(2)(9),5)
-            126
+            2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + O(2^21)
 
         For functions with single argument, if coercion fails we try to call
         a method with the name of the function on the object::
@@ -470,29 +470,17 @@ cdef class Function(SageObject):
                     method = getattr(args[0], self._name, None)
                     if callable(method):
                         return method()
-                raise TypeError("cannot coerce arguments: %s" % (err))
 
-                # There is no natural coercion from QQbar to the symbolic ring
-                # in order to support
-                #     sage: QQbar(sqrt(2)) + sqrt(3)
-                #     3.146264369941973?
-                # to work around this limitation, we manually convert
-                # elements of QQbar to symbolic expressions here
-                from sage.rings.qqbar import QQbar, AA
-                from sage.rings.padics.padic_generic_element import pAdicGenericElement
                 nargs = [None]*len(args)
                 for i in range(len(args)):
                     carg = args[i]
-                    if (isinstance(carg, Element) and
-                            ((<Element>carg)._parent is QQbar or
-                            (<Element>carg)._parent is AA or
-                            isinstance(carg, pAdicGenericElement))):
-                        nargs[i] = SR(carg)
-                    else:
+                    try:
+                        nargs[i] = SR.coerce(carg)
+                    except TypeError:
                         try:
-                            nargs[i] = SR.coerce(carg)
-                        except Exception:
-                            raise TypeError, "cannot coerce arguments: %s"%(err)
+                            nargs[i] = SR(carg)
+                        except TypeError:
+                            raise TypeError("cannot convert arguments: %s" % (err))
                 args = nargs
         else: # coerce == False
             for a in args:
