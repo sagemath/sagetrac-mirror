@@ -62,7 +62,7 @@ axioms)::
     ....:     class Finite(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on finite C's"
+    ....:                 print("I am a method on finite C's")
 
 ::
 
@@ -146,7 +146,7 @@ elsewhere, typically in a separate file, with just a link from
     sage: class FiniteCs(CategoryWithAxiom):
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
     sage: Cs.Finite = FiniteCs
     sage: Cs().Finite()
     Category of finite cs
@@ -238,7 +238,7 @@ failed (try it!). In general, one needs to set the attribute explicitly::
     ....:     _base_category_class_and_axiom = (Cs, 'Finite')
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
 
 Having to set explicitly this link back from ``FiniteCs`` to ``Cs``
 introduces redundancy in the code. It would therefore be desirable to
@@ -334,7 +334,7 @@ out the largest category where the axiom makes sense. For example
     ....:     class Green(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on green C's"
+    ....:                 print("I am a method on green C's")
 
 With the current implementation, the name of the axiom must also be
 added to a global container::
@@ -812,7 +812,7 @@ axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_construction.CovariantConstructionCategory.extra_super_categories`).
-For example, the fact that a cartesian product of associative magmas
+For example, the fact that a Cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
 
@@ -1381,8 +1381,8 @@ Upcoming features
 
 .. _axioms-algorithmic:
 
-Description of the algorithmic
-==============================
+Algorithms
+==========
 
 Computing joins
 ---------------
@@ -1560,9 +1560,6 @@ having read that far!
 Tests
 =====
 
-
-TESTS:
-
 .. NOTE::
 
     Quite a few categories with axioms are constructed early on during
@@ -1571,6 +1568,8 @@ TESTS:
     Sage. The following sequence of tests is designed to test the
     infrastructure from the ground up even in a partially broken
     Sage. Please don't remove the imports!
+
+TESTS:
 
 ::
 
@@ -1646,9 +1645,7 @@ TESTS:
         and Category of finite dimensional algebras with basis over Rational Field
         and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
-    Join of Category of finite dimensional hopf algebras with basis over Rational Field
-        and Category of group algebras over Rational Field
-        and Category of finite set algebras over Rational Field
+    Category of finite group algebras over Rational Field
 """
 #*****************************************************************************
 #  Copyright (C) 2011-2014 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -1656,6 +1653,7 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import importlib
 import re
@@ -1675,13 +1673,18 @@ from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axio
 
 all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
-              "Facade", "Finite", "Infinite",
-              "FiniteDimensional", "Connected", "WithBasis",
-              "Irreducible",
-              "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
-              "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
-              "Distributive",
-              "Endset"
+               "Compact",
+               "Differentiable", "Smooth", "Analytic", "AlmostComplex",
+               "FinitelyGeneratedAsMagma",
+               "WellGenerated",
+               "Facade", "Finite", "Infinite",
+               "Complete",
+               "FiniteDimensional", "Connected", "WithBasis",
+               "Irreducible",
+               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
+               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
+               "Distributive",
+               "Endset",
               )
 
 def uncamelcase(s,separator=" "):
@@ -1690,10 +1693,12 @@ def uncamelcase(s,separator=" "):
 
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras")
         'finite dimensional algebras'
+        sage: sage.categories.category_with_axiom.uncamelcase("JTrivialMonoids")
+        'j trivial monoids'
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras", "_")
         'finite_dimensional_algebras'
     """
-    return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
+    return re.sub("(?!^)[A-Z]", lambda match: separator+match.group()[0], s).lower()
 
 def base_category_class_and_axiom(cls):
     """
@@ -2129,17 +2134,9 @@ class CategoryWithAxiom(Category):
         ``self``, as per :meth:`Category.super_categories`.
 
         This implements the property that if ``As`` is a subcategory
-        of ``Bs``, then the intersection of As with ``FiniteSets()``
+        of ``Bs``, then the intersection of ``As`` with ``FiniteSets()``
         is a subcategory of ``As`` and of the intersection of ``Bs``
         with ``FiniteSets()``.
-
-        EXAMPLES::
-
-            sage: FiniteSets().super_categories()
-            [Category of sets]
-
-            sage: FiniteSemigroups().super_categories()
-            [Category of semigroups, Category of finite enumerated sets]
 
         EXAMPLES:
 
@@ -2147,6 +2144,16 @@ class CategoryWithAxiom(Category):
 
             sage: Magmas().Finite().super_categories()
             [Category of magmas, Category of finite sets]
+
+        Variants::
+
+            sage: Sets().Finite().super_categories()
+            [Category of sets]
+
+            sage: Monoids().Finite().super_categories()
+            [Category of monoids, Category of finite semigroups]
+
+        EXAMPLES:
 
         TESTS::
 
@@ -2232,7 +2239,12 @@ class CategoryWithAxiom(Category):
             sage: from sage.categories.homsets import Homsets
             sage: CategoryWithAxiom._repr_object_names_static(Homsets(), ["Endset"])
             'endsets'
+            sage: CategoryWithAxiom._repr_object_names_static(PermutationGroups(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated permutation groups'
+            sage: CategoryWithAxiom._repr_object_names_static(Rings(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated as magma rings'
         """
+        from sage.categories.additive_magmas import AdditiveMagmas
         axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
         if isinstance(base_category, CategoryWithAxiom): # Smelly runtime type checking
@@ -2251,9 +2263,14 @@ class CategoryWithAxiom(Category):
                 result = result.replace(" over ", " with basis over ", 1)
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
+            elif axiom == "Connected" and "filtered " in result:
+                result = result.replace("filtered ", "filtered connected ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)
+            elif axiom == "FinitelyGeneratedAsMagma" and \
+                 not base_category.is_subcategory(AdditiveMagmas()):
+                result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result
         return result

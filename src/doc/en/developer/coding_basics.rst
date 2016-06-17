@@ -130,7 +130,7 @@ of several different types of polynomial rings.
 
 If you want to create a new directory in the Sage library
 ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
-should contain a file ``__init__.py`` that contains the single line 
+should contain a file ``__init__.py`` that contains the single line
 ``import all`` in addition to whatever
 files you want to add (say, ``borel_measure.py`` and
 ``banach_tarski.py``), and also a file ``all.py`` listing imports from
@@ -181,7 +181,7 @@ The top of each Sage code file should follow this format::
     - YOUR NAME (2005-01-03): initial version
 
     - person (date in ISO year-month-day format): short desc
-    
+
     EXAMPLES::
 
     <Lots and lots of examples>
@@ -271,11 +271,15 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block (highly recommended) with links to related parts of
+   Sage. This helps users find the features that interests them and discover the
+   new ones. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`,
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.
@@ -304,7 +308,7 @@ information. You can use the existing functions of Sage as templates.
 
        REFERENCES:
 
-       .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
+       .. [Nat2000] \M. B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
 
 -  A **NOTE** block for tips/tricks (optional). ::
@@ -366,11 +370,40 @@ information. You can use the existing functions of Sage as templates.
       .. [SC] Conventions for coding in sage.
          http://www.sagemath.org/doc/developer/conventions.html.
 
+  When abbreviating the first name of an author, be sure to put a
+  backslash in front of it. This ensures that the letter (``C.``
+  in the example below) will not be interpreted as a list
+  enumerator::
+
+      .. [Gauss] \C. F. Gauss, Disquisitiones Arithmeticae, 1801.
+
   See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (optional)
 
-  Formatted just like EXAMPLES, containing tests that are not relevant to users.
+  Formatted just like EXAMPLES, containing tests that are not relevant
+  to users.  In particular, these blocks are not shown when users ask
+  for help via `foo?`: they are stripped by the function
+  :func:`sage.misc.sagedoc.skip_TESTS_block`.
+
+  For the purposes of removal, A "TESTS" block is a block starting
+  with "TEST:" or "TESTS:" (or the same with two colons), on a line on
+  its own, and ending with an unindented line (that is, the same level
+  of indentation as "TESTS") matching one of the following:
+
+  one of the following ways:
+
+  - a line which starts with whitespace and then a Sphinx directive
+    of the form ".. foo:", optionally followed by other text.
+
+  - a line which starts with whitespace and then text of the form
+    "UPPERCASE:", optionally followed by other text.
+
+  - lines which look like a ReST header: one line containing
+    anything, followed by a line consisting only of whitespace,
+    followed by a string of hyphens, equal signs, or other
+    characters which are valid markers for ReST headers:
+    ``- = ` : ' " ~ _ ^ * + # < >``.
 
 Template
 ^^^^^^^^
@@ -678,8 +711,11 @@ written.
 
       sage: for n in srange(1,10):
       ....:     if n.is_prime():
-      ....:         print n,
-      2 3 5 7
+      ....:         print(n)
+      2
+      3
+      5
+      7
 
 - **Split long lines:** You may want to split long lines of code with a
   backslash. Note: this syntax is non-standard and may be removed in the
@@ -697,6 +733,29 @@ written.
 
 Special Markup to Influence Tests
 ---------------------------------
+
+Overly complicated output in the example code can be shortened
+by an ellipsis marker ``...``::
+
+    sage: [ZZ(n).ordinal_str() for n in range(25)]
+    ['0th',
+     '1st',
+     '2nd',
+     '3rd',
+     '4th',
+     '5th',
+     ...
+     '21st',
+     '22nd',
+     '23rd',
+     '24th']
+    sage: ZZ('sage')
+    Traceback (most recent call last):
+    ...
+    TypeError: unable to convert 'sage' to an integer
+
+On the proper usage of the ellipsis marker, see :python:`Python's documentation
+<library/doctest.html#doctest.ELLIPSIS>`.
 
 There are a number of magic comments that you can put into the example
 code that change how the output is verified by the Sage doctest
@@ -759,7 +818,7 @@ framework. Here is a comprehensive list:
   doctest with tolerance contains several numbers, each of them is checked
   individually::
 
-      sage: print "The sum of 1 and 1 equals 5"  # abs tol 1
+      sage: print("The sum of 1 and 1 equals 5")  # abs tol 1
       The sum of 2 and 2 equals 4
       sage: e^(i*pi/4).n() # rel tol 1e-1
       0.7 + 0.7*I
@@ -814,14 +873,14 @@ framework. Here is a comprehensive list:
        sage: sloane_sequence(60843)       # optional - internet
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
-    instead: it is an alias for ``optional bug``.::
+    instead: it is an alias for ``optional bug``. ::
 
-      The following should yield 4.  See :trac:`2`. ::
+        The following should yield 4.  See :trac:`2`. ::
 
-          sage: 2+2  # optional: bug
-          5
-          sage: 2+2  # known bug
-          5
+            sage: 2+2  # optional: bug
+            5
+            sage: 2+2  # known bug
+            5
 
   .. NOTE::
 
@@ -837,16 +896,28 @@ framework. Here is a comprehensive list:
       - Optional tags are case-insensitive, so you could also write ``optional:
         chOMP``.
 
+- **indirect doctest:** in the docstring of a function ``A(...)``, a line
+  calling ``A`` and in which the name ``A`` does not appear should have this
+  flag. This prevents ``sage --coverage <file>`` from reporting the docstring as
+  "not testing what it should test".
+
+  Use it when testing special functions like ``__repr__``, ``__add__``,
+  etc. Use it also when you test the function by calling ``B`` which
+  internally calls ``A``::
+
+      This is the docstring of an ``__add__`` method. The following
+      example tests it, but ``__add__`` is not written anywhere::
+
+          sage: 1+1 # indirect doctest
+          2
+
 - **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: z = 32
-      sage: z.powermodm_ui(2^32-1, 14)
-      Traceback (most recent call last):                              # 32-bit
-      ...                                                             # 32-bit
-      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8                                                               # 64-bit
+      sage: hash(-920390823904823094890238490238484)
+      -873977844            # 32-bit
+      6874330978542788722   # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not
@@ -939,7 +1010,7 @@ The Pickle Jar
 Sage maintains a pickle jar at
 ``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` which is a tar
 file of "standard" pickles created by ``sage``. This pickle jar is
-used to ensure that sage maintains backward compatibility by have
+used to ensure that sage maintains backward compatibility by
 having :func:`sage.structure.sage_object.unpickle_all` check that
 ``sage`` can always unpickle all of the pickles in the pickle jar as
 part of the standard doc testing framework.

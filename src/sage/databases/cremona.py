@@ -12,9 +12,9 @@ rank, and torsion for curves up to conductor 10000.
 The large database includes all curves in John Cremona's tables. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
-groups. To install it type the following in Sage::
+groups. To install it, run the following in the shell::
 
-    !sage -i database_cremona_ellcurve
+    sage -i database_cremona_ellcurve
 
 This causes the latest version of the database to be downloaded from
 the internet.
@@ -104,7 +104,7 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
     Build the CremonaDatabase with given name from scratch
     using the data_tgz tarball.
 
-    ... note::
+    .. note::
 
            For data up to level 350000, this function takes about
            3m40s.  The resulting database occupies 426MB disk space.
@@ -795,6 +795,13 @@ class MiniCremonaDatabase(SQLDatabase):
             0
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: 'gens' in CremonaDatabase().coefficients_and_data('100467a2')[1] # optional - database_cremona_ellcurve
+            True
+
+
         """
         # There are two possible strings: the Cremona label and the LMFDB label.
         # They are distinguished by the presence of a period.
@@ -837,13 +844,9 @@ class MiniCremonaDatabase(SQLDatabase):
         if lmfdb_label:
             data['lmfdb_label'] = lmfdb_label
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return ainvs, data
 
     def data_from_coefficients(self, ainvs):
@@ -862,6 +865,12 @@ class MiniCremonaDatabase(SQLDatabase):
             1
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: ai = EllipticCurve('100467a2').ainvs() # optional - database_cremona_ellcurve
+            sage: 'gens' in CremonaDatabase().data_from_coefficients(ai) # optional - database_cremona_ellcurve
+            True
         """
         ainvs = str(list(ainvs))
         if self.get_skeleton() == _miniCremonaSkeleton:
@@ -885,13 +894,9 @@ class MiniCremonaDatabase(SQLDatabase):
                 'torsion_order': c[2],
                 'conductor': N}
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return data
 
     def elliptic_curve_from_ainvs(self, ainvs):
@@ -1319,7 +1324,7 @@ class MiniCremonaDatabase(SQLDatabase):
             self.__largest_conductor__ =  largest_conductor
 
         # Since July 2014 the data files have been arranged in
-        # subdirectories (see :trac:`16903`).
+        # subdirectories (see trac #16903).
         allcurves_dir = os.path.join(ftpdata,'allcurves')
         allbsd_dir = os.path.join(ftpdata,'allbsd')
         allgens_dir = os.path.join(ftpdata,'allgens')
@@ -1402,8 +1407,9 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
 
         sage: c = CremonaDatabase('cremona')  # optional - database_cremona_ellcurve
         sage: c.allcurves(11)                 # optional - database_cremona_ellcurve
-        {'a1': [[0, -1, 1, -10, -20], 0, 5], 'a3': [[0, -1, 1, 0, 0], 0, 5],
-         'a2': [[0, -1, 1, -7820, -263580], 0, 1]}
+        {'a1': [[0, -1, 1, -10, -20], 0, 5],
+        'a2': [[0, -1, 1, -7820, -263580], 0, 1],
+        'a3': [[0, -1, 1, 0, 0], 0, 5]}
     """
     def __init__(self, name, read_only=True, build=False):
         """

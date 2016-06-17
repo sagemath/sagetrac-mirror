@@ -42,7 +42,6 @@ AUTHORS:
 
 from libc.stdint cimport uint32_t, uint64_t
 
-include "sage/ext/stdsage.pxi"
 
 cdef class SolverConf(object):
     """
@@ -81,10 +80,10 @@ cdef class SolverConf(object):
         """
         TESTS::
 
-        sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
-        sage: for i in range(100):                                  # optional - cryptominisat
-        ...      s = SolverConf()
-        ...      del s
+            sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
+            sage: for i in range(100):                                  # optional - cryptominisat
+            ...      s = SolverConf()
+            ...      del s
 
         """
         del self._conf

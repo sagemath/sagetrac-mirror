@@ -17,6 +17,8 @@ Disks
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
@@ -76,7 +78,7 @@ class Disk(GraphicPrimitive):
             'red'
             sage: D[0].options()['alpha']
             0.500000000000000
-            sage: print loads(dumps(D))
+            sage: print(loads(dumps(D)))
             Graphics object consisting of 1 graphics primitive
         """
         self.x = float(point[0])
@@ -202,7 +204,7 @@ class Disk(GraphicPrimitive):
             sage: D = disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=True)
             sage: d = D[0]
             sage: d.plot3d(z=2).texture.opacity
-            0.300000000000000
+            0.3
 
         ::
 

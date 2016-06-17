@@ -1,11 +1,9 @@
 # NOT ready to be used -- possibly should be deleted.
 
-include "sage/ext/stdsage.pxi"
 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
@@ -118,7 +116,7 @@ cdef class PowerSeries_mpoly(PowerSeries):
 
     def __iter__(self):
         """
-        Return an interator over the coefficients of this power series.
+        Return an iterator over the coefficients of this power series.
         """
         return iter(self.__f)
 
