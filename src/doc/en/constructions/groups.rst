@@ -737,7 +737,7 @@ M.Bestvina and M.Handel [1].
        a: 0->0, b: 0->0, c: 0->0
        sage: G.plot()
 
-   tmp_S25CbR.png
+   .. image:: tmp_S25CbR.*
 
 
    Otherwise a graph can be given by a variety of inputs like a list of
