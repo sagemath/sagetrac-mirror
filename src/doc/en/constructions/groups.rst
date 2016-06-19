@@ -681,11 +681,11 @@ M.Bestvina and M.Handel [1].
 
           sage: phi = FreeGroupAutomorphism('a->ab,b->ac,c->a')
           sage: psi = FreeGroupAutomorphism('a->c,b->ba,c->bcc')
-          sage: print phi*psi
+          sage: print(phi*psi)
           a->a,b->a*c*a*b,c->a*c*a^2
-          sage: print phi.inverse()
+          sage: print(phi.inverse())
           a->c,b->c^-1*a,c->c^-1*b
-          sage: print phi**3
+          sage: print(phi**3)
           a->a*b*a*c*a*b*a,b->a*b*a*c*a*b,c->a*b*a*c
           sage: phi('aBc')
           a*b*c^-1
@@ -757,7 +757,7 @@ M.Bestvina and M.Handel [1].
    to create a graph map is from a free group automorphism::
 
        sage: phi = free_group_automorphisms.tribonacci()
-       sage: print phi.rose_representative()
+       sage: print(phi.rose_representative())
        GraphSelfMap:
        Marked graph: a: 0->0, b: 0->0, c: 0->0
        Marking: a->a, b->b, c->c
@@ -972,7 +972,7 @@ M.Bestvina and M.Handel [1].
           sage: from sage.groups.free_groups.marked_graph import MarkedMetricGraph
           sage: A = AlphabetWithInverses(3)
           sage: G = MarkedMetricGraph.splitting(2,A)
-          sage: print G
+          sage: print(G)
           Marked graph: a: 0->0, b: 0->0, c: 1->1, d: 0->1
           Marking: a->a, b->b, c->dcD
           Length: a:0, b:0, c:0, d:1
