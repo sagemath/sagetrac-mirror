@@ -645,7 +645,7 @@ M.Bestvina and M.Handel [1].
 
 -  Free groups and automorphisms::
 
-   To create ``FreeGroup`` on generators:
+   To create ``FreeGroup`` on generators.
 
    -  Creating free groups::
 
@@ -692,7 +692,8 @@ M.Bestvina and M.Handel [1].
 
       There is a list of pre-defined automorphisms of free groups taken from the litterature:
       ::
-          sage: print free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda()
+
+          sage: print(free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda())
           Automorphism of the Free Group on generators {a, b, c}: a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
 
       Also Free group automorphisms can be obtained as composition of
@@ -705,8 +706,9 @@ M.Bestvina and M.Handel [1].
       of $S_{g,1}$ is a
       subgroup of the outer automorphism group of $F_N$ and it is generated
       by a collection of $3g-1$ Dehn twists along curves. Those Dehn
-      twists are accessed through:
+      twists are accessed through.
       ::
+
           sage: F = FreeGroup(4, 'a,b,c,d')
           sage: FreeGroupAutomorphism.surface_dehn_twist(F, k=2)
           Automorphism of the Free Group on generators {a, b, c, d}: a->a,b->a*b,c->a*c*a^-1,d->a*d*a^-1
@@ -1017,6 +1019,7 @@ M.Bestvina and M.Handel [1].
       which is the same as $T_0$
       but with the action twisted by ``phi``.
       ::
+
           sage: from sage.groups.free_groups.convex_core import ConvexCore
           sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
           sage: C = ConvexCore(phi)
@@ -1037,6 +1040,7 @@ M.Bestvina and M.Handel [1].
           sage: C = ConvexCore(G1, G2)
           sage: C.volume()
           0
+
       Remark that if the automorphism is a mapping class and the trees are
       transverse to ideal curves then the convex core (as a CW-complex) is
       homeomorphic to the surface.
