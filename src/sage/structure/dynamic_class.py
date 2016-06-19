@@ -389,8 +389,8 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             assert bases != ()
             doccls = bases[0]
     methods['_reduction'] = reduction
-    # HACK: _doccls is a 1-element tuple to avoid __classget__
-    # or trouble with binding behaviour...
+    # HACK: recall that some classes have a binding behavior (see BindableClass)
+    # _doccls wraps doccls in a 1-element tuple to prevent this binding
     methods['_doccls'] = (doccls,)
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
@@ -429,8 +429,7 @@ class DynamicMetaclass(type):
             'cdef class Integer(sage.structure.element.EuclideanDomainElement):\n'
         """
         try:
-            # HACK: _doccls is a 1-element tuple to avoid __classget__
-            # or trouble with binding behaviour...
+            # HACK: recall that _doccls is a 1-element tuple containing the class itself
             doccls = self._doccls[0]
         except AttributeError:
             raise NotImplementedError("no _doccls found")
