@@ -1521,6 +1521,20 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 class free_group_automorphisms:
     r"""
     Many examples of free group automorphisms.
+
+    REFERENCES:
+
+    .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+
+    .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
+        automorphisms of free groups, Transactions of
+        Amer. Math. Soc. 359, 3153-3183, 2007.
+
+    .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
+        fixed subgroup of a free group automorphism, Inventiones
+        Math. 96, 613-638, 1989.
+
     """
 
     @staticmethod
@@ -1559,12 +1573,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda()
             Automorphism of the Free Group on generators {a, b, c}: a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
 
-        REFERENCES:
-
-        .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
-           automorphisms of free groups, Transactions of
-           Amer. Math. Soc. 359, 3153-3183, 2007.
-
         """
         theta = pow(FreeGroupAutomorphism("a->b,b->c,c->Ba"), 4)
         psi = FreeGroupAutomorphism("a->b,b->a,c->c")
@@ -1590,11 +1598,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Bestvina_Handel_train_track_1_1()
             Automorphism of the Free Group on generators {a, b, c, d}: a->b,b->c,c->d,d->a^-1*d^-1*b^-1*c^-1
 
-        REFERENCES:
-
-        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
-
         """
         return FreeGroupAutomorphism("a->b,b->c,c->d,d->ADBC")
 
@@ -1609,18 +1612,13 @@ class free_group_automorphisms:
         OUTPUT:
 
         an automorphisms given as Example 1.9 in [BH-train-track]
-         This automorphism cannot be represented by an absolute train-track.
-         But the representation on the rose is a relative train-track.
+        This automorphism cannot be represented by an absolute train-track.
+        But the representation on the rose is a relative train-track.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_1_9()
             Automorphism of the Free Group on generators {a, b, c}: a->b*a,b->b^2*a,c->c*a^-1*b*a*b^-1
-
-        REFERENCES:
-
-        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
 
         """
         return FreeGroupAutomorphism("a->ba,b->bba,c->cAbaB")
@@ -1644,11 +1642,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Bestvina_Handel_train_track_3_6()
             Automorphism of the Free Group on generators {a, b}: a->b*a,b->b^2*a
 
-        REFERENCES:
-
-        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
-
         """
         return FreeGroupAutomorphism("a->ba,b->bba")
 
@@ -1670,11 +1663,6 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_5_16()
             Automorphism of the Free Group on generators {a, b, c}: a->a,b->c^-1*a^-1*b*a*c,c->c^-1*a^-1*b*(a*c)^2*a^-1*c^-1*a^-1*b^-1*a*c
-
-        REFERENCES:
-
-        .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-           automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
 
         """
         return FreeGroupAutomorphism("a->a,b->CAbac,c->CAbacacACABac")
@@ -1702,11 +1690,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Handel_Mosher_axes_3_4()
             Automorphism of the Free Group on generators {a, f, g}: a->a*(f*g)^2*f,f->f*g*f,g->g*f*a*f*g
 
-        REFERENCES:
-
-        .. [HM-axes] M. Handel, L. Mosher, axes
-           in Outer space, Mem. Amer. Math. Soc. 213, 2011.
-
         """
         return FreeGroupAutomorphism("a->afgfgf,f->fgf,g->gfafg")
 
@@ -1731,11 +1714,6 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Handel_Mosher_axes_5_5()
             Automorphism of the Free Group on generators {a, b, c}: a->b*(a*c*a)^2,b->b*a*c*a,c->c*a^2*c*a
-
-        REFERENCES:
-
-        .. [HM-axes] M. Handel, L. Mosher, axes
-           in Outer space, Mem. Amer. Math. Soc. 213, 2011.
 
         """
         return FreeGroupAutomorphism("a->bacaaca,b->baca,c->caaca")
@@ -1800,12 +1778,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Handel_Mosher_parageometric_1()
             Automorphism of the Free Group on generators {a, b, c}: a->a*c,b->a,c->b
 
-        REFERENCES:
-
-        .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
-           automorphisms of free groups, Transactions of
-           Amer. Math. Soc. 359, 3153-3183, 2007.
-
         """
         return FreeGroupAutomorphism("a->ac,b->a,c->b")
 
@@ -1827,12 +1799,6 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Cohen_Lustig_1_6()
             Automorphism of the Free Group on generators {a, b, c}: a->c^3*a*c^-3,b->c^-1*a*c^2*a^-1*b*c^-1,c->a*c^2*a^-1*b*c^2*a*c^-2*b^-1*a*c^-2*a^-1*c^4*a^-1*c^-3
-
-        REFERENCES:
-
-        .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-           fixed subgroup of a free group automorphism, Inventiones
-           Math. 96, 613-638, 1989.
 
         """
         return FreeGroupAutomorphism("a->cccaCCC,b->CaccAbC,"
@@ -1856,13 +1822,6 @@ class free_group_automorphisms:
             sage: free_group_automorphisms.Cohen_Lustig_7_2()
             Automorphism of the Free Group on generators {a, b, c}: a->a^2*b*c,b->a*b*c,c->a*b*c^2
 
-        REFERENCES:
-
-        .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-           fixed subgroup of a free group automorphism, Inventiones
-           Math. 96, 613-638, 1989.
-
-
         """
         return FreeGroupAutomorphism("a->aabc,b->abc,c->abcc")
 
@@ -1883,12 +1842,6 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Cohen_Lustig_7_3()
             Automorphism of the Free Group on generators {a, b, c}: a->c*a*b*a^2,b->b*a^2,c->c*a*b*a
-
-        REFERENCES:
-
-        .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-           fixed subgroup of a free group automorphism, Inventiones
-           Math. 96, 613-638, 1989.
 
         """
         return FreeGroupAutomorphism("a->cabaa,b->baa,c->caba")
