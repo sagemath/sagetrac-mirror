@@ -114,7 +114,7 @@ from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianG
 from sage.matrix.constructor import matrix
 from sage.misc.prandom import randint
 from sage.rings.all import ZZ, NN, RR, Infinity
-from sage.rings.arith import gcd,divisors, moebius
+from sage.arith.all import gcd, divisors, moebius
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
@@ -419,11 +419,11 @@ class SFT(SageObject):
             ...
             ValueError: forbidden words contain ambiguous symbols
         """
-        if name == None or isinstance(name, basestring):
+        if name is None or isinstance(name, basestring):
             self._name = name
         else:
             raise TypeError("name must be a string or None")
-        if symb_sep == None:
+        if symb_sep is None:
             self._symb_sep = ""
         elif isinstance(symb_sep, basestring):
             self._symb_sep = symb_sep
@@ -433,7 +433,7 @@ class SFT(SageObject):
             self._format = format
         else:
             raise ValueError("format not valid; must be 'vertex' or 'edge'")
-        if alphabet == None:
+        if alphabet is None:
             self._alph = []
         else: # force it to be a list (+ print a warning)
             try:
@@ -571,7 +571,7 @@ class SFT(SageObject):
             self._create_fwords_DiGraph()
 
         ## initialize the empty shift ##
-        elif init_obj == None:
+        elif init_obj is None:
             self._create_empty()
 
         ## if init_obj is none of the above ##
@@ -614,7 +614,7 @@ class SFT(SageObject):
         if self._is_empty:
             return "The empty shift."
         else:
-            if self._name == None:
+            if self._name is None:
                 return "A %d-step SFT over %s." % (self.order(), self._alph)
             else:
                 return "The %s of order %d over %s." % (self._name, self.order(), self._alph)
@@ -651,7 +651,7 @@ class SFT(SageObject):
         if self._is_empty:
             return "The empty shift."
         else:
-            if self._name == None:
+            if self._name is None:
                 return "A %d-step SFT over %s." % (self.order(), self._alph)
             else:
                 return "The %s of order %d over %s." % (self._name, self.order(), self._alph)
@@ -944,7 +944,7 @@ class SFT(SageObject):
             sage: X = sfts.S_Gap([1,2,4,5,7,8]); X
             The [1, 2, 4, 5, 7, 8]-Gap shift of order 9 over [0, 1].
             sage: T = X.forbidden_words_iterator()
-            sage: for t in range(6): T.next()
+            sage: for t in range(6): next(T)
             '101'
             '1001'
             '100001'
@@ -952,7 +952,7 @@ class SFT(SageObject):
             '100000001'
             '1000000001'
             sage: T = X.forbidden_words_iterator('Word')
-            sage: for t in range(6): T.next()
+            sage: for t in range(6): next(T)
             word: 101
             word: 1001
             word: 100001
@@ -1031,16 +1031,16 @@ class SFT(SageObject):
         - Sebastian Donoso (2011): initial version
         """
         if self._is_empty == False:
-            print """Name: %s
+            print("""Name: %s
 Alphabet: %s
 Format: %s
 A representing matrix:
 %s
 Forbidden words: %s
 Order: %d""" % (self._name, self._alph, self._format, self._matrix,
-                self._fwords, self.order())
+                self._fwords, self.order()))
         else:
-            print "The empty shift."
+            print("The empty shift.")
 
     def reduce(self):
         r"""
@@ -1400,7 +1400,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: F = sfts.Fibonacci()
             sage: I = F.admissible_words_iterator(4, format='list')
-            sage: for i in range(6): print I.next()
+            sage: for i in range(6): print(next(I))
             [0, 0, 0, 0]
             [0, 0, 0, 1]
             [0, 0, 1, 0]
@@ -1416,7 +1416,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             sage: [i for i in X.admissible_words_iterator(1, 5, 'Word') if not Word([1,1]).is_factor(i)]
             [word: 0, word: 1, word: 00, word: 01, word: 10, word: 000, word: 001, word: 101, word: 0000, word: 0001, word: 00000, word: 00001]
             sage: I = X.admissible_words_iterator(60)
-            sage: for i in range(6): print I.next()
+            sage: for i in range(6): print(next(I))
             000000000000000000000000000000000000000000000000000000000000
             000000000000000000000000000000000000000000000000000000000001
             000000000000000000000000000000000000000000000000000000000011
@@ -1429,7 +1429,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = SFT(matrix(3, 3, [0,1,0, 1,0,1, 0,1,1]), ['a', 'b', 'c', 'd', 'e'])
             sage: I = X.admissible_words_iterator(1, +Infinity)
-            sage: for t in range(20): print I.next(),
+            sage: w = " ".join(next(I) for t in range(20)); print(w)
             a b c d e ab ac ba cd ce db dc ed ee aba acd ace bab bac cdb
 
         #. An iterator for a run length limited SFT and its 1000th admissible
@@ -1437,8 +1437,8 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = sfts.RLL(2,5)
             sage: I = X.admissible_words_iterator(1, +Infinity)
-            sage: for i in range(1000): w = I.next()
-            sage: print I.next()
+            sage: for i in range(1000): w = next(I)
+            sage: print(next(I))
             1000010010010001
 
         AUTHORS:
@@ -1457,7 +1457,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
         if not (n in NN and n > 0):
             raise ValueError("n has to be a positive integer")
-        if not (m == None or (m in NN and m >= n) or m == +Infinity):
+        if not (m is None or (m in NN and m >= n) or m == +Infinity):
             raise ValueError("m has to be a positive integer not less than " +
                              "n or +Infinity")
         if format == 'list':
@@ -1470,7 +1470,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             raise ValueError("format has to be 'string', 'list' or 'Word'")
         if self._is_empty:
             return
-        if m == None:
+        if m is None:
             m = n
         first_off, alph_red = self.first_offenders(format='list')
         if first_off:
@@ -1592,11 +1592,11 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         """
         if not (n in NN and n > 0):
             raise ValueError("n has to be a positive integer")
-        if not (m == None or (m in NN and m >= n)):
+        if not (m is None or (m in NN and m >= n)):
             raise ValueError("m has to be a positive integer not less than n")
         if self._is_empty:
             return []
-        if m == None:
+        if m is None:
             m = n
         first_off, alph_red = self.first_offenders(format='list')
         words = [[]]
@@ -1776,7 +1776,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: F = sfts.Fibonacci()
             sage: I = F.random_element()
-            sage: w = "".join([str(I.next()) for i in range(10000)])
+            sage: w = "".join([str(next(I)) for i in range(10000)])
             sage: "11" in w
             False
 
@@ -1785,7 +1785,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = sfts.RLL(2,7)
             sage: I = X.random_element()
-            sage: w = "".join([str(I.next()) for i in range(10)])
+            sage: w = "".join([str(next(I)) for i in range(10)])
             sage: "010" in w
             True
             sage: "101" in w
@@ -2549,7 +2549,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             (
             [0.7236067977499790? 0.2763932022500211?],
             [ 0.618033988749895? 0.3819660112501051?]
-            [ 1.000000000000000?                   0]
+            [                  1                   0]
             )
 
         #. Parry measure of a full-shift (given as a vertex shift)::
@@ -2713,7 +2713,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         """
         if not isinstance(other, SFT):
             raise TypeError("other must be an SFT")
-        if not (name == None or isinstance(name, basestring)):
+        if not (name is None or isinstance(name, basestring)):
             raise TypeError("name must be a string or None")
         X = copy(self)
         X._name = name
@@ -2818,7 +2818,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         """
         if not isinstance(other, SFT):
             raise TypeError("other must be an SFT")
-        if not (name == None or isinstance(name, basestring)):
+        if not (name is None or isinstance(name, basestring)):
             raise TypeError("name must be a string or None")
         if self._is_empty:
             return self
