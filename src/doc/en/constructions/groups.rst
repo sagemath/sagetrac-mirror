@@ -643,11 +643,11 @@ It is primarily intended to implement the computation of a train-track
 representative for automorphisms of free groups as introduced by
 M.Bestvina and M.Handel [1].
 
--  Free groups and automorphisms::
+-  Free groups and automorphisms:
 
    To create ``FreeGroup`` on generators.
 
-   -  Creating free groups::
+   -  Creating free groups:
 
       The first need to create a ``FreeGroup``. It can be specified by
       its rank or a list of letters::
@@ -673,7 +673,7 @@ M.Bestvina and M.Handel [1].
           sage: w**5
           a*b^5*a^-1
 
-   -  Free group automorphisms::
+   -  Free group automorphisms, with ``FreeGroupAutomorphism`` class :
 
       The creation (and the parsing) of free group automorphisms relies on that of
       substitutions. Most of what you might expect should correctly create a
@@ -721,7 +721,7 @@ M.Bestvina and M.Handel [1].
           sage:FreeGroupAutomorphism.braid_automorphism(F, 2)
           Automorphism of the Free Group on generators {a, b, c, d}: a->a,b->b*c*b^-1,c->b,d->d
 
--  Graphs and maps::
+-  Graphs and maps:
 
    Graphs and maps are used to represent free group automorphisms. A
    graph here is a ``GraphWithInverses``: it has a set of vertices and a set
@@ -789,7 +789,7 @@ M.Bestvina and M.Handel [1].
    automorphism in the outer class of $\phi$ with the smallest possible length
    of images.
 
--  Train-tracks::
+-  Train-tracks:
 
    The main feature and the main achievement of the program is to compute
    train-track representative for (outer) automorphisms of free groups.
@@ -811,7 +811,7 @@ M.Bestvina and M.Handel [1].
    (per exponential stratum if it is a relative
    train-track).
 
-   -  Examples::
+   -  Examples:
 
       Let's start with building absolute train-tracks::
 
@@ -876,7 +876,7 @@ M.Bestvina and M.Handel [1].
       stable=True, meaning that it looks for a stable
       train-track.
 
-   -  Train-tracks and graph maps::
+   -  Train-tracks and graph maps:
 
       In the previous section we computed train-track representatives for
       automorphisms of free group. The process goes by building a graph self
@@ -899,7 +899,7 @@ M.Bestvina and M.Handel [1].
       could. One can access intermediate operations like
       ``f.stabilize()``, ``f.reduce()``, etc.
 
-   -  Nielsen paths::
+   -  Nielsen paths:
 
       Nielsen paths are a main tool to refine the understanding of
       train-tracks and of automorphisms of free groups. A Nielsen
@@ -922,7 +922,7 @@ M.Bestvina and M.Handel [1].
       inside edges is a little tricky and can be obtained using
       ``TrainTrackMap.periodic_point_normal_form()``.
 
--  More on free group automorphisms::
+-  More on free group automorphisms:
 
    The computation of other invariants for iwip
    automorphisms of free groups. Beware, that Python and Sage let you
@@ -950,12 +950,12 @@ M.Bestvina and M.Handel [1].
    absolute expanding train-track representative: they can be use for a
    broader class than just iwip automorphisms.
 
--  Convex cores, curve complex and more::
+-  Convex cores, curve complex and more:
 
    The programm is also designed to handle trees in Outer space as well
    as simplicial trees in the boundary of Outer space.
 
-   -  Metric simplicial trees and Outer space::
+   -  Metric simplicial trees and Outer space:
 
       Recall that M.Culler and K.Vogtmann [2] introduced the Outer
       space of a free group $\FN$
@@ -999,7 +999,7 @@ M.Bestvina and M.Handel [1].
       $\pi_1(S_{g,1})$. They can also be used to study curve diagram in the
       context of braid groups.
 
-   -  Convex cores::
+   -  Convex cores, with ``ConvexCore`` class:
 
       Are also implemented the computation of V.Guirardel [6]
       convex core of two simplicial trees in outer space and its

@@ -1046,10 +1046,6 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         REFERENCES:
 
-        .. [GJLL] D. Gaboriau, A. Jaeger, G. Levitt, M. Lustig, An index
-           for counting fixed points of automorphisms of free
-           groups. Duke Math. J., 93(3):425-452, 1998.
-
         .. [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
            AMS 1004, Amer Mathematical Society, 2011.
 
@@ -1900,9 +1896,6 @@ class free_group_automorphisms:
             Automorphism of the Free Group on generators {a, b, c, d}: a->b,b->c,c->d*a^-1,d->d^-1*c^-1
 
         REFERENCES:
-
-        .. [BH] M. Bestvina, and M. Handel, Train-tracks for surface
-           homeomorphisms. Topology 34 (1995), no. 1, 109-140
 
         .. [Kapovich] Ilya Kapovich, Algorithmic detectability of iwip
            automorphisms, arXiv:1209.3732
