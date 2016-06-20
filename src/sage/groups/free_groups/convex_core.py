@@ -702,6 +702,16 @@ class ConvexCore():
 
         Fix an edge e1 in T1. An edge e0 in T0 is assigned a + if its
         image f(e0) crosses e1 positively.
+
+        TESTS::
+
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
+            sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")**2
+            sage: C = ConvexCore(phi)
+            sage: C._build_signed_ends()
+            sage: print(C._signed_ends)
+            {'a': [(word: a, '+'), (word: Ca, '+'), (word: b, '+'), (word: Cb, '+'), (word: c, '+')], 'c': [(word: Ba, '+')], 'b': [(word: Bca, '+'), (word: Bcb, '+'), (word: Bcc, '+')]}
+
         """
 
         G0 = self._G0
@@ -1229,6 +1239,8 @@ class ConvexCore():
             sage: C = ConvexCore(phi)
             sage: C.squares_of_the_boundary()
             [(2, 0), (4, 2), (8, 1), (1, 1), (5, 3), (6, 3), (0, 0), (3, 2)]
+            sage: C.squares_of_the_boundary(verbose=True)
+            [(2, 0), (4, 2), (8, 1), (1, 1), (5, 3), (6, 3), (0, 0), (3, 2)]
 
         """
 
@@ -1293,6 +1305,8 @@ class ConvexCore():
             sage: C = ConvexCore(phi)
             sage: C.squares_orientation()
             [1, -1, -1, -1, 1, -1, -1, 1, -1]
+            sage: C.squares_orientation(orientation=2)
+            [2, -2, -2, -2, 2, -2, -2, 2, -2]
 
         """
 
@@ -1398,6 +1412,24 @@ class ConvexCore():
              (0, 1, ('A', 0, -1)),
              (3, 4, ('b', 0, 1)),
              (4, 3, ('B', 0, -1))]
+             sage: C.surface_boundary(verbose=True)
+             [(8, 0, ('b', 0, -1)),
+              (0, 8, ('B', 0, 1)),
+              (3, 2, ('a', 0, -1)),
+              (2, 3, ('A', 0, 1)),
+              (7, 8, ('b', 1, -1)),
+              (8, 7, ('B', 1, 1)),
+              (2, 7, ('a', 1, -1)),
+              (7, 2, ('A', 1, 1)),
+              (11, 1, ('a', 1, 1)),
+              (1, 11, ('A', 1, -1)),
+              (4, 11, ('b', 1, 1)),
+              (11, 4, ('B', 1, -1)),
+              (1, 0, ('a', 0, 1)),
+              (0, 1, ('A', 0, -1)),
+              (3, 4, ('b', 0, 1)),
+              (4, 3, ('B', 0, -1))]
+
         """
 
         if orientation is None:
@@ -1480,6 +1512,8 @@ class ConvexCore():
         - ``cyclic_order_1``: (default: None) List of edges outgoing
           from the sole vertex of T1 ordered according to the embedding
           in the surface.
+        - ``orientation`` -- (default: 1): list of square  orientation
+        - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:
 
@@ -1493,6 +1527,10 @@ class ConvexCore():
             sage: phi=mul([FreeGroupAutomorphism.surface_dehn_twist(F,i) for i in [2,1,1,4]])
             sage: C=ConvexCore(phi)
             sage: C.plot_ideal_curve_diagram(cyclic_order_0=['A','B','a','C','D','c','d','b'])
+            Graphics object consisting of 28 graphics primitives
+            sage: C.plot_ideal_curve_diagram(cyclic_order_0=['A','B','a','C','D','c','d','b'], verbose=True)
+            The tree on side 0 is embedded in the surface: ['A', 'B', 'a', 'C', 'D', 'c', 'd', 'b']
+            ...
             Graphics object consisting of 28 graphics primitives
         """
         from sage.plot.graphics import Graphics
@@ -2083,9 +2121,16 @@ class ConvexCore():
 
         return g
 
-    def plot_punctured_disc_ideal_curves(self, verbose=False):
+    def plot_punctured_disc_ideal_curves(self, orientation=1, verbose=False):
         """
-        TODO: not yet available
+        INPUT:
+
+        - ``orientation`` -- (default: 1): list of square  orientation
+        - ``verbose`` -- (default: False) for verbose option
+
+        .. TODO::
+
+            not yet available
 
         Plot a disc with punctures and ideal curves with ``self`` as dual
         graph.
@@ -2112,6 +2157,16 @@ class ConvexCore():
         of ``F.braid_automorphism(i)``.
 
         Note that in this context there are no twice light squares.
+
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
+            sage: F=FreeGroup('a,b,c,d')
+            sage: phi=mul([FreeGroupAutomorphism.surface_dehn_twist(F,i) for i in [2,1,1,4]])
+            sage: C=ConvexCore(phi)
+            sage: C.plot_punctured_disc_ideal_curves()  # todo: not implemented
+
+
         """
         from sage.plot.graphics import Graphics
         from sage.plot.line import Line
