@@ -285,7 +285,7 @@ class PiecewiseFunction(BuiltinFunction):
 
     class EvaluationMethods(object):
 
-        def expression_at(cls, self, parameters, variable, point):
+        def expression_at(self, parameters, variable, point):
             """
             Return the expression defining the piecewise function at
             ``value``
@@ -319,7 +319,7 @@ class PiecewiseFunction(BuiltinFunction):
 
         which_function = expression_at
 
-        def domains(cls, self, parameters, variable):
+        def domains(self, parameters, variable):
             """
             Return the individual domains
             
@@ -339,7 +339,7 @@ class PiecewiseFunction(BuiltinFunction):
             """
             return tuple(dom for dom, fun in parameters)
 
-        def domain(cls, self, parameters, variable):
+        def domain(self, parameters, variable):
             """
             Return the domain
             
@@ -360,7 +360,7 @@ class PiecewiseFunction(BuiltinFunction):
                 intervals += list(domain)
             return RealSet(*intervals)
 
-        def __len__(cls, self, parameters, variable):
+        def __len__(self, parameters, variable):
             """
             Return the number of "pieces"
 
@@ -377,7 +377,7 @@ class PiecewiseFunction(BuiltinFunction):
             """
             return len(parameters)
 
-        def expressions(cls, self, parameters, variable):
+        def expressions(self, parameters, variable):
             """
             Return the individual domains
             
@@ -396,7 +396,7 @@ class PiecewiseFunction(BuiltinFunction):
             """
             return tuple(fun for dom, fun in parameters)
 
-        def items(cls, self, parameters, variable):
+        def items(self, parameters, variable):
             """
             Iterate over the pieces of the piecewise function
 
@@ -423,7 +423,7 @@ class PiecewiseFunction(BuiltinFunction):
             for pair in parameters:
                 yield pair
 
-        def __call__(cls, self, parameters, variable, value=None, **kwds):
+        def __call__(self, parameters, variable, value=None, **kwds):
             """
             Call the piecewise function
 
@@ -448,7 +448,7 @@ class PiecewiseFunction(BuiltinFunction):
                 substitution[variable] = value
             return self.subs(substitution)
 
-        def _fast_float_(cls, self, *args):
+        def _fast_float_(self, *args):
             """
             Do not support the old ``fast_float``
 
@@ -467,7 +467,7 @@ class PiecewiseFunction(BuiltinFunction):
             """
             raise NotImplementedError
 
-        def _fast_callable_(cls, self, parameters, variable, etb):
+        def _fast_callable_(self, parameters, variable, etb):
             """
             Override the ``fast_callable``
 
@@ -488,7 +488,7 @@ class PiecewiseFunction(BuiltinFunction):
             self = piecewise(parameters, var=variable)
             return etb.call(self, variable)
 
-        def restriction(cls, self, parameters, variable, restricted_domain):
+        def restriction(self, parameters, variable, restricted_domain):
             """
             Restrict the domain
 
@@ -516,7 +516,7 @@ class PiecewiseFunction(BuiltinFunction):
                 new_param.append((domain, func))
             return piecewise(new_param, var=variable)
 
-        def extension(cls, self, parameters, variable, extension, extension_domain=None):
+        def extension(self, parameters, variable, extension, extension_domain=None):
             """
             Extend the function
 
@@ -554,7 +554,7 @@ class PiecewiseFunction(BuiltinFunction):
             ext = ((extension_domain, SR(extension)),)
             return piecewise(parameters + ext, var=variable)
 
-        def unextend_zero(cls, self, parameters, variable):
+        def unextend_zero(self, parameters, variable):
             """
             Remove zero pieces.
 
@@ -573,7 +573,7 @@ class PiecewiseFunction(BuiltinFunction):
             result = [(domain, func) for domain,func in parameters if func<>0]
             return piecewise(result, var=variable)
 
-        def pieces(cls, self, parameters, variable):
+        def pieces(self, parameters, variable):
             """
             Return the "pieces".
 
@@ -594,7 +594,7 @@ class PiecewiseFunction(BuiltinFunction):
                 result.append(piecewise([(domain, func)], var=variable))
             return tuple(result)
 
-        def end_points(cls, self, parameters, variable):
+        def end_points(self, parameters, variable):
             """
             Return a list of all interval endpoints for this function.
 
@@ -620,7 +620,7 @@ class PiecewiseFunction(BuiltinFunction):
             s.discard(infinity)
             return sorted(s)
 
-        def piecewise_add(cls, self, parameters, variable, other):
+        def piecewise_add(self, parameters, variable, other):
             """
             Return a new piecewise function with domain the union
             of the original domains and functions summed. Undefined
@@ -693,7 +693,7 @@ class PiecewiseFunction(BuiltinFunction):
                     funcs.append(ex)
             return piecewise(zip(domain, funcs))
 
-        def integral(cls, self, parameters, variable, x=None, a=None, b=None, definite=False):
+        def integral(self, parameters, variable, x=None, a=None, b=None, definite=False):
             r"""
             By default, return the indefinite integral of the function.
             If definite=True is given, returns the definite integral.
@@ -841,7 +841,7 @@ class PiecewiseFunction(BuiltinFunction):
             else:
                 return piecewise(new_pieces)
 
-        def critical_points(cls, self, parameters, variable):
+        def critical_points(self, parameters, variable):
             """
             Return the critical points of this piecewise function.
 
@@ -882,7 +882,7 @@ class PiecewiseFunction(BuiltinFunction):
                             crit_pts.append(root)
             return crit_pts
 
-        def convolution(cls, self, parameters, variable, other):
+        def convolution(self, parameters, variable, other):
             """
             Return the convolution function,
             `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
@@ -964,7 +964,7 @@ class PiecewiseFunction(BuiltinFunction):
                         z = z.piecewise_add(h)
                 return z.unextend_zero()
 
-        def trapezoid(cls, self, parameters, variable, N):
+        def trapezoid(self, parameters, variable, N):
             """
             Return the piecewise line function defined by the trapezoid rule
             for numerical integration based on a subdivision of each domain
@@ -1009,7 +1009,7 @@ class PiecewiseFunction(BuiltinFunction):
                         rsum += func(x0, x1)
             return piecewise(rsum)
 
-        def laplace(cls, self, parameters, variable, x='x', s='t'):
+        def laplace(self, parameters, variable, x='x', s='t'):
             r"""
             Returns the Laplace transform of self with respect to the variable
             var.
@@ -1062,7 +1062,7 @@ class PiecewiseFunction(BuiltinFunction):
             forget(s>0)
             return result
 
-        def fourier_series_cosine_coefficient(cls, self, parameters, variable, n, L):
+        def fourier_series_cosine_coefficient(self, parameters, variable, n, L):
             r"""
             Returns the n-th Fourier series coefficient of
             `\cos(n\pi x/L)`, `a_n`.
@@ -1106,7 +1106,7 @@ class PiecewiseFunction(BuiltinFunction):
                     result += (f*cos(pi*x*n/L)/L).integrate(x, a, b)
             return SR(result).simplify_trig()
 
-        def fourier_series_sine_coefficient(cls, self, parameters, variable, n, L):
+        def fourier_series_sine_coefficient(self, parameters, variable, n, L):
             r"""
             Returns the n-th Fourier series coefficient of
             `\sin(n\pi x/L)`, `b_n`.
@@ -1141,7 +1141,7 @@ class PiecewiseFunction(BuiltinFunction):
                     result += (f*sin(pi*x*n/L)/L).integrate(x, a, b)
             return SR(result).simplify_trig()
 
-        def fourier_series_partial_sum(cls, self, parameters, variable, N, L):
+        def fourier_series_partial_sum(self, parameters, variable, N, L):
             r"""
             Returns the partial sum
 
