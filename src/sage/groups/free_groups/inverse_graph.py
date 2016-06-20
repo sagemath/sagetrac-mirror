@@ -1219,6 +1219,13 @@ class GraphWithInverses(DiGraph):
 
         Launched png viewer for Graphics object
 
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
+            sage: G.plot()
+            Graphics object consisting of 11 graphics primitives
+
         """
         return DiGraph.plot(DiGraph(self), edge_labels=edge_labels,
                             graph_border=graph_border, **kwds)

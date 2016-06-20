@@ -1677,9 +1677,6 @@ class TrainTrackMap(GraphSelfMap):
            for counting fixed points of automorphisms of free
            groups. Duke Math. J., 93(3):425-452, 1998.
 
-        .. [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
-           AMS 1004, Amer Mathematical Society, 2011.
-
         .. [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
         """
         l = [len(c) - 2

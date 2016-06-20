@@ -366,6 +366,17 @@ class FreeGroupMorphism(object):
         return result
 
     def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: phi1 = FreeGroupMorphism('a->ab,b->A')
+            sage: phi2 = FreeGroupMorphism('a->aba,b->Ab')
+            sage: phi1==phi2
+            False
+            sage: phi1<=phi2
+            True
+
+        """
         if not isinstance(other, FreeGroupMorphism):
             return cmp(self.__class__, other.__class__)
         if self.domain() != other.domain():
@@ -383,9 +394,15 @@ class FreeGroupMorphism(object):
         """
         Domain of ``self``. A FreeGroup.
 
-        Returns:
+        OUTPUT:
 
         A FreeGroup.
+
+        EXAMPLES::
+
+            sage: phi = FreeGroupAutomorphism('a->ab,b->A')
+            sage: phi.domain()
+            Free Group on generators {a, b}
 
         """
         return self._domain
@@ -394,9 +411,15 @@ class FreeGroupMorphism(object):
         """
         Codomain of ``self``. A FreeGroup.
 
-        Returns:
+        OUTPUT:
 
         A FreeGroup.
+
+        EXAMPLES::
+
+            sage: phi = FreeGroupAutomorphism('a->ab,b->A')
+            sage: phi.codomain()
+            Free Group on generators {a, b}
 
         """
         return self._codomain
@@ -1048,9 +1071,6 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         .. [HM-axes] M. Handel, L. Mosher, Axes in Outer Space, Memoirs
            AMS 1004, Amer Mathematical Society, 2011.
-
-        .. [Pfaff] C. Pfaff, Out(F_3) Index realization, arXiv:1311.4490.
-
 
         .. WARNING::
 

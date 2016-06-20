@@ -362,6 +362,15 @@ class MarkedGraph(GraphWithInverses):
 
         A dictionary that maps old edges to new edges.
 
+
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.marked_graph import MarkedGraph
+            sage: G = MarkedGraph.rose_marked_graph(AlphabetWithInverses(2))
+            sage: G.contract_forest([['b']])
+            {'A': word: A, 'B': word: , 'a': word: a, 'b': word: }
+
         .. SEE ALSO:
 
             :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_forest()``
