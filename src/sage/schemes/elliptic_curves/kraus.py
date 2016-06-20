@@ -913,7 +913,14 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        P = c.representative_prime()
+        bound = E.base_field().minkowski_bound()
+        have_prime = False
+        while not have_prime:
+            try:
+                P = c.representative_prime(norm_bound=bound)
+                have_prime = True
+            except RuntimeError:
+                bound *=2
         if debug:
             print("Using a prime in that class: %s" % P)
         I = I/P
