@@ -1174,7 +1174,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     member[ u ] = True
     member[ v ] = True
 
-    #Initialize all the variables neccesary to start iterating
+    # Initialize all the variables necessary to start iterating
     cdef bint done = False
     cdef long counter = 0
     cdef long bigcount = 0
@@ -1300,10 +1300,10 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         if not g.has_arc( u, v ):
             good = False
             break
-    if good == False:
-        raise RuntimeError( 'Vertices %d and %d are consecutive in the cycle but are not ajacent.'%(u,v) )
+    if good is False:
+        raise RuntimeError('Vertices %d and %d are consecutive in the cycle but are not adjacent.' % (u, v))
     if not find_path and not g.has_arc( path[0], path[n-1] ):
-        raise RuntimeError( 'Vertices %d and %d are not ajacent.'%(path[0],path[n-1]) )
+        raise RuntimeError( 'Vertices %d and %d are not adjacent.' % (path[0], path[n-1]) )
     for 0 <= u < n:
         member[ u ]=False
 
