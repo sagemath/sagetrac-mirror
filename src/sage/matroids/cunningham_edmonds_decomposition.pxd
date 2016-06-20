@@ -6,36 +6,47 @@ from sage.graphs.graph import Graph
 from sage.structure.sage_object import SageObject
 
 cdef class Node(sage.structure.sage_object.SageObject):
-    cdef G
-    cdef pm
-    cdef int f
+    cpdef public __custom_name
+    cpdef public _custom_name
+    cpdef public _cached_info
+    cpdef graph
+    cpdef parent_marker
+    cpdef int f
 
     # def __init__(self, G, pm, int f):
-    cdef get_graph(self)
-    cdef get_parent_marker(self)
-    cdef get_f(self)
-    cdef set_f(self, int n)
-    cdef is_polygon(self)
-    cdef __relink1(self, Z=*, WQ=*, m=*)
-    cdef __relink2(self, Z=*, WQ=*)
+    cpdef get_graph(self)
+    cpdef get_parent_marker(self)
+    cpdef get_f(self)
+    cpdef set_f(self, int n)
+    cpdef is_polygon(self)
+    cpdef is_path(self, P)
+    cpdef is_cycle(self, P)
+    cpdef typing(self, P)
+    cpdef __relink1(self, Z=*, WQ=*)
+    cpdef __relink2(self, Z=*, WQ=*)
 
 
 
 cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject):
-    cdef _arborescence  # _T
-    cdef dict _nodes  # _ND
-    cdef _root
-    cdef K_1        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
-    cdef K_2        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
-    cdef u_1        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
-    cdef u_2        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
+    cpdef arborescence  # _T
+    cpdef dict nodes  # _ND
+    cpdef root
+    cpdef K_1        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
+    cpdef K_2        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
+    cpdef u_1        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
+    cpdef u_2        #These are useful, because several functions should be able to change them, but passing them is inconvinient.
 
-    cdef __relink1(Q, Z=*, WQ=*, m=*)
-    cdef __typing(D_hat, P, pi)
-    cdef __relink2(Q, Z=*, WQ=*)
-    cdef __hypopath(D, P)
-    cdef __update(self, P, C)
-    cdef __is_graphic(self)
-    cdef __merge(self, G)
-    cdef merge(self)
-    cdef __add_cycle(self, cycle)
+    cpdef __relink1(Q, Z=*, WQ=*)
+    cpdef __typing(D_hat, P, pi)
+    cpdef __relink2(Q, Z=*, WQ=*)
+    cpdef __hypopath(D, P)
+    cpdef __update(self, P, C)
+    cpdef __is_graphic(self)
+    cpdef __merge(self, G, int i=*)
+    cpdef merge(self)
+    cpdef __add_cycle(self, cycle)
+    cpdef get_arborescence(self)
+    cpdef get_nodes_dic(self)
+    cpdef get_root(self)
+    cpdef branch(self, N)
+    cpdef get_parent(self, N)
