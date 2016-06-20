@@ -20,10 +20,6 @@ EXAMPLES::
     Marking: a->a, b->dbD, c->ecE
     Edge map: a->a, b->b, c->c, d->eCEAd, e->eCEAdbDaecEae
 
-REFERENCES:
-
-.. [BH-train-track] M. Bestvina, M. Handel, Train tracks and
-    automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
 """
 # *****************************************************************************
 #       Copyright (C) 2013 Thierry Coulbois <thierry.coulbois@univ-amu.fr>

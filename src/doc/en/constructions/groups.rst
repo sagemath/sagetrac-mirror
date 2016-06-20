@@ -735,7 +735,7 @@ M.Bestvina and M.Handel [1].
        sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
        sage: A = AlphabetWithInverses(3)
        sage: G = GraphWithInverses.rose_graph(A)
-       sage: print G
+       sage: print(G)
        a: 0->0, b: 0->0, c: 0->0
        sage: G.plot()
 
