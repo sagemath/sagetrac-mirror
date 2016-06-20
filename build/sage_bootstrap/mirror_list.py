@@ -75,7 +75,11 @@ class MirrorList(object):
                 log.critical('Failed to load the cached mirror list')
                 return []
         import ast
-        return ast.literal_eval(mirror_list)
+        try:
+             return ast.literal_eval(mirror_list)
+        except Exception:
+             print("Unable to parse mirror list: {0}".format(mirror_list))
+             raise
 
     def _save(self):
         """
