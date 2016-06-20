@@ -533,7 +533,7 @@ def _maybe_borels(E, L, patience=100):
         L.remove(2)
         include_2 = not E.division_polynomial(2).is_irreducible()
 
-    for P in K.primes_of_degree_one_iter():
+    for P in deg_one_primes_iter(K):
         if not (L and patience): # stop if no primes are left, or
                                  # patience is exhausted
             break
@@ -645,7 +645,7 @@ def _exceptionals(E, L, patience=1000):
     for l in L:
         D[l] = [True, True, True]
 
-    for P in K.primes_of_degree_one_iter():
+    for P in deg_one_primes_iter(K):
         try:
             trace = E.change_ring(P.residue_field()).trace_of_frobenius()
         except ArithmeticError: # Bad reduction at P.
@@ -760,6 +760,14 @@ def _tr12(tr, det):
     det3 = det**3
     return ((tr * (tr**2 - 3 * det))**2 - 2 * det3)**2 - 2 * det3**2
 
+from sage.arith.all import primes
+def deg_one_primes_iter(K):
+    start = 2
+    if K.is_totally_imaginary():
+        start = K.discriminant().abs()//4
+    for p in primes(start=start,stop=10**10):
+        for P in K.primes_above(p, degree=1):
+            yield P
 
 def _semistable_reducible_primes(E):
     r"""Find a list containing all semistable primes l unramified in K/QQ
@@ -785,7 +793,8 @@ def _semistable_reducible_primes(E):
 
     E = _over_numberfield(E)
     K = E.base_field()
-    deg_one_primes = K.primes_of_degree_one_iter()
+
+    deg_one_primes = deg_one_primes_iter(K)
 
     bad_primes = set([]) # This will store the output.
 
@@ -800,25 +809,32 @@ def _semistable_reducible_primes(E):
 
     while len(precomp) < 2:
         P = next(deg_one_primes)
+        print("Computing precomp, trying P = %s" % P)
 
         if not P.is_principal():
+            print("--not principal")
             continue
 
         det = P.norm()
         if det == last_char:
+            print("--same characteristic")
             continue
 
         if P.ramification_index() != 1:
+            print("--ramified")
             continue
 
         if E.has_bad_reduction(P):
+            print("--bad reduction")
             continue
 
+        print("--OK!")
         tr = E.reduction(P).trace_of_frobenius()
         x = P.gens_reduced()[0]
 
         precomp.append((x, _tr12(tr, det)))
         last_char = det
+    print("finished, precomp = %s" % precomp)
 
     x, tx = precomp[0]
     y, ty = precomp[1]
@@ -883,6 +899,7 @@ def _semistable_reducible_primes(E):
 
         while True:
             P = next(deg_one_primes)
+            print("Looking for a prime with non-zero div, trying P = %s" % P)
 
             if not P.is_principal():
                 continue
@@ -976,7 +993,7 @@ def _possible_normalizers(E, SA):
     traces_list = []
     W = V.zero_subspace()
 
-    deg_one_primes = K.primes_of_degree_one_iter()
+    deg_one_primes = deg_one_primes_iter(K)
 
     while W.dimension() < V.dimension() - 1:
         P = next(deg_one_primes)
