@@ -47,57 +47,171 @@ from sage.structure.sage_object import SageObject
 cdef class Node(sage.structure.sage_object.SageObject):
 
 
-    def __init__(self, G, pm, int f):
+    def __init__(self, G, pm, int f = 1):
         self.G = G
         self.pm = pm
         self.f = f
 
 
-    cdef get_graph(self):
+    cpdef get_graph(self):
         return self.G
 
 
-    cdef get_parent_marker(self):
+    cpdef get_parent_marker(self):
         return self.parent_marker
 
 
-    cdef get_f(self):
+    cpdef get_f(self):
         return self.f
 
 
-    cdef set_f(self, int n):
+    cpdef set_f(self, int n):
         self.f = n
         return None
 
 
-    cdef is_polygon(self):
+    cpdef is_polygon(self):
         if not self.G.size() == self.G.order():
             return False
         if not self.G.num_components() == 1:
             return False
         return True
 
+    cpdef is_path(self, P):
+        H = self.get_graph().copy()
+        S = set(H.edges()).difference(P)
+        H.delete_edges(S)
 
-    cdef __relink1(self, Z=None, WQ=None, m=None):
+        num_leaves=0
+        for i in H.degree():
+            if i > 2:
+                return False
+            if i == 1:
+                num_leaves = num_leaves + 1
+        if num_leaves > 2 or num_leaves == 0:
+            return False
+        return True
+
+
+    cpdef is_cycle(self, P):
+        if set(P).size() == 0:
+            return True
+
+        H = self.get_graph().copy()
+        S = set(H.edges()).difference(P)
+        H.delete_edges(S)
+
+        num_leaves=0
+        for i in H.degree():
+            if i > 2:
+                return False
+            if i == 1:
+                return False
+        return True
+
+
+    cpdef typing(self, P):
+        C = set(P) | set (self.get_parent_marker())
+        if self.is_cycle(C):
+            return 1
+        if self.is_path(P):
+            if self.is_path(C):
+                return 3
+
+            H = self.get_graph().copy()
+            S = set(H.edges()).difference(P)
+            H.delete_edges(S)
+
+            num_leaves=0
+            for i in H.degree():
+                if i == 1:
+                    num_leaves = num_leaves + 1
+            if num_leaves == 1:
+                return 2
+        if self.is_path(C):
+            return 4
+        return 5
+
+    cpdef __relink1(self, Z=set(()), WQ=set(())):
+        """
+        reorders ``Q`` for use in __hyperpath.
+
+        INPUT:
+
+        - ``Q`` -- a cycle
+        - ``WQ`` -- a subset of the edges ``Q``
+        - ``Z`` -- a subset of ``WQ``, containing at most two elements
+
+        OUTPUT:
+
+        A reordering of ``Q`` so that ``WQ`` - ``Z`` is a path and, one end incident to the parent marker, the other incident to ``m_i`` (if it exists), and ``m_2`` (if it exitst) incident to ``m``.
+        """
+        m_1 = set(())
+        m_2 = set(())
         if len(Z) > 0:
-            m_1 = Z[0]
+            m_1 = set(Z[0])
             if len(Z) > 1:
-                m_2 = Z[1]
-                if len(Z) > 2:
-                    #Throw error.
-                    return False
-        return None
+                m_2 = set(Z[1])
+        E = set(((self.edges().difference(set(WQ))).difference(Z)).difference(set(self.parent_marker)))
+        n = self.graph.edges().size()
+        G = Graph()
+        i = 0
+        for e in WQ:
+            G.add_edge(i, i+1, (self.graph.edge_label(e)))
+            i = i + 1
+        for e in m_1:
+            G.add_edge(i, i+1, (self.graph.edge_label(e)))
+            i = i + 1
+        for e in E:
+            G.add_edge(i, i+1, (self.graph.edge_label(e)))
+            i = i + 1
+        for e in m_2:
+            G.add_edge(i, i+1, (self.graph.edge_label(e)))
+            i = i + 1
+        G.add_edge(0, i, G.edge_label(self.graph.edge_label(self.parent_marker)))
+
+        return G
 
 
-    cdef __relink2(self, Z=None, WQ=None):
+    cpdef __relink2(self, Z=set(()), WQ=set(())):
+        """
+        reorders ``Q`` for use in __typing.
+
+        INPUT:
+
+        - ``Q`` -- a cycle
+        - ``WQ`` -- a subset of the edges ``Q``
+        - ``Z`` -- a subset of ``WQ``, containing at most two elements
+
+        OUTPUT:
+
+        A reordering of ``Q`` so that ``WQ`` - ``Z`` is a path an, if ``m_i`` exists (`i=1,2`), so that ``m_1`` is incident to an end of the path ``WQ`` - ``Z``
+        """
+        m_2 = set(())
+        i = 0
+        G = Graph()
+        n = self.graph.edges().size()
+        E = set(((self.edges()).difference(set(WQ))).difference(Z))
         if len(Z) > 0:
-            m_1 = Z[0]
+            i = 1
+            G.add_edge(0, n - 1, self.graph.edge_label(Z[0]))
             if len(Z) > 1:
-                m_2 = Z[1]
-                if len(Z) > 2:
-                    #Throw error.
-                    return False
-        return None
+                m_2 = set(Z[1])
+        for e in WQ:
+            G.add_edge(i, (i + 1) % n, (self.graph.edge_label(e)))
+            i = i + 1
+        for e in m_2:
+            G.add_edge(i, i + 1, (self.graph.edge_label(e)))
+            i = i + 1
+        for e in E:
+            G.add_edge(i, (i + 1) % n, (self.graph.edge_label(e)))
+            i = i + 1
+
+        return G
+
+
+
+
 
 
 
@@ -135,14 +249,14 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             #Do something.
 
         else:
-            self._arborescence = DiGraph()
-            self._nodes = {}
-            self._root = None                   # When we do define the aborescence to be something other than the empty DiGraph, we will use ``self._root = self._arborescence.sources()[0]``.
-                                                # This should work, because our ``_arborescence`` should only have one source. We might want to check for that.
+            self.arborescence = DiGraph()
+            self.nodes = {}
+            self.root = None                   # When we do define the aborescence to be something other than the empty DiGraph, we will use ``self.root = self.arborescence.sources()[0]``.
+                                                # This should work, because our ``arborescence`` should only have one source. We might want to check for that.
 
 
 
-    cdef __relink1(Q, Z=None, WQ=None, m=None):
+    cpdef __relink1(Q, Z=set(()), WQ=set(())):
         """
         reorders ``Q`` for use in __hyperpath.
 
@@ -156,11 +270,11 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
         A reordering of ``Q`` so that ``WQ`` - ``Z`` is a path an, one end incident to ``m``, the other incident to ``m_i`` (if it exists), and ``m_2`` (if it exitst) incident to ``m``.
         """
-        Q.__relink1(Z=None, WQ=None, m=None)
+        Q.__relink1(Z=set(()), WQ=set(()))
         return None
 
 
-    cdef __typing(D_hat, P, pi):
+    cpdef __typing(D_hat, P, pi):
         """
         INPUT:
 
@@ -228,7 +342,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                     #         D_hat.K_2 = Q
                     # #R3
                     # if len(num_threes) + len(num_twos) == 1 and len(num_fours) == 0 and T(H) == 4:
-                    #     D_hat.K_2 = D_hat._arborescence.neighbors_in(D.K_1)[0]                    # I don't understand this, because I don't know why we are assuming that ``K_1`` is already assigned.
+                    #     D_hat.K_2 = D_hat.arborescence.neighbors_in(D.K_1)[0]                    # I don't understand this, because I don't know why we are assuming that ``K_1`` is already assigned.
                     #                                                                 # This is the parent of ``K_1``
 
                     # # Here, we need to find (if possible an orientation `f'` and a corresponding new ``D_hat`` such that F_f'[H1, ..., Ht] is good--see (4.7)
@@ -240,7 +354,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         return None
 
 
-    cdef __relink2(Q, Z=None, WQ=None):
+    cpdef __relink2(Q, Z=set(()), WQ=set(())):
         """
         reorders ``Q`` for use in __typing.
 
@@ -258,7 +372,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         return None
 
 
-    cdef __hypopath(D, P):
+    cpdef __hypopath(D, P):
         """
         Finds a hyperpath in a graph decomposition, or the conclusion that none exists
         INPUT:
@@ -313,18 +427,18 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             D.K_1 = Q
             D.K_2 = Q
         else:
-            D.K_2 = D._arborescence.neighbors_in(D.K_1)[0]
+            D.K_2 = D.arborescence.neighbors_in(D.K_1)[0]
         # #R5
         # if not D.K_1 == None and D.K_1 == D.K_2:
         #     if P.ends() == D._nodes[K_1].parent_marker().ends():              This is what I want it to be, except I'm not sure yet how to get the vertices on the ends of the path and edge.
-        #         D.K_1 = D._arborescence.neighbors_in(D.K_1)[0]
+        #         D.K_1 = D.arborescence.neighbors_in(D.K_1)[0]
         #         D.K_2 = D.K_1
         #     There is another if statement that needs to be added as part of (R5), but I'm not sure which ``if`` if any it goes under, and its complicated, so I'm leaving it off for now.
         #     This question can probably be answered by reading Lemma 5.4, since the paper says that it is needed for the proof of Lemma 5.4.
         return None
 
 
-    cdef __update(self, P, C):
+    cpdef __update(self, P, C):
         """
         Finds a hyperpath in a graph decomposition, or the conclusion that none exists
         INPUT:
@@ -347,7 +461,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         if C.size()-P.size() == 1:
             f = (set(C).difference(set(P)))[0]
         else:
-            f = self._arborescence.size() + 1
+            f = self.arborescence.size() + 1
             D_star.__add_cycle(({f} | set(C)).difference(set(P)))
 
         if D_star.K_1 == D_star.K_2:
@@ -382,7 +496,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             # U2.4
         return None
 
-    cdef __is_graphic(self):
+    cpdef __is_graphic(self):
         """
         Test if a binary matroid is graphic via Bixby and Wagner's paper
 
@@ -405,14 +519,52 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
 
 
-    cdef __merge(self, G):
+    cpdef __merge(self, N, int i=1):
+        G_N = N.graph
+        m = N.parent_marker
+        P = self.get_parent(N)
+        G_P = P.graph
+
+        for e in G_P.edges():
+            if G_N.edge_label(m) == G_P.edge_label(e):
+                f = e
+        u = f[0]
+        v = f[1]
+        x = m[0]
+        y = m[1]
+
+        G = G_N.union(G_P)
+        if f == 1:
+            G.merge_vertices(u,x)
+            G.merge_vertices(v,y)
+        else:
+            G.merge_vertices(u,y)
+            G.merge_vertices(v,x)
+
+        return Node(G, P.parent_marker, P.get(f))
+
+
+    cpdef merge(self):
         return None
 
-
-    cdef merge(self):
+    cpdef __add_cycle(self, cycle):
         return None
 
+    cpdef get_arborescence(self):
+        return self.arborescence
 
+    cpdef get_nodes_dic(self):
+        return self.nodes
 
-    cdef __add_cycle(self, cycle):
-        return None
+    cpdef get_root(self):
+        return self.root
+
+    cpdef get_parent(self, N):
+        return N.neighbors_in(N)[0]
+
+    cpdef branch(self, N):
+        T = self.arborescence.copy()
+        for u in self.arborescence.vertices():
+            if T.all_paths(N, u).size() == 0:
+                T.delete_vertex(u)
+        return T
