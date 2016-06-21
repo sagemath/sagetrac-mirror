@@ -66,6 +66,7 @@ AUTHORS:
 #       Copyright (C) 2011 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2007 Emily A. Kirkman
 #                          Robert L. Miller
+#                     2016 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -271,14 +272,14 @@ def construct_skeleton(database):
 
 def _create_print_table(cur, cols, **kwds):
     """
-    Creates a nice printable table from the cursor given with the given
+    Create a nice printable table from the cursor given with the given
     column titles.
 
     INPUT:
 
     - ``cur`` - cursor
 
-    - ``col_titles`` - titles of the column in the same order as in the request
+    - ``cols`` - titles of the column in the same order as in the request
 
     - ``max_field_size`` -- how wide each field can be
 
@@ -333,17 +334,17 @@ def _create_print_table(cur, cols, **kwds):
     relabel_cols = kwds.get('relabel_cols', {})
     col_titles = []
     for col in cols:
-        col_titles.append(relabel_cols.get(col,col))
+        col_titles.append(relabel_cols.get(col, col))
 
-    def row_str(row, html,id_row):
+    def row_str(row, html, id_row):
         cur_str = []
-        for col,value in izip(cols,row):
+        for col, value in izip(cols, row):
             if col in plot_cols:
                 if html:
                     graphic = pcol_cols[col](value)
                     graphic.save('%d.png'%p, figsize=[1,1])
                     field_val = '     <td bgcolor=white align=center> ' \
-                        + '%s <br> <img src="cell://%d.png"> '%(row[index],p) \
+                        + '%s <br> <img src="cell://%d.png"> '%(row[index], p) \
                         + '</td>\n'
                 else:
                     raise NotImplementedError('Cannot display plot on ' \
@@ -380,7 +381,7 @@ def _create_print_table(cur, cols, **kwds):
         # Command Prompt Version
         ret = ' '.join([col.ljust(max_field_size) for col in col_titles])
         ret += '\n' + '-' * max_field_size * len(col_titles) + '\n'
-        ret += '\n'.join([row_str(row, False,j) for j,row in enumerate(cur)])
+        ret += '\n'.join([row_str(row, False, j) for j, row in enumerate(cur)])
     return ret
 
 class SQLQuery(SageObject):
