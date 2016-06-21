@@ -460,6 +460,22 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
     def __init__(self, graph=None, marking=None, length=None, alphabet=None,
                  marking_alphabet=None):
+        """
+
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.marked_graph import MarkedGraph, MarkedMetricGraph
+            sage: G = GraphWithInverses({'a':(0,1),'b':(1,1),'c':(1,0)})
+            sage: G = MarkedGraph(G)
+            sage: G = MarkedMetricGraph(G)
+            sage: print(G)
+            Marked graph: a: 0->1, c: 1->0, b: 1->1
+            Marking: a->ac, b->abA
+            Length: a:1, c:1, b:1
+
+        """
+
         MarkedGraph.__init__(self, graph=graph,
                              marking=marking,
                              alphabet=alphabet,

@@ -1931,10 +1931,6 @@ class TrainTrackMap(GraphSelfMap):
         7/ If there is one Nielsen loop checks whether it is contained in a
         non-trivial free factor.
 
-        REFERENCES
-
-        .. [Kapo-algo] I. Kapovich, Algorithmic detectability of iwip
-           automorphisms, 2012, arXiv:1209.3732
         """
 
         self.reduce(verbose and verbose > 1 and verbose - 1)

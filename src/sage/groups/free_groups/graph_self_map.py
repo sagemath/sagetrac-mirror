@@ -115,6 +115,20 @@ class GraphSelfMap(GraphMap):
     def __repr__(self):
         """
         String representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: from sage.groups.free_groups.graph_self_map import GraphSelfMap
+            sage: A = AlphabetWithInverses(2)
+            sage: R = GraphWithInverses.rose_graph(A)
+            sage: print(GraphSelfMap(R,"a->ab,b->aa"))
+            Graph self map:
+            a: 0->0, b: 0->0
+            Edge map: a->ab, b->aa
+            sage: GraphSelfMap(R,"a->ab,b->aa").__repr__()
+            'Graph self map:\na: 0->0, b: 0->0\nEdge map: a->ab, b->aa'
+
         """
 
         result = "Graph self map:\n"

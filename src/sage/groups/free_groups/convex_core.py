@@ -117,6 +117,16 @@ class ConvexCore():
     """
 
     def __init__(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.convex_core import ConvexCore
+            sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
+            sage: C=ConvexCore(phi)
+            sage: print(C.volume())
+            0
+
+        """
         if 'verbose' in keywords:
             verbose = keywords['verbose']
         else:

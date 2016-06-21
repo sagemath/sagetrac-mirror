@@ -1272,11 +1272,26 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
     @staticmethod
     def _surface_dehn_twist_e(F, i):
+        """
+
+        TESTS::
+            sage: F = FreeGroup(4)
+            sage: FreeGroupAutomorphism._surface_dehn_twist_e(F, i=0)
+            Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x1*x0,x1->x1,x2->x2,x3->x3
+
+        """
         return FreeGroupAutomorphism.Nielsen_automorphism(F, F.gen(2 * i), F.gen(2 * i + 1), True)
 
     @staticmethod
     def _surface_dehn_twist_c(F, i):
+        """
 
+        TESTS::
+            sage: F = FreeGroup(4)
+            sage: FreeGroupAutomorphism._surface_dehn_twist_c(F, i=0)
+            Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x0,x1->x2*x0^-1*x1,x2->x2,x3->x3*x0*x2^-1
+
+        """
         result = dict((a, a) for a in F.gens())
         result[F.gen(2 * i + 1)] = F.gen(2 * i + 2) * (F.gen(2 * i)**-1) * F.gen(2 * i + 1)
         result[F.gen(2 * i + 3)] = F.gen(2 * i + 3) * F.gen(2 * i) * (F.gen(2 * i + 2)**-1)
@@ -1285,6 +1300,14 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
     @staticmethod
     def _surface_dehn_twist_m(F, i):
+        """
+
+        TESTS::
+            sage: F = FreeGroup(4)
+            sage: FreeGroupAutomorphism._surface_dehn_twist_m(F, i=0)
+            Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x0,x1->x0*x1,x2->x0*x2*x0^-1,x3->x0*x3*x0^-1
+
+        """
 
         result = dict((F.gen(j),F.gen(j)) for j in xrange(2 * i +1))
 
