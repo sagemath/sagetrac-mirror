@@ -2436,7 +2436,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         - Davis Shurbert (2013-06-21): initial version
         """
-        from sage.groups.free_group import FreeGroup, _lexi_gen
+        from sage.groups.free_groups.free_group import FreeGroup, _lexi_gen
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         from sage.libs.gap.libgap import libgap
 
