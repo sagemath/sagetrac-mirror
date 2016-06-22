@@ -509,9 +509,9 @@ class RewritingSystem(object):
             sage: k
             Rewriting system of Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
             with rules:
-                x0^-1    --->    x0
-                x1^-1    --->    x1
                 x2^-1    --->    x2
+                x1^-1    --->    x1
+                x0^-1    --->    x0
                 x0^2    --->    1
                 x0*x1    --->    x2
                 x0*x2    --->    x1
@@ -520,7 +520,8 @@ class RewritingSystem(object):
                 x1*x2    --->    x0
                 x2*x0    --->    x1
                 x2*x1    --->    x0
-                x2^2    --->    1
+             x2^2    --->    1
+
             sage: k.finitely_presented_group()
             Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
         """
@@ -594,9 +595,18 @@ class RewritingSystem(object):
             {a^3: 1, b^2*a^2: 1}
             sage: k.make_confluent()
             sage: sorted(k.rules().items())
-            [(a^-2, a), (a^-1*b^-1, a*b), (a^-1*b, b^-1), (a^2, a^-1),
-             (a*b^-1, b), (b^-1*a^-1, a*b), (b^-1*a, b), (b^-2, a^-1),
-             (b*a^-1, b^-1), (b*a, a*b), (b^2, a)]
+            [(b^-2, a^-1),
+             (b^-1*a^-1, a*b),
+             (b^-1*a, b),
+             (a^-1*b^-1, a*b),
+             (a^-2, a),
+             (a^-1*b, b^-1),
+             (a*b^-1, b),
+             (a^2, a^-1),
+             (b*a^-1, b^-1),
+             (b*a, a*b),
+             (b^2, a)]
+
         """
         dic = {}
         grules = self.gap().Rules()
@@ -628,9 +638,9 @@ class RewritingSystem(object):
             sage: k
             Rewriting system of Finitely presented group < x0, x1, x2 | (x0*x1)^2*x0*x2*x0^-1, x1^3*x0^2*x1, x0*x1*x2 >
             with rules:
+                (x0*x1)^2*x0*x2*x0^-1    --->    1
                 x0*x1*x2    --->    1
                 x1^3*x0^2*x1    --->    1
-                (x0*x1)^2*x0*x2*x0^-1    --->    1
 
             sage: k.make_confluent()
             sage: k.is_confluent()
@@ -638,21 +648,22 @@ class RewritingSystem(object):
             sage: k
             Rewriting system of Finitely presented group < x0, x1, x2 | (x0*x1)^2*x0*x2*x0^-1, x1^3*x0^2*x1, x0*x1*x2 >
             with rules:
-                x0^-1    --->    x0
-                x1^-1    --->    x1
-                x0^2    --->    1
-                x0*x1    --->    x2^-1
-                x0*x2^-1    --->    x1
-                x1*x0    --->    x2
-                x1^2    --->    1
-                x1*x2^-1    --->    x0*x2
-                x1*x2    --->    x0
+                x2^-2    --->    x2
                 x2^-1*x0    --->    x0*x2
                 x2^-1*x1    --->    x0
-                x2^-2    --->    x2
+                x1^-1    --->    x1
+                x0^-1    --->    x0
+                x0*x2^-1    --->    x1
+                x0^2    --->    1
+                x0*x1    --->    x2^-1
+                x1*x2^-1    --->    x0*x2
+                x1*x0    --->    x2
+                x1^2    --->    1
+                x1*x2    --->    x0
                 x2*x0    --->    x1
                 x2*x1    --->    x0*x2
                 x2^2    --->    x2^-1
+
         """
         return self._gap.IsConfluent().sage()
 
@@ -684,20 +695,21 @@ class RewritingSystem(object):
             Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
             with rules:
                 a^2    --->    1
-                b^3    --->    1
-                (b*a)^2    --->    1
                 a*b^3*a^-1    --->    1
+                (b*a)^2    --->    1
+                b^3    --->    1
 
             sage: k.make_confluent()
             sage: k
             Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
             with rules:
+                b^-2    --->    b
+                b^-1*a    --->    a*b
                 a^-1    --->    a
                 a^2    --->    1
-                b^-1*a    --->    a*b
-                b^-2    --->    b
                 b*a    --->    a*b^-1
                 b^2    --->    b^-1
+
         """
         try:
             self._gap.MakeConfluent()
@@ -1460,9 +1472,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
             with rules:
                 a^2    --->    1
-                b^3    --->    1
-                (b*a)^2    --->    1
                 a*b^3*a^-1    --->    1
+                (b*a)^2    --->    1
+                b^3    --->    1
 
             sage: G([1,1,2,2,2])
             a^2*b^3

@@ -3842,7 +3842,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 raise ValueError("this complex is not connected, so you must specify a base point.")
             return self.connected_component(Simplex([base_point])).fundamental_group(simplify=simplify)
 
-        from sage.groups.free_group import FreeGroup
+        from sage.groups.free_groups.free_group import FreeGroup
         from sage.interfaces.gap import gap
         spanning_tree = [e[:2] for e in self.graph().min_spanning_tree()]
         gens = [tuple(e) for e in self.n_cells(1) if tuple(e) not in spanning_tree]
