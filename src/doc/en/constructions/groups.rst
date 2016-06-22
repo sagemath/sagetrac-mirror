@@ -665,7 +665,8 @@ M.Bestvina and M.Handel [1].
       Note that they are reduced by default.
       Words can be multiplied and inverted easily::
 
-          sage: w=F('abA')
+          sage: F = FreeGroup('a, b')
+          sage: w = F('abA')
           sage: w*w
           a*b^2*a^-1
           sage: w.inverse()
@@ -694,7 +695,7 @@ M.Bestvina and M.Handel [1].
       ::
 
           sage: print(free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda())
-          Automorphism of the Free Group on generators {a, b, c}: a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
+          a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
 
       Also Free group automorphisms can be obtained as composition of
       elementary Nielsen automorphisms  (of the form $a->ab$). Up to now they
@@ -718,7 +719,7 @@ M.Bestvina and M.Handel [1].
       ::
 
           sage: F = FreeGroup(4,'a,b,c,d')
-          sage:FreeGroupAutomorphism.braid_automorphism(F, 2)
+          sage: FreeGroupAutomorphism.braid_automorphism(F, 2)
           Automorphism of the Free Group on generators {a, b, c, d}: a->a,b->b*c*b^-1,c->b,d->d
 
 -  Graphs and maps:
@@ -738,6 +739,7 @@ M.Bestvina and M.Handel [1].
        sage: print(G)
        a: 0->0, b: 0->0, c: 0->0
        sage: G.plot()
+       Graphics object consisting of 9 graphics primitives
 
    .. image:: tmp_S25CbR.*
 
@@ -760,7 +762,7 @@ M.Bestvina and M.Handel [1].
 
        sage: phi = free_group_automorphisms.tribonacci()
        sage: print(phi.rose_representative())
-       GraphSelfMap:
+       Graph self map:
        Marked graph: a: 0->0, b: 0->0, c: 0->0
        Marking: a->a, b->b, c->c
        Edge map: a->ab, b->ac, c->a
@@ -817,7 +819,7 @@ M.Bestvina and M.Handel [1].
 
           sage: phi = free_group_automorphisms.tribonacci()
           sage: phi.train_track()
-          Train-track map:
+          Graph self map:
           Marked graph: a: 0->0, b: 0->0, c: 0->0
           Marking: a->a, b->b, c->c
           Edge map: a->ab, b->ac, c->a
@@ -832,6 +834,7 @@ M.Bestvina and M.Handel [1].
 
           sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->c")
           sage: phi.train_track(relative=False)
+          Graph self map:
           Marked graph: a: 0->0, b: 0->0, c: 0->0
           Marking: a->a, b->b, c->c
           Edge map: a->ab, b->ac, c->c
@@ -1033,6 +1036,8 @@ M.Bestvina and M.Handel [1].
       some methods shorten the typesetting.
       ::
 
+          sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+          sage: from sage.groups.free_groups.convex_core import ConvexCore
           sage: from sage.groups.free_groups.marked_graph import MarkedGraph
           sage: A = AlphabetWithInverses(2)
           sage: G1 = MarkedGraph(GraphWithInverses.rose_graph(A))
