@@ -274,16 +274,13 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
             rows.append(self.leaving_coefficients())
         import sage.matrix.constructor as construc
         m = construc.matrix(rows)
-        name = self._backend.problem_name()
-        if not name:
-            name = 'zeta'
         D = LPDictionary(m,
                          self.constant_terms(),
                          self.objective_coefficients(),
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         name)
+                         self.objective_name())
         D._entering = self._entering
         D._leaving = self._leaving
         return D
