@@ -97,7 +97,7 @@ TODO:
 #*****************************************************************************
 from __future__ import print_function
 
-import os
+import os 
 
 from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     AsciiArtString)
