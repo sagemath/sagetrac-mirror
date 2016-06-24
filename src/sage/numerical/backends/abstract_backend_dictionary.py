@@ -155,6 +155,33 @@ class LPAbstractBackendDictionary(LPAbstractDictionary):
         else:
             return symbol + infix + str(index)
 
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        If not specified, then the objective name is "zeta" by default.
+
+        OUTPUT:
+        
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.abstract_backend_dictionary \
+                  import LPAbstractBackendDictionary
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(5.5 * x[0] + 2.1 * x[1])
+            sage: b = p.get_backend()
+            sage: d = LPAbstractBackendDictionary(b)
+            sage: d.objective_name()
+            zeta            
+        """
+        name = self._backend.problem_name()
+        return SR(name) if name else SR('zeta')
+
     def objective_value(self):
         r"""
         Return the value of the objective value.
