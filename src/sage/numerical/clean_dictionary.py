@@ -51,6 +51,7 @@ class LPCleanDictionary(LPAbstractDictionary):
         sage: from sage.numerical.clean_dictionary \
               import LPCleanDictionary
         sage: clean = LPCleanDictionary(d, epsilon=1e-5)
+        sage: TestSuite(clean).run()
         sage: clean
         LP problem dictionary (use typeset mode to see details)
         sage: view(clean.dictionary())  # not tested
