@@ -429,7 +429,7 @@ cdef class Letter(Element):
         """
         return self.value
 
-    cpdef bool _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -551,7 +551,7 @@ cdef class EmptyLetter(Element):
         """
         return hash(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
 
@@ -1324,7 +1324,7 @@ cdef class LetterTuple(Element):
         """
         return hash(self.value)
 
-    cpdef bool _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Check comparison between ``left`` and ``right`` based on ``op``
 
