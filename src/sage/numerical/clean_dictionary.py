@@ -55,6 +55,7 @@ class LPCleanDictionary(LPAbstractDictionary):
     Create the clean dictionary using the backend dictionary::
 
         sage: clean = LPCleanDictionary(d, epsilon=1e-5)
+        sage: TestSuite(clean).run()
         sage: clean
         LP problem dictionary (use typeset mode to see details)
         sage: view(d.dictionary())  # not tested
