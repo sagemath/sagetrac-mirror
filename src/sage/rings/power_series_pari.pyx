@@ -76,7 +76,7 @@ from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from power_series_ring_element cimport PowerSeries
-from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.element cimport Element, RingElement
 from sage.structure.parent cimport Parent
 from infinity import infinity
 
@@ -547,7 +547,7 @@ cdef class PowerSeries_pari(PowerSeries):
             return self._parent.laurent_series_ring()(h)
         return construct_from_pari(self._parent, h)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Addition of power series.
 
@@ -564,7 +564,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g + (<PowerSeries_pari>right).g)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtraction of power series.
 
@@ -578,7 +578,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g - (<PowerSeries_pari>right).g)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiplication of power series.
 
@@ -591,7 +591,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * (<PowerSeries_pari>right).g)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         Right multiplication by a scalar.
 
@@ -605,7 +605,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * c)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         Left multiplication by a scalar.
 
@@ -619,7 +619,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, c * self.g)
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Division of power series.
 
