@@ -193,13 +193,18 @@ class LPCleanDictionary(LPAbstractDictionary):
         """
         return vector([self._round_(e) for e in iterable])
 
-    def leaving_coefficients(self):
+    def row_coefficients(self, v):
         r"""
-        Return coefficients of the leaving variable.
+        Return the coefficients of a basic variable
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
-        - a vector
+        - a vector of coefficients of a basic variable
 
         EXAMPLES::
 
@@ -213,11 +218,10 @@ class LPCleanDictionary(LPAbstractDictionary):
             sage: lp, basis = p.interactive_lp_problem()
             sage: d = lp.dictionary(*basis)
             sage: clean = LPCleanDictionary(d, epsilon=1e-4)
-            sage: clean.leave(clean.basic_variables()[0])
-            sage: clean.leaving_coefficients()
+            sage: clean.row_coefficients(clean.basic_variables()[0])
             (-1, 1)
         """
-        coefs = self._dict.leaving_coefficients()
+        coefs = self._dict.row_coefficients(v)
         return self._round_all_(coefs)
 
     def constant_terms(self):
