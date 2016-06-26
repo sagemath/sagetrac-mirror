@@ -93,8 +93,7 @@ dimension of the cuspidal subspace.
      [X^2,(2,10)], [X^2,(2,11)], [X^2,(2,12)], [X^2,(4,0)], [X^2,(4,3)],
      [X^2,(4,6)], [X^2,(4,8)], [X^2,(4,12)], [X^2,(7,1)])
     sage: factor(charpoly(M.T(2)))
-    (x - 7) * (x + 7) * (x - 9)^2 * (x + 5)^2
-            * (x^2 - x - 4)^2 * (x^2 + 9)^2
+    (x - 9)^2 * (x - 7) * (x + 5)^2 * (x + 7) * (x^2 - x - 4)^2 * (x^2 + 9)^2
     sage: dimension(M.cuspidal_subspace())
     10
 

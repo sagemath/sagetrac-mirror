@@ -50,7 +50,7 @@ factor `x`.
 ::
 
     sage: M.T(2).matrix().fcp('x')
-    (x + 1)^2 * x^5
+    x^5 * (x + 1)^2
     sage: M0.T(2).matrix().fcp('x')
     (x - 9)^2 * (x^2 - 2*x - 2)^2
 """

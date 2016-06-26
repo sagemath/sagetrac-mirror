@@ -149,7 +149,7 @@ Sage example in ./polynomes.tex, line 533::
   Finite Field of size 5 :
   (4) * (x + 2)^2 * (x^2 + 3)
   Number Field in sqrt2 with defining polynomial x^2 - 2 :
-  (54) * (x - sqrt2) * (x + sqrt2) * (x + 1/3)^2
+  (54) * (x - sqrt2) * (x + 1/3)^2 * (x + sqrt2)
 
 Sage example in ./polynomes.tex, line 601::
 
@@ -161,10 +161,10 @@ Sage example in ./polynomes.tex, line 608::
   sage: p.roots(QQ)
   [(2, 2), (1/2, 2)]
   sage: p.roots(Zp(19, print_max_terms=3))
-  [(7 + 16*19 + 17*19^2 + ... + O(19^20), 1),
-  (12 + 2*19 + 19^2 + ... + O(19^20), 1),
-  (10 + 9*19 + 9*19^2 + ... + O(19^20), 2),
-  (2 + O(19^20), 2)]
+    [(7 + 16*19 + 17*19^2 + ... + O(19^20), 1),
+     (10 + 9*19 + 9*19^2 + ... + O(19^20), 2),
+     (12 + 2*19 + 19^2 + ... + O(19^20), 1),
+     (2 + O(19^20), 2)]
 
 Sage example in ./polynomes.tex, line 623::
 

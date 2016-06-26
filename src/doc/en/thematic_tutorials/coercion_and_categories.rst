@@ -1746,7 +1746,7 @@ complicated element, ``_test_factorisation`` is a serious test::
 ::
 
     sage: P.an_element().factor()
-    (x + 1)^-3 * x^2
+    x^2 * (x + 1)^-3
 
 .. end of output
 

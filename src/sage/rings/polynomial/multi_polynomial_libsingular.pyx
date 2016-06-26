@@ -4214,7 +4214,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: q=y^11 + (a)*y^10 + (a + 1)*x*y^3
             sage: f = p*q
             sage: f.factor()
-            x * y^3 * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
+            y^3 * x * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
 
         We test several examples which were known to return wrong
         results in the past (see :trac:`10902`)::
@@ -4224,9 +4224,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: q = x^3*y^5
             sage: f = p*q
             sage: p.factor()*q.factor()
-            x^5 * y^8 * (x*y^4 + y^3 + 1)
+            y^8 * x^5 * (x*y^4 + y^3 + 1)
             sage: f.factor()
-            x^5 * y^8 * (x*y^4 + y^3 + 1)
+            y^8 * x^5 * (x*y^4 + y^3 + 1)
             sage: f.factor().expand() == f
             True
 
@@ -4328,6 +4328,15 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: N = -a^4*z^8 + 2*a^2*b^2*z^8 - b^4*z^8 - 16*a^3*b*z^7 + 16*a*b^3*z^7 + 28*a^4*z^6 - 56*a^2*b^2*z^6 + 28*b^4*z^6 + 112*a^3*b*z^5 - 112*a*b^3*z^5 - 70*a^4*z^4 + 140*a^2*b^2*z^4 - 70*b^4*z^4 - 112*a^3*b*z^3 + 112*a*b^3*z^3 + 28*a^4*z^2 - 56*a^2*b^2*z^2 + 28*b^4*z^2 + 16*a^3*b*z - 16*a*b^3*z - a^4 + 2*a^2*b^2 - b^4
             sage: N.factor()
             (-1) * (-a + b) * (a + b) * (-z^4*a + z^4*b - 4*z^3*a - 4*z^3*b + 6*z^2*a - 6*z^2*b + 4*z*a + 4*z*b - a + b) * (z^4*a + z^4*b - 4*z^3*a + 4*z^3*b - 6*z^2*a - 6*z^2*b + 4*z*a - 4*z*b + a + b)
+
+        Check unit type (:trac:`20214`)::
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = R.one().factor()
+            sage: f.universe() is R
+            True
+            sage: f.unit().parent() is R
+            True
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
@@ -4340,7 +4349,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         if p_IsConstant(self._poly, _ring):
-            return self.constant_coefficient().factor()
+            return self.constant_coefficient().factor().base_change(parent)
 
         if not self._parent._base.is_field():
             try:
@@ -4348,7 +4357,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 F = self.change_ring(frac_field).factor()
                 FF = [(self._parent(f[0]), f[1]) for f in F]
                 U = self._parent._base(F.unit()).factor()
-                return Factorization(list(U) + FF, unit=U.unit())
+                return Factorization(list(U) + FF, unit=U.unit(),
+                        universe=parent)
             except Exception:
                 raise NotImplementedError("Factorization of multivariate polynomials over %s is not implemented."%self._parent._base)
 
@@ -4369,7 +4379,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         v = [(f,m) for f,m in v if f!=0] # we might have zero in there
         unit = new_MP(parent, p_Copy(I.m[0],_ring))
 
-        F = Factorization(v,unit)
+        F = Factorization(v, unit, universe=parent)
         F.sort()
 
         del iv

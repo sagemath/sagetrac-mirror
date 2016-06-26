@@ -2063,7 +2063,7 @@ def DyckGraph():
     It is a non-integral graph as it has irrational eigenvalues::
 
         sage: G.characteristic_polynomial().factor()
-        (x - 3) * (x + 3) * (x - 1)^9 * (x + 1)^9 * (x^2 - 5)^6
+        (x - 3) * (x - 1)^9 * (x + 1)^9 * (x + 3) * (x^2 - 5)^6
 
     It is a toroidal graph, and its embedding on a torus is dual to an embedding
     of the Shrikhande graph (:meth:`ShrikhandeGraph
@@ -2472,7 +2472,7 @@ def FolkmanGraph():
         sage: g.girth()
         4
         sage: g.charpoly().factor()
-        (x - 4) * (x + 4) * x^10 * (x^2 - 6)^4
+        (x - 4) * x^10 * (x + 4) * (x^2 - 6)^4
         sage: g.chromatic_number()
         2
         sage: g.is_eulerian()
@@ -3949,7 +3949,7 @@ def RobertsonGraph():
         sage: g.girth()
         5
         sage: g.charpoly().factor()
-        (x - 4) * (x - 1)^2 * (x^2 + x - 5) * (x^2 + x - 1) * (x^2 - 3)^2 * (x^2 + x - 4)^2 * (x^2 + x - 3)^2
+        (x - 4) * (x - 1)^2 * (x^2 - 3)^2 * (x^2 + x - 5) * (x^2 + x - 4)^2 * (x^2 + x - 3)^2 * (x^2 + x - 1)
         sage: g.chromatic_number()
         3
         sage: g.is_hamiltonian()

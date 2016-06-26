@@ -15,7 +15,7 @@ Sage example in ./nonlinear.tex, line 61::
     sage: p.roots(ring=ComplexField(10), multiplicities=False)
     [-1.7, 0.50, 1.7, 5.0, -2.2*I, 2.2*I]
     sage: p.roots(ring=RationalField())
-    [(1/2, 1), (5, 2)]
+    [(5, 2), (1/2, 1)]
 
 Sage example in ./nonlinear.tex, line 158::
 

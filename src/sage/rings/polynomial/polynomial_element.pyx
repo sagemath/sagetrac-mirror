@@ -3911,7 +3911,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = R(I) * (x^2 + 1) ; f
             I*x^2 + I
             sage: F = factor(f); F
-            (1.0000000000000000000000000000*I) * (x - I) * (x + I)
+            (I) * (x - I) * (x + I)
             sage: expand(F)
             I*x^2 + I
 
@@ -4227,7 +4227,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() < 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
         if self.degree() == 0:
-            return Factorization([], unit=self.get_unsafe(0))
+            return Factorization([], unit=self[0], universe=self.parent())
 
         # Use multivariate implementations for polynomials over polynomial rings
         flatten = self._parent.flattening_morphism()
@@ -4236,7 +4236,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             try:
                 F = flatten(self).factor(**kwargs)
                 unflatten = flatten.section()
-                return Factorization(((unflatten(f),m) for (f,m) in F), unit = F.unit())
+                return Factorization([(unflatten(f),m) for (f,m) in F],
+                                     unit=unflatten(F.unit()),
+                                     universe=self.parent())
             except NotImplementedError:
                 pass
 
@@ -4270,7 +4272,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             F = g.factor()
             S = self._parent
             v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
-            return Factorization(v, from_M(F.unit()))
+            return Factorization(v, unit=from_M(F.unit()), universe=self.parent())
 
         elif is_FiniteField(R):
             v = [x.__pari__("a") for x in self.list()]
@@ -4280,7 +4282,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif is_NumberField(R):
             if R.degree() == 1:
                 factors = self.change_ring(QQ).factor()
-                return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
+                return Factorization([(self._parent(p), e) for p, e in factors],
+                        unit=R(factors.unit()),
+                        universe=self.parent())
 
             # Convert the polynomial we want to factor to PARI
             f = self._pari_with_name()
@@ -4320,7 +4324,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         unit = unit * v[i][0]
                         del v[i]
                         break
-                F = Factorization(v, unit=unit)
+                F = Factorization(v, unit=unit, universe=self.parent())
                 F.sort()
                 return F
             except (TypeError, AttributeError):
@@ -4359,7 +4363,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: g = GF(19)['x'](f)
             sage: G = g._factor_pari_helper(pari(g).factor()); G
-            (4) * (x + 3) * (x + 16)^5 * (x + 11)^6 * (x^2 + 7*x + 9)^4 * (x^2 + 15*x + 9)^4 * (x^3 + 13)^2 * (x^6 + 8*x^5 + 7*x^4 + 18*x^3 + 11*x^2 + 12*x + 1)^6
+            (4) * (x + 3) * (x + 11)^6 * (x + 16)^5 * (x^2 + 7*x + 9)^4 * (x^2 +
+            15*x + 9)^4 * (x^3 + 13)^2 *
+            (x^6 + 8*x^5 + 7*x^4 + 18*x^3 + 11*x^2 + 12*x + 1)^6
             sage: G.prod() == g
             True
         """
@@ -4395,7 +4401,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if n is not None:
             pari.set_real_precision(n)  # restore precision
-        return Factorization(F, unit)
+        return Factorization(F, unit, universe=self.parent())
 
     def splitting_field(self, names=None, map=False, **kwds):
         """
@@ -6182,7 +6188,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: h.Factors()
             [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
             sage: f.factor()
-            (y + 5) * (y + 1)^2
+            (y + 1)^2 * (y + 5)
         """
         R = gap(self._parent)
         var = list(R.IndeterminatesOfPolynomialRing())[0]
@@ -6587,7 +6593,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(R)
             sage: f = (x-a)*(x-b)*(x-c)
             sage: f.compose_power(2).factor()
-            (x - c^2) * (x - b^2) * (x - a^2) * (x - b*c)^2 * (x - a*c)^2 * (x - a*b)^2
+            (x - c^2) * (x - b*c)^2 * (x - a*c)^2 * (x - b^2) * (x - a*b)^2 * (x - a^2)
 
             sage: x = polygen(QQ)
             sage: f = x^2-2*x+2
@@ -7183,7 +7189,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: y = A.gen()
             sage: f = 10*y^2 - y^3 - 9
             sage: f.roots(multiplicities=False)
-            [1, 0, 3, 6]
+            [0, 3, 6, 1]
 
         An example over the complex double field (where root finding is
         fast, thanks to NumPy)::

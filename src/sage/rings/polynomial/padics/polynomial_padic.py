@@ -235,10 +235,10 @@ class Polynomial_padic(Polynomial):
             sage: ((1 + 2)*x + (1 + 2)*x^2).factor()
             (1 + 2) * (x + 1) * x
         """
-        if self == 0:
+        if self.is_zero():
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
         elif self.is_constant():
-            return Factorization((), self.constant_coefficient())
+            return Factorization((), self.constant_coefficient(), universe=self.parent())
 
         # Scale self such that 0 is the lowest valuation
         # amongst the coefficients
@@ -254,7 +254,6 @@ class Polynomial_padic(Polynomial):
                 "p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision")
         G = self_normal.__pari__().factorpadic(self.base_ring().prime(), absprec)
         return _pari_padic_factorization_to_sage(G, self.parent(), self.leading_coefficient())
-
 
     def root_field(self, names, check_irreducible=True, **kwds):
         """
@@ -313,6 +312,7 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
     - ``G`` -- PARI factorization matrix, returned by ``factorpadic``.
 
     - ``R`` -- polynomial ring to be used as parent ring of the factors
+      and the unit
 
     - ``leading_coeff`` -- leading coefficient of the polynomial which
       was factored. This can belong to any ring which can be coerced
@@ -354,4 +354,10 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
             pols.append(R(p))
             exps.append(c)
 
-    return Factorization(zip(pols, exps), leading_coeff)
+    # known bug: normalizing the factors might change the base ring from
+    # absolute precision to relative precision. See
+    # https://trac.sagemath.org/ticket/20214
+    from sage.structure.sequence import Sequence
+    R = Sequence(pols).universe()
+
+    return Factorization(list(zip(pols, exps)), R(leading_coeff), universe=R)

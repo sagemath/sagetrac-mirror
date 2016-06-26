@@ -760,8 +760,7 @@ class ComplexField_class(ring.Field):
             sage: k._factor_univariate_polynomial( x^2 + 1 )
             (x - I) * (x + I)
             sage: k._factor_univariate_polynomial( k(I) * (x^2 + 1) )
-            (1.0000000000000000000000000000*I) * (x - I) * (x + I)
-
+            (I) * (x - I) * (x + I)
         """
         R = f.parent()
 

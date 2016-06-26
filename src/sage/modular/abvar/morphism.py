@@ -19,7 +19,7 @@ EXAMPLES::
     sage: t5 = A.hecke_operator(5); t5
     Hecke operator T_5 on Abelian variety J0(54) of dimension 4
     sage: t5.charpoly().factor()
-    (x - 3) * (x + 3) * x^2
+    (x - 3) * x^2 * (x + 3)
     sage: B = A.new_subvariety(); B
     Abelian subvariety of dimension 2 of J0(54)
     sage: t5 = B.hecke_operator(5); t5

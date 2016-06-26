@@ -1241,7 +1241,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
             sage: ZZ._roots_univariate_polynomial(p)
-            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            [(100, 1), (1, 23), (-1, 23), (-5445, 5)]
             sage: p *= (1 + x^3458645 - 76*x^3435423343 + x^45346567867756556)
             sage: ZZ._roots_univariate_polynomial(p)
             [(1, 23), (-1, 23), (100, 1), (-5445, 5)]
@@ -1258,14 +1258,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: R.<x> = PolynomialRing(ZZ, sparse=False)
             sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
             sage: ZZ._roots_univariate_polynomial(p)
-            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            [(100, 1), (1, 23), (-1, 23), (-5445, 5)]
             sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
-            [100, -5445, 1, -1]
+            [100, 1, -1, -5445]
 
             sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
-            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            [(100, 1), (1, 23), (-1, 23), (-5445, 5)]
             sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
-            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            [(100, 1), (1, 23), (-1, 23), (-5445, 5)]
             sage: ZZ._roots_univariate_polynomial(p, algorithm="foobar")
             Traceback (most recent call last):
             ...
@@ -1273,9 +1273,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: p = x^20 * p
             sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
-            [(0, 20), (100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            [(0, 20), (100, 1), (1, 23), (-1, 23), (-5445, 5)]
             sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
-            [(100, 1), (-5445, 5), (0, 20), (1, 23), (-1, 23)]
+            [(100, 1), (1, 23), (0, 20), (-1, 23), (-5445, 5)]
         """
         deg = p.degree()
         if deg < 0:

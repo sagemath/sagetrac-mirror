@@ -3205,23 +3205,20 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.factor()
             (x^3*y^-7*z^-2) * (4*x^4*y^7*z + 3*y^8*z^2 + 2*x*y^7 + x^3*z^2)
         """
+        P = self._parent
         pf = self._poly.factor()
-        u = self.parent(pf.unit().dict()) # self.parent won't currently take polynomials
-
-        cdef tuple g = <tuple> self._parent.gens()
-        for i in self._mon.nonzero_positions():
-            u *= g[i] ** self._mon[i]
+        u = P(pf.unit()) * P.element_class(P, P.polynomial_ring().one(), self._mon)
 
         cdef list f = []
         cdef dict d
         for t in pf:
             d = <dict> (t[0].dict())
             if len(d) == 1:  # monomials are units
-                u *= self.parent(d) ** t[1]
+                u *= P(d) ** t[1]
             else:
-                f.append((self.parent(d), t[1]))
+                f.append((P(d), t[1]))
 
-        return Factorization(f, unit=u)
+        return Factorization(f, unit=u, universe=P)
 
     def is_square(self, root=False):
         r"""

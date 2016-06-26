@@ -427,7 +427,7 @@ Sage example in ./domaines.tex, line 1012::
     sage: q = R(p); q
     54*x^4 + 36*x^3 - 102*x^2 - 72*x - 12
     sage: factor(q)
-    (54) * (x - sqrt2) * (x + sqrt2) * (x + 1/3)^2
+    (54) * (x - sqrt2) * (x + 1/3)^2 * (x + sqrt2)
 
 Sage example in ./domaines.tex, line 1025::
 

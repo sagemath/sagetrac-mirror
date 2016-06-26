@@ -900,7 +900,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             del v[i]
         sig_free(v)
         sig_free(e)
-        return Factorization(F, unit=c, sort=False)
+        return Factorization(F, unit=c, universe=self.parent(), sort=False)
 
     def _factor_pari(self):
         """
@@ -932,6 +932,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f = R([9,6,1])
             sage: f._factor_ntl()
             (x + 3)^2
+
+        TESTS:
+
+        Check universe of the factorization (:trac:`20214`)::
+
+            sage: R.one()._factor_ntl().universe()
+            Univariate Polynomial Ring in x over Integer Ring (using NTL)
         """
         cdef Polynomial_integer_dense_ntl fac_py
         cdef ZZ_c content
@@ -956,7 +963,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             fac_py = self._new()
             fac_py.__poly = factors.RawGet(i).a
             results.append( (fac_py,factors.RawGet(i).b) )
-        return Factorization(results, unit = unit)
+        return Factorization(results, unit=unit, universe=self.parent())
 
     def factor(self):
         """
@@ -989,9 +996,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         c = self.content()
         g = self//c
         if deg < 30 or deg > 300:
-            return c.factor()*g._factor_ntl()
+            return c.factor() * g._factor_ntl()
         else:
-            return c.factor()*g._factor_pari()
+            return c.factor() * g._factor_pari()
 
     def factor_mod(self, p):
         """
@@ -1057,7 +1064,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f = 100 * (5*x + 1)^2 * (x + 5)^2
             sage: f.factor_padic(5, 10)
             (4 + O(5^10)) * (5 + O(5^11))^2 * ((1 + O(5^10))*x + 5 + O(5^10))^2 * ((5 + O(5^10))*x + 1 + O(5^10))^2
-
         """
         from sage.rings.padics.factory import Zp
 

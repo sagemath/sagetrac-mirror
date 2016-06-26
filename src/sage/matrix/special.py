@@ -509,11 +509,11 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', implementation
         sage: all(x in ZZ for x in (A-(-1*identity_matrix(5))).rref().list())
         True
         sage: A.jordan_form()
-        [ 2| 0| 0| 0| 0]
+        [ 3| 0| 0| 0| 0]
         [--+--+--+--+--]
         [ 0| 3| 0| 0| 0]
         [--+--+--+--+--]
-        [ 0| 0| 3| 0| 0]
+        [ 0| 0| 2| 0| 0]
         [--+--+--+--+--]
         [ 0| 0| 0|-1| 0]
         [--+--+--+--+--]
@@ -3103,23 +3103,23 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
         sage: sorted(A.eigenvalues())
         [-10, -8, -4, 0, 0]
         sage: S=A.right_eigenmatrix()[1]; S
-        [    1     1     1     1     0]
-        [  1/2     0   2/3     0     1]
-        [  4/7  9/10   2/3   6/7  -3/7]
-        [  2/7   1/5   1/3  3/14   1/7]
-        [-1/14  1/10  -1/9  1/14  -2/7]
+        [    1     0     1     1     1]
+        [    0     1   1/2     0   2/3]
+        [  6/7  -3/7   4/7  9/10   2/3]
+        [ 3/14   1/7   2/7   1/5   1/3]
+        [ 1/14  -2/7 -1/14  1/10  -1/9]
         sage: S_inverse=S.inverse(); S_inverse
+        [ 10 -10  14 -68 -90]
+        [  6   1   7 -45 -33]
         [  0   0 -14  42  42]
         [  0  10   0 -10  30]
         [ -9   0   0  36  18]
-        [ 10 -10  14 -68 -90]
-        [  6   1   7 -45 -33]
         sage: S_inverse*A*S
-        [ -4   0   0   0   0]
-        [  0  -8   0   0   0]
-        [  0   0 -10   0   0]
         [  0   0   0   0   0]
         [  0   0   0   0   0]
+        [  0   0  -4   0   0]
+        [  0   0   0  -8   0]
+        [  0   0   0   0 -10]
 
     A diagonalizable matrix with eigenvalues and dimensions designated,
     with a check that if eigenvectors were calculated by hand
@@ -3140,11 +3140,11 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
         True
         sage: S=B.right_eigenmatrix()[1]; S_inverse=S.inverse(); S_inverse*B*S
         [  6   0   0   0   0   0]
-        [  0 -12   0   0   0   0]
-        [  0   0 -12   0   0   0]
+        [  0   4   0   0   0   0]
+        [  0   0   4   0   0   0]
         [  0   0   0   4   0   0]
-        [  0   0   0   0   4   0]
-        [  0   0   0   0   0   4]
+        [  0   0   0   0 -12   0]
+        [  0   0   0   0   0 -12]
 
     TESTS:
 

@@ -3062,7 +3062,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def factor(self):
         """
-        Return the factorization of this rational number.
+        Return the factorization of this rational number over the integers.
 
         OUTPUT: Factorization
 
@@ -3076,7 +3076,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
+
+        Note that the universe of the factorization is the integer
+        ring and not the rational field::
+
+            sage: (3/4).factor().universe()
+            Integer Ring
 
         TESTS::
 

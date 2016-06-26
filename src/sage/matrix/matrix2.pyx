@@ -9943,17 +9943,17 @@ cdef class Matrix(Matrix1):
             [ 1  1 -1  2]
             sage: jf, p = m.jordan_form(transformation=True)
             sage: jf
-            [2|0|0 0]
-            [-+-+---]
-            [0|1|0 0]
-            [-+-+---]
-            [0|0|4 1]
-            [0|0|0 4]
+            [4 1|0|0]
+            [0 4|0|0]
+            [---+-+-]
+            [0 0|2|0]
+            [---+-+-]
+            [0 0|0|1]
             sage: ~p * m * p
-            [2 0 0 0]
-            [0 1 0 0]
-            [0 0 4 1]
-            [0 0 0 4]
+            [4 1 0 0]
+            [0 4 0 0]
+            [0 0 2 0]
+            [0 0 0 1]
 
         Note that for matrices over inexact rings, we do not attempt to
         compute the Jordan normal form, since it is not numerically
@@ -9978,7 +9978,7 @@ cdef class Matrix(Matrix1):
 
         ::
 
-            sage: evals = [(i,i) for i in range(1,6)]
+            sage: evals = [(i,i) for i in range(5,0,-1)]
             sage: n = sum(range(1,6))
             sage: jf = block_diagonal_matrix([jordan_block(ev,size) for ev,size in evals])
             sage: p = random_matrix(ZZ,n,n)
@@ -10368,9 +10368,9 @@ cdef class Matrix(Matrix1):
             ....:                 [ 3, -4,  0,  -1,   9],
             ....:                 [-1,  0, -4,   4, -12]])
             sage: A.jordan_form(subdivide=False)
-            [ 2  0  0  0  0]
+            [ 3  0  0  0  0]
             [ 0  3  0  0  0]
-            [ 0  0  3  0  0]
+            [ 0  0  2  0  0]
             [ 0  0  0 -1  0]
             [ 0  0  0  0 -1]
             sage: A.is_diagonalizable()
@@ -10385,11 +10385,11 @@ cdef class Matrix(Matrix1):
             ....:                 [3, 13, -2, 0, -11],
             ....:                 [-1, 6, 1, -3, 1]])
             sage: A.jordan_form(subdivide=False)
-            [-1  1  0  0  0]
-            [ 0 -1  0  0  0]
-            [ 0  0  2  1  0]
-            [ 0  0  0  2  1]
-            [ 0  0  0  0  2]
+            [ 2  1  0  0  0]
+            [ 0  2  1  0  0]
+            [ 0  0  2  0  0]
+            [ 0  0  0 -1  1]
+            [ 0  0  0  0 -1]
             sage: A.is_diagonalizable()
             False
 
@@ -10440,9 +10440,9 @@ cdef class Matrix(Matrix1):
             ....:                [       0,   2*c - 2,   -2*c + 2,   2*c + 2]])
             sage: A.jordan_form(subdivide=False)
             [    4     0     0     0]
-            [    0    -2     0     0]
+            [    0 c + 3     0     0]
             [    0     0 c + 3     0]
-            [    0     0     0 c + 3]
+            [    0     0     0    -2]
             sage: A.is_diagonalizable()
             True
 
@@ -10671,6 +10671,17 @@ cdef class Matrix(Matrix1):
             [--+-----]
             [ 0| 0 12]
             [ 0| 1  1]
+            sage: A.jordan_form()
+            [ 4  1| 0]
+            [ 0  4| 0]
+            [-----+--]
+            [ 0  0|-3]
+            sage: B.jordan_form()
+            [ 4| 0| 0]
+            [--+--+--]
+            [ 0| 4| 0]
+            [--+--+--]
+            [ 0| 0|-3]
             sage: A.is_similar(B)
             False
 
@@ -14532,7 +14543,7 @@ cdef class Matrix(Matrix1):
             [[4, -4, 1], [-12, 4, 9, -6, 1], [216, -108, -306, 271, 41, -134, 64, -13, 1]]
             sage: polys = [R(p) for p in invariants]
             sage: [p.factor() for p in polys]
-            [(x - 2)^2, (x - 3) * (x + 1) * (x - 2)^2, (x + 1)^2 * (x - 3)^3 * (x - 2)^3]
+            [(x - 2)^2, (x - 3) * (x - 2)^2 * (x + 1), (x - 3)^3 * (x - 2)^3 * (x + 1)^2]
             sage: all(polys[i].divides(polys[i+1]) for i in range(len(polys)-1))
             True
             sage: polys[-1] == A.minimal_polynomial(var='x')

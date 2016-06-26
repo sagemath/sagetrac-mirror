@@ -1717,9 +1717,9 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             sage: S.<y> = R[]
             sage: p = y^3 + (-x^2 - 3)*y^2 + (2*x^3 - x^2 + 3)*y - x^4 + 2*x^2 - 1
             sage: p.roots()
-            [(x^2 - 2*x + 1, 1), (x + 1, 2)]
+            [(x + 1, 2), (x^2 - 2*x + 1, 1)]
             sage: p.roots(multiplicities=False)
-            [x^2 - 2*x + 1, x + 1]
+            [x + 1, x^2 - 2*x + 1]
             sage: p.roots(degree_bound=1)
             [(x + 1, 2)]
         """

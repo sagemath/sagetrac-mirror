@@ -546,12 +546,11 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
             sage: h = V.hom([[2,1,0], [0,2,0], [0,0,-1]], V)
             sage: h.eigenspaces()
-            [(-1, Vector space of degree 3 and dimension 1 over Rational Field
+            [(2, Vector space of degree 3 and dimension 1 over Rational Field
               Basis matrix:
-              [0 0 1]),
-             (2, Vector space of degree 3 and dimension 1 over Rational Field
+              [0 1 0]), (-1, Vector space of degree 3 and dimension 1 over Rational Field
               Basis matrix:
-              [0 1 0])]
+              [0 0 1])]
 
             sage: h = V.hom([[2,1,0], [0,2,0], [0,0,2]], V)
             sage: h.eigenspaces()

@@ -2377,7 +2377,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [0 0 0 0 0 1 0]
             [0 0 0 1 0 0 0]
             sage: z.charpoly().factor()
-            (x + 1)^2 * (x - 1)^5
+            (x - 1)^5 * (x + 1)^2
         """
         N = self.level()
         from sage.matrix.constructor import matrix

@@ -20656,52 +20656,60 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = graphs.PetersenGraph()
             sage: P.eigenvectors()
             [(3, [
-            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-            ], 1), (-2, [
-            (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
-            (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
-            (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
-            (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
-            ], 4), (1, [
-            (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
-            (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
-            (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
-            (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
-            (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
-            ], 5)]
+             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+             ], 1),
+            (1, [
+             (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
+             (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
+             (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
+             (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
+             (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
+             ], 5),
+            (-2, [
+             (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
+             (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
+             (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
+             (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
+             ], 4)]
 
         Eigenspaces for the Laplacian should be identical since the Petersen
         graph is regular.  However, since the output also contains the
         eigenvalues, the two outputs are slightly different::
 
             sage: P.eigenvectors(laplacian=True)
-            [(0, [
-            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-            ], 1), (5, [
-            (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
-            (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
-            (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
-            (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
-            ], 4), (2, [
-            (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
-            (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
-            (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
-            (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
-            (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
-            ], 5)]
+            [(5, [
+              (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
+              (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
+              (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
+              (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
+              ], 4), (2, [
+              (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
+              (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
+              (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
+              (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
+              (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
+              ], 5), (0, [
+              (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+              ], 1)]
 
         ::
 
             sage: C = graphs.CycleGraph(8)
             sage: C.eigenvectors()
             [(2, [
-            (1, 1, 1, 1, 1, 1, 1, 1)
-            ], 1), (-2, [
-            (1, -1, 1, -1, 1, -1, 1, -1)
-            ], 1), (0, [
-            (1, 0, -1, 0, 1, 0, -1, 0),
-            (0, 1, 0, -1, 0, 1, 0, -1)
-            ], 2), (-1.4142135623..., [(1, 0, -1, 1.4142135623..., -1, 0, 1, -1.4142135623...), (0, 1, -1.4142135623..., 1, 0, -1, 1.4142135623..., -1)], 2), (1.4142135623..., [(1, 0, -1, -1.4142135623..., -1, 0, 1, 1.4142135623...), (0, 1, 1.4142135623..., 1, 0, -1, -1.4142135623..., -1)], 2)]
+              (1, 1, 1, 1, 1, 1, 1, 1)
+              ], 1), (0, [
+              (1, 0, -1, 0, 1, 0, -1, 0),
+              (0, 1, 0, -1, 0, 1, 0, -1)
+              ], 2), (-2, [
+              (1, -1, 1, -1, 1, -1, 1, -1)
+              ], 1), (-1.414213562373095?,
+              [(1, 0, -1, 1.414213562373095?, -1, 0, 1, -1.414213562373095?),
+               (0, 1, -1.414213562373095?, 1, 0, -1, 1.414213562373095?, -1)],
+              2), (1.414213562373095?,
+              [(1, 0, -1, -1.414213562373095?, -1, 0, 1, 1.414213562373095?),
+               (0, 1, 1.414213562373095?, 1, 0, -1, -1.414213562373095?, -1)],
+              2)]
 
         A digraph may have complex eigenvalues. Previously, the complex parts of
         graph eigenvalues were being dropped. For a 3-cycle, we have::
@@ -20745,19 +20753,19 @@ class GenericGraph(GenericGraph_pyx):
             (3, Vector space of degree 10 and dimension 1 over Rational Field
             User basis matrix:
             [1 1 1 1 1 1 1 1 1 1]),
-            (-2, Vector space of degree 10 and dimension 4 over Rational Field
-            User basis matrix:
-            [ 1  0  0  0 -1 -1 -1  0  1  1]
-            [ 0  1  0  0 -1  0 -2 -1  1  2]
-            [ 0  0  1  0 -1  1 -1 -2  0  2]
-            [ 0  0  0  1 -1  1  0 -1 -1  1]),
             (1, Vector space of degree 10 and dimension 5 over Rational Field
             User basis matrix:
             [ 1  0  0  0  0  1 -1  0  0 -1]
             [ 0  1  0  0  0 -1  1 -1  0  0]
             [ 0  0  1  0  0  0 -1  1 -1  0]
             [ 0  0  0  1  0  0  0 -1  1 -1]
-            [ 0  0  0  0  1 -1  0  0 -1  1])
+            [ 0  0  0  0  1 -1  0  0 -1  1]),
+            (-2, Vector space of degree 10 and dimension 4 over Rational Field
+            User basis matrix:
+            [ 1  0  0  0 -1 -1 -1  0  1  1]
+            [ 0  1  0  0 -1  0 -2 -1  1  2]
+            [ 0  0  1  0 -1  1 -1 -2  0  2]
+            [ 0  0  0  1 -1  1  0 -1 -1  1])
             ]
 
         Eigenspaces for the Laplacian should be identical since the Petersen
@@ -20766,9 +20774,6 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P.eigenspaces(laplacian=True)
             [
-            (0, Vector space of degree 10 and dimension 1 over Rational Field
-            User basis matrix:
-            [1 1 1 1 1 1 1 1 1 1]),
             (5, Vector space of degree 10 and dimension 4 over Rational Field
             User basis matrix:
             [ 1  0  0  0 -1 -1 -1  0  1  1]
@@ -20781,7 +20786,10 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  1  0  0  0 -1  1 -1  0  0]
             [ 0  0  1  0  0  0 -1  1 -1  0]
             [ 0  0  0  1  0  0  0 -1  1 -1]
-            [ 0  0  0  0  1 -1  0  0 -1  1])
+            [ 0  0  0  0  1 -1  0  0 -1  1]),
+            (0, Vector space of degree 10 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1 1 1 1 1 1 1 1 1])
             ]
 
         Notice how one eigenspace below is described with a square root of 2.
@@ -20794,13 +20802,13 @@ class GenericGraph(GenericGraph_pyx):
             (2, Vector space of degree 8 and dimension 1 over Rational Field
             User basis matrix:
             [1 1 1 1 1 1 1 1]),
-            (-2, Vector space of degree 8 and dimension 1 over Rational Field
-            User basis matrix:
-            [ 1 -1  1 -1  1 -1  1 -1]),
             (0, Vector space of degree 8 and dimension 2 over Rational Field
             User basis matrix:
             [ 1  0 -1  0  1  0 -1  0]
             [ 0  1  0 -1  0  1  0 -1]),
+            (-2, Vector space of degree 8 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -1  1 -1  1 -1  1 -1]),
             (a3, Vector space of degree 8 and dimension 2 over Number Field in a3 with defining polynomial x^2 - 2
             User basis matrix:
             [  1   0  -1 -a3  -1   0   1  a3]

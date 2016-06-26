@@ -668,13 +668,13 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A = Z12.algebra(QQ)
                 sage: A.cartan_invariants_matrix()
                 [1 0 0 0 0 0 0 0 0]
-                [0 1 0 0 0 0 0 0 0]
+                [0 2 0 0 0 0 0 0 0]
                 [0 0 2 0 0 0 0 0 0]
                 [0 0 0 1 0 0 0 0 0]
-                [0 0 0 0 2 0 0 0 0]
+                [0 0 0 0 1 0 0 0 0]
                 [0 0 0 0 0 1 0 0 0]
-                [0 0 0 0 0 0 1 0 0]
-                [0 0 0 0 0 0 0 2 0]
+                [0 0 0 0 0 0 2 0 0]
+                [0 0 0 0 0 0 0 1 0]
                 [0 0 0 0 0 0 0 0 1]
 
             With the algebra of the `0`-Hecke monoid::
@@ -885,11 +885,11 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: [[decomposition[i][j].dimension()          # long time (4s)
                 ....:   for j in range(len(decomposition))]
                 ....:  for i in range(len(decomposition))]
-                [[9, 0, 0, 0, 0],
-                 [0, 9, 0, 0, 0],
+                [[1, 0, 0, 0, 0],
+                 [0, 1, 0, 0, 0],
                  [0, 0, 4, 0, 0],
-                 [0, 0, 0, 1, 0],
-                 [0, 0, 0, 0, 1]]
+                 [0, 0, 0, 9, 0],
+                 [0, 0, 0, 0, 9]]
 
             The dimension of each block is `d^2`, where `d` is the
             dimension of the corresponding simple module of `S_4`. The

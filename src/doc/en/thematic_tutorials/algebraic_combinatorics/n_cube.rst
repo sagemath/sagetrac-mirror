@@ -60,15 +60,15 @@ states the `n`-cube has `n` choose `i` eigenvalues equal to `n-2i`::
 
     sage: G = cube(2)
     sage: G.adjacency_matrix().eigenvalues()
-    [2, -2, 0, 0]
+    [2, 0, 0, -2]
 
     sage: G = cube(3)
     sage: G.adjacency_matrix().eigenvalues()
-    [3, -3, 1, 1, 1, -1, -1, -1]
+    [3, 1, 1, 1, -1, -1, -1, -3]
 
     sage: G = cube(4)
     sage: G.adjacency_matrix().eigenvalues()
-    [4, -4, 2, 2, 2, 2, -2, -2, -2, -2, 0, 0, 0, 0, 0, 0]
+    [4, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, -2, -2, -2, -2, -4]
 
 It is now easy to slightly vary this problem and change the edge
 set by connecting vertices `u` and `v` if their distance is 2
@@ -89,7 +89,7 @@ set by connecting vertices `u` and `v` if their distance is 2
 
     sage: G = cube_2(4)
     sage: G.adjacency_matrix().eigenvalues()
-    [6, 6, -2, -2, -2, -2, -2, -2, 0, 0, 0, 0, 0, 0, 0, 0]
+    [6, 6, 0, 0, 0, 0, 0, 0, 0, 0, -2, -2, -2, -2, -2, -2]
 
 Note that the graph is in fact disconnected. Do you understand why?
 

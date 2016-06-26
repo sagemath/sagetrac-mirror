@@ -295,7 +295,7 @@ cdef class FpTElement(RingElement):
             sage: t = K.gen()
             sage: f = 2 * (t+1) * (t^2+t+1)^2 / (t-1)
             sage: factor(f)
-            (2) * (t + 4)^-1 * (t + 1) * (t^2 + t + 1)^2
+            (2) * (t + 1) * (t + 4)^-1 * (t^2 + t + 1)^2
         """
         return self.numer().factor() / self.denom().factor()
 

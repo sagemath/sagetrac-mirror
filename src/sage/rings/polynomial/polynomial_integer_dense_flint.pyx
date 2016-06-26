@@ -1473,6 +1473,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.squarefree_decomposition()
             (-1) * x^2
 
+        Check that :trac:`20214` is fixed::
+
+            sage: R.one().squarefree_decomposition().universe()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         cdef ZZX_c** v
         cdef long* e
@@ -1508,7 +1512,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_free(v)
         sig_free(e)
 
-        return Factorization(F, unit=z, sort=False)
+        return Factorization(F, unit=z, universe=self.parent(), sort=False)
 
     def _factor_pari(self):
         """
@@ -1533,6 +1537,12 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             (x^2 - 2) * (x^5 - 3)^2
             sage: (12345678987654321234567898765432123456789876*f)._factor_ntl()
             12345678987654321234567898765432123456789876 * (x^2 - 2) * (x^5 - 3)^2
+
+        Check coherence of universe (:trac:`20214`)::
+
+            sage: R.<x> = ZZ[]
+            sage: R.one()._factor_ntl().universe()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         cdef Polynomial_integer_dense_flint fac_py
         cdef fmpz_t tcontent
@@ -1569,7 +1579,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fac_py = self._new()
             fmpz_poly_set_ZZX(fac_py.__poly, factors.RawGet(i).a)
             results.append( (fac_py,factors.RawGet(i).b) )
-        return Factorization(results, unit = unit)
+        return Factorization(results, unit=unit, universe=self.parent())
 
     def factor(self):
         """
@@ -1584,17 +1594,22 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x>=ZZ[]
-            sage: f=x^4-1
+            sage: R.<x> = ZZ[]
+            sage: f = x^4-1
             sage: f.factor()
             (x - 1) * (x + 1) * (x^2 + 1)
-            sage: f=1-x
+            sage: f = 1-x
             sage: f.factor()
             (-1) * (x - 1)
             sage: f.factor().unit()
             -1
             sage: f = -30*x; f.factor()
             (-1) * 2 * 3 * 5 * x
+
+            sage: parent((x+1).factor().unit())
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: parent(R.one().factor().unit())
+            Univariate Polynomial Ring in x over Integer Ring
         """
         cdef int i
         cdef long deg = fmpz_poly_degree(self.__poly)
@@ -1603,9 +1618,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         c = self.content()
         g = self//c
         if deg < 30 or deg > 300:
-            return c.factor()*g._factor_ntl()
+            return c.factor() * g._factor_ntl()
         else:
-            return c.factor()*g._factor_pari()
+            return c.factor() * g._factor_pari()
 
     def factor_mod(self, p):
         """
@@ -1673,7 +1688,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = 100 * (5*x + 1)^2 * (x + 5)^2
             sage: f.factor_padic(5, 10)
             (4 + O(5^10)) * (5 + O(5^11))^2 * ((1 + O(5^10))*x + 5 + O(5^10))^2 * ((5 + O(5^10))*x + 1 + O(5^10))^2
-
         """
         from sage.rings.padics.factory import Zp
 

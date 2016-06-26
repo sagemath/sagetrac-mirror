@@ -79,7 +79,7 @@ class QuotientFields(Category_singleton):
                 sage: factor(p)
                 (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
                 sage: factor(q)
-                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1/3) * (x^2 + 1)^-1
                 sage: gcd(p,q)
                 (x + 1)/(x^7 + x^5 - x^2 - 1)
                 sage: factor(gcd(p,q))
@@ -181,7 +181,7 @@ class QuotientFields(Category_singleton):
                 sage: factor(p)
                 (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
                 sage: factor(q)
-                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1/3) * (x^2 + 1)^-1
                 sage: factor(lcm(p,q))
                 (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/3) * (x^2 + 1/2)
                 sage: factor(lcm(p,1+x))
@@ -270,7 +270,7 @@ class QuotientFields(Category_singleton):
                 sage: factor(p)
                 (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
                 sage: factor(q)
-                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1/3) * (x^2 + 1)^-1
                 sage: g,s,t = xgcd(p,q)
                 sage: g
                 (x + 1)/(x^7 + x^5 - x^2 - 1)
@@ -349,7 +349,7 @@ class QuotientFields(Category_singleton):
                 sage: R.<x,y> = GF(2)[]
                 sage: f = x*y/(x+y)
                 sage: f.factor()
-                (x + y)^-1 * y * x
+                y * x * (x + y)^-1
             """
             return (self.numerator().factor(*args, **kwds) /
                     self.denominator().factor(*args, **kwds))
@@ -387,7 +387,10 @@ class QuotientFields(Category_singleton):
                 True
                 sage: q = 1/(t^3+1) + 2/(t^2+2) + 3/(t-3)^5
                 sage: whole, parts = q.partial_fraction_decomposition(); parts
-                [1/3/(t + 1), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2)]
+                [3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243),
+                 1/3/(t + 1),
+                 (-1/3*t + 2/3)/(t^2 - t + 1),
+                 2/(t^2 + 2)]
                 sage: sum(parts) == q
                 True
                 sage: q = 2*t / (t + 3)^2

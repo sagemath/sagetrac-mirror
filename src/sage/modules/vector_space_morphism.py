@@ -219,7 +219,7 @@ do not change as the representation changes.  ::
     sage: V = QQ^10
     sage: phi = linear_transformation(V, V, A)
     sage: phi.eigenvalues()
-    [3, -2, -2, -2, -2, 1, 1, 1, 1, 1]
+    [3, 1, 1, 1, 1, 1, -2, -2, -2, -2]
 
     sage: B1 = [V.gen(i) + V.gen(i+1) for i in range(9)] + [V.gen(9)]
     sage: C = V.subspace_with_basis(B1)
@@ -262,7 +262,7 @@ do not change as the representation changes.  ::
     [0 0 0 0 0 0 0 0 0 1]
 
     sage: zeta.eigenvalues()
-    [3, -2, -2, -2, -2, 1, 1, 1, 1, 1]
+    [3, 1, 1, 1, 1, 1, -2, -2, -2, -2]
 
 Equality
 --------

@@ -181,13 +181,13 @@ sage: T2.matrix()
 [ 0  0  0  1  0  0  2  0  1]
 [ 0  0 -1  0  0  0  1  0  2]
 sage: T2.fcp()     # factored characteristic polynomial
-(x - 1)^2 * (x - 3)^3 * (x^2 + 2*x - 1)^2
+    (x - 3)^3 * (x - 1)^2 * (x^2 + 2*x - 1)^2
 sage: T2 = M.T(2).matrix()
 sage: T5 = M.T(5).matrix()
 sage: T2*T5 - T5*T2 == 0
 True
 sage: T5.charpoly().factor()
-(x - 2)^2 * (x - 6)^3 * (x^2 - 8)^2
+    (x - 6)^3 * (x - 2)^2 * (x^2 - 8)^2
 sage: M = ModularSymbols(39, 2)
 sage: M.T(2).decomposition()
 [

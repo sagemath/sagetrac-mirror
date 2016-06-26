@@ -7950,16 +7950,15 @@ class Graph(GenericGraph):
 
             sage: G = graphs.CompleteGraph(4)
             sage: factor(G.ihara_zeta_function_inverse())
-            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+            (t - 1)^3 * (t + 1)^2 * (2*t - 1) * (2*t^2 + t + 1)^3
 
             sage: G = graphs.CompleteGraph(5)
             sage: factor(G.ihara_zeta_function_inverse())
-            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+            (-1) * (t - 1)^6 * (t + 1)^5 * (3*t - 1) * (3*t^2 + t + 1)^4
 
             sage: G = graphs.PetersenGraph()
             sage: factor(G.ihara_zeta_function_inverse())
-            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
-            * (2*t^2 - t + 1)^5
+            (-1) * (t - 1)^6 * (t + 1)^5 * (2*t - 1) * (2*t^2 - t + 1)^5 * (2*t^2 + 2*t + 1)^4
 
             sage: G = graphs.RandomTree(10)
             sage: G.ihara_zeta_function_inverse()
