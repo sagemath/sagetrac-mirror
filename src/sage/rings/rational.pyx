@@ -3076,11 +3076,23 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: factorization of 0 is not defined
+            ArithmeticError: Prime factorization of 0 not defined.
+
+        TESTS::
+
+            sage: f = QQ((10,1)).factor(); f
+            2 * 5
+            sage: f.universe()
+            Integer Ring
+            sage: f = QQ((1,10)).factor(); f
+            2^-1 * 5^-1
+            sage: f.universe()
+            Integer Ring
+            sage: f = QQ.one().factor()
+            sage: f.universe()
+            Integer Ring
         """
-        from sage.structure.factorization import Factorization
-        return self.numerator().factor() * \
-           Factorization([(p, -e) for p, e in self.denominator().factor()])
+        return self.numerator().factor() / self.denominator().factor()
 
     def support(self):
         """

@@ -184,7 +184,8 @@ from six.moves import range
 from six import iteritems, integer_types
 
 from sage.structure.sage_object import SageObject
-from sage.structure.element import Element
+from sage.structure.element import Element, parent
+from sage.structure.parent import Parent
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.rings.integer import Integer
@@ -216,7 +217,7 @@ class Factorization(SageObject):
         ...
         TypeError: no conversion of this rational to integer
     """
-    def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
+    def __init__(self, x, unit=None, universe=None, cr=False, sort=True, simplify=True):
         """
         Create a :class:`Factorization` object.
 
@@ -227,6 +228,8 @@ class Factorization(SageObject):
 
         - ``unit`` - (default: 1) the unit part of the factorization.
 
+        - ``universe`` - (default: None) a common parent for unit and factors.
+
         - ``cr`` - (default: False) if True, print the factorization with
           carriage returns between factors.
 
@@ -236,10 +239,6 @@ class Factorization(SageObject):
         - ``simplify`` - (default: True) if True, remove duplicate
           factors from the factorization.  See the documentation for
           self.simplify.
-
-        OUTPUT:
-
-        - a Factorization object
 
         EXAMPLES:
 
@@ -290,30 +289,73 @@ class Factorization(SageObject):
             sage: Factorization([(a,1),(b,1),(a,2)])
             a * b * a^2
 
-        Autosorting (the default) swaps around the factors below::
+        TESTS:
 
-            sage: F = Factorization([(ZZ^3, 2), (ZZ^2, 5)], cr=True); F
-            (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
-            (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
+        Check that list are copied (:trac:`20214`)::
+
+            sage: t0 = (313283749, 2)
+            sage: t1 = (111231489, 5)
+            sage: l = [t0 ,t1]
+            sage: F = Factorization(l, cr=True)
+            sage: assert list(F) == [t1,t0] and l[0] is t0 and l[1] is t1
+
+        Check that :trac:`20607` is fixed::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: f = (y + x/y).factor()
+            sage: f
+            (y^-1) * (y^2 + x)
+            sage: f.universe()
+            Multivariate Laurent Polynomial Ring in x, y over Integer Ring
+            sage: f.unit().parent() is f.universe()
+            True
         """
-        x = [(p, Integer(e)) for (p, e) in x]
+        if not isinstance(x, (tuple, list)):
+            raise TypeError("x must be a list")
 
-        try:
-            self.__universe = Sequence(t[0] for t in x).universe()
-        except TypeError:
-            self.__universe = None
+        xx = []
+        for t in x:
+            if not isinstance(t, (tuple, list)) or len(t) != 2:
+                raise TypeError("x must be a list of pairs (p, e) with e an integer")
+            xx.append((t[0], Integer(t[1])))
+        x = xx
 
-        self.__x = [(t[0], int(t[1])) for t in x]
-        if unit is None:
-            if x:
+        if universe is None:
+            if unit is None:
                 try:
-                    unit = self.__universe(1)
-                except (AttributeError, TypeError):
-                    unit = Integer(1)
+                    universe = Sequence(t[0] for t in x).universe()
+                except TypeError:
+                    pass
             else:
-                unit = Integer(1)
+                try:
+                    universe = Sequence([t[0] for t in x] + [unit]).universe()
+                except TypeError:
+                    pass
+
+        if isinstance(universe, Parent):
+            x = [(universe.coerce(i),j) for i,j in x]
+            if unit is not None:
+                unit = universe.coerce(unit)
+
+        elif universe is not None:
+            x = [(universe(i),j) for i,j in x]
+            if unit is not None:
+                unit = universe(unit)
+
+        if unit is None and universe is not None:
+            try:
+                unit = universe.one()
+            except AttributeError:
+                try:
+                    unit = universe(1)
+                except (ValueError,TypeError):
+                    pass
+
+        self.__x = x
         self.__unit = unit
         self.__cr = cr
+        self.__universe = universe
+
         if sort and self.is_commutative():
             self.sort()
         if simplify:
@@ -458,16 +500,17 @@ class Factorization(SageObject):
             False
 
         Note that if we change one of the mutable "primes" of F, this does
-        change G::
+        not change G::
 
             sage: F[1][0][0] = 'hello'
             sage: G
-            ([1, 2])^5 * (['hello', 6])^10
+            ([1, 2])^5 * ([5, 6])^10
         """
         # No need to sort, since the factorization is already sorted
         # in whatever order is desired.
-        return Factorization(self.__x, unit=self.__unit, cr=self.__cr,
-                                       sort=False, simplify=False)
+        return Factorization(self.__x, unit=self.__unit,
+                universe=self.__universe, cr=self.__cr,
+                sort=False, simplify=False)
 
     def __deepcopy__(self, memo):
         r"""
@@ -495,10 +538,10 @@ class Factorization(SageObject):
             sage: F
             ([10, 2])^5 * ([5, 6])^10
 
-        It also changes the copy K of F::
+        It does not change the copy K of F::
 
             sage: K
-            ([10, 2])^5 * ([5, 6])^10
+            ([1, 2])^5 * ([5, 6])^10
 
         It does *not* change the deep copy G::
 
@@ -524,18 +567,14 @@ class Factorization(SageObject):
             sage: F.universe()
             Integer Ring
 
-            sage: R.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: F = Factorization([(z, 2)], 3)
+            sage: F = Factorization([(1/3, 2)], 3)
             sage: (F*F^-1).universe()
-            Free Algebra on 3 generators (x, y, z) over Rational Field
+            Rational Field
 
             sage: F = ModularSymbols(11,4).factorization()
             sage: F.universe()
         """
-        try:
-            return self.__universe
-        except AttributeError:
-            return None
+        return self.__universe
 
     def base_change(self, U):
         """
@@ -563,11 +602,20 @@ class Factorization(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: Impossible to coerce the factors of (x - 1) * (x + 1) into Integer Ring
+
+        TESTS:
+
+        Check that the method properly converts units (:trac:`20214`)::
+
+            sage: f = 1.factor().base_change(AA)
+            sage: f.universe() is AA and f.unit().parent() is AA
+            True
+            sage: f = ZZ['x'].gen().factor().base_change(QQ['x'])
+            sage: f.universe() is QQ['x'] and f.unit().parent() is QQ['x']
+            True
         """
-        if len(self) == 0:
-            return self
         try:
-            return Factorization([(U(f[0]), f[1]) for f in list(self)], unit=U(self.unit()))
+            return Factorization(self.__x, unit=self.__unit, universe=U)
         except TypeError:
             raise TypeError("Impossible to coerce the factors of %s into %s"%(self, U))
 
@@ -584,8 +632,10 @@ class Factorization(SageObject):
             sage: F = K.factor(13)
             sage: F.is_commutative()
             True
-            sage: R.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: F = Factorization([(z, 2)], 3)
+
+            sage: R = GL(2, GF(3))
+            sage: a,b = R.gens()
+            sage: F = Factorization([(a, 2)])
             sage: F.is_commutative()
             False
             sage: (F*F^-1).is_commutative()
@@ -658,21 +708,6 @@ class Factorization(SageObject):
 
         - changes this factorization to be sorted (inplace)
 
-        If ``key`` is ``None``, we determine the comparison key as
-        follows:
-
-        If the prime in the first factor has a dimension
-        method, then we sort based first on *dimension* then on
-        the exponent.
-
-        If there is no dimension method, we next
-        attempt to sort based on a degree method, in which case, we
-        sort based first on *degree*, then exponent to break ties
-        when two factors have the same degree, and if those match
-        break ties based on the actual prime itself.
-
-        Otherwise, we sort according to the prime itself.
-
         EXAMPLES:
 
         We create a factored polynomial::
@@ -687,38 +722,11 @@ class Factorization(SageObject):
             sage: F
             (x^2 - x + 1) * (x + 1)
         """
-        if len(self) == 0:
-            return
-
-        if key is not None:
-            self.__x.sort(key=key)
-            return
-
-        a = self.__x[0][0]
-        sort_key = None
-        if hasattr(a, 'dimension'):
-            try:
-                a.dimension()
-
-                def sort_key(f):
-                    return (f[0].dimension(), f[1], f[0])
-            except (AttributeError, NotImplementedError, TypeError):
-                pass
-        elif hasattr(a, 'degree'):
-            try:
-                a.degree()
-
-                def sort_key(f):
-                    return (f[0].degree(), f[1], f[0])
-            except (AttributeError, NotImplementedError, TypeError):
-                pass
-
-        if sort_key is None:
-
-            def sort_key(f):
-                return f[0]
-
-        self.__x.sort(key=sort_key)
+        if self.__x:
+            if key is not None:
+                self.__x.sort(key=key)
+            else:
+                self.__x.sort()
 
     def unit(self):
         r"""
@@ -811,17 +819,19 @@ class Factorization(SageObject):
 
            sage: x = polygen(QQ)
            sage: Factorization([(x-1,1), (x-2,2)])
-           (x - 1) * (x - 2)^2
+           (x - 2)^2 * (x - 1)
            sage: Factorization([(x + 1, -3)])
            (x + 1)^-3
         """
         cr = self._cr()
+        unit = self.unit()
+
         if len(self) == 0:
-            return repr(self.__unit)
-        s = ''
-        mul =  ' * '
-        if cr:
-            mul += '\n'
+            if unit is None:
+                return ''
+            else:
+                return repr(unit)
+
         x = self.__x[0][0]
         try:
             atomic = (isinstance(x, integer_types) or
@@ -829,29 +839,33 @@ class Factorization(SageObject):
         except AttributeError:
             atomic = False
 
-        if isinstance(x, Element):
-            one = x.parent()(1)
+        l = []
+        if unit is not None:
+            try:
+                unit_is_one = unit.is_one()
+            except AttributeError:
+                try:
+                    unit_is_one = x == self.universe()(1)
+                except (ValueError,TypeError):
+                    unit_is_one = False
+            if not unit_is_one:
+                l.append('{!r}'.format(unit) if atomic else '({!r})'.format(unit))
         else:
-            one = 1
+            unit_is_one = True
 
-        for i in range(len(self)):
-            t = repr(self.__x[i][0])
-            n = self.__x[i][1]
-            if not atomic and (n != 1 or len(self) > 1 or self.__unit != one):
+        for t,n in self:
+            t = repr(t)
+            if not atomic and (n != 1 or len(self) > 1 or not unit_is_one):
                 if '+' in t or '-' in t or ' ' in t:
                     t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
-            s += t
-            if i < len(self)-1:
-                s += mul
-        if self.__unit != one:
-            if atomic:
-                u = repr(self.__unit)
-            else:
-                u = '(%s)'%self.__unit
-            s =  u + mul + s
-        return s
+            l.append(t)
+
+        mul =  ' * '
+        if cr:
+            mul += '\n'
+        return mul.join(l)
 
     def _latex_(self):
         r"""
@@ -991,9 +1005,24 @@ class Factorization(SageObject):
             3 * 5^2
             sage: (-a).unit()
             1
+
+        TESTS:
+
+        Check error when there is no unit (:trac:`20214`)::
+
+            sage: fac = Factorization([[(1,2,3),2], [(1,1),3]])
+            sage: fac.universe()
+            <type 'tuple'>
+            sage: -fac
+            Traceback (most recent call last):
+            ...
+            ValueError: can not take negative of factorization without unit
         """
-        unit = -self.__unit
-        return Factorization(list(self), unit, self.__cr,
+        unit = self.unit()
+        if unit is None:
+            raise ValueError("can not take negative of factorization without unit")
+        unit = -unit
+        return Factorization(list(self), unit, self.__universe, self.__cr,
                              sort=False, simplify=False)
 
     def __rmul__(self, left):
@@ -1060,21 +1089,24 @@ class Factorization(SageObject):
             sage: [type(a[0]) for a in F]
             [<... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
              <... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
+
+        Check that it only depends on the universe (:trac:`20214`)::
+
+            sage: (Factorization([], universe=ZZ) * Factorization([], universe=QQ)).universe()
+            Rational Field
+            sage: (Factorization([], universe=QQ) * Factorization([], universe=ZZ)).universe()
+            Rational Field
         """
         if not isinstance(other, Factorization):
             return self * Factorization([(other, 1)])
 
-        if len(self) and len(other):
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        su = self.universe()
+        ou = other.universe()
+        if su is not None and ou is not None:
             try:
-                # since self is a factorization, all its factors
-                # are in the same universe.
-                # the same is true for the factorization other.
-                # so if we want to put the factorizations together we just
-                # need to find a common universe for the first factor of
-                # self and the first factor of other
-                U = Sequence([self[0][0], other[0][0]]).universe()
-                self = self.base_change(U)
-                other = other.base_change(U)
+                universe = cm.common_parent(su, ou)
             except TypeError:
                 raise TypeError("Cannot multiply %s and %s because they cannot be coerced into a common universe"%(self,other))
 
@@ -1084,9 +1116,13 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
-            return Factorization(list(iteritems(s)), unit=self.unit()*other.unit())
+            return Factorization(list(iteritems(s)),
+                    unit=self.unit()*other.unit(),
+                    universe=universe)
         else:
-            return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
+            return Factorization(list(self) + list(other),
+                    unit=self.unit()*other.unit(),
+                    universe=universe)
 
     def __pow__(self, n):
         """
@@ -1113,21 +1149,33 @@ class Factorization(SageObject):
             x^3 * y^2 * x
             sage: F**2
             x^3 * y^2 * x^4 * y^2 * x
+
+            sage: (ZZ.one().factor()**-3).universe()
+            Integer Ring
         """
         if not isinstance(n, Integer):
             try:
                 n = Integer(n)
             except TypeError:
                 raise TypeError("Exponent n (= %s) must be an integer." % n)
-        if n == 1:
+        universe = self.universe()
+        if n.is_zero():
+            return Factorization([], universe=universe)
+        elif n.is_one():
             return self
-        if n == 0:
-            return Factorization([])
-        if self.is_commutative():
-            return Factorization([(p, n*e) for p, e in self], unit=self.unit()**n, cr=self.__cr, sort=False, simplify=False)
-        if n < 0:
+        elif n < 0:
             self = ~self
             n = -n
+
+        if self.is_commutative():
+            unit = self.unit()**n
+            terms = [(p, n*e) for p, e in self]
+            try:
+                unit = universe(unit)
+                return Factorization(terms, unit=unit, universe=universe, cr=self.__cr, sort=False, simplify=False)
+            except (ValueError,TypeError):
+                return Factorization(terms, unit=unit, cr=self.__cr, sort=False, simplify=False)
+
         from sage.arith.power import generic_power
         return generic_power(self, n)
 
@@ -1141,15 +1189,63 @@ class Factorization(SageObject):
             2 * 17 * 59
             sage: F^-1
             2^-1 * 17^-1 * 59^-1
+            sage: (F^-1).universe()
+            Integer Ring
 
-            sage: R.<x,y> = FreeAlgebra(QQ, 2)
-            sage: F = Factorization([(x,3), (y, 2), (x,1)], 2); F
-            (2) * x^3 * y^2 * x
+            sage: (~ZZ.one().factor()).universe()
+            Integer Ring
+            sage: (ZZ.one().factor()^-1).universe()
+            Integer Ring
+
+        This is a fake example where the unit is actually not a unit. The
+        universe gets changed::
+
+            sage: F = Factorization([(2,3), (3, 2), (5,1)], 2); F
+            2 * 2^3 * 3^2 * 5
+            sage: ~F
+            1/2 * 2^-3 * 3^-2 * 5^-1
             sage: F^-1
-            (1/2) * x^-1 * y^-2 * x^-3
+            1/2 * 2^-3 * 3^-2 * 5^-1
+            sage: ~F == F^-1
+            True
+            sage: (F^-1).universe()
+            Rational Field
+            sage: (~F).universe()
+            Rational Field
         """
+        universe = self.universe()
+        unit = self.unit()
+
+        if unit is not None:
+            unit_is_one = False
+            try:
+                unit_is_one = unit.is_one()
+            except AttributeError:
+                try:
+                    one = universe.one()
+                except AttributeError:
+                    one = universe(1)
+                else:
+                    one = None
+
+                if one is not None:
+                    unit_is_one = unit == one
+
+            if not unit_is_one:
+                try:
+                    unit = unit.inverse_of_unit()
+                except AttributeError:
+                    unit = unit ** (-1)
+                    try:
+                        unit = universe(unit)
+                    except (ValueError, TypeError):
+                        universe = parent(unit)
+                except ArithmeticError:
+                    unit = unit ** (-1)
+                    universe = parent(unit)
+
         return Factorization([(p,-e) for p,e in reversed(self)],
-            cr=self._cr(), unit=self.unit()**(-1))
+                unit=unit, universe=universe, cr=self._cr())
 
     def __truediv__(self, other):
         r"""
