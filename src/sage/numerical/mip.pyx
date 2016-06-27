@@ -1370,6 +1370,39 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.write_lp(filename)
 
+    def _linear_variable_index(self, variable):
+        r"""
+        Returns the index of a linear variable in the backend.
+
+        INPUT:
+
+        - ``variable`` -- a ``:class:LinearFunction`` representing
+          a variable.
+
+        OUTPUT:
+
+        - its index
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: pv = p.new_variable(nonnegative=True)
+            sage: pv[0]
+            x_0
+            sage: pv[77]
+            x_1
+            sage: p._linear_variable_index(pv[0])
+            0
+            sage: p._linear_variable_index(pv[77])
+            1
+        """
+        if len(variable.dict()) != 1:
+            raise ValueError("Linear function {} is not a variable".format(variable))
+        index = variable.dict().keys()[0]
+        if index < 0:
+            raise ValueError("Linear function {} is not a variable".format(variable))
+        return index
+
     def get_values(self, *lists):
         r"""
         Return values found by the previous call to ``solve()``.
