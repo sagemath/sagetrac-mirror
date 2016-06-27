@@ -735,3 +735,4 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             if T.all_paths(N, u).size() == 0:
                 T.delete_vertex(u)
         return T
+        
