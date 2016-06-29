@@ -175,6 +175,8 @@ AUTHORS:
 from __future__ import print_function
 
 
+import six
+
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
     Return a sequence of commands that can be used to rebuild the object ``x``.
@@ -534,7 +536,7 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
-        if isinstance(x, (str, unicode)):
+        if isinstance(x, (str, six.text_type)):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
