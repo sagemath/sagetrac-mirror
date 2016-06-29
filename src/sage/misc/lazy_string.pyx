@@ -61,7 +61,7 @@ Note that the function is recomputed each time::
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
@@ -143,7 +143,6 @@ def _make_lazy_string(ftype, fpickle, args, kwargs):
     return _LazyString(f, args, kwargs)
 
 
-@six.python_2_unicode_compatible
 cdef class _LazyString(object):
     """
     Lazy class for strings created by a function call or a format string.
@@ -369,7 +368,7 @@ cdef class _LazyString(object):
             sage: f = lambda: "ine"
             sage: s = lazy_string(f)
             sage: "laz%sss" % s
-            'laziness'
+            u'laziness'
         """
         if isinstance(self, _LazyString):
             return (<_LazyString>self).val() % other
