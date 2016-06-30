@@ -1307,6 +1307,21 @@ see a list, execute ``sage.env.[TAB]`` while running Sage.
       "cachegrind", or "omega"
     ***************************************************************************
 
+Experimental build with Python 3
+--------------------------------
+
+It is not yet possible to build sage with Python 3. You can
+nevertheless try the following at your own risk, but it will fail for
+sure. For a minimal safety, it is strongly suggested to do that inside
+a Python 3 virtual environment, and in an unused and clean sage install:
+
+- set the :envvar:`SAGE_PYTHON3` to ``yes``  (``SAGE_PYTHON3=yes``)
+
+- ``make build``
+
+The point where this will fail will depend on our progress towards
+compatibility with Python 3.
+
 
 Installation in a Multiuser Environment
 ---------------------------------------
