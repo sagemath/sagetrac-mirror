@@ -4,7 +4,7 @@
 ###############################################################################
 
 # We need to be able to override this to support ./sage -i -c PKG
-SAGE_SPKG = sage-spkg
+SAGE_SPKG = sage-spkg -y
 
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
