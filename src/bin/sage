@@ -20,6 +20,7 @@ usage() {
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
     echo "  -pip [...]          -- invoke pip, the Python package manager"
+    echo "  -pip3 [...]         -- invoke pip3, the Python3 package manager"
     echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
@@ -145,6 +146,7 @@ usage_advanced() {
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -pip [...]          -- invoke pip, the Python package manager"
+    echo "  -pip3 [...]         -- invoke pip3, the Python package manager"
 
     echo
     ####  1.......................26..................................................78
@@ -529,6 +531,11 @@ fi
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
     exec pip "$@"
+fi
+
+if [ "$1" = '-pip3' -o "$1" = '--pip3' ]; then
+    shift
+    exec pip3 "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
