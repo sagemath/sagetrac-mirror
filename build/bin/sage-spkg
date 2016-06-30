@@ -112,8 +112,10 @@ continue_prompt()
 {
     if [ -z $1 ]; then
         local timeout=""
+        local timeout_msg=""
     else
         local timeout="-t $1"
+        local timeout_msg="(continuing automatically after $1 seconds) "
     fi
 
     if [ $YES -ne 1 ]; then
@@ -124,7 +126,7 @@ continue_prompt()
         # A better prompt than standard 'read'--typed characters are sent
         # to the program's stdout (instead of just to the pty) so that they
         # can actually be logged
-        >&2 echo -n "Are you sure you want to continue [Y/n]? "
+        >&2 echo -n "Are you sure you want to continue ${timeout_msg}[Y/n]? "
 
         while IFS= read -r -N 1 -s char; do
             # Unfortunately we have to reimplement backspace support;
