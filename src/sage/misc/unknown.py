@@ -1,9 +1,57 @@
 """
-The Unknown truth value
+The Unknown and Undecidable truth values
+
+"Undecidable" refers to truth values that are known to be formally undecidable,
+while "unknown" may be either undecidable or indeterminate due to limitations
+in knowledge or algorithms.
+
+We use Kleene's three-valued logic for operations between a boolean and either
+``Unknown`` or ``Undecidable``. For operations between ``Unknown`` and
+``Undecidable``, ``Unknown`` is always returned, since ``Unknown`` alsoincludes
+the possibility of undecidability.
+
+The truth tables are thus
+
++-------------+-------+-------------+-------------+---------+
+| AND         | False | True        | Undecidable | Unknown |
++=============+=======+=============+=============+=========+
+| False       | False |             |             |         |
++-------------+-------+-------------+-------------+---------+
+| True        | False | True        |             |         |
++-------------+-------+-------------+-------------+---------+
+| Undecidable | False | Undecidable | Undecidable |         |
++-------------+-------+-------------+-------------+---------+
+| Unknown     | False | Unknown     | Unknown     | Unknown |
++-------------+-------+-------------+-------------+---------+
+
++-------------+-------------+-------+-------------+---------+
+| OR          | False       | True  | Undecidable | Unknown |
++=============+=============+=======+=============+=========+
+| False       | False       |       |             |         |
++-------------+-------------+-------+-------------+---------+
+| True        | True        | True  |             |         |
++-------------+-------------+-------+-------------+---------+
+| Undecidable | Undecidable | True  | Undecidable |         |
++-------------+-------------+-------+-------------+---------+
+| Unknown     | Unknown     | True  | Unknown     | Unknown |
++-------------+-------------+-------+-------------+---------+
+
++-------------+-------------+
+| NOT         |             |
++=============+=============+
+| False       | True        |
++-------------+-------------+
+| True        | False       |
++-------------+-------------+
+| Undecidable | Undecidable |
++-------------+-------------+
+| Unknown     | Unknown     |
++-------------+-------------+
 
 AUTHORS:
 
-- Florent Hivert (2010): initial version.
+- Florent Hivert (2010): initial version
+- Eviatar Bach (2016): adding Undecidable value, other changes
 """
 
 from sage.structure.sage_object import SageObject
@@ -14,33 +62,51 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
         sage: TestSuite(Unknown).run()
     """
-    def __init__(self):
+    def __init__(self, unknown_type):
         """
-        The ``Unknown`` truth value
+        The ``Unknown`` or ``Undecidable`` truth value.
 
         EXAMPLES::
 
-            sage: l = [False, Unknown, True]
-            sage: for a in l: print ([a and b for b in l])
-            [False, False, False]
-            [Unknown, Unknown, Unknown]
-            [False, Unknown, True]
+            sage: l = [False, True, Undecidable, Unknown]
+            sage: for a in l: print([a & b for b in l])
+            [False, False, False, False]
+            [False, True, Undecidable, Unknown]
+            [False, Undecidable, Undecidable, Unknown]
+            [False, Unknown, Unknown, Unknown]
 
-            sage: for a in l: print ([a or b  for b in l])
-            [False, Unknown, True]
-            [False, Unknown, True]
-            [True, True, True]
+            sage: for a in l: print([a | b for b in l])
+            [False, True, Undecidable, Unknown]
+            [True, True, True, True]
+            [Undecidable, True, Undecidable, Unknown]
+            [Unknown, True, Unknown, Unknown]
 
-        ..warning:: Unless PEP 335 is accepted, in the following cases,
-        ``and``, ``not`` and ``or`` return a somewhat wrong value::
+        ..warning:: In the following cases, ``and``, ``not`` and ``or`` raise
+                    ValueErrors. This is due to the fact that the logical
+                    operators cannot be overridden in Python::
 
             sage: not Unknown         # should return Unknown
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
             sage: Unknown and False   # should return False
-            Unknown
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
             sage: Unknown or False    # should return Unknown
-            False
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
+
+        To do logical operations on Unknown, use the bitwise operators::
+            sage: Unknown & True
+            Unknown
+            sage: ~Unknown
+            Unknown
+            sage: Unknown | False
+            Unknown
         """
+        self.unknown_type = unknown_type
 
     def _repr_(self):
         """
@@ -48,28 +114,37 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
             sage: Unknown
             Unknown
+            sage: Undecidable
+            Undecidable
         """
-        return "Unknown"
+        return self.unknown_type.title()
 
     def __nonzero__(self):
         """
-        When evaluated in a boolean context ``Unknown()`` is evalutated into
-        ``False``.
+        When evaluated in a boolean context ``Unknown()`` raises a ValueError
 
         EXAMPLES::
 
             sage: bool(Unknown)
-            False
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
             sage: not Unknown
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
+            sage: bool(Undecidable)
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value undecidable
         """
-        return False
+        raise ValueError("Truth value {utype}".format(utype=self.unknown_type))
 
     def __and__(self, other):
         """
         The ``and`` logical connector.
 
-        ..warning:: This is not used by ``and`` unless PEP 335 is accepted.
+        ..warning:: This is not used by ``and``
 
         EXAMPLES::
 
@@ -79,20 +154,39 @@ class UnknownClass(UniqueRepresentation, SageObject):
             Unknown
             sage: Unknown & True
             Unknown
+            sage: Unknown & Undecidable
+            Unknown
+            sage: Undecidable & Unknown
+            Unknown
 
         Compare with::
 
-            sage: Unknown and False    # should return False
-            Unknown
+            sage: Unknown and False
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
         """
-        if other is False: return False
-        else:              return self
+        if other is False:
+            return False
+        elif other is True:
+            return self
+        else:
+            if self.unknown_type == 'unknown':
+                return self
+            elif other.unknown_type == 'undecidable':
+                # self Undecidable, other Undecidable
+                return self
+            else:
+                # self Undecidable, other Unknown
+                return other
+
+    __rand__ = __and__
 
     def __or__(self, other):
         """
         The ``or`` logical connector.
 
-        ..warning:: This is not used by ``or`` unless PEP 335 is accepted.
+        ..warning:: This is not used by ``or``
 
         EXAMPLES::
 
@@ -102,30 +196,53 @@ class UnknownClass(UniqueRepresentation, SageObject):
             Unknown
             sage: Unknown | True
             True
-
-        Compare with::
-
-            sage: Unknown or False    # should return Unknown
-            False
-        """
-        if other: return True
-        else:     return self
-
-    def __not__(self):
-        """
-        The ``not`` logical connector.
-
-        ..warning:: This is not used by ``not`` unless PEP 335 is accepted.
-
-        EXAMPLES::
-
-            sage: Unknown.__not__()
+            sage: Unknown | Undecidable
+            Unknown
+            sage: Undecidable | Unknown
             Unknown
 
         Compare with::
 
+            sage: Unknown or False    # should return Unknown
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
+        """
+        if other is True:
+            return True
+        elif other is False:
+            return self
+        else:
+            if self.unknown_type == 'unknown':
+                return self
+            elif other.unknown_type == 'undecidable':
+                # self Undecidable, other Undecidable
+                return self
+            else:
+                # self Undecidable, other Unknown
+                return other
+
+    __ror__ = __or__
+
+    def __invert__(self):
+        """
+        The ``not`` logical connector.
+
+        ..warning:: This is not used by ``not``
+
+        EXAMPLES::
+
+            sage: ~Unknown
+            Unknown
+            sage: ~Undecidable
+            Undecidable
+
+        Compare with::
+
             sage: not Unknown  # should return Unknown
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: Truth value unknown
         """
         return self
 
@@ -156,4 +273,5 @@ class UnknownClass(UniqueRepresentation, SageObject):
         else:
             raise ValueError("Unable to compare {} with {}".format(self, other))
 
-Unknown = UnknownClass()
+Unknown = UnknownClass('unknown')
+Undecidable = UnknownClass('undecidable')

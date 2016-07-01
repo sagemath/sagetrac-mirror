@@ -63,8 +63,8 @@ def find_product_decomposition(g, k, lmbda=1):
             g2 = g//g1
             if g1 > g2:
                 break
-            if (difference_matrix(g1,k,lmbda1,existence=True) and
-                difference_matrix(g2,k,lmbda2,existence=True)):
+            if ((difference_matrix(g1,k,lmbda1,existence=True) == True) and
+                (difference_matrix(g2,k,lmbda2,existence=True) == True)):
                 return (g1,lmbda1),(g2,lmbda2)
 
     return False
