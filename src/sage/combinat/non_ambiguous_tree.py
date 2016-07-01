@@ -766,7 +766,7 @@ class NonAmbiguousTree( ClonableList ):
             sage: nat.left_node_number() == nat.height() - 1
             True
         '''
-        return self.get_tree().left_node_number()
+        return self.get_tree().left_children_node_number()
 
     def right_node_number( self ):
         r'''
@@ -784,7 +784,7 @@ class NonAmbiguousTree( ClonableList ):
             sage: nat.right_node_number() == nat.width() - 1
             True
         '''
-        return self.get_tree().right_node_number()
+        return self.get_tree().left_children_node_number(direction='right')
 
     def width( self ):
         r'''
