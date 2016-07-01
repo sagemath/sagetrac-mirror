@@ -75,5 +75,4 @@ if [[ -r "${patches[0]}" ]]; then
     done
 else
     >&2 echo "No patch files found in $patchdir"
-    exit 1
 fi
