@@ -392,6 +392,12 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
             """
             return self._ambient_space_element
 
+        def __eq__(self, other):
+            return self._wrapped == other._wrapped
+
+        def __hash__(self):
+            return hash(self._wrapped)
+
 r"""
     The category of bases of (see :class:``MultivariatePolynomialAlgebra``). These
     classes are both realizations of ``MultivariatePolynomialAlgebra`` and facades
