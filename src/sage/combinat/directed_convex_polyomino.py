@@ -889,9 +889,14 @@ class DirectedConvexPolyominoesFactory(SetFactory):
         raise ValueError("Invalid argument for directed convex polyominoers"
                          "Factory.")
 
-    def add_constraints(self, cons, (args, opts)):
+    def add_constraints(self, cons, args_opts):
         r"""
+        This function permit to add some enumeration constraint to the 
+        factory. The factory make a family using the given constraints.
+
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
         """
+        args, opts = args_opts
         return cons + args
 
     @lazy_attribute

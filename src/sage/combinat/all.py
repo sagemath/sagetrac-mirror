@@ -135,7 +135,7 @@ from .sloane_functions import sloane
 from .parallelogram_polyomino import (
     ParallelogramPolyomino, ParallelogramPolyominoes
 )
-from directed_convex_polyomino import (
+from .directed_convex_polyomino import (
     DirectedConvexPolyomino, DirectedConvexPolyominoes
 )
 
