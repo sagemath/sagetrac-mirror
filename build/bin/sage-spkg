@@ -128,18 +128,25 @@ continue_prompt()
         # can actually be logged
         >&2 echo -n "Are you sure you want to continue ${timeout_msg}[Y/n]? "
 
-        while IFS= read -r -N 1 -s char; do
-            # Unfortunately we have to reimplement backspace support;
-            # to be fully portable allow either backspace or delete to
-            # erase the previous character
-            if [[ "$del" == *"$char"* ]]; then
-                echo -ne '\b \b'
-                answer="${answer%?}"
-            else
-                echo -n "$char"
-                [ "$char" = $'\n' ] && break
-                answer="$answer$char"
+        while IFS= read -r -n 1 -s char; do
+            if [[ -z $char ]]; then
+                # -n 1 means that when a newline is entered
+                # an empty string is returned
+                char=$'\n'
+            elif [[ "$del" == *"$char"* ]]; then
+                # Unfortunately we have to reimplement backspace support;
+                # to be fully portable allow either backspace or delete to
+                # erase the previous character
+                if [[ ${#answer} -gt 0 ]]; then
+                    echo -ne '\b \b'
+                    answer="${answer%?}"
+                fi
+                continue
             fi
+
+            echo -n "$char"
+            [ "$char" = $'\n' ] && break
+            answer="$answer$char"
         done
 
         case "$answer" in
