@@ -26,9 +26,6 @@ fi
 
 cd src
 
-echo "Patching FLINT."
-sage-apply-patches || exit 1
-
 echo "Configuring FLINT."
 ./configure \
     --disable-static \

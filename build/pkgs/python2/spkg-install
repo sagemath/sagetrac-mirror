@@ -22,9 +22,6 @@ export SVNVERSION=no
 
 cd src
 
-# PATCH
-sage-apply-patches || exit 1
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building Python with pydebug"
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --with-pydebug"

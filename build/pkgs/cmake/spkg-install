@@ -2,8 +2,6 @@
 
 cd src
 
-sage-apply-patches || exit 1
-
 system_curl=""
 
 if [ "$UNAME" = "Darwin" ]; then

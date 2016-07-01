@@ -8,8 +8,6 @@ fi
 
 cd src
 
-sage-apply-patches || exit 1
-
 # Use newer version of config.guess and config.sub (see Trac #19725)
 cp "$SAGE_ROOT"/config/config.* .
 

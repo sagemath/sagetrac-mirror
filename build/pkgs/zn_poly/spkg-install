@@ -68,8 +68,6 @@ unset SHARED_FLAG # Currently leave the Makefile default ('-shared'); for safety
 
 cd src/
 
-sage-apply-patches || exit 1
-
 # use 2to3 if we are running on python3
 if python -c 'import sys; sys.exit(sys.version_info.major != 3)'; then
     2to3 -n -w --no-diffs makemakefile.py

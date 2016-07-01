@@ -17,8 +17,6 @@ cp ../patches/directories.tmpl directories.h
 cp ../patches/sage.cpp ../patches/sage.h .
 cp ../patches/test.input ../patches/test.output.expected .
 
-sage-apply-patches || exit 1
-
 # Build
 $MAKE all
 if [ $? -ne 0 ]; then

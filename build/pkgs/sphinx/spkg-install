@@ -19,9 +19,6 @@ CUR=`pwd`
 
 cd src
 
-# Apply patches
-sage-apply-patches || exit 1
-
 # Install new version
 echo "Installing Sphinx..."
 $PIP_INSTALL .

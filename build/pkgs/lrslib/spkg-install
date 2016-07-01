@@ -8,11 +8,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-sage-apply-patches || exit 1
-
 ./configure --prefix=$SAGE_LOCAL
 
 $MAKE
+
 if [ $? -ne 0 ]; then
    echo "Error building lrslib"
    exit 1

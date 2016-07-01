@@ -16,10 +16,6 @@ TOP=`pwd`
 # patches.
 #######################################################################
 cd src
-# Use --no-backup-if-mismatch to prevent .orig files (these confuse
-# PARI's Perl script which creates pari.desc).
-sage-apply-patches -- --no-backup-if-mismatch || exit 1
-
 
 # Prepare all variables for building PARI/GP, except for CFLAGS
 set_environment()

@@ -8,9 +8,6 @@ fi
 
 cd src
 
-# Apply patches
-sage-apply-patches || exit 1
-
 # Building on OS X Lion 64-bit seems to fail unless we build a 64-bit library.
 echo
 echo "Configuring openssl..."

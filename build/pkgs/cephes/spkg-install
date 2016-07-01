@@ -11,11 +11,7 @@ if [ "$UNAME" != "FreeBSD" ]; then
     exit 0
 fi
 
-CUR=`pwd`
 cd src
-
-# Apply patches:
-sage-apply-patches || exit 1
 
 echo "Building Cephes..."
 $MAKE

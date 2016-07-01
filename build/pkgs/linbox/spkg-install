@@ -8,12 +8,6 @@ fi
 
 cd src/
 
-###############################################################################
-# Apply patches (if any):
-###############################################################################
-
-sage-apply-patches || exit 1
-
 # Use newer version of config.guess and config.sub (see Trac #19761)
 cp "$SAGE_ROOT"/config/config.* build-aux
 

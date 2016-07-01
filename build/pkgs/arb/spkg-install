@@ -2,8 +2,6 @@
 
 cd src
 
-sage-apply-patches || exit 1
-
 # The git head of arb now honors LDFLAGS; The following workaround can
 # be removed in arb >= 2.8 when it is released
 export EXTRA_SHARED_FLAGS=$LDFLAGS

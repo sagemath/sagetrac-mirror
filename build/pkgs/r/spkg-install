@@ -107,10 +107,6 @@ fi
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-sage-apply-patches || exit 1
-
 if [ "$UNAME" = "Darwin" ]; then
     # Fixing install_name(s)
     sed -i -e 's:\"-install_name :\"-install_name ${libdir}/R/lib/:' configure

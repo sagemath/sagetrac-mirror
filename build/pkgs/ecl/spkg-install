@@ -8,10 +8,6 @@ fi
 
 cd src
 
-# Patch sources. Note that some patches (in the patches/src directory)
-# have been applied to the source tarball.
-sage-apply-patches || exit 1
-
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64
 fi

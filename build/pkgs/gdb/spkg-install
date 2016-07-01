@@ -8,9 +8,6 @@ fi
 
 cd src
 
-# Apply patches.
-sage-apply-patches || exit 1
-
 LDFLAGS="${LDFLAGS} -L${SAGE_LOCAL}/lib"
 export LDFLAGS
 

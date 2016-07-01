@@ -17,10 +17,6 @@ python make-setup-config.py
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-sage-apply-patches || exit 1
-
 # Finally install
 $PIP_INSTALL .
 

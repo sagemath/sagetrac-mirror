@@ -2,6 +2,4 @@
 
 cd src
 
-sage-apply-patches || exit 1
-
 $PIP_INSTALL .

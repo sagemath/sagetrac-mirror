@@ -8,13 +8,6 @@ if [ -z "$SAGE_SHARE" ]; then
     exit 1
 fi
 
-cd src
-
-# Apply all patches
-sage-apply-patches patches || exit 1
-
-cd ..
-
 # Move mathjax to its final destination.
 TARGET="${SAGE_SHARE}/mathjax"
 rm -rf "${TARGET}"

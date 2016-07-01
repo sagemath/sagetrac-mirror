@@ -27,9 +27,6 @@ fi
 
 cd src/
 
-# Apply fixes to upstream source
-sage-apply-patches || exit 1
-
 for p in \
     aclib crime ctbllib cryst crystcat design factint grape \
     guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \

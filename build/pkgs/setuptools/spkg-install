@@ -17,9 +17,5 @@ export PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-sage-apply-patches || exit 1
-
 # Prevent setuptools from installing itself with easy_install
 python setup.py install --single-version-externally-managed --record=/dev/null

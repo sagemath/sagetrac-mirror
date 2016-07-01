@@ -9,8 +9,6 @@ fi
 # Apply fixes to upstream source
 cd src
 
-sage-apply-patches || exit 1
-
 # Exit on error
 set -e
 

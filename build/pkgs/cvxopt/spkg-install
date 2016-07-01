@@ -8,9 +8,6 @@ fi
 
 cd src
 
-# Apply patches.
-sage-apply-patches || exit 1
-
 # Normally for a 64-bit build the -m64 option is added to
 # gcc, but other compilers will not accept that, so
 # allow it to be configured as something different if need

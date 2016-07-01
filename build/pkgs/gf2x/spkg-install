@@ -8,10 +8,6 @@ fi
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-sage-apply-patches || exit 1
-
 # Use newer version of config.guess and config.sub (see Trac #19727)
 cp "$SAGE_ROOT"/config/config.* config
 

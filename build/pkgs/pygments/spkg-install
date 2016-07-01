@@ -9,8 +9,6 @@ fi
 #Install new version
 cd src
 
-sage-apply-patches || exit 1
-
 $PIP_INSTALL .
 
 if [ $? -ne 0 ]; then

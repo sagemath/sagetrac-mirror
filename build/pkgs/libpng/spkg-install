@@ -32,9 +32,6 @@ if [ "$UNAME" = "CYGWIN" ]; then
     MAKE="$MAKE SYMBOL_PREFIX= "
 fi
 
-# Pick up patches
-sage-apply-patches || exit 1
-
 echo "Building libpng..."
 $MAKE
 if [ $? -ne 0 ]; then

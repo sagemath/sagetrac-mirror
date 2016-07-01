@@ -41,11 +41,7 @@ fi
 # otherwise we might run into problems with old headers
 rm -rf "$SAGE_LOCAL/include/m4ri"
 
-
 cd src
-
-# Apply patches
-sage-apply-patches || exit 1
 
 # Configure and build M4RI
 ./configure \

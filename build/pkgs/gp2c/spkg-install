@@ -8,8 +8,6 @@ fi
 
 cd src
 
-sage-apply-patches || exit 1
-
 set -e
 
 ./configure --prefix="$SAGE_LOCAL" --with-paricfg="$SAGE_LOCAL/lib/pari/pari.cfg"

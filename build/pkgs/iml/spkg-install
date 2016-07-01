@@ -8,10 +8,6 @@ fi
 
 cd src
 
-# Apply patches.
-sage-apply-patches || exit 1
-
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of IML."
     export CFLAGS="-O0 -g $CFLAGS"

@@ -8,8 +8,6 @@ fi
 
 cd src/
 
-sage-apply-patches || exit 1
-
 ./configure --prefix=$SAGE_LOCAL
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring Valgrind"

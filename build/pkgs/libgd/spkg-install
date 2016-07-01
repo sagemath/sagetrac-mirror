@@ -13,8 +13,6 @@ rm "$SAGE_LOCAL"/lib/libgd.*
 
 cd src
 
-sage-apply-patches || exit 1
-
 # Needed to correctly pickup libiconv on FreeBSD
 if [ "$UNAME" = "FreeBSD" ] ; then
    LDFLAGS="-L/usr/local/lib $LDFLAGS"

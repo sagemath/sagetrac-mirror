@@ -23,9 +23,6 @@ fi
 
 cd src
 
-# Apply patches.
-sage-apply-patches || exit 1
-
 set -e
 
 if [ `uname` = "Darwin" ]; then

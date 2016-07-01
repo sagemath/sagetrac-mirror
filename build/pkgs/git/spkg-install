@@ -33,10 +33,7 @@ else
     gettext=''
 fi
 
-
 cd src
-# Apply patches.
-sage-apply-patches || exit 1
 
 # We don't want to think about Fink or Macports
 export NO_FINK=1

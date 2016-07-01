@@ -9,10 +9,6 @@ fi
 
 cd src
 
-# Apply patches.
-sage-apply-patches || exit 1
-
-
 # build qepcad
 saclib="$SAGE_LOCAL/lib/saclib"
 export saclib

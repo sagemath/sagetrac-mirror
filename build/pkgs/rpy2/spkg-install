@@ -10,10 +10,6 @@ set -e
 
 cd src
 
-# Apply patches.
-# See SPKG.txt for information about what each patch does.
-sage-apply-patches || exit 1
-
 export RHOMES="$SAGE_LOCAL"/lib/R
 
 $PIP_INSTALL .

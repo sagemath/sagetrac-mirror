@@ -41,9 +41,6 @@ export LDFLAGS
 
 cd src
 
-sage-apply-patches || exit 1
-
-
 # Ncurses cannot build narrow and wide (unicode, --enable-widec)
 # versions in one go. Need to compile twice. Note that Python's curses
 # module will want the wide version, and readline the narrow version.

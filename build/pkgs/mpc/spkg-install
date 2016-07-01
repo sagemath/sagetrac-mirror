@@ -8,11 +8,6 @@ fi
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-sage-apply-patches || exit 1
-
-
 # Unset CC and CFLAGS.  This will make mpc use the same configuration
 # as MPIR, which is probably a good thing.
 unset CC
