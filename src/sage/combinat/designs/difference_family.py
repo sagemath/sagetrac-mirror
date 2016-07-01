@@ -413,7 +413,7 @@ def df_q_6_1(K, existence=False, check=True):
 
         sage: from sage.combinat.designs.difference_family import is_difference_family, df_q_6_1
         sage: prime_powers = [v for v in xrange(31,500,30) if is_prime_power(v)]
-        sage: parameters = [v for v in prime_powers if df_q_6_1(GF(v,'a'), existence=True)]
+        sage: parameters = [v for v in prime_powers if df_q_6_1(GF(v,'a'), existence=True) == True]
         sage: print parameters
         [31, 151, 181, 211, 241, 271, 331, 361, 421]
         sage: for v in parameters:
@@ -1220,7 +1220,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ....:     constructions = []
         ....:     for k in xrange(2,10):
         ....:         for l in xrange(1,10):
-        ....:             if designs.difference_family(v,k,l,existence=True):
+        ....:             if designs.difference_family(v,k,l,existence=True) == True:
         ....:                 constructions.append((k,l))
         ....:                 _ = designs.difference_family(v,k,l)
         ....:     if constructions:
@@ -1427,7 +1427,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
             G,D = singer_difference_set(q,d)
 
-    elif len(factorization) == 1 and radical_difference_family(K, k, l, existence=True):
+    elif len(factorization) == 1 and (radical_difference_family(K, k, l, existence=True) == True):
         if existence:
             return True
         elif explain_construction:
@@ -1436,7 +1436,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             D = radical_difference_family(K,k,l)
             G = K
 
-    elif len(factorization) == 1 and l == 1 and k == 6 and df_q_6_1(K, existence=True):
+    elif len(factorization) == 1 and l == 1 and k == 6 and (df_q_6_1(K, existence=True) == True):
         if existence:
             return True
         elif explain_construction:

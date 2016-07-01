@@ -242,7 +242,7 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
     # (find the max k such that there exists a DM)
     elif k is None:
         i = 2
-        while difference_matrix(g=g,k=i,lmbda=lmbda,existence=True):
+        while (difference_matrix(g=g,k=i,lmbda=lmbda,existence=True) == True):
             i += 1
         return i-1
 

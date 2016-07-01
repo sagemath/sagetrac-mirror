@@ -89,7 +89,7 @@ def resolvable_balanced_incomplete_block_design(v,k,existence=False):
 
         sage: for v in range(40):
         ....:     for k in range(v):
-        ....:         if designs.resolvable_balanced_incomplete_block_design(v,k,existence=True):
+        ....:         if designs.resolvable_balanced_incomplete_block_design(v,k,existence=True) == True:
         ....:             _ = designs.resolvable_balanced_incomplete_block_design(v,k)
     """
     # Trivial cases
@@ -619,7 +619,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         return PBD_4_7_from_Y(GDD,check=check)
 
-    elif v%6 == 1 and GDD_4_2((v-1)/6,existence=True):
+    elif v%6 == 1 and (GDD_4_2((v-1)/6,existence=True) == True):
         # VII.5.17 from [BJL99]
         gdd = GDD_4_2((v-1)/6)
         return PBD_4_7_from_Y(gdd,check=check)
@@ -630,9 +630,9 @@ def PBD_4_7(v,check=True, existence=False):
         PBD = PBD_4_7_from_Y(PBD,check=False)
         return PBD_4_7_from_Y(PBD,check=check)
 
-    elif balanced_incomplete_block_design(v,4,existence=True):
+    elif balanced_incomplete_block_design(v,4,existence=True) == True:
         return balanced_incomplete_block_design(v,4)
-    elif balanced_incomplete_block_design(v,7,existence=True):
+    elif balanced_incomplete_block_design(v,7,existence=True) == True:
         return balanced_incomplete_block_design(v,7)
     else:
         from sage.combinat.designs.orthogonal_arrays import orthogonal_array
@@ -647,9 +647,9 @@ def PBD_4_7(v,check=True, existence=False):
         vv = (v-1)/3
         for g in range((vv+5-1)//5,vv//4+1):
             u = vv-4*g
-            if (orthogonal_array(5,g,existence=True) and
-                PBD_4_7(3*g+1,existence=True)        and
-                PBD_4_7(3*u+1,existence=True)):
+            if ((orthogonal_array(5,g,existence=True) == True) and
+                (PBD_4_7(3*g+1,existence=True) == True)        and
+                (PBD_4_7(3*u+1,existence=True) == True)):
                 from orthogonal_arrays import transversal_design
                 domain = set(range(vv))
                 GDD = transversal_design(5,g)
@@ -718,7 +718,7 @@ def PBD_4_7_from_Y(gdd,check=True):
                          "but there are other: {}".format(block_sizes.difference([4,5,7])))
 
     for gs in group_sizes:
-        if not PBD_4_7(3*gs+1,existence=True):
+        if not (PBD_4_7(3*gs+1,existence=True) == True):
             raise RuntimeError("A group has size {} but I do not know how to "
                                "build a ({},[4,7])-PBD".format(gs,3*gs+1))
 

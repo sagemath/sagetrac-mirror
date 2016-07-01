@@ -148,7 +148,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
 
     For `k > 5` there are currently very few constructions::
 
-        sage: [v for v in xrange(300) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
+        sage: [v for v in xrange(300) if (designs.balanced_incomplete_block_design(v,6,existence=True) is True)]
         [1, 6, 31, 66, 76, 91, 96, 106, 111, 121, 126, 136, 141, 151, 156, 171, 181, 186, 196, 201, 211, 241, 271]
         sage: [v for v in xrange(300) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
         [51, 61, 81, 166, 216, 226, 231, 246, 256, 261, 276, 286, 291]
@@ -229,7 +229,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
             return True
         B = BIBD_from_arc_in_desarguesian_projective_plane(v,k)
         return BalancedIncompleteBlockDesign(v, B, copy=False)
-    if BIBD_from_TD(v,k,existence=True):
+    if BIBD_from_TD(v,k,existence=True) == True:
         if existence:
             return True
         return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v,k), copy=False)
@@ -238,7 +238,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
             return True
         from block_design import projective_plane
         return BalancedIncompleteBlockDesign(v, projective_plane(k-1),copy=False)
-    if difference_family(v,k,existence=True):
+    if difference_family(v,k,existence=True) == True:
         if existence:
             return True
         G,D = difference_family(v,k)
@@ -463,8 +463,8 @@ def BIBD_from_TD(v,k,existence=False):
 
     # Third construction
     elif ((v-k)%k == 0 and
-        balanced_incomplete_block_design((v-k)//k+k,k,existence=True) and
-        transversal_design(k,(v-k)//k,existence=True)):
+        (balanced_incomplete_block_design((v-k)//k+k,k,existence=True) == True) and
+        (transversal_design(k,(v-k)//k,existence=True) == True)):
 
         if existence:
             return True

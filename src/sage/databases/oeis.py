@@ -1331,7 +1331,7 @@ class OEISSequence(SageObject):
         """
         for x in self.first_terms():
             yield x
-        if not self.is_full():
+        if not (self.is_full() == True):
             raise LookupError("Future values not provided by OEIS.")
 
     def __eq__(self, other):

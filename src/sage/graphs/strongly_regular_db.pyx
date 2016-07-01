@@ -196,7 +196,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
         m, n = latin_squares_graph_parameters(v,k,l,mu)
     except:
         return
-    if orthogonal_array(m,n,existence=True):
+    if orthogonal_array(m,n,existence=True) == True:
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
         return (lambda m,n : OrthogonalArrayBlockGraph(m, n), m,n)
 
@@ -285,7 +285,7 @@ def is_steiner(int v,int k,int l,int mu):
     if (v == (n*(n-1))/(m*(m-1)) and
         k == m*(n-m)/(m-1) and
         l == (m-1)**2 + (n-1)/(m-1)-2 and
-        balanced_incomplete_block_design(n,m,existence=True)):
+        (balanced_incomplete_block_design(n,m,existence=True) == True)):
         from sage.graphs.generators.intersection import IntersectionGraph
         return (lambda n,m: IntersectionGraph(map(frozenset,balanced_incomplete_block_design(n,m))),n,m)
 
@@ -1603,7 +1603,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     if (k % n                            or
         l != c*c-1                       or
         k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
-        not orthogonal_array(c+1,n,existence=True,resolvable=True)):
+        not (orthogonal_array(c+1,n,existence=True,resolvable=True) == True)):
         return None
 
     def switch_OA_srg(c,n):

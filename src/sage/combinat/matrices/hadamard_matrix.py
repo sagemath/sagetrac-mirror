@@ -643,8 +643,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         for n1,e1 in product(divisors(n)[1:-1],[-1,1]):
             e2 = e1*e
             n2 = n//n1
-            if (regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) and
-                regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True)):
+            if ((regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) == True) and
+                (regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True) == True)):
                 if existence:
                     return true()
                 M1 = regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1)
@@ -1092,7 +1092,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = hadamard_matrix_paleyI(n, normalize=False)
 
     elif n % 8 == 0:
-        if skew_hadamard_matrix(n//2,existence=True): # (Lemma 14.1.6 in [Ha83]_)
+        if skew_hadamard_matrix(n//2,existence=True) == True: # (Lemma 14.1.6 in [Ha83]_)
             if existence:
                 return true()
             H = skew_hadamard_matrix(n//2,check=False)
@@ -1102,7 +1102,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
-                    and skew_hadamard_matrix(n1,existence=True):
+                    and (skew_hadamard_matrix(n1,existence=True) == True):
                     if existence:
                         return true()
                     H = skew_hadamard_matrix(n1, check=False)-I(n1)
