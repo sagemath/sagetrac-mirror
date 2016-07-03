@@ -4,6 +4,9 @@ The Tree-like tableaux
 
 The goal of this module is to give some tools to manipulate the
 tree-like tableaux.
+
+TO SAY:
+    The code is based on tableau.py,
 """
 #*****************************************************************************
 #  Copyright (C) 2014  Patxi Laborde Zubieta (patxi.laborde.zubieta@gmail.com),
@@ -19,9 +22,10 @@ from sage.all import factorial
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
-
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.list_clone import ClonableList
+from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
@@ -100,26 +104,74 @@ class TreeLikeTableau( ClonableList ):
     Ref: J.C. Aval, A. Boussicault, P. Nadeau, Tree-like tableau,
     arXiv:1109.0371v2
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(cls, *args, **opts):
+    def __classcall_private__(cls, value, check=True):
         r"""
         """
-        return cls._auto_parent._element_constructor_( *args, **opts )
+        if isinstance(value, cls):
+            return value
 
-    @lazy_class_attribute
-    def _auto_parent(cls):
+        # We must verify ``t`` is a list of iterables, and also
+        # normalize it to be a list of tuples.
+        try:
+            value = [list(_) for _ in value]
+        except TypeError:
+            raise ValueError("A tableau must be a list of iterables.")
+
+        return TreeLikeTableaux_all().element_class( TreeLikeTableaux_all(), value, check )
+
+    def __init__(self, parent, value, check=True):
+        r"""
+        The class for a tree-like tableau element.
+
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau([[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]])
+            sage: tlt
+            [[1, 1, 0, 1], [1, 0, 1, 0], [0, 1], [0, 1], [1, 0]]
+            sage: tlt = TreeLikeTableau( [[]] )
+            sage: tlt
+            [[]]
         """
+        if isinstance(value, TreeLikeTableau):
+            # Since we are (supposed to be) immutable, we can share the underlying data
+            ClonableList.__init__(self, parent, value, check)
+            return
+
+        # Normalize t to be a list of lists.
+        value = [list(_) for _ in value]
+
+        ClonableList.__init__(self, parent, value, check)
+        # This dispatches the input verification to the :meth:`check`
+        # method.
+
+    def __eq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other``.
+
+        For now, two elements are equal if their underlying
+        defining lists compare equal.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
         """
-        return TreeLikeTableaux_all()
+        if isinstance(other, TreeLikeTableau):
+            return list(self) == list(other)
+        else:
+            return list(self) == other
 
     def __copy__(self):
-#TODO : choisir une solution pour la fonction copy, parce que si on herite de cette classe, et qu'on ne surcharge pas __copy__ l'objet obtenue sera de la classe TreeLikeTableau. Donc il faudrait surcharger la fonction copy a chaque heritage. Une solution alternative serait de rajouter une option dans le constructeur pour savoir si on cree un objet mutable ou pas a utiliser en duo avec x.__class__ mais il faut que tous les contructeurs suivent une syntaxe particuliere.
         r"""
         Return a copy of the object
         """
-        from copy import deepcopy
         res = TreeLikeTableau( deepcopy( list(self) ) )
         res._set_mutable()
         return res
@@ -132,10 +184,6 @@ class TreeLikeTableau( ClonableList ):
         Check if the the elements of the list that was given, contains lists
         with only only O's and 1's inside them.
         TESTS::
-            sage: tlt = TreeLikeTableau( [[1,0,1,1],5,[0,1]] )
-            Traceback (most recent call last):
-            ...
-            ValueError: The element of the list indexed by 1, i.e 5 , is not a list.
             sage: tlt = TreeLikeTableau( [[1,0,1,1],[8,1],[0,1]] )
             Traceback (most recent call last):
             ...
@@ -147,10 +195,6 @@ class TreeLikeTableau( ClonableList ):
 
         for irow in range(len(self)):
             element = ClonableList.__getitem__( self, irow)
-            if type(element) != list:
-                raise ValueError,\
-                "The element of the list indexed by %s, i.e %s , is not a list."\
-                 %(irow,element)
             for icol in range(len(element)):
                 if element[icol] != 0 and element[icol] !=1:
                     raise ValueError,\
@@ -266,24 +310,6 @@ class TreeLikeTableau( ClonableList ):
 
 
 
-    def __init__(self, parent, value, check=True):
-        r"""
-        The class for a tree-like tableau element.
-
-        EXAMPLES::
-
-            sage: tlt = TreeLikeTableau([[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]])
-            sage: tlt
-            [[1, 1, 0, 1], [1, 0, 1, 0], [0, 1], [0, 1], [1, 0]]
-            sage: tlt = TreeLikeTableau( [[]] )
-            sage: tlt
-            [[]]
-        """
-        ClonableList.__init__( self, parent, value )
-        if check:
-            if not isinstance( value, (list, tuple) ) :
-                raise ValueError, "Value %s must be a list or a tuple."%(value)
-            self.check()
 
     def height( self ):
         r"""
@@ -806,7 +832,7 @@ class TreeLikeTableau( ClonableList ):
                 if tmp == -1:
                     break
                 lst[icol].append(self[irow][icol])
-        self.set_list(lst)
+        self._set_list(lst)
 
     def _repr_(self):
         r"""
@@ -1103,12 +1129,10 @@ class TreeLikeTableau( ClonableList ):
             True
             sage: tlt = TreeLikeTableau([[]])
             sage: tlt.is_symmetric()
-            False
-
-
+            True
         """
         if self == TreeLikeTableau([[]]):
-            return False
+            return True
         i=0
         while i+1<=len(self[i]):
             for j in range(i+1,len(self[i])+1):
@@ -1116,49 +1140,6 @@ class TreeLikeTableau( ClonableList ):
                     return False
             i=i+1
         return True
-
-    def special_point_sym( self ):
-        r"""
-        EXAMPLES::
-
-            sage: tlt=TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
-            sage: tlt.special_point_sym()
-            1
-        """
-        if not self.is_symmetric:
-            raise ValueError, "The tree-like tableau is not symmetric."
-
-        border_cells = self.border_cells()
-        for k in range((len(border_cells)-1)/2-1,0,-1):
-            (irow, icol) = border_cells[k]
-            if self[irow][icol] == 1 and border_cells[k-1][0] == irow:
-                return k
-        return 0
-
-    def insert_point_sym( self, position, epsilon ):
-        r"""
-        EXAMPLES::
-
-            sage: tlt=TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
-        """
-        if not self.is_symmetric:
-            raise ValueError, "The tree-like tableau is not symmetric."
-
-        [irow, icol, direction] = self._border_position_to_coordinates_and_direction(position)
-        position_special_point_sym=self.special_point_sym()
-
-        if direction == 'horizontal':
-            self._insert_column(icol, irow)
-            self._insert_row(irow, icol)
-        else:
-            self._insert_row(icol, irow)
-            self._insert_column(irow+1, icol)
-        if epsilon == 1:
-            if position < position_special_point_sym:
-                self._insert_ribbon(position + 1, position_special_point_sym + 1)
-                self._insert_ribbon(self.size()-(position_special_point_sym+1),self.size()-(position+1))
-        else:
-                self._insert_ribbon(position+1,self.size()-(position+1))
 
     def code( self ):
         r"""
@@ -1193,21 +1174,6 @@ class TreeLikeTableau( ClonableList ):
         for i in range(tlt.size()):
             L.insert(0,tlt.remove_point())
         return L
-
-    def to_permutations( self, bijection='code'):
-        r"""
-        Give the permutation associated to `self` using the bijection
-        given by `bijection` :
-            code : :meth: `_to_permutations_by_the_code`
-            inc_tree : :meth: `_to_permutations_by_increasing_tree`
-            CN : :meth: `_to_permutations_by_CN`
-        """
-        if bijection=='code':
-            return self.to_permutations_by_the_code()
-        if bijection=='inc_tree':
-            return self.to_permutations_by_increasing_tree()
-        if bijection=='CN':
-            return self.to_permutations_by_CN()
 
     def to_permutations_by_CN( self ):
         r"""
@@ -1244,7 +1210,7 @@ class TreeLikeTableau( ClonableList ):
 
             sage: for tlt in TreeLikeTableaux(6):
             ....:     p = tlt.to_permutations_by_CN()
-            ....:     tlt1 = TreeLikeTableau.from_permutations_by_CN(p)
+            ....:     tlt1 = TreeLikeTableau.from_permutation_by_CN(p)
             ....:     if tlt != tlt1:
             ....:         print tlt
             ....:         print tlt1
@@ -1423,35 +1389,36 @@ class TreeLikeTableau( ClonableList ):
 #            l[i] = l[i] + [0]*(w-length)
 #        return NonAmbiguousTree( l )
 
-    @staticmethod
-    def from_permutations(cls, perm, bijection='code' ):
+    @classmethod
+    def from_permutation(cls, perm):
         r"""
         Give the tree-like tableau T associated to `perm` using the bijection
         given by `bijection` :
-            code : see from_permutations_by_code
-            inc_tree : see from_permutations_by_increasing_tree
-            CN : see from_permutations_by_CN
+            code : see from_permutation_by_code
+            inc_tree : see from_permutation_by_increasing_tree
+            CN : see from_permutation_by_CN
         """
+        bijection = 'code'
         if not (perm in Permutations()):
             raise ValueError, str(perm)+" is not a permutation"
 
         if bijection=='code':
-            return from_permutations_by_code(perm)
+            return TreeLikeTableau.from_permutation_by_code(perm)
         if bijection=='inc':
-            return from_permutations_by_increasing_tree(perm)
+            return TreeLikeTableau.from_permutation_by_increasing_tree(perm)
         if bijection=='CN':
-            return from_permutations_by_CN(perm)
+            return TreeLikeTableau.from_permutation_by_CN(perm)
 
-    @staticmethod
-    def from_permutations_by_increasing_tree( perm ):
+    @classmethod
+    def from_permutation_by_increasing_tree(cls, perm):
         r"""
         Give the tree-like tableau T such that perm=T.to_permutations_by_increasing_tree().
         """
         inct = perm.increasing_tree()
         return from_increasing_trees(inct)
 
-    @staticmethod
-    def from_increasing_trees( inct ):
+    @classmethod
+    def from_increasing_trees(cls, inct):
         r"""
         Give the tree-like tableau T such that `inct`=T.to_increasing_trees().
         """
@@ -1494,14 +1461,14 @@ class TreeLikeTableau( ClonableList ):
 
         #Replace all the positive integers by 1
         for row in range(tlt.height()):
-            for col in range(len(tlt[row]))
+            for col in range(len(tlt[row])):
                 if tlt[row][col] != 0:
                     tlt[row][col]=1
         tlt.set_immutable()
         return tlt
 
-    @staticmethod
-    def from_permutations_by_CN( p ):
+    @classmethod
+    def from_permutation_by_CN(cls, p):
         r"""
         Give the tree-like tableau T such that `p`=T.to_permutations_by_CN().
         """
@@ -1540,14 +1507,14 @@ class TreeLikeTableau( ClonableList ):
             shape[row_numbering.index(row)][0] = 1
         return TreeLikeTableau(shape)
 
-    @staticmethod
-    def from_permutations_by_code( perm ):
+    @classmethod
+    def from_permutation_by_code(cls, perm):
         r"""
         Give the tree-like tableau T such that ``perm``=T.to_permutations_by_the_code().
 
         TESTS::
             sage:for tlt in TreeLikeTableaux(6):
-            ....:   if not tlt==TreeLikeTableau.from_permutations_by_code(tlt.to_permutations_by_the_code()):
+            ....:   if not tlt==TreeLikeTableau.from_permutation_by_code(tlt.to_permutations_by_the_code()):
             ....:       print tlt
         """
         p=list(perm)
@@ -1564,7 +1531,7 @@ class TreeLikeTableau( ClonableList ):
         tlt.set_immutable()
         return tlt
 
-    @staticmethod
+    @classmethod
     def from_non_ambiguous_trees( nat ):
         r"""
         Return the list of tree-like tableaux T such that ``nat``=T.to_non_ambiguous_trees().
@@ -1601,16 +1568,16 @@ class TreeLikeTableau( ClonableList ):
             tlt_list.append(TreeLikeTableau(tlt))
         return tlt_list
 
-class TreeLikeTableaux():
+class TreeLikeTableaux(UniqueRepresentation, Parent):
     r"""
     The tree-like tableaux factory.
     """
     @staticmethod
-    def __classcall_private__(self, size=None):
+    def __classcall_private__(self, size=None, symmetric=False):
         """
         TESTS::
 
-            sage: from sage.combinat.treeliketableaux import (TreeLikeTableaux_all,
+            sage: from sage.combinat.tree_like_tableaux import (TreeLikeTableaux_all,
             ....:  TreeLikeTableaux_size, SymmetricTreeLikeTableaux_all,
             ....:  SymmetricTreeLikeTableaux_size)
             sage: isinstance(TreeLikeTableaux(2), TreeLikeTableaux)
@@ -1624,13 +1591,13 @@ class TreeLikeTableaux():
             sage: TreeLikeTableaux(2) is TreeLikeTableaux_size(2)
             True
             sage: TreeLikeTableaux(5).cardinality()
-            42
+            120
             sage: TreeLikeTableaux() is TreeLikeTableaux_all()
             True
             sage: TreeLikeTableaux(3, symmetric=True) is SymmetricTreeLikeTableaux_size(3)
             True
             sage: TreeLikeTableaux(5, symmetric=True).cardinality()
-            2
+            8
             sage: TreeLikeTableaux(symmetric=True) is SymmetricTreeLikeTableaux_all()
             True
         """
@@ -1640,23 +1607,20 @@ class TreeLikeTableaux():
             else:
                 return TreeLikeTableaux_all()
         else:
-            if not (isinstance(n, (Integer, int)) and n >= 0):
-                raise ValueError("n must be a nonnegative integer")
+            if not (isinstance(size, (Integer, int)) and size >= 0):
+                raise ValueError("size must be a nonnegative integer")
             if not symmetric:
-                return TreeLikeTableaux_size(Integer(n))
+                return TreeLikeTableaux_size(Integer(size))
             else:
-                if n % 2 == 1 or n == 0:
-                    return SymmetricTreeLikeTableaux_size(Integer(n))
+                if size % 2 == 1 or size == 0:
+                    return SymmetricTreeLikeTableaux_size(Integer(size))
                 else:
-                    raise ValueError("n must be 0 or odd")
+                    raise ValueError("size must be 0 or odd")
 
     def _repr_(self):
         """
         """
         return "Factory for tree-like tableaux"
-
-TreeLikeTableaux.__doc__ = TreeLikeTableauxFactory.__call__.__doc__
-
 
 #################################################################
 # Enumerated set of all full tree-like tableaux of a given size
@@ -1694,47 +1658,35 @@ class TreeLikeTableaux_size(TreeLikeTableaux):
 
     def __iter__(self):
         r"""
+        TODO a refaire
         """
-        if self._size == 0:
-            yield TreeLikeTableau([[]])
-        elif self._size == 1:
-            yield TreeLikeTableau([[1]])
+        n = self._size
+
+        if n==0:
+            yield SymmetricTreeLikeTableau([[]])
+        if n==1:
+            yield SymmetricTreeLikeTableau([[1]])
         else:
-            def rec(tlt,n):
-                k=tlt.remove_point()
-                size=tlt.size()
-                if k<size:
-                    tlt.insert_point(k+1)
-                    i=size+1
-                    while i<n:
-                        i=i+1
-                        tlt.insert_point(0)
-                    return tlt
-                else:
-                    return rec(tlt,n)
-            tlt=TreeLikeTableau([[1] for i in range(self._size)])
-            tlt._set_mutable()
-            yield tlt
-            i=2
-            while i<factorial(self._size)+1:
-                yield rec(tlt,self._size)
-                i=i+1
+            for tlt in TreeLikeTableaux(n-1):
+                for i in range(n):
+                    with tlt.clone() as tlt1:
+                        tlt1.insert_point(i)
+                    yield tlt1
 
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
 
-            sage: S = TreeLikeTableaux(0)
-            sage: S([])   # indirect doctest
+            sage: TLT1 = TreeLikeTableaux(1)
+            sage: TLT1([[]])   # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: wrong number of nodes
-            sage: S(None)   # indirect doctest
-            .
-
-            sage: S = BinaryTrees(1)   # indirect doctest
-            sage: S([])
-            [., .]
+            ValueError: Wrong size : a tree-like tableau of size 1 is expected and one of size 0 was given
+            sage: TLT1([[1]])   # indirect doctest
+            [[1]]
+            sage: TLT0 = TreeLikeTableaux(0)   # indirect doctest
+            sage: TLT0([[]])
+            [[]]
         """
         res = TreeLikeTableau(*args, **keywords)
         if res.size() != self._size:
@@ -1743,31 +1695,47 @@ class TreeLikeTableaux_size(TreeLikeTableaux):
 
     def random_element(self):
         r"""
-        Return a random symmetric tree-like tableau  with uniform probability.
+        Return a random tree-like tableau  with uniform probability.
 
         This method generates a random permutation of the same size of self
         and convert it to a tree-like tableau.
 
         EXAMPLES::
 
-            sage: TreeLikeTableaux(5, symmetric=True).random_element() # random
-            [[], [[], []]]
-            sage: TreeLikeTableaux(0, symmetric=True).random_element()
-            .
-            sage: TreeLikeTableaux(1, symmetric=True).random_element()
-            [., .]
+            sage: TreeLikeTableaux(5).random_element() # random
+            [[1, 1, 0, 0], [0, 1, 0, 1], [1, 0]]
+            sage: TreeLikeTableaux(0).random_element()
+            [[]]
+            sage: TreeLikeTableaux(1).random_element()
+            [[1]]
 
         TESTS::
 
-            sage: B = TreeLikeTableaux(19, symmetric=True)
-            sage: all([B.random_element() in B for i in range(20)])
+            sage: TLT = TreeLikeTableaux(19)
+            sage: all([TLT.random_element() in TLT for i in range(20)])
             True
         """
-        from sage.combinat.permutation import Permutations_size
+        from sage.combinat.permutation import Permutations
         if self._size == 0:
-            return TreeLikeTableau([])
-        return Permutations(self._size).random_element().to_permutations()
+            return TreeLikeTableau([[]])
+        return TreeLikeTableau.from_permutation(Permutations(self._size).random_element())
 
+    def cardinality(self):
+        r"""
+        The cardinality of self.
+
+        It is equal to size!
+
+        TESTS::
+
+            sage: TreeLikeTableaux(0).cardinality()
+            1
+            sage: TreeLikeTableaux(5).cardinality()
+            120
+            sage: TreeLikeTableaux(6).cardinality()
+            720
+        """
+        return factorial(self._size)
     global_options = TreeLikeTableauxOptions
 
 
@@ -1798,13 +1766,26 @@ class TreeLikeTableaux_all( TreeLikeTableaux, DisjointUnionEnumeratedSets ):
         """
         TESTS::
 
-            sage: S = TreeLikeTableaux()
-            sage: 1 in S
+            sage: TLTS = TreeLikeTableaux()
+            sage: 1 in TLTS
             False
-            sage: S([]) in S
+            sage: TLTS([[]]) in TLTS
             True
         """
-        return isinstance(x, self.element_class)
+        if isinstance(x, self.element_class):
+            return True
+
+    def __call__(self, x=[[]], *args, **keywords):
+        """
+        Ensure that ``[[]]`` instead of ``0`` is passed by default.
+
+        TESTS::
+
+            sage: TLTS = TreeLikeTableaux()
+            sage: TLTS()
+            [[]]
+        """
+        return super(TreeLikeTableaux, self).__call__(x, *args, **keywords)
 
     def check_element(self, el, check):
         r"""
@@ -1816,6 +1797,80 @@ class TreeLikeTableaux_all( TreeLikeTableaux, DisjointUnionEnumeratedSets ):
 
     global_options = TreeLikeTableauxOptions
     Element = TreeLikeTableau
+
+class SymmetricTreeLikeTableau(TreeLikeTableau):
+    """
+    A symmmetric tree-like tableau.
+    """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, value, check=True):
+        r"""
+        """
+        if isinstance(value, SymmetricTreeLikeTableau):
+            return value
+        return SymmetricTreeLikeTableaux_all().element_class(SymmetricTreeLikeTableaux_all(), value)
+
+        # value is not a a symmetric tree-like tableau so we give an appropriate error message
+
+    def __init__(self, parent, value, check=True):
+        """
+        """
+        super(SymmetricTreeLikeTableau, self).__init__(parent, value, check)
+        if check:
+            if not self.is_symmetric():
+                raise ValueError("the tree-like tableau is not symmetric")
+
+    def special_point_sym( self ):
+        r"""
+        EXAMPLES::
+
+            sage: tlt = SymmetricTreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
+            sage: tlt.special_point_sym()
+            1
+        """
+        if not self.is_symmetric:
+            raise ValueError, "The tree-like tableau is not symmetric."
+
+        border_cells = self.border_cells()
+        for k in range((len(border_cells)-1)/2-1,0,-1):
+            (irow, icol) = border_cells[k]
+            if self[irow][icol] == 1 and border_cells[k-1][0] == irow:
+                return k
+        return 0
+
+    def insert_point_sym(self, position, epsilon ):
+        r"""
+        EXAMPLES::
+
+            sage: tlt = TreeLikeTableau([[1,0,1,1],[0,0,0,1],[1,0,0],[1,1]])
+        """
+        self._require_mutable()
+
+        [irow, icol, direction] = self._border_position_to_coordinates_and_direction(position)
+        position_special_point_sym=self.special_point_sym()
+
+        if direction == 'horizontal':
+            self._insert_column(icol, irow)
+            self._insert_row(irow, icol)
+        else:
+            self._insert_row(icol, irow)
+            self._insert_column(irow+1, icol)
+        if epsilon == 1:
+            if position < position_special_point_sym:
+                self._insert_ribbon(position + 1, position_special_point_sym + 1)
+                self._insert_ribbon(self.size()-(position_special_point_sym+1),self.size()-(position+1))
+        else:
+                self._insert_ribbon(position+1,self.size()-(position+1))
+
+    def __copy__(self):
+        r"""
+        Return a copy of the object
+        """
+        res = SymmetricTreeLikeTableau( deepcopy( list(self) ) )
+        res._set_mutable()
+        return res
 
 
 
@@ -1831,26 +1886,27 @@ class SymmetricTreeLikeTableaux_all(DisjointUnionEnumeratedSets, TreeLikeTableau
         """
         TESTS::
 
-            sage: from sage.combinat.binary_tree import FullBinaryTrees_all
-            sage: FB = FullBinaryTrees_all()
-            sage: FB.cardinality()
+            sage: from sage.combinat.tree_like_tableaux import SymmetricTreeLikeTableaux_all
+            sage: STLTS = SymmetricTreeLikeTableaux_all()
+            sage: STLTS.cardinality()
             +Infinity
 
-            sage: it = iter(FB)
-            sage: (next(it), next(it), next(it), next(it), next(it))
-            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]]) 
-            sage: next(it).parent()
-            Binary trees
-            sage: FB([])
-            [., .]
+            sage: it = iter(STLTS)
+            sage: STLTS([[]])
+            [[]]
 
-            sage: FB is FullBinaryTrees_all()
+            sage: STLTS is TreeLikeTableaux(symmetric=True)
             True
             sage: TestSuite(FB).run() # long time
         """
+#            sage: (next(it), next(it), next(it), next(it), next(it))
+#            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]])
+#            sage: next(it).parent()
+#            Binary trees
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), SymmetricTreeLikeTableaux_size),
             facade=True, keepkey=False)
+
 
     def _repr_(self):
         """
@@ -1865,34 +1921,27 @@ class SymmetricTreeLikeTableaux_all(DisjointUnionEnumeratedSets, TreeLikeTableau
         """
         TESTS::
 
-            sage: FB = BinaryTrees(full=True)
-            sage: 1 in FB
+            sage: STLTS = TreeLikeTableaux(symmetric=True)
+            sage: 1 in STLTS
             False
-            sage: FB([]) in FB
+            sage: STLTS([[]]) in STLTS
             True
         """
-        return isinstance(x, BinaryTree) and x.is_symmetric()
+        return isinstance(x, TreeLikeTableau) and x.is_symmetric()
 
-    def _element_constructor_(self, *args, **keywords):
+    def __call__(self, x=[[]], *args, **keywords):
         """
-        EXAMPLES::
+        Ensure that ``[[]]`` instead of ``0`` is passed by default.
 
-            sage: FB = BinaryTrees(full=True)
-            sage: FB._element_constructor_([])
-            [., .]
-            sage: FB([[],[]]) # indirect doctest
-            [[., .], [., .]]
-            sage: FB(None)    # indirect doctest
-            .
-            sage: FB([None, []]) #indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: not full
+        TESTS::
+
+            sage: STLTS = TreeLikeTableaux(symmetric=True)
+            sage: STLTS()
+            [[]]
         """
-        res = TreeLikeTableau(*args, **keywords)
-        if not res.is_symmetric():
-            raise ValueError("Not symmetric")
-        return res
+        return super(TreeLikeTableaux, self).__call__(x, *args, **keywords)
+
+    Element = SymmetricTreeLikeTableau
 
 #################################################################
 # Enumerated set of full binary trees of a given size
@@ -1906,20 +1955,19 @@ class SymmetricTreeLikeTableaux_size(TreeLikeTableaux):
         r"""
         TESTS::
 
-            sage: from sage.combinat.tree_like_tableau import SymmetricTreeLikeTableaux_size
+            sage: from sage.combinat.tree_like_tableaux import SymmetricTreeLikeTableaux_size
             sage: for i in range(1,6):
             ....:     TestSuite(TreeLikeTableaux(2*i-1, symmetric=True)).run()
         """
-        super(SymmetricTreeLikeTableaux_size, self).__init__(facade=TreeLikeTableaux_all(),
-                                                   category=FiniteEnumeratedSets())
-        self._size = size
+        super(SymmetricTreeLikeTableaux_size, self).__init__(category=FiniteEnumeratedSets())
+        self._size = Integer(size)
 
     def _repr_(self):
         r"""
         TESTS::
 
             sage: TreeLikeTableaux(3, symmetric=True)
-            Tree-like tableaux of size 3
+            Symmetric tree-like tableaux of size 3
         """
         return "Symmetric tree-like tableaux of size %s" % self._size
 
@@ -1928,7 +1976,7 @@ class SymmetricTreeLikeTableaux_size(TreeLikeTableaux):
         TESTS::
 
             sage: STLT3 = TreeLikeTableaux(3, symmetric=True)
-            sage: 1 in TLT33
+            sage: 1 in STLT3
             False
             sage: STLT3([[1,1], [1]]) in STLT3
             True
@@ -1942,8 +1990,11 @@ class SymmetricTreeLikeTableaux_size(TreeLikeTableaux):
                 and x.is_symmetric())
 
     def _an_element_(self):
-        r"""
+        """
         TESTS::
+
+            sage: TreeLikeTableaux(0, symmetric=True).an_element()  # indirect doctest
+            [[]]
         """
         return self.first()
 
@@ -1963,7 +2014,7 @@ class SymmetricTreeLikeTableaux_size(TreeLikeTableaux):
         if self._size == 0:
             return Integer(1)
         n = (self._size-1)/2
-        return 2**n*factorial(n)
+        return Integer(2**n*factorial(n))
 
     def random_element(self):
         r"""
@@ -1975,79 +2026,85 @@ class SymmetricTreeLikeTableaux_size(TreeLikeTableaux):
         EXAMPLES::
 
             sage: TreeLikeTableaux(5, symmetric=True).random_element() # random
-            [[], [[], []]]
+            [[1, 0, 1], [0, 0, 1], [1, 1]]]
             sage: TreeLikeTableaux(0, symmetric=True).random_element()
-            .
+            [[]]
             sage: TreeLikeTableaux(1, symmetric=True).random_element()
-            [., .]
+            [[1]]
 
         TESTS::
 
-            sage: B = TreeLikeTableaux(19, symmetric=True)
-            sage: all([B.random_element() in B for i in range(20)])
+            sage: STLT = TreeLikeTableaux(19, symmetric=True)
+            sage: all([STLT.random_element() in STLT for i in range(20)])
             True
         """
-        from sage.combinat.permutation import Permutations_size
+        from sage.combinat.permutation import Permutations
         if self._size == 0:
-            return TreeLikeTableau([])
-        return Permutations(self._size).random_element().to_permutations()
+            return SymmetricTreeLikeTableau([[]])
 
-#
-#    def __iter__(self):
-#        """
-#        A basic generator.
-#
-#        .. TODO:: could be optimized.
-#
-#        TESTS::
-#
-#            sage: BinaryTrees(0, full=True).list()
-#            [.]
-#            sage: BinaryTrees(1, full=True).list()
-#            [[., .]]
-#            sage: BinaryTrees(7, full=True).list()
-#            [[[., .], [[., .], [[., .], [., .]]]],
-#             [[., .], [[[., .], [., .]], [., .]]],
-#             [[[., .], [., .]], [[., .], [., .]]],
-#             [[[., .], [[., .], [., .]]], [., .]],
-#             [[[[., .], [., .]], [., .]], [., .]]]
-#        """
-#        if self._size == 0:
-#            yield self._element_constructor_()
-#        if self._size == 1:
-#            yield self._element_constructor_("[.,.]")
-#        else:
-#            k = (self._size - 1) / 2 # number of internal nodes
-#            for i in range(k):
-#                for lft in FullBinaryTrees_size(2*i+1):
-#                    for rgt in FullBinaryTrees_size(2*(k-1-i)+1):
-#                        yield self._element_constructor_([lft, rgt])
-#
-#    def _element_constructor_(self, *args, **keywords):
-#        """
-#        EXAMPLES::
-#
-#            sage: FB0 = BinaryTrees(0, full=True)
-#            sage: FB0(None)
-#            .
-#            sage: FB0([])
-#            Traceback (most recent call last):
-#            ...
-#            ValueError: wrong number of nodes
-#
-#            sage: FB1 = BinaryTrees(1, full=True)
-#            sage: FB1([])
-#            [., .]
-#
-#            sage: FB5 = BinaryTrees(5, full=True)
-#            sage: FB5([[], [None, [None, []]]])
-#            Traceback (most recent call last):
-#            ...
-#            ValueError: not full
-#        """
-#        res = BinaryTree(*args, **keywords)
-#        if res.node_number() != self._size:
-#            raise ValueError("wrong number of nodes")
-#        if not res.is_full():
-#            raise ValueError("not full")
-#        return res
+        if self._size == 1:
+            return SymmetricTreeLikeTableau([[1]])
+
+        n = Integer((self._size-1)/2)
+        p = Permutations(n).random_element()
+        tlt=SymmetricTreeLikeTableau([[1]])
+        tlt._set_mutable()
+        for i in range(0,len(p)):
+            cmp=0
+            pi=p[i]
+            for j in range(i+1):
+                if p[j]<pi:
+                    cmp+=1
+                j+=1
+            epsilon = Set([-1,1]).random_element()
+            tlt.insert_point_sym(cmp, epsilon)
+        tlt.set_immutable()
+        return tlt
+
+    def __iter__(self):
+        """
+        """
+        n = self._size
+
+        if n==0:
+            yield SymmetricTreeLikeTableau([[]])
+        if n==1:
+            yield SymmetricTreeLikeTableau([[1]])
+        else:
+            for tlt in TreeLikeTableaux(n-2,symmetric=True):
+                for i in range((n-1)/2):
+                    with tlt.clone() as tlt1:
+                        tlt1.insert_point_sym(i,1)
+                    yield tlt1
+
+                    with tlt.clone() as tlt1:
+                        tlt1.insert_point_sym(i,-1)
+                    yield tlt1
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: STLT0 = TreeLikeTableaux(0,symmetric=True)
+            sage: STLT0([[]])
+            [[]]
+            sage: STLT3 = TreeLikeTableaux(3,symmetric=True)
+            sage: STLT3._element_constructor_([[1,1],[1,0]])
+            [[1, 1], [1, 0]]
+            sage: STLT3([[1,1],[1]])
+            [[1, 1], [1]]
+            sage: STLT3([[1, 1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: not symmetric
+            sage: STLT3([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong size : a symmetric tree-like tableau of size 3 is expected and one of size 1 was given
+        """
+        res = TreeLikeTableau(*args, **keywords)
+        if not res.is_symmetric():
+            raise ValueError("not symmetric")
+        if res.size() != self._size:
+            raise ValueError("Wrong size : a symmetric tree-like tableau of size %d is expected and one of size %d was given"%(self._size,res.size()))
+        return res
