@@ -45,7 +45,7 @@ prepend() {
     local reset=1
     local pre=$1
 
-    while IFS= read -d'' -s -N 1 char; do
+    while IFS= read -d'' -s -n 1 char; do
         [ $reset ] && echo -n "$pre"
         echo -n "$char"
         unset reset
