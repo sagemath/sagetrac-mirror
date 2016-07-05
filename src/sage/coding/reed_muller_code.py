@@ -14,6 +14,8 @@ This file contains the following elements:
     - :class:`BinaryReedMullerCode`, the class for Reed-Muller codes over binary field and `r<=m`
     - :class:`ReedMullerVectorEncoder`, an encoder with a vectorial message space (for both the two code classes)
     - :class:`ReedMullerPolynomialEncoder`, an encoder with a polynomial message space (for both the code classes)
+    - :class:`BinaryReedMullerMajorityDecoder`, a decoder for binary Reed-Muller codes which corrects using majority vote algorithm
+    - :class:`QAryReedMullerRSDecoder`, an decoder for q-ary Reed-Muller code which corrects by treating the code as a sub code of a Reed Solomon code
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Parthasarathi Panda <parthasarathipanda314@gmail.com>
@@ -32,6 +34,8 @@ from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.coding.linear_code import AbstractLinearCode, LinearCodeSyndromeDecoder
 from sage.coding.encoder import Encoder
+from sage.coding.decoder import Decoder
+from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.combinat.subset import Subsets
 from sage.combinat.tuple import Tuples
 from sage.categories.finite_fields import FiniteFields
@@ -42,6 +46,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.gap import gfq_gap_to_sage
 from sage.interfaces.all import gap
 from sage.misc.cachefunc import cached_method
+from sage.sets.set import Set
 from functools import reduce
 
 
@@ -132,6 +137,62 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
         return poly
     return _interpolate(evaluation, polynomial_ring.ngens(), order)
 
+def _set_to_mask(s, m):
+    r"""
+    Maps the set to a vector over GF(2) to an integer.
+
+    INPUT::
+
+    - ``s`` -- A subset of `\{0,1,\ldots,m-1\}`.
+
+    - ``m`` -- The number of elements in the super set.
+
+    EXAMPLES::
+
+        sage: from sage.coding.reed_muller_code import _set_to_mask
+        sage: _set_to_mask(Set([1,3,4]),5)
+        26
+    """
+    ans=0
+    p=1
+    for i in range(m):
+       if (i in s):
+           ans+=p
+       p<<=1
+    return ans
+
+def _list_polynomial(base_field, y, dim):
+    r"""
+    Lists all polynomials of degree ``dim-1`` over ``base_field``. 
+
+    INPUT::
+
+    - ``base_field`` -- A finite field 
+    
+    - ``y`` -- The generator of the polynomial ring.
+
+    - ``dim`` -- An integer.
+
+    EXAMPLES::
+
+        sage: from sage.coding.reed_muller_code import _list_polynomial
+        sage: F=GF(2)
+        sage: R.<x>=F[]
+        sage: _list_polynomial(F, R.gen(), 3)
+        [0, 1, x, x + 1, x^2, x^2 + 1, x^2 + x, x^2 + x + 1]
+    """
+    base_field_tuple=Tuples(base_field.list(),dim)
+    one=base_field.one()
+    zero=base_field.zero()
+    v=[]
+    for x in base_field_tuple:
+        t=one
+        sum=zero
+        for i in range(dim):
+            sum+=x[i]*t
+            t*=y
+        v.append(sum)
+    return v
 
 def ReedMullerCode(base_field, order, num_of_var):
     r"""
@@ -966,6 +1027,332 @@ class ReedMullerPolynomialEncoder(Encoder):
         code = self.code()
         return ((code.base_field())**code.number_of_variables()).list()
 
+class BinaryReedMullerMajorityDecoder(Decoder):
+    r"""
+    Decoder for Binary Reed-Muller codes which uses majority vote
+    decoding algorithm to correct errors in codewords.
+
+    The algorithm takes the linear combination of bits of the codewords which would 
+    give the same bit of the message symbol if uncorrupted and chooses the majority from them to 
+    decide the message bit.     
+
+    The decoder corrects the error and returns the message symbol as a vector in `\Bold{F}_{2}` as described in
+    :class:`ReedMullerVectorEncoder`. 
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+
+    EXAMPLES::
+
+        sage: F = GF(2)
+        sage: C = codes.ReedMullerCode(F, 2, 5)
+        sage: D = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+        sage: D
+        Majority vote decoder for Binary Reed-Muller Code of order 2 and number of variables 5
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("MajorityVote")
+        sage: D
+        Majority vote decoder for Binary Reed-Muller Code of order 2 and number of variables 5
+    """
+
+    def __init__(self, code):
+        r"""
+        TESTS:
+
+        If ``code`` is not a Binary Reed-Muller code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a binary Reed-Muller code
+        """
+        if not isinstance(code, BinaryReedMullerCode):
+            raise ValueError("code has to be a binary Reed-Muller code")
+        super(BinaryReedMullerMajorityDecoder, self).__init__(code, code.ambient_space(), 
+            "EvaluationVector")
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(2)
+            sage: C = codes.ReedMullerCode(F, 3, 5)
+            sage: D = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            sage: D
+            Majority vote decoder for Binary Reed-Muller Code of order 3 and number of variables 5
+        """
+        return "Majority vote decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(2)
+            sage: C = codes.ReedMullerCode(F, 3, 5)
+            sage: D = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            sage: latex(D)
+            \textnormal{Majority vote decoder for }\textnormal{Binary Reed-Muller Code of order} 3 \textnormal{and number of variables} 5
+        """
+        return "\\textnormal{Majority vote decoder for }%s" % self.code()._latex_()
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between BinaryReedMullerMajorityDecoder objects.
+
+        EXAMPLES::
+
+            sage: F = GF(2)
+            sage: C = codes.ReedMullerCode(F, 2, 6)
+            sage: D1 = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            sage: D2 = C.decoder("MajorityVote")
+            sage: D1.__eq__(D2)
+            True
+            sage: D1 is D2
+            False
+        """
+        return isinstance(other, BinaryReedMullerMajorityDecoder) \
+               and self.code() == other.code()
+
+    def decode_to_message(self, word):
+        r"""
+        Decode ``word`` to an element in message space of ``self``
+
+        INPUT:
+
+        - ``word`` -- a codeword of ``self``
+
+        OUTPUT:
+
+        - a vector of ``self`` message space
+
+        EXAMPLES::
+
+            sage: F = GF(2)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: f_dec = D.decode_to_message(y)
+            sage: f_dec == D.connected_encoder().unencode(c)
+            True
+
+        """
+        message=[]
+        degree=self.code().order()
+        num_of_var=self.code().number_of_variables()
+        n=word.length()
+        F=self.code().base_field()
+        one=F.one()
+        zero=F.zero()
+        total_votes=1<<(num_of_var-degree)
+        while degree>=0:#iterating through the degree of monomial
+            Sub=Subsets(range(num_of_var), degree)
+            subset=Sub.first()
+            m=[]
+            while (True): #iterating through monomials of degree t
+                dict={}
+                mask=_set_to_mask(subset, num_of_var)
+                num_of_one=0
+                for i in range(n):
+                    key=i-(i&mask)
+                    if dict.has_key(key):
+                        dict[key]+=word[i]
+                        if word[i]==one: #counting number of ones
+                            if dict[key]==one:
+                                num_of_one+=1
+                            else:
+                                num_of_one-=1
+                    else:
+                        dict[key]=word[i]
+                        if word[i]==one: #counting number of ones
+                            num_of_one+=1
+                if (2*num_of_one>total_votes):#determining majority
+                    m.append(one)
+                    subset_complement=Set(range(num_of_var)).difference(subset)
+                    for s in Subsets(subset_complement):
+                        word[_set_to_mask(s, num_of_var)+mask]+=one
+                else:
+                    m.append(zero)
+                if (subset==Sub.last()):
+                    break
+                else:
+                    subset=Sub.next(subset)
+            message=m+message            
+            degree-=1
+            total_votes<<=1
+        return vector(F,message)
+
+    def decoding_radius(self):
+        r"""
+        Returns maximal number of errors that ``self`` can decode.
+
+        OUTPUT:
+
+        - the number of errors as an integer
+
+        EXAMPLES::
+
+            sage: F = GF(2)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.BinaryReedMullerMajorityDecoder(C)
+            sage: D.decoding_radius()
+            3
+        """
+        return (self.code().minimum_distance()-1)//2
+
+class QAryReedMullerRSDecoder(Decoder):
+    r"""
+    Decoder for q-ary Reed-Muller codes which decodes by treating them as a sub-code of a Reed Solomon code
+    and uses Gao decoding algorithm to correct the errors.
+     
+    The decoder corrects the error and returns the message symbol as a vector in `F`, where `F` is the base field,
+    as described in :class:`ReedMullerVectorEncoder`. 
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+
+    EXAMPLES::
+
+        sage: F = GF(4)
+        sage: C = codes.ReedMullerCode(F, 2, 3)
+        sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+        sage: D
+        Reed Solomon based decoder for Reed-Muller Code of order 2 and 3 variables over Finite Field in z2 of size 2^2
+
+    Actually, we can construct the decoder from ``C`` directly::
+
+        sage: D = C.decoder("ReedSolomon")
+        sage: D
+        Reed Solomon based decoder for Reed-Muller Code of order 2 and 3 variables over Finite Field in z2 of size 2^2
+    """
+
+    def __init__(self, code):
+        r"""
+        TESTS:
+
+        If ``code`` is not a Binary Reed-Muller code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.QAryReedMullerRSDecoder(C)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a q-ary Reed-Muller code
+        """
+        if not isinstance(code, QAryReedMullerCode):
+            raise ValueError("code has to be a q-ary Reed-Muller code")
+        super(QAryReedMullerRSDecoder, self).__init__(code, code.ambient_space(), 
+            "EvaluationVector")
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: D
+            Reed Solomon based decoder for Reed-Muller Code of order 2 and 5 variables over Finite Field of size 3
+        """
+        return "Reed Solomon based decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: latex(D)
+            \textnormal{Reed Solomon based decoder for }\textnormal{Reed-Muller Code of order} 2 \textnormal{and }5 \textnormal{variables over} \Bold{F}_{3}
+        """
+        return "\\textnormal{Reed Solomon based decoder for }%s" % self.code()._latex_()
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between QAryReedMullerRSDecoder objects.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D1 = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: D2 = C.decoder("ReedSolomon")
+            sage: D1.__eq__(D2)
+            True
+            sage: D1 is D2
+            False
+        """
+        return isinstance(other, QAryReedMullerRSDecoder) \
+               and self.code() == other.code()
+
+    def decode_to_code(self, word):
+        r"""
+        Corrects the errors in ``word`` and returns a codeword.
+
+        INPUT:
+
+        - ``word`` -- a vector of the ambient space of ``self.code()``
+
+        OUTPUT:
+
+        - a vector of ``self.code()``
+
+        EXAMPLES::
+
+            sage: F = GF(4)
+            sage: C = codes.ReedMullerCode(F, 2, 3)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius())
+            sage: y = Chan(c)
+            sage: c_dec = D.decode_to_code(y)
+            sage: c_dec == c
+            True
+
+        """
+        code=self.code()
+        n=code.length()
+        order=code.order()
+        num_of_var=code.number_of_variables()
+        base_field=code.base_field()
+        q=base_field.cardinality()
+        p=PolynomialRing(base_field, 'x').irreducible_element(num_of_var)
+        extended_field=base_field.extension(p, 'y')
+        evalPoints=_list_polynomial(base_field, extended_field.gen(), num_of_var)
+        RS_code=GeneralizedReedSolomonCode(evalPoints, ((n*order)//q)+1)
+        return RS_code.decoder('Gao').decode_to_code(word)
+
+    def decoding_radius(self):
+        r"""
+        Returns maximal number of errors that ``self`` can decode.
+
+        OUTPUT:
+
+        - the number of errors as an integer
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: D.decoding_radius()
+            40
+        """
+        return (self.code().minimum_distance()-1)//2
 
 ####################### registration ###############################
 
@@ -973,8 +1360,12 @@ QAryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEn
 QAryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
 QAryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+QAryReedMullerCode._registered_decoders["ReedSolomon"] = QAryReedMullerRSDecoder
+QAryReedMullerRSDecoder._decoder_type = {"hard-decision", "unique"}
 
 BinaryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
 BinaryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
 BinaryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+BinaryReedMullerCode._registered_decoders["MajorityVote"] = BinaryReedMullerMajorityDecoder
+BinaryReedMullerMajorityDecoder._decoder_type = {"hard-decision", "unique"}

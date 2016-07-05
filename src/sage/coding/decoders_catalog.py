@@ -46,6 +46,7 @@ from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
+from reed_muller_code import BinaryReedMullerMajorityDecoder, QAryReedMullerRSDecoder
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from extended_code import ExtendedCodeOriginalCodeDecoder
 from grs import (GRSBerlekampWelchDecoder,
