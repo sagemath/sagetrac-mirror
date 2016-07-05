@@ -45,11 +45,16 @@ prepend() {
     local reset=1
     local pre=$1
 
-    while IFS= read -d'' -s -n 1 char; do
+    while IFS= read -r -s -n 1 char; do
         [ $reset ] && echo -n "$pre"
-        echo -n "$char"
-        unset reset
-        [ "$char" == $'\n' ] && reset=1
+        if [ -z "$char" ]; then
+            # Ate a newline--the default delimiter for read
+            reset=1
+            echo
+        else
+            echo -n "$char"
+            unset reset
+        fi
     done;
 }
 
