@@ -43,8 +43,6 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.interfaces.gap import gfq_gap_to_sage
-from sage.interfaces.all import gap
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
 from functools import reduce
