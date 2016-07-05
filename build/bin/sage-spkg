@@ -126,7 +126,7 @@ continue_prompt()
         # A better prompt than standard 'read'--typed characters are sent
         # to the program's stdout (instead of just to the pty) so that they
         # can actually be logged
-        >&2 echo -n "Are you sure you want to continue ${timeout_msg}[Y/n]? "
+        >&2 printf 'Are you sure you want to continue %s[Y/n]? ' "$timeout_msg"
 
         while IFS= read -r -d '' -n 1 -s char; do
             if [[ "$del" == *"$char"* ]]; then
