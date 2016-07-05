@@ -121,30 +121,26 @@ continue_prompt()
     if [ $YES -ne 1 ]; then
         local answer=""
         local char
-        local del="$(echo -ne '\b\x7f')"
+        local del="$(printf '\b\x7f')"
 
         # A better prompt than standard 'read'--typed characters are sent
         # to the program's stdout (instead of just to the pty) so that they
         # can actually be logged
         >&2 echo -n "Are you sure you want to continue ${timeout_msg}[Y/n]? "
 
-        while IFS= read -r -n 1 -s char; do
-            if [[ -z $char ]]; then
-                # -n 1 means that when a newline is entered
-                # an empty string is returned
-                char=$'\n'
-            elif [[ "$del" == *"$char"* ]]; then
+        while IFS= read -r -d '' -n 1 -s char; do
+            if [[ "$del" == *"$char"* ]]; then
                 # Unfortunately we have to reimplement backspace support;
                 # to be fully portable allow either backspace or delete to
                 # erase the previous character
                 if [[ ${#answer} -gt 0 ]]; then
-                    echo -ne '\b \b'
+                    printf '\b \b'
                     answer="${answer%?}"
                 fi
                 continue
             fi
 
-            echo -n "$char"
+            printf '%s' "$char"
             [ "$char" = $'\n' ] && break
             answer="$answer$char"
         done
