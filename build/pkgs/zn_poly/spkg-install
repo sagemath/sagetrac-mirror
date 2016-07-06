@@ -35,11 +35,16 @@ fi
 
 if [ "$SAGE_DEBUG" = yes ]; then
     echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
-    CFLAGS="-O0 -g $CFLAGS -fPIC"
-    CXXFLAGS="-O0 -g $CXXFLAGS -fPIC"
+    CFLAGS="-O0 -g $CFLAGS"
+    CXXFLAGS="-O0 -g $CXXFLAGS"
 else
-    CFLAGS="-O3 -g $CFLAGS -fPIC"
-    CXXFLAGS="-O3 -g $CXXFLAGS -fPIC"
+    CFLAGS="-O3 -g $CFLAGS"
+    CXXFLAGS="-O3 -g $CXXFLAGS"
+fi
+
+if [ "$UNAME" != CYGWIN ]; then
+    CFLAGS="$CFLAGS -fPIC"
+    CXXFLAGS="$CXXFLAGS -fPIC"
 fi
 
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe.
