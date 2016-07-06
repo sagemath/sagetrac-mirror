@@ -359,6 +359,9 @@ def configure(arch=None, isa_ext=None):
 
     # Set flags for all compilers so we can build dynamic libraries
     ALLFLAGS = "-fPIC " + os.environ["LDFLAGS"]
+    if not conf['CYGWIN?']:
+        ALLFLAGS = "-fPIC " + ALLFLAGS
+
     cmd += ' -Fa alg "{}"'.format(ALLFLAGS)
 
     # set number of threads limit: 0 = off, -1 = unlimited
