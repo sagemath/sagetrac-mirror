@@ -22,9 +22,13 @@ done
 # Use newer version of config.guess and config.sub (see Trac #19757)
 cp "$SAGE_ROOT"/config/config.* build-aux
 
+if [ "$UNAME" != "CYGWIN" ]; then
+    export CFLAGS="-fPIC $CFLAGS"
+    export CXXFLAGS="-fPIC $CXXFLAGS"
+fi
 
-export CFLAGS="-g -O2 -fPIC $CFLAGS"
-export CXXFLAGS="-g -O2 -fPIC $CXXFLAGS"
+export CFLAGS="-g -O2 $CFLAGS"
+export CXXFLAGS="-g -O2 $CXXFLAGS"
 
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"
