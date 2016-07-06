@@ -10,11 +10,15 @@ fi
 unset GREP_OPTIONS
 
 if [ "$SAGE64" = yes ]; then
-    CFLAGS="$CFLAGS -m64 -fPIC -g"
+    CFLAGS="$CFLAGS -m64"
     LDFLAGS="$LDFLAGS -m64"
-else
-    CFLAGS="$CFLAGS -fPIC -g"
 fi
+
+if [ "$UNAME" != "CYGWIN" ]; then
+    CFLAGS="$CFLAGS -fPIC"
+fi
+
+CFLAGS="$CFLAGS -g"
 
 # Pick up Sage's zlib:
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
