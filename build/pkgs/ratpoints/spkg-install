@@ -9,7 +9,7 @@ fi
 
 PRIME_SIZE=7
 
-CCFLAGS_NO_SSE="-I$SAGE_LOCAL/include -Wall -O2 -fPIC -DRATPOINTS_MAX_BITS_IN_PRIME=$PRIME_SIZE"
+CCFLAGS_NO_SSE="-I$SAGE_LOCAL/include -Wall -O2 -DRATPOINTS_MAX_BITS_IN_PRIME=$PRIME_SIZE"
 CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm $LDFLAGS"
 CCFLAGS3="-L. -lratpoints"
 
@@ -19,6 +19,10 @@ if [[ "$UNAME" = "Darwin" ]]; then
 else
     CCFLAGS1="$CCFLAGS_NO_SSE -DUSE_SSE"
     echo "Attempting to build ratpoints making use of SSE2 instructions."
+fi
+
+if [ "$UNAME" != "CYGWIN" ]; then
+    CFLAGS1="$CFLAGS1 -fPIC"
 fi
 
 # Copy CFLAGS set externally to CCFLAGS.
