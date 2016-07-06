@@ -20,8 +20,12 @@ done
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
-CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
+if [ "$UNAME" != "CYGWIN" ]; then
+    CFLAGS="$CFLAGS -fPIC"
+    CXXFLAGS="$CXXFLAGS -fPIC"
+fi
+CFLAGS="$CFLAGS $INCLUDES -L$SAGE_LOCAL/lib"
+CXXFLAGS="$CXXFLAGS $INCLUDES -L$SAGE_LOCAL/lib"
 CPPFLAGS="$INCLUDES"
 
 # Allow the user to specify a compiler flag for 64-bit builds.
