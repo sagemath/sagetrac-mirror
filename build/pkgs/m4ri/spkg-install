@@ -11,7 +11,10 @@ CFLAGS="$CFLAGS -I$SAGE_LOCAL/include -g"
 COMPILER=`testcc.sh $CC`
 
 if [ "$COMPILER"  = "GCC" ] ; then
-   CFLAGS="$CFLAGS -fPIC -Wall -pedantic"
+   if [ "$UNAME" != "CYGWIN" ]; then
+      CFLAGS="$CFLAGS -fPIC"
+   fi
+   CFLAGS="$CFLAGS -Wall -pedantic"
 elif [ "$COMPILER" = "Sun_Studio" ] ; then
    CFLAGS="$CFLAGS -Kpic"
 elif [ "$COMPILER" = "HP_on_HP-UX" ] ; then
