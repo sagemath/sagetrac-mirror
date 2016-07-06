@@ -16,7 +16,10 @@ CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
 COMPILER=`testcc.sh $CC`
 
 if [ "x$COMPILER"  = "xGNU" ] ; then
-   CXXFLAGS="$CXXFLAGS -fPIC -Wall -pedantic"
+   if [ "$UNAME" != "CYGWIN" ]; then
+      CXXFLAGS="$CXXFLAGS -fPIC"
+   fi
+   CXXFLAGS="$CXXFLAGS -Wall -pedantic"
 elif [ "x$COMPILER" = "xSun_on_Solaris" ] ; then
    CXXFLAGS="$CXXFLAGS -Kpic"
 elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
