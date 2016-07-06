@@ -26,7 +26,10 @@ export MTXLIB="$DOT_SAGE/meataxe"
 # Directory where executables are installed.
 export MTXBIN="$SAGE_LOCAL/bin"
 # Default compiler flags
-export CFLAGS1="-std=gnu99 -O -Wall -fPIC"
+export CFLAGS1="-std=gnu99 -O -Wall"
+if [ "$UNAME" != "CYGWIN" ]; then
+    export CFLAGS1="$CFLAGS1 -fPIC"
+fi
 # Field size up to GF(256)
 export ZZZ=0
 
