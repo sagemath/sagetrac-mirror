@@ -836,6 +836,30 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         return self.external_string().replace('^','**')
 
+    def sage_prodstring(self):
+	"""
+        If this Macaulay2 element is a Product, return a string
+        representation of this Product that is suitable for
+        evaluation in Python. Needed internally for using to_sage on objects of class Divide. 
+
+        EXAMPLES::
+
+            sage: macaulay2('f = x^6 - 1')                      #optional - macaulay2
+             6
+            x  - 1
+            sage: macaulay2('factor f')                         #optional - macaulay2
+                            2           2
+            (x - 1)(x + 1)(x  - x + 1)(x  + x + 1)
+            sage: macaulay2('factor f').to_sage()               #optional - macaulay2
+            '(x-1)^1*(x+1)^1*(x^2-x+1)^1*(x^2+x+1)^1'
+        """
+	external_string = self.external_string()
+	prod_String = re.findall("new Power from \{(.+?),(.+?)\}", external_string)
+	return "*".join( [ "(%s)^%s" % (f[0], f[1]) for f in prod_String ] )
+
+
+
+
     def structure_sheaf(self):
         """
         EXAMPLES::
@@ -1050,6 +1074,12 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: m.to_sage()               # optional - macaulay2
             'hello'
 
+            sage: macaulay2('5/4').to_sage()  # optional - macualay2
+            '5/4'
+          
+            sage: macaulay2('factor 240012').to_sage()  # optional - macaulay2
+            '(2)^2*(3)^2*(59)^1*(113)^1'
+
         """
         repr_str = str(self)
         cls_str = str(self.cls())
@@ -1136,6 +1166,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     ring = self.ring().to_sage()
                     rank = self.rank().to_sage()
                     return FreeModule(ring, rank)
+            elif cls_str == "Product":
+                return self.sage_prodstring()
+
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":
@@ -1147,6 +1180,16 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 if "/" not in repr_str:
                     repr_str = repr_str + "/1"
                 return QQ(repr_str)
+            elif cls_str == "Product":
+                return self.sage_prodstring()                
+            #Converting object of class Divide
+            elif cls_str == "Divide":
+                div_Numerator = self.numerator()
+                div_Denominator = self.denominator()
+                div_Numerator = div_Numerator.external_string()
+		div_Denominator = div_Denominator.sage_prodstring()#alternatively, could do div_Denominator.to_sage()
+                sage_Div = "(" +  div_Numerator + ")" + "/" + "(" + div_Denominator + ")"
+                return sage_Div
 
             m2_parent = self.cls()
             parent = m2_parent.to_sage()
