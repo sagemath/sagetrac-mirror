@@ -1537,7 +1537,7 @@ class BetaAdicMonoid(Monoid_class):
 			r2 = r.emonde()
 		return r2.transpose_det()
 	
-	def relations_automaton4 (self, t=0, isvide=False, Cd=None, ext=False, transp=False, verb=False):
+	def relations_automaton4 (self, t=0, isvide=False, Cd=None, A=None, B=None, couples=False, ext=False, transp=False, verb=False):
 		r"""
 			Compute the relation automaton of the beta-adic monoid.
 			For beta algebraic integer only.
@@ -1547,7 +1547,10 @@ class BetaAdicMonoid(Monoid_class):
 			ext : automate des relations à l'infini ou pas.
 		"""
 		if Cd is None:
-			Cd = Set([c-c2 for c in self.C for c2 in self.C])
+			if A is None or B is None:
+				Cd = Set([c-c2 for c in self.C for c2 in self.C])
+			else:
+				Cd = Set([a1-b1 for a1 in A for b1 in B])
 		Cd = list(Cd)
 		sig_on()
 		cdef InfoBetaAdic ib
@@ -1559,9 +1562,9 @@ class BetaAdicMonoid(Monoid_class):
 		t = K(t)
 		getElement(t, e, ib.n)
 		a = RelationsAutomatonT(ib, e, isvide, ext, verb)
-		FreeElement(e)
 		r = FastAutomaton(None)
 		r.a[0] = a
+		FreeElement(e)
 		r.A = Cd
 		freeInfoBetaAdic(ib)
 		sig_off()
@@ -1573,9 +1576,20 @@ class BetaAdicMonoid(Monoid_class):
 		else:
 			r2 = r.emonde()
 		if transp:
-			return r2.transpose_det()
-		else:
-			return r2
+			r2 = r2.transpose_det()
+		if couples:
+			if A is None or B is None:
+				raise ValueError("Alphabets A and B must be defined !")
+			d={}
+			for c1 in A:
+				for c2 in B:
+					if not d.has_key(c1-c2):
+						d[c1-c2] = []
+					d[c1-c2].append((c1,c2))
+			if verb:
+				print d
+			r2 = r2.duplicate(d, verb=verb)
+		return r2
 	
 	def critical_exponent_aprox (self, niter=10, verb=False):
 		b = self.b
@@ -2587,42 +2601,34 @@ class BetaAdicMonoid(Monoid_class):
 		#compute the adherence of the new automaton
 		return self.adherence(tss=a, C=C, C2=nA)
 	
-	#donne l'automate décrivant le translaté de +t, avec les chiffres C
-	def move2 (self, t, FastAutomaton tss=None, list C=None, step=None):
-		if tss is None:
+	#donne l'automate décrivant le translaté de +t de a, avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
+	def move2 (self, t, FastAutomaton a, FastAutomaton b=None, list A=None, list B=None, verb=False):
+		if b is None:
 			if hasattr(self, 'tss'):
 				if isinstance(self.tss, FastAutomaton):
-					tss = self.tss
+					b = self.tss
 				else:
-					tss = FastAutomaton(self.tss)
+					b = FastAutomaton(self.tss)
 			else:
-				tss = FastAutomaton(self.default_ss())
-		if C is None:
-			C = list(set(self.C))
-		
-		A = tss.Alphabet()
-		k = self.b.parent()
-		nA = list(set([k(a+t2) for a in A for t2 in [0,t]]))
-		a = tss.bigger_alphabet(nA)
-		
-		#add a new state
-		cdef int ne, ei
-		ei = a.initial_state()
-		ne = a.n_states() #new added state
-		a.add_state(a.is_final(ei))
-		a.set_initial_state(ne) #it is the new initial state
-		if step == 2:
-			return a
-		
-		#add edges from the new state (copy edges from the initial state and move them)
-		cdef s
-		for j in range(len(A)):
-			a.set_succ(ne, nA.index(A[j] + t), tss.succ(ei, j))
-		if step == 3:
-			return a
-
-		#compute the adherence of the new automaton
-		return self.adherence(tss=a, C=C, C2=nA)
+				b = FastAutomaton(self.default_ss())
+		if A is None:
+			A = list(set(a.A))
+		if B is None:
+			B = list(set(b.A))
+		#compute the relations automaton with translation t
+		ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=verb)
+		#compute the product of a and b
+		ap = a.product(b)
+		#compute the intersections
+		ai = ar.intersection(ap)
+		ai = ai.minimise()
+		#project on one side
+		d={}
+		for c1 in A:
+			for c2 in B:
+				d[(c1,c2)] = c2
+		ai = ai.determinise_proj(d, verb=verb)
+		return ai.minimise()
 	
 	#calcule l'intersection des ensembles limites
 	def intersection2 (self, FastAutomaton a, FastAutomaton b, ext=True):

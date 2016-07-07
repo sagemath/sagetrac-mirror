@@ -380,11 +380,14 @@ cdef class NFastAutomaton:
 		free(ll);
 		sig_off()
 
+#cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
+#	a.a[0] = a2
+
 cdef class FastAutomaton:
 	
 #	cdef Automaton* a
 #	cdef list A
-
+		
 	def __cinit__ (self):
 		#print "cinit"
 		self.a = <Automaton *>malloc(sizeof(Automaton))
@@ -450,6 +453,9 @@ cdef class FastAutomaton:
 
 	def Automaton (self):
 		return AutomatonGet(self.a[0], self.A)
+	
+	cdef set_a (self, Automaton a):
+		self.a[0] = a
 	
 	#give a FastAutomaton recognizing the full language over A.
 	def full (self, list A):
@@ -1141,4 +1147,3 @@ cdef class FastAutomaton:
 		if not self.a.e[i].final:
 			print "Mot non trouvé !"
 		return w
-
