@@ -88,6 +88,7 @@ cdef extern from "relations.h":
 	cdef cppclass InfoBetaAdic:
 		int n		#degré
 		Element bn   #expression de b^n comme un polynome en b de degré < n
+		Element b1   #expression de 1/b comme un polynôme en b de degré < n
 		Element *c   #liste des chiffres utilisés pour le calcul de l'automate des relations
 		int nc	   #nombre de chiffre
 		int ncmax	#nombre de chiffres alloués
@@ -95,9 +96,12 @@ cdef extern from "relations.h":
 		double *cM   #carré des valeurs absolues max
 		int na		 #nombre de va
 	
+	Element NewElement (int n)
+	void FreeElement (Element e)
 	InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb)
 	void freeInfoBetaAdic (InfoBetaAdic iba)
 	Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
+	Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
 
 cdef getElement (e, Element r, int n):
 	cdef j
@@ -105,11 +109,14 @@ cdef getElement (e, Element r, int n):
 	for j in range(n):
 		r.c[j] = p[j]
 
-cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
+cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, plus=True, verb=False) except *:
 	#compute all the data in sage
-	K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
-	b = K.gen()
-	C = [c.lift()(1/b) for c in self.C]
+#	K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
+	b = self.b
+	K = b.parent()
+#	b = K.gen()
+#	C = [c.lift()(1/b) for c in self.C]
+	C = self.C
 	if verb:
 		print "C = %s"%C
 	
@@ -118,8 +125,12 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
 	#détermine les places qu'il faut considérer
 	parch = []
 	for p in K.places(): #places archimédiennes
-		if p(b).abs() > 1:
-			parch += [p]
+		if plus:
+			if p(b).abs() > 1:
+				parch += [p]
+		else:
+			if p(b).abs() < 1:
+				parch += [p]
 	pi = K.defining_polynomial()
 	from sage.rings.arith import gcd
 	pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
@@ -139,8 +150,12 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
 			else:
 				c = kp.gen()
 			if verb: print "c=%s (abs=%s)"%(c, (c.norm().abs())**(1/f[0].degree()))
-			if (c.norm().abs())**(1/f[0].degree()) > 1:
-				pultra += [(c, f[0].degree())]
+			if plus:
+				if (c.norm().abs())**(1/f[0].degree()) > 1:
+					pultra += [(c, f[0].degree())]
+			else:
+				if (c.norm().abs())**(1/f[0].degree()) < 1:
+					pultra += [(c, f[0].degree())]	
 	
 	if verb: print "places: "; print parch; print pultra
 	
@@ -153,14 +168,17 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
 	if Cd is None:
 		Cd = Set([c-c2 for c in C for c2 in C])
 	else:
-		Cd = [K(c).lift()(1/b) for c in Cd]
+#		Cd = [K(c).lift()(1/b) for c in Cd]
+		Cd = [K(c) for c in Cd]
 	if verb: print "Cd = %s"%Cd
-	m = dict([])
-	for p in parch:
-		m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
-	for p, d in pultra:
-		m[p] = max([absp(c, p, d) for c in Cd])
-		
+	
+#	m = dict([])
+#	for p in parch:
+#		m[p] = max([p(c).abs() for c in Cd])/abs(1-p(b).abs())
+#	for p, d in pultra:
+#		m[p] = max([absp(c, p, d) for c in Cd])
+#	if verb: print "bornes : %s"%m
+	
 	#convert the data in C
 	n = K.degree()
 	na = len(parch)
@@ -172,6 +190,9 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
 	#initialise bn
 	if verb: print "init bn..."
 	getElement(b**n, i.bn, n)
+	#initialise b1
+	if verb: print "init b1..."
+	getElement(1/b, i.b1, n)
 	#initialise les places
 	if verb: print "init places..."
 	for k in range(na):
@@ -190,7 +211,8 @@ cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
 	if verb: print "Cd = %s"%Cd
 	m = dict([])
 	for p in self.parch:
-		m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+		m[p] = max([p(c).abs() for c in Cd])/abs(1-p(self.b).abs())
+	if verb: print "bornes : %s"%m
 #	for p, d in self.pultra:
 #		m[p] = max([absp(c, p, d) for c in Cd])
 	#conversion en C
@@ -1484,12 +1506,13 @@ class BetaAdicMonoid(Monoid_class):
 		res.emonde()
 		return res
 	
-	def relations_automaton3 (self, isvide=False, Cd=None, ext=False, verb=False):
+	def relations_automaton3 (self, t=0, isvide=False, Cd=None, ext=False, verb=False):
 		r"""
 			Compute the relation automaton of the beta-adic monoid.
 			For beta algebraic integer only.
 			If isvide is True, it only checks if the automaton is trivial or not.
 			Cd is the set of differences A-B where A and B are the alphabets to compare.
+			t is the translation of one of the side (initial state of the automaton).
 			ext : automate des relations à l'infini ou pas.
 		"""
 		if Cd is None:
@@ -1497,7 +1520,7 @@ class BetaAdicMonoid(Monoid_class):
 		Cd = list(Cd)
 		sig_on()
 		cdef InfoBetaAdic ib
-		ib = initInfoBetaAdic(self, Cd=Cd, verb=verb)
+		ib = initInfoBetaAdic(self, Cd=Cd, plus=True, verb=verb)
 		cdef Automate a
 		a = RelationsAutomaton(ib, isvide, ext, verb)
 		r = FastAutomaton(None)
@@ -1512,7 +1535,47 @@ class BetaAdicMonoid(Monoid_class):
 			r2.set_final_states(r2.states())
 		else:
 			r2 = r.emonde()
-		return r2
+		return r2.transpose_det()
+	
+	def relations_automaton4 (self, t=0, isvide=False, Cd=None, ext=False, transp=False, verb=False):
+		r"""
+			Compute the relation automaton of the beta-adic monoid.
+			For beta algebraic integer only.
+			If isvide is True, it only checks if the automaton is trivial or not.
+			Cd is the set of differences A-B where A and B are the alphabets to compare.
+			t is the translation of one of the side (initial state of the automaton).
+			ext : automate des relations à l'infini ou pas.
+		"""
+		if Cd is None:
+			Cd = Set([c-c2 for c in self.C for c2 in self.C])
+		Cd = list(Cd)
+		sig_on()
+		cdef InfoBetaAdic ib
+		ib = initInfoBetaAdic(self, Cd=Cd, plus=False, verb=verb)
+		cdef Automate a
+		cdef Element e
+		e = NewElement(ib.n)
+		K = self.b.parent()
+		t = K(t)
+		getElement(t, e, ib.n)
+		a = RelationsAutomatonT(ib, e, isvide, ext, verb)
+		FreeElement(e)
+		r = FastAutomaton(None)
+		r.a[0] = a
+		r.A = Cd
+		freeInfoBetaAdic(ib)
+		sig_off()
+		if isvide:
+			return a.na != 0
+		if ext:
+			r2 = r.emonde_inf()
+			r2.set_final_states(r2.states())
+		else:
+			r2 = r.emonde()
+		if transp:
+			return r2.transpose_det()
+		else:
+			return r2
 	
 	def critical_exponent_aprox (self, niter=10, verb=False):
 		b = self.b
@@ -2484,9 +2547,48 @@ class BetaAdicMonoid(Monoid_class):
 		if verb:
 			print "Après simplification : %s"%a2
 		return a2.minimise()
-		
+	
+	#obsolete
 	#donne l'automate décrivant le translaté de +t, avec les chiffres C
+	#obsolete use move2
 	def move (self, t, FastAutomaton tss=None, list C=None, step=None):
+		if tss is None:
+			if hasattr(self, 'tss'):
+				if isinstance(self.tss, FastAutomaton):
+					tss = self.tss
+				else:
+					tss = FastAutomaton(self.tss)
+			else:
+				tss = FastAutomaton(self.default_ss())
+		if C is None:
+			C = list(set(self.C))
+		
+		A = tss.Alphabet()
+		k = self.b.parent()
+		nA = list(set([k(a+t2) for a in A for t2 in [0,t]]))
+		a = tss.bigger_alphabet(nA)
+		
+		#add a new state
+		cdef int ne, ei
+		ei = a.initial_state()
+		ne = a.n_states() #new added state
+		a.add_state(a.is_final(ei))
+		a.set_initial_state(ne) #it is the new initial state
+		if step == 2:
+			return a
+		
+		#add edges from the new state (copy edges from the initial state and move them)
+		cdef s
+		for j in range(len(A)):
+			a.set_succ(ne, nA.index(A[j] + t), tss.succ(ei, j))
+		if step == 3:
+			return a
+
+		#compute the adherence of the new automaton
+		return self.adherence(tss=a, C=C, C2=nA)
+	
+	#donne l'automate décrivant le translaté de +t, avec les chiffres C
+	def move2 (self, t, FastAutomaton tss=None, list C=None, step=None):
 		if tss is None:
 			if hasattr(self, 'tss'):
 				if isinstance(self.tss, FastAutomaton):

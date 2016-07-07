@@ -1,7 +1,7 @@
 
 struct Element
 {
-	int *c; //liste des n coeffs
+	long int *c; //liste des n coeffs
 };
 typedef struct Element Element;
 
@@ -19,12 +19,13 @@ struct InfoBetaAdic
 {
 	int n; //degré
 	Element bn; //expression de b^n comme un polynome en b de degré < n
+	Element b1; //expression de 1/b comme un polynôme en b de degré < n
 	Element *c; //liste des chiffres utilisés pour le calcul de l'automate des relations
 	int nc; //nombre de chiffre
 	int ncmax; //nombre de chiffres alloués
 	PlaceArch *p; //liste des na places
 	double *cM; //carré des valeurs absolues max
-	int na;
+	int na; //nombre de places
 };
 typedef struct InfoBetaAdic InfoBetaAdic;
 
@@ -33,4 +34,7 @@ void freeInfoBetaAdic (InfoBetaAdic iba);
 
 //calcule l'automate des relations
 Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb);
+
+//calcule l'automate des relations avec translation
+Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb);
 

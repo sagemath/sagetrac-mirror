@@ -3091,6 +3091,8 @@ class WordMorphism(SageObject):
         """
         alphabet = self.domain().alphabet()    
         
+        if verb: print "projection exact..."
+        
         #Projection of each letter
         C0 = self.rauzy_fractal_projection_exact (eig=eig)
         

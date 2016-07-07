@@ -334,12 +334,12 @@ cdef class NFastAutomaton:
 		#print "cinit"
 		self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
 		#initialise
-		self.a[0].e = NULL
-		self.a[0].n = 0
-		self.a[0].na = 0
+		self.a.e = NULL
+		self.a.n = 0
+		self.a.na = 0
 		self.A = []
 	
-	def __init__(self, a, i=None, F=None, A=None):
+	def __init__(self, a, I=None, F=None, A=None):
 		#print "init"
 		if a is None:
 			return
@@ -353,6 +353,9 @@ cdef class NFastAutomaton:
 	
 	def __repr__ (self):
 		return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+	
+	def add_edge (self, f, d, l, initial, final):
+		raise NotImplemented()
 	
 	def determinise (self, puits=False):
 		cdef Automaton a
@@ -386,10 +389,10 @@ cdef class FastAutomaton:
 		#print "cinit"
 		self.a = <Automaton *>malloc(sizeof(Automaton))
 		#initialise
-		self.a[0].e = NULL
-		self.a[0].n = 0
-		self.a[0].na = 0
-		self.a[0].i = -1
+		self.a.e = NULL
+		self.a.n = 0
+		self.a.na = 0
+		self.a.i = -1
 		self.A = []
 	
 	def __init__(self, a, i=None, final_states=None, A=None):
@@ -522,6 +525,15 @@ cdef class FastAutomaton:
 		if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
 			return -1
 		return self.a.e[i].f[j]
+	
+	#donne les fils de l'état i
+	def succs (self, int i):
+#		if i is None:
+#			i = self.a.i
+#		el
+		if i < 0 or i > self.a.n:
+			return []
+		return [j for j in range(self.a.na) if self.a.e[i].f[j] != -1]
 	
 	#suit le chemin étiqueté par l
 	def path (self, list l, i=None):
@@ -888,6 +900,7 @@ cdef class FastAutomaton:
 		self.A = A
 		sig_off()
 	
+	#Compute the transposition, assuming it is deterministic
 	def transpose_det (self):
 		sig_on()
 		r = FastAutomaton(None)
@@ -1104,4 +1117,28 @@ cdef class FastAutomaton:
 	#determine if the languages intersect
 	def intersect (self, FastAutomaton b, ext=True):
 		return not self.intersection(b).is_empty(ext)
+	
+	def random_word (self, int nmin=-1, int nmax=100):
+		cdef int i = self.a.i
+		w = []
+		na = len(self.A)
+		if nmin < 0:
+			nmin=1
+		from sage.misc.prandom import random
+		for j in range(nmin):
+			li = [l for l in range(na) if self.succ(i, l) != -1]
+			l = li[(int)(random()*len(li))]
+			w.append(self.A[l])
+			i = self.succ(i, l)
+		#continue the word to get into a final state
+		for j in range(nmax-nmin):
+			if self.a.e[i].final:
+				break
+			li = [l for l in range(na) if self.succ(i, l) != -1]
+			l = li[(int)(random()*len(li))]
+			w.append(self.A[l])
+			i = self.succ(i, l)
+		if not self.a.e[i].final:
+			print "Mot non trouvé !"
+		return w
 
