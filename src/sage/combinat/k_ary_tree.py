@@ -11,8 +11,8 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2015 
-#           Adrien Boussicault <boussica@labri.fr>, 
+#       Copyright (C) 2015
+#           Adrien Boussicault <boussica@labri.fr>,
 #           Bérénice Delcroix-Oger <berenice.delcroix@math.univ-toulouse.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -38,6 +38,8 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.functions.other import binomial
+
+
 class KAryTree(AbstractClonableTree, ClonableArray):
     """
     K-ary trees.
@@ -58,14 +60,14 @@ class KAryTree(AbstractClonableTree, ClonableArray):
       leaf or a k-tuple of k-ary trees. Syntactic sugar allows leaving out
       all but the outermost calls of the ``KAryTree()`` constructor, so
       that, e. g., ``KAryTree([KAryTree(None),KAryTree(None)])`` can
-      be shortened to ``KAryTree([None,None])``. The arity is given by the 
+      be shortened to ``KAryTree([None,None])``. The arity is given by the
       size of the list given in parameter.
-      It is also allowed to abbreviate ``[None, None, ...]`` by ``[]``, 
-      if the arity is given in parameter or if the arity can be deduced 
+      It is also allowed to abbreviate ``[None, None, ...]`` by ``[]``,
+      if the arity is given in parameter or if the arity can be deduced
       by the constructor.
 
-    - `̀̀̀`arity`` -- ``None`` (default) or a positive integer. This corresponds 
-      to the arity of the tree. If ``None`` is given then the constructor will 
+    - ``arity`` -- ``None`` (default) or a positive integer. This corresponds
+      to the arity of the tree. If ``None`` is given then the constructor will
       try to deduce the arity from the size of ``children``.
 
     - ``check`` -- (default: ``True``) whether check for k-arity should be
@@ -261,7 +263,6 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         else:
             return super(KAryTree, self)._repr_()
 
-
     def is_empty(self):
         """
         Return whether ``self`` is empty.
@@ -286,7 +287,6 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             False
         """
         return not self
-
 
     def make_leaf(self):
         """
@@ -316,7 +316,7 @@ class KAryTree(AbstractClonableTree, ClonableArray):
     def comb(self, side=0):
         r"""
         Return the comb of a k-ary trees : there are k combs in a k-ary
-        tree (one for every direction). A comb is defined as the list of  
+        tree (one for every direction). A comb is defined as the list of
         children of the nodes on branches whose direction does not change.
 
         INPUT:
@@ -327,7 +327,7 @@ class KAryTree(AbstractClonableTree, ClonableArray):
 
         OUTPUT:
 
-        A list of $k$ tuples of k-ary trees.
+        A list of `k` tuples of k-ary trees.
 
         EXAMPLES::
 
@@ -348,7 +348,7 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             return []
         d=self.arity()
         if not side < d :
-            raise ValueError("Value %d is a wrong side value : it must be strictly smaller than the arity %d of the tree"%(side,d)) 
+            raise ValueError("Value %d is a wrong side value : it must be strictly smaller than the arity %d of the tree"%(side,d))
         tree=self[side]
         res=[]
         fc=[]
@@ -367,21 +367,21 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         r"""
         Return the number of hooks in a k-ary trees.
 
-        The hook of a vertex v is the union of {v}, and all the  
-        branches from {v} in which the direction does not change. 
+        The hook of a vertex v is the union of {v}, and all the
+        branches from {v} in which the direction does not change.
 
-        There is a unique way to partition the vertices in hooks.   
-        The number of hooks in such the partition is the hook number 
+        There is a unique way to partition the vertices in hooks.
+        The number of hooks in such the partition is the hook number
         of the tree.
 
         We can obtain this partition recursively by extracting the root's
         hook and iterating the processus on each tree of the remaining
-        forest.      
+        forest.
 
         EXAMPLES::
             sage: T = KAryTree(None)
             sage: T.hook_number()
-            0     
+            0
             sage: T = KAryTree( [None,None,None] )
             sage: T.hook_number()
             1
@@ -398,24 +398,24 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         for i in range(self.arity()):
             for h in self.comb(i):
                 if len(h)>0:
-                    for el in h: 
+                    for el in h:
                         if not(el==None) and not(el.is_empty()):
                             s+=el.hook_number()
         return s
 
     def twisting_number(self):
         r"""
-        Return a k-tuple where the ith element of the tuple is the number 
+        Return a k-tuple where the ith element of the tuple is the number
         of straight branches in the k-ary tree tree
 
-        OUTPUT : 
+        OUTPUT :
 
-        A list of size $k$ of non negative integers.        
+        A list of size `k` of non negative integers.
 
         EXAMPLES::
             sage: T = KAryTree(None)
             sage: T.twisting_number()
-            []  
+            []
             sage: T = KAryTree( [None,None,None] )
             sage: T.twisting_number()
             [0, 0, 0]
@@ -437,7 +437,7 @@ class KAryTree(AbstractClonableTree, ClonableArray):
                 wn[i]=wn[i]+1
             for h in self.comb(i):
                 for j in range(len(h)):
-                    el=h[j] 
+                    el=h[j]
                     if not(el==None) and not(el.is_empty()):
                         partres=el.twisting_number()
                         for k in range(d):
@@ -1806,7 +1806,7 @@ class KAryTrees(UniqueRepresentation, Parent):
 
     OUPUT:
 
-    - the set of all k-ary trees (of the given ``arity`` and ``size`` if 
+    - the set of all k-ary trees (of the given ``arity`` and ``size`` if
       specified )
 
     EXAMPLES::
@@ -1912,7 +1912,7 @@ class IntegerPairs(UniqueRepresentation, Parent):
             ( Integer(elt[0]) == Integer(0) ) and
             ( Integer(elt[1]) == Integer(0) )
         ) or (
-            Integer(elt[0]) >= Integer(1) and Integer(elt[0]) >= Integer(1) 
+            Integer(elt[0]) >= Integer(1) and Integer(elt[0]) >= Integer(1)
         )
 
     def __iter__(self):
@@ -1980,7 +1980,7 @@ class KAryTrees_all(DisjointUnionEnumeratedSets, KAryTrees):
 
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
-                IntegerPairs(), 
+                IntegerPairs(),
                 lambda x : KAryTrees_size(arity=x[0], size=x[1])
             ),
             facade=True, keepkey = False
@@ -2059,7 +2059,7 @@ class KAryTrees_all(DisjointUnionEnumeratedSets, KAryTrees):
 
 
 #################################################################
-# Enumerated set of all kary trees with a ficd arity
+# Enumerated set of all kary trees with a fixed arity
 #################################################################
 class KAryTrees_arity(DisjointUnionEnumeratedSets, KAryTrees):
 
@@ -2198,7 +2198,7 @@ class KAryTrees_size(KAryTrees):
 
     TESTS::
 
-    TODO 
+    TODO
 
         #sage: from sage.combinat.k_ary_tree import KAryTrees_size
         #sage: for i in range(6): TestSuite(KAryTrees_size(3,i)).run()
@@ -2406,7 +2406,7 @@ class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
     INPUT:
 
     - ``children`` -- ``None`` (default) or a list, tuple or iterable of
-      length $k$ of labelled k-ary trees or convertible objects. This
+      length `k` of labelled `k`-ary trees or convertible objects. This
       corresponds to the standard recursive definition of a labelled
       k-ary tree as being either a leaf, or a pair of:
 
@@ -2425,12 +2425,12 @@ class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
       ``label`` variable without calling ``LabelledKAryTree``
       explicitly).
 
-      It is also allowed to abbreviate ``[None, ...]`` by ``[]`` by using 
-      the arity parameter if one does not want to label the leaves 
+      It is also allowed to abbreviate ``[None, ...]`` by ``[]`` by using
+      the arity parameter if one does not want to label the leaves
       (which one should not do anyway!).
 
-    - `̀̀̀`arity`` -- ``None`` (default) or a positive integer. This corresponds 
-      to the arity of the tree. If ``None`` is given then the constructor will 
+    - `̀̀̀`arity`` -- ``None`` (default) or a positive integer. This corresponds
+      to the arity of the tree. If ``None`` is given then the constructor will
       try to deduce the arity from the size of ``children``.
 
     - ``label`` -- (default: ``None``) the label to be put on the root
@@ -2559,7 +2559,7 @@ class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
             else:
                 return "."
         else:
-            return "%s%s"%(self._label, self[:])
+            return "%s%s" % (self._label, self[:])
 
     _UnLabelled = KAryTree
 
@@ -2631,7 +2631,3 @@ class LabelledKAryTrees(LabelledOrderedTrees):
         return self
 
     Element = LabelledKAryTree
-
-
-
-
