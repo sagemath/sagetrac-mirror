@@ -1718,7 +1718,7 @@ class DiGraph(GenericGraph):
         If ``self`` has multiple copies (parallel edges) of the input edge but
         with distinct labels and no input label is specified, only 1 of the
         parallel edges is reversed (the edge that is labeled by the first label
-        on the list returned by :meth:`.edge_label`)::
+        on the list returned by :meth:`~DiGraph.edge_label`)::
 
             sage: D = DiGraph([(0,1,'A'),(0,1,'B'),(0,1,'mouse'),(0,1,'cat')], multiedges = true)
             sage: D.edge_label(0,1)

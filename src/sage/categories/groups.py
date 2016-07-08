@@ -95,7 +95,7 @@ class Groups(CategoryWithAxiom):
             """
             Returns group generators for self.
 
-            This default implementation calls :meth:`.gens`, for
+            This default implementation calls :meth:`~Groups.gens`, for
             backward compatibility.
 
             EXAMPLES::
@@ -137,7 +137,7 @@ class Groups(CategoryWithAxiom):
 
         def _test_inverse(self, **options):
             """
-            Run generic tests on the method :meth:`.__invert__`.
+            Run generic tests on the method :meth:`~Groups.__invert__`.
 
             See also: :class:`TestSuite`.
 

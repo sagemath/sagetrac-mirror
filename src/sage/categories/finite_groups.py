@@ -82,11 +82,11 @@ class FiniteGroups(CategoryWithAxiom):
             Returns the cardinality of ``self``, as per
             :meth:`EnumeratedSets.ParentMethods.cardinality`.
 
-            This default implementation calls :meth:`.order` if
+            This default implementation calls :meth:`~FiniteGroups.order` if
             available, and otherwise resorts to
             :meth:`._cardinality_from_iterator`. This is for backward
             compatibility only. Finite groups should override this
-            method instead of :meth:`.order`.
+            method instead of :meth:`~FiniteGroups.order`.
 
             EXAMPLES:
 
