@@ -21,6 +21,10 @@ if [ "$UNAME" = "Darwin" ]; then
 else
     export {ATLAS,PTATLAS,OPENBLAS,MKL}=None
     export LDFLAGS="-shared $LDFLAGS"
+    if [ -n "$(pkg-config blas --libs-only-l | grep '\-latlas')" ]; then
+        # We are using libatlas so don't force Numpy to think it isn't
+        unset ATLAS
+    fi
 fi
 
 # Make sure that the fortran objects are compiled with -fPIC
