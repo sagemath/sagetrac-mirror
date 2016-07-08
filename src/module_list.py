@@ -1518,7 +1518,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
               sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx'],
-              libraries = ["ntl", "gmp"],
+              libraries = ["flint", "gmp", "gmpxx", "ntl"],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
