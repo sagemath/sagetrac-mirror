@@ -49,9 +49,10 @@ cdef extern from "automataC.h":
 	void printAutomaton (Automaton a)
 	void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
 	void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
-	Automaton Product(Automaton a1, Automaton a2, Dict d)
+	Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 	Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 	Automaton DeterminiseN (NAutomaton a, bool puits)
+	void ZeroComplete (Automaton a, int l0, bool verb)
 	Automaton emonde_inf (Automaton a, bool verb)
 	Automaton emonde (Automaton a, bool verb)
 	Automaton emondeI (Automaton a, bool verb)
@@ -205,7 +206,7 @@ def TestProduct (a1, a2, di):
 	d = getProductDict(di, list(a1.Alphabet()), list(a2.Alphabet()))
 	print "dictionnaire du produit :"
 	printDict(d)
-	c = Product(a, b, d)
+	c = Product(a, b, d, False)
 	print "résultat :"
 	printAutomaton(c)
 
@@ -492,6 +493,7 @@ cdef class FastAutomaton:
 	
 	def setAlphabet (self, list A):
 		self.A = A
+		self.a[0].na = len(A)
 	
 	def initial_state (self):
 		return self.a.i
@@ -554,6 +556,15 @@ cdef class FastAutomaton:
 			raise ValueError("set_succ(%s, %s) : index out of bounds !"%(i,j))
 		self.a.e[i].f[j] = k
 	
+	def zero_completeOP (self, verb=False):
+		sig_on()
+		for i in range(len(self.A)):
+			if self.A[i] == 0:
+				l0 = i
+				break
+		ZeroComplete(self.a[0], l0, verb)
+		sig_off()
+	
 	def emonde_inf (self, verb=False):
 		sig_on()
 		cdef Automaton a
@@ -594,6 +605,7 @@ cdef class FastAutomaton:
 			for la in self.A:
 				for lb in b.A:
 					d[(la,lb)] = (la,lb)
+			if verb: print d
 		sig_on()
 		cdef Automaton a
 		cdef Dict dC
@@ -607,21 +619,25 @@ cdef class FastAutomaton:
 		if verb:
 			print "dC="
 			printDict(dC)
-		a = Product(self.a[0], b.a[0], dC)
+		a = Product(self.a[0], b.a[0], dC, verb)
 		FreeDict(dC)
 		r.a[0] = a
 		r.A = Av
 		sig_off()
 		return r
 	
-	def intersection (self, FastAutomaton a, verb=False):
+	def intersection (self, FastAutomaton a, verb=False, simplify=True):
 		d = {}
 		for l in self.A:
 			if l in a.A:
 				d[(l,l)] = l
 		if verb:
 			print "d=%s"%d
-		return self.product(a, d, verb=verb)
+		p = self.product(a, d, verb=verb)
+		if simplify:
+			return p.emonde().minimise()
+		else:
+			return p
 	
 	#determine if the automaton is complete (i.e. with his hole state)
 	def is_complete (self):
@@ -682,7 +698,7 @@ cdef class FastAutomaton:
 			print "dC="
 			printDict(dC)
 		sig_on()
-		ap = Product(self.a[0], a.a[0], dC)
+		ap = Product(self.a[0], a.a[0], dC, verb)
 		FreeDict(dC)
 		sig_off()
 		
@@ -732,7 +748,7 @@ cdef class FastAutomaton:
 			print "dC="
 			printDict(dC)
 		sig_on()
-		ap = Product(self.a[0], a.a[0], dC)
+		ap = Product(self.a[0], a.a[0], dC, verb)
 		FreeDict(dC)
 		sig_off()
 		
@@ -786,7 +802,7 @@ cdef class FastAutomaton:
 		if self.a.i != -1:
 			self.a.i = self.a.e[self.a.i].f[a]
 	
-	def unshift1 (self, int a):
+	def unshift1 (self, int a, final=False):
 		r = FastAutomaton(None)
 		sig_on()
 		cdef Automaton aut
@@ -796,6 +812,7 @@ cdef class FastAutomaton:
 		for i in range(aut.na):
 			aut.e[ne].f[i] = -1
 		aut.e[ne].f[a] = self.a.i
+		aut.e[ne].final = final
 		aut.i = ne
 		r.a[0] = aut
 		r.A = self.A
@@ -1071,6 +1088,11 @@ cdef class FastAutomaton:
 		cdef i
 		for i in range(self.a.n):
 			self.a.e[i].final = not self.a.e[i].final
+	
+	def complementary (self):
+		a = self.copy()
+		a.complementaryOP()
+		return a
 			
 	def included (self, FastAutomaton a, bool verb=False, step=None):
 		d = {}

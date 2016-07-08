@@ -2602,7 +2602,15 @@ class BetaAdicMonoid(Monoid_class):
 		return self.adherence(tss=a, C=C, C2=nA)
 	
 	#donne l'automate décrivant le translaté de +t de a, avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
-	def move2 (self, t, FastAutomaton a, FastAutomaton b=None, list A=None, list B=None, verb=False):
+	def move2 (self, t, FastAutomaton a=None, FastAutomaton b=None, list A=None, list B=None, verb=False):
+		if a is None:
+			if hasattr(self, 'tss'):
+				if isinstance(self.tss, FastAutomaton):
+					a = self.tss
+				else:
+					a = FastAutomaton(self.tss)
+			else:
+				a = FastAutomaton(self.default_ss())
 		if b is None:
 			if hasattr(self, 'tss'):
 				if isinstance(self.tss, FastAutomaton):
@@ -2629,6 +2637,32 @@ class BetaAdicMonoid(Monoid_class):
 				d[(c1,c2)] = c2
 		ai = ai.determinise_proj(d, verb=verb)
 		return ai.minimise()
+	
+	#Not well tested !!!!
+	#return the automaton recognizing the division by beta and translation t
+	def shift (self, FastAutomaton aa, FastAutomaton bb, t=0, verb=False):
+		#détermine la liste des successeurs de l'état initial
+		cdef int i
+		cdef int e
+		l = set()
+		for j in range(aa.a.na):
+			e = aa.a.e[aa.a.i].f[j]
+			if e != -1:
+				l.add(j)
+		l = list(l)
+		if verb:
+			print "états à considérer : %s"%l
+		#calcule l'union des automates translatés
+		a = FastAutomaton(None)
+		A = aa.Alphabet()
+		a.setAlphabet(A)
+		for i in range(0, len(l)):
+			a2 = aa.copy()
+			a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
+			a2 = a2.emonde().minimise()
+			a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
+			a = a.union(a2)
+		return a
 	
 	#calcule l'intersection des ensembles limites
 	def intersection2 (self, FastAutomaton a, FastAutomaton b, ext=True):

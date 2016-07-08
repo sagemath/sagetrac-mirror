@@ -30,7 +30,7 @@ bool equalsAutomaton (Automaton a1, Automaton a2); //détermine si les automates
 inline int contract (int i1, int i2, int n1);
 inline int geti1 (int c, int n1);
 inline int geti2 (int c, int n1);
-Automaton Product(Automaton a1, Automaton a2, Dict d);
+Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb);
 void AddEtat (Automaton *a, bool final);
 
 struct Etats
@@ -113,6 +113,9 @@ Automaton DeterminiseN (NAutomaton a, bool puits);
 //change l'alphabet en dupliquant des arêtes si nécessaire
 //the result is assumed deterministic !!!!
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
+
+//ajoute tous les mots qui se complètent en un mot du langage en ajoutant des 0 à la fin
+void ZeroComplete (Automaton a, int l0, bool verb);
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
 Automaton emonde_inf (Automaton a, bool verb);
