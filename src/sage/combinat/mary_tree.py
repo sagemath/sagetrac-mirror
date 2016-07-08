@@ -19,12 +19,13 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -60,7 +61,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         ...
         TypeError: This is not a 3-ary tree
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -433,10 +434,10 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             +Infinity
 
             sage: it = iter(MA3)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
+            sage: (next(it), next(it), next(it), next(it), next(it))
             (., [., ., .], [[., ., .], ., .], [., [., ., .], .],
             [., ., [., ., .]])
-            sage: it.next().parent()
+            sage: next(it).parent()
             3-ary trees
             sage: MA3([])
             [., ., .]
