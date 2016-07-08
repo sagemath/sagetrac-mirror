@@ -138,9 +138,16 @@ case "$UNAME" in
         fi
         ;; # Linux
     CYGWIN)
-        # For the moment, Cygwin is only 32-bits
-        # and configure gets lost if the hardware is 64 bits
-        ABI=32
+        case "`uname -m`" in
+            x86_64)
+                ABI=64
+                echo "Building a 64-bit version of GMP."
+                ;;
+            *)
+                ABI=32
+                echo "Building a 32-bit version of GMP."
+                ;;
+        esac
         ;;
     *) # e.g. AIX or HP-UX
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
