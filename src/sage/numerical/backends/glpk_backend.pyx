@@ -19,7 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
@@ -33,6 +33,17 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the GLPK solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+    """
 
     def __cinit__(self, maximization = True):
         """
@@ -327,7 +338,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         cdef char * n
@@ -1600,7 +1611,7 @@ cdef class GLPKBackend(GenericBackend):
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
-    cpdef GLPKBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -1614,7 +1625,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: copy(p).solve()
             6.0
         """
-        cdef GLPKBackend p = GLPKBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef GLPKBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
         p.simplex_or_intopt = self.simplex_or_intopt
         p.iocp.tm_lim = self.iocp.tm_lim
         glp_copy_prob(p.lp, self.lp, 1)
@@ -1912,7 +1923,7 @@ cdef class GLPKBackend(GenericBackend):
         elif name == simplex_or_intopt:
             if value is None: return self.simplex_or_intopt
             if not value in (simplex_only,intopt_only,simplex_then_intopt,exact_simplex_only):
-                raise MIPSolverException, "GLPK: invalid value for simplex_or_intopt; see documentation"
+                raise MIPSolverException("GLPK: invalid value for simplex_or_intopt; see documentation")
             self.simplex_or_intopt = value
 
         elif name == msg_lev_simplex:
@@ -2276,8 +2287,8 @@ cdef class GLPKBackend(GenericBackend):
             if res == 0:
                 with open(fname) as f:
                     for line in f:
-                        print line,
-                print
+                        print(line, end=" ")
+                print("\n")
 
         return res
 
