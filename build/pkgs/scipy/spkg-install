@@ -24,8 +24,18 @@ else
 fi
 
 # Make sure that the fortran objects are compiled with -fPIC
-export FFLAGS="$FFLAGS -fPIC"
-export FCFLAGS="$FCFLAGS -fPIC"
+if [ "$UNAME" != "CYGWIN" ]; then
+    export FFLAGS="$FFLAGS -fPIC"
+    export FCFLAGS="$FCFLAGS -fPIC"
+elif [ "$SAGE_DEBUG" = "yes" ]; then
+    # So far as I can tell this is only file I've definitly needed this
+    # for is scipy/sparse/sparsetools/bsr.cxx
+    # It's less trouble to just use this generally than to patch scipy's
+    # build configuration for that specific module, but if I can somehow
+    # reproduce this outside the context of a SAGE_DEBUG build I may submit
+    # an upstream patch
+    export CFLAGS="-Wa,-mbig-obj"
+fi
 
 # This avoids problems on some systems -- until we officially
 # support umfpack (which we will likely do, since cvxopt I think includes it):
