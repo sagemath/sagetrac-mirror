@@ -1669,6 +1669,45 @@ class HasseDiagram(DiGraph):
                                          self.are_comparable,
                                          element_class = element_class)
 
+    def search_pentagon_up(self):
+        """
+        Return the list of elements of a pentagon sublattice, if it exists.
+
+        The pentagon must be "upside", i.e. there must be elements
+        `a` and `b` so that they cover their meet but are not covered
+        by their join.
+
+        This is used for getting a certificate of non-upper-semimodularity.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[6], 5:[7], 6:[7]})
+            sage: H.search_pentagon_up()
+            (0, 2, 1, 3, 7)
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L._hasse_diagram.search_pentagon_up() is None
+            True
+        """
+        from sage.combinat.subset import Subsets
+
+        n = self.order()
+        for e in range(n):
+            upcover = self.neighbors_out(e)
+            for a, b in Subsets(upcover, 2):
+                join = self._join[a, b]
+                if not self.covers(a, join):
+                    for x in self.neighbors_out(a):
+                        if self.is_lequal(x, join):
+                            return (e, b, a, x, join)
+                if not self.covers(b, join):
+                    for x in self.neighbors_out(b):
+                        if self.is_lequal(x, join):
+                            return (e, a, b, x, join)
+
+        return None
+
     def sublattices_iterator(self, elms, min_e):
         """
         Return an iterator over sublattices of the Hasse diagram.
