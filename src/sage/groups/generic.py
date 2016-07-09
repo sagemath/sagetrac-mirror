@@ -1404,8 +1404,9 @@ def structure_description(G, latex=False):
     try:
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
-        if not is_package_installed('database_gap'):
-            raise RuntimeError("You must install the optional database_gap package first.")
+        from sage.misc.feature import SmallGroupsLibrary
+        SmallGroupsLibrary().require()
+        # the Small Groups Library is installed. The command failed for a different reason
         raise
 
     description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)

@@ -742,3 +742,41 @@ class DatabaseCremona(StaticFile):
         # Ideally we would also search for the cremona db in other places but SAGE_SHARE.
         # However, the calling  code currently only looks for it there.
         StaticFile.__init__(self, "Cremona's database of elliptic curves", filename=filename, search_path=[os.path.join(SAGE_SHARE, 'cremona')], spkg=spkg, url="https://github.com/JohnCremona/ecdata")
+
+class SmallGroupsLibrary(Feature):
+    r"""
+    A feature describing the presence of the Small Groups Library for GAP.
+
+    EXMAPLES::
+
+        sage: from sage.misc.feature import SmallGroupsLibrary
+        sage: SmallGroupsLibrary()
+        Feature("Small Groups Library")
+    """
+    def __init__(self):
+        Feature.__init__(self, "Small Groups Library", spkg="gap_database", url="www.gap-system.org/Packages/sgl.html")
+        self.package = package
+
+    @cached_method
+    def is_present(self):
+        r"""
+        Return whether the Small Groups Library is available in GAP.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import SmallGroupsLibrary
+            sage: SmallGroupsLibrary().is_present() # optional: gap_database
+            True
+
+        """
+        from sage.libs.gap.libgap import libgap
+        command = 'SmallGroup(13,1)'
+        output = None
+        presence = False
+        try:
+            output = str(libgap.eval(command))
+            presence = True
+        except ValueError as e:
+            output = str(e)
+        return FeatureTestResult(self, presence,
+            reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, presence=presence))
