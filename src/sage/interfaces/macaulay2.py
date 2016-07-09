@@ -837,7 +837,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         return self.external_string().replace('^','**')
 
     def sage_prodstring(self):
-	"""
+    """
         If this Macaulay2 element is a Product, return a string
         representation of this Product that is suitable for
         evaluation in Python. Needed internally for using to_sage on objects of class Divide. 
@@ -853,9 +853,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: macaulay2('factor f').to_sage()               #optional - macaulay2
             '(x-1)^1*(x+1)^1*(x^2-x+1)^1*(x^2+x+1)^1'
         """
-	external_string = self.external_string()
-	prod_String = re.findall("new Power from \{(.+?),(.+?)\}", external_string)
-	return "*".join( [ "(%s)^%s" % (f[0], f[1]) for f in prod_String ] )
+    external_string = self.external_string()
+    prod_String = re.findall("new Power from \{(.+?),(.+?)\}", external_string)
+    return "*".join( [ "(%s)^%s" % (f[0], f[1]) for f in prod_String ] )
 
 
 
@@ -1187,7 +1187,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 div_Numerator = self.numerator()
                 div_Denominator = self.denominator()
                 div_Numerator = div_Numerator.external_string()
-		div_Denominator = div_Denominator.sage_prodstring()#alternatively, could do div_Denominator.to_sage()
+        div_Denominator = div_Denominator.sage_prodstring()#alternatively, could do div_Denominator.to_sage()
                 sage_Div = "(" +  div_Numerator + ")" + "/" + "(" + div_Denominator + ")"
                 return sage_Div
 
