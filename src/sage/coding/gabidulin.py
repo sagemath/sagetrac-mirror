@@ -1,6 +1,7 @@
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.structure.element import is_Vector
+from sage.sets.set import Set
 from sage.matrix.constructor import column_matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modules.free_module_element import vector
@@ -223,7 +224,62 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         for i in range(codeword_matrix.ncols()):
             codeword_vector.append(FE.absolute_field_representation(codeword_matrix.column(i)))
         return vector(codeword_vector)
+'''
+    def minimum_subspace_polynomial(self, eval_pts):
+        C = self.code()
+        R = self.message_space()
+        x = R.one()
+        q = C.relative_finite_field_extension().relative_field().order()
+        if len(eval_pts) == 1:
+            if eval_pts[0] == R.zero():
+                return pow(x, pow(q, 0))
+            else:
+                return pow(x, pow(q, 1)) - pow(eval_pts[0], q-1) * pow(x, pow(q, 0))
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2)+1:]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_A_B = self.multi_point_evaluation(M_A, B)
+            M_M_A_B = self.minimum_subspace_polynomial(M_A_B)
+            return M_M_A_B * M_A
 
+    def multi_point_evaluation(self, p, eval_pts):
+        C = self.code()
+        coefficients = p.coefficients()
+        q = C.relative_finite_field_extension().relative_field().order()
+        if len(eval_pts) == 1:
+            return coefficient[1]*pow(eval_pts[0], pow(q, 1)) + coefficient[0]*pow(eval_pts[0], pow(q, 0))
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2)+1:]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            Q_A, R_A = p.rquo_rem(M_A)
+            Q_B, R_B = p.rquo_rem(M_B)
+            return list(set(self.multi_point_evaluation(R_A, A)).union(set(self.multi_point_evaluation(R_B, B))))
+
+    def interpolation_polynomial(self, eval_pts, values):
+        R = self.message_space()
+        x = R.one()
+        q = self.code().relative_finite_field_extension().relative_field().order() 
+        if len(values) == 1:
+            return (values[0]/eval_pts[0])*pow(x, pow(q, 0))
+        else:
+            A = eval_pts[:len(eval_pts)/2]
+            B = eval_pts[(len(eval_pts)/2)+1:]
+            M_A = self.minimum_subspace_polynomial(A)
+            M_B = self.minimum_subspace_polynomial(B)
+            A_ = self.multi_point_evaluation(M_B, A)
+            B_ = self.multi_point_evaluation(M_A, B)
+            I_1 = self.interpolation_polynomial(A_, values[:len(A_)]) 
+            I_2 = self.interpolation_polynomial(B_, values[len(A_):])
+            return I_1 * M_B + I_2 * M_A
+
+    def unencode_nocheck(self, c):
+        eval_pts = self.code().evaluation_points()
+        p = self.interpolation_polynomial(eval_pts, c)
+        return p 
+'''
     def sigma(self):
         return self._sigma
 
