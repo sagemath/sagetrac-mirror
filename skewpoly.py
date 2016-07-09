@@ -534,9 +534,18 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         try:
             return self._maps[n]
         except KeyError:
-            map = self._map**n
-            self._maps[n] = map
-            return map
+            if n >= 0:
+                map = self._map**n
+                self._maps[n] = map
+                return map
+            else:
+                try:
+                    map = self._map**n
+                except TypeError:
+                    raise NotImplementedError("Inversion of the twist map %s" % self._map)
+                self._maps[n] = map
+                return map
+                    
 
     def gen(self,n=0):
         """
