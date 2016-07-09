@@ -970,8 +970,10 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
-                from sage.rings.polynomial import skew_polynomial_finite_field
-                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+                #TEMP:
+                # from sage.rings.polynomial import skew_polynomial_finite_field
+                # element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+                element_class = SkewPolynomial_finite_field_dense
         return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
 
     def __init__(self, base_ring, map, name, sparse, element_class):
@@ -992,7 +994,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
         self._maps = [ map**i for i in range(self._order) ]
         self._alea_retraction = None
         self._matrix_retraction = None
-        from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_karatsuba
+        #TEMP: from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_karatsuba
         self._karatsuba_class = SkewPolynomial_finite_field_karatsuba(self)
 
     def twist_map(self,n=1):

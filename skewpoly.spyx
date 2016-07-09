@@ -20,6 +20,7 @@ from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
 from sage.structure.parent cimport Parent
 from sage.structure.element import AlgebraElement
 from sage.structure.element cimport AlgebraElement
+from sage.rings.finite_rings.element_base cimport FiniteRingElement
 
 #TEMP: Copy-paste insterted sage.structure.side
 from sage.structure.sage_object import SageObject
@@ -3060,7 +3061,6 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
 #---------------------------------------------------------------------------------
 # skew_polynomial_finite_field.pyx
 #---------------------------------------------------------------------------------
-
 import operator, copy, re
 
 from sage.rings.integer cimport Integer
@@ -3096,10 +3096,17 @@ from sage.misc.mrange import xmrange_iter
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
+    cdef _conjugates
+    cdef _norm
+    cdef _norm_factor
+    cdef _optbound
+    cdef _rdivisors
+    cdef _types
+    cdef _factorization
+
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
         self._init_cache()
-
 
     cdef inline void _init_cache(self):
         """
@@ -5450,7 +5457,7 @@ cdef class SkewPolynomial_finite_field_karatsuba:
         sage: S.<x> = k['x',Frob]
 
     An instance of this class is automatically created when the skew
-    ring is created. It is accessible via the key work ``_karatsuba_class``::
+    ring is created. It is accessible via the keyword ``_karatsuba_class``::
 
         sage: KarClass = S._karatsuba_class; KarClass
         Special class for Karatsuba multiplication and euclidean division on
@@ -5469,6 +5476,16 @@ cdef class SkewPolynomial_finite_field_karatsuba:
         sage: KarClass.get_cutoff()
         27
     """
+
+    cdef Parent _parent
+    cdef Integer _order
+    cdef FiniteRingElement _zero
+    cdef int _algo_matrix
+    cdef int _cutoff
+    cdef _t #TODO: Types?
+    cdef _T
+    cdef _Tinv
+    
     def __init__(self,parent,cutoff=0):
         """
         Initialize a new instance of this class.
