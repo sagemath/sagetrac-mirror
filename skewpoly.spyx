@@ -1,5 +1,5 @@
 import operator, copy, re
-#MOD: import skew_polynomial_ring
+#TEMP: import skew_polynomial_ring
 import sage.rings.infinity as infinity
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
@@ -13,14 +13,14 @@ from sage.categories.map cimport Map
 from sage.rings.morphism cimport RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
 
-#MOD: from sage.structure.side import Left, Right
+#TEMP: from sage.structure.side import Left, Right
 
 #MOD: Added following
 from sage.structure.parent cimport Parent
 from sage.structure.element import AlgebraElement
 from sage.structure.element cimport AlgebraElement
 
-#MOD: Taken from sage.structure.side
+#TEMP: Copy-paste insterted sage.structure.side
 from sage.structure.sage_object import SageObject
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
