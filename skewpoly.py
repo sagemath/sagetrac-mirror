@@ -960,7 +960,105 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         """
         return self.center(name=name,names=names)
 
-# DEL: SkewPolynomialRing_finite_field
+class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
+    """
+    A specific class for skew polynomial rings over finite field.
+    """
+    @staticmethod
+    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+        if not element_class:
+            if sparse:
+                raise NotImplementedError("sparse skew polynomials are not implemented")
+            else:
+                from sage.rings.polynomial import skew_polynomial_finite_field
+                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+        return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
+
+    def __init__(self, base_ring, map, name, sparse, element_class):
+        self._order = -1
+        try:
+            self._order = map.order()
+        except (AttributeError,NotImplementedError):
+            pass
+        if self._order < 0:
+            try:
+                if map.is_identity():
+                    self._order = 1
+            except (AttributeError,NotImplementedError):
+                pass
+        if self._order < 0:
+            raise NotImplementedError("Unable to determine the order of %s" % map)
+        SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
+        self._maps = [ map**i for i in range(self._order) ]
+        self._alea_retraction = None
+        self._matrix_retraction = None
+        from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_karatsuba
+        self._karatsuba_class = SkewPolynomial_finite_field_karatsuba(self)
+
+    def twist_map(self,n=1):
+        """
+        Return the twist map (eventually iterated several times) used to define
+        this skew polynomial ring.
+
+        INPUT:
+
+        -  ``n`` - a relative integer (default: 1)
+
+        OUTPUT:
+
+        -  The `n`-th iterative of the twist map of this skew polynomial ring.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: S.twist_map()
+            Frobenius endomorphism t |--> t^5 on Finite Field in t of size 5^3
+            sage: S.twist_map(11)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+            sage: S.twist_map(3)
+            Identity endomorphism of Finite Field in t of size 5^3
+
+        It also works if `n` is negative::
+
+            sage: S.twist_map(-1)
+            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+        """
+        return self._maps[n%self._order]
+
+    def _new_retraction_map(self,alea=None):
+        """
+        This is an internal function used in factorization.
+        """
+        k = self.base_ring()
+        base = k.base_ring()
+        (kfixed,embed) = self._maps[1].fixed_points()
+        section = embed.section()
+        if not kfixed.has_coerce_map_from(base):
+            raise NotImplementedError("No coercion map from %s to %s" % (base,kfixed))
+        if alea is None:
+            alea = k.random_element()
+        self._alea_retraction = alea
+        trace = [ ]
+        elt = alea
+        for _ in range(k.degree()):
+            x = elt
+            tr = elt
+            for _ in range(1,self._order):
+                x = self._map(x)
+                tr += x
+            elt *= k.gen()
+            trace.append(section(tr))
+        self._matrix_retraction = MatrixSpace(kfixed,1,k.degree())(trace)
+
+    def _retraction(self,x,newmap=False,alea=None): # Better to return the retraction map but more difficult
+        """
+        This is an internal function used in factorization.
+        """
+        if newmap or alea is not None or self._matrix_retraction is None:
+            self._new_retraction_map()
+        return (self._matrix_retraction*self.base_ring()(x)._vector_())[0]
 
 #---------------------------------------------------------------------------------
 # skew_polynomial_ring_constructor.py
