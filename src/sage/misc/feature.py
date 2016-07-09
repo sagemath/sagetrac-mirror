@@ -672,7 +672,7 @@ class StaticFile(Feature):
             sage: StaticFile(name="null", filename="null", search_path=["/dev"])
 
         """
-        Feature.__init__(name=name, spkg=spkg, url=url)
+        Feature.__init__(self, name=name, spkg=spkg, url=url)
         self.filename = filename
         self.search_path = search_path
 
@@ -685,13 +685,11 @@ class StaticFile(Feature):
         False
 
         """
-        for directory in self.search_path:
-            import os.path
-            import shutil
-            path = os.path.join(directory, self.filename)
-            if os.path.isfile(path):
-                return FeatureTestResult(self, True, reason="`{path}` found.".format(path=path))
-        return FeatureTestResult(self, False, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path))
+        try:
+            abspath = self.absolute_path()
+            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
+        except FeatureNotPresentError as e:
+            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
 
     def absolute_path(self):
         r"""
@@ -708,6 +706,13 @@ class StaticFile(Feature):
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
 
         """
+        for directory in self.search_path:
+            import os.path
+            import shutil
+            path = os.path.join(directory, self.filename)
+            if os.path.isfile(path):
+                return os.path.abspath(path)
+        raise FeatureNotPresentError(self.name, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path), resolution=self.resolution())
 
 class DatabaseCremona(StaticFile):
     r"""
@@ -732,4 +737,8 @@ class DatabaseCremona(StaticFile):
         if spkg is None and name == "cremona":
             spkg = "cremona_database"
         filename = name.replace(' ','_') + ".db"
-        StaticFile.__init__(self, "Cremona's database of elliptic curves", filename=filename, search_path=[TODO], spkg=spkg, url="https://github.com/JohnCremona/ecdata")
+        import os.path, os
+        from sage.env import SAGE_SHARE
+        # Ideally we would also search for the cremona db in other places but SAGE_SHARE.
+        # However, the calling  code currently only looks for it there.
+        StaticFile.__init__(self, "Cremona's database of elliptic curves", filename=filename, search_path=[os.path.join(SAGE_SHARE, 'cremona')], spkg=spkg, url="https://github.com/JohnCremona/ecdata")

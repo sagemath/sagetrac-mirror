@@ -620,9 +620,9 @@ class MiniCremonaDatabase(SQLDatabase):
             SQLDatabase.__init__(self, db_path, read_only=read_only, \
                     skeleton=_miniCremonaSkeleton)
         else:
-            from sage.misc.feature import CremonaDatabase
-            database = CremonaDatabase(name)
-            databsae.require()
+            from sage.misc.feature import DatabaseCremona
+            database = DatabaseCremona(name)
+            database.require()
             SQLDatabase.__init__(self, database.absolute_path(), read_only=read_only)
             if self.get_skeleton() != _miniCremonaSkeleton:
                 raise RuntimeError('Database at %s does '%(self.__dblocation__) \
@@ -1434,9 +1434,9 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             SQLDatabase.__init__(self, db_path, read_only=read_only, \
                     skeleton=_miniCremonaSkeleton)
         else:
-            from sage.misc.feature import CremonaDatabase
-            database = CremonaDatabase(name)
-            databsae.require()
+            from sage.misc.feature import DatabaseCremona
+            database = DatabaseCremona(name)
+            database.require()
             SQLDatabase.__init__(self, database.absolute_path(), read_only=read_only)
             if self.get_skeleton() != _cremonaSkeleton:
                 raise RuntimeError('Database at %s does '%(self.__dblocation__) \
