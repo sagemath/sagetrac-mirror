@@ -11,6 +11,9 @@ sigma = k.frobenius_endomorphism()
 S.<x> = SkewPolynomialRing(k, sigma)
 print S
 
+### This segfaults
+a * x
+
 ### Test non-finite field
 R.<t> = QQ[]
 sigma = R.hom([t+1])
