@@ -133,7 +133,8 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
-                self._polynomial_class = sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense
+                #TEMP self._polynomial_class = sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense
+                self._polynomial_class = CenterSkewPolynomial_generic_dense
 
         self.Element = self._polynomial_class
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
@@ -286,8 +287,10 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
-                #TEMP: from sage.rings.polynomial import skew_polynomial_element
-                element_class = skew_polynomial_element.SkewPolynomial_generic_dense
+                #TEMP:
+                # from sage.rings.polynomial import skew_polynomial_element
+                # element_class = skew_polynomial_element.SkewPolynomial_generic_dense
+                element_class = SkewPolynomial_generic_dense
         return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
 
     def __init__(self, base_ring, map, name, sparse, element_class):
@@ -314,15 +317,20 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         # wipe the memory and construct the conversion from scratch.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
-        base_inject = sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection(base_ring,self)
+        #TEMP:
+        # base_inject = sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection(base_ring,self)
+        base_inject = SkewPolynomialBaseringInjection(base_ring,self)
         self._unset_coercions_used()
         self._populate_coercion_lists_(
                 coerce_list = [base_inject],
                 convert_list = [list, base_inject])
 
     def __reduce__(self):
-        import sage.rings.polynomial.skew_polynomial_ring_constructor
-        return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
+        #TEMP: 
+        # import sage.rings.polynomial.skew_polynomial_ring_constructor
+        # return (sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing,
+        #         (self.base_ring(), self.twist_map(), self.variable_name(), None, self.is_sparse()))
+        return (SkewPolynomialRing,
                 (self.base_ring(), self.twist_map(), self.variable_name(), None, self.is_sparse()))
 
 
@@ -458,7 +466,8 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: R.change_var('y')
             Skew Polynomial Ring in y over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
-        from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+        #TEMP:
+        # from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
         return SkewPolynomialRing(self.base_ring(), self.twist_map(), names = var, sparse=self.is_sparse())
 
     def characteristic(self):
@@ -1073,9 +1082,11 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
     except IndexError:
         raise NotImplementedError("Multivariate skew polynomials rings not supported.")
 
-    if is_FiniteField(base_ring):
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
+    if base_ring in FiniteFields: #MOD
+        #TEMP R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
+        R = SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
     else:
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring,sigma,name,sparse)
+        #TEMP R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring,sigma,name,sparse)
+        R = SkewPolynomialRing_general(base_ring,sigma,name,sparse)
 
     return R
