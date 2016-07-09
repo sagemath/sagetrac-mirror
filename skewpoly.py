@@ -995,7 +995,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
         self._alea_retraction = None
         self._matrix_retraction = None
         #TEMP: from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_karatsuba
-        self._karatsuba_class = SkewPolynomial_finite_field_karatsuba(self)
+        # self._karatsuba_class = SkewPolynomial_finite_field_karatsuba(self)
 
     def twist_map(self,n=1):
         """
