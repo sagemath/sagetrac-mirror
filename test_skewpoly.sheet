@@ -14,12 +14,17 @@ print S
 ### This segfaults
 a * x
 
+###
+from sage.categories.pushout import pushout
+pushout(k, S)
+
+
 ### Test non-finite field
 R.<t> = QQ[]
 sigma = R.hom([t+1])
 S.<x> = SkewPolynomialRing(R, sigma)
 print S
-p = t * x
+p = t * x + x 
 
 ###
 p = t * x
@@ -35,10 +40,23 @@ print a + b
 print a - b 
 print b^2
 print b^2 == b * b
+
+###
 q,r = c.quo_rem(b,side=Left) # BOOM
-
-
 
 ### 
 from sage.categories.pushout import pushout
 print pushout(R, S)
+
+
+
+
+# For installed skew polynomials
+
+### Test finite field
+k.<a> = GF(3^2,'a')
+sigma = k.frobenius_endomorphism()
+S.<x> = k['x', sigma]
+print S
+
+(a + x) + x
