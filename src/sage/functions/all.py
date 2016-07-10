@@ -22,7 +22,7 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 from .other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     abs_symbolic, erf, sqrt, log_gamma,
-                    gamma_inc, incomplete_gamma,
+                    gamma_inc, incomplete_gamma, gamma_inc_lower,
                     arg, real_part, real,
                     imag_part, imag, imaginary, conjugate)
 
@@ -35,8 +35,7 @@ from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
 from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
                     Bessel, struve_H, struve_L)
 
-from .special import (hypergeometric_U,
-                     spherical_bessel_J, spherical_bessel_Y,
+from .special import (spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic,
                      error_fcn, elliptic_e,
@@ -84,4 +83,4 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei, exp_integral_ei)
 
-from .hypergeometric import hypergeometric
+from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
