@@ -1514,6 +1514,13 @@ class BetaAdicMonoid(Monoid_class):
 			Cd is the set of differences A-B where A and B are the alphabets to compare.
 			t is the translation of one of the side (initial state of the automaton).
 			ext : automate des relations à l'infini ou pas.
+			
+			
+		TESTS::
+		
+			sage: pi = x^3-x^2-x-1
+			sage: b = pi.roots(ring=QQbar)[1][0]
+			sage: m = BetaAdicMonoid(b, [0,1]).relations_automaton3()		
 		"""
 		if Cd is None:
 			Cd = Set([c-c2 for c in self.C for c2 in self.C])
@@ -2626,16 +2633,21 @@ class BetaAdicMonoid(Monoid_class):
 		#compute the relations automaton with translation t
 		ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=verb)
 		#compute the product of a and b
+		if verb: print("product...")
 		ap = a.product(b)
 		#compute the intersections
+		if verb: print("intersection...")
 		ai = ar.intersection(ap)
+		if verb: print("min...")
 		ai = ai.minimise()
 		#project on one side
 		d={}
 		for c1 in A:
 			for c2 in B:
 				d[(c1,c2)] = c2
+		if verb: print("determinise...")
 		ai = ai.determinise_proj(d, verb=verb)
+		if verb: print("min")
 		return ai.minimise()
 	
 	#Not well tested !!!!

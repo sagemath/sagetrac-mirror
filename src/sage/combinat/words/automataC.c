@@ -98,9 +98,9 @@ Automaton NewAutomaton (int n, int na)
 	Automaton a;
 	a.n = n;
 	a.na = na;
+	a.i = -1;
 	if (n == 0)
 	{
-		a.i = -1;
 		a.e = NULL;
 		return a;
 	}
@@ -111,7 +111,7 @@ Automaton NewAutomaton (int n, int na)
 		printf("Out of memory !");
 		exit(6);
 	}
-	int i;
+	int i,j;
 	for (i=0;i<n;i++)
 	{
 		a.e[i].f = (int *)malloc(sizeof(int)*na);
@@ -119,6 +119,10 @@ Automaton NewAutomaton (int n, int na)
 		{
 			printf("Out of memory !");
 			exit(7);
+		}
+		for (j=0;j<na;j++)
+		{
+			a.e[i].f[j] = -1;
 		}
 	}
 	return a;
@@ -1432,6 +1436,33 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 {
 	int i;
 	
+	Automaton r;
+	if (a.i == -1)
+	{
+		//calcule la taille de l'alphabet
+		int nv = 0;
+		for (i=0;i<d.n;i++)
+		{
+			if (d.e[i] >= nv)
+				nv = d.e[i]+1;
+		}
+		//
+		if (verb)
+			printf("Pas d'état initial !\n");
+		if (nof)
+		{
+			r = NewAutomaton(1, nv);
+			r.i = 0;
+			r.e[0].final = true;
+			for (i=0;i<nv;i++)
+			{
+				r.e[0].f[i] = 0;
+			}
+		}else
+			r = NewAutomaton(0, nv);
+		return r;
+	}
+	
 	//increase the stack size
 	const rlim_t kStackSize = 32 * 1024 * 1024;
 	struct rlimit rl;
@@ -1493,24 +1524,6 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	//initialise l'automate résultat avec juste l'état initial
 	if (verb)
 		printf("Init r...\n");
-	Automaton r;
-	if (a.i == -1)
-	{
-		if (verb)
-			printf("Pas d'état initial !\n");
-		if (nof)
-		{
-			r = NewAutomaton(1, id.n);
-			r.i = 0;
-			r.e[0].final = true;
-			for (i=0;i<id.n;i++)
-			{
-				r.e[0].f[i] = 0;
-			}
-		}else
-			r = NewAutomaton(0, id.n);
-		return r;
-	}
 	r.n = 1;
 	r.na = id.n;
 	r.i = 0;

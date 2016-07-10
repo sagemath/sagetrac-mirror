@@ -22,7 +22,7 @@ Automate NewAutomaton (int n, int na)
 		printf("Out of memory !");
 		exit(6);
 	}
-	int i;
+	int i, j;
 	for (i=0;i<n;i++)
 	{
 		a.e[i].f = (int *)malloc(sizeof(int)*na);
@@ -30,6 +30,10 @@ Automate NewAutomaton (int n, int na)
 		{
 			printf("Out of memory !");
 			exit(7);
+		}
+		for (j=0;j<na;j++)
+		{
+			a.e[i].f[j] = -1;
 		}
 	}
 	return a;
@@ -49,8 +53,9 @@ InfoBetaAdic iba; //variable globale contenant les infos sur le développement e
 
 Element NewElement (int n)
 {
+	//printf("NewElement(%d)\n", n);
 	Element e;
-	e.c = (int*)malloc(sizeof(int)*n);
+	e.c = (coeff *)malloc(sizeof(coeff)*n);
 	return e;
 }
 
@@ -101,15 +106,27 @@ void initHash ()
 	int i;
 	for (i=0;i<nhash;i++)
 	{
-		thash[i].e = NULL;
+		//thash[i].e = NULL;
 		thash[i].n = 0;
 	}
 }
 
 void freeInfoBetaAdic (InfoBetaAdic iba)
 {
-	int i;
+	int i,j;
 	free(pile);
+	for (i=0;i<nhash;i++)
+	{
+		for (j=0;j<thash[i].n;j++)
+		{
+			FreeElement(thash[i].e[j]);
+		}
+		if (thash[i].n)
+		{
+			free(thash[i].e);
+			free(thash[i].ind);
+		}
+	}
 	free(thash);
 	free(iba.cM);
 	for (i=0;i<iba.ncmax;i++)
@@ -295,9 +312,17 @@ bool inHash (Element e)
 		}
 	}
 	//ajoute l'élément
-	thash[h].e = (Element *)realloc(thash[h].e, thash[h].n+1);
-	//thash[h].ne = (int *)realloc(thash[h].ne, thash[h].n+1);
-	thash[h].ind = (int *)realloc(thash[h].ind, thash[h].n+1);
+	if (thash[h].n)
+	{
+		thash[h].e = (Element *)realloc(thash[h].e, sizeof(Element)*(thash[h].n+1));
+		//thash[h].ne = (int *)realloc(thash[h].ne, thash[h].n+1);
+		thash[h].ind = (int *)realloc(thash[h].ind, sizeof(int)*(thash[h].n+1));
+	}else
+	{
+		thash[h].e = (Element *)malloc(sizeof(Element));
+		//thash[h].ne = (int *)realloc(thash[h].ne, thash[h].n+1);
+		thash[h].ind = (int *)malloc(sizeof(int));
+	}
 	if (!thash[h].e || !thash[h].ind)
 	{
 		printf("Out of memory !!!\n");
@@ -487,6 +512,12 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb
 		{
 			FreeElement(thash[i].e[j]);
 		}
+		if (thash[i].n)
+		{
+			free(thash[i].e);
+			free(thash[i].ind);
+		}
+		thash[i].n = 0;
 	}
 	FreeElement(s);
 	FreeElement(e);
@@ -584,9 +615,9 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 					pile[n] = NewElement(iba.n);
 					copy(s, pile[n]);
 					n++;
-					if (n > npile)
+					if (n >= npile)
 					{
-						printf("Erreur : dépassement de la pile !!!\n");
+						printf("*****************************************\n*** Erreur : dépassement de la pile !!! ***\n*****************************************\n");
 					}
 				}else
 				{//on retombe sur un état déjà vu
@@ -612,13 +643,6 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 	
 	//créé l'automate
 	Automate r = NewAutomaton(compteur, iba.nc);
-	for (i=0;i<r.n;i++)
-	{
-		for (j=0;j<r.na;j++)
-		{
-			r.e[i].f[j] = -1;
-		}
-	}
 	int k, ind;
 	for (i=0;i<nhash;i++)
 	{
@@ -667,6 +691,12 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 		{
 			FreeElement(thash[i].e[j]);
 		}
+		if (thash[i].n)
+		{
+			free(thash[i].e);
+			free(thash[i].ind);
+		}
+		thash[i].n = 0;
 	}
 	FreeElement(s);
 	FreeElement(e);

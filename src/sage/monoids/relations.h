@@ -1,13 +1,15 @@
 
+typedef long int coeff;
+
 struct Element
 {
-	long int *c; //liste des n coeffs
+	coeff *c; //liste des n coeffs
 };
 typedef struct Element Element;
 
 struct PlaceArch
 {
-	Complexe *c; //1, b, b^2, ... pour cette place
+	Complexe *c; //1, b, b^2, ..., b^(n-1) pour cette place
 };
 typedef struct PlaceArch PlaceArch;
 

@@ -1067,7 +1067,17 @@ cdef class FastAutomaton:
 		sig_on()
 		AddEtat(self.a, final)
 		sig_off()
-
+		return self.a.n-1
+	
+	def add_edge (self, int i, l, int j):
+		if i >= self.a.n: raise ValueError("L'etat %s n'existe pas."%i)
+		if j >= self.a.n: raise ValueError("L'etat %s n'existe pas."%j)
+		try:
+			k = self.A.index(l)
+		except:
+			raise ValueError("La lettre %s n'existe pas."%l)
+		self.a.e[i].f[k] = j
+		
 	def n_states (self):
 		return self.a.n
 
