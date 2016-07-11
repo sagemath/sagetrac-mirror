@@ -1182,6 +1182,14 @@ ext_modules = [
               define_macros=[('USE_THREADS', '1'),
                              ('THREAD_STACK_SIZE', '4096')]),
 
+    # NOTE: Here, and in other modules below, it is necessary to manually
+    # specify gmp in the list of link libraries whenever ntl is linked, even
+    # though no symbols from gmp are used directly by the module (only
+    # indirectly through ntl)--this is to prevent linking errors when compiling
+    # in debug mode on Windows: https://trac.sagemath.org/ticket/20981
+    # (This hasn't proven necessary in all modules that use ntl either, but
+    # this note should explain those cases where 'gmp' is included in the
+    # libraries list even though it may not seem necessary.)
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx'],
               libraries=['ntl', 'gmp'],
