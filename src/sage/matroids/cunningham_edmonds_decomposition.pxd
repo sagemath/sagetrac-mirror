@@ -15,9 +15,9 @@ cdef class Node(sage.structure.sage_object.SageObject):
 
     # def __init__(self, G, pm, int f):
     cpdef get_graph(self)
-    cdef int get_parent_marker(self)
+    cpdef get_parent_marker(self)        # Took out int so it could be called outside from terminal.
     cpdef get_parent_marker_edge(self)
-    cdef int get_f(self)
+    cpdef get_f(self)                    # Took out int so it could be called outside from terminal.
     cpdef set_f(self, int n)
     cpdef is_polygon(self)
     cpdef is_path(self, P)
@@ -40,15 +40,15 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
     cdef int next_vertex
     cdef int next_edge
 
-    cpdef __relink1(Q, Z=*, WQ=*)
+    cpdef relink1(self, Q, Z=*, WQ=*)
     cpdef __typing(self, P, pi)
     cpdef __relink2(Q, Z=*, WQ=*)
     cpdef __hypopath(self, P)
     # cpdef __squeeze(self, L)
     cpdef __update(self, P, C)
     cpdef __is_graphic(self)
-    cpdef __merge(self, G)
-    cpdef merge(self)
+    cpdef merge_with_parent(self, N, N_vertex=*, P_vertex=*)
+    cpdef merge_branch(self, N)
     cpdef __add_cycle(self, cycle)
     cpdef get_arborescence(self)
     cpdef get_nodes(self)
