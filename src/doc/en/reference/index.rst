@@ -98,7 +98,7 @@ Number Theory, Algebraic Geometry
 * :doc:`L-Functions <lfunctions/index>`
 * :doc:`Schemes <schemes/index>`
 * :doc:`Elliptic, Plane, and Hyperelliptic Curves <curves/index>`
-* :doc:`Arithmetic Subgroups of SL_2(Z) <arithgroup/index>`
+* :doc:`Arithmetic Subgroups of SL_2 <arithgroup/index>`
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`
 * :doc:`Modular Forms <modfrm/index>`
