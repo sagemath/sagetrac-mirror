@@ -1,9 +1,59 @@
 """
 Shifted Tableaux
 
+Shifted tableaux arise in the projective representation theory of the symmetric
+groups and other related contexts [HH92]_. The shifted tableaux are indexed by
+**strict partitions**, or partitions with distinct parts. Unlike standard
+tableau, which are drawn as left justified arrays,  shifted tableaux are drawn
+with row `r+1` shifted one position to the strict of row `r`. For example, the
+shifted tableaux of shape `(4,1)` are::
+
+    1 2 3 4    1 2 3 5    1 2 4 5
+      5          4          3   
+
+EXAMPLES::
+
+    sage: t = ShiftedTableau([[1,2,3],[4,5]]); t
+    [[1, 2, 3], [4, 5]]
+    sage: t.pp()
+      6  7     1  2  3
+      8  9     4  5
+    sage: t(0,0)
+    7
+    sage: t(1,0)
+    2
+    sage: t.shape()
+    ([2, 2], [3, 2])
+    sage: t.size()
+    9
+    sage: t.entries()
+    [6, 7, 8, 9, 1, 2, 3, 4, 5]
+    sage: t.parent()
+    Tableau tuples
+    sage: t.category()
+    Category of elements of Tableau tuples
+    sage: ShiftedTableaux([4,1])
+    sage: ShiftedTableaux([4,1])[:]
+
+
+
 AUTHORS:
 
 - Zachary Hamaker, Tobias Johnson (2016): Initial version
+
+Element classes:
+
+* :class:`ShiftedTableau`
+
+Parent classes:
+
+* :class:`ShiftedTableaux`
+
+REFERENCES:
+
+.. [HH92] \P. N. Hoffman and J. F. Humphreys, "Projective Representations of the Symmetric Groups",
+    Oxford Science Publications. The Clarendon Press, Oxford University Press, New York, 1992.
+
 """
 
 #*****************************************************************************
@@ -80,6 +130,41 @@ class ShiftedTableau(ClonableArray):
             if not all(row[j] < row[j+1] for j in range(len(row)-1)):
                 raise ValueError("non-increasing row")
 
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as an array.
+
+        EXAMPLES::
+
+            sage: t = shiftedTableau([[1,2,3],[4,5]])
+            sage: print(t._repr_diagram())
+              1  2  3
+              4  5
+            sage: Tableaux.global_options(convention="french")
+            sage: print(t._repr_diagram())
+              4  5
+              1  2  3
+            sage: Tableaux.global_options.reset()
+
+        """
+        if not self:
+            return "  -"
+
+        # Get the widths of the columns
+        str_tab = [[str(data) for data in row] for row in self]
+        col_widths = [2]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        if self.parent().global_options('convention') == "French":
+            str_tab = reversed(str_tab)
+
+        return "\n".join(" "
+                + " ".join("{:}{:>{width}}".format(e*col_widths[i], e,width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         for row in str_tab)
+
     def _latex_(self):
         r"""
         Return LaTex code for ``self``.
@@ -110,8 +195,81 @@ class ShiftedTableau(ClonableArray):
             1  2  4  5
                3  6
         """
-        for row_num, row in enumerate(self):
-            print "   "*row_num + "".join("{!r:3}".format(n) for n in row)
+        print(self._repr_diagram())
+
+    def __call__(self, *cell):
+        r"""
+
+        INPUT:
+
+        - ``cell`` -- a pair of integers, tuple, or list specifying a cell in
+          the tableau
+
+        OUTPUT:
+
+        - The value in the corresponding cell.
+
+        EXAMPLES::
+
+            sage: t = ShiftedTableau([[1,2,3],[4,5]])
+            sage: t(1,0)
+            4
+            sage: t((1,0))
+            4
+            sage: t(3,3)
+            Traceback (most recent call last):
+            ...
+            IndexError: The cell (3,3) is not contained in [[1, 2, 3], [4, 5]]
+        """
+        try:
+            i,j = cell
+        except ValueError:
+            i,j = cell[0]
+
+        try:
+            return self[i][j]
+        except IndexError:
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,repr(self)))
+
+    def size(self):
+        """
+        Return the size of the shape of the tableau ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableau([[1, 4, 6], [2, 5], [3]]).size()
+            6
+        """
+        return sum([len(row) for row in self])
+
+    def entries(self):
+        """
+        Return the tuple of all entries of ``self``, in the order obtained
+        by reading across the rows from top to bottom (in English
+        notation).
+
+        EXAMPLES::
+
+            sage: ShiftedTableau([[1,3], [2]]).entries
+            sage: t.entries()
+            (1, 3, 2)
+        """
+        return sum(self, ())
+
+    def entry(self, cell):
+        """
+        Returns the entry of cell ``cell`` in the tableau ``self``. Here,
+        ``cell`` should be given as a tuple `(i,j)` of zero-based
+        coordinates (so the northwesternmost cell in English notation
+        is `(0,0)`).
+
+        EXAMPLES::
+
+            sage: t = ShiftedTableau([[1,2,5],[3,4]]).entry(0,0)
+            sage: t = ShiftedTableau([[1,2,5],[3,4]]).entry(0,1)
+        """
+        i,j = cell
+        return self[i][j]
 
     # Perhaps call this number_of_yang_baxter_configurations (or positions)?
     def yang_baxter_moves(self):
@@ -309,7 +467,7 @@ def hook(shape, pos):
 
     EXAMPLES::
 
-        sage: from sage.combinat.shifted_tableaux import hook
+        sage: from sage.combinat.tableau_shifted import hook
         sage: hook([6,4,3,1], (1,1))
         [(1, 2), (1, 3), (2, 0), (3, 0)]
     """
@@ -333,7 +491,7 @@ def random_cell(shape):
 
     EXAMPLES:
 
-        sage: from sage.combinat.shifted_tableaux import random_cell
+        sage: from sage.combinat.tableau_shifted import random_cell
         sage: [random_cell([6,4,3,1]) for i in range(6)]  # random
         [(2, 2), (1, 1), (1, 2), (1, 1), (2, 1), (3, 0)]
     """
@@ -351,7 +509,7 @@ def shape_to_poset(shape):
 
     EXAMPLES::
 
-        sage: from sage.combinat.shifted_tableaux import shape_to_poset
+        sage: from sage.combinat.tableau_shifted import shape_to_poset
         sage: shape_to_poset([4,2]).cover_relations()
         [[1, 2], [2, 3], [2, 5], [3, 4], [3, 6], [5, 6]]
     """
@@ -373,8 +531,8 @@ def linear_extension_to_tableau(linear_extension, shape):
 
     EXAMPLES::
 
-        sage: from sage.combinat.shifted_tableaux import shape_to_poset
-        sage: from sage.combinat.shifted_tableaux import linear_extension_to_tableau
+        sage: from sage.combinat.tableau_shifted import shape_to_poset
+        sage: from sage.combinat.tableau_shifted import linear_extension_to_tableau
         sage: P = shape_to_poset([4,2])
         sage: [linear_extension_to_tableau(L,[4,2]) for L in P.linear_extensions()]
         [[[1, 2, 3, 4], [5, 6]],
