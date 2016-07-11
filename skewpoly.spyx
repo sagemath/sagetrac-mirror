@@ -322,7 +322,7 @@ cdef class SkewPolynomial(AlgebraElement):
             [t^2 + 1, 0, t + 1, 0, 1]
         """
         sig_on()
-        l = copy(self._list_c())
+        l = copy.copy(self._list_c())
         sig_off()
         return l
 
