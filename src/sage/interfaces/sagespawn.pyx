@@ -1,10 +1,13 @@
 """
-Sage wrapper around pexpect's ``spawn`` class
+Sage wrapper around pexpect's ``spawn`` class and
+the ptyprocess's ``PtyProcess`` class.
 
 AUTHOR:
 
-- Jeroen Demeyer (2015-02-01): initial version, :trac:`17686`
+- Jeroen Demeyer (2015-02-01): initial version, see :trac:`17686`.
 
+- Jeroen Demeyer (2015-12-04): add support for pexpect 4 + ptyprocess,
+  see :trac:`10295`.
 """
 
 #*****************************************************************************
@@ -18,13 +21,16 @@ AUTHOR:
 #*****************************************************************************
 
 from pexpect import *
+from ptyprocess import PtyProcess
 
 from cpython.ref cimport Py_INCREF
 from libc.signal cimport *
 from posix.signal cimport killpg
-from posix.unistd cimport getpgid, close, fork, _exit
+from posix.unistd cimport getpid, getpgid, close, fork
 
 from time import sleep
+
+from sage.parallel.safefork cimport ContainChildren
 
 
 class SageSpawn(spawn):
@@ -48,15 +54,33 @@ class SageSpawn(spawn):
         """
         self.__name = kwds.pop("name", self.__class__.__name__)
         self.quit_string = kwds.pop("quit_string", None)
-        try:
+
+        kwds.setdefault("ignore_sighup", True)
+
+        # Use a *serious* read buffer of 4MiB, not the ridiculous 2000 bytes
+        # that pexpect uses by default.
+        kwds.setdefault("maxread", 4194304)
+
+        with ContainChildren(silent=True):
             spawn.__init__(self, *args, **kwds)
-        finally:
-            # Protect against a race condition where the child process
-            # is interrupted *before* calling execve(). Then the SIGINT
-            # signal will raise a Python KeyboardInterrupt and we end
-            # up here.
-            if self.pid == 0:
-                _exit(1)
+
+        self.delaybeforesend = None
+        self.delayafterread = None
+
+    def _spawnpty(self, args, **kwds):
+        """
+        Create an instance of :class:`SagePtyProcess`.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: s = SageSpawn("sleep 1")
+            sage: s.ptyproc
+            SagePtyProcess.spawn(...)
+        """
+        ptyproc = SagePtyProcess.spawn(args, **kwds)
+        ptyproc.quit_string = self.quit_string
+        return ptyproc
 
     def __repr__(self):
         """
@@ -109,7 +133,45 @@ class SageSpawn(spawn):
         """
         Py_INCREF(self)
 
-    def close(self):
+    def expect_peek(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer such that it
+        looks like nothing was actually read. The next reading will
+        continue at the current position.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_peek("w")
+            sage: E.read()
+            'hello world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.before + self.after + self.buffer
+        return ret
+
+    def expect_upto(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer starting from
+        the matched string. The next reading will continue starting
+        with the matched string.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_upto("w")
+            sage: E.read()
+            'world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.after + self.buffer
+        return ret
+
+
+class SagePtyProcess(PtyProcess):
+    def close(self, force=None):
         """
         Quit the child process: send the quit string, close the
         pseudo-tty and kill the process.
@@ -125,16 +187,15 @@ class SageSpawn(spawn):
             sage: while s.isalive():  # long time (5 seconds)
             ....:     sleep(0.1)
         """
-        cdef int fd = self.child_fd
-        if fd != -1:
+        if not self.closed:
             if self.quit_string is not None:
                 try:
                     # This can fail if the process already exited
-                    self.sendline(self.quit_string)
-                except OSError:
+                    self.write(self.quit_string)
+                except (OSError, IOError):
                     pass
-            close(fd)
-            self.child_fd = -1
+            self.fileobj.close()
+            self.fd = -1
             self.closed = 1
             self.terminate_async()
 
@@ -160,7 +221,7 @@ class SageSpawn(spawn):
         Check that the process eventually dies after calling
         ``terminate_async``::
 
-            sage: s.terminate_async(interval=0.2)
+            sage: s.ptyproc.terminate_async(interval=0.2)
             sage: while True:
             ....:     try:
             ....:         os.kill(s.pid, 0)
@@ -169,13 +230,33 @@ class SageSpawn(spawn):
             ....:     else:
             ....:         break  # process got killed
         """
-        cdef int pg = getpgid(self.pid)
-        if fork():
-            # Parent process
-            return
+        cdef int pg, counter = 0
+        cdef int thispg = getpgid(getpid())
+        assert thispg != -1
 
-        # Child process
-        try:
+        with ContainChildren():
+            if fork():
+                # Parent process
+                return
+
+            # We need to avoid a race condition where the spawned
+            # process has not started up completely yet: we need to
+            # wait until the spawned process has changed its process
+            # group. See Trac #18741.
+            pg = getpgid(self.pid)
+            while pg == thispg:
+                counter += 1
+                if counter >= 20:
+                    # Something is seriously wrong, give up...
+                    raise RuntimeError("%r is not starting up" % self)
+                sleep(interval * 0.125)
+                pg = getpgid(self.pid)
+
+            # If we failed to determine the process group, probably
+            # this child is already dead...
+            if pg == -1:
+                return
+
             # If any of these killpg() calls fail, it's most likely
             # because the process is actually killed.
             if killpg(pg, SIGCONT): return
@@ -187,5 +268,3 @@ class SageSpawn(spawn):
             if killpg(pg, SIGTERM): return
             sleep(interval)
             if killpg(pg, SIGKILL): return
-        finally:
-            _exit(0)

@@ -15,12 +15,12 @@ introduced in [KS10]_ and designed to be a realization of the crystals
 
 REFERENCES:
 
-.. [KS10] J.-A. Kim and D.-U. Shin.
+.. [KS10] \J.-A. Kim and D.-U. Shin.
    Generalized Young walls and crystal bases for quantum affine algebra
    of type `A`.
    Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
 
-.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+.. [KLRS] \S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
    A combinatorial description of the affine Gindikin-Karpelevich formula of
    type `A_n^{(1)}`.
    :arXiv:`1203.1640`.
@@ -36,6 +36,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 import re
 from copy import deepcopy
@@ -47,7 +48,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.infinity import Infinity
 
 class GeneralizedYoungWall(CombinatorialElement):
     r"""
@@ -94,7 +94,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: y
             [[0], [1, 0, 3, 2], [2, 1], [3, 2, 1, 0, 3, 2], [0], [], [2]]
         """
-        return self.data.__repr__()
+        return repr(self.data)
 
     def __eq__(self,other):
         r"""
@@ -233,8 +233,8 @@ class GeneralizedYoungWall(CombinatorialElement):
             if row == []:
                 wall += '|'
             print(wall.rjust(2*self.cols+1))
-        if self.data==[]:
-            print '0'
+        if self.data == []:
+            print('0')
 
     def content(self):
         r"""
@@ -488,7 +488,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             0
         """
         if i not in self.index_set():
-            raise ValueError("i must in in the index set")
+            raise ValueError("i must be in the index set")
         eps = 0
         while True:
             self = self.e(i)
@@ -624,13 +624,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             raise TypeError("Must be an element in the weight lattice realization")
         ac = self.parent().weight_lattice_realization().simple_coroots()
         n = self.cartan_type().classical().rank()
+        index_set = self.index_set()
         for k in range(1,self.cols+1):
-            for j in self.index_set():
+            for j in index_set:
                 if self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= 0:
                     continue
                 else:
                     p_not_found = True
-                    for p in self.index_set():
+                    for p in index_set:
                         if (j+k) % (n+1)  == (p+1) % (n+1) and self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= La.scalar(ac[p]):
                             p_not_found = False
                             continue
@@ -641,7 +642,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         return True
 
 
-class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
+class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
     r"""
     The crystal `\mathcal{Y}(\infty)` of generalized Young walls of
     type `A_n^{(1)}` as defined in [KS10]_.
@@ -987,6 +988,6 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
             sage: next(x)
             [0]
         """
-        for c in self.subcrystal(direction='lower'):
-            if c.in_highest_weight_crystal(self.hw) :
+        for c in super(CrystalOfGeneralizedYoungWalls, self).__iter__():
+            if c.in_highest_weight_crystal(self.hw):
                 yield c

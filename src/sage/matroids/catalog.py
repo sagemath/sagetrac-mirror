@@ -769,7 +769,8 @@ def CompleteGraphic(n):
         sage: M.is_valid()
         True
     """
-    M = Matroid(groundset=range(n * (n - 1) / 2), graph=graphs.CompleteGraph(n))
+    M = Matroid(groundset=range((n * (n - 1)) // 2),
+                graph=graphs.CompleteGraph(n))
     M.rename('M(K' + str(n) + '): ' + repr(M))
     return M
 
@@ -1365,7 +1366,7 @@ def Block_9_4():
         sage: M = matroids.named_matroids.Block_9_4()
         sage: M.is_valid() # long time
         True
-        sage: BD = designs.BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 9, 4, 3))
     """
@@ -1389,7 +1390,7 @@ def Block_10_5():
         sage: M = matroids.named_matroids.Block_10_5()
         sage: M.is_valid() # long time
         True
-        sage: BD = designs.BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
         sage: BD.is_t_design(return_parameters=True)
         (True, (3, 10, 5, 3))
     """
