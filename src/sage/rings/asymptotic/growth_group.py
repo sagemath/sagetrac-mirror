@@ -29,12 +29,6 @@ examples of growth groups and elements are given as well.
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ * log(x)^ZZ
 
 .. _growth_group_description:
 
@@ -240,6 +234,7 @@ ACKNOWLEDGEMENT:
 Classes and Methods
 ===================
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
@@ -271,6 +266,9 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
     - ``repr`` -- (default: ``None``) if specified, then this string
       will be displayed instead of ``var``. Use this to get
       e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
+
+    - ``latex_name`` -- (default: ``None``) if specified, then this string
+      will be used as LaTeX-representation of ``var``.
 
     - ``ignore`` -- (default: ``None``) a tuple (or other iterable)
       of strings which are not variables.
@@ -326,7 +324,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         sage: v = Variable('(e^(n*log(n)))', ignore=('e',)); repr(v), v.variable_names()
         ('e^(n*log(n))', ('n',))
     """
-    def __init__(self, var, repr=None, ignore=None):
+    def __init__(self, var, repr=None, latex_name=None, ignore=None):
         r"""
         See :class:`Variable` for details.
 
@@ -350,7 +348,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ValueError: ':-' is not a valid name for a variable.
         """
         from sage.symbolic.ring import isidentifier
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
 
         if not isinstance(var, (list, tuple)):
             var = (var,)
@@ -359,24 +357,38 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         if ignore is None:
             ignore = tuple()
 
+        from sage.misc.latex import latex
+        from sage.symbolic.ring import SR
+
         if repr is None:
             var_bases = tuple(i for i in sum(iter(
                 self.extract_variable_names(v)
                 if not isidentifier(v) else (v,)
                 for v in var), tuple()) if i not in ignore)
             var_repr = ', '.join(var)
+            if latex_name is None:
+                latex_name = ', '.join(latex(SR(v)) for v in var if v)
         else:
             for v in var:
                 if not isidentifier(v):
                     raise ValueError("'%s' is not a valid name for a variable." % (v,))
             var_bases = var
             var_repr = str(repr).strip()
+            if latex_name is None:
+                try:
+                    latex_name = latex(SR(var_repr))
+                except TypeError:
+                    latex_name = latex(var_repr)
 
         if len(var_bases) != len(set(var_bases)):
             raise ValueError('Variable names %s are not pairwise distinct.' %
                              (var_bases,))
+
+
         self.var_bases = var_bases
         self.var_repr = var_repr
+
+        self.latex_name = latex_name
 
 
     def __hash__(self):
@@ -442,6 +454,10 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         r"""
         Return a representation string of this variable.
 
+        OUTPUT:
+
+        A string.
+
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
@@ -449,6 +465,27 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
         """
         return self.var_repr
+
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX-representation string of this variable.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: latex(Variable('x'))  # indirect doctest
+            x
+            sage: latex(Variable('x1'))  # indirect doctest
+            x_{1}
+            sage: latex(Variable('x_1'))  # indirect doctest
+            x_{1}
+        """
+        return self.latex_name
 
 
     def variable_names(self):
@@ -611,7 +648,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         try:
             return sage_eval(self.var_repr, locals=rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
 
@@ -738,7 +775,7 @@ def _log_(self, base=None):
         which is not contained in
         Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
     """
-    from misc import log_string
+    from .misc import log_string
 
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -823,7 +860,7 @@ def _log_factor_(self, base=None):
         if hasattr(g, 'parent') and \
            isinstance(g.parent(), GenericGrowthGroup):
             continue
-        from misc import log_string
+        from .misc import log_string
         raise ArithmeticError('Cannot build %s since %s '
                               'is not in %s.' % (log_string(self, base),
                                                  g, self.parent()))
@@ -894,7 +931,7 @@ def _rpow_(self, base):
     except ValueError:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
-            from misc import repr_op
+            from .misc import repr_op
             M = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
                                     ignore_variables=('e',))
             element = M(raw_element=ZZ(1))
@@ -905,7 +942,7 @@ def _rpow_(self, base):
     try:
         return self.parent().one() * element
     except (TypeError, ValueError) as e:
-        from misc import combine_exceptions, repr_op
+        from .misc import combine_exceptions, repr_op
         raise combine_exceptions(
             ArithmeticError('Cannot construct %s in %s' %
                             (repr_op(base, '^', var), self.parent())), e)
@@ -1392,7 +1429,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             > *previous* TypeError: Cannot substitute in the abstract base class
             Growth Group Generic(ZZ).
         """
-        from misc import substitute_raise_exception
+        from .misc import substitute_raise_exception
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
@@ -1597,7 +1634,7 @@ class GenericGrowthGroup(
             ...
             TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         if not isinstance(base, sage.structure.parent.Parent) or \
            isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
@@ -1620,7 +1657,7 @@ class GenericGrowthGroup(
             else:
                 initial_category = None
 
-            from misc import transform_category
+            from .misc import transform_category
             category = transform_category(
                 base.category(),
                 cls._determine_category_subcategory_mapping_,
@@ -1728,7 +1765,7 @@ class GenericGrowthGroup(
             sage: GenericGrowthGroup(QQ, ('a', 'b'))
             Growth Group Generic(QQ, a, b)
         """
-        from misc import parent_to_repr_short
+        from .misc import parent_to_repr_short
         vars = ', '.join(self._var_.variable_names())
         if vars:
             vars = ', ' + vars
@@ -1883,7 +1920,7 @@ class GenericGrowthGroup(
         if raw_element.parent() is self.base():
             parent = self
         else:
-            from misc import underlying_class
+            from .misc import underlying_class
             parent = underlying_class(self)(raw_element.parent(), self._var_,
                                             category=self.category())
         return parent(raw_element=raw_element)
@@ -2002,7 +2039,7 @@ class GenericGrowthGroup(
             sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
             2^x
         """
-        from misc import underlying_class, combine_exceptions
+        from .misc import underlying_class, combine_exceptions
 
         if raw_element is None:
             if isinstance(data, int) and data == 0:
@@ -2134,7 +2171,7 @@ class GenericGrowthGroup(
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        from misc import underlying_class
+        from .misc import underlying_class
         if isinstance(S, underlying_class(self)) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
@@ -2549,13 +2586,14 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this monomial growth element.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -2579,18 +2617,56 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
-        from sage.rings.integer_ring import ZZ
-        from misc import repr_op
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
 
-        var = repr(self.parent()._var_)
+        from sage.rings.integer_ring import ZZ
+        from .misc import repr_op
+
+        var = f(self.parent()._var_)
         if self.exponent.is_zero():
             return '1'
         elif self.exponent.is_one():
             return var
+        elif latex:
+            return repr_op(var, '^', latex=True) + \
+                '{' + latex_repr(self.exponent)._latex_() + '}'
         elif self.exponent in ZZ and self.exponent > 0:
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this monomial growth element.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^QQ')
+            sage: latex(P(1))  # indirect doctest
+            1
+            sage: latex(P(x^5))  # indirect doctest
+            x^{5}
+            sage: latex(P(x^(1/2)))  # indirect doctest
+            x^{\frac{1}{2}}
+
+        ::
+
+            sage: latex(P(x^-1))  # indirect doctest
+            x^{-1}
+            sage: latex(P(x^-42))  # indirect doctest
+            x^{-42}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):
@@ -2737,7 +2813,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         var = str(self.parent()._var_)
 
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
         split = split_str_by_op(var, '^')
         if len(split) == 2:
             b, e = split
@@ -2894,7 +2970,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         try:
             return self.parent()._var_._substitute_(rules) ** self.exponent
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
 
@@ -3065,7 +3141,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^QQ[x]'
         """
-        from misc import parent_to_repr_short, repr_op
+        from .misc import parent_to_repr_short, repr_op
         return repr_op(self._var_, '^', parent_to_repr_short(self.base()))
 
 
@@ -3415,13 +3491,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
         return self._raw_element_
 
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this exponential growth element.
 
         INPUT:
 
-        Nothing.
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
 
         OUTPUT:
 
@@ -3453,13 +3530,59 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G('(1+x)^y')
             (x + 1)^y
         """
-        from sage.rings.integer_ring import ZZ
-        from misc import repr_op
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
 
-        var = repr(self.parent()._var_)
+        from .misc import repr_op
+
+        var = f(self.parent()._var_)
         if self.base.is_one():
             return '1'
-        return repr_op(str(self.base), '^', var)
+        if latex:
+            return repr_op(latex_repr(self.base)._latex_(), '^', latex=True) + \
+                '{' + latex_repr(var)._latex_() + '}'
+        else:
+            return repr_op(str(self.base), '^', var)
+
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this exponential growth element.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('QQ^x')
+            sage: latex(P(1))
+            1
+            sage: latex(P(5^x))  # indirect doctest
+            5^{x}
+            sage: latex(P((1/2)^x))  # indirect doctest
+            \left(\frac{1}{2}\right)^{x}
+
+        ::
+
+            sage: latex(P((-1)^x))  # indirect doctest
+            \left(-1\right)^{x}
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: G = ExponentialGrowthGroup(ZZ['x'], 'y'); G
+            Growth Group ZZ[x]^y
+            sage: latex(G('(1-x)^y'))
+            \left(-x + 1\right)^{y}
+            sage: latex(G('(1+x)^y'))
+            \left(x + 1\right)^{y}
+        """
+        return self._repr_(latex=True)
 
 
     def _mul_(self, other):
@@ -3667,7 +3790,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         try:
             return self.base ** self.parent()._var_._substitute_(rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
 
@@ -3759,7 +3882,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'QQ[x]^a'
         """
-        from misc import parent_to_repr_short, repr_op
+        from .misc import parent_to_repr_short, repr_op
         return repr_op(parent_to_repr_short(self.base()), '^', self._var_)
 
 
@@ -4153,7 +4276,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: 'asdf' is not a valid substring of 'asdf' describing a growth group.
         """
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
         factors = split_str_by_op(specification, '*')
         factors = tuple(f.replace('**', '^') for f in factors)
 
@@ -4208,7 +4331,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
-        from misc import repr_short_to_parent, split_str_by_op
+        from .misc import repr_short_to_parent, split_str_by_op
         groups = []
         for factor in factors:
             split = split_str_by_op(factor, '^')
@@ -4228,7 +4351,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                 E = None
 
             if B is None and E is None:
-                from misc import combine_exceptions
+                from .misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError("'%s' is not a valid substring of %s describing "
                                "a growth group." % (factor, ' * '.join(factors))),

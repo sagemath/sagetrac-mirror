@@ -5,8 +5,24 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 **Generic decoders**
 
-- :func:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
-- :func:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+- :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
+- :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+
+**Generalized Reed-Solomon code decoders**
+
+- :class:`grs.GRSBerlekampWelchDecoder <sage.coding.grs.GRSBerlekampWelchDecoder>`
+- :class:`grs.GRSErrorErasureDecoder <sage.coding.grs.GRSErrorErasureDecoder>`
+- :class:`grs.GRSGaoDecoder <sage.coding.grs.GRSGaoDecoder>`
+- :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
+- :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
+
+**Extended code decoders**
+
+- :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
+
+**Punctured codes decoders**
+
+- :class:`punctured_code.PuncturedCodeOriginalCodeDecoder <sage.coding.punctured_code.PuncturedCodeOriginalCodeDecoder>`
 
 .. NOTE::
 
@@ -25,3 +41,14 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 #*****************************************************************************
 
 from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from punctured_code import PuncturedCodeOriginalCodeDecoder
+from grs import (GRSBerlekampWelchDecoder,
+                 GRSGaoDecoder,
+                 GRSKeyEquationSyndromeDecoder,
+                 GRSErrorErasureDecoder)
+from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
+from extended_code import ExtendedCodeOriginalCodeDecoder
+from grs import (GRSBerlekampWelchDecoder,
+                 GRSGaoDecoder,
+                 GRSKeyEquationSyndromeDecoder,
+                 GRSErrorErasureDecoder)

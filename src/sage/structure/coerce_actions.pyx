@@ -15,7 +15,7 @@ Coerce actions
 
 import operator
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
 from sage.structure.element cimport parent_c, coercion_model
@@ -631,7 +631,6 @@ cdef class RightModuleAction(ModuleAction):
             sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
             2*x + 10
         """
-        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_(g)
         if self.extended_base is not None:
@@ -725,9 +724,9 @@ cdef class IntegerMulAction(Action):
         """
         if not self._is_left:
             a, nn = nn, a
-        if not PyInt_CheckExact(nn):
+        if type(nn) is not int:
             nn = PyNumber_Int(nn)
-            if not PyInt_CheckExact(nn):
+            if type(nn) is not int:
                 return fast_mul(a, nn)
         return fast_mul_long(a, PyInt_AS_LONG(nn))
 
@@ -742,7 +741,7 @@ cdef class IntegerMulAction(Action):
             ...
             TypeError: No generic module division by Z.
         """
-        raise TypeError, "No generic module division by Z."
+        raise TypeError("No generic module division by Z.")
 
     def _repr_name_(self):
         """

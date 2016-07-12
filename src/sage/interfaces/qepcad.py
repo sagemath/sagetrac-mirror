@@ -531,7 +531,7 @@ TESTS:
 Check the qepcad configuration file::
 
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
-    'SINGULAR .../local/bin\n'
+    'SINGULAR .../bin\n'
 
 Tests related to the not tested examples (nondeterministic order of atoms)::
 
@@ -603,6 +603,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.env import SAGE_LOCAL
 import pexpect
@@ -815,6 +816,16 @@ class Qepcad:
             sage: from sage.interfaces.qepcad import Qepcad
             sage: Qepcad(x^2 - 1 == 0)            # optional - qepcad
             QEPCAD object in phase 'Before Normalization'
+
+        To check that :trac:`20126` is fixed::
+
+            sage: (x, y, z) = var('x, y, z')
+            sage: conds = [-z < 0, -y + z < 0, x^2 + x*y + 2*x*z + 2*y*z - x < 0, \
+                           x^2 + x*y + 3*x*z + 2*y*z + 2*z^2 - x - z < 0, \
+                           -2*x + 1 < 0, -x*y - x*z - 2*y*z - 2*z^2 + z < 0, \
+                           x + 3*y + 3*z - 1 < 0]
+            sage: qepcad(conds, memcells=2000000) # optional - qepcad
+            2 x - 1 > 0 /\ z > 0 /\ z - y < 0 /\ 3 z + 3 y + x - 1 < 0
         """
         self._cell_cache = {}
 
@@ -857,7 +868,7 @@ class Qepcad:
             raise ValueError("variables collide after stripping underscores")
         formula = formula.replace('_', '')
 
-        qex = Qepcad_expect(logfile=logfile)
+        qex = Qepcad_expect(logfile=logfile, memcells=memcells, server=server)
         qex._send('[ input from Sage ]')
         qex._send('(' + ','.join(varlist) + ')')
         qex._send(str(free_vars))
@@ -1615,7 +1626,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         qe.assume(assume)
     if interact:
         if solution is not None:
-            print "WARNING: 'solution=' is ignored for interactive use"
+            print("WARNING: 'solution=' is ignored for interactive use")
         return qe
     else:
         qe.go()
