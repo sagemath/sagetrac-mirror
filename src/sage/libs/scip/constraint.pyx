@@ -128,9 +128,10 @@ cdef class LinearConstraint(Constraint):
         _lhs = -SCIPinfinity(self._scip._scip) if lower_bound is None else float(lower_bound)
         _rhs =  SCIPinfinity(self._scip._scip) if upper_bound is None else float(upper_bound)
 
-        for v,c in constraints:
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for v,c in constraints:
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SC
+        # IP instance")
 
         if nlinterms > 0:
             linvars = <SCIP_VAR**>sage_malloc(sizeof(SCIP_VAR*)*nlinterms)
@@ -333,9 +334,9 @@ cdef class ANDConstraint(Constraint):
         cdef int n = len(variables)
         if n < 1:
             raise ValueError("Parameter 'variables' must have at least one element.")
-        for i,v in enumerate(variables):
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for i,v in enumerate(variables):
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
             
         cdef SCIP_VAR **_vars = <SCIP_VAR **>sage_malloc(sizeof(SCIP_VAR)*n)
 
@@ -437,9 +438,10 @@ cdef class ORConstraint(Constraint):
         cdef int n = len(variables)
         if n < 1:
             raise ValueError("Parameter 'variables' must have at least one element.")
-        for i,v in enumerate(variables):
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for i,v in enumerate(variables):
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SC
+        # IP instance")
             
         cdef SCIP_VAR **_vars = <SCIP_VAR **>sage_malloc(sizeof(SCIP_VAR)*n)
 
@@ -541,9 +543,10 @@ cdef class XORConstraint(Constraint):
         cdef int n = len(variables)
         if n < 1:
             raise ValueError("Parameter 'variables' must have at least one element.")
-        for i,v in enumerate(variables):
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+#         for i,v in enumerate(variables):
+#             if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+#             raise TypeError("Variable must be of type SCIP Variable of this SC
+# IP instance")
 
             
         cdef SCIP_VAR **_vars = <SCIP_VAR **>sage_malloc(sizeof(SCIP_VAR*)*n)
@@ -644,9 +647,10 @@ cdef class LogicORConstraint(Constraint):
         cdef int n = len(variables)
         if n < 1:
             raise ValueError("Parameter 'variables' must have at least one element.")
-        for i,v in enumerate(variables):
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for i,v in enumerate(variables):
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SC
+        # IP instance")
             
         cdef SCIP_VAR **_vars = <SCIP_VAR **>sage_malloc(sizeof(SCIP_VAR)*n)
 
@@ -750,9 +754,10 @@ cdef class SetPPCConstraint(Constraint):
         cdef int n = len(variables)
         if n < 1:
             raise ValueError("Parameter 'variables' must have at least one element.")
-        for i,v in enumerate(variables):
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for i,v in enumerate(variables):
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SC
+        # IP instance")
 
             
         cdef SCIP_VAR **_vars = <SCIP_VAR **>sage_malloc(sizeof(SCIP_VAR*)*n)
@@ -887,15 +892,17 @@ cdef class QuadraticConstraint(Constraint):
         nlinterms = len(linterms)
         nquadterms = len(quadterms)
 
-        for v,c in linterms:
-            if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for v,c in linterms:
+        #     if not (PY_TYPE_CHECK(v, Variable) and (<Variable>v)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SC
+        # IP instance")
 
-        for v1,v2,c in quadterms:
-            if not (PY_TYPE_CHECK(v1, Variable) and (<Variable>v1)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
-            if not (PY_TYPE_CHECK(v2, Variable) and (<Variable>v2)._scip is self._scip):
-                raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        # for v1,v2,c in quadterms:
+        #     if not (PY_TYPE_CHECK(v1, Variable) and (<Variable>v1)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SCIP instance")
+        #     if not (PY_TYPE_CHECK(v2, Variable) and (<Variable>v2)._scip is self._scip):
+        #         raise TypeError("Variable must be of type SCIP Variable of this SCIP
+        # instance")
 
         if nlinterms > 0:
             linvars = <SCIP_VAR**>sage_malloc(sizeof(SCIP_VAR*)*nlinterms)

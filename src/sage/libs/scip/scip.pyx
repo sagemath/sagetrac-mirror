@@ -171,7 +171,7 @@ cdef class SCIP(GenericBackend):
 # MIP Backend Interface
 # #########################################
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None):
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -860,8 +860,8 @@ cdef class SCIP(GenericBackend):
             TypeError: Expected linear constraint but got type `<type 'sage.libs.scip.constraint.ANDConstraint'>' instead.
         """
         cdef Constraint c = self._constraints[i]
-        if not PY_TYPE_CHECK(c, LinearConstraint):
-            raise TypeError("Expected linear constraint but got type `%s' instead."%type(c))
+        ## if not PY_TYPE_CHECK(c, LinearConstraint):
+        ##     raise TypeError("Expected linear constraint but got type `%s' instead."%type(c))
         return [v.index() for v in c.variables()], c.coefficients()
 
     cpdef row_bounds(self, int index):
@@ -891,8 +891,9 @@ cdef class SCIP(GenericBackend):
             (2.0, 2.0)
         """
         cdef Constraint c = self._constraints[index]
-        if not PY_TYPE_CHECK(c, LinearConstraint):
-            raise TypeError("Expected linear constraint but got type `%s' instead."%type(c))
+        # if not PY_TYPE_CHECK(c, LinearConstraint):
+        #     raise TypeError("Expected linear constraint but got type `%s' instead.
+# "%type(c))
         return c.bounds()
 
     cpdef col_bounds(self, int index):
@@ -1541,7 +1542,8 @@ cdef class SCIP(GenericBackend):
             try:
                 k = self._variables[k]
             except TypeError:
-                assert(PY_TYPE_CHECK(k, Variable))
+                # assert(PY_TYPE_CHECK(k, Variable))
+                pass
             assert((<Variable>k)._scip is self)
             s2[k] = v
         s = s2
