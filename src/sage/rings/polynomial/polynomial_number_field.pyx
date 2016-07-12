@@ -263,11 +263,6 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             raise ValueError("unknown algorithm %s"%(algorithm))
         h1 = self.numerator()
         h2 = other.numerator()
-        # Most cases have a small content
-        #content_1 = gcd(sum([coeff._coefficients() for coeff in h1.list()]),[])
-        #content_2 = gcd(sum([coeff._coefficients() for coeff in h2.list()]),[])
-        #h1 = (~content_1) * h1
-        #h2 = (~content_2) * h2
         N = h1.base_ring()
         R = h1.parent()
         Npol = N.polynomial().numerator()

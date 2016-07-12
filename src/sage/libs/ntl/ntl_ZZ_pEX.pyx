@@ -1254,20 +1254,21 @@ cdef class ntl_ZZ_pEX(object):
             [[1 1] [1 1] [2 1] [] [0 2]]
             sage: N = NumberField(x^2+7,'a')
         """
+        cdef int i,j
         cdef ntl_ZZ_pX element
-        lifted = []
+        cdef list lifted = []
         N = R.base_ring()
         alpha = N.gen()
-        r = self.degree()
-        s = N.degree()
+        cdef int r = self.degree()
+        cdef int s = N.degree()
         z = N(0)
         a = N.gen(0)
-        for 0 <= i <= r:
+        for i in range(r+1):
             element = self[i].get_as_ZZ_pX_doctest()
             lifted_element = z
-            for 0 <= j <= s-1:
+            for j in range(s):
                 lifted_element += element[j].lift_centered()._integer_()*a**j
-            lifted += [lifted_element]
+            lifted.append(lifted_element)
         p = R._polynomial_class(R, lifted, check=False)
         return p
 
@@ -1292,10 +1293,10 @@ cdef class ntl_ZZ_pEX(object):
         -A polynomial in `QQ[a]` such that is congruent to ``self`` modulo
         `(m, c(x))`.
 
-        .. NOTE:
+        .. NOTE::
 
-            This algorithm uses rational reconstruction, so it may fail with a
-            ``ValueError`` exception.
+            This algorithm uses rational reconstruction, so it may fail with an
+            ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -1320,21 +1321,22 @@ cdef class ntl_ZZ_pEX(object):
             ...
             ArithmeticError: rational reconstruction of 3 (mod 13) does not exist
         """
+        cdef int i,j
         cdef ntl_ZZ_pX element
         m = self.c.pc.p._integer_()
-        lifted =[]
+        cdef list lifted =[]
         N = R.base_ring()
         alpha = N.gen()
-        r = self.degree()
-        s = N.degree()
+        cdef int r = self.degree()
+        cdef int s = N.degree()
         z = N(0)
         a = N.gen(0)
-        for 0 <= i <= r:
+        for i in range(r+1):
             element = self[i].get_as_ZZ_pX_doctest()
             lifted_element = z
-            for 0 <= j <= s-1:
+            for j in range(s):
                 lifted_element += element[j]._integer_().rational_reconstruction(m)*a**j
-            lifted += [lifted_element]
+            lifted.append(lifted_element)
         p = R._polynomial_class(R, lifted, check=False)
         return p
 
