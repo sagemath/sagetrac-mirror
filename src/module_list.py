@@ -1074,6 +1074,9 @@ ext_modules = [
               libraries = ['flint','gmp','zn_poly'],
               extra_compile_args=['-std=c99', '-D_XPG6']),
 
+    Extension('sage.modular.siegel.fastmult',
+              sources = ['sage/modular/siegel/fastmult.pyx']),
+
     ################################
     ##
     ## sage.modules
