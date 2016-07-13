@@ -81,6 +81,7 @@ from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
 from sage.structure.element import coerce_binop
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+
 class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     """
     Class of dense univariate polynomials over an absolute number field.
@@ -228,8 +229,8 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         - [LM89] Langemyr, McCallum. The computation of polynomial greatest
           common divisors over an  algebraic number field. J. Symbolic Comput.
           8(5) (1989), 429--448.
-        - [E95] Encarnacion. Computing gcds of polynomials over algebraic number
-          fields. J. Symbolic Comput. ation, 20(3) (1995), 299-313.
+        - [E95] Encarnacion. Computing gcds of polynomials over algebraic
+          number fields. J. Symbolic Comput. ation, 20(3) (1995), 299-313.
         - [HH09] Hemmer, Hulse. Generic implementation of a modular gcd over
           Algebraic Extension Fields. EuroCG'09 : 25th European Workshop on
           Computational Geometry.
@@ -253,14 +254,14 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             g = a.gcd(b)
             return g.change_ring(R)
 
-        #Using pari to make the computations
+        # Using pari to make the computations
         if algorithm == 'pari':
             h1 = self._pari_with_name('x')
             h2 = other._pari_with_name('x')
             g = h1.gcd(h2)
             return (self.parent()(g)).monic()
         if algorithm != 'modular':
-            raise ValueError("unknown algorithm %s"%(algorithm))
+            raise ValueError("unknown algorithm %s" % (algorithm))
         h1 = self.numerator()
         h2 = other.numerator()
         N = h1.base_ring()
@@ -271,27 +272,27 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         # (02-2013) but the code should work if the polynomial is not monic.
         if N.polynomial().denominator() == 1 and N.polynomial().leading_coefficient() == 1:
             # Use the denominator bound given by Langemyr, McCallum.
-            # Do not assume that the leading coefficient of the gcd is an integer.
-            # This is generally faster than the general bound.
+            # Do not assume that the leading coefficient of the gcd is an
+            # integer. This is generally faster than the general bound.
             Bound = Npol.discriminant()  # D in Encarnacion paper.
             Bound = Bound * h1.leading_coefficient() * h2.leading_coefficient()
             D = ntl_ZZX(Bound.list())
-            #Experimental bound IMPROVE
-            #p = ZZ(3+min(2**255, (max(map(abs,Bound.list())).n()**(0.4)).floor())).next_prime(proof=False)
-            p = ZZ(3+min(2**255, max(map(abs,Bound.list()))))
+            # Experimental bound IMPROVE
+            # p = ZZ(3+min(2**255, (max(map(abs,Bound.list())).n()**(0.4)).floor())).next_prime(proof=False)
+            p = ZZ(3+min(2**255, max(map(abs, Bound.list()))))
         else:
             # Use the denominator bound given by Encarnacion.
             Bound = Npol.discriminant()
-            f= Npol.resultant(ZZ['x'](h1.leading_coefficient().polynomial()))
-            g= Npol.resultant(ZZ['x'](h2.leading_coefficient().polynomial()))
+            f = Npol.resultant(ZZ['x'](h1.leading_coefficient().polynomial()))
+            g = Npol.resultant(ZZ['x'](h2.leading_coefficient().polynomial()))
             D = ntl_ZZX([Bound * f.gcd(g)])
-            p = ZZ(3+min(2**255, max(map(abs,Bound.list()))))
+            p = ZZ(3+min(2**255, max(map(abs, Bound.list()))))
         h1d = h1.degree()
         h2d = h2.degree()
-        cd  = N.degree()
+        cd = N.degree()
         # Save each polynomial as a list of lists for faster coercion to ntl_ZZ_pEX.
-        h1ntl = [ i._coefficients() for i in h1.list()]
-        h2ntl = [ i._coefficients() for i in h2.list()]
+        h1ntl = [i._coefficients() for i in h1.list()]
+        h2ntl = [i._coefficients() for i in h2.list()]
         # ss is a tuple containing: degree of the gcd, modular_gcd, modulus.
         ss = (h1d + 1,)
         # Whenever steps == nsteps, try a rational reconstruction of the gcd.
@@ -303,49 +304,49 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             # Recreate modular context.
             pol_p = ntl_ZZ_pX(pol, p)
             if pol_p.degree() == cd:
-                c   = ntl_ZZ_pEContext(pol_p)
+                c = ntl_ZZ_pEContext(pol_p)
                 h1c = ntl_ZZ_pEX(h1ntl, c)
                 h2c = ntl_ZZ_pEX(h2ntl, c)
-                Dc  = ntl_ZZ_pEX([ntl_ZZ_pE(D, c)])
+                Dc = ntl_ZZ_pEX([ntl_ZZ_pE(D, c)])
                 if h1c.degree() == h1d and h2c.degree() == h2d and not Dc.is_zero():
                     # Compute residual gcd.
                     try:
                         gcd_pEX = h1c.gcd(h2c) * Dc
                     except (RuntimeError, ArithmeticError):
-                        #RuntimeError if there is no gcd.
-                        #ArithmeticError is the prime divides Dc.
-                        gcd_pEX = ntl_ZZ_pEX([1],c).left_shift(h1d+3)
-                    #if ss[0] < gcd_pEX.degree() discard this case.
+                        # RuntimeError if there is no gcd.
+                        # ArithmeticError is the prime divides Dc.
+                        gcd_pEX = ntl_ZZ_pEX([1], c).left_shift(h1d+3)
+                    # if ss[0] < gcd_pEX.degree() discard this case.
                     if gcd_pEX.degree() == 0:
-                        #The polynomials are relatively prime.
+                        # The polynomials are relatively prime.
                         return R.one()
                     elif ss[0] > gcd_pEX.degree():
-                        #All previous primes where bad primes, we start over again.
+                        # All previous primes where bad, we start over again.
                         steps = 0
                         nsteps = 0
                         ss = gcd_pEX.degree(), gcd_pEX, p
                         cached = [[i.lift_centered() for i in j.get_as_ZZ_pX_doctest().list()] for j in gcd_pEX.list()]
                     elif ss[0] == gcd_pEX.degree():
-                        #Success, apply chinese remainder to compute the
-                        #residual of the gcd on a larger modulus.
-                        steps +=1
+                        # Success, apply chinese remainder to compute the
+                        # residual of the gcd on a larger modulus.
+                        steps += 1
                         g, c1, c2 = p.xgcd(ss[2])
-                        if g<>1:
+                        if g != 1:
                             raise ValueError
                         m = ntl_ZZ_pContext(p*ss[2])
                         c = ntl_ZZ_pEContext(ntl_ZZ_pX(pol, m))
                         gcd_pEX = gcd_pEX.convert_to_pE(c)
                         gcd_pEX_previous = ss[1].convert_to_pE(c)
-                        gcd_pEX = gcd_pEX * ntl_ZZ_pEX([c2*ss[2]],c) +\
-                                  gcd_pEX_previous * ntl_ZZ_pEX([c1*p],c)
+                        gcd_pEX = gcd_pEX * ntl_ZZ_pEX([c2*ss[2]], c) +\
+                            gcd_pEX_previous * ntl_ZZ_pEX([c1*p], c)
                         ss = ss[0], gcd_pEX, p * ss[2]
-                        #Check if gcd_pEX has changed during the computation.
+                        # Check if gcd_pEX has changed during the computation.
                         tentative_cached = [[i.lift_centered() for i in j.get_as_ZZ_pX_doctest().list()] for j in gcd_pEX.list()]
                         if cached != tentative_cached:
                             cached = tentative_cached
                         else:
                             # Check if we already have a gcd.
-                            G = ss[1].lift_to_poly_ZZ(R).monic()
+                            G = ss[1].lift_to_polynomial(R).monic()
                             if (h1 % G).is_zero() and (h2 % G).is_zero():
                                 return G.monic()
                         if steps >= nsteps:
@@ -355,14 +356,15 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
                             try:
                                 # check if we already have a monic gcd.
                                 gcd_pEX = gcd_pEX * ntl_ZZ_pEX([~gcd_pEX.leading_coefficient()])
-                                G = gcd_pEX.lift_to_poly_QQ(R)
+                                G = gcd_pEX.lift_to_polynomial_rational_reconstruction(R)
                                 if (h1 % G).is_zero() and (h2 % G).is_zero():
                                     return G.monic()
                             except (ArithmeticError, RuntimeError):
                                 # Rational reconstruction failed.
-                                # either lift_to_poly_QQ failed or
+                                # either lift_to_polynomial_rational_reconstruction failed or
                                 # ~gcd_pEX.leading_coefficient() does not exists
                                 pass
+
 
 class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
     """
@@ -490,7 +492,7 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         L = self.parent()
         x = L.variable_name()
         N = self.base_ring()
-        c = ''.join(map(str,N.variable_names()))
+        c = ''.join(map(str, N.variable_names()))
         M = N.absolute_field(c)
         M_to_N, N_to_M = M.structure()
         R = PolynomialRing(M, x)

@@ -35,6 +35,7 @@ from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
+from sage.rings.integer cimport Integer
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
@@ -1226,7 +1227,7 @@ cdef class ntl_ZZ_pEX(object):
         self.x.SetMaxLength(n)
         sig_off()
 
-    def lift_to_poly_ZZ(self, R):
+    def lift_to_polynomial(self, R):
         """
         Compute a lift of poly to the polynomial ring `R`
 
@@ -1243,6 +1244,10 @@ cdef class ntl_ZZ_pEX(object):
         - An element of `R` with coefficients in `ZZ[a]` that is congruent to
           `self` modulo `(m, c(x))`.
 
+        Each coefficient of `self` `b_0+a\cdot b_1 +\ldots + a^s\cdot b_s` is
+        lifted coefficient-wise to `c_0 +\ldots + a^s\cdot c_s` where `c_i` is
+        the integer congruent to `b_i` mod `m` such that `-m/2 < c_i \leq m/2`
+
         EXAMPLES::
 
             sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
@@ -1253,12 +1258,13 @@ cdef class ntl_ZZ_pEX(object):
             sage: f
             [[1 1] [1 1] [2 1] [] [0 2]]
             sage: N = NumberField(x^2+7,'a')
+            sage: f.lift_to_polynomial(N['x'])
+            -a*x^4 + (a - 1)*x^2 + (a + 1)*x + a + 1
         """
-        cdef int i,j
+        cdef int i, j
         cdef ntl_ZZ_pX element
         cdef list lifted = []
         N = R.base_ring()
-        alpha = N.gen()
         cdef int r = self.degree()
         cdef int s = N.degree()
         z = N(0)
@@ -1272,7 +1278,7 @@ cdef class ntl_ZZ_pEX(object):
         p = R._polynomial_class(R, lifted, check=False)
         return p
 
-    def lift_to_poly_QQ(self, R):
+    def lift_to_polynomial_rational_reconstruction(self, R):
         """
         Compute a lift of poly to a polynomial ring `R` using rational
         recontruction.
@@ -1293,6 +1299,10 @@ cdef class ntl_ZZ_pEX(object):
         -A polynomial in `QQ[a]` such that is congruent to ``self`` modulo
         `(m, c(x))`.
 
+        Each coefficient of `self` `b_0+a\cdot b_1 +\ldots + a^s\cdot b_s` is
+        lifted coefficient-wise to `c_0 +\ldots + a^s\cdot c_s` where `c_i` is
+        the rational reconstruction of `b_i` modulo `m`.
+
         .. NOTE::
 
             This algorithm uses rational reconstruction, so it may fail with an
@@ -1308,7 +1318,7 @@ cdef class ntl_ZZ_pEX(object):
             sage: f
             [[204975 1] [1 1] [2 1] [] [0 2]]
             sage: N = NumberField(x^2+1,'a')
-            sage: f.lift_to_poly_QQ(N[x])
+            sage: f.lift_to_polynomial_rational_reconstruction(N[x])
             2*a*x^4 + (a + 2)*x^2 + (a + 1)*x + a - 149/97
 
         Rational reconstruction may fail::
@@ -1316,17 +1326,16 @@ cdef class ntl_ZZ_pEX(object):
             sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1], 13))
             sage: f = ntl_ZZ_pEX([[3,0,0]],c)
             sage: N = NumberField(x^2+1,'a')
-            sage: f.lift_to_poly_QQ(N[x])
+            sage: f.lift_to_polynomial_rational_reconstruction(N[x])
             Traceback (most recent call last):
             ...
             ArithmeticError: rational reconstruction of 3 (mod 13) does not exist
         """
-        cdef int i,j
+        cdef int i, j
         cdef ntl_ZZ_pX element
-        m = self.c.pc.p._integer_()
-        cdef list lifted =[]
+        cdef Integer m = self.c.pc.p._integer_()
+        cdef list lifted = []
         N = R.base_ring()
-        alpha = N.gen()
         cdef int r = self.degree()
         cdef int s = N.degree()
         z = N(0)
@@ -1339,6 +1348,7 @@ cdef class ntl_ZZ_pEX(object):
             lifted.append(lifted_element)
         p = R._polynomial_class(R, lifted, check=False)
         return p
+
 
 def make_ZZ_pEX(v, modulus):
     """
