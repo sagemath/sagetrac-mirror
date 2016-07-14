@@ -38,14 +38,14 @@ class MonomialBasis(PolynomialRingWithBasis):
 
     EXAMPLES::
 
-        sage: A = MultivariatePolynomialAlgebra(QQ)
-        sage: m = A.monomial_basis();m
-        The ring of multivariate polynomials on x over Rational Field on the monomial basis
-        sage: m.an_element()
-        x[0, 0, 0] + 2*x[1, 0, 0] + x[1, 2, 3] + 3*x[2, 0, 0]
-        sage: pol = m[2,2,1] + m[3,2]
-        sage: pol
+        sage: A.<x> = MultivariatePolynomialAlgebra(QQ)
+        sage: x
+        The Multivariate polynomial algebra on x over Rational Field on the monomial basis
+        sage: x.an_element()
+        0
+        sage: pol = x[2,2,1] + x[3,2]; pol
         x[2, 2, 1] + x[3, 2, 0]
+
 
 
     TESTS::
@@ -60,7 +60,7 @@ class MonomialBasis(PolynomialRingWithBasis):
         TESTS::
 
             sage: A = MultivariatePolynomialAlgebra(QQ)
-            sage: m = A.monomial_basis()
+            sage: x = A.monomial_basis()
         """
         if(basis_repr is None): basis_repr = abstract_polynomial_ring._main_repr_var
         PolynomialRingWithBasis.__init__(
@@ -132,21 +132,22 @@ class MonomialBasis(PolynomialRingWithBasis):
 
         EXAMPLES::
 
-            sage: A = MultivariatePolynomialAlgebra(QQ)
-            sage: m = A.monomial_basis()
-            sage: pol = m.an_element()
+            sage: A.<x> = MultivariatePolynomialAlgebra(QQ)
+            sage: pol = x[2,2,1] + x[3,2]; pol
+            x[2, 2, 1] + x[3, 2, 0]
             sage: key = list(pol)[0][0]; key
-            [1, 2, 3]
-            sage: m._to_expr_on_basis(key)
-            x1*x2^2*x3^3
+            [2, 2, 1]
+            sage: x._to_expr_on_basis(key)
+            x1^2*x2^2*x3
             sage: var('a,b,c')
             (a, b, c)
             sage: alphabet = [a,b,c]
-            sage: m._to_expr_on_basis(key, alphabet=alphabet)
-            a*b^2*c^2
+            sage: x._to_expr_on_basis(key, alphabet=alphabet)
+            a^2*b^2*c
+
         """
         from sage.calculus.var import var
-        key = vector.coeffs_to_list()
+        key = list(vector)
         if alphabet is None:
             alphabet = [var(self.basis_repr() + str(i)) for i in xrange(1,len(key)+1)]
         expr = 1
@@ -471,20 +472,20 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             basis_repr
         )
 
-    def one_basis(self):
-        r"""
-        Returns the key indexing the one of ``self``.
+    #def one_basis(self):
+        #r"""
+        #Returns the key indexing the one of ``self``.
 
-        EXAMPLES::
+        #EXAMPLES::
 
-            sage: A = MultivariatePolynomialAlgebra(QQ)
-            sage: m = A.monomial_basis()
-            sage: m3 = m.finite_basis(3)
-            sage: m3.one_basis()
-            [0, 0, 0]
+            #sage: A = MultivariatePolynomialAlgebra(QQ)
+            #sage: m = A.monomial_basis()
+            #sage: m3 = m.finite_basis(3)
+            #sage: m3.one_basis()
+            #[0, 0, 0]
 
-        """
-        return self._basis_keys( list(0 for i in xrange(self.nb_variables())) )
+        #"""
+        #return self._basis_keys( list(0 for i in xrange(self.nb_variables())) )
 
     def __getitem__(self, c, *rest):
         r"""
@@ -503,23 +504,23 @@ class FiniteMonomialBasis(FinitePolynomialRingWithBasis):
             c = tuple([c])+tuple(rest)
         return self.term( self._basis_keys( c ) )
 
-    def __call__(self, obj):
-        r"""
-        Allows to create an element from a list (interpreted as a vector
-        key)
-        TESTS::
+    #def __call__(self, obj):
+        #r"""
+        #Allows to create an element from a list (interpreted as a vector
+        #key)
+        #TESTS::
 
-            sage: A = MultivariatePolynomialAlgebra(QQ)
-            sage: m = A.monomial_basis()
-            sage: m3 = m.finite_basis(3)
-            sage: m3([2,1,3])
-            x[2, 1, 3]
+            #sage: A = MultivariatePolynomialAlgebra(QQ)
+            #sage: m = A.monomial_basis()
+            #sage: m3 = m.finite_basis(3)
+            #sage: m3([2,1,3])
+            #x[2, 1, 3]
 
-        """
-        if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element)):
-            return self.term( self._basis_keys( list(obj)))
-        else:
-            return super(FiniteMonomialBasis, self).__call__(obj)
+        #"""
+        #if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element)):
+            #return self.term( self._basis_keys( list(obj)))
+        #else:
+            #return super(FiniteMonomialBasis, self).__call__(obj)
 
     def product_on_basis(self, vector1, vector2):
         r"""

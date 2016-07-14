@@ -22,23 +22,27 @@ from basis import PolynomialRingWithBasisFromMorphism, FinitePolynomialRingWithB
 
 class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
     r"""
-    Explain the use of this class...
+    Common upperclass for basis based on a (typed) linear divided difference morphisme
 
     EXAMPLES::
 
-        sage: # Fix a nice example
+        sage: A.<x> = MultivariatePolynomialAlgebra(QQ)
+        sage: Schub = A.schubert_basis_on_vectors()
+        sage: Schub[1,2,3]
+        Y[1, 2, 3]
+
 
     TESTS::
 
         sage: # Fix a nice test
     """
-    def __init__(self, abstract_polynomial_ring, ambient_space_basis, basis_name, basis_repr, on_basis_method =None, extra_parameters = (), variables_auto_coerce = False,  **keywords ):
+    def __init__(self, abstract_polynomial_ring, monomial_basis_with_type, basis_name, basis_repr, on_basis_method =None, extra_parameters = (), variables_auto_coerce = False,  **keywords ):
         r"""
         TESTS::
 
             sage: # Fix a nice test
         """
-        self._ambient_space_basis = ambient_space_basis
+        self._monomial_basis_with_type = monomial_basis_with_type
         get_morphism_on_basis = self._get_morphism_on_basis
 
         if(not keywords.has_key("triangular")): keywords["triangular"] = "upper"
@@ -54,7 +58,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
             self,
             abstract_polynomial_ring,
             1,
-            ambient_space_basis,
+            monomial_basis_with_type,
             basis_name,
             basis_repr,
             self._get_basis_keys,
@@ -64,7 +68,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
         )
 
     def cmp(self, key1, key2):
-        l = len(key1.parent()._basis_keys)
+        l = len(key1)
         d1 = sum( [key1[i] for i in xrange(l)])
         d2 = sum( [key2[i] for i in xrange(l)])
         if (d1 > d2): return -1
@@ -82,9 +86,9 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
             sage: # Fix a nice example
         """
-        return self._ambient_space_basis.finite_basis(n)._basis_keys
+        return self._monomial_basis_with_type.finite_basis(n)._basis_keys
 
-    def ambient_space_basis(self):
+    def monomial_basis_with_type(self):
         r"""
         Return the ambient space indexing the basis elements of ``self``.
 
@@ -92,7 +96,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
             sage: # Fix a nice example
         """
-        return self._ambient_space_basis
+        return self._monomial_basis_with_type
 
     def group_type(self):
         r"""
@@ -102,7 +106,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
             sage: # Fix a nice example
         """
-        return self._ambient_space_basis.group_type()
+        return self._monomial_basis_with_type.group_type()
 
     def _finite_basis_instance(self, n):
         r"""
@@ -311,7 +315,7 @@ class SchubertBasisOnVectors(LinearBasisOnVectors):
             """
             i = self._i
             if(key[i-1] > key[i]):
-                key2 = [key[j] for j in xrange(self._module.nb_variables())]
+                key2 = [key[j] for j in xrange(len(key))]
                 key2[i-1], key2[i] = key2[i], key2[i-1]-1
                 return self._module(key2)
             return self._module.zero()
@@ -1427,15 +1431,6 @@ class FiniteLinearBasisOnVectors(FinitePolynomialRingWithBasisFromMorphism):
         """
         return self._monomial_basis_with_type
 
-    def one_basis(self):
-        r"""
-        Returns the index of the one of ``self``.
-
-        EXAMPLES::
-
-            sage: # Fix a nice example
-        """
-        return self.basis().keys().zero()
 
     def __getitem__(self, c, *rest):
         r"""

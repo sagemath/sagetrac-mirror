@@ -248,15 +248,15 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
         self._from_monomial_morphism.register_as_coercion()
 
 
-    def one_basis(self):
-        r"""
-        Returns the index of the one of ``self``.
+    #def one_basis(self):
+        #r"""
+        #Returns the index of the one of ``self``.
 
-        EXAMPLES::
+        #EXAMPLES::
 
-            sage: # Fix a nice example
-        """
-        return self._basis_keys(self._basis_keys.ambient_space().zero())
+            #sage: # Fix a nice example
+        #"""
+        #return self._basis_keys(self._basis_keys.ambient_space().zero())
 
     def product_on_basis(self, key1, key2):
         r"""
@@ -337,16 +337,16 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
             c = tuple([c])+tuple(rest)
         return self.term( self._basis_keys( list(c) ) )
 
-    def __call__(self, obj):
-        r"""
-        TESTS::
+    #def __call__(self, obj):
+        #r"""
+        #TESTS::
 
-            sage: # Fix a nice test
-        """
-        if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element) ):
-            return self.term( self._basis_keys( list(obj)))
-        else:
-            return super(FinitePolynomialRingWithBasisFromAmbientSpace, self).__call__(obj)
+            #sage: # Fix a nice test
+        #"""
+        #if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element) ):
+            #return self.term( self._basis_keys( list(obj)))
+        #else:
+            #return super(FinitePolynomialRingWithBasisFromAmbientSpace, self).__call__(obj)
 
 
 

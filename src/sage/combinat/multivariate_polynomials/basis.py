@@ -223,6 +223,12 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
         """
         return self.element_class(self, wrapped)
 
+    def zero(self):
+        if self.is_typed():
+            return self(self.ambient_space().zero())
+        else:
+            return self([0 for i in xrange(self.length())])
+
 
     class Element(Element):
         r"""
@@ -287,7 +293,7 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
             if self.parent().is_typed():
                 if not wrapped in self.parent().ambient_space():
                     try:
-                        wrapped = self.parent().ambient_space()(wrapped)
+                        wrapped = self.parent().ambient_space()(list(wrapped))
                     except:
                         raise TypeError("Cannot make {} into an element of {}".format(wrapped, self.parent().ambient_space()))
                 self._wrapped = tuple(wrapped.to_vector())
@@ -2597,6 +2603,31 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
         m3.register_as_coercion()
         basis_tower._register_finite_basis(self)
 
+    def __call__(self, obj):
+        """
+
+        TESTS::
+
+            sage: A.<x> = MultivariatePolynomialAlgebra(QQ)
+            sage: pol = x[2,2,1] + x[3,2]; pol
+            x[2, 2, 1] + x[3, 2, 0]
+            sage: xA = A.monomial_basis_with_type("A")
+            sage: xA(pol)
+            xA[2, 2, 1] + xA[3, 2, 0]
+            sage: x(xA(pol))
+            x[2, 2, 1] + x[3, 2, 0]
+
+        """
+        # not sure this is the best way but it seems to work
+        if( type(obj) is list or type(obj) is tuple or isinstance(obj, MonomialKeyWrapper.Element)):
+            return self.term( self._basis_keys( list(obj))) # trying to convert it directly into a basis term
+        else:
+            return super(FinitePolynomialRingWithBasis, self).__call__(obj) # otherwise, back to the super method and use the coercion framework
+
+
+    def one_basis(self):
+        return self._basis_keys.zero()
+
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
@@ -4571,16 +4602,26 @@ class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
 
         EXAMPLES::
 
-            sage: A = MultivariatePolynomialAlgebra(QQ)
-            sage: m = A.monomial_basis()
-            sage: def get_basis_keys(n): code = "A" + str(n-1); return RootSystem(code).ambient_space(QQ)
-            sage: def get_morphism_on_basis(n): return lambda key: m( [key[i] for i in xrange(n)])
-            sage: MyBasis = A.from_morphism_basis(1,m,get_basis_keys,get_morphism_on_basis,"My Basis", "x"); MyBasis
-            The ring of multivariate polynomials on x over Rational Field on the My Basis
+            sage: A.<x> = MultivariatePolynomialAlgebra(QQ)
+            sage: from sage.combinat.multivariate_polynomials.basis import MonomialKeyWrapper
+            sage: def get_basis_keys(n): code = "A" + str(n-1); return MonomialKeyWrapper(RootSystem(code))
+            sage: def get_morphism_on_basis(n): return lambda key: x( [key[i] for i in xrange(n)])
+            sage: MyBasis = A.from_morphism_basis(1,x,get_basis_keys,get_morphism_on_basis,"My Basis", "MyX"); MyBasis
+            The Multivariate polynomial algebra on x over Rational Field on the My Basis
             sage: MyBasis.an_element()
-            x(2, 2, 3)
-            sage: m( MyBasis.an_element() )
-            x[2, 2, 3]
+            0
+            sage: x(MyBasis.an_element())
+            0
+            sage: MyBasis([1,2,3])
+            MyX[1, 2, 3]
+            sage: MyBasis[1,2,3]
+            MyX[1, 2, 3]
+            sage: MyBasis[1,2,3].parent()
+            The Multivariate polynomial algebra on x over Rational Field with 3 variables on the My Basis
+            sage: x(MyBasis[1,2,3])
+            x[1, 2, 3]
+
+
 
         We have recreated the basis on ambient space.
 
