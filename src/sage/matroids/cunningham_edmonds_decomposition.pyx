@@ -306,6 +306,22 @@ cdef class Node(sage.structure.sage_object.SageObject):
                 return e
 
 
+    cpdef get_named_edge(self, f):
+        r"""
+        EXAMPLES:
+            
+            sage: from sage.matroids.cunningham_edmonds_decomposition import *
+            sage: G= Graph([(0, 1, 1), (0, 4, 2), (0, 5, 3), (1, 2, 4), (1, 6, 5), (2, 3, 6), (2, 7, 7), (3, 4, 8), (3, 8, 9), (4, 9, 10), (5, 7, 11), (5, 8, 12), (6, 8, 13), (6, 9, 14), (7, 9, 15)], multiedges=True)
+            sage: N = Node(G, 3)
+            sage: N.get_named_edge(4)
+            (1, 2, 4)
+        """
+        for e in self.graph.edges():
+            if e[2] == f:
+                return e
+        return (-1, -1, -1)
+
+
     cpdef get_f(self):
         r"""
         EXAMPLES:
@@ -701,8 +717,8 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             self.root = self.arborescence.sources()[0]          # This should work, because our ``arborescence`` should only have one source. We might want to check for that.
             
             self.next_arborescence_vertex = T.order()
-            self.next_vertex = next_vertex
-            self.next_edge = next_edge
+            self.next_vertex = self.next_vertex
+            self.next_edge = self.next_edge
             self.K_1 = K_1
             self.K_2 = K_2
             self.u_1 = u_1
@@ -1232,10 +1248,10 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
 
     cpdef merge_with_parent(self, N, N_vertex=-1, P_vertex=-1):
-        G_N = self.nodes[N].graph
+        G_N = self.nodes[N].get_graph()
         m = self.nodes[N].get_parent_marker_edge()
         P = self.get_parent(N)
-        G_P = self.nodes[P].graph
+        G_P = self.nodes[P].get_graph()
 
         for e in G_P.edges():
             if m[2] == e[2]:            # If the lables are the same.
@@ -1243,34 +1259,110 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
         G = G_N.union(G_P)
         if N_vertex == -1:
-            u = f[0]                    # Which vertices we are merging with which makes no difference.
-            v = f[1]
-            x = m[0]
-            y = m[1]
+            u = m[0]                    # Which vertices we are merging with which makes no difference.
+            v = m[1]
+            x = f[0]
+            y = f[1]
         else:
             u = N_vertex
-            v = {f[0], f[1]}.difference({N_vertex})
+            v = ({m[0], m[1]}.difference({N_vertex})).pop()
             x = P_vertex
-            y = {f[0], f[1]}.difference({P_vertex})
-        G.merge_vertices(u,x)           # The order of the vertices determines the name of the resulting vertex.
-        G.merge_vertices(v,y)
+            y = ({f[0], f[1]}.difference({P_vertex})).pop()
 
-        self.arborescence.merge_vertices(P, N)
-        return Node(G, P.parent_marker, P.get(f))
+        G.merge_vertices([x, u])          # The order of the vertices determines the name of the resulting vertex.
+        G.merge_vertices([y, v])
+
+        return Node(G, self.nodes[P].get_parent_marker(), self.nodes[P].get_f())
 
         return None
 
 
-    cpdef merge_branch(self, N):
-        root = self.root
+    cpdef merge_branch(self, N, P):
+        r'''
+
+        INPUT:
+
+        - ``N`` -- a Node
+        - ``P`` -- a set of edges
+
+        OUTPUT:
+
+        - A Node, with parent marker and orientation equal to ``N``'s and whose graph is a merge of the graphs in the brance starting at ``N`` such that the intersection of ``P`` with this graph is a path if possible
+
+        EXAMPLES:
+            sage: from sage.matroids.cunningham_edmonds_decomposition import *
+            sage: T = DiGraph([(0, 1), (1, 2), (2, 3), (2, 4)])
+            sage: nodes = [Node(Graph([(0, 1, 0), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)], multiedges = True), 0), Node(Graph([(4, 5, 4), (4, 6, 6), (4, 7, 7), (5, 6, 8), (5, 7, 9), (6, 7, 9)], multiedges = True), 4), Node(Graph([(8, 13, 9), (8, 9, 10), (9, 10, 11), (10, 11, 12), (11, 12, 13), (12, 13, 14)], multiedges = True), 9), Node(Graph([(14, 15, 13), (14, 15, 15), (14, 15, 16), (14, 15, 17)], multiedges = True), 13), Node(Graph([(16, 17, 11), (16, 17, 18), (16, 17, 19), (16, 17, 20)], multiedges = True), 11)]
+            sage: D = CunninghamEdmondsDecomposition(T, nodes, 21, 17)
+            sage: D.merge_branch(0, {5, 6, 8, 7, 14, 16}).get_graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (0, 3, 2),
+             (1, 2, 3),
+             (1, 3, 4),
+             (1, 3, 4),
+             (1, 6, 6),
+             (1, 7, 7),
+             (2, 3, 5),
+             (3, 6, 8),
+             (3, 7, 9),
+             (5, 6, 9),
+             (5, 12, 14),
+             (6, 7, 9),
+             (6, 9, 10),
+             (9, 10, 11),
+             (9, 10, 11),
+             (9, 10, 18),
+             (9, 10, 19),
+             (9, 10, 20),
+             (10, 11, 12),
+             (11, 12, 13),
+             (11, 12, 13),
+             (11, 12, 15),
+             (11, 12, 16),
+             (11, 12, 17)]
+
+        '''
+        T = self.arborescence.copy()
+        for V in self.arborescence.vertices():
+            if  len(T.all_paths(N, V)) == 0:
+                T.delete_vertex(V)
         n = self.arborescence.longest_path(self.root).size()
 
-        pi = self.__get_pi()
-        for i in range (1, n + 1):
-            for N in pi[i]:
-                self.__merge(N)
+        D_hat = CunninghamEdmondsDecomposition(T, self.nodes)
 
-        return None
+        for V in T.vertices():
+            if not V == self.arborescence.sources()[0]:
+                G = self.nodes[V].get_graph()
+                mn = self.nodes[V].get_parent_marker_edge()
+                mp = self.nodes[self.get_parent(V)].get_named_edge(mn[2])
+
+                # These are the degrees of the verticies. We only need to check two, since we just need to insure that if
+                # there is a vertex of degree one (in ``P``) in both the node and its parent, then at least one vertex of
+                # the node is merged with a vertex of odd degree in the parent. 
+                n1 = 0
+                p1 = 0
+                for e in P:
+                    if mn[0] in {self.nodes[V].get_named_edge(e)[0], self.nodes[V].get_named_edge(e)[0]}:
+                        n1 = n1 + 1
+                    if mp[0] in {self.nodes[V].get_named_edge(e)[0], self.nodes[self.get_parent(V)].get_named_edge(e)[0]}:
+                        p1 = p1 + 1
+
+                if n1 == 1:
+                    u = mn[0]
+                else:
+                    u = mn[1]
+
+                if p1 == 1:
+                    x = mp[0]
+                else:
+                    x = mp[1]
+
+
+                D_hat.nodes[D_hat.get_parent(V)] = D_hat.merge_with_parent(V, u, x)
+                D_hat.arborescence.merge_vertices([D_hat.get_parent(V), V])
+
+        return D_hat.nodes[N]
 
     cpdef __add_cycle(self, cycle):
         return None
@@ -1295,8 +1387,8 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             pi[l].append(v)
         return pi
 
-    cdef get_parent(self, N):
-        return N.neighbors_in(N)[0]
+    cpdef get_parent(self, N):
+        return self.arborescence.neighbors_in(N)[0]
 
     cpdef branch(self, N):
         T = self.arborescence.copy()
