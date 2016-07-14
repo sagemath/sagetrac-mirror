@@ -31,9 +31,11 @@ from copy import copy
 
 def list_monom(P,d):
     r"""
+
     Return an ordered list of the monomials of P of degree d
  
     INPUT:
+
     - ``P`` -- a polynomial ring
     - ``d`` -- an integer
 
@@ -41,15 +43,14 @@ def list_monom(P,d):
 
     The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
 
-    EXAMPLES:
-
-    ::
+    EXAMPLES::
 
         sage: S.<x,y,z>=Qp(5)[]
         sage: from sage.rings.polynomial.padics.toy_MatrixF5 import list_monom
         sage: list_monom(S,2)
         [x^2, x*y, y^2, x*z, y*z, z^2]
     """
+
     if d == 0:
         return [P(1)]
     l1 = [ a for a in P.gens()]
@@ -70,6 +71,7 @@ def firstvar(mon):
     r"""
 
     INPUT:
+
     - ``mon`` -- a monomial
 
     OUTPUT:
@@ -78,11 +80,12 @@ def firstvar(mon):
 
     EXAMPLES::
 
-    sage: S.<x,y,z>=Qp(5)[]
-    sage: from sage.rings.polynomial.padics.toy_MatrixF5 import firstvar
-    sage: firstvar(x*y^2*z)
-    0
+        sage: S.<x,y,z>=Qp(5)[]
+        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import firstvar
+        sage: firstvar(x*y^2*z)
+        0
     """
+
     if mon.degree() == 0:
         return (-1)
     else:
@@ -109,6 +112,7 @@ class MacaulayMatrix:
         r"""
 
         INPUT:
+
         - ``base`` -- the polynomial base ring.
         - ``monomials`` -- the list of monomials (in decreasing order) of the Macaulay matrix.
         - ``entries`` -- the coefficients of the matrix.
@@ -120,10 +124,12 @@ class MacaulayMatrix:
         OUTPUT:
 
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
         """
+
         self._monomials = monomials
         self._ncols = len(monomials)
         self._entries = entries
@@ -137,6 +143,7 @@ class MacaulayMatrix:
 
     def nrows(self):
         r"""
+
         INPUT:
 
         OUTPUT:
@@ -145,16 +152,18 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
-        sage: M.nrows()
-        2
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
+            sage: M.nrows()
+            2
         """
+
         return self._entries.nrows()
 
     def ncols(self):
         r"""
+
         INPUT:
 
         OUTPUT:
@@ -177,48 +186,61 @@ class MacaulayMatrix:
         OUTPUT:
 
         The matrix of labels of this matrix.
+
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
-        sage: M.labels()
-        [2 0]
-        [3 4]
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
+            sage: M.labels()
+            [2 0]
+            [3 4]
         """
+
         return self._labels
 
     def label(self,i):
         r"""
+
         INPUT:
+
         - ``i`` -- an integer
 
         OUTPUT:
 
         The label of the i-th line of this matrix.
+
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
-        sage: M.label(1)
-        (3, 4)
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [2,0,3,4]))
+            sage: M.label(1)
+            (3, 4)
         """
+
         return self._labels.row(i)
 
     def signature_via_label(self,i):
         """
+
         INPUT:
+
         - ``i`` -- an integer
 
         OUTPUT:
+
         The signature of the i-th line of this matrix, as read on the label of this line.
 
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]) , s = 2)
-        sage: M.signature(1)
-        [y, 1]
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]) , s = 2)
+            sage: M.signature(1)
+            [y, 1]
         """
+
         if self.labels() is None:
             return None
         else:
@@ -232,18 +254,22 @@ class MacaulayMatrix:
     def signature(self,i):
         """
         INPUT:
+
         - ``i`` -- an integer
 
         OUTPUT:
+
         The signature of the i-th line of this matrix
 
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]) , signatures = [[x,0],[y,1]], s = 2)
-        sage: M.signature(1)
-        [y, 1]
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2], Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]) , signatures = [[x,0],[y,1]], s = 2)
+            sage: M.signature(1)
+            [y, 1]
         """
+
         if self._signatures is not None:
             return self._signatures[i]
         if self._labels is not None:
@@ -252,19 +278,23 @@ class MacaulayMatrix:
     def signature_tropical(self,i,tropical_weight, tropical_order_ring):
         """
         INPUT:
+
         - ``i`` -- an integer
 
         OUTPUT:
+
         The tropical signature of the i-th line of this matrix.
 
         EXAMPLES::
-        sage: T.<x,y,z> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: U.<a,b,c> = PolynomialRing(Qp(7), order='lex')
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2,x*z,y*z,z^2],Matrix(QQ, 2, 6, [1,0,0,0,0,0,0,2,3,0,0,0]), Matrix(T, 2, 2, [x,0,x+y,y]), s=2)
-        sage: M.signature_tropical(1,[1,2,4],U)
-        [y, 1]
+
+            sage: T.<x,y,z> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: U.<a,b,c> = PolynomialRing(Qp(7), order='lex')
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2,x*z,y*z,z^2],Matrix(QQ, 2, 6, [1,0,0,0,0,0,0,2,3,0,0,0]), Matrix(T, 2, 2, [x,0,x+y,y]), s=2)
+            sage: M.signature_tropical(1,[1,2,4],U)
+            [y, 1]
         """
+
         if self.labels() is None:
             return None
         else:
@@ -297,11 +327,12 @@ class MacaulayMatrix:
         The indexes of the lines of this matrix.
 
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[0,1])
-        sage: M.indexes()
-        [0, 1]
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [1,0,0,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[0,1])
+            sage: M.indexes()
+            [0, 1]
         """
 
         return self._indexes
@@ -309,6 +340,7 @@ class MacaulayMatrix:
     def index(self,i):
         """
         INPUT:
+
         - ``i`` -- an integer
 
         OUTPUT:
@@ -316,11 +348,12 @@ class MacaulayMatrix:
         The index of the i-th line of this matrix.
 
         EXAMPLES::
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
-        sage: M.index(0)
-        2
+
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
+            sage: M.index(0)
+            2
         """
 
         return self._indexes[i]
@@ -354,11 +387,11 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
-        sage: M.polynomial(1)
-        2*x*y + 3*y^2
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
+            sage: M.polynomial(1)
+            2*x*y + 3*y^2
         """
 
         row = self._entries.row(i)
@@ -371,12 +404,13 @@ class MacaulayMatrix:
 
         TESTS::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
-        sage: M.polynomial(1) == M.copy().polynomial(1)
-        True
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
+            sage: M.polynomial(1) == M.copy().polynomial(1)
+            True
         """
+
         if self._labels is not None:
             labels = Matrix(self._base, self.nrows(), self._s ,self._labels.list())
         else:
@@ -407,17 +441,18 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), signatures = [[x,0],[y,1]], s=2,indexes= [2,1])
-        sage: M.addf(x*y-y^2, [y,x], [x,1])
-        sage: M.nrows()
-        3
-        sage: M.index(2)
-        1
-        sage: M.polynomial(2)
-        x*y - y^2
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), signatures = [[x,0],[y,1]], s=2,indexes= [2,1])
+            sage: M.addf(x*y-y^2, [y,x], [x,1])
+            sage: M.nrows()
+            3
+            sage: M.index(2)
+            1
+            sage: M.polynomial(2)
+            x*y - y^2
         """
+
         list = f.monomials()
         monom = self._monomials
         l = len(monom)
@@ -439,6 +474,7 @@ class MacaulayMatrix:
     def add_multiple_of_row(self, i, rpiv, kpiv, eliminate = False):
         """
         INPUT:
+
         - ``i`` -- a natural number
         - ``rpiv`` -- a natural number
         - ``kpiv`` -- an element of self.base_ring()
@@ -457,15 +493,16 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
-        sage: M.add_multiple_of_row(0,1,3)
-        sage: M.polynomial(0)
-        6*x*y + 13*y^2
-        sage: M.index(0)
-        1
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]), None, 2,[2,1])
+            sage: M.add_multiple_of_row(0,1,3)
+            sage: M.polynomial(0)
+            6*x*y + 13*y^2
+            sage: M.index(0)
+            1
         """
+
         ncols = self._ncols
         index = self._indexes[rpiv]
         self._entries.add_multiple_of_row(i,rpiv,kpiv)
@@ -498,20 +535,20 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
-        sage: Mac = MacaulayMatrix(T,[x,y],Matrix(QQ, 1, 2, [0,1]), Matrix(T, 1, 2, [1,0]),None,2,[1])
-        sage: M.insert_multiple(Mac,1,0,x)
-        sage: M.polynomial(1)
-        x*y
-        sage: M.index(1)
-        1
-        sage: M.label(1)
-        (x, 0)
-
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
+            sage: Mac = MacaulayMatrix(T,[x,y],Matrix(QQ, 1, 2, [0,1]), Matrix(T, 1, 2, [1,0]),None,2,[1])
+            sage: M.insert_multiple(Mac,1,0,x)
+            sage: M.polynomial(1)
+            x*y
+            sage: M.index(1)
+            1
+            sage: M.label(1)
+            (x, 0)
 
         """
+
         f=mon*Mac.polynomial(ind)
         list = f.monomials()
         monom=self._monomials
@@ -535,17 +572,18 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
-        sage: M.column_transposition(1,2)
-        sage: M.monomials()
-        [x^2, y^2, x*y]
-        sage: M.indexes()
-        [1, 1]
-        sage: M.polynomial(0)
-        4*y^2
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
+            sage: M.column_transposition(1,2)
+            sage: M.monomials()
+            [x^2, y^2, x*y]
+            sage: M.indexes()
+            [1, 1]
+            sage: M.polynomial(0)
+            4*y^2
         """
+
         if j1 != j2:
             nrows = self.nrows()
             ncols = self._ncols
@@ -571,15 +609,16 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,2,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[1,1])
-        sage: M2 = M.row_echelon(pivot_choice = True)[0]
-        sage: M2.polynomial(1)
-        -y^2
-        sage: M2.polynomial(0)
-        2*x*y + 4*y^2
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,2,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[1,1])
+            sage: M2 = M.row_echelon(pivot_choice = True)[0]
+            sage: M2.polynomial(1)
+            -y^2
+            sage: M2.polynomial(0)
+            2*x*y + 4*y^2
         """
+
         if Macdd is not None:
             weak = True
         else:
@@ -825,14 +864,15 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
-        sage: M.F5crit(y^2)
-        True
-        sage: M.F5crit(x^2)
-        False
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[2,1])
+            sage: M.F5crit(y^2)
+            True
+            sage: M.F5crit(x^2)
+            False
         """
+
         return self._monomials.index(mon) in self._indexes
 
     def update_mac(self, d, i, fi, di, Macdi, allmonomials, Macdd=None, use_criteria=True, tropical = False, tropical_weight = None, tropical_order_ring = None, grevlex = False):
@@ -850,25 +890,26 @@ class MacaulayMatrix:
 
         OUTPUT:
 
-
         If Maccdd is None, the function adds to the bottom of self all the `x^\alpha fi`, with
             `\vert \alpha \vert + deg(fi) = d`
         and `x^\alpha` does not verify the F5 criteria (unless use_criteria is False),
         ordered by label.
         Else, the rows added are created by multiples of rows of Mac[d-1][i] that pass the F5 criteria.
+
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 3, [x,0,x-y,x+y,y,x-2*y]),None,3,[2,1])
-        sage: allmonomials = [[],[x,y],[x^2,x*y,y^2]]
-        sage: Macdi = MacaulayMatrix(T,[x,y],Matrix(QQ, 2, 2, [0,1,0,1]), Matrix(T, 2, 3,[1,0,1,-1,0,2]),None,3,[2,2])
-        sage: M.update_mac(2,3,x,1,Macdi,allmonomials)
-        sage: M.nrows()
-        4
-        sage: M.polynomial(2)
-        x*y
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), Matrix(T, 2, 3, [x,0,x-y,x+y,y,x-2*y]),None,3,[2,1])
+            sage: allmonomials = [[],[x,y],[x^2,x*y,y^2]]
+            sage: Macdi = MacaulayMatrix(T,[x,y],Matrix(QQ, 2, 2, [0,1,0,1]), Matrix(T, 2, 3,[1,0,1,-1,0,2]),None,3,[2,2])
+            sage: M.update_mac(2,3,x,1,Macdi,allmonomials)
+            sage: M.nrows()
+            4
+            sage: M.polynomial(2)
+            x*y
         """
+
         if Macdd is None:
             monom = allmonomials[d-di]
             P = self._base
@@ -968,7 +1009,7 @@ class MacaulayMatrix:
         INPUT:
 
         - ``self`` --  is a Matrix With Label, which is supposed to be under row-echelon form
-        _ ``f`` -- a polynomial with the same degree as self, which is supposed to come from a row of self
+        - ``f`` -- a polynomial with the same degree as self, which is supposed to come from a row of self
 
         OUTPUT:
 
@@ -976,12 +1017,13 @@ class MacaulayMatrix:
 
         EXAMPLES::
 
-        sage: T.<x,y> = QQ[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), indexes = [2,1])
-        sage: M.macaulay_inter_reduction(x*y+3*y^2)
-        x*y
+            sage: T.<x,y> = QQ[]
+            sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+            sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,0,4,0,2,3]), indexes = [2,1])
+            sage: M.macaulay_inter_reduction(x*y+3*y^2)
+            x*y
         """
+
         fmonom = f. monomials()
         monom = self._monomials
         nmonom = self.ncols()
@@ -1044,6 +1086,7 @@ class MacaulayMatrix:
 def update_G(Mlab, Mactilda, G, label_of_output = None, tropical = False):
     """
     INPUT:
+
     - ``Mlab`` -- a matrix with label
     - ``Mactilda`` -- required to be the row echelon form of Mlab
     - ``G`` -- a list of polynomials
@@ -1055,15 +1098,17 @@ def update_G(Mlab, Mactilda, G, label_of_output = None, tropical = False):
     have a leading monomial not in Mlab.
 
     EXAMPLES::
-    sage: T.<x,y> = QQ[]
-    sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-    sage: G = [ ]
-    sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,2,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[1,1])
-    sage: M2 = M.row_echelon(pivot_choice = True)[0]
-    sage: update_G(M, M2, G, False)
-    sage: G
-    [-y^2]
+
+        sage: T.<x,y> = QQ[]
+        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+        sage: G = [ ]
+        sage: M = MacaulayMatrix(T,[x^2,x*y,y^2],Matrix(QQ, 2, 3, [0,2,4,0,2,3]), Matrix(T, 2, 2, [x,0,x+y,y]),None,2,[1,1])
+        sage: M2 = M.row_echelon(pivot_choice = True)[0]
+        sage: update_G(M, M2, G, False)
+        sage: G
+        [-y^2]
     """
+
     monom = Mlab.monomials()
     n = Mlab.nrows()
     m = Mlab.ncols()
@@ -1096,43 +1141,44 @@ def toy_matrixF5(F, D, P, label = True, fast = True, weak_filling = False, matri
     - ``reduced`` -- a boolean to decide whether the algorithm returns a reduced basis or not
     - ``tropical`` -- a boolean to decide whether we work with tropical bases or Groebner bases
     - ``label_of_output`` -- a boolean to decide whether we return the expresion of the polynomials returned by the algorithm in function of the initial polynomials
+
     OUTPUT:
 
     G, a Groebner basis of `Id(F)`, if `D` is large enough, and there is no issue with precision
 
     EXAMPLES::
 
-    sage: T.<x,y,z> = QQ[]
-    sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
-    sage: list = [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2]
-    sage: D = 5
-    sage: toy_matrixF5(list, 5,T, reduced = True)
-    [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, y^2*z^3 - 1/2*x*z^4, x*y*z^3]
-    sage: toy_matrixF5(list, 5,T, label = False, reduced = True)
-    [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, y^2*z^3 - 1/2*x*z^4, x*y*z^3]
-    sage: S.<a,b,c> = PolynomialRing(Qp(7), order='lex')
-    sage: Mac, Mactilda, G = toy_matrixF5(list,5,T, matrices = True, use_criteria = True, minimal = True, label = False, tropical = True, tropical_weight = [1,2,4], tropical_order_ring = S, fast = False)
-    sage: G
-    [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, 2*y^2*z^3 - x*z^4, 2*x*y*z^3]
-    sage: S.<a,b,c> = PolynomialRing(Qp(2))
-    sage: list = [2*x+z, x^2+y^2-2*z^2, 4*y^2+y*z+8*z^2]
-    sage: Mac, Mactilda, G = toy_matrixF5(list ,4,T, matrices = True, minimal = True, use_criteria = True, tropical = True, tropical_weight = [0,0,0], tropical_order_ring = S)
-    sage: G
-    [2*x + z, x^2 + y^2 - 2*z^2, -2*x*y + 60/7*y^2, 1786/49*y^3]
-    sage: S.<a,b,c> = PolynomialRing(Qp(7), order='lex')
-    sage: toy_matrixF5(list,D,T, matrices = False, use_criteria = True, minimal = True, reduced = True, label = False, tropical = True, tropical_weight = [7,0,-3], tropical_order_ring = S, fast = False)
-    [2*x + z, 1/4*x^2 + 1/4*y^2 + x*z, -30*x^2 + x*y, x^3]
-    sage: toy_matrixF5(list,D,T, matrices = False, use_criteria = True, minimal = True, reduced = True, label = False, tropical = True, tropical_weight = [0,7,-3], tropical_order_ring = S, fast = False)
-    [2*x + z, x^2 - 1/7*y^2, x*y - 30/7*y^2, y^3]
-    sage: R.<x,y,z,w> = QQ[]
-    sage: I = ideal(x^2 + y^2 - z^2 - w^2, x-y)
-    sage: J = I^2
-    sage: J.basis
-    [x^4 + 2*x^2*y^2 + y^4 - 2*x^2*z^2 - 2*y^2*z^2 + z^4 - 2*x^2*w^2 - 2*y^2*w^2 + 2*z^2*w^2 + w^4, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^2 - 2*x*y + y^2]
-    sage: GB=toy_matrixF5([x^2 - 2*x*y + y^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^4 + 2*x^2*y^2 + y^4 - 2*x^2*z^2 - 2*y^2*z^2 + z^4 - 2*x^2*w^2 - 2*y^2*w^2 + 2*z^2*w^2 +w^4],5,R,reduced=True)
-    sage: GB.reverse()
-    sage: J.groebner_basis()==GB
-    True
+        sage: T.<x,y,z> = QQ[]
+        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import*
+        sage: list = [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2]
+        sage: D = 5
+        sage: toy_matrixF5(list, 5,T, reduced = True)
+        [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, y^2*z^3 - 1/2*x*z^4, x*y*z^3]
+        sage: toy_matrixF5(list, 5,T, label = False, reduced = True)
+        [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, y^2*z^3 - 1/2*x*z^4, x*y*z^3]
+        sage: S.<a,b,c> = PolynomialRing(Qp(7), order='lex')
+        sage: Mac, Mactilda, G = toy_matrixF5(list,5,T, matrices = True, use_criteria = True, minimal = True, label = False, tropical = True, tropical_weight = [1,2,4], tropical_order_ring = S, fast = False)
+        sage: G
+        [x^3 - 2*x*y*z, x^2*y - 2*y^2*z + x*z^2, x^2*z^2, 2*y^2*z^3 - x*z^4, 2*x*y*z^3]
+        sage: S.<a,b,c> = PolynomialRing(Qp(2))
+        sage: list = [2*x+z, x^2+y^2-2*z^2, 4*y^2+y*z+8*z^2]
+        sage: Mac, Mactilda, G = toy_matrixF5(list ,4,T, matrices = True, minimal = True, use_criteria = True, tropical = True, tropical_weight = [0,0,0], tropical_order_ring = S)
+        sage: G
+        [2*x + z, x^2 + y^2 - 2*z^2, -2*x*y + 60/7*y^2, 1786/49*y^3]
+        sage: S.<a,b,c> = PolynomialRing(Qp(7), order='lex')
+        sage: toy_matrixF5(list,D,T, matrices = False, use_criteria = True, minimal = True, reduced = True, label = False, tropical = True, tropical_weight = [7,0,-3], tropical_order_ring = S, fast = False)
+        [2*x + z, 1/4*x^2 + 1/4*y^2 + x*z, -30*x^2 + x*y, x^3]
+        sage: toy_matrixF5(list,D,T, matrices = False, use_criteria = True, minimal = True, reduced = True, label = False, tropical = True, tropical_weight = [0,7,-3], tropical_order_ring = S, fast = False)
+        [2*x + z, x^2 - 1/7*y^2, x*y - 30/7*y^2, y^3]
+        sage: R.<x,y,z,w> = QQ[]
+        sage: I = ideal(x^2 + y^2 - z^2 - w^2, x-y)
+        sage: J = I^2
+        sage: J.basis
+        [x^4 + 2*x^2*y^2 + y^4 - 2*x^2*z^2 - 2*y^2*z^2 + z^4 - 2*x^2*w^2 - 2*y^2*w^2 + 2*z^2*w^2 + w^4, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^2 - 2*x*y + y^2]
+        sage: GB=toy_matrixF5([x^2 - 2*x*y + y^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^3 - x^2*y + x*y^2 - y^3 - x*z^2 + y*z^2 - x*w^2 + y*w^2, x^4 + 2*x^2*y^2 + y^4 - 2*x^2*z^2 - 2*y^2*z^2 + z^4 - 2*x^2*w^2 - 2*y^2*w^2 + 2*z^2*w^2 +w^4],5,R,reduced=True)
+        sage: GB.reverse()
+        sage: J.groebner_basis()==GB
+        True
 
     ALGORITHM:
 
@@ -1146,6 +1192,7 @@ def toy_matrixF5(F, D, P, label = True, fast = True, weak_filling = False, matri
     .. [Vac2015] T. Vaccon. MMatrix-F5 Algorithms and Tropical Gröbner Bases Computation, proceedings of ISSAC 2015.
 
     """
+
     pivot_choice = not(fast)
     zero_poly = P(0)
     one_poly = P(1)
@@ -1345,5 +1392,3 @@ def toy_matrixF5(F, D, P, label = True, fast = True, weak_filling = False, matri
                 return Mac, Mactilda, G
             else:
                 return G
-
-
