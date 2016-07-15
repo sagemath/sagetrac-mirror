@@ -89,8 +89,9 @@ from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, St
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from .composition_tableau import CompositionTableau, CompositionTableaux
 
-from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
+from .tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
+lazy_import('sage.combinat.tableau_shifted', ['ShiftedTableaux', 'ShiftedTableau'])
 
 #Words
 from .words.all import *
