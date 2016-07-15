@@ -67,16 +67,20 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function, absolute_import
+
+from .permutation import Permutation
+from .posets.posets import Poset
+from .tableau import Tableaux
+
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.functions.other import factorial
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.misc_c import prod
 from sage.misc.prandom import randrange
 from sage.structure.list_clone import ClonableArray
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.permutation import Permutation
-from sage.combinat.posets.posets import Poset
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.unique_representation import UniqueRepresentation
 
 class ShiftedTableau(ClonableArray):
     """
@@ -130,6 +134,101 @@ class ShiftedTableau(ClonableArray):
             if not all(row[j] < row[j+1] for j in range(len(row)-1)):
                 raise ValueError("non-increasing row")
 
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: t = ShiftedTableau([[1,2,3],[4,5]])
+            sage: ShiftedTableaux.options(display="list")
+            sage: t
+            [[1, 2, 3], [4, 5]]
+            sage: ShiftedTableaux.options(display="array")
+            sage: t
+              1  2  3
+              4  5
+            sage: ShiftedTableaux.options(display="compact"); t
+            1,2,3/4,5
+            sage: ShiftedTableaux.options._reset()
+        """
+        return self.parent().options.dispatch(self,'_repr_','display')
+
+    def _repr_list(self):
+        """
+        Return a string representation of ``self`` as a list.
+
+        EXAMPLES::
+
+            sage: T = ShiftedTableau([[1,2,3],[4,5]])
+            sage: T._repr_list()
+            '[[1, 2, 3], [4, 5]]'
+        """
+        return repr([list(_) for _ in self])
+
+    # See #18024. CombinatorialObject provided __str__, though ClonableList
+    # doesn't. Emulate the old functionality. Possibly remove when
+    # CombinatorialObject is removed.
+    __str__ = _repr_list
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as an array.
+
+        EXAMPLES::
+
+            sage: t = ShiftedTableau([[1,2,3],[4,5]])
+            sage: print(t._repr_diagram())
+              1  2  3
+              4  5
+            sage: ShiftedTableaux.options(convention="french")
+            sage: print(t._repr_diagram())
+              4  5
+              1  2  3
+            sage: ShiftedTableaux.options._reset()
+
+        TESTS:
+
+        Check that :trac:`20768` is fixed::
+
+            sage: T = ShiftedTableau([[1523, 1, 2],[1,12341, -2]])
+            sage: T.pp()
+             1523     1  2
+                1 12341 -2
+        """
+        if not self:
+            return "  -"
+
+        # Get the widths of the columns
+        str_tab = [[str(data) for data in row] for row in self]
+        col_widths = [2]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        if self.parent().options('convention') == "French":
+            str_tab = reversed(str_tab)
+
+        return "\n".join(" "
+                         + " ".join("{:>{width}}".format(e,width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         for row in str_tab)
+
+    def _repr_compact(self):
+        """
+        Return a compact string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableau([[1,2,3],[4,5]])._repr_compact()
+            '1,2,3/4,5'
+            sage: ShiftedTableau([])._repr_compact()
+            '-'
+        """
+        if not self:
+            return '-'
+        return '/'.join(','.join('%s'%r for r in row) for row in self)
+
     def _repr_diagram(self):
         """
         Return a string representation of ``self`` as an array.
@@ -140,11 +239,11 @@ class ShiftedTableau(ClonableArray):
             sage: print(t._repr_diagram())
               1  2  3
               4  5
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: print(t._repr_diagram())
               4  5
               1  2  3
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
 
         """
         if not self:
@@ -157,7 +256,7 @@ class ShiftedTableau(ClonableArray):
             for i,e in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(e))
 
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options('convention') == "French":
             str_tab = reversed(str_tab)
 
         return "\n".join(" "
@@ -230,6 +329,67 @@ class ShiftedTableau(ClonableArray):
             return self[i][j]
         except IndexError:
             raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,repr(self)))
+
+    def __eq__(self, other):
+        r"""
+        Check whether ``self`` is equal to ``other``.
+
+        .. TODO::
+
+            This overwrites the equality check of
+            :class:`~sage.structure.list_clone.ClonableList`
+            in order to circumvent the coercion framework.
+            Eventually this should be solved more elegantly,
+            for example along the lines of what was done for
+            `k`-tableaux.
+
+            For now, two elements are equal if their underlying
+            defining lists compare equal.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: t = ShiftedTableau([[1,2]])
+            sage: t == 0
+            False
+            sage: t == ShiftedTableaux(2)([[1,2]])
+            True
+        """
+        if isinstance(other, ShiftedTableau):
+            return list(self) == list(other)
+        else:
+            return list(self) == other
+
+    def __ne__(self, other):
+        r"""
+        Check whether ``self`` is unequal to ``other``.
+
+        See the documentation of :meth:`__eq__`.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: ShiftedTableau([[2,3],[1]]) !=[]
+            True
+        """
+        if isinstance(other, ShiftedTableau):
+            return list(self) != list(other)
+        else:
+            return list(self) != other
 
     def size(self):
         """
@@ -378,6 +538,8 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
         """
         self._shape = shape
         Parent.__init__(self, category=FiniteEnumeratedSets())
+
+    options = Tableaux.options
 
     def __iter__(self):
         """
