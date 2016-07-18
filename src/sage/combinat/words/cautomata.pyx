@@ -773,34 +773,16 @@ cdef class FastAutomaton:
 		r2.A = Av
 		return [r.emonde().minimise(), r2.emonde().minimise()]
 	
-	#return the automaton recognizing the langage shifted
-	def shift (self, verb=False):
-		#détermine la liste des successeurs de l'état initial
-		cdef int i
-		cdef int e
-		l = set()
-		for j in range(self.a.na):
-			e = self.a.e[self.a.i].f[j]
-			if e != -1:
-				l.add(e)
-		l = list(l)
-		if verb:
-			print "états à considérer : %s"%l
-		#calcule l'union des automates
-		a = self.copy()
-		a.set_initial_state(l[0])
-		a = a.emonde().minimise()
-		for i in range(1, len(l)):
-			b = self.copy()
-			b.set_initial_state(l[i])
-			b = b.emonde().minimise()
-			a = a.union(b)
-		return a
-	
 	#modify the automaton to recognize the langage shifted by a (letter given by its index)
 	def shift1OP (self, int a, verb=False):
 		if self.a.i != -1:
 			self.a.i = self.a.e[self.a.i].f[a]
+	
+	#modify the automaton to recognize the langage shifted by a (letter given by its index)
+	def shiftOP (self, int a, int np, verb=False):
+		for i in range(np):
+			if self.a.i != -1:
+				self.a.i = self.a.e[self.a.i].f[a]
 	
 	def unshift1 (self, int a, final=False):
 		r = FastAutomaton(None)
@@ -814,6 +796,26 @@ cdef class FastAutomaton:
 		aut.e[ne].f[a] = self.a.i
 		aut.e[ne].final = final
 		aut.i = ne
+		r.a[0] = aut
+		r.A = self.A
+		return r
+	
+	def unshift (self, int a, int np, final=False):
+		r = FastAutomaton(None)
+		sig_on()
+		cdef Automaton aut
+		aut = CopyAutomaton(self.a[0], self.a.n+np, self.a.na)
+		cdef int i
+		cdef int ne = self.a.n
+		for j in range(np):
+			for i in range(aut.na):
+				aut.e[ne+j].f[i] = -1
+			if j > 0:
+				aut.e[ne+j].f[a] = ne+j-1
+			else:
+				aut.e[ne+j].f[a] = self.a.i
+			aut.e[ne+j].final = final
+		aut.i = ne+np-1
 		r.a[0] = aut
 		r.A = self.A
 		return r

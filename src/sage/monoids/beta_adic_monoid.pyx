@@ -182,7 +182,7 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, plus=True, verb=False) except
 	#convert the data in C
 	n = K.degree()
 	na = len(parch)
-	ncmax = 100
+	ncmax = len(set([c-c2 for c in self.C for c2 in self.C]))
 	cdef InfoBetaAdic i
 	if verb: print "alloc..."
 	i = allocInfoBetaAdic(n, na, ncmax, verb)
