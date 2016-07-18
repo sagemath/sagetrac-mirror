@@ -1235,7 +1235,7 @@ cdef class ntl_ZZ_pEX(object):
 
         - `R`: an univariate polynomial ring over an absolute number field `QQ[a]`.
 
-        If `self` is an element in `ZZ[x]/(m, c(x))`. In order to make sense
+        If `self` is an element in `(ZZ/m)[x]/(c(x))`. In order to make sense
         of this algorithm, the minimum polynomial of `a` should be congruent
         to `c(x)` modulo `m`.
 
@@ -1290,7 +1290,7 @@ cdef class ntl_ZZ_pEX(object):
         - `R`: an univariate polynomial ring over an absolute number field
           `QQ[a]`.
 
-        If `self` is an element in `ZZ[x]/(m, c(x))`. In order to make sense
+        If `self` is an element in `(ZZ/m)[x]/(c(x))`. In order to make sense
         of this algorithm, the minimum polynomial of `a` should be congruent to
         `c(x)` modulo `m`.
 
