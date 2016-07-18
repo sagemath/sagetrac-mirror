@@ -70,7 +70,7 @@ Options:
    -s: do not delete the temporary build directory
    -c: after installing, run the test suite for the package
    -d: only download the package
-
+   -y: automatically reply "y" for all prompts (for expert use only)
 EOF
 }
 
@@ -104,6 +104,33 @@ lookup_param()
     local file=$2
     sed -n "s/^${param} *= *//p" $file
 }
+
+
+# Display a continue or exit prompt, with optional timeout in seconds
+continue_prompt()
+{
+    if [ -z $1 ]; then
+        local timeout=""
+        local timeout_msg=""
+    else
+        local timeout="-t $1"
+        local timeout_msg="(continuing automatically after $1 seconds) "
+    fi
+
+    if [ $YES -ne 1 ]; then
+        local answer
+        local prompt="Are you sure you want to continue ${timeout_msg}[Y/n]? "
+
+
+        read $timeout -p "$prompt" answer
+
+        case "$answer" in
+            n*|N*) exit 0;;
+        esac
+    fi
+    echo
+}
+
 
 # Handle -n, -t, -q options for recursive make
 # See Trac #12016.
@@ -175,10 +202,13 @@ fi
 
 # Parse options
 INFO=0
+YES=0
 while true; do
     case "$1" in
         --info)
             INFO=1;;
+        -y)
+            YES=1;;
         -d)
             SAGE_INSTALL_FETCH_ONLY=1;;
         -s)

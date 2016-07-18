@@ -283,6 +283,7 @@ if [ "$1" = '-f' ]; then
     set -- -i "$@"
 fi
 
+
 if [ "$1" = '-i' ]; then
     shift
     if [ -z "$MAKE" ]; then
@@ -293,36 +294,54 @@ if [ "$1" = '-i' ]; then
 
     cd "$SAGE_ROOT"
 
+    INSTALL_OPTIONS=""  # Options to sage-spkg
+    PKGS=""             # Packages to install
+    for OPT in "$@"
+    do
+        case "$OPT" in
+            -info|--info)
+                echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
+                exit 2;;
+            -f) FORCE_INSTALL=yes;;
+            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT";;
+            *)
+                PKGS="$PKGS $OPT"
+                ;;
+        esac
+    done
+
     # First of all, make sure that the toolchain is up-to-date
     # (which is a dependency of every package)
     ./sage --location
     $MAKE all-toolchain
     echo
 
-    INSTALL_OPTIONS=""  # Options to sage-spkg
-    for PKG in "$@"
+    # Must source sage-env for sage-spkg to work
+    set +e
+    source "$0-env" >&2
+    set -e
+
+    for PKG in $PKGS
     do
-        case "$PKG" in
-            -info|--info)
-                echo >&2 "Error: 'sage -i $PKG <package>' is no longer supported, use 'sage --info <package>' instead."
-                exit 2;;
-            -f) FORCE_INSTALL=yes;;
-            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG";;
-            *)
-                # First check that $PKG is actually a Makefile target
-                if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
-                    echo >&2 "Error: package '$PKG' not found"
-                    echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
-                    echo >&2
-                    sleep 5
-                    ./sage -p $INSTALL_OPTIONS "$PKG"
-                else
-                    if [ x$FORCE_INSTALL = xyes ]; then
-                        $MAKE "$PKG-clean"
-                    fi
-                    $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
-                fi;;
-        esac
+        # First check that $PKG is actually a Makefile target
+        if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
+            echo >&2 "Error: package '$PKG' not found"
+            echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
+            echo >&2
+            sleep 5
+            ./sage -p $INSTALL_OPTIONS "$PKG"
+        else
+            if [ x$FORCE_INSTALL = xyes ]; then
+                $MAKE "$PKG-clean"
+            fi
+
+            # First just download the packages; this may prompt the user if the
+            # package is experimental / deprecated
+            sage-logger "sage-spkg $INSTALL_OPTIONS -d '$PKG'" logs/install.log
+
+            # Then make / install the package with no prompts
+            $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS -y" "$OPT"
+        fi
     done
     exit 0
 fi
