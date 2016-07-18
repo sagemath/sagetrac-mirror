@@ -277,16 +277,13 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             Bound = Npol.discriminant()  # D in Encarnacion paper.
             Bound = Bound * h1.leading_coefficient() * h2.leading_coefficient()
             D = ntl_ZZX(Bound.list())
-            # Experimental bound IMPROVE
-            # p = ZZ(3+min(2**255, (max(map(abs,Bound.list())).n()**(0.4)).floor())).next_prime(proof=False)
-            p = ZZ(3+min(2**255, max(map(abs, Bound.list()))))
         else:
             # Use the denominator bound given by Encarnacion.
             Bound = Npol.discriminant()
             f = Npol.resultant(ZZ['x'](h1.leading_coefficient().polynomial()))
             g = Npol.resultant(ZZ['x'](h2.leading_coefficient().polynomial()))
             D = ntl_ZZX([Bound * f.gcd(g)])
-            p = ZZ(3+min(2**255, max(map(abs, Bound.list()))))
+        p = ZZ(3+min(2**31, max(map(abs, Bound.list()))))
         h1d = h1.degree()
         h2d = h2.degree()
         cd = N.degree()
@@ -299,8 +296,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         steps = 0
         nsteps = 0
         while True:
-            # We do not really need prime as long as the gcd success.
-            p = p.next_prime(proof=False)
+            p = p.next_prime(proof=True)
             # Recreate modular context.
             pol_p = ntl_ZZ_pX(pol, p)
             if pol_p.degree() == cd:
