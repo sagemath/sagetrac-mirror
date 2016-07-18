@@ -285,7 +285,7 @@ class ModularSymbol(SageObject):
         Some harder cases fail::
 
             sage: m = EllipticCurve('121b1').modular_symbol(implementation="sage")
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by +/- a power of 2.
             sage: m._scaling
             1
 
@@ -427,7 +427,7 @@ class ModularSymbol(SageObject):
             sage: E = EllipticCurve('19a1')
             sage: m = E.modular_symbol(sign=+1)
             sage: m.__scale_by_periods_only__()
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by  +/- a power of 2.
             sage: m._scaling
             1
 
@@ -436,7 +436,7 @@ class ModularSymbol(SageObject):
             sage: m._scaling
             3/2
             sage: m.__scale_by_periods_only__()
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by +/- a power of 2.
             sage: m._scaling
             3
         """
@@ -447,7 +447,7 @@ class ModularSymbol(SageObject):
             print("Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by a rational number.")
             self._scaling = 1
         else :
-            print("Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.")
+            print("Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by +/- a power of 2.")
             cr0 = Integer(crla[0]).str() + crla[1] + '1'
             E0 = EllipticCurve(cr0)
             if self._sign == 1:
@@ -499,7 +499,7 @@ class ModularSymbolECLIB(ModularSymbol):
 
             sage: E=EllipticCurve('121b1')
             sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by +/- a power of 2.
             sage: M(0)
             0
             sage: M(1/7)
@@ -542,7 +542,7 @@ class ModularSymbolECLIB(ModularSymbol):
         if self._sign == -1:
             raise NotImplementedError("Despite that eclib has now -1 modular symbols the interface to them is not yet written.")
         self._E = E
-        self._use_eclib = True
+        self._implementation="eclib"
         self._base_ring = QQ
         self._normalize = normalize
         self._modsym = ECModularSymbol(E)
@@ -671,7 +671,7 @@ class ModularSymbolSage(ModularSymbol):
         if self._sign != -1 and self._sign != 1:
             raise TypeError('sign must -1 or 1')
         self._E = E
-        self._use_eclib = False
+        self._implementation="sage"
         self._normalize = normalize
         self._modsym = E.modular_symbol_space(sign=self._sign)
         self._base_ring = self._modsym.base_ring()
@@ -770,7 +770,6 @@ class ModularSymbolSage(ModularSymbol):
             sage: m = EllipticCurve('11a1').modular_symbol(implementation="sage")
             sage: m(0)
             1/5
-
         """
         # this next line takes most of the time
         w = self._ambient_modsym.modular_symbol([zero, oo, Cusps(r)], check=False)
