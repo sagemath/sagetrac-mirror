@@ -101,15 +101,15 @@ cdef class Node(sage.structure.sage_object.SageObject):
             False
             sage: N.is_cycle({1, 2, 4, 6, 8})
             True
-            sage: N.typing({1, 4, 7, 11})
+            sage: N.T({1, 4, 7, 11})
             1
-            sage: N.typing({1, 2, 4, 7, 11})
+            sage: N.T({1, 2, 4, 7, 11})
             2
-            sage: N.typing({1, 4, 6})
+            sage: N.T({1, 4, 6})
             3
-            sage: N.typing({1, 4, 6, 12})
+            sage: N.T({1, 4, 6, 12})
             4
-            sage: N.typing({1, 2, 4, 8})
+            sage: N.T({1, 2, 4, 8})
             5
 
 
@@ -433,22 +433,22 @@ cdef class Node(sage.structure.sage_object.SageObject):
         return True
 
 
-    cpdef typing(self, P):
+    cpdef T(self, P):
         r"""
         EXAMPLES:
 
             sage: from sage.matroids.cunningham_edmonds_decomposition import *
             sage: G= Graph([(0, 1, 1), (0, 4, 2), (0, 5, 3), (1, 2, 4), (1, 6, 5), (2, 3, 6), (2, 7, 7), (3, 4, 8), (3, 8, 9), (4, 9, 10), (5, 7, 11), (5, 8, 12), (6, 8, 13), (6, 9, 14), (7, 9, 15)], multiedges=True)
             sage: N = Node(G, 3)
-            sage: N.typing({1, 4, 7, 11})
+            sage: N.T({1, 4, 7, 11})
             1
-            sage: N.typing({1, 2, 4, 7, 11})
+            sage: N.T({1, 2, 4, 7, 11})
             2
-            sage: N.typing({1, 4, 6})
+            sage: N.T({1, 4, 6})
             3
-            sage: N.typing({1, 4, 6, 12})
+            sage: N.T({1, 4, 6, 12})
             4
-            sage: N.typing({1, 2, 4, 8})
+            sage: N.T({1, 2, 4, 8})
             5     
         """
         C = set(P) | {self.get_parent_marker()}
@@ -683,7 +683,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
     # NECESSARY
     # We are assuming that if ``T`` is specified, then so are ``nodes``, ``next_edge``, and ``next_vertex``.
-    def __init__(self, T=None, nodes = None, int next_edge=0, next_vertex=None, K_1=-1, K_2=-1, u_1=-1, u_2=-1):
+    def __init__(self, T=None, nodes = None, int next_edge=0, next_vertex=0, K_1=-1, K_2=-1, u_1=-1, u_2=-1):
         """
         Initialization of the decomposition.
 
@@ -717,8 +717,8 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             self.root = self.arborescence.sources()[0]          # This should work, because our ``arborescence`` should only have one source. We might want to check for that.
             
             self.next_arborescence_vertex = T.order()
-            self.next_vertex = self.next_vertex
-            self.next_edge = self.next_edge
+            self.next_vertex = next_vertex
+            self.next_edge = next_edge
             self.K_1 = K_1
             self.K_2 = K_2
             self.u_1 = u_1
@@ -788,12 +788,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         sage: from sage.matroids.cunningham_edmonds_decomposition import *
         sage: D = CunninghamEdmondsDecomposition(next_edge=17)
         sage: Dp = D.__hypopath(set([17]))
-        sage: Dp.get_arborescence()
-        Digraph on 1 vertex
-        sage: Dp.get_nodes()[0].get_graph()
-        Multi-graph on 2 vertices
-        sage: Dp.get_nodes()[0].get_graph().edges()
-        [(0, 1, 0), (0, 1, 17)]
+        
         """
         D_hat = self
         for v in self.arborescence.vertices():
@@ -813,7 +808,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         for H in pi(s):
             if D_hat.nodes[H].is_polygon():
                 D_hat.nodes[H].__relink1(P)
-                if D_hat.nodes[H].typing == 5:
+                if D_hat.merge(H, P).T == 5:
                     return False
             i = s - 1
         #T2
@@ -852,7 +847,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                     # If `T(H_i) = 1` for all `i` and `T(H) = 2` or 3, either set `K_1 = Q`,
                     # if ``Q`` hasn't already been assigned, or set `K_2 = Q`.
                     if len(num_fives) + len(num_fours) + len(num_threes) + len(num_twos) == 0:
-                        if D_hat.nodes[H].typing() == 2 or D_hat.nodes[H].typing() == 3:                                  # I need to figure out how to compute T(H)
+                        if D_hat.merge(H, P).T() == 2 or D_hat.merge(H, P).T() == 3:                                  # I need to figure out how to compute T(H)
                             if D_hat.K_1 == -1:
                                 D_hat.K_1 = Q
                             else:
@@ -860,14 +855,14 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                         # R2
                         # If `T(H_i) = 1` for all `i` and `T(H) = 4`, set ``K_1`` and ``K_2``
                         # equal to ``Q``.
-                        if D_hat.nodes[H].typing() == 4:
+                        if D_hat.merge(H, P).T() == 4:
                             D_hat.K_1 = Q
                             D_hat.K_2 = Q
                     # R3
                     # Suppose `T(H_k)` equals 2 or 3 for some `k`, `T(H_i) = 1` for all `i \not = k`, and `T(H) = 4`.
                     # Let ``K_2`` be the node on the unique path in ``D`` between ``Q`` and ``K_1, that is nearest
                     # ``K_1``  and contains the same end of ``P`` as ``Q``
-                    if len(num_threes) + len(num_twos) == 1 and len(num_fours) == 0 and D_hat.nodes[H].typing() == 4:
+                    if len(num_threes) + len(num_twos) == 1 and len(num_fours) == 0 and D_hat.merge(H, P).T() == 4:
                         D_hat.K_2 = Q
                         # for i in range[D_hat.arborescence.order()]:
                         # I just realized that I missed the last line "and contains the same end of ''P'' as ''Q''."
@@ -875,7 +870,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                         # D_hat.arborescence.neighbors_in(D_hat.K_1)[0]   # This is the parent of ``K_1``
 
                     # Here, we need to find (if possible an orientation `f'` and a corresponding new ``D_hat`` such that F_f'[H1, ..., Ht] is good--see (4.7)
-                    if D_hat.nodes[H].typing() == 5:                                                   #Again, figure out how to do this!
+                    if D_hat.merge(H, P).T() == 5:                                                   #Again, figure out how to do this!
                         return False
             i = i -1
 
@@ -1006,19 +1001,130 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         return D_hat
 
 
-    # # This is used in ``__update``.
-    # cpdef __squeeze(self, N, L):
-    #     """
-    #     Finds a hyperpath in a graph decomposition, or the conclusion that none exists
-    #     INPUT:
+    # This is used in ``__update``.
+    cpdef __squeeze(self, S, L):
+        """
+        Finds a hyperpath in a graph decomposition, or the conclusion that none exists
+        INPUT:
 
-    #     - ``L`` -- a 
+        - ``S`` -- a polygon of ``R``
+        - ``L`` -- a path in ``S``
 
-    #     OUTPUT:
+        OUTPUT:
 
-    #     A `t`-decomposition ``D*`` of the graph obtained from ``m(D)`` by adding the edges of `C-P` so that ``C`` is a cycle, and `C-P` is incident to ``m(D)`` at exactly two nodes.
+        None
 
-    #     """
+        EXAMPLES:
+            sage: from sage.matroids.cunningham_edmonds_decomposition import *
+            sage: G= Graph([(2, 3, 2), (3, 4, 3), (4, 5, 4), (5, 6, 5), (6, 7, 6), (7, 8, 7), (8, 9, 8), (9, 10, 9), (10, 11, 10), (11, 2, 11)], multiedges=True)
+            sage: N = Node (G, 2)
+            sage: nodes = [Node(Graph([(0, 1, 0), (0, 1, 1), (0, 1, 2)], multiedges = True), 0), N]
+
+            sage: T = DiGraph([(0, 1)])
+            sage: D = CunninghamEdmondsDecomposition(T, nodes, 12, 12)
+            sage: D.__squeeze(1, {2, 3, 4, 5})
+
+            sage: D.get_arborescence().edges()
+            [(0, 1, None), (1, 2, None)]
+            sage: D.get_nodes()[1].get_graph().edges()
+            [(2, 3, 2), (2, 6, 12), (3, 4, 3), (4, 5, 4), (5, 6, 5)]
+            sage: D.get_nodes()[2].get_graph().edges()
+            [(7, 8, 7),
+             (7, 13, 6),
+             (8, 9, 8),
+             (9, 10, 9),
+             (10, 11, 10),
+             (11, 12, 11),
+             (12, 13, 12)]
+
+            sage: D.__squeeze(2, {8, 9, 10})
+            [7, 6, 8, 9, 10, 11, 12]
+            set([11, 12, 6, 7])
+            set([8, 9, 10])
+            8
+            11
+            13
+            [(7, 8, 7), (7, 13, 6), (11, 12, 11), (12, 13, 12)]
+            [(7, 8, 7), (7, 13, 6), (8, 11, 13), (11, 12, 11), (12, 13, 12)]
+            sage: D.get_arborescence().edges()
+            [(0, 1, None), (1, 2, None), (2, 3, None)]
+            sage: D.get_nodes()[2].get_graph().edges()
+            [(7, 8, 7), (7, 13, 6), (8, 11, 13), (11, 12, 11), (12, 13, 12)]
+            sage: D.get_nodes()[3].get_graph().edges()
+            [(9, 10, 9), (9, 14, 8), (10, 15, 10), (14, 15, 13)]
+
+        """
+
+        # ''L'' must be a path in some polygon ``S`` of ``R``. If ``L`` has fewer than two edges, do nothing.
+        # Otherwise, let ``f'`` be a new element and replace ``S`` in ``D_star`` by the two polygons formed
+        # by adding ``f'`` to the paths ``L`` and `S-L`, respectively. Replace ``S`` in ``R`` by the
+        # polygon formed from `S-L` 
+
+        if len(L) < 2:
+            return None
+        fp = self.next_edge
+        self.next_edge = self.next_edge + 1
+        self.arborescence.add_edge(S, self.next_arborescence_vertex)
+        self.next_arborescence_vertex = self.next_arborescence_vertex + 1
+        N = self.nodes[S]
+
+
+
+        if N.get_parent_marker() in L:
+            G = Graph()
+
+            for e in L:
+                G.add_edge(N.get_named_edge(e))
+            e2 = -1
+            for v in G.vertices():
+                if G.degree(v) == 1:
+                    if e2 == -1:
+                        e1 = v
+                    e2 = v
+            G.add_edge(e1, e2, fp)
+            Gp = Graph()
+            for e in set(N.get_graph().edge_labels()).difference(L):
+                Gp.add_edge(N.get_named_edge(e))
+            Gp.add_edge(self.next_vertex, Gp.neighbors(e1)[0], Gp.edge_label(e1, Gp.neighbors(e1)[0]))
+            Gp.add_edge(self.next_vertex + 1, Gp.neighbors(e2)[0], Gp.edge_label(e2, Gp.neighbors(e2)[0]))
+            Gp.add_edge(self.next_vertex, self.next_vertex + 1, fp)
+            Gp.delete_vertex(e1)
+            Gp.delete_vertex(e2)
+            self.next_vertex = self.next_vertex + 2
+
+        else:
+            G = Graph()
+
+            print N.get_graph().edge_labels()
+            print set(N.get_graph().edge_labels()).difference(L)
+            print L
+            for e in set(N.get_graph().edge_labels()).difference(L):
+                G.add_edge(N.get_named_edge(e))
+            e2 = -1
+            for v in G.vertices():
+                if G.degree(v) == 1:
+                    if e2 == -1:
+                        e1 = v
+                    e2 = v
+            print e1
+            print e2
+            print fp
+            print G.edges()
+            G.add_edge(e1, e2, fp)
+            print G.edges()
+            Gp = Graph()
+            for e in L:
+                Gp.add_edge(N.get_named_edge(e))
+            Gp.add_edge(self.next_vertex, Gp.neighbors(e1)[0], Gp.edge_label(e1, Gp.neighbors(e1)[0]))
+            Gp.add_edge(self.next_vertex + 1, Gp.neighbors(e2)[0], Gp.edge_label(e2, Gp.neighbors(e2)[0]))
+            Gp.add_edge(self.next_vertex, self.next_vertex + 1, fp)
+            Gp.delete_vertex(e1)
+            Gp.delete_vertex(e2)
+            self.next_vertex = self.next_vertex + 2
+
+        self.nodes[S] = Node(G, N.get_parent_marker(), N.get_f())
+        self.nodes.append(Node(Gp, fp, -1))
+
 
     cpdef __update(self, P, C):
         """
@@ -1352,11 +1458,13 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                     u = mn[0]
                 else:
                     u = mn[1]
+                    self.nodes[V].set_f(self.nodes[V].get_f() * -1)           # This, and the line later, mean that ``mn[0]`` gets merged with ``mp[0]`` iff ``self.nodes[V].get(f)`` is -1.
 
                 if p1 == 1:
                     x = mp[0]
                 else:
                     x = mp[1]
+                    D_hat.nodes[V].set_f(D_hat.nodes[V].get_f() * -1)
 
 
                 D_hat.nodes[D_hat.get_parent(V)] = D_hat.merge_with_parent(V, u, x)
