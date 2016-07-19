@@ -800,7 +800,13 @@ cdef class FastAutomaton:
 		r.A = self.A
 		return r
 	
-	def unshift (self, int a, int np, final=False):
+	def unshift (self, int a, int np, final=None):
+		if final is None:
+			if self.a.i == -1:
+				r = FastAutomaton(None)
+				r.A = self.A
+				return r
+			final = self.a.e[self.a.i].final
 		r = FastAutomaton(None)
 		sig_on()
 		cdef Automaton aut
