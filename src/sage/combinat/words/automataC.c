@@ -739,6 +739,54 @@ bool emptyLangage (Automaton a)
 	return res;
 }
 
+bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
+{
+	if (a.e[e].final)
+	{
+		if (verb)
+			printf("Alloue un mot de taille %d.\n", n);
+		*w = NewDict(n);
+		return true;
+	}
+	//indique que le sommet a été vu
+	a.e[e].final |= 2;
+	//parcours les fils
+	int i;
+	for (i=0;i<a.na;i++)
+	{
+		if (a.e[e].f[i] != -1)
+		{
+			if (a.e[a.e[e].f[i]].final & 2)
+				continue; //ce fils a déjà été vu
+			if (findWord_rec(a, a.e[e].f[i], n+1, w, verb))
+			{
+				if (verb)
+				{
+					printf("w[%d] = %d\n", n, i);
+				}
+				w->e[n] = i;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+//rend un mot dans le langage de a
+bool findWord (Automaton a, Dict *w, bool verb)
+{
+	if (a.i == -1)
+		return false;
+	bool res = findWord_rec(a, a.i, 0, w, verb);
+	//remet les états finaux
+	int i;
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final &= 1;
+	}
+	return res;
+}
+
 inline int contract (int i1, int i2, int n1)
 {
 	return i1+n1*i2;

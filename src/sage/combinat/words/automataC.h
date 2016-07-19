@@ -13,6 +13,8 @@ struct Dict
 };
 typedef struct Dict Dict;
 
+bool findWord (Automaton a, Dict *w, bool verb); //rend un mot dans le langage de a
+
 Dict NewDict (int n);
 void FreeDict (Dict d);
 void printDict (Dict d);

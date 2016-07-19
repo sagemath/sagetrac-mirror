@@ -79,6 +79,7 @@ cdef extern from "automataC.h":
 	bool IsCompleteAutomaton (Automaton a)
 	bool CompleteAutomaton (Automaton *a)
 	Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
+	bool findWord (Automaton a, Dict *w, bool verb)
 	void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -1070,6 +1071,33 @@ cdef class FastAutomaton:
 		res = equalsLangages(self.a, a2.a, d, minimized)
 		sig_off()
 		return Bool(res)
+	
+	def find_word (self, bool verb=False):
+		sig_on()
+		cdef Dict w
+		res = findWord (self.a[0], &w, verb)
+		sig_off()
+		if not res:
+			return None
+		r = []
+		for i in range(w.n):
+			r.append(self.A[w.e[i]])
+		FreeDict(w)
+		return r
+	
+	#determine if the word is recognized by the automaton or not
+	def rec_word (self, list w):
+		cdef int e = self.a.i
+		if e == -1:
+			return False
+		d = {}
+		for i,a in enumerate(self.A):
+			d[a] = i
+		for a in w:
+			e = self.a.e[e].f[d[a]]
+			if e == -1:
+				return False
+		return Bool(self.a.e[e].final)
 
 	def add_state (self, bool final):
 		sig_on()
@@ -1154,14 +1182,15 @@ cdef class FastAutomaton:
 
 	#tell if the language of the automaton is empty
 	#(this function is not very efficient)
-	def is_empty (self, ext=True):
-		if ext:
-			return self.emonde().emonde_inf().n_states() == 0
-		else:
-			return self.emonde().n_states() == 0
+	def is_empty (self, ext=False):
+		return (self.find_word() is None)
+		#if ext:
+		#	return self.emonde().emonde_inf().n_states() == 0
+		#else:
+		#	return self.emonde().n_states() == 0
 	
 	#determine if the languages intersect
-	def intersect (self, FastAutomaton b, ext=True):
+	def intersect (self, FastAutomaton b, ext=False):
 		return not self.intersection(b).is_empty(ext)
 	
 	def random_word (self, int nmin=-1, int nmax=100):
