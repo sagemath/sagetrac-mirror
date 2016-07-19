@@ -3,10 +3,10 @@ Shifted Tableaux
 
 Shifted tableaux arise in the projective representation theory of the symmetric
 groups and other related contexts [HH92]_. The shifted tableaux are indexed by
-**strict partitions**, or partitions with distinct parts. Unlike standard
-tableau, which are drawn as left justified arrays,  shifted tableaux are drawn
-with row `r+1` shifted one position to the strict of row `r`. For example, the
-shifted tableaux of shape `(4,1)` are::
+**strict partitions**, or partitions with distinct parts. Unlike 
+:class:`~sage.combinat.tableau.Tableau`, which are drawn as left justified arrays, shifted tableaux are drawn
+with row `r+1` shifted one position to the right of row `r`. For example, the
+standard shifted tableaux of shape `(4,1)` are::
 
     1 2 3 4    1 2 3 5    1 2 4 5
       5          4          3   
@@ -16,24 +16,26 @@ EXAMPLES::
     sage: t = ShiftedTableau([[1,2,3],[4,5]]); t
     [[1, 2, 3], [4, 5]]
     sage: t.pp()
-      6  7     1  2  3
-      8  9     4  5
+    1  2  3
+       4  5
     sage: t(0,0)
-    7
+    1
     sage: t(1,0)
-    2
+    4
     sage: t.shape()
-    ([2, 2], [3, 2])
+    [3, 2]
     sage: t.size()
-    9
+    5
     sage: t.entries()
-    [6, 7, 8, 9, 1, 2, 3, 4, 5]
+    (1, 2, 3, 4, 5)
     sage: t.parent()
-    Tableau tuples
+    <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
     sage: t.category()
-    Category of elements of Tableau tuples
+    Category of elements of <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
     sage: ShiftedTableaux([4,1])
+    <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
     sage: ShiftedTableaux([4,1])[:]
+    [[[1, 2, 3, 4], [5]], [[1, 2, 3, 5], [4]], [[1, 2, 4, 5], [3]]]
 
 
 
@@ -45,9 +47,15 @@ Element classes:
 
 * :class:`ShiftedTableau`
 
-Parent classes:
+Factory classes:
 
 * :class:`ShiftedTableaux`
+
+Parent classes:
+
+* :class:`ShiftedTableaux_all`
+* :class:`ShiftedTableaux_size`
+* :class:`ShiftedTableaux_shape`
 
 REFERENCES:
 
@@ -72,6 +80,7 @@ from __future__ import print_function, absolute_import
 from .permutation import Permutation
 from .posets.posets import Poset
 from .tableau import Tableaux
+from .partition import Partition
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.functions.other import factorial
@@ -90,7 +99,7 @@ class ShiftedTableau(ClonableArray):
 
         sage: T = ShiftedTableaux([4,2])
         sage: T([[1,2,4,5],[3,6]])[1]
-        [3, 6]
+        (3, 6)
         sage: len(T([[1,2,4,5],[3,6]]))
         2
         sage: T([[1,2,4,5],[3,6]])
@@ -117,6 +126,52 @@ class ShiftedTableau(ClonableArray):
         shape = [len(row) for row in t]
         return ShiftedTableaux(shape)(t)
 
+    def __init__(self, parent, t):
+        r"""
+        Initialize a shifted tableau.
+
+        TESTS::
+
+            sage: s = ShiftedTableau([[1,2],[3]])
+            sage: t = ShiftedTableaux([2,1])([[1,2],[3]])
+            sage: s==t
+            True
+            sage: t.parent()
+            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            sage: s.parent()
+            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            sage: r = ShiftedTableaux([2,1])(s); r.parent()
+            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            sage: s is t # identical shifted tableaux are distinct objects
+            False
+
+        A shifted tableau is shallowly immutable. The entries
+        themselves may be mutable objects, though in that case the
+        resulting ShiftedTableau should be unhashable.
+
+            sage: T = ShiftedTableau([[1,2],[3]])
+            sage: t0 = T[0]
+            sage: t0[1] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[0][1] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+        """
+        if isinstance(t, ShiftedTableau):
+            # Since we are (supposed to be) immutable, we can share the underlying data
+            ClonableList.__init__(self, parent, t)
+            return
+
+        # Normalize t to be a list of tuples.
+        t = [tuple(_) for _ in t]
+
+        ClonableArray.__init__(self, parent, t)
+        # This dispatches the input verification to the :meth:`check`
+        # method.
+
     def check(self):
         """
         Check that ``self`` is a valid shifted tableaux.
@@ -141,18 +196,18 @@ class ShiftedTableau(ClonableArray):
         EXAMPLES::
 
             sage: t = ShiftedTableau([[1,2,3],[4,5]])
-            sage: ShiftedTableaux.options(display="list")
+            sage: ShiftedTableaux.options.display="list"
             sage: t
             [[1, 2, 3], [4, 5]]
-            sage: ShiftedTableaux.options(display="array")
+            sage: ShiftedTableaux.options.display="array"
             sage: t
               1  2  3
               4  5
-            sage: ShiftedTableaux.options(display="compact"); t
+            sage: ShiftedTableaux.options.display="compact"; t
             1,2,3/4,5
             sage: ShiftedTableaux.options._reset()
         """
-        return self.parent().options.dispatch(self,'_repr_','display')
+        return self.parent().options._dispatch(self,'_repr_','display')
 
     def _repr_list(self):
         """
@@ -165,54 +220,6 @@ class ShiftedTableau(ClonableArray):
             '[[1, 2, 3], [4, 5]]'
         """
         return repr([list(_) for _ in self])
-
-    # See #18024. CombinatorialObject provided __str__, though ClonableList
-    # doesn't. Emulate the old functionality. Possibly remove when
-    # CombinatorialObject is removed.
-    __str__ = _repr_list
-
-    def _repr_diagram(self):
-        """
-        Return a string representation of ``self`` as an array.
-
-        EXAMPLES::
-
-            sage: t = ShiftedTableau([[1,2,3],[4,5]])
-            sage: print(t._repr_diagram())
-              1  2  3
-              4  5
-            sage: ShiftedTableaux.options(convention="french")
-            sage: print(t._repr_diagram())
-              4  5
-              1  2  3
-            sage: ShiftedTableaux.options._reset()
-
-        TESTS:
-
-        Check that :trac:`20768` is fixed::
-
-            sage: T = ShiftedTableau([[1523, 1, 2],[1,12341, -2]])
-            sage: T.pp()
-             1523     1  2
-                1 12341 -2
-        """
-        if not self:
-            return "  -"
-
-        # Get the widths of the columns
-        str_tab = [[str(data) for data in row] for row in self]
-        col_widths = [2]*len(str_tab[0])
-        for row in str_tab:
-            for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], len(e))
-
-        if self.parent().options('convention') == "French":
-            str_tab = reversed(str_tab)
-
-        return "\n".join(" "
-                         + " ".join("{:>{width}}".format(e,width=col_widths[i])
-                                    for i,e in enumerate(row))
-                         for row in str_tab)
 
     def _repr_compact(self):
         """
@@ -235,16 +242,23 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = shiftedTableau([[1,2,3],[4,5]])
+            sage: t = ShiftedTableau([[1,2,3,6],[4,5]])
             sage: print(t._repr_diagram())
-              1  2  3
-              4  5
-            sage: Tableaux.options(convention="french")
+              1  2  3  6
+                 4  5
+            sage: ShiftedTableaux.options(convention="french")
             sage: print(t._repr_diagram())
-              4  5
-              1  2  3
-            sage: Tableaux.options._reset()
+                 4  5
+              1  2  3  6
+            sage: ShiftedTableaux.options._reset()
 
+        TESTS:
+
+
+            sage: T = ShiftedTableau([[2,4,6,200,],[10,1000]])
+            sage: T.pp()
+            2  4    6 200
+            10 1000
         """
         if not self:
             return "  -"
@@ -252,17 +266,34 @@ class ShiftedTableau(ClonableArray):
         # Get the widths of the columns
         str_tab = [[str(data) for data in row] for row in self]
         col_widths = [2]*len(str_tab[0])
-        for row in str_tab:
+        for r, row in enumerate(str_tab):
             for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], len(e))
+                col_widths[r+i] = max(col_widths[r+i], len(e))
 
-        if self.parent().options('convention') == "French":
-            str_tab = reversed(str_tab)
-
-        return "\n".join(" "
-                + " ".join("{:}{:>{width}}".format(e*col_widths[i], e,width=col_widths[i])
+        if self.parent().options.convention == "French":
+            str_tab.reverse()
+            return '\n'.join('{}{:>{}}'.format(' '*(len(str_tab)-row_index), '', sum(col_widths[row_index:]))
+                               + ' '.join('{entry:>{width}}'.format(entry=e,width=col_widths[i])
                                     for i,e in enumerate(row))
-                         for row in str_tab)
+                                    for row_index, row in enumerate(str_tab))
+        else:
+            return '\n'.join('{}{:>{}}'.format(' '*(row_index+1), '', sum(col_widths[:row_index]))
+                               + ' '.join('{entry:>{width}}'.format(entry=e,width=col_widths[i])
+                                    for i,e in enumerate(row))
+                                    for row_index, row in enumerate(str_tab))
+
+    def pp(self):
+        """
+        Print out a nice version of ``self``.
+
+        EXAMPLES::
+
+            sage: T = ShiftedTableaux([4,2])
+            sage: T([[1,2,4,5],[3,6]]).pp()
+            1  2  4  5
+               3  6
+        """
+        print(self._repr_diagram())
 
     def _latex_(self):
         r"""
@@ -278,23 +309,37 @@ class ShiftedTableau(ClonableArray):
             &\lr{3}&\lr{6}\\\cline{2-3}
             \end{array}$}
             }
+            sage: T.parent().convention='French'
+            sage: latex(T([[1,2,4,5],[3,6]]))
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{1}&\lr{2}&\lr{4}&\lr{5}\\\cline{1-4}
+            &\lr{3}&\lr{6}\\\cline{2-3}
+            \end{array}$}
+            }
         """
-        from sage.combinat.output import tex_from_array
-        L = [[None]*i + row for (i,row) in enumerate(self)]
-        return tex_from_array(L)
+        return self.parent().options._dispatch(self,'_latex_', 'latex')
 
-    def pp(self):
-        """
-        Print out a nice version of ``self``.
+    _latex_list=_repr_list
+
+    def _latex_diagram(self):
+        r'''
+        Return LaTex code for ``self``.
 
         EXAMPLES::
 
             sage: T = ShiftedTableaux([4,2])
-            sage: T([[1,2,4,5],[3,6]]).pp()
-            1  2  4  5
-               3  6
-        """
-        print(self._repr_diagram())
+            sage: latex(T([[1,2,4,5],[3,6]]))
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{1}&\lr{2}&\lr{4}&\lr{5}\\\cline{1-4}
+            &\lr{3}&\lr{6}\\\cline{2-3}
+            \end{array}$}
+            }
+        '''
+        from sage.combinat.output import tex_from_array
+        L = [[None]*i + list(row) for (i,row) in enumerate(self)]
+        return tex_from_array(L)
 
     def __call__(self, *cell):
         r"""
@@ -359,7 +404,7 @@ class ShiftedTableau(ClonableArray):
             sage: t = ShiftedTableau([[1,2]])
             sage: t == 0
             False
-            sage: t == ShiftedTableaux(2)([[1,2]])
+            sage: t == ShiftedTableaux([2])([[1,2]])
             True
         """
         if isinstance(other, ShiftedTableau):
@@ -383,7 +428,7 @@ class ShiftedTableau(ClonableArray):
 
         TESTS::
 
-            sage: ShiftedTableau([[2,3],[1]]) !=[]
+            sage: ShiftedTableau([[1,2],[3]]) !=[]
             True
         """
         if isinstance(other, ShiftedTableau):
@@ -397,8 +442,8 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: ShiftedTableau([[1, 4, 6], [2, 5], [3]]).size()
-            6
+            sage: ShiftedTableau([[1, 2, 4, 7], [3, 5], [6]]).size()
+            7
         """
         return sum([len(row) for row in self])
 
@@ -410,9 +455,8 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: ShiftedTableau([[1,3], [2]]).entries
-            sage: t.entries()
-            (1, 3, 2)
+            sage: ShiftedTableau([[1, 2, 4, 6], [3, 5],[7]]).entries()
+            (1, 2, 4, 6, 3, 5, 7)
         """
         return sum(self, ())
 
@@ -425,8 +469,10 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = ShiftedTableau([[1,2,5],[3,4]]).entry(0,0)
-            sage: t = ShiftedTableau([[1,2,5],[3,4]]).entry(0,1)
+            sage: ShiftedTableau([[1,2,4,5],[3,6]]).entry( (0,0) )
+            1
+            sage: ShiftedTableau([[1,2,4,6],[3,5]]).entry( (0,1) )
+            2
         """
         i,j = cell
         return self[i][j]
@@ -445,8 +491,7 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: T = ShiftedTableaux([6,4,3,1])
-            sage: t = T([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
+            sage: t = ShiftedTableau([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
             sage: t.yang_baxter_moves()
             1
         """
@@ -477,8 +522,7 @@ class ShiftedTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: T = ShiftedTableaux([6,4,3,1])
-            sage: t = T([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
+            sage: t = ShiftedTableau([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
             sage: t.position(6)
             (1, 1)
             sage: t.position(12)
@@ -502,7 +546,7 @@ class ShiftedTableau(ClonableArray):
             sage: T = ShiftedTableaux([6,4,3,1])
             sage: t = T([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
             sage: t.shape()
-            (6, 4, 3, 1)
+            [6, 4, 3, 1]
         """
         return self.parent()._shape
 
@@ -510,6 +554,9 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
     """
     Set of shifted tableaux of a fixed shape.
     """
+
+    Element = ShiftedTableau
+
     @staticmethod
     def __classcall_private__(cls, shape):
         """
@@ -522,7 +569,7 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
             sage: T1 is T2
             True
         """
-        shape = tuple(shape)
+        shape = Partition(shape)
         if not all(shape[i] > shape[i+1] > 0 for i in range(len(shape)-1)):
             raise ValueError("invalid shape")
         return super(ShiftedTableaux, cls).__classcall__(cls, shape)
@@ -615,8 +662,6 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
             current_shape[cell[0]] -= 1
 
         return self.element_class(self,tableau)
-
-    Element = ShiftedTableau
 
 
 #####################################################################
