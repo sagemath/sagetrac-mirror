@@ -1397,7 +1397,6 @@ def structure_description(G, latex=False):
         'A8'
     """
     import re
-    from sage.misc.package import is_package_installed
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
