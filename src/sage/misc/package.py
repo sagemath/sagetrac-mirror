@@ -208,7 +208,7 @@ def installed_packages():
 
 def is_package_installed(package):
     """
-    Return true if ``package`` is installed.
+    Return true if ``package`` has been installed with ``sage -i``.
 
     EXAMPLES::
 
@@ -222,6 +222,16 @@ def is_package_installed(package):
 
     Otherwise, installing "pillow" will cause this function to think
     that "pil" is installed, for example.
+
+    .. NOTE::
+
+        Do not use this function to check whether you can use a feature from an
+        external library. This only checks whether something was installed with
+        ``sage -i`` but it may have been installed by other means (for example
+        if this copy of Sage has been installed as part of a distribution.)
+        Use the framework provided by :module:`sage.misc.feature` to check
+        whether a library is installed and functional.
+
     """
     return any(p.split('-')[0] == package for p in installed_packages())
 
