@@ -145,7 +145,6 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, stan
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.package import is_package_installed
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
@@ -1679,8 +1678,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return [Integer(n) for n in self._gap_().IdGroup()]
         except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+            from sage.misc.feature import SmallGroupsLibrary
+            SmallGroupsLibrary().require()
+            # if the small groups library is installed, then something else caused
+            # the call to fail - reraise the original exception
             raise
 
     def id(self):
@@ -1732,8 +1733,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return Integer(self._gap_().PrimitiveIdentification())
         except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+            from sage.misc.feature import SmallGroupsLibrary
+            SmallGroupsLibrary().require()
+            # if the small groups library is installed, then something else caused
+            # the call to fail - reraise the original exception
             raise
 
     def center(self):
