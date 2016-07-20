@@ -79,7 +79,10 @@ void printDict (Dict d)
 void dictAdd (Dict *d, int e)
 {
 	d->n++;
-	d->e = (int *)realloc(d->e, sizeof(int)*d->n);
+	if (d->n == 1)
+		d->e = (int *)malloc(sizeof(int));
+	else
+		d->e = (int *)realloc(d->e, sizeof(int)*d->n);
 	if (!d->e)
 	{
 		printf("Out of memory !");
@@ -171,6 +174,7 @@ NAutomaton NewNAutomaton (int n, int na)
 	a.na = na;
 	if (n == 0)
 	{
+		a.e = NULL;
 		return a;
 	}
 	a.e = (NEtat *)malloc(sizeof(NEtat)*n);
@@ -190,7 +194,10 @@ NAutomaton NewNAutomaton (int n, int na)
 
 void ReallocNAutomaton (NAutomaton *a, int n)
 {
-	a->e = (NEtat*)realloc(a->e, sizeof(NEtat)*n);
+	if (a->n)
+		a->e = (NEtat*)realloc(a->e, sizeof(NEtat)*n);
+	else
+		a->e = (NEtat*)malloc(sizeof(NEtat)*n);
 	if (a->n < n)
 	{
 		int i;
@@ -230,7 +237,10 @@ void ReallocAutomaton (Automaton *a, int n, bool init)
 			free(a->e[i].f);
 		}
 	}
-	a->e = (Etat*)realloc(a->e, sizeof(Etat)*n);
+	if (a->n)
+		a->e = (Etat*)realloc(a->e, sizeof(Etat)*n);
+	else
+		a->e = (Etat*)malloc(sizeof(Etat)*n);
 	if (a->n < n)
 	{
 		int i;
@@ -873,7 +883,10 @@ void AddEtat (Automaton *a, bool final)
 {
 	/**/
 	a->n++;
-	a->e = (Etat *)realloc(a->e, sizeof(Etat)*a->n);
+	if (a->n == 1)
+		a->e = (Etat *)malloc(sizeof(Etat));
+	else
+		a->e = (Etat *)realloc(a->e, sizeof(Etat)*a->n);
 	if (!a->e)
 	{
 		printf("Out of memory !");
@@ -983,7 +996,10 @@ bool AddEl (ListEtats *l, Etats e, int* res)
 	}
 	//ajoute l'élément
 	l->n++;
-	l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
+	if (l->n == 1)
+		l->e = (Etats*)malloc(sizeof(Etats));
+	else
+		l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
 	if (!l->e)
 	{
 		printf("Out of memory !");
@@ -1000,7 +1016,10 @@ void AddEl2 (ListEtats *l, Etats e)
 {
 	//ajoute l'élément
 	l->n++;
-	l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
+	if (l->n == 1)
+		l->e = (Etats*)malloc(sizeof(Etats));
+	else
+		l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
 	if (!l->e)
 	{
 		printf("Out of memory !");
@@ -1128,19 +1147,25 @@ ListEtats2 NewListEtats2(int n, int na)
 
 void ReallocListEtats2(ListEtats2 *l, int n, bool marge)
 {
-	l->n = n;
 	if (!marge)
 	{
+		if (l->na)
+			l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n);
+		else
+			l->e = (Etats2*)malloc(sizeof(Etats2)*n);
 		l->na = n;
-		l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n);
 	}else
 	{
 		if (n > l->na)
 		{
-			l->na = l->n*2;
-			l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*l->na);
+			if (l->na)
+				l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n*2);
+			else
+				l->e = (Etats2*)malloc(sizeof(Etats2)*n*2);
+			l->na = n*2;
 		}
 	}
+	l->n = n;
 }
 
 void FreeListEtats2 (ListEtats2* l)
@@ -2047,7 +2072,10 @@ NAutomaton Transpose (Automaton a)
 			{
 				//ajoute une arête de f vers i étiquetée par j
 				r.e[f].n++;
-				r.e[f].a = (Arete *)realloc(r.e[f].a, sizeof(Arete)*r.e[f].n);
+				if (r.e[f].n == 1)
+					r.e[f].a = (Arete *)malloc(sizeof(Arete));
+				else
+					r.e[f].a = (Arete *)realloc(r.e[f].a, sizeof(Arete)*r.e[f].n);
 				r.e[f].a[r.e[f].n-1].l = j;
 				r.e[f].a[r.e[f].n-1].e = i;
 			}

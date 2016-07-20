@@ -256,7 +256,7 @@ cdef extern from "draw.h":
 	void FreeColorList (ColorList l)
 	Color randColor (int a)
 	Automate NewAutomate (int n, int na)
-	void FreeAutomate(Automate a)
+	void FreeAutomate(Automate *a)
 	void FreeAutomates(Automate* a, int n)
 	BetaAdic NewBetaAdic (int n)
 	void FreeBetaAdic (BetaAdic b)
@@ -878,7 +878,7 @@ class BetaAdicMonoid(Monoid_class):
 			print "Free..."
 		FreeSurface(s)
 		if not isinstance(tss, FastAutomaton):
-			FreeAutomate(b.a)
+			FreeAutomate(&b.a)
 		FreeBetaAdic(b)
 		sig_off()
 		
@@ -1012,7 +1012,7 @@ class BetaAdicMonoid(Monoid_class):
 		else:
 			for i,a in enumerate(la):
 				if not isinstance(a, FastAutomaton):
-					FreeAutomate(b.a[i])
+					FreeAutomate(&b.a[i])
 		FreeBetaAdic2(b)
 		FreeColorList(cl)
 		sig_off()

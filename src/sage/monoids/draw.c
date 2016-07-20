@@ -63,6 +63,12 @@ Automate NewAutomate (int n, int na)
 	Automate a;
 	a.n = n;
 	a.na = na;
+	a.i = -1;
+	if (!n)
+	{
+		a.e = NULL;
+		return;
+	}
 	a.e = (Etat *)malloc(sizeof(Etat)*n);
 	int i, j;
 	for (i=0;i<n;i++)
@@ -77,14 +83,16 @@ Automate NewAutomate (int n, int na)
 	return a;
 }
 
-void FreeAutomate (Automate a)
+void FreeAutomate (Automate *a)
 {
 	int i;
-	for (i=0;i<a.n;i++)
+	for (i=0;i<a->n;i++)
 	{
-		free(a.e[i].f);
+		free(a->e[i].f);
 	}
-	free(a.e);
+	if (a->n)
+		free(a->e);
+	a->e = NULL;
 }
 
 void FreeAutomates (Automate* a, int n)
@@ -92,7 +100,7 @@ void FreeAutomates (Automate* a, int n)
 	int j;
 	for (j=0;j<n;j++)
 	{
-		FreeAutomate(a[j]);
+		FreeAutomate(&a[j]);
 	}
 }
 

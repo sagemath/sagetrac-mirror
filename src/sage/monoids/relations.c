@@ -9,9 +9,9 @@ Automate NewAutomaton (int n, int na)
 	Automate a;
 	a.n = n;
 	a.na = na;
+	a.i = -1;
 	if (n == 0)
 	{
-		a.i = -1;
 		a.e = NULL;
 		return a;
 	}
@@ -34,6 +34,7 @@ Automate NewAutomaton (int n, int na)
 		for (j=0;j<na;j++)
 		{
 			a.e[i].f[j] = -1;
+			a.e[i].final = false;
 		}
 	}
 	return a;
@@ -681,7 +682,8 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 	r.i = indElement(t);
 	e = zeroElement();
 	ind = indElement(e);
-	r.e[ind].final = true;
+	if (ind != -1)
+		r.e[ind].final = true;
 	if (verb)
 		printf("free...\n");
 	//libère les éléments de la table de hachage

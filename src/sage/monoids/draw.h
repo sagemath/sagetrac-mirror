@@ -41,7 +41,7 @@ Surface NewSurface (int sx, int sy);
 void FreeSurface (Surface s);
 void Fill (Surface s, Color c);
 Automate NewAutomate (int n, int na);
-void FreeAutomate (Automate a);
+void FreeAutomate (Automate *a);
 void FreeAutomates (Automate* a, int n);
 BetaAdic NewBetaAdic (int n);
 void FreeBetaAdic (BetaAdic b);
