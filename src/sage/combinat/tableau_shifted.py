@@ -29,19 +29,21 @@ EXAMPLES::
     sage: t.entries()
     (1, 2, 3, 4, 5)
     sage: t.parent()
-    <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+    Shifted tableaux of shape [3, 2]
     sage: t.category()
-    Category of elements of <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+    Category of elements of Shifted tableaux of shape [3, 2]
     sage: ShiftedTableaux([4,1])
-    <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+    Shifted tableaux of shape [4, 1]
     sage: ShiftedTableaux([4,1])[:]
     [[[1, 2, 3, 4], [5]], [[1, 2, 3, 5], [4]], [[1, 2, 4, 5], [3]]]
-
-
 
 AUTHORS:
 
 - Zachary Hamaker, Tobias Johnson (2016): Initial version
+
+- Travis Scrimshaw (2016): Put into category framework
+
+- Andrew Mathas (2016): Added extended functionality and parent classes
 
 Element classes:
 
@@ -77,16 +79,21 @@ REFERENCES:
 
 from __future__ import print_function, absolute_import
 
+from .partition import Partition, StrictPartitions
 from .permutation import Permutation
 from .posets.posets import Poset
 from .tableau import Tableaux
-from .partition import Partition
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.functions.other import factorial
+from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.misc_c import prod
 from sage.misc.prandom import randrange
+from sage.rings.integer import Integer
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -137,11 +144,11 @@ class ShiftedTableau(ClonableArray):
             sage: s==t
             True
             sage: t.parent()
-            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            Shifted tableaux of shape [2, 1]
             sage: s.parent()
-            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            Shifted tableaux of shape [2, 1]
             sage: r = ShiftedTableaux([2,1])(s); r.parent()
-            <class 'sage.combinat.tableau_shifted.ShiftedTableaux_with_category'>
+            Shifted tableaux of shape [2, 1]
             sage: s is t # identical shifted tableaux are distinct objects
             False
 
@@ -162,7 +169,7 @@ class ShiftedTableau(ClonableArray):
         """
         if isinstance(t, ShiftedTableau):
             # Since we are (supposed to be) immutable, we can share the underlying data
-            ClonableList.__init__(self, parent, t)
+            ClonableArray.__init__(self, parent, t)
             return
 
         # Normalize t to be a list of tuples.
@@ -182,12 +189,17 @@ class ShiftedTableau(ClonableArray):
             sage: t = T([[1,2,4,5],[3,6]])
             sage: t.check()
         """
+        if [len(_) for _ in self] not in StrictPartitions():
+            raise ValueError('shape must be a strict partition')
+        entries = sorted(sum((list(_) for _ in self),[]))
+        if entries != range(1,len(entries)+1):
+            raise ValueError('must contain the numbers 1,2,...,<size>')
         for i,row in enumerate(self):
             if i > 0:
                 if not all(val > self[i-1][j+1] for j,val in enumerate(row)):
-                    raise ValueError("non-increasing column")
+                    raise ValueError('non-increasing column')
             if not all(row[j] < row[j+1] for j in range(len(row)-1)):
-                raise ValueError("non-increasing row")
+                raise ValueError('non-increasing row')
 
     def _repr_(self):
         """
@@ -254,11 +266,10 @@ class ShiftedTableau(ClonableArray):
 
         TESTS:
 
-
-            sage: T = ShiftedTableau([[2,4,6,200,],[10,1000]])
-            sage: T.pp()
-            2  4    6 200
-            10 1000
+            sage: ShiftedTableau([[1,2,3,4,5,6,7,8,9,10,11],[12,13,14,15,16],[17,18,19]]).pp()
+            1  2  3  4  5  6  7  8  9 10 11
+              12 13 14 15 16
+                 17 18 19
         """
         if not self:
             return "  -"
@@ -382,14 +393,13 @@ class ShiftedTableau(ClonableArray):
         .. TODO::
 
             This overwrites the equality check of
-            :class:`~sage.structure.list_clone.ClonableList`
-            in order to circumvent the coercion framework.
-            Eventually this should be solved more elegantly,
-            for example along the lines of what was done for
+            :class:`~sage.structure.list_clone.ClonableArray` in order to
+            circumvent the coercion framework.  Eventually this should be solved
+            more elegantly, for example along the lines of what was done for
             `k`-tableaux.
 
-            For now, two elements are equal if their underlying
-            defining lists compare equal.
+            For now, two elements are equal if their underlying defining lists
+            compare equal.
 
         INPUT:
 
@@ -436,16 +446,27 @@ class ShiftedTableau(ClonableArray):
         else:
             return list(self) != other
 
+    def shape(self):
+        """
+        Return the shape of the shifted tableau ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableau([[1, 2, 3, 5, 8], [4, 6], [7]]).shape()
+            [5, 2, 1]
+        """
+        return self.parent().shape()
+
     def size(self):
         """
-        Return the size of the shape of the tableau ``self``.
+        Return the size of the shape of the shifted tableau ``self``.
 
         EXAMPLES::
 
             sage: ShiftedTableau([[1, 2, 4, 7], [3, 5], [6]]).size()
             7
         """
-        return sum([len(row) for row in self])
+        return self.parent().size()
 
     def entries(self):
         """
@@ -537,56 +558,250 @@ class ShiftedTableau(ClonableArray):
                 return (i,self[i].index(value))
         raise ValueError("{} is not in shifted tableau".format(value))
 
-    def shape(self):
-        """
-        Return the shape of ``self``.
-
-        EXAMPLES::
-
-            sage: T = ShiftedTableaux([6,4,3,1])
-            sage: t = T([[1, 2, 3, 4, 9, 13], [5, 6, 8, 11], [7, 10, 14], [12]])
-            sage: t.shape()
-            [6, 4, 3, 1]
-        """
-        return self.parent()._shape
 
 class ShiftedTableaux(UniqueRepresentation, Parent):
-    """
-    Set of shifted tableaux of a fixed shape.
+    r"""
+    A factory for the various classes of shifted standard tableaux.
+
+    INPUT:
+
+    - Either a non-negative integer (possibly specified with the keyword ``n``)
+      or a partition.
+
+    OUTPUT:
+
+    - With no argument, the class of all standard tableaux
+
+    - With a non-negative integer argument, ``n``, the class of all standard
+      tableaux of size ``n``
+
+    - With a partition argument, the class of all standard tableaux of that
+      shape.
+
+    A standard tableau is a semistandard tableaux which contains each of the
+    entries from 1 to ``n`` exactly once.
+
+    All classes of standard tableaux are iterable.
+
+    EXAMPLES::
+
+        sage: ST = ShiftedTableaux(4); ST
+        Shifted tableaux of size 4
+        sage: ST.first()
+        [[1, 2, 3, 4]]
+        sage: ST.last()
+        [[1, 2, 4], [3]]
+        sage: ST.cardinality()
+        3
+        sage: ST.list()
+        [[[1, 2, 3, 4]], [[1, 2, 3], [4]], [[1, 2, 4], [3]]]
+
+    .. SEEALSO:
+
+        - :class:`ShiftedTableau`
+        - :class:`StandardTableau`
+
+    TESTS::
+
+        sage: ShiftedTableaux()([])
+        []
+        sage: ST = ShiftedTableaux([3,2]); ST
+        Shifted tableaux of shape [3, 2]
+        sage: ST.first()
+        [[1, 2, 3], [4, 5]]
+        sage: ST.last()
+        [[1, 2, 4], [3, 5]]
+        sage: ST.cardinality()
+        2
+        sage: ST.list()
+        [[[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]]]
     """
 
     Element = ShiftedTableau
 
-    @staticmethod
-    def __classcall_private__(cls, shape):
-        """
-        Normalize input to ensure a unique representation.
-
-        EXAMPLES::
-
-            sage: T1 = ShiftedTableaux([5,2,1])
-            sage: T2 = ShiftedTableaux((5,2,1))
-            sage: T1 is T2
-            True
-        """
-        shape = Partition(shape)
-        if not all(shape[i] > shape[i+1] > 0 for i in range(len(shape)-1)):
-            raise ValueError("invalid shape")
-        return super(ShiftedTableaux, cls).__classcall__(cls, shape)
-
-    def __init__(self, shape):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: T = ShiftedTableaux([5,2,1])
-            sage: TestSuite(T).run()
-        """
-        self._shape = shape
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-
+    # use Tableaux options
     options = Tableaux.options
+
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`ShiftedTableaux` for
+        more information.
+
+        TESTS::
+
+            sage: ShiftedTableaux()
+            Shifted tableaux
+            sage: ShiftedTableaux(3)
+            Shifted tableaux of size 3
+            sage: ShiftedTableaux([2,1])
+            Shifted tableaux of shape [2, 1]
+            sage: ShiftedTableaux(0)
+            Shifted tableaux of size 0
+
+            sage: ShiftedTableaux(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The argument must be a non-negative integer or a partition.
+            sage: ShiftedTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: The argument must be a non-negative integer or a partition.
+        """
+        if args:
+            size = args[0]
+        elif 'size' in kwargs:
+            size = kwargs[n]
+        else:
+            size = None
+
+        if size is None:
+            return ShiftedTableaux_all()
+
+        elif size in StrictPartitions():
+            return ShiftedTableaux_shape(Partition(size))
+
+        if not isinstance(size, (int, Integer)) or size < 0:
+            raise ValueError( "The argument must be a non-negative integer or a partition." )
+
+        return ShiftedTableaux_size(size)
+
+    def _element_constructor_(self, t):
+        r"""
+        Constructs an object from ``t`` as an element of ``self``, if
+        possible. This is inherited by all Tableaux, SemistandardTableaux, and
+        StandardTableaux classes.
+
+        INPUT:
+
+        - ``t`` -- Data which can be interpreted as a tableau
+
+        OUTPUT:
+
+        - The corresponding tableau object
+
+        TESTS::
+
+            sage: ShiftedTableaux()([[1,2,3]]).parent() is ShiftedTableaux()
+            True
+            sage: ShiftedTableaux(3)([[1,2,3]]).parent() is ShiftedTableaux(3)
+            True
+            sage: ShiftedTableaux([3])([[1,2,3]]).parent() is ShiftedTableaux([3])
+            True
+            sage: ShiftedTableaux([3])([[1,2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 2]] is not an element of Shifted tableaux of shape [3].
+        """
+        if not t in self:
+            raise ValueError("%s is not an element of %s."%(t, self))
+
+        return self.element_class(self, t)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: [[1,1],[2,3]] in ShiftedTableaux()
+            False
+            sage: [[1,2],[3,4]] in ShiftedTableaux()
+            False
+            sage: [[1,3],[2]]   in ShiftedTableaux()
+            False
+            sage: [[1,5],[2]]   in ShiftedTableaux()
+            False
+            sage: [] in ShiftedTableaux()
+            True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in ShiftedTableaux()
+            False
+        """
+        if isinstance(x, ShiftedTableau) or x == []:
+            return True
+        elif not isinstance(x, list):
+            return False
+
+        # have a list, so check if it is shifted standard
+        entries = sorted(sum((list(_) for _ in x),[]))
+        if entries != range(1,len(entries)+1):
+            return False  # must contain 1,2...,n
+
+        if [len(_) for _ in x] not in StrictPartitions():
+            return False # must have strict partition shape
+
+        for i,row in enumerate(x):
+            if i > 0:
+                if not all(val > x[i-1][j+1] for j,val in enumerate(row)):
+                    return False  # increasing down columns
+            if not all(row[j] < row[j+1] for j in range(len(row)-1)):
+                return False  # increasing along rows
+
+        return True
+
+    def an_element(self):
+        r"""
+        Returns a particular shifted tableaux in the class.
+
+        TESTS::
+
+            sage: ShiftedTableaux().an_element()
+            []
+            sage: ShiftedTableaux(4).an_element()
+            [[1, 2, 3, 4]]
+            sage: ShiftedTableaux([3,1]).an_element()
+            [[1, 2, 3], [4]]
+        """
+        return self[0]
+
+class ShiftedTableaux_all(ShiftedTableaux, DisjointUnionEnumeratedSets):
+    """
+    The class of all shifted tableaux.
+    """
+    def __init__(self):
+        r"""
+        Initializes the class of all shifted tableaux.
+
+        TESTS::
+
+            sage: TestSuite( ShiftedTableaux() ).run()
+        """
+        DisjointUnionEnumeratedSets.__init__(
+                self,
+                Family(NonNegativeIntegers(), ShiftedTableaux_size),
+                facade=True, keepkey = False
+        )
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: repr(ShiftedTableaux())    # indirect doctest
+            'Shifted tableaux'
+        """
+        return "Shifted tableaux"
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: [[1,2],[3]] in  ShiftedTableaux()
+            True
+            sage: [[1,3],[2]] in  ShiftedTableaux()
+            False
+            sage: [[1,1],[2]] in  ShiftedTableaux()
+            False
+            sage: [[1,2],[3,4]] in  ShiftedTableaux()
+            False
+        """
+        # It seems that the default contains DisjointUnionEnumeratedSets is to
+        # look inside the corresponding part of the disjoint union.
+        # Unfortunately, this fails when we are given illegal input...
+        return ShiftedTableaux.__contains__(self, x)
 
     def __iter__(self):
         """
@@ -594,18 +809,229 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: T = ShiftedTableaux([6,4,3,1])
-            sage: T[0:4]
-            [[[1, 2, 3, 4, 5, 6], [7, 8, 9, 10], [11, 12, 13], [14]],
-             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 10], [11, 12, 14], [13]],
-             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 11], [10, 12, 13], [14]],
-             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 11], [10, 12, 14], [13]]]
+            sage: ShiftedTableaux()[:10]
+            [[],
+            [[1]],
+            [[1, 2]],
+            [[1, 2, 3]],
+            [[1, 2], [3]],
+            [[1, 2, 3, 4]],
+            [[1, 2, 3], [4]],
+            [[1, 2, 4], [3]],
+            [[1, 2, 3, 4, 5]],
+            [[1, 2, 3, 4], [5]]]
         """
-        P = shape_to_poset(self._shape)
-        L = P.linear_extensions()
-        for l in L:
-            t = linear_extension_to_tableau(l,self._shape)
-            yield self.element_class(self,t)
+        for n in NonNegativeIntegers():
+            for t in ShiftedTableaux_size(n):
+                yield t
+
+    def __getitem__(self, r):
+        r"""
+        Return the ``r``th item of ``self``.
+
+        The default implementation of ``__getitem__`` for infinite enumerated sets
+        does not allow for finite slices so we override it.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux()[10]     # indirect doctest
+            [[1, 2, 3, 5], [4]]
+            sage: ShiftedTableaux()[10:16]  
+            [[[1, 2, 3, 5], [4]],
+             [[1, 2, 4, 5], [3]],
+             [[1, 2, 3], [4, 5]],
+             [[1, 2, 4], [3, 5]],
+             [[1, 2, 3, 4, 5, 6]],
+             [[1, 2, 3, 4, 5], [6]]]
+            sage: ShiftedTableaux()[:5]
+            [[], [[1]], [[1, 2]], [[1, 2, 3]], [[1, 2], [3]]]
+
+        TESTS::
+
+            sage: ShiftedTableaux()[5:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+
+            sage: ShiftedTableaux()[:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+        """
+        if isinstance(r,(int,Integer)):
+            return self.unrank(r)
+        elif isinstance(r,slice):
+            start=0 if r.start is None else r.start
+            stop=r.stop
+            if stop is None and not self.is_finite():
+                raise ValueError( 'infinite set' )
+        else:
+            raise ValueError( 'r must be an integer or a slice' )
+        count=0
+        tabs=[]
+        for t in self:
+            if count==stop:
+                break
+            if count>=start:
+                tabs.append(t)
+            count+=1
+
+        # this is to cope with empty slices endpoints like [:6] or [:]
+        if count==stop or stop is None:
+            return tabs
+        raise IndexError('value out of range')
+
+
+class ShiftedTableaux_size(ShiftedTableaux, DisjointUnionEnumeratedSets):
+    """
+    Shifted tableaux of fixed size `n`.
+
+    .. WARNING::
+
+        Input is not checked; please use :class:`ShiftedTableaux` to ensure
+        the options are properly parsed.
+    """
+    def __init__(self, size):
+        r"""
+        Initializes the class of all shifted tableaux of size ``n``.
+
+        TESTS::
+
+            sage: TestSuite( ShiftedTableaux(0) ).run()
+            sage: TestSuite( ShiftedTableaux(3) ).run()
+        """
+        from .partition import StrictPartitions_size
+        super(ShiftedTableaux_size, self).__init__(
+                family= Family(StrictPartitions_size(size), ShiftedTableaux_shape),
+                facade=True, keepkey = False
+        )
+        self._size = Integer(size)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: ST4 = ShiftedTableaux(4)
+            sage: all([st in ST4 for st in ST4])
+            True
+            sage: ST5 = ShiftedTableaux(5)
+            sage: filter(lambda x: x in ST4, ST5)
+            []
+        """
+        if isinstance(x, ShiftedTableau):
+            return sum(map(len, x)) == self._size
+
+        return ShiftedTableaux.__contains__(self, x) and sum(map(len, x))  == self._size
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: repr(ShiftedTableaux(3))    # indirect doctest
+            'Shifted tableaux of size 3'
+        """
+        return "Shifted tableaux of size %s" % self._size
+
+    def size(self):
+        """
+        Return the size of the shifted tableaux ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux(6).size()
+            6
+        """
+        return self._size
+
+    def random_element(self):
+        r"""
+        Return a random ``ShiftedTableau``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux(5).random_element() # random
+            [[1, 4, 5], [2], [3]]
+            sage: ShiftedTableaux(0).random_element()
+            []
+            sage: ShiftedTableaux(1).random_element()
+            [[1]]
+
+        TESTS::
+
+            sage: all([ShiftedTableaux(10).random_element() in ShiftedTableaux(10) for i in range(20)])
+            True
+        """
+        return ShiftedTableaux_shape(StrictPartitions(self._size).random_element()).random_element()
+
+
+class ShiftedTableaux_shape(ShiftedTableaux):
+
+    def __init__(self, shape):
+        r"""
+        Initializes the class of semistandard tableaux of shape ``p`` and no
+        maximum entry.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux([2,1], max_entry=oo)
+            sage: type(SST)
+            <class 'sage.combinat.tableau.SemistandardTableaux_shape_inf_with_category'>
+            sage: TestSuite(SST).run()
+        """
+        super(ShiftedTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
+        self._shape = shape
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: repr(ShiftedTableaux([3,2,1]))    # indirect doctest
+            'Shifted tableaux of shape [3, 2, 1]'
+        """
+        return "Shifted tableaux of shape %s" % self._shape
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: ST421 = ShiftedTableaux([4,2,1])
+            sage: all([st in ST421 for st in ST421])
+            True
+            sage: ST42 = ShiftedTableaux([4,2])
+            sage: filter(lambda x: x in ST42, ST421)
+            []
+        """
+        if isinstance(x, ShiftedTableau):
+            return map(len, x) == self._shape
+
+        return ShiftedTableaux.__contains__(self, x) and map(len, x) == self._shape
+
+    def shape(self):
+        """
+        Return the shape of the shifted tableaux ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux([6,4,3,1]).shape()
+            [6, 4, 3, 1]
+        """
+        return self._shape
+
+    @cached_method
+    def size(self):
+        """
+        Return the shape of the shifted tableaux ``self``.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux([6,4,3,1]).size()
+            14
+        """
+        return self._shape.size()
 
     def cardinality(self):
         """
@@ -623,7 +1049,7 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
             1716
         """
         n = sum(self._shape)
-        denom = prod(len(hook(self._shape, (i, j))) + 1
+        denom = prod(len(shifted_hook_cells(self._shape, (i, j) )) + 1
                      for i, row_len in enumerate(self._shape)
                      for j in range(row_len))
         return factorial(n) // denom
@@ -652,30 +1078,91 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
         N = sum(self._shape)
         current_shape = list(self._shape)
         for next_number in reversed(range(1, N+1)):
-            cell = random_cell(current_shape)
-            hook_coords = hook(current_shape, cell)
+            cell = random_shifted_cell(current_shape)
+            hook_coords = shifted_hook_cells(current_shape, cell)
             while hook_coords:
                 cell = hook_coords[ randrange(len(hook_coords)) ]
-                hook_coords = hook(current_shape, cell)
+                hook_coords = shifted_hook_cells(current_shape, cell)
             # done with hook walk, so place next_number in tableau
             tableau[cell[0]][cell[1]] = next_number
             current_shape[cell[0]] -= 1
 
         return self.element_class(self,tableau)
 
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: T = ShiftedTableaux([6,4,3,1])
+            sage: T[0:4]
+            [[[1, 2, 3, 4, 5, 6], [7, 8, 9, 10], [11, 12, 13], [14]],
+             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 10], [11, 12, 14], [13]],
+             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 11], [10, 12, 13], [14]],
+             [[1, 2, 3, 4, 5, 6], [7, 8, 9, 11], [10, 12, 14], [13]]]
+        """
+        if self._shape == []:
+            yield ShiftedTableau([])
+            return
+
+        for l in self.strict_partition_poset().linear_extensions():
+            yield self.element_class(ShiftedTableaux_all(), self.linear_extension_to_shifted_tableau(l))
+
+        return
+
+    def strict_partition_poset(self):
+        r"""
+        Convert the shifted shape ``shape`` into a poset with elements `1,2,...,n`.
+
+        EXAMPLES::
+
+            sage: ShiftedTableaux([4,2]).strict_partition_poset().cover_relations()
+            [[1, 2], [2, 3], [2, 5], [3, 4], [3, 6], [5, 6]]
+        """
+        elts = range(1, sum(self._shape)+1)
+        rels = [(i, i+1) for i in range(1, self._shape[0])]
+        tot = self._shape[0]
+        prev = self._shape[0]
+        for row_len in self._shape[1:]:
+            rels += [(i, i+1) for i in range(tot+1, tot+row_len)]
+            rels += [(i-prev+1, i) for i in range(tot+1, tot+1+row_len)]
+            tot += row_len
+            prev = row_len
+        return Poset((elts, rels))
+
+    def linear_extension_to_shifted_tableau(self, linear_extension):
+        """
+        Convert a linear extension for the poset ``self.strict_partition_poset()``
+        into a shifted tableau of shape ``shape``.
+
+        EXAMPLES::
+
+            sage: T = ShiftedTableaux([4,2])
+            sage: P = T.strict_partition_poset()
+            sage: [T.linear_extension_to_shifted_tableau(L) for L in P.linear_extensions()]
+            [[[1, 2, 3, 4], [5, 6]],
+             [[1, 2, 3, 5], [4, 6]],
+             [[1, 2, 3, 6], [4, 5]],
+             [[1, 2, 4, 5], [3, 6]],
+             [[1, 2, 4, 6], [3, 5]]]
+        """
+        L = list(Permutation(linear_extension).inverse()) # tableau in a list, rows not separate
+        A = [sum(self._shape[:i]) for i in range(len(self._shape)+1)] # determine indices where new rows start
+        return [L[A[i]:A[i+1]] for i in range(len(A)-1)]
 
 #####################################################################
 ## Helper functions
 
-def hook(shape, pos):
+def shifted_hook_cells(shape, pos):
     """
     Determines the coordinates of the cells in the hook corresponding to
-    the cell indexed by the tuple ``pos`` in the shifted shape ``shape``.
+    the cell indexed by the tuple ``pos``.
 
     EXAMPLES::
 
-        sage: from sage.combinat.tableau_shifted import hook
-        sage: hook([6,4,3,1], (1,1))
+        sage: from sage.combinat.tableau_shifted import shifted_hook_cells
+        sage: shifted_hook_cells([6,4,3,1], (1,1))
         [(1, 2), (1, 3), (2, 0), (3, 0)]
     """
     # arm first:
@@ -692,14 +1179,14 @@ def hook(shape, pos):
         hook_coordinates.extend( (r, j) for j in range(shape[r]) )
     return hook_coordinates
 
-def random_cell(shape):
+def random_shifted_cell(shape):
     """
-    Return a uniformly random cell from the given shifted tableau shape.
+    Return a uniformly random cell in shifted tableaux in ``self``.
 
     EXAMPLES:
 
-        sage: from sage.combinat.tableau_shifted import random_cell
-        sage: [random_cell([6,4,3,1]) for i in range(6)]  # random
+        sage: from sage.combinat.tableau_shifted import random_shifted_cell
+        sage: [random_shifted_cell([6,4,3,1]) for i in range(6)]  # random
         [(2, 2), (1, 1), (1, 2), (1, 1), (2, 1), (3, 0)]
     """
     rnd = randrange(0, sum(shape))
@@ -709,46 +1196,4 @@ def random_cell(shape):
         cells_so_far += shape[row]
         row += 1
     return (row, rnd - cells_so_far)
-
-def shape_to_poset(shape):
-    r"""
-    Convert the shifted shape ``shape`` into a poset with elements `1,2,...,n`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.tableau_shifted import shape_to_poset
-        sage: shape_to_poset([4,2]).cover_relations()
-        [[1, 2], [2, 3], [2, 5], [3, 4], [3, 6], [5, 6]]
-    """
-    elts = range(1, sum(shape)+1)
-    rels = [(i, i+1) for i in range(1, shape[0])]
-    tot = shape[0]
-    prev = shape[0]
-    for row_len in shape[1:]:
-        rels += [(i, i+1) for i in range(tot+1, tot+row_len)]
-        rels += [(i-prev+1, i) for i in range(tot+1, tot+1+row_len)]
-        tot += row_len
-        prev = row_len
-    return Poset((elts, rels))
-
-def linear_extension_to_tableau(linear_extension, shape):
-    """
-    Convert a linear extension for the poset ``shape_to_poset(shape)``
-    into a shifted tableau of shape ``shape``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.tableau_shifted import shape_to_poset
-        sage: from sage.combinat.tableau_shifted import linear_extension_to_tableau
-        sage: P = shape_to_poset([4,2])
-        sage: [linear_extension_to_tableau(L,[4,2]) for L in P.linear_extensions()]
-        [[[1, 2, 3, 4], [5, 6]],
-         [[1, 2, 3, 5], [4, 6]],
-         [[1, 2, 3, 6], [4, 5]],
-         [[1, 2, 4, 5], [3, 6]],
-         [[1, 2, 4, 6], [3, 5]]]
-    """
-    L = list(Permutation(linear_extension).inverse()) # tableau in a list, rows not separate
-    A = [sum(shape[:i]) for i in range(len(shape)+1)] # determine indices where new rows start
-    return [L[A[i]:A[i+1]] for i in range(len(A)-1)]
 
