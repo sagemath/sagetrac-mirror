@@ -19,8 +19,6 @@ package which must be installed.
 
 
 from distutils.extension import Extension
-from sage.misc.package import is_package_installed
-
 
 class CythonizeExtension(Extension):
     """
@@ -74,6 +72,7 @@ def OptionalExtension(*args, **kwds):
         condition = kwds.pop("condition")
     except KeyError:
         pkg = kwds.pop("package")
+        from sage.misc.package import is_package_installed
         condition = is_package_installed(pkg)
 
     if condition:

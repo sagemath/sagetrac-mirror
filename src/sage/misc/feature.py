@@ -780,3 +780,131 @@ class SmallGroupsLibrary(Feature):
             output = str(e)
         return FeatureTestResult(self, presence,
             reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, presence=presence))
+
+class SharedLibrary(Feature):
+    r"""
+    A :class:`Feature` which describes the presence of a shared library to link
+    against from Cython.
+
+    To test the presence of ``name``, the cython compiler is run on
+    ``test_code`` and the resulting module is imported.
+
+    """
+    def __init__(self, name, test_code, spkg=None, url=None):
+        Feature.__init__(self, name, spkg=spkg, url=url)
+        self.test_code = test_code
+
+    def is_present(self):
+        # There seems to be no module readily available in python which does library checks of this kind.
+        # At least other projects have also just rolled their own tests, see, e.g.:
+        # http://stackoverflow.com/questions/28843765/setup-py-check-if-non-python-library-dependency-exists
+        # http://stackoverflow.com/questions/28949136/checking-native-dependency-library-is-installed-in-python-setup-py
+        from tempfile import NamedTemporaryFile
+        with NamedTemporaryFile(suffix=".pyx") as pyx:
+            pyx.write(self.test_code)
+            pyx.flush()
+            from sage.misc.cython import cython_import
+            try:
+                cython_import(pyx.name)
+            except:
+                return FeatureTestResult(self, False, reason="Failed to compile and import test code.")
+        return FeatureTestResult(self, True, reason="Test code compiled and imported.")
+
+class Module(Feature):
+    r"""
+    A :class:`Feature` which describes whether a python module can be imported.
+
+    EXAMPLES:
+
+    Not all builds of python include the ``ssl`` module, so you could check
+    whether it is available::
+
+        sage: from sage.misc.features import Module
+        sage: Module("ssl").require() # not tested - output depends on the python build
+
+    """
+    def __init__(self, name, spkg=None, url=None):
+        Feature.__init__(self, name, spkg=spkg, url=url)
+
+    def is_present(self):
+        import importlib
+        try:
+            importlib.import_module(self.name)
+        except ImportError:
+            return FeatureTestResult(self, False, reason="Failed to import `{name}`.".format(name=self.name))
+        return FeatureTestResult(self, True, reason="Successfully imported `{name}`.".format(name=self.name))
+
+class OptionalModule(Module):
+    r"""
+    A :class:`Feature` which describes whether a module has been enabled for
+    this build of Sage and is functional, i.e., whether all its
+    ``dependencies`` are present.
+
+    EXAMPLES:
+
+    The module :module:`sage.libs.fes` relies on the library libFES::
+    However, even if the library is present at runtime, the module might not
+    have been built because it was not present at built time. An
+    :class:`OptionalModule` checks for both, whether the module was built and
+    whether it is working, i.e., whether the library it relies on is present::
+
+        sage: from sage.misc.feature import LibFES
+        sage: LibFES().is_present()
+
+    """
+    def __init__(self, name, dependencies=[], spkg=None, url=None):
+        Module.__init__(self, name, spkg=spkg, url=url)
+        self.dependencies = dependencies
+
+    def is_present(self):
+        for dependency in self.dependencies:
+            presence = dependency.is_present()
+            if not presence:
+                return FeatureTestResult(self, False, reason="Dependency `{dependency}` is not satisfied: {reason}".format(dependency=dependency.name, reason=presence.reason), resolution=presence.resolution)
+        return super(OptionalModule, self).is_present()
+        
+class LibFES(OptionalModule):
+    _test_code=r"""
+#clib fes
+from libc.stdint cimport uint64_t
+cdef extern from "<fes_interface.h>":
+    ctypedef int (*solution_callback_t)(void *, uint64_t)
+    void exhaustive_search_wrapper(int n, int n_eqs, int degree, int ***coeffs, solution_callback_t callback, void* callback_state, int verbose)
+
+solutions = 0
+
+class InternalState:
+    verbose = False
+    sols = []
+    max_sols = 0
+
+cdef int report_solution(void *_state, uint64_t i):
+    global solutions
+    solutions += 1
+    return 0
+
+sig_on()
+cdef int ***coeffs = <int ***> sig_calloc(1, sizeof(int **))
+coeffs[0] = <int **> sig_calloc(3, sizeof(int *))
+coeffs[0][0] = <int *> sig_calloc(1, sizeof(int))
+coeffs[0][1] = <int *> sig_calloc(2, sizeof(int))
+coeffs[0][2] = <int *> sig_calloc(1, sizeof(int))
+coeffs[0][2][0] = 1 # x*y = 0
+internal_state = InternalState()
+
+exhaustive_search_wrapper(2, 1, 2, coeffs, report_solution, <void *>internal_state, 0)
+
+sig_free(coeffs[0][2])
+sig_free(coeffs[0][1])
+sig_free(coeffs[0][0])
+sig_free(coeffs[0])
+sig_free(coeffs)
+sig_off()
+
+if solutions != 3: raise ImportError("libFES did not find three solutions for x*y = 0.")
+    """
+    def __init__(self):
+        spkg = "fes"
+        url = "http://www.lifl.fr/~bouillag/fes/"
+        libFes = SharedLibrary("LibFES", test_code=LibFES._test_code, spkg=spkg, url=url)
+        OptionalModule.__init__(self, "sage.libs.fes", dependencies=[libFes], spkg=spkg, url=url)
