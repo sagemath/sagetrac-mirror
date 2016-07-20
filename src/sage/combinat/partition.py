@@ -62,6 +62,8 @@ AUTHORS:
   all in the category framework except ``PartitionsRestricted`` (which will
   eventually be removed). Cleaned up documentation.
 
+- Andrew Mathas (2016-07-20): Added ``StrictPartitions``
+
 EXAMPLES:
 
 There are `5` partitions of the integer `4`::
@@ -271,6 +273,14 @@ We use the lexicographic ordering::
     sage: ql = PL([3,3])
     sage: pl > ql
     True
+
+``Sage`` implements a class of :class:`StrictPartitions` available. These are
+partitions of a given size that have distinct parts::
+
+    sage: from sage.combinat.partition import StrictPartitions
+    sage: StrictPartitions(9)[:]
+    [[9], [8, 1], [7, 2], [6, 3], [6, 2, 1], [5, 4], [5, 3, 1], [4, 3, 2]]
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -7312,6 +7322,127 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
         if self._ell > self.n:
             return Partitions_n.cardinality(self)
         return ZZ.sum(1 for x in self)
+
+######################
+# Strict Partitions #
+######################
+class StrictPartitions(Partitions_n):
+    r"""
+    The class of **strict partitions**.
+
+    A strict partition of an integer `n` is a :class:`Partition` with distinct
+    parts.
+
+    INPUT:
+
+    - ``n`` -- a non-negative integer, the size of the strict partitions
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(3)
+            Strict Partitions of the integer 3
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: TestSuite(StrictPartitions(9)).run()
+        """
+        Partitions_n.__init__(self, n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(5)
+            Strict Partitions of the integer 5
+        """
+        return "Strict Partitions of the integer {}".format(self.n)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: P = StrictPartitions(7)
+            sage: [5] in P
+            True
+            sage: [] in P
+            True
+            sage: [3, 3, 3, 1] in P
+            False
+            sage: [4, 0] in P
+            True
+            sage: Partition([4,3,2,1]) in P
+            True
+            sage: Partition([4,2,2,1]) in P
+            False
+            sage: Partition([10,1]) in P
+            True
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        return all(x[i]>x[i+1] for i in range(len(x)-1))
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(10)[:] #indirect doct test
+            [[10],
+             [9, 1],
+             [8, 2],
+             [7, 3],
+             [7, 2, 1],
+             [6, 4],
+             [6, 3, 1],
+             [5, 4, 1],
+             [5, 3, 2],
+             [4, 3, 2, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n+1):
+            yield self.element_class(self, p)
+
+    def _fast_iterator(self, size, max):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        This is not intended to be called directy.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(7)[:]  # indirect doc test
+            [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
+        """
+        if size < max:
+            yield [size]
+
+        for m in reversed(range(1, min(size, max))):
+            for mu in self._fast_iterator(size-m, m):
+                yield [m] + mu
+        return
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(7).cardinality()
+            5
+        """
+        return ZZ(len(list(self)))
+
 
 ######################
 # Ordered Partitions #
