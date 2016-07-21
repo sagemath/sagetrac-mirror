@@ -9,5 +9,18 @@ from string_ops import (
     frequency_distribution,
     coincidence_index,
     coincidence_discriminant)
+<<<<<<< HEAD
+
+from string_monoid_element import (
+    is_BinaryStringMonoidElement,
+    is_OctalStringMonoidElement,
+    is_HexadecimalStringMonoidElement,
+    is_Radix64StringMonoidElement)
+
+from free_abelian_monoid_element import is_FreeAbelianMonoidElement
 
 from beta_adic_monoid import BetaAdicMonoid
+
+
+=======
+>>>>>>> master

@@ -228,6 +228,10 @@ ext_modules = [
 
     Extension('*', ['sage/combinat/**/*.pyx']),
 
+    Extension('sage.combinat.words.cautomata',
+              sources=['sage/combinat/words/cautomata.pyx', 'sage/combinat/words/automataC.c'],
+              depends=['sage/combinat/words/automataC.h', 'sage/combinat/words/file.h', 'sage/combinat/words/Automaton.h']),
+
     Extension('sage.combinat.subword_complex_c',
               sources=['sage/combinat/subword_complex_c.pyx']),
 
@@ -1095,7 +1099,19 @@ ext_modules = [
 
     Extension('sage.modules.vector_real_double_dense',
               ['sage/modules/vector_real_double_dense.pyx']),
-
+    
+    ################################
+    ## 
+    ## sage.monoids
+    ##
+    ################################
+    
+    Extension('sage.monoids.beta_adic_monoid',
+              sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c', 'sage/monoids/relations.c', 'sage/monoids/complex.c', 'sage/combinat/words/automataC.c'],
+              libraries=['stdc++'], #'cautomata.so'],
+              include_dirs=['sage/combinat/words'],
+              depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h', 'sage/monoids/relations.h', 'sage/monoids/complex.h']),
+    
     ################################
     ##
     ## sage.numerical
@@ -1786,3 +1802,4 @@ ext_modules = [
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 ]
+
