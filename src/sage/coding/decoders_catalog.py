@@ -43,13 +43,10 @@ from __future__ import absolute_import
 
 from .linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
 from .punctured_code import PuncturedCodeOriginalCodeDecoder
-from .grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
 from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from .extended_code import ExtendedCodeOriginalCodeDecoder
 from .grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+                  GRSErrorErasureDecoder,
+                  GRSGaoDecoder,
+                  GRSKeyEquationSyndromeDecoder)
+from .reed_muller_code import BinaryReedMullerMajorityDecoder, QAryReedMullerRSDecoder
