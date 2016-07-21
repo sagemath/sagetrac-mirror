@@ -157,7 +157,7 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
-
+from sage.symbolic.ring import SR
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -10112,7 +10112,27 @@ cdef class Expression(CommutativeRingElement):
             (x - 1)^(sqrt(2)*x)*x^(2*sin(x))
             sage: f.factor_list()
             [(x - 1, sqrt(2)*x), (x, 2*sin(x))]
+
+        Check that given integers/rationals we do factor them (:trac:`21067`)::
+
+            sage: SR(50).factor_list()
+            [(2, 1), (5, 2)]
+            sage: SR(100/49).factor_list()
+            [(2, 2), (5, 2), (7, -2)]
         """
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.all import QQ
+        try:
+            r = ZZ(self).factor()
+            return [(SR(p),SR(e)) for p,e in r]
+        except TypeError, ValueError:
+            pass
+        try:
+            r = QQ(self).factor()
+            return [(SR(p),SR(e)) for p,e in r]
+        except TypeError, ValueError:
+            pass
+
         return self.factor(dontfactor=dontfactor)._factor_list()
 
     def _factor_list(self):
