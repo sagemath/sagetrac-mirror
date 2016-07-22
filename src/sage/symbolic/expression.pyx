@@ -157,7 +157,6 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
-from sage.symbolic.ring import SR
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -10103,7 +10102,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g.factor(dontfactor=[x])
             1/36*(x^2 + 2*x + 1)*(y - 1)/(y + 1)
             sage: g.factor_list(dontfactor=[x])
-            [(x^2 + 2*x + 1, 1), (y + 1, -1), (y - 1, 1), (1/36, 1)]
+            [(x^2 + 2*x + 1, 1), (y + 1, -1), (y - 1, 1), (2, -2), (3, -2)]
 
         This example also illustrates that the exponents do not have to be
         integers::
@@ -10113,27 +10112,62 @@ cdef class Expression(CommutativeRingElement):
             sage: f.factor_list()
             [(x - 1, sqrt(2)*x), (x, 2*sin(x))]
 
-        Check that given integers/rationals we do factor them (:trac:`21067`)::
+        Check that we do factor integers/rationals (:trac:`21067`)::
 
             sage: SR(50).factor_list()
             [(2, 1), (5, 2)]
             sage: SR(100/49).factor_list()
             [(2, 2), (5, 2), (7, -2)]
+            sage: (5/3*x/(x+1)).factor_list()
+            [(x + 1, -1), (x, 1), (3, -1), (5, 1)]
+        """
+        try:
+            return self._factor_rational()
+        except TypeError:
+            pass
+        r = self.factor(dontfactor=dontfactor)._factor_list()
+        l = []
+        for p,e in r:
+            try:
+                # assume that _factor_list does not factor rationals
+                l += p._factor_rational()
+            except TypeError:
+                l.append((p,e))
+        return l
+
+    def _factor_rational(self):
+        r"""
+        If self is integer or rational, give back a list of (prime,
+        power) pairs of its factorisation.
+
+        This is used, e.g., internally by the :meth:`factor_list`
+        command.
+
+        EXAMPLES::
+
+            sage: SR(50)._factor_rational()
+            [(2, 1), (5, 2)]
+            sage: SR(100/49)._factor_rational()
+            [(2, 2), (5, 2), (7, -2)]
+            sage: (x*(x+1))._factor_rational()
+            Traceback (most recent call last):
+            ...
+            TypeError...
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.all import QQ
+        if self == -1:
+            return [(-1, 1)]
         try:
             r = ZZ(self).factor()
-            return [(SR(p),SR(e)) for p,e in r]
+            return [(self.parent(p), self.parent(e)) for p,e in r]
         except TypeError, ValueError:
             pass
         try:
             r = QQ(self).factor()
-            return [(SR(p),SR(e)) for p,e in r]
+            return [(self.parent(p), self.parent(e)) for p,e in r]
         except TypeError, ValueError:
-            pass
-
-        return self.factor(dontfactor=dontfactor)._factor_list()
+            raise
 
     def _factor_list(self):
         r"""
