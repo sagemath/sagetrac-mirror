@@ -634,10 +634,10 @@ bool equalsAutomaton (Automaton a1, Automaton a2)
 
 //utilisé par equalsLangages
 //détermine si les langages des états e1 de a1 et e2 de a2 sont les mêmes
-bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2)
+bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if (a1.e[e1].final & 2 && a2.e[e2].final & 2)
-		return true;
+		return true; //état déjà vu
 	//indique que le sommet a été vu
 	a1.e[e1].final |= 2;
 	a2.e[e2].final |= 2;
@@ -648,20 +648,34 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 		if (a1.e[e1].f[i] != -1)
 		{//cette arête dans a1 existe
 			if (a1toa2.e[i] != -1)
-			{//cette lettre correspond à une lettre dans a2
+			{
 				if (a2.e[e2].f[a1toa2.e[i]] == -1)
 				{//cette arête ne correspond pas à une arête dans a2
+					if (verb)
+						printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
-				if (!equalsLangages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]]))
+				if (!equalsLangages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				{
 					return false;
+				}
 			}else
 			{
+				printf("Erreur : la lettre %d de a1 ne correspond à aucune lettre de a2.\n", i);
 				return false;
 			}
 		}else
+		{
 			if (a1toa2.e[i] != -1)
-				return false;
+			{
+				if (a2.e[e2].f[a1toa2.e[i]] != -1)
+				{				
+					if (verb)
+						printf("%d -%d-> n'existe pas dans a1 mais %d -%d-> existe dans a2.", e1, i, e2, a1toa2.e[i]);				
+					return false;
+				}
+			}
+		}
 	}
 	return true;
 }
@@ -669,11 +683,13 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
+bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
 {
 	int i;
 	if (!minimized)
 	{
+		if (verb)
+			printf("Minimise...\n");
 		//minimise les automates
 		Automaton a3 = Minimise(*a1, false);
 		FreeAutomaton(a1);
@@ -682,14 +698,22 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
 		FreeAutomaton(a2);
 		*a2 = a3;
 	}
+	if (verb)
+	{
+		printf("Automates : ");
+		printAutomaton(*a1);
+		printAutomaton(*a2);
+	}
 	//inverse le dictionnaire
 	Dict a2toa1 = NewDict(a2->na);
 	for (i=0;i<a1toa2.n;i++)
 	{
 		a2toa1.e[a1toa2.e[i]] = i;
 	}
+	if (verb)
+		printDict(a2toa1);
 	//
-	bool res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i);
+	bool res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
 	//remet les états finaux
 	for (i=0;i<a1->n;i++)
 	{

@@ -73,7 +73,7 @@ cdef extern from "automataC.h":
 	Automaton Minimise (Automaton a, bool verb)
 	void DeleteVertexOP (Automaton* a, int e)
 	Automaton DeleteVertex (Automaton a, int e)
-	bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized)
+	bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
 	bool emptyLangage (Automaton a)
 	void AddEtat (Automaton *a, bool final)
 	bool IsCompleteAutomaton (Automaton a)
@@ -1060,7 +1060,7 @@ cdef class FastAutomaton:
 		sig_off()
 		return Bool(res)
 	
-	def equals_langages (self, FastAutomaton a2, minimized=False):
+	def equals_langages (self, FastAutomaton a2, minimized=False, verb=False):
 		sig_on()
 		cdef Dict d = NewDict(self.a.na)
 		cdef int i,j
@@ -1068,8 +1068,11 @@ cdef class FastAutomaton:
 			for j in range(a2.a.na):
 				if self.A[i] == a2.A[j]:
 					d.e[i] = j
+					if verb: print "%d -> %d"%(i, j)
 					break
-		res = equalsLangages(self.a, a2.a, d, minimized)
+		if verb:
+			printDict(d)
+		res = equalsLangages(self.a, a2.a, d, minimized, verb)
 		sig_off()
 		return Bool(res)
 	
