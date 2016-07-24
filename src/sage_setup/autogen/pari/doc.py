@@ -10,6 +10,7 @@ from six import unichr
 
 
 leading_ws = re.compile("^ +", re.MULTILINE)
+trailing_ws = re.compile(" +$", re.MULTILINE)
 double_space = re.compile("  +")
 
 end_space = re.compile(r"(@\[end[a-z]*\])([A-Za-z])")
@@ -92,6 +93,10 @@ def raw_to_rest(doc):
         Traceback (most recent call last):
         ...
         SyntaxError: @ found: @[invalid]
+
+        sage: s = '@3@[startbold]*@[endbold] snip @[dollar]0@[dollar]\ndividing @[dollar]#E@[dollar].'
+        sage: raw_to_rest(s)
+        u'- snip :math:`0`\n  dividing :math:`\\#E`.'
     """
     doc = doc.decode("utf-8")
 
@@ -115,6 +120,7 @@ def raw_to_rest(doc):
 
     # Remove leading whitespace from every line
     doc = leading_ws.sub("", doc)
+    doc = trailing_ws.sub("", doc)
 
     # Remove multiple spaces
     doc = double_space.sub(" ", doc)
