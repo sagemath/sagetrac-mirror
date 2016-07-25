@@ -9,8 +9,8 @@ import subprocess
 from six import unichr
 
 
-leading_ws = re.compile("^ +", re.MULTILINE)
-trailing_ws = re.compile(" +$", re.MULTILINE)
+leading_ws = re.compile("^( +)", re.MULTILINE)
+trailing_ws = re.compile("( +)$", re.MULTILINE)
 double_space = re.compile("  +")
 
 end_space = re.compile(r"(@\[end[a-z]*\])([A-Za-z])")
@@ -118,7 +118,7 @@ def raw_to_rest(doc):
     doc = doc.replace("@[uuml]", "ü")
     doc = doc.replace("\\'{a}", "á")
 
-    # Remove leading whitespace from every line
+    # Remove leading and trailing whitespace from every line
     doc = leading_ws.sub("", doc)
     doc = trailing_ws.sub("", doc)
 
@@ -136,6 +136,10 @@ def raw_to_rest(doc):
     doc = doc.replace("@3@[startbold]*@[endbold] ", "@BULLET  ")
     doc = sub_loop(bullet_loop, "\\1  \\3", doc)
     doc = doc.replace("@BULLET  ", "- ")
+
+    # Add =VOID= in front of all leading whitespace (which was
+    # intentionally added) to avoid confusion with verbatim blocks.
+    doc = leading_ws.sub(r"=VOID=\1", doc)
 
     # Verbatim blocks
     doc = begin_verb.sub("::\n\n@0", doc)
@@ -190,6 +194,7 @@ def raw_to_rest(doc):
     doc = doc.replace("=MID=", r"\|")
     doc = doc.replace("=PERCENT=", r"\%")
     doc = doc.replace("=HASH=", r"\#")
+    doc = doc.replace("=VOID=", "")
 
     # Handle DISPLAYMATH
     doc = doc.replace("@[endDISPLAYMATH]", "\n\n")
