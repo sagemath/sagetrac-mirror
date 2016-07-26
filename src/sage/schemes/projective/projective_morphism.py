@@ -620,6 +620,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (2*y^2 : y^2 : z^2)
 
+        ::
+
+            sage: R.<a,b> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: H = End(P)
+            sage: f = H([a*(x+y)*x^2, b*(x+y)*y^2, (x+y)*z^2])
+            sage: f.normalize_coordinates()
+            sage: f
+            Scheme endomorphism of Projective Space of dimension 2 over Multivariate
+            Polynomial Ring in a, b over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                (a*x^2 : b*y^2 : z^2)
+
         .. NOTE:: gcd raises an error if the base_ring does not support gcds.
         """
         GCD = gcd(self[0], self[1])
@@ -636,14 +649,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             index += +1
 
         if GCD != 1:
-            R = self.domain().base_ring()
-            if neg == 1:
-                self.scale_by(R(-1) / GCD)
-            else:
-                self.scale_by(R(1) / GCD)
+            try:
+                for i in range(N):
+                    h = self[i].quo_rem(GCD)
+                    if not h[1]:
+                        self._polys[i] = h[0]
+            except (TypeError, NotImplementedError): # something Singular can't handle
+                for i in range(N):
+                    self._polys[i]=self[i]._maxima_().divide(GCD)[0].sage()
+
+        if neg == 1:
+            self.scale_by(-1)
         else:
-            if neg == 1:
-                self.scale_by(-1)
+            self.scale_by(1)
 
         #clears any denominators from the coefficients
         LCM = lcm([self[i].denominator() for i in range(N)])
