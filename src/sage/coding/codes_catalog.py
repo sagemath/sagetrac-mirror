@@ -31,7 +31,7 @@ from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerat
                                 ToricCode, TrivialCode, WalshCode)
 
 from .grs import GeneralizedReedSolomonCode
-from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
+from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode, ReedSolomonSupercode
 from .extended_code import ExtendedCode
 
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
