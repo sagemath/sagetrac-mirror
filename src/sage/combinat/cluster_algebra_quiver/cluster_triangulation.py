@@ -579,7 +579,7 @@ class ClusterTriangulation(SageObject):
         else:
             ct = ClusterTriangulation( self )
 
-        S = ClusterSeed( ct.b_matrix() )
+        S = ClusterSeed( ct )
 
         #print "I am in ClusterTriangulation.mutate with ct: ", ct # TODO ERASE
 
@@ -1657,7 +1657,7 @@ class ClusterTriangulation(SageObject):
         return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
     def principal_extension(self,ignore_coefficients=False):
-        r"""
+        """
         Returns the principal extension of self, yielding a 2n-by-n matrix.  Raises an error if the input seed has a non-square exchange matrix,
         unless 'ignore_coefficients=True' is set.  In this case, the method instead adds n frozen variables to any previously frozen variables.
         I.e., the seed obtained by adding a frozen variable to every exchangeable variable of ``self``.
@@ -1721,3 +1721,15 @@ class ClusterTriangulation(SageObject):
         seed = ClusterTriangulation( self._triangles, is_principal=is_principal, boundary_edges=self._boundary_edges ) # this will give initial cluster (x0,x1,..,xn) even if self has been mutated
         seed._mutation_type = self._mutation_type
         return seed
+
+    def quiver(self):
+        """
+        Returns a ClusterQuiver associated to the triangulation.
+
+        EXAMPLES::
+
+            sage: T = ClusterTriangulation([(0,2,3),(3,4,1),(4,5,0),(5,2,1)])
+            sage: T.quiver()
+            Quiver on 6 vertices of undetermined finite mutation type
+        """
+        return self._quiver

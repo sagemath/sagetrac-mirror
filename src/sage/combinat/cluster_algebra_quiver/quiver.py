@@ -780,16 +780,16 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-        sage: A = ClusterQuiver(['A',2],from_surface=True); A
-        Quiver on 2 vertices of type ['A', 2]
-        sage: A.from_surface()
-        False
+            sage: A = ClusterQuiver(['A',2],from_surface=True); A
+            Quiver on 2 vertices of type ['A', 2]
+            sage: A.from_surface()
+            False
 
-        sage: m = matrix([[0,1],[-1,0]])
-        sage: A2 = ClusterQuiver(m, from_surface=True); A2
-        Quiver on 2 vertices
-        sage: A2.from_surface()
-        True
+            sage: m = matrix([[0,1],[-1,0]])
+            sage: A2 = ClusterQuiver(m, from_surface=True); A2
+            Quiver on 2 vertices
+            sage: A2.from_surface()
+            True
         """
         return self._from_surface
 
