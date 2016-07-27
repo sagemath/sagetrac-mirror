@@ -586,15 +586,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             for i in range(self.codomain().ambient_space().dimension_relative() + 1):
                 self._polys[i] = R(self._polys[i] * t)
 
-    def normalize_coordinates(self):
+    def normalize_coordinates(self, method=None):
         """
         Scales by 1/gcd of the coordinate functions.
 
         Also, scales to clear any denominators from the coefficients. This is done in place.
 
-        OUTPUT:
+        INPUT:
 
-        - None.
+        - ``method`` - either 'singular' or 'maxima'
+
+        OUTPUT: None.
 
         EXAMPLES::
 
@@ -633,6 +635,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                 (a*x^2 : b*y^2 : z^2)
 
+        ::
+
+            sage: R.<a,b> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: H = End(P)
+            sage: f = H([a*(x*z+y^2)*x^2, a*b*(x*z+y^2)*y^2, a*(x*z+y^2)*z^2])
+            sage: f.normalize_coordinates(method='maxima'); f
+            Scheme endomorphism of Projective Space of dimension 2 over Multivariate
+            Polynomial Ring in a, b over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : b*y^2 : z^2)
+
+        ::
+
+            sage: R.<a,b> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: H = End(P)
+            sage: f = H([a*(x+y)*x^2, b*(x+y)*y^2, (x+y)*z^2])
+            sage: f.normalize_coordinates(method='singular')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce since the denominator is not 1
+
         .. NOTE:: gcd raises an error if the base_ring does not support gcds.
         """
         GCD = gcd(self[0], self[1])
@@ -649,15 +674,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             index += +1
 
         if GCD != 1:
-            try:
-                for i in range(N):
-                    h = self[i].quo_rem(GCD)
-                    if not h[1]:
-                        self._polys[i] = h[0]
-            except (TypeError, NotImplementedError): # something Singular can't handle
+            if method is None:
+                #the base ring may be something singular doesn't handle,
+                #such as a multivariate polynomial ring. In that case,
+                #try maxima
+                try:
+                    self.normalize_coordinates(method='singular')
+                except TypeError:
+                    self.normalize_coordinates(method='maxima')
+            elif method == 'singular':
+                self.scale_by(self[0].parent()(1)/GCD)
+            elif method == 'maxima':
                 for i in range(N):
                     self._polys[i]=self[i]._maxima_().divide(GCD)[0].sage()
-
+            else:
+                raise ValueError("method={} not available".format(method))
         if neg == 1:
             self.scale_by(-1)
         else:
