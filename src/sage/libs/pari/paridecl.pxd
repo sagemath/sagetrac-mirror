@@ -3434,7 +3434,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     lfunlambda0(GEN ldata, GEN s, long der, long bitprec)
     GEN     lfunmisc_to_ldata(GEN ldata)
     GEN     lfunmisc_to_ldata_shallow(GEN ldata)
-    long    lfunorderzero(GEN ldata, long bitprec)
+    long    lfunorderzero(GEN ldata, long m, long bitprec)
     GEN     lfunprod_get_fact(GEN tech)
     GEN     lfunrootno(GEN data, long bitprec)
     GEN     lfunrootres(GEN data, long bitprec)
