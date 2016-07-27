@@ -190,7 +190,7 @@ class ClusterQuiver(SageObject):
         ...
         ValueError: The input data was not recognized.
     """
-    def __init__( self, data, frozen=None ):
+    def __init__( self, data, frozen=None, from_surface=False ):
         """
         TESTS::
 
@@ -206,7 +206,7 @@ class ClusterQuiver(SageObject):
                 print('The input data is a quiver, therefore the additional parameter frozen is ignored.')
 
             mutation_type = data
-            self.__init__( mutation_type.standard_quiver() )
+            self.__init__( mutation_type.standard_quiver(), from_surface=from_surface )
 
         # constructs a quiver from string representing a mutation type or a common quiver type (see Examples)
         # NOTE: for now, any string representing a *reducible type* is coerced into the standard quiver, but there is now more flexibility in how to input a connected (irreducible) quiver.
@@ -275,6 +275,7 @@ class ClusterQuiver(SageObject):
             self._vertex_dictionary = {}
             self._mutation_type = data._mutation_type
             self._description = data._description
+            self._from_surface=data._from_surface
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
@@ -290,6 +291,7 @@ class ClusterQuiver(SageObject):
             self._digraph = _matrix_to_digraph( self._M )
             self._vertex_dictionary = {}
             self._mutation_type = None
+            self._from_surface=from_surface
             if n+m == 0:
                 self._description = 'Quiver without vertices'
             elif n+m == 1:
@@ -357,12 +359,13 @@ class ClusterQuiver(SageObject):
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
             self._mutation_type = None
+            self._from_surface=from_surface
 
         # if data is a list of edges, the appropriate digraph is constructed.
 
         elif isinstance(data,list) and all(isinstance(x,(list,tuple)) for x in data ):
             dg = DiGraph( data )
-            self.__init__(data=dg, frozen=frozen )
+            self.__init__(data=dg, frozen=frozen, from_surface=from_surface )
 
         # otherwise, an error is raised
         else:
@@ -765,6 +768,30 @@ class ClusterQuiver(SageObject):
             [(0, 1, (1, -1)), (2, 3, (1, -2))]
         """
         return copy( self._digraph )
+
+    def from_surface(self):
+        """
+        Returns if the quiver arises from a triangulation of a marked surface. 
+
+        WARNING: 
+
+        - The quiver currently only knows it is from a surface if it was told at construction.
+        - The method will always return False if constructed from a QuiverMutationType.
+
+        EXAMPLES::
+
+        sage: A = ClusterQuiver(['A',2],from_surface=True); A
+        Quiver on 2 vertices of type ['A', 2]
+        sage: A.from_surface()
+        False
+
+        sage: m = matrix([[0,1],[-1,0]])
+        sage: A2 = ClusterQuiver(m, from_surface=True); A2
+        Quiver on 2 vertices
+        sage: A2.from_surface()
+        True
+        """
+        return self._from_surface
 
     def mutation_type(self):
         """
