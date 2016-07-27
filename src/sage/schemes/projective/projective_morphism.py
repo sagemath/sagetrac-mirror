@@ -628,8 +628,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(R, 2)
             sage: H = End(P)
             sage: f = H([a*(x+y)*x^2, b*(x+y)*y^2, (x+y)*z^2])
-            sage: f.normalize_coordinates()
-            sage: f
+            sage: f.normalize_coordinates(); f
             Scheme endomorphism of Projective Space of dimension 2 over Multivariate
             Polynomial Ring in a, b over Rational Field
               Defn: Defined on coordinates by sending (x : y : z) to
@@ -653,7 +652,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(R, 2)
             sage: H = End(P)
             sage: f = H([a*(x+y)*x^2, b*(x+y)*y^2, (x+y)*z^2])
-            sage: f.normalize_coordinates(method='singular')
+            sage: f.normalize_coordinates(method='singular'); f
             Traceback (most recent call last):
             ...
             TypeError: unable to coerce since the denominator is not 1
@@ -683,10 +682,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 except TypeError:
                     self.normalize_coordinates(method='maxima')
             elif method == 'singular':
-                self.scale_by(self[0].parent()(1)/GCD)
+                self.scale_by(self.domain().base_ring()(1)/GCD)
             elif method == 'maxima':
                 for i in range(N):
-                    self._polys[i]=self[i]._maxima_().divide(GCD)[0].sage()
+                    self._polys[i] = self[i]._maxima_().divide(GCD)[0].sage()
             else:
                 raise ValueError("method={} not available".format(method))
         if neg == 1:
