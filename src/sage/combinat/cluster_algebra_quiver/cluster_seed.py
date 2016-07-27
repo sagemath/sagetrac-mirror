@@ -55,6 +55,7 @@ from sage.misc.all import prod
 from sage.matrix.all import identity_matrix
 from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+from sage.combinat.cluster_algebra_quiver.cluster_triangulation import ClusterTriangulation
 from sage.rings.integer import Integer
 
 from sage.misc.decorators import rename_keyword
@@ -70,6 +71,7 @@ class ClusterSeed(SageObject):
         * QuiverMutationType
         * str - a string representing a QuiverMutationType or a common quiver type (see Examples)
         * ClusterQuiver
+        * ClusterTriangulation
         * Matrix - a skew-symmetrizable matrix
         * DiGraph - must be the input data for a quiver
         * List of edges - must be the edge list of a digraph for a quiver
@@ -109,6 +111,13 @@ class ClusterSeed(SageObject):
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
 
+        sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+        sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+        sage: S = ClusterSeed(T); S
+        A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges of type ['D', 4]
+        sage: S.cluster()
+        [x0, x1, x2, x3]
+
         sage: S = ClusterSeed(['A',4]); S._use_fpolys
         True
 
@@ -123,7 +132,6 @@ class ClusterSeed(SageObject):
 
         sage: S = ClusterSeed(['A',4]); S.use_fpolys(False); S._use_fpolys
         False
-
     """
     def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x'):
         r"""
@@ -322,6 +330,63 @@ class ClusterSeed(SageObject):
             self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n,self._n+self._m)])) for j in xrange(self._n)])
             self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n+self._m)])) for j in xrange(self._n)])
             #self._cluster = None
+            self._use_fpolys = True
+
+        # constructs a cluster seed from a cluster triangulation
+        elif isinstance(data, ClusterTriangulation):
+            if frozen:
+                print("The input \'frozen\' is ignored")
+
+            triangulation = ClusterTriangulation( data )
+
+            self._M = copy(triangulation._M)    # B-tilde exchange matrix
+            self._M.set_immutable()
+            self._n = triangulation._n
+            self._m = triangulation._m
+            self._B = copy(self._M[:self._n,:self._n])  # Square Part of the B_matrix
+
+            self._b_initial = copy(self._M)
+            self._mutation_type = copy(triangulation._mutation_type)
+            self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
+            self._quiver = triangulation._quiver
+
+            # We are now updating labels from user's most recent choice.
+            self._is_principal = triangulation._is_principal
+            self._user_labels = user_labels
+            self._user_labels_prefix = user_labels_prefix
+
+            # initialize the rest
+ 
+            self._C = matrix.identity(self._n)
+            self._use_c_vec = True
+
+            self._G = matrix.identity(self._n)
+            self._use_g_vec = True
+
+            self._BC = copy(self._M).stack(self.c_matrix())
+            self._bot_is_c=False
+
+            self._D = -matrix.identity(self._n)
+            self._use_d_vec = True
+
+            self._mut_path = [ ]
+            self._track_mut = True
+
+            if user_labels:
+                self._sanitize_init_vars(user_labels, user_labels_prefix)
+            else:
+                xs = {i:'x%s'%i for i in xrange(self._n)}
+                ys = {(i+self._n):'y%s'%i for i in xrange(self._n+self._m)}
+                self._init_vars = copy(xs)
+                self._init_vars.update(ys)
+
+            self._init_exch = dict(self._init_vars.items()[:self._n])
+            self._U = PolynomialRing(QQ,['y%s'%i for i in xrange(self._n)])
+            self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
+            self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
+            self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n,self._n+self._m)])) for j in xrange(self._n)])
+            self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n+self._m)])) for j in xrange(self._n)])
+            self._cluster = triangulation._cluster
             self._use_fpolys = True
 
         # in all other cases, we construct the corresponding ClusterQuiver first

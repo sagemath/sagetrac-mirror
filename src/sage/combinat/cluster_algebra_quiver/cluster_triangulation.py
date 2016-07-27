@@ -42,7 +42,7 @@ REFERENCES:
     :class:`~sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`
 
 """
-from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
+
 from sage.structure.sage_object import SageObject
 
 class ClusterTriangulation(SageObject):
@@ -573,6 +573,7 @@ class ClusterTriangulation(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
         produce_dict_label_to_variable, produce_dict_variable_to_label, _get_user_label_triangulation, _get_weighted_triangulation
+        from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
 
         if inplace:
             ct = self
