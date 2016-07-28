@@ -1779,7 +1779,7 @@ def _H_3_cayley_graph(L):
         sage: _H_3_cayley_graph(["100","110","130","140","200","230","240","300"])
         Graph on 100 vertices
     """
-    from sage.groups.free_group import FreeGroup
+    from sage.groups.free_groups.free_group import FreeGroup
     from sage.groups.finitely_presented import FinitelyPresentedGroup
     G = FreeGroup('x,y,z')
     x,y,z = G.gens()

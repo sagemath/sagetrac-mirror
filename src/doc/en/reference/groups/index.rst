@@ -12,7 +12,6 @@ Groups
    sage/groups/libgap_mixin
    sage/groups/pari_group
    sage/groups/generic
-   sage/groups/free_group
    sage/groups/finitely_presented
    sage/groups/finitely_presented_named
    sage/groups/braid
@@ -29,6 +28,15 @@ Groups
    sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/additive_abelian/additive_abelian_group
    sage/groups/additive_abelian/additive_abelian_wrapper
+   sage/groups/free_groups/free_group
+   sage/groups/free_groups/inverse_alphabet
+   sage/groups/free_groups/inverse_graph
+   sage/groups/free_groups/graph_map
+   sage/groups/free_groups/marked_graph
+   sage/groups/free_groups/free_group_automorphism
+   sage/groups/free_groups/convex_core
+   sage/groups/free_groups/graph_self_map
+   sage/groups/free_groups/train_track_map
    sage/groups/perm_gps/permutation_groups_catalog
    sage/groups/perm_gps/permgroup
    sage/groups/perm_gps/permgroup_named

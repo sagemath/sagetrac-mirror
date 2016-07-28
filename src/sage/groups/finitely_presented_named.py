@@ -57,7 +57,7 @@ You can also import the desired functions::
 #*****************************************************************************
 
 from sage.rings.all      import Integer
-from sage.groups.free_group import FreeGroup
+from sage.groups.free_groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.libs.gap.libgap import libgap
 from sage.matrix.constructor import diagonal_matrix
@@ -181,7 +181,7 @@ def FinitelyGeneratedAbelianPresentation(int_list):
         sage: all([groups.presentation.FGAbelian([i]).as_permutation_group().is_isomorphic(groups.presentation.Cyclic(i).as_permutation_group()) for i in [2..35]])
         True
     """
-    from sage.groups.free_group import _lexi_gen
+    from sage.groups.free_groups.free_group import _lexi_gen
     check_ls = [Integer(x) for x in int_list if Integer(x) >= 0]
     if len(check_ls) != len(int_list):
         raise ValueError('input list must contain nonnegative entries')
@@ -320,7 +320,7 @@ def SymmetricPresentation(n):
         40320
     """
     from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-    from sage.groups.free_group import _lexi_gen
+    from sage.groups.free_groups.free_group import _lexi_gen
 
     n = Integer(n)
     perm_rep = SymmetricGroup(n)
@@ -393,7 +393,7 @@ def AlternatingPresentation(n):
         20160
     """
     from sage.groups.perm_gps.permgroup_named import AlternatingGroup
-    from sage.groups.free_group import _lexi_gen
+    from sage.groups.free_groups.free_group import _lexi_gen
 
     n = Integer(n)
     perm_rep = AlternatingGroup(n)
