@@ -679,6 +679,27 @@ class Homset(Set_generic):
         return "Set of Morphisms from {} to {} in {}".format(self._domain,
             self._codomain, self.__category)
 
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: Hom(ZZ,ZZ)._latex_macro_(self)
+            '\\operatorname{Hom}(#1, #2)'
+        """
+        return "\\operatorname{Hom}(#1, #2)"
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(Hom(ZZ,ZZ))
+            \operatorname{Hom}(\Bold{Z}, \Bold{Z})
+        """
+        from sage.misc.latex import latex
+        return "\\operatorname{{Hom}}({}, {})".format(
+                latex(self.domain()),
+                latex(self.codomain()))
+
     def __hash__(self):
         """
         The hash is obtained from domain, codomain and base.
