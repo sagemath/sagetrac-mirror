@@ -154,17 +154,6 @@ class LocalGeneric(CommutativeRing):
         """
         return False
 
-    def _latex_(self):
-        r"""
-        Latex.
-
-        EXAMPLES::
-
-            sage: latex(Zq(27,names='a')) #indirect doctest
-            \mathbf{Z}_{3^{3}}
-        """
-        return self._repr_(do_latex = True)
-
     def precision_cap(self):
         r"""
         Returns the precision cap for ``self``.

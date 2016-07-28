@@ -275,7 +275,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
                 return True
 
-    def _repr_(self, do_latex=False):
+    def _repr_(self):
         r"""
         Print representation.
 
@@ -283,12 +283,9 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
             sage: K = Zp(17); K #indirect doctest
             17-adic Ring with capped relative precision 20
-            sage: latex(K)
-            \ZZ_{17}
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
+
 
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
@@ -330,7 +327,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
 
-    def _repr_(self, do_latex = False):
+    def _repr_(self):
         r"""
         Print representation.
 
@@ -338,12 +335,9 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
 
             sage: K = ZpCA(17); K #indirect doctest
             17-adic Ring with capped absolute precision 20
-            sage: latex(K)
-            \ZZ_{17}
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with capped absolute precision %s"%(self.prime(), self.precision_cap())
+
 
     def _coerce_map_from_(self, R):
         """
@@ -455,7 +449,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
                 return True
 
-    def _repr_(self, do_latex=False):
+    def _repr_(self):
         r"""
         Representation
 
@@ -463,11 +457,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
             sage: K = ZpFM(7); K
             7-adic Ring of fixed modulus 7^20
-            sage: latex(K) #indirect doctest
-            \ZZ_{7}
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
 
     def fraction_field(self, print_mode = None):
@@ -576,7 +566,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
                 return True
 
-    def _repr_(self, do_latex=False):
+    def _repr_(self):
         r"""
         Returns a string representation of ``self``.
 
@@ -587,10 +577,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             sage: latex(K)
             \QQ_{17}
         """
-        if do_latex:
-            return "\\QQ_{%s}" % self.prime()
         return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
-
 
     def random_element(self, algorithm='default'):
         r"""

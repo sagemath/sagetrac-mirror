@@ -172,6 +172,27 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         """
         return False
 
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: Zp(17)._latex_macro_()
+            '\\ZZ_{#1}'
+        """
+        return "\\ZZ_{#1}"
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(Zp(17))  # indirect doctest
+            \ZZ_{17}
+            sage: latex(ZpFM(7)) #indirect doctest
+            \ZZ_{7}
+            sage: latex(ZpCA(17))
+            \ZZ_{17}
+        """
+        return "\\ZZ_{%s}" % self.prime()
 
     def krull_dimension(self):
         r"""
@@ -207,7 +228,23 @@ def is_pAdicField(R):
     return isinstance(R, pAdicFieldGeneric)
 
 class pAdicFieldGeneric(pAdicGeneric, Field):
-    pass
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: Qp(17)._latex_macro_()
+            '\\QQ_{#1}'
+        """
+        return "\\QQ_{#1}"
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(Qp(17))
+            \QQ_{17}
+        """
+        return "\\QQ_{%s}" % self.prime()
 
     #def class_field(self, group=None, map=None, generators=None):
     #    raise NotImplementedError

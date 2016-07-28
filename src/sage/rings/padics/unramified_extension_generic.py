@@ -53,7 +53,35 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         self._res_field = GF(self.prime_pow.pow_Integer_Integer(poly.degree()), name = names[1], modulus = poly.change_ring(poly.base_ring().residue_field()))
 
-    def _repr_(self, do_latex = False):
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: Zq(125, names='a')._latex_macro_()
+            '\\ZZ_{#1}'
+            sage: Qq(125, names='a')._latex_macro_()
+            '\\QQ_{#1}'
+        """
+        if self.base_ring() is self.ground_ring_of_tower():
+            if self.is_field():
+                return "\\QQ_{#1}"
+            else:
+                return "\\ZZ_{#1}"
+        else:
+            raise NotImplementedError
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(Zq(125, names='a')) # indirect doctest
+            \ZZ_{5^{3}}
+            sage: latex(Qq(125, names='a')) # indirect doctest
+            \QQ_{5^{3}}
+        """
+        return self._latex_macro_().replace("#1", "%s^{%s}"%(self.prime(), self.degree()))
+
+    def _repr_(self):
         r"""
         Representation.
 
@@ -61,17 +89,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
             sage: R.<a> = Zq(125); R #indirect doctest
             Unramified Extension of 5-adic Ring with capped absolute precision 20 in a defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
-            sage: latex(R) #indirect doctest
-            \mathbf{Z}_{5^{3}}
         """
-        if do_latex:
-            if self.base_ring() is self.ground_ring_of_tower():
-                if self.is_field():
-                    return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
-                else:
-                    return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
-            else:
-                raise NotImplementedError
         return "Unramified Extension of %s in %s defined by %s"%(
             self.ground_ring(), self.variable_name(), self.modulus())
 

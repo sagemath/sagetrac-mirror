@@ -39,7 +39,20 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         #self._precompute()
 
-    def _repr_(self, do_latex = False):
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: latex(B) # indirect doctest
+            Eisenstein Extension of \ZZ_{7} in t defined by \left(1 +
+            O(7^{10})\right) x^{2} + O(7^{11}) x + 7 + O(7^{11})
+        """
+        return "Eisenstein Extension of %s in %s defined by %s"%(latex(self.ground_ring()), self.latex_name(), latex(self.modulus()))
+
+    def _repr_(self):
         """
         Returns a print representation of this extension.
 
@@ -51,10 +64,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: B #indirect doctest
             Eisenstein Extension of 7-adic Ring with capped relative precision 10 in t defined by (1 + O(7^10))*x^2 + (O(7^11))*x + (7 + O(7^11))
         """
-        if do_latex:
-            return "Eisenstein Extension of %s in %s defined by %s"%(latex(self.ground_ring()), self.latex_name(), latex(self.modulus()))
-        else:
-            return "Eisenstein Extension of %s in %s defined by %s"%(self.ground_ring(), self.variable_name(), self.modulus())
+        return "Eisenstein Extension of %s in %s defined by %s"%(self.ground_ring(), self.variable_name(), self.modulus())
 
     def ramification_index(self, K = None):
         """
