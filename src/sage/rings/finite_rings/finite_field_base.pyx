@@ -230,6 +230,15 @@ cdef class FiniteField(Field):
         else:
             return "Finite Field of size %s"%(self.characteristic())
 
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: GF(2)._latex_macro_()
+            '\\Bold{F}_{#1}'
+        """
+        return "\\Bold{F}_{#1}"
+
     def _latex_(self):
         r"""
         Returns a string denoting the name of the field in LaTeX.
@@ -254,7 +263,7 @@ cdef class FiniteField(Field):
             e = "^{%s}"%self.degree()
         else:
             e = ""
-        return "\\Bold{F}_{%s%s}"%(self.characteristic(), e)
+        return self._latex_macro_().replace("#1", "%s%s"%(self.characteristic(),e))
 
     def _gap_init_(self):
         """

@@ -1046,6 +1046,15 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         return "Ring of integers modulo {}".format(self.__order)
 
+    def _latex_macro_(self):
+        r"""
+        TESTS::
+
+            sage: Zmod(12)._latex_macro_()
+            '\\ZZ/{#1}\\ZZ'
+        """
+        return "\\ZZ/{#1}\\ZZ"
+
     def _latex_(self):
         r"""
         Latex representation.
