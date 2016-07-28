@@ -76,7 +76,7 @@ def produce_latex_macro(name, *sample_args):
          sage: produce_latex_macro('sage.rings.finite_rings.finite_field_constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
-    from sage.misc.latex import LatexCall
+    from sage.misc.latex import LatexCall, LatexExpr
     names_split = name.rsplit('.', 1)
     if len(names_split) == 1:
         module = 'sage.all'
@@ -84,23 +84,17 @@ def produce_latex_macro(name, *sample_args):
     else:
         module, real_name = names_split
     newcommand = '\\newcommand{\\' + real_name + '}'
-    count = 0
-    args = "("
-    for x in sample_args:
-        count += 1
-        args += str(x) + ','
-    args += ')'
     exec('from ' + module + ' import ' + real_name)
-    if count > 0:
-        defn = '[' + str(count) + ']{'
-        defn += eval('str(LatexCall()(' + real_name + args + '))') + '}'
+    if sample_args:
+        newcommand += "[%d]" % len(sample_args)
+        try:
+            defn = eval(real_name)(*sample_args)._latex_macro_()
+        except AttributeError:
+            raise ValueError("for macro with arguments you must define a _latex_macro_ method to your object")
+        defn = LatexExpr(defn)
     else:
-        defn = '{' + eval('str(LatexCall()(' + real_name + '))') + '}'
-    count = 0
-    for x in sample_args:
-        count += 1
-        defn = defn.replace(str(x), "#" + str(count))
-    return newcommand + defn
+        defn = eval('LatexCall()(' + real_name + ')')
+    return newcommand + '{' + defn + '}'
 
 def convert_latex_macro_to_mathjax(macro):
     r"""
@@ -151,6 +145,7 @@ def convert_latex_macro_to_mathjax(macro):
 # documentation), and look at the resulting tex file in
 # SAGE_DOC/latex/en/tutorial.  The preamble should contain
 # \newcommand's for each of the entries here.
+from sage.rings.all import ZZ
 macros = [["ZZ"],
           ["NN"],
           ["RR"],
@@ -168,6 +163,7 @@ macros = [["ZZ"],
           ["RIF"],
           ["RLF"],
           ["CFF"],
+          ["Hom", ZZ, ZZ]
           ]
 
 # The following is to allow customization of typesetting of rings:
