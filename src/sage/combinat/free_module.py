@@ -2,18 +2,24 @@
 """
 Free modules
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                     2007-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     2010      Christian Stump <christian.stump@univie.ac.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
+from __future__ import absolute_import, print_function
+
+from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element, have_same_parent
+from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.misc.misc import repr_lincomb
@@ -410,7 +416,7 @@ class CombinatorialFreeModuleElement(Element):
                             repr_monomial = self.parent()._latex_term,
                             is_latex=True, strip_one = True)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -478,50 +484,38 @@ class CombinatorialFreeModuleElement(Element):
             sage: x+F.zero() == x
             True
 
-        TESTS::
-
-            sage: TestSuite(F1).run()
-            sage: TestSuite(F).run()
-        """
-        if have_same_parent(self, other):
-            return self._monomial_coefficients == other._monomial_coefficients
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
-
-    def __ne__(left, right):
-        """
-        EXAMPLES::
+        Other comparison operators::
 
             sage: F1 = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: F1.an_element() != F1.an_element()
             False
             sage: F1.an_element() != F1.zero()
             True
-        """
-        return not left == right
 
-    def __cmp__(left, right):
-        """
-        The ordering is the one on the underlying sorted list of
-        (monomial,coefficients) pairs.
-
-        EXAMPLES::
+        ::
 
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a = s([2,1])
             sage: b = s([1,1,1])
             sage: cmp(a,b) #indirect doctest
             1
+
+        TESTS::
+
+            sage: TestSuite(F1).run()
+            sage: TestSuite(F).run()
         """
-        if have_same_parent(left, right) and left._monomial_coefficients == right._monomial_coefficients:
-            return 0
-        v = sorted(mc for mc in left._monomial_coefficients.items() if mc[1] != 0)
-        w = sorted(mc for mc in right._monomial_coefficients.items() if mc[1] != 0)
-        return cmp(v, w)
+        self_coeffs = self._monomial_coefficients
+        other_coeffs = other._monomial_coefficients
+        if self_coeffs == other_coeffs:
+            # Equal
+            return rich_to_bool(op, 0)
+        elif op == op_EQ or op == op_NE:
+            # Not equal
+            return rich_to_bool(op, 1)
+        v = sorted(mc for mc in self_coeffs.items() if mc[1] != 0)
+        w = sorted(mc for mc in other_coeffs.items() if mc[1] != 0)
+        return richcmp(v, w, op)
 
     def _add_(self, other):
         """
@@ -541,8 +535,6 @@ class CombinatorialFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-        assert have_same_parent(self, other)
-
         F = self.parent()
         return F._from_dict( dict_addition( [ self._monomial_coefficients, other._monomial_coefficients ] ), remove_zeros=False )
 
@@ -580,7 +572,6 @@ class CombinatorialFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        assert have_same_parent(self, other)
         F = self.parent()
         return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, 1 ), (other._monomial_coefficients, -1 ) ] ), remove_zeros=False )
 
