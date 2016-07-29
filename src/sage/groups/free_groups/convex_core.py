@@ -121,8 +121,8 @@ class ConvexCore():
         EXAMPLES::
 
             sage: from sage.groups.free_groups.convex_core import ConvexCore
-            sage: phi=FreeGroupAutomorphism("a->ab,b->ac,c->a")
-            sage: C=ConvexCore(phi)
+            sage: phi = FreeGroupAutomorphism("a->ab,b->ac,c->a")
+            sage: C = ConvexCore(phi)
             sage: print(C.volume())
             0
 
