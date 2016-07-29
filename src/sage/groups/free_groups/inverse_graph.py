@@ -12,11 +12,11 @@ AUTHORS:
 EXAMPLES::
 
     sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
-    sage: print (GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
+    sage: print(GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
     a: 0->0, c: 1->0, b: 0->1
 
     sage: from sage.groups.free_groups.inverse_graph import MetricGraph
-    sage: print (MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
+    sage: print(MetricGraph([[0,0,'a'],[0,1,'b'],[1,1,'c']]))
     a: 0->0, b: 0->1, c: 1->1
     Lengths: a: 1, b: 1, c: 1
 """
@@ -51,12 +51,12 @@ class GraphWithInverses(DiGraph):
     EXAMPLES::
 
         sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
-        sage: print (GraphWithInverses())
+        sage: print(GraphWithInverses())
 
-        sage: print (GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
+        sage: print(GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
         a: 0->0, c: 1->0, b: 0->1
 
-        sage: print (GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']]))
+        sage: print(GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']]))
         a: 0->0, b: 0->1, c: 1->0
 
     AUTHORS:
@@ -74,6 +74,11 @@ class GraphWithInverses(DiGraph):
           ``(initial_vertex,terminal_vertex)``
         - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses by default
 
+        EXAMPLES::
+
+            sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
+            sage: print(GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)}))
+            a: 0->0, c: 1->0, b: 0->1
         """
 
         self._initial = {}
@@ -172,6 +177,8 @@ class GraphWithInverses(DiGraph):
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
             sage: str(G)
             'a: 0->0, c: 1->0, b: 0->1'
+            sage: G.__str__()
+            'a: 0->0, c: 1->0, b: 0->1'
         """
         result = ""
         for a in self._alphabet.positive_letters():
@@ -191,7 +198,7 @@ class GraphWithInverses(DiGraph):
             sage: G.alphabet()
             Alphabet with inverses on ['a', 'b', 'c']
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
-            sage: print (G)
+            sage: print(G)
             a: 0->0, c: 1->0, b: 0->1
             sage: G.alphabet()
             Alphabet with inverses on ['a', 'c', 'b']
@@ -237,7 +244,7 @@ class GraphWithInverses(DiGraph):
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.set_initial_vertex('a',1)
-            sage: print (G)
+            sage: print(G)
             a: 1->0, b: 0->1, c: 1->0
         """
 
@@ -291,7 +298,7 @@ class GraphWithInverses(DiGraph):
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.set_terminal_vertex('a',1)
-            sage: print (G)
+            sage: print(G)
             a: 0->1, b: 0->1, c: 1->0
         """
         w = self.initial_vertex(e)
@@ -360,7 +367,7 @@ class GraphWithInverses(DiGraph):
             sage: a = G.alphabet().add_new_letter()
             sage: G.add_edge(1,1,a)
             'd'
-            sage: print (G)
+            sage: print(G)
             a: 0->0, b: 0->1, c: 1->0, d: 1->1
         """
 
@@ -479,7 +486,7 @@ class GraphWithInverses(DiGraph):
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[1,0,'c']])
             sage: G.remove_edge('b')
-            sage: print (G)
+            sage: print(G)
             a: 0->0, c: 1->0
 
             sage: G.alphabet()
@@ -513,7 +520,7 @@ class GraphWithInverses(DiGraph):
             sage: G = GraphWithInverses([[0,0,'a'],[0,1,'b'],[0,0,'c']])
             sage: G.remove_edge('b')
             sage: G.remove_vertex(1)
-            sage: print (G)
+            sage: print(G)
             a: 0->0, c: 0->0
         """
         DiGraph.delete_vertex(self, v)
@@ -808,7 +815,7 @@ class GraphWithInverses(DiGraph):
              'a': word: ad,
              'b': word: b,
              'c': word: ce}
-            sage: print (G)
+            sage: print(G)
             a: 0->2, b: 0->1, c: 1->3, d: 2->0, e: 3->1
         """
 

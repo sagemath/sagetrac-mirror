@@ -314,7 +314,7 @@ class AlphabetWithInverses(Parent):
         TESTS::
 
             sage: A = AlphabetWithInverses(['a','b','c'], ['A','B','C'], type='abc')
-            sage: A.unrank(2)
+            sage: A.__getitem__(2)
             'c'
             sage: A.unrank(4)
             'B'
@@ -331,6 +331,12 @@ class AlphabetWithInverses(Parent):
     def unrank(self, n):
         """
         .. automethod:: __getitem__
+
+        EXAMPLES::
+
+            sage: A = AlphabetWithInverses(['a','b','c'], ['A','B','C'], type='abc')
+            sage: A.unrank(2)
+            'c'
         """
         return  self.__getitem__(n)
 
