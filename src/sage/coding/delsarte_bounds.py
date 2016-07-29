@@ -55,7 +55,7 @@ def Krawtchouk(n,q,l,x,check=True):
         -1
         sage: Krawtchouk(int(3),int(2),int(3),int(3))
         -1
-        sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False)
+        sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False) # not tested
         -5
         sage: Kravchuk(24,2,5,4)
         2224

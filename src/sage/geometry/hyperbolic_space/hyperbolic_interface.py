@@ -203,5 +203,5 @@ class HyperbolicModels(Category_realization_of_parent):
                 sage: H.HM().an_element()
                 Point in HM (0, 0, 1)
             """
-            return self(self.realization_of().PD().get_point(0))
-
+            from sage.rings.integer_ring import ZZ
+            return self(self.realization_of().PD().get_point(ZZ.zero()))

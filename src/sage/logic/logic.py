@@ -388,12 +388,13 @@ def get_bit(x, c):
              b = 'False'
          else:
              b = 'True'
-         x /= 2
+         x = x // 2
          bits.append(b)
     if c > len(bits) - 1:
         return 'False'
     else:
         return bits[c]
+
 
 def eval(toks):
     r"""

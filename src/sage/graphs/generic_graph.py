@@ -15909,9 +15909,9 @@ class GenericGraph(GenericGraph_pyx):
                     check_weight=check_weight)[0]
         total = 0
         for u in distances.values():
-            total = total + sum(u.values())
+            total += sum(u.values())
 
-        return total / 2
+        return total // 2
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):

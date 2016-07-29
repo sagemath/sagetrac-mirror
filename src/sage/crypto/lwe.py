@@ -388,9 +388,10 @@ class Regev(LWE):
             LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 1.915069 and c = 401, 'uniform', None)
         """
         q = ZZ(next_prime(n**2))
-        s = RR(1/(RR(n).sqrt() * log(n, 2)**2) * q)
+        s = q / (RR(n).sqrt() * log(n, 2)**2)
         D = DiscreteGaussianDistributionIntegerSampler(s/sqrt(2*pi.n()), q)
         LWE.__init__(self, n=n, q=q, D=D, secret_dist=secret_dist, m=m)
+
 
 class LindnerPeikert(LWE):
     """
@@ -468,30 +469,31 @@ class UniformNoiseLWE(LWE):
 
             sage: from sage.crypto.lwe import UniformNoiseLWE
             sage: UniformNoiseLWE(89)
-            LWE(89, 154262477, UniformSampler(0, 351), 'noise', 131)
+            LWE(89, 64311834871, UniformSampler(0, 6577), 'noise', 131)
 
             sage: UniformNoiseLWE(89, instance='encrypt')
-            LWE(131, 154262477, UniformSampler(0, 497), 'noise', 181)
+            LWE(131, 64311834871, UniformSampler(0, 11109), 'noise', 181)
         """
-
-        if n<89:
+        if n < 89:
             raise TypeError("Parameter too small")
 
-        n2 = n
-        C  = 4/sqrt(2*pi)
+        n2 = ZZ(n)
+        C  = ZZ(4) / sqrt(2*pi)
         kk = floor((n2-2*log(n2, 2)**2)/5)
         n1 = floor((3*n2-5*kk)/2)
         ke = floor((n1-2*log(n1, 2)**2)/5)
         l  = floor((3*n1-5*ke)/2)-n2
-        sk = ceil((C*(n1+n2))**(3/2))
-        se = ceil((C*(n1+n2+l))**(3/2))
-        q = next_prime(max(ceil((4*sk)**((n1+n2)/n1)), ceil((4*se)**((n1+n2+l)/(n2+l))), ceil(4*(n1+n2)*se*sk+4*se+1)))
+        sk = ceil((C*(n1+n2))**(ZZ(3)/2))
+        se = ceil((C*(n1+n2+l))**(ZZ(3)/2))
+        q = next_prime(max(ceil((4*sk)**(ZZ(n1+n2)/n1)),
+                           ceil((4*se)**(ZZ(n1+n2+l)/(n2+l))),
+                           ceil(4*(n1+n2)*se*sk+4*se+1)))
 
-        if kk<=0:
+        if kk <= 0:
             raise TypeError("Parameter too small")
 
         if instance == 'key':
-            D  = UniformSampler(0, sk-1)
+            D  = UniformSampler(0, sk - 1)
             if m is None:
                 m = n1
             LWE.__init__(self, n=n2, q=q, D=D, secret_dist='noise', m=m)
@@ -501,7 +503,8 @@ class UniformNoiseLWE(LWE):
                 m = n2+l
             LWE.__init__(self, n=n1, q=q, D=D, secret_dist='noise', m=m)
         else:
-            raise TypeError("Parameter instance=%s not understood."%(instance))
+            raise TypeError("Parameter instance=%s not understood." % instance)
+
 
 class RingLWE(SageObject):
     """
