@@ -2324,7 +2324,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 AZpairing -= (R(res).abs().log())/(dF*dG)
             else:
                 AZpairing -= (ZZ(1)/d)*(R(K(res).norm()).abs().log())/(dF*dG)
-        R = RealField(oldprec)
+        if oldprec is None:
+            R = RealField()
+        else:
+            R = RealField(oldprec)
         return R(-AZpairing)
 
     def multiplier(self, P, n, check=True):
