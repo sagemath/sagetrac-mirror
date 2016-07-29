@@ -11,7 +11,7 @@ structure as an abstract group. Arithmetic on subgroups is also
 supported, including adding two subgroups together, checking
 inclusion, etc.
 
-TODO: Intersection, action of Hecke operators.
+.. TODO:: Intersection, action of Hecke operators.
 
 AUTHORS:
 
