@@ -52,6 +52,7 @@ from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import subsets
+from sage.misc.misc import union
 from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.all import Integer, CIF
