@@ -95,6 +95,7 @@ REFERENCES:
    LWE-Encryption with Uniform Secret. Cryptology ePrint Archive, Report
    2013/164. 2013.  2013/164. http://eprint.iacr.org/2013/164
 """
+from __future__ import division
 
 from sage.functions.log import exp, log
 from sage.functions.other import sqrt, floor, ceil

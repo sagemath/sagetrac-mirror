@@ -50,6 +50,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ

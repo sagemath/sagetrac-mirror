@@ -1,6 +1,8 @@
 """
 Hyperbolic Functions
 """
+from __future__ import division
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.rings.infinity import Infinity
 from sage.symbolic.expression import Expression
