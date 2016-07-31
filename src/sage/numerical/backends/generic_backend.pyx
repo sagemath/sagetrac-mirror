@@ -1549,13 +1549,16 @@ def default_mip_solver(solver = None):
           <http://bugseng.com/products/ppl/>`_ web site. This solver is
           an exact rational solver.
 
+        - SCIP (``solver="SCIP"``). See the `SCIP
+          <http://scip/zib.de>`_ web site.
+
         - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
           implementation of the revised simplex method in Sage.  It works over
           any exact ordered field, the default is ``QQ``.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"``, ``"PPL"`, or
-        ``"InteractiveLP"``,
+        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"``, ``"PPL"`,
+        ``"SCIP"``, or ``"InteractiveLP"``,
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -1594,7 +1597,7 @@ def default_mip_solver(solver = None):
             return default_solver
 
         else:
-            for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
+            for s in ["Cplex", "Gurobi", "Coin", "Glpk", "SCIP"]:
                 try:
                     default_mip_solver(s)
                     return s
@@ -1644,8 +1647,15 @@ def default_mip_solver(solver = None):
     elif solver == "Interactivelp":
         default_solver = solver
 
+    elif solver == "SCIP":
+        try:
+            from sage.libs.scip.scip import SCIP
+            default_solver = solver
+        except ImportError:
+            raise ValueError("SCIP is not available. Please refer to the documentation to install it.")
+
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', or None.")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'SCIP', 'InteractiveLP', or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None, base_ring = None):
     """
@@ -1663,6 +1673,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
         - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
           <http://www.coin-or.org>`_ web site.
+
+        - SCIP (``solver="SCIP"``). See the `SCIP
+          <http://scip/zib.de>`_ web site.
 
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
@@ -1701,7 +1714,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
       - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
         it is possible to add a constraint, and then solve it again.
         The effect is that solvers that do not support this feature will not be
-        used.
+        used.  (Coin and SCIP are such solvers.)
 
       - Defaults to ``False``.
 
@@ -1769,7 +1782,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
         # We do not want to use Coin for constraint_generation. It just does not
         # work
-        if solver == "Coin" and constraint_generation:
+        if solver in ("Coin", "SCIP") and constraint_generation:
             solver = "Glpk"
 
     elif callable(solver):
@@ -1813,5 +1826,10 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         from sage.numerical.backends.interactivelp_backend import InteractiveLPBackend
         return InteractiveLPBackend(base_ring=base_ring)
 
+    elif solver == "Scip":
+        from sage.numerical.backends.scip_backend import SCIPBackend
+        return SCIPBackend()
+
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'GLPK/exact', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', None (in which case the default one is used), or a callable.")
+        raise ValueError("'solver' should be set to 'GLPK', 'GLPK/exact', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'SCIP', 'InteractiveLP', None (in which case the default one is used), or a callable.")
+
