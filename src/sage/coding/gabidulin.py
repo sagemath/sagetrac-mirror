@@ -76,6 +76,7 @@ class GabidulinCode(SageObject):
     def minimum_distance(self):
         return self.length() - self.dimension() + 1
     
+    # parity_evaluation_points, dual_code and parity_check_matrix need to be fixed.
     def parity_evaluation_points(self):
         eval_pts = self.evaluation_points()
         n = self.length()
@@ -119,7 +120,7 @@ class GabidulinCode(SageObject):
     def dimension(self):
         return self._dimension
     
-    def m(self):
+    def m(self): #rename
         return self._m
 
     def vector_space(self):
@@ -173,7 +174,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         eval_pts = C.evaluation_points()
         codeword = []
         for i in range(len(eval_pts)):
-            codeword.append(p(eval_pts[i]))
+            codeword.append(p(eval_pts[i])) #call multi-point evaluation instead of these two lines.
         if form == "vector":
             return vector(codeword)
         elif form == "matrix":
@@ -210,6 +211,14 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         for i in range(codeword_matrix.ncols()):
             codeword_vector.append(FE.absolute_field_representation(codeword_matrix.column(i)))
         return vector(codeword_vector)
+
+    def unencode_nocheck(self, c):
+        C = self.code()
+        eval_pts = C.evaluation_points()
+        values = [c[i] for i in range(len(c))]
+        p = self.message_space().interpolation_polynomial(eval_pts, values)
+        return p
+
     def sigma(self):
         return self._sigma
 
@@ -220,6 +229,9 @@ class GabidulinGeneratorMatrixEncoder(Encoder):
 
     def __init__(self, code):
         super(GabidulinGeneratorMatrixEncoder, self).__init__(code)
+        Frob = code.base_field().frobenius_endomorphism()
+        self._sigma = Frob
+        self._R = code.base_field()['x', Frob]
 
     def _repr_(self):
         return "Generator matrix style encoder for %s" % self.code()
@@ -234,5 +246,14 @@ class GabidulinGeneratorMatrixEncoder(Encoder):
     def generator_matrix(self):
         C = self.code()
         eval_pts = C.evaluation_points()
-        q = C.relative_finite_field_extension().relative_field().order()
-        return matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: pow(eval_pts[j], pow(q, i)))
+        k = C.dimension()
+        sigma = self.message_space().twist_map()
+        create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
+                map(lambda l: map(f,l), L), [A]*k, [])
+        return matrix(C.base_field(), C.dimension(), C.length(), \
+                create_matrix_elements(eval_pts, C.dimension(), sigma))
+
+    def message_space(self):
+        return self._R
+
+
