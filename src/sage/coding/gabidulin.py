@@ -171,23 +171,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         if p.degree() >= C.dimension():
             raise ValueError("The polynomial to encode must have degree at most %s" % (C.dimension() - 1))
         eval_pts = C.evaluation_points()
-        sigma = self.sigma()
         codeword = []
-        coefficients = p.coefficients()
-        degree = p.degree()
-        elem = C.relative_finite_field_extension().absolute_field().zero()
-        sigma_compositions = []
         for i in range(len(eval_pts)):
-            for j in range(degree):
-                if j == 0:
-                    sig = eval_pts[i]
-                    sigma_compositions.append(sig)
-                for k in range(j):
-                    sig = sigma(sig)
-                    sigma_compositions.append(sig)
-                elem += coefficients[j]*sigma_compositions[i]
-            codeword.append(elem)
-            elem = C.relative_finite_field_extension().absolute_field().zero()
+            codeword.append(p(eval_pts[i]))
         if form == "vector":
             return vector(codeword)
         elif form == "matrix":
