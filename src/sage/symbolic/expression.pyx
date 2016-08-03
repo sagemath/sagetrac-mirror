@@ -1548,16 +1548,13 @@ cdef class Expression(CommutativeRingElement):
             ...           else:
             ...               hashes.add(n)
 
-        Check whether `oo` keeps its hash in `SR` (:trac:`19918`)::
+        Check whether `oo` keeps its hash in `SR` (:trac:`19928`)::
 
-            sage: hash(oo) == hash(SR(oo))
-            True
-            sage: hash(oo) == hash((-x).subs(x=-oo))
-            True
-            sage: hash(-oo) == hash(SR(-oo))
-            True
-            sage: hash(-oo) == hash((-x).subs(x=oo))
-            True
+            sage: assert(hash(oo) == hash(SR(oo)))
+            sage: assert(hash(oo) == hash((-x).subs(x=-oo)))
+            sage: assert(hash(-oo) == hash(SR(-oo)))
+            sage: assert(hash(-oo) == hash((-x).subs(x=oo)))
+            sage: assert(hash(unsigned_infinity) == hash(SR(unsigned_infinity)))
         """
         return self._gobj.gethash()
 
