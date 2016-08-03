@@ -136,7 +136,7 @@ def merge_js_index(app):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[six.u(ref)] = newmapping
+                mapping[six.text_type(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
             for (res, title) in index._titles.iteritems():
