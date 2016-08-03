@@ -4,6 +4,8 @@
 
 GMP-ECM - Elliptic Curve Method for Integer Factorization
 
+Project page: http://ecm.gforge.inria.fr/
+
 Sources can be obtained from http://gforge.inria.fr/projects/ecm/
 
 == License ==
@@ -44,7 +46,4 @@ LGPL V3+
    files for later versions of Microsoft Visual C get added.)
 
 === Patches ===
- * asm-align.patch: on OS X using Xcode 7, ".align 64" in the files
-   "x86_64/mulredc*.asm" causes an error, and similarly with ".align
-   32,,16". These need to be changed to ".p2align 6" and ".p2align
-   5,,4", respectively
+ * None (as of GMP-ECM 7.0.3)
