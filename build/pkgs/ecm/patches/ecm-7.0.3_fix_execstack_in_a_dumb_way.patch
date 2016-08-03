@@ -1,0 +1,38 @@
+#20385:  Fix currently hardcoded '-Wl,znoexecstack' because
+there's a space missing.  (E.g. Apple's linker bails out on
+'-znoexecstack', while GNU ld just treats it as if it was
+'-z noexecstack', the correct form.)
+
+This is an ugly, temporary fix until we submit something
+better upstream.
+
+First of all, 'configure' should check whether this is / which
+options are supported and add them based on that, and it's
+presumably better to just put '-Wa,--noexecstack' into
+CCASFLAGS when the assembler supports that option.
+
+
+diff -Naur ecm-7.0.3.orig/Makefile.am ecm-7.0.3/Makefile.am
+--- ecm-7.0.3/Makefile.am	2016-06-27 23:22:08.000000000 -0700
++++ ecm-7.0.3/Makefile.am	2016-08-03 16:02:21.901175462 -0700
+@@ -50,7 +50,7 @@
+ # www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ # If any interfaces have been added, removed, or changed since the last
+ # update, increment current, and set revision to 0.
+-libecm_la_LDFLAGS = $(LIBECM_LDFLAGS) -version-info 1:0:0 -g -Wl,-znoexecstack
++libecm_la_LDFLAGS = $(LIBECM_LDFLAGS) -version-info 1:0:0 -g -Wl,-z,noexecstack
+ libecm_la_LIBADD = $(MULREDCLIBRARY)
+ if WANT_GPU 
+   libecm_la_SOURCES += cudakernel.cu
+diff -Naur ecm-7.0.3.orig/Makefile.in ecm-7.0.3/Makefile.in
+--- ecm-7.0.3/Makefile.in	2016-07-04 01:02:58.000000000 -0700
++++ ecm-7.0.3/Makefile.in	2016-08-03 16:03:13.181175501 -0700
+@@ -715,7 +715,7 @@
+ # If any interfaces have been added, removed, or changed since the last
+ # update, increment current, and set revision to 0.
+ libecm_la_LDFLAGS = $(LIBECM_LDFLAGS) -version-info 1:0:0 -g \
+-	-Wl,-znoexecstack $(am__append_5)
++	-Wl,-z,noexecstack $(am__append_5)
+ libecm_la_LIBADD = $(MULREDCLIBRARY) $(am__append_4) $(GMPLIB)
+ @WANT_GPU_TRUE@ecm_LDFLAGS = $(CUDARPATH)
+ @WITH_GWNUM_TRUE@ecm_LDFLAGS = $(AM_LDFLAGS) -Wl,gwdata.ld
