@@ -10,10 +10,13 @@ from sage.rings.integer import Integer
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.rings.integer_ring import ZZ
+from sage.functions.other import floor
+from linear_code import AbstractLinearCode
 from sage.coding.relative_finite_field_extension import *
 from sage.structure.sage_object import SageObject
 
-class GabidulinCode(SageObject):
+#class GabidulinCode(SageObject):
+class GabidulinCode(AbstractLinearCode):
     
     _registered_encoders = {}
     _registered_decoders = {}
@@ -278,27 +281,20 @@ class GabidulinGaoDecoder(Decoder):
             raise ValueError("both the input polynomials must belong to %s" % S)
         if a.degree() < b.degree():
             raise ValueError("degree of first polynomial must be greater than or equal to degree of second polynomial")
-        r_previous = a
-        r_current = b
-        u_previous = S.zero()
-        u_current = S.gen()
-        v_previous = u_current
-        v_current = u_previous
+        r_p = a
+        r_c = b
+        u_p = S.zero()
+        u_c = S.one()
+        v_p = u_c
+        v_c = u_p
 
-        while r_current.degree() >= d_stop:
-            r_hold = r_current
-            q_current, r_current = r_current.right_quo_rem(r_previous)
-            r_previous = r_hold
-            u_hold = u_current
-            u_current = u_previous - q_current*u_current
-            u_previous = u_hold
-            v_hold = v_current
-            v_current = v_previous - q_current*v_current
-            v_previous = v_hold
+        while r_c.degree() >= d_stop:
+            (q, r_c), r_p = r_p.right_quo_rem(r_c), r_c
+            u_c, u_p = u_p - q*u_c, u_c
+            v_c, v_p = v_p - q*v_c, v_c
+        return r_c, u_c, v_c
 
-        return r_current, u_current, v_current
-
-    def decode_to_message(self, r):
+    def _decode_to_code_and_message(self, r):
         C = self.code()
         length = len(r)
         if not length <= C.m() or length < 1:
@@ -306,18 +302,35 @@ class GabidulinGaoDecoder(Decoder):
                     less than or equal to the absolute_field_power which is %d" % m )
         eval_pts = C.evaluation_points()
         S = C.message_space()
-        r_ = S.zero()
-        for i in range(length):
-            e_ = eval_pts[:i] + eval_pts[(i+1):]
-            van_poly = S.minimal_vanishing_polynomial(e_) 
-            r_ += r[i]*(van_poly/van_poly(eval_pts[i]))
-        r_out, u_out, v_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts), \
-                r_, (C.length() + C.dimension())/2)
-        quo, rem = r_out.left_quo_rem(u_out)
-        print "rem", rem
-        print "quo", quo
-        if rem == S.zero():
-            return quo
-        else:
-            raise ValueError("Decoding failure")
 
+        if length == C.dimension() or r in C:
+            return r, self.connected_encoder().unencode_nocheck(r)
+
+        R = S.interpolation_polynomial(eval_pts, list(r))
+        r_out, u_out, v_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts), \
+                R, floor((C.length() + C.dimension())//2))
+        quo, rem = r_out.left_quo_rem(u_out)
+        if not rem.is_zero():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        if quo not in S:
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        c = self.connected_encoder().encode(quo)
+        if (c - r).rank_weight() > self.decoding_radius():
+            raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
+        return c, quo
+
+    def decode_to_code(self, r):
+        return self._decode_to_code_and_message(r)[0]
+
+    def decode_to_message(self, r):
+        return self._decode_to_code_and_message(r)[1]
+
+    def decoding_radius(self):
+        return (self.code().minimum_distance()-1)//2
+
+############################## registration ####################################
+
+GabidulinCode._registered_encoders["PolynomialEvaluation"] = GabidulinPolynomialEvaluationEncoder
+GabidulinCode._registered_encoders["GeneratorMatrix"] = GabidulinGeneratorMatrixEncoder
+
+GabidulinCode._registered_decoders["Gao"] = GabidulinGaoDecoder
