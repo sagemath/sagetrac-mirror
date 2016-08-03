@@ -28,8 +28,8 @@ class InventoryBuilder(StandaloneHTMLBuilder):
         cfgdict = dict((name, self.config[name])
                        for (name, desc) in self.config.values.iteritems()
                        if desc[1] == 'html')
-        self.config_hash = md5(six.u(cfgdict).encode('utf-8')).hexdigest()
-        self.tags_hash = md5(six.u(sorted(self.tags)).encode('utf-8')) \
+        self.config_hash = md5(six.text_type(cfgdict).encode('utf-8')).hexdigest()
+        self.tags_hash = md5(six.text_type(sorted(self.tags)).encode('utf-8')) \
                 .hexdigest()
         old_config_hash = old_tags_hash = ''
         try:
