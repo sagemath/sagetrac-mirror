@@ -46,6 +46,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
 from functools import reduce
+from copy import copy
 
 
 def _binomial_sum(n, k):
@@ -138,7 +139,8 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
 
 def _set_to_mask(s, m):
     r"""
-    Maps the set to a vector over GF(2) to an integer.
+    Maps the set to an integer.
+    The integer is given by `\sum^{m-1}_{i=0} 2^i\delta(i\in s)`.
 
     INPUT::
 
@@ -160,10 +162,10 @@ def _set_to_mask(s, m):
         p <<= 1
     return ans
 
-
+@cached_method
 def _list_polynomial(base_field, y, dim):
     r"""
-    Lists all polynomials of degree ``dim-1`` over ``base_field``. 
+    Returns the list of all polynomials of degree ``dim-1`` over ``base_field``. 
 
     INPUT::
 
@@ -195,24 +197,28 @@ def _list_polynomial(base_field, y, dim):
     return v
 
 
-def ReedSolomonSupercode(code, p=None):
+def _reed_solomon_supercode(code, p=None):
     r"""
-    Returns the Reed Solomon super code of the given Reed-Muller code.
-
+    Returns the Reed Solomon supercode of the given Reed-Muller code.
+    The Reed Solomon supercode can be obtained my mapping each element of a vector field `\Bold{F}^m_{q}` to `\Bold{F}_{q^m}`
+    via a linear transformation over `\Bold{F}_q` and then using them as evaluation points of Reed-Solomon code. 
+    This process gives a supercode of the Reed-Muller code which is a Reed-Solomon code. 
+    
     INPUT::
 
-    - ``code`` -- A Reed-Muller code of appropiate order. 
+    - ``code`` -- A Reed-Muller code. 
 
     - ``p`` -- An irreducible polynomial over the base field of ``code`` of degree same as number of variables used in ``code``.
 
     EXAMPLES::
 
+        sage: from sage.coding.reed_muller_code import _reed_solomon_supercode
         sage: C = codes.ReedMullerCode(GF(3), 2, 5)
-        sage: sC = codes.ReedSolomonSupercode(C)
+        sage: sC = _reed_solomon_supercode(C)
         sage: sC
         [243, 163, 81] Generalized Reed-Solomon Code over Finite Field in y of size 3^5
 
-    A polynomial ``p`` can be passed to direct the extension field.
+    A polynomial ``p`` can be passed to direct the extension field::
 
         sage: F = GF(4)
         sage: R.<x> = F[]
@@ -220,17 +226,11 @@ def ReedSolomonSupercode(code, p=None):
         sage: p.is_irreducible()
         True
         sage: C = codes.ReedMullerCode(F, 2, 4)
-        sage: sC = codes.ReedSolomonSupercode(C, p)
+        sage: sC = _reed_solomon_supercode(C, p)
         sage: sC
         [256, 129, 128] Generalized Reed-Solomon Code over Univariate Quotient Polynomial Ring in y over Finite Field in z2 of size 2^2 with modulus y^4 + y^3 + z2*y^2 + y + 1
 
     """
-    if not isinstance(code, (QAryReedMullerCode, BinaryReedMullerCode)):
-        raise ValueError('The code must be a reed muller code')
-    if isinstance(code, BinaryReedMullerCode):
-        if code.order() > 1:
-            raise ValueError(
-                'For binary reed muller codes, the order must be less than 1')
     n = code.length()
     order = code.order()
     num_of_var = code.number_of_variables()
@@ -247,8 +247,8 @@ def ReedSolomonSupercode(code, p=None):
     extended_field = base_field.extension(p, 'y')
     evalPoints = _list_polynomial(
         base_field, extended_field.gen(), num_of_var)
-    RS_code = GeneralizedReedSolomonCode(
-        evalPoints, ((n * order) // q) + 1)
+    dimension = min(((n * order) // q) + 1, n)
+    RS_code = GeneralizedReedSolomonCode(evalPoints, dimension)
     return RS_code
 
 
@@ -490,6 +490,39 @@ class QAryReedMullerCode(AbstractLinearCode):
             and self.order() == other.order() \
             and self.number_of_variables() == other.number_of_variables()
 
+    def reed_solomon_supercode(self, p = None):
+        r"""
+        Returns the Reed Solomon supercode of the given Reed-Muller code.
+        The Reed Solomon supercode can be obtained my mapping each element of a vector field `\Bold{F}^m_{q}` to `\Bold{F}_{q^m}`
+        via a linear transformation over `\Bold{F}_q` and then using them as evaluation points of Reed-Solomon code. 
+        This process gives a supercode of the Reed-Muller code which is a Reed-Solomon code. 
+
+        INPUT::
+
+        - ``p`` -- An irreducible polynomial over the base field of ``code`` of degree same as number of variables used in ``code``.
+
+        EXAMPLES::
+
+            sage: C = codes.ReedMullerCode(GF(3), 2, 5)
+            sage: sC = C.reed_solomon_supercode()
+            sage: sC
+            [243, 163, 81] Generalized Reed-Solomon Code over Finite Field in y of size 3^5
+
+        A polynomial ``p`` can be passed to direct the extension field::
+
+            sage: F = GF(4)
+            sage: R.<x> = F[]
+            sage: p = x^4 + x^3 + F.gen()*x^2 + x + 1
+            sage: p.is_irreducible()
+            True
+            sage: C = codes.ReedMullerCode(F, 2, 4)
+            sage: sC = C.reed_solomon_supercode(p)
+            sage: sC
+            [256, 129, 128] Generalized Reed-Solomon Code over Univariate Quotient Polynomial Ring in y over Finite Field in z2 of size 2^2 with modulus y^4 + y^3 + z2*y^2 + y + 1
+
+        """
+        return _reed_solomon_supercode(self, p)
+
 
 class BinaryReedMullerCode(AbstractLinearCode):
     r"""
@@ -634,6 +667,41 @@ class BinaryReedMullerCode(AbstractLinearCode):
         return isinstance(other, BinaryReedMullerCode) \
             and self.order() == other.order() \
             and self.number_of_variables() == other.number_of_variables()
+
+    def reed_solomon_supercode(self, p = None):
+        r"""
+        Returns the Reed Solomon supercode of the given Reed-Muller code.
+        The Reed Solomon supercode can be obtained my mapping each element of a vector field `\Bold{F}^m_{q}` to `\Bold{F}_{q^m}`
+        via a linear transformation over `\Bold{F}_q` and then using them as evaluation points of Reed-Solomon code. 
+        This process gives a supercode of the Reed-Muller code which is a Reed-Solomon code. 
+
+        INPUT::
+
+        - ``p`` -- An irreducible polynomial over the base field of ``code`` of degree same as number of variables used in ``code``.
+
+        EXAMPLES::
+
+            sage: C = codes.ReedMullerCode(GF(2), 2, 5)
+            sage: sC = C.reed_solomon_supercode()
+            sage: sC
+            [32, 32, 1] Generalized Reed-Solomon Code over Finite Field in y of size 2^5
+
+        A polynomial ``p`` can be passed to direct the extension field::
+
+            sage: F = GF(2)
+            sage: R.<x> = F[]
+            sage: p = x^4 + x + 1
+            sage: p.is_irreducible()
+            True
+            sage: C = codes.ReedMullerCode(F, 2, 4)
+            sage: sC = C.reed_solomon_supercode(p)
+            sage: sC
+            [16, 16, 1] Generalized Reed-Solomon Code over Finite Field in y of size 2^4
+
+        """
+        return _reed_solomon_supercode(self, p)
+
+
 
 
 class ReedMullerVectorEncoder(Encoder):
@@ -1308,7 +1376,7 @@ class QAryReedMullerRSDecoder(Decoder):
 
     We can use other decoders for the Reed-Solomon supercode as well,
 
-        sage: sC = codes.ReedSolomonSupercode(C)
+        sage: sC = C.reed_solomon_supercode()
         sage: D = codes.decoders.QAryReedMullerRSDecoder(C, sC.decoder("BerlekampWelch"))
         sage: D 
         Reed Solomon based decoder for Reed-Muller Code of order 2 and 3 variables over Finite Field of size 3 that uses Berlekamp-Welch decoder for [27, 19, 9] Generalized Reed-Solomon Code over Finite Field in y of size 3^3
@@ -1353,7 +1421,7 @@ class QAryReedMullerRSDecoder(Decoder):
             if code.order() > 1:
                 raise ValueError(
                     'For binary Reed-Muller codes, the order must be less than 2')
-        supercode = ReedSolomonSupercode(code, irreducible_polynomial)
+        supercode = code.reed_solomon_supercode(irreducible_polynomial)
         if reed_solomon_decoder is not None:
             if not isinstance(reed_solomon_decoder, Decoder):
                 raise TypeError(
@@ -1364,6 +1432,8 @@ class QAryReedMullerRSDecoder(Decoder):
             self._reed_solomon_decoder = reed_solomon_decoder
         else:
             self._reed_solomon_decoder = supercode.decoder(**kwargs)
+        self._decoder_type = copy(self._decoder_type)
+        self._decoder_type.remove("dynamic")
         self._decoder_type = self._reed_solomon_decoder.decoder_type()
         self._reed_solomon_supercode = supercode
         super(QAryReedMullerRSDecoder, self).__init__(code, code.ambient_space(),
@@ -1414,7 +1484,7 @@ class QAryReedMullerRSDecoder(Decoder):
 
         Note that using a differnt Reed-Solomon decoder would lead to a different QAryReedMullerRSDecoder.
 
-            sage: sC = codes.ReedSolomonSupercode(C)
+            sage: sC = C.reed_solomon_supercode()
             sage: D3 = codes.decoders.QAryReedMullerRSDecoder(C, sC.decoder("BerlekampWelch"))
             sage: D1.__eq__(D3)
             False
@@ -1450,12 +1520,34 @@ class QAryReedMullerRSDecoder(Decoder):
         return self.reed_solomon_decoder().decode_to_code(word)
 
     def reed_solomon_supercode(self):
+        r"""
+        Returns the Reed-Solomon supercode the Reed-Muller code is embedded in.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: D.reed_solomon_supercode()
+            [243, 163, 81] Generalized Reed-Solomon Code over Finite Field in y of size 3^5
+        """
         return self._reed_solomon_supercode
 
     def reed_solomon_decoder(self):
+        r"""
+        Returns the Reed-Solomon supercode the Reed-Muller code is embedded in.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: C = codes.ReedMullerCode(F, 2, 5)
+            sage: D = codes.decoders.QAryReedMullerRSDecoder(C)
+            sage: D.reed_solomon_decoder()
+            Gao decoder for [243, 163, 81] Generalized Reed-Solomon Code over Finite Field in y of size 3^5
+        """
         return self._reed_solomon_decoder
 
-    def decoding_radius(self):
+    def decoding_radius(self, *args, **kwargs):
         r"""
         Returns maximal number of errors that ``self`` can decode.
 
@@ -1471,20 +1563,18 @@ class QAryReedMullerRSDecoder(Decoder):
             sage: D.decoding_radius()
             40
         """
-        return self.reed_solomon_decoder().decoding_radius()
+        return self.reed_solomon_decoder().decoding_radius(*args, **kwargs)
 
 ####################### registration ###############################
 
 QAryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
 QAryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
-QAryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 QAryReedMullerCode._registered_decoders["ReedSolomon"] = QAryReedMullerRSDecoder
 QAryReedMullerRSDecoder._decoder_type = {"dynamic"}
 
 BinaryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
 BinaryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
-BinaryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 BinaryReedMullerCode._registered_decoders["MajorityVote"] = BinaryReedMullerMajorityDecoder
 BinaryReedMullerMajorityDecoder._decoder_type = {"hard-decision", "unique"}
