@@ -18,7 +18,8 @@ class GabidulinCode(SageObject):
     _registered_encoders = {}
     _registered_decoders = {}
     
-    def __init__(self, absolute_field, relative_field, length, dimension, evaluation_points=None):
+    def __init__(self, absolute_field, relative_field, length, dimension, \
+            linearized_polynomial_ring, evaluation_points=None):
  
         FE = RelativeFiniteFieldExtension(absolute_field, relative_field)
         self._relative_finite_field_extension = FE
@@ -27,6 +28,8 @@ class GabidulinCode(SageObject):
         V = VectorSpace(relative_field, m)
         self._vector_space = V
         
+        self._S = linearized_polynomial_ring #tests to be added
+
         if not length <= m or length not in ZZ or length < 1:
             raise ValueError("length of the code must be a positive integer less than or equal to \
                     the absolute_field_power which is %d" % m )
@@ -48,7 +51,7 @@ class GabidulinCode(SageObject):
             for i in range(length):
                 if not evaluation_points[i] in absolute_field:
                     raise ValueError("Element does not belong to absolute field")
-            basis = []
+                basis = []
             for i in range(len(evaluation_points)):
                 basis.append(FE.relative_field_representation(evaluation_points[i]))
             if V.linear_dependence(basis):
@@ -139,6 +142,9 @@ class GabidulinCode(SageObject):
     def evaluation_points(self):
         return self._evaluation_points
 
+    def message_space(self):
+        return self._S
+
 
 ####################### encoders ###############################
 
@@ -150,9 +156,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
     def __init__(self, code):
         super(GabidulinPolynomialEvaluationEncoder, self).__init__(code)
-        Frob = code.base_field().frobenius_endomorphism()
-        self._sigma = Frob
-        self._R = code.base_field()['x', Frob]
+#        Frob = code.base_field().frobenius_endomorphism()
+#        self._sigma = Frob
+#        self._R = code.base_field()['x', Frob]
 
     def _repr_(self):
         return "Polynomial evaluation style encoder for %s" % self.code()
@@ -165,10 +171,11 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
                 and self.code() == other.code()
 
     def encode(self, p, form="vector"):
-        M = self.message_space()
+#        M = self.message_space()
+        C = self.code()
+        M = C.message_space() 
         if p not in M:
             raise ValueError("The value to encode must be in %s" % M)
-        C = self.code()
         if p.degree() >= C.dimension():
             raise ValueError("The polynomial to encode must have degree at most %s" % (C.dimension() - 1))
         eval_pts = C.evaluation_points()
@@ -216,22 +223,17 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         C = self.code()
         eval_pts = C.evaluation_points()
         values = [c[i] for i in range(len(c))]
-        p = self.message_space().interpolation_polynomial(eval_pts, values)
+        p = C.message_space().interpolation_polynomial(eval_pts, values)
+#        p = self.message_space().interpolation_polynomial(eval_pts, values)
         return p
 
-    def sigma(self):
-        return self._sigma
-
-    def message_space(self):
-        return self._R
+#    def message_space(self):
+#        return self._S
 
 class GabidulinGeneratorMatrixEncoder(Encoder):
 
-    def __init__(self, code):
+    def __init__(self, code): #give me skew poly ring here as arg
         super(GabidulinGeneratorMatrixEncoder, self).__init__(code)
-        Frob = code.base_field().frobenius_endomorphism()
-        self._sigma = Frob
-        self._R = code.base_field()['x', Frob]
 
     def _repr_(self):
         return "Generator matrix style encoder for %s" % self.code()
@@ -247,13 +249,49 @@ class GabidulinGeneratorMatrixEncoder(Encoder):
         C = self.code()
         eval_pts = C.evaluation_points()
         k = C.dimension()
-        sigma = self.message_space().twist_map()
+#        sigma = self.message_space().twist_map()
+        sigma = C.message_space().twist_map()
         create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
                 map(lambda l: map(f,l), L), [A]*k, [])
         return matrix(C.base_field(), C.dimension(), C.length(), \
                 create_matrix_elements(eval_pts, C.dimension(), sigma))
 
-    def message_space(self):
-        return self._R
+#    def message_space(self):
+#        return self._S
 
 
+####################### decoders ###############################
+
+
+####################### decoders ###############################
+
+
+class GabidulinGaoDecoder(Decoder):
+
+    def __init__(self, code):
+        if not isinstance(code, GabidulinCode):
+            raise ValueError("code has to be a Gabidulin Code")
+        super(GabidulinGaoDecoder, self).__init__(code)
+
+    def _repr_(self):
+        return "Gao decoder for %s" % self.code()
+
+    def _latex_(self):
+        return "\\textnormal{Gao decoder for } %s" % self.code()._latex_()
+
+    def __eq__(self, other):
+        return isinstance(other, GabidulinGaoDecoder) \
+                and self.code() == other.code()
+
+    def decode_to_message(self, r):
+        C = self.code()
+        if not length <= m or length < 1:
+            raise ValueError("length of the received code must be a positive integer \
+                    less than or equal to the absolute_field_power which is %d" % m )
+        eval_pts = C.evaluation_points()
+        S = C.message_space()
+        r_ = S.zero()
+        for i in range(len(r)):
+            e_ = eval_pts[:i] + eval_pts[(i+1):]
+            van_poly = S.minimal_vanishing_polynomial(e) 
+            r_ += r[i]*(van_poly/van_poly(eval_pts[i]))
