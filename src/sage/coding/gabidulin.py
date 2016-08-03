@@ -156,9 +156,6 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
     def __init__(self, code):
         super(GabidulinPolynomialEvaluationEncoder, self).__init__(code)
-#        Frob = code.base_field().frobenius_endomorphism()
-#        self._sigma = Frob
-#        self._R = code.base_field()['x', Frob]
 
     def _repr_(self):
         return "Polynomial evaluation style encoder for %s" % self.code()
@@ -171,7 +168,6 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
                 and self.code() == other.code()
 
     def encode(self, p, form="vector"):
-#        M = self.message_space()
         C = self.code()
         M = C.message_space() 
         if p not in M:
@@ -224,15 +220,11 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         eval_pts = C.evaluation_points()
         values = [c[i] for i in range(len(c))]
         p = C.message_space().interpolation_polynomial(eval_pts, values)
-#        p = self.message_space().interpolation_polynomial(eval_pts, values)
         return p
-
-#    def message_space(self):
-#        return self._S
 
 class GabidulinGeneratorMatrixEncoder(Encoder):
 
-    def __init__(self, code): #give me skew poly ring here as arg
+    def __init__(self, code):
         super(GabidulinGeneratorMatrixEncoder, self).__init__(code)
 
     def _repr_(self):
@@ -249,15 +241,11 @@ class GabidulinGeneratorMatrixEncoder(Encoder):
         C = self.code()
         eval_pts = C.evaluation_points()
         k = C.dimension()
-#        sigma = self.message_space().twist_map()
         sigma = C.message_space().twist_map()
         create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
                 map(lambda l: map(f,l), L), [A]*k, [])
         return matrix(C.base_field(), C.dimension(), C.length(), \
                 create_matrix_elements(eval_pts, C.dimension(), sigma))
-
-#    def message_space(self):
-#        return self._S
 
 
 ####################### decoders ###############################
@@ -271,7 +259,7 @@ class GabidulinGaoDecoder(Decoder):
     def __init__(self, code):
         if not isinstance(code, GabidulinCode):
             raise ValueError("code has to be a Gabidulin Code")
-        super(GabidulinGaoDecoder, self).__init__(code)
+        super(GabidulinGaoDecoder, self).__init__(code, code.message_space(), "PolynomialEvaluation")
 
     def _repr_(self):
         return "Gao decoder for %s" % self.code()
@@ -281,17 +269,55 @@ class GabidulinGaoDecoder(Decoder):
 
     def __eq__(self, other):
         return isinstance(other, GabidulinGaoDecoder) \
-                and self.code() == other.code()
+            and self.code() == other.code()
+
+    def _partial_xgcd(self, a, b, d_stop):
+        C = self.code()
+        S = C.message_space()
+        if (a not in S) or (b not in S):
+            raise ValueError("both the input polynomials must belong to %s" % S)
+        if a.degree() < b.degree():
+            raise ValueError("degree of first polynomial must be greater than or equal to degree of second polynomial")
+        r_previous = a
+        r_current = b
+        u_previous = S.zero()
+        u_current = S.gen()
+        v_previous = u_current
+        v_current = u_previous
+
+        while r_current.degree() >= d_stop:
+            r_hold = r_current
+            q_current, r_current = r_current.right_quo_rem(r_previous)
+            r_previous = r_hold
+            u_hold = u_current
+            u_current = u_previous - q_current*u_current
+            u_previous = u_hold
+            v_hold = v_current
+            v_current = v_previous - q_current*v_current
+            v_previous = v_hold
+
+        return r_current, u_current, v_current
 
     def decode_to_message(self, r):
         C = self.code()
-        if not length <= m or length < 1:
+        length = len(r)
+        if not length <= C.m() or length < 1:
             raise ValueError("length of the received code must be a positive integer \
                     less than or equal to the absolute_field_power which is %d" % m )
         eval_pts = C.evaluation_points()
         S = C.message_space()
         r_ = S.zero()
-        for i in range(len(r)):
+        for i in range(length):
             e_ = eval_pts[:i] + eval_pts[(i+1):]
-            van_poly = S.minimal_vanishing_polynomial(e) 
+            van_poly = S.minimal_vanishing_polynomial(e_) 
             r_ += r[i]*(van_poly/van_poly(eval_pts[i]))
+        r_out, u_out, v_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts), \
+                r_, (C.length() + C.dimension())/2)
+        quo, rem = r_out.left_quo_rem(u_out)
+        print "rem", rem
+        print "quo", quo
+        if rem == S.zero():
+            return quo
+        else:
+            raise ValueError("Decoding failure")
+
