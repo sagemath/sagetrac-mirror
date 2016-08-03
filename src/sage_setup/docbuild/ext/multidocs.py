@@ -21,6 +21,7 @@
     - the citations.
 """
 import cPickle, os, sys, shutil, re, tempfile
+import six
 import sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
@@ -135,7 +136,7 @@ def merge_js_index(app):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[unicode(ref)] = newmapping
+                mapping[six.u(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
             for (res, title) in index._titles.iteritems():
