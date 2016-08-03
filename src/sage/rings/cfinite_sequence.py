@@ -94,7 +94,7 @@ REFERENCES:
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.rings.commutative_ring import CommutativeRing
+from sage.rings.ring import CommutativeRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -292,7 +292,7 @@ class CFiniteSequence(FieldElement):
             sage: CFiniteSequence(pi)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
+            TypeError: unable to convert pi to a rational
             sage: var('y')
             y
             sage: f4 = CFiniteSequence((2-y)/(1-y-y^2))

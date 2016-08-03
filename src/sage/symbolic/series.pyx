@@ -76,6 +76,13 @@ expanded to a series. This must be explicitly done by the user::
     sin(1*x + (-1/6)*x^3 + Order(x^4))
     sage: sin(ex1).series(x,9)
     1*x + (-1/3)*x^3 + 11/120*x^5 + (-53/2520)*x^7 + Order(x^9)
+
+TESTS:
+
+Check that :trac:`20088` is fixed::
+
+    sage: ((1+x).series(x)^pi).series(x,3)
+    1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
 """
 ########################################################################
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
@@ -86,7 +93,7 @@ expanded to a series. This must be explicitly done by the user::
 #                   http://www.gnu.org/licenses/
 ########################################################################
 
-from ginac cimport *
+from .ginac cimport *
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 cdef class SymbolicSeries(Expression):
@@ -245,7 +252,7 @@ cdef class SymbolicSeries(Expression):
             sage: s = (1/(1-x/x^a*y)).series(y,3); s
             1 + (x/x^a)*y + (x^2/(x^a)^2)*y^2 + Order(y^3)
             sage: s.simplify()
-            1 + (x^(-a + 1))*y + (x^(-2*a + 2))*y^2 + Order(y^3)
+            1 + (x*x^(-a))*y + (x^2*x^(-2*a))*y^2 + Order(y^3)
         """
         l = self.coefficients(sparse=True)
         var = self.default_variable()
@@ -264,10 +271,10 @@ cdef class SymbolicSeries(Expression):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: s = (1/(1-sin(x)*csc(x)*y)).series(y,3); s
-            1 + (csc(x)*sin(x))*y + (csc(x)^2*sin(x)^2)*y^2 + Order(y^3)
+            sage: s = (1/(1 - sin(2*x)*y)).series(y,3); s
+            1 + (sin(2*x))*y + (sin(2*x)^2)*y^2 + Order(y^3)
             sage: s.simplify_trig()
-            1 + 1*y + 1*y^2 + Order(y^3)
+            1 + (2*cos(x)*sin(x))*y + (4*cos(x)^2*sin(x)^2)*y^2 + Order(y^3)
         """
         l = self.coefficients(sparse=True)
         var = self.default_variable()
@@ -385,3 +392,22 @@ cdef class SymbolicSeries(Expression):
         if not self.is_terminating_series():
             poly += var**(self.degree(var)+1)
         return poly.series(var, self.degree(var))
+
+    def power_series(self, base_ring):
+        """
+        Return algebraic power series associated to this symbolic
+        series. The coefficients must be coercible to the base ring.
+
+        EXAMPLES::
+
+            sage: ex=(gamma(1-x)).series(x,3); ex
+            1 + (euler_gamma)*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
+            sage: g=ex.power_series(SR); g
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
+            sage: g.parent()
+            Power Series Ring in x over Symbolic Ring
+        """
+        from sage.rings.all import PowerSeriesRing
+        R = PowerSeriesRing(base_ring, names=str(self.default_variable()))
+        return R(self.list(), self.degree(self.default_variable()))
+
