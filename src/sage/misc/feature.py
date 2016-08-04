@@ -20,12 +20,17 @@ feature::
 
     sage: from sage.misc.feature import GapPackage, Executable
     sage: Executable(name="sh", executable="sh").is_present()
-    True
+    FeatureTestResult('sh', True)
 
 Here we test whether the grape GAP package is available::
 
     sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-    FeatureTestResult("GAP package grape", True)
+    FeatureTestResult('GAP package grape', True)
+
+Note that a :class:`FeatureTestResult` acts like a bool in most contexts::
+
+    sage: if Executable(name="sh", executable="sh").is_present(): "present."
+    'present.'
 
 When one wants to raise an error if the feature is not available, one
 can use the ``require`` method::
@@ -70,7 +75,6 @@ class FeatureNotPresentError(RuntimeError):
             sage: try:
             ....:     Missing(name="missing").require() # indirect doctest
             ....: except FeatureNotPresentError: pass
-
         """
         self.feature = feature
         self.reason = reason
@@ -88,13 +92,13 @@ class FeatureNotPresentError(RuntimeError):
             ...
             FeatureNotPresentError: GAP package gapZuHoh8Uu is not available.
             `TestPackageAvailability("gapZuHoh8Uu")` evaluated to `fail` in GAP.
-
         """
         return "\n".join(filter(None,(
             "{feature} is not available.".format(feature=self.feature.name),
             self.reason,
             self.resolution
             )))
+        return
 
 class FeatureTestResult(object):
     r"""
@@ -131,7 +135,6 @@ class FeatureTestResult(object):
 
         sage: FeatureTestResult(package, False, resolution="rtm").resolution
         'rtm'
-
     """
     def __init__(self, feature, is_present, reason=None, resolution=None):
         r"""
@@ -140,7 +143,6 @@ class FeatureTestResult(object):
             sage: from sage.misc.feature import Executable, FeatureTestResult
             sage: isinstance(Executable(name="sh", executable="sh").is_present(), FeatureTestResult)
             True
-
         """
         self.feature = feature
         self.is_present = is_present
@@ -160,7 +162,6 @@ class FeatureTestResult(object):
             True
             sage: bool(FeatureTestResult(Feature("SomeMissingFeature"), False))
             False
-
         """
         return bool(self.is_present)
 
@@ -171,7 +172,6 @@ class FeatureTestResult(object):
             sage: from sage.misc.feature import Feature, FeatureTestResult
             sage: FeatureTestResult(Feature("SomePresentFeature"), True) # indirect doctest
             FeatureTestResult('SomePresentFeature', True)
-
         """
         return "FeatureTestResult({feature!r}, {is_present!r})".format(feature=self.feature.name, is_present=self.is_present)
 
@@ -185,7 +185,7 @@ class Feature(object):
 
         sage: from sage.misc.feature import GapPackage
         sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
-        Feature("GAP package grape")
+        Feature('GAP package grape')
     """
     def __init__(self, name, spkg = None, url = None):
         r"""
@@ -212,9 +212,9 @@ class Feature(object):
 
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-            True
+            FeatureTestResult('GAP package grape', True)
             sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
-            False
+            FeatureTestResult('GAP package NOT_A_PACKAGE', False)
         """
         return FeatureTestResult(self, True)
 
@@ -230,7 +230,6 @@ class Feature(object):
             ...
             FeatureNotPresentError: GAP package ve1EeThu is not available.
             `TestPackageAvailability("ve1EeThu")` evaluated to `fail` in GAP.
-
         """
         presence = self.is_present()
         if not presence:
@@ -244,7 +243,7 @@ class Feature(object):
 
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape") # indirect doctest
-            Feature("GAP package grape")
+            Feature('GAP package grape')
         """
         return 'Feature({name!r})'.format(name=self.name)
 
@@ -255,11 +254,10 @@ class Feature(object):
             sage: from sage.misc.feature import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
             'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
-
         """
         return "\n".join(filter(None,[
             "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
-            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""]))
+            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""])) or None
 
 class GapPackage(Feature):
     r"""
@@ -269,7 +267,7 @@ class GapPackage(Feature):
 
         sage: from sage.misc.feature import GapPackage
         sage: GapPackage("grape", spkg="gap_packages")
-        Feature("GAP package grape")
+        Feature('GAP package grape')
     """
     def __init__(self, package, spkg=None, url=None):
         Feature.__init__(self, "GAP package {package}".format(package=package), spkg=spkg, url=url)
@@ -286,8 +284,7 @@ class GapPackage(Feature):
 
             sage: from sage.misc.feature import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-            True
-
+            FeatureTestResult('GAP package grape', True)
         """
         from sage.libs.gap.libgap import libgap
         command = 'TestPackageAvailability("{package}")'.format(package=self.package)
@@ -317,7 +314,6 @@ class Executable(Feature):
         sage: from sage.misc.feature import Executable
         sage: Executable(name="sh", executable="sh").is_present()
         FeatureTestResult('sh', True)
-
     """
     def __init__(self, name, executable, spkg=None, url=None):
         r"""
@@ -342,7 +338,6 @@ class Executable(Feature):
             sage: from sage.misc.feature import Executable
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
-
         """
         from distutils.spawn import find_executable
         if find_executable(self.executable) is None:
@@ -360,7 +355,6 @@ class Executable(Feature):
             sage: from sage.misc.feature import Executable
             sage: Executable(name="sh", executable="sh").is_functional()
             FeatureTestResult('sh', True)
-
         """
         return FeatureTestResult(self, True)
 
@@ -372,8 +366,7 @@ class PythonModule(Feature):
 
         sage: from sage.misc.feature import PythonModule
         sage: PythonModule(name="sys").is_present()
-        FeatureTestResult('sys', True)
-
+        FeatureTestResult('Python module sys', True)
     """
     def __init__(self, name, module=None, spkg=None, url=None):
         if module is None:
@@ -391,9 +384,8 @@ class PythonModule(Feature):
         EXAMPLES::
 
             sage: from sage.misc.feature import PythonModule
-            sage: PythonModule(name="sh", executable="sh").is_present()
-            FeatureTestResult('sh', True)
-
+            sage: PythonModule(name="sage").is_present()
+            FeatureTestResult('Python module sage', True)
         """
         import importlib
         try:
@@ -410,17 +402,17 @@ class CSDP(Executable):
 
     EXAMPLES::
 
-        sage: from sage.graphs.lovasz_theta import CSDP
+        sage: from sage.misc.feature import CSDP
         sage: CSDP().is_present() # optional: csdp
-        True
+        FeatureTestResult('CSDP', True)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: from sage.misc.feature import CSDP
             sage: CSDP()
-            Feature("CSDP")
+            Feature('CSDP')
         """
         Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
 
@@ -430,9 +422,9 @@ class CSDP(Executable):
 
         EXAMPLES::
 
-            sage: from sage.graphs.lovasz_theta import CSDP
+            sage: from sage.misc.feature import CSDP
             sage: CSDP().is_functional() # optional: csdp
-            True
+            FeatureTestResult('CSDP', True)
         """
         from sage.misc.feature import FeatureTestResult
         from sage.misc.temporary_file import tmp_filename
@@ -464,17 +456,17 @@ class Plantri(Executable):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_generators import Plantri
-        sage: Benzene().is_present() # optional: plantri
-        True
+        sage: from sage.misc.feature import Plantri
+        sage: Plantri().is_present() # optional: plantri
+        FeatureTestResult('plantri', False)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.graphs.graph_generators import Plantry
+            sage: from sage.misc.feature import Plantri
             sage: Plantri()
-            Feature("plantri")
+            Feature('plantri')
         """
         Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
 
@@ -484,9 +476,9 @@ class Plantri(Executable):
 
         EXAMPLES::
 
-            sage: from sage.graphs.graph_generators import Plantri
+            sage: from sage.misc.feature import Plantri
             sage: Plantri().is_functional() # optional: plantri
-            True
+            FeatureTestResult('plantri', False)
         """
         from sage.misc.feature import FeatureTestResult
         import os, subprocess
@@ -511,18 +503,17 @@ class Lrs(Executable):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.base import Lrs
+        sage: from sage.misc.feature import Lrs
         sage: Lrs().is_present() # optional: lrslib
-        True
-
+        FeatureTestResult('lrslib', True)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.geometry.polyhedron.base import Lrs
+            sage: from sage.misc.feature import Lrs
             sage: Lrs()
-
+            Feature('lrslib')
         """
         Executable.__init__(self, "lrslib", executable="lrs", spkg="lrslib", url="http://cgm.cs.mcgill.ca/~avis/C/lrs.html")
 
@@ -532,10 +523,9 @@ class Lrs(Executable):
 
         EXAMPLES::
 
-            sage: from sage.geometry.polyhedron.base import Lrs
+            sage: from sage.misc.feature import Lrs
             sage: Lrs().is_functional() # optional: lrslib
-            True
-
+            FeatureTestResult('lrslib', True)
         """
         from sage.misc.feature import FeatureTestResult
         from sage.misc.temporary_file import tmp_filename
@@ -565,17 +555,17 @@ class Buckygen(Executable):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_generators import Buckygen
+        sage: from sage.misc.feature import Buckygen
         sage: Buckygen().is_present() # optional: buckygen
-        True
+        FeatureTestResult('Buckygen', True)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.graphs.graph_generators import Buckygen
+            sage: from sage.misc.feature import Buckygen
             sage: Buckygen()
-            Feature("Buckygen")
+            Feature('Buckygen')
         """
         Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
 
@@ -585,9 +575,9 @@ class Buckygen(Executable):
 
         EXAMPLES::
 
-            sage: from sage.graphs.graph_generators import Buckygen
+            sage: from sage.misc.feature import Buckygen
             sage: Buckygen().is_functional() # optional: buckygen
-            True
+            FeatureTestResult('Buckygen', True)
         """
         from sage.misc.feature import FeatureTestResult
         import subprocess
@@ -612,7 +602,7 @@ class Benzene(Executable):
 
     EXAMPLES::
 
-        sage: from sage.graphs.graph_generators import Benzene
+        sage: from sage.misc.feature import Benzene
         sage: Benzene().is_present() # optional: benzene
         True
     """
@@ -620,9 +610,9 @@ class Benzene(Executable):
         r"""
         TESTS::
 
-            sage: from sage.graphs.graph_generators import Benzene
+            sage: from sage.misc.feature import Benzene
             sage: Benzene()
-            Feature("Benzene")
+            Feature('Benzene')
         """
         Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
 
@@ -632,7 +622,7 @@ class Benzene(Executable):
 
         EXAMPLES::
 
-            sage: from sage.graphs.graph_generators import Benzene
+            sage: from sage.misc.feature import Benzene
             sage: Benzene().is_functional() # optional: benzene
             True
         """
@@ -662,7 +652,12 @@ class StaticFile(Feature):
 
         sage: from sage.misc.feature import StaticFile
         sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").require()
-
+        Traceback (most recent call last):
+        ...
+        FeatureNotPresentError: no_such_file is not available.
+        `KaT1aihu` not found  in any of ['/']
+        To install no_such_file you can try to run `sage -i some_spkg`.
+        Further installation instructions might be available at http://rand.om.
     """
     def __init__(self, name, filename, search_path, spkg=None, url=None):
         r"""
@@ -670,7 +665,7 @@ class StaticFile(Feature):
 
             sage: from sage.misc.feature import StaticFile
             sage: StaticFile(name="null", filename="null", search_path=["/dev"])
-
+            Feature('null')
         """
         Feature.__init__(self, name=name, spkg=spkg, url=url)
         self.filename = filename
@@ -680,10 +675,9 @@ class StaticFile(Feature):
         r"""
         Whether the static file is present.
 
-        sage: from sage.misc.feature import StaticFile
-        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
-        False
-
+           sage: from sage.misc.feature import StaticFile
+           sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
+           FeatureTestResult('no_such_file', False)
         """
         try:
             abspath = self.absolute_path()
@@ -698,13 +692,19 @@ class StaticFile(Feature):
         EXAMPLES::
 
             sage: from sage.misc.feature import DatabaseCremona
-            sage: DatabaseCremona().absolute_path() # optional: cremona_database
+            sage: DatabaseCremona().absolute_path() # optional: database_cremona_ellcurve
+            '.../local/share/cremona/cremona.db'
 
         A ``FeatureNotPresentError`` is raised if the file can not be found::
 
             sage: from sage.misc.feature import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
-
+            Traceback (most recent call last):
+            ...
+            FeatureNotPresentError: no_such_file is not available.
+            `KaT1aihu` not found  in any of ['/']
+            To install no_such_file you can try to run `sage -i some_spkg`.
+            Further installation instructions might be available at http://rand.om.
         """
         for directory in self.search_path:
             import os.path
@@ -712,7 +712,7 @@ class StaticFile(Feature):
             path = os.path.join(directory, self.filename)
             if os.path.isfile(path):
                 return os.path.abspath(path)
-        raise FeatureNotPresentError(self.name, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path), resolution=self.resolution())
+        raise FeatureNotPresentError(self, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path), resolution=self.resolution())
 
 class DatabaseCremona(StaticFile):
     r"""
@@ -722,9 +722,8 @@ class DatabaseCremona(StaticFile):
     EXAMPLES::
 
         sage: from sage.misc.feature import DatabaseCremona
-        sage: DatabaseCremona().is_present() # optional: cremona_database
-        True
-
+        sage: DatabaseCremona().is_present() # optional: database_cremona_ellcurve
+        FeatureTestResult("Cremona's database of elliptic curves", True)
     """
     def __init__(self, name="cremona", spkg=None):
         r"""
@@ -732,10 +731,10 @@ class DatabaseCremona(StaticFile):
 
             sage: from sage.misc.feature import DatabaseCremona
             sage: DatabaseCremona()
-
+            Feature("Cremona's database of elliptic curves")
         """
         if spkg is None and name == "cremona":
-            spkg = "cremona_database"
+            spkg = "database_cremona_ellcurve"
         filename = name.replace(' ','_') + ".db"
         import os.path, os
         from sage.env import SAGE_SHARE
@@ -751,11 +750,10 @@ class SmallGroupsLibrary(Feature):
 
         sage: from sage.misc.feature import SmallGroupsLibrary
         sage: SmallGroupsLibrary()
-        Feature("Small Groups Library")
+        Feature('Small Groups Library')
     """
     def __init__(self):
-        Feature.__init__(self, "Small Groups Library", spkg="gap_database", url="www.gap-system.org/Packages/sgl.html")
-        self.package = package
+        Feature.__init__(self, "Small Groups Library", spkg="database_gap", url="www.gap-system.org/Packages/sgl.html")
 
     @cached_method
     def is_present(self):
@@ -765,9 +763,8 @@ class SmallGroupsLibrary(Feature):
         EXAMPLES::
 
             sage: from sage.misc.feature import SmallGroupsLibrary
-            sage: SmallGroupsLibrary().is_present() # optional: gap_database
-            True
-
+            sage: SmallGroupsLibrary().is_present() # optional: database_gap
+            FeatureTestResult('Small Groups Library', True)
         """
         from sage.libs.gap.libgap import libgap
         command = 'SmallGroup(13,1)'
@@ -779,7 +776,7 @@ class SmallGroupsLibrary(Feature):
         except ValueError as e:
             output = str(e)
         return FeatureTestResult(self, presence,
-            reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, presence=presence))
+            reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, output=output))
 
 class SharedLibrary(Feature):
     r"""
@@ -788,7 +785,6 @@ class SharedLibrary(Feature):
 
     To test the presence of ``name``, the cython compiler is run on
     ``test_code`` and the resulting module is imported.
-
     """
     def __init__(self, name, test_code, spkg=None, url=None):
         Feature.__init__(self, name, spkg=spkg, url=url)
@@ -819,9 +815,8 @@ class Module(Feature):
     Not all builds of python include the ``ssl`` module, so you could check
     whether it is available::
 
-        sage: from sage.misc.features import Module
+        sage: from sage.misc.feature import Module
         sage: Module("ssl").require() # not tested - output depends on the python build
-
     """
     def __init__(self, name, spkg=None, url=None):
         Feature.__init__(self, name, spkg=spkg, url=url)
@@ -849,8 +844,8 @@ class OptionalModule(Module):
     whether it is working, i.e., whether the library it relies on is present::
 
         sage: from sage.misc.feature import LibFES
-        sage: LibFES().is_present()
-
+        sage: LibFES().is_present() # optional: fes
+        FeatureTestResult('sage.libs.fes', True)
     """
     def __init__(self, name, dependencies=[], spkg=None, url=None):
         Module.__init__(self, name, spkg=spkg, url=url)
