@@ -33,6 +33,6 @@ diff -Naur ecm-7.0.3.orig/Makefile.in ecm-7.0.3/Makefile.in
  libecm_la_LDFLAGS = $(LIBECM_LDFLAGS) -version-info 1:0:0 -g \
 -	-Wl,-znoexecstack $(am__append_5)
 +	-Wl,-z,noexecstack $(am__append_5)
- libecm_la_LIBADD = $(MULREDCLIBRARY) $(am__append_4) $(GMPLIB)
+ libecm_la_LIBADD = $(MULREDCLIBRARY) $(am__append_4)
  @WANT_GPU_TRUE@ecm_LDFLAGS = $(CUDARPATH)
  @WITH_GWNUM_TRUE@ecm_LDFLAGS = $(AM_LDFLAGS) -Wl,gwdata.ld

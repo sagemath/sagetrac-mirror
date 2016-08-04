@@ -1,0 +1,30 @@
+#20385:  Don't put $(GMPLIB) (=libgmp.a) into libecm.a, as Darwin's
+linker bails out on nested archives.  Probably a weird idea anyway,
+or some libtool bug, as it's presumably supposed to add *the contents*
+(i.e., the object files) of libgmp.a into libecm.a.
+
+
+diff -Naur ecm-7.0.3.orig/Makefile.am ecm-7.0.3/Makefile.am
+--- ecm-7.0.3/Makefile.am	2016-06-27 23:22:08.000000000 -0700
++++ ecm-7.0.3/Makefile.am	2016-08-03 23:20:24.352113089 -0700
+@@ -58,7 +58,7 @@
+   libecm_la_LDFLAGS += $(CUDALDFLAGS)
+   ecm_LDFLAGS = $(CUDARPATH)
+ endif
+-libecm_la_LIBADD += $(GMPLIB)
++# libecm_la_LIBADD += $(GMPLIB)
+ 
+ bin_PROGRAMS = ecm
+ noinst_PROGRAMS = tune ecmfactor bench_mulredc aprcl
+diff -Naur ecm-7.0.3.orig/Makefile.in ecm-7.0.3/Makefile.in
+--- ecm-7.0.3/Makefile.in	2016-07-04 01:02:58.000000000 -0700
++++ ecm-7.0.3/Makefile.in	2016-08-03 23:19:34.952113147 -0700
+@@ -716,7 +716,7 @@
+ # update, increment current, and set revision to 0.
+ libecm_la_LDFLAGS = $(LIBECM_LDFLAGS) -version-info 1:0:0 -g \
+ 	-Wl,-znoexecstack $(am__append_5)
+-libecm_la_LIBADD = $(MULREDCLIBRARY) $(am__append_4) $(GMPLIB)
++libecm_la_LIBADD = $(MULREDCLIBRARY) $(am__append_4)
+ @WANT_GPU_TRUE@ecm_LDFLAGS = $(CUDARPATH)
+ @WITH_GWNUM_TRUE@ecm_LDFLAGS = $(AM_LDFLAGS) -Wl,gwdata.ld
+ # Most binaries want to link libecm.la, and the ones which don't will
