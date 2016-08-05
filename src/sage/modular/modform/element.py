@@ -1376,7 +1376,7 @@ class Newform(ModularForm_abstract):
         """
         return self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
 
-    def inner_twists(self):
+    def inner_and_CM_twists(self):
         """
         Return a tuple consisting of the array of inner twists and the array of
         CM twists.
@@ -1390,20 +1390,20 @@ class Newform(ModularForm_abstract):
 
             sage: f = Newforms(Gamma1(13), names='a')[0]; f
             q + a0*q^2 + (-2*a0 - 4)*q^3 + (-a0 - 1)*q^4 + (2*a0 + 3)*q^5 + O(q^6)
-            sage: f.inner_twists()
+            sage: f.inner_and_CM_twists()
             ([Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1,
             Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a0 + 2],
             [])
             
             sage: f = Newforms(15)[0]; f
             q - q^2 - q^3 - q^4 + q^5 + O(q^6)
-            sage: f.inner_twists()
+            sage: f.inner_and_CM_twists()
             ([Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1],
             [])
 
             sage: f = Newforms(32)[0]; f
             q - 2*q^5 + O(q^6)
-            sage: T = f.inner_twists(); T
+            sage: T = f.inner_and_CM_twists(); T
             ([Dirichlet character modulo 32 of conductor 1 mapping 31 |--> 1, 5 |--> 1,
               Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1],
              [Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1])
@@ -1455,6 +1455,50 @@ class Newform(ModularForm_abstract):
                     if is_CM:
                         CMs.append(chi)
         return inners, CMs
+
+    def inner_twists(self):
+        """
+        Return an array of inner twists of self.
+
+        OUTPUT:
+
+            - An array of inner twists of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(11)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f.inner_twists()
+            [Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1]
+
+            sage: f = Newforms(Gamma1(17), names='a')[1]; f
+            q + a1*q^2 + (-1/3*a1^3 - 5/3*a1^2 - 13/3*a1 - 11/3)*q^3 + (4/3*a1^3 + 17/3*a1^2 + 28/3*a1 + 8/3)*q^4 + (-4/3*a1^3 - 14/3*a1^2 - 25/3*a1 - 5/3)*q^5 + O(q^6)
+            sage: f.inner_twists()                         
+            [Dirichlet character modulo 17 of conductor 1 mapping 3 |--> 1,
+             Dirichlet character modulo 17 of conductor 17 mapping 3 |--> -2/3*a1^3 - 7/3*a1^2 - 11/3*a1 - 1/3]
+        """
+        return self.inner_and_CM_twists()[0]
+
+    def CM_twists(self):
+        """
+        Return an array of CM twists of self.
+
+        OUTPUT: 
+            
+            - An array of CM twists of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(32)[0]; f
+            q - 2*q^5 + O(q^6)
+            sage: T = f.CM_twists(); T
+            [Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1]
+            sage: f.qexp(26)
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+            sage: f.twist(T[0]).qexp(26)     
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+        """
+        return self.inner_and_CM_twists()[1]
 
     def twist(self, chi, level=None, check=True):
         r"""
