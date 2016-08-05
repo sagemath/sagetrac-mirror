@@ -395,7 +395,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         twostar = 2 if b2 else 1
         from math import log
-        from ell_int_points import abs_log_height
+        from .ell_int_points import abs_log_height
         def h(x):
             return abs_log_height([K(x),K(1)])
         def h_oo(x):
