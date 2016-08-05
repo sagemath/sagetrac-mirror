@@ -37,6 +37,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 import six
@@ -626,13 +627,13 @@ class InterfaceFunctionElement(SageObject):
         self._name = name
 
     def __repr__(self):
-        return "%s"%self._name
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
-        print self._sage_doc_()
+        print(self._sage_doc_())
 
     def _sage_doc_(self):
         """
@@ -1280,6 +1281,17 @@ class InterfaceElement(RingElement):
             cos(_SAGE_VAR_x)/2
         """
         return self._operation("/", right)
+
+    def _mod_(self, right):
+        """
+        EXAMPLES::
+
+            sage: f = gp("x^3 + x")
+            sage: g = gp("2*x + 1")
+            sage: f % g
+            -5/8
+        """
+        return self._operation("%", right)
 
     def __pow__(self, n):
         """

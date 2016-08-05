@@ -29,6 +29,8 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-11-02): Added doctests for full coverage
 
+- Eviatar Bach (2013-06): Fixing numerical evaluation of log_gamma
+
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
@@ -2194,7 +2196,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     #   Basic Arithmetic
     ########################
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real numbers with the same parent.
 
@@ -2223,7 +2225,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent(1) / self
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -2253,7 +2255,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         import sympy
         return sympy.simplify(float(self))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -2286,7 +2288,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by other, where both are real numbers with the same
         parent.
@@ -2306,7 +2308,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the negative of ``self``.
 
@@ -2693,7 +2695,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
-    def __mod__(left, right):
+    cpdef _mod_(left, right):
         """
         Return the value of ``left - n*right``, rounded according to the
         rounding mode of the parent, where ``n`` is the integer quotient of
@@ -2710,13 +2712,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage 1.1 % 0.25
             0.100000000000000
         """
-        if not isinstance(left, Element) or \
-                not isinstance(right, Element) or \
-                (<Element>left)._parent is not (<Element>right)._parent:
-            from sage.structure.element import canonical_coercion
-            left, right = canonical_coercion(left, right)
-            return left % right
-
         cdef RealNumber x
         x = (<RealNumber>left)._new()
         mpfr_remainder (x.value, (<RealNumber>left).value,
@@ -3816,7 +3811,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return not mpfr_zero_p(self.value)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
         if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``
@@ -4978,7 +4973,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def log_gamma(self):
         """
-        Return the logarithm of gamma of ``self``.
+        Return the principal branch of the log gamma of ``self``. Note that
+        this is not in general equal to log(gamma(``self``)) for negative
+        input.
 
         EXAMPLES::
 
@@ -4987,16 +4984,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
             4.78749174278205
             sage: R(1e10).log_gamma()
             2.20258509288811e11
+            sage: log_gamma(-2.1)
+            1.53171380819509 - 9.42477796076938*I
+            sage: log(gamma(-1.1)) == log_gamma(-1.1)
+            False
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_lngamma(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
-        return x
+        parent = (<RealField_class>self._parent)
+        if not mpfr_sgn(self.value) < 0:
+            if parent.__prec > SIG_PREC_THRESHOLD:
+                sig_on()
+            mpfr_lngamma(x.value, self.value, parent.rnd)
+            if parent.__prec > SIG_PREC_THRESHOLD:
+                sig_off()
+            return x
+        from sage.libs.mpmath.utils import call
+        from mpmath import loggamma
+        return call(loggamma, mpfr_to_mpfval(self.value), parent=parent)
 
     def zeta(self):
         r"""
-        Return the Riemann zeta function evaluated at this real number.
+        Return the Riemann zeta function evaluated at this real number
 
         .. NOTE::
 
