@@ -11609,6 +11609,104 @@ cdef class Expression(CommutativeRingElement):
         from sage.calculus.calculus import inverse_laplace
         return inverse_laplace(self, t, s)
 
+    def inverse(self, func_var, with_respect_to=None, **kwds):
+        r"""
+        Returns the inverse of a function, `f^{-1}`.
+
+        The inverse of a function is defined as a function which undoes another
+        function; for a function `f(x)=y`, the inverse is `g(y)=x`, and
+        `g(f(x))=x`. Not all functions have inverses, but in this implementation
+        non-functional results will still be returned.
+
+        See the `Wikipedia article on inverse functions
+        <http://en.wikipedia.org/wiki/Inverse_function>`_. 
+
+
+        INPUT:
+
+         - ``func_var`` - variable that defines the function in the expression.
+           For example, for `y=x+2`, `y` is a function of `x`.
+
+         - ``with_respect_to`` - variable with respect to which to take the
+           inverse in a multivariable function
+
+        - ``**kwds`` - arguments to be passed to ``solve()``
+
+        OUTPUT:
+
+        list -- solutions to the inverse of self
+
+        EXAMPLES:
+
+        The inverse of `\log{x}`::
+
+            sage: y = var('y')
+            sage: log(x).inverse(y)
+            [y == e^x]
+
+        The inverse of `\tan{e^x}` ()::
+
+            sage: tan(e^x).inverse(y)
+            [y == log(arctan(x))]
+
+        The inverse of `x^2 + \log{y} - 1` with respect to `y`::
+
+            sage: z = var('z')
+            sage: (z == x^2 + log(y) - 1).inverse(z, y)
+            [z == e^(-x^2 + y + 1)]
+
+        The equation for converting degrees Celsius to Fahrenheit is
+        `F=(9/5)C+32`. The equation for converting Fahrenheit to Celsius
+        can be determined by taking the inverse.
+
+        ::
+
+            sage: (y == (9 / 5) * x + 32).inverse(y)
+            [y == 5/9*x - 160/9]
+
+        Some functions are not invertible, since taking the inverse produces
+        more than one solution::
+
+            sage: (x^2).inverse(y)
+            [y == -sqrt(x), y == sqrt(x)]
+
+        TESTS:
+
+        Check if the inverse of the inverse of a function equals the original
+        function::
+
+            sage: bool((y == cos(x)) == cos(x).inverse(y)[0].inverse(y)[0])
+            True
+
+        ALGORITHM:
+
+        The inverse is taken by switching around the function variable and the
+        variable with respect to which the inverse is taken, and then solving
+        for the former. For example, `y=\sin{x}` becomes `x=\sin{y}`, and
+        therefore the inverse is `y=\arcsin{x}`.
+
+        AUTHORS:
+
+        - Eviatar Bach (2012-03-31): initial version
+        """
+        expression = self
+        if not is_a_relational(self._gobj):
+            expression = func_var == expression
+        elif is_a_relational(self._gobj) and self.operator() != operator.eq:
+            raise TypeError("Input cannot be an inequality.")
+        if len(expression.variables()) == 1:
+            raise TypeError("Input cannot be a constant function.")
+        if len(expression.variables()) == 2:
+            new = dict(zip(expression.variables(),
+                       expression.variables()[::-1]))
+            return expression.subs(new).solve(func_var, **kwds)
+        else:
+            if not with_respect_to:
+                raise TypeError('You must specify with respect to which \
+variable to take the inverse.')
+            return expression.subs({with_respect_to:func_var,
+                            func_var:with_respect_to}).solve(func_var, **kwds)
+
     def add_to_both_sides(self, x):
         """
         Return a relation obtained by adding *x* to both sides of

@@ -717,6 +717,25 @@ def xinterval(a, b):
     """
     return xrange(a, b+1)
 
+def inverse(x, *args, **kwds):
+    r"""
+    Returns the inverse function of x.
+
+    EXAMPLES::
+
+        sage: y = var('y')
+        sage: z = var('z')
+        sage: inverse(tan(x), y)
+        [y == arctan(x)]
+        sage: inverse(y == 3 * x, y)
+        [y == 1/3*x]
+        sage: inverse(1 / x, y) 
+        [y == (1/x)]
+        sage: inverse(z == 2 * x + y^2, z, y)
+        [z == -sqrt(-2*x + y), z == sqrt(-2*x + y)]
+    """
+    return x.inverse(*args, **kwds)
+
 def is_commutative(x):
     """
     Returns whether or not x is commutative.
