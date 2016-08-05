@@ -53,8 +53,8 @@ from sage.rings.rational_field import is_RationalField
 from sage.modular.all import Gamma0
 
 # Elliptic curve imports
-from constructor import EllipticCurve
-from ell_generic import is_EllipticCurve
+from .constructor import EllipticCurve
+from .ell_generic import is_EllipticCurve
 
 # Fast Cython functions specifically for this code.
 from sage.schemes.elliptic_curves.chow_heegner_fast import (
