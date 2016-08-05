@@ -95,7 +95,8 @@ from .constructor import EllipticCurve
 from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
 from six import reraise as raise_
-from ell_int_points import integral_points
+from .ell_int_points import integral_points
+
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
