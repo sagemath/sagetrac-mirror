@@ -2019,9 +2019,9 @@ class ModularParametrization(object):
         # We try m_E points at a time, since the newton step below is expensive.
         w0 = []
         w = []
-        #while len(w) < m_E:
-        while len(v) > 0:
-        # changed so that it always terminates
+        # while len(w) < m_E:
+        while v:
+            # changed so that it always terminates
             for b, i, err in newton(f, [h_to_disk(C(a)) for a in v[:m_E]],
                                     max_iter, max_err=C(2) ** (2 - prec)):
                 if abs(b) < 1 and i < max_iter:
