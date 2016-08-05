@@ -55,7 +55,7 @@ from sage.libs.gsl.poly cimport *
 cdef extern from "gsl/gsl_poly.h":
     gsl_complex gsl_poly_complex_eval (double c[], int n, gsl_complex z)
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 from sage.rings.all import CDF
