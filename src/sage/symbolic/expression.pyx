@@ -11619,7 +11619,7 @@ cdef class Expression(CommutativeRingElement):
         non-functional results will still be returned.
 
         See the `Wikipedia article on inverse functions
-        <http://en.wikipedia.org/wiki/Inverse_function>`_. 
+        <http://en.wikipedia.org/wiki/Inverse_function>`_.
 
 
         INPUT:
@@ -11642,6 +11642,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: y = var('y')
             sage: log(x).inverse(y)
+            [y == e^x]
+
+        Note that anonymous functions work as well::
+
+            sage: f(x) = log(x)
+            sage: inverse(f(x),y)
+            [y == e^x]
+            sage: inverse(f,y)
             [y == e^x]
 
         The inverse of `\tan{e^x}` ()::
@@ -11693,16 +11701,16 @@ cdef class Expression(CommutativeRingElement):
         if not is_a_relational(self._gobj):
             expression = func_var == expression
         elif is_a_relational(self._gobj) and self.operator() != operator.eq:
-            raise TypeError("Input cannot be an inequality.")
+            raise ValueError("Input cannot be an inequality.")
         if len(expression.variables()) == 1:
-            raise TypeError("Input cannot be a constant function.")
+            raise ValueError("Input cannot be a constant function.")
         if len(expression.variables()) == 2:
             new = dict(zip(expression.variables(),
                        expression.variables()[::-1]))
             return expression.subs(new).solve(func_var, **kwds)
         else:
-            if not with_respect_to:
-                raise TypeError('You must specify with respect to which \
+            if with_respect_to is None or not with_respect_to.is_symbol():
+                raise ValueError('You must specify with respect to which \
 variable to take the inverse.')
             return expression.subs({with_respect_to:func_var,
                             func_var:with_respect_to}).solve(func_var, **kwds)

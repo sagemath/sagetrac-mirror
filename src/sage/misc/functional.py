@@ -721,6 +721,9 @@ def inverse(x, *args, **kwds):
     r"""
     Returns the inverse function of x.
 
+    See :meth:`~sage.symbolic.expression.Expression.inverse` for
+    the full documentation.
+
     EXAMPLES::
 
         sage: y = var('y')
@@ -729,7 +732,7 @@ def inverse(x, *args, **kwds):
         [y == arctan(x)]
         sage: inverse(y == 3 * x, y)
         [y == 1/3*x]
-        sage: inverse(1 / x, y) 
+        sage: inverse(1 / x, y)
         [y == (1/x)]
         sage: inverse(z == 2 * x + y^2, z, y)
         [z == -sqrt(-2*x + y), z == sqrt(-2*x + y)]
