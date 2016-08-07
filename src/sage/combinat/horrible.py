@@ -27,6 +27,8 @@ def pear(n):
     """
     And now with a bad format for the input block
 
+    Let us also use bad commands in LaTeX: `{a \atop b}`
+
     INPUT::
 
     - n -- anything
