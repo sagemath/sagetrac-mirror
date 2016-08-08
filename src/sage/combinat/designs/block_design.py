@@ -759,8 +759,10 @@ def AffineGeometryDesign(n, d, F):
              v = q^n,\  k = q^d ,
              \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
 
-    Wraps some functions used in GAP Design's ``PGPointFlatBlockDesign``.  Does
-    *not* require GAP's Design package.
+
+    We construct the corresponding projective geometry design and remove
+    the hyperplane given by `x_0=0`.
+    Coded by Rowan Schrecker at https://github.com/rschrecker/AffineGeometryDesign
 
     EXAMPLES::
 
@@ -777,24 +779,17 @@ def AffineGeometryDesign(n, d, F):
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 64, 16, 5))
     """
+    from sage.rings.finite_rings.finite_field_constructor import GF
     try:
         q = int(F)
+        F = GF(q)
     except TypeError:
         q = F.order()
-
-    from sage.interfaces.gap import gap, GapElement
-    from sage.sets.set import Set
-    gap.eval("V:=GaloisField(%s)^%s"%(q,n))
-    gap.eval("points:=AsSet(V)")
-    gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
-    gap.eval("CP:=Cartesian(points,Subs)")
-    flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
-    v = q**n
-    gB = []
-    for b in gblcks:
-       gB.append([x-1 for x in b])
-    return BlockDesign(v, gB, name="AffineGeometryDesign")
+    D = ProjectiveGeometryDesign(n, d, F)
+    blocks = [[x for x in block if x[0] != F.zero()] for block in D.blocks()]
+    I = IncidenceStructure([block for block in blocks if block], name="AffineGeometryDesign")
+    I.relabel()
+    return I
 
 def CremonaRichmondConfiguration():
     r"""
