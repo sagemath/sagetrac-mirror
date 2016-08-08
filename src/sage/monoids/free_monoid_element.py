@@ -275,6 +275,15 @@ class FreeMonoidElement(MonoidElement):
                 z._element_list = x_elt[0:k+1] + y_elt[t:]
         return z
 
+    def __invert__(self):
+        M = self.parent()
+        inverse = M(1)
+        inverse._element_list = []
+        for i in range(0,len(self._element_list)):
+            inverse._element_list.append((self._element_list[i][0],-self._element_list[i][1]))
+        inverse._element_list.reverse()
+        return inverse
+
     def __len__(self):
         """
         Return the degree of the monoid element ``self``, where each
