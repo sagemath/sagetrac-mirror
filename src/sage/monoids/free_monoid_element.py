@@ -295,7 +295,7 @@ class FreeMonoidElement(MonoidElement):
         """
         s = 0
         for x in self._element_list:
-            s += x[1]
+            s += abs(x[1])
         return s
 
     def __cmp__(self,y):
