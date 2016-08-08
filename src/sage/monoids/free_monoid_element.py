@@ -261,12 +261,18 @@ class FreeMonoidElement(MonoidElement):
         elif not y_elt:
             z._element_list = x_elt
         else:
-            k = len(x_elt)-1
-            if x_elt[k][0] != y_elt[0][0]:
-                z._element_list = x_elt + y_elt
+            t = 0
+            k = len(x_elt)-1-t
+            while k > -1 and t < len(y_elt) and x_elt[k][0] == y_elt[t][0]: 
+                m = (y_elt[t][0],x_elt[k][1]+y_elt[t][1])
+                if m[1] == 0:
+                    t += 1
+                    k = len(x_elt)-1-t
+                else:
+                    z._element_list = x_elt[0:k] + [ m ] + y_elt[t+1:]
+                    return z
             else:
-                m = (y_elt[0][0], x_elt[k][1]+y_elt[0][1])
-                z._element_list = x_elt[:k] + [ m ] + y_elt[1:]
+                z._element_list = x_elt[0:k+1] + y_elt[t:]
         return z
 
     def __len__(self):
