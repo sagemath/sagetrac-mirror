@@ -15,7 +15,7 @@ $(SAGE_LOCAL)/bin/makeinfo: $(SRC)/texinfo-4.13
 $(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.17 $(SAGE_LOCAL)/bin/makeinfo
 	cd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install
 
-$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.46.4 $(SAGE_LOCAL)/bin/makeinfo
+$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.47.4 $(SAGE_LOCAL)/bin/makeinfo
 	cd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install
 
 ########################################################################
@@ -688,12 +688,27 @@ $(SAGE_LOCAL)/automake-1.14.1: automake-1.14.1/.tarball-version $(SAGE_LOCAL)/bi
 	# Remove all files except for the .* files
 	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf automake-1.14.1/*
 
-automake-all: $(SAGE_LOCAL)/automake-1.9 $(SAGE_LOCAL)/automake-1.9.1 $(SAGE_LOCAL)/automake-1.9.2 $(SAGE_LOCAL)/automake-1.9.3 $(SAGE_LOCAL)/automake-1.9.4 $(SAGE_LOCAL)/automake-1.9.5 $(SAGE_LOCAL)/automake-1.9.6 $(SAGE_LOCAL)/automake-1.10 $(SAGE_LOCAL)/automake-1.10.1 $(SAGE_LOCAL)/automake-1.10.2 $(SAGE_LOCAL)/automake-1.10.3 $(SAGE_LOCAL)/automake-1.11 $(SAGE_LOCAL)/automake-1.11.1 $(SAGE_LOCAL)/automake-1.11.2 $(SAGE_LOCAL)/automake-1.11.3 $(SAGE_LOCAL)/automake-1.11.4 $(SAGE_LOCAL)/automake-1.11.5 $(SAGE_LOCAL)/automake-1.11.6 $(SAGE_LOCAL)/automake-1.12 $(SAGE_LOCAL)/automake-1.12.1 $(SAGE_LOCAL)/automake-1.12.2 $(SAGE_LOCAL)/automake-1.12.3 $(SAGE_LOCAL)/automake-1.12.4 $(SAGE_LOCAL)/automake-1.12.5 $(SAGE_LOCAL)/automake-1.12.6 $(SAGE_LOCAL)/automake-1.13 $(SAGE_LOCAL)/automake-1.13.1 $(SAGE_LOCAL)/automake-1.13.2 $(SAGE_LOCAL)/automake-1.13.3 $(SAGE_LOCAL)/automake-1.13.4 $(SAGE_LOCAL)/automake-1.14 $(SAGE_LOCAL)/automake-1.14.1
+# Extract sources from git repository serially
+automake-1.15/.tarball-version: automake-1.14.1/.tarball-version
+	( cd $(SRC)/automake && git archive --format=tar --prefix=automake-1.15/ v1.15 ) | tar xf -
+	echo 1.15 >automake-1.15/.tarball-version
+
+$(SAGE_LOCAL)/automake-1.15: automake-1.15/.tarball-version $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/autoconf-2.69 $(SAGE_LOCAL)/automake-1.9.6
+	export MAKE='$(MAKE) -j1' ; \
+	export AUTOCONF_VERSION=2.69 ; \
+	export AUTOMAKE_VERSION=1.9.6 ; \
+	cd automake-1.15 && bash -c 'set -e; source bootstrap.sh' && \
+	    ./configure --prefix="$(SAGE_LOCAL)/automake-1.15" && \
+	    $$MAKE && $$MAKE install
+	# Remove all files except for the .* files
+	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf automake-1.15/*
+
+automake-all: $(SAGE_LOCAL)/automake-1.9 $(SAGE_LOCAL)/automake-1.9.1 $(SAGE_LOCAL)/automake-1.9.2 $(SAGE_LOCAL)/automake-1.9.3 $(SAGE_LOCAL)/automake-1.9.4 $(SAGE_LOCAL)/automake-1.9.5 $(SAGE_LOCAL)/automake-1.9.6 $(SAGE_LOCAL)/automake-1.10 $(SAGE_LOCAL)/automake-1.10.1 $(SAGE_LOCAL)/automake-1.10.2 $(SAGE_LOCAL)/automake-1.10.3 $(SAGE_LOCAL)/automake-1.11 $(SAGE_LOCAL)/automake-1.11.1 $(SAGE_LOCAL)/automake-1.11.2 $(SAGE_LOCAL)/automake-1.11.3 $(SAGE_LOCAL)/automake-1.11.4 $(SAGE_LOCAL)/automake-1.11.5 $(SAGE_LOCAL)/automake-1.11.6 $(SAGE_LOCAL)/automake-1.12 $(SAGE_LOCAL)/automake-1.12.1 $(SAGE_LOCAL)/automake-1.12.2 $(SAGE_LOCAL)/automake-1.12.3 $(SAGE_LOCAL)/automake-1.12.4 $(SAGE_LOCAL)/automake-1.12.5 $(SAGE_LOCAL)/automake-1.12.6 $(SAGE_LOCAL)/automake-1.13 $(SAGE_LOCAL)/automake-1.13.1 $(SAGE_LOCAL)/automake-1.13.2 $(SAGE_LOCAL)/automake-1.13.3 $(SAGE_LOCAL)/automake-1.13.4 $(SAGE_LOCAL)/automake-1.14 $(SAGE_LOCAL)/automake-1.14.1 $(SAGE_LOCAL)/automake-1.15
 
 ########################################################################
 
 # Extract sources from git repository serially
-libtool-1.5.20/.tarball-version: automake-1.14.1/.tarball-version
+libtool-1.5.20/.tarball-version: automake-1.15/.tarball-version
 	( cd $(SRC)/libtool && git archive --format=tar --prefix=libtool-1.5.20/ release-1-5-20 ) | tar xf -
 	echo 1.5.20 >libtool-1.5.20/.tarball-version
 	echo 1886 > libtool-1.5.20/.serial
@@ -884,7 +899,55 @@ $(SAGE_LOCAL)/libtool-2.4.3: libtool-2.4.3/.tarball-version $(SAGE_LOCAL)/bin/m4
 	# Remove all files except for the .* files
 	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.3/*
 
-libtool-all: $(SAGE_LOCAL)/libtool-1.5.20 $(SAGE_LOCAL)/libtool-1.5.22 $(SAGE_LOCAL)/libtool-1.5.24 $(SAGE_LOCAL)/libtool-1.5.26 $(SAGE_LOCAL)/libtool-2.2.4 $(SAGE_LOCAL)/libtool-2.2.6 $(SAGE_LOCAL)/libtool-2.2.6b $(SAGE_LOCAL)/libtool-2.2.8 $(SAGE_LOCAL)/libtool-2.2.10 $(SAGE_LOCAL)/libtool-2.4 $(SAGE_LOCAL)/libtool-2.4.2 $(SAGE_LOCAL)/libtool-2.4.3
+# Extract sources from git repository serially
+libtool-2.4.4/.tarball-version: libtool-2.4.3/.tarball-version
+	( cd $(SRC)/libtool && git archive --format=tar --prefix=libtool-2.4.4/ v2.4.4 ) | tar xf -
+	echo 2.4.4 >libtool-2.4.4/.tarball-version
+	echo 4151 > libtool-2.4.4/.serial
+
+$(SAGE_LOCAL)/libtool-2.4.4: libtool-2.4.4/.tarball-version $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/bin/help2man $(SAGE_LOCAL)/autoconf-2.62 $(SAGE_LOCAL)/automake-1.11.1
+	export MAKE='$(MAKE) -j1' ; \
+	export AUTOCONF_VERSION=2.62 ; \
+	export AUTOMAKE_VERSION=1.11.1 ; \
+	cd libtool-2.4.4 && bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && \
+	    ./configure --prefix="$(SAGE_LOCAL)/libtool-2.4.4" && \
+	    $$MAKE && $$MAKE install
+	# Remove all files except for the .* files
+	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.4/*
+
+# Extract sources from git repository serially
+libtool-2.4.5/.tarball-version: libtool-2.4.4/.tarball-version
+	( cd $(SRC)/libtool && git archive --format=tar --prefix=libtool-2.4.5/ v2.4.5 ) | tar xf -
+	echo 2.4.5 >libtool-2.4.5/.tarball-version
+	echo 4171 > libtool-2.4.5/.serial
+
+$(SAGE_LOCAL)/libtool-2.4.5: libtool-2.4.5/.tarball-version $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/bin/help2man $(SAGE_LOCAL)/autoconf-2.62 $(SAGE_LOCAL)/automake-1.11.1
+	export MAKE='$(MAKE) -j1' ; \
+	export AUTOCONF_VERSION=2.62 ; \
+	export AUTOMAKE_VERSION=1.11.1 ; \
+	cd libtool-2.4.5 && bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && \
+	    ./configure --prefix="$(SAGE_LOCAL)/libtool-2.4.5" && \
+	    $$MAKE && $$MAKE install
+	# Remove all files except for the .* files
+	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.5/*
+
+# Extract sources from git repository serially
+libtool-2.4.6/.tarball-version: libtool-2.4.5/.tarball-version
+	( cd $(SRC)/libtool && git archive --format=tar --prefix=libtool-2.4.6/ v2.4.6 ) | tar xf -
+	echo 2.4.6 >libtool-2.4.6/.tarball-version
+	echo 4179 > libtool-2.4.6/.serial
+
+$(SAGE_LOCAL)/libtool-2.4.6: libtool-2.4.6/.tarball-version $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/bin/help2man $(SAGE_LOCAL)/autoconf-2.62 $(SAGE_LOCAL)/automake-1.11.1
+	export MAKE='$(MAKE) -j1' ; \
+	export AUTOCONF_VERSION=2.62 ; \
+	export AUTOMAKE_VERSION=1.11.1 ; \
+	cd libtool-2.4.6 && bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && \
+	    ./configure --prefix="$(SAGE_LOCAL)/libtool-2.4.6" && \
+	    $$MAKE && $$MAKE install
+	# Remove all files except for the .* files
+	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.6/*
+
+libtool-all: $(SAGE_LOCAL)/libtool-1.5.20 $(SAGE_LOCAL)/libtool-1.5.22 $(SAGE_LOCAL)/libtool-1.5.24 $(SAGE_LOCAL)/libtool-1.5.26 $(SAGE_LOCAL)/libtool-2.2.4 $(SAGE_LOCAL)/libtool-2.2.6 $(SAGE_LOCAL)/libtool-2.2.6b $(SAGE_LOCAL)/libtool-2.2.8 $(SAGE_LOCAL)/libtool-2.2.10 $(SAGE_LOCAL)/libtool-2.4 $(SAGE_LOCAL)/libtool-2.4.2 $(SAGE_LOCAL)/libtool-2.4.3 $(SAGE_LOCAL)/libtool-2.4.4 $(SAGE_LOCAL)/libtool-2.4.5 $(SAGE_LOCAL)/libtool-2.4.6
 
 ########################################################################
 

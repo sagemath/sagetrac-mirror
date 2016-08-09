@@ -63,17 +63,17 @@ EOF
 
 echo 'tools-all: $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/help2man'
 echo
-echo '$(SAGE_LOCAL)/bin/makeinfo: $(SRC)/texinfo-4.13'
+echo '$(SAGE_LOCAL)/bin/makeinfo: $(SRC)/texinfo-'$texinfo_version
 # On Windows, copy manifest file.  Otherwise install-info cannot be
 # executed without admin privileges, since the name contains the
 # string "install".
 echo -e '\tif [ "$$UNAME" = CYGWIN ] ; then cp -p "$(SRC)/../install-info.exe.manifest" "$(SAGE_LOCAL)/bin" ; fi'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
-echo '$(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.17 $(SAGE_LOCAL)/bin/makeinfo'
+echo '$(SAGE_LOCAL)/bin/m4: $(SRC)/m4-'$m4_version' $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
-echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.46.4 $(SAGE_LOCAL)/bin/makeinfo'
+echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-'$help2man_version' $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
 echo '########################################################################'
