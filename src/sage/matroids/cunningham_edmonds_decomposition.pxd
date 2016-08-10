@@ -12,6 +12,7 @@ cdef class Node(sage.structure.sage_object.SageObject):
     cpdef graph
     cdef int parent_marker
     cdef int f
+    # cdef int parent_marker_vertex
 
     # def __init__(self, G, pm, int f):
     cpdef get_graph(self)
@@ -42,6 +43,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
     cdef int next_edge
 
     cpdef relink1(self, Q, Z=*, WQ=*)
+    cpdef get_D_hat(self, P)
     cpdef __typing(self, P, pi)
     cpdef __relink2(Q, Z=*, WQ=*)
     cpdef __hypopath(self, P)

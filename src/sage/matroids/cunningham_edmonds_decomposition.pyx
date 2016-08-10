@@ -248,6 +248,10 @@ cdef class Node(sage.structure.sage_object.SageObject):
         self.graph = G
         self.parent_marker = pm
         self.f = f
+        # for g in G.edges():
+        #     if g.lable() == pm:
+        #         e = g
+        # self.parent_marker_vertex = e[1]
 
 
     cpdef get_graph(self):
@@ -766,6 +770,52 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         """
         self.nodes[Q] = self.nodes[Q].__relink1(Z, WQ)
         return None
+
+
+
+    cpdef get_D_hat(self, P):
+        """
+        INPUT:
+
+            - ``P`` -- a nonempty subset of the edges of ``m(D)``
+
+            OUTPUT:
+
+            A subdecomposition ``D_hat``, of ``D``, which is deturmined by the smallest connected subtree that contains all the nodes which intersect `P``
+
+            EXAMPLES:
+
+            sage: T = DiGraph([(0,1), (1,2), (1,3), (3,4)])
+            sage: G0 = Graph([(0, 1, 0),(0, 2, 1),(1, 2, 13)])
+            sage: G1 = Graph([(3, 4, 14),(3, 4, 15),(3, 4, 13)], multiedges = True)
+            sage: G2 = Graph([(5, 6, 2), (5, 7, 3), (5, 8, 4), (6, 7, 5), (6, 8, 6), (7, 8, 14)])
+            sage: G3 = Graph([(9, 10, 7), (9, 11, 8), (9, 12, 9), (10, 11, 10), (10, 12, 16), (11, 12, 15)])
+            sage: G4 = Graph([(13, 14, 11), (13, 15, 12), (14, 15, 16)])
+            sage: Nodes = [G0, G1, G2, G3, G4]
+            sage: from sage.matroids.cunningham_edmonds_decomposition import *
+            sage: D = CunninghamEdmondsDecomposition(T, Nodes)
+            sage: D.get_D_hat({1, 3}).vertices()
+            [0, 1, 2]
+            sage: D.get_D_hat({1, 3, 9}).vertices()
+            [0, 1, 2, 3]
+            sage: D.get_D_hat({3, 9}).vertices()
+            [1, 2, 3]
+
+        """
+        avoid_P = {}
+        for v in self.arborescence.vertices():
+            avoid_P[v] = not len(set(self.nodes[v].edge_labels()) & P) > 0
+
+        T = self.arborescence.copy()
+        go = True
+        while go:
+            V = T.vertices()
+            go = False
+            for v in V:
+                if avoid_P[v] & (T.degree(v) == 1):
+                    T.delete_vertex(v)
+                    go = True
+        return T
 
 
     cpdef __typing(self, P, pi):
@@ -1315,7 +1365,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
             # and add ``G``.
         return None
 
-    cpdef __is_graphic(self):
+    cpdef __is_graphic(M):
         """
         Test if a binary matroid is graphic via Bixby and Wagner's paper
 
@@ -1329,22 +1379,34 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
 
         """
-        # G1``M_1`` is realized by a bond ``G_1` with two edges. Set `D_1 = \{G_i\}` where
+        # G1
+        # ``M_1`` is realized by a bond ``G_1` with two edges. Set `D_1 = \{G_i\}` where
         # for `pm(G_1)` we choose the nontree edge of `G_i`. (Note that ``D_1`` is a
         # decomposition, but not a t-decomposition because ``G_i`` has only two edges. All
         # further ``D_j``, `j \geq 2`, will be t-decompositions.) If `c = 1` stop (``M`` is
         # graphic). Otherwise, set `j = 2`.
         
-        # G2
-        # Set `P = P_j` and `D = D_{j - 1}`. Apply Hypopath. If ``P`` is not a hypopath of
-        # `m(D)`, stop.
-       
+        r = len(M.rows())
+        c = len(M.columns())
+        D = CunninghamEdmondsDecomposition(next_edge=c)          # This should mean that we are not going to double name any edges of our decomposition.
 
-        # G3
-        # Set `C = C_j` and apply Update. (Note taht the quantities ``K_1``, ``K_2``,
-        # ``u_1``, ``u_2`` required for input to UPDATE are calculated in HYPOPATH, and the
-        # associated calls to TYPING, through application of rules (R1)-(R5).) Set
-        # ``D_j = D_star``
+        if c == 1:
+            return D.get_nodes()[0]
+
+
+
+        # for j in range(c):
+
+            # G2
+            # Set `P = P_j` and `D = D_{j - 1}`. Apply Hypopath. If ``P`` is not a hypopath of
+            # `m(D)`, stop.
+           # P = 
+
+            # G3
+            # Set `C = C_j` and apply Update. (Note taht the quantities ``K_1``, ``K_2``,
+            # ``u_1``, ``u_2`` required for input to UPDATE are calculated in HYPOPATH, and the
+            # associated calls to TYPING, through application of rules (R1)-(R5).) Set
+            # ``D_j = D_star``
 
 
         # G4
@@ -1377,6 +1439,7 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
 
         G.merge_vertices([x, u])          # The order of the vertices determines the name of the resulting vertex.
         G.merge_vertices([y, v])
+        G.delete_edge(f)
 
         return Node(G, self.nodes[P].get_parent_marker(), self.nodes[P].get_f())
 
@@ -1406,7 +1469,6 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
              (0, 3, 2),
              (1, 2, 3),
              (1, 3, 4),
-             (1, 3, 4),
              (1, 6, 6),
              (1, 7, 7),
              (2, 3, 5),
@@ -1414,15 +1476,12 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
              (3, 7, 9),
              (5, 6, 9),
              (5, 12, 14),
-             (6, 7, 9),
              (6, 9, 10),
-             (9, 10, 11),
              (9, 10, 11),
              (9, 10, 18),
              (9, 10, 19),
              (9, 10, 20),
              (10, 11, 12),
-             (11, 12, 13),
              (11, 12, 13),
              (11, 12, 15),
              (11, 12, 16),
