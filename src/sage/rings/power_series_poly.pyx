@@ -1039,7 +1039,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def pade(self, m, n):
         r"""
-        Returns the Padé approximant of ``self`` of index `(m, n)`.
+        Return the Padé approximant of ``self`` of index `(m, n)`.
 
         The Padé approximant of index `(m, n)` of a formal power
         series `f` is the quotient `Q/P` of two polynomials `Q` and `P`
@@ -1108,6 +1108,12 @@ cdef class PowerSeries_poly(PowerSeries):
             Traceback (most recent call last):
             ...
             ValueError: the precision of the series is not large enough
+
+        Another problematic case::
+
+            sage: QQx.<x> = QQ[[]]
+            sage: (1+x+O(x^100)).pade(2,2)
+            ?
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.matrix.constructor import Matrix
@@ -1115,7 +1121,7 @@ cdef class PowerSeries_poly(PowerSeries):
             raise ValueError("the precision of the series is not large enough")
         polyring = self.parent()._poly_ring()
         z = polyring.gen()
-        c = self.list()
+        c = self.padded_list()
         mat = Matrix(polyring, n + 1, n + 1)
         for i in range(1, n + 1):
             for j in range(n + 1):
