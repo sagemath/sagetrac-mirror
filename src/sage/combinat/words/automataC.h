@@ -22,6 +22,7 @@ void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il
 Automaton NewAutomaton (int n, int na);
 void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
+void FreeAutomates (Automate* a, int n);
 void FreeNAutomaton (NAutomaton *a);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
@@ -169,6 +170,9 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 
 //détermine si le produit est vide ou non
 bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb);
+
+//détermine si l'on a inclusion des langages
+bool Included (Automaton a1, Automaton a2, bool emonded, bool verb);
 
 //détermine si le langage de l'automate est vide
 bool emptyLangage (Automaton a);

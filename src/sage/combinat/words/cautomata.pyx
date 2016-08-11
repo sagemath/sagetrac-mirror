@@ -75,6 +75,7 @@ cdef extern from "automataC.h":
 	Automaton DeleteVertex (Automaton a, int e)
 	bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
 	bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb)
+	bool Included (Automaton a1, Automaton a2, bool emonded, bool verb)
 	#bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
 	bool emptyLangage (Automaton a)
 	void AddEtat (Automaton *a, bool final)
@@ -1189,27 +1190,31 @@ cdef class FastAutomaton:
 		a.complementaryOP()
 		return a
 			
-	def included (self, FastAutomaton a, bool verb=False, step=None):
-		d = {}
-		for l in self.A:
-			if l in a.A:
-				d[(l,l)] = l
-		if verb:
-			print "d=%s"%d
-		a.complete()
-		cdef FastAutomaton p = self.product(a, d, verb=verb)
-		
-		#set final states
-		cdef int i,j
-		cdef n1 = self.a.n
-		for i in range(n1):
-			for j in range(a.a.n):
-				p.a.e[i+n1*j].final = self.a.e[i].final and not a.a.e[j].final
-		
-		if step == 1:
-			return p;
-		
-		return p.has_empty_langage()
+	def included (self, FastAutomaton a, bool verb=False, emonded=False):
+		sig_on()
+		res = Included(self.a[0], a.a[0], emonded, verb)
+		sig_off()
+		return Bool(res)
+#		d = {}
+#		for l in self.A:
+#			if l in a.A:
+#				d[(l,l)] = l
+#		if verb:
+#			print "d=%s"%d
+#		a.complete()
+#		cdef FastAutomaton p = self.product(a, d, verb=verb)
+#		
+#		#set final states
+#		cdef int i,j
+#		cdef n1 = self.a.n
+#		for i in range(n1):
+#			for j in range(a.a.n):
+#				p.a.e[i+n1*j].final = self.a.e[i].final and not a.a.e[j].final
+#		
+#		if step == 1:
+#			return p;
+#		
+#		return p.has_empty_langage()
 	
 	#donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
 	def piece (self, w, e=None):

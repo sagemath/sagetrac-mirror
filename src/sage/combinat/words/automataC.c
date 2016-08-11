@@ -158,6 +158,15 @@ void FreeAutomaton (Automaton *a)
 	a->n = 0;
 }
 
+void FreeAutomates (Automate* a, int n)
+{
+	int j;
+	for (j=0;j<n;j++)
+	{
+		FreeAutomaton(&a[j]);
+	}
+}
+
 int hashAutomaton (Automaton a)
 {
 	int h = 3;
@@ -1028,6 +1037,58 @@ bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb)
 	for (i=0;i<a1.n*a2.n;i++)
 		vu[i] = false;
 	bool res = EmptyProduct_rec(a1.i, a2.i, a1, a2, d, vu);
+	free(vu);
+	return res;
+}
+
+bool Included_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
+{
+	int i,j;
+	int e1, e2;
+	if (a1.e[i1].final && !a2.e[i2].final)
+		return false;
+	int a = contract(i1, i2, a1.n);
+	if (vu[a])
+		return true;
+	vu[a] = true; //indicate that the state has been visited
+	for (i=0;i<a1.na;i++)
+	{
+		e1 = a1.e[i1].f[i];
+		if (e1 < 0)
+			continue;
+		if (i >= a2.na)
+			return false;
+		e2 = a2.e[i2].f[i];
+		if (e2 < 0)
+			return false;
+		if (!Included_rec(e1, e2, a1, a2, vu))
+			return false;
+	}
+	return true;
+}
+
+//détermine si l'on a inclusion des langages
+bool Included (Automaton a1, Automaton a2, bool emonded, bool verb)
+{
+	if (!emonded)
+	{
+		a1 = emonde(a1, verb);
+	}
+	if (verb)
+	{
+		printAutomaton(a1);
+		printAutomaton(a2);
+	}
+	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
+	if (a1.i == -1)
+		return true;
+	if (a2.i == -1)
+		return emptyLangage(a1);
+	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
+	int i;
+	for (i=0;i<a1.n*a2.n;i++)
+		vu[i] = false;
+	bool res = Included_rec(a1.i, a2.i, a1, a2, vu);
 	free(vu);
 	return res;
 }
