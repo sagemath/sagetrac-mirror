@@ -267,6 +267,8 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             # try to guess if the result is infinite or not.
             if self._family in InfiniteEnumeratedSets():
                 category = InfiniteEnumeratedSets()
+            elif self._family in FiniteEnumeratedSets():
+                category = FiniteEnumeratedSets()
             elif self._family.last().cardinality() == Infinity:
                 category = InfiniteEnumeratedSets()
             else:
