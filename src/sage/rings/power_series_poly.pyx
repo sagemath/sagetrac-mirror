@@ -1109,7 +1109,7 @@ cdef class PowerSeries_poly(PowerSeries):
             ...
             ValueError: the precision of the series is not large enough
 
-        Another problematic case::
+        Handling series with trailing zeroes (:trac:`21212`)::
 
             sage: QQx.<x> = QQ[[]]
             sage: (1+x+O(x^100)).pade(2,2)
