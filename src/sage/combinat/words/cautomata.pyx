@@ -58,7 +58,7 @@ cdef extern from "automataC.h":
 	Automaton emondeI (Automaton a, bool verb)
 	bool equalsAutomaton (Automaton a1, Automaton a2)
 	Dict NewDict (int n)
-	void FreeDict (Dict d)
+	void FreeDict (Dict *d)
 	void printDict (Dict d)
 	InvertDict NewInvertDict (int n)
 	void FreeInvertDict (InvertDict id)
@@ -74,6 +74,8 @@ cdef extern from "automataC.h":
 	void DeleteVertexOP (Automaton* a, int e)
 	Automaton DeleteVertex (Automaton a, int e)
 	bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
+	bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb)
+	#bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
 	bool emptyLangage (Automaton a)
 	void AddEtat (Automaton *a, bool final)
 	bool IsCompleteAutomaton (Automaton a)
@@ -622,7 +624,7 @@ cdef class FastAutomaton:
 			print "dC="
 			printDict(dC)
 		a = Product(self.a[0], b.a[0], dC, verb)
-		FreeDict(dC)
+		FreeDict(&dC)
 		r.a[0] = a
 		r.A = Av
 		sig_off()
@@ -701,7 +703,7 @@ cdef class FastAutomaton:
 			printDict(dC)
 		sig_on()
 		ap = Product(self.a[0], a.a[0], dC, verb)
-		FreeDict(dC)
+		FreeDict(&dC)
 		sig_off()
 		
 		#set final states
@@ -751,7 +753,7 @@ cdef class FastAutomaton:
 			printDict(dC)
 		sig_on()
 		ap = Product(self.a[0], a.a[0], dC, verb)
-		FreeDict(dC)
+		FreeDict(&dC)
 		sig_off()
 		
 		#set final states for the intersection
@@ -839,7 +841,7 @@ cdef class FastAutomaton:
 			print "d1=%s, A2=%s"%(d1,A2)
 		dC = getDict(d, self.A, d1=d1)
 		a = Determinise (self.a[0], dC, noempty, onlyfinals, nof, verb)
-		FreeDict(dC)
+		FreeDict(&dC)
 		#FreeAutomaton(self.a[0])
 		r.a[0] = a
 		r.A = A2
@@ -1076,6 +1078,49 @@ cdef class FastAutomaton:
 		sig_off()
 		return Bool(res)
 	
+	def empty_product (self, FastAutomaton a2, d=None, verb=False):
+		if d is None:
+			return self.has_empty_langage() or a2.has_empty_langage()
+		sig_on()
+		cdef Dict dC
+		Av = []
+		dv = imagProductDict(d, self.A, a2.A, Av=Av)
+		if verb:
+			print "Av=%s"%Av
+			print "dv=%s"%dv
+		dC = getProductDict(d, self.A, a2.A, dv=dv, verb=verb)
+		if verb:
+			print "dC="
+			printDict(dC)
+		res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
+		sig_off()
+		return Bool(res)
+	
+	def intersect (self, FastAutomaton a2, verb=False):
+		d = {}
+		for l in self.A:
+			if l in a2.A:
+				d[(l,l)] = l
+		if verb:
+			print "d=%s"%d
+		return self.empty_product(a2, d=d, verb=verb)
+	
+#	def intersect (self, FastAutomaton a2, emonded=False, verb=False):
+#		sig_on()
+#		cdef Dict d = NewDict(self.a.na)
+#		cdef int i,j
+#		for i in range(self.a.na):
+#			for j in range(a2.a.na):
+#				if self.A[i] == a2.A[j]:
+#					d.e[i] = j
+#					if verb: print "%d -> %d"%(i, j)
+#					break
+#		if verb:
+#			printDict(d)
+#		res = intersectLangage(self.a, a2.a, d, emonded, verb)
+#		sig_off()
+#		return Bool(res)
+	
 	def find_word (self, bool verb=False):
 		sig_on()
 		cdef Dict w
@@ -1086,7 +1131,7 @@ cdef class FastAutomaton:
 		r = []
 		for i in range(w.n):
 			r.append(self.A[w.e[i]])
-		FreeDict(w)
+		FreeDict(&w)
 		return r
 	
 	#determine if the word is recognized by the automaton or not
@@ -1194,8 +1239,8 @@ cdef class FastAutomaton:
 		#	return self.emonde().n_states() == 0
 	
 	#determine if the languages intersect
-	def intersect (self, FastAutomaton b, ext=False):
-		return not self.intersection(b).is_empty(ext)
+	#def intersect (self, FastAutomaton b, ext=False):
+	#	return not self.intersection(b).is_empty(ext)
 	
 	def random_word (self, int nmin=-1, int nmax=100):
 		cdef int i = self.a.i

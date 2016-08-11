@@ -13,9 +13,10 @@ struct Dict
 };
 typedef struct Dict Dict;
 
+int hashAutomaton (Automaton a);
 bool findWord (Automaton a, Dict *w, bool verb); //rend un mot dans le langage de a
 Dict NewDict (int n);
-void FreeDict (Dict d);
+void FreeDict (Dict *d);
 void printDict (Dict d);
 void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il était déjà présent)
 Automaton NewAutomaton (int n, int na);
@@ -155,6 +156,19 @@ Automaton DeleteVertex (Automaton a, int e);
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
 bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb);
+
+//détermine si le langage de l'automate a1 est inclus dans celui de a2
+//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//if emonded is true, the automaton a1 and a2 are assumed to be emonded.
+
+
+//détermine si les langages des automates ont une intersection non vide
+//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//if emonded is true, the automaton a1 and a2 are assumed to be emonded otherwise it emondes.
+//bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb);
+
+//détermine si le produit est vide ou non
+bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb);
 
 //détermine si le langage de l'automate est vide
 bool emptyLangage (Automaton a);

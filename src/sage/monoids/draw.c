@@ -95,7 +95,6 @@ void FreeAutomate (Automate a)
 	if (a.n)
 		free(a.e);
 }
-*/
 
 void FreeAutomates (Automate* a, int n)
 {
@@ -105,6 +104,7 @@ void FreeAutomates (Automate* a, int n)
 		FreeAutomaton(&a[j]);
 	}
 }
+*/
 
 BetaAdic NewBetaAdic (int n)
 {

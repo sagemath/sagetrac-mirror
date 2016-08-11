@@ -58,11 +58,13 @@ Dict NewDict (int n)
 	return r;
 }
 
-void FreeDict (Dict d)
+void FreeDict (Dict *d)
 {
-	if (d.n == 0)
+	if (d->n == 0)
 		return;
-	free(d.e);
+	free(d->e);
+	d->n = 0;
+	d->e = NULL;
 }
 
 void printDict (Dict d)
@@ -661,7 +663,8 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 				}
 			}else
 			{
-				printf("Erreur : la lettre %d de a1 ne correspond à aucune lettre de a2.\n", i);
+				if (verb)
+					printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
 				return false;
 			}
 		}else
@@ -725,6 +728,89 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	}
 	return res;
 }
+
+/*
+//utilisé par intersectLangage
+//détermine si les langages des états e1 de a1 et e2 de a2 ont une intersection non vide
+bool intersectLangage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
+{
+	if (a1.e[e1].final & 2)
+		return true; //état déjà vu
+	//indique que le sommet a été vu
+	a1.e[e1].final |= 2;
+	//parcours les fils de e1 dans a1
+	int i;
+	for (i=0;i<a1.na;i++)
+	{
+		if (a1.e[e1].f[i] != -1)
+		{//cette arête dans a1 existe
+			if (a1toa2.e[i] != -1)
+			{
+				if (a2.e[e2].f[a1toa2.e[i]] == -1)
+				{//cette arête ne correspond pas à une arête dans a2
+					continue;
+				}
+				if (!includedLangage_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				{
+					return false;
+				}
+			}else
+			{
+				if (verb)
+					printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+//détermine si le langage de l'automate a1 est inclus dans celui de a2
+//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//if emonded is true, the automaton a1 and a2 are assumed to be emonded.
+bool includedLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
+{
+	int i;
+	if (!emonded)
+	{
+		if (verb)
+			printf("Emonde...\n");
+		//minimise les automates
+		Automaton a3 = emonde(*a1, false);
+		FreeAutomaton(a1);
+		*a1 = a3;
+		a3 = emonde(*a2, false);
+		FreeAutomaton(a2);
+		*a2 = a3;
+	}
+	if (verb)
+	{
+		printf("Automates : ");
+		printAutomaton(*a1);
+		printAutomaton(*a2);
+	}
+	//inverse le dictionnaire
+	Dict a2toa1 = NewDict(a2->na);
+	for (i=0;i<a1toa2.n;i++)
+	{
+		a2toa1.e[a1toa2.e[i]] = i;
+	}
+	if (verb)
+		printDict(a2toa1);
+	//
+	bool res = includedLangage_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+	//remet les états finaux
+	for (i=0;i<a1->n;i++)
+	{
+		a1->e[i].final &= 1;
+	}
+	for (i=0;i<a2->n;i++)
+	{
+		a2->e[i].final &= 1;
+	}
+	return res;
+}
+*/
 
 //utilisé par emptyLangage
 //détermine si le langage de l'état e est vide
@@ -892,6 +978,58 @@ Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 		r.e[i].final = a1.e[geti1(i, a1.n)].final && a2.e[geti2(i, a1.n)].final;
 	}
 	return r;
+}
+
+bool EmptyProduct_rec(int i1, int i2, Automaton a1, Automaton a2, Dict d, bool *vu)
+{
+	//printf("Product_rec %d %d...\n", i1, i2);
+	int i,j;
+	int e1, e2;
+	if (a1.e[i1].final && a2.e[i2].final)
+		return false;
+	int a = contract(i1, i2, a1.n);
+	if (vu[a])
+		return true;
+	vu[a] = true; //indicate that the state has been visited
+	for (i=0;i<a1.na;i++)
+	{
+		e1 = a1.e[i1].f[i];
+		if (e1 < 0)
+			continue;
+		for (j=0;j<a2.na;j++)
+		{
+			e2 = a2.e[i2].f[j];
+			if (e2 < 0)
+				continue;
+			a = d.e[contract(i,j,a1.na)];
+			if (a != -1)
+			{
+				if (!EmptyProduct_rec(e1, e2, a1, a2, d, vu))
+					return false;
+			}
+		}
+	}
+	return true;
+}
+
+//détermine si le produit est vide ou non
+bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb)
+{
+	if (verb)
+	{
+		printAutomaton(a1);
+		printAutomaton(a2);
+	}
+	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
+	if (a1.i == -1 || a2.i == -1)
+		return true;
+	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
+	int i;
+	for (i=0;i<a1.n*a2.n;i++)
+		vu[i] = false;
+	bool res = EmptyProduct_rec(a1.i, a2.i, a1, a2, d, vu);
+	free(vu);
+	return res;
 }
 
 void AddEtat (Automaton *a, bool final)
@@ -1243,27 +1381,39 @@ bool AddEtats2 (ListEtats2 *l, Etats2 e, int* res)
 ///////////////////////////////////////////////////////////////////
 
 Dict* lhash;
-int nhash = 10000019;
+const int nhash = 10000019;
+bool allocated = false;
+bool filled = false;
 
 void AllocHash ()
 {
-	lhash = (Dict*)malloc(sizeof(Dict)*nhash);
-	if (!lhash)
+	if (!allocated)
 	{
-			printf("Out of memory !");
-		exit(8);
+		lhash = (Dict*)malloc(sizeof(Dict)*nhash);
+		if (!lhash)
+		{
+				printf("Out of memory !");
+			exit(8);
+		}
+		allocated = true;
 	}
-	int i;
-	for (i=0;i<nhash;i++)
+	if (!filled)
 	{
-		lhash[i].e = NULL;
-		lhash[i].n = 0;
+		int i;
+		for (i=0;i<nhash;i++)
+		{
+			lhash[i].e = NULL;
+			lhash[i].n = 0;
+		}
+		filled = true;
 	}
 }
 
 void FreeHash ()
 {
 	free(lhash);
+	allocated = false;
+	filled = false;
 }
 
 int hashEtats (Etats e)
@@ -1417,7 +1567,7 @@ void FreeInvertDict (InvertDict id)
 	int i;
 	for (i=0;i<id.n;i++)
 	{
-		FreeDict(id.d[i]);
+		FreeDict(&id.d[i]);
 	}
 	free(id.d);
 }
@@ -1668,8 +1818,20 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	if (verb)
 		printf("Free...\n");
 	
+	//remet à zéro les éléments de la table de hachage
+	for (i=0;i<l.n;i++)
+	{
+		FreeDict(&lhash[hashEtats(l.e[i])]);
+	}
+	
+	for (i=0;i<l.n;i++)
+	{
+		FreeEtats(l.e[i]);
+	}
+	free(l.e);
+	
 	FreeInvertDict(id);
-	FreeHash();
+	//FreeHash();  //ne libère pas la mémoire pour la réutiliser plus rapidement plus tard
 	
 	//printf("1ere transition : ");
 	//fflush(stdout);
@@ -1687,7 +1849,6 @@ Automaton DeterminiseN (NAutomaton a, bool puits)
 		printf("allocation...\n");
 	
 	Automaton r = NewAutomaton(a.n, a.na);
-	//printf("Not implemented yet !!!\n");
 	
 	if (a.n == 0)
 		return r;
@@ -1789,13 +1950,20 @@ Automaton DeterminiseN (NAutomaton a, bool puits)
 	
 	//libère la mémoire
 	ReallocAutomaton(&r, l.n, false);
+	
+	//remet à zéro les éléments de la table de hachage
+	for (i=0;i<l.n;i++)
+	{
+		FreeDict(&lhash[hash2(l.e[i])]);
+	}
+	
 	FreeListEtats2(&l);
 	for (i=0;i<a.na;i++)
 	{
 		FreeEtats2(e[i]);
 	}
 	free(e);
-	FreeHash();
+	//FreeHash(); //ne libère pas la mémoire pour la réutiliser plus rapidement plus tard
 	return r;
 }
 
