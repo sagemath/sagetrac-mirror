@@ -168,8 +168,8 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 //if emonded is true, the automaton a1 and a2 are assumed to be emonded otherwise it emondes.
 //bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb);
 
-//détermine si le produit est vide ou non
-bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb);
+//détermine si l'intersection est vide ou non
+bool Intersect (Automaton a1, Automaton a2, bool verb);
 
 //détermine si l'on a inclusion des langages
 bool Included (Automaton a1, Automaton a2, bool emonded, bool verb);

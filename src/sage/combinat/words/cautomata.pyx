@@ -74,7 +74,7 @@ cdef extern from "automataC.h":
 	void DeleteVertexOP (Automaton* a, int e)
 	Automaton DeleteVertex (Automaton a, int e)
 	bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
-	bool EmptyProduct (Automaton a1, Automaton a2, Dict d, bool verb)
+	bool Intersect (Automaton a1, Automaton a2, bool verb)
 	bool Included (Automaton a1, Automaton a2, bool emonded, bool verb)
 	#bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
 	bool emptyLangage (Automaton a)
@@ -1079,32 +1079,29 @@ cdef class FastAutomaton:
 		sig_off()
 		return Bool(res)
 	
-	def empty_product (self, FastAutomaton a2, d=None, verb=False):
-		if d is None:
-			return self.has_empty_langage() or a2.has_empty_langage()
-		sig_on()
-		cdef Dict dC
-		Av = []
-		dv = imagProductDict(d, self.A, a2.A, Av=Av)
-		if verb:
-			print "Av=%s"%Av
-			print "dv=%s"%dv
-		dC = getProductDict(d, self.A, a2.A, dv=dv, verb=verb)
-		if verb:
-			print "dC="
-			printDict(dC)
-		res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
-		sig_off()
-		return Bool(res)
+#	def empty_product (self, FastAutomaton a2, d=None, verb=False):
+#		if d is None:
+#			return self.has_empty_langage() or a2.has_empty_langage()
+#		sig_on()
+#		cdef Dict dC
+#		Av = []
+#		dv = imagProductDict(d, self.A, a2.A, Av=Av)
+#		if verb:
+#			print "Av=%s"%Av
+#			print "dv=%s"%dv
+#		dC = getProductDict(d, self.A, a2.A, dv=dv, verb=verb)
+#		if verb:
+#			print "dC="
+#			printDict(dC)
+#		res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
+#		sig_off()
+#		return Bool(res)
 	
 	def intersect (self, FastAutomaton a2, verb=False):
-		d = {}
-		for l in self.A:
-			if l in a2.A:
-				d[(l,l)] = l
-		if verb:
-			print "d=%s"%d
-		return self.empty_product(a2, d=d, verb=verb)
+		sig_on()
+		res = Intersect(self.a[0], a2.a[0], verb)
+		sig_off()
+		return Bool(res)
 	
 #	def intersect (self, FastAutomaton a2, emonded=False, verb=False):
 #		sig_on()
