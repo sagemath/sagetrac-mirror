@@ -87,12 +87,12 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport arith_error_message, parent_c
+from .element cimport arith_error_message, parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
-from sage.categories.action cimport InverseAction, PrecomposedAction
+from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 from sage.misc.lazy_import import LazyImport
 parent = LazyImport('sage.structure.all', 'parent', deprecation=17533)
@@ -271,6 +271,17 @@ cpdef bint is_numpy_type(t):
         False
         sage: is_numpy_type(None)
         False
+
+    TESTS:
+
+    This used to crash Sage (:trac:`20715`)::
+
+        sage: is_numpy_type(object)
+        False
+        sage: 1 + object()
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '+': 'Integer Ring' and '<type 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -278,7 +289,7 @@ cpdef bint is_numpy_type(t):
     if strncmp(T.tp_name, "numpy.", 6) == 0:
         return True
     # Check base type. This is needed to detect numpy.matrix.
-    if strncmp(T.tp_base.tp_name, "numpy.", 6) == 0:
+    if T.tp_base != NULL and strncmp(T.tp_base.tp_name, "numpy.", 6) == 0:
         return True
     return False
 
@@ -416,9 +427,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         EXAMPLES::
 
-            sage: 1 + 1/2
-            3/2
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.canonical_coercion(1,2/3)
+            (1, 2/3)
             sage: maps, actions = cm.get_cache()
 
         Now let us see what happens when we do a binary operations with

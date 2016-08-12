@@ -23,6 +23,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from sage.libs.gsl.all cimport *
@@ -47,7 +48,7 @@ cdef double c_f(double t,void *params):
       else:
          value=wrapper.the_function(t)
    except Exception as msg:
-      print msg
+      print(msg)
       return 0
 
    return value
@@ -74,6 +75,7 @@ def numerical_integral(func, a, b=None,
     - ``algorithm`` -- valid choices are:
 
       * 'qag' -- for an adaptive integration
+      * 'qags' -- for an adaptive integration with (integrable) singularities
       * 'qng' -- for a non-adaptive Gauss-Kronrod (samples at a maximum of 87pts)
 
     - ``max_points`` -- sets the maximum number of sample points
@@ -193,6 +195,16 @@ def numerical_integral(func, a, b=None,
         (0.0, 0.0)
         sage: numerical_integral(lambda x: sqrt(x), (-2.0, -2.0) )
         (0.0, 0.0)
+
+    In the presence of integrable singularity, the default adaptive method might
+    fail and it is advised to use ``'qags'``::
+
+        sage: b = 1.81759643554688
+        sage: F(x) = sqrt((-x + b)/((x - 1.0)*x))
+        sage: numerical_integral(F, 1, b)
+        (inf, nan)
+        sage: numerical_integral(F, 1, b, algorithm='qags')    # abs tol 1e-10
+        (1.1817104238446596, 3.387268288079781e-07)
 
     AUTHORS:
 
@@ -333,6 +345,16 @@ def numerical_integral(func, a, b=None,
          sig_on()
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
          sig_off()
+
+
+   elif algorithm == "qags":
+
+        W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+        sig_on()
+        _a=a
+        _b=b
+        gsl_integration_qags(&F,_a,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+        sig_off()
 
    else:
       raise TypeError("invalid integration algorithm")
