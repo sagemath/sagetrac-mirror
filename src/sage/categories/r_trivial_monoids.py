@@ -11,6 +11,7 @@ from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.h_trivial_monoids import HTrivialMonoids
 
+
 class RTrivialMonoids(Category):
     """
     The category of `R`-trivial monoids
@@ -43,7 +44,7 @@ class RTrivialMonoids(Category):
         """
         return [HTrivialMonoids()]
 
-    def example(self, alphabet=('a','b','c')):
+    def example(self, alphabet=('a', 'b', 'c')):
         """
         Returns an example of (finite) right trivial monoid
 
@@ -59,7 +60,8 @@ class RTrivialMonoids(Category):
             Category of finite r trivial monoids
         """
         from sage.categories.examples.finite_semigroups import LeftRegularBand
-        return LeftRegularBand(alphabet = alphabet, category = RTrivialMonoids().Finite())
+        return LeftRegularBand(alphabet=alphabet,
+                               category=RTrivialMonoids().Finite())
 
     class Finite(CategoryWithAxiom):
 

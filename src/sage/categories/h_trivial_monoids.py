@@ -3,6 +3,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
 
+
 class HTrivialMonoids(Category):
     """
     The category of `H`-trivial monoids
@@ -49,10 +50,10 @@ class HTrivialMonoids(Category):
                 The omega power of ``self``.
                 """
                 res_old = self
-                res_new = res_old*res_old
+                res_new = res_old * res_old
                 while res_old != res_new:
                     res_old = res_new
-                    res_new = res_old*res_old
+                    res_new = res_old * res_old
                 return res_new
 
-            pow_infinity = pow_omega # for backward compatibility
+            pow_infinity = pow_omega  # for backward compatibility

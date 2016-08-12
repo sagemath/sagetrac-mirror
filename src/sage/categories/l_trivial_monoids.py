@@ -3,6 +3,7 @@ from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.h_trivial_monoids import HTrivialMonoids
 
+
 class LTrivialMonoids(Category):
     """
     The category of `L`-trivial monoids

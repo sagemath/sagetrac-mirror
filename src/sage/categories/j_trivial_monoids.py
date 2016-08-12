@@ -31,7 +31,6 @@ class JTrivialMonoids(Category):
     def super_categories(self):
         return [LTrivialMonoids(), RTrivialMonoids()]
 
-
     class Finite(CategoryWithAxiom):
         """
         The category of finite `J`-trivial monoids
@@ -52,28 +51,29 @@ class JTrivialMonoids(Category):
                     if x == self.one().value:
                         continue
                     incoming = set(G.incoming_edges(x))
-                    if all(l == x for u,v,l in incoming):
+                    if all(l == x for u, v, l in incoming):
                         res.append(self(x))
                 return Family(res)
-
 
         class ElementMethods:
 
             @cached_in_parent_method
-            def symbol(self, side = "left"):
+            def symbol(self, side="left"):
                 """
+                Return the unique minimal idempotent `e` (in J-order)
+                such that `e x = x` (resp. `xe = x`).
+
                 INPUT:
 
-                 - ``self`` -- a monoid element `x`
-                 - ``side`` -- "left", "right"
-
-                Returns the unique minimal idempotent `e` (in J-order)
-                such that `e x = x` (resp. `xe = x`).
+                - ``self`` -- a monoid element `x`
+                - ``side`` -- "left", "right"
                 """
                 monoid = self.parent()
 
                 if side == "left":
-                    fix = [ s for s in monoid.semigroup_generators() if (s * self == self) ]
+                    fix = [s for s in monoid.semigroup_generators()
+                           if s * self == self]
                 else:
-                    fix = [ s for s in monoid.semigroup_generators() if (self * s == self) ]
+                    fix = [s for s in monoid.semigroup_generators()
+                           if self * s == self]
                 return (monoid.prod(fix)).pow_omega()
