@@ -8,16 +8,17 @@ implementation in sage.
 
 REFERENCES:
 
-.. [Jack1970] H. Jack,
+.. [Jack1970] \H. Jack,
    *A class of symmetric functions with a parameter*,
    Proc. R. Soc. Edinburgh (A), 69, 1-18.
 
-.. [Ma1995] I. G. Macdonald,
+.. [Ma1995] \I. G. Macdonald,
    *Symmetric functions and Hall polynomials*,
    second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
@@ -39,7 +40,7 @@ from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
-import sfa
+from . import sfa
 
 QQt = FractionField(QQ['t'])
 
@@ -989,7 +990,7 @@ class JackPolynomials_p(JackPolynomials_generic):
 
         REFRENCES:
 
-            .. [Mc1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+            .. [Mc1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
                The Clarendon Press, Oxford University Press, New York, 1995, With contributions
                by A. Zelevinsky, Oxford Science Publications.
 
