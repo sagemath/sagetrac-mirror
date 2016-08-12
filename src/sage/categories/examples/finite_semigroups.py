@@ -116,7 +116,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
         self.alphabet = alphabet
         if category is None:
             category = Semigroups().Finite().FinitelyGenerated())
-        Parent.__init__(self, category = category)
+        Parent.__init__(self, category=category)
 
     def _repr_(self):
         r"""

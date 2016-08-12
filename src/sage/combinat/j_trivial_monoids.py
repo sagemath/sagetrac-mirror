@@ -71,8 +71,10 @@ class UnitriangularBooleanMatrices(Parent, UniqueRepresentation):
         Return the generating family of the monoid ``self``, namely all
         unitriangular boolean matrices with n+1 1s
 
-        TODO:: Make immutable matrices in an easier way... This method should
-        be only one line.
+        .. TODO::
+
+            Make immutable matrices in an easier way... This method should
+            be only one line.
 
         EXAMPLES::
 
@@ -99,7 +101,7 @@ class UnitriangularBooleanMatrices(Parent, UniqueRepresentation):
             sage: UnitriangularBooleanMatrices(6).cardinality()
             32768
         """
-        return 2**((self.n**2-self.n)//2)
+        return 2 ** ((self.n ** 2 - self.n) // 2)
 
     def _an_element_(self):
         """
