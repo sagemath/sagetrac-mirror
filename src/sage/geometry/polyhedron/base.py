@@ -4837,7 +4837,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron([(0,0), (1,0), (0,2)])
             sage: P.volume()
             1
-            sage: G = P.restricted_automorphism_group(kind="matrix")
+            sage: G = P.restricted_automorphism_group(output="matrix")
             sage: Q = P.fundamental_domain(G)
             sage: Q.vertices()
             (A vertex at (0, 0), A vertex at (1/3, 2/3), A vertex at (0, 1))
@@ -4875,7 +4875,7 @@ class Polyhedron_base(Element):
             return self
 
         if group is None:
-            G = self.restricted_automorphism_group(kind="matrixlist")
+            G = self.restricted_automorphism_group(output="matrixlist")
         else:
             # Convert all group elements to matrices representing affine
             # transformations
