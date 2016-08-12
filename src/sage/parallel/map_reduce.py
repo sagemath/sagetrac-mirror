@@ -213,7 +213,7 @@ three following parameters:
 Here is an example or how to deal with timeout::
 
     sage: from sage.parallel.map_reduce import RESetMPExample, AbortError
-    sage: EX = RESetMPExample(maxl = 8)
+    sage: EX = RESetMPExample(maxl = 100)
     sage: try:
     ....:     res = EX.run(timeout=0.01)
     ....: except AbortError:
@@ -225,6 +225,7 @@ Here is an example or how to deal with timeout::
 
 The following should not timeout even on a very slow machine::
 
+    sage: EX = RESetMPExample(maxl = 8)
     sage: try:
     ....:     res = EX.run(timeout=60)
     ....: except AbortError:
@@ -1379,6 +1380,7 @@ class RESetMapReduce(object):
         Here is an example or how to deal with timeout::
 
             sage: from sage.parallel.map_reduce import AbortError
+            sage: EX = RESetMPExample(maxl = 100)
             sage: try:
             ....:     res = EX.run(timeout=0.01)
             ....: except AbortError:
@@ -1391,6 +1393,7 @@ class RESetMapReduce(object):
         The following should not timeout even on a very slow machine::
 
             sage: from sage.parallel.map_reduce import AbortError
+            sage: EX = RESetMPExample(maxl = 8)
             sage: try:
             ....:     res = EX.run(timeout=60)
             ....: except AbortError:
