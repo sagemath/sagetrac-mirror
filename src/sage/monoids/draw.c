@@ -244,9 +244,11 @@ void drawTransf (SDL_Surface *s, SDL_Surface *screen, Complexe m, Complexe t, Co
 
 int lt[256]; //liste des indices des translations du morceau courant
 
+Complexe barycentre;
+
 //cherche la translation donnant le morceau le plus proche du point
 //morceau de taille b^n
-Complexe FindTr (int n, Complexe c, BetaAdic b, bool verb)
+Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool verb)
 {
 	Complexe r = zero();
 	int i, j;
@@ -254,17 +256,28 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, bool verb)
 	int imax;
 	Complexe ib = inv(b.b);
 	Complexe m = un();
+	Complexe bb = prod(barycentre, b.b);
+	int x,y;
+	Uint8 r0,g0,b0,a;
 	for (j=0;j<n;j++)
 	{
 		nmax = -1;
 		for (i=0;i<b.n;i++)
 		{
 			//calcule la distance entre c et b.t[i]
-			nn = cnorm(sub(c, b.t[i]));
+			nn = cnorm(sub(c, add(bb, b.t[i])));
 			if (nmax == -1 || nn < nmax)
 			{
-				imax = i;
-				nmax = nn;
+				//teste si l'on est bien inclus dans le morceau
+				ComplexeToPoint(prod(sub(c, b.t[i]), ib), &x, &y, s->w, s->h);
+				if (x < 0 || y < 0 || x >=s->w || y >= s->h)
+					continue; //le point n'est pas dedans
+				SDL_GetRGBA(*((Uint32 *)s->pixels+x+(s->pitch/4)*y), s->format, &r0, &g0, &b0, &a);
+				if (a >= 10)
+				{
+					imax = i;
+					nmax = nn;
+				}
 			}
 		}
 		lt[j] = imax;
@@ -296,7 +309,7 @@ bool addA (Automaton *a, int n)
 		}
 		e = a->e[e].f[lt[i]];
 	}
-	if (a->e[e].f[lt[i]] == -1)
+	if (a->e[e].f[lt[i]] != 1)
 	{
 		r = true;
 		a->e[e].f[lt[i]] = 1;
@@ -430,7 +443,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				Complexe c = getComplexe(x, y, screen->w, screen->h);
 				//cherche le morceau le plus proche du point c
 				rt = t;
-				t = FindTr(np, c, b, verb);
+				t = FindTr(np, c, b, s, verb);
 				//
 				if (event.type == SDL_MOUSEBUTTONDOWN) //(event.motion.state & SDL_BUTTON_LMASK)
 				{ //clic
@@ -598,10 +611,16 @@ Color moy (Color a, Color b, double ratio)
 	return r;
 }
 
+int ns;
+Complexe cs;
+
 void set_pix (Surface s, Complexe p)
 {
 	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
 		return;
+	cs.x += p.x;
+	cs.y += p.y;
+	ns++;
 	double fx = (p.x - mx)*s.sx/(Mx-mx);
 	double fy = (p.y - my)*s.sy/(My-my);
 	unsigned int x = fx;
@@ -854,7 +873,12 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 				printf("n = %d\n", n);
 		}
 		//niter = n;
+		ns = 0;
+		cs.x = 0;
+		cs.y = 0;
 		Draw_rec (b, s, n, zero(), un(), b.a.i);
+		barycentre.x = cs.x/ns;
+		barycentre.y = cs.y/ns;
 		mx = mx2 - (Mx2 - mx2)/100;
 		my = my2 - (My2 - my2)/100;
 		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;

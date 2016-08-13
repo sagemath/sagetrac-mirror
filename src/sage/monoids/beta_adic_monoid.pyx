@@ -447,6 +447,54 @@ def PrintWord (m, n):
 	b = getBetaAdic(m, prec=53, ss=None, tss=None, iss=None, transpose=False, add_letters=True, verb=False)
 	print_word(b, n, b.a.i)
 
+###used by compute_substitution()
+#donne la liste des feuilles du sous-arbre partant de e
+def fils (arbre, e):
+	if arbre[e] == []: #e est une feuille
+		return [e]
+	r = []
+	for f in arbre[e]:
+		r+=fils(arbre, f)
+	return r
+
+#teste si a est inclus dans un des morceaux de l ou pas
+def included (a, l, lm):
+	#teste vite fait si l'on est inclus dans un morceau ou pas
+	incl = False
+	w = a.find_word()
+	if w is None:
+		print("Erreur : automate vide !")
+		return True
+	lr = []
+	for j in l:
+		a2 = lm[j][0]
+		if a2.rec_word(w):
+			if a.included(a2):
+				return j
+			else:
+				return None
+	print "******* Erreur : mot %s reconnu par aucun automate ! *********"%w
+	return None
+
+#split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc et a12 celle disjointe de baoc)
+def split_baoc (i, tr, np, lm, m, aoc, verb=False):
+	b = m.b
+	a1 = lm[i][0]
+	#teste l'intersection avec baoc
+	at = m.move2(t=(b**(-np))*tr, a=aoc)				   #TODO : utiliser les automates des relations précalculés pour les translations de l'échange
+	if at.intersect(a1):
+		ar = at.intersection(a1)
+		#détermine si l'on est inclus dans baoc
+		ar.zero_completeOP()
+		if ar.equals_langages(a1):
+			return (a1, None)
+		else:
+			#on subdivise en deux
+			return (ar, a1.intersection(ar.complementary()))
+	else:
+		return (None, a1)
+###
+
 class BetaAdicMonoid(Monoid_class):
 	r"""
 	``b``-adic monoid with numerals set ``C``.
@@ -2829,7 +2877,337 @@ class BetaAdicMonoid(Monoid_class):
 		#TODO!
 		
 		raise ValueError("Not implemented !")
+	
+	#calcule la liste triée (par rapport à la place >1) des premiers points dans omega-omega
+	#
+	# THIS FUNCTION IS UNCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
+	#
+	def compute_translations (self, FastAutomaton aoc, verb=False):
+		b = self.b
+		p = b.parent().places()
+		if verb: print p
+		pp = p[0]
+		pm = p[1]
+		l = []
+		bound = 1/(1-abs(pm(b)))
+		if verb: print "bound = %s"%bound
+		for i in range(-20,20):
+			for j in range(-20,20):
+				for k in range(-20,20):
+					x = i + b*j + b*b*k
+					if abs(pm(x)) <= bound and pp(x) > 0:
+					#if abs(pm(x)-z) < r + .5 and pp(x) > 0:
+						l.append(x)
+		l.sort(key=pp)
+		return l
+	
+	def compute_morceaux (self, FastAutomaton aoc, verb=False):
+		r"""
+		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
+		
+		INPUT:
+		
+		- ``aoc``- FastAutomaton
+			Automaton of the g-beta-expansion.
+		
+		- ``verb``- bool (default: ``False``)
+		  If True, print informations about the computing.
+		
+		OUTPUT:
 
+		A list of (FastAutomaton, translation).
 
+		EXAMPLES:
+			
+			#. Full Tribonnacci::
+			
+				sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
+				sage: m.compute_morceaux()
+			
+		"""
+		m = self
+		A = aoc.A
+		if verb: print("Compute the list of translations...")
+		lt = self.compute_translations(aoc, verb)
+		if verb: print("Compute the pieces...")
+		u = FastAutomaton(None)
+		u.setAlphabet(list(A))
+		uc = u.complementary()
+		at = dict()
+		for t in lt:
+			if verb: print "t=%s"%t
+			at[t] = m.move2(t=t, a=aoc, b=aoc) #, verb=verb)
+			#if verb: print "intersection..."
+			at[t].zero_completeOP()
+			#if verb: print "intersection..."
+			at[t] = at[t].intersection(uc)
+			at[t].zero_completeOP()
+			#if verb: print "union..."
+			u = u.union(at[t]).emonde().minimise()
+			#if verb: print "emonde..."
+			at[t] = at[t].emonde().minimise()
+			#teste si c'est fini
+			#if verb: print "compl..."
+			uc = u.complementary()
+			ai = uc.intersection(aoc)
+			#if verb: print "empty..."
+			if ai.is_empty():
+				break #c'est fini !
+			if at[t].is_empty():
+				if verb: print "Automate vide !"
+				del at[t]
+			else:
+				if verb: print at[t]
+		return at
+	
+	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, verb=True):
+		r"""
+		Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
+		
+		INPUT:
+		
+		- ``a``- FastAutomaton (default: ``None``)
+			Automaton of the g-beta-expansion.
+		
+		- ``verb``- bool (default: ``True``)
+		  If True, print informations about the computing.
+		
+		OUTPUT:
 
+		A word morphism given by a dictionnary.
+
+		EXAMPLES:
+			
+			#. Full Tribonnacci::
+			
+				sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
+				sage: m.compute_substitution(verb=False)								# long time
+				{1: [1, 3], 2: [1], 3: [1, 2]}
+			
+		"""
+		m = self
+		if a is None:
+			if hasattr(self, 'tss'):
+				a = FastAutomaton(self.tss)
+			else:
+				a = FastAutomaton(None).full(list(self.C))
+		A = a.A
+		#complete a
+		aoc = m.move2(t=0, a=a)
+		aoc.zero_completeOP()
+		aoc = aoc.emonde().minimise()
+		if verb: print "aoc = %s"%aoc
+		#test if np is big enough
+		if np is None:
+			for i in range(1,300):
+				baoc = aoc.unshift(0, i)
+				if baoc.included(aoc):
+					np = i
+					break
+			if np is None:
+				raise ValueError('The g-beta-expansion must be b^np invariant for some natural integer np.')
+		else:
+			baoc = aoc.unshift(0,np)
+			if not baoc.included(aoc):
+				raise ValueError('The g-beta-expansion must be b^np invariant (here np=%s).'%np)
+		if verb: print("np = %s"%np)
+		#compute the pieces exchange
+		if lt is None:
+			if verb: print("compute the pieces exchange...")
+			lm = self.compute_morceaux(aoc, verb=False)
+			lt = [(lm[t],t) for t in lm.keys()]
+		if verb: print("Exchange of %s pieces"%len(lt))
+		#calcule l'induction à partir de la liste de (morceau, translation)
+		#précalculs
+		if verb: print "Précalculs..."
+		arel = dict()
+		for a,t in lt:
+			arel[t] = m.relations_automaton4(t=-t, A=a.A, B=m.C, couples=True)
+			if verb: print "arel[%s]=%s"%(t, arel[t])
+		baoc = aoc.unshift(0, np) #multiplie par b
+		baoc = m.move2(t=0, a=baoc, b=aoc) #complete
+		baoc.zero_completeOP()
+		if verb: print "baoc : %s"%baoc
+		arbre = [range(1,len(lt)+1)]+[[] for i in range(len(lt))] #arbre de subdivision des morceaux
+		if verb: print "arbre initial : %s"%arbre
+		lm = [(aoc, 0)]+lt #liste des morceaux, translations
+		if verb: print "lm = %s"%lm
+		d = [[] for i in range(len(lm))] #parcours de chaque morceau (donné par une liste de morceaux)
+		if verb: print "d = %s"%d
+		lf = range(1, len(lm)) #liste des feuilles
+		if verb: print "lf = %s"%lf
+		
+		from copy import copy
+		
+		if verb: print "\n**********************\n   Etape 1   \n**********************"
+		
+		#étape 1 : complétion des mots
+		for i,(a1,t1) in enumerate(lm):
+			if arbre[i] != []: continue #ce morceau n'est pas une feuille
+			if verb:
+				print "\nCalcul du morceau %s/%s (%s, %s)..."%(i, len(lm), a1, t1)
+				#print "lf = %s"%lf
+				#print "d = %s"%d
+				#print "arbre = %s"%arbre
+			tr = 0 #translation totale
+			if d[i] != []:
+				if d[i][-1] == -1:
+					continue #le morceau était déjà fini de calculé
+				#va à la fin du mot
+				for j in d[i]:
+					if j < 0:
+						break
+					tr += lm[j][1]
+				#calcule b^np*a + tr
+			a = a1.unshift(0, np).emonde().minimise()
+			if tr != 0:
+				if verb: print "Translation de %s..."%tr
+				a = m.move2(t=-tr, a=a)				   #TODO : ne pas recalculer cet automate déjà calculé
+			while True:
+				#split selon les autres morceaux
+				j = included(a, lf, lm)
+				if j is None:
+					#détermine les morceaux qui intersectent a
+					l = []
+					for j in lf:
+						if lm[j][0].intersect(a):
+							l.append(j)
+					if len(l) < 2: print "Erreur : intersection avec %s morceaux mais pas inclus !!!"%len(l)
+					if verb: print "Subdivision en %s morceaux..."%len(l)
+					#calcule les intersections (découpe en morceaux a1)
+					for j in l:
+						a2 = lm[j][0]
+						#découpe a selon a2
+						a = m.move2(t=tr, a=a2) #translate a2 de -tr
+						a.zero_completeOP()
+						a.shiftOP(0, np) #multiplie par b^(-np)
+						a = a.emonde().minimise()
+						k = len(lm) #indice du nouveau morceau
+						lf.append(k) #nouvelle feuille
+						arbre[i].append(k)
+						arbre.append([])
+						from copy import copy
+						#print copy
+						d.append(copy(d[i]))
+						d[k].append(j) #ajoute la translation suivante
+						lm.append((a.intersection(a1), t1)) #ajoute le nouveau morceau à la liste
+						#split selon baoc
+						(ab, abc) = split_baoc(k, tr+lm[j][1], np, lm, m, aoc, verb)
+						if ab is None:
+							if verb: print "k=%s, tr=%s+%s : calcul à continuer"%(k, tr, lm[j][1])
+						else:
+							if abc is None:
+								if verb: print "tr=%s : calcul terminé"%tr
+								d[k].append(-1) #indique que le calcul de ce morceau est terminé
+							else:
+								if verb: print "tr=%s : subdivision de %s selon baoc (new %s)..."%(tr, i, len(lm))
+								lf.append(len(lm)) #nouvelle feuille
+								arbre[k].append(len(lm))
+								arbre.append([])
+								d.append(copy(d[k]))
+								d[len(lm)].append(-1) #indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+								lm.append((ab, t1))
+								lf.append(len(lm)) #nouvelle feuille
+								arbre[k].append(len(lm))
+								arbre.append([])
+								d.append(copy(d[k]))
+								lm.append((abc, t1))
+								lf.remove(k) #le morceau k n'est plus une feuille
+					lf.remove(i) #le morceau i n'est plus une feuille
+					break  #calcul fini pour ce morceau puisque ce n'est plus une feuille
+				else:
+					#ajoute le morceau à la liste et translate
+					d[i].append(j)
+					#if verb: print "Translation de %s..."%lm[j][1]
+					a = m.move2(t=-lm[j][1], a=a, ar=arel[lm[j][1]])
+					tr += lm[j][1]
+				#split selon baoc
+				(ab, abc) = split_baoc(i, tr, np, lm, m, aoc, verb)
+				if ab is None:
+					pass
+					#if verb: print "tr=%s : calcul à continuer"%tr
+				else:
+					if abc is None:
+						if verb: print "tr=%s : calcul terminé"%tr
+					else:
+						if verb: print "tr=%s : subdivision de %s selon baoc (new %s)..."%(tr, i, len(lm))
+						lf.append(len(lm)) #nouvelle feuille
+						arbre[i].append(len(lm))
+						arbre.append([])
+						d.append(copy(d[i]))
+						d[len(lm)].append(-1) #indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+						lm.append((ab, t1))
+						lf.append(len(lm)) #nouvelle feuille
+						arbre[i].append(len(lm))
+						arbre.append([])
+						d.append(copy(d[i]))
+						lm.append((abc, t1))
+						lf.remove(i) #le morceau i n'est plus une feuille
+					break  #calcul fini pour ce morceau (pour cette étape)
+		
+		if verb: print "\n*************\n   Etape 2   \n*************"
+		
+		#étape 2 : remplacement des lettres qui ne sont pas des feuilles
+		while True:
+			end = True
+			for i in lf:
+				a1,t1 = lm[i]
+				if verb: print "\nMorceau %s/%s..."%(i, len(lm))
+				tr = 0 #translation totale
+				if d[i] == []:
+					print "Erreur : feuille vide !!!!"
+				#va à la fin du mot
+				for ij,j in enumerate(d[i]):
+					if j < 0:
+						break
+					if arbre[j] != []: #il faut recalculer cette lettre
+						#calcule b^np*a + tr
+						a = a1.unshift(0, np).emonde().minimise()
+						if tr != 0:
+							if verb: print "Translation de %s..."%tr
+							a = m.move2(t=-tr, a=a)				   #TODO : ne pas recalculer cet automate déjà calculé
+						#split selon les autres morceaux
+						f = fils(arbre, j)
+						if verb: print "Split selon %s morceaux"%len(f)
+						k = included(a, f, lm)
+						if k is None:
+							end = False
+							#détermine les morceaux qui intersectent a
+							l = []
+							for k in lf:
+								if lm[k][0].intersect(a):
+									l.append(k)
+							if len(l) < 2: print "Erreur : intersection avec %s morceaux mais pas inclus !!!"%len(l)
+							if verb: print "Subdivision en %s morceaux..."%len(l)
+							#calcule les intersections (découpe en morceaux a1)
+							for j2 in l:
+								a2 = lm[j2][0]
+								#découpe selon a2
+								a = m.move2(t=tr, a=a2) #translate a2 de -tr
+								a.zero_completeOP()
+								a.shiftOP(0, np) #multiplie par b^(-np)
+								a = a.emonde().minimise()
+								k = len(lm) #indice du nouveau morceau
+								lf.append(k) #nouvelle feuille
+								arbre[i].append(k)
+								arbre.append([])
+								d.append(copy(d[i]))
+								d[k][ij] = j2 #remplace la lettre
+								lm.append((a.intersection(a1), t1)) #ajoute le nouveau morceau à la liste
+							lf.remove(i) #i n'est plus une feuille
+							if verb: print "break..."
+							break #le morceau n'est plus une feuille
+						else:
+							#remplace la lettre
+							d[i][ij] = k
+					tr += lm[j][1]
+			if end:
+				break
+		#compute the substitution
+		s = dict()
+		for i in lf:
+			if d[i][-1] < 0:
+				d[i].pop()
+			s[i] = d[i]
+		return s
 
