@@ -327,7 +327,7 @@ cdef class _LazyString(object):
         """
         return str(self.val())
 
-    def __str__(self):
+    def __unicode__(self):
         """
         EXAMPLES::
 
@@ -368,7 +368,7 @@ cdef class _LazyString(object):
             sage: f = lambda: "ine"
             sage: s = lazy_string(f)
             sage: "laz%sss" % s
-            u'laziness'
+            'laziness'
         """
         if isinstance(self, _LazyString):
             return (<_LazyString>self).val() % other

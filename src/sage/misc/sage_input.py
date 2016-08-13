@@ -536,7 +536,7 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
-        if isinstance(x, (str, six.text_type)):
+        if isinstance(x, six.string_types):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
