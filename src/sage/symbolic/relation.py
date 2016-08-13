@@ -110,9 +110,9 @@ Substitution into relations::
     sage: eq.substitute(a=x)
     x^3 + x == sin(1)
     sage: eq.substitute(a=x, x=1)
-    x + 1 == sin(1/x)
+    x + 1 == sin(1)
     sage: eq.substitute({a:x, x:1})
-    x + 1 == sin(1/x)
+    x + 1 == sin(1)
 
 Solving
 -------

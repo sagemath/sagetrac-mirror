@@ -4864,7 +4864,16 @@ cdef class Expression(CommutativeRingElement):
             (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
             sage: f.subs_expr(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+
+        Check that the pattern is matched in the denominator too,
+        (see :trac:`21071`)::
+
+            sage: ((1+x^2)/x^2).subs({x^2: 42})
+            43/42
+            sage: ((1+x)/x).subs({x: 42})
+            43/42
         """
+        from sage.symbolic.ring import SR
         cdef dict sdict = {}
 
         if args and args[0] is None:
@@ -4883,13 +4892,16 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
-        cdef GExMap smap
+        cdef GExMap smap, invmap
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
+            if not SR(v).is_trivial_zero():
+                invmap.insert(make_pair((<Expression>self.coerce_in(1/k))._gobj,
+                                      (<Expression>self.coerce_in(1/v))._gobj))
 
         return new_Expression_from_GEx(self._parent,
-                                       self._gobj.subs_map(smap, 0))
+                self._gobj.subs_map(smap, 0).subs_map(invmap, 0))
 
     subs = substitute
 
