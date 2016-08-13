@@ -1,4 +1,6 @@
 
+void TestSDL ();
+
 typedef unsigned char uint8;
 
 struct Color
@@ -51,6 +53,7 @@ Color moy (Color a, Color b, double ratio);
 void set_pix (Surface s, Complexe p);
 void print_word (BetaAdic b, int n, int etat);
 Color randColor (int a);
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb);
 void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
 void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
 void printAutomate (Automate a);

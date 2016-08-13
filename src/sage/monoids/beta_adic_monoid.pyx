@@ -254,7 +254,8 @@ cdef extern from "draw.h":
 		Automate* a
 		int na
 	ctypedef Color* ColorList
-		
+
+	void TestSDL ()
 	Surface NewSurface (int sx, int sy)
 	void FreeSurface (Surface s)
 	ColorList NewColorList (int n)
@@ -267,6 +268,7 @@ cdef extern from "draw.h":
 	void FreeBetaAdic (BetaAdic b)
 	BetaAdic2 NewBetaAdic2 (int n, int na)
 	void FreeBetaAdic2 (BetaAdic2 b)
+	Automate UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
 	void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
@@ -533,7 +535,12 @@ class BetaAdicMonoid(Monoid_class):
 					return "Monoid of b-adic expansion with b root of %s and numerals set %s, in characteristic %s"%(self.b.minpoly(), self.C, K.characteristic()) + str
 				else:
 					return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
-		
+	
+	def testSDL (self):
+		sig_on()
+		TestSDL()
+		sig_off()	
+	
 	def default_ss (self, C=None):
 		r"""
 		Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
@@ -781,6 +788,33 @@ class BetaAdicMonoid(Monoid_class):
 #			 for c in C:
 #				 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
 #		 return orbit_points
+	
+	def user_draw (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, verb=False):
+		sig_on()
+		cdef BetaAdic b
+		cdef Automate a
+		cdef FastAutomaton r
+		b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
+		#if verb:
+		#	printAutomaton(b.a)
+		#dessin
+		cdef Color col
+		col.r = color[0]
+		col.g = color[1]
+		col.b = color[2]
+		col.a = color[3]
+		if n is None:
+			n = -1
+		if method == 0:
+			a = UserDraw(b, sx, sy, n, ajust, col, verb)
+		elif method == 1:
+			print "Not implemented !"
+			return
+		sig_off()
+		r = FastAutomaton(None)
+		r.a[0] = a
+		r.A = list(self.C)
+		return r
 	
 	def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, verb=False):
 		r"""
@@ -1541,7 +1575,7 @@ class BetaAdicMonoid(Monoid_class):
 		a = RelationsAutomaton(ib, isvide, ext, verb)
 		r = FastAutomaton(None)
 		r.a[0] = a
-		r.A = Cd
+		r.A = list(Cd)
 		freeInfoBetaAdic(ib)
 		sig_off()
 		if isvide:
@@ -2631,7 +2665,7 @@ class BetaAdicMonoid(Monoid_class):
 		return self.adherence(tss=a, C=C, C2=nA)
 	
 	#donne l'automate décrivant le translaté de +t de a, avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
-	def move2 (self, t, FastAutomaton a=None, FastAutomaton b=None, list A=None, list B=None, verb=False):
+	def move2 (self, t, FastAutomaton a=None, FastAutomaton b=None, list A=None, list B=None, ar=None, verb=False):
 		if a is None:
 			if hasattr(self, 'tss'):
 				if isinstance(self.tss, FastAutomaton):
@@ -2652,8 +2686,9 @@ class BetaAdicMonoid(Monoid_class):
 			A = list(set(a.A))
 		if B is None:
 			B = list(set(b.A))
-		#compute the relations automaton with translation t
-		ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=verb)
+		if ar is None:
+			#compute the relations automaton with translation t
+			ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=verb)
 		#compute the product of a and b
 		if verb: print("product...")
 		ap = a.product(b)

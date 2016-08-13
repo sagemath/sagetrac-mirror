@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <SDL/SDL.h>
 #include "complex.h"
 #include "Automaton.h"
+#include "automataC.h"
 #include "draw.h"
 
 double mx = -2, my = -2, Mx = 2, My = 2; //zone de dessin
@@ -12,6 +14,456 @@ double mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum 
 Color color0; //couleur du fond
 Color color; //couleur de dessin
 Color* colors; //liste de couleurs de dessin
+
+//////////////////////////////TEST
+#define WIDTH	800
+#define HEIGHT	600
+
+void DrawRond (int x, int y, SDL_Surface *s)
+{
+	Uint32 *pix = s->pixels;
+	int i,j;
+	int size = 4;
+	for (i=x-size;i<=x+size;i++)
+	{
+		for (j=y-size;j<=y+size;j++)
+		{
+			if ((i-x)*(i-x)+(j-y)*(j-y) < size*size)
+			{
+				if (i >= 0 && j >= 0 && i < WIDTH && j < HEIGHT)
+					*(pix+i+(s->pitch/4)*j) = SDL_MapRGB(s->format, 255, 0, 0);
+			}
+		}
+	}
+}
+
+void TestSDL ()
+{
+	SDL_Surface * s;
+    int i, j;
+    if (SDL_Init(SDL_INIT_VIDEO) == -1)
+    {
+        printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
+        return;
+    }
+    
+    #define SDL_VIDEO_FLAGS (SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT)
+
+    s = SDL_SetVideoMode(WIDTH, HEIGHT, 32, SDL_VIDEO_FLAGS);
+
+    printf("Mode vidéo: %dx%d %d bits/pixel\n", s->w, s->h, s->format->BitsPerPixel);
+           
+    SDL_FillRect(s, NULL, SDL_MapRGB(s->format, 0x00, 0xff, 0xff));
+    SDL_Flip(s);
+    
+    Uint32 rmask, gmask, bmask, amask;
+
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
+    //SDL_Surface *s = SDL_GetVideoSurface();SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, rmask, gmask, bmask, amask);
+    /*
+    if(s == NULL)
+    {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }*/
+    
+    Uint32 *pix = s->pixels;
+    int x, y;
+    for (y=0;y<HEIGHT;y++)
+    {
+    	for (x=0;x<WIDTH;x++)
+    	{
+    		*pix = SDL_MapRGB(s->format, x, y, x+y);
+    		pix++;
+    	}
+    	pix += (s->pitch/4-WIDTH);
+    }
+    
+    SDL_Flip(s);
+    
+    int quit = 0;
+    pix = s->pixels;
+	SDL_Event event;
+	for(;;)
+	{
+		SDL_PollEvent(&event); // Récupération des actions de l'utilisateur
+		switch(event.type)
+		{
+			case SDL_QUIT: // Clic sur la croix
+				quit=1;
+				break;
+			case SDL_KEYUP: // Relâchement d'une touche
+				if ( event.key.keysym.sym == SDLK_f ) // Touche f
+				{
+				    
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				if (event.motion.state & SDL_BUTTON_LMASK)
+				{
+					x = event.motion.x;
+					y = event.motion.y;
+					DrawRond(x,y,s);
+					SDL_Flip(s);
+				}
+				break;
+		}
+		if (quit)
+			break;
+	}            
+	
+	//SDL_FreeSurface(s);
+    SDL_Quit();
+}
+//////////////////////////////TEST
+
+//dessine la surface dans la SDL_Surface
+SDL_Surface *GetSurface (Surface s)
+{
+	Uint32 rmask, gmask, bmask, amask;
+
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+	SDL_Surface *r = SDL_CreateRGBSurface(0, s.sx, s.sy, 32, rmask, gmask, bmask, amask);
+	int x,y;
+	Uint32 *ptr = r->pixels;
+	for (y=0;y<s.sy;y++)
+	{
+		for (x=0;x<s.sx;x++)
+		{
+			//*ptr = SDL_MapRGBA(r->format, x, y, x-y, 255);
+			*ptr = SDL_MapRGBA(r->format, s.pix[x][y].r, s.pix[x][y].g, s.pix[x][y].b, s.pix[x][y].a);
+			ptr++;
+		}
+		ptr += (r->pitch/4) - s.sx;
+	}
+	return r;
+}
+
+Complexe getComplexe (int x, int y, int sx, int sy)
+{
+	Complexe r;
+	r.x = x*(Mx-mx)/sx + mx;
+	r.y = y*(My-my)/sy + my;
+	return r;
+}
+
+void ComplexeToPoint (Complexe c, int *x, int *y, int sx, int sy)
+{
+	*x = (c.x - mx)*sx/(Mx - mx);
+	*y = (c.y - my)*sy/(My - my);
+}
+
+//dessine la transfomée inverse de l'image s
+void drawTransf (SDL_Surface *s, SDL_Surface *screen, Complexe m, Complexe t, Color col)
+{
+	int x, y, i, j, k;
+	Uint32 *f = s->pixels;
+	Uint32 *d = screen->pixels;
+	Complexe c;
+	Uint8 r, g, b, a;
+	Uint8 r2, g2, b2, a2;
+	//calcule un encadrement
+	int xmin = screen->w-1, ymin = screen->h-1, xmax = 0, ymax = 0;
+	Complexe im = inv(m);
+	int cx[4];
+	int cy[4];
+	cx[0] = cy[0] = 0;
+	cx[1] = 0;
+	cy[1] = s->h-1;
+	cx[2] = s->w-1;
+	cy[2] = 0;
+	cx[3] = s->w-1;
+	cy[3] = s->h-1;
+	for (k=0;k<4;k++)
+	{
+		ComplexeToPoint(sub(prod(getComplexe(cx[k], cy[k], s->w, s->h), m), t), &i, &j, screen->w, screen->h);
+		if (i < xmin)
+			xmin = i;
+		if (i > xmax)
+			xmax = i;
+		if (j < ymin)
+			ymin = j;
+		if (j > ymax)
+			ymax = j;
+	}
+	if (xmin < 0)
+		xmin = 0;
+	if (xmax >= screen->w)
+		xmax = screen->w-1;
+	if (ymin < 0)
+		ymin = 0;
+	if (ymax >= screen->h)
+		ymax = screen->h-1;
+	//
+	for (y=ymin;y<=ymax;y++)
+	{
+		for (x=xmin;x<=xmax;x++)
+		{
+			c = getComplexe(x, y, screen->w, screen->h);
+			ComplexeToPoint(prod(m, add(c, t)), &i, &j, s->w, s->h);
+			if (i >= 0 && j >= 0 && i < s->w && j < s->h)
+			{
+				d = ((Uint32 *)screen->pixels) + x + (screen->pitch/4)*y;
+				SDL_GetRGBA(*(f+i+(s->pitch/4)*j), s->format, &r, &g, &b, &a);
+				SDL_GetRGBA(*d, screen->format, &r2, &g2, &b2, &a2);
+				r = ((Uint32)col.r*a+(Uint32)r2*(255-a))/256;
+				g = ((Uint32)col.g*a+(Uint32)g2*(255-a))/256;
+				b = ((Uint32)col.b*a+(Uint32)b2*(255-a))/256;
+				*d = SDL_MapRGBA(screen->format, r, g, b, a2);
+			}
+			//d++;
+		}
+		//d += (screen->pitch/4 - screen->w);
+	}
+}
+
+int lt[256]; //liste des indices des translations du morceau courant
+
+//cherche la translation donnant le morceau le plus proche du point
+//morceau de taille b^n
+Complexe FindTr (int n, Complexe c, BetaAdic b, bool verb)
+{
+	Complexe r = zero();
+	int i, j;
+	double nn, nmax;
+	int imax;
+	Complexe ib = inv(b.b);
+	Complexe m = un();
+	for (j=0;j<n;j++)
+	{
+		nmax = -1;
+		for (i=0;i<b.n;i++)
+		{
+			//calcule la distance entre c et b.t[i]
+			nn = cnorm(sub(c, b.t[i]));
+			if (nmax == -1 || nn < nmax)
+			{
+				imax = i;
+				nmax = nn;
+			}
+		}
+		lt[j] = imax;
+		r = add(r, prod(b.t[imax], inv(m)));
+		c = prod(sub(c, b.t[imax]), ib);
+		//if (verb)
+		//	printf("%d ", imax);
+		m = prod(m, ib);
+	}
+	//if (verb)
+	//	printf("\n");
+	r.x = -r.x;
+	r.y = -r.y;
+	return r;
+}
+
+bool addA (Automaton *a, int n)
+{
+	int e = a->i;
+	int i;
+	bool r = false;
+	for (i=0;i<n-1;i++)
+	{
+		if (a->e[e].f[lt[i]] == -1)
+		{
+			r = true;
+			AddEtat(a, false);
+			a->e[e].f[lt[i]] = a->n-1;
+		}
+		e = a->e[e].f[lt[i]];
+	}
+	if (a->e[e].f[lt[i]] == -1)
+	{
+		r = true;
+		a->e[e].f[lt[i]] = 1;
+	}
+	return r;
+}
+
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
+{
+	Automaton r = NewAutomaton(2, b.n);
+	r.i = 0;
+	int i;
+	for (i=0;i<b.n;i++)
+	{
+		r.e[1].f[i] = 1; //état reconnaissant tout
+	}
+	r.e[1].final = true;
+
+	if (SDL_Init(SDL_INIT_VIDEO) == -1)
+    {
+        printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
+        return r;
+    }
+
+	Surface s0 = NewSurface(sx, sy);
+	if (verb)
+	{
+		printf("Dessin de la fractale...\n");
+		printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
+	}
+	Draw(b, s0, n, ajust, col, verb);
+	if (verb)
+		printf("Conversion en SDL...\n");
+	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
+	
+	    Uint32 rmask, gmask, bmask, amask;
+
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+    
+	if (verb)
+	{
+		printf("s de taille %dx%d\n", s->w, s->h);
+		printf("Ouverture de la fenêtre...\n");
+    }
+    
+    #define SDL_VIDEO_FLAGS (SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT)
+
+    SDL_Surface *screen = SDL_SetVideoMode(sx, sy, 32, SDL_VIDEO_FLAGS);
+
+    if (verb)
+    	printf("Mode vidéo: %dx%d %d bits/pixel\n", screen->w, screen->h, screen->format->BitsPerPixel);
+    
+    //surface dans laquelle on dessine le résultat
+    SDL_Surface *sf = SDL_CreateRGBSurface(0, screen->w, screen->h, 32, rmask, gmask, bmask, amask);
+    if(sf == NULL)
+    {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+    SDL_SetAlpha(sf, 0, 255);
+         
+    //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    col.r = 80;
+    col.g = 80;
+    col.b = 80;
+    drawTransf(s, sf, un(), zero(), col);
+    SDL_BlitSurface(sf, NULL, screen, NULL);
+    int np = 4;
+    Complexe f = powC(b.b, -np);
+    Complexe t;
+    Complexe rt;
+    t.x = -b.t[0].x;
+    t.y = -b.t[0].y;
+    Color colf;
+    col.r = 100;
+    col.g = 200;
+    col.b = 50;
+    colf.r = 150;
+    colf.g = 100;
+    colf.b = 200;
+    drawTransf(s, screen, f, t, col);
+    SDL_Flip(screen);
+    
+    int quit = 0;
+    int x, y;
+	SDL_Event event;
+	for(;;)
+	{
+		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
+		switch(event.type)
+		{
+			case SDL_QUIT: // Clic sur la croix
+				quit=1;
+				break;
+			case SDL_KEYUP: // Relâchement d'une touche
+				if ( event.key.keysym.sym == SDLK_p ) // Touche p
+				{
+					if (np < 255)
+					{
+				    	np++;
+				    	f = powC(b.b, -np);
+				    	if (verb)
+					    	printf("np = %d\n", np);
+				    }
+				}
+				if ( event.key.keysym.sym == SDLK_m ) // Touche m
+				{
+				    np--;
+				    f = powC(b.b, -np);
+				    if (verb)
+					    printf("np = %d\n", np);
+				}
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEMOTION:
+				x = event.motion.x;
+				y = event.motion.y;
+				Complexe c = getComplexe(x, y, screen->w, screen->h);
+				//cherche le morceau le plus proche du point c
+				rt = t;
+				t = FindTr(np, c, b, verb);
+				//
+				if (event.type == SDL_MOUSEBUTTONDOWN) //(event.motion.state & SDL_BUTTON_LMASK)
+				{ //clic
+					if (addA(&r, np)) //ajoute le morceau à l'automate
+					{ //si morceau ajouté
+						drawTransf(s, sf, f, t, colf);
+						SDL_BlitSurface(sf, NULL, screen, NULL);
+						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
+						DrawRond(x, y, screen);
+						SDL_Flip(screen);
+					}
+				}else
+				{
+					if (rt.x != t.x || rt.y != t.y)
+					{
+						SDL_BlitSurface(sf, NULL, screen, NULL);
+						drawTransf(s, screen, f, t, col);
+						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
+						DrawRond(x, y, screen);
+						SDL_Flip(screen);
+					}
+				}
+				break;
+		}
+		if (quit)
+			break;
+	}            
+	
+	SDL_FreeSurface(sf);
+	SDL_FreeSurface(s);
+    SDL_Quit();
+    return r;
+}
 
 ColorList NewColorList (int n)
 {

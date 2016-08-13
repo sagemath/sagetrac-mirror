@@ -40,6 +40,24 @@ Complexe add (Complexe a, Complexe b)
 	return r;
 }
 
+Complexe sub (Complexe a, Complexe b)
+{
+	Complexe r;
+	r.x = a.x - b.x;
+	r.y = a.y - b.y;
+	return r;
+}
+
+Complexe powC (Complexe a, int n)
+{
+	if (n < 0)
+		return powC(inv(a), -n);
+	else if (n == 0)
+		return un();
+	else
+		return prod(a, powC(a, n-1));
+}
+
 void addOP (Complexe *a, Complexe b)
 {
 	double r = a->x + b.x;
