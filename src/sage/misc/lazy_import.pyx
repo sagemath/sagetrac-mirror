@@ -439,18 +439,6 @@ cdef class LazyImport(object):
         """
         return hash(self._get_object())
 
-    def __cmp__(left, right):
-        """
-        TESTS::
-
-            sage: lazy_import('sage.all', 'ZZ'); lazy_ZZ = ZZ
-            sage: cmp(lazy_ZZ, ZZ)
-            0
-            sage: cmp(lazy_ZZ, QQ)
-            -1
-        """
-        return binop(cmp, left, right)
-
     def __richcmp__(left, right, int op):
         """
         TESTS::
