@@ -838,6 +838,8 @@ class BetaAdicMonoid(Monoid_class):
 #		 return orbit_points
 	
 	def user_draw (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, verb=False):
+		if tss is None:
+			tss = self.reduced_words_automaton2()
 		sig_on()
 		cdef BetaAdic b
 		cdef Automate a
@@ -2958,9 +2960,9 @@ class BetaAdicMonoid(Monoid_class):
 				del at[t]
 			else:
 				if verb: print at[t]
-		return at
+		return [(at[t],t) for t in at.keys()]
 	
-	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, verb=True):
+	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, get_aut=False, verb=True):
 		r"""
 		Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
 		
@@ -2968,6 +2970,15 @@ class BetaAdicMonoid(Monoid_class):
 		
 		- ``a``- FastAutomaton (default: ``None``)
 			Automaton of the g-beta-expansion.
+		
+		- ``np``- int (default: ``None``)
+			Power of beta for the computing. The g-beta-expansion must be b^np invariant.
+		
+		- ``lt``- list of elements of the integer rings
+			List of translations to compute the pieces exchange.
+		
+		- ``get_aut``- Bool (default: ``False``)
+			If True, gives also the list of automata.
 		
 		- ``verb``- bool (default: ``True``)
 		  If True, print informations about the computing.
@@ -3014,8 +3025,7 @@ class BetaAdicMonoid(Monoid_class):
 		#compute the pieces exchange
 		if lt is None:
 			if verb: print("compute the pieces exchange...")
-			lm = self.compute_morceaux(aoc, verb=False)
-			lt = [(lm[t],t) for t in lm.keys()]
+			lt = self.compute_morceaux(aoc, verb=False)
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs
@@ -3209,5 +3219,8 @@ class BetaAdicMonoid(Monoid_class):
 			if d[i][-1] < 0:
 				d[i].pop()
 			s[i] = d[i]
-		return s
+		if get_aut:
+			return s, [(a,t) for i,(a,t) in enumerate(lm) if arbre[i]==[]]
+		else:
+			return s
 
