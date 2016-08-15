@@ -388,8 +388,9 @@ class Regev(LWE):
             sage: Regev(n=20)
             LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 1.915069 and c = 401, 'uniform', None)
         """
-        q = ZZ(next_prime(n**2))
-        s = q / (RR(n).sqrt() * log(n, 2)**2)
+        q = ZZ(next_prime(n ** 2))
+        rr_n = RR(n)
+        s = q / (rr_n.sqrt() * rr_n.log(2) ** 2)
         D = DiscreteGaussianDistributionIntegerSampler(s/sqrt(2*pi.n()), q)
         LWE.__init__(self, n=n, q=q, D=D, secret_dist=secret_dist, m=m)
 
