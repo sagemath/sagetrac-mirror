@@ -588,7 +588,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         representation.
 
         Since sparse skew polynomials are not yet implemented, this
-<<<<<<< HEAD
         function always returns ``False``.
 
         EXAMPLES:
@@ -598,9 +597,6 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S.<x> = R['x',sigma]
             sage: S.is_sparse()
             False
-=======
-        function always returns False.
->>>>>>> FETCH_HEAD
         """
         return self.__is_sparse
 
