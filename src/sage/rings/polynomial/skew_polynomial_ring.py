@@ -105,7 +105,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         ...
         ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n
             Defn: t |--> t + 1' is not alphanumeric
-
+    
     As for polynomials, skew polynomial rings with different variable names
     are not equal::
 
@@ -588,6 +588,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
         representation.
 
         Since sparse skew polynomials are not yet implemented, this
+<<<<<<< HEAD
         function always returns ``False``.
 
         EXAMPLES:
@@ -597,6 +598,9 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             sage: S.<x> = R['x',sigma]
             sage: S.is_sparse()
             False
+=======
+        function always returns False.
+>>>>>>> FETCH_HEAD
         """
         return self.__is_sparse
 
