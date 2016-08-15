@@ -1438,6 +1438,65 @@ class SBox(SageObject):
         """
         return self == self.inverse()
 
+    @cached_method
+    def nonlinear_invariants(self):
+        r"""
+        Return a tuple of all nonlinear invariants of this S-Box. A Boolean
+        function `g : \mathbb{F}_2^m \mapsto \mathbb{F}_2` is a nonlinear
+        invariant of an `m \times m` S-Box `S` if `g(x) + g(S(x))` is constant
+        for all `x \in \mathbb{F}_2^m` (see [TLS16]_ ).
+
+        A nonlinear invariant is expressed as a multivariate polynomial in
+        ``BooleanPolynomialRing()``. Variables `x_{0}, x_{m-1}` in the
+        polynomials represent the least-significant and most-significant bit of
+        the input, respectively.
+
+        EXAMPLES:
+
+        In the example below, we construct a `3 \times 3` S-Box by setting
+        parameter ``big_endian=False`` to use little-endian ordering of bits in
+        the S-Box. The primary reason behind this is only to demonstrate the
+        correctness of results, since the ordering of bits in the elements of
+        Sage ``VectorSpace()`` use little-endian::
+
+            sage: S = mq.SBox(0, 1, 3, 6, 7, 4, 5, 2, big_endian=False)
+            sage: B = S.nonlinear_invariants()
+            sage: for f in B: print f
+            0
+            1
+            x0*x1*x2 + x0*x1 + x0*x2 + x0
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
+            x1*x2 + x1 + x2
+            x1*x2 + x1 + x2 + 1
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2 + 1
+            sage: [B[4](*v) + B[4](*S(v)) for v in VectorSpace(GF(2), 3)]
+            [0, 0, 0, 0, 0, 0, 0, 0]
+
+        REFERENCES:
+
+        .. [TLS16] \Y. Todo, G. Leander, Y. Sasaki *Nonlinear Invariant Attack:
+          Practical Attack on Full SCREAM, iSCREAM, and Midori64*; available at
+          http://eprint.iacr.org/2016/732.pdf.
+        """
+        if self.m != self.n:
+            raise TypeError("nonlinear_invariants() is supported only if self.m=self.n")
+
+        from sage.misc.misc_c import prod
+        from sage.modules.free_module import VectorSpace
+
+        m = self.m
+        n = self.n
+
+        f = [self.component_function(1<<i).algebraic_normal_form() for i in xrange(n)]
+        R = f[0].ring()
+        V = VectorSpace(GF(2), m)
+        cl = [R.monomial(*v) + prod(f[i]**v[i] for i in xrange(m)) for v in V]
+        M = Matrix(GF(2), [[c(*v) for c in cl] for v in V])
+        A = Matrix(M.right_kernel().list())
+
+        return A * vector([R.monomial(*v) for v in V])
+
 def feistel_construction(*args):
     r"""
     Return an S-Box constructed by Feistel structure using smaller S-Boxes in
