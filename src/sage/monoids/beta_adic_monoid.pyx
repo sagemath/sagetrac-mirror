@@ -223,7 +223,7 @@ cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
 	#conversion en C
 	i.nc = len(Cd)
 	if i.nc > i.ncmax:
-		raise ValueError("Trop de chiffres : %d > %d max."%(i.nc, i.ncmax))
+		raise ValueError("Trop de chiffres : %d > %d max (initialiser le BetaAdicMonoid avec plus de chiffre)."%(i.nc, i.ncmax))
 	for j,c in enumerate(Cd):
 		getElement(c, i.c[j], i.n)
 	for j,p in enumerate(self.parch):
@@ -2884,18 +2884,24 @@ class BetaAdicMonoid(Monoid_class):
 	#
 	# THIS FUNCTION IS UNCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
 	#
-	def compute_translations (self, FastAutomaton aoc, verb=False):
+	def compute_translations (self, FastAutomaton aoc, imax=None, verb=False):
 		b = self.b
 		p = b.parent().places()
 		if verb: print p
-		pp = p[0]
-		pm = p[1]
+		if abs(p[0](b)) > 1:
+			pp = p[0]
+			pm = p[1]
+		else:
+			pp = p[1]
+			pm = p[0]
 		l = []
-		bound = 1/(1-abs(pm(b)))
+		if imax is None:
+			imax = 20
+		bound = max([abs(pm(x)) for x in self.C])/(1-abs(pm(b)))
 		if verb: print "bound = %s"%bound
-		for i in range(-20,20):
-			for j in range(-20,20):
-				for k in range(-20,20):
+		for i in range(-imax,imax):
+			for j in range(-imax,imax):
+				for k in range(-imax,imax):
 					x = i + b*j + b*b*k
 					if abs(pm(x)) <= bound and pp(x) > 0:
 					#if abs(pm(x)-z) < r + .5 and pp(x) > 0:
@@ -2903,7 +2909,62 @@ class BetaAdicMonoid(Monoid_class):
 		l.sort(key=pp)
 		return l
 	
-	def compute_morceaux (self, FastAutomaton aoc, verb=False):
+	#décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
+	def Parcours(self, A, a, e, t, n, bn):
+		#print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
+		if n == 0:
+			return [t]
+		else:
+			l = []
+			for i in range(len(A)):
+				f = a.succ(e,i)
+				if f != -1:
+					l+=self.Parcours(A, a, f, t+bn*A[i], n-1, bn*self.b)
+			return l
+	
+	def compute_translations2 (self, FastAutomaton aoc, imax=None, verb=False):
+		b = self.b
+		A = self.C
+		p = b.parent().places()
+		if verb: print p
+		if abs(p[0](b)) > 1:
+			pp = p[0]
+			pm = p[1]
+		else:
+			pp = p[1]
+			pm = p[0]
+		if imax is None:
+			imax = 8
+		#compute a reduced version of aoc
+		ared = self.reduced_words_automaton2()
+		aoc = aoc.intersection(ared)
+		#compute aoc-aoc
+		d = dict()
+		for t1 in self.C:
+			for t2 in self.C:
+				d[(t1,t2)] = t1-t2
+		ad = aoc.product(aoc, d)
+		if verb: print "ad = %s"%ad
+		#compute the reduced words automaton with the difference alphabet
+		#m2 = BetaAdicMonoid(b, set([t1 - t2 for t1 in A for t2 in A]))
+		#if verb: print "m2 = %s"%m2
+		#ar2 = m2.reduced_words_automaton2()
+		#if verb: print "ar2 = %s"%ar2
+		#intersect
+		#adr = ad.intersection(ar2)
+		#if verb: print "adr = %s"%adr
+		adr = ad
+		#compute the list of points
+		if verb: print "Parcours %s..."%imax
+		l = self.Parcours(adr.Alphabet(), adr, adr.initial_state(), 0, imax, 1)
+		if verb: print ("%s points calculés"%len(l))
+		#sort
+		if verb: print ("tri...")
+		l = list(set(l)) #avoid repetitions
+		l.sort(key=pp)
+		return l[l.index(0)+1:]
+	
+	def compute_morceaux (self, FastAutomaton aoc, method = 1, imax=None, verb=False, stop=-1):
 		r"""
 		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
 		
@@ -2930,13 +2991,18 @@ class BetaAdicMonoid(Monoid_class):
 		m = self
 		A = aoc.A
 		if verb: print("Compute the list of translations...")
-		lt = self.compute_translations(aoc, verb)
+		if method == 1:
+			lt = self.compute_translations(aoc, imax, verb)	
+		else:
+			lt = self.compute_translations2(aoc, imax, verb)
+		if verb: print("list of %s points."%len(lt))
 		if verb: print("Compute the pieces...")
 		u = FastAutomaton(None)
 		u.setAlphabet(list(A))
 		uc = u.complementary()
 		at = dict()
-		for t in lt:
+		for i,t in enumerate(lt):
+			if i == stop: break
 			if verb: print "t=%s"%t
 			at[t] = m.move2(t=t, a=aoc, b=aoc) #, verb=verb)
 			#if verb: print "intersection..."
@@ -2960,9 +3026,11 @@ class BetaAdicMonoid(Monoid_class):
 				del at[t]
 			else:
 				if verb: print at[t]
+		if stop == -1 and not ai.is_empty():
+			raise ValueError("Liste de translations incorrecte pour calculer l'échange de morceaux. Essayez d'augmenter imax.")
 		return [(at[t],t) for t in at.keys()]
 	
-	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, get_aut=False, verb=True):
+	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method_tr = 1, imax=None, get_aut=False, verb=True):
 		r"""
 		Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
 		
@@ -3025,7 +3093,7 @@ class BetaAdicMonoid(Monoid_class):
 		#compute the pieces exchange
 		if lt is None:
 			if verb: print("compute the pieces exchange...")
-			lt = self.compute_morceaux(aoc, verb=False)
+			lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)	
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs
