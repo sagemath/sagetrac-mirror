@@ -283,9 +283,11 @@ class AnInfinity(object):
         TESTS::
 
             sage: fricas(-oo)           # optional - fricas
-            %minusInfinity
+            - infinity
             sage: [x._fricas_init_() for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
             ['%infinity', '%plusInfinity', '%minusInfinity']
+            sage: [fricas(x) for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
+            [infinity,  + infinity, - infinity]
         """
         if self._sign_char == '':
             return r"%infinity"
