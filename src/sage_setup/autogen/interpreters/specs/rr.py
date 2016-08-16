@@ -144,7 +144,6 @@ class RRInterpreter(StackInterpreter):
 
             sage: print(interp.c_header)
             <BLANKLINE>
-            #include <mpfr.h>
             #include "interpreters/wrapper_rr.h"
             <BLANKLINE>
 
