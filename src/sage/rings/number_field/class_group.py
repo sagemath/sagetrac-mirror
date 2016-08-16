@@ -131,7 +131,7 @@ class Modulus(SageObject):
         EXAMPLES::
         
             sage: K.<a> = NumberField(x^2-5)
-            sage: m = Modulus(K.ideal(31), [0,1]); m
+            sage: m = K.modulus(K.ideal(31), [0,1]); m
             (Fractional ideal (31)) * infinity_0 * infinity_1
         """
         if len(self._infinite) == 0:
@@ -155,8 +155,8 @@ class Modulus(SageObject):
         ::
         
             sage: K = NumberField(x^3 - 2, 'a')
-            sage: m1 = Modulus(K.ideal(2), [0])
-            sage: m2 = Modulus(K.ideal(3), [0])
+            sage: m1 = K.modulus(K.ideal(2), [0])
+            sage: m2 = K.modulus(K.ideal(3), [0])
             sage: m1 * m2
             Fractional ideal (6)
         
@@ -165,8 +165,8 @@ class Modulus(SageObject):
         ::
         
             sage: K = NumberField(x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1, 'a')
-            sage: m1 = Modulus(K.ideal(5), [2, 3])
-            sage: m2 = Modulus(K.ideal(25), [0, 1, 3, 4])
+            sage: m1 = K.modulus(K.ideal(5), [2, 3])
+            sage: m2 = K.modulus(K.ideal(25), [0, 1, 3, 4])
             sage: m1 * m2
             (Fractional ideal (125)) * infinity_0 * infinity_1 * infinity_2 * infinity_4
             sage: _ == m2 * m1

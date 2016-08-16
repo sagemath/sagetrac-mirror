@@ -707,12 +707,10 @@ class NumberFieldIdeal(Ideal_generic):
         
         .. TODO::
         
-            Allow infinite to be a list of real places rather than just their indices.
-        
-                sage: K = NumberField(x^2 - 5, 'a')
-                sage: K.ideal(3).modulus(infinite=[K.places()[1]])
+            Allow infinite to be a list of real places rather than just their indices
+            like K.ideal(3).modulus(infinite=[K.places()[1]]).
         """
-        from class_group import Modulus
+        from .class_group import Modulus
         return Modulus(self, infinite=infinite)
     
     def _find_coprime_elements(self, J, return_pari=False):
