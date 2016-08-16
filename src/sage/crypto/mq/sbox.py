@@ -1463,13 +1463,13 @@ class SBox(SageObject):
             sage: B = S.nonlinear_invariants()
             sage: for f in B: print f
             0
-            1
-            x0*x1*x2 + x0*x1 + x0*x2 + x0
-            x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
-            x1*x2 + x1 + x2
-            x1*x2 + x1 + x2 + 1
             x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
+            x1*x2 + x1 + x2 + 1
+            x0*x1*x2 + x0*x1 + x0*x2 + x0
             x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2 + 1
+            1
+            x1*x2 + x1 + x2
             sage: [B[4](*v) + B[4](*S(v)) for v in VectorSpace(GF(2), 3)]
             [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -1491,11 +1491,19 @@ class SBox(SageObject):
         f = [self.component_function(1<<i).algebraic_normal_form() for i in xrange(n)]
         R = f[0].ring()
         V = VectorSpace(GF(2), m)
-        cl = [R.monomial(*v) + prod(f[i]**v[i] for i in xrange(m)) for v in V]
-        M = Matrix(GF(2), [[c(*v) for c in cl] for v in V])
-        A = Matrix(M.right_kernel().list())
+        monomials = [R.monomial(*v) for v in V]
 
-        return A * vector([R.monomial(*v) for v in V])
+        cl = [monomials[i] + prod(f[j]**V[i][j] for j in xrange(m)) for i in xrange(1<<m)]
+        L0 = [[c(*v) for c in cl] for v in V]
+        L1 = [[GF(2)(1)] +  L[1:] for L in L0]
+
+        M0, M1 = Matrix(GF(2), L0), Matrix(GF(2), L1)
+        A0, A1 = M0.right_kernel().list(), M1.right_kernel().list()
+
+        T0 = [ sum([A0[i][j] * monomials[j] for j in xrange(1<<m)]) for i in xrange(len(A0)) ]
+        T1 = [ sum([A1[i][j] * monomials[j] for j in xrange(1<<m)]) for i in xrange(len(A1)) ]
+
+        return tuple(set(T0 + T1))
 
 def feistel_construction(*args):
     r"""
