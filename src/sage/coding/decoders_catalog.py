@@ -58,3 +58,4 @@ from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,
                  GRSErrorErasureDecoder)
+from .gabidulin import GabidulinGaoDecoder

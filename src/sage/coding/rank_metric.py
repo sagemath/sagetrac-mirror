@@ -1,6 +1,9 @@
 from sage.coding.linear_code import AbstractLinearCode
 from sage.rings.integer import Integer
-import sage.coding.gabidulin
+from sage.coding.relative_finite_field_extension import *
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Vector
 
 def rank_weight(C, c):
     if is_Matrix(c):
@@ -20,7 +23,7 @@ def to_matrix_representation(C, v):
     if not is_Vector(v):
         raise TypeError("Input must be a vector")
     n = v.length()
-    FE = C.relative_finite_field_extension()
+    FE = C.field_extension()
     Fqm = FE.absolute_field()
     Fq = FE.relative_field()
     m = matrix(Fq, C.m(), n, lambda i,j: FE.relative_field_representation(v[j])[i])
@@ -29,7 +32,7 @@ def to_matrix_representation(C, v):
 def from_matrix_representation(C, m):
     if not is_Matrix(m):
         raise TypeError("Input must be a matrix")
-    FE = C.relative_finite_field_extension()
+    FE = C.field_extension()
     Fqm = FE.absolute_field()
     v = []
     for i in range(m.ncols()):
@@ -42,9 +45,10 @@ class AbstractRankMetricCode(AbstractLinearCode):
     _registered_encoders = {} 
     _registered_decoders = {} 
 
-    def __init__(self, base_field, sub_field, length, dimension, \
-            field_extension=None, default_encoder_name, default_decoder_name):
+#    def __init__(self, base_field, sub_field, length, dimension, field_extension=None, default_encoder_name, default_decoder_name):
+    def __init__(self, base_field, sub_field, length, dimension, default_encoder_name, default_decoder_name, field_extension = None):
 
+        super(AbstractRankMetricCode, self).__init__(base_field, length, default_encoder_name, default_decoder_name)
         if not isinstance(dimension, (int, Integer)):
             raise ValueError("dimension must be a Python int or a Sage Integer")
         if not sub_field.is_field():
