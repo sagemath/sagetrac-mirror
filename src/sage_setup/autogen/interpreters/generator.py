@@ -586,13 +586,13 @@ class InterpreterGenerator(object):
         First we get the InterpreterSpec for a couple interpreters::
 
             sage: from sage_setup.autogen.interpreters import *
-            sage: cdf_spec = CDFInterpreter()
-            sage: el_spec = ElementInterpeter()
+            sage: cdf_gen = InterpreterGenerator(CDFInterpreter())
+            sage: el_gen = InterpreterGenerator(ElementInterpreter())
 
         Then we get the contents of the header files::
 
-            sage: cdf_hdr = cdf_spec.get_interpreter_h()
-            sage: el_hdr = el_spec.get_interpreter_h()
+            sage: cdf_hdr = cdf_gen.get_interpreter_h()
+            sage: el_hdr = el_gen.get_interpreter_h()
 
         Each header file starts with some standard boilerplate::
 
@@ -621,7 +621,7 @@ class InterpreterGenerator(object):
             /* ... */
             ...
             #include <Python.h>
-
+            <BLANKLINE>
             #ifdef HAVE_DECLSPEC_DLL
                 #undef DL_IMPORT
                 #define DL_IMPORT(_T) __declspec(dllexport) _T
@@ -641,7 +641,7 @@ class InterpreterGenerator(object):
                 #undef DL_IMPORT
                 #define DL_IMPORT(_T) __declspec(dllexport) _T
             #endif
-
+            <BLANKLINE>
             PyObject* interp_el(PyObject** args,
                     PyObject** constants,
                     PyObject** stack,
@@ -659,14 +659,14 @@ class InterpreterGenerator(object):
                 #undef DL_IMPORT
                 #define DL_IMPORT(_T) __declspec(dllexport) _T
             #endif
-
-
+            <BLANKLINE>
+            <BLANKLINE>
             #include <stdlib.h>
             #include <complex.h>
-
+            <BLANKLINE>
             typedef double complex double_complex;
-
-
+            <BLANKLINE>
+            <BLANKLINE>
             double_complex interp_cdf(double_complex* args,
                     double_complex* constants,
                     PyObject** py_constants,
