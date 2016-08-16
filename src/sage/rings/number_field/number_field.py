@@ -118,6 +118,7 @@ from sage.misc.misc import union
 from .unit_group import UnitGroup
 from .class_group import ClassGroup
 from .class_group import SClassGroup
+from .class_group import RayClassGroup
 
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
@@ -2928,6 +2929,13 @@ class NumberField_generic(number_field_base.NumberField):
             else:
                 gens = I.gens()
         return self._fractional_ideal_class_()(self, gens, **kwds)
+    
+    def modulus(self, finite, infinite=None):
+        """
+        Return the modulus specified by the ideal ``finite`` and the infinite places
+        whose indices are listed in ``infinite``.
+        """
+        return finite.modulus(infinite=infinite)
 
     def ideals_of_bdd_norm(self, bound):
         """
@@ -3865,6 +3873,38 @@ class NumberField_generic(number_field_base.NumberField):
         """
         proof = proof_flag(proof)
         return self.class_group(proof).order()
+    
+    def ray_class_group(self, modulus, proof=None, names='c'):
+        """
+        Return the ray class group modulo ``modulus``.
+        
+        EXAMPLES:
+        
+        Ray class group of a real quadratic field.
+        
+        ::
+        
+            sage: F = NumberField(x^2 - 5, 'a')
+            sage: m = F.modulus(F.prime_above(5) * F.prime_above(29), [0, 1])
+            sage: G = F.ray_class_group(m); G.elementary_divisors()
+            (2, 4)
+            sage: G.gens_ideals()
+            (Fractional ideal (31), Fractional ideal (-12672))
+        """
+        proof = proof_flag(proof)
+        try:
+            return self.__ray_class_group[modulus, proof, names]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__ray_class_group = {}
+        Kbnf = self.pari_bnf()
+        Kbnr = Kbnf.bnrinit(pari(modulus), 1)
+        cycle_structure = tuple(ZZ(c) for c in Kbnr[4][1])
+        gens = tuple(self.ideal(hnf) for hnf in Kbnr[4][2])
+        G = RayClassGroup(cycle_structure, names, modulus, gens, proof=proof, bnr=Kbnr)
+        self.__ray_class_group[modulus, proof, names] = G
+        return G
 
     def S_class_group(self, S, proof=None, names='c'):
         """

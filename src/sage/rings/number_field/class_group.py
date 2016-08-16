@@ -41,14 +41,264 @@ EXAMPLES::
     Fractional ideal (1/2*a - 3/2)
 """
 
+from sage.structure.sage_object import SageObject
 from sage.groups.abelian_gps.values import AbelianGroupWithValues_class, AbelianGroupWithValuesElement
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.structure.sequence import Sequence
 from sage.structure.element import MonoidElement
 from sage.groups.old import Group
 from sage.arith.all import LCM
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.all import ZZ
+from sage.libs.pari.all import pari
 
+def _integer_n_tuple_L1_iterator(n):
+    if n == 1:
+        i = 1
+        while True:
+            yield i
+            yield -i
+            i += 1
+    else:
+        from sage.combinat.partition import Partitions
+        from sage.combinat.subset import Subsets
+        N = 1
+        sign_options_dict = {}
+        Subsets_of_n = []
+        while True:
+            #print "***"
+            #print N
+            for k in range(1, n + 1):
+                Ps = OrderedPartitions(N, k)
+                for P in Ps:
+                    #print "--"
+                    #print P
+                    try:
+                        Ss = Subsets_of_n[k - 1]
+                    except IndexError:
+                        Ss = Subsets(range(n), k)
+                        Subsets_of_n.append(Ss)
+                    for S in Ss:
+                        #print "="
+                        #print S
+                        i = [0] * n
+                        for j in range(k):
+                            i[S[j]] = P[j]
+                        yield i
+                        try:
+                            sign_options = sign_options_dict[S]
+                        except KeyError:
+                            sign_options = Subsets(S)[1:]
+                            sign_options_dict[S] = sign_options
+                        for signs in sign_options:
+                            ii = copy(i)
+                            for index in signs:
+                                ii[index] = - ii[index]
+                            yield ii
+            N += 1
+
+class Modulus(SageObject):
+    def __init__(self, finite, infinite=None, check=True):
+        r"""
+        Create a modulus of a number field.
+        
+        INPUT:
+        
+        - ``finite`` -- a non-zero fractional ideal in a number field.
+        - ``infinite`` -- a list of indices corresponding to real places of the number field.
+        - ``check`` (default: True) -- If ``True``, run a few checks on the input
+        """
+        self._finite = finite
+        if infinite is None:
+            infinite = []
+        else:
+            infinite.sort()
+        self._infinite = tuple(ZZ(i) for i in infinite)
+        K = self._finite.number_field()
+        self._number_field = K
+        if check:
+            #insert various checks here
+            if self._finite == 0:
+                raise ValueError("Finite component of a modulus must be non-zero.")
+            sgn = K.signature()[0]
+            for i in self._infinite:
+                if i < 0 or i >= sgn:
+                    raise ValueError("Infinite component of a modulus must be a list non-negative integers less than the number of real places of K")
+        return
+    
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+        
+            sage: K.<a> = NumberField(x^2-5)
+            sage: m = Modulus(K.ideal(31), [0,1]); m
+            (Fractional ideal (31)) * infinity_0 * infinity_1
+        """
+        if len(self._infinite) == 0:
+            return str(self._finite)
+        str_inf = ''
+        for i in self._infinite:
+            str_inf += ' * infinity_%s'%(i)
+        return '(' + str(self._finite) + ')' + str_inf
+    
+    def __eq__(self, other):
+        return self._number_field == other._number_field and self._finite == other._finite and self._infinite == other._infinite
+    
+    def __mul__(self, other):
+        r"""
+        Multiply two moduli.
+        
+        This multiplies the two finite parts and performs an exclusive or on the real places.
+        
+        TESTS:
+        
+        ::
+        
+            sage: K = NumberField(x^3 - 2, 'a')
+            sage: m1 = Modulus(K.ideal(2), [0])
+            sage: m2 = Modulus(K.ideal(3), [0])
+            sage: m1 * m2
+            Fractional ideal (6)
+        
+        A higher degree totally real field.
+        
+        ::
+        
+            sage: K = NumberField(x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1, 'a')
+            sage: m1 = Modulus(K.ideal(5), [2, 3])
+            sage: m2 = Modulus(K.ideal(25), [0, 1, 3, 4])
+            sage: m1 * m2
+            (Fractional ideal (125)) * infinity_0 * infinity_1 * infinity_2 * infinity_4
+            sage: _ == m2 * m1
+            True
+        """
+        inf = list(set(self.infinite_part()).symmetric_difference(other.infinite_part()))
+        return Modulus(self.finite_part() * other.finite_part(), inf, check=False)
+    
+    def divides(self, other):
+        if not set(self.infinite_part()).issubset(other.infinite_part()):
+            return False
+        return self.finite_part().divides(other.finite_part())
+    
+    def number_field(self):
+        return self._number_field
+    
+    def finite_part(self):
+        return self._finite
+    
+    def infinite_part(self):
+        return self._infinite
+    
+    def finite_factors(self):
+        try:
+            return self._finite_factors
+        except AttributeError:
+            self._finite_factors = m.finite_part().factor()
+            return self._finite_factors
+    
+    def number_is_one_mod_star(self, a):
+        K = self.number_field()
+        am1 = K(a - 1)
+        for P, e in self.finite_factors():
+            if am1.valuation(P) < e:
+                return False
+        inf_places = K.places()
+        for i in self.infinite_part():
+            if inf_places[i](am1) <= 0:
+                return False
+        return True
+    
+    def fix_signs(self, a):
+        r"""
+        Given ``a`` in ``self.number_field()``, find `b` congruent to ``a`` `mod^\ast` ``self.finite_part()``
+        such that `b` is positive at the infinite places dividing ``self``.
+        """
+        if self.is_finite() or a == 0:
+            return a
+        places = self.number_field().places()
+        positive = []
+        negative = []
+        for i in self.infinite_part():
+            if places[i](a) > 0:
+                positive.append(i)
+            else:
+                negative.append(i)
+        if len(negative) == 0:
+            return a
+        t = self.get_one_mod_star_finite_with_fixed_signs(positive, negative)
+        return t * a
+    
+    def get_one_mod_star_finite_with_fixed_signs(self, positive, negative):
+        if len(negative) == 0:
+            return self.number_field().one()
+        #positive = tuple(positive)
+        negative = tuple(negative)
+        try:
+            return self._one_mod_star[negative]
+        except AttributeError:
+            self._one_mod_star = {}
+        except KeyError:
+            pass
+        try:
+            beta_is, Ainv = self._beta_is_Ainv
+        except AttributeError:
+            beta_is, Ainv = self._find_beta_is_Ainv()
+        d = len(self.infinite_part())
+        v = [0] * d
+        for i in negative:
+            v[i] = 1
+        v = (GF(2)^d)(v)
+        w = Ainv * v
+        t = self.number_field().one()
+        for i in range(d):
+            if w[i] != 0:
+                t *= (1 + beta_is[i])
+        self._one_mod_star[negative] = t
+        return t
+    
+    def _find_beta_is_Ainv(self):
+        r"""
+        Step 2 of Algorithm 4.2.20 of Cohen's Advanced...
+        """
+        gammas = self.finite_part().basis()
+        k = len(self.infinite_part())
+        beta_is = []
+        Acols = []
+        V = GF(2)^k
+        it = _integer_n_tuple_L1_iterator(k)
+        while len(beta_is) < k:
+            e = it.next()
+            beta = sum([e[i] * gammas[i] for i in range(k)])
+            sbeta = V(self._signs(beta))
+            Acols_new = Acols + [sbeta]
+            #beta_is_new = beta_is + [sbeta]
+            A = column_matrix(GF(2), Acols_new)
+            if A.rank() == len(Acols_new):
+                Acols = Acols_new
+                beta_is.append(beta)
+        self._beta_is_Ainv = (beta_is, ~A)
+        return self._beta_is_Ainv
+    
+    def _signs(self, b):
+        if b == 0:
+            raise ValueError("Non-zero input required.")
+        sigmas = K.places()
+        return [(1 - sigmas[i](b).sign()).divide_knowing_divisible_by(2) for i in self.infinite_part()]
+    
+    def is_finite(self):
+        return len(self._infinite) == 0
+    
+    def is_infinite(self):
+        return self._finite.is_one()
+    
+    def _pari_(self):
+        inf_mod = [0] * self._number_field.signature()[0]
+        for i in self._infinite:
+            inf_mod[i] = 1
+        return pari([self._finite, inf_mod])
+    
+    def __hash__(self):
+        return hash((self._finite, self._infinite))
 
 class FractionalIdealClass(AbelianGroupWithValuesElement):
     r"""
@@ -316,7 +566,40 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
        """
         return self.ideal().gens()
 
-
+class RayClassGroupElement(FractionalIdealClass):
+    def __init__(self, parent, element, ideal=None):
+        if element is None:
+            if not parent.modulus().finite_part().is_coprime(ideal):
+                raise ValueError("Ideal is not coprime to the modulus.")
+            element = parent._ideal_log(ideal)
+        #Should treat the else case for coprime-ness as well since the code can coerce from different moduli
+        FractionalIdealClass.__init__(self, parent, element, ideal)
+    
+    def _repr_(self):
+        if self.is_one():
+            return 'Trivial ray class modulo ' + str(self.parent().modulus())
+        return 'Ray class of ' + self._value._repr_short() + ' modulo ' + str(self.parent().modulus())
+    
+    #Should be able to get rid of the operations if make the reduce function a method of the parent
+    def _mul_(self, other):
+        m = AbelianGroupElement._mul_(self, other)
+        m._value = (self.ideal() * other.ideal()).reduce_equiv(self.parent().modulus())
+        return m
+    
+    def _div_(self, other):
+        m = AbelianGroupElement._div_(self, other)
+        m._value = (self.ideal() / other.ideal()).reduce_equiv(self.parent().modulus())
+        return m
+    
+    def inverse(self):
+        m = AbelianGroupElement.inverse(self)
+        m._value = (~self.ideal()).reduce_equiv(self.parent().modulus())
+        return m
+    
+    __invert__ = inverse
+    
+    def reduce(self):
+        return self.ideal().reduce_equiv(self.parent().modulus())
 
 class SFractionalIdealClass(FractionalIdealClass):
     r"""
@@ -601,9 +884,42 @@ class ClassGroup(AbelianGroupWithValues_class):
         """
         return self._number_field
 
-
-
-
+class RayClassGroup(ClassGroup):
+    Element = RayClassGroupElement
+    
+    def __init__(self, gens_orders, names, modulus, gens, proof=True, bnr=None):
+        #AbelianGroupWithValues_class.__init__(self, gens_orders, names, gens,
+        #                                      values_group=modulus.number_field().ideal_monoid())
+        ClassGroup.__init__(self, gens_orders, names, modulus.number_field(), gens, proof=proof)
+        #self._proof_flag = proof
+        self._modulus = modulus
+        #self._number_field = modulus.number_field()
+        self._bnr = bnr
+    
+    #Can remove this I think if make ClassGroup's version say isinstance(args[0], Element):
+    def _element_constructor_(self, *args, **kwds):
+        if isinstance(args[0], RayClassGroupElement):
+            return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
+        else:
+            I = self._number_field.ideal(*args, **kwds)
+            if I.is_zero():
+                raise TypeError("The zero ideal is not a fractional ideal")
+            return self.element_class(self, None, I)
+    
+    def _repr_(self):
+        return "Ray class group of " + str(self._number_field) + " of modulus " + str(self._modulus)
+    
+    def _ideal_log(self, ideal):
+        return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
+    
+    def modulus(self):
+        return self._modulus
+    
+    def pari_bnr(self):
+        return self._bnr
+    
+    def pari_gens(self):
+        return self._bnr[4][2]
 
 class SClassGroup(ClassGroup):
     r"""
