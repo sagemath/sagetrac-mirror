@@ -8,7 +8,7 @@ from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ZZ, QQ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
@@ -331,6 +331,126 @@ class Function_abs(GinacFunction):
                                conversions=dict(sympy='Abs'))
 
 abs = abs_symbolic = Function_abs()
+
+def incremental_rounding(x, mode, maximum_bits=None):
+    r"""
+    Return the rounding of the number ``x`` according to the given ``mode`` as a
+    Sage integer.
+
+    INPUT:
+
+    - ``x`` -- a number (that might be a floating point, a symbolic expression,
+      ...) that can be converted to a real interval field element of any
+      precision.
+
+    - ``mode`` -- either ``'floor'`` (toward minus infinity), ``'ceil'`` (toward
+      plus infinity) or ``'round'`` (nearest).
+
+    - ``maximum_bits`` -- the maximum precision that is used in the incremental
+      search
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import incremental_rounding
+        sage: incremental_rounding(1.34, 'floor')
+        1
+        sage: incremental_rounding(1.34, 'ceil')
+        2
+        sage: incremental_rounding(1.34, 'round')
+        1
+        sage: incremental_rounding(1.64, 'round')
+        2
+
+        sage: incremental_rounding(pi, 'floor')
+        3
+        sage: incremental_rounding(pi, 'ceil')
+        4
+
+        sage: floor(log(4) / log(2))          # indirect doctest
+        2
+        sage: round(log(2**(3/2)) / log(2))   # indirect doctest
+        2
+        sage: round(log(2**(-3/2)) / log(2))  # indirect doctest
+        -2
+
+    More involved expressions::
+
+        sage: e1 = pi - continued_fraction(pi).convergent(2785)
+        sage: e2 = e - continued_fraction(e).convergent(1500)
+        sage: f = e1/e2
+        sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+        sage: f = f - continued_fraction(f).convergent(1)
+        sage: incremental_rounding(f, 'floor')
+        Traceback (most recent call last):
+        ...
+        ValueError: computing floor(...) requires more than 16384 bits of
+        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'floor', maximum_bits=40000)
+        -1
+
+        sage: incremental_rounding(f, 'ceil')
+        Traceback (most recent call last):
+        ...
+        ValueError: computing ceil(...) requires more than 16384 bits of
+        precision (increase maximum_bits to proceed)
+        sage: incremental_rounding(f, 'ceil', maximum_bits=40000)
+        0
+
+    TESTS::
+
+        sage: assert incremental_rounding(1/2, 'round') == 1
+        sage: assert incremental_rounding(-1/2, 'round') == -1
+        sage: assert incremental_rounding(1, 'floor') == 1
+        sage: assert incremental_rounding(-1, 'floor') == -1
+        sage: assert incremental_rounding(1, 'ceil') == 1
+        sage: assert incremental_rounding(-1, 'ceil') == -1
+    """
+    if not mode in ['floor', 'ceil', 'round']:
+        raise ValueError("mode (={!r}) should be one of 'ceil', 'floor' or 'round'".format(mode))
+    if maximum_bits is None:
+        maximum_bits = 16384
+    else:
+        maximum_bits = max(64, int(maximum_bits))
+
+    from sage.rings.real_mpfi import RealIntervalField, RealIntervalFieldElement
+
+    r = RR.one() >> 20
+    bits = 64
+    unique_rounding = getattr(RealIntervalFieldElement, 'unique_' + mode)
+    candidate = None
+
+    while bits < maximum_bits:
+        interval = RealIntervalField(bits)(x)
+        try:
+            return unique_rounding(interval)
+        except ValueError:
+            pass
+
+        if candidate is None and interval.absolute_diameter() < r:
+            # here the candidate looks like it is an exact integer (or an exact
+            # half integer in the 'round' mode). We call the possibly expensive
+            # is_zero method to check for equality.
+            if mode == 'round':
+                if interval > 0:
+                    shift = QQ((+1,2))
+                else:
+                    shift = QQ((-1,2))
+            else:
+                shift = QQ.zero()
+
+            candidate = (interval + shift).unique_integer()
+            delta = x - candidate + shift
+
+            try:
+                if delta.is_zero(): return candidate
+            except AttributeError:
+                pass
+
+        bits *= 2
+
+    raise ValueError("computing {}({}) requires more than {} bits "
+            "of precision (increase maximum_bits to proceed)".format(
+                mode, x, maximum_bits))
 
 class Function_ceil(BuiltinFunction):
     def __init__(self):
