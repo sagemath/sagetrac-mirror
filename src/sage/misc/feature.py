@@ -249,6 +249,9 @@ class Feature(object):
 
     def resolution(self):
         r"""
+        Return a suggestion on how to make :meth:`is_present` pass if it did not
+        pass.
+
         EXAMPLES::
 
             sage: from sage.misc.feature import Executable
@@ -270,6 +273,13 @@ class GapPackage(Feature):
         Feature('GAP package grape')
     """
     def __init__(self, package, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import GapPackage
+            sage: isinstance(GapPackage("grape", spkg="gap_packages"), GapPackage)
+            True
+        """
         Feature.__init__(self, "GAP package {package}".format(package=package), spkg=spkg, url=url)
         self.package = package
 
@@ -411,8 +421,8 @@ class CSDP(Executable):
         TESTS::
 
             sage: from sage.misc.feature import CSDP
-            sage: CSDP()
-            Feature('CSDP')
+            sage: isinstance(CSDP(), CSDP)
+            True
         """
         Executable.__init__(self, name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp")
 
@@ -465,8 +475,8 @@ class Plantri(Executable):
         TESTS::
 
             sage: from sage.misc.feature import Plantri
-            sage: Plantri()
-            Feature('plantri')
+            sage: isinstance(Plantri(), Plantri)
+            True
         """
         Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
 
@@ -512,8 +522,8 @@ class Lrs(Executable):
         TESTS::
 
             sage: from sage.misc.feature import Lrs
-            sage: Lrs()
-            Feature('lrslib')
+            sage: isininstance(Lrs(), Lrs)
+            True
         """
         Executable.__init__(self, "lrslib", executable="lrs", spkg="lrslib", url="http://cgm.cs.mcgill.ca/~avis/C/lrs.html")
 
@@ -564,8 +574,8 @@ class Buckygen(Executable):
         TESTS::
 
             sage: from sage.misc.feature import Buckygen
-            sage: Buckygen()
-            Feature('Buckygen')
+            sage: isinstance(Buckygen(), Buckygen)
+            True
         """
         Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
 
@@ -611,8 +621,8 @@ class Benzene(Executable):
         TESTS::
 
             sage: from sage.misc.feature import Benzene
-            sage: Benzene()
-            Feature('Benzene')
+            sage: isinstance(Benzene(), Benzene)
+            True
         """
         Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
 
@@ -730,8 +740,8 @@ class DatabaseCremona(StaticFile):
         TESTS::
 
             sage: from sage.misc.feature import DatabaseCremona
-            sage: DatabaseCremona()
-            Feature("Cremona's database of elliptic curves")
+            sage: isinstance(DatabaseCremona(), DatabaseCremona)
+            True
         """
         if spkg is None and name == "cremona":
             spkg = "database_cremona_ellcurve"
@@ -753,6 +763,13 @@ class SmallGroupsLibrary(Feature):
         Feature('Small Groups Library')
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import SmallGroupsLibrary
+            sage: isinstance(SmallGroupsLibrary(), SmallGroupsLibrary)
+            True
+        """
         Feature.__init__(self, "Small Groups Library", spkg="database_gap", url="www.gap-system.org/Packages/sgl.html")
 
     @cached_method
@@ -785,12 +802,41 @@ class SharedLibrary(Feature):
 
     To test the presence of ``name``, the cython compiler is run on
     ``test_code`` and the resulting module is imported.
+
+    EXAMPLES::
+
+        sage: libm_test_code = '''
+#clib m
+cdef extern from "<math.h>":
+    double fabs(double x)
+
+sig_on()
+if fabs(-1) != 1:
+    raise ImportError("libm did not find the correct absolute value for -1")
+'''
+        sage: libm = SharedLibrary("libm", test_code=, spkg="gcc", url="https://gnu.org")
+        sage: libm.is_present()
     """
     def __init__(self, name, test_code, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import SharedLibrary, LibFES
+            sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies()]) # indirect doctest
+            True
+        """
         Feature.__init__(self, name, spkg=spkg, url=url)
         self.test_code = test_code
 
     def is_present(self):
+        r"""
+        Run test code to determine whether the shared library is present.
+
+        EXAMPLES::
+
+                sage: nolib = SharedLibrary("nolib", test_code="")
+                sage: nolib.is_present()
+        """
         # There seems to be no module readily available in python which does library checks of this kind.
         # At least other projects have also just rolled their own tests, see, e.g.:
         # http://stackoverflow.com/questions/28843765/setup-py-check-if-non-python-library-dependency-exists
@@ -819,9 +865,25 @@ class Module(Feature):
         sage: Module("ssl").require() # not tested - output depends on the python build
     """
     def __init__(self, name, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import LibFES, Module
+            sage: isinstance(LibFES(), Module) # indirect doctest
+            True
+        """
         Feature.__init__(self, name, spkg=spkg, url=url)
 
     def is_present(self):
+        r"""
+        Return whether the module can be imported. This is determined by
+        actually importing it.
+        
+        EXAMPLES::
+
+            sage: from sage.misc.feature import Module
+            sage: Module("sys").is_present()
+        """
         import importlib
         try:
             importlib.import_module(self.name)
@@ -844,14 +906,31 @@ class OptionalModule(Module):
     whether it is working, i.e., whether the library it relies on is present::
 
         sage: from sage.misc.feature import LibFES
-        sage: LibFES().is_present() # optional: fes
-        FeatureTestResult('sage.libs.fes', True)
+        sage: LibFES().require() # optional: fes
     """
     def __init__(self, name, dependencies=[], spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import LibFES, OptionalModule
+            sage: isinstance(LibFES(), OptionalModule)
+            True
+        """
         Module.__init__(self, name, spkg=spkg, url=url)
         self.dependencies = dependencies
 
     def is_present(self):
+        r"""
+        Return whether the optional module is present and its dependencies are
+        satisfied. This is determined by checking the dependencies and actually
+        importing the module.
+
+        EXAMPLES::
+
+           sage: from sage.misc.feature import LibFES
+           sage: LibFES().is_present() # optional: fes
+           FeatureTestResult('sage.libs.fes', True)
+        """
         for dependency in self.dependencies:
             presence = dependency.is_present()
             if not presence:
@@ -859,6 +938,15 @@ class OptionalModule(Module):
         return super(OptionalModule, self).is_present()
         
 class LibFES(OptionalModule):
+    r"""
+    A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
+    module has been enabled for this uild of Sage and is functional.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import LibFES
+        sage: LibFES().require() # optional: fes
+    """
     _test_code=r"""
 #clib fes
 from libc.stdint cimport uint64_t
@@ -899,6 +987,13 @@ sig_off()
 if solutions != 3: raise ImportError("libFES did not find three solutions for x*y = 0.")
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import LibFES
+            sage: isinstance(LibFES(), LibFES)
+            True
+        """
         spkg = "fes"
         url = "http://www.lifl.fr/~bouillag/fes/"
         libFes = SharedLibrary("LibFES", test_code=LibFES._test_code, spkg=spkg, url=url)
