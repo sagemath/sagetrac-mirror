@@ -1529,7 +1529,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         If all is ``True``, find all pth roots.
 
         """
-        #print "find_pth_root_point"
         K = self.base_ring()
         p = K.prime()
         xP = P[0]
@@ -1567,11 +1566,10 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         else:
             point = HJ(Pfracpow[0], -Pfracpow[1])
         if all is False:
-            #print point[0]**p == P[0]
             return point
         else:
             if xP**p != xP:
-                print "sorry, we can only print all of the roots when the extension is cyclotomic."
+                print("sorry, we can only print all of the roots when the extension is cyclotomic.")
                 return point
             else:
                 pts = [point]
@@ -1660,17 +1658,17 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         # if working over an extension, need tiny integral + coleman integral over Qp
         if extension is True:
             xx, yy = H.local_analytic_interpolation_cyclotomic(Q, A[0], prec)  # this will change when it's weiestrass
-            print xx(0) == Q[0]
-            print yy(0) == Q[1]
-            print xx(1) == A[0]
-            print yy(1) == A[1]
+            print(xx(0) == Q[0])
+            print(yy(0) == Q[1])
+            print(xx(1) == A[0])
+            print(yy(1) == A[1])
             Q_to_A = [(xx.derivative()*xx**i/(2*yy)).integral() for i in range(2*gen)] #changed 1210   ##changed 03/04
             I = vector([f(1)-f(0) for f in Q_to_A])  #changed 1210
 
-            #print "I = %s"%I
-
             P = H(P[0], P[1])
-        # plus a Coleman integral to offset the constant if P, A aren't in the same residue disc #this will change when it's weierstrass
+            # plus a Coleman integral to offset the constant if P, A
+            # aren't in the same residue disc #this will change when
+            # it's weierstrass
             xm, ym = self.monsky_washnitzer_gens()
             omega = self.invariant_differential()
 
@@ -1679,15 +1677,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                                                    divisor[1][1]) for i in range(2*gen)])
         else:
             I = vector([self.coleman_integral(omega*xm**i, divisor[0][1], A) for i in range(2*gen)]) #weierstrass case
-        print "I = %s"%I
-        print "I2 = %s"%I2
+        print("I = %s" % I)
+        print("I2 = %s" % I2)
         w  = self.frob_diff_nw(divisor, x, y, prec=10)
 
         v = [(w*(I[n]+I2[n])) for n in range(2*gen)]
 
         v = [f.residue() for f in v]
         #v = [(I[n])+(I2[n])+Fw_i[n] for n in range(2*gen)]
-        #print "v = %s (before trace)"%v
         try:
             return vector([f.trace() for f in v])
         except AttributeError:
@@ -1725,38 +1722,28 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         else:
             hP = ((f(x)-f(a))/(x-a)).truncate(2*g+1)
             if hP.list()[-1] == 0:
-                print "bug with division"
-                print "this only works for genus 1 curves"
+                print("bug with division")
+                print("this only works for genus 1 curves")
                 if g > 1:
                     return "sorry, this only works for genus 1 right now"
                 else:
                     hP = x**2+x*a+a**2 + f.list()[2]*(x+a)+f.list()[1]
             forP = hP/(y-b)
-            #print "forP = %s"%forP
-            #print "old forP = %s"%((y+b)/(x-a))
-        if tiny==False or self.is_good(Q, (x(Integer(0)),y(Integer(0)))):
+        if tiny is False or self.is_good(Q, (x(Integer(0)),y(Integer(0)))):
             forQ = (y+d)/(x-c)
         else:
-            print "is bad and recomputing diff"
+            print("is bad and recomputing diff")
             hQ = ((f(x)-f(c))/(x-c)).truncate(2*g+1)
             if hQ.list()[-1] == 0:
-                print "bug with division"
-                print "this only works for genus 1 curves"
+                print("bug with division")
+                print("this only works for genus 1 curves")
                 if g > 1:
                     return "sorry, this only works for genus 1 right now"
                 else:
                     hQ = x**2+x*c+c**2 + f.list()[2]*(x+c)+f.list()[1]
-            forQ =hQ/(y-d)
-            #print "forQ = %s"%forQ
-            #print "old forQ = %s"%((y+d)/(x-c))
-        #print "forP = %s"%forP
-        #print "forQ = %s"%forQ
+            forQ = hQ / (y - d)
 
-        #forP = (y+b)/(x-a)
-        #forQ = (y+d)/(x-c)
         if alpha:
-            #print forP.list()
-            #print "this is the length: %s"%len(forP.list())
             i = 0
             while i < len(forP.list())-3:
                 if (forP.list()[i] == 0 and forP.list()[i+1] == 0 and forP.list()[i+2] == 0):
@@ -1764,7 +1751,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                     break
                 else:
                     i += 1
-            #print "forP = %s"%forP
             i = 0
             while i < len(forQ.list())-3:
                 if (forQ.list()[i]==0 and forQ.list()[i+1]==0 and forQ.list()[i+2]==0):
@@ -1772,7 +1758,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                     break
                 else:
                     i += 1
-            #print "forQ = %s"%forQ
         #return derivative(x)/(2*y)*((y+b)/(x-a)-(y+d)/(x-c))
         return x.derivative()/(2*y)*(forP-forQ)
 
@@ -1990,7 +1975,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 x, y = self.local_coord(R, 20*p)  # this seems to be the min for prec=5
                 frob = self.frob_diff_wstrass(divisor, x, y, prec)
                 local_wstrass = local_wstrass + vector(self.base_ring(), [(frob* ((x**j*x.derivative()/(2*y) ).integral()) ).residue() for j in range(2*g)])
-        #print "local_wstrass = %s"%local_wstrass
         return cup**(-1)*(local + local_wstrass)
 
     def frob_psi_diff(self, divisor, prec=20):
@@ -2004,16 +1988,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         from sage.schemes.hyperelliptic_curves.monsky_washnitzer import matrix_of_frobenius_hyperelliptic
         M_frob, forms = self._frob_calc = matrix_of_frobenius_hyperelliptic(self)
         if divisor == self._div1:
-            #print "using cached value of log(div1)"
             psiw = self._diff_log_div1
         elif divisor == self._div2:
-            #print "using cashed value of log(div2)"
             psiw = self._diff_log_div2
         else:
-            #print "recomputing log because something's wrong"
             psiw = self.differential_log(divisor, prec)
         V = self._subspace
-        return M_frob*V*psiw
+        return M_frob * V * psiw
 
     def psi_alpha(self, divisor, prec=20):
         """
@@ -2036,23 +2017,22 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         returns sum(res(alpha*(int(beta) + c))) where c is the right constant of integration
         and the sum is over non-Weierstrass poles of alpha
         """
-    #    print "res_alpha_int_beta"
         p = self.base_ring().prime()
         g = self.genus()
         pth_roots = self._pth_roots
         P = divisor1[0][1]
-        # #integrate beta from P to P_i, take the trace
+        # integrate beta from P to P_i, take the trace
         x, y = self.local_analytic_interpolation_cyclotomic(P, pth_roots[0][0], p*prec+2*g+1)    # will have to change prec
         betaP = self.diff(divisor2, x, y, True, True)
         int_betaP = (betaP).integral()
-        print "int_betaP = %s" % int_betaP
+        print("int_betaP = %s" % int_betaP)
         I1 = int_betaP(1)-int_betaP(0)
-        print "I1 = %s" % I1
+        print("I1 = %s" % I1)
         if I1 != 0:
             I1 = I1.trace()
         else:
             I1 = 0
-        print "I1 via trace = %s" % I1
+        print("I1 via trace = %s" % I1)
         Q = divisor1[1][1]
         if self.is_same_disc(P,Q):
             ##if in same disc, then trace(\int(beta, P,Q_i))
@@ -2069,9 +2049,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             xA, yA = self.local_coord(Q, prec=30)
             alphaQ = self.frob_diff_nw(divisor1, xA, yA, prec=10) - p*self.diff(divisor1, xA, yA)
             const = alphaQ.list()[0]
-            #print "const = %s"%const
-            print "same disc"
-            #print "I2 = %s"%(-I2.trace() + const*fix)
+            print("same disc")
             return I1 - I2.trace() +  const*fix
 
         else:
@@ -2079,16 +2057,15 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             xx, yy = self.local_analytic_interpolation_cyclotomic(Q, pth_roots[1][0],2*p*prec)       # will have to change prec
             betaQ = self.diff(divisor2, xx, yy,True, True)
             int_betaQ = (betaQ).integral()
-            #print "int_betaQ = %s"%int_betaQ
             I2 = int_betaQ(1)-int_betaQ(0)
-            print "I2 = %s"%I2
+            print("I2 = %s" % I2)
 
             if I2 != 0:
                 I2 = I2.trace()
             else:
                 I2 = 0
-            print "I2 trace = %s"%I2.trace()
-            return I1-I2
+            print("I2 trace = %s" % I2.trace())
+            return I1 - I2
 
     def res(self, divisor1, divisor2, prec=12):
         """
@@ -2106,12 +2083,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
         p = self.base_ring().prime()
-        #print "prec = %s"%prec
         A = self.alpha(divisor1, prec)
         # need to cache values here
-        #div3 = [self.find_pth_root_point(divisor1[i][1]) for i in range(2)]
+        # div3 = [self.find_pth_root_point(divisor1[i][1]) for i in range(2)]
         div3 = self._pth_roots
-        #A = A.list()
+        # A = A.list()
         B = []
         r = self._fwstrass
         prec = self.base_ring().precision_cap()
@@ -2120,13 +2096,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             if R[0] != 0:
                 x, y = self.local_coord(R, 2*p*prec - p -3 + 2*g-1)
                 B += [self.diff(divisor2, x, y)]
-        print "for A"
-        print [f.valuation() for f in A]
-        print [f.degree() for f in A]
-        print "for B"
-        print [f.valuation() for f in B]
+        print("for A")
+        print([f.valuation() for f in A])
+        print([f.degree() for f in A])
+        print("for B")
+        print([f.valuation() for f in B])
         dd = [f.degree() for f in B]
-        print dd
+        print(dd)
         Anew = []
         for i in range(len(A)):
             v = B[i].valuation()
@@ -2153,11 +2129,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         psiA = self.psi_alpha(divisor1)
         V = self._subspace
         psiA = psiA
-        print "psiA wrt standard basis is %s" % psiA
+        print("psiA wrt standard basis is %s" % psiA)
 
         psiB = self._diff_log_div2
-        psiB = V*psiB
-        print "psiB wrt standard basis is = %s" % psiB
+        psiB = V * psiB
+        print("psiB wrt standard basis is = %s" % psiB)
         return self.cup(psiA, psiB)
 
     def eta_integral(self, divisor1, divisor2, prec=5):
@@ -2350,7 +2326,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         A = matrix(K, M_frob).transpose() - 1
         m = max(a.valuation() for a in A.list())
         self._prec = max(m, prec)
-        print "Current working precision is %s. If you would like a final answer with %s guaranteed digits of precision, increase working precision to %s." % (prec, prec, self._prec+prec)
+        print("Current working precision is %s. If you would like a final answer with %s guaranteed digits of precision, increase working precision to %s." % (prec, prec, self._prec+prec))
         self._fwstrass = self.finite_weierstrass_points()
         self._div1 = divisor1
         self._div2 = divisor2
