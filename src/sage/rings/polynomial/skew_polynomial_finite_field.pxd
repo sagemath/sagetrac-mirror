@@ -3,6 +3,13 @@ from sage.matrix.matrix_dense cimport Matrix_dense
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
 
+    cdef Polynomial _norm
+    cdef _norm_factor
+    cdef _optbound
+    cdef dict _rdivisors
+    cdef dict _types
+    cdef _factorization
+
     cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other)
     cdef void _inplace_lrem(self, SkewPolynomial_finite_field_dense other)
     cdef void _inplace_rrem(self, SkewPolynomial_finite_field_dense other)
@@ -14,7 +21,15 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
     cdef Py_ssize_t _val_inplace_unit(self)
     cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other)
 
+    cdef Matrix_dense _matphir_c(self)
     cdef Matrix_dense _matmul_c(self)
+
+	# Finding divisors
+    cdef SkewPolynomial_finite_field_dense _rdivisor_c(P, CenterSkewPolynomial_generic_dense N)
+
+	# Finding factorizations
+    cdef _factor_c(self)
+    cdef _factor_uniform_c(self)
 
     # Karatsuba
     #cpdef RingElement _mul_karatsuba(self, RingElement other, cutoff=*)

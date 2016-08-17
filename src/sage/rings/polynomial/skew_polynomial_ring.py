@@ -919,6 +919,57 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
             return self ([ R.random_element (*args, **kwds) for _ in range (degree) ] + [ R.one() ])
         else:
             return self ([ R.random_element (*args, **kwds) for _ in range (degree+1) ])
+            
+    def random_irreducible(self, degree=2, monic=True, *args, **kwds):
+        r"""
+        Return a random irreducible skew polynomial.
+
+        .. WARNING::
+
+            Elements of this skew polynomial ring need to have a method
+            is_irreducible(). Currently, this method is implemented only
+            when the base ring is a finite field.
+
+        INPUT:
+
+        -  ``degree`` - Integer with degree (default: 2)
+           or a tuple of integers with minimum and maximum degrees
+
+        -  ``monic`` - if True, returns a monic skew polynomial
+           (default: True)
+
+        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
+           the base ring
+
+        OUTPUT:
+
+        -  A random skew polynomial
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: A = S.random_irreducible(); A
+            x^2 + (4*t^2 + 3*t + 4)*x + 4*t^2 + t
+            sage: A.is_irreducible()
+            True
+            sage: B = S.random_irreducible(degree=3,monic=False); B  # random
+            (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + 3*t^2 + 3*t + 1
+            sage: B.is_irreducible()
+            True
+        """
+        R = self.base_ring()
+        if isinstance(degree, (list, tuple)):
+            if len(degree) != 2:
+                raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
+            if degree[0] > degree[1]:
+                raise ValueError("minimum degree must be less or equal than maximum degree")
+            degree = randint(*degree)
+        while True:
+            irred = self.random_element((degree,degree), monic=monic)
+            if irred.is_irreducible():
+                return irred
 
     def is_commutative(self):
         """
@@ -1209,3 +1260,36 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
         """
         return self._maps[n%self._order]
+
+    def _new_retraction_map(self,alea=None):
+        """
+        This is an internal function used in factorization.
+        """
+        k = self.base_ring()
+        base = k.base_ring()
+        (kfixed,embed) = self._maps[1].fixed_points()
+        section = embed.section()
+        if not kfixed.has_coerce_map_from(base):
+            raise NotImplementedError("No coercion map from %s to %s" % (base,kfixed))
+        if alea is None:
+            alea = k.random_element()
+        self._alea_retraction = alea
+        trace = [ ]
+        elt = alea
+        for _ in range(k.degree()):
+            x = elt
+            tr = elt
+            for _ in range(1,self._order):
+                x = self._map(x)
+                tr += x
+            elt *= k.gen()
+            trace.append(section(tr))
+        self._matrix_retraction = MatrixSpace(kfixed,1,k.degree())(trace)
+
+    def _retraction(self,x,newmap=False,alea=None): # Better to return the retraction map but more difficult
+        """
+        This is an internal function used in factorization.
+        """
+        if newmap or alea is not None or self._matrix_retraction is None:
+            self._new_retraction_map()
+        return (self._matrix_retraction*self.base_ring()(x)._vector_())[0]
