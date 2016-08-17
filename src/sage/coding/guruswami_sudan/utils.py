@@ -79,7 +79,7 @@ def ligt(x):
         sage: ligt(41.041)
         42
     """
-    return floor(x+1)
+    return ZZ(floor(x+1))
 
 def gilt(x):
     r"""
@@ -99,7 +99,7 @@ def gilt(x):
     if x in ZZ:
         return Integer(x-1)
     else:
-        return floor(x)
+        return ZZ(floor(x))
 
 def solve_degree2_to_integer_range(a,b,c):
     r"""

@@ -303,13 +303,13 @@ cdef class WeakValueDictionary(dict):
         sage: D1 = WeakValueDictionary()
         sage: D2 = WeakValueDictionary()
         sage: for i in range(10000):
-        ....:     ki = floor(random()*B)
-        ....:     vi = C(floor(random()*B))
+        ....:     ki = int(random()*B)
+        ....:     vi = C(int(random()*B))
         ....:     D1[ki] = vi
         ....:     D2[ki] = vi
         ....:     L[ki]  = vi
         ....:     del vi
-        ....:     ko = floor(random()*B)
+        ....:     ko = int(random()*B)
         ....:     if ko in D1:
         ....:         del D1[ko]
         ....:         L[ko] = None

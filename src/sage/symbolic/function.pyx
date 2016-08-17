@@ -933,6 +933,10 @@ cdef class BuiltinFunction(Function):
             0.0
             sage: type(_)
             <type 'numpy.float64'>
+            sage: floor(numpy.float64(1.2r))
+            1.0
+            sage: type(_)
+            <type 'numpy.float64'>
 
         TESTS::
 

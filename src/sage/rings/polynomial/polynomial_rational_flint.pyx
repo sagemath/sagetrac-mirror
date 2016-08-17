@@ -605,7 +605,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             OverflowError: long int too large to convert
 
         Secondly, a value which cannot be converted to an integral value,
-        resulting in a ValueError::
+        resulting in an error::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t/2
