@@ -533,11 +533,11 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
            Fractional ideal (17, 1/2*a + 27/2),
            Fractional ideal (2, 1/2*a - 1/2)]
         """
-        if self.value().is_prime():
-            return self.value()
+        if self.ideal().is_prime():
+            return self.ideal()
         c = self.reduce()
-        if c.value().is_prime():
-            return c.value()
+        if c.ideal().is_prime():
+            return c.ideal()
         # otherwise we just search:
         Cl = self.parent()
         K = Cl.number_field()
@@ -567,39 +567,51 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         return self.ideal().gens()
 
 class RayClassGroupElement(FractionalIdealClass):
-    def __init__(self, parent, element, ideal=None):
-        if element is None:
-            if not parent.modulus().finite_part().is_coprime(ideal):
-                raise ValueError("Ideal is not coprime to the modulus.")
-            element = parent._ideal_log(ideal)
+    #@@def __init__(self, parent, element, ideal=None):
+        #@@if element is None:
+        #@@    if not parent.modulus().finite_part().is_coprime(ideal):
+        #@@       raise ValueError("Ideal is not coprime to the modulus.")
+        #@@    element = parent._ideal_log(ideal)
         #Should treat the else case for coprime-ness as well since the code can coerce from different moduli
-        FractionalIdealClass.__init__(self, parent, element, ideal)
+        #@@FractionalIdealClass.__init__(self, parent, element, ideal)
     
     def _repr_(self):
-        if self.is_one():
-            return 'Trivial ray class modulo ' + str(self.parent().modulus())
-        return 'Ray class of ' + self._value._repr_short() + ' modulo ' + str(self.parent().modulus())
+        #@@if self.is_one():
+        #@@    return 'Trivial ray class modulo ' + str(self.parent().modulus())
+        #@@return 'Ray class of ' + self._value._repr_short() + ' modulo ' + str(self.parent().modulus())
+        return AbelianGroupWithValuesElement._repr_(self)#@@
     
     #Should be able to get rid of the operations if make the reduce function a method of the parent
     def _mul_(self, other):
         m = AbelianGroupElement._mul_(self, other)
-        m._value = (self.ideal() * other.ideal()).reduce_equiv(self.parent().modulus())
+        #@@m._value = (self.ideal() * other.ideal()).reduce_equiv(self.parent().modulus())
+        nf = self.parent()._number_field.pari_nf()#@@
+        m._value = nf.idealred(nf.idealmul(self.value(), other.value()))#@@
         return m
     
     def _div_(self, other):
         m = AbelianGroupElement._div_(self, other)
-        m._value = (self.ideal() / other.ideal()).reduce_equiv(self.parent().modulus())
+        #@@m._value = (self.ideal() / other.ideal()).reduce_equiv(self.parent().modulus())
+        nf = self.parent()._number_field.pari_nf()#@@
+        m._value = nf.idealred(nf.idealdiv(self.value(), other.value()))#@@
         return m
     
     def inverse(self):
         m = AbelianGroupElement.inverse(self)
-        m._value = (~self.ideal()).reduce_equiv(self.parent().modulus())
+        #@@m._value = (~self.ideal()).reduce_equiv(self.parent().modulus())
+        nf = self.parent()._number_field.pari_nf()#@@
+        m._value = nf.idealred(nf.idealinv(self.value()))#@@
         return m
     
     __invert__ = inverse
     
+    def ideal(self):
+        return self.parent()._number_field._pari_extended_ideal_to_sage(self.value())
+    
     def reduce(self):
-        return self.ideal().reduce_equiv(self.parent().modulus())
+        #@@return self.ideal().reduce_equiv(self.parent().modulus())
+        nf = self.parent()._number_field.pari_nf()#@@
+        return RayClassGroupElement(self.parent(), self.exponents(), nf.idealred(self.value()))#@@
 
 class SFractionalIdealClass(FractionalIdealClass):
     r"""
@@ -899,18 +911,28 @@ class RayClassGroup(ClassGroup):
     #Can remove this I think if make ClassGroup's version say isinstance(args[0], Element):
     def _element_constructor_(self, *args, **kwds):
         if isinstance(args[0], RayClassGroupElement):
-            return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
+            nf = self._number_field.pari_nf()#@@
+            bnr = self._bnr#@@
+            I = args[0].value()#@@
+            exps = tuple(ZZ(c) for c in bnr.bnrisprincipal(nf.idealmul(I[0], nf.nffactorback(I[1])), flag = 0))#@@
+            #@@return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
+            return self.element_class(self, exps, I)#@@
         else:
             I = self._number_field.ideal(*args, **kwds)
             if I.is_zero():
                 raise TypeError("The zero ideal is not a fractional ideal")
-            return self.element_class(self, None, I)
+            exps = self._ideal_log(I)
+            from sage.matrix.constructor import Matrix
+            return self.element_class(self, exps, pari([I, Matrix(0)]))
     
     def _repr_(self):
         return "Ray class group of " + str(self._number_field) + " of modulus " + str(self._modulus)
     
     def _ideal_log(self, ideal):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
+    
+    def gens_ideals(self):
+        return tuple(self._number_field._pari_extended_ideal_to_sage(v) for v in self.gens_values())
     
     def modulus(self):
         return self._modulus

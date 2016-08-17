@@ -37,14 +37,14 @@ def _mask_to_list(L):
 
 class HeckeCharacter(DualAbelianGroupElement):
     def __call__(self, g):
-        K = self.parent().group().number_field()
-        if g.parent() is K:
-            g = K.ideal(g)
-        if g.parent() is self.parent().group().values_group():
-            if self.parent().modulus().finite_part().is_coprime(g):
-                return DualAbelianGroupElement.__call__(self, self.parent().group()(g))
-            return self.parent().base_ring().zero()
-        return DualAbelianGroupElement.__call__(self, g)
+        R = self.parent().group()
+        if g.parent() is R:
+            DualAbelianGroupElement.__call__(self, g)
+        K = R.number_field()
+        g = K.ideal(g)
+        if self.parent().modulus().finite_part().is_coprime(g):
+            return DualAbelianGroupElement.__call__(self, R(g))
+        return self.parent().base_ring().zero()
     
     def _log_values_on_gens(self):
         r"""
@@ -52,10 +52,11 @@ class HeckeCharacter(DualAbelianGroupElement):
         generator of the ray class group is `\exp(2\pi ia_j/d_j)`, where `d_j` is the
         order of the jth generator.
         """
-        R = self.parent().group()
-        orders = R.gens_orders()
-        val_orders = [self(a).multiplicative_order() for a in R.gens_values()]
-        return [orders[j].divide_knowing_divisible_by(val_orders[j]) for j in range(len(orders))]
+        #R = self.parent().group()
+        #orders = R.gens_orders()
+        #val_orders = [self(a).multiplicative_order() for a in R.gens_values()]
+        #return [orders[j].divide_knowing_divisible_by(val_orders[j]) for j in range(len(orders))]
+        return self.exponents()
     
     def modulus(self):
         return self.parent().modulus()

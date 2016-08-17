@@ -2930,6 +2930,12 @@ class NumberField_generic(number_field_base.NumberField):
                 gens = I.gens()
         return self._fractional_ideal_class_()(self, gens, **kwds)
     
+    def _pari_extended_ideal_to_sage(self, Ix):
+        I = self.ideal(Ix[0])
+        nf = self.pari_nf()
+        a = self(nf.nfbasistoalg(nf.nffactorback(Ix[1])))
+        return a * I
+    
     def modulus(self, finite, infinite=None):
         """
         Return the modulus specified by the ideal ``finite`` and the infinite places
@@ -3889,7 +3895,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G = F.ray_class_group(m); G.elementary_divisors()
             (2, 4)
             sage: G.gens_ideals()
-            (Fractional ideal (31), Fractional ideal (-12672))
+            (Fractional ideal (31), Fractional ideal (12672))
         """
         proof = proof_flag(proof)
         try:
@@ -3901,7 +3907,9 @@ class NumberField_generic(number_field_base.NumberField):
         Kbnf = self.pari_bnf()
         Kbnr = Kbnf.bnrinit(pari(modulus), 1)
         cycle_structure = tuple(ZZ(c) for c in Kbnr[4][1])
-        gens = tuple(self.ideal(hnf) for hnf in Kbnr[4][2])
+        #@@gens = tuple(self.ideal(hnf) for hnf in Kbnr[4][2])
+        from sage.matrix.constructor import Matrix
+        gens = tuple([Kbnf.idealred([hnf, pari(Matrix(0))]) for hnf in Kbnr[4][2]])#@@
         G = RayClassGroup(cycle_structure, names, modulus, gens, proof=proof, bnr=Kbnr)
         self.__ray_class_group[modulus, proof, names] = G
         return G
