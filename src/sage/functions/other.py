@@ -534,6 +534,18 @@ class Function_ceil(BuiltinFunction):
 
             sage: loads(dumps(ceil))
             ceil
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: ceil(z)
+            1
+            sage: ceil(pi, hold=True)
+            ceil(pi)
+            sage: ceil(pi, hold=True).numerical_approx()
+            4
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
@@ -548,80 +560,77 @@ class Function_ceil(BuiltinFunction):
         """
         return r"\left \lceil %s \right \rceil"%latex(x)
 
-    #FIXME: this should be moved to _eval_
-    def __call__(self, x, **kwds):
+    def _eval_(self, x):
         """
-        Allows an object of this class to behave like a function. If
-        ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
-        the ceiling of ``n``.
-
-        TESTS::
+        EXAMPLES::
 
             sage: ceil(SR(10^50 + 10^(-50)))
             100000000000000000000000000000000000000000000000001
             sage: ceil(SR(10^50 - 10^(-50)))
             100000000000000000000000000000000000000000000000000
             sage: ceil(int(10^50))
-            100000000000000000000000000000000000000000000000000
+            100000000000000000000000000000000000000000000000000L
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
-        """
-        maximum_bits = kwds.get('maximum_bits', 20000)
-        try:
-            return x.ceil()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.ceil(x)
 
-        from sage.rings.all import RealIntervalField
+            sage: import numpy
+            sage: ceil(numpy.float128(1.2))
+            2.0
+            sage: type(_)
+            <type 'numpy.float128'>
 
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_ceil()
-            except ValueError:
-                bits *= 2
-
-        try:
-            return ceil(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
-
-
-
-    def _eval_(self, x):
-        """
-        EXAMPLES::
-
-            sage: ceil(x).subs(x==7.5)
-            8
             sage: ceil(x)
             ceil(x)
+            sage: ceil(x).subs(x==7.5)
+            8
+            sage: ceil(x).subs(x=pi)
+            4
+
+            sage: ceil(pi, hold=True)
+            ceil(pi)
+            sage: ceil(pi, hold=True).numerical_approx()
+            4
+            sage: ceil(pi, hold=True).simplify()
+            4
+
+        If the expression is too demanding in precision, the argument is held::
+
+            sage: e1 = pi - continued_fraction(pi).convergent(2785)
+            sage: e2 = e - continued_fraction(e).convergent(1500)
+            sage: f = e1/e2
+            sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+            sage: f = f - continued_fraction(f).convergent(1)
+            sage: ceil(f)   # long time (> 10s)
+            ceil(...)
+
+        Though it can be evaluated::
+
+            sage: ceil(f).n(prec=40000)   # long time (> 10s)
+            0
         """
         try:
-            return x.ceil()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
-        return None
+            return self._evalf_(x)
+        except (TypeError,ValueError):
+            pass
+
+    def _evalf_(self, x, parent=None, algorithm=None, maximum_bits=None):
+        """
+        TESTS::
+
+            sage: ceil(pi)  # indirect doctest
+            4
+        """
+        # NOTE: .is_zero() is *not* reliable for symbolic expression
+        # hence the try/except below
+        try:
+            return incremental_rounding(x, 'ceil', 256)
+        except ValueError:
+            # try some exactification
+            if x.parent() is SR:
+                x = x.full_simplify().canonicalize_radical()
+            return incremental_rounding(x, 'ceil', maximum_bits)
 
 ceil = Function_ceil()
-
 
 class Function_floor(BuiltinFunction):
     def __init__(self):
@@ -676,7 +685,7 @@ class Function_floor(BuiltinFunction):
             sage: floor(SR(10^50 - 10^(-50)))
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
-            100000000000000000000000000000000000000000000000000
+            100000000000000000000000000000000000000000000000000L
 
         ::
 
@@ -689,6 +698,14 @@ class Function_floor(BuiltinFunction):
 
             sage: loads(dumps(floor))
             floor
+
+        TESTS:
+
+        Test from :trac:`12121`::
+
+            sage: z = (11/9*sqrt(3)*sqrt(2) + 3)^(1/3) + 1/3/(11/9*sqrt(3)*sqrt(2) + 3)^(1/3) - 1
+            sage: floor(z)
+            1
         """
         BuiltinFunction.__init__(self, "floor",
                                  conversions=dict(sympy='floor'))
@@ -702,75 +719,82 @@ class Function_floor(BuiltinFunction):
         """
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
-    #FIXME: this should be moved to _eval_
-    def __call__(self, x, **kwds):
-        """
-        Allows an object of this class to behave like a function. If
-        ``floor`` is an instance of this class, we can do ``floor(n)`` to
-        obtain the floor of ``n``.
-
-        TESTS::
-
-            sage: floor(SR(10^50 + 10^(-50)))
-            100000000000000000000000000000000000000000000000000
-            sage: floor(SR(10^50 - 10^(-50)))
-            99999999999999999999999999999999999999999999999999
-            sage: floor(int(10^50))
-            100000000000000000000000000000000000000000000000000
-            sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
-            -3
-        """
-        maximum_bits = kwds.get('maximum_bits',20000)
-        try:
-            return x.floor()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.floor(x)
-
-        from sage.rings.all import RealIntervalField
-
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_floor()
-            except ValueError:
-                bits *= 2
-
-        try:
-            return floor(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
-
     def _eval_(self, x):
         """
         EXAMPLES::
 
             sage: floor(x).subs(x==7.5)
             7
+
+            sage: floor(pi, hold=True)
+            floor(pi)
+            sage: floor(pi, hold=True).numerical_approx()
+            3
+            sage: floor(pi, hold=True).simplify()
+            3
+
             sage: floor(x)
             floor(x)
+            sage: floor(x).subs(x=pi)
+            3
+
+            sage: floor(SR(10^50 + 10^(-50)))
+            100000000000000000000000000000000000000000000000000
+            sage: floor(SR(10^50 - 10^(-50)))
+            99999999999999999999999999999999999999999999999999
+            sage: floor(int(10^50))
+            100000000000000000000000000000000000000000000000000L
+
+            sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
+            -3
+
+            sage: import numpy
+            sage: floor(numpy.float128(1.2))
+            1.0
+            sage: type(_)
+            <type 'numpy.float128'>
+
+            sage: floor(12.8r)
+            12.0
+            sage: type(_)
+            <type 'float'>
+
+        If the expression is too demanding in precision, the argument is held::
+
+            sage: e1 = pi - continued_fraction(pi).convergent(2785)
+            sage: e2 = e - continued_fraction(e).convergent(1500)
+            sage: f = e1/e2
+            sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+            sage: f = f - continued_fraction(f).convergent(1)
+            sage: floor(f)  # long time (> 10s)
+            floor(...)
+
+        Though it can be evaluated via::
+
+            sage: floor(f).n(prec=40000)  # long time (> 10s)
+            -1
         """
         try:
-            return x.floor()
-        except AttributeError:
-            if isinstance(x, (int, long)):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
-        return None
+            return self._evalf_(x)
+        except (TypeError, ValueError):
+            pass
+
+    def _evalf_(self, x, parent=None, algorithm=None, maximum_bits=None):
+        """
+        TESTS::
+
+            sage: floor(pi)  # indirect doctest
+            3
+        """
+        # NOTE: .is_zero() is *not* reliable for symbolic expression
+        # hence the try/except below
+        try:
+            return incremental_rounding(x, 'floor', 256)
+        except ValueError:
+            # try some exactification
+            if x.parent() is SR:
+                x = x.full_simplify().canonicalize_radical()
+            return incremental_rounding(x, 'floor', maximum_bits)
 
 floor = Function_floor()
 

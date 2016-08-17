@@ -603,14 +603,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             OverflowError: long int too large to convert
 
         Secondly, a value which cannot be converted to an integral value,
-        resulting in a ValueError::
+        resulting in an error::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t/2
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I + 1 to int
+            TypeError: cannot coerce nonconstant polynomial to int
 
         We check that this specialized implementation is compatible with the
         generic one::
