@@ -522,7 +522,7 @@ class Lrs(Executable):
         TESTS::
 
             sage: from sage.misc.feature import Lrs
-            sage: isininstance(Lrs(), Lrs)
+            sage: isinstance(Lrs(), Lrs)
             True
         """
         Executable.__init__(self, "lrslib", executable="lrs", spkg="lrslib", url="http://cgm.cs.mcgill.ca/~avis/C/lrs.html")
@@ -805,24 +805,25 @@ class SharedLibrary(Feature):
 
     EXAMPLES::
 
+        sage: from sage.misc.feature import SharedLibrary
         sage: libm_test_code = '''
-#clib m
-cdef extern from "<math.h>":
-    double fabs(double x)
-
-sig_on()
-if fabs(-1) != 1:
-    raise ImportError("libm did not find the correct absolute value for -1")
-'''
-        sage: libm = SharedLibrary("libm", test_code=, spkg="gcc", url="https://gnu.org")
+        ....: #clib m
+        ....: cdef extern from "<math.h>":
+        ....:     double fabs(double x)
+        ....:
+        ....: sig_on()
+        ....: if fabs(-1) != 1:
+        ....:     raise ImportError("libm did not find the correct absolute value for -1")'''
+        sage: libm = SharedLibrary("libm", test_code=libm_test_code, spkg="gcc", url="https://gnu.org")
         sage: libm.is_present()
+        FeatureTestResult('libm', True)
     """
     def __init__(self, name, test_code, spkg=None, url=None):
         r"""
         TESTS::
 
             sage: from sage.misc.feature import SharedLibrary, LibFES
-            sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies()]) # indirect doctest
+            sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies]) # indirect doctest
             True
         """
         Feature.__init__(self, name, spkg=spkg, url=url)
@@ -834,8 +835,10 @@ if fabs(-1) != 1:
 
         EXAMPLES::
 
-                sage: nolib = SharedLibrary("nolib", test_code="")
-                sage: nolib.is_present()
+                sage: from sage.misc.feature import SharedLibrary
+                sage: emptylib = SharedLibrary("emptylib", test_code="")
+                sage: emptylib.is_present()
+                FeatureTestResult('emptylib', True)
         """
         # There seems to be no module readily available in python which does library checks of this kind.
         # At least other projects have also just rolled their own tests, see, e.g.:
@@ -878,11 +881,12 @@ class Module(Feature):
         r"""
         Return whether the module can be imported. This is determined by
         actually importing it.
-        
+
         EXAMPLES::
 
             sage: from sage.misc.feature import Module
             sage: Module("sys").is_present()
+            FeatureTestResult('sys', True)
         """
         import importlib
         try:
@@ -936,7 +940,7 @@ class OptionalModule(Module):
             if not presence:
                 return FeatureTestResult(self, False, reason="Dependency `{dependency}` is not satisfied: {reason}".format(dependency=dependency.name, reason=presence.reason), resolution=presence.resolution)
         return super(OptionalModule, self).is_present()
-        
+
 class LibFES(OptionalModule):
     r"""
     A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
