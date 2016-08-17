@@ -419,7 +419,7 @@ class Function_arcsinh(GinacFunction):
             {\rm arcsinh}\left(x\right)
         """
         GinacFunction.__init__(self, "arcsinh", latex_name=r"{\rm arcsinh}",
-                conversions=dict(maxima='asinh', sympy='asinh'))
+                conversions=dict(maxima='asinh', sympy='asinh', fricas='asinh'))
 
 arcsinh = asinh = Function_arcsinh()
 
@@ -501,7 +501,7 @@ class Function_arccosh(GinacFunction):
             {\rm arccosh}\left(x\right)
         """
         GinacFunction.__init__(self, "arccosh", latex_name=r"{\rm arccosh}",
-                conversions=dict(maxima='acosh', sympy='acosh'))
+                conversions=dict(maxima='acosh', sympy='acosh', fricas='acosh'))
 
 arccosh = acosh = Function_arccosh()
 
@@ -557,7 +557,7 @@ class Function_arctanh(GinacFunction):
             {\rm arctanh}\left(x\right)
         """
         GinacFunction.__init__(self, "arctanh", latex_name=r"{\rm arctanh}",
-                conversions=dict(maxima='atanh', sympy='atanh'))
+                conversions=dict(maxima='atanh', sympy='atanh', fricas='atanh'))
 
 arctanh = atanh = Function_arctanh()
 
@@ -600,7 +600,7 @@ class Function_arccoth(GinacFunction):
         """
         GinacFunction.__init__(self, "arccoth",
                 latex_name=r"\operatorname{arccoth}",
-                conversions=dict(maxima='acoth', sympy='acoth'))
+                conversions=dict(maxima='acoth', sympy='acoth', fricas='acoth'))
 
     def _eval_numpy_(self, x):
         """
@@ -641,7 +641,7 @@ class Function_arcsech(GinacFunction):
         """
         GinacFunction.__init__(self, "arcsech",
                 latex_name=r"\operatorname{arcsech}",
-                conversions=dict(maxima='asech'))
+                conversions=dict(maxima='asech', fricas='asech'))
 
     def _eval_numpy_(self, x):
         """
@@ -690,7 +690,7 @@ class Function_arccsch(GinacFunction):
         """
         GinacFunction.__init__(self, "arccsch",
                 latex_name=r"\operatorname{arccsch}",
-                conversions=dict(maxima='acsch'))
+                conversions=dict(maxima='acsch', fricas='acsch'))
 
     def _eval_numpy_(self, x):
         """
