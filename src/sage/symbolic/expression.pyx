@@ -4872,6 +4872,8 @@ cdef class Expression(CommutativeRingElement):
             43/42
             sage: ((1+x)/x).subs({x: 42})
             43/42
+            sage: (x+1/x+1).subs(1/x==pi)
+            pi + x + 1
         """
         from sage.symbolic.ring import SR
         cdef dict sdict = {}
@@ -4892,11 +4894,17 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
+        def is_fraction(e):
+            return ((e.operator() == operator.pow and e.operands()[1]<0) or
+                    (e.operator() == operator.mul and
+                        any(t.operator()==operator.pow and t.operands()[1]<0
+                            for t in e.operands())))
+
         cdef GExMap smap, invmap
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
-            if not SR(v).is_trivial_zero():
+            if not SR(v).is_trivial_zero() and not is_fraction(SR(k)):
                 invmap.insert(make_pair((<Expression>self.coerce_in(1/k))._gobj,
                                       (<Expression>self.coerce_in(1/v))._gobj))
 
