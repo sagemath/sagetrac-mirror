@@ -27,9 +27,9 @@ AUTHORS:
   implement more complete translation from FriCAS to SageMath types.
 
 
-EXAMPLES: We evaluate a very simple expression in FriCAS.
+EXAMPLES: 
 
-::
+We evaluate a very simple expression in FriCAS::
 
     sage: fricas('3 * 5')                                                       # optional - fricas
     15
@@ -37,9 +37,7 @@ EXAMPLES: We evaluate a very simple expression in FriCAS.
     15
 
 The type of a is FriCASElement, i.e., an element of the FriCAS
-interpreter.
-
-::
+interpreter::
 
     sage: type(a)                                                               # optional - fricas
     <class 'sage.interfaces.fricas.FriCASElement'>
@@ -168,7 +166,6 @@ FriCAS does some limits right::
 
     sage: ex = x^2*exp(-x)*Ei(x) - x; fricas(ex).limit(x=oo)                    # optional - fricas
     1
-
 """
 
 ###########################################################################
@@ -394,7 +391,6 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.set('xx', '2')                                         # optional - fricas
             sage: fricas.get('xx')                                              # optional - fricas
             '2'
-
         """
         # print("fricas.set %s := %s" %(var, value))
         cmd = '%s%s%s;'%(var,self._assign_symbol(), value)
@@ -566,8 +562,8 @@ class FriCASElement(ExpectElement):
         """
         TEST::
 
-        sage: float(fricas(2))                                                  # optional - fricas
-        2.0
+            sage: float(fricas(2))                                              # optional - fricas
+            2.0
         """
         return float(self.sage())
 
@@ -584,9 +580,8 @@ class FriCASElement(ExpectElement):
         r"""
         EXAMPLES::
 
-        sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                        # optional - fricas
-        {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e}^{z}}
-
+            sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                    # optional - fricas
+            {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e}^{z}}
         """
         # for some strange reason, outputAsTex does not generate
         # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
@@ -608,28 +603,29 @@ class FriCASElement(ExpectElement):
     def _unparsed_InputForm(self):
         """Return the output from FriCAS as a string without the quotes.
 
-        TODO:
+        TODO::
 
-        - catch errors, especially when InputForm is not available:
+            - catch errors, especially when InputForm is not available:
+            
+                -- for example when integration returns "failed"
 
-        -- for example when integration returns "failed"
-        -- UnivariatePolynomial
+                -- UnivariatePolynomial
 
-        should we provide workarounds, too?
+            - should we provide workarounds, too?
 
         TESTS:
 
-        We test that strings are returned properly:
+        We test that strings are returned properly::
 
-        sage: r = fricas('concat([concat(string(i)," ") for i in 0..299])')._unparsed_InputForm()   # optional - fricas
-        sage: r == " ".join([str(i) for i in range(300)]) + ' '                                     # optional - fricas
-        True
+            sage: r = fricas('concat([concat(string(i)," ") for i in 0..299])')._unparsed_InputForm()         # optional - fricas
+            sage: r == " ".join([str(i) for i in range(300)]) + ' '                                 # optional - fricas
+            True
 
-        sage: fricas('concat([string(1) for i in 1..5])')._unparsed_InputForm() == "1"*5            # optional - fricas
-        True
+            sage: fricas('concat([string(1) for i in 1..5])')._unparsed_InputForm() == "1"*5        # optional - fricas
+            True
 
-        sage: fricas('concat([string(1) for i in 1..10000])')._unparsed_InputForm() == "1"*10000    # optional - fricas
-        True
+            sage: fricas('concat([string(1) for i in 1..10000])')._unparsed_InputForm() == "1"*10000          # optional - fricas
+            True
         """
         P = self._check_valid()
         return P.get('unparse(%s::InputForm)' %self._name).replace("\r\n", "")[1:-1]
@@ -692,92 +688,92 @@ class FriCASElement(ExpectElement):
 
         TESTS:
 
-        Floats:
+        Floats::
 
-        sage: fricas(2.1234).sage()                                             # optional - fricas
-        2.12340000000000
-        sage: _.parent()                                                        # optional - fricas
-        Real Field with 53 bits of precision
-        sage: a = RealField(100)(pi)
-        sage: fricas(a).sage()                                                  # optional - fricas
-        3.1415926535897932384626433833
-        sage: _.parent()                                                        # optional - fricas
-        Real Field with 100 bits of precision
-        sage: fricas(a).sage() == a                                             # optional - fricas
-        True
-        sage: fricas(2.0).sage()                                                # optional - fricas
-        2.00000000000000
-        sage: _.parent()                                                        # optional  - fricas
-        Real Field with 53 bits of precision
+            sage: fricas(2.1234).sage()                                         # optional - fricas
+            2.12340000000000
+            sage: _.parent()                                                    # optional - fricas
+            Real Field with 53 bits of precision
+            sage: a = RealField(100)(pi)
+            sage: fricas(a).sage()                                              # optional - fricas
+            3.1415926535897932384626433833
+            sage: _.parent()                                                    # optional - fricas
+            Real Field with 100 bits of precision
+            sage: fricas(a).sage() == a                                         # optional - fricas
+            True
+            sage: fricas(2.0).sage()                                            # optional - fricas
+            2.00000000000000
+            sage: _.parent()                                                    # optional  - fricas
+            Real Field with 53 bits of precision
 
-        Algebraic numbers:
+        Algebraic numbers::
 
-        sage: a = fricas('(1 + sqrt(2))^5'); a                                  # optional - fricas
-           +-+
-        29\|2  + 41
-        sage: b = a.sage(); b                                                   # optional - fricas
-        82.0121933088198?
-        sage: b.radical_expression()                                            # optional - fricas
-        29*sqrt(2) + 41
+            sage: a = fricas('(1 + sqrt(2))^5'); a                              # optional - fricas
+               +-+
+            29\|2  + 41
+            sage: b = a.sage(); b                                               # optional - fricas
+            82.0121933088198?
+            sage: b.radical_expression()                                        # optional - fricas
+            29*sqrt(2) + 41
 
-        Integers modulo n:
+        Integers modulo n::
 
-        sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
-        True
+            sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783)     # optional - fricas
+            True
 
-        We can also convert FriCAS's polynomials to Sage polynomials.
+        We can also convert FriCAS's polynomials to Sage polynomials::
 
-        sage: a = fricas(x^2 + 1); a.typeOf()                                   # optional - fricas
-        Polynomial(Integer)
-        sage: a.sage()                                                          # optional - fricas
-        x^2 + 1
-        sage: _.parent()                                                        # optional - fricas
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: fricas('x^2 + y^2 + 1/2').sage()                                  # optional - fricas
-        y^2 + x^2 + 1/2
-        sage: _.parent()                                                        # optional - fricas
-        Multivariate Polynomial Ring in y, x over Rational Field
+            sage: a = fricas(x^2 + 1); a.typeOf()                               # optional - fricas
+            Polynomial(Integer)
+            sage: a.sage()                                                      # optional - fricas
+            x^2 + 1
+            sage: _.parent()                                                    # optional - fricas
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: fricas('x^2 + y^2 + 1/2').sage()                              # optional - fricas
+            y^2 + x^2 + 1/2
+            sage: _.parent()                                                    # optional - fricas
+            Multivariate Polynomial Ring in y, x over Rational Field
+            
+            sage: fricas("1$Polynomial Integer").sage()                         # optional - fricas
+            1
+            
+            sage: fricas("x^2/2").sage()                                        # optional - fricas
+            1/2*x^2
 
-        sage: fricas("1$Polynomial Integer").sage()                             # optional - fricas
-        1
+        Rational functions::
 
-        sage: fricas("x^2/2").sage()                                            # optional - fricas
-        1/2*x^2
+            sage: fricas("x^2 + 1/z").sage()                                    # optional - fricas
+            x^2 + 1/z
 
-        Rational functions:
+        Expressions::
 
-        sage: fricas("x^2 + 1/z").sage()                                        # optional - fricas
-        x^2 + 1/z
+            sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()                    # optional - fricas
+            e^(-z)*log(e + 1)*sin(x + y)
+            
+            sage: fricas("factorial(n)").sage()                                 # optional - fricas
+            factorial(n)
+            
+            sage: fricas("integrate(sin(x+y), x=0..1)").sage()                  # optional - fricas
+            -cos(y + 1) + cos(y)
+            
+            sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()                # optional - fricas
+            'failed'
 
-        Expressions:
+        Matrices::
 
-        sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()                        # optional - fricas
-        e^(-z)*log(e + 1)*sin(x + y)
+            sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()         # optional - fricas
+            [      1       x     x^2     x^3     x^4     x^5]
+            [    1/2   1/2*x 1/2*x^2 1/2*x^3 1/2*x^4 1/2*x^5]
+            [    1/4   1/4*x 1/4*x^2 1/4*x^3 1/4*x^4 1/4*x^5]
+            [    1/8   1/8*x 1/8*x^2 1/8*x^3 1/8*x^4 1/8*x^5]
 
-        sage: fricas("factorial(n)").sage()                                     # optional - fricas
-        factorial(n)
+        Lists::
 
-        sage: fricas("integrate(sin(x+y), x=0..1)").sage()                      # optional - fricas
-        -cos(y + 1) + cos(y)
-
-        sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()                    # optional - fricas
-        'failed'
-
-        Matrices:
-
-        sage: fricas("matrix [[x^n/2^m for n in 0..5] for m in 0..3]").sage()   # optional - fricas
-        [      1       x     x^2     x^3     x^4     x^5]
-        [    1/2   1/2*x 1/2*x^2 1/2*x^3 1/2*x^4 1/2*x^5]
-        [    1/4   1/4*x 1/4*x^2 1/4*x^3 1/4*x^4 1/4*x^5]
-        [    1/8   1/8*x 1/8*x^2 1/8*x^3 1/8*x^4 1/8*x^5]
-
-        Lists:
-
-        sage: fricas("[2^n/x^n for n in 0..5]").sage()                          # optional - fricas
-        [1, 2/x, 4/x^2, 8/x^3, 16/x^4, 32/x^5]
-
-        sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()       # optional - fricas
-        [[], [1], [1 2], [1 2 3], [1 2 3 4], [1 2 3 4 5]]
+            sage: fricas("[2^n/x^n for n in 0..5]").sage()                      # optional - fricas
+            [1, 2/x, 4/x^2, 8/x^3, 16/x^4, 32/x^5]
+            
+            sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()   # optional - fricas
+            [[], [1], [1 2], [1 2 3], [1 2 3 4], [1 2 3 4 5]]
 
         """
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
@@ -891,14 +887,13 @@ class FriCASFunctionElement(FunctionElement):
 
         TESTS::
 
-        sage: a = fricas('"Hello"')                                             # optional - fricas
-        sage: a.upperCase_q                                                     # optional - fricas
-        upperCase?
-        sage: a.upperCase_e                                                     # optional - fricas
-        upperCase!
-        sage: a.upperCase_e()                                                   # optional - fricas
-        "HELLO"
-
+            sage: a = fricas('"Hello"')                                         # optional - fricas
+            sage: a.upperCase_q                                                 # optional - fricas
+            upperCase?
+            sage: a.upperCase_e                                                 # optional - fricas
+            upperCase!
+            sage: a.upperCase_e()                                               # optional - fricas
+            "HELLO"
         """
         if name.endswith("_q"):
             name = name[:-2] + "?"
@@ -915,11 +910,10 @@ class FriCASExpectFunction(ExpectFunction):
 
         TESTS::
 
-        sage: fricas.upperCase_q                                                # optional - fricas
-        upperCase?
-        sage: fricas.upperCase_e                                                # optional - fricas
-        upperCase!
-
+            sage: fricas.upperCase_q                                            # optional - fricas
+            upperCase?
+            sage: fricas.upperCase_e                                            # optional - fricas
+            upperCase!
         """
         if name.endswith("_q"):
             name = name[:-2] + "?"

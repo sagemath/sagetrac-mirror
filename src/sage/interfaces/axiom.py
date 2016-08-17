@@ -846,12 +846,17 @@ class PanAxiomElement(ExpectElement):
         elif type == "DoubleFloat":
             from sage.rings.all import RDF
             return RDF(repr(self))
+        elif type in ["PositiveInteger", "Integer"]:
+            from sage.rings.all import ZZ
+            return ZZ(repr(self))
         elif type.startswith('Polynomial'):
             from sage.rings.all import PolynomialRing
             base_ring = P(type.lstrip('Polynomial '))._sage_domain()
             vars = str(self.variables())[1:-1]
             R = PolynomialRing(base_ring, vars)
             return R(self.unparsed_input_form())
+        elif type.startswith('Fraction'):
+            return self.numer().sage()/self.denom().sage()
 
          #If all else fails, try using the unparsed input form
         try:
