@@ -27,7 +27,7 @@ AUTHORS:
   implement more complete translation from FriCAS to SageMath types.
 
 
-EXAMPLES: 
+EXAMPLES:
 
 We evaluate a very simple expression in FriCAS::
 
@@ -580,13 +580,13 @@ class FriCASElement(ExpectElement):
         EXAMPLES::
 
             sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                    # optional - fricas
-            {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e}^{z}}
+            {{\log  \left( {{e+1}}  \right)} \  {\sin  \left( {{y+x}}  \right)}} \over {{e} ^{z}}
         """
         # for some strange reason, outputAsTex does not generate
         # |startAlgebraOutput| and |endOfAlgebraOutput| markers.
         P = self._check_valid()
         s = P.eval('outputAsTex(%s)'%self.name())
-        
+
         if not '$$' in s:
             raise RuntimeError("Error texing axiom object.")
         i = s.find('$$')
@@ -609,7 +609,7 @@ class FriCASElement(ExpectElement):
         TODO::
 
             - catch errors, especially when InputForm is not available:
-            
+
                 -- for example when integration returns "failed"
 
                 -- UnivariatePolynomial
@@ -736,10 +736,10 @@ class FriCASElement(ExpectElement):
             y^2 + x^2 + 1/2
             sage: _.parent()                                                    # optional - fricas
             Multivariate Polynomial Ring in y, x over Rational Field
-            
+
             sage: fricas("1$Polynomial Integer").sage()                         # optional - fricas
             1
-            
+
             sage: fricas("x^2/2").sage()                                        # optional - fricas
             1/2*x^2
 
@@ -752,13 +752,13 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()                    # optional - fricas
             e^(-z)*log(e + 1)*sin(x + y)
-            
+
             sage: fricas("factorial(n)").sage()                                 # optional - fricas
             factorial(n)
-            
+
             sage: fricas("integrate(sin(x+y), x=0..1)").sage()                  # optional - fricas
             -cos(y + 1) + cos(y)
-            
+
             sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()                # optional - fricas
             'failed'
 
@@ -774,7 +774,7 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("[2^n/x^n for n in 0..5]").sage()                      # optional - fricas
             [1, 2/x, 4/x^2, 8/x^3, 16/x^4, 32/x^5]
-            
+
             sage: fricas("[matrix [[i for i in 1..n]] for n in 0..5]").sage()   # optional - fricas
             [[], [1], [1 2], [1 2 3], [1 2 3 4], [1 2 3 4 5]]
 
@@ -882,7 +882,7 @@ class FriCASElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(self._unparsed_InputForm())
 
-
+        raise NotImplementedError
 
 class FriCASFunctionElement(FunctionElement):
     def __init__(self, object, name):
