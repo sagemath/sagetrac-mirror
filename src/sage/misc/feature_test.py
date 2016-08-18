@@ -413,7 +413,8 @@ class SharedLibrary(Feature):
         ....:
         ....: sig_on()
         ....: if fabs(-1) != 1:
-        ....:     raise ImportError("libm did not find the correct absolute value for -1")'''
+        ....:     raise ImportError("libm did not find the correct absolute value for -1")
+        ....: sig_off()'''
         sage: libm = SharedLibrary("libm", test_code=libm_test_code, spkg="gcc", url="https://gnu.org")
         sage: libm.is_present()
         FeatureTestResult('libm', True)
