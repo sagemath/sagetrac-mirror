@@ -248,6 +248,14 @@ class SageTerminalInteractiveShell(SageShellOverride, TerminalInteractiveShell):
         <sage.repl.interpreter.SageNotebookInteractiveShell object at 0x...>
     """
 
+    def init_prompt_toolkit_cli(self):
+        """
+        Use plain non-interactive output if TERM=dumb (as in an Emacs inferior shell)
+        """
+        if os.environ['TERM'] == 'dumb':
+            self.simple_prompt = True
+        return super(SageTerminalInteractiveShell, self).init_prompt_toolkit_cli()
+
     def init_display_formatter(self):
         """
         Switch to the Sage IPython commandline rich output backend
