@@ -3254,11 +3254,4510 @@ cdef class gen(gen_auto):
 
         EXAMPLES::
 
+            sage: pari('1').sizebyte()
+            12           # 32-bit
+            24           # 64-bit
+        """
+        return gsizebyte(x.g)
+
+    def truncate(gen x, estimate=False):
+        """
+        truncate(x,estimate=False): Return the truncation of x. If estimate
+        is True, also return the number of error bits.
+
+        When x is in the real numbers, this means that the part after the
+        decimal point is chopped away, e is the binary exponent of the
+        difference between the original and truncated value (the
+        "fractional part"). If x is a rational function, the result is the
+        integer part (Euclidean quotient of numerator by denominator) and
+        if requested the error estimate is 0.
+
+        When truncate is applied to a power series (in X), it transforms it
+        into a polynomial or a rational function with denominator a power
+        of X, by chopping away the `O(X^k)`. Similarly, when
+        applied to a p-adic number, it transforms it into an integer or a
+        rational number by chopping away the `O(p^k)`.
+
+        INPUT:
+
+
+        -  ``x`` - gen
+
+        -  ``estimate`` - (optional) bool, which is False by
+           default
+
+
+        OUTPUT:
+
+        - if estimate is False, return a single gen.
+
+        - if estimate is True, return rounded version of x and error
+          estimate in bits, both as gens.
+
+        EXAMPLES::
+
+            sage: pari('(x^2+1)/x').round()
+            (x^2 + 1)/x
+            sage: pari('(x^2+1)/x').truncate()
+            x
+            sage: pari('1.043').truncate()
+            1
+            sage: pari('1.043').truncate(True)
+            (1, -5)
+            sage: pari('1.6').truncate()
+            1
+            sage: pari('1.6').round()
+            2
+            sage: pari('1/3 + 2 + 3^2 + O(3^3)').truncate()
+            34/3
+            sage: pari('sin(x+O(x^10))').truncate()
+            1/362880*x^9 - 1/5040*x^7 + 1/120*x^5 - 1/6*x^3 + x
+            sage: pari('sin(x+O(x^10))').round()   # each coefficient has abs < 1
+            x + O(x^10)
+        """
+        cdef long e
+        cdef gen y
+        pari_catch_sig_on()
+        if not estimate:
+            return P.new_gen(gtrunc(x.g))
+        y = P.new_gen(gcvtoi(x.g, &e))
+        return y, e
+
+    def valuation(gen x, p):
+        """
+        valuation(x,p): Return the valuation of x with respect to p.
+
+        The valuation is the highest exponent of p dividing x.
+
+        - If p is an integer, x must be an integer, an intmod whose
+          modulus is divisible by p, a rational number, a p-adic
+          number, or a polynomial or power series in which case the
+          valuation is the minimum of the valuations of the
+          coefficients.
+
+        - If p is a polynomial, x must be a polynomial or a rational
+          function. If p is a monomial then x may also be a power
+          series.
+
+        - If x is a vector, complex or quadratic number, then the
+          valuation is the minimum of the component valuations.
+
+        - If x = 0, the result is `2^31-1` on 32-bit machines or
+          `2^63-1` on 64-bit machines if x is an exact
+          object. If x is a p-adic number or power series, the result
+          is the exponent of the zero.
+
+        INPUT:
+
+
+        -  ``x`` - gen
+
+        -  ``p`` - coercible to gen
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - integer
+
+
+        EXAMPLES::
+
+            sage: pari(9).valuation(3)
+            2
+            sage: pari(9).valuation(9)
+            1
+            sage: x = pari(9).Mod(27); x.valuation(3)
+            2
+            sage: pari('5/3').valuation(3)
+            -1
+            sage: pari('9 + 3*x + 15*x^2').valuation(3)
+            1
+            sage: pari([9,3,15]).valuation(3)
+            1
+            sage: pari('9 + 3*x + 15*x^2 + O(x^5)').valuation(3)
+            1
+
+        ::
+
+            sage: pari('x^2*(x+1)^3').valuation(pari('x+1'))
+            3
+            sage: pari('x + O(x^5)').valuation('x')
+            1
+            sage: pari('2*x^2 + O(x^5)').valuation('x')
+            2
+
+        ::
+
+            sage: pari(0).valuation(3)
+            2147483647            # 32-bit
+            9223372036854775807   # 64-bit
+        """
+        cdef gen t0 = objtogen(p)
+        pari_catch_sig_on()
+        v = gvaluation(x.g, t0.g)
+        pari_catch_sig_off()
+        return v
+
+    def _valp(gen x):
+        """
+        Return the valuation of x where x is a p-adic number (t_PADIC)
+        or a Laurent series (t_SER).  If x is a different type, this
+        will give a bogus number.
+
+        EXAMPLES::
+
+            sage: pari('1/x^2 + O(x^10)')._valp()
+            -2
+            sage: pari('O(x^10)')._valp()
+            10
+            sage: pari('(1145234796 + O(3^10))/771966234')._valp()
+            -2
+            sage: pari('O(2^10)')._valp()
+            10
+            sage: pari('x')._valp()   # random
+            -35184372088832
+        """
+        # This is a simple macro, so we don't need pari_catch_sig_on()
+        return valp(x.g)
+
+    def variable(gen x):
+        """
+        variable(x): Return the main variable of the object x, or p if x is
+        a p-adic number.
+
+        This function raises a TypeError exception on scalars, i.e., on
+        objects with no variable associated to them.
+
+        INPUT:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
+            sage: pari('x^2 + x -2').variable()
+            x
+            sage: pari('1+2^3 + O(2^5)').variable()
+            2
+            sage: pari('x+y0').variable()
+            x
+            sage: pari('y0+z0').variable()
+            y0
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gpolvar(x.g))
+
+
+    ###########################################
+    # 3: TRANSCENDENTAL functions
+    # AUTHORS: Pyrex Code, docs -- Justin Walker (justin@mac.com)
+    #          Examples, docs   -- William Stein
+    ###########################################
+
+    def abs(gen x, unsigned long precision=0):
+        """
+        Returns the absolute value of x (its modulus, if x is complex).
+        Rational functions are not allowed. Contrary to most transcendental
+        functions, an exact argument is not converted to a real number
+        before applying abs and an exact result is returned if possible.
+
+        EXAMPLES::
+
+            sage: x = pari("-27.1")
+            sage: x.abs()
+            27.1000000000000
+            sage: pari('1 + I').abs(precision=128).sage()
+            1.4142135623730950488016887242096980786
+
+        If x is a polynomial, returns -x if the leading coefficient is real
+        and negative else returns x. For a power series, the constant
+        coefficient is considered instead.
+
+        EXAMPLES::
+
+            sage: pari('x-1.2*x^2').abs()
+            1.20000000000000*x^2 - x
+            sage: pari('-2 + t + O(t^2)').abs()
+            2 - t + O(t^2)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gabs(x.g, prec_bits_to_words(precision)))
+
+    def acos(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\cos^{-1}(x)`, so that
+        `\RR e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
+        is real and `|x| > 1`, then `\mathrm{acos}(x)` is complex.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0.5).acos()
+            1.04719755119660
+            sage: pari(1/2).acos()
+            1.04719755119660
+            sage: pari(1.1).acos()
+            0.443568254385115*I
+            sage: C.<i> = ComplexField()
+            sage: pari(1.1+i).acos()
+            0.849343054245252 - 1.09770986682533*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gacos(x.g, prec_bits_to_words(precision)))
+
+    def acosh(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\cosh^{-1}(x)`, so that
+        `\Im(\mathrm{acosh}(x))` belongs to `[0,Pi]`. If
+        `x` is real and `x < 1`, then
+        `\mathrm{acosh}(x)` is complex.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).acosh()
+            1.31695789692482
+            sage: pari(0).acosh()
+            1.57079632679490*I
+            sage: C.<i> = ComplexField()
+            sage: pari(i).acosh()
+            0.881373587019543 + 1.57079632679490*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gacosh(x.g, prec_bits_to_words(precision)))
+
+    def agm(gen x, y, unsigned long precision=0):
+        r"""
+        The arithmetic-geometric mean of x and y. In the case of complex or
+        negative numbers, the principal square root is always chosen.
+        p-adic or power series arguments are also allowed. Note that a
+        p-adic AGM exists only if x/y is congruent to 1 modulo p (modulo 16
+        for p=2). x and y cannot both be vectors or matrices.
+
+        If any of `x` or `y` is an exact argument, it is
+        first converted to a real or complex number using the optional
+        parameter precision (in bits). If the arguments are inexact (e.g.
+        real), the smallest of their two precisions is used in the
+        computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).agm(2)
+            2.00000000000000
+            sage: pari(0).agm(1)
+            0
+            sage: pari(1).agm(2)
+            1.45679103104691
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).agm(-3)
+            -0.964731722290876 + 1.15700282952632*I
+        """
+        cdef gen t0 = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(agm(x.g, t0.g, prec_bits_to_words(precision)))
+
+    def arg(gen x, unsigned long precision=0):
+        r"""
+        arg(x): argument of x,such that `-\pi < \arg(x) \leq \pi`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).arg()
+            0.463647609000806
+        """
+        pari_catch_sig_on()
+        return P.new_gen(garg(x.g, prec_bits_to_words(precision)))
+
+    def asin(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\sin^{-1}(x)`, so that
+        `\RR e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
+        `x` is real and `|x| > 1` then `\mathrm{asin}(x)`
+        is complex.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(pari(0.5).sin()).asin()
+            0.500000000000000
+            sage: pari(2).asin()
+            1.57079632679490 - 1.31695789692482*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gasin(x.g, prec_bits_to_words(precision)))
+
+    def asinh(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\sinh^{-1}(x)`, so that
+        `\Im(\mathrm{asinh}(x))` belongs to `[-\pi/2,\pi/2]`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).asinh()
+            1.44363547517881
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).asinh()
+            1.52857091948100 + 0.427078586392476*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gasinh(x.g, prec_bits_to_words(precision)))
+
+    def atan(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\tan^{-1}(x)`, so that
+        `\RR e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).atan()
+            0.785398163397448
+            sage: C.<i> = ComplexField()
+            sage: pari(1.5+i).atan()
+            1.10714871779409 + 0.255412811882995*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gatan(x.g, prec_bits_to_words(precision)))
+
+    def atanh(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of `\tanh^{-1}(x)`, so that
+        `\Im(\mathrm{atanh}(x))` belongs to `]-\pi/2,\pi/2]`. If
+        `x` is real and `|x| > 1` then `\mathrm{atanh}(x)`
+        is complex.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0).atanh()
+            0.E-19
+            sage: pari(2).atanh()
+            0.549306144334055 - 1.57079632679490*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gatanh(x.g, prec_bits_to_words(precision)))
+
+    def bernfrac(gen x):
+        r"""
+        The Bernoulli number `B_x`, where `B_0 = 1`,
+        `B_1 = -1/2`, `B_2 = 1/6,\ldots,` expressed as a
+        rational number. The argument `x` should be of type
+        integer.
+
+        EXAMPLES::
+
+            sage: pari(18).bernfrac()
+            43867/798
+            sage: [pari(n).bernfrac() for n in range(10)]
+            [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(bernfrac(x))
+
+    def bernreal(gen x, unsigned long precision=0):
+        r"""
+        The Bernoulli number `B_x`, as for the function bernfrac,
+        but `B_x` is returned as a real number (with the current
+        precision).
+
+        EXAMPLES::
+
+            sage: pari(18).bernreal()
+            54.9711779448622
+            sage: pari(18).bernreal(precision=192).sage()
+            54.9711779448621553884711779448621553884711779448621553885
+        """
+        pari_catch_sig_on()
+        return P.new_gen(bernreal(x, prec_bits_to_words(precision)))
+
+    def besselh1(gen nu, x, unsigned long precision=0):
+        r"""
+        The `H^1`-Bessel function of index `\nu` and
+        argument `x`.
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).besselh1(3)
+            0.486091260585891 - 0.160400393484924*I
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(hbessel1(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besselh2(gen nu, x, unsigned long precision=0):
+        r"""
+        The `H^2`-Bessel function of index `\nu` and
+        argument `x`.
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).besselh2(3)
+            0.486091260585891 + 0.160400393484924*I
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(hbessel2(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besselj(gen nu, x, unsigned long precision=0):
+        r"""
+        Bessel J function (Bessel function of the first kind), with index
+        `\nu` and argument `x`. If `x` converts to
+        a power series, the initial factor
+        `(x/2)^{\nu}/\Gamma(\nu+1)` is omitted (since it cannot be
+        represented in PARI when `\nu` is not integral).
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).besselj(3)
+            0.486091260585891
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(jbessel(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besseljh(gen nu, x, unsigned long precision=0):
+        """
+        J-Bessel function of half integral index (Spherical Bessel
+        function of the first kind). More precisely, besseljh(n,x) computes
+        `J_{n+1/2}(x)` where n must an integer, and x is any
+        complex value. In the current implementation (PARI, version
+        2.2.11), this function is not very accurate when `x` is
+        small.
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).besseljh(3)
+            0.412710032209716
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(jbesselh(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besseli(gen nu, x, unsigned long precision=0):
+        r"""
+        Bessel I function (Bessel function of the second kind), with index
+        `\nu` and argument `x`. If `x` converts to
+        a power series, the initial factor
+        `(x/2)^{\nu}/\Gamma(\nu+1)` is omitted (since it cannot be
+        represented in PARI when `\nu` is not integral).
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).besseli(3)
+            2.24521244092995
+            sage: C.<i> = ComplexField()
+            sage: pari(2).besseli(3+i)
+            1.12539407613913 + 2.08313822670661*I
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(ibessel(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besselk(gen nu, x, long flag=0, unsigned long precision=0):
+        """
+        nu.besselk(x, flag=0): K-Bessel function (modified Bessel function
+        of the second kind) of index nu, which can be complex, and argument
+        x.
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        INPUT:
+
+
+        -  ``nu`` - a complex number
+
+        -  ``x`` - real number (positive or negative)
+
+        -  ``flag`` - default: 0 or 1: use hyperu (hyperu is
+           much slower for small x, and doesn't work for negative x).
+
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).besselk(3)
+            0.0455907718407551 + 0.0289192946582081*I
+
+        ::
+
+            sage: pari(2+i).besselk(-3)
+            -4.34870874986752 - 5.38744882697109*I
+
+        ::
+
+            sage: pari(2+i).besselk(300, flag=1)
+            3.74224603319728 E-132 + 2.49071062641525 E-134*I
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(kbessel(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def besseln(gen nu, x, unsigned long precision=0):
+        """
+        nu.besseln(x): Bessel N function (Spherical Bessel function of the
+        second kind) of index nu and argument x.
+
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(2+i).besseln(3)
+            -0.280775566958244 - 0.486708533223726*I
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(nbessel(nu.g, t0.g, prec_bits_to_words(precision)))
+
+    def cos(gen x, unsigned long precision=0):
+        """
+        The cosine function.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1.5).cos()
+            0.0707372016677029
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).cos()
+            0.833730025131149 - 0.988897705762865*I
+            sage: pari('x+O(x^8)').cos()
+            1 - 1/2*x^2 + 1/24*x^4 - 1/720*x^6 + 1/40320*x^8 + O(x^9)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gcos(x.g, prec_bits_to_words(precision)))
+
+    def cosh(gen x, unsigned long precision=0):
+        """
+        The hyperbolic cosine function.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1.5).cosh()
+            2.35240961524325
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).cosh()
+            0.833730025131149 + 0.988897705762865*I
+            sage: pari('x+O(x^8)').cosh()
+            1 + 1/2*x^2 + 1/24*x^4 + 1/720*x^6 + O(x^8)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gcosh(x.g, prec_bits_to_words(precision)))
+
+    def cotan(gen x, unsigned long precision=0):
+        """
+        The cotangent of x.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(5).cotan()
+            -0.295812915532746
+
+        Computing the cotangent of `\pi` doesn't raise an error,
+        but instead just returns a very large (positive or negative)
+        number.
+
+        ::
+
+            sage: x = RR(pi)
+            sage: pari(x).cotan()         # random
+            -8.17674825 E15
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gcotan(x.g, prec_bits_to_words(precision)))
+
+    def dilog(gen x, unsigned long precision=0):
+        r"""
+        The principal branch of the dilogarithm of `x`, i.e. the
+        analytic continuation of the power series
+        `\log_2(x) = \sum_{n>=1} x^n/n^2`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).dilog()
+            1.64493406684823
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).dilog()
+            0.616850275068085 + 1.46036211675312*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(dilog(x.g, prec_bits_to_words(precision)))
+
+    def eint1(gen x, long n=0, unsigned long precision=0):
+        r"""
+        x.eint1(n): exponential integral E1(x):
+
+        .. math::
+
+                         \int_{x}^{\infty} \frac{e^{-t}}{t} dt
+
+
+        If n is present, output the vector [eint1(x), eint1(2\*x), ...,
+        eint1(n\*x)]. This is faster than repeatedly calling eint1(i\*x).
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        REFERENCE:
+
+        - See page 262, Prop 5.6.12, of Cohen's book "A Course in
+          Computational Algebraic Number Theory".
+
+        EXAMPLES:
+        """
+        pari_catch_sig_on()
+        if n <= 0:
+            return P.new_gen(eint1(x.g, prec_bits_to_words(precision)))
+        else:
+            return P.new_gen(veceint1(x.g, stoi(n), prec_bits_to_words(precision)))
+
+    def erfc(gen x, unsigned long precision=0):
+        r"""
+        Return the complementary error function:
+
+        .. math::
+
+            (2/\sqrt{\pi}) \int_{x}^{\infty} e^{-t^2} dt.
+
+
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).erfc()
+            0.157299207050285
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gerfc(x.g, prec_bits_to_words(precision)))
+
+    def eta(gen x, long flag=0, unsigned long precision=0):
+        r"""
+        x.eta(flag=0): if flag=0, `\eta` function without the
+        `q^{1/24}`; otherwise `\eta` of the complex number
+        `x` in the upper half plane intelligently computed using
+        `\mathrm{SL}(2,\ZZ)` transformations.
+
+        DETAILS: This functions computes the following. If the input
+        `x` is a complex number with positive imaginary part, the
+        result is `\prod_{n=1}^{\infty} (q-1^n)`, where
+        `q=e^{2 i \pi x}`. If `x` is a power series
+        (or can be converted to a power series) with positive valuation,
+        the result is `\prod_{n=1}^{\infty} (1-x^n)`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(i).eta()
+            0.998129069925959
+        """
+        pari_catch_sig_on()
+        if flag == 1:
+            return P.new_gen(trueeta(x.g, prec_bits_to_words(precision)))
+        return P.new_gen(eta(x.g, prec_bits_to_words(precision)))
+
+    def exp(gen self, unsigned long precision=0):
+        """
+        x.exp(): exponential of x.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0).exp()
+            1.00000000000000
+            sage: pari(1).exp()
+            2.71828182845905
+            sage: pari('x+O(x^8)').exp()
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + 1/5040*x^7 + O(x^8)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gexp(self.g, prec_bits_to_words(precision)))
+
+    def gamma(gen s, unsigned long precision=0):
+        """
+        s.gamma(precision): Gamma function at s.
+
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).gamma()
+            1.00000000000000
+            sage: pari(5).gamma()
+            24.0000000000000
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).gamma()
+            0.498015668118356 - 0.154949828301811*I
+
+        TESTS::
+
+            sage: pari(-1).gamma()
+            Traceback (most recent call last):
+            ...
+            PariError: domain error in gamma: argument = non-positive integer
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ggamma(s.g, prec_bits_to_words(precision)))
+
+    def gammah(gen s, unsigned long precision=0):
+        """
+        s.gammah(): Gamma function evaluated at the argument x+1/2.
+
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).gammah()
+            1.32934038817914
+            sage: pari(5).gammah()
+            52.3427777845535
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).gammah()
+            0.575315188063452 + 0.0882106775440939*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ggammah(s.g, prec_bits_to_words(precision)))
+
+    def hyperu(gen a, b, x, unsigned long precision=0):
+        r"""
+        a.hyperu(b,x): U-confluent hypergeometric function.
+
+        If `a`, `b`, or `x` is an exact argument,
+        it is first converted to a real or complex number using the
+        optional parameter precision (in bits). If the arguments are
+        inexact (e.g. real), the smallest of their precisions is used in
+        the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).hyperu(2,3)
+            0.333333333333333
+        """
+        cdef gen t0 = objtogen(b)
+        cdef gen t1 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(hyperu(a.g, t0.g, t1.g, prec_bits_to_words(precision)))
+
+    def incgam(gen s, x, y=None, unsigned long precision=0):
+        r"""
+        s.incgam(x, y, precision): incomplete gamma function. y is optional
+        and is the precomputed value of gamma(s).
+
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).incgam(3-i)
+            -0.0458297859919946 + 0.0433696818726677*I
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(incgam(s.g, t0.g, prec_bits_to_words(precision)))
+        else:
+            t1 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(incgam0(s.g, t0.g, t1.g, prec_bits_to_words(precision)))
+
+    def incgamc(gen s, x, unsigned long precision=0):
+        r"""
+        s.incgamc(x): complementary incomplete gamma function.
+
+        The arguments `x` and `s` are complex numbers such
+        that `s` is not a pole of `\Gamma` and
+        `|x|/(|s|+1)` is not much larger than `1`
+        (otherwise, the convergence is very slow). The function returns the
+        value of the integral
+        `\int_{0}^{x} e^{-t} t^{s-1} dt.`
+
+        If `s` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).incgamc(2)
+            0.864664716763387
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(incgamc(s.g, t0.g, prec_bits_to_words(precision)))
+
+    def log(gen x, unsigned long precision=0):
+        r"""
+        x.log(): natural logarithm of x.
+
+        This function returns the principal branch of the natural logarithm
+        of `x`, i.e., the branch such that
+        `\Im(\log(x)) \in ]-\pi, \pi].` The result is
+        complex (with imaginary part equal to `\pi`) if
+        `x\in \RR` and `x<0`. In general, the algorithm uses
+        the formula
+
+        .. math::
+
+                         \log(x) \simeq \frac{\pi}{2{\rm agm}(1,4/s)} - m\log(2),
+
+
+        if `s=x 2^m` is large enough. (The result is exact to
+        `B` bits provided that `s>2^{B/2}`.) At low
+        accuracies, this function computes `\log` using the series
+        expansion near `1`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        Note that `p`-adic arguments can also be given as input,
+        with the convention that `\log(p)=0`. Hence, in particular,
+        `\exp(\log(x))/x` is not in general equal to `1`
+        but instead to a `(p-1)`-st root of unity (or
+        `\pm 1` if `p=2`) times a power of `p`.
+
+        EXAMPLES::
+
+            sage: pari(5).log()
+            1.60943791243410
+            sage: C.<i> = ComplexField()
+            sage: pari(i).log()
+            0.E-19 + 1.57079632679490*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(glog(x.g, prec_bits_to_words(precision)))
+
+    def lngamma(gen x, unsigned long precision=0):
+        r"""
+        Alias for :meth:`log_gamma`.
+
+        EXAMPLES::
+
+            sage: pari(100).lngamma()
+            359.134205369575
+        """
+        return x.log_gamma(precision)
+
+    def log_gamma(gen x, unsigned long precision=0):
+        r"""
+        Logarithm of the gamma function of x.
+
+        This function returns the principal branch of the logarithm of the
+        gamma function of `x`. The function
+        `\log(\Gamma(x))` is analytic on the complex plane with
+        non-positive integers removed. This function can have much larger
+        inputs than `\Gamma` itself.
+
+        The `p`-adic analogue of this function is unfortunately not
+        implemented.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(100).log_gamma()
+            359.134205369575
+        """
+        pari_catch_sig_on()
+        return P.new_gen(glngamma(x.g, prec_bits_to_words(precision)))
+
+    def polylog(gen x, long m, long flag=0, unsigned long precision=0):
+        """
+        x.polylog(m,flag=0): m-th polylogarithm of x. flag is optional, and
+        can be 0: default, 1: D_m -modified m-th polylog of x, 2:
+        D_m-modified m-th polylog of x, 3: P_m-modified m-th polylog of
+        x.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        TODO: Add more explanation, copied from the PARI manual.
+
+        EXAMPLES::
+
+            sage: pari(10).polylog(3)
+            5.64181141475134 - 8.32820207698027*I
+            sage: pari(10).polylog(3,0)
+            5.64181141475134 - 8.32820207698027*I
+            sage: pari(10).polylog(3,1)
+            0.523778453502411
+            sage: pari(10).polylog(3,2)
+            -0.400459056163451
+        """
+        pari_catch_sig_on()
+        return P.new_gen(polylog0(m, x.g, flag, prec_bits_to_words(precision)))
+
+    def psi(gen x, unsigned long precision=0):
+        r"""
+        x.psi(): psi-function at x.
+
+        Return the `\psi`-function of `x`, i.e., the
+        logarithmic derivative `\Gamma'(x)/\Gamma(x)`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).psi()
+            -0.577215664901533
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gpsi(x.g, prec_bits_to_words(precision)))
+
+    def sin(gen x, unsigned long precision=0):
+        """
+        x.sin(): The sine of x.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).sin()
+            0.841470984807897
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).sin()
+            1.29845758141598 + 0.634963914784736*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gsin(x.g, prec_bits_to_words(precision)))
+
+    def sinh(gen x, unsigned long precision=0):
+        """
+        The hyperbolic sine function.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0).sinh()
+            0.E-19
+            sage: C.<i> = ComplexField()
+            sage: pari(1+i).sinh()
+            0.634963914784736 + 1.29845758141598*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gsinh(x.g, prec_bits_to_words(precision)))
+
+    def sqr(gen x):
+        """
+        x.sqr(): square of x. Faster than, and most of the time (but not
+        always - see the examples) identical to x\*x.
+
+        EXAMPLES::
+
+            sage: pari(2).sqr()
+            4
+
+        For `2`-adic numbers, x.sqr() may not be identical to x\*x
+        (squaring a `2`-adic number increases its precision)::
+
+            sage: pari("1+O(2^5)").sqr()
+            1 + O(2^6)
+            sage: pari("1+O(2^5)")*pari("1+O(2^5)")
+            1 + O(2^5)
+
+        However::
+
+            sage: x = pari("1+O(2^5)"); x*x
+            1 + O(2^6)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gsqr(x.g))
+
+
+    def sqrt(gen x, unsigned long precision=0):
+        """
+        x.sqrt(precision): The square root of x.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).sqrt()
+            1.41421356237310
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gsqrt(x.g, prec_bits_to_words(precision)))
+
+    def sqrtint(gen x):
+        r"""
+        Return the integer square root of the integer `x`, rounded
+        towards zero.
+
+        EXAMPLES::
+
+            sage: pari(8).sqrtint()
+            2
+            sage: pari(10^100).sqrtint()
+            100000000000000000000000000000000000000000000000000
+        """
+        pari_catch_sig_on()
+        return P.new_gen(sqrtint(x.g))
+
+    def sqrtn(gen x, n, unsigned long precision=0):
+        r"""
+        x.sqrtn(n): return the principal branch of the n-th root of x,
+        i.e., the one such that
+        `\arg(\sqrt(x)) \in ]-\pi/n, \pi/n]`. Also returns a second
+        argument which is a suitable root of unity allowing one to recover
+        all the other roots. If it was not possible to find such a number,
+        then this second return value is 0. If the argument is present and
+        no square root exists, return 0 instead of raising an error.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        .. note::
+
+           intmods (modulo a prime) and `p`-adic numbers are
+           allowed as arguments.
+
+        INPUT:
+
+
+        -  ``x`` - gen
+
+        -  ``n`` - integer
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - principal n-th root of x
+
+        -  ``gen`` - root of unity z that gives the other
+           roots
+
+
+        EXAMPLES::
+
+            sage: s, z = pari(2).sqrtn(5)
+            sage: z
+            0.309016994374947 + 0.951056516295154*I
+            sage: s
+            1.14869835499704
+            sage: s^5
+            2.00000000000000
+            sage: z^5
+            1.00000000000000 - 2.710505431 E-20*I       # 32-bit
+            1.00000000000000 - 2.71050543121376 E-20*I  # 64-bit
+            sage: (s*z)^5
+            2.00000000000000 + 0.E-19*I
+        """
+        # TODO: ???  lots of good examples in the PARI docs ???
+        cdef GEN zetan
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        ans = P.new_gen_noclear(gsqrtn(x.g, t0.g, &zetan, prec_bits_to_words(precision)))
+        return ans, P.new_gen(zetan)
+
+    def tan(gen x, unsigned long precision=0):
+        """
+        x.tan() - tangent of x
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(2).tan()
+            -2.18503986326152
+            sage: C.<i> = ComplexField()
+            sage: pari(i).tan()
+            0.761594155955765*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gtan(x.g, prec_bits_to_words(precision)))
+
+    def tanh(gen x, unsigned long precision=0):
+        """
+        x.tanh() - hyperbolic tangent of x
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(1).tanh()
+            0.761594155955765
+            sage: C.<i> = ComplexField()
+            sage: z = pari(i); z
+            1.00000000000000*I
+            sage: result = z.tanh()
+            sage: result.real() <= 1e-18
+            True
+            sage: result.imag()
+            1.55740772465490
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gtanh(x.g, prec_bits_to_words(precision)))
+
+    def teichmuller(gen x):
+        r"""
+        teichmuller(x): teichmuller character of p-adic number x.
+
+        This is the unique `(p-1)`-st root of unity congruent to
+        `x/p^{v_p(x)}` modulo `p`.
+
+        EXAMPLES::
+
+            sage: pari('2+O(7^5)').teichmuller()
+            2 + 4*7 + 6*7^2 + 3*7^3 + O(7^5)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(teich(x.g))
+
+    def theta(gen q, z, unsigned long precision=0):
+        """
+        q.theta(z): Jacobi sine theta-function.
+
+        If `q` or `z` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0.5).theta(2)
+            1.63202590295260
+        """
+        cdef gen t0 = objtogen(z)
+        pari_catch_sig_on()
+        return P.new_gen(theta(q.g, t0.g, prec_bits_to_words(precision)))
+
+    def thetanullk(gen q, long k, unsigned long precision=0):
+        """
+        q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z).
+
+        If `q` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `q` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        EXAMPLES::
+
+            sage: pari(0.5).thetanullk(1)
+            0.548978532560341
+        """
+        pari_catch_sig_on()
+        return P.new_gen(thetanullk(q.g, k, prec_bits_to_words(precision)))
+
+    def weber(gen x, long flag=0, unsigned long precision=0):
+        r"""
+        x.weber(flag=0): One of Weber's f functions of x. flag is optional,
+        and can be 0: default, function
+        f(x)=exp(-i\*Pi/24)\*eta((x+1)/2)/eta(x) such that
+        `j=(f^{24}-16)^3/f^{24}`, 1: function f1(x)=eta(x/2)/eta(x)
+        such that `j=(f1^24+16)^3/f2^{24}`, 2: function
+        f2(x)=sqrt(2)\*eta(2\*x)/eta(x) such that
+        `j=(f2^{24}+16)^3/f2^{24}`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        TODO: Add further explanation from PARI manual.
+
+        EXAMPLES::
+
+            sage: C.<i> = ComplexField()
+            sage: pari(i).weber()
+            1.18920711500272
+            sage: pari(i).weber(1)
+            1.09050773266526
+            sage: pari(i).weber(2)
+            1.09050773266526
+        """
+        pari_catch_sig_on()
+        return P.new_gen(weber0(x.g, flag, prec_bits_to_words(precision)))
+
+    def zeta(gen s, unsigned long precision=0):
+        """
+        zeta(s): zeta function at s with s a complex or a p-adic number.
+
+        If `s` is a complex number, this is the Riemann zeta
+        function `\zeta(s)=\sum_{n\geq 1} n^{-s}`, computed either
+        using the Euler-Maclaurin summation formula (if `s` is not
+        an integer), or using Bernoulli numbers (if `s` is a
+        negative integer or an even nonnegative integer), or using modular
+        forms (if `s` is an odd nonnegative integer).
+
+        If `s` is a `p`-adic number, this is the
+        Kubota-Leopoldt zeta function, i.e. the unique continuous
+        `p`-adic function on the `p`-adic integers that
+        interpolates the values of `(1-p^{-k})\zeta(k)` at negative
+        integers `k` such that `k\equiv 1\pmod{p-1}` if
+        `p` is odd, and at odd `k` if `p=2`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
+        used in the computation, and the parameter precision is ignored.
+
+        INPUT:
+
+
+        -  ``s`` - gen (real, complex, or p-adic number)
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - value of zeta at s.
+
+
+        EXAMPLES::
+
+            sage: pari(2).zeta()
+            1.64493406684823
+            sage: x = RR(pi)^2/6
+            sage: pari(x)
+            1.64493406684823
+            sage: pari(3).zeta()
+            1.20205690315959
+            sage: pari('1+5*7+2*7^2+O(7^3)').zeta()
+            4*7^-2 + 5*7^-1 + O(7^0)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(gzeta(s.g, prec_bits_to_words(precision)))
+
+    ###########################################
+    # 4: NUMBER THEORETICAL functions
+    ###########################################
+
+    def binomial(gen x, long k):
+        """
+        binomial(x, k): return the binomial coefficient "x choose k".
+
+        INPUT:
+
+
+        -  ``x`` - any PARI object (gen)
+
+        -  ``k`` - integer
+
+
+        EXAMPLES::
+
+            sage: pari(6).binomial(2)
+            15
+            sage: pari('x+1').binomial(3)
+            1/6*x^3 - 1/6*x
+            sage: pari('2+x+O(x^2)').binomial(3)
+            1/3*x + O(x^2)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(binomial(x.g, k))
+
+    def ffgen(gen T, v=-1):
+        r"""
+        Return the generator `g=x \bmod T` of the finite field defined
+        by the polynomial `T`.
+
+        INPUT:
+
+        - ``T`` -- a gen of type t_POL with coefficients of type t_INTMOD:
+                   a polynomial over a prime finite field
+
+        - ``v`` -- string: a variable name or -1 (optional)
+
+        If `v` is a string, then `g` will be a polynomial in `v`, else the
+        variable of the polynomial `T` is used.
+
+        EXAMPLES::
+
+            sage: x = GF(2)['x'].gen()
+            sage: pari(x^2+x+2).ffgen()
+            x
+            sage: pari(x^2+x+1).ffgen('a')
+            a
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ffgen(T.g, P.get_var(v)))
+
+    def ffinit(gen p, long n, v=-1):
+        r"""
+        Return a monic irreducible polynomial `g` of degree `n` over the
+        finite field of `p` elements.
+
+        INPUT:
+
+        - ``p`` -- a gen of type t_INT: a prime number
+
+        - ``n`` -- integer: the degree of the polynomial
+
+        - ``v`` -- string: a variable name or -1 (optional)
+
+        If `v \geq 0', then `g` will be a polynomial in `v`, else the
+        variable `x` is used.
+
+        EXAMPLES::
+
+            sage: pari(7).ffinit(11)
+            Mod(1, 7)*x^11 + Mod(1, 7)*x^10 + Mod(4, 7)*x^9 + Mod(5, 7)*x^8 + Mod(1, 7)*x^7 + Mod(1, 7)*x^2 + Mod(1, 7)*x + Mod(6, 7)
+            sage: pari(2003).ffinit(3)
+            Mod(1, 2003)*x^3 + Mod(1, 2003)*x^2 + Mod(1993, 2003)*x + Mod(1995, 2003)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ffinit(p.g, n, P.get_var(v)))
+
+    def fflog(gen self, g, o=None):
+        r"""
+        Return the discrete logarithm of the finite field element
+        ``self`` in base `g`.
+
+        INPUT:
+
+        - ``self`` -- a PARI finite field element (``FFELT``) in the
+          multiplicative group generated by `g`.
+
+        - ``g`` -- the base of the logarithm as a PARI finite field
+          element (``FFELT``). If `o` is ``None``, this must be a
+          generator of the parent finite field.
+
+        - ``o`` -- either ``None`` (then `g` must a primitive root)
+          or the order of `g` or a tuple ``(o, o.factor())``.
+
+        OUTPUT:
+
+        - An integer `n` such that ``self = g^n``.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^12)
+            sage: g = pari(a).ffprimroot()
+            sage: (g^1234).fflog(g)
+            1234
+            sage: pari(k(1)).fflog(g)
+            0
+
+        This element does not generate the full multiplicative group::
+
+            sage: b = g^5
+            sage: ord = b.fforder(); ord
+            819
+            sage: (b^555).fflog(b, ord)
+            555
+            sage: (b^555).fflog(b, (ord, ord.factor()) )
+            555
+        """
+        cdef gen t0 = objtogen(g)
+        cdef gen t1
+        if o is None:
+            pari_catch_sig_on()
+            return P.new_gen(fflog(self.g, t0.g, NULL))
+        else:
+            t1 = objtogen(o)
+            pari_catch_sig_on()
+            return P.new_gen(fflog(self.g, t0.g, t1.g))
+
+    def fforder(gen self, o=None):
+        r"""
+        Return the multiplicative order of the finite field element
+        ``self``.
+
+        INPUT:
+
+        - ``self`` -- a PARI finite field element (``FFELT``).
+
+        - ``o`` -- either ``None`` or a multiple of the order of `o`
+          or a tuple ``(o, o.factor())``.
+
+        OUTPUT:
+
+        - The smallest positive integer `n` such that ``self^n = 1``.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(5^80)
+            sage: g = pari(a).ffprimroot()
+            sage: g.fforder()
+            82718061255302767487140869206996285356581211090087890624
+            sage: g.fforder( (5^80-1, factor(5^80-1)) )
+            82718061255302767487140869206996285356581211090087890624
+            sage: k(2)._pari_().fforder(o=4)
+            4
+        """
+        cdef gen t0
+        if o is None:
+            pari_catch_sig_on()
+            return P.new_gen(fforder(self.g, NULL))
+        else:
+            t0 = objtogen(o)
+            pari_catch_sig_on()
+            return P.new_gen(fforder(self.g, t0.g))
+
+    def ffprimroot(gen self):
+        r"""
+        Return a primitive root of the multiplicative group of the
+        definition field of the given finite field element.
+
+        INPUT:
+
+        - ``self`` -- a PARI finite field element (``FFELT``)
+
+        OUTPUT:
+
+        - A generator of the multiplicative group of the finite field
+          generated by ``self``.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(3))
+            sage: k.<a> = GF(9, modulus=x^2+1)
+            sage: b = pari(a).ffprimroot()
+            sage: b  # random
+            a + 1
+            sage: b.fforder()
+            8
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ffprimroot(self.g, NULL))
+
+    def fibonacci(gen x):
+        r"""
+        Return the Fibonacci number of index x.
+
+        EXAMPLES::
+
+            sage: pari(18).fibonacci()
+            2584
+            sage: [pari(n).fibonacci() for n in range(10)]
+            [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(fibo(long(x)))
+
+    def gcd(gen x, y=None):
+        """
+        Return the greatest common divisor of `x` and `y`.
+
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        greatest common divisor of its components is returned.
+
+        EXAMPLES::
+
+            sage: pari(10).gcd(15)
+            5
+            sage: pari([5, 'y']).gcd()
+            1
+            sage: pari(['x', x^2]).gcd()
+            x
+
+        """
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, t0.g))
+
+    def issquare(gen x, find_root=False):
+        """
+        issquare(x,n): ``True`` if x is a square, ``False`` if not. If
+        ``find_root`` is given, also returns the exact square root.
+        """
+        cdef GEN G
+        cdef long t
+        cdef gen g
+        pari_catch_sig_on()
+        if find_root:
+            t = itos(gissquareall(x.g, &G))
+            if t:
+                return True, P.new_gen(G)
+            else:
+                P.clear_stack()
+                return False, None
+        else:
+            t = itos(gissquare(x.g))
+            pari_catch_sig_off()
+            return t != 0
+
+    def issquarefree(gen self):
+        """
+        EXAMPLES::
+
+            sage: pari(10).issquarefree()
+            True
+            sage: pari(20).issquarefree()
+            False
+        """
+        pari_catch_sig_on()
+        cdef long t = issquarefree(self.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def lcm(gen x, y=None):
+        """
+        Return the least common multiple of `x` and `y`.
+
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        least common multiple of its components is returned.
+
+        EXAMPLES::
+
+            sage: pari(10).lcm(15)
+            30
+            sage: pari([5, 'y']).lcm()
+            5*y
+            sage: pari([10, 'x', x^2]).lcm()
+            10*x^2
+
+        """
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, t0.g))
+
+    def numdiv(gen n):
+        """
+        Return the number of divisors of the integer n.
+
+        EXAMPLES::
+
+            sage: pari(10).numdiv()
+            4
+        """
+        pari_catch_sig_on()
+        return P.new_gen(numdiv(n.g))
+
+    def phi(gen n):
+        """
+        Return the Euler phi function of n.
+
+        EXAMPLES::
+
+            sage: pari(10).phi()
+            4
+        """
+        pari_catch_sig_on()
+        return P.new_gen(eulerphi(n.g))
+
+    def primepi(gen self):
+        """
+        Return the number of primes less than or equal to self.
+
+        EXAMPLES::
+
+            sage: pari(7).primepi()
+            4
+            sage: pari(100).primepi()
+            25
+            sage: pari(1000).primepi()
+            168
+            sage: pari(100000).primepi()
+            9592
+            sage: pari(0).primepi()
+            0
+            sage: pari(-15).primepi()
+            0
+            sage: pari(500509).primepi()
+            41581
+        """
+        pari_catch_sig_on()
+        if self > P._primelimit():
+            P.init_primes(self + 10)
+        if signe(self.g) != 1:
+            pari_catch_sig_off()
+            return P.PARI_ZERO
+        return P.new_gen(primepi(self.g))
+
+    def sumdiv(gen n):
+        """
+        Return the sum of the divisors of `n`.
+
+        EXAMPLES::
+
+            sage: pari(10).sumdiv()
+            18
+        """
+        pari_catch_sig_on()
+        return P.new_gen(sumdiv(n.g))
+
+    def sumdivk(gen n, long k):
+        """
+        Return the sum of the k-th powers of the divisors of n.
+
+        EXAMPLES::
+
+            sage: pari(10).sumdivk(2)
+            130
+        """
+        pari_catch_sig_on()
+        return P.new_gen(sumdivk(n.g, k))
+
+    def Zn_issquare(gen self, n):
+        """
+        Return ``True`` if ``self`` is a square modulo `n`, ``False``
+        if not.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_issquare(4)
+            False
+            sage: pari(4).Zn_issquare(30.factor())
+            True
+
+        """
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        cdef long t = Zn_issquare(self.g, t0.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def Zn_sqrt(gen self, n):
+        """
+        Return a square root of ``self`` modulo `n`, if such a square
+        root exists; otherwise, raise a ``ValueError``.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_sqrt(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a square modulo 4
+            sage: pari(4).Zn_sqrt(30.factor())
+            22
+
+        """
+        cdef gen t0 = objtogen(n)
+        cdef GEN s
+        pari_catch_sig_on()
+        s = Zn_sqrt(self.g, t0.g)
+        if s == NULL:
+            pari_catch_sig_off()
+            raise ValueError("%s is not a square modulo %s" % (self, n))
+        return P.new_gen(s)
+
+
+    ##################################################
+    # 5: Elliptic curve functions
+    ##################################################
+
+    def ellinit(self, long flag=-1, unsigned long precision=0):
+        """
+        Return the PARI elliptic curve object with Weierstrass coefficients
+        given by self, a list with 5 elements.
+
+        INPUT:
+
+
+        -  ``self`` -- a list of 5 coefficients
+
+        -  ``flag`` -- ignored (for backwards compatibility)
+
+        -  ``precision (optional, default: 0)`` - the real
+           precision to be used in the computation of the components of the
+           PARI (s)ell structure; if 0, use the default 64 bits.
+
+           .. note::
+
+              The parameter ``precision`` in ``ellinit`` controls not
+              only the real precision of the resulting (s)ell structure,
+              but in some cases also the precision of most subsequent
+              computations with this elliptic curve (if those rely on
+              the precomputations done by ``ellinit``).  You should
+              therefore set the precision from the start to the value
+              you require.
+
+        OUTPUT:
+
+        -  ``gen`` -- a PARI ell structure.
+
+        EXAMPLES:
+
+        An elliptic curve with integer coefficients::
+
+            sage: e = pari([0,1,0,1,0]).ellinit(); e
+            [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, Vecsmall([1]), [Vecsmall([64, -1])], [0, 0, 0, 0, 0, 0, 0, 0]]
+
+        The coefficients can be any ring elements that convert to PARI::
+
+            sage: pari([0,1/2,0,-3/4,0]).ellinit()
+            [0, 1/2, 0, -3/4, 0, 2, -3/2, 0, -9/16, 40, -116, 117/4, 256000/117, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
+            sage: pari([0,0.5,0,-0.75,0]).ellinit()
+            [0, 0.500000000000000, 0, -0.750000000000000, 0, 2.00000000000000, -1.50000000000000, 0, -0.562500000000000, 40.0000000000000, -116.000000000000, 29.2500000000000, 2188.03418803419, Vecsmall([0]), [Vecsmall([64, 1])], [0, 0, 0, 0]]
+            sage: pari([0,I,0,1,0]).ellinit()
+            [0, I, 0, 1, 0, 4*I, 2, 0, -1, -64, 352*I, -80, 16384/5, Vecsmall([0]), [Vecsmall([64, 0])], [0, 0, 0, 0]]
+            sage: pari([0,x,0,2*x,1]).ellinit()
+            [0, x, 0, 2*x, 1, 4*x, 4*x, 4, -4*x^2 + 4*x, 16*x^2 - 96*x, -64*x^3 + 576*x^2 - 864, 64*x^4 - 576*x^3 + 576*x^2 - 432, (256*x^6 - 4608*x^5 + 27648*x^4 - 55296*x^3)/(4*x^4 - 36*x^3 + 36*x^2 - 27), Vecsmall([0]), [Vecsmall([64, 0])], [0, 0, 0, 0]]
+        """
+        if flag != -1:
+            from sage.misc.superseded import deprecation
+            deprecation(16997, 'The flag argument to ellinit() is deprecated and not used anymore')
+        pari_catch_sig_on()
+        return P.new_gen(ellinit(self.g, NULL, prec_bits_to_words(precision)))
+
+    def ellglobalred(self):
+        """
+        Return information related to the global minimal model of the
+        elliptic curve e.
+
+        INPUT:
+
+        - ``e`` -- elliptic curve (returned by ellinit)
+
+        OUTPUT: A vector [N, [u,r,s,t], c, faN, L] with
+
+        - ``N`` - the (arithmetic) conductor of `e`
+
+        - ``[u,r,s,t]`` - a vector giving the coordinate change over
+           Q from e to its minimal integral model (see also ellminimalmodel)
+
+        - ``c`` - the product of the local Tamagawa numbers of `e`.
+
+        - ``faN`` is the factorization of `N`
+
+        - ``L[i]`` is ``elllocalred(E, faN[i,1])``
+
+        EXAMPLES::
+
+            sage: e = pari([0, 5, 2, -1, 1]).ellinit()
+            sage: e.ellglobalred()
+            [20144, [1, -2, 0, -1], 1, [2, 4; 1259, 1], [[4, 2, 0, 1], [1, 5, 0, 1]]]
+            sage: e = pari(EllipticCurve('17a').a_invariants()).ellinit()
+            sage: e.ellglobalred()
+            [17, [1, 0, 0, 0], 4, Mat([17, 1]), [[1, 8, 0, 4]]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ellglobalred(self.g))
+
+    def elladd(self, z0, z1):
+        """
+        e.elladd(z0, z1): return the sum of the points z0 and z1 on this
+        elliptic curve.
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve E
+
+        -  ``z0`` - point on E
+
+        -  ``z1`` - point on E
+
+
+        OUTPUT: point on E
+
+        EXAMPLES:
+
+        First we create an elliptic curve::
+
+            sage: e = pari([0, 1, 1, -2, 0]).ellinit()
+
+        Next we add two points on the elliptic curve. Notice that the
+        Python lists are automatically converted to PARI objects so you
+        don't have to do that explicitly in your code.
+
+        ::
+
+            sage: e.elladd([1,0], [-1,1])
+            [-3/4, -15/8]
+        """
+        cdef gen t0 = objtogen(z0)
+        cdef gen t1 = objtogen(z1)
+        pari_catch_sig_on()
+        return P.new_gen(elladd(self.g, t0.g, t1.g))
+
+    def ellak(self, n):
+        r"""
+        e.ellak(n): Returns the coefficient `a_n` of the
+        `L`-function of the elliptic curve e, i.e. the
+        `n`-th Fourier coefficient of the weight 2 newform
+        associated to e (according to Shimura-Taniyama).
+
+            The curve `e` *must* be a medium or long vector of the type
+            given by ellinit. For this function to work for every n and not
+            just those prime to the conductor, e must be a minimal Weierstrass
+            equation. If this is not the case, use the function ellminimalmodel
+            first before using ellak (or you will get INCORRECT RESULTS!)
+
+
+        INPUT:
+
+
+        -  ``e`` - a PARI elliptic curve.
+
+        -  ``n`` - integer.
+
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellak(6)
+            2
+            sage: e.ellak(2005)
+            2
+            sage: e.ellak(-1)
+            0
+            sage: e.ellak(0)
+            0
+        """
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        return P.new_gen(akell(self.g, t0.g))
+
+
+    def ellan(self, long n, python_ints=False):
+        """
+        Return the first `n` Fourier coefficients of the modular
+        form attached to this elliptic curve. See ellak for more details.
+
+        INPUT:
+
+
+        -  ``n`` - a long integer
+
+        -  ``python_ints`` - bool (default is False); if True,
+           return a list of Python ints instead of a PARI gen wrapper.
+
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellan(3)
+            [1, -2, -1]
+            sage: e.ellan(20)
+            [1, -2, -1, 2, 1, 2, -2, 0, -2, -2, 1, -2, 4, 4, -1, -4, -2, 4, 0, 2]
+            sage: e.ellan(-1)
+            []
+            sage: v = e.ellan(10, python_ints=True); v
+            [1, -2, -1, 2, 1, 2, -2, 0, -2, -2]
+            sage: type(v)
+            <type 'list'>
+            sage: type(v[0])
+            <type 'int'>
+        """
+        pari_catch_sig_on()
+        cdef GEN g
+        if python_ints:
+            g = anell(self.g, n)
+            v = [gtolong(<GEN> g[i+1]) for i in range(glength(g))]
+            P.clear_stack()
+            return v
+        else:
+            return P.new_gen(anell(self.g, n))
+
+    def ellanalyticrank(self, unsigned long precision=0):
+        r"""
+        Returns a 2-component vector with the order of vanishing at
+        `s = 1` of the L-function of the elliptic curve and the value
+        of the first non-zero derivative.
+
+        EXAMPLE::
+
+            sage: E = EllipticCurve('389a1')
+            sage: pari(E).ellanalyticrank()
+            [2, 1.51863300057685]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ellanalyticrank(self.g, <GEN>0, prec_bits_to_words(precision)))
+
+    def ellap(self, p=None):
+        r"""
+        Return the trace of Frobenius `a_p` for an elliptic curve
+        defined over `\QQ` or a finite field.
+
+        .. NOTE::
+
+          - For elliptic curves over `\QQ`, the trace of Frobenius
+            is also the `p`-th coefficient `a_p` of the `L`-function
+            attached to the elliptic curve.
+
+        .. SEEALSO::
+
+          - :meth:`ellcard` for directly computing the cardinality.
+
+        INPUT:
+
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
+
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
+
+        ALGORITHM: the Shanks--Mestre method, or the SEA algorithm.
+        In small characteristic, Harley's algorithm.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellap(2)
+            -2
+            sage: e.ellap(2003)
+            4
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: pari(E).ellap()
+            -4
+            sage: pari(E).ellap(13)
+            -4
+            sage: pari(E).ellap(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellap (t_INT)
+
+        Since PARI 2.7, curves over non-prime finite fields are also
+        accepted if the coefficients are ``t_FFELT``::
+
+            sage: k.<a> = GF(2^20, impl="pari_ffelt")
+            sage: E = EllipticCurve_from_j(a)
+            sage: pari(E).ellap()
+            -1643
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellap(self.g, NULL))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellap(self.g, t0.g))
+
+    def ellaplist(self, long n, python_ints=False):
+        r"""
+        e.ellaplist(n): Returns a PARI list of all the prime-indexed
+        coefficients `a_p` (up to n) of the `L`-function
+        of the elliptic curve `e`, i.e. the Fourier coefficients of
+        the newform attached to `e`.
+
+        INPUT:
+
+        - ``self`` -- an elliptic curve
+
+        - ``n`` -- a long integer
+
+        - ``python_ints`` -- bool (default is False); if True,
+          return a list of Python ints instead of a PARI gen wrapper.
+
+        .. WARNING::
+
+            The curve e must be a medium or long vector of the type given by
+            ellinit. For this function to work for every n and not just those
+            prime to the conductor, e must be a minimal Weierstrass equation.
+            If this is not the case, use the function ellminimalmodel first
+            before using ellaplist (or you will get INCORRECT RESULTS!)
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: v = e.ellaplist(10); v
+            [-2, -1, 1, -2]
+            sage: type(v)
+            <type 'sage.libs.pari.gen.gen'>
+            sage: v.type()
+            't_VEC'
+            sage: e.ellan(10)
+            [1, -2, -1, 2, 1, 2, -2, 0, -2, -2]
+            sage: v = e.ellaplist(10, python_ints=True); v
+            [-2, -1, 1, -2]
+            sage: type(v)
+            <type 'list'>
+            sage: type(v[0])
+            <type 'int'>
+
+        TESTS::
+
+            sage: v = e.ellaplist(1)
+            sage: print v, type(v)
+            [] <type 'sage.libs.pari.gen.gen'>
+            sage: v = e.ellaplist(1, python_ints=True)
+            sage: print v, type(v)
+            [] <type 'list'>
+        """
+        if python_ints:
+            return [int(x) for x in self.ellaplist(n)]
+
+        if n < 2:
+            pari_catch_sig_on()
+            return P.new_gen(zerovec(0))
+
+        # 1. Make a table of primes up to n.
+        P.init_primes(n+1)
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        cdef GEN g = primes(gtolong(primepi(t0.g)))
+
+        # 2. Replace each prime in the table by ellap of it.
+        cdef long i
+        for i from 0 <= i < glength(g):
+            set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
+        return P.new_gen(g)
+
+    def ellcard(self, p=None):
+        r"""
+        Return the number of points of the elliptic curve ``self`` over
+        `GF(q)`.
+
+        INPUT:
+
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
+
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
+
+        ALGORITHM: the Shanks--Mestre method, or the SEA algorithm.
+        In small characteristic, Harley's algorithm.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellcard(2)
+            5
+            sage: e.ellcard(2003)
+            2000
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: pari(E).ellcard()
+            18
+            sage: pari(E).ellcard(13)
+            18
+            sage: pari(E).ellcard(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellcard (t_INT)
+            sage: k.<a> = GF(2^20, impl="pari_ffelt")
+            sage: E = EllipticCurve_from_j(a)
+            sage: pari(E).ellcard()
+            1050220
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellcard(self.g, NULL))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellcard(self.g, t0.g))
+
+    def ellchangecurve(self, ch):
+        """
+        e.ellchangecurve(ch): return the new model (equation) for the
+        elliptic curve e given by the change of coordinates ch.
+
+        The change of coordinates is specified by a vector ch=[u,r,s,t]; if
+        `x'` and `y'` are the new coordinates, then
+        `x = u^2 x' + r` and `y = u^3 y' + su^2 x' + t`.
+
+        INPUT:
+
+        -  ``e`` - elliptic curve
+
+        -  ``ch`` - change of coordinates vector with 4
+           entries
+
+        EXAMPLES::
+
+            sage: e = pari([1,2,3,4,5]).ellinit()
+            sage: e.ellglobalred()
+            [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
+            sage: f = e.ellchangecurve([1,-1,0,-1])
+            sage: f[:5]
+            [1, -1, 0, 4, 3]
+        """
+        cdef gen t0 = objtogen(ch)
+        pari_catch_sig_on()
+        return P.new_gen(ellchangecurve(self.g, t0.g))
+
+    def elleta(self, unsigned long precision=0):
+        """
+        e.elleta(): return the vector [eta1,eta2] of quasi-periods
+        associated with the period lattice e.omega() of the elliptic curve
+        e.
+
+        EXAMPLES::
+
+            sage: e = pari([0,0,0,-82,0]).ellinit()
+            sage: e.elleta()
+            [3.60546360143265, 3.60546360143265*I]
+            sage: w1, w2 = e.omega()
+            sage: eta1, eta2 = e.elleta()
+            sage: w1*eta2 - w2*eta1
+            6.28318530717959*I
+        """
+        pari_catch_sig_on()
+        return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))
+
+    def ellgroup(gen self, p=None, long flag=0):
+        r"""
+        Return the group structure of `E(GF(q))`.
+
+        INPUT:
+
+        - ``self`` -- a PARI elliptic curve defined over `\QQ` or a
+          finite field.
+
+        - ``p`` -- (optional) a prime number `p` or ``None``. The prime
+          `p` needs only to be specified if the elliptic curve is
+          defined over `\QQ`.
+
+        - ``flag`` -- 0 or 1
+
+        OUTPUT:
+
+        - if ``flag`` equals 0: return `[d_1]` if the group is cyclic
+          of order `d_1` or `[d_1, d_2]` where `d_1` is a multiple of
+          `d_2` if the group is the product of two cyclic groups of
+          order `d_1` and `d_2`.
+
+        - if ``flag`` equals 1: return `[N, [d_1], [P]]` or
+          `[N, [d_1, d_2], [P,Q]]` where `d_1` and `d_2` are as for
+          ``flag = 0`` and P is a point of order `d_1`. If the group
+          is not cyclic, the points P and Q generate the group.
+
+        .. WARNING::
+
+            If the group is not cyclic, no guarantee is made about the
+            order of the point `Q`. The order is possibly a multiple of
+            `d_2`.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.ellgroup(2)
+            [5]
+            sage: e.ellgroup(2, flag=1)
+            [5, [5], [[Mod(0, 2), Mod(0, 2)]]]
+            sage: e.ellgroup(2003, flag=1)
+            [2000, [1000, 2], [[Mod(661, 2003), Mod(1356, 2003)], [Mod(557, 2003), Mod(344, 2003)]]]
+            sage: k = GF(13)
+            sage: E = EllipticCurve(k, [1,0])
+            sage: pari(E).ellgroup()
+            [10, 2]
+            sage: pari(E).ellgroup(13)
+            [10, 2]
+            sage: pari(E).ellgroup(23)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in ellgroup (t_INT)
+            sage: k.<a> = GF(2^8, impl="pari_ffelt")
+            sage: E = EllipticCurve(k, j=1)
+            sage: pari(E).ellgroup(flag=1)
+            [288, [96, 3], [[a^7 + a^6 + a^5 + a + 1, a^7 + a^6 + a^4 + a], [a^3 + 1, a^7 + a^6 + a^3 + a^2 + a + 1]]]
+        """
+        cdef gen t0
+        if p is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellgroup0(self.g, NULL, flag))
+        else:
+            t0 = objtogen(p)
+            pari_catch_sig_on()
+            return P.new_gen(ellgroup0(self.g, t0.g, flag))
+
+    def ellheight(self, a, b=None, long flag=-1, unsigned long precision=0):
+        """
+        Canonical height of point ``a`` on elliptic curve ``self``,
+        resp. the value of the associated bilinear form at ``(a,b)``.
+
+        INPUT:
+
+        - ``self``-- an elliptic curve over `\QQ`.
+
+        - ``a`` -- rational point on ``self``.
+
+        - ``b`` -- (optional) rational point on ``self``.
+
+        - ``precision (optional)`` -- the precision of the
+          result, in bits.
+
+        EXAMPLES::
+
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.ellheight([1,0])
+            0.476711659343740
+            sage: e.ellheight([1,0], precision=128).sage()
+            0.47671165934373953737948605888465305945902294218            # 32-bit
+            0.476711659343739537379486058884653059459022942211150879336  # 64-bit
+
+        Computing the bilinear form::
+
+            sage: e.ellheight([1, 0], [-1, 1])
+            0.418188984498861
+        """
+        if flag != -1:
+            from sage.misc.superseded import deprecation
+            deprecation(16997, 'The flag argument to ellheight() is deprecated and not used anymore')
+        cdef gen t0 = objtogen(a)
+        cdef gen t1
+        if b is None:
+            pari_catch_sig_on()
+            return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
+        else:
+            t1 = objtogen(b)
+            pari_catch_sig_on()
+            return P.new_gen(ellheight0(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
+
+    def ellheightmatrix(self, x, unsigned long precision=0):
+        """
+        e.ellheightmatrix(x): return the height matrix for the vector x of
+        points on the elliptic curve e.
+
+        In other words, it returns the Gram matrix of x with respect to the
+        height bilinear form on e (see ellbil).
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve over `\QQ`,
+           assumed to be in a standard minimal integral model (as given by
+           ellminimalmodel)
+
+        -  ``x`` - vector of rational points on e
+
+
+        EXAMPLES::
+
+            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
+            sage: e.ellheightmatrix([[1,0], [-1,1]])
+            [0.476711659343740, 0.418188984498861; 0.418188984498861, 0.686667083305587]
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(ellheightmatrix(self.g, t0.g, prec_bits_to_words(precision)))
+
+    def ellisoncurve(self, x):
+        """
+        e.ellisoncurve(x): return True if the point x is on the elliptic
+        curve e, False otherwise.
+
+        If the point or the curve have inexact coefficients, an attempt is
+        made to take this into account.
+
+        EXAMPLES::
+
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.ellisoncurve([1,0])
+            True
+            sage: e.ellisoncurve([1,1])
+            False
+            sage: e.ellisoncurve([1,0.00000000000000001])
+            False
+            sage: e.ellisoncurve([1,0.000000000000000001])
+            True
+            sage: e.ellisoncurve([0])
+            True
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        cdef int t = oncurve(self.g, t0.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def elllocalred(self, p):
+        r"""
+        e.elllocalred(p): computes the data of local reduction at the prime
+        p on the elliptic curve e
+
+        For more details on local reduction and Kodaira types, see IV.8 and
+        IV.9 in J. Silverman's book "Advanced topics in the arithmetic of
+        elliptic curves".
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve with coefficients in `\ZZ`
+
+        -  ``p`` - prime number
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - the exponent of p in the arithmetic
+           conductor of e
+
+        -  ``gen`` - the Kodaira type of e at p, encoded as an
+           integer:
+
+        -  ``1`` - type `I_0`: good reduction,
+           nonsingular curve of genus 1
+
+        -  ``2`` - type `II`: rational curve with a
+           cusp
+
+        -  ``3`` - type `III`: two nonsingular rational
+           curves intersecting tangentially at one point
+
+        -  ``4`` - type `IV`: three nonsingular
+           rational curves intersecting at one point
+
+        -  ``5`` - type `I_1`: rational curve with a
+           node
+
+        -  ``6 or larger`` - think of it as `4+v`, then
+           it is type `I_v`: `v` nonsingular rational curves
+           arranged as a `v`-gon
+
+        -  ``-1`` - type `I_0^*`: nonsingular rational
+           curve of multiplicity two with four nonsingular rational curves of
+           multiplicity one attached
+
+        -  ``-2`` - type `II^*`: nine nonsingular
+           rational curves in a special configuration
+
+        -  ``-3`` - type `III^*`: eight nonsingular
+           rational curves in a special configuration
+
+        -  ``-4`` - type `IV^*`: seven nonsingular
+           rational curves in a special configuration
+
+        -  ``-5 or smaller`` - think of it as `-4-v`,
+           then it is type `I_v^*`: chain of `v+1`
+           nonsingular rational curves of multiplicity two, with two
+           nonsingular rational curves of multiplicity one attached at either
+           end
+
+        -  ``gen`` - a vector with 4 components, giving the
+           coordinate changes done during the local reduction; if the first
+           component is 1, then the equation for e was already minimal at p
+
+        -  ``gen`` - the local Tamagawa number `c_p`
+
+
+        EXAMPLES:
+
+        Type `I_0`::
+
+            sage: e = pari([0,0,0,0,1]).ellinit()
+            sage: e.elllocalred(7)
+            [0, 1, [1, 0, 0, 0], 1]
+
+        Type `II`::
+
+            sage: e = pari(EllipticCurve('27a3').a_invariants()).ellinit()
+            sage: e.elllocalred(3)
+            [3, 2, [1, -1, 0, 1], 1]
+
+        Type `III`::
+
+            sage: e = pari(EllipticCurve('24a4').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, 3, [1, 1, 0, 1], 2]
+
+        Type `IV`::
+
+            sage: e = pari(EllipticCurve('20a2').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [2, 4, [1, 1, 0, 1], 3]
+
+        Type `I_1`::
+
+            sage: e = pari(EllipticCurve('11a2').a_invariants()).ellinit()
+            sage: e.elllocalred(11)
+            [1, 5, [1, 0, 0, 0], 1]
+
+        Type `I_2`::
+
+            sage: e = pari(EllipticCurve('14a4').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [1, 6, [1, 0, 0, 0], 2]
+
+        Type `I_6`::
+
+            sage: e = pari(EllipticCurve('14a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [1, 10, [1, 0, 0, 0], 2]
+
+        Type `I_0^*`::
+
+            sage: e = pari(EllipticCurve('32a3').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [5, -1, [1, 1, 1, 0], 1]
+
+        Type `II^*`::
+
+            sage: e = pari(EllipticCurve('24a5').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -2, [1, 2, 1, 4], 1]
+
+        Type `III^*`::
+
+            sage: e = pari(EllipticCurve('24a2').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -3, [1, 2, 1, 4], 2]
+
+        Type `IV^*`::
+
+            sage: e = pari(EllipticCurve('20a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [2, -4, [1, 0, 1, 2], 3]
+
+        Type `I_1^*`::
+
+            sage: e = pari(EllipticCurve('24a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -5, [1, 0, 1, 2], 4]
+
+        Type `I_6^*`::
+
+            sage: e = pari(EllipticCurve('90c2').a_invariants()).ellinit()
+            sage: e.elllocalred(3)
+            [2, -10, [1, 96, 1, 316], 4]
+        """
+        cdef gen t0 = objtogen(p)
+        pari_catch_sig_on()
+        return P.new_gen(elllocalred(self.g, t0.g))
+
+    def elllseries(self, s, A=1, unsigned long precision=0):
+        """
+        e.elllseries(s, A=1): return the value of the `L`-series of
+        the elliptic curve e at the complex number s.
+
+        This uses an `O(N^{1/2})` algorithm in the conductor N of
+        e, so it is impractical for large conductors (say greater than
+        `10^{12}`).
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve defined over `\QQ`
+
+        -  ``s`` - complex number
+
+        -  ``A (optional)`` - cutoff point for the integral,
+           which must be chosen close to 1 for best speed.
+
+
+        EXAMPLES::
+
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.elllseries(2.1)
+            0.402838047956645
+            sage: e.elllseries(1, precision=128)
+            2.98766720445395 E-38
+            sage: e.elllseries(1, precision=256)
+            5.48956813891054 E-77
+            sage: e.elllseries(-2)
+            0
+            sage: e.elllseries(2.1, A=1.1)
+            0.402838047956645
+        """
+        cdef gen t0 = objtogen(s)
+        cdef gen t1 = objtogen(A)
+        pari_catch_sig_on()
+        return P.new_gen(elllseries(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
+
+    def ellminimalmodel(self):
+        """
+        ellminimalmodel(e): return the standard minimal integral model of
+        the rational elliptic curve e and the corresponding change of
+        variables. INPUT:
+
+
+        -  ``e`` - gen (that defines an elliptic curve)
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - minimal model
+
+        -  ``gen`` - change of coordinates
+
+
+        EXAMPLES::
+
+            sage: e = pari([1,2,3,4,5]).ellinit()
+            sage: F, ch = e.ellminimalmodel()
+            sage: F[:5]
+            [1, -1, 0, 4, 3]
+            sage: ch
+            [1, -1, 0, -1]
+            sage: e.ellchangecurve(ch)[:5]
+            [1, -1, 0, 4, 3]
+        """
+        cdef GEN x, y
+        cdef gen model, change
+        cdef pari_sp t
+        pari_catch_sig_on()
+        x = ellminimalmodel(self.g, &y)
+        change = P.new_gen_noclear(y)
+        model = P.new_gen(x)
+        return model, change
+
+    def ellordinate(self, x, unsigned long precision=0):
+        """
+        e.ellordinate(x): return the `y`-coordinates of the points
+        on the elliptic curve e having x as `x`-coordinate.
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve
+
+        -  ``x`` - x-coordinate (can be a complex or p-adic
+           number, or a more complicated object like a power series)
+
+
+        EXAMPLES::
+
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.ellordinate(0)
+            [0, -1]
+            sage: e.ellordinate(I)
+            [0.582203589721741 - 1.38606082464177*I, -1.58220358972174 + 1.38606082464177*I]
+            sage: e.ellordinate(I, precision=128)[0].sage()
+            0.58220358972174117723338947874993600727 - 1.3860608246417697185311834209833653345*I
+            sage: e.ellordinate(1+3*5^1+O(5^3))
+            [4*5 + 5^2 + O(5^3), 4 + 3*5^2 + O(5^3)]
+            sage: e.ellordinate('z+2*z^2+O(z^4)')
+            [-2*z - 7*z^2 - 23*z^3 + O(z^4), -1 + 2*z + 7*z^2 + 23*z^3 + O(z^4)]
+
+        The field in which PARI looks for the point depends on the
+        input field::
+
+            sage: e.ellordinate(5)
+            []
+            sage: e.ellordinate(5.0)
+            [11.3427192823270, -12.3427192823270]
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(ellordinate(self.g, t0.g, prec_bits_to_words(precision)))
+
+    def ellpointtoz(self, pt, unsigned long precision=0):
+        """
+        e.ellpointtoz(pt): return the complex number (in the fundamental
+        parallelogram) corresponding to the point ``pt`` on the elliptic curve
+        e, under the complex uniformization of e given by the Weierstrass
+        p-function.
+
+        The complex number z returned by this function lies in the
+        parallelogram formed by the real and complex periods of e, as given
+        by e.omega().
+
+        EXAMPLES::
+
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e.ellpointtoz([0,0])
+            1.85407467730137
+
+        The point at infinity is sent to the complex number 0::
+
+            sage: e.ellpointtoz([0])
+            0
+        """
+        cdef gen t0 = objtogen(pt)
+        pari_catch_sig_on()
+        return P.new_gen(zell(self.g, t0.g, prec_bits_to_words(precision)))
+
+    def ellmul(self, z, n):
+        """
+        Return `n` times the point `z` on the elliptic curve `e`.
+
+        INPUT:
+
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - point on `e`
+
+        -  ``n`` - integer, or a complex quadratic integer of complex
+           multiplication for `e`. Complex multiplication currently
+           only works if `e` is defined over `Q`.
+
+        EXAMPLES: We consider a curve with CM by `Z[i]`::
+
+            sage: e = pari([0,0,0,3,0]).ellinit()
+            sage: p = [1,2]  # Point of infinite order
+
+        Multiplication by two::
+
+            sage: e.ellmul([0,0], 2)
+            [0]
+            sage: e.ellmul(p, 2)
+            [1/4, -7/8]
+
+        Complex multiplication::
+
+            sage: q = e.ellmul(p, 1+I); q
+            [-2*I, 1 + I]
+            sage: e.ellmul(q, 1-I)
+            [1/4, -7/8]
+
+        TESTS::
+
+            sage: for D in [-7, -8, -11, -12, -16, -19, -27, -28]:  # long time (1s)
+            ....:     hcpol = hilbert_class_polynomial(D)
+            ....:     j = hcpol.roots(multiplicities=False)[0]
+            ....:     t = (1728-j)/(27*j)
+            ....:     E = EllipticCurve([4*t,16*t^2])
+            ....:     P = E.point([0, 4*t])
+            ....:     assert(E.j_invariant() == j)
+            ....:     #
+            ....:     # Compute some CM number and its minimal polynomial
+            ....:     #
+            ....:     cm = pari('cm = (3*quadgen(%s)+2)'%D)
+            ....:     cm_minpoly = pari('minpoly(cm)')
+            ....:     #
+            ....:     # Evaluate cm_minpoly(cm)(P), which should be zero
+            ....:     #
+            ....:     e = pari(E)  # Convert E to PARI
+            ....:     P2 = e.ellmul(P, cm_minpoly[2]*cm + cm_minpoly[1])
+            ....:     P0 = e.elladd(e.ellmul(P, cm_minpoly[0]), e.ellmul(P2, cm))
+            ....:     assert(P0 == E(0))
+        """
+        cdef gen t0 = objtogen(z)
+        cdef gen t1 = objtogen(n)
+        pari_catch_sig_on()
+        return P.new_gen(ellmul(self.g, t0.g, t1.g))
+
+    def ellrootno(self, p=None):
+        """
+        Return the root number for the L-function of the elliptic curve
+        E/Q at a prime p (including 0, for the infinite place); return
+        the global root number if p is omitted.
+
+        INPUT:
+
+        -  ``e`` - elliptic curve over `\QQ`
+
+        -  ``p`` - a prime number or ``None``.
+
+        OUTPUT: 1 or -1
+
+        EXAMPLES: Here is a curve of rank 3::
+
+            sage: e = pari([0,0,0,-82,0]).ellinit()
+            sage: e.ellrootno()
+            -1
+            sage: e.ellrootno(2)
+            1
+            sage: e.ellrootno(1009)
+            1
+        """
+        cdef gen t0
+        cdef GEN g0
+        if p is None:
+            g0 = NULL
+        elif p == 1:
+            from sage.misc.superseded import deprecation
+            deprecation(15767, 'The argument p=1 in ellrootno() is deprecated, use p=None instead')
+            g0 = NULL
+        else:
+            t0 = objtogen(p)
+            g0 = t0.g
+        pari_catch_sig_on()
+        rootno = ellrootno(self.g, g0)
+        pari_catch_sig_off()
+        return rootno
+
+    def ellsigma(self, z, long flag=0, unsigned long precision=0):
+        """
+        e.ellsigma(z, flag=0): return the value at the complex point z of
+        the Weierstrass `\sigma` function associated to the
+        elliptic curve e.
+
+        EXAMPLES::
+
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: C.<i> = ComplexField()
+            sage: e.ellsigma(2+i)
+            1.43490215804166 + 1.80307856719256*I
+        """
+        cdef gen t0 = objtogen(z)
+        pari_catch_sig_on()
+        return P.new_gen(ellsigma(self.g, t0.g, flag, prec_bits_to_words(precision)))
+
+    def ellsub(self, z0, z1):
+        """
+        e.ellsub(z0, z1): return z0-z1 on this elliptic curve.
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve E
+
+        -  ``z0`` - point on E
+
+        -  ``z1`` - point on E
+
+
+        OUTPUT: point on E
+
+        EXAMPLES::
+
+            sage: e = pari([0, 1, 1, -2, 0]).ellinit()
+            sage: e.ellsub([1,0], [-1,1])
+            [0, 0]
+        """
+        cdef gen t0 = objtogen(z0)
+        cdef gen t1 = objtogen(z1)
+        pari_catch_sig_on()
+        return P.new_gen(ellsub(self.g, t0.g, t1.g))
+
+    def elltaniyama(self, long n=-1):
+        if n < 0:
+            n = P.get_series_precision()
+        pari_catch_sig_on()
+        return P.new_gen(elltaniyama(self.g, n))
+
+    def elltors(self, long flag=0):
+        """
+        e.elltors(flag = 0): return information about the torsion subgroup
+        of the elliptic curve e
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve over `\QQ`
+
+        -  ``flag (optional)`` - specify which algorithm to
+           use:
+
+        -  ``0 (default)`` - use Doud's algorithm: bound
+           torsion by computing the cardinality of e(GF(p)) for small primes
+           of good reduction, then look for torsion points using Weierstrass
+           parametrization and Mazur's classification
+
+        -  ``1`` - use algorithm given by the Nagell-Lutz
+           theorem (this is much slower)
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - the order of the torsion subgroup, a.k.a.
+           the number of points of finite order
+
+        -  ``gen`` - vector giving the structure of the torsion
+           subgroup as a product of cyclic groups, sorted in non-increasing
+           order
+
+        -  ``gen`` - vector giving points on e generating these
+           cyclic groups
+
+
+        EXAMPLES::
+
+            sage: e = pari([1,0,1,-19,26]).ellinit()
+            sage: e.elltors()
+            [12, [6, 2], [[1, 2], [3, -2]]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(elltors0(self.g, flag))
+
+    def ellzeta(self, z, unsigned long precision=0):
+        """
+        e.ellzeta(z): return the value at the complex point z of the
+        Weierstrass `\zeta` function associated with the elliptic
+        curve e.
+
+        .. note::
+
+           This function has infinitely many poles (one of which is at
+           z=0); attempting to evaluate it too close to one of the
+           poles will result in a PariError.
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - complex number
+
+
+        EXAMPLES::
+
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e.ellzeta(1)
+            1.06479841295883
+            sage: C.<i> = ComplexField()
+            sage: e.ellzeta(i-1)
+            -0.350122658523049 - 0.350122658523049*I
+        """
+        cdef gen t0 = objtogen(z)
+        pari_catch_sig_on()
+        return P.new_gen(ellzeta(self.g, t0.g, prec_bits_to_words(precision)))
+
+    def ellztopoint(self, z, unsigned long precision=0):
+        """
+        e.ellztopoint(z): return the point on the elliptic curve e
+        corresponding to the complex number z, under the usual complex
+        uniformization of e by the Weierstrass p-function.
+
+        INPUT:
+
+
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - complex number
+
+
+        OUTPUT point on e
+
+        EXAMPLES::
+
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: C.<i> = ComplexField()
+            sage: e.ellztopoint(1+i)
+            [0.E-... - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]
+
+        Complex numbers belonging to the period lattice of e are of course
+        sent to the point at infinity on e::
+
+            sage: e.ellztopoint(0)
+            [0]
+        """
+        cdef gen t0 = objtogen(z)
+        pari_catch_sig_on()
+        return P.new_gen(pointell(self.g, t0.g, prec_bits_to_words(precision)))
+
+    def omega(self, unsigned long precision=0):
+        """
+        e.omega(): return basis for the period lattice of the elliptic
+        curve e.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.omega()
+            [1.26920930427955, 0.634604652139777 - 1.45881661693850*I]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ellR_omega(self.g, prec_bits_to_words(precision)))
+
+    def disc(self):
+        """
+        e.disc(): return the discriminant of the elliptic curve e.
+
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.disc()
             -161051
             sage: _.factor()
             [-1, 1; 11, 5]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(member_disc(self.g))
+
+    def j(self):
+        """
+        e.j(): return the j-invariant of the elliptic curve e.
+
+        EXAMPLES::
+
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: e.j()
+            -122023936/161051
+            sage: _.factor()
+            [-1, 1; 2, 12; 11, -5; 31, 3]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(member_j(self.g))
+
+    def ellj(self, unsigned long precision=0):
+        """
+        Elliptic `j`-invariant of ``self``.
+
+        EXAMPLES::
+
+            sage: pari(I).ellj()
+            1728.00000000000
+            sage: pari(3*I).ellj()
+            153553679.396729
+            sage: pari('quadgen(-3)').ellj()
+            0.E-54
+            sage: pari('quadgen(-7)').ellj(precision=256).sage()
+            -3375.000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: pari(-I).ellj()
+            Traceback (most recent call last):
+            ...
+            PariError: domain error in modular function: Im(argument) <= 0
+        """
+        pari_catch_sig_on()
+        return P.new_gen(jell(self.g, prec_bits_to_words(precision)))
+
+
+    ###########################################
+    # 6: Functions related to NUMBER FIELDS
+    ###########################################
+    def bnfcertify(self):
+        r"""
+        ``bnf`` being as output by ``bnfinit``, checks whether the result is
+        correct, i.e. whether the calculation of the contents of ``self``
+        are correct without assuming the Generalized Riemann Hypothesis.
+        If it is correct, the answer is 1. If not, the program may output
+        some error message or loop indefinitely.
+
+        For more information about PARI and the Generalized Riemann
+        Hypothesis, see [PariUsers], page 120.
+
+        REFERENCES:
+
+        .. [PariUsers] User's Guide to PARI/GP,
+           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.7.0/users.pdf
+        """
+        pari_catch_sig_on()
+        n = bnfcertify(self.g)
+        pari_catch_sig_off()
+        return n
+
+    def bnfunit(self):
+        pari_catch_sig_on()
+        return P.new_gen(bnf_get_fu(self.g))
+
+    def bnrclassno(self, I):
+        r"""
+        Return the order of the ray class group of self modulo ``I``.
+
+        INPUT:
+
+        - ``self``: a pari "BNF" object representing a number field
+        - ``I``: a pari "BID" object representing an ideal of self
+
+        OUTPUT: integer
+
+        TESTS::
+
+            sage: K.<z> = QuadraticField(-23)
+            sage: p = K.primes_above(3)[0]
+            sage: K.pari_bnf().bnrclassno(p._pari_bid_())
+            3
+        """
+        cdef gen t0 = objtogen(I)
+        pari_catch_sig_on()
+        return P.new_gen(bnrclassno(self.g, t0.g))
+
+    def _eltabstorel(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POLMOD`` with ``t_POLMOD`` coefficients.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: f_abs = rnfeq[0]; f_abs
+            x^4 + 6*x^2 + 1
+            sage: x_rel = rnfeq._eltabstorel(x); x_rel
+            Mod(x + Mod(-y, y^2 + 1), x^2 + 2)
+            sage: f_abs(x_rel)
+            Mod(0, x^2 + 2)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel(self.g, t0.g))
+
+    def _eltabstorel_lift(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POL`` with ``t_POLMOD`` coefficients.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltabstorel_lift(x)
+            x + Mod(-y, y^2 + 1)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel_lift(self.g, t0.g))
+
+    def _eltreltoabs(self, x):
+        """
+        Return the absolute number field element corresponding to `x`.
+
+        The result is a ``t_POL``.
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltreltoabs` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltreltoabs(x)
+            1/2*x^3 + 7/2*x
+            sage: rnfeq._eltreltoabs('y')
+            1/2*x^3 + 5/2*x
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltreltoabs(self.g, t0.g))
+
+    def galoisinit(self, den=None):
+        """
+        Calculate the Galois group of ``self``.
+
+        This wraps the `galoisinit`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A number field or a polynomial.
+
+        - ``den`` -- If set, this must be a multiple of the least
+          common denominator of the automorphisms, expressed as
+          polynomials in a root of the defining polynomial.
+
+        OUTPUT:
+
+        An eight-tuple, represented as a GEN object,
+        with details about the Galois group of the number field.
+        For details see `the PARI manual <galoisinit_>`_.
+        Note that the element indices in Sage and PARI are
+        0-based and 1-based, respectively.
+
+        EXAMPLES::
+
+            sage: P = pari(x^6 + 108)
+            sage: G = P.galoisinit()
+            sage: G[0] == P
+            True
+            sage: len(G[5]) == prod(G[7])
+            True
+
+        .. _galoisinit: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisinit
+        """
+        cdef gen t0
+        if den is None:
+            pari_catch_sig_on()
+            return P.new_gen(galoisinit(self.g, NULL))
+        else:
+            t0 = objtogen(den)
+            pari_catch_sig_on()
+            return P.new_gen(galoisinit(self.g, t0.g))
+
+    def galoispermtopol(self, perm):
+        """
+        Return the polynomial defining the Galois automorphism ``perm``.
+
+        This wraps the `galoispermtopol`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``perm`` -- A permutation from that group,
+          or a vector or matrix of such permutations.
+
+        OUTPUT:
+
+        The defining polynomial of the specified automorphism.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoispermtopol(G[5])
+            [x, 1/12*x^4 - 1/2*x, -1/12*x^4 - 1/2*x, 1/12*x^4 + 1/2*x, -1/12*x^4 + 1/2*x, -x]
+            sage: G.galoispermtopol(G[5][1])
+            1/12*x^4 - 1/2*x
+            sage: G.galoispermtopol(G[5][1:4])
+            [1/12*x^4 - 1/2*x, -1/12*x^4 - 1/2*x, 1/12*x^4 + 1/2*x]
+
+        .. _galoispermtopol: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoispermtopol
+        """
+        cdef gen t0 = objtogen(perm)
+        pari_catch_sig_on()
+        return P.new_gen(galoispermtopol(self.g, t0.g))
+
+    def galoisfixedfield(self, perm, long flag=0, v=-1):
+        """
+        Compute the fixed field of the Galois group ``self``.
+
+        This wraps the `galoisfixedfield`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``perm`` -- An element of a Galois group, a vector of such
+          elements, or a subgroup generated by :meth:`galoissubgroups`.
+
+        - ``flag`` -- Amount of data to include in output (see below).
+
+        - ``v`` -- Name of the second variable to use (default: ``'y'``).
+
+        OUTPUT:
+
+        This depends on the value of ``flag``:
+
+        - ``flag = 0`` -- A two-element tuple consisting of the defining
+          polynomial of the fixed field and a description of its roots
+          modulo the primes used in the group.
+
+        - ``flag = 1`` -- Just the polynomial.
+
+        - ``flag = 2`` -- A third tuple element will describe the
+          factorization of the original polynomial, using the variable
+          indicated by ``v`` to stand for a root of the polynomial
+          from the first tuple element.
+
+        EXAMPLES::
+
+            sage: G = pari(x^4 + 1).galoisinit()
+            sage: G.galoisfixedfield(G[5][1], flag=2)
+            [x^2 + 4, Mod(2*x^2, x^4 + 1), [x^2 - 1/2*y, x^2 + 1/2*y]]
+            sage: G.galoisfixedfield(G[5][5:7])
+            [x^4 + 1, Mod(x, x^4 + 1)]
+            sage: L = G.galoissubgroups()
+            sage: G.galoisfixedfield(L[2], flag=2, v='z')
+            [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
+
+        .. _galoisfixedfield: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisfixedfield
+        """
+        cdef gen t0 = objtogen(perm)
+        pari_catch_sig_on()
+        return P.new_gen(galoisfixedfield(self.g, t0.g, flag, P.get_var(v)))
+
+    def galoissubfields(self, long flag=0, v=-1):
+        """
+        List all subfields of the Galois group ``self``.
+
+        This wraps the `galoissubfields`_ function from PARI.
+
+        This method is essentially the same as applying
+        :meth:`galoisfixedfield` to each group returned by
+        :meth:`galoissubgroups`.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`.
+
+        - ``flag`` -- Has the same meaning as in :meth:`galoisfixedfield`.
+
+        - ``v`` -- Has the same meaning as in :meth:`galoisfixedfield`.
+
+        OUTPUT:
+
+        A vector of all subfields of this group.  Each entry is as
+        described in the :meth:`galoisfixedfield` method.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoissubfields(flag=1)
+            [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
+            sage: G = pari(x^4 + 1).galoisinit()
+            sage: G.galoissubfields(flag=2, v='z')[2]
+            [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
+
+        .. _galoissubfields: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubfields
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoissubfields(self.g, flag, P.get_var(v)))
+
+    def galoissubgroups(self):
+        """
+        List all subgroups of the Galois group ``self``.
+
+        This wraps the `galoissubgroups`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        OUTPUT:
+
+        A vector of all subgroups of this group.
+        Each subgroup is described as a two-tuple,
+        with the subgroup generators as first element
+        and the orders of these generators as second element.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: L = G.galoissubgroups()
+            sage: list(L[0][1])
+            [3, 2]
+
+        .. _galoissubgroups: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoissubgroups
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoissubgroups(self.g))
+
+    def galoisisabelian(self, long flag=0):
+        """
+        Decide whether ``self`` is an abelian group.
+
+        This wraps the `galoisisabelian`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        - ``flag`` -- Controls the details contained in the returned result.
+
+        OUTPUT:
+
+        This returns 0 if ``self`` is not an abelian group. If it is,
+        then the output depends on ``flag``:
+
+        - ``flag = 0`` -- The HNF matrix of ``self`` over its generators
+          is returned.
+
+        - ``flag = 1`` -- The return value is simply 1.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G.galoisisabelian()
+            0
+            sage: H = G.galoissubgroups()[2]
+            sage: H.galoisisabelian()
+            Mat(2)
+            sage: H.galoisisabelian(flag=1)
+            1
+
+        .. _galoisisabelian: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisisabelian
+        """
+        pari_catch_sig_on()
+        return P.new_gen(galoisisabelian(self.g, flag))
+
+    def galoisisnormal(self, subgrp):
+        """
+        Decide whether ``subgrp`` is a normal subgroup of ``self``.
+
+        This wraps the `galoisisnormal`_ function from PARI.
+
+        INPUT:
+
+        - ``self`` -- A Galois group as generated by :meth:`galoisinit`,
+          or a subgroup thereof as returned by :meth:`galoissubgroups`.
+
+        - ``subgrp`` -- A subgroup of ``self`` as returned by
+          :meth:`galoissubgroups`.
+
+        OUTPUT:
+
+        One if ``subgrp`` is a subgroup of ``self``, zero otherwise.
+
+        EXAMPLES::
+
+            sage: G = pari(x^6 + 108).galoisinit()
+            sage: L = G.galoissubgroups()
+            sage: G.galoisisnormal(L[0])
+            1
+            sage: G.galoisisnormal(L[2])
+            0
+
+        .. _galoisisnormal: http://pari.math.u-bordeaux.fr/dochtml/html.stable/Functions_related_to_general_number_fields.html#galoisisnormal
+        """
+        cdef gen t0 = objtogen(subgrp)
+        pari_catch_sig_on()
+        v = galoisisnormal(self.g, t0.g)
+        P.clear_stack()
+        return v
+
+    def idealchinese(self, x, y):
+        """
+        Chinese Remainder Theorem over number fields.
+
+        INPUT:
+
+        - ``x`` -- prime ideal factorization
+        - ``y`` -- vector of elements
+
+        OUTPUT:
+
+        An element b in the ambient number field ``self`` such that
+        `v_p(b-y_p) \ge v_p(x)` for all prime ideals `p` dividing `x`,
+        and `v_p(b) \ge 0` for all other `p`.
+
+        EXAMPLES::
+
+            sage: F = QuadraticField(5, 'alpha')
+            sage: nf = F._pari_()
+            sage: P = F.ideal(F.gen())
+            sage: Q = F.ideal(2)
+            sage: moduli = pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4])
+            sage: residues = pari.vector(2,[0,1])
+            sage: b = F(nf.idealchinese(moduli,residues))
+            sage: b.valuation(P) >= 4
+            True
+            sage: (b-1).valuation(Q) >= 2
+            True
+        """
+        cdef gen tx = objtogen(x)
+        cdef gen ty = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(idealchinese(self.g, tx.g, ty.g))
+
+    def idealcoprime(self, x, y):
+        """
+        Given two integral ideals x and y of a pari number field self,
+        return an element a of the field (expressed in the integral
+        basis of self) such that a*x is an integral ideal coprime to
+        y.
+
+        EXAMPLES::
+
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: x = pari('[1, -1, 2]~')
+            sage: y = pari('[1, -1, 3]~')
+            sage: nf.idealcoprime(x, y)
+            [1, 0, 0]~
+
+            sage: y = pari('[2, -2, 4]~')
+            sage: nf.idealcoprime(x, y)
+            [5/43, 9/43, -1/43]~
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(idealcoprime(self.g, t0.g, t1.g))
+
+    def idealintersection(self, x, y):
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(idealintersect(self.g, t0.g, t1.g))
+
+    def ideallist(self, long bound, long flag = 4):
+        """
+        Vector of vectors `L` of all idealstar of all ideals of `norm <= bound`.
+
+        The binary digits of flag mean:
+
+         - 1: give generators;
+         - 2: add units;
+         - 4: (default) give only the ideals and not the bid.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: L = K.pari_nf().ideallist(100)
+
+        Now we have our list `L`. Entry `L[n-1]` contains all ideals of
+        norm `n`::
+
+            sage: L[0]   # One ideal of norm 1.
+            [[1, 0; 0, 1]]
+            sage: L[64]  # 4 ideals of norm 65.
+            [[65, 8; 0, 1], [65, 47; 0, 1], [65, 18; 0, 1], [65, 57; 0, 1]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(ideallist0(self.g, bound, flag))
+
+    def ideallog(self, x, bid):
+        """
+        Return the discrete logarithm of the unit x in (ring of integers)/bid.
+
+        INPUT:
+
+        - ``self`` - a pari number field
+
+        - ``bid``  - a big ideal structure (corresponding to an ideal I
+          of self) output by idealstar
+
+        - ``x``  - an element of self with valuation zero at all
+          primes dividing I
+
+        OUTPUT:
+
+        - the discrete logarithm of x on the generators given in bid[2]
+
+        EXAMPLE::
+
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: I = pari('[1, -1, 2]~')
+            sage: bid = nf.idealstar(I)
+            sage: x = pari('5')
+            sage: nf.ideallog(x, bid)
+            [25]~
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(bid)
+        pari_catch_sig_on()
+        return P.new_gen(ideallog(self.g, t0.g, t1.g))
+
+    def idealprimedec(nf, p):
+        """
+        Prime ideal decomposition of the prime number `p` in the number
+        field `nf` as a vector of 5 component vectors `[p,a,e,f,b]`
+        representing the prime ideals `p O_K + a O_K`, `e` ,`f` as usual,
+        `a` as vector of components on the integral basis, `b` Lenstra's
+        constant.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: F = pari(K).idealprimedec(5); F
+            [[5, [-2, 1]~, 1, 1, [2, -1; 1, 2]], [5, [2, 1]~, 1, 1, [-2, -1; 1, -2]]]
+            sage: F[0].pr_get_p()
+            5
+        """
+        cdef gen t0 = objtogen(p)
+        pari_catch_sig_on()
+        return P.new_gen(idealprimedec(nf.g, t0.g))
+
+    def idealstar(self, I, long flag=1):
+        """
+        Return the big ideal (bid) structure of modulus I.
+
+        INPUT:
+
+        - ``self`` - a pari number field
+
+        - ``I`` -- an ideal of self, or a row vector whose first
+          component is an ideal and whose second component
+          is a row vector of r_1 0 or 1.
+
+        - ``flag`` - determines the amount of computation and the shape
+          of the output:
+
+          - ``1`` (default): return a bid structure without
+            generators
+
+          - ``2``: return a bid structure with generators (slower)
+
+          - ``0`` (deprecated): only outputs units of (ring of integers/I)
+            as an abelian group, i.e as a 3-component
+            vector [h,d,g]: h is the order, d is the vector
+            of SNF cyclic components and g the corresponding
+            generators. This flag is deprecated: it is in
+            fact slightly faster to compute a true bid
+            structure, which contains much more information.
+
+        EXAMPLE::
+
+            sage: F = NumberField(x^3-2, 'alpha')
+            sage: nf = F._pari_()
+            sage: I = pari('[1, -1, 2]~')
+            sage: nf.idealstar(I)
+            [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[42], [3], [3], [Vecsmall([])], 1]], [[], [], []]], Mat(1)]
+        """
+        cdef gen t0 = objtogen(I)
+        pari_catch_sig_on()
+        return P.new_gen(idealstar0(self.g, t0.g, flag))
+
+    def idealval(self, x, p):
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(p)
+        pari_catch_sig_on()
+        v = idealval(self.g, t0.g, t1.g)
+        pari_catch_sig_off()
+        return v
+
+    def elementval(self, x, p):
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(p)
+        pari_catch_sig_on()
+        v = nfval(self.g, t0.g, t1.g)
+        pari_catch_sig_off()
+        return v
+
+    def nfbasis(self, long flag=0, fa=None):
+        """
+        Integral basis of the field `\QQ[a]`, where ``a`` is a root of
+        the polynomial x.
+
+        INPUT:
+
+        - ``flag``: if set to 1 and ``fa`` is not given: assume that no
+          square of a prime > 500000 divides the discriminant of ``x``.
+
+        - ``fa``: If present, encodes a subset of primes at which to
+          check for maximality. This must be one of the three following
+          things:
+
+            - an integer: check all primes up to ``fa`` using trial
+              division.
+
+            - a vector: a list of primes to check.
+
+            - a matrix: a partial factorization of the discriminant
+              of ``x``.
+
+        .. NOTE::
+
+            In earlier versions of Sage, other bits in ``flag`` were
+            defined but these are now simply ignored.
+
+        EXAMPLES::
+
+            sage: pari('x^3 - 17').nfbasis()
+            [1, x, 1/3*x^2 - 1/3*x + 1/3]
+
+        We test ``flag`` = 1, noting it gives a wrong result when the
+        discriminant (-4 * `p`^2 * `q` in the example below) has a big square
+        factor::
+
+            sage: p = next_prime(10^10); q = next_prime(p)
+            sage: x = polygen(QQ); f = x^2 + p^2*q
+            sage: pari(f).nfbasis(1)   # Wrong result
+            [1, x]
+            sage: pari(f).nfbasis()    # Correct result
+            [1, 1/10000000019*x]
+            sage: pari(f).nfbasis(fa=10^6)   # Check primes up to 10^6: wrong result
+            [1, x]
+            sage: pari(f).nfbasis(fa="[2,2; %s,2]"%p)    # Correct result and faster
+            [1, 1/10000000019*x]
+            sage: pari(f).nfbasis(fa=[2,p])              # Equivalent with the above
+            [1, 1/10000000019*x]
+        """
+        if flag < 0 or flag > 1:
+            flag = flag & 1
+            from sage.misc.superseded import deprecation
+            deprecation(15767, 'In nfbasis(), flag must be 0 or 1, other bits are deprecated and ignored')
+
+        cdef gen t0
+        cdef GEN g0
+        if fa is not None:
+            t0 = objtogen(fa)
+            g0 = t0.g
+        elif flag:
+            g0 = utoi(500000)
+        else:
+            g0 = NULL
+        pari_catch_sig_on()
+        return P.new_gen(nfbasis(self.g, NULL, g0))
+
+    def nfbasis_d(self, long flag=0, fa=None):
+        """
+        Like :meth:`nfbasis`, but return a tuple ``(B, D)`` where `B`
+        is the integral basis and `D` the discriminant.
+
+        EXAMPLES::
+
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: F._pari_()[0].nfbasis_d()
+            ([1, y, y^2], -108)
+
+        ::
+
+            sage: G = NumberField(x^5-11,'beta')
+            sage: G._pari_()[0].nfbasis_d()
+            ([1, y, y^2, y^3, y^4], 45753125)
+
+        ::
+
+            sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
+            ([1, x, x^2], -108)
+        """
+        if flag < 0 or flag > 1:
+            flag = flag & 1
+            from sage.misc.superseded import deprecation
+            deprecation(15767, 'In nfbasis_d(), flag must be 0 or 1, other bits are deprecated and ignored')
+
+        cdef gen t0
+        cdef GEN g0
+        cdef GEN disc
+        if fa is not None:
+            t0 = objtogen(fa)
+            g0 = t0.g
+        elif flag & 1:
+            g0 = utoi(500000)
+        else:
+            g0 = NULL
+        pari_catch_sig_on()
+        B = P.new_gen_noclear(nfbasis(self.g, &disc, g0))
+        D = P.new_gen(disc)
+        return B, D
+
+    def nfbasistoalg(nf, x):
+        r"""
+        Transforms the column vector ``x`` on the integral basis into an
+        algebraic number.
+
+        INPUT:
+
+         - ``nf`` -- a number field
+         - ``x`` -- a column of rational numbers of length equal to the
+           degree of ``nf`` or a single rational number
+
+        OUTPUT:
+
+         - A POLMOD representing the element of ``nf`` whose coordinates
+           are ``x`` in the Z-basis of ``nf``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 17)
+            sage: Kpari = K.pari_nf()
+            sage: Kpari.getattr('zk')
+            [1, 1/3*y^2 - 1/3*y + 1/3, y]
+            sage: Kpari.nfbasistoalg(42)
+            Mod(42, y^3 - 17)
+            sage: Kpari.nfbasistoalg("[3/2, -5, 0]~")
+            Mod(-5/3*y^2 + 5/3*y - 1/6, y^3 - 17)
+            sage: Kpari.getattr('zk') * pari("[3/2, -5, 0]~")
+            -5/3*y^2 + 5/3*y - 1/6
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(basistoalg(nf.g, t0.g))
+
+    def nfbasistoalg_lift(nf, x):
+        r"""
+        Transforms the column vector ``x`` on the integral basis into a
+        polynomial representing the algebraic number.
+
+        INPUT:
+
+         - ``nf`` -- a number field
+         - ``x`` -- a column of rational numbers of length equal to the
+           degree of ``nf`` or a single rational number
+
+        OUTPUT:
+
+         - ``nf.nfbasistoalg(x).lift()``
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 17)
+            sage: Kpari = K.pari_nf()
+            sage: Kpari.getattr('zk')
+            [1, 1/3*y^2 - 1/3*y + 1/3, y]
+            sage: Kpari.nfbasistoalg_lift(42)
+            42
+            sage: Kpari.nfbasistoalg_lift("[3/2, -5, 0]~")
+            -5/3*y^2 + 5/3*y - 1/6
+            sage: Kpari.getattr('zk') * pari("[3/2, -5, 0]~")
+            -5/3*y^2 + 5/3*y - 1/6
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(gel(basistoalg(nf.g, t0.g), 2))
+
+    def nfdisc(self, long flag=-1, p=None):
+        """
+        nfdisc(x): Return the discriminant of the number field defined over
+        QQ by x.
+
+        EXAMPLES::
+
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: F._pari_()[0].nfdisc()
+            -108
+
+        ::
+
+            sage: G = NumberField(x^5-11,'beta')
+            sage: G._pari_()[0].nfdisc()
+            45753125
+
+        ::
+
+            sage: f = x^3-2
+            sage: f._pari_()
+            x^3 - 2
+            sage: f._pari_().nfdisc()
+            -108
+        """
+        if flag != -1 or p is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16997, 'The flag and p arguments to nfdisc() are deprecated and not used anymore')
+        pari_catch_sig_on()
+        return P.new_gen(nfdisc(self.g))
+
+    def nfeltdiveuc(self, x, y):
+        """
+        Given `x` and `y` in the number field ``self``, return `q` such
+        that `x - q y` is "small".
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: x = 10
+            sage: y = a + 1
+            sage: pari(k).nfeltdiveuc(pari(x), pari(y))
+            [2, -2]~
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(nfdiveuc(self.g, t0.g, t1.g))
+
+    def nfeltreduce(self, x, I):
+        """
+        Given an ideal I in Hermite normal form and an element x of the pari
+        number field self, finds an element r in self such that x-r belongs
+        to the ideal and r is small.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: I = k.ideal(a)
+            sage: kp = pari(k)
+            sage: kp.nfeltreduce(12, I.pari_hnf())
+            [2, 0]~
+            sage: 12 - k(kp.nfeltreduce(12, I.pari_hnf())) in I
+            True
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(I)
+        pari_catch_sig_on()
+        return P.new_gen(nfreduce(self.g, t0.g, t1.g))
+
+    def nfgenerator(self):
+        f = self[0]
+        x = f.variable()
+        return x.Mod(f)
+
+    def nfhilbert(self, a, b, p=None):
+        """
+        nfhilbert(nf,a,b,{p}): if p is omitted, global Hilbert symbol (a,b)
+        in nf, that is 1 if X^2-aY^2-bZ^2 has a non-trivial solution (X,Y,Z)
+        in nf, -1 otherwise. Otherwise compute the local symbol modulo the
+        prime ideal p.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<t> = NumberField(x^3 - x + 1)
+            sage: pari(K).nfhilbert(t, t + 2)
+            -1
+            sage: P = K.ideal(t^2 + t - 2)   # Prime ideal above 5
+            sage: pari(K).nfhilbert(t, t + 2, P.pari_prime())
+            -1
+            sage: P = K.ideal(t^2 + 3*t - 1) # Prime ideal above 23, ramified
+            sage: pari(K).nfhilbert(t, t + 2, P.pari_prime())
+            1
+        """
+        cdef gen t0 = objtogen(a)
+        cdef gen t1 = objtogen(b)
+        cdef gen t2
+        if p:
+            t2 = objtogen(p)
+            pari_catch_sig_on()
+            r = nfhilbert0(self.g, t0.g, t1.g, t2.g)
+        else:
+            pari_catch_sig_on()
+            r = nfhilbert(self.g, t0.g, t1.g)
+        pari_catch_sig_off()
+        return r
+
+    def nfhnf(self,x):
+        """
+        nfhnf(nf,x) : given a pseudo-matrix (A, I) or an integral pseudo-matrix (A,I,J), finds a
+        pseudo-basis in Hermite normal form of the module it generates.
+
+        A pseudo-matrix is a 2-component row vector (A, I) where A is a relative m x n matrix and
+        I an ideal list of length n. An integral pseudo-matrix is a 3-component row vector (A, I, J).
+
+        .. NOTE::
+
+            The definition of a pseudo-basis ([Cohen]_):
+            Let M be a finitely generated, torsion-free R-module, and set V = KM.  If `\mathfrak{a}_i` are
+            fractional ideals of R and `w_i` are elements of V, we say that
+            `(w_i, \mathfrak{a}_k)_{1 \leq i \leq k}`
+            is a pseudo-basis of M if
+            `M = \mathfrak{a}_1 w_1 \oplus \cdots \oplus \mathfrak{a}_k w_k.`
+
+        REFERENCES:
+
+        .. [Cohen] Cohen, "Advanced Topics in Computational Number Theory"
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: Fp = pari(F)
+            sage: A = matrix(F,[[1,2,a,3],[3,0,a+2,0],[0,0,a,2],[3+a,a,0,1]])
+            sage: I = [F.ideal(-2*a+1),F.ideal(7), F.ideal(3),F.ideal(1)]
+            sage: Fp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [-969/5, -1/15]~, [15, -2]~, [-1938, -3]~; 0, 1, 0, 0; 0, 0, 1, 0; 0, 0, 0, 1], [[3997, 1911; 0, 7], [15, 6; 0, 3], 1, 1]]
+            sage: K.<b> = NumberField(x^3-2)
+            sage: Kp = pari(K)
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b^2,b,57],[0,2,1,b^2-3],[2,0,0,b]])
+            sage: I = [K.ideal(2),K.ideal(3+b^2),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, -225, 72, -31; 0, 1, [0, -1, 0]~, [0, 0, -1/2]~; 0, 0, 1, [0, 0, -1/2]~; 0, 0, 0, 1], [[1116, 756, 612; 0, 18, 0; 0, 0, 18], 2, 1, [2, 0, 0; 0, 1, 0; 0, 0, 1]]]
+
+        An example where the ring of integers of the number field is not a PID::
+
+            sage: K.<b> = NumberField(x^2+5)
+            sage: Kp = pari(K)
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b^2,b,57],[0,2,1,b^2-3],[2,0,0,b]])
+            sage: I = [K.ideal(2),K.ideal(3+b^2),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [15, 6]~, [0, -54]~, [113, 72]~; 0, 1, [-4, -1]~, [0, -1]~; 0, 0, 1, 0; 0, 0, 0, 1], [[360, 180; 0, 180], [6, 4; 0, 2], 1, 1]]
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b,b,57],[0,2,1,b-3],[2,0,b,b]])
+            sage: I = [K.ideal(2).factor()[0][0],K.ideal(3+b),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [7605, 4]~, [5610, 5]~, [7913, -6]~; 0, 1, 0, -1; 0, 0, 1, 0; 0, 0, 0, 1], [[19320, 13720; 0, 56], [2, 1; 0, 1], 1, 1]]
+
+        AUTHORS:
+
+        - Aly Deines (2012-09-19)
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(nfhnf(self.g, t0.g))
+
+    def nfinit(self, long flag=0, unsigned long precision=0):
+        """
+        nfinit(pol, {flag=0}): ``pol`` being a nonconstant irreducible
+        polynomial, gives a vector containing all the data necessary for PARI
+        to compute in this number field.
+
+        ``flag`` is optional and can be set to:
+         - 0: default
+         - 1: do not compute different
+         - 2: first use polred to find a simpler polynomial
+         - 3: outputs a two-element vector [nf,Mod(a,P)], where nf is as in 2
+              and Mod(a,P) is a polmod equal to Mod(x,pol) and P=nf.pol
+
+        EXAMPLES::
+
+            sage: pari('x^3 - 17').nfinit()
+            [x^3 - 17, [1, 1], -867, 3, [[1, 1.68006914259990, 2.57128159065824; 1, -0.340034571299952 - 2.65083754153991*I, -1.28564079532912 + 2.22679517779329*I], [1, 1.68006914259990, 2.57128159065824; 1, -2.99087211283986, 0.941154382464174; 1, 2.31080297023995, -3.51243597312241], [1, 2, 3; 1, -3, 1; 1, 2, -4], [3, 1, 0; 1, -11, 17; 0, 17, 0], [51, 0, 16; 0, 17, 3; 0, 0, 1], [17, 0, -1; 0, 0, 3; -1, 3, 2], [51, [-17, 6, -1; 0, -18, 3; 1, 0, -16]], [3, 17]], [2.57128159065824, -1.28564079532912 + 2.22679517779329*I], [1, 1/3*x^2 - 1/3*x + 1/3, x], [1, 0, -1; 0, 0, 3; 0, 1, 1], [1, 0, 0, 0, -4, 6, 0, 6, -1; 0, 1, 0, 1, 1, -1, 0, -1, 3; 0, 0, 1, 0, 2, 0, 1, 0, 1]]
+
+        TESTS::
+
+            sage: pari('x^2 + 10^100 + 1').nfinit()
+            [...]
+            sage: pari('1.0').nfinit()
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in checknf [please apply nfinit()] (t_REAL)
+        """
+        pari_catch_sig_on()
+        return P.new_gen(nfinit0(self.g, flag, prec_bits_to_words(precision)))
+
+    def nfisisom(self, other):
+        """
+        nfisisom(x, y): Determine if the number fields defined by x and y
+        are isomorphic. According to the PARI documentation, this is much
+        faster if at least one of x or y is a number field. If they are
+        isomorphic, it returns an embedding for the generators. If not,
+        returns 0.
+
+        EXAMPLES::
+
+            sage: F = NumberField(x^3-2,'alpha')
+            sage: G = NumberField(x^3-2,'beta')
+            sage: F._pari_().nfisisom(G._pari_())
+            [y]
+
+        ::
+
+            sage: GG = NumberField(x^3-4,'gamma')
+            sage: F._pari_().nfisisom(GG._pari_())
+            [1/2*y^2]
+
+        ::
+
+            sage: F._pari_().nfisisom(GG.pari_nf())
+            [1/2*y^2]
+
+        ::
+
+            sage: F.pari_nf().nfisisom(GG._pari_()[0])
+            [y^2]
+
+        ::
+
+            sage: H = NumberField(x^2-2,'alpha')
+            sage: F._pari_().nfisisom(H._pari_())
+            0
+
+        TESTS:
+
+        This method converts its second argument (:trac:`18728`)::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: L.<b> = NumberField(x^2 + 3)
+            sage: pari(K).nfisisom(L)
+            [-1/2*y - 1/2, 1/2*y - 1/2]
+
+        """
+        cdef gen t0 = objtogen(other)
+        pari_catch_sig_on()
+        return P.new_gen(nfisisom(self.g, t0.g))
+
+    def nfrootsof1(self):
+        """
+        nf.nfrootsof1()
+
+        number of roots of unity and primitive root of unity in the number
+        field nf.
+
+        EXAMPLES::
+
+            sage: nf = pari('x^2 + 1').nfinit()
+            sage: nf.nfrootsof1()
+            [4, x]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(rootsof1(self.g))
+
+    def nfsubfields(self, long d=0):
+        """
+        Find all subfields of degree d of number field nf (all subfields if
+        d is null or omitted). Result is a vector of subfields, each being
+        given by [g,h], where g is an absolute equation and h expresses one
+        of the roots of g in terms of the root x of the polynomial defining
+        nf.
+
+        INPUT:
+
+
+        -  ``self`` - nf number field
+
+        -  ``d`` - C long integer
+        """
+        pari_catch_sig_on()
+        return P.new_gen(nfsubfields(self.g, d))
+
+    def _nf_rnfeq(self, relpol):
+        """
+        Return data for converting number field elements between
+        absolute and relative representation.
+
+        .. NOTE::
+
+            The output of this method is suitable for the methods
+            :meth:`_eltabstorel`, :meth:`_eltabstorel_lift` and
+            :meth:`_eltreltoabs`.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: K._nf_rnfeq(x^2 + 2)
+            [x^4 + 6*x^2 + 1, 1/2*x^3 + 5/2*x, -1, y^2 + 1, x^2 + 2]
+
+        """
+        cdef gen t0 = objtogen(relpol)
+        pari_catch_sig_on()
+        return P.new_gen(nf_rnfeq(self.g, t0.g))
+
+    def rnfidealdown(self, x):
+        r"""
+        rnfidealdown(rnf,x): finds the intersection of the ideal x with the base field.
+
+        EXAMPLES::
+
+            sage: x = ZZ['xx1'].0; pari(x)
+            xx1
+            sage: y = ZZ['yy1'].0; pari(y)
+            yy1
+            sage: nf = pari(y^2 - 6*y + 24).nfinit()
+            sage: rnf = nf.rnfinit(x^2 - pari(y))
+
+        This is the relative HNF of the inert ideal (2) in rnf::
+
+            sage: P = pari('[[[1, 0]~, [0, 0]~; [0, 0]~, [1, 0]~], [[2, 0; 0, 2], [2, 0; 0, 1/2]]]')
+
+        And this is the inert ideal (2) in nf:
+
+            sage: rnf.rnfidealdown(P)
+            2
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(rnfidealdown(self.g, t0.g))
+
+    def rnfinit(self, poly):
+        """
+        EXAMPLES: We construct a relative number field.
+
+        ::
+
+            sage: f = pari('y^3+y+1')
+            sage: K = f.nfinit()
+            sage: x = pari('x'); y = pari('y')
+            sage: g = x^5 - x^2 + y
+            sage: L = K.rnfinit(g)
+        """
+        cdef gen t0 = objtogen(poly)
+        pari_catch_sig_on()
+        return P.new_gen(rnfinit(self.g, t0.g))
+
+    def quadhilbert(self):
+        r"""
+        Returns a polynomial over `\QQ` whose roots generate the
+        Hilbert class field of the quadratic field of discriminant
+        ``self`` (which must be fundamental).
+
+        EXAMPLES::
+
+            sage: pari(-23).quadhilbert()
+            x^3 - x^2 + 1
+            sage: pari(145).quadhilbert()
+            x^4 - 6*x^2 - 5*x - 1
+            sage: pari(-12).quadhilbert()   # Not fundamental
+            Traceback (most recent call last):
+            ...
+            PariError: domain error in quadray: isfundamental(D) = 0
+        """
+        pari_catch_sig_on()
+        # Precision argument is only used for real quadratic extensions
+        # and will be automatically increased by PARI if needed.
+        return P.new_gen(quadhilbert(self.g, DEFAULTPREC))
+
+
+    ##################################################
+    # 7: POLYNOMIALS and power series
+    ##################################################
+    def reverse(self):
+        """
+        Return the polynomial obtained by reversing the coefficients of
+        this polynomial.
+        """
+        return self.Vec().Polrev()
+
+    def content(self):
+        """
+        Greatest common divisor of all the components of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pari(2*x^2 + 2).content()
+            2
+            sage: pari("4*x^3 - 2*x/3 + 2/5").content()
+            2/15
+        """
+        pari_catch_sig_on()
+        return P.new_gen(content(self.g))
+
+    def eval(self, *args, **kwds):
+        """
+        Evaluate ``self`` with the given arguments.
+
+        This is currently implemented in 3 cases:
+
+        - univariate polynomials, rational functions, power series and
+          Laurent series (using a single unnamed argument or keyword
+          arguments),
+        - any PARI object supporting the PARI function ``substvec``
+          (in particular, multivariate polynomials) using keyword
+          arguments,
+        - objects of type ``t_CLOSURE`` (functions in GP bytecode form)
+          using unnamed arguments.
+
+        In no case is mixing unnamed and keyword arguments allowed.
+
+        EXAMPLES::
+
+            sage: f = pari('x^2 + 1')
+            sage: f.type()
+            't_POL'
+            sage: f.eval(I)
+            0
+            sage: f.eval(x=2)
+            5
+            sage: (1/f).eval(x=1)
+            1/2
+
+        The notation ``f(x)`` is an alternative for ``f.eval(x)``::
+
+            sage: f(3) == f.eval(3)
+            True
+
+        Evaluating power series::
+
+            sage: f = pari('1 + x + x^3 + O(x^7)')
+            sage: f(2*pari('y')^2)
+            1 + 2*y^2 + 8*y^6 + O(y^14)
+
+        Substituting zero is sometimes possible, and trying to do so
+        in illegal cases can raise various errors::
+
+            sage: pari('1 + O(x^3)').eval(0)
+            1
+            sage: pari('1/x').eval(0)
+            Traceback (most recent call last):
+            ...
+            PariError: impossible inverse in gdiv: 0
+            sage: pari('1/x + O(x^2)').eval(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: substituting 0 in Laurent series with negative valuation
+            sage: pari('1/x + O(x^2)').eval(pari('O(x^3)'))
+            Traceback (most recent call last):
+            ...
+            PariError: impossible inverse in gdiv: O(x^3)
+            sage: pari('O(x^0)').eval(0)
+            Traceback (most recent call last):
+            ...
+            PariError: domain error in polcoeff: t_SER = O(x^0)
+
+        Evaluating multivariate polynomials::
+
+            sage: f = pari('y^2 + x^3')
+            sage: f(1)    # Dangerous, depends on PARI variable ordering
+            y^2 + 1
+            sage: f(x=1)  # Safe
+            y^2 + 1
+            sage: f(y=1)
+            x^3 + 1
+            sage: f(1, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: evaluating PARI t_POL takes exactly 1 argument (2 given)
+            sage: f(y='x', x='2*y')
+            x^2 + 8*y^3
+            sage: f()
+            x^3 + y^2
+
+        It's not an error to substitute variables which do not appear::
+
+            sage: f.eval(z=37)
+            x^3 + y^2
+            sage: pari(42).eval(t=0)
+            42
+
+        We can define and evaluate closures as follows::
+
+            sage: T = pari('n -> n + 2')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T.eval(3)
+            5
+
+            sage: T = pari('() -> 42')
+            sage: T()
+            42
+
+            sage: pr = pari('s -> print(s)')
+            sage: pr.eval('"hello world"')
+            hello world
+
+            sage: f = pari('myfunc(x,y) = x*y')
+            sage: f.eval(5, 6)
+            30
+
+        Default arguments work, missing arguments are treated as zero
+        (like in GP)::
+
+            sage: f = pari("(x, y, z=1.0) -> [x, y, z]")
+            sage: f(1, 2, 3)
+            [1, 2, 3]
+            sage: f(1, 2)
+            [1, 2, 1.00000000000000]
+            sage: f(1)
+            [1, 0, 1.00000000000000]
+            sage: f()
+            [0, 0, 1.00000000000000]
+
+        Variadic closures are supported as well (:trac:`18623`)::
+
+            sage: f = pari("(v[..])->length(v)")
+            sage: f('a', f)
+            2
+            sage: g = pari("(x,y,z[..])->[x,y,z]")
+            sage: g(), g(1), g(1,2), g(1,2,3), g(1,2,3,4)
+            ([0, 0, []], [1, 0, []], [1, 2, []], [1, 2, [3]], [1, 2, [3, 4]])
+
+        Using keyword arguments, we can substitute in more complicated
+        objects, for example a number field::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: nf = K._pari_()
+            sage: nf
+            [y^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], []], [0.E-38 + 1.00000000000000*I], [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+            sage: nf(y='x')
+            [x^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], []], [0.E-38 + 1.00000000000000*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+        """
+        cdef long t = typ(self.g)
+        cdef gen t0
+        cdef GEN result
+        cdef long arity
+        cdef long nargs = len(args)
+        cdef long nkwds = len(kwds)
+
+        # Closure must be evaluated using *args
+        if t == t_CLOSURE:
+            if nkwds > 0:
+                raise TypeError("cannot evaluate a PARI closure using keyword arguments")
+            if closure_is_variadic(self.g):
+                arity = closure_arity(self.g) - 1
+                args = list(args[:arity]) + [0]*(arity-nargs) + [args[arity:]]
+            t0 = objtogen(args)
+            pari_catch_sig_on()
+            result = closure_callgenvec(self.g, t0.g)
+            if result == gnil:
+                P.clear_stack()
+                return None
+            return P.new_gen(result)
+
+        # Evaluate univariate polynomials, rational functions and
+        # series using *args
+        if nargs > 0:
+            if nkwds > 0:
+                raise TypeError("mixing unnamed and keyword arguments not allowed when evaluating a PARI object")
+            if not (t == t_POL or t == t_RFRAC or t == t_SER):
+                raise TypeError("cannot evaluate PARI %s using unnamed arguments" % self.type())
+            if nargs != 1:
+                raise TypeError("evaluating PARI %s takes exactly 1 argument (%d given)"
+                                % (self.type(), nargs))
+
+            t0 = objtogen(args[0])
+            pari_catch_sig_on()
+            if t == t_POL or t == t_RFRAC:
+                return P.new_gen(poleval(self.g, t0.g))
+            else:  # t == t_SER
+                if isexactzero(t0.g):
+                    # Work around the fact that PARI currently doesn't
+                    # support substituting exact 0 in a power series.
+                    # We don't try to imitate this when using keyword
+                    # arguments, and hope this will be fixed in a
+                    # future PARI version.
+                    if valp(self.g) < 0:
+                        pari_catch_sig_off()
+                        raise ZeroDivisionError('substituting 0 in Laurent series with negative valuation')
+                    elif valp(self.g) == 0:
+                        return P.new_gen(polcoeff0(self.g, 0, -1))
+                    else:
+                        pari_catch_sig_off()
+                        return P.PARI_ZERO
+                return P.new_gen(gsubst(self.g, varn(self.g), t0.g))
+
+        # Call substvec() using **kwds
+        vstr = kwds.keys()            # Variables as Python strings
+        t0 = objtogen(kwds.values())  # Replacements
+
+        pari_catch_sig_on()
+        cdef GEN v = cgetg(nkwds+1, t_VEC)  # Variables as PARI polynomials
+        cdef long i
+        for i in range(nkwds):
+            set_gel(v, i+1, pol_x(P.get_var(vstr[i])))
+        return P.new_gen(gsubstvec(self.g, v, t0.g))
+
+
+    def __call__(self, *args, **kwds):
+        """
+        Evaluate ``self`` with the given arguments.
+
+        This has the same effect as :meth:`eval`.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: f = (x^2 + x + 1)._pari_()
+            sage: f.type()
+            't_POL'
+            sage: f(2)
+            Mod(1, 3)
+
+        TESTS::
+
+            sage: T = pari('n -> 1/n')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T(0)
+            Traceback (most recent call last):
+            ...
+            PariError: _/_: impossible inverse in gdiv: 0
+            sage: pari('() -> 42')(1,2,3)
+            Traceback (most recent call last):
+            ...
+            PariError: too many parameters in user-defined function call
+            sage: pari('n -> n')(n=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate a PARI closure using keyword arguments
+            sage: pari('x + y')(4, y=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: mixing unnamed and keyword arguments not allowed when evaluating a PARI object
+            sage: pari("12345")(4)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate PARI t_INT using unnamed arguments
+        """
+        return self.eval(*args, **kwds)
+
+    def factornf(self, t):
+        """
+        Factorization of the polynomial ``self`` over the number field
+        defined by the polynomial ``t``.  This does not require that `t`
+        is integral, nor that the discriminant of the number field can be
+        factored.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 1/8)
+            sage: pari(x^2 - 2).factornf(K.pari_polynomial("a"))
+            [x + Mod(-a, a^2 - 2), 1; x + Mod(a, a^2 - 2), 1]
         """
         sig_on()
         return P.new_gen(member_disc(self.g))
