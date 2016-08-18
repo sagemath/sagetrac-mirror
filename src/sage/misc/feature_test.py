@@ -49,6 +49,93 @@ As can be seen above, features try to produce helpful error messages.
 """
 from sage.misc.cachefunc import cached_method
 
+class Feature(object):
+    r"""
+    A feature of the runtime environment
+
+    Overwrite :meth:`is_present` to add feature checks.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import GapPackage
+        sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
+        Feature('GAP package grape')
+    """
+    def __init__(self, name, spkg = None, url = None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import GapPackage, Feature
+            sage: isinstance(GapPackage("grape", spkg="gap_packages"), Feature) # indirect doctest
+            True
+        """
+        self.name = name;
+        self.spkg = spkg
+        self.url = url
+
+    def is_present(self, explain=False):
+        r"""
+        Return whether the feature is present.
+
+        OUTPUT:
+
+        A :class:`FeatureTestResult` which can be used as a boolean and
+        contains additional information about the feature test.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import GapPackage
+            sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
+            FeatureTestResult('GAP package grape', True)
+            sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
+            FeatureTestResult('GAP package NOT_A_PACKAGE', False)
+        """
+        return FeatureTestResult(self, True)
+
+    def require(self):
+        r"""
+        Raise a :class:`FeatureNotPresentError` if the feature is not present.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import GapPackage
+            sage: GapPackage("ve1EeThu").require()
+            Traceback (most recent call last):
+            ...
+            FeatureNotPresentError: GAP package ve1EeThu is not available.
+            `TestPackageAvailability("ve1EeThu")` evaluated to `fail` in GAP.
+        """
+        presence = self.is_present()
+        if not presence:
+            raise FeatureNotPresentError(self, presence.reason, presence.resolution)
+
+    def __repr__(self):
+        r"""
+        Return a printable representation of this object.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import GapPackage
+            sage: GapPackage("grape") # indirect doctest
+            Feature('GAP package grape')
+        """
+        return 'Feature({name!r})'.format(name=self.name)
+
+    def resolution(self):
+        r"""
+        Return a suggestion on how to make :meth:`is_present` pass if it did not
+        pass.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import Executable
+            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
+            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
+        """
+        return "\n".join(filter(None,[
+            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
+            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""])) or None
+
 class FeatureNotPresentError(RuntimeError):
     r"""
     A missing feature error.
@@ -175,137 +262,6 @@ class FeatureTestResult(object):
         """
         return "FeatureTestResult({feature!r}, {is_present!r})".format(feature=self.feature.name, is_present=self.is_present)
 
-class Feature(object):
-    r"""
-    A feature of the runtime environment
-
-    Overwrite :meth:`is_present` to add feature checks.
-
-    EXAMPLES::
-
-        sage: from sage.misc.feature import GapPackage
-        sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
-        Feature('GAP package grape')
-    """
-    def __init__(self, name, spkg = None, url = None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import GapPackage, Feature
-            sage: isinstance(GapPackage("grape", spkg="gap_packages"), Feature) # indirect doctest
-            True
-        """
-        self.name = name;
-        self.spkg = spkg
-        self.url = url
-
-    def is_present(self, explain=False):
-        r"""
-        Return whether the feature is present.
-
-        OUTPUT:
-
-        A :class:`FeatureTestResult` which can be used as a boolean and
-        contains additional information about the feature test.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-            FeatureTestResult('GAP package grape', True)
-            sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
-            FeatureTestResult('GAP package NOT_A_PACKAGE', False)
-        """
-        return FeatureTestResult(self, True)
-
-    def require(self):
-        r"""
-        Raise a :class:`FeatureNotPresentError` if the feature is not present.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("ve1EeThu").require()
-            Traceback (most recent call last):
-            ...
-            FeatureNotPresentError: GAP package ve1EeThu is not available.
-            `TestPackageAvailability("ve1EeThu")` evaluated to `fail` in GAP.
-        """
-        presence = self.is_present()
-        if not presence:
-            raise FeatureNotPresentError(self, presence.reason, presence.resolution)
-
-    def __repr__(self):
-        r"""
-        Return a printable representation of this object.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("grape") # indirect doctest
-            Feature('GAP package grape')
-        """
-        return 'Feature({name!r})'.format(name=self.name)
-
-    def resolution(self):
-        r"""
-        Return a suggestion on how to make :meth:`is_present` pass if it did not
-        pass.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import Executable
-            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
-            'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
-        """
-        return "\n".join(filter(None,[
-            "To install {feature} you can try to run `sage -i {spkg}`.".format(feature=self.name, spkg=self.spkg) if self.spkg else "",
-            "Further installation instructions might be available at {url}.".format(url=self.url) if self.url else ""])) or None
-
-class GapPackage(Feature):
-    r"""
-    A feature describing the presence of a GAP package.
-
-    EXMAPLES::
-
-        sage: from sage.misc.feature import GapPackage
-        sage: GapPackage("grape", spkg="gap_packages")
-        Feature('GAP package grape')
-    """
-    def __init__(self, package, spkg=None, url=None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: isinstance(GapPackage("grape", spkg="gap_packages"), GapPackage)
-            True
-        """
-        Feature.__init__(self, "GAP package {package}".format(package=package), spkg=spkg, url=url)
-        self.package = package
-
-    @cached_method
-    def is_present(self):
-        r"""
-        Return whether the package is available in GAP.
-
-        This does not check whether this package is functional.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
-            FeatureTestResult('GAP package grape', True)
-        """
-        from sage.libs.gap.libgap import libgap
-        command = 'TestPackageAvailability("{package}")'.format(package=self.package)
-        presence = libgap.eval(command)
-        if presence:
-            return FeatureTestResult(self, True,
-                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
-        else:
-            return FeatureTestResult(self, False,
-                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
-
 class Executable(Feature):
     r"""
     A feature describing an executable in the PATH.
@@ -368,42 +324,266 @@ class Executable(Feature):
         """
         return FeatureTestResult(self, True)
 
-class PythonModule(Feature):
+class StaticFile(Feature):
     r"""
-    A feature describing a Python module.
+    A :class:`Feature` which describes the presence of a certain file such as a
+    database.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import PythonModule
-        sage: PythonModule(name="sys").is_present()
-        FeatureTestResult('Python module sys', True)
+        sage: from sage.misc.feature import StaticFile
+        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").require()
+        Traceback (most recent call last):
+        ...
+        FeatureNotPresentError: no_such_file is not available.
+        `KaT1aihu` not found  in any of ['/']
+        To install no_such_file you can try to run `sage -i some_spkg`.
+        Further installation instructions might be available at http://rand.om.
     """
-    def __init__(self, name, module=None, spkg=None, url=None):
-        if module is None:
-            module = name
-        self.name = name
-        self.module = module
+    def __init__(self, name, filename, search_path, spkg=None, url=None):
+        r"""
+        TESTS::
 
-        Feature.__init__(self, name="Python module {module}".format(module=module), spkg=spkg, url=url)
+            sage: from sage.misc.feature import StaticFile
+            sage: StaticFile(name="null", filename="null", search_path=["/dev"])
+            Feature('null')
+        """
+        Feature.__init__(self, name=name, spkg=spkg, url=url)
+        self.filename = filename
+        self.search_path = search_path
+
+    def is_present(self):
+        r"""
+        Whether the static file is present.
+
+           sage: from sage.misc.feature import StaticFile
+           sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
+           FeatureTestResult('no_such_file', False)
+        """
+        try:
+            abspath = self.absolute_path()
+            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
+        except FeatureNotPresentError as e:
+            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
+
+    def absolute_path(self):
+        r"""
+        The absolute path of the file.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import DatabaseCremona
+            sage: DatabaseCremona().absolute_path() # optional: database_cremona_ellcurve
+            '.../local/share/cremona/cremona.db'
+
+        A ``FeatureNotPresentError`` is raised if the file can not be found::
+
+            sage: from sage.misc.feature import StaticFile
+            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
+            Traceback (most recent call last):
+            ...
+            FeatureNotPresentError: no_such_file is not available.
+            `KaT1aihu` not found  in any of ['/']
+            To install no_such_file you can try to run `sage -i some_spkg`.
+            Further installation instructions might be available at http://rand.om.
+        """
+        for directory in self.search_path:
+            import os.path
+            import shutil
+            path = os.path.join(directory, self.filename)
+            if os.path.isfile(path):
+                return os.path.abspath(path)
+        raise FeatureNotPresentError(self, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path), resolution=self.resolution())
+
+class SharedLibrary(Feature):
+    r"""
+    A :class:`Feature` which describes the presence of a shared library to link
+    against from Cython.
+
+    To test the presence of ``name``, the cython compiler is run on
+    ``test_code`` and the resulting module is imported.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature import SharedLibrary
+        sage: libm_test_code = '''
+        ....: #clib m
+        ....: cdef extern from "<math.h>":
+        ....:     double fabs(double x)
+        ....:
+        ....: sig_on()
+        ....: if fabs(-1) != 1:
+        ....:     raise ImportError("libm did not find the correct absolute value for -1")'''
+        sage: libm = SharedLibrary("libm", test_code=libm_test_code, spkg="gcc", url="https://gnu.org")
+        sage: libm.is_present()
+        FeatureTestResult('libm', True)
+    """
+    def __init__(self, name, test_code, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import SharedLibrary, LibFES
+            sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies]) # indirect doctest
+            True
+        """
+        Feature.__init__(self, name, spkg=spkg, url=url)
+        self.test_code = test_code
+
+    def is_present(self):
+        r"""
+        Run test code to determine whether the shared library is present.
+
+        EXAMPLES::
+
+                sage: from sage.misc.feature import SharedLibrary
+                sage: emptylib = SharedLibrary("emptylib", test_code="")
+                sage: emptylib.is_present()
+                FeatureTestResult('emptylib', True)
+        """
+        # There seems to be no module readily available in python which does library checks of this kind.
+        # At least other projects have also just rolled their own tests, see, e.g.:
+        # http://stackoverflow.com/questions/28843765/setup-py-check-if-non-python-library-dependency-exists
+        # http://stackoverflow.com/questions/28949136/checking-native-dependency-library-is-installed-in-python-setup-py
+        from tempfile import NamedTemporaryFile
+        with NamedTemporaryFile(suffix=".pyx") as pyx:
+            pyx.write(self.test_code)
+            pyx.flush()
+            from sage.misc.cython import cython_import
+            try:
+                cython_import(pyx.name)
+            except:
+                return FeatureTestResult(self, False, reason="Failed to compile and import test code.")
+        return FeatureTestResult(self, True, reason="Test code compiled and imported.")
+
+class Module(Feature):
+    r"""
+    A :class:`Feature` which describes whether a python module can be imported.
+
+    EXAMPLES:
+
+    Not all builds of python include the ``ssl`` module, so you could check
+    whether it is available::
+
+        sage: from sage.misc.feature import Module
+        sage: Module("ssl").require() # not tested - output depends on the python build
+    """
+    def __init__(self, name, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import LibFES, Module
+            sage: isinstance(LibFES(), Module) # indirect doctest
+            True
+        """
+        Feature.__init__(self, name, spkg=spkg, url=url)
+
+    def is_present(self):
+        r"""
+        Return whether the module can be imported. This is determined by
+        actually importing it.
+
+        EXAMPLES::
+
+            sage: from sage.misc.feature import Module
+            sage: Module("sys").is_present()
+            FeatureTestResult('sys', True)
+        """
+        import importlib
+        try:
+            importlib.import_module(self.name)
+        except ImportError:
+            return FeatureTestResult(self, False, reason="Failed to import `{name}`.".format(name=self.name))
+        return FeatureTestResult(self, True, reason="Successfully imported `{name}`.".format(name=self.name))
+
+class OptionalModule(Module):
+    r"""
+    A :class:`Feature` which describes whether a module has been enabled for
+    this build of Sage and is functional, i.e., whether all its
+    ``dependencies`` are present.
+
+    EXAMPLES:
+
+    The module :module:`sage.libs.fes` relies on the library libFES::
+    However, even if the library is present at runtime, the module might not
+    have been built because it was not present at built time. An
+    :class:`OptionalModule` checks for both, whether the module was built and
+    whether it is working, i.e., whether the library it relies on is present::
+
+        sage: from sage.misc.feature import LibFES
+        sage: LibFES().require() # optional: fes
+    """
+    def __init__(self, name, dependencies=[], spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import LibFES, OptionalModule
+            sage: isinstance(LibFES(), OptionalModule)
+            True
+        """
+        Module.__init__(self, name, spkg=spkg, url=url)
+        self.dependencies = dependencies
+
+    def is_present(self):
+        r"""
+        Return whether the optional module is present and its dependencies are
+        satisfied. This is determined by checking the dependencies and actually
+        importing the module.
+
+        EXAMPLES::
+
+           sage: from sage.misc.feature import LibFES
+           sage: LibFES().is_present() # optional: fes
+           FeatureTestResult('sage.libs.fes', True)
+        """
+        for dependency in self.dependencies:
+            presence = dependency.is_present()
+            if not presence:
+                return FeatureTestResult(self, False, reason="Dependency `{dependency}` is not satisfied: {reason}".format(dependency=dependency.name, reason=presence.reason), resolution=presence.resolution)
+        return super(OptionalModule, self).is_present()
+
+class GapPackage(Feature):
+    r"""
+    A feature describing the presence of a GAP package.
+
+    EXMAPLES::
+
+        sage: from sage.misc.feature import GapPackage
+        sage: GapPackage("grape", spkg="gap_packages")
+        Feature('GAP package grape')
+    """
+    def __init__(self, package, spkg=None, url=None):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.feature import GapPackage
+            sage: isinstance(GapPackage("grape", spkg="gap_packages"), GapPackage)
+            True
+        """
+        Feature.__init__(self, "GAP package {package}".format(package=package), spkg=spkg, url=url)
+        self.package = package
 
     @cached_method
     def is_present(self):
         r"""
-        Test whether the Python module can be loaded.
+        Return whether the package is available in GAP.
+
+        This does not check whether this package is functional.
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import PythonModule
-            sage: PythonModule(name="sage").is_present()
-            FeatureTestResult('Python module sage', True)
+            sage: from sage.misc.feature import GapPackage
+            sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
+            FeatureTestResult('GAP package grape', True)
         """
-        import importlib
-        try:
-            importlib.import_module(self.module)
-        except ImportError:
-            return FeatureTestResult(self, False, "Failed to import module `{module}`".format(module=self.module))
-
-        return FeatureTestResult(self, True)
+        from sage.libs.gap.libgap import libgap
+        command = 'TestPackageAvailability("{package}")'.format(package=self.package)
+        presence = libgap.eval(command)
+        if presence:
+            return FeatureTestResult(self, True,
+                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
+        else:
+            return FeatureTestResult(self, False,
+                    reason = "`{command}` evaluated to `{presence}` in GAP.".format(command=command, presence=presence))
 
 class CSDP(Executable):
     r"""
@@ -653,77 +833,6 @@ class Benzene(Executable):
 
         return FeatureTestResult(self, True)
 
-class StaticFile(Feature):
-    r"""
-    A :class:`Feature` which describes the presence of a certain file such as a
-    database.
-
-    EXAMPLES::
-
-        sage: from sage.misc.feature import StaticFile
-        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").require()
-        Traceback (most recent call last):
-        ...
-        FeatureNotPresentError: no_such_file is not available.
-        `KaT1aihu` not found  in any of ['/']
-        To install no_such_file you can try to run `sage -i some_spkg`.
-        Further installation instructions might be available at http://rand.om.
-    """
-    def __init__(self, name, filename, search_path, spkg=None, url=None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import StaticFile
-            sage: StaticFile(name="null", filename="null", search_path=["/dev"])
-            Feature('null')
-        """
-        Feature.__init__(self, name=name, spkg=spkg, url=url)
-        self.filename = filename
-        self.search_path = search_path
-
-    def is_present(self):
-        r"""
-        Whether the static file is present.
-
-           sage: from sage.misc.feature import StaticFile
-           sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
-           FeatureTestResult('no_such_file', False)
-        """
-        try:
-            abspath = self.absolute_path()
-            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
-        except FeatureNotPresentError as e:
-            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
-
-    def absolute_path(self):
-        r"""
-        The absolute path of the file.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import DatabaseCremona
-            sage: DatabaseCremona().absolute_path() # optional: database_cremona_ellcurve
-            '.../local/share/cremona/cremona.db'
-
-        A ``FeatureNotPresentError`` is raised if the file can not be found::
-
-            sage: from sage.misc.feature import StaticFile
-            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
-            Traceback (most recent call last):
-            ...
-            FeatureNotPresentError: no_such_file is not available.
-            `KaT1aihu` not found  in any of ['/']
-            To install no_such_file you can try to run `sage -i some_spkg`.
-            Further installation instructions might be available at http://rand.om.
-        """
-        for directory in self.search_path:
-            import os.path
-            import shutil
-            path = os.path.join(directory, self.filename)
-            if os.path.isfile(path):
-                return os.path.abspath(path)
-        raise FeatureNotPresentError(self, reason="`{filename}` not found  in any of {search_path}".format(filename=self.filename, search_path=self.search_path), resolution=self.resolution())
-
 class DatabaseCremona(StaticFile):
     r"""
     A :class:`Feature` which describes the presence of John Cremona's database
@@ -794,152 +903,6 @@ class SmallGroupsLibrary(Feature):
             output = str(e)
         return FeatureTestResult(self, presence,
             reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, output=output))
-
-class SharedLibrary(Feature):
-    r"""
-    A :class:`Feature` which describes the presence of a shared library to link
-    against from Cython.
-
-    To test the presence of ``name``, the cython compiler is run on
-    ``test_code`` and the resulting module is imported.
-
-    EXAMPLES::
-
-        sage: from sage.misc.feature import SharedLibrary
-        sage: libm_test_code = '''
-        ....: #clib m
-        ....: cdef extern from "<math.h>":
-        ....:     double fabs(double x)
-        ....:
-        ....: sig_on()
-        ....: if fabs(-1) != 1:
-        ....:     raise ImportError("libm did not find the correct absolute value for -1")'''
-        sage: libm = SharedLibrary("libm", test_code=libm_test_code, spkg="gcc", url="https://gnu.org")
-        sage: libm.is_present()
-        FeatureTestResult('libm', True)
-    """
-    def __init__(self, name, test_code, spkg=None, url=None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import SharedLibrary, LibFES
-            sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies]) # indirect doctest
-            True
-        """
-        Feature.__init__(self, name, spkg=spkg, url=url)
-        self.test_code = test_code
-
-    def is_present(self):
-        r"""
-        Run test code to determine whether the shared library is present.
-
-        EXAMPLES::
-
-                sage: from sage.misc.feature import SharedLibrary
-                sage: emptylib = SharedLibrary("emptylib", test_code="")
-                sage: emptylib.is_present()
-                FeatureTestResult('emptylib', True)
-        """
-        # There seems to be no module readily available in python which does library checks of this kind.
-        # At least other projects have also just rolled their own tests, see, e.g.:
-        # http://stackoverflow.com/questions/28843765/setup-py-check-if-non-python-library-dependency-exists
-        # http://stackoverflow.com/questions/28949136/checking-native-dependency-library-is-installed-in-python-setup-py
-        from tempfile import NamedTemporaryFile
-        with NamedTemporaryFile(suffix=".pyx") as pyx:
-            pyx.write(self.test_code)
-            pyx.flush()
-            from sage.misc.cython import cython_import
-            try:
-                cython_import(pyx.name)
-            except:
-                return FeatureTestResult(self, False, reason="Failed to compile and import test code.")
-        return FeatureTestResult(self, True, reason="Test code compiled and imported.")
-
-class Module(Feature):
-    r"""
-    A :class:`Feature` which describes whether a python module can be imported.
-
-    EXAMPLES:
-
-    Not all builds of python include the ``ssl`` module, so you could check
-    whether it is available::
-
-        sage: from sage.misc.feature import Module
-        sage: Module("ssl").require() # not tested - output depends on the python build
-    """
-    def __init__(self, name, spkg=None, url=None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import LibFES, Module
-            sage: isinstance(LibFES(), Module) # indirect doctest
-            True
-        """
-        Feature.__init__(self, name, spkg=spkg, url=url)
-
-    def is_present(self):
-        r"""
-        Return whether the module can be imported. This is determined by
-        actually importing it.
-
-        EXAMPLES::
-
-            sage: from sage.misc.feature import Module
-            sage: Module("sys").is_present()
-            FeatureTestResult('sys', True)
-        """
-        import importlib
-        try:
-            importlib.import_module(self.name)
-        except ImportError:
-            return FeatureTestResult(self, False, reason="Failed to import `{name}`.".format(name=self.name))
-        return FeatureTestResult(self, True, reason="Successfully imported `{name}`.".format(name=self.name))
-
-class OptionalModule(Module):
-    r"""
-    A :class:`Feature` which describes whether a module has been enabled for
-    this build of Sage and is functional, i.e., whether all its
-    ``dependencies`` are present.
-
-    EXAMPLES:
-
-    The module :module:`sage.libs.fes` relies on the library libFES::
-    However, even if the library is present at runtime, the module might not
-    have been built because it was not present at built time. An
-    :class:`OptionalModule` checks for both, whether the module was built and
-    whether it is working, i.e., whether the library it relies on is present::
-
-        sage: from sage.misc.feature import LibFES
-        sage: LibFES().require() # optional: fes
-    """
-    def __init__(self, name, dependencies=[], spkg=None, url=None):
-        r"""
-        TESTS::
-
-            sage: from sage.misc.feature import LibFES, OptionalModule
-            sage: isinstance(LibFES(), OptionalModule)
-            True
-        """
-        Module.__init__(self, name, spkg=spkg, url=url)
-        self.dependencies = dependencies
-
-    def is_present(self):
-        r"""
-        Return whether the optional module is present and its dependencies are
-        satisfied. This is determined by checking the dependencies and actually
-        importing the module.
-
-        EXAMPLES::
-
-           sage: from sage.misc.feature import LibFES
-           sage: LibFES().is_present() # optional: fes
-           FeatureTestResult('sage.libs.fes', True)
-        """
-        for dependency in self.dependencies:
-            presence = dependency.is_present()
-            if not presence:
-                return FeatureTestResult(self, False, reason="Dependency `{dependency}` is not satisfied: {reason}".format(dependency=dependency.name, reason=presence.reason), resolution=presence.resolution)
-        return super(OptionalModule, self).is_present()
 
 class LibFES(OptionalModule):
     r"""
