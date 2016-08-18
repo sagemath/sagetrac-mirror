@@ -350,7 +350,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
     def _magma_init_(self, magma):
         """
-        Internal function. Returns a string to initialize this elliptic
+        Internal function. Returns a string to initialize this hyperelliptic
         curve in the Magma subsystem.
 
         EXAMPLES::
@@ -371,6 +371,16 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
 
     def monsky_washnitzer_gens(self):
+        """
+        Returns $x,y$ as elements of the coordinate ring of self
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: C = HyperellipticCurve(x^5 - 4*x + 4)
+            sage: C.monsky_washnitzer_gens()
+            (x, y*1)
+        """
         import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
