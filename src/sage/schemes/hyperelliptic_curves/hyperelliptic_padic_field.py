@@ -27,7 +27,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 # The functions below were prototyped at the 2007 Arizona Winter School by
 # Robert Bradshaw and Ralf Gerkmann, working with Miljan Brakovevic and
 # Kiran Kedlaya
-# All of the below is with respect to the Monsky Washnitzer cohomology.
+# All of the below is with respect to the Monsky-Washnitzer cohomology.
 
     def local_analytic_interpolation(self, P, Q, prec = None):
         """

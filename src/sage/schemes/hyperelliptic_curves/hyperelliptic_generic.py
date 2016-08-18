@@ -203,6 +203,24 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         return True
 
     def lift_x(self, x, all=False):
+        r"""
+        Given ``x``, returns a point `(x, y)` if `y` is an element
+        of the base ring of ``self``. If moreover ``all`` is True,
+        returns `(x, y)` and `(x, -y)`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 + 33*x^4/16 + 3*x^3/4 + 3*x^2/8 - x/4 + 1/16)
+            sage: H.lift_x(0)
+            (0 : 1/4 : 1)
+            sage: H.lift_x(0, True)
+            [(0 : 1/4 : 1), (0 : -1/4 : 1)]
+            sage: K = Qp(7,6)
+            sage: HK = H.change_ring(K)
+            sage: HK.lift_x(5)
+            (5 + O(7^6) : 1 + 4*7 + 6*7^2 + 5*7^3 + 4*7^4 + O(7^6) : 1 + O(7^6))
+        """
         f, h = self._hyperelliptic_polynomials
         x += self.base_ring()(0)
         one = x.parent()(1)
@@ -372,7 +390,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
     def monsky_washnitzer_gens(self):
         """
-        Returns $x,y$ as elements of the coordinate ring of self
+        Returns `x, y` as elements of the coordinate ring of self.
 
         EXAMPLES::
 
@@ -388,7 +406,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def invariant_differential(self):
         """
         Returns $dx/2y$, as an element of the Monsky-Washnitzer cohomology
-        of self
+        of self.
 
         EXAMPLES::
 
@@ -603,7 +621,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
     def finite_weierstrass_points(self):
         r"""
-        Return a list of finite Weierstrass points of ``self``.
+        Return a list of finite Weierstrass points of ``self`` defined over
+        the base field of ``self``.
 
         EXAMPLES::
 
@@ -677,7 +696,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def cup(self, v, w):
         """
         Compute the cup product of the vectors v and w with respect to
-        MW cohomology.
+        de Rham cohomology.
 
         EXAMPLES::
 
