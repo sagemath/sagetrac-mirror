@@ -1896,7 +1896,8 @@ def plot(funcs, *args, **kwds):
         raise ValueError('only one of color or rgbcolor should be specified')
     elif 'color' in kwds:
         kwds['rgbcolor'] = kwds.pop('color', (0,0,1)) # take blue as default ``rgbcolor``
-    G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
+
+    G_kwds = Graphics._extract_kwds_for_show(kwds)
 
     original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)
@@ -1914,8 +1915,8 @@ def plot(funcs, *args, **kwds):
         # if there are no extra args, try to get xmin,xmax from
         # keyword arguments or pick some silly default
         if n == 0:
-            xmin = kwds.pop('xmin', -1)
-            xmax = kwds.pop('xmax', 1)
+            xmin = G_kwds.get('xmin', -1)
+            xmax = G_kwds.get('xmax', 1)
             G = _plot(funcs, (xmin, xmax), **kwds)
 
         # if there is one extra arg, then it had better be a tuple
@@ -1934,11 +1935,10 @@ def plot(funcs, *args, **kwds):
             xmax = args[2]
             args = args[3:]
             G = _plot(funcs, (var, xmin, xmax), *args, **kwds)
-        elif ('xmin' in kwds) or ('xmax' in kwds):
-            xmin = kwds.pop('xmin', -1)
-            xmax = kwds.pop('xmax', 1)
+        elif ('xmin' in G_kwds) or ('xmax' in G_kwds):
+            xmin = G_kwds.get('xmin', -1)
+            xmax = G_kwds.get('xmax', 1)
             G = _plot(funcs, (xmin, xmax), *args, **kwds)
-            pass
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
 

@@ -131,7 +131,7 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         raise ValueError("plot_points must be either an integer or a list of integers, one for each range")
 
     plot_points = [int(p) if p>=2 else 2 for p in plot_points]
-    range_steps = [abs(range[1] - range[0])/(p-1) for range, p in zip(ranges, plot_points)]
+    range_steps = [(range[1] - range[0])/(p-1) for range, p in zip(ranges, plot_points)]
     if min(range_steps) == float(0):
         raise ValueError("plot start point and end point must be different")
 
