@@ -2252,6 +2252,51 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           x^2 - y*z
     """
+    
+    def saturated_defining_ideal(self):
+        r"""
+        Construct the saturation of the defining ideal, for purposes of comparisons.
+        The result is cached.
+        
+        EXAMPLES::
+        
+            sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
+            sage: X1 = P2.subscheme([x,y^2,z])
+            sage: X2.defining_ideal()
+            Ideal (x, y^2, z) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: X2.saturated_defining_ideal()
+            Ideal (1) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: X2 = P2.subscheme([x,y,z])
+            sage: print(X1.saturated_defining_ideal() == X2.saturated_defining_ideal())
+            True
+
+        """
+        try:
+            return self._saturated_defining_ideal
+        except AttributeError:
+            I1 = self.defining_ideal()
+            R = I1.ring()
+            I2 = R.ideal(R.gens())
+            I3 = I1.saturation(I2)[0]
+            self._saturated_defining_ideal = I3
+            return(I3)
+        
+    def __eq__(self, other):
+        r"""
+        Test equality of subschemes by comparing the saturations of defining ideals.
+
+        EXAMPLES::
+        
+        The following example shows that :trac:`20511` is resolved::
+        
+            sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
+            sage: P2.subscheme([x,y^2,z]) == P2.subscheme([x,y,z])
+            True
+        
+        """
+        if type(self) != type(other):
+            return False
+        return(self.saturated_defining_ideal() == other.saturated_defining_ideal())
 
     def _morphism(self, *args, **kwds):
         r"""
@@ -2528,6 +2573,22 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         patch._embedding_center = patch.point([0]*n)
         patch._embedding_morphism = patch_hom
         return patch
+    
+    def is_empty(self):
+        r"""
+        Test whether the algebraic subscheme is empty.
+        
+        EXAMPLES::
+        
+            sage: P2.<x, y, z> = ProjectiveSpace(2, QQ)
+            sage: P2.subscheme([x,y^2,z]).is_empty()
+            True
+            sage: P2.subscheme([x,y^2]).is_empty()
+            False
+        """
+        I = self.saturated_defining_ideal()
+        R = I.ring()
+        return(I == R.unit_ideal())
 
     def is_smooth(self, point=None):
         r"""
