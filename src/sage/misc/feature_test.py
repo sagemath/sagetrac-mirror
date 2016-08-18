@@ -18,7 +18,7 @@ Some generic features are available for common cases. For example, to
 test for the existence of a binary, one can use an :class:`Executable`
 feature::
 
-    sage: from sage.misc.feature import GapPackage, Executable
+    sage: from sage.misc.feature_test import GapPackage, Executable
     sage: Executable(name="sh", executable="sh").is_present()
     FeatureTestResult('sh', True)
 
@@ -57,7 +57,7 @@ class Feature(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import GapPackage
+        sage: from sage.misc.feature_test import GapPackage
         sage: GapPackage("grape", spkg="gap_packages") # indirect doctest
         Feature('GAP package grape')
     """
@@ -65,7 +65,7 @@ class Feature(object):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import GapPackage, Feature
+            sage: from sage.misc.feature_test import GapPackage, Feature
             sage: isinstance(GapPackage("grape", spkg="gap_packages"), Feature) # indirect doctest
             True
         """
@@ -84,7 +84,7 @@ class Feature(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
             FeatureTestResult('GAP package grape', True)
             sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
@@ -98,7 +98,7 @@ class Feature(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: GapPackage("ve1EeThu").require()
             Traceback (most recent call last):
             ...
@@ -115,7 +115,7 @@ class Feature(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: GapPackage("grape") # indirect doctest
             Feature('GAP package grape')
         """
@@ -128,7 +128,7 @@ class Feature(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Executable
+            sage: from sage.misc.feature_test import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
             'To install CSDP you can try to run `sage -i csdp`.\nFurther installation instructions might be available at http://github.org/dimpase/csdp.'
         """
@@ -142,7 +142,7 @@ class FeatureNotPresentError(RuntimeError):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Feature, FeatureTestResult
+        sage: from sage.misc.feature_test import Feature, FeatureTestResult
         sage: class Missing(Feature):
         ....:     def is_present(self): return FeatureTestResult(self, False)
 
@@ -155,7 +155,7 @@ class FeatureNotPresentError(RuntimeError):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Feature, FeatureNotPresentError, FeatureTestResult
+            sage: from sage.misc.feature_test import Feature, FeatureNotPresentError, FeatureTestResult
             sage: class Missing(Feature):
             ....:     def is_present(self): return FeatureTestResult(self, False)
 
@@ -173,7 +173,7 @@ class FeatureNotPresentError(RuntimeError):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: GapPackage("gapZuHoh8Uu").require()   # indirect doctest
             Traceback (most recent call last):
             ...
@@ -196,7 +196,7 @@ class FeatureTestResult(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import GapPackage
+        sage: from sage.misc.feature_test import GapPackage
         sage: presence = GapPackage("NOT_A_PACKAGE").is_present(); presence # indirect doctest
         FeatureTestResult('GAP package NOT_A_PACKAGE', False)
         sage: bool(presence)
@@ -214,7 +214,7 @@ class FeatureTestResult(object):
     ``feature.resolution()`` if this is defined. If you do not want to use this
     default you need explicitly set ``resolution`` to a string::
 
-        sage: from sage.misc.feature import FeatureTestResult
+        sage: from sage.misc.feature_test import FeatureTestResult
         sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
         sage: FeatureTestResult(package, True).resolution
 
@@ -227,7 +227,7 @@ class FeatureTestResult(object):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Executable, FeatureTestResult
+            sage: from sage.misc.feature_test import Executable, FeatureTestResult
             sage: isinstance(Executable(name="sh", executable="sh").is_present(), FeatureTestResult)
             True
         """
@@ -244,7 +244,7 @@ class FeatureTestResult(object):
 
         TESTS::
 
-            sage: from sage.misc.feature import Feature, FeatureTestResult
+            sage: from sage.misc.feature_test import Feature, FeatureTestResult
             sage: bool(FeatureTestResult(Feature("SomePresentFeature"), True)) # indirect doctest
             True
             sage: bool(FeatureTestResult(Feature("SomeMissingFeature"), False))
@@ -256,7 +256,7 @@ class FeatureTestResult(object):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Feature, FeatureTestResult
+            sage: from sage.misc.feature_test import Feature, FeatureTestResult
             sage: FeatureTestResult(Feature("SomePresentFeature"), True) # indirect doctest
             FeatureTestResult('SomePresentFeature', True)
         """
@@ -277,7 +277,7 @@ class Executable(Feature):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Executable
+        sage: from sage.misc.feature_test import Executable
         sage: Executable(name="sh", executable="sh").is_present()
         FeatureTestResult('sh', True)
     """
@@ -285,7 +285,7 @@ class Executable(Feature):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Executable
+            sage: from sage.misc.feature_test import Executable
             sage: isinstance(Executable(name="sh", executable="sh"), Executable)
             True
         """
@@ -301,7 +301,7 @@ class Executable(Feature):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Executable
+            sage: from sage.misc.feature_test import Executable
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
         """
@@ -318,7 +318,7 @@ class Executable(Feature):
 
         Returns ``True`` unless explicitly overwritten::
 
-            sage: from sage.misc.feature import Executable
+            sage: from sage.misc.feature_test import Executable
             sage: Executable(name="sh", executable="sh").is_functional()
             FeatureTestResult('sh', True)
         """
@@ -331,7 +331,7 @@ class StaticFile(Feature):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import StaticFile
+        sage: from sage.misc.feature_test import StaticFile
         sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").require()
         Traceback (most recent call last):
         ...
@@ -344,7 +344,7 @@ class StaticFile(Feature):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import StaticFile
+            sage: from sage.misc.feature_test import StaticFile
             sage: StaticFile(name="null", filename="null", search_path=["/dev"])
             Feature('null')
         """
@@ -356,7 +356,7 @@ class StaticFile(Feature):
         r"""
         Whether the static file is present.
 
-           sage: from sage.misc.feature import StaticFile
+           sage: from sage.misc.feature_test import StaticFile
            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").is_present()
            FeatureTestResult('no_such_file', False)
         """
@@ -372,13 +372,13 @@ class StaticFile(Feature):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import DatabaseCremona
+            sage: from sage.misc.feature_test import DatabaseCremona
             sage: DatabaseCremona().absolute_path() # optional: database_cremona_ellcurve
             '.../local/share/cremona/cremona.db'
 
         A ``FeatureNotPresentError`` is raised if the file can not be found::
 
-            sage: from sage.misc.feature import StaticFile
+            sage: from sage.misc.feature_test import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=["/"], spkg="some_spkg", url="http://rand.om").absolute_path()
             Traceback (most recent call last):
             ...
@@ -405,7 +405,7 @@ class SharedLibrary(Feature):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import SharedLibrary
+        sage: from sage.misc.feature_test import SharedLibrary
         sage: libm_test_code = '''
         ....: #clib m
         ....: cdef extern from "<math.h>":
@@ -422,7 +422,7 @@ class SharedLibrary(Feature):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import SharedLibrary, LibFES
+            sage: from sage.misc.feature_test import SharedLibrary, LibFES
             sage: any([isinstance(dep, SharedLibrary) for dep in LibFES().dependencies]) # indirect doctest
             True
         """
@@ -435,7 +435,7 @@ class SharedLibrary(Feature):
 
         EXAMPLES::
 
-                sage: from sage.misc.feature import SharedLibrary
+                sage: from sage.misc.feature_test import SharedLibrary
                 sage: emptylib = SharedLibrary("emptylib", test_code="")
                 sage: emptylib.is_present()
                 FeatureTestResult('emptylib', True)
@@ -464,14 +464,14 @@ class Module(Feature):
     Not all builds of python include the ``ssl`` module, so you could check
     whether it is available::
 
-        sage: from sage.misc.feature import Module
+        sage: from sage.misc.feature_test import Module
         sage: Module("ssl").require() # not tested - output depends on the python build
     """
     def __init__(self, name, spkg=None, url=None):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import LibFES, Module
+            sage: from sage.misc.feature_test import LibFES, Module
             sage: isinstance(LibFES(), Module) # indirect doctest
             True
         """
@@ -484,7 +484,7 @@ class Module(Feature):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Module
+            sage: from sage.misc.feature_test import Module
             sage: Module("sys").is_present()
             FeatureTestResult('sys', True)
         """
@@ -509,14 +509,14 @@ class OptionalModule(Module):
     :class:`OptionalModule` checks for both, whether the module was built and
     whether it is working, i.e., whether the library it relies on is present::
 
-        sage: from sage.misc.feature import LibFES
+        sage: from sage.misc.feature_test import LibFES
         sage: LibFES().require() # optional: fes
     """
     def __init__(self, name, dependencies=[], spkg=None, url=None):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import LibFES, OptionalModule
+            sage: from sage.misc.feature_test import LibFES, OptionalModule
             sage: isinstance(LibFES(), OptionalModule)
             True
         """
@@ -531,7 +531,7 @@ class OptionalModule(Module):
 
         EXAMPLES::
 
-           sage: from sage.misc.feature import LibFES
+           sage: from sage.misc.feature_test import LibFES
            sage: LibFES().is_present() # optional: fes
            FeatureTestResult('sage.libs.fes', True)
         """
@@ -547,7 +547,7 @@ class GapPackage(Feature):
 
     EXMAPLES::
 
-        sage: from sage.misc.feature import GapPackage
+        sage: from sage.misc.feature_test import GapPackage
         sage: GapPackage("grape", spkg="gap_packages")
         Feature('GAP package grape')
     """
@@ -555,7 +555,7 @@ class GapPackage(Feature):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: isinstance(GapPackage("grape", spkg="gap_packages"), GapPackage)
             True
         """
@@ -571,7 +571,7 @@ class GapPackage(Feature):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import GapPackage
+            sage: from sage.misc.feature_test import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present() # optional: gap_packages
             FeatureTestResult('GAP package grape', True)
         """
@@ -587,12 +587,12 @@ class GapPackage(Feature):
 
 class CSDP(Executable):
     r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``theta`` binary
+    A class:`sage.misc.feature_test.Feature` which checks for the ``theta`` binary
     of CSDP.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import CSDP
+        sage: from sage.misc.feature_test import CSDP
         sage: CSDP().is_present() # optional: csdp
         FeatureTestResult('CSDP', True)
     """
@@ -600,7 +600,7 @@ class CSDP(Executable):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import CSDP
+            sage: from sage.misc.feature_test import CSDP
             sage: isinstance(CSDP(), CSDP)
             True
         """
@@ -612,11 +612,11 @@ class CSDP(Executable):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import CSDP
+            sage: from sage.misc.feature_test import CSDP
             sage: CSDP().is_functional() # optional: csdp
             FeatureTestResult('CSDP', True)
         """
-        from sage.misc.feature import FeatureTestResult
+        from sage.misc.feature_test import FeatureTestResult
         from sage.misc.temporary_file import tmp_filename
         import os, subprocess
         tf_name = tmp_filename()
@@ -641,12 +641,12 @@ class CSDP(Executable):
 
 class Plantri(Executable):
     r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``plantri``
+    A class:`sage.misc.feature_test.Feature` which checks for the ``plantri``
     binary.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Plantri
+        sage: from sage.misc.feature_test import Plantri
         sage: Plantri().is_present() # optional: plantri
         FeatureTestResult('plantri', False)
     """
@@ -654,7 +654,7 @@ class Plantri(Executable):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Plantri
+            sage: from sage.misc.feature_test import Plantri
             sage: isinstance(Plantri(), Plantri)
             True
         """
@@ -666,11 +666,11 @@ class Plantri(Executable):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Plantri
+            sage: from sage.misc.feature_test import Plantri
             sage: Plantri().is_functional() # optional: plantri
             FeatureTestResult('plantri', False)
         """
-        from sage.misc.feature import FeatureTestResult
+        from sage.misc.feature_test import FeatureTestResult
         import os, subprocess
         command = ["plantri", "4"]
         try:
@@ -688,12 +688,12 @@ class Plantri(Executable):
 
 class Lrs(Executable):
     r"""
-    A :class:`sage.misc.feature.Feature` describing the presence of the ``lrs``
+    A :class:`sage.misc.feature_test.Feature` describing the presence of the ``lrs``
     binary which comes as a part of ``lrslib``.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Lrs
+        sage: from sage.misc.feature_test import Lrs
         sage: Lrs().is_present() # optional: lrslib
         FeatureTestResult('lrslib', True)
     """
@@ -701,7 +701,7 @@ class Lrs(Executable):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Lrs
+            sage: from sage.misc.feature_test import Lrs
             sage: isinstance(Lrs(), Lrs)
             True
         """
@@ -713,11 +713,11 @@ class Lrs(Executable):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Lrs
+            sage: from sage.misc.feature_test import Lrs
             sage: Lrs().is_functional() # optional: lrslib
             FeatureTestResult('lrslib', True)
         """
-        from sage.misc.feature import FeatureTestResult
+        from sage.misc.feature_test import FeatureTestResult
         from sage.misc.temporary_file import tmp_filename
         import os, subprocess
         tf_name = tmp_filename()
@@ -740,12 +740,12 @@ class Lrs(Executable):
 
 class Buckygen(Executable):
     r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``buckygen``
+    A class:`sage.misc.feature_test.Feature` which checks for the ``buckygen``
     binary.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Buckygen
+        sage: from sage.misc.feature_test import Buckygen
         sage: Buckygen().is_present() # optional: buckygen
         FeatureTestResult('Buckygen', True)
     """
@@ -753,7 +753,7 @@ class Buckygen(Executable):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Buckygen
+            sage: from sage.misc.feature_test import Buckygen
             sage: isinstance(Buckygen(), Buckygen)
             True
         """
@@ -765,11 +765,11 @@ class Buckygen(Executable):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Buckygen
+            sage: from sage.misc.feature_test import Buckygen
             sage: Buckygen().is_functional() # optional: buckygen
             FeatureTestResult('Buckygen', True)
         """
-        from sage.misc.feature import FeatureTestResult
+        from sage.misc.feature_test import FeatureTestResult
         import subprocess
         command = ["buckygen", "-d", "22d"]
         try:
@@ -787,12 +787,12 @@ class Buckygen(Executable):
 
 class Benzene(Executable):
     r"""
-    A class:`sage.misc.feature.Feature` which checks for the ``benzene``
+    A class:`sage.misc.feature_test.Feature` which checks for the ``benzene``
     binary.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import Benzene
+        sage: from sage.misc.feature_test import Benzene
         sage: Benzene().is_present() # optional: benzene
         True
     """
@@ -800,7 +800,7 @@ class Benzene(Executable):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import Benzene
+            sage: from sage.misc.feature_test import Benzene
             sage: isinstance(Benzene(), Benzene)
             True
         """
@@ -812,11 +812,11 @@ class Benzene(Executable):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import Benzene
+            sage: from sage.misc.feature_test import Benzene
             sage: Benzene().is_functional() # optional: benzene
             True
         """
-        from sage.misc.feature import FeatureTestResult
+        from sage.misc.feature_test import FeatureTestResult
         import os, subprocess
         devnull = open(os.devnull, 'wb')
         command = ["benzene", "2", "p"]
@@ -840,7 +840,7 @@ class DatabaseCremona(StaticFile):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import DatabaseCremona
+        sage: from sage.misc.feature_test import DatabaseCremona
         sage: DatabaseCremona().is_present() # optional: database_cremona_ellcurve
         FeatureTestResult("Cremona's database of elliptic curves", True)
     """
@@ -848,7 +848,7 @@ class DatabaseCremona(StaticFile):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import DatabaseCremona
+            sage: from sage.misc.feature_test import DatabaseCremona
             sage: isinstance(DatabaseCremona(), DatabaseCremona)
             True
         """
@@ -867,7 +867,7 @@ class SmallGroupsLibrary(Feature):
 
     EXMAPLES::
 
-        sage: from sage.misc.feature import SmallGroupsLibrary
+        sage: from sage.misc.feature_test import SmallGroupsLibrary
         sage: SmallGroupsLibrary()
         Feature('Small Groups Library')
     """
@@ -875,7 +875,7 @@ class SmallGroupsLibrary(Feature):
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import SmallGroupsLibrary
+            sage: from sage.misc.feature_test import SmallGroupsLibrary
             sage: isinstance(SmallGroupsLibrary(), SmallGroupsLibrary)
             True
         """
@@ -888,7 +888,7 @@ class SmallGroupsLibrary(Feature):
 
         EXAMPLES::
 
-            sage: from sage.misc.feature import SmallGroupsLibrary
+            sage: from sage.misc.feature_test import SmallGroupsLibrary
             sage: SmallGroupsLibrary().is_present() # optional: database_gap
             FeatureTestResult('Small Groups Library', True)
         """
@@ -911,7 +911,7 @@ class LibFES(OptionalModule):
 
     EXAMPLES::
 
-        sage: from sage.misc.feature import LibFES
+        sage: from sage.misc.feature_test import LibFES
         sage: LibFES().require() # optional: fes
     """
     _test_code=r"""
@@ -957,7 +957,7 @@ if solutions != 3: raise ImportError("libFES did not find three solutions for x*
         r"""
         TESTS::
 
-            sage: from sage.misc.feature import LibFES
+            sage: from sage.misc.feature_test import LibFES
             sage: isinstance(LibFES(), LibFES)
             True
         """
