@@ -1286,7 +1286,7 @@ def CossidentePenttilaGraph(q):
     if k==0 or p==2:
         raise ValueError('q(={}) must be an odd prime power'.format(q))
 
-    from sage.misc.feature.gap_package import GapPackage
+    from sage.misc.feature_test import GapPackage
     GapPackage("grape", spkg="gap_packages").require()
 
     from sage.libs.gap.libgap import libgap

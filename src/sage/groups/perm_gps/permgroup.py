@@ -159,7 +159,7 @@ def load_hap():
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    from sage.misc.feature import GapPackage
+    from sage.misc.feature_test import GapPackage
     GapPackage("hap", spkg="gap_packages").require()
     gap.load_package("hap")
 
@@ -1678,7 +1678,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return [Integer(n) for n in self._gap_().IdGroup()]
         except RuntimeError:
-            from sage.misc.feature import SmallGroupsLibrary
+            from sage.misc.feature_test import SmallGroupsLibrary
             SmallGroupsLibrary().require()
             # if the small groups library is installed, then something else caused
             # the call to fail - reraise the original exception
@@ -1733,7 +1733,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return Integer(self._gap_().PrimitiveIdentification())
         except RuntimeError:
-            from sage.misc.feature import SmallGroupsLibrary
+            from sage.misc.feature_test import SmallGroupsLibrary
             SmallGroupsLibrary().require()
             # if the small groups library is installed, then something else caused
             # the call to fail - reraise the original exception

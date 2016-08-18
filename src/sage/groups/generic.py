@@ -1403,7 +1403,7 @@ def structure_description(G, latex=False):
     try:
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
-        from sage.misc.feature import SmallGroupsLibrary
+        from sage.misc.feature_test import SmallGroupsLibrary
         SmallGroupsLibrary().require()
         # the Small Groups Library is installed. The command failed for a different reason
         raise

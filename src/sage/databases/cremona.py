@@ -617,7 +617,7 @@ class MiniCremonaDatabase(SQLDatabase):
             SQLDatabase.__init__(self, db_path, read_only=read_only, \
                     skeleton=_miniCremonaSkeleton)
         else:
-            from sage.misc.feature import DatabaseCremona
+            from sage.misc.feature_test import DatabaseCremona
             database = DatabaseCremona(name)
             database.require()
             SQLDatabase.__init__(self, database.absolute_path(), read_only=read_only)
@@ -824,7 +824,7 @@ class MiniCremonaDatabase(SQLDatabase):
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
                     + " in the database"
-            from sage.misc.feature import DatabaseCremona
+            from sage.misc.feature_test import DatabaseCremona
             cremona_database_presence = DatabaseCremona().is_present()
             if cremona_database_presence:
                 message = "There is no elliptic curve with label " + label \
@@ -1431,7 +1431,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             SQLDatabase.__init__(self, db_path, read_only=read_only, \
                     skeleton=_miniCremonaSkeleton)
         else:
-            from sage.misc.feature import DatabaseCremona
+            from sage.misc.feature_test import DatabaseCremona
             database = DatabaseCremona(name)
             database.require()
             SQLDatabase.__init__(self, database.absolute_path(), read_only=read_only)
@@ -1675,7 +1675,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
     if name is None and not set_global:
         return _db
     if set_global and name is None:
-        from sage.misc.feature import DatabaseCremona
+        from sage.misc.feature_test import DatabaseCremona
         if DatabaseCremona().is_present():
             name = 'cremona'
         else:

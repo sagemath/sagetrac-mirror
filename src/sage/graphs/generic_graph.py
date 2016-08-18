@@ -7871,7 +7871,7 @@ class GenericGraph(GenericGraph_pyx):
             capacity=lambda x: 1
 
         if algorithm is None:
-            from sage.misc.feature import PythonModule
+            from sage.misc.feature_test import PythonModule
             if vertex_bound:
                 algorithm = "LP"
             elif PythonModule(module="igraph", spkg="python_igraph", url="http://igraph.org").is_present():
@@ -21439,10 +21439,10 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         return_data.append( edge_labels )
     return return_data
 
-from sage.misc.feature import PythonModule
+from sage.misc.feature_test import PythonModule
 class Bliss(PythonModule):
     r"""
-    A :class:`sage.misc.feature.PythonModule` which describes the availability
+    A :class:`sage.misc.feature_test.PythonModule` which describes the availability
     of the bliss library.
 
     EXAMPLES::

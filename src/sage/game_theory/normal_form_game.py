@@ -1315,7 +1315,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if not self._is_complete():
             raise ValueError("utilities have not been populated")
 
-        from sage.misc.feature import Lrs
+        from sage.misc.feature_test import Lrs
         if not algorithm:
             if Lrs().is_present():
                 algorithm = "lrs"
