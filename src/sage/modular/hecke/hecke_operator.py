@@ -24,7 +24,7 @@ from sage.structure.element import AlgebraElement
 from sage.categories.homset import End
 import sage.arith.all as arith
 from   sage.rings.integer import Integer
-
+from sage.matrix.matrix_space import MatrixSpace
 from . import algebra
 from . import morphism
 
@@ -58,6 +58,41 @@ def is_HeckeAlgebraElement(x):
         True
     """
     return isinstance(x, HeckeAlgebraElement)
+
+def _heckecoords(M,t):
+    r"""
+    Gives the coordinates of t in the basis given by M.hecke_algebra().basis()
+
+    INPUT:
+
+    - ``M`` - hecke module
+
+    - ``t`` - an element of the hecke algebra, represented as a matrix
+
+    OUTPUT:
+    
+    - a vector
+    """
+    QQ=rings.QQ
+    d=M.rank()
+    VV=QQ**(d**2)
+    MM=MatrixSpace(QQ,d,d**2)
+    NN=MatrixSpace(QQ,1,d**2)
+    m=MM(0)
+    b=M.hecke_algebra().basis()
+    for i in xrange(0,d):
+        try:
+            vv=b[i].list()
+        except AttributeError:
+            vv=b[i].matrix().list()
+        m[i]=VV(vv)
+    try:
+        t1=t.matrix().list()
+    except AttributeError:
+        t1=t.list()
+    T=NN(t1)
+    c=m.solve_left(T)
+    return c[0]
 
 class HeckeAlgebraElement(AlgebraElement):
     r"""
@@ -403,6 +438,22 @@ class HeckeAlgebraElement(AlgebraElement):
         """
         return self.matrix()[ij]
 
+    def coordinates(self):
+        r"""
+        Gives the cooridinates of self in the hecke algebra. Uses the basis
+        given by self.domain().hecke_algebra().basis()
+
+        OUTPUT:
+
+        - a vector representing the coordinates of self
+
+        EXAMPLES::
+
+            sage: TT = ModularSymbols(11,2,1).hecke_algebra()
+            sage: (TT.7).coordinates()
+            (8, -2)
+        """
+        return _heckecoords(self.domain(),self.matrix())
 
 class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
     r"""
@@ -528,6 +579,22 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         """
         return self.parent()(other.matrix() * self.matrix(), check=False)
 
+    def coordinates(self):
+        r"""
+        Gives the cooridinates of self in the hecke algebra. Uses the basis
+        given by self.domain().hecke_algebra().basis()
+
+        OUTPUT:
+
+        - a vector representing the coordinates of self
+
+        EXAMPLES::
+
+            sage: TT = ModularSymbols(11,2,1).hecke_algebra()
+            sage: (TT.2 + TT.3).coordinates()
+            (7, -2)
+        """
+        return _heckecoords(self.domain(),self)
 
 class DiamondBracketOperator(HeckeAlgebraElement_matrix):
     r"""
