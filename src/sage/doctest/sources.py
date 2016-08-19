@@ -610,7 +610,7 @@ class FileDocTestSource(DocTestSource):
         in_lib_re = re.compile(r'^({0})(\.|$)'.format(
             '|'.join([p.replace('.', '\\.') for p in in_lib_packages])))
 
-        return self.options.force_lib or in_lib_re.match(self.basename)
+        return self.options.force_lib or bool(in_lib_re.match(self.basename))
 
     def create_doctests(self, namespace):
         r"""
