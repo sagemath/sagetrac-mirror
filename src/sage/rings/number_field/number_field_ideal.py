@@ -49,7 +49,7 @@ import sage.rings.integer_ring as integer_ring
 import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-
+from sage.libs.pari.all import pari
 
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)

@@ -62,7 +62,7 @@ def _integer_n_tuple_L1_iterator(n):
             yield -i
             i += 1
     else:
-        from sage.combinat.partition import Partitions
+        from sage.combinat.partition import OrderedPartitions
         from sage.combinat.subset import Subsets
         N = 1
         sign_options_dict = {}
@@ -93,7 +93,7 @@ def _integer_n_tuple_L1_iterator(n):
                             sign_options = Subsets(S)[1:]
                             sign_options_dict[S] = sign_options
                         for signs in sign_options:
-                            ii = copy(i)
+                            ii = list(i)
                             for index in signs:
                                 ii[index] = - ii[index]
                             yield ii
@@ -152,7 +152,7 @@ class Modulus(SageObject):
         
         This multiplies the two finite parts and performs an exclusive or on the real places.
         
-        TESTS:
+        Examples:
         
         ::
         
@@ -249,7 +249,7 @@ class Modulus(SageObject):
         v = [0] * d
         for i in negative:
             v[i] = 1
-        v = (GF(2)^d)(v)
+        v = (GF(2)**d)(v)
         w = Ainv * v
         t = self.number_field().one()
         for i in range(d):
@@ -262,11 +262,12 @@ class Modulus(SageObject):
         r"""
         Step 2 of Algorithm 4.2.20 of Cohen's Advanced...
         """
+        from sage.matrix.special import column_matrix
         gammas = self.finite_part().basis()
         k = len(self.infinite_part())
         beta_is = []
         Acols = []
-        V = GF(2)^k
+        V = GF(2)**k
         it = _integer_n_tuple_L1_iterator(k)
         while len(beta_is) < k:
             e = it.next()
@@ -284,8 +285,8 @@ class Modulus(SageObject):
     def _signs(self, b):
         if b == 0:
             raise ValueError("Non-zero input required.")
-        sigmas = K.places()
-        return [(1 - sigmas[i](b).sign()).divide_knowing_divisible_by(2) for i in self.infinite_part()]
+        sigmas = self._number_field.real_places()
+        return [ZZ.one() if sigmas[i](b).sign() == -1 else ZZ.zero() for i in self.infinite_part()]
     
     def is_finite(self):
         return len(self._infinite) == 0
@@ -568,7 +569,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
        """
         return self.ideal().gens()
 
-class RayClassGroupElement(AbelianGroupWithValuesElement):
+class RayClassGroupElement(AbelianGroupElement):
     #@@def __init__(self, parent, element, ideal=None):
         #@@if element is None:
         #@@    if not parent.modulus().finite_part().is_coprime(ideal):
@@ -577,8 +578,8 @@ class RayClassGroupElement(AbelianGroupWithValuesElement):
         #Should treat the else case for coprime-ness as well since the code can coerce from different moduli
         #@@FractionalIdealClass.__init__(self, parent, element, ideal)
     
-    def _repr_(self):
-        return AbelianGroupWithValuesElement._repr_(self)
+    #def _repr_(self):
+    #    return AbelianGroupWithValuesElement._repr_(self)
     
     #Should be able to get rid of the operations if make the reduce function a method of the parent
     #def _mul_(self, other):
@@ -601,8 +602,91 @@ class RayClassGroupElement(AbelianGroupWithValuesElement):
     
     #__invert__ = inverse
     
-    #def ideal(self):
-    #    return self.parent()._number_field._pari_extended_ideal_to_sage(self.value())
+    def ideal(self, reduce=True):
+        """
+        Return an ideal representing this ray class; if ``reduce`` is True (by default)
+        the returned ideal is reduced to 'small' (this can be slow on large inputs).
+        
+        INPUT:
+        
+        - ``reduce`` -- (default: True) determine whether or not to output a 'small'
+        representative.
+        
+        OUTPUT:
+        
+        - An ideal representing this ray class. If ``reduce`` is True, the ideal returned
+        is made 'small' by the ideal's ``reduce_equiv`` function (and ``reduce_equiv`` is
+        used at each step of computing this representative). Otherwise, the output is just
+        the appropriate product of the powers of the generators of the ray class group.
+        
+        EXAMPLES:
+        
+        Over a real quadratic field field of class number 1.
+        
+        ::
+        
+            sage: F.<a> = NumberField(x^2 - 5)
+            sage: m = F.ideal(11).modulus([0, 1])
+            sage: R = F.ray_class_group(m)
+            sage: c0, c1 = R.gens()
+            sage: c = c0^4*c1; c.ideal()
+            Fractional ideal (-a)
+            sage: c.ideal(False)
+            Fractional ideal (-6242265*a + 1268055)
+        
+        Over a real quadratic field of class number 2.
+        
+        ::
+        
+            sage: F = QuadraticField(40)
+            sage: R = F.ray_class_group(F.prime_above(13).modulus([0, 1]))
+            sage: for c in R:
+            ...       if R(c.ideal()) != c:
+            ...           print "Bug!"
+        """
+        #R = self.parent()
+        #exps = self.exponents()
+        #gens = R.gens_values()
+        #i = 0
+        #while exps[i] == 0:
+        #    i += 1
+        #    if i == L:
+        #        return R.one()
+        #nf = R.number_field().pari_nf()
+        #I = nf.idealpow(gens[i], exps[i], flag=1)
+        #i += 1
+        #while i < L:
+        #    e = exps[i]
+        #    g = gens[i]
+        #    i += 1
+        #    if e != 0:
+        #        I = nf.idealmul(I, nf.idealpow(g, e, flag=1), flag=1)
+        #bnr = R.pari_bnr()
+        #return R.number_field().ideal(nf.idealmul(I[0], nf.nffactorback(I[1])))
+        R = self.parent()
+        m = R.modulus()
+        exps = self.exponents()
+        gens = R.gens_ideals()
+        L = len(exps)
+        #Speed this up later using binary powering
+        i = 0
+        while exps[i] == 0:
+            i += 1
+            if i == L:
+                return R.one()
+        I = (gens[i]**exps[i])
+        if reduce:
+            I = I.reduce_equiv(m)
+        i += 1
+        while i < L:
+            e = exps[i]
+            g = gens[i]
+            i += 1
+            if e != 0:
+                I = (I * (g**e))
+                if reduce:
+                    I = I.reduce_equiv(m)
+        return I
     
     #def reduce(self):
     #    nf = self.parent()._number_field.pari_nf()
@@ -908,6 +992,12 @@ class RayClassGroup(AbelianGroup_class):
         self._bnr = bnr
     
     def _element_constructor_(self, *args, **kwds):
+        try:
+            L = len(args[0])
+        except TypeError:
+            L = -1
+        if L == self.ngens():
+            return self.element_class(self, args[0])
         if isinstance(args[0], RayClassGroupElement):
             c = args[0]
             if c.parent() is self:
@@ -932,7 +1022,7 @@ class RayClassGroup(AbelianGroup_class):
                 i += 1
                 if e != 0:
                     I = nf.idealmul(I, nf.idealpow(g, e, flag=1), flag=1)
-            exps = tuple(ZZ(c) for c in bnr.bnrisprincipal(nf.idealmul(I[0], nf.nffactorback(I[1])), flag = 0))#@@
+            exps = tuple(ZZ(c) for c in bnr.bnrisprincipal(nf.idealmul(I[0], nf.nffactorback(I[1])), flag = 0))
             return self.element_class(self, exps)
         else:
             I = self._number_field.ideal(*args, **kwds)

@@ -37,9 +37,48 @@ def _mask_to_list(L):
 
 class HeckeCharacter(DualAbelianGroupElement):
     def __call__(self, g):
+        """
+        Evaluates this Hecke character on the input ``g``.
+        
+        INPUT:
+        
+        - ``g`` -- either an element of the ray class group on which this character
+        is defined, or something that can be turned into an ideal.
+        
+        OUTPUT:
+        
+        The value of this character at ``g``.
+        
+        EXAMPLES:
+        
+        Evaluating on an element of the ray class group.
+        
+        ::
+        
+            sage: F = QuadraticField(5)
+            sage: H = HeckeCharacterGroup(F.modulus(F.ideal(16), [0,1]))
+            sage: chi = H.gens()[0]; chi(H.group().gens()[0])
+            zeta4
+        
+        Evaluating at an element of the base field.
+        
+        ::
+        
+            sage: chi(F.gen() / 2 + 33 / 2)
+            1
+        
+        Evaluating at ideals of the base field.
+        
+        ::
+        
+            sage: chi(F.ideal(6))
+            0
+            sage: chi(F.ideal(F.gen()))
+            zeta4
+        """
         R = self.parent().group()
         if g.parent() is R:
-            DualAbelianGroupElement.__call__(self, g)
+            return DualAbelianGroupElement.__call__(self, g)
         K = R.number_field()
         g = K.ideal(g)
         if self.parent().modulus().finite_part().is_coprime(g):
@@ -48,20 +87,48 @@ class HeckeCharacter(DualAbelianGroupElement):
     
     def _log_values_on_gens(self):
         r"""
-        Returns a list of integers `(a_j)` such that the value of ``self`` on the jth
+        Returns a tuple of integers `(a_j)` such that the value of this character on the jth
         generator of the ray class group is `\exp(2\pi ia_j/d_j)`, where `d_j` is the
-        order of the jth generator.
+        order of the jth generator. This tuple is simply the exponents of the character
+        with respect the generators of its Hecke character group.
+        
+        EXAMPLES::
+        
+            sage: F = QuadraticField(5)
+            sage: H = HeckeCharacterGroup(F.ideal(16).modulus([0,1]))
+            sage: prod(H.gens())._log_values_on_gens()
+            (1, 1, 1)
         """
-        #R = self.parent().group()
-        #orders = R.gens_orders()
-        #val_orders = [self(a).multiplicative_order() for a in R.gens_values()]
-        #return [orders[j].divide_knowing_divisible_by(val_orders[j]) for j in range(len(orders))]
         return self.exponents()
     
     def modulus(self):
+        """
+        Return the modulus modulo which this character is defined.
+        
+        EXAMPLES::
+        
+            sage: F = QuadraticField(2)
+            sage: H = HeckeCharacterGroup(F.modulus(F.ideal(8), [0,1]))
+            sage: chi = H.gens()[0]
+            sage: chi.modulus()
+            (Fractional ideal (8)) * infinity_0 * infinity_1
+            sage: chi.conductor()
+            (Fractional ideal (2)) * infinity_0 * infinity_1
+        """
         return self.parent().modulus()
     
     def level(self):
+        """
+        An alias for :func:`modulus`. Return the modulus modulo which
+        this character is defined.
+        
+        EXAMPLES::
+        
+            sage: F = QuadraticField(5)
+            sage: H = HeckeCharacterGroup(F.ideal(F.gen()).modulus([0,1]))
+            sage: H.gens().level()
+            (Fractional ideal (a)) * infinity_0 * infinity_1
+        """
         return self.modulus()
     
     def conductor(self):
@@ -69,8 +136,14 @@ class HeckeCharacter(DualAbelianGroupElement):
         K = R.number_field()
         bnr = R.pari_bnr()
         modulus = bnr.bnrconductorofchar(self._log_values_on_gens())
-        #print modulus
-        return K.modulus(K.ideal(modulus[0]), _mask_to_list(modulus[1])) #Are the infinite places ordered the same in pari?
+        infinite = []
+        m1 = modulus[1]
+        pari_to_sage = self.parent()._pari_places_to_sage_places()
+        for i in range(len(m1)):
+            if m1[i] != 0:
+                infinite.append(pari_to_sage[i])
+        infinite.sort()
+        return K.modulus(K.ideal(modulus[0]), infinite)#_mask_to_list(modulus[1])) #Are the infinite places ordered the same in pari?
     
     def is_primitive(self):
         return self.conductor() == self.modulus()
@@ -183,6 +256,26 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
     #        return DualAbelianGroup_class._element_constructor_(self, *args, **kwds)
     #    exponents = [gens_orders[i].divide_knowing_divisible_by(args[0][i].multiplicative_order()) for i in range(n)]
     #    return self.element_class(self, exponents)
+    
+    def _pari_places_to_sage_places(self):
+        try:
+            return self._pari_to_sage_places
+        except AttributeError:
+            pass
+        F = self.number_field()
+        sigmas = F.real_places()
+        r = F.defining_polynomial().parent()(F.pari_polynomial().list()).roots(F)[0][0]
+        rs = [sigma(r) for sigma in sigmas]
+        pari_to_sage = []
+        for rp in F.pari_nf()[5]:
+            i = 0
+            while i < len(rs):
+                if rp.sage() == rs[i]:
+                    pari_to_sage.append(i)
+                i += 1
+        assert(len(pari_to_sage) == len(rs))
+        self._pari_to_sage_places = pari_to_sage
+        return pari_to_sage
 
 class HeckeCharacterGroupFactory(UniqueFactory):
     def create_key(self, modulus, base_ring=None, names=None):#(m, base_ring=None, names=None):
