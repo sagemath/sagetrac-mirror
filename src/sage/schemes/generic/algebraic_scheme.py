@@ -2297,6 +2297,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         if type(self) != type(other):
             return False
         return(self.saturated_defining_ideal() == other.saturated_defining_ideal())
+    
+    def __hash__(self):
+        return(self.saturated_defining_ideal().__hash__())
 
     def _morphism(self, *args, **kwds):
         r"""
