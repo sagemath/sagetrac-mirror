@@ -1,3 +1,6 @@
+# nodoctest -- __main__ modules are just for running the module from the
+# command line and should not be doctested
+
 from __future__ import print_function, absolute_import
 
 import os
