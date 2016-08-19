@@ -11,6 +11,8 @@ Factory for symbolic functions
 ###############################################################################
 from __future__ import print_function
 
+import six
+
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
 from sage.misc.decorators import sage_wraps
@@ -311,7 +313,7 @@ def function(s, *args, **kwds):
         sage: E
         E
     """
-    if not isinstance(s, (str, unicode)):
+    if not isinstance(s, six.string_types):
         raise TypeError("expect string as first argument")
 
     # create the function
