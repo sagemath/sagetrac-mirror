@@ -761,8 +761,17 @@ There are a number of magic comments that you can put into the example
 code that change how the output is verified by the Sage doctest
 framework. Here is a comprehensive list:
 
-- **random:** The line will be executed, but its output will not be checked with
+- **ignored:** The line will be executed, but its output will not be checked with
   the output in the documentation string::
+
+      sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0)
+      sage: p = z.algdep(5); p  # ignored
+      x^3 + 1
+      sage: abs(p(z)) < 1e-14
+      True
+
+- **random:** Effectively the same as ``ignored`` but with the additional
+  semantic indication that the output is expected to be random::
 
       sage: c = CombinatorialObject([1,2,3])
       sage: hash(c)  # random

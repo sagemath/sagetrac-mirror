@@ -37,7 +37,7 @@ float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
-random_marker = re.compile('.*random', re.I)
+ignored_marker = re.compile('.*(?:random|ignored)', re.I)
 tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
@@ -164,8 +164,8 @@ def parse_tolerance(source, want):
     comment = comment[comment.index('(')+1 : comment.rindex(')')]
     # strip_string_literals replaces comments
     comment = literals[comment]
-    if random_marker.search(comment):
-        want = MarkedOutput(want).update(random=True)
+    if ignored_marker.search(comment):
+        want = MarkedOutput(want).update(ignored=True)
     else:
         m = tolerance_pattern.search(comment)
         if m:
@@ -254,10 +254,22 @@ class MarkedOutput(str):
         sage: s.rel_tol
         0.0500000000000000
     """
-    random = False
+    ignored = False
     rel_tol = 0
     abs_tol = 0
     tol = 0
+
+    @property
+    def random(self):
+        """
+        An alias for `MarkedOutput.ignored` specifically indicating that the
+        output is completely random.
+
+        This is useful just as a semantic indicator.
+        """
+
+        return self.ignored
+
     def update(self, **kwds):
         """
         EXAMPLES::
@@ -717,7 +729,7 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: from sage.doctest.parsing import MarkedOutput, SageOutputChecker
             sage: import doctest
             sage: optflag = doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS
-            sage: rndstr = MarkedOutput("I'm wrong!").update(random=True)
+            sage: rndstr = MarkedOutput("I'm wrong!").update(ignored=True)
             sage: tentol = MarkedOutput("10.0").update(tol=.1)
             sage: tenabs = MarkedOutput("10.0").update(abs_tol=.1)
             sage: tenrel = MarkedOutput("10.0").update(rel_tol=.1)
@@ -800,7 +812,7 @@ class SageOutputChecker(doctest.OutputChecker):
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
-            if want.random:
+            if want.ignored:
                 return True
             elif want.tol or want.rel_tol or want.abs_tol:
                 # First check the doctest without the numbers
