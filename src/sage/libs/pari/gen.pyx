@@ -598,6 +598,41 @@ cdef class gen(gen_auto):
     def bnfunit(self):
         sig_on()
         return P.new_gen(bnf_get_fu(self.g))
+    
+    def idealmoddivisor(self, ideal):
+        """
+        Return a 'small' ideal equivalent to ``ideal`` in the
+        ray class group that the bnr structure ``self`` encodes.
+        
+        INPUT:
+        
+        - ``self`` -- a bnr structure as outputted from bnrinit.
+        - ``ideal`` -- an ideal in the underlying number field of
+        the bnr structure.
+        
+        OUTPUT:
+        
+        - A pari ideal in the number field associated to the bnr
+        structure ``self``.
+        
+        EXAMPLES:
+
+            sage: F.<a> = NumberField(x^4 - 2)
+            sage: m = F.modulus(F.ideal(2), [0, 1])
+            sage: R = F.ray_class_group(m)
+            sage: I = F.ideal(a^3 + a + 1)
+            sage: R.pari_bnr().idealmoddivisor(I)
+            [3, 0, 2, 1; 0, 3, 1, 1; 0, 0, 1, 0; 0, 0, 0, 1]
+            sage: R.pari_bnr().idealmoddivisor(F.ideal(a^3))
+            Traceback (most recent call last):
+            ...
+            PariError: elements not coprime in idealaddtoone:
+                [2, 0, 0, 0; 0, 2, 0, 0; 0, 0, 2, 0; 0, 0, 0, 1]
+                [2, 0, 0, 0; 0, 2, 0, 0; 0, 0, 2, 0; 0, 0, 0, 2]
+        """
+        cdef gen t0 = objtogen(ideal)
+        sig_on()
+        return P.new_gen(idealmoddivisor(self.g, t0.g))
 
     def pr_get_p(self):
         """
