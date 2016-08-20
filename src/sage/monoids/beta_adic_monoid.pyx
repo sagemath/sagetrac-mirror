@@ -2799,7 +2799,7 @@ class BetaAdicMonoid(Monoid_class):
 		if verb: print("determinise...")
 		ai = ai.determinise_proj(d, verb=verb)
 		if verb: print("min")
-		return ai.minimise()
+		return ai.emonde().minimise()
 	
 	#Not well tested !!!!
 	#return the automaton recognizing the division by beta and translation t
@@ -3053,7 +3053,32 @@ class BetaAdicMonoid(Monoid_class):
 		l.sort(key=pp)
 		return l[l.index(0)+1:]
 	
-	def compute_morceaux (self, FastAutomaton aoc, method = 1, imax=None, verb=False, stop=-1):
+	#verify that a piece exchange is correct
+	#we assume that pieces are disjoints
+	# INCORRECT : THE PIECE EXCHANGE IS NOT NECESSARLY INVERSIBLE
+	def correct_morceaux (self, FastAutomaton aoc, list lm, bool verb=False):
+		u = FastAutomaton(None)
+		u.setAlphabet(aoc.Alphabet())
+		#verify that the union of the pieces is equal to aoc
+		for a,t in lm:
+			u = u.union(a)
+		if not u.equals_langages(aoc):
+			if verb: print "Les morceaux ne recouvrent pas !"
+			return False
+		#verify that the union of the translated pieces is equal to aoc
+		u = FastAutomaton(None)
+		u.setAlphabet(aoc.Alphabet())
+		u.add_state(True)
+		u.set_initial_state(0)
+		u.add_edge(0,0,0) #reconnait 0 (le seul élément à ne pas avoir forcément d'inverse)
+		for a,t in lm:
+			u = u.union(self.move2(-t,a))
+		if not u.equals_langages(aoc):
+			if verb: print "Les morceaux translatés ne recouvrent pas !"
+			return False
+		return True
+	
+	def compute_morceaux (self, FastAutomaton aoc, lt = None, method = 1, imax=None, verb=False, stop=-1):
 		r"""
 		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
 		
@@ -3079,11 +3104,12 @@ class BetaAdicMonoid(Monoid_class):
 		"""
 		m = self
 		A = aoc.A
-		if verb: print("Compute the list of translations...")
-		if method == 1:
-			lt = self.compute_translations(aoc, imax, verb)	
-		else:
-			lt = self.compute_translations2(aoc, imax, verb)
+		if lt is None:
+			if verb: print("Compute the list of translations...")
+			if method == 1:
+				lt = self.compute_translations(aoc, imax, verb)	
+			else:
+				lt = self.compute_translations2(aoc, imax, verb)
 		if verb: print("list of %s points."%len(lt))
 		if verb: print("Compute the pieces...")
 		u = FastAutomaton(None)
@@ -3148,7 +3174,7 @@ class BetaAdicMonoid(Monoid_class):
 								res.append(t2)
 		return res
 	
-	def compute_morceaux2 (self, FastAutomaton aoc, iplus=4, verb=False):
+	def compute_morceaux2 (self, FastAutomaton aoc, iplus=1, verb=False, step=None):
 		r"""
 		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
 		
@@ -3176,9 +3202,6 @@ class BetaAdicMonoid(Monoid_class):
 		A = aoc.A
 		b = self.b
 		p = b.parent().places()
-		#ared = self.reduced_words_automaton2()
-		#aocr = aoc.intersection(ared)
-		#if verb: "print aocr=%s"%aocr
 		d = dict()
 		for t1 in A:
 			for t2 in A:
@@ -3190,7 +3213,6 @@ class BetaAdicMonoid(Monoid_class):
 		else:
 			pp = p[1]
 			pm = p[0]
-		#if verb: print("list of %s points."%len(lt))
 		if verb: print("Compute the pieces...")
 		u = FastAutomaton(None)
 		u.setAlphabet(list(A))
@@ -3198,24 +3220,14 @@ class BetaAdicMonoid(Monoid_class):
 		at = dict()
 		while True:
 			#############
-			#compute a reduced version of uc
-			#ucr = uc.intersection(ared)
 			#compute uc-aoc
-			#ad = ucr.product(aocr, d)
-			ad = uc.product(aoc, d)
+			ad = uc.product(aoc)
+			ad = ad.determinise_proj(d)
+			ad = ad.emonde().minimise()
 			ad.zero_completeOP()
 			if verb: print "ad = %s"%ad
-			#compute the reduced words automaton with the difference alphabet
-			#m2 = BetaAdicMonoid(b, set([t1 - t2 for t1 in A for t2 in A]))
-			#if verb: print "m2 = %s"%m2
-			#ar2 = m2.reduced_words_automaton2()
-			#if verb: print "ar2 = %s"%ar2
-			#intersect
-			#adr = ad.intersection(ar2)
-			#if verb: print "adr = %s"%adr
-			adr = ad
 			#compute the list of points
-			imax = 5
+			imax = 3
 			fin = False
 			while True:
 				if imax >= 1000:
@@ -3238,6 +3250,8 @@ class BetaAdicMonoid(Monoid_class):
 				if fin:
 					break
 				if l != []:
+					#if iplus == 0:
+					#	break
 					fin = True
 					imax += iplus
 				imax += 1
@@ -3273,11 +3287,14 @@ class BetaAdicMonoid(Monoid_class):
 				if verb: print "at[%s]=%s, uc=%s"%(t, at[t], uc)
 			if uc.is_empty():
 				break #c'est fini !
+			if step is not None:
+				if step == 0:
+					return "Arret", [(at[t],t) for t in at.keys()], uc
 		if not uc.is_empty():
 			raise ValueError("Erreur : l'échange de morceaux ne pave pas !!!")
 		return [(at[t],t) for t in at.keys()]
 	
-	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method = 1, method_tr = 1, iplus=2, imax=None, get_aut=False, verb=True):
+	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method = 2, method_tr = 1, iplus=2, imax=None, get_aut=False, verb=True):
 		r"""
 		Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
 		
@@ -3344,7 +3361,7 @@ class BetaAdicMonoid(Monoid_class):
 			if method == 1:
 				lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)
 			else:
-				lt = self.compute_morceaux2(aoc, iplus, verb=True)
+				lt = self.compute_morceaux2(aoc, iplus, verb=False)
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs

@@ -646,6 +646,8 @@ bool equalsAutomaton (Automaton a1, Automaton a2)
 //détermine si les langages des états e1 de a1 et e2 de a2 sont les mêmes
 bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
+	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
+		return false; //un des états est final mais pas l'autre
 	if (a1.e[e1].final & 2 && a2.e[e2].final & 2)
 		return true; //état déjà vu
 	//indique que le sommet a été vu
@@ -694,9 +696,21 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool verb)
+bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
 {
 	int i;
+	if (!emonded)
+	{
+		if (verb)
+			printf("Emonde...\n");
+		//émonde les automates
+		Automaton a3 = emonde(*a1, false);
+		FreeAutomaton(a1);
+		*a1 = a3;
+		a3 = emonde(*a2, false);
+		FreeAutomaton(a2);
+		*a2 = a3;
+	}
 	if (!minimized)
 	{
 		if (verb)

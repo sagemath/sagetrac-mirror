@@ -283,7 +283,7 @@ Complexe barycentre;
 
 //cherche la translation donnant le morceau le plus proche du point
 //morceau de taille b^n
-Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool verb)
+Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool verb)
 {
 	Complexe r = zero();
 	int i, j;
@@ -294,6 +294,8 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool verb)
 	Complexe bb = prod(barycentre, b.b);
 	int x,y;
 	Uint8 r0,g0,b0,a;
+	if (ok)
+		*ok = false;
 	for (j=0;j<n;j++)
 	{
 		nmax = -1;
@@ -310,6 +312,8 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool verb)
 				SDL_GetRGBA(*((Uint32 *)s->pixels+x+(s->pitch/4)*y), s->format, &r0, &g0, &b0, &a);
 				if (a >= 10)
 				{
+					if (ok)
+						*ok = true;
 					imax = i;
 					nmax = nn;
 				}
@@ -444,6 +448,8 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     int quit = 0;
     int x, y;
 	SDL_Event event;
+	bool ok;
+	bool clic = false;
 	for(;;)
 	{
 		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
@@ -471,6 +477,9 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 					    printf("np = %d\n", np);
 				}
 				break;
+			case SDL_MOUSEBUTTONUP:
+				clic = false;
+				break;
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEMOTION:
 				x = event.motion.x;
@@ -478,10 +487,13 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				Complexe c = getComplexe(x, y, screen->w, screen->h);
 				//cherche le morceau le plus proche du point c
 				rt = t;
-				t = FindTr(np, c, b, s, verb);
+				t = FindTr(np, c, b, s, &ok, verb);
+				if (!ok)
+					break;
 				//
-				if (event.type == SDL_MOUSEBUTTONDOWN) //(event.motion.state & SDL_BUTTON_LMASK)
+				if (event.type == SDL_MOUSEBUTTONDOWN || (clic && event.motion.state & SDL_BUTTON_LMASK))
 				{ //clic
+					clic = true;
 					if (addA(&r, np)) //ajoute le morceau à l'automate
 					{ //si morceau ajouté
 						drawTransf(s, sf, f, t, colf);
