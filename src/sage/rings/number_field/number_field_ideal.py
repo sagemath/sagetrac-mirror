@@ -49,8 +49,6 @@ import sage.rings.integer_ring as integer_ring
 import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from sage.libs.pari.all import pari
-
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod
@@ -699,30 +697,67 @@ class NumberFieldIdeal(Ideal_generic):
     def modulus(self, infinite=None):
         """
         Return a modulus whose finite part is this ideal and with specified infinite part.
-        
+
         INPUT:
-        
-        - ``infinite`` (default: ``None``) -- a list of indices indicating which real places
-        are part of the modulus. A value of ``None`` is the same as an empty list.
-        
+
+        - ``infinite`` (default: ``None``) -- A list of indices indicating which real
+        places appear in the modulus. The indices refer to the list returned by
+        :func:`sage.rings.number_field.number_field.places`.
+
+        OUTPUT:
+
+        - A :class:`sage.rings.number_field.class_group.Modulus` whose finite part
+        is given by ``finite`` and whose infinite part is given by ``infinite``.
+        The latter being ``None`` is the same as it being empty.
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2-34)
+            sage: F.ideal(5).modulus()
+            Fractional ideal (5)
+            sage: F.ideal(a^2).modulus([])
+            Fractional ideal (a^2)
+            sage: F.ideal(a).modulus([1])
+            (Fractional ideal (a)) * infinity_1
+
         .. TODO::
-        
-            Allow infinite to be a list of real places rather than just their indices
-            like K.ideal(3).modulus(infinite=[K.places()[1]]).
+
+            Allow infinite to be a list of real places, or even images of the generator
+            of the number field, rather than just their indices like
+            K.ideal(3).modulus(infinite=[K.places()[1]]).
         """
         from .class_group import Modulus
         return Modulus(self, infinite=infinite)
-    
+
     def reduce_equiv(self, modulus=None):
         """
-        Return a small ideal that is equivalent to self in the group
-        of fractional ideals modulo principal ideals.  Very often (but
-        not always) if self is principal then this function returns
-        the unit ideal.
+        Return a small ideal that is equivalent to this ideal in the class group,
+        or in the ray class group of the given modulus.
 
-        ALGORITHM: Calls pari's idealred function.
+        INPUT:
 
-        EXAMPLES::
+        - ``modulus`` (default: ``None``) -- a :class:`sage/rings/number_field/class_group.Modulus`.
+
+        OUTPUT:
+
+        - An ideal that is 'small' in some sense and equivalent to ``self`` in the class group, or
+        the ray class group modulo ``modulus``.
+
+        When ``modulus`` is ``None``, very often (but not always) if this ideal is principal, then
+        this function returns the unit ideal.
+
+        ALGORITHM: Calls pari's idealred function if ``modulus`` is ``None``, or
+        pari's :func:`sage.libs.pari.gen.idealmoddivisor` otherwise.
+
+        .. NOTE::
+
+            When ``modulus`` is non-trivial, this may be slow for large input.
+
+        EXAMPLES:
+
+        Finding equivalent ideals in the class group.
+
+        ::
 
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = ideal(w*23^5); I
@@ -733,6 +768,17 @@ class NumberFieldIdeal(Ideal_generic):
             Fractional ideal (1024, 1/2*w + 979/2)
             sage: I.reduce_equiv()
             Fractional ideal (2, 1/2*w - 1/2)
+
+        Now, in a ray class group.
+
+        ::
+
+            sage: I.reduce_equiv(K.ideal(3).modulus())
+            Fractional ideal (13, 1/2*w + 9/2)
+            sage: I.reduce_equiv(K.ideal(2).modulus())
+            Traceback (most recent call last):
+            ...
+            ValueError: Ideal in ideal_reduce is not coprime to the modulus of this ray class group.
         """
         K = self.number_field()
         if modulus is None:
@@ -740,7 +786,7 @@ class NumberFieldIdeal(Ideal_generic):
             hnf = P.idealred(self.pari_hnf())
             gens = self.__elements_from_hnf(hnf)
             return K.ideal(gens)
-        R = K.ray_class_group(m) #find any ray class group of this modulus?
+        R = K.ray_class_group(modulus) #find any ray class group of this modulus?
         return R.ideal_reduce(self)
 
     def gens_reduced(self, proof=None):

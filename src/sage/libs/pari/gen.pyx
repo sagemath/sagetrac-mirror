@@ -612,8 +612,9 @@ cdef class gen(gen_auto):
         
         OUTPUT:
         
-        - A pari ideal in the number field associated to the bnr
-        structure ``self``.
+        - A pari ideal representing the same ray class as ``ideal``
+        but with 'small' generators. If ``ideal`` is not coprime to
+        the modulus of the bnr, this function raises a ``PariError``.
         
         EXAMPLES:
 

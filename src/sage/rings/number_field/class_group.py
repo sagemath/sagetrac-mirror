@@ -1044,7 +1044,15 @@ class RayClassGroup(AbelianGroup_class):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
     
     def ideal_reduce(self, ideal):
-        return self._number_field.ideal(self._bnr.idealmoddivisor(ideal))
+        from sage.libs.pari.handle_error import PariError
+        try:
+            pari_ideal = self._bnr.idealmoddivisor(ideal)
+        except PariError as err:
+            if err.errtext().find('not coprime') != -1:
+                raise ValueError('Ideal in ideal_reduce is not coprime to the modulus of this ray class group.')
+            else:
+                raise err
+        return self._number_field.ideal(pari_ideal)
     
     def gens_values(self):
         return self._gens
