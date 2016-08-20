@@ -676,7 +676,8 @@ class RayClassGroupElement(AbelianGroupElement):
                 return R.one()
         I = (gens[i]**exps[i])
         if reduce:
-            I = I.reduce_equiv(m)
+            #I = I.reduce_equiv(m)
+            I = R.ideal_reduce(I)
         i += 1
         while i < L:
             e = exps[i]
@@ -685,7 +686,8 @@ class RayClassGroupElement(AbelianGroupElement):
             if e != 0:
                 I = (I * (g**e))
                 if reduce:
-                    I = I.reduce_equiv(m)
+                    #I = I.reduce_equiv(m)
+                    I = R.ideal_reduce(I)
         return I
     
     #def reduce(self):
@@ -1040,6 +1042,9 @@ class RayClassGroup(AbelianGroup_class):
     
     def _ideal_log(self, ideal):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
+    
+    def ideal_reduce(self, ideal):
+        return self._number_field.ideal(self._bnr.idealmoddivisor(ideal))
     
     def gens_values(self):
         return self._gens

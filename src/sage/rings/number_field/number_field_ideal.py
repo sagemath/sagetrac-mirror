@@ -698,12 +698,12 @@ class NumberFieldIdeal(Ideal_generic):
 
     def modulus(self, infinite=None):
         """
-        Return a modulus whose finite part is ``self`` with specific infinite part.
+        Return a modulus whose finite part is this ideal and with specified infinite part.
         
         INPUT:
         
-        - ``infinite`` -- a list of indices indicating which real places
-        are part of the modulus.
+        - ``infinite`` (default: ``None``) -- a list of indices indicating which real places
+        are part of the modulus. A value of ``None`` is the same as an empty list.
         
         .. TODO::
         
@@ -712,63 +712,6 @@ class NumberFieldIdeal(Ideal_generic):
         """
         from .class_group import Modulus
         return Modulus(self, infinite=infinite)
-    
-    def _find_coprime_elements(self, J, return_pari=False):
-        r"""    
-        Return a in self and b in J such that a + b = 1.
-
-        If return_pari is True, only return a, and return it as a pari GEN.
-
-        If self and J are not coprime, this raises a ValueError.
-
-        Algorithm 1.3.2 of Cohen's Advanced...
-        """
-        K = self.number_field()
-        nf = K.pari_nf()
-        A = nf.idealhnf(self)
-        B = nf.idealhnf(J)
-        C = pari([A,B]).matconcat()
-        U = C.mathnf(flag=1)
-        H = U[0]
-        if H != 1:
-            raise ValueError("The ideals self and J are not comprime.")
-        U = U[1]
-        n = K.degree()
-        X = U[n][:n]
-        coords = A * X.Col()
-        a = nf.nfbasistoalg(coords)
-        if return_pari:
-            return a
-        a = K(a)
-        return a, 1-a
-    
-    def _small_LLL(self, return_pari=False):
-        r"""
-        Return alpha as in Step 1 of Algorithm 4.3.3 of Cohen's Advanced...
-        """
-        hnf = self.pari_hnf()
-        K = self.number_field()
-        nf = K.pari_nf()
-        xnf = nf[4][1] #Matrix whose columns are the embeddings of a basis of K into RR^n
-        T = (xnf * hnf).qflll()
-        alpha = nf.nfbasistoalg((hnf * T)[0])
-        if return_pari:
-            return alpha
-        return K(alpha)
-    
-    def _gamma_from_LLL_ideal_reduction(self, m):
-        r"""
-        Return gamma from Algorithm 4.3.3 of Cohen's Advanced...
-        """
-        K = self.number_field()
-        nf = K.pari_nf()
-        Im = self * m
-        alpha = Im._small_LLL(True)
-        if m.is_one():
-            return K(alpha)
-        a = self._find_coprime_elements(m, True)
-        q = nf.nfbasistoalg(nf.nfeltdiv(a, alpha).round())
-        return K(a - q * alpha)
     
     def reduce_equiv(self, modulus=None):
         """
@@ -797,12 +740,8 @@ class NumberFieldIdeal(Ideal_generic):
             hnf = P.idealred(self.pari_hnf())
             gens = self.__elements_from_hnf(hnf)
             return K.ideal(gens)
-        mf = modulus.finite_part()
-        gamma = self._gamma_from_LLL_ideal_reduction(mf)
-        delta = (gamma / self)._gamma_from_LLL_ideal_reduction(mf)
-        alpha = delta / gamma
-        alpha = modulus.fix_signs(alpha)
-        return alpha * self
+        R = K.ray_class_group(m) #find any ray class group of this modulus?
+        return R.ideal_reduce(self)
 
     def gens_reduced(self, proof=None):
         r"""
