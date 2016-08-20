@@ -1,8 +1,10 @@
+"""
 Class for ideals of a hecke algebra.
 
 AUTHOR:
 
 - Preston Wake (2009-08-05)
+- Kiran Kedlaya (2016-08-19): minor updates
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Preston Wake <preston.wake@gmail.com>
@@ -335,4 +337,4 @@ def _matrix_from_coords(v,B):
         [ 0 -2]
     """
     s=sum(v[i]*B[i] for i in xrange(len(v)))
-+    return s
+    return s

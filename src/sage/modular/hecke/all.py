@@ -19,4 +19,4 @@ from .submodule import HeckeSubmodule, is_HeckeSubmodule
 
 from .ambient_module import AmbientHeckeModule, is_AmbientHeckeModule
 
-from ideal import HeckeIdeal
+from .ideal import HeckeIdeal

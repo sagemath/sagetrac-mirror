@@ -39,4 +39,4 @@ from .btquotients.all import *
 
 from .pollack_stevens.all import *
 
-from hecke.all import HeckeIdeal
+from .hecke.all import HeckeIdeal
