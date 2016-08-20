@@ -477,7 +477,6 @@ cdef class FastAutomaton:
 		r.A = A
 		sig_off()
 		return r
-
 	
 	def plot (self, int sx=10, int sy=8):
 		sig_on()

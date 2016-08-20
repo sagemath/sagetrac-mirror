@@ -2924,6 +2924,36 @@ class BetaAdicMonoid(Monoid_class):
 		
 		raise ValueError("Not implemented !")
 	
+	#used by Approx
+	def Approx_rec (self, FastAutomaton a, test, f, x, int n, int n2):
+		if n == 0:
+			if test(x):
+				return f
+			else:
+				return -1
+		else:
+			e1 = self.Approx_rec(a, test, f, x, n-1, n2)
+			e2 = self.Approx_rec(a, test, f, x + self.b**(n2-n), n-1, n2)
+			if e1 != -1 or e2 != -1:
+				e3 = a.add_state(0)
+				if e1 != -1:
+					a.add_edge(e3, 0, e1)
+				if e2 != -1:
+					a.add_edge(e3, 1, e2)
+				return e3
+			return -1
+	
+	#gives a automaton describing a approximation of a set defined by the characteritic function test
+	def Approx (self, n, test):
+		a = FastAutomaton(None)
+		a.setAlphabet([0,1])
+		f = a.add_state(1)
+		e = self.Approx_rec(a, test, f, 0, n, n)
+		a.add_edge(f, 0, f)
+		a.add_edge(f, 1, f)
+		a.set_initial_state(e)
+		return a
+	
 	#calcule la liste triée (par rapport à la place >1) des premiers points dans omega-omega
 	#
 	# THIS FUNCTION IS UNCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
