@@ -1108,8 +1108,8 @@ ext_modules = [
     
     Extension('sage.monoids.beta_adic_monoid',
               sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c', 'sage/monoids/relations.c', 'sage/monoids/complex.c', 'sage/combinat/words/automataC.c'],
-              libraries=['stdc++','SDL'], #'cautomata.so'],
-              include_dirs=['sage/combinat/words'],
+              libraries=['stdc++','SDL','SDL_image'], #'cautomata.so'],
+              include_dirs=['sage/combinat/words'], #'/usr/local/include'],
               depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h', 'sage/monoids/relations.h', 'sage/monoids/complex.h']),
     
     ################################

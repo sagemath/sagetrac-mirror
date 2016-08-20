@@ -673,7 +673,7 @@ cdef class FastAutomaton:
 			a.e[i].final = True
 		return r
 	
-	def union (self, FastAutomaton a, verb=False):
+	def union (self, FastAutomaton a, simplify=True, verb=False):
 		#complete the automata
 		sig_on()
 		CompleteAutomaton(self.a)
@@ -720,7 +720,10 @@ cdef class FastAutomaton:
 		#	print r
 		#r = r.emonde()
 		#r = r.minimise()
-		return r.emonde().minimise()
+		if simplify:
+			return r.emonde().minimise()
+		else:
+			return r
 	
 	#split the automaton with respect to a
 	def split (self, FastAutomaton a, verb=False):

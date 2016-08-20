@@ -30,6 +30,8 @@ for c_i's in a finite set of numerals.
 #				  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from libc.stdlib cimport malloc, free
+
 from sage.rings.integer import Integer
 from sage.rings.number_field.all import *
 #from sage.structure.parent_gens import normalize_names
@@ -254,7 +256,14 @@ cdef extern from "draw.h":
 		Automate* a
 		int na
 	ctypedef Color* ColorList
+#	cdef cppclass SDLImage:
+#		void *img
 
+	void* OpenImage (const char *file_name)
+	bool InImage (void* img, int x, int y)
+	int ImageWidth (void *img)
+	int ImageHeight (void *img)
+	void CloseImage (void* img)
 	void TestSDL ()
 	Surface NewSurface (int sx, int sy)
 	void FreeSurface (Surface s)
@@ -493,6 +502,41 @@ def split_baoc (i, tr, np, lm, m, aoc, verb=False):
 			return (ar, a1.intersection(ar.complementary()))
 	else:
 		return (None, a1)
+
+###
+
+cdef class ImageIn:
+	cdef void** s
+	
+	def __cinit__ (self):
+		self.s = <void **>malloc(sizeof(void*))
+	
+	def __init__(self, file_name):
+		self.s[0] = OpenImage(file_name)
+	
+	def __dealloc__ (self):
+		CloseImage(self.s[0])
+		free(self.s)
+	
+	def __repr__ (self):
+		w = ImageWidth(self.s[0])
+		h = ImageHeight(self.s[0])
+		return "Image of size %sx%s"%(w, h)
+	
+	def __contains__ (self, p):
+		from sage.rings.complex_field import ComplexField
+		CC = ComplexField(53)
+		if p in CC:
+			return InImage(self.s[0], p.real(), p.imag())
+		else:
+			return InImage(self.s[0], p[0], p[1])
+	
+	def width (self):
+		return ImageWidth(self.s[0])
+	
+	def height (self):
+		return ImageHeight(self.s[0])
+
 ###
 
 class BetaAdicMonoid(Monoid_class):
@@ -2899,27 +2943,42 @@ class BetaAdicMonoid(Monoid_class):
 			imax = 20
 		bound = max([abs(pm(x)) for x in self.C])/(1-abs(pm(b)))
 		if verb: print "bound = %s"%bound
-		for i in range(-imax,imax):
-			for j in range(-imax,imax):
-				for k in range(-imax,imax):
-					x = i + b*j + b*b*k
+		if b.minpoly().degree() == 3:
+			for i in range(-imax,imax):
+				for j in range(-imax,imax):
+					for k in range(-imax,imax):
+						x = i + b*j + b*b*k
+						if abs(pm(x)) <= bound and pp(x) > 0:
+						#if abs(pm(x)-z) < r + .5 and pp(x) > 0:
+							l.append(x)
+		elif b.minpoly().degree() == 2:
+			for i in range(-imax,imax):
+				for j in range(-imax,imax):
+					x = i + b*j
 					if abs(pm(x)) <= bound and pp(x) > 0:
 					#if abs(pm(x)-z) < r + .5 and pp(x) > 0:
 						l.append(x)
+		else:
+			raise NotImplemented
 		l.sort(key=pp)
 		return l
 	
 	#décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
-	def Parcours(self, A, a, e, t, n, bn):
+	def Parcours (self, A, a, e, t, n, bn):
 		#print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
 		if n == 0:
-			return [t]
+			if a.is_final(e):
+				return [t]
+			else:
+				return []
 		else:
 			l = []
 			for i in range(len(A)):
 				f = a.succ(e,i)
 				if f != -1:
 					l+=self.Parcours(A, a, f, t+bn*A[i], n-1, bn*self.b)
+			if a.is_final(e):
+				l.append(t)
 			return l
 	
 	def compute_translations2 (self, FastAutomaton aoc, imax=None, verb=False):
@@ -2936,8 +2995,8 @@ class BetaAdicMonoid(Monoid_class):
 		if imax is None:
 			imax = 8
 		#compute a reduced version of aoc
-		ared = self.reduced_words_automaton2()
-		aoc = aoc.intersection(ared)
+		#ared = self.reduced_words_automaton2()
+		#aoc = aoc.intersection(ared)
 		#compute aoc-aoc
 		d = dict()
 		for t1 in self.C:
@@ -3030,7 +3089,165 @@ class BetaAdicMonoid(Monoid_class):
 			raise ValueError("Liste de translations incorrecte pour calculer l'échange de morceaux. Essayez d'augmenter imax.")
 		return [(at[t],t) for t in at.keys()]
 	
-	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method_tr = 1, imax=None, get_aut=False, verb=True):
+	#décrit les éléments de a de longueur n (utilisé par compute_morceaux2)
+	#
+	#  NE FONCTIONNE PAS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	#
+	def ParcoursUnic(self, a, pp, n, verb=False):
+		r = dict()
+		A = a.Alphabet()
+		b = self.b
+		p = [(a.initial_state(),0,1)] #pile des éléments à traiter
+		r[0] = None
+		res = []
+		bnm = b**n
+		while len(p) != 0:
+			e,t,bn = p.pop()
+			r[t] = None
+			if verb: print "%s, %s, %s"%(e,t,bn)
+			#print "p = %s"%p
+			for l in A:
+				f = a.succ(e, l)
+				if f != -1:
+					t2 = t+bn*l;
+					#print "l=%s, t2 = %s, pp(bn)=%s, pp(bnm)=%s"%(l, t2, pp(bn), pp(bnm))
+					if  pp(bn) <= pp(bnm):
+						p.append((f, t2, bn*b))
+						if a.is_final(f):
+							if not r.has_key(t2) and pp(t2) > 0:
+								res.append(t2)
+		return res
+	
+	def compute_morceaux2 (self, FastAutomaton aoc, iplus=4, verb=False):
+		r"""
+		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
+		
+		INPUT:
+		
+		- ``aoc``- FastAutomaton
+			Automaton of the g-beta-expansion.
+		
+		- ``verb``- bool (default: ``False``)
+		  If True, print informations about the computing.
+		
+		OUTPUT:
+
+		A list of (FastAutomaton, translation).
+
+		EXAMPLES:
+			
+			#. Full Tribonnacci::
+			
+				sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
+				sage: m.compute_morceaux2()
+			
+		"""
+		m = self
+		A = aoc.A
+		b = self.b
+		p = b.parent().places()
+		#ared = self.reduced_words_automaton2()
+		#aocr = aoc.intersection(ared)
+		#if verb: "print aocr=%s"%aocr
+		d = dict()
+		for t1 in A:
+			for t2 in A:
+				d[(t1,t2)] = t2-t1
+		if verb: print p
+		if abs(p[0](b)) > 1:
+			pp = p[0]
+			pm = p[1]
+		else:
+			pp = p[1]
+			pm = p[0]
+		#if verb: print("list of %s points."%len(lt))
+		if verb: print("Compute the pieces...")
+		u = FastAutomaton(None)
+		u.setAlphabet(list(A))
+		uc = u.complementary().intersection(aoc)
+		at = dict()
+		while True:
+			#############
+			#compute a reduced version of uc
+			#ucr = uc.intersection(ared)
+			#compute uc-aoc
+			#ad = ucr.product(aocr, d)
+			ad = uc.product(aoc, d)
+			ad.zero_completeOP()
+			if verb: print "ad = %s"%ad
+			#compute the reduced words automaton with the difference alphabet
+			#m2 = BetaAdicMonoid(b, set([t1 - t2 for t1 in A for t2 in A]))
+			#if verb: print "m2 = %s"%m2
+			#ar2 = m2.reduced_words_automaton2()
+			#if verb: print "ar2 = %s"%ar2
+			#intersect
+			#adr = ad.intersection(ar2)
+			#if verb: print "adr = %s"%adr
+			adr = ad
+			#compute the list of points
+			imax = 5
+			fin = False
+			while True:
+				if imax >= 1000:
+					return "imax trop grand !", ad, uc, [(at[t],t) for t in at.keys()]
+				if verb: print "Parcours %s..."%imax
+				l = self.Parcours(ad.Alphabet(), ad, ad.initial_state(), 0, imax, 1)
+				if len(l) == 0:
+					imax += 1
+					continue
+				if verb: print ("%s points calculés"%len(l))
+				#sort
+				if verb: print ("tri...")
+				l = list(set(l)) #avoid repetitions
+				l.sort(key=pp)
+				if 0 in l:
+					l = l[l.index(0)+1:]
+				else:
+					return "0 non présent !", ad
+					raise ValueError("Erreur : 0 non présent dans la différence !!!")
+				if fin:
+					break
+				if l != []:
+					fin = True
+					imax += iplus
+				imax += 1
+			t = l[0]
+			if verb: print l[:10]
+			#############
+			if verb: print "t=%s"%t
+			if at.has_key(t):
+				return "tr deja vu",[(at[t],t) for t in at.keys()], uc
+				raise ValueError("Erreur : translation calculée déjà vue !!!")
+			at[t] = m.move2(t=t, a=aoc) #, verb=verb)
+			#if verb: print "intersection..."
+			at[t].zero_completeOP()
+			#if verb: print "intersection..."
+			if not uc.included(aoc):
+				raise ValueError("Erreur : uc n'est pas inclus dans aoc !!!")
+			at[t] = at[t].intersection(uc)
+			at[t].zero_completeOP()
+			#if verb: print "emonde..."
+			at[t] = at[t].emonde().minimise()
+			#if verb: print "union..."
+			u = u.union(at[t]).emonde().minimise()
+			at[t] = at[t].emonde()
+			#teste si c'est fini
+			#if verb: print "compl..."
+			uc = u.complementary()
+			uc = uc.intersection(aoc)
+			#if verb: print "empty..."
+			if at[t].is_empty():
+				return "tr incorrecte", [(at[t],t) for t in at.keys()], uc
+				raise ValueError("Erreur : translation calculée incorrecte !!!")
+			else:
+				if verb: print "at[%s]=%s, uc=%s"%(t, at[t], uc)
+			if uc.is_empty():
+				break #c'est fini !
+		if not uc.is_empty():
+			raise ValueError("Erreur : l'échange de morceaux ne pave pas !!!")
+		return [(at[t],t) for t in at.keys()]
+	
+	def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method = 1, method_tr = 1, iplus=2, imax=None, get_aut=False, verb=True):
 		r"""
 		Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
 		
@@ -3070,6 +3287,7 @@ class BetaAdicMonoid(Monoid_class):
 				a = FastAutomaton(self.tss)
 			else:
 				a = FastAutomaton(None).full(list(self.C))
+		a.zero_completeOP()
 		A = a.A
 		#complete a
 		aoc = m.move2(t=0, a=a)
@@ -3093,7 +3311,10 @@ class BetaAdicMonoid(Monoid_class):
 		#compute the pieces exchange
 		if lt is None:
 			if verb: print("compute the pieces exchange...")
-			lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)	
+			if method == 1:
+				lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)
+			else:
+				lt = self.compute_morceaux2(aoc, iplus, verb=True)
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs

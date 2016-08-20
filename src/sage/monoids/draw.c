@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include "complex.h"
 #include "Automaton.h"
 #include "automataC.h"
@@ -14,6 +15,40 @@ double mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum 
 Color color0; //couleur du fond
 Color color; //couleur de dessin
 Color* colors; //liste de couleurs de dessin
+
+//rend une SDL_Surface contenant l'image
+void* OpenImage (const char *file_name)
+{
+	return IMG_Load(file_name);
+}
+
+bool InImage (void* img, int x, int y)
+{
+	SDL_Surface *s = (SDL_Surface *)img;
+	if (x < 0 || y < 0 || x >= s->w || y >= s->h)
+		return false;
+	Uint8 r,g,b,a;
+	SDL_GetRGBA(*((Uint32 *)s->pixels + x + (s->pitch/4)*y), s->format, &r, &g, &b, &a);
+	return a >= 128;
+}
+
+int ImageWidth (void *img)
+{
+	SDL_Surface *s = (SDL_Surface *)img;
+	return s->w;
+}
+
+int ImageHeight (void *img)
+{
+	SDL_Surface *s = (SDL_Surface *)img;
+	return s->h;
+}
+
+void CloseImage (void* img)
+{
+	SDL_Surface *s = (SDL_Surface *)img;
+	SDL_FreeSurface(s);
+}
 
 //////////////////////////////TEST
 #define WIDTH	800

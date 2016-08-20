@@ -37,6 +37,18 @@ struct BetaAdic2
 };
 typedef struct BetaAdic2 BetaAdic2;
 
+struct SDLImage
+{
+	void *img;
+};
+
+//rend une SDL_Surface contenant l'image
+void* OpenImage (const char *file_name);
+bool InImage (void* img, int x, int y);
+int ImageWidth (void *img);
+int ImageHeight (void *img);
+void CloseImage (void* img);
+
 ColorList NewColorList (int n);
 void FreeColorList (ColorList l);
 Surface NewSurface (int sx, int sy);
