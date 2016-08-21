@@ -52,7 +52,9 @@ cdef extern from "automataC.h":
 	Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 	Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 	Automaton DeterminiseN (NAutomaton a, bool puits)
-	void ZeroComplete (Automaton a, int l0, bool verb)
+	void ZeroComplete (Automaton *a, int l0, bool verb)
+	Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
+	Automaton ZeroInv (Automaton *a, int l0)
 	Automaton emonde_inf (Automaton a, bool verb)
 	Automaton emonde (Automaton a, bool verb)
 	Automaton emondeI (Automaton a, bool verb)
@@ -562,12 +564,28 @@ cdef class FastAutomaton:
 	
 	def zero_completeOP (self, verb=False):
 		sig_on()
-		for i in range(len(self.A)):
-			if self.A[i] == 0:
-				l0 = i
-				break
-		ZeroComplete(self.a[0], l0, verb)
+		ZeroComplete(self.a, list(self.A).index(0), verb)
 		sig_off()
+	
+	def zero_complete2 (self, etat_puits=False, verb=False):		
+		sig_on()
+		cdef Automaton a
+		r = FastAutomaton(None)
+		a = ZeroComplete2(self.a, list(self.A).index(0), etat_puits, verb)
+		r.a[0] = a
+		r.A = self.A
+		sig_off()
+		return r.emonde().minimise()
+	
+	def zero_inv (self):		
+		sig_on()
+		cdef Automaton a
+		r = FastAutomaton(None)
+		a = ZeroInv(self.a, list(self.A).index(0))
+		r.a[0] = a
+		r.A = self.A
+		sig_off()
+		return r.emonde().minimise()
 	
 	def emonde_inf (self, verb=False):
 		sig_on()

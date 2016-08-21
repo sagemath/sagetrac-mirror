@@ -2075,42 +2075,142 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	return r;
 }
 
-void ZeroComplete_rec (Automaton a, int etat, bool *vu, int l0, bool verb)
+void ZeroComplete_rec (Automaton *a, int etat, bool *vu, int l0, bool verb)
 {
 	if (verb)
 		printf("etat %d ..\n", etat);
 	vu[etat] = true;
 	int i, e;
-	for (i=0;i<a.na;i++)
+	for (i=0;i<a->na;i++)
 	{
-		e = a.e[etat].f[i];
-		if (e != -1)
+		e = a->e[etat].f[i];
+		if (e != -1 && e < a->n)
 		{
 			if (!vu[e])
 				ZeroComplete_rec(a, e, vu, l0, verb);
-			if (i == l0 && a.e[e].final)
-				a.e[etat].final = true;
+			if (i == l0 && a->e[e].final)
+				a->e[etat].final = true;
 		}
 	}
 }
 
-void ZeroComplete (Automaton a, int l0, bool verb)
+void ZeroComplete (Automaton *a, int l0, bool verb)
 {
 	if (verb)
 		printf("l0 = %d\n", l0);
-	if (a.i == -1)
+	if (a->i == -1)
 		return;
-	bool *vu = (bool *)malloc(sizeof(bool)*a.n); //liste des sommets vus
+	bool *vu = (bool *)malloc(sizeof(bool)*a->n); //liste des sommets vus
 	if (!vu)
 	{
 		printf("Out of memory !\n");
 		exit(25);
 	}
 	int i;
-	for (i=0;i<a.n;i++)
+	for (i=0;i<a->n;i++)
 		vu[i] = false;
-	ZeroComplete_rec(a, a.i, vu, l0, verb);
+	ZeroComplete_rec(a, a->i, vu, l0, verb);
 	free(vu);
+}
+
+//zero-complète dans l'autre sens
+Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
+{
+	NAutomaton r = NewNAutomaton(a->n+1, a->na);
+	
+	//printf("init...\n");
+	
+	int i,j,k;
+	for (i=0;i<a->n;i++)
+	{
+		if (i == a->i)
+			r.e[i].initial = true;
+		else
+			r.e[i].initial = false;
+		r.e[i].final = a->e[i].final;
+		r.e[i].n = 0;
+		//compte les arêtes
+		for (j=0;j<a->na;j++)
+		{
+			if (a->e[i].f[j] != -1)
+				r.e[i].n++;
+		}
+		if (a->e[i].final)
+			r.e[i].n++; //arête 0 en plus
+		//alloue
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
+		//remplit
+		k = 0;
+		for (j=0;j<a->na;j++)
+		{
+			if (a->e[i].f[j] != -1)
+			{
+				r.e[i].a[k].e = a->e[i].f[j];
+				r.e[i].a[k].l = j; 
+				k++;
+			}
+		}
+		if (a->e[i].final)
+		{
+			r.e[i].a[k].e = a->n; //ajoute l'arête vers l'état reconnaissant 0
+			r.e[i].a[k].l = l0;
+		}
+	}
+	r.e[a->n].n = 1;
+	r.e[a->n].a = (Arete *)malloc(sizeof(Arete));
+	r.e[a->n].a[0].e = a->n;
+	r.e[a->n].a[0].l = l0;
+	r.e[a->n].initial = false;
+	r.e[a->n].final = true;
+	
+	return DeterminiseN(r, etat_puits);
+}
+
+Automaton ZeroInv (Automaton *a, int l0)
+{
+	NAutomaton r = NewNAutomaton(a->n+1, a->na);
+	
+	//printf("init...\n");
+	
+	int i,j,k;
+	for (i=0;i<a->n;i++)
+	{
+		if (i == a->i)
+			r.e[i].initial = true;
+		else
+			r.e[i].initial = false;
+		r.e[i].final = a->e[i].final;
+		r.e[i].n = 0;
+		//compte les arêtes
+		for (j=0;j<a->na;j++)
+		{
+			if (a->e[i].f[j] != -1)
+				r.e[i].n++;
+		}
+		//alloue
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
+		//remplit
+		k = 0;
+		for (j=0;j<a->na;j++)
+		{
+			if (a->e[i].f[j] != -1)
+			{
+				r.e[i].a[k].e = a->e[i].f[j];
+				r.e[i].a[k].l = j; 
+				k++;
+			}
+		}
+	}
+	r.e[a->n].n = 2;
+	r.e[a->n].a = (Arete *)malloc(sizeof(Arete)*2);
+	r.e[a->n].a[0].e = a->n;
+	r.e[a->n].a[0].l = l0;
+	r.e[a->n].a[1].e = a->i;
+	r.e[a->n].a[1].l = l0;
+	r.e[a->n].initial = true;
+	r.e[a->n].final = true;
+	
+	return DeterminiseN(r, false);
 }
 
 int compteurEtats = 0;

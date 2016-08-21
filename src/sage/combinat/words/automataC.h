@@ -118,7 +118,13 @@ Automaton DeterminiseN (NAutomaton a, bool puits);
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
 
 //ajoute tous les mots qui se complètent en un mot du langage en ajoutant des 0 à la fin
-void ZeroComplete (Automaton a, int l0, bool verb);
+//ainsi que les mots auxquels on peut retirer des zéros à la fin 
+void ZeroComplete (Automaton *a, int l0, bool verb);
+
+//zero-complète dans l'autre sens
+Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb);
+
+Automaton ZeroInv (Automaton *a, int l0);
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
 Automaton emonde_inf (Automaton a, bool verb);

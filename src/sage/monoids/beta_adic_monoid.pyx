@@ -2944,6 +2944,7 @@ class BetaAdicMonoid(Monoid_class):
 			return -1
 	
 	#gives a automaton describing a approximation of a set defined by the characteritic function test
+	#rk : can be improve using a reduced words automaton
 	def Approx (self, n, test):
 		a = FastAutomaton(None)
 		a.setAlphabet([0,1])
@@ -2953,6 +2954,17 @@ class BetaAdicMonoid(Monoid_class):
 		a.add_edge(f, 1, f)
 		a.set_initial_state(e)
 		return a
+	
+	def zero_complete (self, a, verb=False):
+		while True:
+			if verb: print "a = %s"%a
+			aoc = self.move2(0, a)
+			aoc.zero_completeOP()
+			aoc = aoc.zero_complete2()
+			if a.equals_langages(aoc):
+				break
+			a = aoc
+		return aoc
 	
 	#calcule la liste triée (par rapport à la place >1) des premiers points dans omega-omega
 	#
