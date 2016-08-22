@@ -5534,7 +5534,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         return self.__ambient_module
 
-    def _pseudo_hermite_matrix(self,ideal_list = None):
+    def _pseudo_hermite_matrix(self, ideal_list = None):
         r"""
         This returns the pseudo basis as a matrix in hermite form and a list
         of ideals. It is here for now, but could be used more generally, e.g.,
@@ -5651,12 +5651,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         elif ZF is sage.rings.integer_ring.ZZ:
             if len(self.gens()) != len(ideal_list):
                 raise ValueError("gens and ideal_list must have the same length")
-            gens = [g*ids.gen() for g,ids in zip(self.gens(),ideal_list)]
+            gens = [g*ids.gen() for g,ids in zip(self.gens(), ideal_list)]
             M = sage.matrix.constructor.matrix(gens).hermite_form()
             return M
         #otherwise, it'd better be a number field maximal order.
         #in this case we use Pari for pseudo bases.
-        assert nf_order.is_NumberFieldOrder(ZF)
+        if not nf_order.is_NumberFieldOrder(ZF):
+            raise ValueError('The base ring must be a number field order.')
         F = ZF.number_field()
         PF = F._pari_()
         BM = self.basis_matrix()
@@ -5667,7 +5668,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         pari_ideal_list = [id._pari_() for id in ideal_list]
         HM, HI = PF.nfhnf([BM._pari_(), pari_ideal_list])
 
-        M = sage.matrix.constructor.matrix([[F(HM[i][j]) for i in range(len(HM))] for j in range(len(HM[0]))])
+        M = sage.matrix.constructor.matrix(
+            [[F(HM[i][j]) for i in range(len(HM))] for j in range(len(HM[0]))])
         I = [F.ideal(id) for id in HI]
         return M, I
 
