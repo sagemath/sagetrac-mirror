@@ -74,12 +74,12 @@ class SagePrettyPrinter(PrettyPrinter):
         See IPython documentation.
     
         EXAMPLES::
-         
+
             sage: 123
             123
         
         IPython pretty printers::
-    
+
             sage: set({1, 2, 3})
             {1, 2, 3}
             sage: dict(zzz=123, aaa=99, xab=10)    # sorted by keys
@@ -88,20 +88,16 @@ class SagePrettyPrinter(PrettyPrinter):
         These are overridden in IPython in a way that we feel is somewhat
         confusing, and we prefer to print them like plain Python which is
         more informative. See :trac:`14466` ::
-    
+
             sage: 'this is a string'
             'this is a string'
             sage: type(123)
             <type 'sage.rings.integer.Integer'>
             sage: type
             <type 'type'>
-            sage: [type, type]
-            [<type 'type'>, <type 'type'>]
             sage: import types
-            sage: types.ClassType('name', (), {})
-            <class __main__.name at 0x...>
-            sage: types.TypeType
-            <type 'type'>
+            sage: type('name', (), {})
+            <class '__main__.name'>
             sage: types.BuiltinFunctionType
             <type 'builtin_function_or_method'>
     
@@ -155,30 +151,4 @@ class SagePrettyPrinter(PrettyPrinter):
         finally:
             self.end_group()
             self.stack.pop()
-
-
-
-class AsciiArtPrettyPrinter(SagePrettyPrinter):
-    """
-    Pretty printer returning ASCII art
-    """
-
-    pretty_repr = (
-        AsciiArtRepr(),
-    ) + SagePrettyPrinter.pretty_repr
-
-
-class TypesetPrettyPrinter(SagePrettyPrinter):
-    """
-    Pretty printer returning typeset html
-
-    This is also used in the emacs-mode.
-    """
-
-    pretty_repr = (
-        TypesetRepr(),
-    ) + SagePrettyPrinter.pretty_repr
-
-
-
 

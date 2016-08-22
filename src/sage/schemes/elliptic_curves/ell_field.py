@@ -5,6 +5,7 @@ This module defines the class ``EllipticCurve_field``, based on
 ``EllipticCurve_generic``, for elliptic curves over general fields.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -14,14 +15,14 @@ This module defines the class ``EllipticCurve_field``, based on
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import ell_generic
+from . import ell_generic
 import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
-from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
+from .ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
@@ -797,10 +798,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                           kernel polynomial with the two torsion polynomial of
                           ``E``.
 
-        - ``model``     - a string (default:None).  Only supported variable is
-                          "minimal", in which case if``E`` is a curve over the
-                          rationals, then the codomain is set to be the unique
-                          global minimum model.
+        - ``model`` - a string (default:None).  Only supported
+                          variable is "minimal", in which case if``E``
+                          is a curve over the rationals or over a
+                          number field, then the codomain is a global
+                          minimum model where this exists.
 
         - ``check`` (default: True) does some partial checks that the
                           input is valid (e.g., that the points
@@ -860,7 +862,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         try:
             return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
-        except AttributeError, e:
+        except AttributeError as e:
             raise RuntimeError("Unable to contruct isogeny: %s" % e)
 
 
@@ -983,16 +985,17 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: QQroot2.<e> = NumberField(x^2-2)
             sage: E = EllipticCurve(QQroot2, j=8000)
             sage: E.isogenies_prime_degree()
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-602112000)*x + 5035261952000 over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (903168000*e-1053696000)*x + (14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-903168000*e-1053696000)*x + (-14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2]
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-36750)*x + 2401000 over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (220500*e-257250)*x + (54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-220500*e-257250)*x + (-54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2]
 
             sage: E = EllipticCurve(QQroot2, [1,0,1,4, -6]); E
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2
             sage: E.isogenies_prime_degree(2)
             [Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-36)*x + (-70) over Number Field in e with defining polynomial x^2 - 2]
             sage: E.isogenies_prime_degree(3)
-            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-128/3)*x + 5662/27 over Number Field in e with defining polynomial x^2 - 2, Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
+            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-1)*x over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """
         F = self.base_ring()
         if is_RealField(F):
@@ -1002,7 +1005,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if F == rings.QQbar:
             raise NotImplementedError("This code could be implemented for QQbar, but has not been yet.")
 
-        from isogeny_small_degree import isogenies_prime_degree
+        from .isogeny_small_degree import isogenies_prime_degree
         if l is None:
             from sage.rings.all import prime_range
             l = prime_range(max_l+1)
@@ -1071,7 +1074,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             ...
             NotImplementedError: Only implemented for isomorphic curves over general fields.
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
             raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
@@ -1114,7 +1117,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E.weierstrass_p(prec=20, algorithm='quadratic')
             z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
         """
-        from ell_wp import weierstrass_p
+        from .ell_wp import weierstrass_p
         return weierstrass_p(self, prec=prec, algorithm=algorithm)
 
     def hasse_invariant(self):

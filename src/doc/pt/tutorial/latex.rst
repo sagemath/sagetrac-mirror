@@ -132,7 +132,6 @@ esse processo é discutido abaixo na seção
 O comando interno ``pretty_print()`` ilustra a conversão de objetos do
 Sage para HTML que emprega o MathJax no Notebook. ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
@@ -245,12 +244,12 @@ barras invertidas duplas nas strings do Python. ::
     sage: latex.extra_macros('')
     sage: latex.extra_preamble('')
     sage: from sage.misc.latex import latex_extra_preamble
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
     sage: latex.add_macro("\\newcommand{\\foo}{bar}")
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
@@ -277,7 +276,7 @@ de barras duplas nas strings do Python. ::
     sage: latex.add_to_preamble('\\geometry{letterpaper,total={8in,10in}}')
     sage: latex.extra_preamble()
     '\\usepackage{geometry}\\geometry{letterpaper,total={8in,10in}}'
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \usepackage{geometry}\geometry{letterpaper,total={8in,10in}}
     \newcommand{\ZZ}{\Bold{Z}}
     ...

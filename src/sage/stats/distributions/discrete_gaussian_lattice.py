@@ -22,6 +22,7 @@ EXAMPLES::
   ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #
 #                        DGS - Discrete Gaussian Samplers
@@ -57,7 +58,7 @@ EXAMPLES::
 from sage.functions.log import exp
 from sage.functions.other import ceil
 from sage.rings.all import RealField, RR, ZZ, QQ
-from discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
+from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module import FreeModule
@@ -127,10 +128,12 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
     We plot a histogram::
 
         sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
+        sage: import warnings
+        sage: warnings.simplefilter('ignore', UserWarning)
         sage: D = DiscreteGaussianDistributionLatticeSampler(identity_matrix(2), 3.0)
         sage: S = [D() for _ in range(2^12)]
         sage: l = [vector(v.list() + [S.count(v)]) for v in set(S)]
-        sage: list_plot3d(l, point_list=True, interploation='nn')
+        sage: list_plot3d(l, point_list=True, interpolation='nn')
         Graphics3d Object
 
     REFERENCES:
@@ -268,7 +271,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         try:
             B = matrix(B)
-        except ValueError:
+        except (TypeError, ValueError):
             pass
 
         try:

@@ -2,6 +2,7 @@
 r"""
 Homset categories
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -182,6 +183,7 @@ class HomsetsOf(HomsetsCategory):
         sage: TestSuite(C).run(skip=['_test_category_graph'])
         sage: TestSuite(C).run()
     """
+    _base_category_class = (Category,)
 
     def _repr_object_names(self):
         """
@@ -209,7 +211,7 @@ class HomsetsOf(HomsetsCategory):
         A stub homset category admits a single super category, namely
         the category of all homsets.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: C = (Magmas() & Posets()).Homsets(); C
             Category of homsets of magmas and posets
@@ -240,7 +242,7 @@ class Homsets(Category_singleton):
     See :wikipedia:`Category_(mathematics)`.
 
     :trac:`17364`: every homset category shall be a subcategory of the
-    category of all homsets:
+    category of all homsets::
 
         sage: Schemes().Homsets().is_subcategory(Homsets())
         True
@@ -261,14 +263,14 @@ class Homsets(Category_singleton):
             sage: Homsets()
             Category of homsets
         """
-        from sets_cat import Sets
+        from .sets_cat import Sets
         return [Sets()]
 
     class SubcategoryMethods:
 
         def Endset(self):
             """
-            Return the subcategory of the homsets of ''self'' that are endomorphism sets.
+            Return the subcategory of the homsets of ``self`` that are endomorphism sets.
 
             EXAMPLES::
 
@@ -307,5 +309,5 @@ class Homsets(Category_singleton):
                 sage: Homsets().Endset().extra_super_categories()
                 [Category of monoids]
             """
-            from monoids import Monoids
+            from .monoids import Monoids
             return [Monoids()]

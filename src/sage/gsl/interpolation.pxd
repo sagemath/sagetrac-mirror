@@ -1,6 +1,4 @@
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'gsl.pxi'
+from sage.libs.gsl.interp cimport *
 
 cdef class Spline:
     cdef double *x
@@ -12,6 +10,3 @@ cdef class Spline:
 
     cdef start_interp(self)
     cdef stop_interp(self)
-
-
-

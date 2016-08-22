@@ -48,7 +48,7 @@ hyperplanes are.  Luckily Sage will take care of that for us.
 ::
 
     sage: for q in P1.Hrepresentation():
-    ....:    print q
+    ....:    print(q)
     An inequality (-4, 1) x + 12 >= 0
     An inequality (1, 7) x + 26 >= 0
     An inequality (1, 0) x + 5 >= 0
@@ -82,7 +82,7 @@ vertex list, which can be done in two ways:
 ::
 
     sage: for q in P1.Vrepresentation():
-    ....:    print q
+    ....:    print(q)
     A vertex at (-5, -3)
     A vertex at (-5, 2)
     A vertex at (4, 4)
@@ -295,9 +295,9 @@ list of pre\-built polytopes.
 
 ::
 
-    sage: P5 = polytopes.n_cube(5)
+    sage: P5 = polytopes.hypercube(5)
     sage: P6 = polytopes.cross_polytope(3)
-    sage: P7 = polytopes.n_simplex(7)
+    sage: P7 = polytopes.simplex(7)
 
 
 .. end of output
@@ -307,7 +307,7 @@ Let's look at a 4\-dimensional polytope.
 
 ::
 
-    sage: P8 = polytopes.n_cube(4)
+    sage: P8 = polytopes.hypercube(4)
     sage: P8.plot()
     Graphics3d Object
 

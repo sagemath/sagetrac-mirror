@@ -215,7 +215,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         except AttributeError:
             return cmp(PL, PR)
         # Now use the real comparison of vectors
-        return self._cmp_c_impl(right)
+        return self._cmp_(right)
 
     # For some reason, vectors work just fine without redefining this function
     # from the base class, but if it is not here, we get "unhashable type"...
@@ -316,7 +316,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
     # We need to override this function to prohibit default behaviour.
     # It seems to be called when right is in the same lattice as self, which
     # is wrong from our point of view.
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         Raise a ``TypeError`` exception.
 

@@ -1,6 +1,7 @@
 r"""
 Hecke modules
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -68,7 +69,7 @@ class HeckeModules(Category_module):
             ...
             TypeError: R (=Partitions of the integer 3) must be a commutative ring
         """
-        from commutative_rings import CommutativeRings
+        from .commutative_rings import CommutativeRings
         if R not in CommutativeRings():
             raise TypeError("R (=%s) must be a commutative ring"%R)
         Category_module.__init__(self, R)
@@ -105,7 +106,7 @@ class HeckeModules(Category_module):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- an Hecke module
             - ``category`` -- a subcategory of :class:`HeckeModules`() or None

@@ -1,5 +1,5 @@
 """
-The ``C3`` algorithm, under control of a total order.
+The C3 algorithm, under control of a total order
 
 Abstract
 ========
@@ -316,9 +316,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    66
+    67
     sage: x.all_bases_controlled_len()
-    69
+    70
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
@@ -326,12 +326,15 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    82
+    92
     sage: x.all_bases_controlled_len()
-    89
+    100
 
 The following can be used to search through the Sage named categories
-for any that requires the addition of some bases::
+for any that requires the addition of some bases. The output may
+change a bit when the category hierarchy is changed. As long as the
+list below does not change radically, it's fine to just update this
+doctest::
 
     sage: from sage.categories.category import category_sample
     sage: sorted([C for C in category_sample()
@@ -341,8 +344,9 @@ for any that requires the addition of some bases::
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of graded hopf algebras with basis over Rational Field,
-     Category of hopf algebras with basis over Rational Field]
+     Category of finite permutation groups,
+     Category of finite weyl groups,
+     Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
 
@@ -648,7 +652,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
+            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
     return out
 
 cpdef identity(x):
@@ -827,9 +831,9 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
     cdef dict holder = {}
 
     # def print_state():
-    #     print "-- %s -- %s ------"%(out,suggestion)
+    #     print("-- %s -- %s ------"%(out,suggestion))
     #     for i in range(nbheads):
-    #         print [heads[i]] + list(reversed(tails[i]))
+    #         print([heads[i]] + list(reversed(tails[i])))
 
     # def check_state():
     #     for i in range(nbheads):
