@@ -5657,7 +5657,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         #otherwise, it'd better be a number field maximal order.
         #in this case we use Pari for pseudo bases.
         if not nf_order.is_NumberFieldOrder(ZF):
-            raise ValueError('The base ring must be a number field order.')
+            raise NotImplementedError(
+                '_pseudo_hermite_matrix only implemented for number field orders.')
         F = ZF.number_field()
         PF = F._pari_()
         BM = self.basis_matrix()
