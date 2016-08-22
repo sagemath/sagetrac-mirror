@@ -5571,7 +5571,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: VA._pseudo_hermite_matrix([F.ideal(1)])
             Traceback (most recent call last):
             ...
-            ValueError: gens and ideal_list must have the same lenghth
+            ValueError: gens and ideal_list must have the same length
             sage: VB = (ZF^4).span(B)
             sage: VB._pseudo_hermite_matrix()
             (
@@ -5650,7 +5650,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             return self.basis_matrix().hermite_form()
         elif ZF is sage.rings.integer_ring.ZZ:
             if len(self.gens()) != len(ideal_list):
-                raise ValueError("gens and ideal_list must have the same lenghth")
+                raise ValueError("gens and ideal_list must have the same length")
             gens = [g*ids.gen() for g,ids in zip(self.gens(),ideal_list)]
             M = sage.matrix.constructor.matrix(gens).hermite_form()
             return M
@@ -5663,7 +5663,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if ideal_list is None:
             ideal_list = [F.ideal(1)] * len(self.gens())
         elif len(self.gens()) != len(ideal_list):
-            raise ValueError("gens and ideal_list must have the same lenghth")
+            raise ValueError("gens and ideal_list must have the same length")
         pari_ideal_list = [id._pari_() for id in ideal_list]
         HM, HI = PF.nfhnf([BM._pari_(), pari_ideal_list])
 
