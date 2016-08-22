@@ -5551,7 +5551,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         extra units in the number field ring of integers, Echelon form cannot
         tell them apart.
 
-        ::
+
+        EXAMPLES::
 
             sage: F.<a> = NumberField(x^2-x-1)
             sage: ZF = F.ring_of_integers()
