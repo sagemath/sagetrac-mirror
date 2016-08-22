@@ -168,14 +168,7 @@ import sage.matrix.matrix_space
 import sage.misc.latex as latex
 from sage.modules.module import Module
 import sage.rings.finite_rings.finite_field_constructor as finite_field
-
 import sage.rings.number_field.order as nf_order
-import sage.rings.commutative_ring as commutative_ring
-import sage.rings.principal_ideal_domain as principal_ideal_domain
-import sage.rings.field as field
-import sage.rings.finite_rings.constructor as finite_field
-import sage.rings.integral_domain as integral_domain
-
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -5662,8 +5655,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         #in this case we use Pari for pseudo bases.
         if not nf_order.is_NumberFieldOrder(ZF):
             raise NotImplementedError(
-                '_pseudo_hermite_matrix only implemented for number field 
-                orders.')
+                '_pseudo_hermite_matrix only implemented for number field orders.')
         F = ZF.number_field()
         PF = F._pari_()
         BM = self.basis_matrix()
