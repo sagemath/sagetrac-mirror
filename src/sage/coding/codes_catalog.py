@@ -20,8 +20,8 @@ from __future__ import absolute_import
 # in the global namespace.
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+                                CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
                                 LinearCode, LinearCodeFromCheckMatrix,
@@ -34,6 +34,7 @@ from .grs import GeneralizedReedSolomonCode
 from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
 from .extended_code import ExtendedCode
 from .subfield_subcode import SubfieldSubcode
+from .cyclic_code import CyclicCode
 
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
@@ -41,7 +42,6 @@ from .hamming_code import HammingCode
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds
-from .cyclic_code import CyclicCode
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
 import sys as _sys
