@@ -18,6 +18,8 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Force compilation of a sequential BLAS only (see https://trac.sagemath.org/ticket/21323)
+OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE USE_THREAD=0"
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE DEBUG=1"
