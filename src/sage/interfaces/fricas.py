@@ -233,7 +233,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         TESTS::
 
-            sage: fricas == loads(dumps(fricas))
+            sage: fricas == loads(dumps(fricas))                                # optional - fricas
             True
         """
         eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
@@ -903,7 +903,7 @@ class FriCASElement(ExpectElement):
             2.12340000000000
             sage: _.parent()                                                    # optional - fricas
             Real Field with 53 bits of precision
-            sage: a = RealField(100)(pi)
+            sage: a = RealField(100)(pi)                                        # optional - fricas
             sage: fricas(a).sage()                                              # optional - fricas
             3.1415926535897932384626433833
             sage: _.parent()                                                    # optional - fricas
@@ -912,7 +912,7 @@ class FriCASElement(ExpectElement):
             True
             sage: fricas(2.0).sage()                                            # optional - fricas
             2.00000000000000
-            sage: _.parent()                                                    # optional  - fricas
+            sage: _.parent()                                                    # optional - fricas
             Real Field with 53 bits of precision
 
         Algebraic numbers::
@@ -968,7 +968,7 @@ class FriCASElement(ExpectElement):
             sage: fricas("integrate(x*sin(1/x), x=0..1)").sage()                # optional - fricas
             'failed'
 
-            sage: fricas("integrate(sin((x^2+1)/x),x)").sage()
+            sage: fricas("integrate(sin((x^2+1)/x),x)").sage()                  # optional - fricas
             integral(sin((x^2 + 1)/x), x)
 
         Matrices::
