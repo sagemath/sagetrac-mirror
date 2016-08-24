@@ -2,15 +2,27 @@
 r"""
 Class Groups of Number Fields
 
-An element of a class group is stored as a pair consisting of both an explicit
-ideal in that ideal class, and a list of exponents giving that ideal class in
-terms of the generators of the parent class group. These can be accessed with
-the ``ideal()`` and ``exponents()`` methods respectively.
+Sage can compute class groups, ray class groups, and `S`-class groups of number
+fields, and does so by wrapping the functionality from the PARI C-library. Some
+of what can be computed includes the group structure, representative ideals, the
+class of a given ideal, generators of the group, and products of elements. This
+file also implements moduli of number fields.
 
-EXAMPLES::
+AUTHORS:
+
+- ??? (???): Initial version
+- Robert Harron (2016-08-15): implemented ray class groups and moduli
+
+EXAMPLES:
+
+Computations with the class group of a quadratic field.
+
+::
 
     sage: K.<a> = NumberField(x^2 + 23)
-    sage: I = K.class_group().gen(); I
+    sage: H = K.class_group(); H
+    Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
+    sage: I = H.gen(); I
     Fractional ideal class (2, 1/2*a - 1/2)
     sage: I.ideal()
     Fractional ideal (2, 1/2*a - 1/2)
@@ -39,6 +51,58 @@ EXAMPLES::
     False
     sage: (O*(2, 1/2*a + 1/2))^3
     Fractional ideal (1/2*a - 3/2)
+
+Computations with a ray class group of a quadratic field.
+
+::
+
+    sage: F = QuadraticField(40)
+    sage: m = F.ideal(3).modulus([0, 1]); m
+    (Fractional ideal (3)) * infinity_0 * infinity_1
+    sage: R = F.ray_class_group(m); R
+    Ray class group of order 8 with structure C4 x C2 of Number Field in a with defining polynomial x^2 - 40 of modulus (Fractional ideal (3)) * infinity_0 * infinity_1
+
+Unlike for class groups and `S`-class groups, ray class group elements
+do not carry around a representative ideal (for reasons of efficiency).
+Nevertheless, one can be demanded. The returned ideal should be somewhat
+'small.'
+
+::
+
+    sage: R.gens()
+    (c0, c1)
+    sage: R.gens_ideals()
+    (Fractional ideal (172, 2*a + 112), Fractional ideal (-3/2*a + 2))
+    sage: c = R.gens()[0]^3 * R.gens()[1]; c
+    c0^3*c1
+    sage: c.ideal()
+    Fractional ideal (2, 1/2*a)
+    sage: c = R(F.ideal(2)); c
+    c0^2
+    sage: R.gen(0).ideal()^2
+    Fractional ideal (48*a - 752)
+    sage: R(R.gen(0).ideal()^2).ideal()
+    Fractional ideal (2)
+
+Computations with an `S`-class group of a quadratic field.
+
+::
+
+    sage: K.<a> = QuadraticField(40)
+    sage: CS = K.S_class_group(K.primes_above(31)); CS
+    S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 - 40
+    sage: CS.gens()   # random gens (platform dependent)
+    (Fractional S-ideal class (3, 1/2*a + 2),)
+    sage: CS(2)
+    Trivial S-ideal class
+    sage: c1 = CS(K.ideal([6, a+2])); c1
+    Fractional S-ideal class (6, a + 2)
+    sage: c2 = CS(K.ideal([6, a+4])); c2
+    Fractional S-ideal class (6, a + 4)
+    sage: c1 == c2
+    True
+    sage: c1.order()
+    2
 """
 
 from sage.structure.sage_object import SageObject
@@ -103,9 +167,9 @@ class Modulus(SageObject):
     def __init__(self, finite, infinite=None, check=True):
         r"""
         Create a modulus of a number field.
-        
+
         INPUT:
-        
+
         - ``finite`` -- a non-zero fractional ideal in a number field.
         - ``infinite`` -- a list of indices corresponding to real places of the number field.
         - ``check`` (default: True) -- If ``True``, run a few checks on the input
@@ -127,11 +191,11 @@ class Modulus(SageObject):
                 if i < 0 or i >= sgn:
                     raise ValueError("Infinite component of a modulus must be a list non-negative integers less than the number of real places of K")
         return
-    
+
     def _repr_(self):
         r"""
         EXAMPLES::
-        
+
             sage: K.<a> = NumberField(x^2-5)
             sage: m = K.modulus(K.ideal(31), [0,1]); m
             (Fractional ideal (31)) * infinity_0 * infinity_1
@@ -142,30 +206,30 @@ class Modulus(SageObject):
         for i in self._infinite:
             str_inf += ' * infinity_%s'%(i)
         return '(' + str(self._finite) + ')' + str_inf
-    
+
     def __eq__(self, other):
         return self._number_field == other._number_field and self._finite == other._finite and self._infinite == other._infinite
-    
+
     def __mul__(self, other):
         r"""
         Multiply two moduli.
-        
+
         This multiplies the two finite parts and performs an exclusive or on the real places.
-        
+
         Examples:
-        
+
         ::
-        
+
             sage: K = NumberField(x^3 - 2, 'a')
             sage: m1 = K.modulus(K.ideal(2), [0])
             sage: m2 = K.modulus(K.ideal(3), [0])
             sage: m1 * m2
             Fractional ideal (6)
-        
+
         A higher degree totally real field.
-        
+
         ::
-        
+
             sage: K = NumberField(x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1, 'a')
             sage: m1 = K.modulus(K.ideal(5), [2, 3])
             sage: m2 = K.modulus(K.ideal(25), [0, 1, 3, 4])
@@ -176,28 +240,28 @@ class Modulus(SageObject):
         """
         inf = list(set(self.infinite_part()).symmetric_difference(other.infinite_part()))
         return Modulus(self.finite_part() * other.finite_part(), inf, check=False)
-    
+
     def divides(self, other):
         if not set(self.infinite_part()).issubset(other.infinite_part()):
             return False
         return self.finite_part().divides(other.finite_part())
-    
+
     def number_field(self):
         return self._number_field
-    
+
     def finite_part(self):
         return self._finite
-    
+
     def infinite_part(self):
         return self._infinite
-    
+
     def finite_factors(self):
         try:
             return self._finite_factors
         except AttributeError:
             self._finite_factors = m.finite_part().factor()
             return self._finite_factors
-    
+
     def number_is_one_mod_star(self, a):
         K = self.number_field()
         am1 = K(a - 1)
@@ -209,7 +273,7 @@ class Modulus(SageObject):
             if inf_places[i](am1) <= 0:
                 return False
         return True
-    
+
     def fix_signs(self, a):
         r"""
         Given ``a`` in ``self.number_field()``, find `b` congruent to ``a`` `mod^\ast` ``self.finite_part()``
@@ -229,7 +293,7 @@ class Modulus(SageObject):
             return a
         t = self.get_one_mod_star_finite_with_fixed_signs(positive, negative)
         return t * a
-    
+
     def get_one_mod_star_finite_with_fixed_signs(self, positive, negative):
         if len(negative) == 0:
             return self.number_field().one()
@@ -257,7 +321,7 @@ class Modulus(SageObject):
                 t *= (1 + beta_is[i])
         self._one_mod_star[negative] = t
         return t
-    
+
     def _find_beta_is_Ainv(self):
         r"""
         Step 2 of Algorithm 4.2.20 of Cohen's Advanced...
@@ -281,25 +345,25 @@ class Modulus(SageObject):
                 beta_is.append(beta)
         self._beta_is_Ainv = (beta_is, ~A)
         return self._beta_is_Ainv
-    
+
     def _signs(self, b):
         if b == 0:
             raise ValueError("Non-zero input required.")
         sigmas = self._number_field.real_places()
         return [ZZ.one() if sigmas[i](b).sign() == -1 else ZZ.zero() for i in self.infinite_part()]
-    
+
     def is_finite(self):
         return len(self._infinite) == 0
-    
+
     def is_infinite(self):
         return self._finite.is_one()
-    
+
     def _pari_(self):
         inf_mod = [0] * self._number_field.signature()[0]
         for i in self._infinite:
             inf_mod[i] = 1
         return pari([self._finite, inf_mod])
-    
+
     def __hash__(self):
         return hash((self._finite, self._infinite))
 
@@ -577,54 +641,54 @@ class RayClassGroupElement(AbelianGroupElement):
         #@@    element = parent._ideal_log(ideal)
         #Should treat the else case for coprime-ness as well since the code can coerce from different moduli
         #@@FractionalIdealClass.__init__(self, parent, element, ideal)
-    
+
     #def _repr_(self):
     #    return AbelianGroupWithValuesElement._repr_(self)
-    
+
     #Should be able to get rid of the operations if make the reduce function a method of the parent
     #def _mul_(self, other):
     #    m = AbelianGroupElement._mul_(self, other)
     #    nf = self.parent()._number_field.pari_nf()
     #    m._value = nf.idealred(nf.idealmul(self.value(), other.value()))
     #    return m
-    
+
     #def _div_(self, other):
     #    m = AbelianGroupElement._div_(self, other)
     #    nf = self.parent()._number_field.pari_nf()
     #    m._value = nf.idealred(nf.idealdiv(self.value(), other.value()))
     #    return m
-    
+
     #def inverse(self):
     #    m = AbelianGroupElement.inverse(self)
     #    nf = self.parent()._number_field.pari_nf()
     #    m._value = nf.idealred(nf.idealinv(self.value()))
     #    return m
-    
+
     #__invert__ = inverse
-    
+
     def ideal(self, reduce=True):
         """
         Return an ideal representing this ray class; if ``reduce`` is True (by default)
         the returned ideal is reduced to 'small' (this can be slow on large inputs).
-        
+
         INPUT:
-        
+
         - ``reduce`` -- (default: True) determine whether or not to output a 'small'
         representative.
-        
+
         OUTPUT:
-        
+
         - An ideal representing this ray class. If ``reduce`` is True, the ideal returned
         is made 'small' by the ideal's ``reduce_equiv`` function (and ``reduce_equiv`` is
         used at each step of computing this representative). Otherwise, the output is just
         the appropriate product of the powers of the generators of the ray class group.
-        
+
         EXAMPLES:
-        
+
         Over a real quadratic field field of class number 1.
-        
+
         ::
-        
+
             sage: F.<a> = NumberField(x^2 - 5)
             sage: m = F.ideal(11).modulus([0, 1])
             sage: R = F.ray_class_group(m)
@@ -633,11 +697,11 @@ class RayClassGroupElement(AbelianGroupElement):
             Fractional ideal (-a)
             sage: c.ideal(False)
             Fractional ideal (-6242265*a + 1268055)
-        
+
         Over a real quadratic field of class number 2.
-        
+
         ::
-        
+
             sage: F = QuadraticField(40)
             sage: R = F.ray_class_group(F.prime_above(13).modulus([0, 1]))
             sage: for c in R:
@@ -689,7 +753,7 @@ class RayClassGroupElement(AbelianGroupElement):
                     #I = I.reduce_equiv(m)
                     I = R.ideal_reduce(I)
         return I
-    
+
     #def reduce(self):
     #    nf = self.parent()._number_field.pari_nf()
     #    return RayClassGroupElement(self.parent(), self.exponents(), nf.idealred(self.value()))
@@ -979,7 +1043,7 @@ class ClassGroup(AbelianGroupWithValues_class):
 
 class RayClassGroup(AbelianGroup_class):
     Element = RayClassGroupElement
-    
+
     def __init__(self, gens_orders, names, modulus, gens, bnr, proof=True):
         r"""
         ``gens`` -- a tuple of pari extended ideals
@@ -992,7 +1056,7 @@ class RayClassGroup(AbelianGroup_class):
         self._modulus = modulus
         self._number_field = modulus.number_field()
         self._bnr = bnr
-    
+
     def _element_constructor_(self, *args, **kwds):
         try:
             L = len(args[0])
@@ -1032,17 +1096,17 @@ class RayClassGroup(AbelianGroup_class):
                 raise TypeError("The zero ideal is not a fractional ideal")
             exps = self._ideal_log(I)
             return self.element_class(self, exps)
-    
+
     def _repr_(self):
         s = 'Ray class group of order %s '%self.order()
         if self.order() > 1:
             s += 'with structure %s '%self._group_notation(self.gens_orders())
         s += 'of %s of modulus %s'%(self.number_field(), self._modulus)
         return s
-    
+
     def _ideal_log(self, ideal):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
-    
+
     def ideal_reduce(self, ideal):
         from sage.libs.pari.handle_error import PariError
         try:
@@ -1053,23 +1117,23 @@ class RayClassGroup(AbelianGroup_class):
             else:
                 raise err
         return self._number_field.ideal(pari_ideal)
-    
+
     def gens_values(self):
         return self._gens
-    
+
     @cached_method
     def gens_ideals(self):
         return tuple(self._number_field._pari_extended_ideal_to_sage(v) for v in self.gens_values())
-    
+
     def modulus(self):
         return self._modulus
-    
+
     def number_field(self):
         return self._number_field
-    
+
     def pari_bnr(self):
         return self._bnr
-    
+
     def pari_gens(self):
         return self._bnr[4][2]
 
