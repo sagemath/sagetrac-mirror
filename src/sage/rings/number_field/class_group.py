@@ -52,6 +52,26 @@ Computations with the class group of a quadratic field.
     sage: (O*(2, 1/2*a + 1/2))^3
     Fractional ideal (1/2*a - 3/2)
 
+Computations with an `S`-class group of a quadratic field.
+
+::
+
+    sage: K.<a> = QuadraticField(40)
+    sage: CS = K.S_class_group(K.primes_above(31)); CS
+    S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 - 40
+    sage: CS.gens()   # random gens (platform dependent)
+    (Fractional S-ideal class (3, 1/2*a + 2),)
+    sage: CS(2)
+    Trivial S-ideal class
+    sage: c1 = CS(K.ideal([6, a+2])); c1
+    Fractional S-ideal class (6, a + 2)
+    sage: c2 = CS(K.ideal([6, a+4])); c2
+    Fractional S-ideal class (6, a + 4)
+    sage: c1 == c2
+    True
+    sage: c1.order()
+    2
+
 Computations with a ray class group of a quadratic field.
 
 ::
@@ -84,25 +104,19 @@ Nevertheless, one can be demanded. The returned ideal should be somewhat
     sage: R(R.gen(0).ideal()^2).ideal()
     Fractional ideal (2)
 
-Computations with an `S`-class group of a quadratic field.
+Narrow class groups are implemented via ray class groups.
 
 ::
 
-    sage: K.<a> = QuadraticField(40)
-    sage: CS = K.S_class_group(K.primes_above(31)); CS
-    S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 - 40
-    sage: CS.gens()   # random gens (platform dependent)
-    (Fractional S-ideal class (3, 1/2*a + 2),)
-    sage: CS(2)
-    Trivial S-ideal class
-    sage: c1 = CS(K.ideal([6, a+2])); c1
-    Fractional S-ideal class (6, a + 2)
-    sage: c2 = CS(K.ideal([6, a+4])); c2
-    Fractional S-ideal class (6, a + 4)
-    sage: c1 == c2
-    True
-    sage: c1.order()
-    2
+    sage: F.<a> = QuadraticField(3)
+    sage: F.class_group()
+    Class group of order 1 of Number Field in a with defining polynomial x^2 - 3
+    sage: Hn = F.narrow_class_group(); Hn
+    Narrow class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 - 3
+    sage: Hn.gens()
+    (c,)
+    sage: Hn.gens_ideals()
+    (Fractional ideal (a + 1),)
 """
 
 from sage.structure.sage_object import SageObject
@@ -1056,6 +1070,7 @@ class RayClassGroup(AbelianGroup_class):
         self._modulus = modulus
         self._number_field = modulus.number_field()
         self._bnr = bnr
+        self._is_narrow = (len(modulus.infinite_part()) == self._number_field.signature()[0]) and modulus.finite_part().is_one()
 
     def _element_constructor_(self, *args, **kwds):
         try:
@@ -1098,11 +1113,18 @@ class RayClassGroup(AbelianGroup_class):
             return self.element_class(self, exps)
 
     def _repr_(self):
-        s = 'Ray class group of order %s '%self.order()
+        if self._is_narrow:
+            s0 = 'Narrow '
+        else:
+            s0 = 'Ray '
+        s = 'class group of order %s '%self.order()
         if self.order() > 1:
             s += 'with structure %s '%self._group_notation(self.gens_orders())
-        s += 'of %s of modulus %s'%(self.number_field(), self._modulus)
-        return s
+        s += 'of %s'%(self._number_field)
+        if self._is_narrow:
+            return s0 + s
+        s += ' of modulus %s'%(self._modulus)
+        return s0 + s
 
     def _ideal_log(self, ideal):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
