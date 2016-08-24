@@ -141,7 +141,7 @@ class DocTestReporter(SageObject):
             sage: print(DTR.report_head(FDS))
             sage -t --long .../sage/doctest/reporting.py
         """
-        cmd = "sage -t"
+        cmd = "[%s/%s] sage -t"%(self.sources_completed+1, len(self.controller.sources))
         if self.controller.options.long:
             cmd += " --long"
         warnlong = self.controller.options.warn_long
