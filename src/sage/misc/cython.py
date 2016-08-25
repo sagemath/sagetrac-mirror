@@ -457,10 +457,12 @@ setup(ext_modules = ext_modules,
         NAME=name)
 
     if create_local_c_file:
+        cythonized_c = "%s.c"%(name,)
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
         if language == 'c++':
+            cythonized_c = cythonized_c + "pp"
             target_c = target_c + "pp"
-        cmd += " && cp '%s.c' '%s'"%(name, target_c)
+        cmd += " && cp '%s' '%s'"%(cythonized_c, target_c)
         if annotate:
             target_html = '%s/_%s.html'%(os.path.abspath(os.curdir), base)
             cmd += " && cp '%s.html' '%s'"%(name, target_html)
