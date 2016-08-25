@@ -908,7 +908,7 @@ class SmallGroupsLibrary(Feature):
 class LibFES(OptionalModule):
     r"""
     A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
-    module has been enabled for this uild of Sage and is functional.
+    module has been enabled for this build of Sage and is functional.
 
     EXAMPLES::
 
@@ -967,24 +967,42 @@ if solutions != 3: raise ImportError("libFES did not find three solutions for x*
         libFes = SharedLibrary("LibFES", test_code=LibFES._test_code, spkg=spkg, url=url)
         OptionalModule.__init__(self, "sage.libs.fes", dependencies=[libFes], spkg=spkg, url=url)
 
-class Bliss(Module):
+class Bliss(OptionalModule):
     r"""
-    A :class:`Module` which describes the availability of the bliss library.
+    A :class:`Feature` which describes whether the ;module:`sage.graphs.bliss`
+    module has been enabled for this build of Sage and is functional.
+
 
     EXAMPLES::
 
-        sage: from sage.misc.graph.generic_graph import Bliss
-        sage: Bliss().is_present() # optional: bliss
-        True
+        sage: from sage.misc.feature_test import Bliss
+        sage: Bliss().require() # optional: bliss
 
+    """
+    _test_code=r"""
+#clang c++
+#clib bliss
+cdef extern from "bliss/graph.hh" namespace "bliss":
+    cdef cppclass AbstractGraph:
+        pass
+
+    cdef cppclass Graph(AbstractGraph):
+        Graph(const unsigned int)
+
+sig_on()
+Graph(1)
+sig_off()
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.misc.graph.generic_graph import Bliss
+            sage: from sage.misc.feature_test import Bliss
             sage: Bliss()
             Feature('sage.graphs.bliss')
 
         """
-        Module.__init__(self, name="sage.graphs.bliss", spkg="bliss", url="http://www.tcs.tkk.fi/Software/bliss/index.html")
+        spkg = "bliss"
+        url = "http://www.tcs.hut.fi/Software/bliss/"
+        libBliss = SharedLibrary("bliss", test_code=Bliss._test_code, spkg=spkg, url=url)
+        OptionalModule.__init__(self, "sage.graphs.bliss", dependencies=[libBliss], spkg=spkg, url=url)
