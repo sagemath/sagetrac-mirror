@@ -23,7 +23,7 @@ None.
 
 == Special Update/Build Instructions ==
 
-There are no release numbers, hence pick
-https://github.com/oreillymedia/thebe/archive/master.zip and rename it
-thebejs-$(date '+%Y%m%d').zip
+There are no release numbers, hence fetch the latest archive from
+github and rename it:
 
+    wget https://github.com/oreillymedia/thebe/archive/master.zip -O upstream/thebejs-$(date '+%Y%m%d').zip
