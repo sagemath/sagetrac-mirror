@@ -84,5 +84,5 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           exponential_integral_1, Ei, exp_integral_ei)
 
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
-from .multiple_zeta import mzeta
+from .multiple_zeta import mzeta, comptobin, dual, multizeta, bintocomp, numtocomp, IMF, allmultizeta, allmultizetaprint, Rmultizeta
 
