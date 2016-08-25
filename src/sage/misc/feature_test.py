@@ -966,3 +966,25 @@ if solutions != 3: raise ImportError("libFES did not find three solutions for x*
         url = "http://www.lifl.fr/~bouillag/fes/"
         libFes = SharedLibrary("LibFES", test_code=LibFES._test_code, spkg=spkg, url=url)
         OptionalModule.__init__(self, "sage.libs.fes", dependencies=[libFes], spkg=spkg, url=url)
+
+class Bliss(Module):
+    r"""
+    A :class:`Module` which describes the availability of the bliss library.
+
+    EXAMPLES::
+
+        sage: from sage.misc.graph.generic_graph import Bliss
+        sage: Bliss().is_present() # optional: bliss
+        True
+
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.misc.graph.generic_graph import Bliss
+            sage: Bliss()
+            Feature('sage.graphs.bliss')
+
+        """
+        Module.__init__(self, name="sage.graphs.bliss", spkg="bliss", url="http://www.tcs.tkk.fi/Software/bliss/index.html")
