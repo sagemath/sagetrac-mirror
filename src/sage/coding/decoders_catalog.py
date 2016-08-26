@@ -7,6 +7,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
+- :class:`linear_code.LinearCodeTestSetDecoder <sage.coding.linear_code.LinearCodeTestSetDecoder>`
 
 **Subfield subcode decoder**
 
@@ -45,7 +46,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from .linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder,LinearCodeTestSetDecoder)
 from .punctured_code import PuncturedCodeOriginalCodeDecoder
 from .grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,

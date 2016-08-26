@@ -810,6 +810,7 @@ class AbstractLinearCode(module.Module):
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+        self._registered_decoders["TestSet"] = LinearCodeTestSetDecoder
 
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
@@ -893,13 +894,13 @@ class AbstractLinearCode(module.Module):
 
             sage: C.add_decoder("MyDecoder", MyDecoder)
             sage: C.decoders_available()
-            ['MyDecoder', 'Syndrome', 'NearestNeighbor']
+            ['MyDecoder', 'Syndrome', 'NearestNeighbor', 'TestSet']
 
         We can verify that any new code will not know MyDecoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C2.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['Syndrome', 'NearestNeighbor', 'TestSet']
 
         TESTS:
 
@@ -1524,7 +1525,7 @@ class AbstractLinearCode(module.Module):
           the base field of ``self``
 
         - ``algorithm`` -- (default: ``'syndrome'``) Name of the decoding algorithm which
-          will be used to decode ``right``. Can be ``'syndrome'`` or ``'nearest_neighbor'``.
+          will be used to decode ``right``. Can be ``'syndrome'``, ``'nearest_neighbor'`` or ``'TestSet'``.
 
         .. NOTE::
 
@@ -1537,6 +1538,8 @@ class AbstractLinearCode(module.Module):
             return self.decode_to_code(right, decoder_name="Syndrome")
         elif algorithm == "nearest neighbor":
             return self.decode_to_code(right, decoder_name="NearestNeighbor")
+        elif algorithm == "TestSet":
+            return self.decode_to_code(right, decoder_name="TestSet")
         else:
             return self.decode_to_code(right, decoder_name=algorithm)
 
@@ -1571,7 +1574,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['Syndrome', 'NearestNeighbor','TestSet']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -1677,10 +1680,10 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['TestSet', 'Syndrome', 'NearestNeighbor']
 
             sage: C.decoders_available(True)
-            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
+            {'TestSet': <class 'sage.coding.linear_code.LinearCodeTestSetDecoder'>,'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
              'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
         """
         if classes == True:
@@ -2348,7 +2351,7 @@ class AbstractLinearCode(module.Module):
             return True
         except ValueError:
             return False
-            
+
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -2977,6 +2980,19 @@ class AbstractLinearCode(module.Module):
         c = E.encode(m)
         c.set_immutable()
         return c
+
+    def rate(self):
+        r"""
+        Return the ratio of the number of information symbols to
+        the code length.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: C.rate()
+            1/2
+        """
+        return self.dimension() / self.length()
 
     def redundancy_matrix(self):
         r"""
@@ -4463,6 +4479,357 @@ class LinearCodeSystematicEncoder(Encoder):
 
 
 
+
+
+
+
+
+
+
+
+
+class LinearCodeSystematicEncoder(Encoder):
+    r"""
+    Encoder based on a generator matrix in systematic form for Linear codes.
+
+    To encode an element of its message space, this encoder first builds a
+    generator matrix in systematic form. What is called systematic form here
+    is the reduced row echelon form of a matrix, which is not necessarily
+    `[I \vert H]`, where `I` is the identity block and `H` the parity block.
+    One can refer to :meth:`LinearCodeSystematicEncoder.generator_matrix`
+    for a concrete example.
+    Once such a matrix has been computed, it is used to encode any message
+    into a codeword.
+
+    This encoder can also serve as the default encoder of a code defined by a
+    parity check matrix: if the :class:`LinearCodeSystematicEncoder` detects
+    that it is the default encoder, it computes a generator matrix as the
+    reduced row echelon form of the right kernel of the parity check matrix.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this encoder.
+
+    - ``systematic_positions`` -- (default: ``None``) the positions in codewords that
+      should correspond to the message symbols. A list of `k` distinct integers in
+      the range 0 to `n-1` where `n` is the length of the code and `k` its
+      dimension. The 0th symbol of a message will then be at position
+      ``systematic_positions[0]``, the 1st index at position
+      ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
+      construction time if the supplied indices do not form an information set.
+
+    EXAMPLES:
+
+    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
+                                     [1,0,0,1,1,0,0,0],\
+                                     [0,1,0,1,0,1,0,0],\
+                                     [1,1,0,1,0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [0 0 1 0 1 1 0 0]
+            [0 0 0 1 1 1 1 1]
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [1 1 0 1 0 0 1 1]
+            [1 1 1 0 0 0 0 0]
+
+    An error is raised if one specifies systematic positions which do not form
+    an information set::
+
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,6,7])
+            Traceback (most recent call last):
+            ...
+            ValueError: systematic_positions are not an information set
+
+
+    We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
+    encoder. The following class is the dual of the repitition code::
+
+        sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def parity_check_matrix(self):
+        ....:       return Matrix(self.base_field(), [1]*self.length())
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "Dual of the Repetition Code of length %d over %s" % (self.length(), self.base_field())
+        ....:
+        sage: DualRepetitionCode(GF(3), 5).generator_matrix()
+        [1 0 0 0 2]
+        [0 1 0 0 2]
+        [0 0 1 0 2]
+        [0 0 0 1 2]
+
+
+    An exception is thrown if :class:`LinearCodeSystematicEncoder` is the default encoder but no
+    parity check matrix has been specified for the code::
+
+        sage: class BadCodeExample(sage.coding.linear_code.AbstractLinearCode):
+        ....:   def __init__(self, field, length):
+        ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self, field, length, "Systematic", "Syndrome")
+        ....:
+        ....:   def _repr_(self):
+        ....:       return "I am a badly defined code"
+        ....:
+        sage: BadCodeExample(GF(3), 5).generator_matrix()
+        Traceback (most recent call last):
+        ...
+        ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder
+    """
+
+    def __init__(self, code, systematic_positions=None):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeSystematicEncoder, self).__init__(code)
+        self._systematic_positions = tuple(systematic_positions) if systematic_positions else None
+        if systematic_positions:
+            # Test that systematic_positions consists of integers in the right
+            # range. We test that len(systematic_positions) = code.dimension()
+            # in self.generator_matrix() to avoid possible infinite recursion.
+            if (not all( e in ZZ and e >= 0 and e < code.length() for e in systematic_positions)) \
+               or len(systematic_positions) != len(set(systematic_positions)):
+                raise ValueError("systematic positions must be a tuple of distinct integers in the range 0 to n-1 where n is the length of the code")
+            # Test that the systematic positions are an information set
+            self.generator_matrix()
+
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeSystematicEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: E1 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G))
+            sage: E1 == E2
+            True
+            sage: E1.systematic_positions()
+            (0, 1, 2)
+            sage: E3 = codes.encoders.LinearCodeSystematicEncoder(LinearCode(G), systematic_positions=(2,5,6))
+            sage: E3.systematic_positions()
+            (2, 5, 6)
+            sage: E1 == E3
+            False
+        """
+        return isinstance(other, LinearCodeSystematicEncoder)\
+                and self.code() == other.code()\
+                and self.systematic_positions() == other.systematic_positions()
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Systematic encoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: latex(E)
+            \textnormal{Systematic encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Systematic encoder for }%s" % self.code()._latex_()
+
+    @cached_method
+    def generator_matrix(self):
+        r"""
+        Returns a generator matrix in systematic form of the associated code of ``self``.
+
+        Systematic form here means that a subsets of the columns of the matrix
+        forms the identity matrix.
+
+        .. NOTE::
+
+            The matrix returned by this method will not necessarily be `[I \vert H]`, where `I`
+            is the identity block and `H` the parity block. If one wants to know which columns
+            create the identity block, one can call :meth:`systematic_positions`
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+
+        We can ask for different systematic positions::
+
+            sage: E2 = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [1 1 0 1 0 0 1]
+            [1 1 1 0 0 0 0]
+
+        Another example where there is no generator matrix of the form `[I \vert H]`::
+
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 1 0 0 0 1 0]
+            [0 0 1 0 0 1 0]
+            [0 0 0 0 1 1 0]
+            [0 0 0 0 0 0 1]
+        """
+        C = self.code()
+        # This if statement detects if this encoder is itself the default encoder.
+        # In this case, attempt building the generator matrix from the parity
+        # check matrix
+        if hasattr(self, "_use_pc_matrix"):
+            if self._use_pc_matrix == 1:
+                self._use_pc_matrix = 2
+                return C.parity_check_matrix().right_kernel_matrix()
+            else:
+                raise ValueError("a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder")
+        else:
+            self._use_pc_matrix = 1
+            M = copy(C.generator_matrix())
+        if not self._systematic_positions:
+            M.echelonize()
+        else:
+            k = M.nrows() # it is important that k is *not* computed as C.dimension() to avoid possible cyclic dependency
+            if len(self._systematic_positions) != k:
+                raise ValueError("systematic_positions must be a tuple of length equal to the dimension of the code")
+            # Permute the columns of M and bring to reduced row echelon formb
+            perm = self.systematic_permutation()
+            M.permute_columns(perm)
+            M.echelonize()
+            if M[:,:k].is_singular():
+                raise ValueError("systematic_positions are not an information set")
+            M.permute_columns(perm.inverse())
+        M.set_immutable()
+        return M
+
+    def systematic_permutation(self):
+        r"""
+        Returns a permutation which would take the systematic positions into [0,..,k-1]
+
+        EXAMPLES::
+
+            sage: C = LinearCode(matrix(GF(2), [[1,0,0,0,1,1,0],\
+                                                [0,1,0,1,0,1,0],\
+                                                [0,0,0,0,0,0,1]]))
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 6)
+            sage: E.systematic_permutation()
+            [1, 2, 7, 3, 4, 5, 6]
+        """
+        n = self.code().length()
+        systematic_positions = self.systematic_positions()
+        k = len(systematic_positions)
+        lp = [ None ]*n
+        for (i,j) in zip(range(k), systematic_positions):
+            lp[i] = j
+        j = k
+        set_sys_pos = set(systematic_positions)
+        for i in range(n):
+            if not i in set_sys_pos:
+                lp[j] = i
+                j += 1
+        from sage.combinat.permutation import Permutation
+        return Permutation([1 + e for e in lp])
+
+    def systematic_positions(self):
+        r"""
+        Returns a tuple containing the indices of the columns which form an
+        identity matrix when the generator matrix is in systematic form.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 2, 3)
+
+        We take another matrix with a less nice shape::
+
+            sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],\
+                                     [1,1,0,0,1,0,0],\
+                                     [0,0,1,0,0,1,0],\
+                                     [0,0,1,0,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 2, 4, 6)
+
+        The systematic positions correspond to the positions which carry information in a codeword::
+
+            sage: MS = E.message_space()
+            sage: m = MS.random_element()
+            sage: c = m * E.generator_matrix()
+            sage: pos = E.systematic_positions()
+            sage: info = MS([c[i] for i in pos])
+            sage: m == info
+            True
+
+        When constructing a systematic encoder with specific systematic
+        positions, then it is guaranteed that this method returns exactly those
+        positions (even if another choice might also be systematic)::
+
+            sage: G = Matrix(GF(2), [[1,0,0,0],\
+                                     [0,1,0,0],\
+                                     [0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeSystematicEncoder(C, systematic_positions=[0,1,3])
+            sage: E.systematic_positions()
+            (0, 1, 3)
+        """
+        return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
+
+
+
+
+
+
+
+
+
+
+
 ####################### decoders ###############################
 class LinearCodeSyndromeDecoder(Decoder):
     r"""
@@ -4977,9 +5344,232 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1) // 2
 
+############ NUEVA CLASE DE DECODIFICACIÓN #######
+##################################################
+##################################################
+
+class LinearCodeTestSetDecoder(Decoder):
+    r"""
+    Constructs a gradient descent decoder for Linear Codes. The general principle of these methods is
+    the use of a certain set of codewords ``T``(namely test-set) which has been precomputed and stored
+    in memory in advanced. Then, the algorithm can be accomplish by recursively inspecting the test-set
+    for the existence of an adequate element which is subtracted from the current vector.
+
+    The decoding algorithm works as follows:
+
+    - Compute a test-set ``T``for the code ``C''
+    - Recursively search an element ``t\in T'' such that ``w_H(y-t)<w_H(y)'' where ``w_H(\cdot)``represents
+    the Hamming weight of ``\cdot``.
+    - The algorithms terminates when we arrive to a coset leader.
+
+    This decoder is complete, i.e. it decodes every vector in the ambient space.
+
+    NOTE:
+
+    Note that this algorithm requires a nontrivial preprocessing for the construction of a test-set. Indeed,
+    to obtain a test-set for a linear code we compute a reduced Groebner basis of an ideal associated to
+    the code.
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+
+
+    EXAMPLES: FALTA PONER EJEMPLOS::
+
+        sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+        sage: C = LinearCode(G)
+        sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+        sage: D
+        Gradient Descend Decoder for Linear code of length 9, dimension 3 over Finite Field of size 3
+
+
+    The unique decoding radius, the covering radius, the newton radius, a list of coset leaders,
+    the coset weight distribution coset and a test-set are parameters of the code that are determined
+    while computing the implemented Gradient Descent Decoding algorithm. 
+    """
+
+    def __init__(self, code):
+        r"""
+        TESTS::
+        """
+        
+        super(LinearCodeTestSetDecoder, self).__init__(code, code.ambient_space(),\
+                code._default_encoder_name)
+        self._groebner_basis()
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeTestSetDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: D1 = codes.decoders.LinearCodeTestSetDecoder(LinearCode(G))
+            sage: D2 = codes.decoders.LinearCodeTestSetDecoder(LinearCode(G))
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeTestSetDecoder)\
+                and self.code() == other.code()\
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D
+            Gradient Descent Decoder for Linear code of length 9, dimension 3 over Finite Field of size 3
+        """
+        return "Gradient Descent Decoder for %s" % (self.code())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: latex(D)
+            \textnormal{Gradient Descent Decoder for [9, 3]\textnormal{ Linear code over }\Bold{F}_{3}}
+        """
+        return "\\textnormal{Gradient Descent Decoder for %s}" % (self.code()._latex_())
+
+
+    @cached_method
+    def _groebner_basis(self):
+        q = self.code().base_ring().order()-1
+        n = self.code().length()
+        #creating the Ring with variables
+        x = 'x'
+        Var = []
+        for k in range(1,n+1):
+            x_ = x+str(k)
+            Var.extend([x_+str(i) for i in range(1,q+1)])
+        R = PolynomialRing(QQ,q*n,Var,order='degrevlex')
+        #separate X1,X2,...,Xn in q-1 components each
+        Var = [R.gens()[i*q:(i+1)*q] for i in range(n)]
+        M = self.code().base_ring().addition_table().table()
+        pol_I = []
+        #create R_I ideal with addition table
+        for i in range(q):
+            for j in range(i,q):
+                if M[i+1][j+1]==0:
+                    pol_I.extend([Var[k][i]*Var[k][j]-1 for k in range(n)] )
+                else:
+                    m = M[i+1][j+1]-1
+                    pol_I.extend([Var[k][i]*Var[k][j]-Var[k][m] for k in range(n)])
+        List=copy(pol_I)
+        Fq = self.code().base_ring().list()[1:]
+        for g in self.code().generator_matrix():
+            for f in Fq:
+                w=f*g
+                p = prod(Var[i][w[i]-1] for i in w.support())
+                pol_I.append(p-1)
+
+        I=R.ideal(pol_I)
+
+        GB=I.groebner_basis()
+        GB=list(GB)
+        for i in List:
+            if i in GB:
+                GB.remove(i)
+
+        t_s=[]
+        for gb in GB:
+            v1 = []
+            v2 = []
+            for j in range(n):
+                exp1=0
+                exp2=0
+                for i in range(q):
+                    exp1+=gb.exponents()[0][j*q+i]*Fq[i]
+                    exp2+=gb.exponents()[1][j*q+i]*Fq[i]
+                v1.append(exp1)
+                v2.append(exp2)
+            v1=vector(self.code().base_ring(),v1)
+            v2=vector(self.code().base_ring(),v2)
+            t_s.append([v1,v2])
+        return t_s
+
+    def test_set(self):
+        r"""
+        Builds a test-set for a linear code. A test-set T for a code ``C`` is a set of codewords such
+        that every word ``y`` either belongs to the set of coset leaders or there exists an element
+        ``t`` in ``T`` such that the Hamming weight of ``y-t`` is strictly smaller than ``y``.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2),3)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D.test_set()
+            ((0, 0, 0, 0, 0, 0, 0),
+             (1, 1, 1, 0, 0, 0, 0),
+             (1, 0, 0, 1, 1, 0, 0),
+             (0, 1, 0, 1, 0, 1, 0),
+             (0, 0, 1, 1, 0, 0, 1),
+             (0, 1, 0, 0, 1, 0, 1),
+             (0, 0, 1, 0, 1, 1, 0),
+             (1, 0, 0, 0, 0, 1, 1))
+
+            sage: C = codes.BCHCode(8,3,GF(3))
+            sage: D=codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D.test_set()
+            ((0, 0, 0, 0, 2, 0, 2, 2),
+             (0, 0, 0, 0, 1, 0, 1, 1),
+             (0, 0, 0, 2, 0, 2, 2, 0),
+             (0, 0, 0, 1, 0, 1, 1, 0),
+             (0, 0, 2, 0, 2, 2, 0, 0),
+             (0, 0, 1, 0, 1, 1, 0, 0),
+             (0, 0, 0, 1, 2, 1, 0, 2),
+             (0, 0, 0, 2, 1, 2, 0, 1),
+             (0, 2, 0, 2, 2, 0, 0, 0),
+             (0, 1, 0, 1, 1, 0, 0, 0),
+             (0, 0, 1, 0, 0, 1, 2, 2),
+             (0, 0, 2, 0, 0, 2, 1, 1),
+             (0, 0, 1, 2, 1, 0, 2, 0),
+             (2, 0, 2, 2, 0, 0, 0, 0),
+             (1, 0, 1, 1, 0, 0, 0, 0),
+             (0, 1, 0, 1, 0, 0, 2, 2),
+             (0, 1, 0, 0, 1, 2, 2, 0),
+             (0, 2, 0, 0, 2, 1, 1, 0),
+             (0, 1, 2, 1, 0, 2, 0, 0),
+	         (0, 2, 1, 2, 0, 1, 0, 0),
+ 	         (1, 0, 1, 0, 0, 2, 2, 0),
+	         (1, 0, 0, 1, 2, 2, 0, 0),
+ 	         (2, 0, 0, 2, 1, 1, 0, 0),
+ 	         (1, 2, 1, 0, 2, 0, 0, 0),
+	         (2, 1, 2, 0, 1, 0, 0, 0))
+        """
+        GB = self._groebner_basis()
+        TS=[]
+        t_s = [g[0]-g[1] for g in GB]
+        for t in t_s:
+            if t not in TS:
+                TS.append(t)
+        self._decoder_type.add("complete")
+        return tuple(TS)
+
+    def decode_to_code(self, r):
+        t_s = self.test_set()
+        c = vector(self.code().base_ring(),self.code().length())
+        word = vector(self.code().base_ring(),r)
+        for t in t_s:
+            if (word-t).hamming_weight() < word.hamming_weight():
+                word = word - t
+                c=c+t
+        return c
+
 ####################### registration ###############################
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCodeTestSetDecoder._decoder_type = {"complete"}
