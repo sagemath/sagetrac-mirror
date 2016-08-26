@@ -2351,11 +2351,7 @@ class AbstractLinearCode(module.Module):
             return True
         except ValueError:
             return False
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
 
     def is_permutation_automorphism(self,g):
         r"""
