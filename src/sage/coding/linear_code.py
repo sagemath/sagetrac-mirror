@@ -2981,8 +2981,6 @@ class AbstractLinearCode(module.Module):
         c.set_immutable()
         return c
 
-<<<<<<< HEAD
-=======
     def rate(self):
         r"""
         Return the ratio of the number of information symbols to
@@ -2996,7 +2994,6 @@ class AbstractLinearCode(module.Module):
         """
         return self.dimension() / self.length()
 
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
     def redundancy_matrix(self):
         r"""
         Returns the non-identity columns of a systematic generator matrix for
@@ -3374,7 +3371,6 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns a linear code which is permutation-equivalent to ``self`` and
         admits a generator matrix in standard form.
-<<<<<<< HEAD
 
         A generator matrix is in standard form if it is of the form `[I \vert
         A]`, where `I` is the `k \times k` identity matrix. Any code admits a
@@ -3382,29 +3378,14 @@ class AbstractLinearCode(module.Module):
         form the identity matrix, but one might need to permute columns to allow
         the identity matrix to be leading.
 
-=======
-
-        A generator matrix is in standard form if it is of the form `[I \vert
-        A]`, where `I` is the `k \times k` identity matrix. Any code admits a
-        generator matrix in systematic form, i.e. where a subset of the columns
-        form the identity matrix, but one might need to permute columns to allow
-        the identity matrix to be leading.
-
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
         INPUT:
 
         - ``return_permutation`` -- (default: ``True``) if ``True``, the column
           permutation which brings ``self`` into the returned code is also
           returned.
-<<<<<<< HEAD
 
         OUTPUT:
 
-=======
-
-        OUTPUT:
-
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
         - A :class:`LinearCode` whose :meth:`systematic_generator_matrix` is
           guaranteed to be of the form `[I \vert A]`.
 
@@ -4185,19 +4166,11 @@ class LinearCodeSystematicEncoder(Encoder):
       ``systematic_positions[0]``, the 1st index at position
       ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
       construction time if the supplied indices do not form an information set.
-<<<<<<< HEAD
-    
-    EXAMPLES:
-
-    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
-    
-=======
 
     EXAMPLES:
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
 
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
@@ -4384,11 +4357,7 @@ class LinearCodeSystematicEncoder(Encoder):
             [1 1 0 0 0 1 0]
             [0 0 1 0 0 1 0]
             [0 0 0 0 1 1 0]
-<<<<<<< HEAD
-            [0 0 0 0 0 0 1]            
-=======
             [0 0 0 0 0 0 1]
->>>>>>> 0fa589622f71eb2a82f15a5e7eae7f8df6639cd1
         """
         C = self.code()
         # This if statement detects if this encoder is itself the default encoder.
