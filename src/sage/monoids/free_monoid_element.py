@@ -42,10 +42,6 @@ class FreeMonoidElement(MonoidElement):
         a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
         sage: x**0
         1
-        sage: x**(-1)
-        Traceback (most recent call last):
-        ...
-        TypeError: bad operand type for unary ~: 'FreeMonoid_class_with_category.element_class'
     """
     def __init__(self, F, x, check=True):
         """
@@ -253,36 +249,34 @@ class FreeMonoidElement(MonoidElement):
             a0*a1*a4^4*a0*a1
         """
         M = self.parent()
-        z = M(1)
-        x_elt = self._element_list
-        y_elt = y._element_list
-        if not x_elt:
-            z._element_list = y_elt
-        elif not y_elt:
-            z._element_list = x_elt
-        else:
-            t = 0
-            k = len(x_elt)-1-t
-            while k > -1 and t < len(y_elt) and x_elt[k][0] == y_elt[t][0]: 
-                m = (y_elt[t][0],x_elt[k][1]+y_elt[t][1])
-                if m[1] == 0:
-                    t += 1
-                    k = len(x_elt)-1-t
-                else:
-                    z._element_list = x_elt[0:k] + [ m ] + y_elt[t+1:]
-                    return z
-            else:
-                z._element_list = x_elt[0:k+1] + y_elt[t:]
-        return z
+        x_elt = list(self._element_list)
+        y_elt = list(y._element_list)
+        middle = []
+        while x_elt and y_elt:
+            (v,m) = x_elt.pop()
+            (w,n) = y_elt.pop(0)
+            if v != w:
+                middle = [(v,m),(w,n)]
+                break
+            s = m + n
+            if s != 0:
+                middle = [(v,s)]
+                break
+        return M(x_elt + middle + y_elt)
 
     def __invert__(self):
+        r"""
+        Return the inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: a = FreeMonoid(5, 'a').gens()
+            sage: x = a[0] * a[1] * a[4]**3
+            sage: ~x
+            a4^-3*a1^-1*a0^-1
+        """
         M = self.parent()
-        inverse = M(1)
-        inverse._element_list = []
-        for i in range(0,len(self._element_list)):
-            inverse._element_list.append((self._element_list[i][0],-self._element_list[i][1]))
-        inverse._element_list.reverse()
-        return inverse
+        return M([(x,-a) for (x,a) in reversed(self._element_list)])
 
     def __len__(self):
         """
@@ -292,6 +286,9 @@ class FreeMonoidElement(MonoidElement):
         For example, the length of the identity is `0`, and the
         length of `x_0^2x_1` is `3`.
 
+        If the monoid has some invertible generator then its inverse is also
+        given defree `1`.
+
         EXAMPLES::
 
             sage: F = FreeMonoid(3, 'a')
@@ -300,6 +297,8 @@ class FreeMonoidElement(MonoidElement):
             0
             sage: a = F.gens()
             sage: len(a[0]**2 * a[1])
+            3
+            sage: len(a[0]**(-2) * a[1])
             3
         """
         s = 0
