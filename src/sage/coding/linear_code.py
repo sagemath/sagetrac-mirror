@@ -3371,13 +3371,6 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns a linear code which is permutation-equivalent to ``self`` and
         admits a generator matrix in standard form.
-
-        A generator matrix is in standard form if it is of the form `[I \vert
-        A]`, where `I` is the `k \times k` identity matrix. Any code admits a
-        generator matrix in systematic form, i.e. where a subset of the columns
-        form the identity matrix, but one might need to permute columns to allow
-        the identity matrix to be leading.
-
         INPUT:
 
         - ``return_permutation`` -- (default: ``True``) if ``True``, the column
@@ -4166,12 +4159,11 @@ class LinearCodeSystematicEncoder(Encoder):
       ``systematic_positions[0]``, the 1st index at position
       ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
       construction time if the supplied indices do not form an information set.
-    
+
     EXAMPLES:
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
-    
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
+
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
                                      [1,1,0,1,0,0,1,1]])
@@ -4517,11 +4509,6 @@ class LinearCodeSystematicEncoder(Encoder):
       ``systematic_positions[0]``, the 1st index at position
       ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
       construction time if the supplied indices do not form an information set.
-
-    EXAMPLES:
-
-    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
-
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
@@ -4708,7 +4695,6 @@ class LinearCodeSystematicEncoder(Encoder):
             [1 1 0 0 0 1 0]
             [0 0 1 0 0 1 0]
             [0 0 0 0 1 1 0]
-            [0 0 0 0 0 0 1]
         """
         C = self.code()
         # This if statement detects if this encoder is itself the default encoder.
