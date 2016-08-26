@@ -88,7 +88,6 @@ lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bi
 lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
 mul = prod
 
-
 from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
@@ -445,6 +444,9 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     """
     Print a message if the current verbosity is at least level.
 
+    This function is deprecated.
+    See :mod:`sage.misc.verbose` for alternatives.
+
     INPUT:
 
 
@@ -473,6 +475,10 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         VERBOSE1 (william): This is Sage. (time = 0.0)
         sage: set_verbose(0)
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using verbose of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     if level>LEVEL:
         return cputime()
 
@@ -519,6 +525,9 @@ def set_verbose(level, files='all'):
     """
     Set the global Sage verbosity level.
 
+    This function is deprecated.
+    See :mod:`sage.misc.verbose` for alternatives.
+
     INPUT:
 
     - ``level`` - an integer between 0 and 2, inclusive.
@@ -540,6 +549,10 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using set_verbose of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -552,6 +565,10 @@ def set_verbose_files(file_name):
     """
 
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using set_verbose_files of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     if not isinstance(file_name, list):
         file_name = [file_name]
     global verbose_files
@@ -561,12 +578,20 @@ def get_verbose_files():
     """
 
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using get_verbose_files of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     return verbose_files
 
 def unset_verbose_files(file_name):
     """
 
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using unset_verbose_files of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     if not isinstance(file_name, list):
         file_name = [file_name]
     for X in file_name:
@@ -576,6 +601,9 @@ def unset_verbose_files(file_name):
 def get_verbose():
     """
     Return the global Sage verbosity level.
+
+    This function is deprecated.
+    See :mod:`sage.misc.verbose` for alternatives.
 
     INPUT: int level: an integer between 0 and 2, inclusive.
 
@@ -590,6 +618,10 @@ def get_verbose():
         2
         sage: set_verbose(0)
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21349, 'Using get_verbose of sage.misc.misc is deprecated. '
+                'See module sage.misc.verbose for alternatives.')
+
     global LEVEL
     return LEVEL
 
