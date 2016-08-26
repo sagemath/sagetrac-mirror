@@ -2962,6 +2962,51 @@ class NumberField_generic(number_field_base.NumberField):
         a = self(nf.nfbasistoalg(nf.nffactorback(Ix[1])))
         return a * I
 
+    def _pari_real_places_to_sage(self):
+        """
+        Return a list converting from the ordering of real places in pari to that
+        of Sage's :func:`places`.
+
+        EXAMPLES:
+
+        A totally real quartic field where the pari and Sage orderings are different.
+
+        ::
+
+            sage: x = polygen(QQ)
+            sage: f = x^4 - x^3 - 3*x^2 + x + 1
+            sage: F.<a> = NumberField(f(1-2*x))
+            sage: F.defining_polynomial()
+            16*x^4 - 24*x^3 + 8*x - 1
+            sage: F.pari_polynomial()
+            x^4 - 6*x^2 - 5*x - 1
+            sage: F._pari_real_places_to_sage()
+            (0, 3, 2, 1)
+
+        A quintic field with three real places.
+
+        ::
+
+            sage: x = polygen(QQ)
+            sage: f = x^5 - x^3 - 2 * x^2 + 1
+            sage: F.<a> = NumberField(f(1 - x))
+            sage: F._pari_real_places_to_sage()
+            (2, 1, 0)
+        """
+        try:
+            return self._pari_real_places
+        except AttributeError:
+            pass
+        pari_conv = self._pari_absolute_structure()[1].lift()
+        pari_conv = [pari_conv.polcoeff(i)._sage_() for i in range(pari_conv.poldegree() + 1)]
+        R = self.defining_polynomial().parent()
+        pari_conv = R(pari_conv)
+        pari_roots = [pari_conv(r) for r in self.pari_nf()[5][:self.signature()[0]]]
+        pari_roots_sorted = list(pari_roots)
+        pari_roots_sorted.sort()
+        self._pari_real_places = tuple(pari_roots_sorted.index(r) for r in pari_roots)
+        return self._pari_real_places
+
     def modulus(self, finite, infinite=None):
         """
         Return the :class:`sage.rings.number_field.class_group.Modulus` specified

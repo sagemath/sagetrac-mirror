@@ -373,9 +373,30 @@ class Modulus(SageObject):
         return self._finite.is_one()
 
     def _pari_(self):
+        """
+        Return the corresponding pari modulus.
+
+        Note that this function performs the conversion between the ordering
+        of the real places of the number field in Sage and the ordering of the
+        underlying pari nf object.
+
+        EXAMPLES:
+
+        An example where the places in Sage and pari are in a different order
+
+        ::
+
+            sage: x = polygen(QQ)
+            sage: f = x^4 - x^3 - 3*x^2 + x + 1
+            sage: F.<a> = NumberField(f(1-2*x))
+            sage: F.modulus(1, [2, 3])._pari_()[1]
+            [0, 1, 1, 0]
+        """
         inf_mod = [0] * self._number_field.signature()[0]
+        conversion = self._number_field._pari_real_places_to_sage()
         for i in self._infinite:
-            inf_mod[i] = 1
+            pari_index = conversion.index(i)
+            inf_mod[pari_index] = 1
         return pari([self._finite, inf_mod])
 
     def __hash__(self):
@@ -742,7 +763,7 @@ class RayClassGroupElement(AbelianGroupElement):
         #bnr = R.pari_bnr()
         #return R.number_field().ideal(nf.idealmul(I[0], nf.nffactorback(I[1])))
         R = self.parent()
-        m = R.modulus()
+        #m = R.modulus()
         exps = self.exponents()
         gens = R.gens_ideals()
         L = len(exps)

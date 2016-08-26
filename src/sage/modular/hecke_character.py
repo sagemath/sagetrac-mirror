@@ -39,38 +39,38 @@ class HeckeCharacter(DualAbelianGroupElement):
     def __call__(self, g):
         """
         Evaluates this Hecke character on the input ``g``.
-        
+
         INPUT:
-        
+
         - ``g`` -- either an element of the ray class group on which this character
         is defined, or something that can be turned into an ideal.
-        
+
         OUTPUT:
-        
+
         The value of this character at ``g``.
-        
+
         EXAMPLES:
-        
+
         Evaluating on an element of the ray class group.
-        
+
         ::
-        
+
             sage: F = QuadraticField(5)
             sage: H = HeckeCharacterGroup(F.modulus(F.ideal(16), [0,1]))
             sage: chi = H.gens()[0]; chi(H.group().gens()[0])
             zeta4
-        
+
         Evaluating at an element of the base field.
-        
+
         ::
-        
+
             sage: chi(F.gen() / 2 + 33 / 2)
             1
-        
+
         Evaluating at ideals of the base field.
-        
+
         ::
-        
+
             sage: chi(F.ideal(6))
             0
             sage: chi(F.ideal(F.gen()))
@@ -84,29 +84,29 @@ class HeckeCharacter(DualAbelianGroupElement):
         if self.parent().modulus().finite_part().is_coprime(g):
             return DualAbelianGroupElement.__call__(self, R(g))
         return self.parent().base_ring().zero()
-    
+
     def _log_values_on_gens(self):
         r"""
         Returns a tuple of integers `(a_j)` such that the value of this character on the jth
         generator of the ray class group is `\exp(2\pi ia_j/d_j)`, where `d_j` is the
         order of the jth generator. This tuple is simply the exponents of the character
         with respect the generators of its Hecke character group.
-        
+
         EXAMPLES::
-        
+
             sage: F = QuadraticField(5)
             sage: H = HeckeCharacterGroup(F.ideal(16).modulus([0,1]))
             sage: prod(H.gens())._log_values_on_gens()
             (1, 1, 1)
         """
         return self.exponents()
-    
+
     def modulus(self):
         """
         Return the modulus modulo which this character is defined.
-        
+
         EXAMPLES::
-        
+
             sage: F = QuadraticField(2)
             sage: H = HeckeCharacterGroup(F.modulus(F.ideal(8), [0,1]))
             sage: chi = H.gens()[0]
@@ -116,21 +116,21 @@ class HeckeCharacter(DualAbelianGroupElement):
             (Fractional ideal (2)) * infinity_0 * infinity_1
         """
         return self.parent().modulus()
-    
+
     def level(self):
         """
         An alias for :func:`modulus`. Return the modulus modulo which
         this character is defined.
-        
+
         EXAMPLES::
-        
+
             sage: F = QuadraticField(5)
             sage: H = HeckeCharacterGroup(F.ideal(F.gen()).modulus([0,1]))
             sage: H.gens().level()
             (Fractional ideal (a)) * infinity_0 * infinity_1
         """
         return self.modulus()
-    
+
     def conductor(self):
         R = self.parent().group()
         K = R.number_field()
@@ -138,35 +138,35 @@ class HeckeCharacter(DualAbelianGroupElement):
         modulus = bnr.bnrconductorofchar(self._log_values_on_gens())
         infinite = []
         m1 = modulus[1]
-        pari_to_sage = self.parent()._pari_places_to_sage_places()
+        conversion = self.parent().number_field()._pari_real_places_to_sage()
         for i in range(len(m1)):
             if m1[i] != 0:
-                infinite.append(pari_to_sage[i])
+                infinite.append(conversion[i])
         infinite.sort()
-        return K.modulus(K.ideal(modulus[0]), infinite)#_mask_to_list(modulus[1])) #Are the infinite places ordered the same in pari?
-    
+        return K.modulus(K.ideal(modulus[0]), infinite)
+
     def is_primitive(self):
         return self.conductor() == self.modulus()
-    
+
     def primitive_character(self):
         #cond = self.conductor()
         #if cond == self.modulus():
         #    return self
         #R = nf_ray_class_group(cond.number_field(), cond)
         raise NotImplementedError
-    
+
     def extend(self, m):
         if isinstance(m, HeckeCharacterGroup_class):
             pass
         raise NotImplementedError
-    
+
     def analytic_conductor(self):
         N = self.conductor().finite_part().norm()
         return N * self.parent().group().number_field().disc().abs()
-    
+
     def root_number(self):
         return self.parent().group().pari_bnr().bnrrootnumber(self._log_values_on_gens()).sage()
-    
+
     def dirichlet_series_coefficients(self, max_n):
         Idict = self.parent().number_field().ideals_of_bdd_norm(max_n)
         ans = [ZZ(1)] + [ZZ(0)] * (max_n - 1)
@@ -176,15 +176,15 @@ class HeckeCharacter(DualAbelianGroupElement):
                 continue
             ans[n-1] = sum(self(I) for I in Is)
         return ans
-    
+
     def Lfunction(self, prec=53):
         r"""
-        Return 
-        
+        Return
+
         EXAMPLES:
-        
+
             A totally odd character of a real quadratic field.
-            
+
             sage: F.<a> = NumberField(x^2 - 5)
             sage: mf = F.modulus(F.ideal(4), [0, 1])
             sage: H = HeckeCharacterGroup(mf)
@@ -204,7 +204,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 class HeckeCharacterGroup_class(DualAbelianGroup_class):
     r"""
     EXAMPLES::
-    
+
         sage: F.<a> = NumberField(x^2 - 5)
         sage: mf = F.modulus(F.prime_above(5) * F.prime_above(29), [0,1])
         sage: H = HeckeCharacterGroup(mf); H
@@ -213,7 +213,7 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
         [[zeta4, 1], [1, -1]]
     """
     Element = HeckeCharacter
-    
+
     def __init__(self, ray_class_group, base_ring=None, names=None):
         if base_ring is None:
             from sage.rings.number_field.number_field import CyclotomicField
@@ -221,19 +221,19 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
         if names is None:
             names = 'chi'
         DualAbelianGroup_class.__init__(self, ray_class_group, names, base_ring)
-    
+
     def _repr_(self):
         return 'Group of finite order Hecke characters modulo ' + str(self.modulus())
-    
+
     def modulus(self):
         return self.group().modulus()
-    
+
     def level(self):
         return self.modulus()
-    
+
     def number_field(self):
         return self.group().number_field()
-    
+
     def element_from_values_on_gens(self, vals):
         gens_orders = self.gens_orders()
         if len(vals) != len(gens_orders):
@@ -256,26 +256,6 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
     #        return DualAbelianGroup_class._element_constructor_(self, *args, **kwds)
     #    exponents = [gens_orders[i].divide_knowing_divisible_by(args[0][i].multiplicative_order()) for i in range(n)]
     #    return self.element_class(self, exponents)
-    
-    def _pari_places_to_sage_places(self):
-        try:
-            return self._pari_to_sage_places
-        except AttributeError:
-            pass
-        F = self.number_field()
-        sigmas = F.real_places()
-        r = F.defining_polynomial().parent()(F.pari_polynomial().list()).roots(F)[0][0]
-        rs = [sigma(r) for sigma in sigmas]
-        pari_to_sage = []
-        for rp in F.pari_nf()[5]:
-            i = 0
-            while i < len(rs):
-                if rp.sage() == rs[i]:
-                    pari_to_sage.append(i)
-                i += 1
-        assert(len(pari_to_sage) == len(rs))
-        self._pari_to_sage_places = pari_to_sage
-        return pari_to_sage
 
 class HeckeCharacterGroupFactory(UniqueFactory):
     def create_key(self, modulus, base_ring=None, names=None):#(m, base_ring=None, names=None):
@@ -284,7 +264,7 @@ class HeckeCharacterGroupFactory(UniqueFactory):
         if names is None:
             names = 'chi'
         return (base_ring, modulus, names)
-    
+
     def create_object(self, version, key, **extra_args):
         base_ring, modulus, names = key
         return HeckeCharacterGroup_class(modulus.number_field().ray_class_group(modulus), base_ring, names)
