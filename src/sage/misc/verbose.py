@@ -1,8 +1,11 @@
 r"""
-Verbosity System via Python's Logging Module
+Verbosity System and Logging in SageMath
 
-Howto: Using Python's Logging Module in SageMath
-================================================
+Howto: Logging
+==============
+
+Using Python's Logging Module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Import it::
 
@@ -29,8 +32,21 @@ There is also ``logger.warning`` and ``logger.debug``, and a lot
 more features, see
 :python:`Logging facility for Python<library/logging.html>`.
 
+
+Using SageMath's Verbosity System
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Alternatively, this module provides
-:func:`verbose`, :func:`set_verbose`, :func:`get_verbose`.
+:func:`verbose`, :func:`set_verbose`, :func:`get_verbose` which can
+be used as follows::
+
+    sage: from sage.misc.verbose import verbose, set_verbose, get_verbose
+    sage: set_verbose(1)
+    sage: t = verbose("This is SageMath.", level=0)
+    WARNING:?:This is SageMath.
+    sage: t = verbose("This is SageMath.", level=1)
+    INFO:?:This is SageMath.
+    sage: t = verbose("This is SageMath.", level=2)
 
 
 Logging Levels of SageMath and Python
@@ -191,7 +207,7 @@ def set_verbose(level):
         INFO:?:This is SageMath.
         sage: t = verbose("This is SageMath.", level=2)
         DEBUG:?:This is SageMath.
-        sage: t = verbose("This is Sage.", level=3)  # random
+        sage: t = verbose("This is Sage.", level=3)
         sage: set_verbose(0)
     """
     return logging.getLogger().setLevel(_SageMath_to_Python_level_(level))
