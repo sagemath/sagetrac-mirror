@@ -244,6 +244,8 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+from six import itervalues
+
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1758,7 +1760,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
             if heights is not None:
-                for key in heights.keys():
+                for key in heights:
                     heights[key] = [relabeling[i] for i in heights[key]]
 
         if cover_labels is not None:
@@ -2950,6 +2952,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: N = Poset({1: [3, 4], 2: [3]})
             sage: N.jump_number(certificate=True)
             (1, [1, 4, 2, 3])
+
+        REFERENCES:
+
+        .. [BIANCO] L. Bianco, P. Dell‘Olmo, S. Giordani
+           An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
+           Computational Optimization and Applications,
+           1997, Volume 8, Issue 2, pp 197--210,
+           :doi:`10.1023/A:1008625405476`
 
         TESTS::
 
@@ -5995,8 +6005,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             d = {}
             for y in self.upper_covers(x):
                 for c in self.upper_covers(y):
-                    d[c] = d.get(c,0) + 1
-            if not all( y < 3 for y in d.itervalues() ):
+                    d[c] = d.get(c, 0) + 1
+            if not all(y < 3 for y in itervalues(d)):
                 return False
         return True
 
@@ -6849,7 +6859,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         # X: list of vertices of G' reachable from s, along with
         # the shortest paths from s to them.
         X = Gprime.shortest_paths(s)
-        if t in X.keys():
+        if t in X:
             # Step MC2a in Britz-Fomin, Algorithm 7.2.
             shortest_path = X[t]
             shortest_path_in_edges = zip(shortest_path[:-1],shortest_path[1:])
