@@ -110,13 +110,13 @@ def _Python_to_SageMath_level_(level):
         return 3
 
 
-def verbose(msg="", t=None, level=1, caller_name=None, **kwds):
+def verbose(mesg="", t=None, level=1, caller_name=None, **kwds):
     """
     Print a message if the current verbosity is at least ``level``.
 
     INPUT:
 
-    -  ``msg`` -- a string, a message to print.
+    -  ``mesg`` -- a string, a message to print.
 
     -  ``t`` -- (default: ``None``) an integer. If included, will also print
        :func:`cputime(t) <sage.misc.misc.cputime>`,
@@ -132,7 +132,7 @@ def verbose(msg="", t=None, level=1, caller_name=None, **kwds):
        of the calling function; in most cases Python can deduce this, so
        it need not be provided.
 
-    - Keyword arguments can be used in the format string ``msg``.
+    - Keyword arguments can be used in the format string ``mesg``.
 
     OUTPUT:
 
@@ -162,12 +162,12 @@ def verbose(msg="", t=None, level=1, caller_name=None, **kwds):
     logger = logging.getLogger(caller_name)
 
     if t is not None:
-        if msg:
-            msg += ' (time = {})'.format(t)
+        if mesg:
+            mesg += ' (time = {})'.format(t)
         else:
-            msg = "Finished."
+            mesg = "Finished."
 
-    logger.log(_SageMath_to_Python_level_(level), msg, **kwds)
+    logger.log(_SageMath_to_Python_level_(level), mesg, **kwds)
     return cputime()
 
 
