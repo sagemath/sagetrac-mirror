@@ -1,14 +1,40 @@
 r"""
 Verbosity System via Python's Logging Module
 
-::
+Howto: Using Python's Logging Module in SageMath
+================================================
+
+Import it::
 
     sage: import logging
-    sage: logging.basicConfig()
+    sage: logging.basicConfig()  # only needed once
+
+Setting the level::
+
+    sage: logging.getLogger().setLevel(logging.INFO)
+
+Log something::
+
+    sage: logger = logging.getLogger(__name__)
+    sage: logger.info('Hello. I am talking to you.')
+    INFO:__main__:Hello. I am talking to you.
+
+Reset the level::
+
+    sage: logging.getLogger().setLevel(logging.WARNING)
+
+And that's all.
+
+There is also ``logger.warning`` and ``logger.debug``, and a lot
+more features, see
+:python:`Logging facility for Python<library/logging.html>`.
+
+Alternatively, this module provides
+:func:`verbose`, :func:`set_verbose`, :func:`get_verbose`.
 
 
-Logging Levels
-==============
+Logging Levels of SageMath and Python
+=====================================
 
 .. csv-table::
     :class: contentstable
