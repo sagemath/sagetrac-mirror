@@ -90,6 +90,35 @@ import logging
 
 
 def _SageMath_to_Python_level_(level):
+    r"""
+    Convert SageMath's verbose level to Python's logging level.
+
+    INPUT:
+
+    - ``level`` -- an integer.
+
+    OUTPUT:
+
+    An integer.
+
+    TESTS::
+
+        sage: from sage.misc.verbose import _SageMath_to_Python_level_
+        sage: _SageMath_to_Python_level_(-3)
+        50
+        sage: _SageMath_to_Python_level_(-2)
+        50
+        sage: _SageMath_to_Python_level_(-1)
+        40
+        sage: _SageMath_to_Python_level_(0)
+        30
+        sage: _SageMath_to_Python_level_(1)
+        20
+        sage: _SageMath_to_Python_level_(2)
+        10
+        sage: _SageMath_to_Python_level_(3)
+        9
+    """
     from sage.misc.functional import round
     L = round(level)
 
@@ -108,6 +137,32 @@ def _SageMath_to_Python_level_(level):
 
 
 def _Python_to_SageMath_level_(level):
+    r"""
+    Convert Python's logging level to SageMath's verbose level.
+
+    INPUT:
+
+    - ``level`` -- an integer.
+
+    OUTPUT:
+
+    An integer.
+
+    TESTS::
+
+        sage: from sage.misc.verbose import _Python_to_SageMath_level_
+        sage: import logging
+        sage: _Python_to_SageMath_level_(logging.CRITICAL)
+        -2
+        sage: _Python_to_SageMath_level_(logging.ERROR)
+        -1
+        sage: _Python_to_SageMath_level_(logging.WARNING)
+        0
+        sage: _Python_to_SageMath_level_(logging.INFO)
+        1
+        sage: _Python_to_SageMath_level_(logging.DEBUG)
+        2
+    """
     from sage.misc.functional import round
     from sage.rings.rational_field import QQ
     L = round(QQ(level) / QQ(10)) * 10
