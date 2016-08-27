@@ -682,7 +682,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [self._vertex_to_element(e) for e in H
                 if H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
-    def is_distributive(self):
+    def is_distributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
@@ -694,19 +694,88 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         in lattices it follows that then also join distributes over
         meet.
 
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not distributive.
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (x, y, z))`` such that `x \wedge (y \vee z)
+          \not= (x \wedge y) \vee (x \wedge z)`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3]})
+            sage: L = LatticePoset({0: [1, 2], 1: [3], 2: [3]})
             sage: L.is_distributive()
             True
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
             sage: L.is_distributive()
             False
+
+            sage: L = LatticePoset( ([], [[0, 1], [0, 2], [1, 3], [1, 4],
+            ....:                    [1, 5], [3, 6], [3, 7], [3, 8], [6, 9],
+            ....:                    [7, 9], [4, 8], [2, 5], [5, 8], [8, 9]]) )
+            sage: L.is_distributive(certificate=True)
+            (False, (3, 4, 5))
+
+        TESTS::
+
+            sage: LatticePoset().is_distributive()
+            True
+            sage: LatticePoset().is_distributive(certificate=True)
+            (True, None)
+            sage: LatticePoset({1: []}).is_distributive()
+            True
+            sage: LatticePoset({1: []}).is_distributive(certificate=True)
+            (True, None)
+            sage: Posets.PentagonPoset().is_distributive(certificate=True)
+            (False, (3, 2, 1))
         """
-        if self.cardinality() == 0: return True
-        return (self.is_graded() and
+        if self.cardinality() == 0:
+            return (True, None) if certificate else True
+        if (self.is_ranked() and
          self.rank() == len(self.join_irreducibles()) ==
-         len(self.meet_irreducibles()))
+         len(self.meet_irreducibles())):
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+
+        # Not distributive, and the user asked for a certificate.
+        tmp = self.is_modular(certificate=True)
+        if tmp[0] == False:
+            return tmp
+
+        # The lattice is modular but not distributive. Hence it contains
+        # a diamond. According to "Lattice Theory: Foundation" by George
+        # Grätzer, p. 111: "If the lattice is finite, modular and and
+        # nondistributive, then it contains a cover-preserving diamond."
+        H = self._hasse_diagram
+        n = H.cardinality()
+
+        for v in xrange(n):
+            uc = H.neighbors_out(v)
+            uc_count = len(uc)
+            if uc_count < 3:
+                continue
+            for uc1 in xrange(uc_count):
+                u1 = H.neighbors_out(uc[uc1])
+                for uc2 in xrange(uc1+1, uc_count):
+                    for common_uc in H.neighbors_out(uc[uc2]):
+                        if common_uc in u1:
+                            break
+                        else:
+                            continue  # No common upper cover for uc1 and uc2.
+                    for uc3 in xrange(uc2+1, uc_count):
+                        if H.has_edge(uc[uc3], common_uc):
+                            return (False,
+                                    (self._vertex_to_element(uc[uc1]),
+                                     self._vertex_to_element(uc[uc2]),
+                                     self._vertex_to_element(uc[uc3])))
+
+        raise AssertionError("bug in is_distributive()")
 
     def is_meet_semidistributive(self):
         r"""
@@ -1292,17 +1361,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         g.add_edge(0, self.cardinality()-1)
         return g.is_planar()
 
-    def is_modular(self, L=None):
+    def is_modular(self, L=None, certificate=False):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
 
         Using the parameter ``L``, this can also be used to check that
         some subset of elements are all modular.
-
-        INPUT:
-
-        - ``L`` -- (default: ``None``) a list of elements to check being
-          modular, if ``L`` is ``None``, then this checks the entire lattice
 
         An element `x` in a lattice `L` is *modular* if `x \leq b` implies
 
@@ -1313,6 +1377,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         for every `a, b \in L`. We say `L` is modular if `x` is modular
         for all `x \in L`. There are other equivalent definitions,
         see :wikipedia:`Modular_lattice`.
+
+        INPUT:
+
+        - ``L`` -- (default: ``None``) a list of elements to check being
+          modular, if ``L`` is ``None``, then this checks the entire lattice
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not upper semimodular. Can be used
+          only if ``L`` is ``None``.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (x, a, b))``, where `x \le b` and
+          `x \vee (a \wedge b) \not= (x \vee a) \wedge b`
 
         .. SEEALSO::
 
@@ -1329,29 +1408,39 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_modular()
             False
 
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_modular()
-            True
-
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
-            sage: L.is_modular()
-            False
+            sage: L.is_modular(certificate=True)
+            (False, (3, 4, 6))
             sage: [L.is_modular([x]) for x in L]
             [True, True, False, True, True, False, True]
 
-        ALGORITHM:
+        TESTS::
 
-        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+            sage: LatticePoset().is_modular()
+            True
+            sage: LatticePoset().is_modular(certificate=True)
+            (True, None)
         """
-        if not self.is_ranked():
-            return False
-        H = self._hasse_diagram
-        n = H.order()
-        if L is None:
-            return all(H._rank[a] + H._rank[b] ==
-                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
-                       for a in range(n) for b in range(a + 1, n))
+        if L is not None and certificate:
+            raise ValueError("parameters L and certificate can not be combined")
 
+        if certificate:
+            tmp = self.is_upper_semimodular(certificate=True)
+            if tmp[0] == False:
+                return (False, (self.upper_covers(tmp[1][0])[0],
+                                tmp[1][1], tmp[1][0]))
+            tmp = self.is_lower_semimodular(certificate=True)
+            if tmp[0] == False:
+                return (False, (self.lower_covers(tmp[1][0])[0],
+                                tmp[1][1], tmp[1][0]))
+            return (True, None)
+
+        if L is None:
+            return (self.is_ranked() and self.is_upper_semimodular() and
+                    self.is_lower_semimodular())
+
+        n = self.cardinality()
+        H = self._hasse_diagram
         L = [self._element_to_vertex_dict[x] for x in L]
         return all(H._rank[a] + H._rank[b] ==
                    H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
