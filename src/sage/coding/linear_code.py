@@ -900,7 +900,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C2.decoders_available()
-            ['Syndrome', 'NearestNeighbor', 'TestSet']
+            ['TestSet', 'Syndrome', 'NearestNeighbor']
 
         TESTS:
 
@@ -1498,7 +1498,7 @@ class AbstractLinearCode(module.Module):
         
         EXAMPLE::
         
-            sage: C = codes.HammingCode(2,GF(3))
+            sage: C = codes.HammingCode(GF(3),2)
             sage: v =vector(GF(3),C.length())
             sage: Fqstar= C.base_ring().list()[1:]
             sage: List=[]
@@ -1576,7 +1576,6 @@ class AbstractLinearCode(module.Module):
             sage: G = matrix(GF(5),[[1,0,2],[3,2,4]])
             sage: C = LinearCode(G)
             sage: C.coset_leaders("all")
-            
             [[(0, 0, 0)],
             [(1, 0, 0), (0, 3, 0), (0, 0, 3)],
             [(2, 0, 0), (0, 1, 0), (0, 0, 1)],
@@ -1762,7 +1761,7 @@ class AbstractLinearCode(module.Module):
             sage: C.unique_decoding_radius()
             1
     
-            sage:G = matrix(GF(2),[[1,0,0,0,0,1,1,0,0,1,0,1,1,0,1],[0,1,1,1,0,1,1,1,1,1,0,0,0,1,1]])
+            sage: G = matrix(GF(2),[[1,0,0,0,0,1,1,0,0,1,0,1,1,0,1],[0,1,1,1,0,1,1,1,1,1,0,0,0,1,1]])
             sage: C = LinearCode(G)
             sage: C.unique_decoding_radius()
             3
@@ -1839,7 +1838,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor','TestSet']
+            ['TestSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -1876,7 +1875,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['TestSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
@@ -1916,7 +1915,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['TestSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
@@ -1948,8 +1947,9 @@ class AbstractLinearCode(module.Module):
             ['TestSet', 'Syndrome', 'NearestNeighbor']
 
             sage: C.decoders_available(True)
-            {'TestSet': <class 'sage.coding.linear_code.LinearCodeTestSetDecoder'>,'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
-             'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
+            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
+     'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>,
+     'TestSet': <class 'sage.coding.linear_code.LinearCodeTestSetDecoder'>}
         """
         if classes == True:
             return copy(self._registered_decoders)
@@ -4429,6 +4429,8 @@ class LinearCodeSystematicEncoder(Encoder):
 
     The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
 
+    
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0,0],\
                                      [1,0,0,1,1,0,0,0],\
                                      [0,1,0,1,0,1,0,0],\
                                      [1,1,0,1,0,0,1,1]])
