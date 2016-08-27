@@ -133,10 +133,6 @@ cdef extern from "gd.h":
     void gdImageFilledRectangle(gdImagePtr im, int x1, int y1, int x2, int y2, int color)
     void gdFree(void *m)
 
-## from sage.libs.linbox.linbox cimport Linbox_mod2_dense
-## cdef Linbox_mod2_dense linbox
-## linbox = Linbox_mod2_dense()
-
 cdef object called
 
 cdef void init_m4ri():
@@ -1152,13 +1148,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.cache('rank', r)
             self.cache('pivots', tuple(self._pivots()))
 
-        elif algorithm == 'linbox':
-
-            #self._echelonize_linbox()
-            raise NotImplementedError
-
         elif algorithm == 'classical':
-
             # for debugging purposes only, it is slow
             self._echelon_in_place_classical()
         else:

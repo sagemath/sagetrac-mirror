@@ -7,26 +7,30 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.modules.vector_modn_sparse cimport *
 
 from sage.matrix.matrix_integer_dense cimport mod_int
+from sage.libs.linbox.modular cimport *
 
-cdef class Linbox_modn_sparse:
-    cdef c_vector_modint *rows
-    cdef size_t nrows
-    cdef size_t ncols
-    cdef unsigned int modulus
+from libcpp.vector cimport vector
+from libcpp.pair cimport pair
+
+ctypedef enum SparseAlgorithm:
+    SparseElimination,
+    Wiedemann
+
+cdef class Linbox_matrix_modn_sparse:
+    cdef size_t nrows, ncols
+    cdef void *_M
 
     cdef set(self, int modulus, size_t nrows, size_t ncols, c_vector_modint *rows)
-    cdef object rank(self, int gauss)
-    cdef void solve(self, c_vector_modint **x, c_vector_modint *b, int method)
-
+    cdef size_t rank(self, SparseAlgorithm algorithm)
+    cdef void solve(self, c_vector_modint **x, c_vector_modint *b, SparseAlgorithm algorithm)
 
 cdef class Linbox_integer_dense:
-    cdef mpz_t** matrix
+    cdef void* _M
     cdef size_t nrows, ncols
 
-    cdef set(self, mpz_t** matrix, size_t nrows, size_t ncols)
-    cdef matrix_matrix_multiply(self,
-                                mpz_t **ans,
-                                mpz_t **B,
-                                size_t B_nr, size_t B_nc)
-    cdef unsigned long rank(self) except -1
+    cdef set(self, size_t nrows, size_t ncols, mpz_t ** matrix)
+    cdef size_t rank(self)
+    cdef det(self)
+    cdef minpoly(self)
+    cdef charpoly(self)
 

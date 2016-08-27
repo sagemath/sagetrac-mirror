@@ -5,6 +5,10 @@
 
 from modular cimport ModDoubleField, ModFloatField, ModDoubleFieldElement, ModFloatFieldElement
 
+# ``this`` should replace:
+#from libcpp.vector cimport vector, list
+
+# ``that``
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "std":
     cdef cppclass vector[T]:
         cppclass iterator:

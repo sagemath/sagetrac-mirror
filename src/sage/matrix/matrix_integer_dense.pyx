@@ -121,7 +121,6 @@ cdef arith_int ai = arith_int()
 
 ######### linbox interface ##########
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
-cdef Linbox_integer_dense linbox = Linbox_integer_dense()
 USE_LINBOX_POLY = True
 
 
@@ -204,19 +203,18 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
 
-    cdef inline int _init_mpz(self) except -1:
-        if self._initialized_mpz:
-            return 0
-        else:
-            return self._init_mpz_impl()
 
-    cdef inline int _init_linbox(self) except -1:
+    cdef inline void _init_mpz(self):
+        """
+        Initialize a GMP version of the matrix, i.e. make sure that a duplicate version of the
+        matrix in GMP integers is maintained along the FLINT version.
+
+        The two matrices are bound to get out of sync sometimes... (?)
+        """
         if not self._initialized_mpz:
             self._init_mpz_impl()
-        linbox.set(self._rows, self._nrows, self._ncols)
-        return 0
 
-    cdef int _init_mpz_impl(self) except -1:
+    cdef void _init_mpz_impl(self):
         cdef Py_ssize_t i, j, k
 
         sig_on()
@@ -236,7 +234,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 k += 1
         sig_off()
         self._initialized_mpz = True
-        return 1
 
     cdef void _dealloc_mpz(self):
         if not self._initialized_mpz:
@@ -783,62 +780,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         return self.is_square() and fmpz_mat_is_one(self._matrix)
 
-    def _multiply_linbox(self, Matrix_integer_dense right):
-        """
-        Multiply matrices over ZZ using linbox.
-
-        .. warning::
-
-           This is very slow right now, i.e., linbox is very slow.
-
-        EXAMPLES::
-
-            sage: A = matrix(ZZ,2,3,range(6))
-            sage: A*A.transpose()
-            [ 5 14]
-            [14 50]
-            sage: A._multiply_linbox(A.transpose())
-            [ 5 14]
-            [14 50]
-
-        TESTS:
-
-        This fixes a bug found in :trac:`17094`::
-
-            sage: A = identity_matrix(ZZ,3)
-            sage: A._multiply_linbox(A)
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-        """
-        cdef int e
-        cdef long int i,j
-        cdef Matrix_integer_dense ans
-        cdef Matrix_integer_dense left = <Matrix_integer_dense>self
-
-        if self._nrows == right._nrows:
-            # self acts on the space of right
-            parent = right.parent()
-        if self._ncols == right._ncols:
-            # right acts on the space of self
-            parent = self.parent()
-        else:
-            parent = self.matrix_space(left._nrows, right._ncols)
-
-        ans = self._new(parent.nrows(),parent.ncols())
-
-        left._init_linbox()
-        right._init_mpz()
-        ans._init_mpz()
-
-        sig_on()
-        linbox.matrix_matrix_multiply(ans._rows, right._rows, right._nrows, right._ncols)
-        for i from 0 <= i < ans._nrows:
-            for j from 0 <= j < ans._ncols:
-                fmpz_set_mpz(fmpz_mat_entry(ans._matrix,i,j),ans._rows[i][j])
-        sig_off()
-        return ans
-
     def _multiply_classical(self, Matrix_integer_dense right):
         """
         EXAMPLE::
@@ -1319,15 +1260,16 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             raise ArithmeticError("self must be a square matrix")
         if self._nrows <= 1:
             return Matrix_dense.charpoly(self, var)
-        self._init_linbox()
+        # make sure the GMP version of the matrix is there
+        self._init_mpz()
+        linbox_matrix = Linbox_integer_dense()
+        linbox_matrix.set(self._nrows, self._ncols, self._rows)
+        sig_on()
         if typ == 'minpoly':
-            sig_on()
-            v = linbox.minpoly()
-            sig_off()
+            v = linbox_matrix.minpoly()
         else:
-            sig_on()
-            v = linbox.charpoly()
-            sig_off()
+            v = linbox_matrix.charpoly()
+        sig_off()
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)
@@ -2232,12 +2174,12 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         self.cache('elementary_divisors', d)
         return d[:]
 
-    def _elementary_divisors_linbox(self):
-        self._init_linbox()
-        sig_on()
-        d = linbox.smithform()
-        sig_off()
-        return d
+    #def _elementary_divisors_linbox(self):
+        #self._init_linbox()
+        #sig_on()
+        #d = linbox.smithform()
+        #sig_off()
+        #return d
 
     def smith_form(self):
         r"""
@@ -3438,9 +3380,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         Compute the rank of this matrix using Linbox.
         """
-        self._init_linbox()
+        self._init_mpz()
+        linbox_matrix = Linbox_integer_dense()
+        linbox_matrix.set(self._nrows, self._ncols, self._rows)
         sig_on()
-        cdef unsigned long r = linbox.rank()
+        cdef unsigned long r = linbox_matrix.rank()
         sig_off()
         return Integer(r)
 
@@ -3589,9 +3533,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         Compute the determinant of this matrix using Linbox.
         """
-        self._init_linbox()
+        self._init_mpz()
+        linbox_matrix = Linbox_integer_dense()
+        linbox_matrix.set(self._nrows, self._ncols, self._rows)
         sig_on()
-        d = linbox.det()
+        d = linbox_matrix.det()
         sig_off()
         return Integer(d)
 

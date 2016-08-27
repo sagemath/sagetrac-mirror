@@ -117,9 +117,7 @@ ai = arith_int()
 # Trac Ticket #12679.
 MAX_MODULUS = 46341
 
-from sage.libs.linbox.linbox cimport Linbox_modn_sparse
-cdef Linbox_modn_sparse linbox
-linbox = Linbox_modn_sparse()
+from sage.libs.linbox.linbox cimport SparseElimination, Wiedemann, Linbox_matrix_modn_sparse
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
@@ -707,51 +705,61 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     set_entry(&A.rows[i], cols[int(row.positions[j])], row.entries[j])
         return A
 
-    cdef _init_linbox(self):
-        sig_on()
-        linbox.set(self.p, self._nrows, self._ncols,  self.rows)
-        sig_off()
-
-    @rename_keyword(deprecation=6094, method="algorithm")
-    def _rank_linbox(self, algorithm):
+    def _rank_linbox(self, algorithm="gauss"):
         """
         See self.rank().
+
+        Possible values of `algorithm` = "gauss" (default) or "wiedemann"
         """
-        if is_prime(self.p):
-            x = self.fetch('rank')
-            if not x is None:
-                return x
-            self._init_linbox()
-            sig_on()
-            # the returend pivots list is currently wrong
-            #r, pivots = linbox.rank(1)
-            r = linbox.rank(algorithm)
-            r = rings.Integer(r)
-            sig_off()
-            self.cache('rank', r)
-            return r
-        else:
+        cdef unsigned int r_
+
+        if not is_prime(self.p):
             raise TypeError("only GF(p) supported via LinBox")
 
-    def rank(self, gauss=False):
+        x = self.fetch('rank')
+        if not x is None:
+            return x
+
+        # create a linbox version of the matrix
+        cdef Linbox_matrix_modn_sparse M = Linbox_matrix_modn_sparse()
+        M.set(self.p, self._nrows, self._ncols, self.rows)
+        # rank computation
+        if algorithm == "wiedemann":
+            method = Wiedemann
+        else:
+            method = SparseElimination
+        sig_on()
+        r_ = M.rank(method)
+        sig_off()
+        # free the linbox matrix
+        del M
+
+        r = rings.Integer(r_)            
+        self.cache('rank', r)
+        return r
+
+    @rename_keyword(deprecation=6094, gauss="algorithm")
+    def rank(self, algorithm="LinBox:SparseElimination"):
         """
         Compute the rank of self.
 
         INPUT:
 
+        -  ``algorithm`` - one of the following:
+        
+        -  ``'LinBox:SparseElimination'`` - sparse elimination with partial
+           pivoting (prime field, default)
 
-        -  ``gauss`` - if True LinBox' Gaussian elimination is
-           used. If False 'Symbolic Reordering' as implemented in LinBox is
-           used. If 'native' the native Sage implementation is used. (default:
-           False)
+        -  ``'LinBox:Wiedemann'`` - Wiedemann's algorithm (prime field)
 
-
+        -  ``'native'`` - use generic implementation
+        
         EXAMPLE::
 
             sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
-            sage: r1 = A.rank(gauss=False)
-            sage: r2 = A.rank(gauss=True)
-            sage: r3 = A.rank(gauss='native')
+            sage: r1 = A.rank(algorithm="LinBox:SparseElimination")
+            sage: r2 = A.rank(algorithm="LinBox:Wiedemann")
+            sage: r3 = A.rank(algorithm='native')
             sage: r1 == r2 == r3
             True
             sage: r1
@@ -778,19 +786,25 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if self._nrows == 0 or self._ncols == 0:
             return 0
         x = self.fetch('rank')
-        if not x is None: return x
+        if x is not None:
+            return x
 
-        if is_prime(self.p):
-            if gauss is False:
-                return self._rank_linbox(0)
-            elif gauss is True:
-                return self._rank_linbox(1)
-            elif gauss == "native":
-                return Matrix2.rank(self)
-            else:
-                raise TypeError("parameter 'gauss' not understood")
-        else:
+        if not is_prime(self.p):
             return Matrix2.rank(self)
+
+
+        if isinstance(algorithm, bool):
+            # algorithm used to be a bool
+            algorithm = 'LinBox:SparseElimination'
+        elif algorithm == 'native':
+            return Matrix2.rank(self)
+        elif algorithm == 'LinBox:SparseElimination':
+            return self._rank_linbox('gauss')
+        elif algorithm == 'LinBox:Wiedemann':
+            return self._rank_linbox('wiedemann')
+        else:
+            raise TypeError("parameter 'algorithm' not understood")
+            
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank = True):
         """
@@ -859,7 +873,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if not self.is_square():
             raise NotImplementedError("input matrix must be square")
 
-        self._init_linbox()
+        #self._init_linbox()
+        cdef Linbox_matrix_modn_sparse M = Linbox_matrix_modn_sparse()
+        M.set(self.p, self._nrows, self._ncols, self.rows)
 
         matrix = True
         if is_Vector(B):
@@ -890,9 +906,10 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for i in range(X.nrows()):
             sig_on()
             x = &X.rows[i]
-            linbox.solve(&x, &b.rows[i], algorithm)
+            M.solve(&x, &b.rows[i], SparseElimination)
             sig_off()
 
+        del M
         if not matrix:
             # Convert back to a vector
             return (X.base_ring() ** X.ncols())(X.list())

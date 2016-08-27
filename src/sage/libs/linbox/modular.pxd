@@ -42,4 +42,21 @@ cdef extern from "givaro/modular.h":
         int characteristic(int c)
         bint isZero(ModFloatFieldElement x)
 
+ # unsigned int / see #12679
+    cdef cppclass ModIntFieldElement "LinBox::Modular<unsigned int>::Element":
+        pass
+
+    cdef cppclass ModIntField "LinBox::Modular<unsigned int>":
+        ModIntField(int modulus)
+        ModIntFieldElement init(ModIntFieldElement res, int v)
+        ModIntFieldElement init(ModIntFieldElement res, double v)
+        ModIntFieldElement inv(  ModIntFieldElement x, ModIntFieldElement y)
+        ModIntFieldElement neg(  ModIntFieldElement x, ModIntFieldElement y)
+        ModIntFieldElement mul(  ModIntFieldElement r, ModIntFieldElement x, ModIntFieldElement y)
+        ModIntFieldElement mulin(ModIntFieldElement x, ModIntFieldElement y)
+        ModIntFieldElement addin(ModIntFieldElement x, ModIntFieldElement y)
+        ModIntFieldElement invin(ModIntFieldElement y)
+        ModIntFieldElement negin(ModIntFieldElement y)
+        int characteristic(int c)
+        bint isZero(ModIntFieldElement x)
 

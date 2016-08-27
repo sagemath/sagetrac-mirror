@@ -20,9 +20,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
     cdef _pickle_version0(self)
     cdef _unpickle_version0(self, data)
     cpdef _export_as_string(self, int base=?)
-    cdef inline int _init_mpz(self) except -1
-    cdef int _init_mpz_impl(self) except -1
-    cdef inline int _init_linbox(self) except -1
+    cdef inline void _init_mpz(self)
+    cdef void _init_mpz_impl(self)
     cdef void _dealloc_mpz(self)
     cdef void set_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, const mpz_t value)
     cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value)
