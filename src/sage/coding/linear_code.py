@@ -1483,10 +1483,192 @@ class AbstractLinearCode(module.Module):
         H = G.right_kernel()
         return H.basis_matrix()
 
-    @cached_method
-    def covering_radius(self):
+## Internal function for the attribute ``coset_leaders`` of self.
+    def _insert_next_fq(self, v, List, Fqstar):
         r"""
-        Wraps Guava's ``CoveringRadius`` command.
+        Add all vectors of type ``v + \alpha_j*e_i`` in List.
+        
+        Take notice that: 
+        
+            - ``i`` is not in the support of ``v``,
+            - ``e_i`` is a standard basis vector,
+            - and ``\alpha_j \neq 0`` are elements of self.base_ring()
+        
+        Function for internal use only.
+        
+        EXAMPLE::
+        
+            sage: C = codes.HammingCode(2,GF(3))
+            sage: v =vector(GF(3),C.length())
+            sage: Fqstar= C.base_ring().list()[1:]
+            sage: List=[]
+            sage: C._insert_next_fq(v,List,Fqstar)
+            sage: List
+            [(1, 0, 0, 0),
+            (2, 0, 0, 0),
+            (0, 1, 0, 0),
+            (0, 2, 0, 0),
+            (0, 0, 1, 0),
+            (0, 0, 2, 0),
+            (0, 0, 0, 1),
+            (0, 0, 0, 2)]
+        """
+        s = [i for i in range(self.length()) if i not in v.support()]
+        if List:
+            for i in s:
+                new = v.__copy__()
+                for q in Fqstar:
+                    new[i]=q
+                    if new not in List:
+                        List.append(new.__copy__())
+        else:
+            for i in s:
+                new = v.__copy__()
+                for q in Fqstar:
+                    new[i]=q
+                    List.append(new.__copy__())
+
+    @cached_method
+    def coset_leaders(self, algorithm="all"):
+        r"""
+        Return the list of coset leaders of ``self``.
+        
+        The set of coset leaders of a linear code ``C``are the words of minimal
+        Hamming weight for each coset.
+            
+        If ``algorithm = "one"`` returns only one coset leader for each coset.
+        If ``algorithm = "all"`` returns all coset leaders for each coset.
+            
+        INPUT:
+            
+            - ``algorithm`` -- String (default:``"one"``), method to be used one of ``"all"`` of ``"one"``.
+            
+        EXAMPLES::
+            
+            sage: C = codes.HammingCode(GF(5),2)
+            sage: C.coset_leaders()
+            [[(0, 0, 0, 0, 0, 0)],
+            [(1, 0, 0, 0, 0, 0)],
+            [(2, 0, 0, 0, 0, 0)],
+            [(3, 0, 0, 0, 0, 0)],
+            [(4, 0, 0, 0, 0, 0)],
+            [(0, 1, 0, 0, 0, 0)],
+            [(0, 2, 0, 0, 0, 0)],
+            [(0, 3, 0, 0, 0, 0)],
+            [(0, 4, 0, 0, 0, 0)],
+            [(0, 0, 1, 0, 0, 0)],
+            [(0, 0, 2, 0, 0, 0)],
+            [(0, 0, 3, 0, 0, 0)],
+            [(0, 0, 4, 0, 0, 0)],
+            [(0, 0, 0, 1, 0, 0)],
+            [(0, 0, 0, 2, 0, 0)],
+            [(0, 0, 0, 3, 0, 0)],
+            [(0, 0, 0, 4, 0, 0)],
+            [(0, 0, 0, 0, 1, 0)],
+            [(0, 0, 0, 0, 2, 0)],
+            [(0, 0, 0, 0, 3, 0)],
+            [(0, 0, 0, 0, 4, 0)],
+            [(0, 0, 0, 0, 0, 1)],
+            [(0, 0, 0, 0, 0, 2)],
+            [(0, 0, 0, 0, 0, 3)],
+            [(0, 0, 0, 0, 0, 4)]]
+            
+            sage: G = matrix(GF(5),[[1,0,2],[3,2,4]])
+            sage: C = LinearCode(G)
+            sage: C.coset_leaders("all")
+            
+            [[(0, 0, 0)],
+            [(1, 0, 0), (0, 3, 0), (0, 0, 3)],
+            [(2, 0, 0), (0, 1, 0), (0, 0, 1)],
+            [(3, 0, 0), (0, 4, 0), (0, 0, 4)],
+            [(4, 0, 0), (0, 2, 0), (0, 0, 2)]]
+            
+            sage: G = matrix(GF(5),[[1,0,2],[3,2,4]])
+            sage: C = LinearCode(G)
+            sage: C.coset_leaders("one")
+            [[(0, 0, 0)], [(1, 0, 0)], [(2, 0, 0)], [(3, 0, 0)], [(4, 0, 0)]]
+        """
+        
+        H = self.parity_check_matrix().transpose()
+        List = [vector(self.base_ring(),self.length())]
+        Fqstar = self.base_ring().list()[1:]
+        CL = []
+        N = []
+        S = []
+        if algorithm == "all":
+            while List:
+                w = List.pop(0)
+                s = w*H
+                if s in S:
+                    j = S.index(s)
+                    if w.hamming_weight() == N[j].hamming_weight():
+                        CL[j].append(w)
+                        self._insert_next_fq(w,List,Fqstar)
+                else:
+                    N.append(w)
+                    S.append(s)
+                    CL.append([w])
+                    self._insert_next_fq(w,List,Fqstar)
+        else:
+            while List:
+                w = List.pop(0)
+                s = w*H
+                if s not in S:
+                    CL.append([w])
+                    S.append(s)
+                    self._insert_next_fq(w,List,Fqstar)
+        return CL
+    
+    
+    def coset_weight_distribution(self):
+        r"""
+        Returns the coset weight distribution of ``self``.
+        
+        The coset weight distribution of a linear code `C` is the list where entry 
+        ``i`` represents the number of cosets with coset leaders of weight ``i``.
+        
+        
+        EXAMPLE::
+        
+            sage: G=matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,0,1,1],[0,0,1,1,0,1]])
+            sage: C= LinearCode(G)
+            sage: C.coset_weight_distribution()
+            (1, 6, 1, 0, 0, 0)
+        
+            sage: C = codes.HammingCode(GF(2),4)
+            sage: C.coset_weight_distribution()
+            (1, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        
+            sage: H = matrix(GF(2),[[1,0,0,0,1,0,0,0,0,0],\
+            [1,0,1,1,0,1,0,0,0,0],\
+            [1,1,0,1,0,0,1,0,0,0],\
+            [1,1,1,0,0,0,0,1,0,0],\
+            [1,1,1,1,0,0,0,0,1,0],\
+            [1,1,1,1,0,0,0,0,0,1]])
+            sage: C = codes.LinearCodeFromCheckMatrix(H)
+            sage: C.coset_weight_distribution()
+            (1, 10, 30, 23, 0, 0, 0, 0, 0, 0)
+        
+            sage: G = matrix(GF(5),[[1,0,2,2,2],[0,1,4,4,1]])
+            sage: C = LinearCode(G)
+            sage: C.coset_weight_distribution()
+            (1, 20, 96, 8, 0)
+        """
+        CL = self.coset_leaders("one")
+        w_d = [0]*self.length()
+        for c in CL:
+            w_d[c[0].hamming_weight()]+=1
+        return tuple(w_d)
+
+
+    @cached_method
+    def covering_radius(self, algorithm="guava"):
+        r"""
+        Return the covering_radius of ``self``.
+        
+        If ``algorithm = "guava"`` then wraps Guava's ``CoveringRadius`` command. 
+        If ``algorithm = "coset_leader"`` it computes first the set of coset 
+        leaders of ``self``.
 
         The covering radius of a linear code `C` is the smallest number `r`
         with the property that each element `v` of the ambient vector space
@@ -1498,22 +1680,105 @@ class AbstractLinearCode(module.Module):
         For example, if `C` is a perfect code, the covering radius is equal
         to `t`, the number of errors the code can correct, where `d = 2t+1`,
         with `d` the minimum distance of `C`.
+        
+        It is well known that the covering radius is the weight of the coset of
+        largest weight.
+        
+        INPUT:
+        
+            - ``algorithm`` -- (default: ``'guava'``) Name of the algorithm which
+        will be used to compute the covering radius of ``self``. Can be ``'guava'``,
+        or ``'coset_leader'``.
+
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 5)
-            sage: C.covering_radius()  # optional - gap_packages (Guava package)
+            sage: C.covering_radius("guava")  # optional - gap_packages (Guava package)
+            1
+            sage: C.covering_radius("coset_leader")
             1
         """
-        F = self.base_ring()
-        G = self.generator_matrix()
-        gapG = gap(G)
-        C = gapG.GeneratorMatCode(gap(F))
-        r = C.CoveringRadius()
-        try:
-            return ZZ(r)
-        except TypeError:
-            raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+        if algorithm == "coset_leader":
+            CL = self.coset_leaders("one")
+            return CL[-1][0].hamming_weight()
+        else:
+            F = self.base_ring()
+            G = self.generator_matrix()
+            gapG = gap(G)
+            C = gapG.GeneratorMatCode(gap(F))
+            r = C.CoveringRadius()
+            try:
+                return ZZ(r)
+            except TypeError:
+                raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+
+    def newton_radius(self):
+        r"""
+        Return the newton radius of ``self``.
+        
+        The newton radius of a linear code is the largest weight of any vector that
+        can be uniquely corrected. 
+        
+        Or equivalently, it is the largest value among the cosets with only one 
+        coset leader since an error is uniquely correctable if and only if it is 
+        the unique coset leader in its coset.
+        
+        EXAMPLE::
+        
+            sage: H = matrix(GF(2),[[1,0,0,0,1,0,0,0,0,0],[1,0,1,1,0,1,0,0,0,0],[1,1,0,1,0,0,1,0,0,0],[1,1,1,0,0,0,0,1,0,0],[1,1,1,1,0,0,0,0,1,0],[1,1,1,1,0,0,0,0,0,1]])
+            sage: C = codes.LinearCodeFromCheckMatrix(H)
+            sage: C.newton_radius()
+            3
+        
+            sage: C = codes.HammingCode(GF(2),4)
+            sage: C.newton_radius()
+            1
+        
+            sage: G = matrix(GF(5),[[1,0,2,2,2],[0,1,4,4,1]])
+            sage: C = LinearCode(G)
+            sage: C.newton_radius()
+            2
+        """
+        CL = self.coset_leaders()
+        for v in CL[::-1]:
+            if len(v)==1:
+                return v[0].hamming_weight()
+
+    def unique_decoding_radius(self):
+        r"""
+        Return the unique decoding radius of ``self``.
+        
+        The unique decoding radius ``t`` of a code is the number of errors this code 
+        can correct under bounded distance decoding. That is, 
+        ``t = \lfloor (d-1)/2 \rfloor``, where ``d`` represents the minimum distance.
+        
+        In case the minimum distance is unknown and the decoder('TestSet') has 
+        already been called, the unique_decoding_radius is provided by this method.
+    
+        EXAMPLES::
+    
+            sage: C = codes.HammingCode(GF(5),2)
+            sage: C.unique_decoding_radius()
+            1
+    
+            sage:G = matrix(GF(2),[[1,0,0,0,0,1,1,0,0,1,0,1,1,0,1],[0,1,1,1,0,1,1,1,1,1,0,0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: C.unique_decoding_radius()
+            3
+            """
+        if self.minimum_distance() is None and self.decoder('TestSet') is not None:
+            GB = self.decoder('TestSet')._groebner_basis()
+            L=[]
+            for i in len(GB):
+                L.append(GB[i][0].hamming_weight())
+            return min(L)-1
+        else:
+            from sage.functions.other import floor
+            return floor((self.minimum_distance() - 1)/2)
+
+
+
 
     def decode(self, right, algorithm="syndrome"):
         r"""
@@ -5330,54 +5595,66 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1) // 2
 
-############ NUEVA CLASE DE DECODIFICACIÓN #######
-##################################################
-##################################################
+
+
+
+
+
+
+
 
 class LinearCodeTestSetDecoder(Decoder):
     r"""
-    Constructs a gradient descent decoder for Linear Codes. The general principle of these methods is
-    the use of a certain set of codewords ``T``(namely test-set) which has been precomputed and stored
-    in memory in advanced. Then, the algorithm can be accomplish by recursively inspecting the test-set
-    for the existence of an adequate element which is subtracted from the current vector.
+    Constructs a gradient descent decoder for Linear Codes. 
+    
+    The general principle of gradient descent decoding methods is the use of a
+    certain set of codewords ``T``(namely test-set) which has been precomputed and 
+    stored in memory in advanced. Then, the algorithm can be accomplish by 
+    recursively inspecting the test-set for the existence of an adequate element 
+    which is subtracted from the current vector.
 
     The decoding algorithm works as follows:
 
-    - Compute a test-set ``T``for the code ``C''
-    - Recursively search an element ``t\in T'' such that ``w_H(y-t)<w_H(y)'' where ``w_H(\cdot)``represents
-    the Hamming weight of ``\cdot``.
-    - The algorithms terminates when we arrive to a coset leader.
+        - Compute a test-set ``T`` for the code ``C``
+        - Recursively search an element ``t\in T'' such that ``w_H(y-t)<w_H(y)``
+        where ``w_H(\cdot)``represents the Hamming weight of ``\cdot``.
+        - The algorithms terminates when we arrive to a coset leader.
 
-    This decoder is complete, i.e. it decodes every vector in the ambient space.
+    This decoder is a complete decoder, i.e. it decodes every vector in the 
+    ambient space.
 
     NOTE:
 
-    Note that this algorithm requires a nontrivial preprocessing for the construction of a test-set. Indeed,
-    to obtain a test-set for a linear code we compute a reduced Groebner basis of an ideal associated to
+    Note that this algorithm requires a nontrivial preprocessing for the 
+    construction of a test-set. Indeed, in this case, to obtain a test-set for a 
+    linear code we compute a reduced Groebner basis of the ideal associated to
     the code.
-
+    
+    This method is not recommended for non-binary codes due to the times that 
+    the preprocessing takes.
+    
     INPUT:
+        - ``code`` -- A code associated to this decoder
 
-    - ``code`` -- A code associated to this decoder
-
-
-    EXAMPLES: FALTA PONER EJEMPLOS::
+    EXAMPLES::
 
         sage: G = Matrix(GF(3), [[1,0,0,1,0,1,0,1,2],[0,1,0,2,2,0,1,1,0],[0,0,1,0,2,2,2,1,2]])
         sage: C = LinearCode(G)
         sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
         sage: D
         Gradient Descend Decoder for Linear code of length 9, dimension 3 over Finite Field of size 3
-
-
-    The unique decoding radius, the covering radius, the newton radius, a list of coset leaders,
-    the coset weight distribution coset and a test-set are parameters of the code that are determined
-    while computing the implemented Gradient Descent Decoding algorithm. 
+        
     """
 
     def __init__(self, code):
         r"""
-        TESTS::
+        EXAMPLES::
+        
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D
+            Gradient Descent Decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         
         super(LinearCodeTestSetDecoder, self).__init__(code, code.ambient_space(),\
@@ -5430,20 +5707,61 @@ class LinearCodeTestSetDecoder(Decoder):
 
     @cached_method
     def _groebner_basis(self):
+        r"""
+            Return the exponents of the binomials of the Grobner basis of the ideal associated to ``self.code()`` w.r.t. the reverse degree lexicographical order.
+            
+            For further information on the ideal associated to a code see [...]
+            
+            EXAMPLES::
+            
+            sage: C = codes.WalshCode(2)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D._groebner_basis()
+            [[(0, 1, 0, 0), (0, 0, 0, 1)], [(0, 0, 1, 0), (0, 0, 0, 1)]]
+            
+            sage: C = codes.HammingCode(GF(2),3)
+            sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+            sage: D._groebner_basis()
+            [[(1, 1, 0, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0, 0)],
+            [(1, 0, 1, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0, 0)],
+            [(0, 1, 1, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0)],
+            [(1, 0, 0, 1, 0, 0, 0), (0, 0, 0, 0, 1, 0, 0)],
+            [(0, 1, 0, 1, 0, 0, 0), (0, 0, 0, 0, 0, 1, 0)],
+            [(0, 0, 1, 1, 0, 0, 0), (0, 0, 0, 0, 0, 0, 1)],
+            [(1, 0, 0, 0, 1, 0, 0), (0, 0, 0, 1, 0, 0, 0)],
+            [(0, 1, 0, 0, 1, 0, 0), (0, 0, 0, 0, 0, 0, 1)],
+            [(0, 0, 1, 0, 1, 0, 0), (0, 0, 0, 0, 0, 1, 0)],
+            [(0, 0, 0, 1, 1, 0, 0), (1, 0, 0, 0, 0, 0, 0)],
+            [(1, 0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 0, 1)],
+            [(0, 1, 0, 0, 0, 1, 0), (0, 0, 0, 1, 0, 0, 0)],
+            [(0, 0, 1, 0, 0, 1, 0), (0, 0, 0, 0, 1, 0, 0)],
+            [(0, 0, 0, 1, 0, 1, 0), (0, 1, 0, 0, 0, 0, 0)],
+            [(0, 0, 0, 0, 1, 1, 0), (0, 0, 1, 0, 0, 0, 0)],
+            [(1, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 1, 0)],
+            [(0, 1, 0, 0, 0, 0, 1), (0, 0, 0, 0, 1, 0, 0)],
+            [(0, 0, 1, 0, 0, 0, 1), (0, 0, 0, 1, 0, 0, 0)],
+            [(0, 0, 0, 1, 0, 0, 1), (0, 0, 1, 0, 0, 0, 0)],
+            [(0, 0, 0, 0, 1, 0, 1), (0, 1, 0, 0, 0, 0, 0)],
+            [(0, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 0, 0)]]
+            """
+        
         q = self.code().base_ring().order()-1
         n = self.code().length()
-        #creating the Ring with variables
+        
+        # First create the ideal associated to self.code()
         x = 'x'
         Var = []
         for k in range(1,n+1):
             x_ = x+str(k)
             Var.extend([x_+str(i) for i in range(1,q+1)])
         R = PolynomialRing(QQ,q*n,Var,order='degrevlex')
-        #separate X1,X2,...,Xn in q-1 components each
+        
+        # Each variable X_i is decomposed into q-1 components
         Var = [R.gens()[i*q:(i+1)*q] for i in range(n)]
         M = self.code().base_ring().addition_table().table()
         pol_I = []
-        #create R_I ideal with addition table
+        
+        # The ideal associated to self.code() is generated by the rows of its generator matrix and the binomials attached to the additive table of self.code.base_field().
         for i in range(q):
             for j in range(i,q):
                 if M[i+1][j+1]==0:
@@ -5463,10 +5781,12 @@ class LinearCodeTestSetDecoder(Decoder):
 
         GB=I.groebner_basis()
         GB=list(GB)
+        #We remove those elements from the Grobner basis that are related with the relations given by the additive table of self.code.base_ring()
         for i in List:
             if i in GB:
                 GB.remove(i)
-
+        
+        #We return the exponents of the binomials, defined as elements in the base_ring, of each element in the computed Grobner basis
         t_s=[]
         for gb in GB:
             v1 = []
@@ -5486,52 +5806,71 @@ class LinearCodeTestSetDecoder(Decoder):
 
     def test_set(self):
         r"""
-        Builds a test-set for a linear code. A test-set T for a code ``C`` is a set of codewords such
-        that every word ``y`` either belongs to the set of coset leaders or there exists an element
-        ``t`` in ``T`` such that the Hamming weight of ``y-t`` is strictly smaller than ``y``.
+        Return a test_set for self.code()
+        
+        
+        A test-set T for a code ``C`` is a set of codewords such that every word 
+        ``y`` either belongs to the set of coset leaders or there exists an element
+        ``t`` in ``T`` such that the Hamming weight of ``y-t`` is strictly smaller 
+        than ``y``.
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2),3)
             sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
             sage: D.test_set()
-            ((0, 0, 0, 0, 0, 0, 0),
-             (1, 1, 1, 0, 0, 0, 0),
-             (1, 0, 0, 1, 1, 0, 0),
-             (0, 1, 0, 1, 0, 1, 0),
-             (0, 0, 1, 1, 0, 0, 1),
-             (0, 1, 0, 0, 1, 0, 1),
-             (0, 0, 1, 0, 1, 1, 0),
-             (1, 0, 0, 0, 0, 1, 1))
+            ((1, 1, 1, 0, 0, 0, 0),
+            (1, 0, 0, 1, 1, 0, 0),
+            (0, 1, 0, 1, 0, 1, 0),
+            (0, 0, 1, 1, 0, 0, 1),
+            (0, 1, 0, 0, 1, 0, 1),
+            (0, 0, 1, 0, 1, 1, 0),
+            (1, 0, 0, 0, 0, 1, 1))
 
             sage: C = codes.BCHCode(8,3,GF(3))
             sage: D=codes.decoders.LinearCodeTestSetDecoder(C)
             sage: D.test_set()
-            ((0, 0, 0, 0, 2, 0, 2, 2),
-             (0, 0, 0, 0, 1, 0, 1, 1),
-             (0, 0, 0, 2, 0, 2, 2, 0),
-             (0, 0, 0, 1, 0, 1, 1, 0),
-             (0, 0, 2, 0, 2, 2, 0, 0),
-             (0, 0, 1, 0, 1, 1, 0, 0),
-             (0, 0, 0, 1, 2, 1, 0, 2),
-             (0, 0, 0, 2, 1, 2, 0, 1),
-             (0, 2, 0, 2, 2, 0, 0, 0),
-             (0, 1, 0, 1, 1, 0, 0, 0),
-             (0, 0, 1, 0, 0, 1, 2, 2),
-             (0, 0, 2, 0, 0, 2, 1, 1),
-             (0, 0, 1, 2, 1, 0, 2, 0),
-             (2, 0, 2, 2, 0, 0, 0, 0),
-             (1, 0, 1, 1, 0, 0, 0, 0),
-             (0, 1, 0, 1, 0, 0, 2, 2),
-             (0, 1, 0, 0, 1, 2, 2, 0),
-             (0, 2, 0, 0, 2, 1, 1, 0),
-             (0, 1, 2, 1, 0, 2, 0, 0),
-	         (0, 2, 1, 2, 0, 1, 0, 0),
- 	         (1, 0, 1, 0, 0, 2, 2, 0),
-	         (1, 0, 0, 1, 2, 2, 0, 0),
- 	         (2, 0, 0, 2, 1, 1, 0, 0),
- 	         (1, 2, 1, 0, 2, 0, 0, 0),
-	         (2, 1, 2, 0, 1, 0, 0, 0))
+            
+            ((1, 1, 0, 0, 0, 0, 1, 0),
+            (2, 1, 0, 2, 0, 0, 0, 1),
+            (1, 2, 0, 1, 0, 0, 0, 2),
+            (2, 2, 0, 0, 0, 0, 2, 0),
+            (1, 0, 1, 1, 0, 0, 0, 0),
+            (2, 0, 1, 0, 0, 0, 2, 1),
+            (0, 1, 1, 0, 0, 0, 0, 1),
+            (1, 0, 2, 0, 2, 0, 0, 1),
+            (2, 0, 2, 2, 0, 0, 0, 0),
+            (0, 2, 2, 0, 0, 0, 0, 2),
+            (2, 0, 0, 1, 2, 0, 0, 1),
+            (0, 1, 0, 1, 1, 0, 0, 0),
+            (0, 2, 0, 1, 0, 2, 0, 1),
+            (0, 0, 2, 1, 0, 0, 2, 1),
+            (1, 0, 0, 2, 0, 0, 2, 1),
+            (0, 2, 0, 2, 2, 0, 0, 0),
+            (0, 0, 1, 2, 2, 0, 0, 1),
+            (1, 0, 0, 2, 1, 0, 0, 2),
+            (2, 2, 0, 0, 1, 0, 0, 1),
+            (0, 0, 1, 0, 1, 1, 0, 0),
+            (0, 0, 2, 1, 1, 0, 0, 2),
+            (0, 0, 0, 2, 1, 2, 0, 1),
+            (0, 1, 0, 0, 2, 2, 0, 1),
+            (0, 0, 2, 0, 2, 2, 0, 0),
+            (1, 0, 0, 0, 0, 1, 0, 1),
+            (0, 1, 0, 2, 0, 1, 0, 2),
+            (0, 2, 0, 0, 0, 1, 2, 1),
+            (0, 0, 2, 2, 0, 1, 0, 1),
+            (0, 0, 0, 1, 0, 1, 1, 0),
+            (0, 0, 0, 1, 2, 1, 0, 2),
+            (2, 0, 0, 0, 0, 2, 0, 2),
+            (0, 0, 1, 1, 0, 2, 0, 2),
+            (0, 0, 0, 2, 0, 2, 2, 0),
+            (2, 0, 0, 1, 0, 0, 1, 2),
+            (0, 2, 0, 2, 0, 0, 1, 1),
+            (0, 0, 1, 2, 0, 0, 1, 2),
+            (0, 0, 2, 0, 0, 2, 1, 1),
+            (0, 0, 0, 0, 1, 0, 1, 1),
+            (0, 1, 0, 1, 0, 0, 2, 2),
+            (0, 0, 0, 0, 2, 0, 2, 2))
         """
         GB = self._groebner_basis()
         TS=[]
@@ -5543,6 +5882,29 @@ class LinearCodeTestSetDecoder(Decoder):
         return tuple(TS)
 
     def decode_to_code(self, r):
+        r"""
+        Corrects the errors in ``word`` and returns a codeword.
+            
+            INPUT:
+            
+            - ``r`` -- a codeword of ``self``
+            
+            OUTPUT:
+            
+            - a vector of ``self``'s message space
+            
+            EXAMPLES::
+            
+                sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+                sage: C = LinearCode(G)
+                sage: D = codes.decoders.LinearCodeTestSetDecoder(C)
+                sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+                sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+                sage: D.decode_to_code(w_err)
+                (0, 1, 0, 1, 0, 1, 0)
+            """
+
+
         t_s = self.test_set()
         c = vector(self.code().base_ring(),self.code().length())
         word = vector(self.code().base_ring(),r)
