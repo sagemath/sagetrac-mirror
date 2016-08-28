@@ -6,8 +6,20 @@ from sage.coding.linear_code import LinearCode
 from sage.coding.channel_constructions import StaticErrorRateChannel
 
 class McElieceCryptosystem:
+    r"""
+    EXAMPLES::
 
-    def __init__(self, code, encoder, decoder):
+        sage: C = codes.RandomLinearCode(11,4,GF(2))
+        sage: en = C.encoder()
+        sage: de = C.decoder()
+        sage: crypt = codes.McElieceCryptosystem(C, en, de, 1)
+        sage: m = vector([1,0,1,1])
+        sage: c = crypt.encrypt(m)
+        sage: r = crypt.decrypt(c); r
+        (1, 0, 1, 1)
+    """
+
+    def __init__(self, code, encoder, decoder, decoding_radius):
         G = encoder.generator_matrix()
         S = random_matrix(code.base_field(), code.dimension(), code.dimension())
         while S.is_singular():
@@ -20,11 +32,11 @@ class McElieceCryptosystem:
         G_pub = S*G*P
         C_pub = LinearCode(G_pub)
         E_pub = C_pub.encoder()  
-        self.pubkey = E_pub, decoder.decoding_radius()
+        self.pubkey = E_pub, decoding_radius
         self.privkey = (S.inverse(), P.inverse(), decoder)
     
     def encrypt(self, m):
-	E_pub, t = self.pubkey
+        E_pub, t = self.pubkey
         c = E_pub.encode(m)
         ambient = E_pub.code().ambient_space()
         channel = StaticErrorRateChannel(ambient, t)
