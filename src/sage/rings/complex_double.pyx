@@ -2388,10 +2388,10 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z   # abs tol 1e-16
             0.5 + 0.8660254037844387*I
-            sage: p = z.algdep(5); p
+            sage: p = z.algdep(5); p  # random
             x^3 + 1
             sage: p.factor()
-            (x + 1) * (x^2 - x + 1)
+            (x + 1) * ... (x^2 - x + 1)
             sage: abs(z^2 - z + 1) < 1e-14
             True
 
