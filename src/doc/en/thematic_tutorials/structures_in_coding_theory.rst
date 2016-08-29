@@ -274,9 +274,10 @@ Summary of the implementation for encoders
 4. Implement ``__eq__``
 5. ``__ne__``, ``code`` come with the abstract class.
 6. If a generator matrix is known, override ``generator_matrix``.
-7. Else override ``encode``, ``unencode_nocheck`` and if needed
+
+   Else override ``encode``, ``unencode_nocheck`` and if needed
    ``message_space``.
-8. Add the encoder to ``CodeClass._registered_encoders``.
+7. Add the encoder to ``CodeClass._registered_encoders``.
 
 
 IV. Write a new decoder class
@@ -370,7 +371,7 @@ which we override::
     sage: def decoding_radius(self):
     ....:     return (self.code().length()-1) // 2
 
-As for some cases, the decoding might not be precisely known, its
+As for some cases, the decoding radius might not be precisely known, its
 implementation is not mandatory in :class:`sage.coding.decoder.Decoder`'s
 subclasses.
 
@@ -393,6 +394,7 @@ Also put this line to set ``decoder_type``::
     ``self._registered_decoders["DecName"] = MyGenericDecoder``.
     This will make it immediately available to any code
     class which inherits from `AbstractLinearCode`.
+    See lines 807-812 in ``sage.coding.linear_code.py``.
 
 Summary of the implementation for decoders
 ------------------------------------------
