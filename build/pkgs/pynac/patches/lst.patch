@@ -1,0 +1,14 @@
+Any source that includes an implicit instantiation of the `lst` type
+must be sure to include "lst.h";
+see http://www.ginac.de/ginac.git/?p=ginac.git;a=commit;h=e5eeee53d814cedc12cd725e76b0eb87859cdd77
+and https://trac.sagemath.org/ticket/21265
+--- a/ginac/inifcns_trans.cpp	2016-08-29 17:46:13.208530400 +0200
++++ b/ginac/inifcns_trans.cpp	2016-08-29 17:46:08.923342900 +0200
+@@ -22,6 +22,7 @@
+ 
+ #include "inifcns.h"
+ #include "ex.h"
++#include "lst.h"
+ #include "constant.h"
+ #include "infinity.h"
+ #include "numeric.h"
