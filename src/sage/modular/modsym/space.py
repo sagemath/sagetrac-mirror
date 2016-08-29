@@ -1340,6 +1340,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: ModularSymbols(37, 2).cuspidal_submodule()._q_expansion_basis_hecke_dual(2)
             [q + O(q^2)]
         """
+        from sage.misc.verbose import verbose
         d = self.dimension_of_associated_cuspform_space()
         prec = Integer(prec)
         if prec < 1:
@@ -1355,13 +1356,13 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         i = self.dimension()-1
         j = 0
 
-        t = misc.verbose('computing basis to precision %s'%prec)
+        t = verbose('computing basis to precision %s'%prec)
         while V.dimension() < d and i >= 0:
             v = [self.dual_hecke_matrix(n).column(i) for n in range(1,prec)]
-            t = misc.verbose('iteration: %s'%j,t)
+            t = verbose('iteration: %s'%j,t)
             X = M(v).transpose()
             V += X.row_space()
-            t = misc.verbose('addition of row space: %s'%j,t)
+            t = verbose('addition of row space: %s'%j,t)
             i -= 1
             j += 1
 

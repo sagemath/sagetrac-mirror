@@ -1857,7 +1857,7 @@ class TransitiveGroup(PermutationGroup_unique):
         try:
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
-            from sage.misc.misc import verbose
+            from sage.misc.verbose import verbose
             verbose("Warning: Computing with TransitiveGroups requires the optional database_gap package. Please install it.", level=0)
 
         self._d = d
@@ -2115,7 +2115,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             try:
                 return Integer(gap.NrTransitiveGroups(gap(self._degree)))
             except RuntimeError:
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
             except TypeError:
                 raise NotImplementedError("Only the transitive groups of order less than 30 are available in GAP's database")
@@ -2202,7 +2202,7 @@ class PrimitiveGroup(PermutationGroup_unique):
         try:
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
         except RuntimeError:
-            from sage.misc.misc import verbose
+            from sage.misc.verbose import verbose
             verbose("Warning: Computing with PrimitiveGroups requires the optional database_gap package. Please install it.", level=0)
 
         self._d = d
@@ -2530,7 +2530,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             try:
                 return Integer(gap.NrPrimitiveGroups(gap(self._degree)))
             except RuntimeError:
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Warning: PrimitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
 
 

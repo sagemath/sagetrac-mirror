@@ -49,6 +49,7 @@ The results are correct::
 
 If ``get_verbose()`` is `>= 1` a protocol is provided::
 
+    sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(1)
     sage: P.<a,b,c> = PolynomialRing(GF(127),3)
     sage: I = sage.rings.ideal.Katsura(P)
@@ -143,7 +144,7 @@ AUTHOR:
 """
 from __future__ import print_function
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
@@ -198,6 +199,7 @@ def buchberger(F):
 
         sage: from sage.rings.polynomial.toy_buchberger import buchberger
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(0)
         sage: buchberger(R.ideal([x^2 - z - 1, z^2 - y - 1, x*y^2 - x - 1]))
         [-y^3 + x*z - x + y, y^2*z + y^2 - x - z - 1, x*y^2 - x - 1, x^2 - z - 1, z^2 - y - 1]
@@ -255,6 +257,7 @@ def buchberger_improved(F):
 
         sage: from sage.rings.polynomial.toy_buchberger import buchberger_improved
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(0)
         sage: buchberger_improved(R.ideal([x^4-y-z,x*y*z-1]))
         [x*y*z - 1, x^3 - y^2*z - y*z^2, y^3*z^2 + y^2*z^3 - x^2]
@@ -313,6 +316,7 @@ def update(G,B,h):
 
         sage: from sage.rings.polynomial.toy_buchberger import update
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(0)
         sage: update(set(),set(),x*y*z)
         ({x*y*z}, set())

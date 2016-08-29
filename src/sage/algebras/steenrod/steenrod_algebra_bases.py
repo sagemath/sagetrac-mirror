@@ -1134,6 +1134,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
         sage: steenrod_basis_error_check(80,5) # long time
     """
     import sage.misc.misc as misc
+    from sage.misc.verbose import verbose
     generic = kwds.get('generic', False if p==2 else True )
 
     # In this test function, we don't want to use caching.
@@ -1150,7 +1151,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
 
     for i in range(dim):
         if i % 5 == 0:
-            misc.verbose("up to dimension %s"%i)
+            verbose("up to dimension %s"%i)
         milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,generic=generic))
         for B in bases:
             if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,generic=generic)):
@@ -1159,7 +1160,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
             if mat.nrows() != 0 and not mat.is_invertible():
                 print("%s invertibility problem in dim %s at p=%s" % (B, i, p))
 
-    misc.verbose("done checking, no profiles")
+    verbose("done checking, no profiles")
 
     bases = ('pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz')
     if not generic:
@@ -1169,11 +1170,11 @@ def steenrod_basis_error_check(dim, p, **kwds):
 
     for i in range(dim):
         if i % 5 == 0:
-            misc.verbose("up to dimension %s"%i)
+            verbose("up to dimension %s"%i)
         for pro in profiles:
             milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,profile=pro,generic=generic))
             for B in bases:
                 if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,profile=pro,generic=generic)):
                     print("problem with milnor/%s in dimension %s with profile %s" % (B, i, pro))
 
-    misc.verbose("done checking with profiles")
+    verbose("done checking with profiles")

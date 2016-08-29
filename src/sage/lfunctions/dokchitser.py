@@ -31,7 +31,8 @@ import copy
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ComplexField, Integer
-from sage.misc.all import verbose, sage_eval
+from sage.misc.all import sage_eval
+from sage.misc.verbose import verbose
 import sage.interfaces.gp
 
 class Dokchitser(SageObject):

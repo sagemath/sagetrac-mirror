@@ -2149,13 +2149,13 @@ class Graphics(WithEqualityById, SageObject):
             ymin = min(d['ymin'] for d in minmax_data)
             ymax = max(d['ymax'] for d in minmax_data)
             if isnan(xmin):
-                xmin=0; sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+                xmin=0; sage.misc.verbose.verbose("xmin was NaN (setting to 0)", level=0)
             if isnan(xmax):
-                xmax=0; sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+                xmax=0; sage.misc.verbose.verbose("xmax was NaN (setting to 0)", level=0)
             if isnan(ymin):
-                ymin=0; sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+                ymin=0; sage.misc.verbose.verbose("ymin was NaN (setting to 0)", level=0)
             if isnan(ymax):
-                ymax=0; sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
+                ymax=0; sage.misc.verbose.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 

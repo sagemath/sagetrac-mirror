@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 import sage.arith.all as arith
 import sage.misc.misc as misc
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 
 import sage.modules.all

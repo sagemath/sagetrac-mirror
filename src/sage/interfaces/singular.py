@@ -332,7 +332,7 @@ from sage.structure.element import RingElement
 
 import sage.rings.integer
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.misc.superseded import deprecation
 
 from six import reraise as raise_
@@ -580,6 +580,7 @@ class Singular(ExtraTabCompletion, Expect):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: o = singular.eval('hilb(%s)'%(s.name()))
             //         1 t^0

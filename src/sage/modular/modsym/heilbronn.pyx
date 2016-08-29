@@ -253,7 +253,7 @@ cdef class Heilbronn:
         cdef int i, a, b, c, d, s
         cdef object X
         M = {}
-        t = sage.misc.misc.verbose("start making list M.",level=5)
+        t = sage.misc.verbose.verbose("start making list M.",level=5)
         sig_on()
         if N < 32768:   # use ints with no reduction modulo N
             for i in range(self.length):
@@ -285,11 +285,11 @@ cdef class Heilbronn:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
-        t = sage.misc.misc.verbose("finished making list M.",t, level=5)
+        t = sage.misc.verbose.verbose("finished making list M.",t, level=5)
         mul = []
         for x,y in M.items():
             mul.append((x,y))
-        t = sage.misc.misc.verbose("finished making mul list.",t, level=5)
+        t = sage.misc.verbose.verbose("finished making mul list.",t, level=5)
         sig_off()
         return mul
 
@@ -555,7 +555,7 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
 
     cdef Heilbronn H
 
-    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+    t = sage.misc.verbose.verbose("computing non-reduced images of symbol under Hecke operators",
                                level=1, caller_name='hecke_images_gamma0_weight2')
     for i, n in enumerate(indices):
         # List the Heilbronn matrices of determinant n defined by Cremona or Merel
@@ -585,25 +585,25 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         sig_free(a)
         sig_free(b)
 
-    t = sage.misc.misc.verbose("finished computing non-reduced images",
+    t = sage.misc.verbose.verbose("finished computing non-reduced images",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
 
-    t = sage.misc.misc.verbose("Now reducing images of symbol",
+    t = sage.misc.verbose.verbose("Now reducing images of symbol",
                                level=1, caller_name='hecke_images_gamma0_weight2')
 
     # Return the product T * R, whose rows are the image of (u,v) under
     # the Hecke operators T_n for n in indices.
     if max(indices) <= 30:   # In this case T tends to be very sparse
         ans = T.sparse_matrix()._matrix_times_matrix_dense(R)
-        sage.misc.misc.verbose("did reduction using sparse multiplication",
+        sage.misc.verbose.verbose("did reduction using sparse multiplication",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
     elif R.is_sparse():
         ans = T * R.dense_matrix()
-        sage.misc.misc.verbose("did reduction using dense multiplication",
+        sage.misc.verbose.verbose("did reduction using dense multiplication",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
     else:
         ans = T * R
-        sage.misc.misc.verbose("did reduction using dense multiplication",
+        sage.misc.verbose.verbose("did reduction using dense multiplication",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
 
     if original_base_ring != QQ:
@@ -684,7 +684,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
 
     cdef Heilbronn H
 
-    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+    t = sage.misc.verbose.verbose("computing non-reduced images of symbol under Hecke operators",
                                level=1, caller_name='hecke_images_character_weight2')
 
     # Make a matrix over the rational numbers each of whose columns
@@ -779,7 +779,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     cdef int k, scalar
     cdef Heilbronn H
 
-    t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
+    t = sage.misc.verbose.verbose("computing non-reduced images of symbol under Hecke operators",
                                level=1, caller_name='hecke_images_quad_character_weight2')
 
     # Make a matrix over the rational numbers each of whose columns

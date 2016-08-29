@@ -487,6 +487,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1)
             sage: K.<a> = QuadraticField(3)
             sage: A.<x,y> = AffineSpace(K, 2)

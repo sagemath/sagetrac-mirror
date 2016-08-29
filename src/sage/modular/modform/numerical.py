@@ -17,7 +17,6 @@ from sage.structure.sequence     import Sequence
 from sage.modular.modsym.all     import ModularSymbols
 from sage.modular.arithgroup.all import Gamma0
 from sage.modules.all            import vector
-from sage.misc.misc              import verbose
 from sage.rings.all import CDF, Integer, QQ
 from sage.arith.all import next_prime, prime_range
 from sage.misc.prandom           import randint
@@ -217,6 +216,7 @@ class NumericalEigenforms(SageObject):
             sage: sum([abs(diff[i,j]) for i in range(5) for j in range(3)]) < 1.0e-9
             True
         """
+        from sage.misc.verbose import verbose
         try:
             return self.__eigenvectors
         except AttributeError:

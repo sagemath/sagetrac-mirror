@@ -819,6 +819,7 @@ class Lseries_ell(SageObject):
         except AttributeError:
             pass
 
+        from sage.misc.verbose import verbose
         if not self.__E.is_minimal():
             self.__lratio = self.__E.minimal_model().lseries().L_ratio()
             return self.__lratio
@@ -876,7 +877,7 @@ class Lseries_ell(SageObject):
                 self.__lratio = quo / self.__E.real_components()
                 return self.__lratio
             k += sqrtN
-            misc.verbose("Increasing precision to %s terms."%k)
+            verbose("Increasing precision to %s terms."%k)
 
     def zero_sums(self, N=None):
         r"""

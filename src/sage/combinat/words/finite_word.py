@@ -6633,7 +6633,7 @@ class FiniteWord_class(Word_class):
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
             import sage.misc.misc
-            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
+            sage.misc.verbose.verbose("The possible color maps include: %s"%possibilities, level=0)
             raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...

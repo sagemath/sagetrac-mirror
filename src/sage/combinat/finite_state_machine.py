@@ -9132,7 +9132,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                                 + [common_output[0]]
                             found_inbound_transition = True
                     if not found_inbound_transition:
-                        sage.misc.misc.verbose(
+                        sage.misc.verbose.verbose(
                             "All transitions leaving state %s have an "
                             "output label with prefix %s. However, "
                             "there is no inbound transition and it is "
@@ -10444,6 +10444,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
 
+                sage: from sage.misc.verbose import set_verbose
                 sage: set_verbose(-1, "finite_state_machine.py")
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']
@@ -10542,7 +10543,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         try:
             M = get_matrix(self, x, y)
         except TypeError:
-            sage.misc.misc.verbose(
+            sage.misc.verbose.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)
             # fall back to symbolic ring

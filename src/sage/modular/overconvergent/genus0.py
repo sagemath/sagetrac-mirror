@@ -176,7 +176,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
-from sage.misc.misc         import verbose
+from sage.misc.verbose      import verbose
 from sage.misc.cachefunc    import cached_method
 from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,

@@ -182,7 +182,6 @@ import os
 import re
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.all import verbose
 from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
@@ -438,6 +437,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
             sage: fricas._eval_line(")set output algebra on")  #optional - fricas
             ''
         """
+        from sage.misc.verbose import verbose
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
         line = line.rstrip().rstrip(';')

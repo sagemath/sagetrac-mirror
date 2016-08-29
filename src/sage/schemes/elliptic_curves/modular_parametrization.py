@@ -168,14 +168,15 @@ class ModularParameterization:
             `E`, then use the Weierstrass `\wp` function to map it to the
             curve itself.
         """
+        from sage.misc.verbose import verbose
         if isinstance(z, heegner.HeegnerPointOnX0N):
             return z.map_to_curve(self.curve())
         # Map to the CC of CC/PeriodLattice.
-        tm = misc.verbose("Evaluating modular parameterization to precision %s bits"%prec)
+        tm = verbose("Evaluating modular parameterization to precision %s bits"%prec)
         w = self.map_to_complex_numbers(z, prec=prec)
         # Map to E via Weierstrass P
         z = self._E.elliptic_exponential(w)
-        misc.verbose("Finished evaluating modular parameterization", tm)
+        verbose("Finished evaluating modular parameterization", tm)
         return z
 
     def map_to_complex_numbers(self, z, prec=None):

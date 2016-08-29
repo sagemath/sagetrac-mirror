@@ -89,7 +89,7 @@ import re
 # import compatible with py2 and py3
 from six.moves.urllib.request import urlretrieve
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()

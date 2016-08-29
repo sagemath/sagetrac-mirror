@@ -246,7 +246,8 @@ from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod, verbose, get_verbose
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
@@ -3593,6 +3594,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         protocol did not appear during doctests, so, we skip the
         examples with protocol output.  ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
             sage: I.groebner_basis()  # not tested

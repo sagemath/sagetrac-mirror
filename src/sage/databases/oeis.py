@@ -152,7 +152,7 @@ from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.misc.unknown import Unknown

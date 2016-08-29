@@ -30,6 +30,7 @@ import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
 import sage.rings.all as rings
 from   sage.misc.search import search
+from sage.misc.verbose import verbose
 from sage.rings.rational_field import is_RationalField
 
 
@@ -118,7 +119,7 @@ def modS_relations(syms):
     """
     if not isinstance(syms, ManinSymbolList):
         raise TypeError("syms must be a ManinSymbolList")
-    tm = misc.verbose()
+    tm = verbose()
     # We will fill in this set with the relations x_i + s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
@@ -129,7 +130,7 @@ def modS_relations(syms):
             rels.add( ((i,1),(j,s)) )
         else:
             rels.add( ((j,s),(i,1)) )
-    misc.verbose("finished creating S relations",tm)
+    verbose("finished creating S relations",tm)
     return rels
 
 def modI_relations(syms, sign):
@@ -183,7 +184,7 @@ def modI_relations(syms, sign):
        1585 paper! Thus our +1 eigenspace is his -1 eigenspace,
        etc. We do this for consistency with MAGMA.
     """
-    tm = misc.verbose()
+    tm = verbose()
     # We will fill in this set with the relations x_i - sign*s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
@@ -191,7 +192,7 @@ def modI_relations(syms, sign):
         j, s = syms.apply_I(i)
         assert j != -1
         rels.add( ((i,1),(j,-sign*s)) )
-    misc.verbose("finished creating I relations",tm)
+    verbose("finished creating I relations",tm)
     return rels
 
 def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
@@ -226,7 +227,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
         sage: T_relation_matrix_wtk_g0(L, modS, GF(17), True)
         72 x 216 sparse matrix over Finite Field of size 17 (use the '.str()' method to see the entries)
     """
-    tm = misc.verbose()
+    tm = verbose()
     row = 0
     entries = {}
     already_seen = set()
@@ -254,7 +255,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
     R = MAT(entries)
     if not sparse:
         R = R.dense_matrix()
-    misc.verbose("finished (number of rows=%s)"%row, tm)
+    verbose("finished (number of rows=%s)"%row, tm)
     return R
 
 def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
@@ -300,21 +301,21 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     if not isinstance(mod, list):
         raise TypeError("mod must be a list")
 
-    misc.verbose(str(relation_matrix.parent()))
+    verbose(str(relation_matrix.parent()))
 
     try:
         h = relation_matrix.height()
     except AttributeError:
         h = 9999999
-    tm = misc.verbose("putting relation matrix in echelon form (height = %s)"%h)
+    tm = verbose("putting relation matrix in echelon form (height = %s)"%h)
     if h < 10:
         A = relation_matrix.echelon_form(algorithm='multimodular', height_guess=1)
     else:
         A = relation_matrix.echelon_form()
     A.set_immutable()
-    tm = misc.verbose('finished echelon', tm)
+    tm = verbose('finished echelon', tm)
 
-    tm = misc.verbose("Now creating gens --> basis mapping")
+    tm = verbose("Now creating gens --> basis mapping")
 
     basis_set = set(A.nonpivots())
     pivots = A.pivots()
@@ -326,10 +327,10 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     ONE = field(1)
 
-    misc.verbose("done doing setup",tm)
+    verbose("done doing setup",tm)
 
 
-    tm = misc.verbose("now forming quotient matrix")
+    tm = verbose("now forming quotient matrix")
     M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
 
     B = M(0)
@@ -345,18 +346,18 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
             # the non-pivot columns of A:
             B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis, cols_index)
 
-    misc.verbose("done making quotient matrix",tm)
+    verbose("done making quotient matrix",tm)
 
     # The following is very fast (over Q at least).
-    tm = misc.verbose('now filling in the rest of the matrix')
+    tm = verbose('now filling in the rest of the matrix')
     k = 0
     for i in range(len(mod)):
         j, s = mod[i]
         if j != i and s != 0:   # ignored in the above matrix
             k += 1
             B.set_row_to_multiple_of_row(i, j, s)
-    misc.verbose("set %s rows"%k)
-    tm = misc.verbose("time to fill in rest of matrix", tm)
+    verbose("set %s rows"%k)
+    tm = verbose("time to fill in rest of matrix", tm)
 
     return B, basis
 
@@ -555,7 +556,7 @@ def sparse_2term_quotient(rels, n, F):
     if not isinstance(F, rings.Ring):
         raise TypeError("F must be a ring.")
 
-    tm = misc.verbose("Starting sparse 2-term quotient...")
+    tm = verbose("Starting sparse 2-term quotient...")
     free = range(n)
     ONE = F(1)
     ZERO = F(0)
@@ -597,7 +598,7 @@ def sparse_2term_quotient(rels, n, F):
             coef[die] = ZERO
 
     mod = [(free[i], coef[i]) for i in xrange(len(free))]
-    misc.verbose("finished",tm)
+    verbose("finished",tm)
     return mod
 
 
@@ -670,7 +671,7 @@ def sparse_2term_quotient(rels, n, F):
 ##             entries[(row,i)] = TWO
 ##         row += 1
 ##     number_of_S_relations = row
-##     misc.verbose("There were %s S relations"%(number_of_S_relations))
+##     verbose("There were %s S relations"%(number_of_S_relations))
 
 ##     ##  The eta relations:
 ##     ##    eta((u,v)) = -(-u,v)
@@ -690,7 +691,7 @@ def sparse_2term_quotient(rels, n, F):
 ##                 entries[(row,i)] = ONE + SIGN
 ##             row += 1
 ##     number_of_I_relations = row - number_of_S_relations
-##     misc.verbose("There were %s I relations"%(number_of_I_relations))
+##     verbose("There were %s I relations"%(number_of_I_relations))
 
 ##     ## The three-term T relations
 ##     already_seen = set([])
@@ -711,7 +712,7 @@ def sparse_2term_quotient(rels, n, F):
 ##         row += 1
 
 ##     number_of_T_relations = row - number_of_I_relations - number_of_S_relations
-##     misc.verbose("There were %s T relations"%(number_of_T_relations))
+##     verbose("There were %s T relations"%(number_of_T_relations))
 
 ##     M = matrix_space.MatrixSpace(RationalField(), row,
 ##                     len(list), sparse=True)
@@ -790,7 +791,7 @@ def sparse_2term_quotient(rels, n, F):
 ##             entries[(row,i)] = ONE+field(s)
 ##         row += 1
 ##     number_of_S_relations = row
-##     misc.verbose("There were %s S relations"%(number_of_S_relations))
+##     verbose("There were %s S relations"%(number_of_S_relations))
 ##     cnt = row
 ##     ##  The I relations
 ##     if sign != 0:
@@ -808,7 +809,7 @@ def sparse_2term_quotient(rels, n, F):
 ##                 entries[(row,i)] = ONE-SIGN*field(s)
 ##             row += 1
 ##     number_of_I_relations = row - number_of_S_relations
-##     misc.verbose("There were %s I relations"%(number_of_I_relations))
+##     verbose("There were %s I relations"%(number_of_I_relations))
 ##     cnt = row
 
 ##     ## The T relations

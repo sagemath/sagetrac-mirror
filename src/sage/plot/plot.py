@@ -1439,6 +1439,7 @@ def plot(funcs, *args, **kwds):
 
     ::
 
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(-1)
         sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
         Graphics object consisting of 1 graphics primitive
@@ -1956,7 +1957,7 @@ def plot(funcs, *args, **kwds):
             G = _plot(funcs, (xmin, xmax), *args, **kwds)
             pass
         else:
-            sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
+            sage.misc.verbose.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
 
     G._set_extra_kwds(G_kwds)
     if do_show:
@@ -2289,7 +2290,7 @@ def _plot(funcs, xrange, parametric=False,
                     else:
                         fstr = 'min'
                     msg = "WARNING: You use the built-in function %s for filling. You probably wanted the string '%s'." % (fstr, fstr)
-                    sage.misc.misc.verbose(msg, level=0)
+                    sage.misc.verbose.verbose(msg, level=0)
                 if not is_fast_float(fill):
                     fill_f = fast_float(fill, expect_one_var=True)
                 else:
@@ -3717,12 +3718,12 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     try:
         y = float(f(x))
         if str(y) in ['nan', 'NaN', 'inf', '-inf']:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+            sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
             # give up for this branch
             return []
 
     except (ZeroDivisionError, TypeError, ValueError, OverflowError) as msg:
-        sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
+        sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
         return []
 
@@ -3843,12 +3844,12 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         try:
             data[i] = (float(xi), float(f(xi)))
             if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+                sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
                 exceptions += 1
                 exception_indices.append(i)
 
         except (ArithmeticError, TypeError, ValueError) as msg:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+            sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
                 for j in range(1, 99):
@@ -3899,8 +3900,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
        i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
-        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
+        sage.misc.verbose.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+        sage.misc.verbose.verbose("Last error message: '%s'"%msg, level=0)
 
     return data
 

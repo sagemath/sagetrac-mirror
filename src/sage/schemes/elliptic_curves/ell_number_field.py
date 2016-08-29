@@ -91,7 +91,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
+from sage.misc.all import cached_method, forall, prod, union, flatten
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -461,6 +461,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``splitting_field`` method, moved from ``gal_reps.py``, make
           it work over number fields.
         """
+        from sage.misc.verbose import verbose
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be a prime number")

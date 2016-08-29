@@ -22,7 +22,8 @@ from __future__ import absolute_import
 
 
 from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
-from sage.misc.all import prod, verbose
+from sage.misc.all import prod
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from .constructor                 import ModularForms

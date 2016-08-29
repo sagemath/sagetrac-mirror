@@ -8,7 +8,8 @@ Linbox interface
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
-from sage.misc.misc import verbose, get_verbose, cputime, UNAME
+from sage.misc.misc import cputime, UNAME
+from sage.misc.verbose import verbose, get_verbose
 
 ##########################################################################
 ## Sparse matrices modulo p.

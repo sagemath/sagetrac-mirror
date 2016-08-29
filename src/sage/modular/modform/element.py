@@ -24,7 +24,7 @@ from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias

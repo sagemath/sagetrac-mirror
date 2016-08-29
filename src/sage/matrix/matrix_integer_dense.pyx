@@ -61,7 +61,8 @@ include "sage/ext/cdefs.pxi"
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
-from sage.misc.misc import verbose, get_verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose, get_verbose
 
 from sage.arith.all import previous_prime
 from sage.structure.element cimport Element, generic_power_c

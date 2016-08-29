@@ -1433,6 +1433,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
             sage: H = End(P)

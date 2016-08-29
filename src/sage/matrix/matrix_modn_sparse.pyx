@@ -86,8 +86,6 @@ cimport matrix_sparse
 cimport matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
-from sage.misc.misc import verbose, get_verbose
-
 import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
@@ -471,6 +469,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         TODO: Implement switching to a dense method when the matrix gets
         dense.
         """
+        from sage.misc.verbose import verbose, get_verbose
         x = self.fetch('in_echelon_form')
         if not x is None and x: return  # already known to be in echelon form
         self.check_mutability()

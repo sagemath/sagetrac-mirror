@@ -48,12 +48,14 @@ def sparse_2term_quotient_only_pm1(rels, n):
         sage: sparse_2term_quotient_only_pm1(rels, n)
         [(3, -1), (3, -1), (3, -1), (3, 1), (5, 1), (5, 1)]
     """
+    from sage.misc.verbose import verbose
+
     if not isinstance(rels, set):
         raise TypeError("rels must be a set")
 
     n = int(n)
 
-    tm = misc.verbose("Starting optimized integer sparse 2-term quotient...")
+    tm = verbose("Starting optimized integer sparse 2-term quotient...")
 
     cdef int c0, c1, i, die
     free = range(n)
@@ -102,6 +104,6 @@ def sparse_2term_quotient_only_pm1(rels, n):
     # without this special case.)
     mod = [(free[i], Rational(coef[i])) for i in range(len(free))]
 
-    misc.verbose("finished",tm)
+    verbose("finished",tm)
     return mod
 

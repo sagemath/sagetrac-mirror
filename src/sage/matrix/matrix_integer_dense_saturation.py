@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from sage.rings.all import ZZ, GF
 from sage.arith.all import binomial, gcd
 from sage.matrix.constructor import identity_matrix, random_matrix
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.randstate import current_randstate
 from . import matrix_integer_dense_hnf
 from copy import copy

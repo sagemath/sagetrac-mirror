@@ -40,7 +40,6 @@ from __future__ import absolute_import
 #########################################################################
 
 from sage.rings.all import Integer
-from sage.misc.all import verbose
 from sage.matrix.all import Matrix
 
 from .submodule import ModularFormsSubmodule
@@ -84,6 +83,7 @@ class CuspidalSubmodule(ModularFormsSubmodule):
             sage: S == loads(dumps(S))
             True
         """
+        from sage.misc.verbose import verbose
         verbose('creating cuspidal submodule of %s'%ambient_space)
         d = ambient_space._dim_cuspidal()
         V = ambient_space.module()

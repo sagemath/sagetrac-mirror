@@ -2806,7 +2806,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         Examples::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^3-2*x*y^2 + 2*y^3, y^3])
@@ -2817,7 +2817,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([2*x^2-y^2, x*y])
@@ -2883,7 +2884,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         Examples::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^3-2*x*y^2 + 2*y^3, y^3])
@@ -2895,7 +2897,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([2*x^2-y^2, x*y])
@@ -3162,7 +3165,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2-x*y+y^2, x^2-y^2+x*y])
@@ -3214,7 +3218,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: H = End(P)
             sage: f = H([x^2+y^2,y^2])
@@ -3358,7 +3363,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: z = QQ['z'].0
             sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
             sage: P.<x,y> = ProjectiveSpace(K,1)
@@ -3498,7 +3504,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: z = QQ['z'].0
             sage: K = NumberField(z^4 - 4*z^2 + 1,'z')
             sage: P.<x,y> = ProjectiveSpace(K,1)
@@ -4739,7 +4746,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: H = End(P)
             sage: f = H([x^2 + x*y,y^2])
@@ -5264,13 +5272,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<a> = NumberField(t^2+1)
             sage: f.indeterminacy_points(F=K)
             [(-a : 1 : 0), (0 : 0 : 1), (a : 1 : 0)]
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: f.indeterminacy_points(F=QQbar)
             [(-1*I : 1 : 0), (0 : 0 : 1), (1*I : 1 : 0)]
 
         ::
 
-            sage: set_verbose(None)
+            sage: set_verbose(-1)
             sage: K.<t>=FunctionField(QQ)
             sage: P.<x,y,z>=ProjectiveSpace(K,2)
             sage: H=End(P)
@@ -5280,7 +5289,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: P.<x,y,z>=ProjectiveSpace(Qp(3),2)
             sage: H=End(P)
             sage: f=H([x^2-7*y^2,y^2-z^2,x^2-7*z^2])

@@ -155,7 +155,7 @@ from __future__ import absolute_import
 
 import os
 from .expect import Expect, ExpectElement
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 class Octave(Expect):
     r"""

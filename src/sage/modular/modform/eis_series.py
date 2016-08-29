@@ -218,6 +218,8 @@ def __find_eisen_chars(character, k):
         ((-1, 1), (1, 1), 9),
         ((-1, -1), (1, -1), 1)]
     """
+    from sage.misc.verbose import verbose
+
     N = character.modulus()
     if character.is_trivial():
         if k%2 != 0:
@@ -268,11 +270,11 @@ def __find_eisen_chars(character, k):
         else:
             C[m] = [e]
 
-    misc.verbose("Enumeration with conductors.",t0)
+    verbose("Enumeration with conductors.",t0)
 
     params = []
     for L in divisors(N):
-        misc.verbose("divisor %s"%L)
+        verbose("divisor %s"%L)
         if L not in C:
             continue
         GL = C[L]

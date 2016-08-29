@@ -2768,7 +2768,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: PS.<x,y,z,w> = ProjectiveSpace(ZZ, 3)
             sage: H = End(PS)
             sage: f = H([y^2, x^2, w^2, z^2])
@@ -2803,6 +2804,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1)
             sage: PS.<x,y,z> = ProjectiveSpace(Qp(3), 2)
             sage: H = End(PS)

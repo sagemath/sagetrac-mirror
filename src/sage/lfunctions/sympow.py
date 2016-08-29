@@ -51,7 +51,7 @@ from __future__ import print_function, absolute_import
 import os
 
 from sage.structure.sage_object import SageObject
-from sage.misc.all import pager, verbose
+from sage.misc.all import pager
 import sage.rings.all
 
 class Sympow(SageObject):
@@ -76,6 +76,7 @@ class Sympow(SageObject):
         """
         Used to call sympow with given args
         """
+        from sage.misc.verbose import verbose
         cmd = 'sympow %s'%args
         v = os.popen(cmd).read().strip()
         verbose(v, level=2)

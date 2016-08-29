@@ -1829,7 +1829,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ, 6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1 + \
@@ -1842,7 +1843,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Call-Silverman Example::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2, 2], QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + \
             3*x0*x1*y0*y1 - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 \
@@ -1893,7 +1895,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ, 6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1\
@@ -1906,7 +1909,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Call-Silverman example::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2, 2], QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 +\
              3*x0*x1*y0*y1 - 2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 - \
@@ -1955,7 +1959,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         EXAMPLES::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: R.<x0,x1,x2,y0,y1,y2> = PolynomialRing(QQ, 6)
             sage: L =  (-y0 - y1)*x0 + (-y0*x1 - y2*x2)
             sage: Q = (-y2*y0 - y1^2)*x0^2 + ((-y0^2 - y2*y0 + (-y2*y1 - y2^2))*x1 + \
@@ -1968,7 +1973,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         Call-Silverman example::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: PP.<x0,x1,x2,y0,y1,y2> = ProductProjectiveSpaces([2, 2], QQ)
             sage: Z = x0^2*y0^2 + 3*x0*x1*y0^2 + x1^2*y0^2 + 4*x0^2*y0*y1 + 3*x0*x1*y0*y1 - \
             2*x2^2*y0*y1 - x0^2*y1^2 + 2*x1^2*y1^2 - x0*x2*y1^2 - 4*x1*x2*y1^2 + 5*x0*x2*y0*y2 \
