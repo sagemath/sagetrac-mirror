@@ -410,7 +410,7 @@ class Dokchitser(SageObject):
         elif 'Warning' in z:
             i = z.rfind('\n')
             msg = z[:i].replace('digits','decimal digits')
-            verbose(msg, level=-1)
+            verbose(msg, level=0)
             ans = self.__to_CC(z[i+1:])
             self.__values[s] = ans
             return ans
@@ -444,7 +444,7 @@ class Dokchitser(SageObject):
         elif 'Warning' in z:
             i = z.rfind('\n')
             msg = z[:i].replace('digits','decimal digits')
-            verbose(msg, level=-1)
+            verbose(msg, level=0)
             return self.__CC(z[i:])
         return self.__CC(z)
 
@@ -505,7 +505,7 @@ class Dokchitser(SageObject):
         elif 'Warning' in r:
             i = r.rfind('\n')
             msg = r[:i].replace('digits','decimal digits')
-            verbose(msg, level=-1)
+            verbose(msg, level=0)
         v = list(z)
         K = self.__CC
         v = [K(repr(x)) for x in v]
