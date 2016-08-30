@@ -85,6 +85,12 @@ class HeckeCharacter(DualAbelianGroupElement):
             return DualAbelianGroupElement.__call__(self, R(g))
         return self.parent().base_ring().zero()
 
+    def __mul__(self, right):
+        if self.parent() is right.parent():
+            return DualAbelianGroupElement._mul_(self, right)
+        m = self.modulus().lcm(right.modulus())
+        return self.extend(m) * right.extend(m)
+
     def _log_values_on_gens(self):
         r"""
         Returns a tuple of integers `(a_j)` such that the value of this character on the jth
@@ -149,16 +155,55 @@ class HeckeCharacter(DualAbelianGroupElement):
         return self.conductor() == self.modulus()
 
     def primitive_character(self):
-        #cond = self.conductor()
-        #if cond == self.modulus():
-        #    return self
-        #R = nf_ray_class_group(cond.number_field(), cond)
-        raise NotImplementedError
+        """
+        Return the associated primitive character.
+
+        Examples:
+
+        An example.
+
+        ::
+
+            sage: F.<a> = QuadraticField(13)
+            sage: H = HeckeCharacterGroup(F.ideal(-1/2*a + 7/2).modulus([0, 1]))
+            sage: chi = H.gen()
+            sage: chi.conductor()
+            (Fractional ideal (-1/2*a + 1/2)) * infinity_0
+            sage: chi0 = chi.primitive_character()
+            sage: chi0.conductor()
+            (Fractional ideal (-1/2*a + 1/2)) * infinity_0
+            sage: chi0.parent()
+            Group of finite order Hecke characters modulo (Fractional ideal (-1/2*a + 1/2)) * infinity_0
+        """
+        cond = self.conductor()
+        if cond == self.modulus():
+            return self
+        F = cond.number_field()
+        #R = F.ray_class_group(cond)
+        H = HeckeCharacterGroup(cond)
+        Rgens = [cond.equivalent_ideal_coprime_to_other(I, self.modulus()) for I in H.ray_class_gens()]
+        return H.element_from_values_on_gens([self(I) for I in Rgens])
 
     def extend(self, m):
-        if isinstance(m, HeckeCharacterGroup_class):
-            pass
-        raise NotImplementedError
+        """
+        EXAMPLES:
+
+        An example.
+
+        ::
+
+            sage: F.<a> = QuadraticField(13)
+            sage: H = HeckeCharacterGroup(F.ideal(-1/2*a + 1/2).modulus([0]))
+            sage: m_big = F.ideal(-1/2*a + 7/2).modulus([0, 1])
+            sage: chi = H.gen().extend(m_big)
+            sage: chi.parent()
+            Group of finite order Hecke characters modulo (Fractional ideal (-1/2*a + 7/2)) * infinity_0 * infinity_1
+            sage: chi.exponents()
+            (1,)
+        """
+        if not isinstance(m, HeckeCharacterGroup_class):
+            m = HeckeCharacterGroup(m)
+        return m.element_from_values_on_gens([self(I) for I in m.ray_class_gens()])
 
     def analytic_conductor(self):
         N = self.conductor().finite_part().norm()
@@ -179,7 +224,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
     def Lfunction(self, prec=53):
         r"""
-        Return
+        Return this character's L-function.
 
         EXAMPLES:
 
@@ -189,7 +234,8 @@ class HeckeCharacter(DualAbelianGroupElement):
             sage: mf = F.modulus(F.ideal(4), [0, 1])
             sage: H = HeckeCharacterGroup(mf)
             sage: chi = H.gens()[1]
-            sage: L = chi.Lfunction()
+            sage: L = chi.Lfunction(); L
+            Hecke L-function of chi1
             sage: [L(-n) for n in range(3)]
             [1.00000000000000, 0.000000000000000, 15.0000000000000]
         """
@@ -197,8 +243,21 @@ class HeckeCharacter(DualAbelianGroupElement):
         gamma_factors = [0] * self.parent().number_field().degree()
         for i in self.conductor().infinite_part():
             gamma_factors[i] = 1
-        L = Dokchitser(self.analytic_conductor(), gamma_factors, 1, self.root_number())
-        L.init_coeffs(self.dirichlet_series_coefficients(L.num_coeffs()))
+        ana_cond = self.analytic_conductor()
+        rn = self.root_number()
+        it_worked = False
+        number_of_allocs = 0
+        while not it_worked:
+            #Sage automatically ups the memory allocation, but this messes with L.num_coeffs for some reason I have yet to figure out, so L needs to be remade completely every time memory is auto-allocated.
+            L = Dokchitser(ana_cond, gamma_factors, 1, rn, prec=prec)
+            for n in range(number_of_allocs):
+                L.gp().eval('allocatemem()')
+            try:
+                L.init_coeffs(self.dirichlet_series_coefficients(L.num_coeffs()))
+                it_worked = True
+            except RuntimeError:
+                number_of_allocs += 1
+        L.rename('Hecke L-function of %s'%(self))
         return L
 
 class HeckeCharacterGroup_class(DualAbelianGroup_class):
@@ -233,6 +292,9 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
 
     def number_field(self):
         return self.group().number_field()
+
+    def ray_class_gens(self):
+        return self.group().gens_ideals()
 
     def element_from_values_on_gens(self, vals):
         gens_orders = self.gens_orders()

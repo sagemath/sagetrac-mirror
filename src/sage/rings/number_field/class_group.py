@@ -185,14 +185,14 @@ class Modulus(SageObject):
         INPUT:
 
         - ``finite`` -- a non-zero fractional ideal in a number field.
-        - ``infinite`` -- a list of indices corresponding to real places of the number field.
-        - ``check`` (default: True) -- If ``True``, run a few checks on the input
+        - ``infinite`` -- a list of indices corresponding to real places of the number field, sorted.
+        - ``check`` (default: True) -- If ``True``, run a few checks on the input.
         """
         self._finite = finite
         if infinite is None:
             infinite = []
-        else:
-            infinite.sort()
+        #else:
+        #    infinite.sort()
         self._infinite = tuple(ZZ(i) for i in infinite)
         K = self._finite.number_field()
         self._number_field = K
@@ -252,8 +252,33 @@ class Modulus(SageObject):
             sage: _ == m2 * m1
             True
         """
-        inf = list(set(self.infinite_part()).symmetric_difference(other.infinite_part()))
+        inf = tuple(set(self.infinite_part()).symmetric_difference(other.infinite_part()))
         return Modulus(self.finite_part() * other.finite_part(), inf, check=False)
+
+    def lcm(self, other):
+        inf = tuple(set(self.infinite_part()).union(other.infinite_part()))
+        #Pe_out = []
+        self_fact_P, self_fact_e = zip(*self.finite_part().factor())
+        self_fact_P = list(self_fact_P)
+        self_fact_e = list(self_fact_e)
+        #self_facts = self.finite_part().factor()
+        #of = other.finite_part()
+        other_facts = other.finite_part().factor()
+        mf = self._number_field.ideal_monoid().one()
+        for P, e in other_facts:
+            try:
+                i = self_fact_P.index(P)
+            except ValueError:
+                #Pe_out.append([P, e])
+                mf *= P**e
+                continue
+            #Pe_out.append([P, max(e, self_fact_e[i])])
+            mf *= P**max(e, self_fact_e[i])
+            del self_fact_P[i]
+            del self_fact_e[i]
+        for i in range(len(self_fact_P)):
+            mf *= self_fact_P[i]**self_fact_e[i]
+        return Modulus(mf, inf, check=False)
 
     def divides(self, other):
         if not set(self.infinite_part()).issubset(other.infinite_part()):
@@ -273,8 +298,72 @@ class Modulus(SageObject):
         try:
             return self._finite_factors
         except AttributeError:
-            self._finite_factors = m.finite_part().factor()
+            self._finite_factors = self.finite_part().factor()
             return self._finite_factors
+
+    #def _pari_finite_factors(self):
+    #    """
+    #    Return
+    #    """
+    #    return self._number_field.pari_nf().idealfactor(self._finite)
+
+    def equivalent_coprime_ideal_multiplier(self, I, other):
+        r"""
+        Given ``I`` coprime to this modulus `m`, return a number field element `\beta`
+        such that `\beta I` is coprime to the modulus ``other`` and equivalent to
+        ``I`` `\mathrm{mod}^\ast m`; in particular, `\beta` will be `1 \mathrm{mod}^\ast m`.
+
+        EXAMPLES:
+
+        An example with two prime factors difference between this modulus and ``other``.
+
+        ::
+
+            sage: F.<a> = QuadraticField(5)
+            sage: m_small = F.modulus(3/2*a - 1/2, [0, 1])
+            sage: m_big = F.modulus(2*a - 30, [0, 1])
+            sage: m_small.equivalent_coprime_ideal_multiplier(F.ideal(6), m_big)
+            2071/2*a + 4142
+        """
+        F = self._number_field
+        other_Ps = [P for P, _ in other.finite_factors() if self._finite.valuation(P) == 0]
+        if len(other_Ps) == 0: #If prime factors of other is a subset of prime factors of this modulus
+            return F.one()
+        alpha = I.idealcoprime(other._finite)
+        if self.number_is_one_mod_star(alpha):
+            return alpha
+        nf = F.pari_nf()
+        other_Ps_facts = [nf.idealfactor(P) for P in other_Ps]
+        other_Ps_fact_mat = pari(other_Ps_facts).Col().matconcat()
+        self_fact_mat = nf.idealfactor(self.finite_part())
+        x = pari([self_fact_mat, other_Ps_fact_mat]).Col().matconcat()
+        conditions = [~alpha] * self_fact_mat.nrows() + [1] * len(other_Ps)
+        gamma = F(nf.idealchinese(x, conditions))
+        beta = alpha * gamma
+        if self.number_is_one_mod_star(beta):
+            return beta
+        from sage.misc.misc_c import prod
+        beta_fixed = F.modulus(self._finite * prod(other_Ps), self._infinite).fix_signs(beta) #should be able to do this more efficiently
+        return beta_fixed
+
+    def equivalent_ideal_coprime_to_other(self, I, other):
+        """
+        Given ``I`` coprime to this modulus `m`, return an ideal `J` such that `J` is coprime
+        to the modulus ``other`` and equivalent to ``I`` `\mathrm{mod}^\ast m`.
+
+        This is useful for lowering the level of a non-primitive Hecke character.
+
+        INPUT:
+
+        - ``I`` -- an ideal relatively prime to this modulus (this is not checked).
+        - ``other`` -- some other modulus.
+
+        OUTPUT:
+
+        - an ideal coprime to ``other`` and equivalent to ``I`` in the ray class
+        group modulo this modulus.
+        """
+        return self.equivalent_coprime_ideal_multiplier(I, other) * I
 
     def number_is_one_mod_star(self, a):
         K = self.number_field()
@@ -284,7 +373,7 @@ class Modulus(SageObject):
                 return False
         inf_places = K.places()
         for i in self.infinite_part():
-            if inf_places[i](am1) <= 0:
+            if inf_places[i](a) <= 0:
                 return False
         return True
 
@@ -382,7 +471,7 @@ class Modulus(SageObject):
 
         EXAMPLES:
 
-        An example where the places in Sage and pari are in a different order
+        An example where the places in Sage and pari are in a different order.
 
         ::
 
