@@ -43,9 +43,9 @@ be used as follows::
     sage: from sage.misc.verbose import verbose, set_verbose, get_verbose
     sage: set_verbose(1)
     sage: t = verbose("This is SageMath.", level=0)
-    WARNING:?:This is SageMath.
+    WARNING:root:This is SageMath.
     sage: t = verbose("This is SageMath.", level=1)
-    INFO:?:This is SageMath.
+    INFO:root:This is SageMath.
     sage: t = verbose("This is SageMath.", level=2)
 
 
@@ -226,7 +226,7 @@ def verbose(mesg="", t=None, level=1, caller_name=None, **kwds):
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
         if module is None:
-            caller_name = '?'
+            caller_name = None
         else:
             caller_name = module.__name__
 
@@ -257,11 +257,11 @@ def set_verbose(level):
         sage: from sage.misc.verbose import verbose, set_verbose, get_verbose
         sage: set_verbose(2)
         sage: t = verbose("This is SageMath.", level=0)
-        WARNING:?:This is SageMath.
+        WARNING:root:This is SageMath.
         sage: t = verbose("This is SageMath.", level=1)
-        INFO:?:This is SageMath.
+        INFO:root:This is SageMath.
         sage: t = verbose("This is SageMath.", level=2)
-        DEBUG:?:This is SageMath.
+        DEBUG:root:This is SageMath.
         sage: t = verbose("This is Sage.", level=3)
         sage: set_verbose(0)
     """
