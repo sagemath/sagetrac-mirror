@@ -443,17 +443,8 @@ class GraphPlot(SageObject):
 
         if not isinstance(vertex_colors, dict):
             voptions['facecolor'] = vertex_colors
-            if self._arcdigraph:
-                self._plot_components['vertices'] = [circle(center,
-                                                            self._vertex_radius,
-                                                            fill=True,
-                                                            facecolor=vertex_colors,
-                                                            edgecolor='black',
-                                                            clip=False)
-                                                     for center in self._pos.values()]
-            else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
-                                                                 clip=False, **voptions)
+            self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                                                             clip=False, **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -468,18 +459,9 @@ class GraphPlot(SageObject):
                 pos += leftovers
                 colors += [vertex_color]*len(leftovers)
 
-            if self._arcdigraph:
-                self._plot_components['vertices'] = [circle(pos[i],
-                                                            self._vertex_radius,
-                                                            fill=True,
-                                                            facecolor=colors[i],
-                                                            edgecolor='black',
-                                                            clip=False)
-                                                     for i in range(len(pos))]
-            else:
-                self._plot_components['vertices'] = scatter_plot(pos,
-                                                                 facecolor=colors,
-                                                                 clip=False, **voptions)
+            self._plot_components['vertices'] = scatter_plot(pos,
+                                                             facecolor=colors,
+                                                             clip=False, **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []
