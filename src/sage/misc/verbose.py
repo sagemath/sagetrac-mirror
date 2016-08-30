@@ -33,6 +33,35 @@ more features, see
 :python:`Logging facility for Python<library/logging.html>`.
 
 
+More Advanced
+^^^^^^^^^^^^^
+
+Say, one wants to suppress the warnings in the following example::
+
+    sage: R.<x,y> = CC[]
+    sage: I = ideal([x^2+y^2-1,x*y-1])
+    sage: I.variety()
+    WARNING:...multi_polynomial_ideal:Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
+    WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+    [{y: -0.86602540378443... - 0.500000000000000*I}, ...]
+
+Simply get the corresponding logger and disable it::
+
+    sage: logger = logging.getLogger('sage.rings.polynomial.multi_polynomial_ideal')
+    sage: logger.disabled = True
+
+Then::
+
+    sage: R.<x,y> = CC[]
+    sage: I = ideal([x^2+y^2-1,x*y-1])
+    sage: I.variety()
+    [{y: -0.866025403784439 - 0.500000000000000*I}, ...]
+
+Reset the suppression::
+
+    sage: logger.disabled = False
+
+
 Using SageMath's Verbosity System
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
