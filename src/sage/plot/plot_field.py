@@ -122,9 +122,11 @@ class PlotField(GraphicPrimitive):
 
             sage: x,y=var('x,y')
             sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
+            sage: import logging
+            sage: logging.basicConfig()
             sage: P[0].options()['plot_points']
-            verbose 0 (...: primitive.py, options) WARNING: Ignoring option 'wrong_option'=nonsense
-            verbose 0 (...: primitive.py, options)
+            WARNING:sage.plot.primitive:WARNING: Ignoring option 'wrong_option'=nonsense
+            WARNING:sage.plot.primitive:
             The allowed options for PlotField defined by a 20 x 20 vector grid are:
                 color          The color of the arrows
                 headaxislength head length at shaft intersection, default is 4.5

@@ -899,8 +899,10 @@ class ModularForm_abstract(ModuleElement):
             sage: K = F.hecke_eigenvalue_field()
             sage: phi = K.embeddings(RR)[0]
             sage: L = F.symsquare_lseries(embedding=phi)
+            sage: import logging
+            sage: logging.basicConfig()
             sage: L(5)
-            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            WARNING:...dokchitser:Warning: Loss of 8 decimal digits due to cancellation
             -3.57698266793901e19
 
         TESTS::
@@ -1004,12 +1006,14 @@ class ModularForm_abstract(ModuleElement):
         EXAMPLE::
 
             sage: CuspForms(1, 16).0.petersson_norm()
-            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            WARNING:...dokchitser:Warning: Loss of 2 decimal digits due to cancellation
             2.16906134759063e-6
 
         The Petersson norm depends on a choice of embedding::
 
-            sage: set_verbose(-2, "dokchitser.py") # disable precision-loss warnings
+            sage: import logging
+            sage: logger = logging.getLogger('sage.lfunctions.dokchitser')
+            sage: logger.disabled = True  # disable precision-loss warnings
             sage: F = Newforms(1, 24, names='a')[0]
             sage: F.petersson_norm(embedding=0)
             0.000107836545077234
@@ -2230,3 +2234,13 @@ class EisensteinSeries(ModularFormElement):
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
             return factor(self.__t)[0][0]
         return self.L()*self.M()
+
+r"""
+TESTS:
+
+Reset logging::
+
+    sage: import logging
+    sage: logger = logging.getLogger('sage.lfunctions.dokchitser')
+    sage: logger.disabled = False
+"""

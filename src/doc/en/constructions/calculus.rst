@@ -180,6 +180,7 @@ where :math:`f(x)=1`, :math:`0<x<1`:
     sage: f = piecewise([((0,1),1*x^0)])
     sage: g = f.convolution(f)
     sage: h = f.convolution(g)
+    sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(-1)
     sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
 

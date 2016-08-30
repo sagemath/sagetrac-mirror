@@ -3335,15 +3335,17 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
+            sage: import logging
+            sage: logging.basicConfig()
             sage: D = A.right_kernel(); D
-            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
+            INFO:root:computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
             [   1    0    1  1/2 -1/2]
             [   0    1 -1/2 -1/4 -1/4]
             sage: S = B.right_kernel(); S
-            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
+            INFO:root:computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
@@ -3401,9 +3403,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = matrix(Q, [[2, 5-a, 15-a, 16+4*a],[2+a, a, -7 + 5*a, -3+3*a]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default')
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over a number field for 2x4 matrix
-            verbose 1 (<module>) done computing right kernel matrix over a number field for 2x4 matrix
+            INFO:...
+            INFO:root:computing right kernel matrix over a number field for 2x4 matrix
+            INFO:root:done computing right kernel matrix over a number field for 2x4 matrix
             ...
             Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
             Basis matrix:
@@ -3464,9 +3466,9 @@ cdef class Matrix(matrix1.Matrix):
             ...                     [1, 0, 0, 0, 1, 1]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default')
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over integers mod 2 for 3x6 matrix
-            verbose 1 (<module>) done computing right kernel matrix over integers mod 2 for 3x6 matrix
+            INFO:...
+            INFO:root:computing right kernel matrix over integers mod 2 for 3x6 matrix
+            INFO:root:done computing right kernel matrix over integers mod 2 for 3x6 matrix
             ...
             Vector space of degree 6 and dimension 4 over Finite Field of size 2
             Basis matrix:
@@ -3527,8 +3529,8 @@ cdef class Matrix(matrix1.Matrix):
             ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default')
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over an arbitrary field for 3x4 matrix
+            INFO:...
+            INFO:root:computing right kernel matrix over an arbitrary field for 3x4 matrix
             ...
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             Basis matrix:
@@ -3591,10 +3593,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
-            verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            INFO:root:computing a right kernel for 4x7 matrix over Integer Ring
+            INFO:root:computing right kernel matrix over the integers for 4x7 matrix
             ...
-            verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
+            INFO:root:done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
             Echelon basis matrix:
@@ -3602,10 +3604,10 @@ cdef class Matrix(matrix1.Matrix):
             [  0  35   0  25  -1 -31  17]
             [  0   0   7  12  -3  -1  -8]
             sage: S = B.right_kernel(); S
-            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
-            verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            INFO:root:computing a right kernel for 4x7 matrix over Integer Ring
+            INFO:root:computing right kernel matrix over the integers for 4x7 matrix
             ...
-            verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
+            INFO:root:done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
             Echelon basis matrix:
@@ -3650,9 +3652,9 @@ cdef class Matrix(matrix1.Matrix):
             ...                  [y^3, y^2, 2*y^3]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default', basis='echelon')
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over a domain for 2x3 matrix
-            verbose 1 (<module>) done computing right kernel matrix over a domain for 2x3 matrix
+            INFO:...
+            INFO:root:computing right kernel matrix over a domain for 2x3 matrix
+            INFO:root:done computing right kernel matrix over a domain for 2x3 matrix
             ...
             Free module of degree 3 and rank 1 over Univariate Polynomial Ring in y over Rational Field
             Echelon basis matrix:

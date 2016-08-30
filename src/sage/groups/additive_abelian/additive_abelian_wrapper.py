@@ -30,11 +30,13 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
 We check that ridiculous operations are being avoided::
 
     sage: from sage.misc.verbose import set_verbose
-    sage: set_verbose(2, 'additive_abelian_wrapper.py')
+    sage: set_verbose(2)
+    sage: import logging
+    sage: logging.basicConfig()
     sage: 300001 * M.0
-    verbose 1 (...: additive_abelian_wrapper.py, _discrete_exp) Calling discrete exp on (1, 0, 0)
+    INFO:...additive_abelian_wrapper:Calling discrete exp on (1, 0, 0)
     (4 : -7 : 1)
-    sage: set_verbose(0, 'additive_abelian_wrapper.py')
+    sage: set_verbose(0)
 
 
 TODO:

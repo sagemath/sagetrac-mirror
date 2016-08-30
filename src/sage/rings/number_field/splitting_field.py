@@ -216,22 +216,24 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
 
         sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
+        sage: import logging
+        sage: logging.basicConfig()
         sage: K.<a> = (x^3 - x + 1).splitting_field()
-        verbose 1 (...: splitting_field.py, splitting_field) Starting field: y
-        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to factor: [(3, 0)]
-        verbose 2 (...: splitting_field.py, splitting_field) Done factoring (time = ...)
-        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to handle: [(2, 2), (3, 3)]
-        verbose 1 (...: splitting_field.py, splitting_field) Bounds for absolute degree: [6, 6]
-        verbose 2 (...: splitting_field.py, splitting_field) Handling polynomial x^2 + 23
-        verbose 1 (...: splitting_field.py, splitting_field) New field before simplifying: x^2 + 23 (time = ...)
-        verbose 1 (...: splitting_field.py, splitting_field) New field: y^2 - y + 6 (time = ...)
-        verbose 2 (...: splitting_field.py, splitting_field) Converted polynomials to new field (time = ...)
-        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to factor: []
-        verbose 2 (...: splitting_field.py, splitting_field) Done factoring (time = ...)
-        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to handle: [(3, 3)]
-        verbose 1 (...: splitting_field.py, splitting_field) Bounds for absolute degree: [6, 6]
-        verbose 2 (...: splitting_field.py, splitting_field) Handling polynomial x^3 - x + 1
-        verbose 1 (...: splitting_field.py, splitting_field) New field: y^6 + 3*y^5 + 19*y^4 + 35*y^3 + 127*y^2 + 73*y + 271 (time = ...)
+         INFO:...splitting_field:Starting field: y
+         INFO:...splitting_field:SplittingData to factor: [(3, 0)]
+        DEBUG:...splitting_field:Done factoring (time = ...)
+         INFO:...splitting_field:SplittingData to handle: [(2, 2), (3, 3)]
+         INFO:...splitting_field:Bounds for absolute degree: [6, 6]
+        DEBUG:...splitting_field:Handling polynomial x^2 + 23
+         INFO:...splitting_field:New field before simplifying: x^2 + 23 (time = ...)
+         INFO:...splitting_field:New field: y^2 - y + 6 (time = ...)
+        DEBUG:...splitting_field:Converted polynomials to new field (time = ...)
+         INFO:...splitting_field:SplittingData to factor: []
+        DEBUG:...splitting_field:Done factoring (time = ...)
+         INFO:...splitting_field:SplittingData to handle: [(3, 3)]
+         INFO:...splitting_field:Bounds for absolute degree: [6, 6]
+        DEBUG:...splitting_field:Handling polynomial x^3 - x + 1
+         INFO:...splitting_field:New field: y^6 + 3*y^5 + 19*y^4 + 35*y^3 + 127*y^2 + 73*y + 271 (time = ...)
         sage: set_verbose(0)
 
     Try all Galois groups in degree 4. We use a quadratic base field

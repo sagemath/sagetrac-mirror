@@ -86,7 +86,7 @@ def siegel_product(self, u):
     ## DIAGNOSTIC
     verbose("n = " + str(n))
     verbose("d = " + str(d))
-    verbose("In siegel_product:  d = ", d, "\n");
+    verbose("In siegel_product:  d = " + str(d) + "\n");
 
 
     ## Product of "bad" places to omit
@@ -94,7 +94,7 @@ def siegel_product(self, u):
 
     ## DIAGNOSTIC
     verbose("siegel_product Break 1. \n")
-    verbose(" u = ", u, "\n")
+    verbose(" u = " + str(u) + "\n")
 
 
     ## Make the odd generic factors

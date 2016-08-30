@@ -864,6 +864,14 @@ See also methods :meth:`Automaton.process` and
 :class:`FSMProcessIterator` for more information on processing and
 hooks.
 
+Various
+=======
+
+Activate Python's logging module for this file::
+
+    sage: import logging
+    sage: logging.basicConfig()
+
 REFERENCES:
 
 .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut Prodinger,
@@ -9029,12 +9037,11 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: C = Transducer([(0,1,0,0)])
             sage: C.prepone_output()
-            verbose 0 (...: finite_state_machine.py, prepone_output)
-            All transitions leaving state 0 have an output label with
-            prefix 0.  However, there is no inbound transition and it
-            is not an initial state. This routine (possibly called by
-            simplification) therefore erased this prefix from all
-            outbound transitions.
+            WARNING:...finite_state_machine:All transitions leaving state 0
+            have an output label with prefix 0. However, there is
+            no inbound transition and it is not an initial state.
+            This routine (possibly called by simplification) therefore
+            erased this prefix from all outbound transitions.
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
 
@@ -10264,7 +10271,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
                 ....:                initial_states=[0], final_states=[0, 1])
                 sage: moments = T.asymptotic_moments()
-                verbose 0 (...) Non-integer output weights lead to
+                WARNING:...finite_state_machine:Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
                 1/4*(a_1 + a_2 + a_3 + a_4)*n + Order(1)
@@ -10433,7 +10440,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
                 ....:                initial_states=[0], final_states=[0])
                 sage: moments = T.asymptotic_moments()
-                verbose 0 (...) Non-integer output weights lead to
+                WARNING:...finite_state_machine:Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
                 -1/4*n + Order(1)
@@ -10445,7 +10452,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
 
                 sage: from sage.misc.verbose import set_verbose
-                sage: set_verbose(-1, "finite_state_machine.py")
+                sage: set_verbose(-1)
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']
                 -1/4*n + Order(1)
@@ -10453,7 +10460,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 1/16*n + Order(1)
                 sage: moments['covariance']
                 -1/8*n + Order(1)
-                sage: set_verbose(0, "finite_state_machine.py")
+                sage: set_verbose(0)
 
         #.  Check whether ``word_out`` of ``FSMState`` are correctly
             dealt with::
@@ -10476,7 +10483,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 sage: T = Transducer([(s, s, 0, 1/2)],
                 ....:                initial_states=[s], final_states=[s])
                 sage: T.asymptotic_moments()['expectation']
-                verbose 0 (...) Non-integer output weights lead to
+                WARNING:...finite_state_machine:Non-integer output weights lead to
                 significant performance degradation.
                 7/6*n + Order(1)
 

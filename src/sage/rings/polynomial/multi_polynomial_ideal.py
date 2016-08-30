@@ -1102,21 +1102,27 @@ class MPolynomialIdeal_singular_repr(
 
             sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
             sage: I = R.ideal([x*y,x*y+1])
+            sage: import logging
+            sage: logging.basicConfig()
             sage: I.dimension()
-            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...
             -1
             sage: I=ideal([x*(x*y+1),y*(x*y+1)])
             sage: I.dimension()
-            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...
             1
             sage: I = R.ideal([x^3*y,x*y^2])
             sage: I.dimension()
-            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...
             1
             sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
             sage: I = R.ideal(0)
             sage: I.dimension()
-            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...
             2
 
         ALGORITHM:
@@ -2196,8 +2202,8 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y> = CC[]
             sage: I = ideal([x^2+y^2-1,x*y-1])
             sage: I.variety()
-            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
-            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             [{y: -0.86602540378443... - 0.500000000000000*I},
              {y: -0.86602540378443... + 0.500000000000000*I},
              {y: 0.86602540378443... - 0.500000000000000*I},
@@ -2212,9 +2218,9 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
             sage: I=ideal([x^3-2*y^2,3*x+y^4])
             sage: I.variety()
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
-            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             [{y: 0, x: 0}]
 
         The dictionary expressing the variety will be indexed by generators
@@ -3282,8 +3288,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: R = PolynomialRing(QQ, names=[])
             sage: R.ideal(0) == R.ideal(0)
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             True
 
         ::
@@ -3654,7 +3660,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: R.<x,y,z> = PolynomialRing(Zmod(2233497349584))
             sage: I = R.ideal([z*(x-3*y), 3^2*x^2-y*z, z^2+y^2])
             sage: I.groebner_basis()
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             [2*z^4, y*z^2 + 81*z^3, 248166372176*z^3, 9*x^2 - y*z, y^2 + z^2, x*z +
             2233497349581*y*z, 248166372176*y*z]
 
@@ -3699,7 +3705,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: Q = QuotientRing(R,I); K = Frac(Q)
             sage: R2.<x,y> = K[]; J = R2.ideal([(a^2+b^2)*x + y, x+y])
             sage: J.groebner_basis()
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             [x + y]
 
         ALGORITHM:

@@ -295,15 +295,18 @@ def cantor_composition(D1,D2,f,h,genus):
         sage: 7*8297*Q # indirect doctest
         (1)
 
-        A test over a prime field:
+    A test over a prime field::
 
         sage: F = GF(next_prime(10^30))
         sage: x = F['x'].gen()
         sage: f = x^7 + x^2 + 1
         sage: H = HyperellipticCurve(f, 2*x); H
         Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
+        sage: import logging
+        sage: logging.basicConfig()
         sage: J = H.jacobian()(F); J
-        verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+        WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+        WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
         Set of rational points of Jacobian of Hyperelliptic Curve over
         Finite Field of size 1000000000000000000000000000057 defined
         by y^2 + 2*x*y = x^7 + x^2 + 1
