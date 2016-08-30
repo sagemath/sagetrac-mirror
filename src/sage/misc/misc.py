@@ -528,6 +528,11 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     EXAMPLES::
 
         sage: set_verbose(1)
+        doctest:warning
+        ...
+        DeprecationWarning: Using set_verbose_files of sage.misc.misc
+        is deprecated. See module sage.misc.verbose for alternatives.
+        See http://trac.sagemath.org/21349 for details.
         sage: t = cputime()
         sage: t = verbose("This is Sage.", t, level=1, caller_name="william")       # not tested
         VERBOSE1 (william): This is Sage. (time = 0.0)
@@ -596,6 +601,11 @@ def set_verbose(level, files='all'):
     EXAMPLES::
 
         sage: set_verbose(2)
+        doctest:warning
+        ...
+        DeprecationWarning: Using set_verbose of sage.misc.misc
+        is deprecated. See module sage.misc.verbose for alternatives.
+        See http://trac.sagemath.org/21349 for details.
         sage: verbose("This is Sage.", level=1)  # not tested
         VERBOSE1 (?): This is Sage.
         sage: verbose("This is Sage.", level=2)  # not tested
@@ -674,8 +684,18 @@ def get_verbose():
     EXAMPLES::
 
         sage: get_verbose()
+        doctest:warning
+        ...
+        DeprecationWarning: Using get_verbose of sage.misc.misc
+        is deprecated. See module sage.misc.verbose for alternatives.
+        See http://trac.sagemath.org/21349 for details.
         0
         sage: set_verbose(2)
+        doctest:warning
+        ...
+        DeprecationWarning: Using set_verbose of sage.misc.misc
+        is deprecated. See module sage.misc.verbose for alternatives.
+        See http://trac.sagemath.org/21349 for details.
         sage: get_verbose()
         2
         sage: set_verbose(0)
