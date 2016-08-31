@@ -1265,6 +1265,40 @@ class AbstractLinearCode(Module):
             sage: C.covering_radius()  # optional - gap_packages (Guava package)
             1
         """
+        try:
+            gap.load_package('guava')
+        except:
+            import itertools
+            F = self.base_ring()
+            Fstar = F.list()[1:]
+            n = self.length()
+            k = self.dimension()
+            q = F.cardinality()
+            syndromes = set()
+            syndromes.add(tuple(vector(F, n - k)))
+            total = (q ** (n - k) - 1) // (q - 1) + 1
+            def normalize(v):
+                for vi in v:
+                    if vi:
+                        return v / vi
+                return v
+            for weight in range(1, 2):
+                for p in range(n):
+                    c = vector(F, n)
+                    c[p] = Fstar[0]
+                    syndromes.add(tuple(normalize(self.syndrome(c))))
+                    if len(syndromes) == total:
+                        return weight
+            for weight in range(2, n):
+                for positions in itertools.combinations(range(n), weight):
+                    c = vector(F, n)
+                    c[positions[-1]] = Fstar[0]
+                    for values in itertools.product(Fstar, repeat=weight-1):
+                        for p,v in zip(positions, values):
+                            c[p] = v
+                            syndromes.add(tuple(normalize(self.syndrome(c))))
+                            if len(syndromes) == total:
+                                return weight
         F = self.base_ring()
         G = self.generator_matrix()
         gapG = gap(G)
