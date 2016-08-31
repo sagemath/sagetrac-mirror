@@ -45,6 +45,7 @@ Words
 - :ref:`sage.combinat.dyck_word`
 - :ref:`sage.combinat.debruijn_sequence`
 - :ref:`sage.combinat.shuffle`
+- :ref:`sage.combinat.bracelet`
 
 Permutations, ...
 -----------------
