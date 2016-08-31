@@ -9395,9 +9395,8 @@ cdef class Expression(CommutativeRingElement):
         ALIAS: :meth:`rational_simplify` and :meth:`simplify_rational`
         are the same
 
-        DETAILS: We call Maxima functions ratsimp, fullratsimp and
-        xthru. If each part of the expression has to be simplified
-        separately, we use Maxima function map.
+        DETAILS: We call the Maxima function ``fullratsimp`` and
+        and Pynac's ``normal``, depending on the ``algorithm`` keyword.
 
         EXAMPLES::
 
@@ -9451,9 +9450,9 @@ cdef class Expression(CommutativeRingElement):
         if algorithm == 'full':
             maxima_method = 'fullratsimp'
         elif algorithm == 'simple':
-            maxima_method = 'ratsimp'
+            return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, False))
         elif algorithm == 'noexpand':
-            maxima_method = 'xthru'
+            return new_Expression_from_GEx(self._parent, self._gobj.normal(0, True, True))
         else:
             raise NotImplementedError("unknown algorithm, see the help for available algorithms")
         P = self_m.parent()
