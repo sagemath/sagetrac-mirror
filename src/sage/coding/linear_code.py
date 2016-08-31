@@ -1257,30 +1257,233 @@ class AbstractLinearCode(Module):
         H = G.right_kernel()
         return H.basis_matrix()
 
+    def _coset_leaders(self, max_weight=None, normalized=False):
+        r"""
+        Return the list of coset leaders of ``self`` up to weight
+        ``max_weight``.
+
+        The coset leaders of a linear code ``C``are the words of minimal
+        Hamming weight for each coset.
+
+        INPUT:
+
+        - max_weight -- the maximum weight of the coset leaders we want
+        - normalized -- (default: False) if ``True``, only coset leaders with
+           last non zero coefficient equal to 1 are returned
+
+        EXAMPLES:
+
+        sage: C = codes.HammingCode(GF(3), 2)
+        sage: sorted(C._coset_leaders())
+        [(0, 0, 0, 0),
+        (0, 0, 0, 1),
+        (0, 0, 0, 2),
+        (0, 0, 1, 0),
+        (0, 0, 2, 0),
+        (0, 1, 0, 0),
+        (0, 2, 0, 0),
+        (1, 0, 0, 0),
+        (2, 0, 0, 0)]
+
+        """
+        import collections
+        H = [tuple(r) for r in self.parity_check_matrix().transpose()]
+        F = self.base_ring()
+        Fstar = [a for a in F if a]
+        q = F.cardinality()
+        n = self.length()
+        k = self.dimension()
+        A = self.ambient_space()
+        if max_weight is None:
+            max_weight = n
+        max_weight = int(max_weight)
+        def normalize(s):
+            for si in s:
+                if si:
+                    return tuple(sj / si for sj in s)
+            return tuple(s)
+        def sparse2dense_mul(v, a):
+            vv = A.zero_vector()
+            for i,ai in v:
+                vv[i] = a * ai
+            return vv
+        def my_generator(v, s):
+            up = v[0][0] if v else n
+            for i in range(up):
+                pi = zip(s, H[i])
+                for a in Fstar:
+                    vv = ((i,a),) + v
+                    ss = tuple(si + a * hi for si,hi in pi)
+                    yield (vv, ss)
+        z = tuple()
+        sz = self.syndrome(A.zero())
+        S = {normalize(sz): z}
+        generators = collections.deque([(z, sz)])
+        target_size = (q ** (n-k) - 1) // (q - 1) + 1
+        while generators:
+            g = generators.popleft()
+            for v, s in my_generator(*g):
+                syndrome = normalize(s)
+                if syndrome not in S:
+                    S[syndrome] = v
+                    if len(S) == target_size:
+                        generators.clear()
+                        break
+                    if len(v) < max_weight:
+                        generators.append((v, s))
+        S.pop(normalize(sz))
+        r = [A.zero()]
+        if normalized:
+            coeffs = [F.one()]
+        else:
+            coeffs = Fstar
+        r.extend(sparse2dense_mul(v, a) for v in S.values() for a in coeffs)
+        return r
+
     @cached_method
-    def covering_radius(self):
+    def coset_leaders(self, algorithm='sage'):
+        r"""
+        Return the list of coset leaders of ``self``.
+
+        The coset leaders of a linear code ``C``are the words of minimal
+        Hamming weight for each coset.
+
+        INPUT:
+
+        - algorithm -- 'sage' (default) or 'gap'
+
+        EXAMPLES:
+
+        sage: C = codes.HammingCode(GF(3), 2)
+        sage: CL = C.coset_leaders()
+        sage: sorted(CL)
+        [(0, 0, 0, 0),
+        (0, 0, 0, 1),
+        (0, 0, 0, 2),
+        (0, 0, 1, 0),
+        (0, 0, 2, 0),
+        (0, 1, 0, 0),
+        (0, 2, 0, 0),
+        (1, 0, 0, 0),
+        (2, 0, 0, 0)]
+
+        TESTS:
+
+        sage: C = codes.ExtendedTernaryGolayCode()
+        sage: CLsage = C.coset_leaders('sage')
+        sage: CLgap = C.coset_leaders('gap')
+        sage: len(set([tuple(C.syndrome(v)) for v in CLsage]))
+        729
+        sage: len(set([tuple(C.syndrome(v)) for v in CLgap]))
+        729
+        sage: from collections import Counter
+        sage: Counter(v.hamming_weight() for v in CLsage)
+        Counter({3: 440, 2: 264, 1: 24, 0: 1})
+        sage: Counter(v.hamming_weight() for v in CLgap)
+        Counter({3: 440, 2: 264, 1: 24, 0: 1})
+        """
+        if algorithm == 'sage':
+            return self._coset_leaders()
+        elif algorithm == 'gap':
+            F = self.base_ring()
+            A = self.ambient_space()
+            H = self.parity_check_matrix()
+            # This is slow with our wrapper!
+            # Shoud we return a gap list?
+            from sage.libs.gap.libgap import libgap
+            return [A(ti.sage()) for ti in libgap.CosetLeadersMatFFE(H, F)]
+        else:
+            raise ValueError('unknow algorithm')
+
+    @cached_method
+    def covering_radius(self, algorithm=None):
         r"""
         Return the minimimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
 
-        This method requires the optional GAP package Guava.
+        INPUT:
+
+        - ``algorithm`` -- 'guava', 'sage' or 'gap'. Default is to try the three in this order.
 
         If the covering radius a code equals its minimum distance, then the code is called perfect.
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: C = codes.HammingCode(GF(2), 5)
-            sage: C.covering_radius()  # optional - gap_packages (Guava package)
+            sage: set(C.covering_radius(algo) for algo in ('default', 'gap', 'sage'))
             1
+            sage: C.covering_radius('guava')  # optional - gap_packages (Guava package)
+            1
+
+        TESTS:
         """
-        F = self.base_ring()
-        G = self.generator_matrix()
-        gapG = gap(G)
-        C = gapG.GeneratorMatCode(gap(F))
-        r = C.CoveringRadius()
-        try:
-            return ZZ(r)
-        except TypeError:
-            raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+        if algorithm is None:
+            for algo in ('guava', 'sage', 'gap'):
+                try:
+                    return self.covering_radius(algo)
+                except RuntimeError:
+                    pass
+            raise RuntimeError('Failed to compute the covering radius')
+        elif algorithm == 'guava':
+            try:
+                gap.load_package('guava')
+            except:
+                    raise RuntimeError("Guava is not installed")
+            F = self.base_ring()
+            G = self.generator_matrix()
+            gapG = gap(G)
+            C = gapG.GeneratorMatCode(gap(F))
+            r = C.CoveringRadius()
+            try:
+                return ZZ(r)
+            except TypeError:
+                raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+        elif algorithm == 'gap':
+            F = self.base_ring()
+            H = self.parity_check_matrix()
+            t = gap.CosetLeadersMatFFE(H, F)
+            gap.Apply(t, gap.WeightVecFFE)
+            return ZZ(gap.MaximumList(t))
+        elif algorithm == 'sage':
+            import collections
+            H = [tuple(r) for r in self.parity_check_matrix().transpose()]
+            F = self.base_ring()
+            Fstar = [a for a in F if a]
+            q = F.cardinality()
+            n = self.length()
+            k = self.dimension()
+            A = self.ambient_space()
+            def normalize(s):
+                for si in s:
+                    if si:
+                        return tuple(sj / si for sj in s)
+                        return tuple(s)
+            def my_generator(v, s):
+                up = v[0][0] if v else n
+                for i in range(up):
+                    pi = zip(s, H[i])
+                    for a in Fstar:
+                        vv = ((i,a),) + v
+                        ss = tuple(si + a * hi for si,hi in pi)
+                        yield (vv, ss)
+            z = tuple()
+            sz = self.syndrome(A.zero())
+            S = set([normalize(sz)])
+            generators = collections.deque([(z, sz)])
+            target_size = (q ** (n-k) - 1) // (q - 1) + 1
+            radius = 0
+            while generators:
+                g = generators.popleft()
+                for v, s in my_generator(*g):
+                    syndrome = normalize(s)
+                    if syndrome not in S:
+                        radius = len(v)
+                        S.add(syndrome)
+                        if len(S) == target_size:
+                            generators.clear()
+                            break
+                        generators.append((v, s))
+            return radius
+        raise ValueError('unknown algorithm')
 
     def decode(self, right, algorithm="syndrome"):
         r"""
