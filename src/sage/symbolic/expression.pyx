@@ -2905,6 +2905,13 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators op
+        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
+                and (<Element>left.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>right)._gobj))
+            or (right.is_numeric() and isinstance(right.pyobject(), Element)
+                and (<Element>right.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>left)._gobj))):
+            raise TypeError("Addition of symbolic variable and an element of a ring with positive characteristic.")
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -2957,6 +2964,13 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
+        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
+                and (<Element>left.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>right)._gobj))
+            or (right.is_numeric() and isinstance(right.pyobject(), Element)
+                and (<Element>right.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>left)._gobj))):
+            raise TypeError("Addition of symbolic variable and an element of a ring with positive characteristic.")
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -3188,6 +3202,13 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
+                and (<Element>left.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>right)._gobj))
+            or (right.is_numeric() and isinstance(right.pyobject(), Element)
+                and (<Element>right.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>left)._gobj))):
+            raise TypeError("Multiplication of symbolic variable and an element of a ring with positive characteristic.")
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -3290,6 +3311,13 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
+                and (<Element>left.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>right)._gobj))
+            or (right.is_numeric() and isinstance(right.pyobject(), Element)
+                and (<Element>right.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>left)._gobj))):
+            raise TypeError("Multiplication of symbolic variable and an element of a ring with positive characteristic.")
         try:
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
@@ -3711,6 +3739,13 @@ cdef class Expression(CommutativeRingElement):
             base = nexp.coerce_in(self)
         else:
             nexp = base.coerce_in(exp)
+        if ((base.is_numeric() and isinstance(base.pyobject(), Element)
+                and (<Element>base.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>nexp)._gobj))
+            or (nexp.is_numeric() and isinstance(nexp.pyobject(), Element)
+                and (<Element>nexp.pyobject()).parent().characteristic() > 0
+                and has_symbol((<Expression>base)._gobj))):
+            raise TypeError("Power with symbolic variable and an element of a ring with positive characteristic.")
         cdef GEx x
         if is_a_relational(base._gobj):
             x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
