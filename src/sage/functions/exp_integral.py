@@ -51,6 +51,7 @@ AUTHORS:
 
 from __future__ import division, print_function
 
+from sage.misc.latex import latex
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.structure.all import parent
@@ -159,10 +160,27 @@ class Function_exp_integral_e(BuiltinFunction):
             expint(1, x)
 
         """
-        BuiltinFunction.__init__(self, "exp_integral_e", nargs=2,
-                                 latex_name=r'exp_integral_e',
+        BuiltinFunction.__init__(self, 'exp_integral_e', nargs=2,
                                  conversions=dict(maxima='expintegral_e',
                                                   sympy='expint'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(exp_integral_e)
+            E_n
+        """
+        return r"E_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(exp_integral_e(3, x))
+            E_{3}\left(x\right)
+        """
+        return r"E_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _eval_(self, n, z):
         """
@@ -312,8 +330,7 @@ class Function_exp_integral_e1(BuiltinFunction):
             expint(1, x)
 
         """
-        BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1,
-                                 latex_name=r'exp_integral_e1',
+        BuiltinFunction.__init__(self, 'exp_integral_e1', nargs=1, latex_name=r"E_1",
                                  conversions=dict(maxima='expintegral_e1',
                                                   sympy='E1'))
 
@@ -1338,7 +1355,7 @@ class Function_exp_integral(BuiltinFunction):
             sage: Ei(x)._sympy_()
             Ei(x)
         """
-        BuiltinFunction.__init__(self, "Ei",
+        BuiltinFunction.__init__(self, 'Ei', latex_name=r"\operatorname{Ei}",
                                  conversions=dict(maxima='expintegral_ei',
                                                   sympy='Ei'))
 
