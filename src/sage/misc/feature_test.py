@@ -905,15 +905,15 @@ class SmallGroupsLibrary(Feature):
         return FeatureTestResult(self, presence,
             reason = "`{command}` evaluated to `{output}` in GAP.".format(command=command, output=output))
 
-class LibFES(OptionalModule):
+class LibFESLibrary(SharedLibrary):
     r"""
-    A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
-    module has been enabled for this build of Sage and is functional.
+    A :class:`Feature` which describes whether the FES library
+    is present and functional.
 
     EXAMPLES::
 
-        sage: from sage.misc.feature_test import LibFES
-        sage: LibFES().require() # optional: fes
+        sage: from sage.misc.feature_test import LibFESLibrary
+        sage: LibFESLibrary().require() # optional: fes
     """
     _test_code=r"""
 #clib fes
@@ -958,25 +958,42 @@ if solutions != 3: raise ImportError("libFES did not find three solutions for x*
         r"""
         TESTS::
 
+            sage: from sage.misc.feature_test import LibFESLibrary
+            sage: isinstance(LibFESLibrary(), LibFESLibrary)
+            True
+        """
+        SharedLibrary.__init__("LibFES", test_code=LibFESLibrary._test_code, spkg="fes", url="http://www.lifl.fr/~bouillag/fes/")
+
+class LibFES(OptionalModule):
+    r"""
+    A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
+    module has been enabled for this build of Sage and is functional.
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature_test import LibFES
+        sage: LibFES().require() # optional: fes
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
             sage: from sage.misc.feature_test import LibFES
             sage: isinstance(LibFES(), LibFES)
             True
         """
-        spkg = "fes"
-        url = "http://www.lifl.fr/~bouillag/fes/"
-        libFes = SharedLibrary("LibFES", test_code=LibFES._test_code, spkg=spkg, url=url)
-        OptionalModule.__init__(self, "sage.libs.fes", dependencies=[libFes], spkg=spkg, url=url)
+        OptionalModule.__init__(self, "sage.libs.fes", dependencies=[LibFESLibrary()], spkg="fes", url="http://www.lifl.fr/~bouillag/fes/")
 
-class Bliss(OptionalModule):
+class BlissLibrary(SharedLibrary):
     r"""
-    A :class:`Feature` which describes whether the ;module:`sage.graphs.bliss`
-    module has been enabled for this build of Sage and is functional.
+    A :class:`Feature` which describes whether the Bliss library is present and
+    functional.
 
 
     EXAMPLES::
 
-        sage: from sage.misc.feature_test import Bliss
-        sage: Bliss().require() # optional: bliss
+        sage: from sage.misc.feature_test import BlissLibrary
+        sage: BlissLibrary().require() # optional: bliss
 
     """
     _test_code=r"""
@@ -997,12 +1014,32 @@ sig_off()
         r"""
         TESTS::
 
+            sage: from sage.misc.feature_test import BlissLibrary
+            sage: BlissLibrary()
+            Feature('Bliss')
+
+        """
+        SharedLibrary.__init__("Bliss", test_code=Bliss._test_code, spkg="bliss", url="http://www.tcs.hut.fi/Software/bliss/")
+
+class Bliss(OptionalModule):
+    r"""
+    A :class:`Feature` which describes whether the ;module:`sage.graphs.bliss`
+    module has been enabled for this build of Sage and is functional.
+
+
+    EXAMPLES::
+
+        sage: from sage.misc.feature_test import Bliss
+        sage: Bliss().require() # optional: bliss
+
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
             sage: from sage.misc.feature_test import Bliss
             sage: Bliss()
             Feature('sage.graphs.bliss')
 
         """
-        spkg = "bliss"
-        url = "http://www.tcs.hut.fi/Software/bliss/"
-        libBliss = SharedLibrary("bliss", test_code=Bliss._test_code, spkg=spkg, url=url)
-        OptionalModule.__init__(self, "sage.graphs.bliss", dependencies=[libBliss], spkg=spkg, url=url)
+        OptionalModule.__init__(self, "sage.graphs.bliss", dependencies=[BlissLibrary()], spkg="bliss", url="http://www.tcs.hut.fi/Software/bliss/")
