@@ -205,3 +205,6 @@ class logstr(str):
 
 lazy_import("sage.misc", "messaging", deprecation=18140)
 
+
+import logging
+logging.basicConfig()
