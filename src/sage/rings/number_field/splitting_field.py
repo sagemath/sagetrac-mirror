@@ -216,8 +216,6 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
 
         sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
-        sage: import logging
-        sage: logging.basicConfig()
         sage: K.<a> = (x^3 - x + 1).splitting_field()
          INFO:...splitting_field:Starting field: y
          INFO:...splitting_field:SplittingData to factor: [(3, 0)]

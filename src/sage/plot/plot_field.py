@@ -122,8 +122,6 @@ class PlotField(GraphicPrimitive):
 
             sage: x,y=var('x,y')
             sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
-            sage: import logging
-            sage: logging.basicConfig()
             sage: P[0].options()['plot_points']
             WARNING:sage.plot.primitive:WARNING: Ignoring option 'wrong_option'=nonsense
             WARNING:sage.plot.primitive:

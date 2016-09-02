@@ -141,8 +141,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: F.<i> = QuadraticField(-1)
             sage: R.<t> = F[]
             sage: C = Conic([1,i*t,-t^2+4])
-            sage: import logging
-            sage: logging.basicConfig()
             sage: C.has_rational_point(point = True)
             WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             ...

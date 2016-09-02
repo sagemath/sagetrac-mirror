@@ -867,11 +867,6 @@ hooks.
 Various
 =======
 
-Activate Python's logging module for this file::
-
-    sage: import logging
-    sage: logging.basicConfig()
-
 REFERENCES:
 
 .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut Prodinger,

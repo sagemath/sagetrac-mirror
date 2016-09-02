@@ -302,8 +302,6 @@ def cantor_composition(D1,D2,f,h,genus):
         sage: f = x^7 + x^2 + 1
         sage: H = HyperellipticCurve(f, 2*x); H
         Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
-        sage: import logging
-        sage: logging.basicConfig()
         sage: J = H.jacobian()(F); J
         WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
         WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.

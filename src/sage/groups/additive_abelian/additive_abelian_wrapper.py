@@ -31,8 +31,6 @@ We check that ridiculous operations are being avoided::
 
     sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(2)
-    sage: import logging
-    sage: logging.basicConfig()
     sage: 300001 * M.0
     INFO:...additive_abelian_wrapper:Calling discrete exp on (1, 0, 0)
     (4 : -7 : 1)

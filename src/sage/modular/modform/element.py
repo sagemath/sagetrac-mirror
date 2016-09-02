@@ -899,8 +899,6 @@ class ModularForm_abstract(ModuleElement):
             sage: K = F.hecke_eigenvalue_field()
             sage: phi = K.embeddings(RR)[0]
             sage: L = F.symsquare_lseries(embedding=phi)
-            sage: import logging
-            sage: logging.basicConfig()
             sage: L(5)
             WARNING:...dokchitser:Warning: Loss of 8 decimal digits due to cancellation
             -3.57698266793901e19

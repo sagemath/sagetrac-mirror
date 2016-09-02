@@ -1102,8 +1102,6 @@ class MPolynomialIdeal_singular_repr(
 
             sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
             sage: I = R.ideal([x*y,x*y+1])
-            sage: import logging
-            sage: logging.basicConfig()
             sage: I.dimension()
             WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
             WARNING:...

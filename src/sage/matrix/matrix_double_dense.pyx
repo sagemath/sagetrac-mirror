@@ -1025,8 +1025,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = matrix(CDF, 4, range(16))
             sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
-            sage: import logging
-            sage: logging.basicConfig()
             sage: sv = A.singular_values(eps='auto'); sv
             INFO:root:singular values,
             smallest-non-zero:cutoff:largest-zero,

@@ -3335,8 +3335,6 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
-            sage: import logging
-            sage: logging.basicConfig()
             sage: D = A.right_kernel(); D
             INFO:root:computing a right kernel for 4x5 matrix over Rational Field
             ...

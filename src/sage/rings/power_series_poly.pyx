@@ -908,8 +908,6 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
             sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
-            sage: import logging
-            sage: logging.basicConfig()
             sage: g = f.reverse(); g
             INFO:root:passing to pari failed; trying Lagrange inversion
             (1 + 3*t + 9*t^2 + 23*t^3 + O(t^4))*s + (-2 - 19*t - 118*t^2 + O(t^3))*s^2 + O(s^3)

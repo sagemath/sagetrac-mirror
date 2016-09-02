@@ -125,8 +125,6 @@ And now over a large prime field::
     4398046511119
     sage: S.<X, Y, Z> = PolynomialRing(Rf, order='lex')
     sage: I = ideal([2*X - Y^2, Y + Z])
-    sage: import logging
-    sage: logging.basicConfig()
     sage: I.groebner_basis()
     WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
     [X + 2199023255559*Z^2, Y + Z]
