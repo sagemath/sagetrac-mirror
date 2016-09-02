@@ -9416,7 +9416,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = ((x - 1)^(3/2) - (x + 1)*sqrt(x - 1))/sqrt((x - 1)*(x + 1)); f
             -((x + 1)*sqrt(x - 1) - (x - 1)^(3/2))/sqrt((x + 1)*(x - 1))
             sage: f.simplify_rational()
-            -2*sqrt(x - 1)/sqrt(x^2 - 1)
+            -2*sqrt(x - 1)/sqrt((x + 1)*(x - 1))
 
         With ``map=True`` each term in a sum is simplified separately
         and thus the resuls are shorter for functions which are
@@ -9447,27 +9447,27 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f=1/(x+1)+x/(x+2)^2
             sage: f.simplify_rational()
-            (2*x^2 + 5*x + 4)/(x^3 + 5*x^2 + 8*x + 4)
+            (2*x^2 + 5*x + 4)/((x + 2)^2*(x + 1))
             sage: f.simplify_rational(algorithm='noexpand')
             ((x + 2)^2 + (x + 1)*x)/((x + 2)^2*(x + 1))
         """
-        self_m = self._maxima_()
         if algorithm == 'full':
-            maxima_method = 'fullratsimp'
+            ret1 = self
+            finished = False
+            while not finished:
+                ret2 = new_Expression_from_GEx(self._parent, (<Expression>ret1)._gobj.normal(0, False, False))
+                if not ret2.is_trivial_zero():
+                    ret2 = ret2.factor()
+                finished = (ret2 - ret1).is_trivial_zero()
+                ret1 = ret2
+            return ret2
+
         elif algorithm == 'simple':
             return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, False))
         elif algorithm == 'noexpand':
             return new_Expression_from_GEx(self._parent, self._gobj.normal(0, True, True))
         else:
             raise NotImplementedError("unknown algorithm, see the help for available algorithms")
-        P = self_m.parent()
-        self_str=self_m.str()
-        if map:
-            cmd = "if atom(%s) then %s(%s) else map(%s,%s)"%(self_str,maxima_method,self_str,maxima_method,self_str)
-        else:
-            cmd = "%s(%s)"%(maxima_method,self_m.str())
-        res = P(cmd)
-        return self.parent()(res)
 
     rational_simplify = simplify_rational
 
