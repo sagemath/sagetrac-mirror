@@ -22,14 +22,27 @@ Log something::
     sage: logger.info('Hello. I am talking to you.')
     INFO:__main__:Hello. I am talking to you.
 
+If we haven't set the logging level to ``logging.INFO``, then the previous
+wouldn't have been shown.
+::
+
+    sage: logger.debug('Hello. I am really talking a lot.')
+
+The latter is not shown as the current logging level is only
+``logging.INFO`` and not ``logging.DEBUG``.
+
 Reset the level::
 
     sage: logging.getLogger().setLevel(logging.WARNING)
 
+Warnings are still shown at this default level (``logging.WARNING``)::
+
+    sage: logger.warn('Hello. I am warning you.')
+    WARNING:__main__:Hello. I am warning you.
+
 And that's all.
 
-There is also ``logger.warning`` and ``logger.debug``, and a lot
-more features, see
+There are a lot more features, see
 :python:`Logging facility for Python<library/logging.html>`.
 
 
@@ -41,8 +54,11 @@ Say, one wants to suppress the warnings in the following example::
     sage: R.<x,y> = CC[]
     sage: I = ideal([x^2+y^2-1,x*y-1])
     sage: I.variety()
-    WARNING:...multi_polynomial_ideal:Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
-    WARNING:...multi_polynomial_ideal:Warning: falling back to very slow toy implementation.
+    WARNING:sage.rings.polynomial.multi_polynomial_ideal:Warning: computations
+    in the complex field are inexact;
+    variety may be computed partially or incorrectly.
+    WARNING:sage.rings.polynomial.multi_polynomial_ideal:Warning: falling back
+    to very slow toy implementation.
     [{y: -0.86602540378443... - 0.500000000000000*I}, ...]
 
 Simply get the corresponding logger and disable it::
