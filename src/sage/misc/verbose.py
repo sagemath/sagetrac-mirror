@@ -1,16 +1,16 @@
 r"""
 Verbosity System and Logging in SageMath
 
-Howto: Logging
-==============
+Howto: Logging with Python's Logging Module
+===========================================
 
-Using Python's Logging Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Basic
+^^^^^
 
-Import it::
+Import it (is done automatically on start-up)::
 
     sage: import logging
-    sage: logging.basicConfig()  # only needed once
+    sage: logging.basicConfig()
 
 Setting the level::
 
@@ -60,38 +60,6 @@ Then::
 Reset the suppression::
 
     sage: logger.disabled = False
-
-
-Using SageMath's Verbosity System
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Alternatively, this module provides
-:func:`verbose`, :func:`set_verbose`, :func:`get_verbose` which can
-be used as follows::
-
-    sage: from sage.misc.verbose import verbose, set_verbose, get_verbose
-    sage: set_verbose(1)
-    sage: t = verbose("This is SageMath.", level=0)
-    WARNING:root:This is SageMath.
-    sage: t = verbose("This is SageMath.", level=1)
-    INFO:root:This is SageMath.
-    sage: t = verbose("This is SageMath.", level=2)
-
-
-Logging Levels of SageMath and Python
-=====================================
-
-.. csv-table::
-    :class: contentstable
-    :widths: 20, 20
-    :delim: |
-
-    SageMath | Python
-    `-2` | ``logging.CRITICAL``
-    `-1` | ``logging.ERROR``
-    `0` | ``logging.WARNING``
-    `1` | ``logging.INFO``
-    `2` | ``logging.DEBUG``
 
 
 Various
@@ -214,6 +182,11 @@ def verbose(mesg="", t=None, level=1, caller_name=None, **kwds):
     """
     Print a message if the current verbosity is at least ``level``.
 
+    This is part of SageMath's Verbosity System. We encourage you
+    to use to Python's logging
+    (:python:`Logging facility for Python<library/logging.html>`,
+    see also :mod:`~sage.misc.verbose`).
+
     INPUT:
 
     -  ``mesg`` -- a string, a message to print.
@@ -226,7 +199,7 @@ def verbose(mesg="", t=None, level=1, caller_name=None, **kwds):
     -  ``level`` -- (default: ``1``) an integer specifying
        the verbosity level of what we are printing.
        This level is mapped to Python's logging levels
-       (see :mod:`~sage.misc.verbose` for details).
+       (see note below for details).
 
     -  ``caller_name`` -- (default: None) a string, the name
        of the calling function; in most cases Python can deduce this, so
@@ -239,9 +212,35 @@ def verbose(mesg="", t=None, level=1, caller_name=None, **kwds):
     The current :func:`cputime(t) <sage.misc.misc.cputime>`.
     Possibly prints a message to Python's logging module.
 
+    .. NOTE::
+
+        Logging Levels of SageMath and Python
+
+        .. csv-table::
+            :class: contentstable
+            :widths: 20, 20
+            :delim: |
+
+            SageMath | Python
+            `-2` | ``logging.CRITICAL``
+            `-1` | ``logging.ERROR``
+            `0` | ``logging.WARNING``
+            `1` | ``logging.INFO``
+            `2` | ``logging.DEBUG``
+
     EXAMPLE::
 
         sage: from sage.misc.verbose import verbose, set_verbose, get_verbose
+
+        sage: set_verbose(1)
+        sage: t = verbose("This is SageMath.", level=0)
+        WARNING:root:This is SageMath.
+        sage: t = verbose("This is SageMath.", level=1)
+        INFO:root:This is SageMath.
+        sage: t = verbose("This is SageMath.", level=2)
+
+    ::
+
         sage: set_verbose(1)
         sage: t = cputime()
         sage: t = verbose("This is SageMath.", t, level=1, caller_name="me")
@@ -275,11 +274,16 @@ def set_verbose(level):
     """
     Set the global SageMath verbosity level.
 
+    This is part of SageMath's Verbosity System. We encourage you
+    to use to Python's logging
+    (:python:`Logging facility for Python<library/logging.html>`,
+    see also :mod:`~sage.misc.verbose`).
+
     INPUT:
 
     -  ``level`` -- an integer specifying the verbosity level.
        This level is mapped to Python's logging levels
-       (see :mod:`~sage.misc.verbose` for details).
+       (see :func:`~sage.misc.verbose.verbose` for details).
 
     EXAMPLES::
 
@@ -301,11 +305,16 @@ def get_verbose():
     """
     Return the global SageMath verbosity level.
 
+    This is part of SageMath's Verbosity System. We encourage you
+    to use to Python's logging
+    (:python:`Logging facility for Python<library/logging.html>`,
+    see also :mod:`~sage.misc.verbose`).
+
     OUTPUT:
 
     An integer specifying the current verbosity level.
     This level is mapped to Python's logging levels
-    (see :mod:`~sage.misc.verbose` for details).
+    (see :func:`~sage.misc.verbose.verbose` for details).
 
     EXAMPLES::
 
