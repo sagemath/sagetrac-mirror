@@ -24,6 +24,7 @@ Log something::
 
 If we haven't set the logging level to ``logging.INFO``, then the previous
 wouldn't have been shown.
+::
 
     sage: logger.debug('Hello. I am really talking a lot.')
 
