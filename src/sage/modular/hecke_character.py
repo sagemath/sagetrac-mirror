@@ -28,12 +28,7 @@ from sage.groups.abelian_gps.dual_abelian_group_element import DualAbelianGroupE
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup_class
 from sage.lfunctions.dokchitser import Dokchitser
 
-def _mask_to_list(L):
-    ret = []
-    for i in srange(len(L)):
-        if L[i] != 0:
-            ret.append(i)
-    return ret
+from sage.libs.pari.handle_error import PariError
 
 class HeckeCharacter(DualAbelianGroupElement):
     def __call__(self, g):
@@ -55,7 +50,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
         ::
 
-            sage: F = QuadraticField(5)
+            sage: F.<a> = QuadraticField(5)
             sage: H = HeckeCharacterGroup(F.modulus(F.ideal(16), [0,1]))
             sage: chi = H.gens()[0]; chi(H.group().gens()[0])
             zeta4
@@ -64,7 +59,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
         ::
 
-            sage: chi(F.gen() / 2 + 33 / 2)
+            sage: chi(a / 2 + 33 / 2)
             1
 
         Evaluating at ideals of the base field.
@@ -73,7 +68,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
             sage: chi(F.ideal(6))
             0
-            sage: chi(F.ideal(F.gen()))
+            sage: chi(F.ideal(a))
             zeta4
         """
         R = self.parent().group()
@@ -86,6 +81,31 @@ class HeckeCharacter(DualAbelianGroupElement):
         return self.parent().base_ring().zero()
 
     def __mul__(self, right):
+        """
+        Multiply the two characters, if necessary by extending them to a common modulus.
+
+        EXAMPLES:
+
+        Multiplying two characters with the same parent.
+
+        ::
+
+            sage: F.<a> = QuadraticField(11)
+            sage: H = HeckeCharacterGroup(F.modulus(5, [0, 1]))
+            sage: prod(H.gens())
+            chi0*chi1
+
+        Multiplying two characters with different moduli.
+
+        ::
+
+            sage: chi1 = HeckeCharacterGroup(F.modulus(3, [0])).gen()^4
+            sage: chi2 = HeckeCharacterGroup(F.modulus(3, [1])).gen()^4
+            sage: chi = chi1 * chi2; chi
+            1
+            sage: chi.parent()
+            Group of finite order Hecke characters modulo (Fractional ideal (3)) * infinity_0 * infinity_1
+        """
         if self.parent() is right.parent():
             return DualAbelianGroupElement._mul_(self, right)
         m = self.modulus().lcm(right.modulus())
@@ -125,7 +145,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
     def level(self):
         """
-        An alias for :func:`modulus`. Return the modulus modulo which
+        An alias for :func:`modulus`. Returns the modulus modulo which
         this character is defined.
 
         EXAMPLES::
@@ -138,10 +158,25 @@ class HeckeCharacter(DualAbelianGroupElement):
         return self.modulus()
 
     def conductor(self):
+        """
+        Return the conductor of this character.
+
+        Uses pari to compute the conductor of this character, i.e. the smallest
+        modulus for which this character is defined.
+
+        EXAMPLE::
+
+            sage: F.<a> = NumberField(x^3 - 3*x -1)
+            sage: H = HeckeCharacterGroup(F.modulus(3, [0,1,2]))
+            sage: H.gen().conductor()
+            (Fractional ideal (a^2 - 1)) * infinity_0 * infinity_1 * infinity_2
+            sage: H.gen().modulus()
+            (Fractional ideal (3)) * infinity_0 * infinity_1 * infinity_2
+        """
         R = self.parent().group()
         K = R.number_field()
         bnr = R.pari_bnr()
-        modulus = bnr.bnrconductorofchar(self._log_values_on_gens())
+        modulus = bnr.bnrconductorofchar(self._log_values_on_gens()) #in a newer version of pari, this is replaced with bnrconductor
         infinite = []
         m1 = modulus[1]
         conversion = self.parent().number_field()._pari_real_places_to_sage()
@@ -152,17 +187,26 @@ class HeckeCharacter(DualAbelianGroupElement):
         return K.modulus(K.ideal(modulus[0]), infinite)
 
     def is_primitive(self):
+        """
+        Determine whether this character is primitive, i.e. whether its conductor is
+        its modulus.
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^4-5)
+            sage: H = HeckeCharacterGroup(F.modulus(2, [0, 1]))
+            sage: bools = [chi.is_primitive() for chi in H]; bools.sort()
+            sage: bools
+            [False, False, False, True]
+        """
+        #When a newer version of pari is part of Sage, call bnrisconductor instead.
         return self.conductor() == self.modulus()
 
     def primitive_character(self):
         """
         Return the associated primitive character.
 
-        Examples:
-
-        An example.
-
-        ::
+        Examples::
 
             sage: F.<a> = QuadraticField(13)
             sage: H = HeckeCharacterGroup(F.ideal(-1/2*a + 7/2).modulus([0, 1]))
@@ -184,13 +228,21 @@ class HeckeCharacter(DualAbelianGroupElement):
         Rgens = [cond.equivalent_ideal_coprime_to_other(I, self.modulus()) for I in H.ray_class_gens()]
         return H.element_from_values_on_gens([self(I) for I in Rgens])
 
-    def extend(self, m):
-        """
-        EXAMPLES:
+    def extend(self, m, check=True):
+        r"""
+        Return the extension of this character to the larger modulus ``m``.
 
-        An example.
+        INPUT:
 
-        ::
+        - ``m`` -- a modulus that is a multiple of this Hecke character's modulus.
+        - ``check`` -- (default: ``True``) if ``True``, ensure that this Hecke character's
+        modulus divides ``m``; if it does not, a ``ValueError`` is raised.
+
+        OUTPUT:
+
+        - The extension of this Hecke character to the one of modulus ``m``.
+
+        EXAMPLES::
 
             sage: F.<a> = QuadraticField(13)
             sage: H = HeckeCharacterGroup(F.ideal(-1/2*a + 1/2).modulus([0]))
@@ -201,16 +253,83 @@ class HeckeCharacter(DualAbelianGroupElement):
             sage: chi.exponents()
             (1,)
         """
-        if not isinstance(m, HeckeCharacterGroup_class):
-            m = HeckeCharacterGroup(m)
+        if check and not self.modulus().divides(m):
+            raise ValueError("Hecke character can only be extended to a modulus that is a multiple of its own modulus.")
+        if self.modulus() == m:
+            return self
+        #if not isinstance(m, HeckeCharacterGroup_class):
+        m = HeckeCharacterGroup(m)
         return m.element_from_values_on_gens([self(I) for I in m.ray_class_gens()])
 
     def analytic_conductor(self):
+        r"""
+        Return the analytic conductor of this Hecke character; i.e. that appearing in the functional
+        equation of this character's `L`-function.
+
+        The analytic conductor of a Hecke character is merely the norm of the finite part of its
+        conductor times the absolute value of the discriminant of the number field which it is over.
+
+        EXAMPLES:
+
+        Over a real quadratic field.
+
+        ::
+
+            sage: F.<a> = QuadraticField(5)
+            sage: H = HeckeCharacterGroup(F.modulus(F.ideal(a), [0,1]))
+            sage: chi.analytic_conductor()
+            25
+
+        Over an imaginary quadratic field.
+
+        ::
+
+            sage: F.<a> = QuadraticField(-13)
+            sage: H = HeckeCharacterGroup(F.ideal(7).modulus())
+            sage: H.gens()[0].analytic_conductor()
+            364
+        """
         N = self.conductor().finite_part().norm()
         return N * self.parent().group().number_field().disc().abs()
 
     def root_number(self):
-        return self.parent().group().pari_bnr().bnrrootnumber(self._log_values_on_gens()).sage()
+        r"""
+        Return the Artin root number of this Hecke character.
+
+        EXAMPLES:
+
+        Some root numbers over a pure cubic field.
+
+        ::
+
+            sage: F.<a> = NumberField(x^3-3)
+            sage: H = HeckeCharacterGroup(F.ideal(5*a).modulus([0]))
+            sage: chis = [chi for chi in H if chi.order() == 2]
+            sage: rns = [chi.root_number() for chi in chis]; rns.sort()
+            sage: rns
+            [-0.0898055953159170739 + 0.995959313953112108*I, 1, 1]
+
+        A quadratic character whose root number is not 1.
+
+        ::
+
+            sage: F.<a> = QuadraticField(-11)
+            sage: H = HeckeCharacterGroup(F.modulus(a + 2))
+            sage: (H.gen()^2).root_number()
+            0.525731112119133606 - 0.850650808352039931*I
+        """
+        #try-except only necessary because of http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1848
+        #According to Belabas this bug seems to occur because of a problem dealing with
+        #imprimitive characters, thus the code in the except clause below. Once we incorporate a version
+        #a pari where this bug is fixed, the command in the try itself should be sufficient.
+        #The first example above (with Q(cubert(3))) fails without the except clause and so can
+        #be used to test if the pari bug has been fixed.
+        try:
+            rn = self.parent().group().pari_bnr().bnrrootnumber(self._log_values_on_gens())
+        except PariError:
+            chi = self.primitive_character()
+            rn = chi.parent().group().pari_bnr().bnrrootnumber(chi._log_values_on_gens())
+        return rn.sage()
 
     def dirichlet_series_coefficients(self, max_n):
         Idict = self.parent().number_field().ideals_of_bdd_norm(max_n)
@@ -224,7 +343,15 @@ class HeckeCharacter(DualAbelianGroupElement):
 
     def Lfunction(self, prec=53):
         r"""
-        Return this character's L-function.
+        Return this character's L-function as a :class:`sage.lfunctions.dokchitser.Dokchitser` object.
+
+        INPUT:
+
+        - ``prec`` -- (default: 53) the number of bits of real precision.
+
+        OUTPUT:
+
+        - A Dokchitser L-function object used to compute values of the L-function of this Hecke character.
 
         EXAMPLES:
 
@@ -248,7 +375,7 @@ class HeckeCharacter(DualAbelianGroupElement):
         it_worked = False
         number_of_allocs = 0
         while not it_worked:
-            #Sage automatically ups the memory allocation, but this messes with L.num_coeffs for some reason I have yet to figure out, so L needs to be remade completely every time memory is auto-allocated.
+            #Sage automatically ups the memory allocation, but this messes with L.num_coeffs for some reason I have yet to figure out, so L needs to be remade completely every time memory is auto-allocated. If we can control the auto-allocation process/rewrite the Dokchitser code, then we can remove the extra stuff here.
             L = Dokchitser(ana_cond, gamma_factors, 1, rn, prec=prec)
             for n in range(number_of_allocs):
                 L.gp().eval('allocatemem()')

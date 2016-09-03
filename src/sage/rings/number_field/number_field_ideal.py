@@ -727,6 +727,8 @@ class NumberFieldIdeal(Ideal_generic):
             K.ideal(3).modulus(infinite=[K.places()[1]]).
         """
         from .class_group import Modulus
+        if infinite is None:
+            return Modulus(self)
         infinite = list(infinite)
         infinite.sort()
         return Modulus(self, infinite=infinite)

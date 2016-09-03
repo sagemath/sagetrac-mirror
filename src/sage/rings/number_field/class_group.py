@@ -190,10 +190,9 @@ class Modulus(SageObject):
         """
         self._finite = finite
         if infinite is None:
-            infinite = []
-        #else:
-        #    infinite.sort()
-        self._infinite = tuple(ZZ(i) for i in infinite)
+            self._infinite = ()
+        else:
+            self._infinite = tuple(ZZ(i) for i in infinite)
         K = self._finite.number_field()
         self._number_field = K
         if check:
