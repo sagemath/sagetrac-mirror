@@ -738,6 +738,21 @@ class Function_frac(BuiltinFunction):
             0.500000000000000
             sage: frac(x)
             frac(x)
+            sage: frac(frac(frac(x)))
+            frac(x)
+            sage: frac(floor(x))
+            0
+            sage: frac(ceil(x))
+            0
+            sage: y = var('y', domain='integer')
+            sage: frac(y)
+            0
+            sage: frac(3*y+2)
+            0
+            sage: assume(x > 0)
+            sage: frac(tanh(x+1))
+            tanh(x + 1)
+            sage: forget()
         """
         try:
             return x - x.floor()
@@ -747,6 +762,13 @@ class Function_frac(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
             elif isinstance(x, sage.symbolic.expression.Expression):
+                from .hyperbolic import tanh
+                if (x.operator() is frac or
+                    (x.operator() is tanh and x.operands()[0].is_positive())):
+                    return x
+                if (x.operator() is floor or x.operator() is ceil
+                        or x.is_integer()):
+                    return Integer(0)
                 ret = floor(x)
                 if not hasattr(ret, "operator") or not ret.operator() == floor:
                     return x - ret
