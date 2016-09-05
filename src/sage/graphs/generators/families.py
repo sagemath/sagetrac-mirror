@@ -605,6 +605,59 @@ def CirculantGraph(n, adjacency):
 
     return G
 
+def CubeConnectedCycle(n):
+    r"""
+    Returns the cube-connected cycle of order `n`.
+
+    The cube-connected cycle of order `n` is the `n`-dimensional hypercube
+    with each of its vertices replaced by a cycle of length `n`.
+    The construction is as follows:
+    Construct vertex `(x,y)` for `0 \le x \lt 2^n`, `0 \le y \lt n`.
+    For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod n))`,
+    `(x,(y+1) \mod n)`, and `(x \oplus 2^y, y)`
+
+    INPUT:
+
+        - ``n`` -- The dimension of the desired hypercube as well as the length
+          of the cycle to be placed at each vertex of the `n`-dimensional
+          hypercube. `n` must be a positive integer.
+
+    EXAMPLES:
+
+    The diameter of cube-connected cycles for `n \gt 3` is
+    `2n+ \lfloor \frac{n}{2} \rfloor -2` ::
+
+        sage: g = graphs.CubeConnectedCycle(9)
+        sage: g.diameter()
+        20
+
+    All vertices have degree `3` when `n \gt 1` ::
+
+        sage: g = graphs.CubeConnectedCycle(12)
+        sage: all(g.degree(v) == 3 for v in g)
+        True
+
+    TEST::
+
+        sage: g = graphs.CubeConnectedCycle(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be positive.
+    """
+
+    if n<1:
+        raise ValueError('n must be positive.')
+
+    G = Graph(name="Cube-Connected Cycle of order {}".format(n))
+    G.add_vertices((x, y) for x in range(pow(2, n)) for y in range(n))
+
+    for x, y in G.vertices():
+        G.add_edge((x, y), (x, (y+1)%n))
+        G.add_edge((x, y), (x, (y-1)%n))
+        G.add_edge((x, y), (x^pow(2, y), y))
+
+    return G
+
 def CubeGraph(n):
     r"""
     Returns the hypercube in `n` dimensions.

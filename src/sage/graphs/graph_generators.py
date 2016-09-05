@@ -198,6 +198,7 @@ __append_to_doc(
      "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
+     "CubeConnectedCycle",
      "CubeGraph",
      "DorogovtsevGoltsevMendesGraph",
      "FibonacciTree",
@@ -1980,6 +1981,7 @@ class GraphGenerators():
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
+    CubeConnectedCycle     = staticmethod(sage.graphs.generators.families.CubeConnectedCycle)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
