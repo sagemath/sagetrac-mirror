@@ -605,36 +605,47 @@ def CirculantGraph(n, adjacency):
 
     return G
 
-def CubeConnectedCycle(n):
+def CubeConnectedCycle(d):
     r"""
-    Returns the cube-connected cycle of order `n`.
+    Returns the cube-connected cycle of order `d`.
 
-    The cube-connected cycle of order `n` is the `n`-dimensional hypercube
-    with each of its vertices replaced by a cycle of length `n`.
+    The cube-connected cycle of dimension `d` is the `d`-dimensional hypercube
+    with each of its vertices replaced by a cycle of length `d`. This graph has
+    order `d2^d`.
     The construction is as follows:
-    Construct vertex `(x,y)` for `0 \le x \lt 2^n`, `0 \le y \lt n`.
-    For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod n))`,
-    `(x,(y+1) \mod n)`, and `(x \oplus 2^y, y)`
+    Construct vertex `(x,y)` for `0 <= x < 2^d`, `0 <= y < d`.
+    For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod d))`,
+    `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise xor
+    operator.
 
     INPUT:
 
-        - ``n`` -- The dimension of the desired hypercube as well as the length
-          of the cycle to be placed at each vertex of the `n`-dimensional
-          hypercube. `n` must be a positive integer.
+        - ``d`` -- The dimension of the desired hypercube as well as the length
+          of the cycle to be placed at each vertex of the `d`-dimensional
+          hypercube. `d` must be a positive integer.
 
     EXAMPLES:
 
-    The diameter of cube-connected cycles for `n \gt 3` is
-    `2n+ \lfloor \frac{n}{2} \rfloor -2` ::
+    The order of the graph is `d2^d` ::
+
+        sage: g = graphs.CubeConnectedCycle(10)
+        sage: len(g)
+        10240
+
+    The diameter of cube-connected cycles for `d >= 3` is
+    `2n + \lfloor \frac{d}{2} \rfloor - 2` ::
 
         sage: g = graphs.CubeConnectedCycle(9)
         sage: g.diameter()
         20
 
-    All vertices have degree `3` when `n \gt 1` ::
+    All vertices have degree `3` when `d > 1` ::
 
         sage: g = graphs.CubeConnectedCycle(12)
         sage: all(g.degree(v) == 3 for v in g)
+        True
+        sage: g = graphs.CubeConnectedCycle(2)
+        sage: any(g.degree(v) < 3 for v in g)
         True
 
     TEST::
@@ -642,18 +653,18 @@ def CubeConnectedCycle(n):
         sage: g = graphs.CubeConnectedCycle(0)
         Traceback (most recent call last):
         ...
-        ValueError: n must be positive.
+        ValueError: d must be greater than 0.
     """
 
-    if n<1:
-        raise ValueError('n must be positive.')
+    if d<1:
+        raise ValueError('d must be greater than 0.')
 
-    G = Graph(name="Cube-Connected Cycle of order {}".format(n))
-    G.add_vertices((x, y) for x in range(pow(2, n)) for y in range(n))
+    G = Graph(name="Cube-Connected Cycle of dimension {}".format(d))
+    G.add_vertices((x, y) for x in range(pow(2, d)) for y in range(d))
 
     for x, y in G.vertices():
-        G.add_edge((x, y), (x, (y+1)%n))
-        G.add_edge((x, y), (x, (y-1)%n))
+        G.add_edge((x, y), (x, (y+1)%d))
+        G.add_edge((x, y), (x, (y-1)%d))
         G.add_edge((x, y), (x^pow(2, y), y))
 
     return G
