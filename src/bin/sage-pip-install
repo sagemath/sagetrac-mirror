@@ -37,8 +37,8 @@ if [ $(echo "$name" | wc -l) -gt 1 ]; then
 fi
 
 # Uninstall, if necessary
-uninstall="pip uninstall --disable-pip-version-check -y $name"
-uninstall_out="$(eval $uninstall 2>&1)"
+uninstall="pip uninstall --disable-pip-version-check -y $name 2>&1"
+uninstall_out="$(eval $uninstall)"
 uninstall_err=$?
 
 # Not ideal, but this is the easiest way to check if the package
