@@ -1235,6 +1235,117 @@ class RayClassGroup(AbelianGroup_class):
         s += ' of modulus %s'%(self._modulus)
         return s0 + s
 
+    def ray_class_field(self, subgroup=None, names=None, algorithm='stark'):
+        r"""
+        Two different algorithms are possible: pari's bnrstark and rnfkummer. The first one uses the Stark conjecture
+        and only deals with totally real extensions of a totally real base field. The second one uses Kummer theory and
+        only deals with extensions of prime degree.
+
+        INPUT:
+
+        - algorithm -- (default: ``stark``) if the value is ``stark``, then pari's bnrstark function is tried first, and if that
+        fails, rnfkummer will be attempted. If the value is ``kummer``, then pari's rnfkummer is tried first, with bnrstark as a
+        backup. Using ``stark_only`` or ``kummer_only`` will just raise an exception if the first attempt fails.
+
+        OUTPUT:
+
+        - The class field corresponding to the given subgroup, or the ray class field if ``subgroup`` is ``None, as a relative number field.
+
+        EXAMPLES:
+
+        Class fields of `\QQ(\sqrt{3})`.
+
+        ::
+
+            sage: F.<a> = QuadraticField(3)
+            sage: m = F.ideal(7).modulus()
+            sage: R = F.ray_class_group(m)
+            sage: R.ray_class_field(names='b')
+            Number Field in b with defining polynomial x^6 + a*x^5 - 4*x^4 - 4*a*x^3 + 2*x^2 + 2*a*x - 1 over its base field
+            sage: S = R.subgroup([R.gen()^2])
+            sage: R.ray_class_field(S, names='b')
+            Number Field in b with defining polynomial x^2 - a*x - 1 over its base field
+            sage: m = F.modulus(20)
+            sage: R = F.ray_class_group(m)
+            sage: S = R.subgroup([R.gens()[0]^2, R.gens()[1]])
+            sage: R.ray_class_field(S, names='b')
+            Number Field in b with defining polynomial x^2 + (a - 1)*x + 2*a - 4 over its base field
+
+        An example where bnrstark fails, but rnfkummer saves the day.
+
+        ::
+
+            sage: F.<a> = NumberField(x^8 - 12*x^6 + 36*x^4 - 36*x^2 + 9)
+            sage: m = F.ideal(2).modulus()
+            sage: R = F.ray_class_group(m)
+            sage: set_verbose(1)
+            sage: K = R.ray_class_field(names='b'); K
+            verbose 1 (1238: class_group.py, ray_class_field) bnrstark failed; trying rnfkummer.
+            Number Field in b with defining polynomial x^2 + (-1/3*a^6 + 10/3*a^4 - 5*a^2)*x + a^7 - 1/3*a^6 - 32/3*a^5 + 11/3*a^4 + 22*a^3 - 8*a^2 - 9*a + 1 over its base field
+            sage: set_verbose(0)
+        """
+        if subgroup is not None:
+            try:
+                test_subgrp = (subgroup.ambient_group() is self)
+            except AttributeError:
+                subgroup = self.subgroup(subgroup)
+                test_subgrp = (subgroup.ambient_group() is self)
+            if not test_subgrp:
+                raise ValueError("subgroup does not define a subgroup of this ray class group.")
+            gens_coords = [h.exponents() for h in subgroup.gens()]
+            from sage.matrix.special import column_matrix
+            subgroup = column_matrix(gens_coords)
+
+        from sage.libs.pari.handle_error import PariError
+        from sage.misc.all import verbose
+
+        bnr = self._bnr
+        if algorithm == 'stark_only':
+            if len(self._modulus.infinite_part()) > 0 or not self._number_field.is_totally_real():
+                raise NotImplementedError("Stark's conjecture algorithm only implemented for totally real extensions of a totally real base field.")
+            f = bnr.bnrstark(subgroup=subgroup)
+        elif algorithm == 'kummer_only':
+            if (subgroup is None and not self.order().is_prime()) or (subgroup is not None and not self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
+                raise NotImplementedError("Kummer theory algorithm only implemented extensions of prime degree.")
+            f = bnr.rnfkummer(subgp=subgroup)
+        elif algorithm == 'stark':
+            if len(self._modulus.infinite_part()) > 0 or not self._number_field.is_totally_real():
+                if (subgroup is None and not self.order().is_prime()) or (subgroup is not None and not self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
+                    raise NotImplementedError("Ray class fields only implemented for totally real extensions of totally real base fields, or for extensions of prime degree.")
+                f = bnr.rnfkummer(subgp=subgroup)
+            else:
+                try:
+                    f = bnr.bnrstark(subgroup=subgroup)
+                except PariError:
+                    if (subgroup is None and self.order().is_prime()) or (subgroup is not None and self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
+                        verbose("bnrstark failed; trying rnfkummer.")
+                        f = bnr.rnfkummer(subgp=subgroup)
+                    else:
+                        raise
+        elif algorithm == 'kummer':
+            if (subgroup is None and self.order().is_prime()) or (subgroup is not None and self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
+                f = bnr.rnfkummer(subgp=subgroup)
+            else:
+                f = bnr.bnrstark(subgroup=subgroup)
+        else:
+            raise ValueError("Value of algorithm must be one of \'stark\', \'stark_only\', \'kummer\', or \'kummer_only\'.")
+        if f.type() == 't_VEC':
+            raise NotImplementedError("bnrstark returned a list of polynomials. Dealing with this has not been implemented.")
+        F = self._number_field
+        nf = F.pari_nf()
+        f = nf.rnfpolredbest(f)
+        d = f.poldegree()
+        cs = [F(f.polcoeff(i)) for i in range(d+1)]
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        f = PolynomialRing(F, 'x')(cs)
+        return F.extension(f, names=names)
+
+    def _ray_class_field_stark(self, subgroup=None, names=None):
+        pass
+
+    def _ray_class_field_kummer(self, subgroup=None, names=None):
+        pass
+
     def _ideal_log(self, ideal):
         return tuple(ZZ(c) for c in self._bnr.bnrisprincipal(ideal, flag = 0))
 
