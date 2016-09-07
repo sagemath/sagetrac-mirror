@@ -65,7 +65,7 @@ class ConvexCore():
     ...------>
     ......e
 
-    where e is an edge of G1 and f an edge of G2.
+    where e is an edge of G1 and f an edge of G2. G0 and G1 based
 
     MetricGraph with edges of length 0 can be used for trees with a
     non-free action of FN.
@@ -707,7 +707,7 @@ class ConvexCore():
         v1 to v0.
 
         The universal cover of G0 and G1 are identified with paths in
-        G0 and G1 based at v0 and v1. We choose the lifts of f and g
+        G0 and G1 based at v0 and v1. We choose the lifts of ``f`` and ``g``
         that maps v0 to v1 and conversely.
 
         Fix an edge e1 in T1. An edge e0 in T0 is assigned a + if its
