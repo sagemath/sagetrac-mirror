@@ -138,7 +138,7 @@ class Function_exp(GinacFunction):
 
 exp = Function_exp()
 
-class Function_log(GinacFunction):
+class Function_log1(GinacFunction):
     def __init__(self):
         r"""
         The natural logarithm of x.  See `log?` for
@@ -215,9 +215,11 @@ class Function_log(GinacFunction):
             3.141592653589793j
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
-                               conversions=dict(maxima='log'))
+                                       conversions=dict(maxima='log'))
 
-    def __call__(self, *args, **kwds):
+ln = function_log = Function_log1()
+
+class Function_log2(GinacFunction):
         """
         Return the logarithm of x to the given base.
 
@@ -311,37 +313,30 @@ class Function_log(GinacFunction):
 
         Check if :trac:`10136` is fixed::
 
-            sage: log(x).operator() is log
+            sage: ln(x).operator() is ln
             True
             sage: log(x).operator() is ln
             True
 
             sage: log(1000, 10, base=5)
-            Traceback (most recent call last):
-            ...
-            TypeError: Symbolic function log must be called as log(x),
-            log(x, base=b) or log(x, b)
+            3
         """
-        base = kwds.pop('base', None)
-        if base is None:
-            if len(args) == 1:
-                return GinacFunction.__call__(self, *args, **kwds)
-            # second argument is base
-            base = args[1]
-            args = args[:1]
+        def __init__(self):
+            GinacFunction.__init__(self, 'log', ginac_name='logb', nargs=2,
+                                latex_name=r'\log',
+                                conversions=dict(maxima='log'))
 
-        if len(args) != 1:
-            raise TypeError("Symbolic function log must be called as "
-                    "log(x), log(x, base=b) or log(x, b)")
+logb = Function_log2()
 
-        try:
-            return args[0].log(base)
-        except (AttributeError, TypeError):
-            return GinacFunction.__call__(self, *args, **kwds) / \
-                GinacFunction.__call__(self, base, **kwds)
-
-ln = log = function_log = Function_log()
-
+def log(x, *args, **kwds):
+    if not args:
+        return ln(x, **kwds)
+    if len(args) > 1:
+        raise TypeError("Symbolic function log takes at most 2 arguments (%s given)"%(len(args)+1))
+    try:
+        return x.log(args[0])
+    except (AttributeError, TypeError):
+        return logb(x, args[0], **kwds)
 
 class Function_polylog(GinacFunction):
     def __init__(self):
