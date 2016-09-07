@@ -665,7 +665,7 @@ def CubeConnectedCycle(d):
     for x, y in G.vertices():
         G.add_edge((x, y), (x, (y+1)%d))
         G.add_edge((x, y), (x, (y-1)%d))
-        G.add_edge((x, y), (x^pow(2, y), y))
+        G.add_edge((x, y), (x^(2**y), y))
 
     return G
 
