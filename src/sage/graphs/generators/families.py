@@ -611,7 +611,7 @@ def CubeConnectedCycle(d):
 
     The cube-connected cycle of dimension `d` is the `d`-dimensional hypercube
     with each of its vertices replaced by a cycle of length `d`. This graph has
-    order `d2^d`.
+    order `d \times 2^d`.
     The construction is as follows:
     Construct vertex `(x,y)` for `0 <= x < 2^d`, `0 <= y < d`.
     For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod d))`,
@@ -626,11 +626,12 @@ def CubeConnectedCycle(d):
 
     EXAMPLES:
 
-    The order of the graph is `d2^d` ::
+    The order of the graph is `d \times 2^d` ::
 
-        sage: g = graphs.CubeConnectedCycle(10)
-        sage: len(g)
-        10240
+        sage: d = 10
+        sage: g = graphs.CubeConnectedCycle(d)
+        sage: len(g) == d*2**d
+        True
 
     The diameter of cube-connected cycles for `d >= 3` is
     `2n + \lfloor \frac{d}{2} \rfloor - 2` ::
@@ -644,7 +645,7 @@ def CubeConnectedCycle(d):
         sage: g = graphs.CubeConnectedCycle(12)
         sage: all(g.degree(v) == 3 for v in g)
         True
-        sage: g = graphs.CubeConnectedCycle(2)
+        sage: g = graphs.CubeConnectedCycle(1)
         sage: any(g.degree(v) < 3 for v in g)
         True
 
