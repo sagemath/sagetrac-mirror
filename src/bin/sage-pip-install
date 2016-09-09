@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This command is specifically for pip-installing from a local
 # source directory, as opposed to from a package index via package
 # name.  That is, it is for pip-installing Sage spkgs from their
