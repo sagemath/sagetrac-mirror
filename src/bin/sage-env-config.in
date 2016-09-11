@@ -15,6 +15,10 @@
 #
 ##########################################################################
 
+# SAGE_SRC_ROOT is the root of the Sage distribution source tree.
+# For non-VPATH builds, it is the same as SAGE_ROOT.
+export SAGE_SRC_ROOT="@abs_top_srcdir@"
+
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"

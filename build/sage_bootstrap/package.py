@@ -19,7 +19,7 @@ import os
 import logging
 log = logging.getLogger()
 
-from sage_bootstrap.env import SAGE_ROOT, SAGE_DISTFILES
+from sage_bootstrap.env import SAGE_SRC_ROOT, SAGE_DISTFILES
 
 
 
@@ -30,7 +30,7 @@ class Package(object):
         Sage Package
 
         A package is defined by a subdirectory of
-        ``SAGE_ROOT/build/pkgs/``. The name of the package is the name
+        ``SAGE_SRC_ROOT/build/pkgs/``. The name of the package is the name
         of the subdirectory; The metadata of the package is contained
         in various files in the package directory. This class provides
         an abstraction to the metadata, you should never need to
@@ -55,7 +55,7 @@ class Package(object):
         Return the package name
 
          A package is defined by a subdirectory of
-        ``SAGE_ROOT/build/pkgs/``. The name of the package is the name
+        ``SAGE_SRC_ROOT/build/pkgs/``. The name of the package is the name
         of the subdirectory.
 
         OUTPUT:
@@ -179,7 +179,7 @@ class Package(object):
         """
         Return all packages
         """
-        base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
+        base = os.path.join(SAGE_SRC_ROOT, 'build', 'pkgs')
         for subdir in os.listdir(base):
             path = os.path.join(base, subdir) 
             if not os.path.isfile(os.path.join(path, "checksums.ini")):
@@ -191,7 +191,7 @@ class Package(object):
         """
         Return the package directory
         """
-        return os.path.join(SAGE_ROOT, 'build', 'pkgs', self.name)
+        return os.path.join(SAGE_SRC_ROOT, 'build', 'pkgs', self.name)
             
     def _init_checksum(self):
         """

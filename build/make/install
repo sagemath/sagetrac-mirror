@@ -8,7 +8,7 @@
 export SAGE_ROOT=`cd ../.. && pwd -P`
 export SAGE_SRC="$SAGE_ROOT/src"
 
-# Determine SAGE_LOCAL
+# Determine SAGE_LOCAL and SAGE_SRC_ROOT
 . "$SAGE_SRC"/bin/sage-env-config
 if [ $? -ne 0 ]; then
     echo "Error: Failed to read sage-env-config.  Did you run configure?"
@@ -19,13 +19,13 @@ export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-export SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
+export SAGE_VERSION=`cat $SAGE_SRC_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
 fi
-export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_SRC_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 export PYTHONPATH="$SAGE_LOCAL"
 

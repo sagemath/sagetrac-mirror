@@ -91,12 +91,13 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
+_add_variable_or_fallback('SAGE_SRC_ROOT',   None)
 _add_variable_or_fallback('SAGE_LOCAL',      None)
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
-_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
+_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_SRC_ROOT', 'src'))
 
 try:
     sitepackages_dirs = site.getsitepackages()
@@ -119,7 +120,7 @@ _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 's
 _add_variable_or_fallback('SAGE_DOC_SRC',    opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SHARE', 'doc', 'sage'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
-_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
+_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_SRC_ROOT', '.git'))
 _add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
 
 # misc

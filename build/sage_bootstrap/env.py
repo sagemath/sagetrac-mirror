@@ -6,6 +6,7 @@ This module defines the following subset of the Sage environment
 variables:
 
 * ``SAGE_ROOT``
+* ``SAGE_SRC_ROOT``
 * ``SAGE_SRC``
 * ``SAGE_DISTFILES``
 """
@@ -30,13 +31,21 @@ except KeyError:
     SAGE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))))
 
+try:
+    SAGE_SRC_ROOT = os.environ['SAGE_SRC_ROOT']
+except KeyError:
+    SAGE_SRC_ROOT = SAGE_ROOT
+
 SAGE_SRC = os.environ.get('SAGE_SRC',
-    os.path.join(SAGE_ROOT, 'src'))
+    os.path.join(SAGE_SRC_ROOT, 'src'))
 SAGE_DISTFILES = os.environ.get('SAGE_DISTFILES',
     os.path.join(SAGE_ROOT, 'upstream'))
 
-
-assert os.path.isfile(os.path.join(SAGE_ROOT, 'configure.ac')), SAGE_ROOT
+assert os.path.isfile(os.path.join(SAGE_SRC_ROOT, 'configure.ac')), SAGE_SRC_ROOT
+# Check that SAGE_ROOT is the root of either a configured build directory
+# or the root of an unconfigured non-VPATH source directory.
+assert (os.path.isfile(os.path.join(SAGE_ROOT, 'config.status'))
+        or os.path.isfile(os.path.join(SAGE_ROOT, 'configure.ac'))), SAGE_ROOT
 
 try:
     # SAGE_DISTFILES does not exist in a fresh git clone

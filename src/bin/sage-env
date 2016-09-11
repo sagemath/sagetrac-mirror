@@ -186,6 +186,9 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
+if [ -z "$SAGE_SRC_ROOT" ]; then
+    export SAGE_SRC_ROOT="$SAGE_ROOT"
+fi
 
 # sage-env must know where the Sage's script files are.
 # Note that SAGE_SCRIPTS_DIR is only used here, so it does not need to
