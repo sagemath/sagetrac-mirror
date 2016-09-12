@@ -9472,6 +9472,78 @@ cdef class Expression(CommutativeRingElement):
 
     rational_simplify = simplify_rational
 
+    def together(self, simplify = True):
+        r"""
+        Simplify rational expressions.
+
+        INPUT:
+
+        - ``self`` - symbolic expression
+
+        - ``simplify`` - (default: =True) boolean which switches the
+          whether it runs through simplify_rational() or not.
+
+        ALIAS: :meth:`rational_simplify` and :meth:`simplify_rational`
+        are the same
+
+        DETAILS: We call Maxima functions ratsimp, fullratsimp and
+        xthru. If each part of the expression has to be simplified
+        separately, we use Maxima function map.
+
+        EXAMPLES::
+
+            sage: f = sin(x/(x^2 + x))
+            sage: f
+            sin(x/(x^2 + x))
+            sage: f.simplify_rational()
+            sin(1/(x + 1))
+
+        ::
+
+            sage: f = ((x - 1)^(3/2) - (x + 1)*sqrt(x - 1))/sqrt((x - 1)*(x + 1)); f
+            -((x + 1)*sqrt(x - 1) - (x - 1)^(3/2))/sqrt((x + 1)*(x - 1))
+            sage: f.simplify_rational()
+            -2*sqrt(x - 1)/sqrt(x^2 - 1)
+
+        With ``map=True`` each term in a sum is simplified separately
+        and thus the resuls are shorter for functions which are
+        combination of rational and nonrational functions. In the
+        following example, we use this option if we want not to
+        combine logarithm and the rational function into one
+        fraction::
+
+            sage: f=(x^2-1)/(x+1)-ln(x)/(x+2)
+            sage: f.simplify_rational()
+            (x^2 + x - log(x) - 2)/(x + 2)
+            sage: f.simplify_rational(map=True)
+            x - log(x)/(x + 2) - 1
+
+        Here is an example from the Maxima documentation of where
+        ``algorithm='simple'`` produces an (possibly useful) intermediate
+        step::
+
+            sage: y = var('y')
+            sage: g = (x^(y/2) + 1)^2*(x^(y/2) - 1)^2/(x^y - 1)
+            sage: g.simplify_rational(algorithm='simple')
+            (x^(2*y) - 2*x^y + 1)/(x^y - 1)
+            sage: g.simplify_rational()
+            x^y - 1
+
+        With option ``algorithm='noexpand'`` we only convert to common
+        denominators and add. No expansion of products is performed::
+
+            sage: f=1/(x+1)+x/(x+2)^2
+            sage: f.simplify_rational()
+            (2*x^2 + 5*x + 4)/(x^3 + 5*x^2 + 8*x + 4)
+            sage: f.simplify_rational(algorithm='noexpand')
+            ((x + 2)^2 + (x + 1)*x)/((x + 2)^2*(x + 1))
+        """
+        if simplify:
+            return (self.parent()(self._maxima_().combine())).simplify_rational()
+        else:
+            return self.parent()(self._maxima_().combine()
+
+
     def simplify_factorial(self):
         """
         Simplify by combining expressions with factorials, and by
