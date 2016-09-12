@@ -45,6 +45,7 @@ from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
+from sage.modular.modform.constructor  import Newform
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
@@ -445,6 +446,61 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         degen = str(self.degen_t()).replace(' ','')
         return '%s%s'%(self.newform_label(), degen)
+
+    def newform(self, names=None):
+        """
+        Return the newform `f` such that this abelian variety is isogenous to
+        the newform abelian variety `A_f`. If this abelian variety is not
+        simple, raise a ValueError.
+
+        INPUT:
+
+        - ``names`` -- (default: None) If the newform has coefficients in a
+          number field, then a generator name must be specified.
+
+        OUTPUT: A newform `f` so that self is isogenous to `A_f`.
+
+        EXAMPLES::
+
+            sage: J0(11).newform()
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+
+            sage: f = J0(23).newform(names='a')
+            sage: AbelianVariety(f) == J0(23)
+            True
+
+            sage: J = J0(33)
+            sage: [s.newform('a') for s in J.decomposition()]
+            [q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+             q + q^2 - q^3 - q^4 - 2*q^5 + O(q^6)]
+
+        The following fails since `J_0(33)` is not simple::
+
+            sage: J0(33).newform()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be simple
+        """
+        return Newform(self.newform_label(), names=names)
+
+    def newform_decomposition(self, names=None):
+        """
+        Return the newforms of the simple subvarieties in the decomposition of
+        self as a product of simple subvarieties, up to isogeny.
+
+        OUTPUT:
+
+            - an array of newforms
+
+        EXAMPLES::
+
+            sage: J = J1(11) * J0(23)
+            sage: J.newform_decomposition('a')
+            [q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+            q + a0*q^2 + (-2*a0 - 1)*q^3 + (-a0 - 1)*q^4 + 2*a0*q^5 + O(q^6)]
+        """
+        return [S.newform(names=names) for S in self.decomposition()]
 
     def newform_label(self):
         """
