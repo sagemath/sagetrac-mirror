@@ -1,0 +1,30 @@
+diff --git a/configure b/configure
+index 2fbffec..c5682cc 100755
+--- a/configure
++++ b/configure
+@@ -16575,13 +16575,9 @@ echo "-----------------------------------------------"
+ 
+ # Check whether --with-default was given.
+ if test "${with_default+set}" = set; then :
+-  withval=$with_default; if test "$withval" = yes ; then
+-			echo "Default path = /usr /usr/local "
+-			DEFAULT_CHECKING_PATH="/usr /usr/local "
+-	      else
+-			echo "Default path = $withval /usr /usr/local "
+-			DEFAULT_CHECKING_PATH="$withval /usr /usr/local "
+-	     fi
++  withval=$with_default
++  echo "Default path = $withval "
++  DEFAULT_CHECKING_PATH="$withval "
+ 
+ else
+ 
+@@ -16617,7 +16613,7 @@ if test -n "$check_all"; then
+     FFLAS_FFPACK_HOME_PATH="${DEFAULT_CHECKING_PATH}"
+ 	LIDIA_HOME_PATH="${DEFAULT_CHECKING_PATH}"
+ 	SACLIB_HOME_PATH="${DEFAULT_CHECKING_PATH}"
+-	MAPLE_HOME_PATH="${DEFAULT_CHECKING_PATH} unknown"
++	MAPLE_HOME_PATH="${DEFAULT_CHECKING_PATH}"
+ 	BLAS_HOME_PATH="${DEFAULT_CHECKING_PATH}"
+ fi
+ 

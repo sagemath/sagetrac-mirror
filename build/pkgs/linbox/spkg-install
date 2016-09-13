@@ -64,11 +64,17 @@ fi
 if [ "$SAGE_FAT_BINARY" = yes ]; then
     LINBOX_CONFIGURE="--without-ocl $LINBOX_CONFIGURE"
 fi
+# Building MAPLE interface appears to be broken:
+# http://trac.sagemath.org/ticket/17635#comment:215 ff. (*after* LinBox ticket got merged!)
+# LINBOX_CONFIGURE="--without-maple $LINBOX_CONFIGURE"
+LINBOX_CONFIGURE="--with-maple=no $LINBOX_CONFIGURE"
+# To make this work, currently a patch to 'configure' is needed though:
+# patches/dont_search__usr__usr_local.patch
 
 # We disable openmp because of build failures, see
 # http://trac.sagemath.org/ticket/17635#comment:67
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-            --with-all="$SAGE_LOCAL" \
+            --with-all="$SAGE_LOCAL" --with-default="$SAGE_LOCAL" \
             --enable-sage --disable-static --disable-openmp \
             $LINBOX_CONFIGURE
 if [ $? -ne 0 ]; then
