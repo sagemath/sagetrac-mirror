@@ -10,18 +10,18 @@ EXAMPLES::
     sage: from sage.libs.readline import *
     sage: replace_line('foobar', 0)
     sage: set_point(3)
-    sage: print 'current line:', repr(copy_text(0, get_end()))
+    sage: print('current line: ' + repr(copy_text(0, get_end())))
     current line: 'foobar'
-    sage: print 'cursor position:', get_point()
+    sage: print('cursor position: {}'.format(get_point()))
     cursor position: 3
 
 When printing with :class:`interleaved_output` the prompt and current
 line is removed::
 
     sage: with interleaved_output():
-    ....:     print 'output'
-    ....:     print 'current line:', repr(copy_text(0, get_end()))
-    ....:     print 'cursor position:', get_point()
+    ....:     print('output')
+    ....:     print('current line: ' + repr(copy_text(0, get_end())))
+    ....:     print('cursor position: {}'.format(get_point()))
     output
     current line: ''
     cursor position: 0
@@ -29,9 +29,9 @@ line is removed::
 After the interleaved output, the line and cursor is restored to the
 old value::
 
-    sage: print 'current line:', repr(copy_text(0, get_end()))
+    sage: print('current line: ' + repr(copy_text(0, get_end())))
     current line: 'foobar'
-    sage: print 'cursor position:', get_point()
+    sage: print('cursor position: {}'.format(get_point()))
     cursor position: 3
 
 Finally, clear the current line for the remaining doctests::
@@ -42,12 +42,13 @@ Finally, clear the current line for the remaining doctests::
 #*****************************************************************************
 #       Copyright (C) 2013 Volker Braun  <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 3 of
-#  the License, or (at youroption) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 
 cdef extern from 'readline/readline.h':
@@ -81,8 +82,8 @@ def print_status():
         catch_signals: 1
         catch_sigwinch: 1
     """
-    print 'catch_signals:', rl_catch_signals
-    print 'catch_sigwinch:', rl_catch_sigwinch
+    print('catch_signals:', rl_catch_signals)
+    print('catch_sigwinch:', rl_catch_sigwinch)
 
 def set_signals():
     """
@@ -259,7 +260,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         pass
@@ -272,7 +273,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         self._saved_point = rl_point;
@@ -290,7 +291,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         rl_set_signals()

@@ -41,7 +41,7 @@ def Jacobian(C):
         sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
         sage: C = Curve(x^3 + y^3 + z^3)
         sage: Jacobian(C)
-        Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+        Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
     """
     try:
         return C.jacobian()
@@ -60,7 +60,7 @@ class Jacobian_generic(Scheme):
         sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
         sage: C = Curve(x^3 + y^3 + z^3)
         sage: J = Jacobian(C); J
-        Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+        Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
     """
     def __init__(self, C):
         """
@@ -70,7 +70,7 @@ class Jacobian_generic(Scheme):
             sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve(x^3 + y^3 + z^3)
             sage: J = Jacobian_generic(C); J
-            Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+            Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
             sage: type(J)
             <class 'sage.schemes.jacobians.abstract_jacobian.Jacobian_generic_with_category'>
 
@@ -99,14 +99,14 @@ class Jacobian_generic(Scheme):
             sage: Jacobian_generic(C)
             Traceback (most recent call last):
             ...
-            TypeError: C (=Projective Curve over Ring of integers modulo 6 defined by x + y + z) must be defined over a field.
+            TypeError: C (=Projective Plane Curve over Ring of integers modulo 6 defined by x + y + z) must be defined over a field.
         """
         if not is_Scheme(C):
-            raise TypeError, "Argument (=%s) must be a scheme."%C
+            raise TypeError("Argument (=%s) must be a scheme."%C)
         if C.base_ring() not in _Fields:
-            raise TypeError, "C (=%s) must be defined over a field."%C
+            raise TypeError("C (=%s) must be defined over a field."%C)
         if C.dimension() != 1:
-            raise ValueError, "C (=%s) must have dimension 1."%C
+            raise ValueError("C (=%s) must have dimension 1."%C)
         self.__curve = C
         Scheme.__init__(self, C.base_scheme())
 
@@ -145,9 +145,9 @@ class Jacobian_generic(Scheme):
             sage: from sage.schemes.jacobians.abstract_jacobian import Jacobian
             sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
             sage: J = Jacobian(Curve(x^3 + y^3 + z^3)); J
-            Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+            Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
             sage: J._repr_()
-            'Jacobian of Projective Curve over Rational Field defined by x^3 + y^3 + z^3'
+            'Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3'
         """
         return "Jacobian of %s"%self.__curve
 
@@ -182,7 +182,7 @@ class Jacobian_generic(Scheme):
             sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
             sage: J = Jacobian(Curve(x^3 + y^3 + z^3))
             sage: J.curve()
-            Projective Curve over Rational Field defined by x^3 + y^3 + z^3
+            Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
         """
         return self.__curve
 

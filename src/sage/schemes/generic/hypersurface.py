@@ -7,6 +7,7 @@ AUTHORS:
 - David Kohel <kohel@maths.usyd.edu.au> (2005-12-08)
 - Alex Ghitza <aghitza@alum.mit.edu> (2009-04-17)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -18,8 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_MPolynomial
-from algebraic_scheme import AlgebraicScheme_subscheme_projective, AlgebraicScheme_subscheme_affine
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+from .algebraic_scheme import AlgebraicScheme_subscheme_projective, AlgebraicScheme_subscheme_affine
 
 def is_Hypersurface(self):
     """
@@ -92,11 +93,10 @@ class ProjectiveHypersurface(AlgebraicScheme_subscheme_projective):
             True
         """
         if not is_MPolynomial(poly):
-            raise TypeError, \
-                  "Defining polynomial (=%s) must be a multivariate polynomial."%poly
+            raise TypeError("Defining polynomial (=%s) must be a multivariate polynomial."%poly)
         if not poly.is_homogeneous():
-            raise TypeError, "Defining polynomial (=%s) must be homogeneous."%poly
-        if ambient == None:
+            raise TypeError("Defining polynomial (=%s) must be homogeneous."%poly)
+        if ambient is None:
             R = poly.parent()
             from sage.schemes.projective.projective_space import ProjectiveSpace
             ambient = ProjectiveSpace(R.base_ring(), R.ngens()-1)
@@ -178,8 +178,8 @@ class AffineHypersurface(AlgebraicScheme_subscheme_affine):
             True
         """
         if not is_MPolynomial(poly):
-            raise TypeError, "Defining polynomial (= %s) must be a multivariate polynomial"%poly
-        if ambient == None:
+            raise TypeError("Defining polynomial (= %s) must be a multivariate polynomial"%poly)
+        if ambient is None:
             R = poly.parent()
             from sage.schemes.affine.affine_space import AffineSpace
             ambient = AffineSpace(R.base_ring(), R.ngens())

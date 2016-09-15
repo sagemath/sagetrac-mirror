@@ -138,6 +138,8 @@ This decomposition turns out to be very easy to implement :-)
 Functions
 ---------
 """
+from __future__ import print_function
+
 
 def is_line_graph(g, certificate = False):
     r"""
@@ -161,10 +163,11 @@ def is_line_graph(g, certificate = False):
 
         This method sequentially tests each of the forbidden subgraphs in order
         to know whether the graph is a line graph, which is a very slow
-        method. It could eventually be replaced by :meth:`root_graph` when this
-        method will not require an exponential time to run on general graphs
-        anymore (see its documentation for more information on this problem)...
-        and if it can be improved to return negative certificates !
+        method. It could eventually be replaced by
+        :func:`~sage.graphs.line_graph.root_graph` when this method will not
+        require an exponential time to run on general graphs anymore (see its
+        documentation for more information on this problem)...  and if it can be
+        improved to return negative certificates !
 
     .. NOTE::
 
@@ -189,7 +192,7 @@ def is_line_graph(g, certificate = False):
         True
 
     The Petersen Graph not being claw-free, it is not a line
-    graph:
+    graph::
 
         sage: graphs.PetersenGraph().is_line_graph()
         False
@@ -225,6 +228,7 @@ def is_line_graph(g, certificate = False):
         sage: g.line_graph().is_isomorphic(gl)
         True
     """
+    g._scream_if_not_simple()
     from sage.graphs.graph_generators import graphs
 
     for fg in graphs.line_graph_forbidden_subgraphs():
@@ -248,7 +252,7 @@ def is_line_graph(g, certificate = False):
             RR, _ = root_graph(gg)
             R = R + RR
 
-        _, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+        _, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     return (True, R, isom)
 
@@ -340,6 +344,7 @@ def line_graph(self, labels=True):
         sage: C.line_graph().is_isomorphic(g.line_graph())
         True
     """
+    self._scream_if_not_simple()
     if self._directed:
         from sage.graphs.digraph import DiGraph
         G=DiGraph()
@@ -483,14 +488,14 @@ def root_graph(g, verbose = False):
         from sage.graphs.graph import Graph
         root = Graph([(0,1),(1,2),(2,0),(0,3)])
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Wheel on 5 vertices ?
     elif g.order() == 5 and g.size() == 8 and min(g.degree()) == 3:
         from sage.graphs.generators.basic import DiamondGraph
         root = DiamondGraph()
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Octahedron ?
     elif g.order() == 6 and g.size() == 12 and g.is_regular(k=4):
@@ -499,7 +504,7 @@ def root_graph(g, verbose = False):
             from sage.graphs.generators.basic import CompleteGraph
             root = CompleteGraph(4)
             return (root,
-                    g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                    g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # From now on we can assume (thanks to Beineke) that no edge belongs to two
     # even triangles at once.
@@ -565,7 +570,7 @@ def root_graph(g, verbose = False):
             v_cliques[v].append(tuple(S))
 
         if verbose:
-            print "Added clique", S
+            print("Added clique", S)
 
     # Deal with even triangles
     for u,v,w in even_triangles:
@@ -587,7 +592,8 @@ def root_graph(g, verbose = False):
                 v_cliques[y].append((x,y))
 
                 if verbose:
-                    print "Adding pair",(x,y),"appearing in the even triangle", (u,v,w)
+                    print("Adding pair", (x, y),
+                          "appearing in the even triangle", (u, v, w))
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
@@ -617,9 +623,9 @@ def root_graph(g, verbose = False):
         vertex_to_map[v] = relabel[L[0]], relabel[L[1]]
 
     if verbose:
-        print "Final associations :"
-        for v,L in v_cliques.iteritems():
-            print v,L
+        print("Final associations :")
+        for v, L in v_cliques.iteritems():
+            print(v, L)
 
     # We now build R
     R.add_edges(vertex_to_map.values())
@@ -631,7 +637,7 @@ def root_graph(g, verbose = False):
     #
     # It's actually "just to make sure twice". This can be removed later if it
     # turns out to be too costly.
-    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     if not is_isom:
         raise Exception(error_message)

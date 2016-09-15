@@ -1,6 +1,8 @@
 """
 Neighbors
 """
+from __future__ import print_function
+
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from copy import deepcopy
@@ -74,7 +76,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
     Finds the next `p`-primitive vector (up to scaling) in `L/pL` whose
     value is `p`-divisible, where the last vector returned was `v`.  For
-    an intial call, no `v` needs to be passed.
+    an initial call, no `v` needs to be passed.
 
     Returns vectors whose last non-zero entry is normalized to 0 or 1 (so no
     lines are counted repeatedly).  The ordering is by increasing the
@@ -82,6 +84,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     vectors, then return None.
 
     OUTPUT:
+
         vector or None
 
     EXAMPLES::
@@ -97,7 +100,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
     ## Initialize
     n = self.dim()
-    if v == None:
+    if v is None:
         w = vector([ZZ(0) for i in range(n-1)] + [ZZ(1)])
     else:
         w = deepcopy(v)
@@ -105,7 +108,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
 
     ## Handle n = 1 separately.
     if n <= 1:
-        raise RuntimeError, "Sorry -- Not implemented yet!"
+        raise RuntimeError("Sorry -- Not implemented yet!")
 
 
     ## Look for the last non-zero entry (which must be 1)
@@ -115,7 +118,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
 
     ## Test that the last non-zero entry is 1 (to detect tampering).
     if w[nz] != 1:
-        print "Warning: The input vector to QuadraticForm.find_primitive_p_divisible_vector__next() is not normalized properly."
+        print("Warning: The input vector to QuadraticForm.find_primitive_p_divisible_vector__next() is not normalized properly.")
 
 
 
@@ -127,8 +130,6 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
         ind = 0
         while (ind < nz) and (w[ind] == p-1):
             ind += 1
-
-        #print ind, nz, w
 
         ## Increment
         if (ind < nz):
@@ -189,7 +190,7 @@ def find_p_neighbor_from_vec(self, p, v):
     while ((y_ind < n) and (v_dual[y_ind] % p) == 0):   ## Check the dot product for the std basis vectors!
         y_ind += 1
     if y_ind == n:
-        raise RuntimeError, "Oops!  One of the standard basis vectors should have worked."
+        raise RuntimeError("Oops!  One of the standard basis vectors should have worked.")
     w = vector([R(i == y_ind)  for i in range(n)])
     vw_prod = (v * self.matrix()).dot_product(w)
 

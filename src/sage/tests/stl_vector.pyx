@@ -25,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
@@ -148,8 +148,8 @@ cdef class stl_int_vector(SageObject):
             return c
         cdef vector[int].iterator lhs_iter = lhs.data.begin()
         cdef vector[int].iterator rhs_iter = rhs.data.begin()
+        sig_on()
         try:
-            sig_on()
             while lhs_iter != lhs.data.end():
                 c = cmp(<int>(lhs_iter[0]), <int>(rhs_iter[0]))
                 if c != 0:

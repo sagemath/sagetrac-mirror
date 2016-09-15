@@ -14,6 +14,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.misc import cputime
 import inspect
@@ -50,7 +51,7 @@ class Profiler:
 
     This will give a nice list of timings between checkpoints::
 
-        sage: print p                         # not tested
+        sage: print(p)                        # not tested
 
     Let's try it out::
 
@@ -120,7 +121,7 @@ class Profiler:
 
         self._last_cputime = [fn() for fn in self._cputime_functions ]
         if self._verbose:
-            print self.print_last()
+            print(self.print_last())
             sys.stdout.flush()
 
     def __repr__(self):

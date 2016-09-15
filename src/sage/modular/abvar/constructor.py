@@ -5,6 +5,7 @@ AUTHORS:
 
 - William Stein (2007-03)
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -18,9 +19,9 @@ from sage.rings.integer import Integer
 
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, Gamma0
 from sage.modular.modsym.space import is_ModularSymbolsSpace
-from abvar_newform import ModularAbelianVariety_newform
+from .abvar_newform import ModularAbelianVariety_newform
 import sage.modular.modform.element
-import abvar
+from . import abvar
 
 _cache = {}
 
@@ -46,11 +47,11 @@ def _get(key):
         ...
         ValueError: element not in cache
     """
-    if _cache.has_key(key):
+    if key in _cache:
         z = _cache[key]()
         if z is not None:
             return z
-    raise ValueError, "element not in cache"
+    raise ValueError("element not in cache")
 
 def _saved(key, J):
     """
@@ -188,4 +189,4 @@ def AbelianVariety(X):
     if isinstance(X, (tuple,list)) and all([is_CongruenceSubgroup(G) for G in X]):
         return abvar.ModularAbelianVariety(X)
 
-    raise TypeError, "X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups"
+    raise TypeError("X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups")

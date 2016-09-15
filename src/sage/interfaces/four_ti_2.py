@@ -1,8 +1,12 @@
 r"""
-Interface to 4ti2 (http://www.4ti2.de)
+Interface to 4ti2
+
+http://www.4ti2.de
 
 You must have the 4ti2 Sage package installed on your computer
 for this interface to work.
+
+Use ``sage -i 4ti2`` to install the package.
 
 AUTHORS:
 
@@ -34,22 +38,22 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 import os
 
+
 class FourTi2(object):
     r"""
     This object defines an interface to the program 4ti2. Each command
     4ti2 has is exposed as one method.
     """
-
     def __init__(self, directory=None):
         r"""
         Initialize this object.
 
         INPUT:
 
-        - ``directory`` - 4ti2 only deals with files, and this is the
-           directory that Sage will write input files to and run 4ti2
-           in. Use an appropriate temporary directory if the value is
-           ``None``.
+        - ``directory`` -- 4ti2 only deals with files, and this is the
+          directory that Sage will write input files to and run 4ti2
+          in. Use an appropriate temporary directory if the value is
+          ``None``.
 
         EXAMPLES::
 
@@ -96,7 +100,7 @@ class FourTi2(object):
         """
         n = 0
         while True:
-            project = "project_%s"%n
+            project = "project_%s" % n
             touch_file = os.path.join(self.directory(),project) + '.touch'
             if not os.path.exists(touch_file):
                 break
@@ -112,9 +116,9 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``mat`` - A matrix of integers or something that can be
-           converted to that.
-        - ``filename`` - A file name not including a path.
+        - ``mat`` -- A matrix of integers or something that can be
+          converted to that.
+        - ``filename`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -137,8 +141,8 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``row`` - A list of integers.
-        - ``filename`` - A file name not including a path.
+        - ``row`` -- A list of integers.
+        - ``filename`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -156,11 +160,11 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``array`` - A matrix of integers. Can be represented as a list
-           of lists.
-        - ``nrows`` - The number of rows in ``array``.
-        - ``ncols`` - The number of columns in ``array``.
-        - ``file`` - A file name not including a path.
+        - ``array`` -- A matrix of integers. Can be represented as a list
+          of lists.
+        - ``nrows`` -- The number of rows in ``array``.
+        - ``ncols`` -- The number of columns in ``array``.
+        - ``file`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -181,9 +185,10 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``filename`` - The name of the file to read from.
+        - ``filename`` -- The name of the file to read from.
 
         OUTPUT:
+
         The data from the file as a matrix over `\ZZ`.
 
         EXAMPLES::
@@ -204,7 +209,7 @@ class FourTi2(object):
 
         nrows, ncols = map(ZZ, lines.pop(0).strip().split())
         return matrix(ZZ, nrows, ncols,
-                      [map(ZZ, line.strip().split()) for line in lines
+                      [[ZZ(_) for _ in line.strip().split()] for line in lines
                        if line.strip() != ""])
 
     def _process_input(self, kwds):
@@ -226,18 +231,19 @@ class FourTi2(object):
 
         INPUT:
 
-        - kwds - A dict controlling what data is written to what files.
+        - kwds -- A dict controlling what data is written to what files.
 
         OUTPUT:
+
         The value of the key ``project``.
 
         EXAMPLES::
 
             sage: from sage.interfaces.four_ti_2 import four_ti_2
             sage: pr = four_ti_2._process_input( \
-            ...       {'project': "test_file", \
-            ...        'self': None, \
-            ...        'tst': [[1,2,3],[3,4,5]]})
+            ....:     {'project': "test_file", \
+            ....:      'self': None, \
+            ....:      'tst': [[1,2,3],[3,4,5]]})
             sage: four_ti_2.read_matrix("test_file.tst")
             [1 2 3]
             [3 4 5]
@@ -272,33 +278,29 @@ class FourTi2(object):
 
         INPUT:
 
-        - command - The 4ti2 program to run.
-        - project - The file name of the project to run on.
-        - verbose - Display the output of 4ti2 if ``True``.
+        - command -- The 4ti2 program to run.
+        - project -- The file name of the project to run on.
+        - verbose -- Display the output of 4ti2 if ``True``.
 
         EXAMPLES::
 
             sage: from sage.interfaces.four_ti_2 import four_ti_2
-            sage: four_ti_2.write_matrix([[6,10,15]], "test_file.mat")
-            sage: four_ti_2.call("groebner", "test_file", false) # optional - 4ti2
+            sage: four_ti_2.write_matrix([[6,10,15]], "test_file")
+            sage: four_ti_2.call("groebner", "test_file", False) # optional - 4ti2
             sage: four_ti_2.read_matrix("test_file.gro") # optional - 4ti2
             [-5  0  2]
             [-5  3  0]
         """
         import subprocess
-        cwd = os.getcwd() # Save working directory in order to restore it.
-        os.chdir(self.directory())
 
-        cmd = '%s %s'%(command, project)
+        cmd = '%s %s' % (command, project)
         if verbose is False:
             cmd += " > /dev/null 2> /dev/null"
-        subprocess.call(cmd, shell=True)
+        subprocess.call(cmd, shell=True, cwd=self.directory())
 
-        os.chdir(cwd) # Restore previous working directory.
-
-    def zsolve(self, mat=None, rel=None, rhs=None, sign=None, project=None):
+    def zsolve(self, mat=None, rel=None, rhs=None, sign=None, lat=None, project=None):
         r"""
-        Runs the 4ti2 program ``zsolve`` on the parameters. See
+        Run the 4ti2 program ``zsolve`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -316,15 +318,21 @@ class FourTi2(object):
             [1 1 0]  [ 1 -2  1]
             [0 1 0], [ 0 -2  1], []
             ]
+            sage: four_ti_2.zsolve(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
+            [
+                         [1 2 3]
+            [0 0 0], [], [1 1 1]
+            ]
+
         """
         project = self._process_input(locals())
-        self.call('zsolve', project)
+        self.call('zsolve -q', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['zinhom', 'zhom', 'zfree']]
 
     def qsolve(self, mat=None, rel=None, sign=None, project=None):
         r"""
-        Runs the 4ti2 program ``qsolve`` on the parameters. See
+        Run the 4ti2 program ``qsolve`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -335,13 +343,13 @@ class FourTi2(object):
             [[], [ 1 -2  1]]
         """
         project = self._process_input(locals())
-        self.call('qsolve -parbitrary', project)
+        self.call('qsolve -q -parbitrary', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['qhom', 'qfree']]
 
     def rays(self, mat=None, project=None):
         r"""
-        Runs the 4ti2 program ``rays`` on the parameters. See
+        Run the 4ti2 program ``rays`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -354,12 +362,12 @@ class FourTi2(object):
             [2 0 1 0 1 2 1 2 0]
         """
         project = self._process_input(locals())
-        self.call('rays -parbitrary', project)
+        self.call('rays -q -parbitrary', project)
         return self.read_matrix(project+'.ray')
 
-    def hilbert(self, mat=None, project=None):
+    def hilbert(self, mat=None, lat=None, project=None):
         r"""
-        Runs the 4ti2 program ``hilbert`` on the parameters. See
+        Run the 4ti2 program ``hilbert`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -371,14 +379,18 @@ class FourTi2(object):
             [0 2 1 2 1 0 1 0 2]
             [1 2 0 0 1 2 2 0 1]
             [1 1 1 1 1 1 1 1 1]
+            sage: four_ti_2.hilbert(lat=[[1,2,3],[1,1,1]])   # optional - 4ti2
+            [2 1 0]
+            [0 1 2]
+            [1 1 1]
         """
         project = self._process_input(locals())
-        self.call('hilbert', project)
+        self.call('hilbert -q', project)
         return self.read_matrix(project+'.hil')
 
-    def graver(self, mat=None, project=None):
+    def graver(self, mat=None, lat=None, project=None):
         r"""
-        Runs the 4ti2 program ``graver`` on the parameters. See
+        Run the 4ti2 program ``graver`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -390,15 +402,19 @@ class FourTi2(object):
             [ 1  1 -1]
             [ 1 -2  1]
             [ 0  3 -2]
-
+            sage: four_ti_2.graver(lat=[[1,2,3],[1,1,1]])  # optional - 4ti2
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 1  1  1]
+            [ 2  1  0]
         """
         project = self._process_input(locals())
-        self.call('graver', project)
+        self.call('graver -q', project)
         return self.read_matrix(project+'.gra')
 
     def ppi(self, n):
         r"""
-        Runs the 4ti2 program ``ppi`` on the parameters. See
+        Run the 4ti2 program ``ppi`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -412,12 +428,12 @@ class FourTi2(object):
             [ 1 -2  1]
 
         """
-        self.call('ppi', n)
+        self.call('ppi 2> /dev/null', n)
         return self.read_matrix('ppi%s.gra'%n)
 
     def circuits(self, mat=None, project=None):
         r"""
-        Runs the 4ti2 program ``circuits`` on the parameters. See
+        Run the 4ti2 program ``circuits`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -429,12 +445,12 @@ class FourTi2(object):
             [ 3  0 -1]
         """
         project = self._process_input(locals())
-        self.call('circuits -parbitrary', project)
+        self.call('circuits -q -parbitrary', project)
         return self.read_matrix(project+'.cir')
 
-    def minimize(self, mat=None):
+    def minimize(self, mat=None, lat=None):
         r"""
-        Runs the 4ti2 program ``minimize`` on the parameters. See
+        Run the 4ti2 program ``minimize`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
 
         EXAMPLES::
@@ -448,9 +464,9 @@ class FourTi2(object):
         raise NotImplementedError("4ti2 command 'minimize' not implemented "
                                    "in Sage.")
 
-    def groebner(self, mat=None, project=None):
+    def groebner(self, mat=None, lat=None, project=None):
         r"""
-        Runs the 4ti2 program ``groebner`` on the parameters. This
+        Run the 4ti2 program ``groebner`` on the parameters. This
         computes a Toric Groebner basis of a matrix. See
         ``http://www.4ti2.de/`` for details.
 
@@ -461,9 +477,12 @@ class FourTi2(object):
             sage: four_ti_2.groebner(A) # optional - 4ti2
             [-5  0  2]
             [-5  3  0]
+            sage: four_ti_2.groebner(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
+            [-1  0  1]
+            [ 2  1  0]
         """
         project = self._process_input(locals())
-        self.call('groebner -parbitrary', project)
+        self.call('groebner -q -parbitrary', project)
         return self.read_matrix(project+'.gro')
 
     def _magic3x3(self):

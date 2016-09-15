@@ -34,10 +34,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -53,12 +57,12 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.rings.arith import xgcd
+from sage.arith.all import xgcd, gcd, inverse_mod
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
-from cryptosystem import SymmetricKeyCryptosystem
-from classical_cipher import (
+from .cryptosystem import SymmetricKeyCryptosystem
+from .classical_cipher import (
     AffineCipher,
     HillCipher,
     ShiftCipher,
@@ -273,7 +277,6 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
-        from sage.rings.arith import gcd
         n = A.ngens()
         self._invertible_A = [i for i in xrange(n) if gcd(i, n) == 1]
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
@@ -346,7 +349,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
                 return AffineCipher(self, key=(a,b))
             else:
                 raise ValueError
-        except StandardError:
+        except Exception:
             raise ValueError("(a, b) = (%s, %s) is outside the range of acceptable values for a key of this affine cryptosystem." % (a, b))
 
     def _repr_(self):
@@ -1150,7 +1153,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             return D(strip_encoding(S))
         try:
             return D.encoding(S)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument S = %s does not encode in the cipher domain" % S)
 
     def inverse_key(self, a, b):
@@ -1236,13 +1239,12 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             ValueError: (a, b) = (0, 1) is outside the range of acceptable values for a key of this affine cipher.
         """
         try:
-            from sage.rings.arith import inverse_mod
             from sage.rings.finite_rings.integer_mod import Mod
             n = self.alphabet_size()
             aInv = inverse_mod(a, n)
             bInv = Mod(-b * aInv, n).lift()
             return (aInv, bInv)
-        except StandardError:
+        except Exception:
             raise ValueError("(a, b) = (%s, %s) is outside the range of acceptable values for a key of this affine cipher." % (a, b))
 
     def random_key(self):
@@ -1393,7 +1395,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         if isinstance(A, list):
             try:
                 A = M(A)
-            except StandardError:
+            except Exception:
                 raise TypeError("A (= %s) must specify a square matrix of degree %s." % (A, m))
         return HillCipher(self, A)
 
@@ -1538,7 +1540,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, A, C):
@@ -2482,9 +2484,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 7
 
         Over the hexadecimal number system::
@@ -2495,9 +2496,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 5
 
         And over the binary number system::
@@ -2508,9 +2508,8 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
-            ...       if Dict[k] == P:
-            ...           print "key =", k
-            ...
+            ....:     if Dict[k] == P:
+            ....:         print("key = " + str(k))
             key = 1
 
         Don't use any ranking functions, i.e. ``ranking="none"``::
@@ -2846,7 +2845,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             return D(strip_encoding(S))
         try:
             return D.encoding(S)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument S = %s does not encode in the cipher domain" % S)
 
     def inverse_key(self, K):
@@ -3204,7 +3203,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):
@@ -3337,7 +3336,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         if isinstance(K, list):
             try:
                 K = G(K)
-            except StandardError:
+            except Exception:
                 raise TypeError("K (= %s) must specify a permutation." % K)
         if not isinstance(K, PermutationGroupElement) and K.parent() == G:
             raise TypeError("K (= %s) must be a permutation or list specifying a permutation." % K)
@@ -3448,7 +3447,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):
@@ -3584,7 +3583,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         if isinstance(K, list):
             try:
                 K = S(K)
-            except StandardError:
+            except Exception:
                 raise TypeError("K (= %s) must specify a string of length %s." % (K, m))
         if not len(K) == m:
             raise TypeError("K (= %s) must specify a string of length %s." % (K, m))
@@ -3691,7 +3690,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             return S(strip_encoding(M))
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError("Argument M = %s does not encode in the cipher domain" % M)
 
     def deciphering(self, K, C):

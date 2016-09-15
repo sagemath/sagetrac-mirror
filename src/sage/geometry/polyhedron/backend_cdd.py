@@ -1,15 +1,17 @@
 """
 The cdd backend for polyhedral computations
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ, QQ, RDF
 from sage.misc.all import SAGE_TMP, tmp_filename, union, cached_method, prod
 from sage.matrix.constructor import matrix
 
-from base import Polyhedron_base
-from base_QQ import Polyhedron_QQ
-from base_RDF import Polyhedron_RDF
+from .base import Polyhedron_base
+from .base_QQ import Polyhedron_QQ
+from .base_RDF import Polyhedron_RDF
 
 
 
@@ -47,7 +49,7 @@ class Polyhedron_cdd(Polyhedron_base):
             A 2-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex, 1 ray, 1 line
         """
-        from cdd_file_format import cdd_Vrepresentation
+        from .cdd_file_format import cdd_Vrepresentation
         s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
         self._init_from_cdd_input(s, '--reps', verbose)
 
@@ -76,7 +78,7 @@ class Polyhedron_cdd(Polyhedron_base):
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
         """
-        from cdd_file_format import cdd_Hrepresentation
+        from .cdd_file_format import cdd_Hrepresentation
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         self._init_from_cdd_input(s, '--reps', verbose)
 
@@ -147,31 +149,29 @@ class Polyhedron_cdd(Polyhedron_base):
             2
 
             sage: point_list = [[0.132, -1.028, 0.028],[0.5, 0.5, -1.5],
-            ...    [-0.5, 1.5, -0.5],[0.5, 0.5, 0.5],[1.5, -0.5, -0.5],
-            ...    [-0.332, -0.332, -0.668],[-1.332, 0.668, 0.332],
-            ...    [-0.932, 0.068, 0.932],[-0.38, -0.38, 1.38],
-            ...    [-0.744, -0.12, 1.12],[-0.7781818182, -0.12, 0.9490909091],
-            ...    [0.62, -1.38, 0.38],[0.144, -1.04, 0.04],
-            ...    [0.1309090909, -1.0290909091, 0.04]]
+            ....:    [-0.5, 1.5, -0.5],[0.5, 0.5, 0.5],[1.5, -0.5, -0.5],
+            ....:    [-0.332, -0.332, -0.668],[-1.332, 0.668, 0.332],
+            ....:    [-0.932, 0.068, 0.932],[-0.38, -0.38, 1.38],
+            ....:    [-0.744, -0.12, 1.12],[-0.7781818182, -0.12, 0.9490909091],
+            ....:    [0.62, -1.38, 0.38],[0.144, -1.04, 0.04],
+            ....:    [0.1309090909, -1.0290909091, 0.04]]
             sage: Polyhedron(point_list)
-            Traceback (most recent call last):
-            ...
-            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 14 vertices
             sage: Polyhedron(point_list, base_ring=QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
         if verbose:
-            print '---- CDD input -----'
-            print cdd_input_string
+            print('---- CDD input -----')
+            print(cdd_input_string)
 
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
                          stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
         if verbose:
-            print '---- CDD output -----'
-            print ans
-            print err
+            print('---- CDD output -----')
+            print(ans)
+            print(err)
         if 'Error:' in ans + err:
             # cdd reports errors on stdout and misc information on stderr
             raise ValueError(ans.strip())
@@ -202,8 +202,8 @@ class Polyhedron_cdd(Polyhedron_base):
         def expect_in_cddout(expected_string):
             l = cddout.pop(0).strip()
             if l!=expected_string:
-                raise ValueError, ('Error while parsing cdd output: expected "'
-                                   +expected_string+'" but got "'+l+'".\n' )
+                raise ValueError('Error while parsing cdd output: expected "'
+                                   +expected_string+'" but got "'+l+'".\n')
         # nested function
         def cdd_linearities():
             l = cddout[0].split()

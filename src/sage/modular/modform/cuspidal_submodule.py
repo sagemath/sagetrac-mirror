@@ -29,6 +29,7 @@ EXAMPLES::
     q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)
     ]
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -42,10 +43,10 @@ from sage.rings.all import Integer
 from sage.misc.all import verbose
 from sage.matrix.all import Matrix
 
-import submodule
-import vm_basis
+from .submodule import ModularFormsSubmodule
+from . import vm_basis
 
-class CuspidalSubmodule(submodule.ModularFormsSubmodule):
+class CuspidalSubmodule(ModularFormsSubmodule):
     """
     Base class for cuspidal submodules of ambient spaces of modular forms.
     """
@@ -88,7 +89,7 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         V = ambient_space.module()
         G = [V.gen(i) for i in range(d)]
         S = V.submodule(G, check=False, already_echelonized=True)
-        submodule.ModularFormsSubmodule.__init__(self, ambient_space, S)
+        ModularFormsSubmodule.__init__(self, ambient_space, S)
 
     def _compute_q_expansion_basis(self, prec):
         r"""
@@ -103,7 +104,7 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
             ...
             NotImplementedError: q-expansion basis not implemented for "Cuspidal subspace of ..."
         """
-        raise NotImplementedError, 'q-expansion basis not implemented for "%s"' % self
+        raise NotImplementedError('q-expansion basis not implemented for "%s"' % self)
 
     def _repr_(self):
         """
@@ -214,7 +215,8 @@ class CuspidalSubmodule_R(CuspidalSubmodule):
             q^2 - 2*q^3 - q^4 + 2*q^5 + O(q^6)
             ]
         """
-        return submodule.ModularFormsSubmodule._compute_q_expansion_basis(self, prec)
+        return ModularFormsSubmodule._compute_q_expansion_basis(self, prec)
+
 
 class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
     """
@@ -231,7 +233,7 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             ]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         else:
             prec = Integer(prec)
@@ -271,7 +273,7 @@ class CuspidalSubmodule_level1_Q(CuspidalSubmodule):
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
             ]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         else:
             prec = Integer(prec)

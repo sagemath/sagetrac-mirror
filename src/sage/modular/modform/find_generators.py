@@ -8,13 +8,24 @@ AUTHORS:
 
 - William Stein (2007-08-24): first version
 """
+from __future__ import absolute_import
+
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 
-from sage.rings.all              import Integer, QQ, ZZ, PowerSeriesRing
-from sage.misc.misc              import prod, verbose
-from sage.misc.cachefunc         import cached_method
+from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
+from sage.misc.all import prod, verbose
+from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
-from constructor                 import ModularForms
+from .constructor                 import ModularForms
 from sage.structure.sage_object  import SageObject
 from random import shuffle
 
@@ -190,14 +201,27 @@ class ModularFormsRing(SageObject):
              q^3 + 66*q^7 + 832*q^9 + O(q^10),
              q^4 + 40*q^6 + 528*q^8 + O(q^10),
              q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+
+        TESTS:
+
+        Check that :trac:`15037` is fixed::
+
+            sage: ModularFormsRing(3.4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Group (=3.40000000000000) should be a congruence subgroup
+            sage: ModularFormsRing(Gamma0(2), base_ring=PolynomialRing(ZZ,x))
+            Traceback (most recent call last):
+            ...
+            ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
         """
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
-            raise ValueError("Group (=%s) should be a congruence subgroup")
+            raise ValueError("Group (=%s) should be a congruence subgroup" % group)
 
         if base_ring != ZZ and not base_ring.is_prime_field():
-            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field")
+            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
         self.__base_ring = base_ring
@@ -205,8 +229,6 @@ class ModularFormsRing(SageObject):
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
         self.__cached_cusp_gens = []
-
-
 
     def group(self):
         r"""
@@ -567,7 +589,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                qcZZ = [ZZ(_) for _ in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = M(f)
                 G.append((k, f.change_ring(self.base_ring()), F))
@@ -635,7 +657,7 @@ class ModularFormsRing(SageObject):
 
         gen_weight = min(6, weight)
 
-        while 1:
+        while True:
             verbose("Trying to generate the %s-dimensional space at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
             G = self.generators(maxweight=gen_weight, prec=working_prec)
             V = _span_of_forms_in_weight(G, weight, prec=working_prec, use_random=use_random, stop_dim=d)
@@ -710,7 +732,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                qcZZ = [ZZ(_) for _ in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = S(f)
                 G.append((k, f.change_ring(self.base_ring()), F))
@@ -772,7 +794,7 @@ class ModularFormsRing(SageObject):
 
         gen_weight = min(6, weight)
 
-        while 1:
+        while True:
             verbose("Trying to generate the %s-dimensional cuspidal submodule at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
             G = self.cuspidal_ideal_generators(maxweight=gen_weight, prec=working_prec)
 

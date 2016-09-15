@@ -9,7 +9,7 @@ A vector space morphism is a homomorphism between vector spaces, better known
 as a linear transformation.  These are a specialization of Sage's free module
 homomorphisms.  (A free module is like a vector space, but with scalars from a
 ring that may not be a field.)  So references to free modules in the
-documentation or error messages should be understood as simply reflectng a
+documentation or error messages should be understood as simply reflecting a
 more general situation.
 
 Creation
@@ -308,6 +308,7 @@ TESTS::
     sage: loads(dumps(f)) == f
     True
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2011 Rob Beezer <beezer@ups.edu>
@@ -327,7 +328,7 @@ TESTS::
 
 import sage.modules.matrix_morphism as matrix_morphism
 import sage.modules.free_module_morphism as free_module_morphism
-import vector_space_homspace
+from . import vector_space_homspace
 from sage.matrix.matrix import is_Matrix
 
 def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
@@ -634,7 +635,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some proposed image is not in the codomain, because
-        element (= [1, 2]) is not in free module
+        element [1, 2] is not in free module
 
 
     Functions may not apply properly to domain elements,
@@ -645,7 +646,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ValueError: function cannot be applied properly to some basis element because
-        index out of range
+        vector index out of range
 
         sage: f = lambda x: vector(QQ, [x[0], x[1]])
         sage: C = (QQ^2).span([vector(QQ, [1, 1])])
@@ -653,7 +654,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
 
     A Sage symbolic function can come in a variety of forms that are
     not representative of a linear transformation. ::
@@ -685,7 +686,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
     """
     from sage.matrix.constructor import matrix
     from sage.modules.module import is_VectorSpace
@@ -748,17 +749,17 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
             raise ValueError('symbolic function has the wrong number of inputs for domain')
         if n != C.degree():
             raise ValueError('symbolic function has the wrong number of outputs for codomain')
-        arg2 = [[e.coeff(a) for e in exprs] for a in args]
+        arg2 = [[e.coefficient(a) for e in exprs] for a in args]
         try:
             arg2 = matrix(D.base_ring(), m, n, arg2)
-        except TypeError, e:
+        except TypeError as e:
             msg = 'symbolic function must be linear in all the inputs:\n' + e.args[0]
             raise ValueError(msg)
         # have matrix with respect to standard bases, now consider user bases
         images = [v*arg2 for v in D.basis()]
         try:
             arg2 = matrix([C.coordinates(C(a)) for a in images])
-        except (ArithmeticError, TypeError), e:
+        except (ArithmeticError, TypeError) as e:
             msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
             raise ArithmeticError(msg)
     else:
@@ -849,7 +850,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             <class 'sage.modules.vector_space_morphism.VectorSpaceMorphism'>
         """
         if not vector_space_homspace.is_VectorSpaceHomspace(homspace):
-            raise TypeError, 'homspace must be a vector space hom space, not {0}'.format(homspace)
+            raise TypeError('homspace must be a vector space hom space, not {0}'.format(homspace))
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         if not is_Matrix(A):

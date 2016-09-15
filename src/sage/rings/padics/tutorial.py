@@ -1,5 +1,6 @@
 r"""
-Introduction to the p-adics
+Introduction to the `p`-adics
+==========================================
 
 This tutorial outlines what you need to know in order to use
 `p`-adics in Sage effectively.
@@ -310,7 +311,7 @@ One can specify this name as follows::
 
     sage: R.<c> = Zq(125, prec = 20); R
     Unramified Extension of 5-adic Ring with capped absolute precision 20
-    in c defined by (1 + O(5^20))*x^3 + (3 + O(5^20))*x + (3 + O(5^20))
+    in c defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
 
 Eisenstein Extensions
 ---------------------

@@ -11,6 +11,7 @@ Hecke algebras", which include Hecke operators coprime to the level. Morphisms
 in the category of Hecke modules are not required to commute with the action of
 the full Hecke algebra, only with the anemic algebra.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -30,14 +31,12 @@ the full Hecke algebra, only with the anemic algebra.
 
 import weakref
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
-import module
-import hecke_operator
 import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.structure.element import Element
@@ -98,7 +97,7 @@ def AnemicHeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _anemic_cache.has_key(k):
+    if k in _anemic_cache:
         T = _anemic_cache[k]()
         if not (T is None):
             return T
@@ -134,7 +133,7 @@ def HeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _cache.has_key(k):
+    if k in _cache:
         T = _cache[k]()
         if not (T is None):
             return T
@@ -205,8 +204,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             sage: CuspForms(1, 12).hecke_algebra() # indirect doctest
             Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
         """
+        from . import module
         if not module.is_HeckeModule(M):
-            raise TypeError, "M (=%s) must be a HeckeModule"%M
+            raise TypeError("M (=%s) must be a HeckeModule"%M)
         self.__M = M
         sage.rings.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
 
@@ -292,6 +292,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             [-3  0]
             [ 0  1]
         """
+        from . import hecke_operator
         try:
             if not isinstance(x, Element):
                 x = self.base_ring()(x)
@@ -321,11 +322,11 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
                 A = self.matrix_space()(x)
                 if check:
                     if not A.is_scalar():
-                        raise NotImplementedError, "Membership testing for '%s' not implemented" % self
+                        raise NotImplementedError("Membership testing for '%s' not implemented" % self)
                 return hecke_operator.HeckeAlgebraElement_matrix(self, A)
 
         except TypeError:
-            raise TypeError, "Don't know how to construct an element of %s from %s" % (self, x)
+            raise TypeError("Don't know how to construct an element of %s from %s" % (self, x))
 
     def _coerce_impl(self, x):
         r"""
@@ -546,9 +547,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: g = T.gens()
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_1 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         n = 1
@@ -744,7 +745,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         """
         n = int(n)
         if arith.gcd(self.module().level(), n) != 1:
-            raise IndexError, "Hecke operator T_%s not defined in the anemic Hecke algebra"%n
+            raise IndexError("Hecke operator T_%s not defined in the anemic Hecke algebra"%n)
         return self.module()._hecke_operator_class()(self, n)
 
     def is_anemic(self):
@@ -769,9 +770,9 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
             sage: T = ModularSymbols(12,2).anemic_hecke_algebra()
             sage: g = T.gens()
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_1 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
-            sage: g.next()
+            sage: next(g)
             Hecke operator T_5 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
         """
         level = self.level()

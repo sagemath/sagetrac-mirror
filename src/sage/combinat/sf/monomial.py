@@ -1,6 +1,7 @@
 """
 Monomial symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2010 Anne Schilling <anne at math.ucdavis.edu> (addition)
@@ -18,7 +19,7 @@ Monomial symmetric functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import classical
+from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
@@ -73,14 +74,18 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def _multiply(self, left, right):
         """
-        Returns the product of ``left`` and ``right``.
+        Return the product of ``left`` and ``right``.
 
-        - ``self`` -- a monomial symmetric function basis
-        - ``left``, ``right`` -- instances of the Schur basis ``self``.
+        - ``left``, ``right`` -- symmetric functions written in the
+          monomial basis ``self``.
 
-        OUPUT:
+        OUTPUT:
 
-        - an element of the Schur basis, the product of ``left`` and ``right``
+        - the product of ``left`` and ``right``, expanded in the
+          monomial basis, as a dictionary whose keys are partitions and
+          whose values are the coefficients of these partitions (more
+          precisely, their respective monomial symmetric functions) in the
+          product.
 
         EXAMPLES::
 
@@ -134,7 +139,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         - ``self`` -- a monomial symmetric function basis
         - ``f`` -- a polynomial in finitely many variables over the same base ring as ``self``.
           It is assumed that this polynomial is symmetric.
-        - ``check`` -- boolean (default: True), checks whether the polynomial is indeed symmetric
+        - ``check`` -- boolean (default: ``True``), checks whether the polynomial is indeed symmetric
 
         OUTPUT:
 
@@ -169,8 +174,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         out = self.sum_of_terms((Partition(e), c)
                                 for (e,c) in f.dict().iteritems()
                                 if tuple(sorted(e)) == tuple(reversed(e)))
-        if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
-            raise ValueError, "%s is not a symmetric polynomial"%f
+        if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
+            raise ValueError("%s is not a symmetric polynomial"%f)
         return out
 
     def from_polynomial_exp(self, p):
@@ -220,19 +225,61 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         return self.sum_of_terms((Partition(exp=monomial), coeff)
                                  for (monomial, coeff) in p.dict().iteritems())
 
+    def antipode_by_coercion(self, element):
+        r"""
+        The antipode of ``element`` via coercion to and from the power-sum
+        basis or the Schur basis (depending on whether the power sums really
+        form a basis over the given ground ring).
+
+        INPUT:
+
+        - ``element`` -- element in a basis of the ring of symmetric functions
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.monomial()
+            sage: m[3,2].antipode()
+            m[3, 2] + 2*m[5]
+            sage: m.antipode_by_coercion(m[3,2])
+            m[3, 2] + 2*m[5]
+
+            sage: Sym = SymmetricFunctions(ZZ)
+            sage: m = Sym.monomial()
+            sage: m[3,2].antipode()
+            m[3, 2] + 2*m[5]
+            sage: m.antipode_by_coercion(m[3,2])
+            m[3, 2] + 2*m[5]
+
+        .. TODO::
+
+            Is there a not too difficult way to get the power-sum computations
+            to work over any ring, not just one with coercion from `\QQ`?
+        """
+        from sage.rings.rational_field import RationalField
+        if self.has_coerce_map_from(RationalField()):
+            p = self.realization_of().powersum()
+            return self(p.antipode(p(element)))
+
+        s = self.realization_of().schur()
+        return self(s.antipode(s(element)))
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the monomial symmetric function basis
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -245,6 +292,10 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 z0^2*z1 + z0*z1^2 + z0^2*z2 + z1^2*z2 + z0*z2^2 + z1*z2^2
                 sage: m([2,1]).expand(3,alphabet='x,y,z')
                 x^2*y + x*y^2 + x^2*z + y^2*z + x*z^2 + y*z^2
+                sage: m([1]).expand(0)
+                0
+                sage: (3*m([])).expand(0)
+                3
             """
             condition = lambda part: len(part) > n
             return self._expand(condition, n, alphabet)

@@ -5,14 +5,16 @@ Ambient Spaces
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, is_CommutativeRing, ZZ
-
+from sage.rings.all import Integer, ZZ, CommutativeRing
 from sage.schemes.generic.scheme import Scheme
+
 
 def is_AmbientSpace(x):
     """
@@ -50,11 +52,11 @@ class AmbientSpace(Scheme):
             sage: A = AmbientSpace(5, ZZ)
             sage: TestSuite(A).run() # not tested (abstract scheme with no elements?)
         """
-        if not is_CommutativeRing(R):
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+        if not isinstance(R, CommutativeRing):
+            raise TypeError("R (=%s) must be a commutative ring"%R)
         n = Integer(n)
         if n < 0:
-            raise ValueError, "n (=%s) must be nonnegative"%n
+            raise ValueError("n (=%s) must be nonnegative"%n)
         self._dimension_relative = n
         Scheme.__init__(self, R)
 
@@ -251,7 +253,7 @@ class AmbientSpace(Scheme):
             ValueError: no natural map from the base ring (=Rational Field)
             to R (=Finite Field of size 5)!
         """
-        if is_CommutativeRing(R):
+        if isinstance(R, CommutativeRing):
             if self.base_ring() == R:
                 return self
             if not R.has_coerce_map_from(self.base_ring()):
@@ -375,7 +377,7 @@ class AmbientSpace(Scheme):
         base = self.base_scheme()
         if base.is_noetherian():
             return self.dimension_relative() + base.dimension()
-        raise NotImplementedError, "Cannot compute the dimension of this scheme."
+        raise NotImplementedError("Cannot compute the dimension of this scheme.")
 
     dimension = dimension_absolute
 
