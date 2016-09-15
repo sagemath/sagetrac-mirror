@@ -1114,8 +1114,8 @@ class BetaAdicMonoid(Monoid_class):
 		sig_on()
 		cl = NewColorList(b.na)
 		if isinstance(colormap, list):
-			if b.na < len(colormap):
-				raise ValueError("The list of color must contain at least %d elements."%b.na)
+			#if b.na > len(colormap):
+			#	raise ValueError("The list of color must contain at least %d elements."%b.na)
 			for i in range(b.na):
 				if i < len(colormap):
 					cl[i] = getColor(colormap[i])
@@ -2932,26 +2932,31 @@ class BetaAdicMonoid(Monoid_class):
 			else:
 				return -1
 		else:
-			e1 = self.Approx_rec(a, test, f, x, n-1, n2)
-			e2 = self.Approx_rec(a, test, f, x + self.b**(n2-n), n-1, n2)
-			if e1 != -1 or e2 != -1:
+			e = dict()
+			add = False
+			for t in self.C:
+				e[t] = self.Approx_rec(a, test, f, x+t*self.b**(n2-n), n-1, n2)
+				if e[t] != -1:
+					add = True
+			if add:
 				e3 = a.add_state(0)
-				if e1 != -1:
-					a.add_edge(e3, 0, e1)
-				if e2 != -1:
-					a.add_edge(e3, 1, e2)
+				for t in self.C:
+					if e[t] != -1:
+						a.add_edge(e3, t, e[t])
 				return e3
 			return -1
 	
 	#gives a automaton describing a approximation of a set defined by the characteritic function test
 	#rk : can be improve using a reduced words automaton
-	def Approx (self, n, test):
+	def Approx (self, n, test): #, ared=None):
+#		if ared is None:
+#			ared = m.reduced_words_automaton2()
 		a = FastAutomaton(None)
-		a.setAlphabet([0,1])
+		a.setAlphabet(list(self.C))
 		f = a.add_state(1)
 		e = self.Approx_rec(a, test, f, 0, n, n)
-		a.add_edge(f, 0, f)
-		a.add_edge(f, 1, f)
+		for t in self.C:
+			a.add_edge(f, t, f)
 		a.set_initial_state(e)
 		return a
 	
@@ -3044,7 +3049,8 @@ class BetaAdicMonoid(Monoid_class):
 		for t1 in self.C:
 			for t2 in self.C:
 				d[(t1,t2)] = t1-t2
-		ad = aoc.product(aoc, d)
+		ad = aoc.product(aoc)
+		ad = ad.determinise_proj(d)
 		if verb: print "ad = %s"%ad
 		#compute the reduced words automaton with the difference alphabet
 		#m2 = BetaAdicMonoid(b, set([t1 - t2 for t1 in A for t2 in A]))
@@ -3067,7 +3073,7 @@ class BetaAdicMonoid(Monoid_class):
 	
 	#verify that a piece exchange is correct
 	#we assume that pieces are disjoints
-	# INCORRECT : THE PIECE EXCHANGE IS NOT NECESSARLY INVERSIBLE
+	# WARNING : IF DOES NOT CONTAIN 0 THE PIECE EXCHANGE IS NOT NECESSARLY INVERSIBLE
 	def correct_morceaux (self, FastAutomaton aoc, list lm, bool verb=False):
 		u = FastAutomaton(None)
 		u.setAlphabet(aoc.Alphabet())
@@ -3186,7 +3192,7 @@ class BetaAdicMonoid(Monoid_class):
 								res.append(t2)
 		return res
 	
-	def compute_morceaux2 (self, FastAutomaton aoc, iplus=1, verb=False, step=None):
+	def compute_morceaux2 (self, FastAutomaton aoc, iplus=1, reduit=False, verb=False, step=None):
 		r"""
 		Compute the pieces exchange describing the g-beta-expansion given by the automaton aoc.
 		
@@ -3221,10 +3227,15 @@ class BetaAdicMonoid(Monoid_class):
 		if verb: print p
 		if abs(p[0](b)) > 1:
 			pp = p[0]
-			pm = p[1]
+			#pm = p[1]
 		else:
 			pp = p[1]
-			pm = p[0]
+			#pm = p[0]
+		if reduit:
+			if verb: print("Compute ared...");
+			ared = self.reduced_words_automaton2()
+			if verb: print("Compute aocr...")
+			aocr = aoc.intersection(ared)
 		if verb: print("Compute the pieces...")
 		u = FastAutomaton(None)
 		u.setAlphabet(list(A))
@@ -3233,8 +3244,15 @@ class BetaAdicMonoid(Monoid_class):
 		while True:
 			#############
 			#compute uc-aoc
-			ad = uc.product(aoc)
+			if verb: print "product..."
+			if reduit:
+				ucr = uc.intersection(ared)
+				ad = ucr.product(aocr)
+			else:
+				ad = uc.product(aoc)
+			if verb: print "determinise..."
 			ad = ad.determinise_proj(d)
+			if verb: print "minimise..."
 			ad = ad.emonde().minimise()
 			ad.zero_completeOP()
 			if verb: print "ad = %s"%ad
@@ -3373,7 +3391,7 @@ class BetaAdicMonoid(Monoid_class):
 			if method == 1:
 				lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)
 			else:
-				lt = self.compute_morceaux2(aoc, iplus, verb=False)
+				lt = self.compute_morceaux2(aoc, iplus, verb=True)
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs
@@ -3567,8 +3585,16 @@ class BetaAdicMonoid(Monoid_class):
 			if d[i][-1] < 0:
 				d[i].pop()
 			s[i] = d[i]
+		#recode the substitution
+		l = s.keys()
+		dl = dict() #inverse of l
+		for i,k in enumerate(l):
+			dl[k] = i+1
+		d = dict()
+		for i in s:
+			d[dl[i]] = [dl[j] for j in s[i]]
 		if get_aut:
-			return s, [(a,t) for i,(a,t) in enumerate(lm) if arbre[i]==[]]
+			return d, [(a,t) for i,(a,t) in enumerate(lm) if arbre[i]==[]]
 		else:
-			return s
+			return d
 

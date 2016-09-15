@@ -1097,6 +1097,42 @@ void printAutomate (Automate a)
 	printf("état initial %d.\n", a.i);
 }
 
+/*
+#used by Approx
+int Approx_rec (Automaton *a, test, f, x, int n, int n2)
+{
+	if (n == 0)
+	{
+		if test(x):
+			return f
+		else:
+			return -1
+	}else:
+		e1 = self.Approx_rec(a, test, f, x, n-1, n2)
+		e2 = self.Approx_rec(a, test, f, x + self.b**(n2-n), n-1, n2)
+		if e1 != -1 or e2 != -1:
+			e3 = a.add_state(0)
+			if e1 != -1:
+				a.add_edge(e3, 0, e1)
+			if e2 != -1:
+				a.add_edge(e3, 1, e2)
+			return e3
+		return -1
+}
+	
+#gives a automaton describing a approximation of a set defined by the characteritic function test
+Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
+{
+	Automaton r;
+	f = a.add_state(1)
+	e = Approx_rec(&r, test, f, 0, n, n)
+	a.add_edge(f, 0, f)
+	a.add_edge(f, 1, f)
+	a.set_initial_state(e)
+	return r;
+}
+*/
+
 void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb)
 {
 	int auto_n = (n < 0);
@@ -1110,6 +1146,10 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	{
 		colors[i] = cl[i]; //randCol(255);
 		colors[i].a = cl[i].a*alpha;
+		if (verb)
+		{
+			printf("couleur %d : %d %d %d %d\n", i, cl[i].r, cl[i].g, cl[i].b, cl[i].a);
+		}
 	}
 	if (verb)
 	{
