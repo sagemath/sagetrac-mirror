@@ -168,7 +168,6 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -228,7 +227,8 @@ FINDSTAT_URL_RESULT                 = FINDSTAT_URL + "StatisticFinder/Result/"
 FINDSTAT_URL_LOGIN                  = FINDSTAT_URL + "StatisticFinder?action=login"
 FINDSTAT_URL_NEW                    = FINDSTAT_URL + 'StatisticsDatabase/NewStatistic/'
 FINDSTAT_URL_EDIT                   = FINDSTAT_URL + 'StatisticsDatabase/EditStatistic/'
-FINDSTAT_URL_BROWSE                 = FINDSTAT_URL + 'StatisticsDatabase/'
+FINDSTAT_URL_BROWSE_STATISTIC       = FINDSTAT_URL + 'StatisticsDatabase/'
+FINDSTAT_URL_BROWSE_MAP             = FINDSTAT_URL + 'MapsDatabase/'
 
 FINDSTAT_URL_DOWNLOADS              = 'http://downloads.findstat.org/'
 FINDSTAT_URL_DOWNLOADS_STATISTICS   = FINDSTAT_URL_DOWNLOADS + "statistics/%s.json"
@@ -237,7 +237,7 @@ FINDSTAT_URL_DOWNLOADS_MAPS         = FINDSTAT_URL_DOWNLOADS + "maps.json"
 
 ######################################################################
 # the number of values FindStat allows to search for at most
-FINDSTAT_MAX_VALUES = 200
+FINDSTAT_MAX_VALUES = 1000
 # the number of values FindStat needs at least to search for
 FINDSTAT_MIN_VALUES = 3
 # the number of maps that FindStat should compose at most to find a match
@@ -1271,6 +1271,31 @@ class FindStatStatistic(SageObject):
         """
         return self._first_terms
 
+    def set_first_terms(self, value):
+        r"""
+        Update the first terms of the statistic.
+
+        INPUT:
+
+        - a list of pairs of the form ``(object, value)`` where
+        ``object`` is a sage object representing an element of the
+        appropriate collection and ``value`` is an integer.
+
+        OUTPUT:
+
+        - Raise an error if the query has a match with no
+          intermediate combinatorial maps.
+
+        This information is used when submitting the statistic with
+        :meth:`submit`.
+
+        """
+        self._raise_error_modifying_statistic_with_perfect_match()
+
+        if value != self._first_terms:
+            self._modified = True
+            self._first_terms = value
+    
     def first_terms_str(self):
         r"""
         Return the first terms of the statistic in the format needed
@@ -1689,7 +1714,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(41).browse()                                         # optional -- webbrowser
         """
         if self._query == "ID":
-            webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str())
+            webbrowser.open(FINDSTAT_URL_BROWSE_STATISTIC + self.id_str())
         else:
             raise NotImplementedError("It would be nice to show the result of a FindStat query in the webbrowser, but we do not know how to do this yet.")
 
@@ -1769,7 +1794,7 @@ class FindStatStatistic(SageObject):
         _ = webbrowser.open(f.name)
 
         _ = verbose("Waiting a little before deleting the temporary file", caller_name='FindStat')
-        time.sleep(1)
+        time.sleep(10)
 
         f.unlink(f.name)
 
@@ -1949,6 +1974,12 @@ class FindStatCollection(Element):
             Cc0001: Permutations
         """
         return self.id().__cmp__(other.id())
+
+    def __hash__(self):
+        """
+        Returns a hash value for the collection.
+        """
+        return self.id()
 
     def is_supported(self):
         """
@@ -2632,6 +2663,17 @@ class FindStatMap(Element):
         id = str(self.id())
         return 'Mp00000'[:-len(id)] + id
 
+    def browse(self):
+        r"""
+        Open the FindStat web page of the map in a browser.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(62).browse()                                      # optional -- webbrowser
+        """
+        webbrowser.open(FINDSTAT_URL_BROWSE_MAP + self.id_str())
+    
     def _repr_(self):
         r"""
         Return the representation of the FindStat map.
@@ -2672,6 +2714,12 @@ class FindStatMap(Element):
         """
         return self.id().__cmp__(other.id())
 
+    def __hash__(self):
+        """
+        Returns a hash value for the map.
+        """
+        return self.id()
+    
     def name(self):
         r"""
         Return the FindStat name of the map.
