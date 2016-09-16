@@ -9,7 +9,7 @@ from sage.modules.vector_modn_sparse cimport c_vector_modint
 from sage.matrix.matrix_integer_dense cimport mod_int
 
 ctypedef enum SparseAlgorithm:
-    SparseElimination,
+    SparseElimination
     Wiedemann
 
 cdef class Linbox_matrix_modn_sparse:

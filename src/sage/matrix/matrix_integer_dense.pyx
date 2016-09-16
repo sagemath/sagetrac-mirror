@@ -1264,12 +1264,14 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         self._init_mpz()
         linbox_matrix = Linbox_integer_dense()
         linbox_matrix.set(self._nrows, self._ncols, self._rows)
-        sig_on()
         if typ == 'minpoly':
+            sig_on()
             v = linbox_matrix.minpoly()
+            sig_off()
         else:
+            sig_on()
             v = linbox_matrix.charpoly()
-        sig_off()
+            sig_off()
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)
@@ -2173,13 +2175,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 raise ValueError("algorithm (='%s') unknown"%algorithm)
         self.cache('elementary_divisors', d)
         return d[:]
-
-    #def _elementary_divisors_linbox(self):
-        #self._init_linbox()
-        #sig_on()
-        #d = linbox.smithform()
-        #sig_off()
-        #return d
 
     def smith_form(self):
         r"""
