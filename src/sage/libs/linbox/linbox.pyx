@@ -6,40 +6,33 @@ Linbox interface
 ## code that calls these functions.  Otherwise strangely objects get left
 ## in an incorrect state.
 
-from sage.libs.gmp.mpz cimport *
-from sage.rings.integer cimport Integer
 from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 
 from cython.operator import dereference
 from libcpp.vector cimport vector
 
+from sage.libs.linbox.modular cimport *
+from sage.libs.gmp.mpz cimport *
+from sage.rings.integer cimport Integer
+
+from sage.modules.vector_modn_sparse cimport set_entry
+
 ##################### Data Structures
 
-
-#### sparse matrices mod small prime
-
-# cdef extern from "linbox/matrix/sparse-matrix.h"  namespace "LinBox": in v1.4.2
-cdef extern from "linbox/blackbox/sparse.h" namespace "LinBox":  # v1.3.2
-    cdef cppclass SparseMatrix[Field,Row]:
-        SparseMatrix (const ModIntField &F, size_t m, size_t n)            # FixME Field
-        void setEntry (size_t i, size_t j, const ModIntFieldElement & x)   # FixME Field
-
-ctypedef pair[size_t, ModIntFieldElement] sparse_vector_pair
-ctypedef vector[sparse_vector_pair] SparseSeqVectorGFp
-ctypedef SparseMatrix[ModIntField, SparseSeqVectorGFp] SparseMatrixGFp
-
 #### integer ring
-cdef extern from "linbox/field/PID-integer.h" namespace "LinBox":
-    cdef cppclass LinBoxIntegerRing "LinBox::PID_integer":
-        LinBoxIntegerRing()
+cdef extern from "givaro/zring.h":
+    cdef cppclass GivaroIntegerRing "Givaro::ZRing<Givaro::Integer>":
+        GivaroIntegerRing()
 
+# for c++ debugging purposes
 cdef extern from "<iostream>" namespace "std":
     cdef cppclass ostream:
         ostream() except +
         ostream& write (char* s, int n) except +
     cdef ostream cout
 
-cdef extern from "linbox/integer.h":
+
+cdef extern from "givaro/givinteger.h" namespace "Givaro":
     #cdef cppclass mpz_class:
     #    mpz_class()
     #    mpz_class(mpz_t a)
@@ -47,29 +40,46 @@ cdef extern from "linbox/integer.h":
     # LinBox integers are actualy Givaro Integers, 
     # which are themselves thin wrappers around GMPXX's mpz_class, 
     # which are themsemves thin wrappers around GMP's mpz_t...
-    #
+
     # the Givaro version currently bundled with sage has no constructor of Givaro::Integer from mpz_t....
     # Later Givaro version do have it. In the meanwhile, we have to use the horrible SpyInteger hack.
-    cdef cppclass LinBoxInteger "LinBox::Integer":
-        LinBoxInteger()
-        # LinBoxInteger(const mpz_class &a)    --- in more recent Givaro
+    cdef cppclass GivaroInteger "Givaro::Integer":
+        GivaroInteger()
+        # GivaroInteger(const mpz_class &a)    --- in more recent Givaro
         void output "print" (ostream &)
 
     cdef cppclass LinBoxSpyInteger "LinBox::SpyInteger":   # necessary evil
-        mpz_t get_mpz(LinBoxInteger &t)                    #    for now
+        mpz_t get_mpz(GivaroInteger &t)                    #    for now
 
 #### ZZ[X] elements
-ctypedef vector[LinBoxInteger] LinBox_ZZX_element
+ctypedef vector[GivaroInteger] LinBox_ZZX_element
+
+#### sparse matrices mod small prime
+cdef extern from "linbox/matrix/sparse-matrix.h"  namespace "LinBox":
+    cdef cppclass SparseMatrix[Field]:
+        const Field & field()
+        SparseMatrix (const ModIntField &F, size_t m, size_t n)            # FixME Field
+        void setEntry (size_t i, size_t j, const ModIntFieldElement & x)   # FixME Field
+
+#### sparse matrices mod small prime
+cdef extern from "linbox/vector/vector.h" namespace "LinBox":
+    cdef cppclass DenseVector[Field]:
+        DenseVector()
+        DenseVector(const Field &F, size_t n)
+        void setEntry (size_t i, const ModIntFieldElement & x)   # FixME Field
+        ModIntFieldElement & getEntry (size_t i)                 # FixME Field
 
 #### dense integer matrices
-cdef extern from "linbox/matrix/blas-matrix.h" namespace "LinBox":
+cdef extern from "linbox/matrix/dense-matrix.h" namespace "LinBox":
     cdef cppclass BlasMatrix[Ring]:
-        BlasMatrix(const LinBoxIntegerRing &F, int &nrows, int &ncols)
-        void setEntry (size_t i, size_t j, const LinBoxInteger & x)
-        const LinBoxInteger getEntry (size_t i, size_t j)
+        BlasMatrix(const GivaroIntegerRing &F, int &nrows, int &ncols)
+        void setEntry (size_t i, size_t j, const GivaroInteger & x)
+        const GivaroInteger getEntry (size_t i, size_t j)
         #void write(ostream)
 
-ctypedef BlasMatrix[LinBoxIntegerRing] DenseMatrixZZ
+ctypedef BlasMatrix[GivaroIntegerRing] DenseMatrixZZ
+ctypedef DenseVector[ModIntField] DenseVectorGFp
+ctypedef SparseMatrix[ModIntField] SparseMatrixGFp
 
 
 ######### algorithms
@@ -93,10 +103,10 @@ cdef extern from "linbox/solutions/rank.h" namespace "LinBox":
 ctypedef vector[ModIntFieldElement] vec_mod_int
 
 cdef extern from "linbox/solutions/solve.h" namespace "LinBox":
-    cdef long_ref solve(vec_mod_int &, SparseMatrixGFp&, const vec_mod_int&, const Method&) 
+    cdef long_ref solve(DenseVectorGFp &, SparseMatrixGFp&, const DenseVectorGFp&, const Method&) 
 
 cdef extern from "linbox/solutions/det.h" namespace "LinBox":
-    cdef LinBoxInteger & det(LinBoxInteger &, DenseMatrixZZ &) 
+    cdef GivaroInteger & det(GivaroInteger &, DenseMatrixZZ &) 
 
 cdef extern from "linbox/solutions/minpoly.h" namespace "LinBox":
     cdef LinBox_ZZX_element & minpoly(LinBox_ZZX_element &, DenseMatrixZZ &) 
@@ -137,18 +147,23 @@ cdef class Linbox_matrix_modn_sparse:
     cdef void solve(self, c_vector_modint **x, c_vector_modint *b, SparseAlgorithm algorithm):
         cdef SparseMatrixGFp *M = <SparseMatrixGFp *> self._M
         cdef SparseEliminationTraits method = SparseEliminationTraits()
-        cdef vec_mod_int B = vec_mod_int(self.ncols)
-        cdef vec_mod_int X = vec_mod_int(self.nrows)
+        
+        cdef ModIntField F = M.field()
+        cdef DenseVectorGFp B = DenseVectorGFp(F, self.ncols)
+        cdef DenseVectorGFp X = DenseVectorGFp(F, self.nrows)
+
+        #B = DenseVectorGFp(F, self.ncols)
+        #X = DenseVectorGFp(F, self.nrows)
 
         # scatter b into a dense vector
         cdef size_t i
         for i in range(b.num_nonzero):
-            B[b.positions[i]] = <ModIntFieldElement> b.entries[i]
+            B.setEntry(b.positions[i], <ModIntFieldElement> b.entries[i])
         solve(X, dereference(M), B, method)
         
         # linbox returns a dense solution, and we have to make it sparse somehow...
         for i in range(self.ncols):
-            set_entry(dereference(x), i, <int> X[i])
+            set_entry(dereference(x), i, <int> X.getEntry(i))
 
 ##########################################################################
 ## Sparse matrices over ZZ
@@ -158,25 +173,6 @@ cdef class Linbox_matrix_modn_sparse:
 ##########################################################################
 ## Dense matrices over ZZ
 ##########################################################################
-
-cdef extern from "linbox/linbox-sage.h":
-    void linbox_integer_dense_minpoly(mpz_t* &minpoly, size_t &degree, size_t n, mpz_t** matrix)
-
-    void linbox_integer_dense_charpoly(mpz_t* &charpoly, size_t &degree, size_t n, mpz_t** matrix)
-
-    void linbox_integer_dense_delete_array(mpz_t* f)
-
-    int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B, size_t A_nr, size_t A_nc, size_t B_nc)
-
-    unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
-                                            size_t ncols)
-
-    void linbox_integer_dense_det(mpz_t ans, mpz_t** matrix,
-                             size_t nrows, size_t ncols)
-
-    void linbox_integer_dense_smithform(mpz_t **v,
-                                        mpz_t **matrix,
-                                        size_t nrows, size_t ncols)
 
 ######### interface ##########
 
@@ -188,9 +184,9 @@ cdef class Linbox_integer_dense:
 
     cdef set(self, size_t nrows, size_t ncols, mpz_t ** matrix):
         cdef size_t i, j
-        cdef LinBoxIntegerRing *ZZ = new LinBoxIntegerRing()
+        cdef GivaroIntegerRing *ZZ = new GivaroIntegerRing()
         cdef LinBoxSpyInteger spy   # this crap just have static methods
-        cdef LinBoxInteger t, u
+        cdef GivaroInteger t, u
         cdef DenseMatrixZZ *M = new DenseMatrixZZ(dereference(ZZ), nrows, ncols)    
 
         self.nrows = nrows
@@ -214,7 +210,7 @@ cdef class Linbox_integer_dense:
 
     cdef det(self):
         cdef DenseMatrixZZ *M = <DenseMatrixZZ *> self._M
-        cdef LinBoxInteger d
+        cdef GivaroInteger d
         cdef Integer z  # Sage Integer
         cdef LinBoxSpyInteger spy   # this crap just have static methods
 

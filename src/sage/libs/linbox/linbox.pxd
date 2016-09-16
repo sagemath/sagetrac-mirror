@@ -4,13 +4,9 @@
 # distutils: language = c++ 
 
 from sage.libs.gmp.types cimport mpz_t
-from sage.modules.vector_modn_sparse cimport *
+from sage.modules.vector_modn_sparse cimport c_vector_modint
 
 from sage.matrix.matrix_integer_dense cimport mod_int
-from sage.libs.linbox.modular cimport *
-
-from libcpp.vector cimport vector
-from libcpp.pair cimport pair
 
 ctypedef enum SparseAlgorithm:
     SparseElimination,
