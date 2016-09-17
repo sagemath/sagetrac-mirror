@@ -636,8 +636,8 @@ class Function_frac(BuiltinFunction):
 
         Test pickling::
 
-            sage: loads(dumps(floor))
-            floor
+            sage: loads(dumps(frac))
+            frac
         """
         BuiltinFunction.__init__(self, "frac",
                                  conversions=dict(sympy='frac'),
@@ -647,10 +647,22 @@ class Function_frac(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: frac(pi)
+            pi - 3
             sage: frac(pi).n()
             0.141592653589793
             sage: frac(pi).n(200)
             0.14159265358979323846264338327950288419716939937510582097494
+
+            sage: frac(1.5r)
+            0.5
+            sage: type(_)
+            <type 'float'>
+
+            sage: frac(10r)
+            0
+            sage: type(_)
+            <type 'int'>
         """
         return x - floor(x)
 
@@ -663,18 +675,9 @@ class Function_frac(BuiltinFunction):
             sage: frac(x)
             frac(x)
         """
-        try:
-            return x - x.floor()
-        except AttributeError:
-            if isinstance(x, integer_types):
-                return Integer(0)
-            elif isinstance(x, (float, complex)):
-                return x - Integer(int(math.floor(x)))
-            elif isinstance(x, Expression):
-                ret = floor(x)
-                if not hasattr(ret, "operator") or not ret.operator() == floor:
-                    return x - ret
-        return None
+        y = floor(x)
+        if not isinstance(y, Expression) or y.operator() is not floor:
+            return x - y
 
 frac = Function_frac()
 
