@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "complex.h"
 #include "Automaton.h"
 #include "automataC.h"
@@ -74,6 +74,7 @@ void DrawRond (int x, int y, SDL_Surface *s)
 
 void TestSDL ()
 {
+	SDL_Window* win;
 	SDL_Surface * s;
     int i, j;
     if (SDL_Init(SDL_INIT_VIDEO) == -1)
@@ -82,14 +83,21 @@ void TestSDL ()
         return;
     }
     
-    #define SDL_VIDEO_FLAGS (SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT)
-
-    s = SDL_SetVideoMode(WIDTH, HEIGHT, 32, SDL_VIDEO_FLAGS);
+    win = SDL_CreateWindow("Test SDL 2.0", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    if( win == NULL )
+	{
+		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+		exit(1);
+	}else
+	{
+		//Get window surface
+		s = SDL_GetWindowSurface( win );
+	}
 
     printf("Mode vidéo: %dx%d %d bits/pixel\n", s->w, s->h, s->format->BitsPerPixel);
            
     SDL_FillRect(s, NULL, SDL_MapRGB(s->format, 0x00, 0xff, 0xff));
-    SDL_Flip(s);
+    SDL_UpdateWindowSurface(win);
     
     Uint32 rmask, gmask, bmask, amask;
 
@@ -127,14 +135,14 @@ void TestSDL ()
     	pix += (s->pitch/4-WIDTH);
     }
     
-    SDL_Flip(s);
+    SDL_UpdateWindowSurface(win);
     
     int quit = 0;
     pix = s->pixels;
 	SDL_Event event;
 	for(;;)
 	{
-		SDL_PollEvent(&event); // Récupération des actions de l'utilisateur
+		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
 		switch(event.type)
 		{
 			case SDL_QUIT: // Clic sur la croix
@@ -152,7 +160,7 @@ void TestSDL ()
 					x = event.motion.x;
 					y = event.motion.y;
 					DrawRond(x,y,s);
-					SDL_Flip(s);
+					SDL_UpdateWindowSurface(win);
 				}
 				break;
 		}
@@ -386,8 +394,8 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 	
 	    Uint32 rmask, gmask, bmask, amask;
 
-    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
-       on the endianness (byte order) of the machine */
+    // SDL interprets each pixel as a 32-bit number, so our masks must depend
+    //  on the endianness (byte order) of the machine
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
@@ -406,10 +414,20 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 		printf("Ouverture de la fenêtre...\n");
     }
     
-    #define SDL_VIDEO_FLAGS (SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT)
+    SDL_Window* win;
+	SDL_Surface *screen;
 
-    SDL_Surface *screen = SDL_SetVideoMode(sx, sy, 32, SDL_VIDEO_FLAGS);
-
+    // Création de la fenêtre
+    win = SDL_CreateWindow("Fenetre user_draw", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy, SDL_WINDOW_SHOWN);
+    if( win == NULL )
+	{
+		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+		exit(1);
+	}else
+	{
+		//Get window surface
+		screen = SDL_GetWindowSurface( win );
+	}
     if (verb)
     	printf("Mode vidéo: %dx%d %d bits/pixel\n", screen->w, screen->h, screen->format->BitsPerPixel);
     
@@ -420,7 +438,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
         fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
         exit(1);
     }
-    SDL_SetAlpha(sf, 0, 255);
+    //SDL_SetAlpha(sf, 0, 255);
          
     //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
     SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
@@ -443,7 +461,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     colf.g = 100;
     colf.b = 200;
     drawTransf(s, screen, f, t, col);
-    SDL_Flip(screen);
+    SDL_UpdateWindowSurface(win);
     
     int quit = 0;
     int x, y;
@@ -500,7 +518,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 						SDL_BlitSurface(sf, NULL, screen, NULL);
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
-						SDL_Flip(screen);
+						SDL_UpdateWindowSurface(win);
 					}
 				}else
 				{
@@ -510,7 +528,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 						drawTransf(s, screen, f, t, col);
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
-						SDL_Flip(screen);
+						SDL_UpdateWindowSurface(win);
 					}
 				}
 				break;
