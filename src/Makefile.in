@@ -79,4 +79,17 @@ sdistcheck-build:
 		   SAGE_CYTHONIZED=`pwd`/build/cythonized	\
 	&& python -u setup.py install
 
+TREECMD=find . -name "*.pyc" -prune		\
+		-o -name "*~" -prune		\
+		-o -name "*\#" -prune		\
+		-o -name build -prune		\
+		-o -name doc -prune		\
+		-o -name sage-\* -prune		\
+		-o -name mac-app -prune		\
+		-o -print
+sdistcheck-compare-trees:
+	$(TREECMD) > srctree.list
+	(cd sage-$(PACKAGE_VERSION) && $(TREECMD) > srctree.list)
+	diff -u srctree.list sage-$(PACKAGE_VERSION)/srctree.list
+
 sdistcheck: sdist sdistcheck-unpack sdistcheck-build
