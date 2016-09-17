@@ -3,6 +3,7 @@
 abs_builddir = @abs_builddir@
 srcdir = @srcdir@
 abs_top_srcdir = @abs_top_srcdir@
+PACKAGE_VERSION = @PACKAGE_VERSION@
 
 .PHONY: all sage clean
 
@@ -48,3 +49,34 @@ clean:
 	rm -rf build
 	find . -name '*.pyc' | xargs rm -f
 	rm -rf sage/ext/interpreters
+
+.PHONY: sdist sdistcheck
+sdist:
+	cd $(srcdir)							\
+	&& export SAGE_ROOT=/doesnotexist				\
+		  SAGE_SRC=/doesnotexist				\
+		  SAGE_SRC_ROOT=/doesnotexist				\
+		  SAGE_DOC_SRC=/doesnotexist				\
+		  SAGE_SCRIPTS_DIR=/doesnotexist			\
+		  SAGE_BUILD_DIR=/doesnotexist				\
+		  SAGE_PKGS=$(abs_top_srcdir)/build/pkgs		\
+		  SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized	\
+	&& python -u setup.py sdist --formats=bztar
+
+sdistcheck-unpack:
+	rm -rf sage-$(PACKAGE_VERSION)					\
+	&& tar xf dist/sage-$(PACKAGE_VERSION).tar.bz2
+
+sdistcheck-build:
+	cd sage-$(PACKAGE_VERSION)					\
+	&& export SAGE_ROOT=/doesnotexist				\
+		   SAGE_SRC=/doesnotexist				\
+		   SAGE_SRC_ROOT=/doesnotexist				\
+		   SAGE_DOC_SRC=/doesnotexist				\
+		   SAGE_SCRIPTS_DIR=/doesnotexist			\
+		   SAGE_BUILD_DIR=/doesnotexist				\
+		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs		\
+		   SAGE_CYTHONIZED=`pwd`/build/cythonized	\
+	&& python -u setup.py install
+
+sdistcheck: sdist sdistcheck-unpack sdistcheck-build
