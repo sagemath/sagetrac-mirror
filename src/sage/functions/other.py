@@ -332,7 +332,7 @@ class Function_abs(GinacFunction):
 
 abs = abs_symbolic = Function_abs()
 
-def incremental_rounding(x, mode, maximum_bits=None):
+def incremental_rounding(x, mode, is_zero_func=None, maximum_bits=None):
     r"""
     Return the rounding of the number ``x`` according to the given ``mode`` as a
     Sage integer.
@@ -346,8 +346,12 @@ def incremental_rounding(x, mode, maximum_bits=None):
     - ``mode`` -- either ``'floor'`` (toward minus infinity), ``'ceil'`` (toward
       plus infinity) or ``'round'`` (nearest).
 
-    - ``maximum_bits`` -- the maximum precision that is used in the incremental
-      search
+    - ``is_zero_func` -- (optional) check whether a number with the same parent as
+      x (obtained by shifting ``x`` by a rational) is zero. This function will be
+      called at most once. The default uses the `is_zero` method of the object.
+
+    - ``maximum_bits`` -- (optional) the maximum precision that is used in the
+      incremental search. Defaults to 16384.
 
     EXAMPLES::
 
@@ -441,10 +445,13 @@ def incremental_rounding(x, mode, maximum_bits=None):
             candidate = (interval + shift).unique_integer()
             delta = x - candidate + shift
 
-            try:
-                if delta.is_zero(): return candidate
-            except AttributeError:
-                pass
+            if is_zero_func is None:
+                is_zero = delta.is_zero()
+            else:
+                is_zero = is_zero_func(delta)
+
+            if is_zero:
+                return candidate
 
         bits *= 2
 
@@ -620,15 +627,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil(pi)  # indirect doctest
             4
         """
-        # NOTE: .is_zero() is *not* reliable for symbolic expression
-        # hence the try/except below
-        try:
-            return incremental_rounding(x, 'ceil', 256)
-        except ValueError:
-            # try some exactification
-            if x.parent() is SR:
-                x = x.full_simplify().canonicalize_radical()
-            return incremental_rounding(x, 'ceil', maximum_bits)
+        return incremental_rounding(x, 'ceil', maximum_bits)
 
 ceil = Function_ceil()
 
@@ -786,15 +785,7 @@ class Function_floor(BuiltinFunction):
             sage: floor(pi)  # indirect doctest
             3
         """
-        # NOTE: .is_zero() is *not* reliable for symbolic expression
-        # hence the try/except below
-        try:
-            return incremental_rounding(x, 'floor', 256)
-        except ValueError:
-            # try some exactification
-            if x.parent() is SR:
-                x = x.full_simplify().canonicalize_radical()
-            return incremental_rounding(x, 'floor', maximum_bits)
+        return incremental_rounding(x, 'floor', maximum_bits)
 
 floor = Function_floor()
 

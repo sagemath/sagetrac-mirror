@@ -1113,19 +1113,11 @@ cdef class Expression(CommutativeRingElement):
             return int(obj)
 
         rif_self = sage.rings.all.RIF(self)
-        from sage.functions.other import incremental_rounding
+        # NOTE: the test "self > 0" below might return False positive
         if rif_self > 0 or (rif_self.contains_zero() and self > 0):
-            mode = 'floor'
+            return int(self.floor())
         else:
-            mode = 'ceil'
-
-        # NOTE: is_zero is not reliable for symbolic expression. Instead we
-        # use the try/except strategy below.
-        try:
-            i = incremental_rounding(self, mode, 256)
-        except ValueError:
-            i = incremental_rounding(self.full_simplify().canonicalize_radical(), mode)
-        return int(i)
+            return int(self.ceil())
 
     def _rational_(self):
         """
@@ -5494,11 +5486,55 @@ cdef class Expression(CommutativeRingElement):
             return res.n(prec=prec,digits=digits)
         return res
 
+    def rounding(self, mode):
+        r"""
+        Return a rounding of this symbolic expression with respect to ``mode``
+
+        INPUT::
+
+        - ``mode`` - either ``"round"``, or ``"floor"`` or ``"ceil"``
+
+        .. SEEALS::
+
+            meth:`floor`, :meth:`ceil`, :meth:`round`
+
+        EXAMPLES::
+
+            sage: e.rounding("floor")
+            2
+            sage: e.rounding("ceil")
+            3
+            sage: e.rounding("round")
+            3
+        """
+        try:
+            x = self.pyobject()
+        except TypeError:
+            # NOTE: is_zero is not reliable for symbolic expression. Instead we
+            # use a custom is_zero_func attribute for incremental_rounding
+            from sage.functions.other import incremental_rounding
+            return incremental_rounding(self, mode, lambda x: x.is_zero() or x.full_simplify().canonicalize_radical().is_zero())
+        else:
+            try:
+                func = getattr(x, mode)
+            except AttributeError:
+                from sage.functions.other import incremental_rounding
+                return incremental_rounding(self, mode)
+            else:
+                return func()
+
     def round(self):
         """
         Round this expression to the nearest integer.
 
         EXAMPLES::
+
+            sage: pi.round()
+            3
+            sage: (sin(1 + 10^(-100)) - sin(1)).round()
+            0
+            sage: (sin(1 - 10^(-100)) - sin(1)).round()
+            0
 
             sage: u = sqrt(43203735824841025516773866131535024)
             sage: u.round()
@@ -5514,22 +5550,55 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: unable to simplify to a real interval approximation
         """
+        return self.rounding('round')
+
+    def floor(self):
+        """
+        Return the floor of this expression
+
+        EXAMPLES::
+
+            sage: pi.floor()
+            3
+            sage: x.floor()
+            floor(x)
+
+        This function is *not* reliable in general::
+
+            sage: (sin(1 + 10^(-100)) - sin(1)).floor()
+            0
+            sage: (sin(1 - 10^(-100)) - sin(1)).floor()    # known bug
+            -1
+        """
         try:
-            x = self.pyobject()
-        except TypeError:
-            # NOTE: is_zero is not reliable for symbolic expression. Instead we
-            # use the try/except strategy below.
-            from sage.functions.other import incremental_rounding
-            try:
-                return incremental_rounding(self, 'round', 256)
-            except ValueError:
-                return incremental_rounding(self.full_simplify().canonicalize_radical(), 'round')
-        else:
-            try:
-                return x.round()
-            except AttributeError:
-                from sage.functions.other import incremental_rounding
-                return incremental_rounding(x, 'round')
+            return self.rounding('floor')
+        except Exception:
+            from sage.functions.other import floor
+            return floor(self, hold=True)
+
+    def ceil(self):
+        """
+        Return the ceil of this expression
+
+        EXAMPLES::
+
+            sage: pi.ceil()
+            4
+            sage: x.ceil()
+            ceil(x)
+
+        This function is *not* reliable in general::
+
+            sage: (sin(1 + 10^(-100)) - sin(1)).ceil()    # known bug
+            1
+            sage: (sin(1 - 10^(-100)) - sin(1)).ceil()
+            0
+        """
+        try:
+            return self.rounding('ceil')
+        except Exception:
+            from sage.functions.other import ceil
+            return ceil(self, hold=True)
 
     def function(self, *args):
         """
