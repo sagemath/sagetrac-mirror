@@ -3747,7 +3747,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. seealso::
 
-            This is implemented in the `_derivative` method (see the
+            This is implemented in the ``_derivative`` method (see the
             source code).
 
         EXAMPLES::
@@ -3879,7 +3879,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = function('f')
             sage: f(x)*f(x).derivative(x)*f(x).derivative(x,2)
-            f(x)*D[0](f)(x)*D[0, 0](f)(x)
+            f(x)*diff(f(x), x)*diff(f(x), x, x)
             sage: g = f(x).diff(x)
             sage: h = f(x).diff(x)*sin(x)
             sage: h/g
@@ -5219,7 +5219,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = function('f')
             sage: a = f(x).diff(x); a
-            D[0](f)(x)
+            diff(f(x), x)
             sage: a.operator()
             D[0](f)
 
