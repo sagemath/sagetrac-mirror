@@ -1792,7 +1792,6 @@ cdef object py_atan2(object x, object y) except +:
     """
     from sage.symbolic.constants import pi
     parent = parent_c(x)
-    assert parent is parent_c(y)
     if parent is ZZ:
         parent = RR
     pi_n = parent(pi)
