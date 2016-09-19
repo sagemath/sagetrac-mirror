@@ -17,7 +17,7 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-./configure --prefix="$SAGE_LOCAL" --disable-gmp && $MAKE && $MAKE install
+./configure --prefix="$SAGE_LOCAL" --disable-gmp && $MAKE && $SAGE_SUDO $MAKE install
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building bliss"

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+echo "Deleting old gf2x files."
+rm -f "$SAGE_LOCAL"/lib/libgf2x*
+rm -rf "$SAGE_LOCAL"/include/gf2x*
+
+echo "Installing gf2x."
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to install gf2x."
+    exit 1
+fi

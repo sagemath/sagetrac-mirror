@@ -73,7 +73,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing giac..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing Giac."
     exit 1

@@ -59,7 +59,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing GSL..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GSL."
     exit 1

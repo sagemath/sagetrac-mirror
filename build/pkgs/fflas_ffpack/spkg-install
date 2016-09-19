@@ -100,7 +100,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing fflas-ffpack"
     exit 1

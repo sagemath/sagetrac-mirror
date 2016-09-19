@@ -328,7 +328,7 @@ rm -f "$SAGE_SPKG_INST"/mpir-*
 ###############################################################################
 
 echo "Now installing GMP..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP."
     exit 1

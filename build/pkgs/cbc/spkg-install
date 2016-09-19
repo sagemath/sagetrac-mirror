@@ -20,5 +20,5 @@ export LDFLAGS="$LDFLAGS -lz -lbz2"
 cd src &&
 sed -i -e "s/clock\_gettime ()/Grrrrrrrrrrrr\ ()/g" Cbc/configure &&
 ./configure --prefix="$SAGE_LOCAL" "${args[@]}" --enable-cbc-parallel --enable-parallel --enable-gnu-packages --enable-static &&
-make &&
-make install
+$MAKE &&
+$SAGE_SUDO $MAKE install

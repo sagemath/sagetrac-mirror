@@ -285,7 +285,7 @@ rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
 ###############################################################################
 
 echo "Now installing GMP-ECM..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP-ECM (though it appears to have built fine)."
     exit 1

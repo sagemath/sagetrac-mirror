@@ -40,7 +40,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install -j1
+$SAGE_SUDO $MAKE install -j1
 if [ $? -ne 0 ]; then
     echo "Error installing BRiAl"
     exit 1

@@ -81,7 +81,7 @@ fi
 
 echo
 echo "Build succeeded.  Now installing eclib..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing eclib."
     exit 1

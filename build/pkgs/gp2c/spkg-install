@@ -21,4 +21,4 @@ set -e
 
 ./configure --prefix="$SAGE_LOCAL" --with-paricfg="$SAGE_LOCAL/lib/pari/pari.cfg"
 
-$MAKE install
+$SAGE_SUDO $MAKE install

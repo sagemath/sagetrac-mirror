@@ -33,7 +33,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Install
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
    echo >&2 "Error installing coxeter3"
    exit 1

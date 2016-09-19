@@ -61,7 +61,7 @@ rm -f $SAGE_LOCAL/lib/libflint*
 rm -rf $SAGE_LOCAL/include/flint
 
 echo "Installing new FLINT files."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to install FLINT."
     exit 1

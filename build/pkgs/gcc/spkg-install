@@ -131,12 +131,12 @@ fi
 
 $MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
-$MAKE install
+$SAGE_SUDO $MAKE install
 
 
 # Force re-installation of gmp, mpir, mpfr and mpc with the GCC we just built.
 cd "$SAGE_SPKG_INST"
-rm -f gmp-* mpir-* mpfr-* mpc-*
+$SAGE_SUDO rm -f gmp-* mpir-* mpfr-* mpc-*
 
 # Force re-configuration: the next time that "make" is run, we don't
 # want GCC to be built again, see Trac #19324

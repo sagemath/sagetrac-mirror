@@ -53,5 +53,5 @@ cp "$SAGE_ROOT"/config/config.* .
 $MAKE ||
   die "Error building cddlib"
 
-$MAKE install ||
+$SAGE_SUDO $MAKE install ||
   die "Error installing cddlib"
