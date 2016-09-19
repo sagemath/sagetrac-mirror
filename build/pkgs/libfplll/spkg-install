@@ -72,7 +72,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Now installing libfplll..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing libfplll"
     exit 1

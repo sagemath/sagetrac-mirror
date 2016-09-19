@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+echo "Now installing lcalc binary, library and header files..."
+rm -fr "$SAGE_LOCAL"/include/libLfunction
+$MAKE install
+
+if [ "$UNAME" = "Darwin" ]; then
+    install_name_tool -id ${SAGE_LOCAL}/lib/libLfunction.dylib "${SAGE_LOCAL}"/lib/libLfunction.dylib
+fi
+
+success "$MAKE install"

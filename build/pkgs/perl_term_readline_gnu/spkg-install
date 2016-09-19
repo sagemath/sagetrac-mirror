@@ -9,4 +9,4 @@ fi
 cd src
 
 perl Makefile.PL --prefix=$SAGE_LOCAL INSTALL_BASE=$SAGE_LOCAL
-$MAKE install
+$SAGE_SUDO $MAKE install

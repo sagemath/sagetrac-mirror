@@ -343,36 +343,4 @@ fi
 
 echo "Build succeeded."
 
-###############################################################################
-# Remove previous installation (if any), *after* a successful build:
-###############################################################################
-
-echo "Removing old GMP/MPIR headers..."
-rm -f "$SAGE_LOCAL"/include/{gmp,mpir}*.h
-
-# Do NOT delete old GMP/MPIR shared libraries as Sage's versions of libraries
-# used by GCC might still refer to them, such that their deletion would break
-# GCC inside Sage. (We could perhaps remove libmpir* though.)
-if false; then
-    echo "Removing old GMP/MPIR libraries..."
-    rm -f "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
-else
-    echo "Not removing old GMP/MPIR shared libraries, as other libraries"
-    echo "and executables might still refer to them:"
-    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
-    echo "(Libraries with the same version number will get updated though.)"
-fi
-
-# Mark GMP as not installed (since we will overwrite it)
-rm -f "$SAGE_SPKG_INST"/gmp-*
-
-###############################################################################
-# Now install MPIR:
-###############################################################################
-
-echo "Now installing MPIR..."
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing MPIR."
-    exit 1
-fi
+$SAGE_SUDO ../spkg-do-install

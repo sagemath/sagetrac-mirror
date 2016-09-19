@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+
+echo "Installing openssl..."
+# installing the docs fails often, skip
+$MAKE install_sw
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing openssl."
+    exit 1
+fi
+
+
+# Openssl installs itself readonly, which will break attempts to
+# rewrite library paths later
+chmod u+w                        \
+    "$SAGE_LOCAL"/lib/engines/*  \
+    "$SAGE_LOCAL"/lib/libssl*    \
+    "$SAGE_LOCAL"/lib/libcrypto*

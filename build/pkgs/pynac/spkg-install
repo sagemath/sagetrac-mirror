@@ -42,21 +42,6 @@ build_pynac()
     cd ${WORKDIR}
 }
 
-install_pynac()
-{
-    rm ${SAGE_LOCAL}/lib/*ginac*
-    rm ${SAGE_LOCAL}/lib/*pynac*
-    rm -rf ${SAGE_LOCAL}/include/ginac
-    rm -rf ${SAGE_LOCAL}/include/pynac
-    cd ${PYNACDIR}
-    $MAKE install
-    if [ $? -ne 0 ]; then
-        echo "Error installing pynac."
-        exit 1
-    fi
-    cd ${WORKDIR}
-}
-
 clean_pynac()
 {
     true
@@ -72,6 +57,4 @@ echo "Running build_pynac..."
 build_pynac
 echo "Done build_pynac."
 
-echo "Installing pynac..."
-install_pynac
-echo "Done installing pynac."
+$SAGE_SUDO ../spkg-do-install

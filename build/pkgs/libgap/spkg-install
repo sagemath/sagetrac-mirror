@@ -60,7 +60,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing libGAP..."
-$MAKE install
+$SAGE_SUDO $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing libGAP."
     exit 1

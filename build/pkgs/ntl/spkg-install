@@ -169,33 +169,9 @@ ntl_build()
     fi
 }
 
-ntl_install()
-{
-    echo
-    echo "Removing old NTL files."
-    rm -rf "$SAGE_LOCAL"/lib/libntl*
-    rm -rf "$SAGE_LOCAL"/include/NTL
-
-    echo
-    echo "Installing NTL."
-
-    cd "$CUR/src/ntl/src"
-
-    $MAKE install
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing NTL."
-        exit 1
-    fi
-
-    # Touch all includes such that dependency checking works properly:
-    # the timestamp of the includes should be *now*, not the time when
-    # the NTL package was created.
-    touch "$SAGE_LOCAL"/include/NTL/*
-}
-
 ntl_patch
 ntl_libtool
 ntl_configure
 ntl_build
-ntl_install
+
+$SAGE_SUDO ../spkg-do-install

@@ -193,7 +193,7 @@ mpfr_build()
     # rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 
     echo "Now installing MPFR..."
-    $MAKE install
+    $SAGE_SUDO $MAKE install
     if [ $? -ne 0 ];  then
         echo >&2 "Error installing MPFR."
         exit 1

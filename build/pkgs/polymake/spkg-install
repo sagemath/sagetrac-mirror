@@ -30,11 +30,11 @@ fi
             --bindir="$SAGE_LOCAL"/bin \
             --libdir="$SAGE_LOCAL"/lib \
 	    $more_configure_options || die "Error configuring Polymake"
-make || die "Error building polymake"
+$MAKE || die "Error building polymake"
 # Remove old stuff. Polymake loads whatever it finds in
 # its installation directory.
 rm -Rf $SAGE_LOCAL/lib/polymake
-make install || die "Error installing polymake"
+$SAGE_SUDO $MAKE install || die "Error installing polymake"
 # Reconfigure Polymake's rules.
 # This modifies ~/.polymake/customize.pl
 echo "exit;" | polymake --reconfigure - || die "Error calling 'polymake --reconfigure'"
