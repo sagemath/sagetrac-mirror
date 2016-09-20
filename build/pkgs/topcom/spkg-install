@@ -23,7 +23,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-$MAKE install-strip
+$SAGE_SUDO $MAKE install-strip
 if [ $? -ne 0 ]; then
    echo "Error installing TOPCOM."
    exit 1

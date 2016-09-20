@@ -19,7 +19,7 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-CUR=`pwd`
+export CUR=`pwd`
 
 ntl_libtool()
 {
@@ -174,4 +174,4 @@ ntl_libtool
 ntl_configure
 ntl_build
 
-$SAGE_SUDO ./spkg-do-install
+$SAGE_SUDO $CUR/spkg-do-install

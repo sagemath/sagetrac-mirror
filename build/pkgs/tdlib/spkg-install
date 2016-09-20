@@ -11,7 +11,7 @@ cd src
 ./configure \
     --prefix="$SAGE_LOCAL"
 
-$MAKE install -j1
+$SAGE_SUDO $MAKE install -j1
 if [ $? -ne 0 ]; then
     echo "Error installing tdlib"
     exit 1

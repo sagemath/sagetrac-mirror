@@ -29,7 +29,7 @@ exec </dev/null
 export EMACS=no
 
 
-CUR=`pwd`
+export CUR=`pwd`
 
 cd src/
 
