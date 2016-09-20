@@ -12,7 +12,7 @@ cd "src"
 ./configure --prefix="$SAGE_LOCAL" \
 	    --enable-executable=no && # no igraph dependency
 $MAKE &&
-$MAKE install
+$SAGE_SUDO $MAKE install
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building rw"

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Remove old install
+rm -rf "$SAGE_LOCAL"/lib/r
+rm -rf "$SAGE_LOCAL"/lib/R
+rm -rf "$SAGE_LOCAL"/lib/R.old
+rm -rf "$SAGE_LOCAL"/lib/libRblas.* "$SAGE_LOCAL"/lib/libRlapack.* "$SAGE_LOCAL"/lib/libR.*
+
+# Install new version
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing R."
+    exit 1
+fi
+
+if [ "$UNAME" = "Darwin" ]; then
+    echo "Removing fake java and javac compiler"
+    rm -f "$SAGE_LOCAL"/bin/java
+    rm -f "$SAGE_LOCAL"/bin/javac
+fi

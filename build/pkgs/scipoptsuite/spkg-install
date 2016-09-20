@@ -103,27 +103,14 @@ cd $SRC/$SOPLEX_DIR
 ## The Makefile in soplex 2.2.1 forgets to add the library dependencies
 ## "-lgmp -lz", causing the link to fail on Mac OS X.
 LIBBUILDFLAGS="-lgmp -lz -lreadline"
-$MAKE VERBOSE=true OPT=$OPT ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" install
+$MAKE VERBOSE=true OPT=$OPT ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" 
 
 if [ $? -ne 0 ]; then
     echo "Error building SOPLEX."
     exit 1
 fi
 
-# Soplex 'make install' installs 3 copies of the library instead of making symlinks. Overwrite.
-# Use -PR to copy symlink as symlink
-cp -PR lib/*.$SHAREDLIBEXT "$SAGE_LOCAL"/lib
-
-echo "Preparing SCIP ./lib symbolic links"
-
-# this is necessary, otherwise scip asks for directories (see the "touch" commands below)
-cd $SRC/$SCIP_DIR
-mkdir lib
-cd lib
-
-ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT libsoplex.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
-ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
-touch libsoplex.$OS.$ARCH.gnu.$OPT.a
+$SAGE_SUDO ../spkg-do-install-soplex
 
 echo "Compiling SCIP"
 
@@ -152,22 +139,13 @@ $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=tr
      OBJSCIP_LIBBUILDFLAGS=$OBJSCIP_LIBBUILDFLAGS \
      LPI_LIBBUILDFLAGS=$LPI_LIBBUILDFLAGS \
      NLPI_LIBBUILDFLAGS=$NLPI_LIBBUILDFLAGS \
-     SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
+     SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH=""
 if [ $? -ne 0 ]; then
-    echo "Error building/installing SCIP."
+    echo "Error building SCIP."
     exit 1
 fi
 
-# Also install libscip under the name libscipopt.  The scipoptsuite
-# Makefile target "scipoptlib" builds this library as a flat library
-# containing all of Soplex and SCIP.  Since we got the library
-# dependencies right, for us it's the same as libscip.
-( cd $SAGE_LOCAL/lib && rm -f libscipopt* && ln -sv libscip.$SHAREDLIBEXT libscipopt.$SHAREDLIBEXT )
-
-echo "Checking that SCIP starts"
-# (Could use -q to get rid of banner.)
-# We use -s /dev/null so that a faulty user parameter file does not cause an error
-$SAGE_LOCAL/bin/scip -s /dev/null -c quit
+$SAGE_SUDO ../spkg-do-install-scip
 
 if [ $? -ne 0 ]; then
     echo "SCIP build completed but the scip executable does not work."

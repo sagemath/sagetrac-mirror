@@ -174,4 +174,4 @@ ntl_libtool
 ntl_configure
 ntl_build
 
-$SAGE_SUDO ../spkg-do-install
+$SAGE_SUDO ./spkg-do-install

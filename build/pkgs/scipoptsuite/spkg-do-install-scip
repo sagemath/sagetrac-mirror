@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+$SAGE_SUDO $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true \
+     USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" \
+     LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -lgmp -lz -lreadline -o " \
+     "$arg_LIBBUILDFLAGS" \
+     SCIP_LIBBUILDFLAGS=$SCIP_LIBBUILDFLAGS \
+     OBJSCIP_LIBBUILDFLAGS=$OBJSCIP_LIBBUILDFLAGS \
+     LPI_LIBBUILDFLAGS=$LPI_LIBBUILDFLAGS \
+     NLPI_LIBBUILDFLAGS=$NLPI_LIBBUILDFLAGS \
+     SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
+if [ $? -ne 0 ]; then
+    echo "Error installing SCIP."
+    exit 1
+fi
+
+
+# Also install libscip under the name libscipopt.  The scipoptsuite
+# Makefile target "scipoptlib" builds this library as a flat library
+# containing all of Soplex and SCIP.  Since we got the library
+# dependencies right, for us it's the same as libscip.
+( cd $SAGE_LOCAL/lib && rm -f libscipopt* && ln -sv libscip.$SHAREDLIBEXT libscipopt.$SHAREDLIBEXT )
+
+echo "Checking that SCIP starts"
+# (Could use -q to get rid of banner.)
+# We use -s /dev/null so that a faulty user parameter file does not cause an error
+$SAGE_LOCAL/bin/scip -s /dev/null -c quit
+

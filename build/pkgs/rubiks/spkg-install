@@ -147,5 +147,5 @@ for patch in ../patches/*.patch; do
 done
 
 echo "Building Rubiks cube solvers"
-$MAKE install PREFIX="$SAGE_LOCAL"
+$SAGE_SUDO $MAKE install PREFIX="$SAGE_LOCAL"
 

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [ "$UNAME" = "Darwin" ]; then
+   echo "Copying fake java and javac compiler on OS X"
+   cp patches/java "$SAGE_LOCAL"/bin
+   cp patches/javac "$SAGE_LOCAL"/bin
+fi
+

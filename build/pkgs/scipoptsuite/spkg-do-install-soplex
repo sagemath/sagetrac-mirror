@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+$MAKE VERBOSE=true OPT=$OPT ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing SOPLEX."
+    exit 1
+fi
+
+# Soplex 'make install' installs 3 copies of the library instead of making symlinks. Overwrite.
+# Use -PR to copy symlink as symlink
+cp -PR lib/*.$SHAREDLIBEXT "$SAGE_LOCAL"/lib
+
+echo "Preparing SCIP ./lib symbolic links"
+
+# this is necessary, otherwise scip asks for directories (see the "touch" commands below)
+cd $SRC/$SCIP_DIR
+mkdir lib
+cd lib
+
+ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT libsoplex.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
+ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
+touch libsoplex.$OS.$ARCH.gnu.$OPT.a
+
