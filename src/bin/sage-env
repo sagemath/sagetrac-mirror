@@ -662,7 +662,7 @@ export MAKE
 # --no-deps          : Don't install runtime dependencies from PyPI.
 # --no-index         : Don't look at the package index.
 #                      This also disables pip's version self-check.
-export PIP_INSTALL="pip install --ignore-installed --verbose --no-deps --no-index"
+export PIP_INSTALL="$SAGE_SUDO pip install --ignore-installed --verbose --no-deps --no-index"
 
 # When building documentation, use MathJax by default. To turn it off,
 # set SAGE_DOC_MATHJAX to be "no" or "False".
