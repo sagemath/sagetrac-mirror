@@ -374,17 +374,22 @@ def iterator_tracking_words(W):
                     level_set_new.append((y, word+[i]))
         level_set_cur = level_set_new
 
-cdef bint has_descent(PermutationGroupElement w, int i, int N):
+cpdef bint has_descent_c(PermutationGroupElement w, int i, int N, bint left):
+    if not left:
+        w = ~w
     return w.perm[i] >= N
 
-cdef int first_descent(PermutationGroupElement w, int n, int N):
+cpdef int first_descent_c(PermutationGroupElement w, int n, int N, bint left):
     cdef int i
+    if not left:
+        w = ~w
+        left = 1
     for i in range(n):
-        if has_descent(w,i,N):
+        if has_descent_c(w, i, N, left):
             return i
     return -1
 
-cpdef list reduced_word_c(W,w):
+cpdef list reduced_word_c(W, PermutationGroupElement w):
     r"""
     Computes a reduced word for the element `w` in the
     reflection group `W` in the positions ``range(n)``.
@@ -403,7 +408,7 @@ cpdef list reduced_word_c(W,w):
     cdef list word = []
 
     while fdes != -1:
-        fdes = first_descent(w,n,N)
+        fdes = first_descent_c(w, n, N, True)
         si = S[fdes]
         w = si._mul_(w)
         word.append(fdes)

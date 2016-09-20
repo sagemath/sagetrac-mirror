@@ -66,7 +66,7 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
 from sage.misc.sage_eval import sage_eval
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-from sage.combinat.root_system.reflection_group_c import reduced_word_c
+from sage.combinat.root_system.reflection_group_c import reduced_word_c, has_descent_c, first_descent_c
 from sage.matrix.all import Matrix, identity_matrix
 
 def ReflectionGroup(*args,**kwds):
@@ -789,8 +789,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: (s[1]*s[2]).has_left_descent(2)                   # optional - gap3
                 False
             """
-            W = self.parent()
-            return self(W._index_set_inverse[i]+1) > W.number_of_reflections()
+            return has_descent_c(self, i,
+                                 self.parent().number_of_reflections(), True)
 
         def has_descent(self, i, side="left", positive=False):
             r"""
@@ -815,19 +815,45 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 False
             """
             if not isinstance(positive, bool):
-                raise TypeError("%s is not a boolean"%(bool))
+                raise TypeError("%s is not a boolean" % bool)
 
             if i not in self.parent().index_set():
-                raise ValueError("the given index %s is not in the index set"%i)
+                raise ValueError("the given index %s is not in the index set" % i)
 
             negative = not positive
 
             if side == 'left':
-                return self.has_left_descent(i) is negative
+                return has_descent_c(self, i,
+                                     self.parent().number_of_reflections(),
+                                     True) is negative
             elif side == 'right':
-                return self.has_right_descent(i) is negative
+                return has_descent_c(self, i,
+                                     self.parent().number_of_reflections(),
+                                     False) is negative
             else:
                 raise ValueError('side must be "left" or "right"')
+
+        def first_descent(self, side="left"):
+            """
+            Return the first left (resp. right) descent of ``self``
+            as an element of ``index_set``, or ``None`` if there is none.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(["A",3])      # optional - gap3
+                sage: s = W.simple_reflections()        # optional - gap3
+                sage: (s[1]*s[2]).first_descent()       # optional - gap3
+                1
+                sage: (s[1]*s[2]).first_descent(side='right')  # optional - gap3
+                2
+            """
+            idx = first_descent_c(self,
+                                  self.parent().number_of_reflections(),
+                                  side == 'left')
+            if idx == -1:
+                return None
+            else:
+                return idx
 
         def to_matrix(self, side="right", on_space="primal"):
             r"""

@@ -665,7 +665,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         def first_descent(self, side = 'right', index_set=None, positive=False):
             """
             Return the first left (resp. right) descent of ``self``, as
-            ane element of ``index_set``, or ``None`` if there is none.
+            an element of ``index_set``, or ``None`` if there is none.
 
             See :meth:`descents` for a description of the options.
 
