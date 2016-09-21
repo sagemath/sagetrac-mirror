@@ -129,7 +129,8 @@ from sage.structure.proof.proof import get_flag
 from . import maps
 from . import structure
 from . import number_field_morphisms
-from itertools import count
+
+from itertools import count, product
 from builtins import zip
 
 
@@ -1676,6 +1677,92 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError("No embedding into the complex numbers has been specified.")
         else:
             raise NotImplementedError
+
+    def weak_approximation(self,I = None,S = None,J = None,T = None):
+        r"""
+
+        Weak approximation at finite places if a number field
+
+
+        .. WARNING::
+
+           When S or T are non-empty, it is only implemented for number fields of
+           narrow class number 1.
+
+        INPUT:
+
+        - ``I`` - a fractional ideal (trivial by default) of ``self``.
+        - ``S`` - a list (empty by default) of real places of ``self``.
+        - ``J`` - a fractional ideal (trivial by default) of ``self``.
+        - ``T`` - a list (empty by default) of real places of ``self``.
+
+        OUTPUT:
+
+        An element x in ``self`` satisfying:
+            1. `v_p(x) = v_p(I)` for all prime ideals `p` dividing ``I``.
+            2. `v_p(x) = 0` for all prime ideals `p` dividing ``J``.
+            3. `v_p(x) \geq 0` for all prime ideals coprime to ``I``+``J``.
+            4. `v(x) < 0` for all places `v` in ``S``.
+            5. `v(x) > 0` for all places `v` in ``T``.
+
+        EXAMPLES::
+
+            sage: F.<r> = NumberField(x^2 - x - 24)
+            sage: P3 = F.prime_above(3)
+            sage: P11 = F.prime_above(11)
+            sage: a = F.weak_approximation(P3^2 * P11^3); a
+            196*r + 141
+            sage: a.valuation(P3)
+            2
+            sage: a.valuation(P11)
+            3
+            sage: F.<r> = NumberField(x^4 - x -1)
+            sage: P = F.prime_above(7)
+            sage: Q = F.prime_above(13)
+            sage: R = F.prime_above(23)
+            sage: b = F.weak_approximation(P * Q * R); b
+            -r^3 + 9*r^2 + 28*r - 19
+            sage: b.valuation(P), b.valuation(Q), b.valuation(R)
+            (1, 1, 1)
+            sage: F.<r> = NumberField(x^4 - x - 12)
+            sage: F.weak_approximation(S = [F.real_places()[0]], T =[F.real_places()[1]])
+            11*r^3 - 43*r^2 - 32*r + 143
+        """
+        if S is None:
+            S = []
+        if T is None:
+            T = []
+        if (len(S) > 0 or len(T) > 0) and len(self.narrow_class_group()) > 1:
+            raise NotImplementedError('Only implemented for fields of narrow class number 1')
+        from itertools import chain
+        from sage.libs.pari.all import pari
+        nf = self.pari_nf()
+        n = 0
+        entrylist = []
+        if I is not None:
+            for p,e in I.factor():
+                entrylist.extend([p.pari_prime(),e])
+                n += 1
+        if J is not None:
+            for p,_ in J.factor():
+                entrylist.extend([p.pari_prime(),0])
+                n += 1
+        if n > 0:
+            a = self(nf.idealappr(pari.matrix(n,2,entrylist),1))
+        else:
+            a = self.one()
+        if len(S) == 0 and len(T) == 0:
+            return a
+        else:
+            Funits = list(self.units()) + [-1]
+            Sa = [-v(a).sign() for v in S] + [v(a).sign() for v in T]
+            ST = S + T
+            for uu in product([False,True],repeat = len(Funits)):
+                u = prod((eps for eps,i in zip(Funits,uu) if i),self.one())
+                if all((v(u).sign() == e for v,e in zip(ST,Sa))):
+                    return a*u
+        assert 0,'Signs not compatible'
+
 
     def primitive_element(self):
         r"""
@@ -3275,7 +3362,7 @@ class NumberField_generic(number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
+        if B < 2:
             raise StopIteration
 
         if self is QQ:
@@ -7530,7 +7617,11 @@ class NumberField_absolute(NumberField_generic):
         Test that caching works::
 
             sage: K.<a> = NumberField(x^3 - 2)
+<<<<<<< HEAD
             sage: K.order(a) is K.order(a)      # indirect doctest
+=======
+            sage: K.order(a) is K.order(a) # indirect doctest
+>>>>>>> fe1008a0f466922585b2dae00e4e598dbffa35e4
             True
 
         Keywords have no influence on the caching::
@@ -9044,6 +9135,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def construction(self):
         """
+<<<<<<< HEAD
         Return data defining a functorial construction of ``self``.
 
         EXAMPLES::
@@ -9059,6 +9151,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             [0.309016994374948? + 0.951056516295154?*I]
             sage: F.structures
             [None]
+=======
+        The construction of self.
+
+        EXAMPLES::
+
+            sage: k = CyclotomicField(3)
+            sage: F, R = k.construction()
+>>>>>>> fe1008a0f466922585b2dae00e4e598dbffa35e4
         """
         F,R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
