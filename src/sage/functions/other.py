@@ -1017,8 +1017,8 @@ class Function_gamma_inc(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: gamma_inc(CDF(0,1), 3)
-            0.0032085749933691158 + 0.012406185811871568*I
+            sage: gamma_inc(CDF(0,1), 3)  # abs tol 1e-15
+            0.003208574993369116 + 0.01240618581187156*I
             sage: gamma_inc(RDF(1), 3)
             0.049787068367863944
             sage: gamma_inc(3,2)
@@ -1115,16 +1115,16 @@ class Function_gamma_inc(BuiltinFunction):
         Check that :trac:`17328` is fixed::
 
             sage: gamma_inc(float(-1), float(-1))
-            (-0.8231640121031085+3.141592653589793j)
+            (-0.8231640121031085...3.141592653589793j)
             sage: gamma_inc(RR(-1), RR(-1))
-            -0.823164012103109 + 3.14159265358979*I
+            -0.823164012103109 ... 3.14159265358979*I
             sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))  # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
 
-            sage: r = gamma_inc(float(0), float(1)); r
-            0.21938393439552029
+            sage: r = gamma_inc(float(0), float(1)); r  # abs tol 1e-15
+            0.2193839343955202
             sage: type(r)
             <type 'float'>
         """
