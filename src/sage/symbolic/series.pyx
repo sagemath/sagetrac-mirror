@@ -250,7 +250,7 @@ cdef class SymbolicSeries(Expression):
 
             sage: a,x,y = var('a,x,y')
             sage: s = (1/(1-x/x^a*y)).series(y,3); s
-            1 + (x/x^a)*y + (x^2/(x^a)^2)*y^2 + Order(y^3)
+            1 + (x/x^a)*y + (x^2/x^(2*a))*y^2 + Order(y^3)
             sage: s.simplify()
             1 + (x*x^(-a))*y + (x^2*x^(-2*a))*y^2 + Order(y^3)
         """
