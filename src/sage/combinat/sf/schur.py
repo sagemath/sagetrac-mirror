@@ -1,6 +1,7 @@
 """
 Schur symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -16,7 +17,7 @@ Schur symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import classical
+from . import classical
 import sage.libs.symmetrica.all as symmetrica
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
@@ -77,7 +78,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         - ``self`` -- a Schur symmetric function basis
         - ``left``, ``right`` -- partitions
 
-        OUPUT:
+        OUTPUT:
 
         - an element of the Schur basis, the product of ``left`` and ``right``
 

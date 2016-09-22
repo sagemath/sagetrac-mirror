@@ -189,7 +189,7 @@ Orthogonal Polynomials
 
    .. math::
 
-     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n {n\choose m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
+     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
 
 
 
@@ -282,7 +282,7 @@ AUTHORS:
 - Ralf Stephan (2015-)
 
 The original module wrapped some of the orthogonal/special functions
-in the Maxima package "orthopoly" and was was written by Barton
+in the Maxima package "orthopoly" and was written by Barton
 Willis of the University of Nebraska at Kearney.
 
 """
@@ -306,6 +306,7 @@ Willis of the University of Nebraska at Kearney.
 
 import warnings
 
+from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -317,7 +318,7 @@ from sage.calculus.calculus import maxima
 
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
@@ -613,9 +614,27 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: chebyshev_T2(1,x)
             x
         """
-        ChebyshevFunction.__init__(self, "chebyshev_T", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
                                                       mathematica='ChebyshevT'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T)
+            T_n
+        """
+        return r"T_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T(3, x, hold=True))
+            T_{3}\left(x\right)
+        """
+        return r"T_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _eval_special_values_(self, n, x):
         """
@@ -732,7 +751,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details for the recurions.
+        See [ASHandbook]_ 227 (p. 782) for details for the recursions.
         See also [EffCheby]_ for fast evaluation techniques.
 
         INPUT:
@@ -834,7 +853,6 @@ class Func_chebyshev_T(ChebyshevFunction):
         else:
             return 2*a*b - x, both and 2*b*b - 1
 
-
     def _eval_numpy_(self, n, x):
         """
         Evaluate ``self`` using numpy.
@@ -912,14 +930,32 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: chebyshev_U2(1,x)
             2*x
         """
-        ChebyshevFunction.__init__(self, "chebyshev_U", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
                                                       mathematica='ChebyshevU'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U)
+            U_n
+        """
+        return r"U_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U(3, x, hold=True))
+            U_{3}\left(x\right)
+        """
+        return r"U_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details on the recurions.
+        See [ASHandbook]_ 227 (p. 782) for details on the recursions.
         See also [EffCheby]_ for the recursion formulas.
 
         INPUT:
@@ -1238,7 +1274,7 @@ def gen_legendre_Q(n, m, x):
         return ((n-m+1)*x*gen_legendre_Q(n,m-1,x)-(n+m-1)*gen_legendre_Q(n-1,m-1,x))/sqrt(1-x**2)
 
 
-def hermite(n, x):
+class Func_hermite(GinacFunction):
     """
     Returns the Hermite polynomial for integers `n > -1`.
 
@@ -1263,7 +1299,11 @@ def hermite(n, x):
         8*y^6 - 12*y^2
         sage: w = var('w')
         sage: hermite(3,2*w)
-        8*(8*w^2 - 3)*w
+        64*w^3 - 24*w
+        sage: hermite(5,3.1416)
+        5208.69733891963
+        sage: hermite(5,RealField(100)(pi))
+        5208.6167627118104649470287166
 
     Check that :trac:`17192` is fixed::
 
@@ -1274,19 +1314,27 @@ def hermite(n, x):
         sage: hermite(-1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -1
+        RuntimeError: hermite_eval: The index n must be a nonnegative integer
 
         sage: hermite(-7,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -7
+        RuntimeError: hermite_eval: The index n must be a nonnegative integer
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+    def __init__(self):
+        r"""
+        Init method for the Hermite polynomials.
 
-    _init()
-    return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
+        EXAMPLES::
 
+            sage: loads(dumps(hermite))
+            hermite
+        """
+        GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
+                conversions={'maxima':'hermite', 'mathematica':'HermiteH',
+                    'maple':'HermiteH'}, preserved_arg=2)
+
+hermite = Func_hermite()
 
 def jacobi_P(n, a, b, x):
     r"""
@@ -1381,7 +1429,7 @@ def legendre_Q(n, x):
     return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
 
 
-def ultraspherical(n, a, x):
+class Func_ultraspherical(GinacFunction):
     """
     Returns the ultraspherical (or Gegenbauer) polynomial for integers
     `n > -1`.
@@ -1394,6 +1442,8 @@ def ultraspherical(n, a, x):
 
     EXAMPLES::
 
+        sage: ultraspherical(8, 101/11, x)
+        795972057547264/214358881*x^8 - 62604543852032/19487171*x^6...
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: ultraspherical(2,3/2,x)
         15/2*x^2 - 3/2
@@ -1404,6 +1454,16 @@ def ultraspherical(n, a, x):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
+        sage: var('x')
+        x
+        sage: for N in range(100):
+        ....:     n = ZZ.random_element().abs() + 5
+        ....:     a = QQ.random_element().abs() + 5
+        ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
+        sage: ultraspherical(5,9/10,3.1416)
+        6949.55439044240
+        sage: ultraspherical(5,9/10,RealField(100)(pi))
+        6949.4695419382702451843080687
 
     Check that :trac:`17192` is fixed::
 
@@ -1414,20 +1474,28 @@ def ultraspherical(n, a, x):
         sage: ultraspherical(-1,1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -1
+        RuntimeError: gegenb_eval: The index n must be a nonnegative integer
 
         sage: ultraspherical(-7,1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -7
+        RuntimeError: gegenb_eval: The index n must be a nonnegative integer
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+    def __init__(self):
+        r"""
+        Init method for the ultraspherical polynomials.
 
-    _init()
-    return sage_eval(maxima.eval('ultraspherical(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
+        EXAMPLES::
 
-gegenbauer = ultraspherical
+            sage: loads(dumps(ultraspherical))
+            gegenbauer
+        """
+        GinacFunction.__init__(self, "gegenbauer", nargs=3, latex_name=r"C",
+                conversions={'maxima':'ultraspherical', 'mathematica':'GegenbauerC',
+                    'maple':'GegenbauerC'})
+
+ultraspherical = Func_ultraspherical()
+gegenbauer = Func_ultraspherical()
 
 
 class Func_laguerre(OrthogonalFunction):
@@ -1662,7 +1730,7 @@ class Func_gen_laguerre(OrthogonalFunction):
         if a == 0:
             return laguerre(n, x)
         if x == 0:
-            from sage.rings.arith import binomial
+            from sage.arith.all import binomial
             return binomial(n+a, n)
 
     def _pol_gen_laguerre(self, n, a, x):

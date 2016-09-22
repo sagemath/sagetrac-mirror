@@ -9,8 +9,9 @@ AUTHORS:
 
 - John H. Palmieri (2012-11)
 """
+from __future__ import absolute_import
 
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -19,7 +20,7 @@ class table(SageObject):
     Display a rectangular array as a table, either in plain text, LaTeX,
     or html.
 
-    INPUTS:
+    INPUT:
 
     - ``rows`` (default ``None``) - a list of lists (or list of tuples,
       etc.), containing the data to be displayed.
@@ -303,7 +304,7 @@ class table(SageObject):
         With no arguments, return the dictionary of options for this
         table. With arguments, modify options.
 
-        INPUTS:
+        INPUT:
 
         - ``header_row`` - if True, first row is highlighted.
         - ``header_column`` - if True, first column is highlighted.
@@ -580,7 +581,7 @@ class table(SageObject):
             \end{array}\right)$ & $5$ & $6$ \\ \hline
             \end{tabular}
         """
-        from latex import latex, LatexExpr
+        from .latex import latex, LatexExpr
         import types
 
         rows = self._rows
@@ -752,7 +753,7 @@ class table(SageObject):
         
         Helper method used by the :meth:`_html_` method.
 
-        INPUTS:
+        INPUT:
 
         - ``file`` -- file-like object. The table row data will be
           written to it.
@@ -775,8 +776,8 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: import StringIO
-            sage: s = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())
             <td>a</td>
@@ -784,8 +785,8 @@ class table(SageObject):
             <td><script type="math/tex">x</script></td>
         """
         from sage.plot.all import Graphics
-        from latex import latex
-        from html import math_parse
+        from .latex import latex
+        from .html import math_parse
         import types
 
         if isinstance(row, types.GeneratorType):

@@ -15,7 +15,7 @@ Basic enumerated sets
 - :class:`~sage.combinat.subset.Subsets`, :class:`~sage.combinat.combination.Combinations`
 - :class:`~sage.combinat.permutation.Arrangements`, :class:`~sage.combinat.tuple.Tuples`
 - :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
-- :class:`~DisjointUnionEnumeratedSets`, :class:`~CartesianProduct`
+- :class:`~DisjointUnionEnumeratedSets`
 
 Integer lists
 -------------
@@ -119,6 +119,7 @@ Backtracking solvers and generic enumerated sets
 
 - :func:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet`
 - :class:`~sage.combinat.backtrack.GenericBacktracker`
+- :mod:`sage.parallel.map_reduce`
 - :ref:`sage.combinat.tiling`
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`
@@ -129,9 +130,6 @@ Backtracking solvers and generic enumerated sets
 Low level enumerated sets
 -------------------------
 
-- :ref:`sage.combinat.permutation_nk`
-- :ref:`sage.combinat.split_nk`
-- :ref:`sage.combinat.choose_nk`
 - :ref:`sage.combinat.multichoose_nk`
 - :ref:`sage.combinat.gray_codes`
 

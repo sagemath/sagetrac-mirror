@@ -48,7 +48,7 @@ form `(d, \lambda)`.
 For `2 \times 2` matrices there are four types::
 
     sage: for tau in SimilarityClassTypes(2):
-    ....:    print tau
+    ....:    print(tau)
     [[1, [1]], [1, [1]]]
     [[1, [2]]]
     [[1, [1, 1]]]
@@ -174,12 +174,15 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
 
 from operator import mul
-from itertools import chain
+from itertools import chain, product
 from sage.misc.all import prod
 from sage.functions.all import factorial
-from sage.rings.arith import moebius
+from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element, parent
 from sage.structure.parent import Parent
@@ -187,9 +190,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
-from sage.rings.all import ZZ, QQ, FractionField, divisors
+from sage.rings.all import ZZ, QQ, FractionField
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce
 
@@ -576,7 +578,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: PTC = PrimarySimilarityClassTypes(2)
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [2]]
         [1, [1, 1]]
         [2, [1]]
@@ -588,7 +590,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: PTC = PrimarySimilarityClassTypes(2, min = PrimarySimilarityClassType(1, [1, 1]))
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [1, 1]]
         [2, [1]]
     """
@@ -802,9 +804,9 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.as_partition_dictionary()
             {[1]: [1, 1]}
         """
-        D = dict()
+        D = {}
         for PT in self:
-            if PT.partition() in D.keys():
+            if PT.partition() in D:
                 D[PT.partition()] = Partition(sorted(D[PT.partition()] + [PT.degree()]))
             else:
                 D[PT.partition()] = Partition([PT.degree()])
@@ -836,8 +838,8 @@ class SimilarityClassType(CombinatorialElement):
         numerator = prod([prod([primitives(d+1, invertible=invertible, q = q)-i for i in range(list_of_degrees.count(d+1))]) for d in range(maximum_degree)])
         tau_list = list(self)
         D = dict((i, tau_list.count(i)) for i in tau_list)
-        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D.keys()])
-        return numerator/denominator
+        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D])
+        return numerator / denominator
 
     def is_semisimple(self):
         """
@@ -987,7 +989,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: M = SimilarityClassTypes(2)
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1]], [1, [1]]]
         [[1, [2]]]
         [[1, [1, 1]]]
@@ -1001,7 +1003,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: M = SimilarityClassTypes(2, min = [1, [1, 1]])
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1, 1]]]
         [[2, [1]]]
     """
@@ -1196,7 +1198,7 @@ def dictionary_from_generator(gen):
     EXAMPLES::
 
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
-        sage: dictionary_from_generator(((floor(x/2), x) for x in xrange(10)))
+        sage: dictionary_from_generator(((floor(x/2), x) for x in range(10)))
         {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
 
     It also works with lists::
@@ -1555,7 +1557,7 @@ def ext_orbit_centralizers(input_data, q = None, selftranspose = False):
             yield (item[0].substitute(q = q**tau.degree()), item[1].substitute(q = q**tau.degree()))
     elif case == 'sim':
         tau = data
-        for item in CartesianProduct(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
+        for item in product(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
                 size = prod([list(entry)[0] for entry in item])
                 freq = prod([list(entry)[1] for entry in item])
                 yield(size, freq)

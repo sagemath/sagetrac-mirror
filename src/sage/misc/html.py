@@ -5,6 +5,7 @@ This module defines a HTML fragment class, which holds a piece of
 HTML. This is primarily used in browser-based notebooks, though it
 might be useful for creating static pages as well.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -24,7 +25,7 @@ from sage.misc.decorators import rename_keyword
 
 
 
-# Various hacks for the deprecation period in :trac:`18292` are
+# Various hacks for the deprecation period in trac #18292 are
 # conditional on this bool
 _old_and_deprecated_behavior = True
 
@@ -460,7 +461,7 @@ class HTMLFragmentFactory(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(18292, 'use table() instead of html.table()')
-        from table import table
+        from .table import table
         return table(x, header_row=header)._html_()
 
     @old_and_deprecated_wrapper

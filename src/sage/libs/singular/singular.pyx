@@ -1,5 +1,5 @@
 """
-libSingular conversion routines and initialisation.
+libSingular: Conversion Routines and Initialisation
 
 AUTHOR:
 
@@ -13,9 +13,9 @@ AUTHOR:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX
@@ -23,6 +23,7 @@ cdef extern from "limits.h":
 
 import os
 
+from libc.stdint cimport int64_t
 from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options
@@ -47,7 +48,6 @@ from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
 from sage.libs.gmp.all cimport *
 
-from sage.structure.parent_base cimport ParentWithBase
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
 _saved_options = (int(0),0,0)
@@ -157,7 +157,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     order = cache.objectptr.cardinality() - 1
 
     while z:
-        c = cache.objectptr.initi(c, <long>napGetCoeff(z))
+        c = cache.objectptr.initi(c, <int64_t>napGetCoeff(z))
         e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
@@ -599,7 +599,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         return si2sa_ZZmod(n, _ring, base)
 
     else:
-        raise ValueError, "cannot convert from SINGULAR number"
+        raise ValueError("cannot convert from SINGULAR number")
 
 cdef number *sa2si(Element elem, ring * _ring):
     cdef int i = 0
@@ -628,7 +628,7 @@ cdef number *sa2si(Element elem, ring * _ring):
             return n_Init(int(elem),_ring)
         return sa2si_ZZmod(elem, _ring)
     else:
-        raise ValueError, "cannot convert to SINGULAR number"
+        raise ValueError("cannot convert to SINGULAR number")
 
 
 cdef object si2sa_intvec(intvec *v):
@@ -668,8 +668,7 @@ cdef int overflow_check(long e, ring *_ring) except -1:
     TESTS:
 
     Whether an overflow occurs or not, partially depends
-    on the number of variables in the ring. See trac ticket
-    #11856::
+    on the number of variables in the ring. See :trac:`11856`::
 
         sage: P.<x,y,z> = QQ[]
         sage: y^2^30
@@ -720,11 +719,11 @@ cdef init_libsingular():
             if not handle:
                 err = dlerror()
                 if err:
-                    print err
+                    print(err)
             break
 
     if handle == NULL:
-        raise ImportError, "cannot load libSINGULAR library"
+        raise ImportError("cannot load libSINGULAR library")
 
     # load SINGULAR
     siInit(lib)

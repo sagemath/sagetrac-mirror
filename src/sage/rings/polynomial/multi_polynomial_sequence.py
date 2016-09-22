@@ -145,14 +145,19 @@ TEST::
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
 
-.. [BPW06] J. Buchmann, A. Pychkine, R.-P. Weinmann
+.. [BPW06] \J. Buchmann, A. Pychkine, R.-P. Weinmann
    *Block Ciphers Sensitive to Groebner Basis Attacks*
    in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
    pre-print available at http://eprint.iacr.org/2005/200
 
+.. [CMR05] C. Cid, S. Murphy, M. Robshaw Small Scale Variants of the AES;
+   in Proceedings of Fast Software Encryption 2005; LNCS 3557;
+   Springer Verlag 2005; available at http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
+
 Classes
 -------
 """
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -163,7 +168,8 @@ from sage.misc.package import is_package_installed
 from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.rings.infinity import Infinity
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -193,6 +199,7 @@ def is_PolynomialSequence(F):
         sage: from sage.rings.polynomial.multi_polynomial_sequence import is_PolynomialSequence
         sage: is_PolynomialSequence(F)
         True
+
     """
     return isinstance(F,PolynomialSequence_generic)
 
@@ -260,6 +267,18 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
         sage: PolynomialSequence([[1,x,y], [0]]).ring()
         Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
+
+    TESTS:
+
+    A PolynomialSequence can exist with elements in a infinite field of
+    characteristic 2 that is not (see :trac:`19452`)::
+
+        sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        sage: F = GF(2)
+        sage: L.<t> = PowerSeriesRing(F,'t')
+        sage: R.<x,y> = PolynomialRing(L,'x,y')
+        sage: PolynomialSequence([0], R)
+        [0]
     """
 
     from sage.matrix.matrix import is_Matrix
@@ -325,19 +344,10 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     K = ring.base_ring()
 
-    try:
-        c = K.characteristic()
-    except NotImplementedError:
-        # We assume that our ring has characteristic zero if it does not implement a
-        # characteristic(). For example, generic quotient rings do not have a characteristic()
-        # method implemented. It is okay to set c = 0 here because we're only using the
-        # characteristic to pick a more specialized implementation for c = 2.
-        c = 0
-
     # make sure we use the polynomial ring as ring not the monoid
     ring = (ring(1) + ring(1)).parent()
 
-    if c != 2:
+    if not isinstance(K, FiniteField) or K.characteristic() != 2:
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
     elif K.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
@@ -410,7 +420,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: print F.ring().repr_long()
+            sage: print(F.ring().repr_long())
             Polynomial Ring
              Base Ring : Finite Field of size 2
                   Size : 20 Variables
@@ -1364,7 +1374,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: sols = S.solve(n=Infinity)
             sage: print(reproducible_repr(sols))
             [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0]]
 
         We can force the use of exhaustive search if the optional
@@ -1378,7 +1388,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol  # optional - cryptominisat
+            sage: sol = S.solve(algorithm='sat') # optional - cryptominisat
             sage: print(reproducible_repr(sol))  # optional - cryptominisat
             [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )
@@ -1391,13 +1401,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
             sage: sols = S.solve(n=Infinity)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         Not eliminating linear variables::
 
             sage: sols = S.solve(n=Infinity, eliminate_linear_variables=False)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         A tricky case where the linear equations are insatisfiable::

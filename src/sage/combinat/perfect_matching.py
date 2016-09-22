@@ -44,13 +44,14 @@ REFERENCES:
     .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
        orthogonal Weingarten functions, :arxiv:`0903.5143`.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division, print_function
 
 
 from sage.structure.unique_representation import UniqueRepresentation
@@ -222,7 +223,7 @@ class PerfectMatching(ElementWrapper):
             sage: list(PerfectMatching([3,8,1,7,6,5,4,2]))
             [(1, 3), (2, 8), (4, 7), (5, 6)]
         """
-        return self.value.__iter__()
+        return iter(self.value)
 
     def _repr_(self):
         r"""
@@ -254,7 +255,7 @@ class PerfectMatching(ElementWrapper):
         Above we added ``random`` since warnings might be displayed
         once. The second time, there should be no warnings::
 
-            sage: print P._latex_()  # optional - dot2tex
+            sage: print(P._latex_())  # optional - dot2tex
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -834,7 +835,8 @@ class PerfectMatching(ElementWrapper):
             raise ValueError("matching must be non-crossing")
         else:
             perm = self.to_permutation()
-            perm2 = Permutation([(perm[2*i])/2 for i in range(len(perm)/2)])
+            perm2 = Permutation([perm[2 * i] // 2
+                                 for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
 
 

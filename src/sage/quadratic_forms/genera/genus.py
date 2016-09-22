@@ -8,14 +8,15 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import prod
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
 def Genus(A):
@@ -539,22 +540,20 @@ def signature_pair_of_matrix(A):
 
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,1])
-        sage: signature_pair_of_matrix(A)     ## Raises an error -- degenerate matrix
+        sage: signature_pair_of_matrix(A)
         Traceback (most recent call last):
         ...
-        TypeError: A is assumed to be non-degenerate, but it's det = 0.
-
+        ArithmeticError: given matrix is not invertible
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     s_vec = QuadraticForm(A.base_extend(A.base_ring().fraction_field())).signature_vector()
 
-    ## Check that the matrix is non-degenerate (i.e. no zero eigenvalues)
-    if s_vec[2] != 0:
-        raise TypeError("A is assumed to be non-degenerate, but it's det = 0.")
+    # Check that the matrix is non-degenerate (i.e. no zero eigenvalues)
+    if s_vec[2]:
+        raise ArithmeticError("given matrix is not invertible")
 
-    ## Return the pair (p,n)
+    # Return the pair (p,n)
     return s_vec[:2]
-
 
 
 def p_adic_symbol(A, p, val):
@@ -745,8 +744,8 @@ def split_odd(A):
             B = C*A*C.transpose()
     even, j = is_even_matrix(B)
     if even:
-        print "B:"
-        print B
+        print("B:")
+        print(B)
         raise RuntimeError("The matrix A does not admit a non-even splitting.")
     return u, B
 
@@ -846,8 +845,8 @@ def two_adic_symbol(A, val):
         # d0 = ZZ(A_8.determinant()) # no determinant over Z/8Z
         d0 = ZZ(R_8(MatrixSpace(ZZ,n)(A_8).determinant()))
         if d0 == 0:    ## SANITY CHECK: The mod 8 determinant shouldn't be zero.
-            print "A:"
-            print A
+            print("A:")
+            print(A)
             assert False
         even, i = is_even_matrix(A_2)    ## Determine whether the matrix is even or odd.
         if even:
@@ -868,8 +867,8 @@ def two_adic_symbol(A, val):
         # d0 = A_8.det() # no determinant over Z/8Z
         d0 = ZZ(R_8(MatrixSpace(ZZ,n0,n0)(A_8).determinant()))
         if d0 == 0:
-            print "A:"
-            print A_new
+            print("A:")
+            print(A_new)
             assert False
         even, i = is_even_matrix(A_new)
         if even:
@@ -1068,7 +1067,7 @@ class Genus_Symbol_p_adic_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     ## Added these two methods to make this class iterable...
@@ -1646,7 +1645,7 @@ class GenusSymbol_global_ring(object):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def signature_pair_of_matrix(self):

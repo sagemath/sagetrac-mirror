@@ -12,6 +12,7 @@ AUTHORS:
 
 - John H. Palmieri (2015-09)
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -29,9 +30,9 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from chain_complex import ChainComplex
-from chain_complex_morphism import ChainComplexMorphism
-from chain_homotopy import ChainContraction
+from .chain_complex import ChainComplex
+from .chain_complex_morphism import ChainComplexMorphism
+from .chain_homotopy import ChainContraction
 from sage.rings.rational_field import QQ
 
 def algebraic_topological_model(K, base_ring=None):
@@ -123,13 +124,11 @@ def algebraic_topological_model(K, base_ring=None):
         sage: M.dual().degree_of_differential()
         1
         sage: phi.dual()
-        Chain homotopy between
-          Chain complex morphism
+        Chain homotopy between:
+          Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
+          and Chain complex morphism:
             From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
-          and Chain complex morphism
-            From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
+            To:   Chain complex with at most 3 nonzero terms over Rational Field
 
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::
@@ -393,13 +392,11 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         sage: M.dual().degree_of_differential()
         1
         sage: phi.dual()
-        Chain homotopy between
-          Chain complex morphism
+        Chain homotopy between:
+          Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
+          and Chain complex morphism:
             From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
-          and Chain complex morphism
-            From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
+            To:   Chain complex with at most 3 nonzero terms over Rational Field
 
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::

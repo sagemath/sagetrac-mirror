@@ -30,9 +30,9 @@ overwritten::
     sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
     sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
     sage: len(L)
-    2
+    1
     sage: L
-    [Finite Field of size 2, Finite Field of size 199]
+    [Finite Field of size 199]
 
 AUTHORS:
 
@@ -48,6 +48,7 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
@@ -65,7 +66,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.category import Category
-import morphism
+from . import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
@@ -133,8 +134,8 @@ def Hom(X, Y, category=None, check=True):
         624
         sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
         sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
-        sage: len(L), L[0], L[len(L)-1]
-        (2, Finite Field of size 2, Finite Field of size 997)
+        sage: len(L), L[0]
+        (1, Finite Field of size 997)
 
     To illustrate the choice of the category, we consider the
     following parents as running examples::
@@ -475,7 +476,7 @@ def End(X, category=None):
         Category of finite groups
         sage: H = Hom(G,G)
         sage: H.homset_category()
-        Category of groups
+        Category of finite groups
         sage: H.category()
         Category of endsets of unital magmas
 
@@ -647,7 +648,7 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of vector spaces with basis over (quotient fields and metric spaces),
+              Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces),
               False))
 
         TESTS::
@@ -855,7 +856,7 @@ class Homset(Set_generic):
             sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
             sage: f = H( lambda x: 4-x )
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
             sage: H = Hom(ZZ, QQ, Sets())
@@ -1165,17 +1166,17 @@ class Homset(Set_generic):
             sage: H = Hom(ZZ^2, ZZ^3); H
             Set of Morphisms from Ambient free module of rank 2 over
              the principal ideal domain Integer Ring to Ambient free module
-             of rank 3 over the principal ideal domain Integer Ring
-             in Category of modules with basis over (euclidean domains and
-             infinite enumerated sets and metric spaces)
+             of rank 3 over the principal ideal domain Integer Ring in
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
             Set of Morphisms from Ambient free module of rank 3 over
-             the principal ideal domain Integer Ring to Ambient free
-             module of rank 2 over the principal ideal domain Integer Ring
-             in Category of modules with basis over (euclidean domains and
-             infinite enumerated sets and metric spaces)
+             the principal ideal domain Integer Ring to Ambient free module
+             of rank 2 over the principal ideal domain Integer Ring in
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """

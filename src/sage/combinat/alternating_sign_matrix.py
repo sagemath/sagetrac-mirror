@@ -27,6 +27,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
+from builtins import zip
+from six import itervalues
 
 import itertools
 import copy
@@ -42,7 +47,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
@@ -50,6 +55,8 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
+from sage.misc.decorators import rename_keyword
+
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -63,7 +70,7 @@ class AlternatingSignMatrix(Element):
 
     REFERENCES:
 
-    .. [MiRoRu] W. H. Mills, David P Robbins, Howard Rumsey Jr.,
+    .. [MiRoRu] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
        *Alternating sign matrices and descending plane partitions*,
        Journal of Combinatorial Theory, Series A,
        Volume 34, Issue 3, May 1983, Pages 340--359.
@@ -159,7 +166,7 @@ class AlternatingSignMatrix(Element):
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __le__(self, other):
         """
@@ -281,7 +288,7 @@ class AlternatingSignMatrix(Element):
         triangle = [None]*n
         prev = [0]*n
         for j, row in enumerate(self._matrix):
-            add_row = [a+b for (a,b) in itertools.izip(row, prev)]
+            add_row = [a + b for (a, b) in zip(row, prev)]
             line = [i+1 for (i,val) in enumerate(add_row) if val==1]
             triangle[n-1-j] = list(reversed(line))
             prev = add_row
@@ -667,7 +674,7 @@ class AlternatingSignMatrix(Element):
 
         REFERENCES:
 
-        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
+        .. [EKLP92] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
            Combinatorics, volume 1 (1992), p. 111-132.
 
@@ -813,21 +820,22 @@ class AlternatingSignMatrix(Element):
         return(output)
 
     @combinatorial_map(name='to Dyck word')
-    def to_dyck_word(self, method):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def to_dyck_word(self, algorithm):
         r"""
-        Return a Dyck word determined by the specified method.
+        Return a Dyck word determined by the specified algorithm.
  
-        The method 'last_diagonal' uses the last diagonal of the monotone 
-        triangle corresponding to ``self``. The method 'link_pattern' returns 
+        The algorithm 'last_diagonal' uses the last diagonal of the monotone 
+        triangle corresponding to ``self``. The algorithm 'link_pattern' returns 
         the Dyck word in bijection with the link pattern of the fully packed 
         loop.
 
-        Note that these two methods in general yield different Dyck words for a
+        Note that these two algorithms in general yield different Dyck words for a
         given alternating sign matrix.
 
         INPUT:
 
-        - ``method``  - 
+        - ``algorithm``  - 
 
           - ``'last_diagonal'`` 
           - ``'link_pattern'`` 
@@ -835,39 +843,39 @@ class AlternatingSignMatrix(Element):
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(method = 'last_diagonal')
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(algorithm = 'last_diagonal')
             [1, 1, 0, 0, 1, 0]
-            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(method = 'last_diagonal'); d
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(algorithm = 'last_diagonal'); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             Complete Dyck words
             sage: A = AlternatingSignMatrices(3)
             sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 0, 1, 0, 1, 0]
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 0, 1, 1, 0, 0]
             sage: A = AlternatingSignMatrices(4)
             sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
-            sage: asm.to_dyck_word(method = 'link_pattern')
+            sage: asm.to_dyck_word(algorithm = 'link_pattern')
             [1, 1, 1, 0, 1, 0, 0, 0]
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
             TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
-            sage: asm.to_dyck_word(method = 'notamethod')
+            sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
-            ValueError: unknown method 'notamethod'
+            ValueError: unknown algorithm 'notamethod'
         """
-        if method == 'last_diagonal':
+        if algorithm == 'last_diagonal':
             MT = self.to_monotone_triangle()
             nplus = self._matrix.nrows() + 1
             parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
             return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
         
-        elif method == 'link_pattern':
+        elif algorithm == 'link_pattern':
             from sage.combinat.perfect_matching import PerfectMatching        
             from sage.combinat.dyck_word import DyckWords        
             p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
@@ -876,7 +884,7 @@ class AlternatingSignMatrix(Element):
             d = DyckWords(n)
             return d.from_noncrossing_partition(p)
 
-        raise ValueError("unknown method '%s'" % method)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def number_negative_ones(self):
         """
@@ -977,10 +985,10 @@ class AlternatingSignMatrix(Element):
 
         REFERENCES:
 
-        .. [Aval07] J.-C. Aval. *Keys and alternating sign matrices*.
+        .. [Aval07] \J.-C. Aval. *Keys and alternating sign matrices*.
            Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
 
-        .. [LascouxPreprint] A. Lascoux. *Chern and Yang through ice*.
+        .. [LascouxPreprint] \A. Lascoux. *Chern and Yang through ice*.
            Preprint.
 
         EXAMPLES::
@@ -1192,6 +1200,37 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         """
         return self.element_class(self, self._matrix_space.identity_matrix())
 
+    def random_element(self):
+        r"""
+        Return a uniformly random alternating sign matrix.
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(7).random_element()  # random
+            [ 0  0  0  0  1  0  0]
+            [ 0  0  1  0 -1  0  1]
+            [ 0  0  0  0  1  0  0]
+            [ 0  1 -1  0  0  1  0]
+            [ 1 -1  1  0  0  0  0]
+            [ 0  0  0  1  0  0  0]
+            [ 0  1  0  0  0  0  0]
+            sage: a = AlternatingSignMatrices(5).random_element()
+            sage: bool(a.number_negative_ones()) or a.is_permutation()
+            True
+
+        This is done using a modified version of Propp and Wilson's "coupling
+        from the past" algorithm. It creates a uniformly random Gelfand-Tsetlin
+        triangle with top row `[n, n-1, \ldots 2, 1]`, and then converts it to
+        an alternating sign matrix.
+        """
+        from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatterns
+        n = self._n
+        toprow = [n-i for i in range(n)]
+        gt = GelfandTsetlinPatterns(top_row = toprow, strict = True)
+        randomgt = gt.random_element()
+        A = AlternatingSignMatrices(n)
+        return A.from_monotone_triangle(randomgt)
+
     def from_monotone_triangle(self, triangle):
         r"""
         Return an alternating sign matrix from a monotone triangle.
@@ -1216,7 +1255,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         prev = [0]*n
         for line in reversed(triangle):
             v = [1 if j+1 in reversed(line) else 0 for j in range(n)]
-            row = [a-b for (a, b) in zip(v, prev)]
+            row = [a - b for (a, b) in zip(v, prev)]
             asm.append(row)
             prev = v
 
@@ -1270,7 +1309,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 1 -1  1]
             [ 0  1  0]
         """
-        return self.from_corner_sum(matrix( [[((i+j-height[i][j])/int(2))
+        return self.from_corner_sum(matrix( [[((i+j-height[i][j])//2)
                                               for i in range(len(list(height)))]
                                              for j in range(len(list(height)))] ))
 
@@ -1380,10 +1419,9 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             sage: P.is_lattice()
             True
         """
-        (mts, rels) = MonotoneTriangles(self._n)._lattice_initializer()
-        bij = dict((t, self.from_monotone_triangle(t)) for t in mts)
-        asms, rels = bij.itervalues(), [(bij[a], bij[b]) for (a,b) in rels]
-        return (asms, rels)
+        mts, rels = MonotoneTriangles(self._n)._lattice_initializer()
+        bij = {t: self.from_monotone_triangle(t) for t in mts}
+        return (itervalues(bij), [(bij[a], bij[b]) for (a, b) in rels])
 
     def cover_relations(self):
         r"""
@@ -1670,7 +1708,7 @@ def _is_a_cover(mt0, mt1):
         False
     """
     diffs = 0
-    for (a,b) in itertools.izip(flatten(mt0), flatten(mt1)):
+    for (a, b) in zip(flatten(mt0), flatten(mt1)):
         if a != b:
             if a+1 == b:
                 diffs += 1
