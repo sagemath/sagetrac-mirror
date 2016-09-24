@@ -69,11 +69,11 @@ for x in $libtool_versions; do libtool_latest=$x ; done
 # We install scripts for autoconf,... based on the generic "autofoo" script
 cd "$SAGE_LOCAL/bin"
 sed <"$SRC/../autofoo" >autoconf \
-    "s/@AUTOFOO@/autoconf/; s/@AUTOFILES@/configure/; s/@AUTOVAR@/AUTOCONF_VERSION/; s/@DEFAULT_VERSION@/${autoconf_latest}/"
+    "s/@AUTOFOO@/autoconf/; s/@AUTOFILES@/configure/; s/@AUTOVAR@/AUTOCONF_VERSION/; s/@DEFAULT_VERSION@/${autoconf_latest}/; s|@SAGE_LOCAL@|$SAGE_LOCAL|;"
 sed <"$SRC/../autofoo" >automake \
-    "s/@AUTOFOO@/automake/; s/@AUTOFILES@/Makefile.in/; s/@AUTOVAR@/AUTOMAKE_VERSION/; s/@DEFAULT_VERSION@/${automake_latest}/"
+    "s/@AUTOFOO@/automake/; s/@AUTOFILES@/Makefile.in/; s/@AUTOVAR@/AUTOMAKE_VERSION/; s/@DEFAULT_VERSION@/${automake_latest}/; s|@SAGE_LOCAL@|$SAGE_LOCAL|;"
 sed <"$SRC/../autofoo" >libtool \
-    "s/@AUTOFOO@/libtool/; s/@AUTOFILES@/ltmain.sh/; s/@AUTOVAR@/LIBTOOL_VERSION/; s/@DEFAULT_VERSION@/${libtool_latest}/"
+    "s/@AUTOFOO@/libtool/; s/@AUTOFILES@/ltmain.sh/; s/@AUTOVAR@/LIBTOOL_VERSION/; s/@DEFAULT_VERSION@/${libtool_latest}/; s|@SAGE_LOCAL@|$SAGE_LOCAL|;"
 
 # Correct permissions
 for prog in autoconf automake libtool; do
