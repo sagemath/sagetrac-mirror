@@ -38,6 +38,7 @@ from . import hall_littlewood
 from . import jack
 from . import macdonald
 from . import llt
+from . import equivariant
 
 class SymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -1294,10 +1295,35 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: llt3.hcospin()
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
-            sage: llt3.hcospin()
-            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
         """
         return llt.LLT_class( self, k, t=t )
+
+    def equivariant(self, equivariant_parameters, shift):
+        """
+        Returns the entry point for the various bases of equivariant symmetric functions.
+
+        The main basis is the equivariant Schur basis, which is to Schur functions what
+        double Schubert polynomials are to Schubert polynomials.
+
+        INPUT:
+
+        - ``equivariant_parameters`` -- A function from the integers to the base ring of ``self``.
+        - ``shift`` -- A function sending a pair `(r,z)` consisting of an integer `r` and an element `z`
+        of the base ring, to the base ring element given by the `r`-th power of the shift
+        automorphism of the base ring.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
+            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: Sym = SymmetricFunctions(F)
+            sage: Sym.equivariant(F.igen, F.shift_auto_on_element)
+            Equivariant Symmetric Functions over Function Field over Rational Field with generators indexed by the integers
+
+        The class ``FunctionFieldIntegerGenerators`` implements the field of fractions of a polynomial
+        ring whose generators are indexed by integers.
+        """
+        return equivariant.EquivariantSymmetricFunctions(self, equivariant_parameters, shift)
 
     def from_polynomial(self, f):
         """
