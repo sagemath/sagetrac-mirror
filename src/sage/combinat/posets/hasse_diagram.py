@@ -2149,5 +2149,49 @@ class HasseDiagram(DiGraph):
 
         return True
 
+    def is_connected_subset(self, S):
+        """
+        Return ``True`` if `S` is a connected subset of the poset, and ``False`` otherwise.
+
+        A subset `S` is *connected* in the poset if for any `a, b \in S` there
+        exists elements `e_1=a, e_2, \ldots, e_{n-1}, e_n=b \in S` such that every
+        `e_i` either covers or is covered by `e_{i+1}`.
+
+        .. note:
+
+            This function does *not* check if a subposet *induced by* `S` is
+            connected.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6], 3: [7],
+            ....:                    4: [5, 6], 5: [7], 6: [7]})
+            sage: B3.is_connected_subset([1, 3, 5, 4])
+            True
+            sage: B3.is_connected_subset([0, 1, 2, 3, 6])
+            True
+
+            sage: B3.is_connected_subset([1, 4, 6])
+            False
+            sage: B3.is_connected_subset([0, 1, 2, 7])
+            False
+
+        TESTS::
+
+            sage: B3.is_connected_subset([])
+            True
+            sage: B3.is_connected_subset([6])
+            True
+        """
+        if not S:  # S is empty set
+            return True
+        start = min(S)
+        neighbors = lambda v_: [v for v in self.neighbors_in(v_)+self.neighbors_out(v_) if v in S]
+        i = 0
+        for _ in self.depth_first_search(start, neighbors=neighbors):
+            i += 1
+        return len(S) == i
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
