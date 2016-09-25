@@ -2157,7 +2157,7 @@ class HasseDiagram(DiGraph):
         exists elements `e_1=a, e_2, \ldots, e_{n-1}, e_n=b \in S` such that every
         `e_i` either covers or is covered by `e_{i+1}`.
 
-        .. note:
+        .. NOTE::
 
             This function does *not* check if a subposet *induced by* `S` is
             connected.
