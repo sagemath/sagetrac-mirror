@@ -6,6 +6,19 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+cd src/
+
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
 #################################
 # Set up environment variables: #
 #################################
@@ -31,8 +44,6 @@ CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
 CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
 
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-
-cd src/
 
 # Use newer version of config.guess and config.sub (see Trac #19728)
 cp "$SAGE_ROOT"/config/config.* build-aux

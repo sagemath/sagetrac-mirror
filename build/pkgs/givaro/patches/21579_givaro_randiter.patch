@@ -1,0 +1,19 @@
+commit 7b26f6aef4f7b84f3879876e74d0c58a54fd5c30
+Author: Clement Pernet <clement.pernet@imag.fr>
+Date:   Wed Sep 28 07:08:56 2016 +0200
+
+    Fix bug in seeding the rand generator: tp.tv_usec could be 0 with probability 10^-6, thus causing congruence generator to always output 0.
+
+diff --git a/src/kernel/system/givrandom.h b/src/kernel/system/givrandom.h
+index 1c62f1b..6886931 100755
+--- a/src/kernel/system/givrandom.h
++++ b/src/kernel/system/givrandom.h
+@@ -40,7 +40,7 @@ public:
+     GivRandom(const uint64_t s = 0)
+             : _seed(s)
+     {
+-        if (! s) {
++        while (! _seed) {
+ 		struct timeval tp;
+ 		gettimeofday(&tp, 0) ;
+ 		_seed = (uint64_t)(tp.tv_usec);
