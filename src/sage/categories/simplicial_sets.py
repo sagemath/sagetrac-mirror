@@ -16,6 +16,7 @@ from sage.categories.homsets import HomsetsCategory
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.interfaces.gap import gap
+from sage.categories.facade_sets import FacadeSets
 
 class SimplicialSets(Category_singleton):
     r"""
@@ -59,11 +60,16 @@ class SimplicialSets(Category_singleton):
 
             sage: from sage.categories.simplicial_sets import SimplicialSets
             sage: SimplicialSets().super_categories()
-            [Category of sets]
+            [Category of facade sets]
         """
-        return [Sets()]
+        return [FacadeSets()]
 
     class ParentMethods:
+        
+        def facade_for(self):
+            from sage.homology.simplicial_set import SetOfAbstractSimplices
+            return (SetOfAbstractSimplices(),)
+        
         def is_finite(self):
             """
             Return ``True`` if this simplicial set is finite, i.e., has a
@@ -144,6 +150,9 @@ class SimplicialSets(Category_singleton):
                 raise ValueError('the point is not a simplex in this '
                                  'simplicial set')
             return SimplicialSet(self.face_data(), base_point=point)
+            
+    class ElementMethods:
+        pass
 
     class Homsets(HomsetsCategory):
         class Endset(CategoryWithAxiom):

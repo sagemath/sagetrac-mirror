@@ -36,8 +36,7 @@ from sage.graphs.graph import Graph
 from sage.env import SAGE_ENV
 from sage.homology.delta_complex import delta_complexes
 import sage.homology.simplicial_complexes_catalog as simplicial_complexes
-from sage.homology.simplicial_set import AbstractSimplex, \
-    SimplicialSet_arbitrary, SimplicialSet_finite
+from sage.homology.simplicial_set import AbstractSimplex, AbstractSimplexImpl, SimplicialSet_arbitrary, SimplicialSet_finite
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -74,8 +73,10 @@ class Nerve(SimplicialSet_arbitrary):
         category = SimplicialSets().Pointed()
         Parent.__init__(self, category=category)
 
-        e = AbstractSimplex(0, name=str(monoid.one()),
-                            latex_name=latex(monoid.one()))
+        e = self.element_class(0,(monoid.one(),))
+        #AbstractSimplex(0, name=str(monoid.one()),
+        #                    latex_name=latex(monoid.one()))
+        
         self._basepoint = e
         vertex = SimplicialSet_finite({e: None}, base_point=e)
         # self._n_skeleton: cache the highest dimensional skeleton
@@ -146,6 +147,17 @@ class Nerve(SimplicialSet_arbitrary):
         """
         return hash(self._monoid) ^ hash(self.base_point())
 
+    class Element(AbstractSimplexImpl):
+        def __init__(self,dim,chain):
+            self._chain = chain
+            AbstractSimplexImpl.__init__(self,dim)
+            
+        def _repr_(self):
+            return ' * '.join(str(_) for _ in self._chain)
+            
+        def _latex_(self):
+            return ' * '.join(latex(_) for _ in self._chain)
+
     def n_skeleton(self, n):
         """
         Return the `n`-skeleton of this simplicial set.
@@ -196,7 +208,8 @@ class Nerve(SimplicialSet_arbitrary):
         if start == 0:
             for g in monoid:
                 if g != one:
-                    x = AbstractSimplex(1, name=str(g), latex_name=latex(g))
+                    #x = AbstractSimplex(1, name=str(g), latex_name=latex(g))
+                    x = self.element_class(1,(g,))
                     simplices[x] = (e, e)
                     face_dict[(g,)] = x
             start = 1
@@ -215,9 +228,10 @@ class Nerve(SimplicialSet_arbitrary):
                     # bdries: the face maps applied to chain, in a
                     # format suitable for passing to the DeltaComplex
                     # constructor.
-                    x = AbstractSimplex(d,
-                                        name=' * '.join(str(_) for _ in chain),
-                                        latex_name = ' * '.join(latex(_) for _ in chain))
+                    #x = AbstractSimplex(d,
+                    #                    name=' * '.join(str(_) for _ in chain),
+                    #                    latex_name = ' * '.join(latex(_) for _ in chain))
+                    x = self.element_class(d,chain)
                     new_faces[chain] = x
 
                     # Compute faces of x.

@@ -275,12 +275,40 @@ from sage.homology.chain_complex import ChainComplex
 from sage.homology.chains import Chains, Cochains
 from sage.homology.delta_complex import DeltaComplex
 from sage.homology.simplicial_complex import SimplicialComplex
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+import sage.structure.element
+from sage.categories.simplicial_sets import SimplicialSets
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 
-@total_ordering
-class AbstractSimplex(SageObject):
+class SetOfAbstractSimplices(Parent,UniqueRepresentation):
+    def __init__(self):
+        """
+        TESTS::
+        
+            sage: from sage.homology.simplicial_set import SetOfAbstractSimplices
+            sage: SetOfAbstractSimplices() is SetOfAbstractSimplices()
+            True
+            sage: TestSuite(SetOfAbstractSimplices()).run()
+        """
+        Parent.__init__(self,category=SimplicialSets())
+        
+    def _repr_(self):
+        return "The set of all abstract simplices"
+        
+    def zero(self):
+        # sage stupidity: parents need a zero
+        return 0
+        
+    def _an_element_(self):
+        return AbstractSimplex(0)
+
+def AbstractSimplex(*args,**opt):
+    return SetOfAbstractSimplices().element_class(*args,**opt)
+
+class AbstractSimplexImpl(sage.structure.element.Element):
     """
     An abstract simplex, a building block of a simplicial set.
 
@@ -412,6 +440,9 @@ class AbstractSimplex(SageObject):
             Simplex obtained by applying degeneracy s_0 to v
             sage: e.nondegenerate() is v
             True
+            sage: e.parent()
+            The set of all abstract simplices
+            sage: TestSuite(e).run()
 
             sage: AbstractSimplex(3.2, None)
             Traceback (most recent call last):
@@ -433,6 +464,7 @@ class AbstractSimplex(SageObject):
             raise ValueError('the dimension must be an integer')
         if dim < 0:
             raise ValueError('the dimension must be non-negative')
+        self._set_parent(SetOfAbstractSimplices())
         self._dim = dim
         if degeneracies:
             self._degens = standardize_degeneracies(*degeneracies)
@@ -461,188 +493,6 @@ class AbstractSimplex(SageObject):
         # 'X in sigma._faces'. This dictionary is not copied when
         # copying a simplex.
         self._faces = {}
-
-    def __hash__(self):
-        """
-        If nondegenerate: return the id of this simplex.
-
-        Otherwise, combine the id of its underlying nondegenerate
-        simplex with the tuple of indeterminacies.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: hash(v) == hash(w)
-            False
-            sage: x = v.apply_degeneracies(2,1,0)
-            sage: id(x) == id(v.apply_degeneracies(2,1,0))
-            False
-            sage: hash(x) == hash(v.apply_degeneracies(2,1,0))
-            True
-        """
-        if self.is_nondegenerate():
-            return id(self)
-        return hash(self.nondegenerate()) ^ hash(self._degens)
-
-    def __eq__(self, other):
-        """
-        Two nondegenerate simplices are equal if they are identical.
-        Two degenerate simplices are equal if their underlying
-        nondegenerate simplices are identical and their tuples of
-        degeneracies are equal.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: v == w
-            False
-            sage: v.apply_degeneracies(2,1,0) is v.apply_degeneracies(2,1,0)
-            False
-            sage: v.apply_degeneracies(2,1,0) == v.apply_degeneracies(2,1,0)
-            True
-
-        TESTS::
-
-            sage: v == None
-            False
-        """
-        if not isinstance(other, AbstractSimplex):
-            return False
-        if self.is_nondegenerate() and other.is_nondegenerate():
-            return self is other
-        return (self._degens == other._degens
-                and self.nondegenerate() is other.nondegenerate())
-
-    def __ne__(self, other):
-        """
-        This returns the negation of `__eq__`.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: v != w
-            True
-            sage: x = v.apply_degeneracies(1, 0)
-            sage: y = v.apply_degeneracies(1, 0)
-            sage: x != y
-            False
-        """
-        return not self == other
-
-    def __lt__(self, other):
-        """
-        We implement sorting in the hopes that sorted lists of simplices,
-        for example as defining data for a simplicial set, will be
-        well-defined invariants.
-
-        Sort by dimension first. If dimensions are equal, if only one
-        has a custom name (as set by specifying ``name=NAME`` upon
-        creation or by calling ``object.rename('NAME')``, put it
-        first. If both have custom names, sort by the names. As a last
-        resort, sort by their id.
-
-        TESTS::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-
-        At this point, comparision between v and w is random, based on
-        their location in memory. ::
-
-            sage: v < w and w < v
-            False
-            sage: v < w or w < v
-            True
-            sage: (v < w and w > v) or (w < v and v > w)
-            True
-
-        Now we add names to force an ordering::
-
-            sage: w.rename('w')
-            sage: v < w
-            False
-            sage: v > w
-            True
-            sage: v >= w
-            True
-            sage: v.rename('v')
-            sage: v < w
-            True
-            sage: v <= w
-            True
-            sage: v > w
-            False
-
-        Test other sorting. Dimensions::
-
-            sage: AbstractSimplex(0) < AbstractSimplex(3)
-            True
-            sage: AbstractSimplex(0, ((0,0,0))) <= AbstractSimplex(2)
-            False
-
-        Degenerate comes after non-degenerate, and if both are
-        degenerate, sort on the degeneracies::
-
-            sage: AbstractSimplex(0, ((0,0))) <= AbstractSimplex(2)
-            False
-            sage: AbstractSimplex(1, ((0,))) < AbstractSimplex(1, ((1,)))
-            True
-            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
-            False
-            sage: w.rename('a')
-            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
-            True
-
-        Testing `<=`, `>`, `>=`::
-
-            sage: v = AbstractSimplex(0, name='v')
-            sage: w = AbstractSimplex(0, name='w')
-            sage: v <= v
-            True
-            sage: w <= v
-            False
-            sage: v.apply_degeneracies(1,0) <= w.apply_degeneracies(1,0)
-            True
-
-            sage: v > v
-            False
-            sage: w > v
-            True
-            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
-            False
-
-            sage: v >= v
-            True
-            sage: w >= v
-            True
-            sage: v.apply_degeneracies(1,0) >= w.apply_degeneracies(1,0)
-            False
-        """
-        if self.dimension() < other.dimension():
-            return True
-        if self.dimension() > other.dimension():
-            return False
-        if self.degeneracies() and not other.degeneracies():
-            return False
-        if other.degeneracies() and not self.degeneracies():
-            return True
-        if self.degeneracies() and other.degeneracies() and self.degeneracies() != other.degeneracies():
-            return self.degeneracies() < other.degeneracies()
-        if hasattr(self.nondegenerate(), '__custom_name'):
-            if hasattr(other.nondegenerate(), '__custom_name'):
-                return str(self) < str(other)
-            return True
-        else:
-            if hasattr(other, '__custom_name'):
-                return False
-        return id(self) < id(other)
 
     def nondegenerate(self):
         """
@@ -934,6 +784,202 @@ class AbstractSimplex(SageObject):
             return degens + ' ' + simplex
         return simplex
 
+    def __hash__(self):
+        """
+        If nondegenerate: return the id of this simplex.
+
+        Otherwise, combine the id of its underlying nondegenerate
+        simplex with the tuple of indeterminacies.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: hash(v) == hash(w)
+            False
+            sage: x = v.apply_degeneracies(2,1,0)
+            sage: id(x) == id(v.apply_degeneracies(2,1,0))
+            False
+            sage: hash(x) == hash(v.apply_degeneracies(2,1,0))
+            True
+        """
+        if self.is_nondegenerate():
+            return id(self)
+        return hash(self.nondegenerate()) ^ hash(self._degens)
+
+    def __eq__(self, other):
+        """
+        Two nondegenerate simplices are equal if they are identical.
+        Two degenerate simplices are equal if their underlying
+        nondegenerate simplices are identical and their tuples of
+        degeneracies are equal.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: v == w
+            False
+            sage: v.apply_degeneracies(2,1,0) is v.apply_degeneracies(2,1,0)
+            False
+            sage: v.apply_degeneracies(2,1,0) == v.apply_degeneracies(2,1,0)
+            True
+
+        TESTS::
+
+            sage: v == None
+            False
+        """
+        if not isinstance(other, AbstractSimplexImpl):
+            return False
+        if self.is_nondegenerate() and other.is_nondegenerate():
+            return self is other
+        return (self._degens == other._degens
+                and self.nondegenerate() is other.nondegenerate())
+
+    def __ne__(self, other):
+        """
+        This returns the negation of `__eq__`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: v != w
+            True
+            sage: x = v.apply_degeneracies(1, 0)
+            sage: y = v.apply_degeneracies(1, 0)
+            sage: x != y
+            False
+        """
+        return not self == other
+
+    def __lt__(self, other):
+        """
+        We implement sorting in the hopes that sorted lists of simplices,
+        for example as defining data for a simplicial set, will be
+        well-defined invariants.
+
+        Sort by dimension first. If dimensions are equal, if only one
+        has a custom name (as set by specifying ``name=NAME`` upon
+        creation or by calling ``object.rename('NAME')``, put it
+        first. If both have custom names, sort by the names. As a last
+        resort, sort by their id.
+
+        TESTS::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+
+        At this point, comparision between v and w is random, based on
+        their location in memory. ::
+
+            sage: v < w and w < v
+            False
+            sage: v < w or w < v
+            True
+            sage: (v < w and w > v) or (w < v and v > w)
+            True
+
+        Now we add names to force an ordering::
+
+            sage: w.rename('w')
+            sage: v < w
+            False
+            sage: v > w
+            True
+            sage: v >= w
+            True
+            sage: v.rename('v')
+            sage: v < w
+            True
+            sage: v <= w
+            True
+            sage: v > w
+            False
+
+        Test other sorting. Dimensions::
+
+            sage: AbstractSimplex(0) < AbstractSimplex(3)
+            True
+            sage: AbstractSimplex(0, ((0,0,0))) <= AbstractSimplex(2)
+            False
+
+        Degenerate comes after non-degenerate, and if both are
+        degenerate, sort on the degeneracies::
+
+            sage: AbstractSimplex(0, ((0,0))) <= AbstractSimplex(2)
+            False
+            sage: AbstractSimplex(1, ((0,))) < AbstractSimplex(1, ((1,)))
+            True
+            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
+            False
+            sage: w.rename('a')
+            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
+            True
+
+        Testing `<=`, `>`, `>=`::
+
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: v <= v
+            True
+            sage: w <= v
+            False
+            sage: v.apply_degeneracies(1,0) <= w.apply_degeneracies(1,0)
+            True
+
+            sage: v > v
+            False
+            sage: w > v
+            True
+            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
+            False
+
+            sage: v >= v
+            True
+            sage: w >= v
+            True
+            sage: v.apply_degeneracies(1,0) >= w.apply_degeneracies(1,0)
+            False
+        """
+        if self.dimension() < other.dimension():
+            return True
+        if self.dimension() > other.dimension():
+            return False
+        if self.degeneracies() and not other.degeneracies():
+            return False
+        if other.degeneracies() and not self.degeneracies():
+            return True
+        if self.degeneracies() and other.degeneracies() and self.degeneracies() != other.degeneracies():
+            return self.degeneracies() < other.degeneracies()
+        if hasattr(self.nondegenerate(), '__custom_name'):
+            if hasattr(other.nondegenerate(), '__custom_name'):
+                return str(self) < str(other)
+            return True
+        else:
+            if hasattr(other, '__custom_name'):
+                return False
+        return id(self) < id(other)
+        
+    def _cmp_(self,other):
+        if self.__lt__(other):
+            return -1
+        if self.__eq__(other):
+            return 0
+        return 1
+        
+    def _test_pickling(self,**options):
+        tester = self._tester(**options)
+        tester.info(tester._prefix+"pickling not supported for abstract simplices")
+
+        
+        
+SetOfAbstractSimplices.Element = AbstractSimplexImpl    
 
 ########################################################################
 # The main classes
