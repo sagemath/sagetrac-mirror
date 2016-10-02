@@ -53,6 +53,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
@@ -413,7 +414,7 @@ def ReducedPermutationsIET_iterator(
         a b c
         c b a
     """
-    from itertools import imap
+    from builtins import map
     from six.moves import filter
     from sage.combinat.permutation import Permutations
 
@@ -429,7 +430,7 @@ def ReducedPermutationsIET_iterator(
         a0 = range(1,nintervals+1)
         f = lambda x: ReducedPermutationIET([a0,list(x)],
             alphabet=alphabet)
-        return imap(f, Permutations(nintervals))
+        return map(f, Permutations(nintervals))
     else:
         return filter(lambda x: x.is_irreducible(),
         ReducedPermutationsIET_iterator(nintervals,False,alphabet))
@@ -1114,7 +1115,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         self._twin = [self._twin[1], self._twin[0]]
 
         for interval in (0,1):
-            for j in xrange(self.length(interval)):
+            for j in range(self.length(interval)):
                 self._twin[interval][j] = (1-self._twin[interval][j][0],
                     self._twin[interval][j][1])
 
