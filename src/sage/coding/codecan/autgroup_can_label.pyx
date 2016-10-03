@@ -106,6 +106,8 @@ from sage.coding.codecan.codecan import PartitionRefinementLinearCode
 from sage.combinat.permutation import Permutation
 from sage.functions.other import factorial
 
+include "cysignals/signals.pxi"
+
 def _cyclic_shift(n, p):
     r"""
     If ``p`` is a list of pairwise distinct coordinates in ``range(n)``,
@@ -225,6 +227,9 @@ class LinearCodeAutGroupCanLabel:
         if not isinstance(C, AbstractLinearCode):
             raise TypeError("%s is not a linear code"%C)
 
+        # This might be a deep recursive call, check if the user interrupted
+        sig_check()
+
         self.C = C
         mat = C.generator_matrix()
         F = mat.base_ring()
@@ -290,8 +295,10 @@ class LinearCodeAutGroupCanLabel:
             # the dimension of the code is smaller or equal than
             # the dimension of the dual code
             # in this case we work with the code itself.
+            sig_on() # Next line is expensive!
             pr = PartitionRefinementLinearCode(len(col_set),
                 matrix(col_set).transpose(), P=P_refined, algorithm_type=algorithm_type)
+            sig_off()
 
             # this command allows you some advanced debuging
             # it prints the backtrack tree -> must be activated when installing
