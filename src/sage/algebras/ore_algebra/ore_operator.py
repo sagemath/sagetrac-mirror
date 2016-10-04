@@ -269,7 +269,7 @@ class OreOperator(RingElement):
         if R == R.parent().zero():
             return Q
         else:
-            raise ValueError, "Cannot divide the given OreOperators"
+            raise ValueError("Cannot divide the given OreOperators")
                    
     def __floordiv__(self,right):
         """
@@ -357,7 +357,7 @@ class OreOperator(RingElement):
         raise NotImplementedError
 
     def __setitem__(self, n, value):
-        raise IndexError, "Operators are immutable"
+        raise IndexError("Operators are immutable")
 
     def is_primitive(self, n=None, n_prime_divs=None):
         """
@@ -785,7 +785,7 @@ class UnivariateOreOperator(OreOperator):
     def quo_rem(self, other, fractionFree=False):
 
         if other.is_zero(): 
-            raise ZeroDivisionError, "other must be nonzero"
+            raise ZeroDivisionError("other must be nonzero")
 
         if (self.order() < other.order()):
             return (self.parent().zero(),self)
@@ -1072,7 +1072,7 @@ class UnivariateOreOperator(OreOperator):
             A, B = canonical_coercion(self, other)
             return A.lclm(B, **kwargs)
         elif not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in lclm"
+            raise TypeError("unexpected argument in lclm")
 
         if not kwargs.has_key("algorithm") or kwargs['algorithm'] == 'linalg':
             return self._lclm_linalg(other, **kwargs)
@@ -1084,7 +1084,7 @@ class UnivariateOreOperator(OreOperator):
             del kwargs['algorithm']
             return self._lclm_guess(other, **kwargs)
         else:
-            raise ValueError, "unknown algorithm: " + str(kwargs['algorithm'])
+            raise ValueError("unknown algorithm: " + str(kwargs['algorithm']))
 
     def _lclm_linalg(self, other, **kwargs):
         """
@@ -1139,7 +1139,7 @@ class UnivariateOreOperator(OreOperator):
         elif A.is_S():
             terms = lambda L, n : L.to_list([K.random_element() for i in xrange(L.order())], n)
         else:
-            raise TypeError, "don't know how to expand a generic solution for operators in " + str(A)
+            raise TypeError("don't know how to expand a generic solution for operators in " + str(A))
 
         U = self.normalize().numerator(); V = other.normalize().numerator()
 
@@ -1335,7 +1335,7 @@ class UnivariateOreOperator(OreOperator):
         
         """
         if not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in symmetric_product"
+            raise TypeError("unexpected argument in symmetric_product")
 
         if self.parent() != other.parent():
             A, B = canonical_coercion(self, other)
@@ -1357,7 +1357,7 @@ class UnivariateOreOperator(OreOperator):
 
         pr = Alg._product_rule()
         if pr is None:
-            raise ValueError, "no product rule found"
+            raise ValueError("no product rule found")
 
         if b == 1:
             
@@ -1454,7 +1454,7 @@ class UnivariateOreOperator(OreOperator):
         
         """
         if exp < 0:
-            raise TypeError, "unexpected exponent received in symmetric_power"
+            raise TypeError("unexpected exponent received in symmetric_power")
         elif exp == 0:
             D = self.parent().gen(); R = D.base_ring()
             return D - R(D(R.one())) # annihilator of 1
@@ -1467,7 +1467,7 @@ class UnivariateOreOperator(OreOperator):
             L = self.symmetric_power(exp/2, solver=solver)
             return L.symmetric_product(L, solver=solver)
         else:
-            raise TypeError, "unexpected exponent received in symmetric_power"
+            raise TypeError("unexpected exponent received in symmetric_power")
 
     def annihilator_of_associate(self, other, solver=None):
         """
@@ -1484,7 +1484,7 @@ class UnivariateOreOperator(OreOperator):
 
         """
         if not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in symmetric_product"
+            raise TypeError("unexpected argument in symmetric_product")
 
         if self.parent() != other.parent():
             A, B = canonical_coercion(self, other)
@@ -1575,13 +1575,17 @@ class UnivariateOreOperator(OreOperator):
         elif self.order() == 0:
             return self.one()
         
-        A = self.parent(); pr = A._product_rule(); R = poly.parent(); r = self.order(); vars = R.gens()
+        A = self.parent()
+        pr = A._product_rule()
+        R = poly.parent()
+        r = self.order()
+        vars = R.gens()
         if len(vars) % blocks != 0 or len(vars) < r*blocks:
-            raise TypeError, "illegal number of variables"
+            raise TypeError("illegal number of variables")
         elif R.base_ring().fraction_field() is not self.base_ring().fraction_field():
-            raise TypeError, "poly must live in a ring with coefficient field " + str(self.base_ring()) + "."
+            raise TypeError("poly must live in a ring with coefficient field " + str(self.base_ring()))
         elif pr is None:
-            raise ValueError, "no product rule found"
+            raise ValueError("no product rule found")
 
         K = R.base_ring().fraction_field()
         A = A.change_ring(K); R = R.change_ring(K); 

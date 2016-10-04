@@ -177,11 +177,11 @@ class GeneralizedSeriesMonoid_class(Parent):
         x = str(x)
         Parent.__init__(self, base=base, names=(x,), category=Rings())
         if base is not QQbar and base is not QQ and base is not ZZ and not is_NumberField(base):
-            raise TypeError, "base ring must be QQ or a number field"
+            raise TypeError("base ring must be QQ or a number field")
         if x.find("LOG") >= 0:
-            raise ValueError, "generator name must not contain the substring 'LOG'"
+            raise ValueError("generator name must not contain the substring 'LOG'")
         if type != "continuous" and type != "discrete":
-            raise ValueError, "type must be either \"continuous\" or \"discrete\""
+            raise ValueError("type must be either \"continuous\" or \"discrete\"")
         self.__exp_ring = base[x]
         self.__tail_ring = PowerSeriesRing(base, x)['LOG']
         self.__var = x
@@ -370,7 +370,7 @@ class ContinuousGeneralizedSeries(RingElement):
         p = parent.tail_ring()(tail)
 
         if ramification not in ZZ or ramification <= 0:
-            raise ValueError, "ramification must be a positive integer"
+            raise ValueError("ramification must be a positive integer")
         elif p.is_zero():
             self.__exp = parent.exp_ring().zero()
             self.__ramification = ZZ(1)
@@ -420,7 +420,8 @@ class ContinuousGeneralizedSeries(RingElement):
         Evaluate this generalized series approximately at some approximate nonzero real or complex number 
         """
         if arg.parent().is_exact() and (not self.__exp.is_zero() or self.__ramification > 1):
-            R = RR; arg = R(arg)
+            R = RR
+            arg = R(arg)
         else:
             R = arg.parent()
 
@@ -485,7 +486,7 @@ class ContinuousGeneralizedSeries(RingElement):
         quo = s / r
         
         if r*quo != s or s <= 0:
-            raise ValueError, "s must be a positive integer multiple of the ramification"
+            raise ValueError("s must be a positive integer multiple of the ramification")
 
         exp = self.__exp
         x = exp.parent().gen()
@@ -533,7 +534,7 @@ class ContinuousGeneralizedSeries(RingElement):
             return self
         elif not self.similar(other):
             # could be generalized such as to support x^(1/3) + x^(1/2) = x^(1/2)*(1 + x^(1/6))
-            raise ValueError, "can only add generalized series if they are \"similar\"."
+            raise ValueError("can only add generalized series if they are 'similar'.")
 
         G = self.parent()
         s = lcm(self.ramification(), other.ramification())
@@ -554,7 +555,7 @@ class ContinuousGeneralizedSeries(RingElement):
         if self.is_zero():
             raise ZeroDivisionError
         elif self.has_logarithms():
-            raise ValueError, "generalized series involving logarithms are not invertible"
+            raise ValueError("generalized series involving logarithms are not invertible")
         else:
             return ContinuousGeneralizedSeries(self.parent(), \
                                                ~self.__tail, \
@@ -883,14 +884,15 @@ class ContinuousGeneralizedSeries(RingElement):
 
         """
         if not e in QQ or e <= 0:
-            raise TypeError, "exponent must be a rational number"
+            raise TypeError("exponent must be a rational number")
         elif e == 1:
             return self
         
         e = QQ(e)
         G = self.parent()
 
-        a = e.numerator(); b = e.denominator()
+        a = e.numerator()
+        b = e.denominator()
 
         xe = G.exp_ring().gen()
         log = G.tail_ring().gen()
@@ -984,12 +986,16 @@ class DiscreteGeneralizedSeries(RingElement):
             return
 
         if type(data) != list:
-            K = parent.base(); R = parent.exp_ring(); B = parent.tail_ring().base_ring()
+            K = parent.base()
+            R = parent.exp_ring()
+            B = parent.tail_ring().base_ring()
             data = R(data)
             if data.is_zero():
                 data = [QQ.zero(), ZZ.one(), K.one(), parent.exp_ring().zero(), K.zero(), R.zero()]
             else:
-                alpha = data.degree(); data = data.reverse(); R = parent.tail_ring()
+                alpha = data.degree()
+                data = data.reverse()
+                R = parent.tail_ring()
                 data = [QQ.zero(), ZZ.one(), K.one(), parent.exp_ring().zero(), alpha, R([B(data)]) ]                
 
         K = parent.base()
@@ -1004,7 +1010,8 @@ class DiscreteGeneralizedSeries(RingElement):
         if rho.is_zero() or ram <= 0:
             raise ValueError        
 
-        R = parent.tail_ring(); PS = R.base_ring()
+        R = parent.tail_ring()
+        PS = R.base_ring()
         if type(expansion) == list:
             for i in xrange(len(expansion)):
                 if type(expansion[i]) == list:
@@ -1083,7 +1090,8 @@ class DiscreteGeneralizedSeries(RingElement):
         elif arg in RR:
             if arg.parent().is_exact() and (self.__gamma != 0 or self.__ramification > 1 or \
                                             self.__alpha not in ZZ or self.has_logarithms()):
-                R = RR; arg = R(arg)
+                R = RR
+                arg = R(arg)
             else:
                 R = arg.parent()
 
@@ -1102,7 +1110,7 @@ class DiscreteGeneralizedSeries(RingElement):
 
             return out            
         else:
-            raise ValueError, "don't know how to evaluate discrete generalized series at" + str(arg)
+            raise ValueError("don't know how to evaluate discrete generalized series at" + str(arg))
         
     def base_extend(self, ext, name='a'):
         """
@@ -1193,7 +1201,7 @@ class DiscreteGeneralizedSeries(RingElement):
             return self
         elif not self.similar(other):
             # could be generalized such as to support x^(1/3) + x^(1/2) = x^(1/2)*(1 + x^(1/6))
-            raise ValueError, "can only add generalized series if they are \"similar\"."
+            raise ValueError("can only add generalized series if they are 'similar'.")
 
         ram = lcm(self.__ramification, other.__ramification)
 
@@ -1219,7 +1227,7 @@ class DiscreteGeneralizedSeries(RingElement):
         if self.is_zero():
             raise ZeroDivisionError
         elif self.has_logarithms():
-            raise ValueError, "generalized series involving logarithms are not invertible"
+            raise ValueError("generalized series involving logarithms are not invertible")
 
         return DiscreteGeneralizedSeries(self.parent(), \
                                          [-self.__gamma, self.__ramification, ~self.__rho, -self.__subexp, \
@@ -1230,7 +1238,8 @@ class DiscreteGeneralizedSeries(RingElement):
         if self.is_zero():
             return self.__expansion._repr_()
 
-        out = ""; n = str(self.parent().exp_ring().gen());
+        out = ""
+        n = str(self.parent().exp_ring().gen())
         r = self.__ramification
         n_ram = n if r == 1 else n + '^(1/' + str(r) + ')'
 
@@ -1278,7 +1287,8 @@ class DiscreteGeneralizedSeries(RingElement):
         if self.is_zero():
             return self.__expansion._latex_()
 
-        out = ""; n = str(self.parent().exp_ring().gen());
+        out = ""
+        n = str(self.parent().exp_ring().gen())
         r = self.__ramification
         n_ram = n if r == 1 else n + '^{1/' + str(r) + '}'
 
@@ -1364,8 +1374,12 @@ class DiscreteGeneralizedSeries(RingElement):
         if self.is_zero():
             return self
 
-        prec = min(c.prec() for c in self.__expansion.coefficients()); x = self.parent().exp_ring().gen()
-        gamma = self.__gamma; rho = self.__rho; subexp = self.__subexp; alpha = self.__alpha
+        prec = min(c.prec() for c in self.__expansion.coefficients())
+        x = self.parent().exp_ring().gen()
+        gamma = self.__gamma
+        rho = self.__rho
+        subexp = self.__subexp
+        alpha = self.__alpha
         subexp = [subexp[j] for j in xrange(1, max(subexp.degree(), gamma.denominator()) + 1)]
         ram = self.__ramification
         
@@ -1465,26 +1479,30 @@ def _generalized_series_shift_quotient(x, prec=5, shift=1, gamma=0, rho=1, subex
       `f(x) = `(x/e)^(x*u/v)\rho^x\exp\bigl(c_1 x^{1/ram} + ... + c_{v-1} x^{(v-1)/ram}\bigr)x^\alpha`
 
     """
-    R = x.parent(); K = R.base_ring(); gamma = QQ(gamma)
+    R = x.parent()
+    K = R.base_ring()
+    gamma = QQ(gamma)
     ram = ramification
     if ram is None:
         ram = gamma.denominator() if subexp is None else len(subexp) + 1 
 
     ram = ZZ(ram)
     if not (ram % gamma.denominator()).is_zero():
-        raise ValueError, "ramification must be a multiple of the denominator of gamma."
+        raise ValueError("ramification must be a multiple of the denominator of gamma.")
 
     if shift == 0:
         return x**(ram*prec)
     elif shift < 0:
-        raise ValueError, "only nonnegative shifts are allowed"
+        raise ValueError("only nonnegative shifts are allowed")
 
     if gamma != 0:
         
-        gamma = QQ(gamma); u = gamma.numerator(); v = gamma.denominator()
+        gamma = QQ(gamma)
+        u = gamma.numerator()
+        v = gamma.denominator()
 
         if prec + shift*gamma < 0:
-            raise ValueError, "insufficient precision"
+            raise ValueError("insufficient precision")
         
         # n^(i*gamma) (1+i/n)^(gamma*i) (1+i/n)^(gamma*n) 
         cert = sum(_binomial(shift*gamma, k) * shift**k * x**(ram*(prec + shift*gamma - k)) \
@@ -1492,7 +1510,9 @@ def _generalized_series_shift_quotient(x, prec=5, shift=1, gamma=0, rho=1, subex
         cert = (cert * _super_expansion(gamma, shift, x, prec)(x**ram)).shift(-ram*prec)
         
     else:
-        u = ZZ.zero(); v = ZZ.one(); cert = x**(ram*prec)
+        u = ZZ.zero()
+        v = ZZ.one()
+        cert = x**(ram*prec)
 
     if rho != 1:
         cert *= rho**shift

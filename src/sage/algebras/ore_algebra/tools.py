@@ -71,7 +71,8 @@ def make_factor_iterator(ring, multiplicities=True):
 
     """
     R = ring.ring() if ring.is_field() else ring 
-    x = R.gen(); C = R.base_ring().fraction_field()
+    x = R.gen()
+    C = R.base_ring().fraction_field()
     if C in (QQ, QQbar):
         flush = (lambda p: R(p.numerator())) if R.base_ring() is ZZ else (lambda p: p)
         if multiplicities:
@@ -87,7 +88,8 @@ def make_factor_iterator(ring, multiplicities=True):
     elif C.base_ring() in (ZZ, QQ) and C == C.base_ring()[R.base_ring().gens()].fraction_field():
         # R = QQ(...)[x]
         gens = C.gens() + (x,)
-        R_ext = QQ[gens]; x_ext = R_ext(x)
+        R_ext = QQ[gens]
+        x_ext = R_ext(x)
         R = QQ[C.gens()][x]
         if multiplicities:
             def factors(p):
@@ -100,7 +102,7 @@ def make_factor_iterator(ring, multiplicities=True):
                     if u.degree(x_ext) > 0:
                         yield R(u)
     else:
-        raise NotImplementedError, ring 
+        raise NotImplementedError(ring)
 
     return factors
 
@@ -176,7 +178,7 @@ def shift_factor(p, ram=ZZ.one(), q=1):
                 q/=q[0]
 
         # have we already seen a member of the shift equivalence class of q? 
-        new = True; 
+        new = True 
         for i in xrange(len(classes)):
             u = classes[i][0]
             if u.degree() != q.degree():
@@ -186,7 +188,8 @@ def shift_factor(p, ram=ZZ.one(), q=1):
                 continue
             # yes, we have: q(x+a) == u(x); u(x-a) == q(x)
             # register it and stop searching
-            a = ZZ(a); new = False
+            a = ZZ(a)
+            new = False
             if a < 0:
                 classes[i][1].append((-a, b))
             elif a > 0:
@@ -263,9 +266,11 @@ def uncouple(mat, algebra=None):
             row2 = [sum((17+3**i)*mat[nonzero[i]][l] for i in xrange(m)) for l in xrange(len(mat[0]))]
             row3 = [sum((13+5**i)*mat[nonzero[i]][l] for i in xrange(m)) for l in xrange(len(mat[0]))]
             G1, S1, T1 = row1[c].xgcrd(row2[c])
-            d = lcm(S1.denominator(), T1.denominator()); G1, S1, T1 = d*G1, d*S1, d*T1
+            d = lcm(S1.denominator(), T1.denominator())
+            G1, S1, T1 = d*G1, d*S1, d*T1
             G2, S2, T2 = row2[c].xgcrd(row3[c])
-            d = lcm(S2.denominator(), T2.denominator()); G2, S2, T2 = d*G2, d*S2, d*T2
+            d = lcm(S2.denominator(), T2.denominator())
+            G2, S2, T2 = d*G2, d*S2, d*T2
             assert(G1.order() == G2.order())
             g, s, t = Pol(G1.leading_coefficient()).xgcd(Pol(G2.leading_coefficient()))
             mat.append([ s*S1*row1[l] + (s*T1 + t*S2)*row2[l] + t*T2*row3[l] for l in xrange(len(mat[0]))])
@@ -277,8 +282,10 @@ def uncouple(mat, algebra=None):
 
         # perform elimination 
         for i in xrange(r + 1, len(mat)):
-            Q, R = mat[i][c].quo_rem(piv); assert(R.is_zero()); 
-            d = Arat(Q).denominator(); Q = Apol(d*Q)
+            Q, R = mat[i][c].quo_rem(piv)
+            assert(R.is_zero())
+            d = Arat(Q).denominator()
+            Q = Apol(d*Q)
             for j in xrange(c, len(mat[0])):
                 mat[i][j] = d*mat[i][j] - Q*mat[r][j]
             clean_row(i)

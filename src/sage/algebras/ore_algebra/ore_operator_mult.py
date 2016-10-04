@@ -145,7 +145,7 @@ class MultivariateOreOperator(OreOperator):
         return self.__poly[n]
 
     def __setitem__(self, n, value):
-        raise IndexError, "Operators are immutable"
+        raise IndexError("Operators are immutable")
 
     def leading_coefficient(self):
         return self.__poly.leading_coefficient()

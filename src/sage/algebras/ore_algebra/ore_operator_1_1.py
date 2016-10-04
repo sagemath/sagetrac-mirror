@@ -268,7 +268,7 @@ class UnivariateOreOperatorOverUnivariateRing(UnivariateOreOperator):
         """
 
         if self.is_zero():
-            raise ZeroDivisionError, "unbounded degree"
+            raise ZeroDivisionError("unbounded degree")
         
         R = self.base_ring()
         d = -1
@@ -297,7 +297,7 @@ class UnivariateOreOperatorOverUnivariateRing(UnivariateOreOperator):
         """
 
         if self.is_zero():
-            raise ZeroDivisionError, "unbounded denominator"
+            raise ZeroDivisionError("unbounded denominator")
 
         A, R, k, L = self._normalize_base_ring()
         sigma = A.sigma()
@@ -654,27 +654,27 @@ class UnivariateOreOperatorOverUnivariateRing(UnivariateOreOperator):
         P = self; A = P.parent(); R = A.base_ring()
 
         if not isinstance(D, OreOperator) or D.parent() is not A:
-            raise TypeError, "operators must live in the same algebra"
+            raise TypeError("operators must live in the same algebra")
         elif p not in R.fraction_field():
-            raise TypeError, "p must belong to the base ring"
+            raise TypeError("p must belong to the base ring")
         elif D.order() != 1:
-            raise TypeError, "D must be a first order operator"
+            raise TypeError("D must be a first order operator")
         elif self.order() <= 0:
-            raise ValueError, "P must have at least order 1"
+            raise ValueError("P must have at least order 1")
         elif A.is_F():
             sols = P.to_S('S').associate_solutions(D.to_S('S'), p)
             return [ (M.to_F(str(A.gen())), m) for (M, m) in sols]
         elif A.is_S() is not False or A.is_Q() is not False:
             S = A.gen()
             if not D == S - A.one():
-                raise NotImplementedError, "unsupported choice of D: " + str(D)
+                raise NotImplementedError("unsupported choice of D: " + str(D))
             # adjoint = sum( (sigma^(-1) - 1)^i * a[i] ), where a[i] is the coeff of D^i in P
             adjoint = A.zero(); coeffs = P.to_F('F').coeffs(); r = P.order()
             for i in xrange(len(coeffs)):
                 adjoint += S**(r-i)*(A.one() - S)**i * coeffs[i]
         elif A.is_D() is not False or A.is_T() is not False:
             if D != A.gen():
-                raise NotImplementedError, "unsupported choice of D: " + str(D)
+                raise NotImplementedError("unsupported choice of D: " + str(D))
             # adjoint = sum( (-D)^i * a[i] ), where a[i] is the coeff of D in P
             adjoint = A.zero(); coeffs = P.coeffs()
             for i in xrange(len(coeffs)):
@@ -1270,7 +1270,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
             rec_algebra = self.parent().change_var_sigma_delta(alg, {x:x+one}, {})
         elif not isinstance(alg, type(self.parent())) or not alg.is_S() \
              or alg.base_ring().base_ring() is not self.base_ring().base_ring():
-            raise TypeError, "not an adequate algebra"
+            raise TypeError("not an adequate algebra")
         else:
             rec_algebra = alg
         
@@ -1380,7 +1380,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
             alg = self.parent().change_var_sigma_delta(alg, {}, {x:x})
         elif not isinstance(alg, type(self.parent())) or not alg.is_T() or \
              alg.base_ring().base_ring() is not R.base_ring():
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -1461,7 +1461,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
             try:
                 minpoly = R(a.minpoly()).monic()
             except:
-                raise TypeError, "argument not recognized as algebraic function over base ring"
+                raise TypeError("argument not recognized as algebraic function over base ring")
 
         d = minpoly.degree(); r = self.order()
 
@@ -1623,15 +1623,15 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
         D = self.parent().gen()
         
         if self.is_zero():
-            raise ZeroDivisionError, "infinite dimensional solution space"
+            raise ZeroDivisionError("infinite dimensional solution space")
         elif self.order() == 0:
             return []
         elif R.characteristic() > 0:
-            raise TypeError, "cannot compute generalized solutions for this coefficient domain"
+            raise TypeError("cannot compute generalized solutions for this coefficient domain")
         elif R.is_field() or not R.base_ring().is_field():
             return self._normalize_base_ring()[-1].generalized_series_solutions(n, base_extend, ramification, exp)
         elif not (R.base_ring() is QQ or is_NumberField(R.base_ring())):
-            raise TypeError, "cannot compute generalized solutions for this coefficient domain"
+            raise TypeError("cannot compute generalized solutions for this coefficient domain")
 
         solutions = []
 
@@ -1642,7 +1642,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
         elif exp is False:
             exp = QQ.zero()
         if exp not in QQ:
-            raise ValueError, "illegal option value encountered: exp=" + str(exp)
+            raise ValueError("illegal option value encountered: exp=" + str(exp))
 
         # search for a name which is not yet used as generator in (some subfield of) R.base_ring()
         # for in case we need to make algebraic extensions.
@@ -1806,7 +1806,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
         try: 
             p = L(p)
         except:
-            raise ValueError, "p has to be a polynomial or 1/" + str(p.parent().gen())
+            raise ValueError("p has to be a polynomial or 1/" + str(p.parent().gen()))
 
         s = L.zero()
         y = L(K.gen())
@@ -1829,7 +1829,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
             q, r = q.quo_rem(p)
 
         if r.is_zero():
-            raise ValueError, "p not irreducible?"
+            raise ValueError("p not irreducible?")
         else:
             return K(gcd(r.coefficients()).numerator())
 
@@ -1871,7 +1871,7 @@ class UnivariateDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOver
         Denominator bounding based on indicial polynomial. 
         """
         if self.is_zero():
-            raise ZeroDivisionError, "unbounded denominator"        
+            raise ZeroDivisionError("unbounded denominator")
 
         A, R, _, L = self._normalize_base_ring()
 
@@ -1979,7 +1979,7 @@ class UnivariateRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
             alg = self.parent().change_var_sigma_delta(alg, {}, {x:one})
         elif not isinstance(alg, type(self.parent())) or not alg.is_D() \
              or alg.base_ring().base_ring() is not R.base_ring():
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -2027,7 +2027,7 @@ class UnivariateRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
             alg = self.parent().change_var_sigma_delta(alg, {x:x+one}, {x:one})
         elif not isinstance(alg, type(self.parent())) or not alg.is_F() or \
              alg.base_ring().base_ring() is not R.base_ring():
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -2403,15 +2403,15 @@ class UnivariateRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
         try:
             a = R(a)
         except:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are rational"
+            raise ValueError("argument has to be of the form u*x+v where u,v are rational")
 
         if a.degree() > 1:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are rational"
+            raise ValueError("argument has to be of the form u*x+v where u,v are rational")
 
         try:
             u = QQ(a[1]); v = QQ(a[0])
         except:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are rational"
+            raise ValueError("argument has to be of the form u*x+v where u,v are rational")
 
         r = self.order(); x = A.base_ring().gen()
 
@@ -2640,10 +2640,10 @@ class UnivariateRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
         try:
             origcoeffs = coeffs = [c.change_ring(K) for c in self.numerator().primitive_part().coeffs() ]
         except:
-            raise TypeError, "unexpected coefficient domain: " + str(self.base_ring().base_ring())
+            raise TypeError("unexpected coefficient domain: " + str(self.base_ring().base_ring()))
 
         if len(coeffs) == 0:
-            raise ZeroDivisionError, "everything is a solution of the zero operator"
+            raise ZeroDivisionError("everything is a solution of the zero operator")
         elif len(coeffs) == 1:
             return []
 
@@ -2979,7 +2979,7 @@ class UnivariateQRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverU
             alg = self.parent().change_var_sigma_delta(alg, {x:q*x}, {x:one})
         elif not isinstance(alg, type(self.parent())) or not alg.is_J() or \
              alg.base_ring().base_ring() is not K or K(alg.is_J()[1]) != K(q):
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -3100,15 +3100,15 @@ class UnivariateQRecurrenceOperatorOverUnivariateRing(UnivariateOreOperatorOverU
         try:
             a = R(a)
         except:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are integers"
+            raise ValueError("argument has to be of the form u*x+v where u,v are integers")
 
         if a.degree() > 1:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are integers"
+            raise ValueError("argument has to be of the form u*x+v where u,v are integers")
 
         try:
             u = ZZ(a[1]); v = ZZ(a[0])
         except:
-            raise ValueError, "argument has to be of the form u*x+v where u,v are rational"
+            raise ValueError("argument has to be of the form u*x+v where u,v are rational")
 
         A = A.change_ring(A.base_ring().fraction_field())
         L = A(self); s = A.sigma(); 
@@ -3327,7 +3327,7 @@ class UnivariateQDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOve
             alg = self.parent().change_var_sigma_delta(alg, {x:q*x}, {})
         elif not isinstance(alg, type(self.parent())) or not alg.is_Q() or \
              alg.base_ring().base_ring() is not R.base_ring() or K(alg.is_Q()[1]) != K(q) :
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -3435,7 +3435,7 @@ class UnivariateQDifferentialOperatorOverUnivariateRing(UnivariateOreOperatorOve
     def symmetric_product(self, other, solver=None):
 
         if not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in symmetric_product"
+            raise TypeError("unexpected argument in symmetric_product")
 
         if self.parent() != other.parent():
             A, B = canonical_coercion(self, other)
@@ -3503,7 +3503,7 @@ class UnivariateDifferenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
             alg = self.parent().change_var_sigma_delta(alg, {x:x+one}, {})
         elif not isinstance(alg, type(self.parent())) or not alg.is_S() or \
              alg.base_ring().base_ring() is not R.base_ring():
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -3603,7 +3603,7 @@ class UnivariateDifferenceOperatorOverUnivariateRing(UnivariateOreOperatorOverUn
     def symmetric_product(self, other, solver=None):
 
         if not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in symmetric_product"
+            raise TypeError("unexpected argument in symmetric_product")
 
         if self.parent() != other.parent():
             A, B = canonical_coercion(self, other)
@@ -3661,7 +3661,7 @@ class UnivariateEulerDifferentialOperatorOverUnivariateRing(UnivariateOreOperato
             alg = self.parent().change_var_sigma_delta(alg, {}, {x:one})
         elif not isinstance(alg, type(self.parent())) or not alg.is_D() or \
              alg.base_ring().base_ring() is not R.base_ring():
-            raise TypeError, "target algebra is not adequate"
+            raise TypeError("target algebra is not adequate")
 
         if self.is_zero():
             return alg.zero()
@@ -3755,7 +3755,7 @@ class UnivariateEulerDifferentialOperatorOverUnivariateRing(UnivariateOreOperato
     def symmetric_product(self, other, solver=None):
 
         if not isinstance(other, UnivariateOreOperator):
-            raise TypeError, "unexpected argument in symmetric_product"
+            raise TypeError("unexpected argument in symmetric_product")
 
         if self.parent() != other.parent():
             A, B = canonical_coercion(self, other)
@@ -3783,7 +3783,7 @@ def _rec2list(L, init, n, start, append, padd, deform, singularity_handler=None)
     elif len(terms) < r:
 
         if not padd:
-            raise ValueError, "not enough initial values."
+            raise ValueError("not enough initial values")
             
         z = K.zero(); padd = r - len(terms)
             
@@ -3805,7 +3805,7 @@ def _rec2list(L, init, n, start, append, padd, deform, singularity_handler=None)
 
     for i in xrange(r):
         if terms[-i - 1] not in K:
-            raise TypeError, "illegal initial value object"
+            raise TypeError("illegal initial value object")
 
     rec = L.numerator().coeffs(); sigma = L.parent().sigma()
     rec = tuple( -sigma(p, -r) for p in rec )

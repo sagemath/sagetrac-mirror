@@ -219,7 +219,10 @@ def heuristic_row_content(row, ring):
 
     # taking gcd of least-degree element, the second-least-element element,
     # the sum of elements at odd indices, and the sum of the other elements
-    m1 = row[0]; m2 = row[1]; d1 = degrees[0]; d2 = degrees[1]
+    m1 = row[0]
+    m2 = row[1]
+    d1 = degrees[0]
+    d2 = degrees[1]
     if d2 < d1:
         m1, m2, d1, d2 = m2, m1, d2, d1
     for i in xrange(2, n):
@@ -252,7 +255,8 @@ def _pivot(mat, r, n, c, m, zero):
 
     ## throughout this function, matrix indices (i, j) are understood relative to (r, c).
     ## if (i, j) is a pivot candidate, the final pivot will be (i + r, j + c).
-    n = n - r; m = m - c
+    n = n - r
+    m = m - c
 
     nz_in_row = [ 0 for i in xrange(n) ]  # number of nonzero elements in row i 
     nz_in_col = [ 0 for j in xrange(m) ]  # number of nonzero elements in col j
@@ -265,7 +269,9 @@ def _pivot(mat, r, n, c, m, zero):
         mati = mat[i + r]
         for j in xrange(m):
             if mati[j + c] != zero:
-                nz_in_row[i] += 1; nz_in_col[j] += 1; zero_matrix = False
+                nz_in_row[i] += 1
+                nz_in_col[j] += 1
+                zero_matrix = False
 
     if zero_matrix:
         return None # early termination: zero matrix
@@ -278,14 +284,17 @@ def _pivot(mat, r, n, c, m, zero):
                     return (i + r, j + c) # early termination: row or column with only one nonzero entry
                 nz_in_rows_for_col[j] += nz_in_row[i]
     
-    piv_cand = []; min_nz_fillin = 1e1000; bound = ALPHA*(min_nz_fillin + BETA)
+    piv_cand = []
+    min_nz_fillin = 1e1000
+    bound = ALPHA*(min_nz_fillin + BETA)
     for i in xrange(n):
         mati = mat[i + r]
         for j in xrange(m):
             if mati[j + c] != zero:
                 w = (nz_in_row[i] - 1)**EXPONENT*(nz_in_col[j] - 1) # expected fillin
                 if w < min_nz_fillin:
-                    min_nz_fillin = w; bound = ALPHA*(min_nz_fillin + BETA)
+                    min_nz_fillin = w
+                    bound = ALPHA*(min_nz_fillin + BETA)
                     piv_cand.append((i, j, w, nz_in_row[i] - 1))
                 elif w <= bound:
                     piv_cand.append((i, j, w, nz_in_row[i] - 1))
@@ -297,7 +306,7 @@ def _pivot(mat, r, n, c, m, zero):
 
     # At this point, len(piv_cand) > 1 and all candidates have w > 0
 
-    R = zero.parent(); 
+    R = zero.parent()
     if len(R.gens()) == 1:
         K = R.base_ring()
         if K == ZZ:
@@ -327,7 +336,8 @@ def _pivot(mat, r, n, c, m, zero):
             return elsize[ij]
 
     # determine the expected term-fillin for each pivot candidate
-    avg_nz_fillin = float(0); avg_term_fillin = float(0); 
+    avg_nz_fillin = float(0)
+    avg_term_fillin = float(0)
     for k in xrange(len(piv_cand)):
         i, j, nz_fillin, nz_row = piv_cand[k] 
         pivot_fillin = size((i, j))*(nz_in_rows_for_col[j] - nz_in_col[j] - nz_in_row[i] + 1)
@@ -337,13 +347,17 @@ def _pivot(mat, r, n, c, m, zero):
         # same size. In experiments, taking also an estimate for the other part into account has
         # led to poorer performance (perhaps because we can't predict the fillin for this part
         # sufficiently accurately).
-        avg_nz_fillin += nz_fillin; avg_term_fillin += pivot_fillin
+        avg_nz_fillin += nz_fillin
+        avg_term_fillin += pivot_fillin
         piv_cand[k] = (i, j, nz_fillin, nz_row, pivot_fillin)
 
-    l = float(len(piv_cand)); avg_nz_fillin /= l; avg_term_fillin /= l
+    l = float(len(piv_cand))
+    avg_nz_fillin /= l
+    avg_term_fillin /= l
 
     # select the candidate where both the term-fillin and the non-zero-fillin are small
-    alpha = 1/max(.01, avg_nz_fillin); gamma = 1/max(.01, avg_term_fillin)
+    alpha = 1/max(.01, avg_nz_fillin)
+    gamma = 1/max(.01, avg_term_fillin)
     pivot = min(piv_cand, key=lambda (i, j, w1, w2, w3): (alpha*w1)**2 + (gamma*w3)**2)
     del piv_cand
     return (pivot[0] + r, pivot[1] + c)
@@ -362,7 +376,8 @@ def _normalize(sol):
 
     R = sol[0][0].parent()
     if R.is_field():
-        one = R.one(); zero = R.zero()
+        one = R.one()
+        zero = R.zero()
         for v in sol:
             j = 0
             while v[j] == zero:
@@ -371,7 +386,8 @@ def _normalize(sol):
             for k in xrange(j, len(v)):
                 v[k] *= piv
     elif R.base_ring().is_field():
-        one = R.one(); zero = R.zero()
+        one = R.one()
+        zero = R.zero()
         for v in sol:
             j = 0
             while v[j] == zero:
@@ -392,7 +408,8 @@ def _select_regular_square_submatrix(V0, n, m, dim, one, zero):
         ek = [(one if i==k else zero) for i in xrange(dim)]
         for i in xrange(m):
             if [ V0[j][i] for j in xrange(dim) ] == ek:
-                idxB[k] = i; break # i-th row is k-th unit vector
+                idxB[k] = i
+                break # i-th row is k-th unit vector
     if set(idxB) != set(range(dim)):
         raise ValueError
     idxA = [ i for i in xrange(m) if idxB.count(i) == 0  ]
@@ -419,7 +436,7 @@ def _alter_infolevel(infolevel, dlevel, dprefix):
     return (infolevel[0] + dlevel, infolevel[1] + dprefix)
 
 def _launch_info(infolevel, name, dim=None, deg=None, domain=None):
-    message = datetime.today().ctime() + ": " + name + " called";
+    message = datetime.today().ctime() + ": " + name + " called"
     if not dim == None:
         message = message + ", dim=" + str(dim)
     if not deg == None:
@@ -515,7 +532,11 @@ def _gauss(pivot, ncpus, fun, mat, degrees, infolevel):
     Internal version of nullspace.gauss_
     """
 
-    n, m = mat.dimensions(); R = mat.parent().base_ring(); x = R.gen(); zero = R.zero(); one = R.one()
+    n, m = mat.dimensions()
+    R = mat.parent().base_ring()
+    x = R.gen()
+    zero = R.zero()
+    one = R.one()
     _launch_info(infolevel, "gauss", dim=(n, m), domain=R)
 
     if ncpus > 1:
@@ -1025,7 +1046,7 @@ def _lagrange(subsolver, start_point, ncpus, mat, degrees, infolevel):
     bound =  2*degrees[0] + 3 if degree_known else 16
 
     if char > 0 and char < start_point + bound:
-        raise ValueError, "not enough evaluation points"
+        raise ValueError("not enough evaluation points")
 
     points = map(lambda p: R(start_point + p), range(bound))
     M = product_tree(x, points, 0, bound); mod = M[0]; Mprime = []
@@ -1069,7 +1090,7 @@ def _lagrange(subsolver, start_point, ncpus, mat, degrees, infolevel):
         start_point += bound; bound *= 2
         _info(infolevel, "Taking", bound, "more interpolation points...", alter = -1)
         if start_point + bound > char:
-            raise ValueError, "not enough evaluation points"
+            raise ValueError("not enough evaluation points")
         points = map(lambda p: R(start_point + p), range(bound))
         M = product_tree(x, points, 0, bound); mod = M[0]; Mprime = []
         multipoint_evaluate(mod.derivative(), points, 0, bound, M, Mprime)
@@ -1441,7 +1462,9 @@ def _newton(subsolver, inverse, mat, degrees, infolevel):
     r"""
     Internal version of nullspace.newton_.
     """
-    n, m = mat.dimensions(); R = mat.parent().base_ring(); x = R.gen();
+    n, m = mat.dimensions()
+    R = mat.parent().base_ring()
+    x = R.gen()
     matdeg = max( mat[i,j].degree() for i in xrange(n) for j in xrange(m) )
     _launch_info(infolevel, "newton", dim = (n, m), deg = matdeg, domain = R)
     
@@ -1455,9 +1478,12 @@ def _newton(subsolver, inverse, mat, degrees, infolevel):
     mat = mat.apply_map(Hom(R, R)([x + 1324]))
 
     # transform homogeneous system to inhomogeneous one
-    K = R.base_ring(); one = K.one(); zero = K.zero()
+    K = R.base_ring()
+    one = K.one()
+    zero = K.zero()
     V0 = subsolver(mat.apply_map(lambda p: p[0], K), infolevel=_alter_infolevel(infolevel, -1, 1))
-    dim = len(V0); rank = m - dim
+    dim = len(V0)
+    rank = m - dim
     if dim == 0:
         return [vector(R, v) for v in V0]
 
@@ -1474,7 +1500,8 @@ def _newton(subsolver, inverse, mat, degrees, infolevel):
     Ainv = Ainv.change_ring(R)
 
     # lifting of Ainv
-    xk = x; k = 1; 
+    xk = x
+    k = 1
     while k < bound:
         _info(infolevel, "lifting completed mod ", xk, alter = -1)
         #Ainv -= (Ainv*(A*Ainv).apply_map(lambda p: p.shift(-k))).apply_map(lambda p: (p%xk).shift(k))
@@ -1486,21 +1513,26 @@ def _newton(subsolver, inverse, mat, degrees, infolevel):
         for i in xrange(rank):
             for j in xrange(rank):
                 Ainv[i,j] -= (U[i,j]%xk).shift(k)        
-        k *= 2; xk *= xk
+        k *= 2
+        xk *= xk
     _info(infolevel, "lifting completed.", alter = -1)
 
     # solution of the system
     X = -Ainv._mul_(B)
     
     # put back unit vectors
-    zero = R.zero(); one = R.one(); V = [ [zero for i in xrange(m)] for j in xrange(dim) ]
+    zero = R.zero()
+    one = R.one()
+    V = [[zero for i in xrange(m)] for j in xrange(dim)]
     for i in xrange(dim):
         for j in xrange(len(idxA)):
             V[i][idxA[j]] = X[j][i]
         V[i][idxB[i]] = one
 
     # rational reconstruction and undo offset
-    phi = Hom(R, R)([x - 1324]); split = bound//2; xk = x**bound
+    phi = Hom(R, R)([x - 1324])
+    split = bound//2
+    xk = x**bound
     for v in V:
         d = one
         for p in v:
@@ -1587,12 +1619,12 @@ def _clear(subsolver, mat, degrees, infolevel):
             return den
     elif R.base_ring().fraction_field()[R.gens()] == R:
         # entries are polynomials over some fraction field
-        oldK = R.base_ring(); # e.g. QQ
+        oldK = R.base_ring()  # e.g. QQ
         try:
             newK = oldK.ring_of_integers(); # e.g. ZZ
         except AttributeError:
             newK = oldK.ring()
-        newR = newK[R.gens()]; # e.g. ZZ[x]
+        newR = newK[R.gens()]  # e.g. ZZ[x]
         def common_denominator(row):
             den = newK.one()
             try:

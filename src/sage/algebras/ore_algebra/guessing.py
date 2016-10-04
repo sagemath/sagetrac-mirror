@@ -40,7 +40,8 @@ def guess_rec(data, n, S, **kwargs):
 
     See the docstring of ``guess`` for further information.
     """
-    R = data[0].parent()[n]; x = R.gen()
+    R = data[0].parent()[n]
+    x = R.gen()
     return guess(data, OreAlgebra(R, (S, {n:n+R.one()}, {})), **kwargs)
 
 def guess_deq(data, x, D, **kwargs):
@@ -969,7 +970,9 @@ def _rat_recon(a, m, u=None):
         if u is None:
             u = m.degree()
 
-    zero = K.zero(); one = K.one(); mone = -one
+    zero = K.zero()
+    one = K.one()
+    mone = -one
 
     if a in (zero, one, mone):
         return a, one
@@ -978,13 +981,18 @@ def _rat_recon(a, m, u=None):
         return (a.numerator(), a.denominator())
 
     # p = q*a + r*m for some r
-    p = K(a) % m; q = one;
-    pp = m;       qq = zero;
-    out = (p, one); score = score_fun(p, one)
+    p = K(a) % m
+    q = one
+    pp = m
+    qq = zero
+    out = (p, one)
+    score = score_fun(p, one)
     if K is ZZ:
-        mp = m - p; mps = score_fun(mp, one)
+        mp = m - p
+        mps = score_fun(mp, one)
         if mps < score:
-            out = (mp, -ZZ.one()); score = mps
+            out = (mp, -ZZ.one())
+            score = mps
         if score < early_termination_bound:
             return out
 
@@ -998,7 +1006,8 @@ def _rat_recon(a, m, u=None):
 
         s = score_fun(p, q)
         if s < score:
-            out = (p, q); score = s
+            out = (p, q)
+            score = s
             if score < early_termination_bound:
                 break
 
