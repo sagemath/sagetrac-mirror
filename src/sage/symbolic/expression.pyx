@@ -9410,7 +9410,7 @@ cdef class Expression(CommutativeRingElement):
         are the same
 
         DETAILS: We call the Maxima function ``fullratsimp`` and
-        and Pynac's ``normal``, depending on the ``algorithm`` keyword.
+        Pynac's ``normal``, depending on the ``algorithm`` keyword.
 
         EXAMPLES::
 
