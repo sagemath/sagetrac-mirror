@@ -11332,7 +11332,12 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     param = A[0]
                     try:
+                        from sage.functions.piecewise import piecewise
                         f = self._plot_fast_callable(param)
+                        if (self.operator() == piecewise
+                                and not args and not kwds):
+                            dom = self.domain()
+                            args = (param, dom.inf(), dom.sup())
                     except NotImplementedError:
                         return self.function(param)
         else:
