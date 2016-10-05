@@ -370,34 +370,34 @@ class FreeGroupElement(ElementLibGAP):
         else:
             return self.parent([self.Tietze()[item]])
 
-    def _cmp_(self, other):
-        """
-        Lexicographic comparison
-
-        EXAMPLES::
-
-            sage: F = FreeGroup(3)
-            sage: w = F([1,2,1,-1,3,-2])
-            sage: w <= F([])
-            False
-            sage: w = F([1,2,1,-1,3,-2])
-            sage: w[:-1] < w
-            True
-            sage: w = F([1,2,1,-1,3,-2])
-            sage: w*w >= w
-            True
-            sage: w = F([1,2,1,-1,3,-2])
-            sage: F([2]) > w
-            True
-            sage: F([1,2,1,-1,3,-2]) == F([1,2,3,-2])
-            True
-            sage: F([1,2,1,-1,3,-2]) != F([1,2,3,-2])
-            False
-
-            sage: sorted([F([]), F([1,2]), F([2,-1]), F([1,1,1]), F([3]), F([-1,-1])])
-            [1, x0^-2, x0^3, x0*x1, x1*x0^-1, x2]
-        """
-        return cmp(self.Tietze(), other.Tietze())
+    # def _cmp_(self, other):
+    #     """
+    #     Lexicographic comparison
+    #
+    #     EXAMPLES::
+    #
+    #         sage: F = FreeGroup(3)
+    #         sage: w = F([1,2,1,-1,3,-2])
+    #         sage: w <= F([])
+    #         False
+    #         sage: w = F([1,2,1,-1,3,-2])
+    #         sage: w[:-1] < w
+    #         True
+    #         sage: w = F([1,2,1,-1,3,-2])
+    #         sage: w*w >= w
+    #         True
+    #         sage: w = F([1,2,1,-1,3,-2])
+    #         sage: F([2]) > w
+    #         True
+    #         sage: F([1,2,1,-1,3,-2]) == F([1,2,3,-2])
+    #         True
+    #         sage: F([1,2,1,-1,3,-2]) != F([1,2,3,-2])
+    #         False
+    #
+    #         sage: sorted([F([]), F([1,2]), F([2,-1]), F([1,1,1]), F([3]), F([-1,-1])])
+    #         [1, x0^-2, x0^3, x0*x1, x1*x0^-1, x2]
+    #     """
+    #     return cmp(self.Tietze(), other.Tietze())
 
     @cached_method
     def Tietze(self):
