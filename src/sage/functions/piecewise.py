@@ -490,6 +490,26 @@ class PiecewiseFunction(BuiltinFunction):
             self = piecewise(parameters, var=variable)
             return etb.call(self, variable)
 
+        def plot(cls, self, parameters, variable, *args, **kwds):
+            from sage.plot.all import plot, Graphics
+            #from sage.ext.fast_callable import fast_callable
+
+            g = Graphics()
+            i = 0
+            for (dom, fun) in self.items():
+                # If it's the first piece, pass all arguments. Otherwise,
+                # filter out 'legend_label' so that we don't add each
+                # piece to the legend separately (trac #12651).
+                if i != 0 and 'legend_label' in kwds:
+                    del kwds['legend_label']
+                i = i+1
+                print(fun, dom.inf(), dom.sup())
+                g += plot(#fast_callable(fun, vars=variable,
+                          #  expect_one_var=True),
+                        fun, (variable, dom.inf(), dom.sup()),
+                        *args, **kwds)
+            return g
+
         def restriction(cls, self, parameters, variable, restricted_domain):
             """
             Restrict the domain
