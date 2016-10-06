@@ -36,12 +36,16 @@ with ``delete()``.
     :func:`dominator_tree` | Returns a dominator tree of the graph.
     :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
     :func:`min_spanning_tree` | Computes a minimum spanning tree of a (weighted) graph.
+    :func:`shortest_paths` | Uses Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
+    :func:`johnson_shortest_paths` | Uses Johnson algorithm to compute the all-pairs shortest paths.
+    :func:`johnson_closeness_centrality` | Uses Johnson algorithm to compute the closeness centrality of all vertices.
 
 Functions
 ---------
 """
+from six import itervalues
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     r"""
@@ -163,6 +167,13 @@ cpdef edge_connectivity(g):
         sage: edge_connectivity(g)
         [4, [(0, 1), (0, 2), (0, 3), (0, 4)]]
 
+    Vertex-labeled graphs::
+
+        sage: from sage.graphs.base.boost_graph import edge_connectivity
+        sage: g = graphs.GridGraph([2,2])
+        sage: edge_connectivity(g)
+        [2, [((0, 0), (0, 1)), ((0, 0), (1, 0))]]
+
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -170,11 +181,12 @@ cpdef edge_connectivity(g):
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
+    cdef list int_to_vertex = g.vertices()
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_und)
+        ec, edges = boost_edge_connectivity(&g_boost_und)
 
     elif isinstance(g, DiGraph):
         from sage.misc.stopgap import stopgap
@@ -183,10 +195,12 @@ cpdef edge_connectivity(g):
 
         boost_graph_from_sage_graph(&g_boost_dir, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_dir)
+        ec, edges = boost_edge_connectivity(&g_boost_dir)
 
     else:
         raise ValueError("The input must be a Sage graph.")
+
+    return [ec, [(int_to_vertex[u], int_to_vertex[v]) for (u,v) in edges]]
 
 cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     r"""
@@ -207,7 +221,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
 
     else:
         clust_of_v = {v:g[0].clustering_coeff(v) for v in vertices}
-        return [(sum(clust_of_v.itervalues())/len(clust_of_v)), clust_of_v]
+        return [(sum(itervalues(clust_of_v)) / len(clust_of_v)), clust_of_v]
 
 
 cpdef clustering_coeff(g, vertices = None):
@@ -391,7 +405,7 @@ cpdef dominator_tree(g, root, return_dict = False):
     cdef BoostVecDiGraph g_boost_dir
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
@@ -408,7 +422,7 @@ cpdef dominator_tree(g, root, return_dict = False):
     if return_dict:
         return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()};
 
-    edges = [[int_to_vertex[result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+    edges = [[int_to_vertex[<int> result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
 
     if g.is_directed():
         if len(edges) == 0:
@@ -517,17 +531,17 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
     cdef BoostVecGraph g_boost
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     boost_graph_from_sage_graph(&g_boost, g)
     result = <vector[v_index]> g_boost.bandwidth_ordering(algorithm=='cuthill_mckee')
 
     cdef int n = g.num_verts()
-    cdef dict pos = {int_to_vertex[result[i]]:i for i in range(n)}
+    cdef dict pos = {int_to_vertex[<int> result[i]]:i for i in range(n)}
     cdef int bandwidth = max([abs(pos[u]-pos[v]) for u,v in g.edges(labels=False)])
 
     sig_off()
-    return (bandwidth, [int_to_vertex[result[i]] for i in range(n)])
+    return (bandwidth, [int_to_vertex[<int> result[i]] for i in range(n)])
 
 cpdef min_spanning_tree(g,
                         weight_function=None,
@@ -625,7 +639,7 @@ cpdef min_spanning_tree(g,
     cdef BoostVecWeightedGraph g_boost
     cdef vector[v_index] result
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     try:
         boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
@@ -644,7 +658,7 @@ cpdef min_spanning_tree(g,
     if result.size() != 2 * (n - 1):
         return []
     else:
-        edges = [(int_to_vertex[result[2*i]], int_to_vertex[result[2*i+1]]) for i in range(n-1)]
+        edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
 
 
@@ -828,9 +842,9 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     pred = {}
 
     if weight_function is not None:
-        correct_type = type(weight_function(g.edge_iterator().next()))
+        correct_type = type(weight_function(next(g.edge_iterator())))
     elif g.weighted():
-        correct_type = type(g.edge_iterator().next()[2])
+        correct_type = type(next(g.edge_iterator())[2])
     else:
         correct_type = int
     # Needed for rational curves.
@@ -904,7 +918,6 @@ cpdef johnson_shortest_paths(g, weight_function = None):
 
     If there is a negative cycle::
 
-        sage: from sage.graphs.base.boost_graph import shortest_paths
         sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
         sage: johnson_shortest_paths(g)
         Traceback (most recent call last):
@@ -942,9 +955,9 @@ cpdef johnson_shortest_paths(g, weight_function = None):
         raise ValueError("The graph contains a negative cycle.")
 
     if weight_function is not None:
-        correct_type = type(weight_function(g.edge_iterator().next()))
+        correct_type = type(weight_function(next(g.edge_iterator())))
     elif g.weighted():
-        correct_type = type(g.edge_iterator().next()[2])
+        correct_type = type(next(g.edge_iterator())[2])
     else:
         correct_type = int
     # Needed for rational curves.
@@ -956,3 +969,105 @@ cpdef johnson_shortest_paths(g, weight_function = None):
     return {int_to_v[v]:{int_to_v[w]:correct_type(result[v][w])
                     for w in range(N) if result[v][w] != sys.float_info.max}
             for v in range(N)}
+
+cpdef johnson_closeness_centrality(g, weight_function = None):
+    r"""
+    Uses Johnson algorithm to compute the closeness centrality of all vertices.
+
+    This routine is preferrable to :func:`~johnson_shortest_paths` because it
+    does not create a doubly indexed dictionary of distances, saving memory.
+
+    The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
+    `m` is the number of edges.
+
+    INPUT:
+
+    - ``g`` (generic_graph) - the input graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge
+      ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+      is automatically set to ``True``. If ``None`` and ``by_weight`` is
+      ``True``, we use the edge label ``l`` as a weight.
+
+    OUTPUT:
+
+    A dictionary associating each vertex ``v`` to its closeness centrality.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import johnson_closeness_centrality
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: johnson_closeness_centrality(g)
+        {0: 0.375, 1: 0.5, 2: 0.5, 3: 0.375}
+
+    Directed graphs::
+
+        sage: from sage.graphs.base.boost_graph import johnson_closeness_centrality
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
+        sage: johnson_closeness_centrality(g)
+        {0: inf, 1: -0.4444444444444444, 2: 0.3333333333333333}
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: from sage.graphs.base.boost_graph import johnson_closeness_centrality
+        sage: johnson_closeness_centrality("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Sage Graph or DiGraph.
+
+    If there is a negative cycle::
+
+        sage: from sage.graphs.base.boost_graph import johnson_closeness_centrality
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: johnson_closeness_centrality(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph contains a negative cycle.
+
+    """
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise ValueError("The input g must be a Sage Graph or DiGraph.")
+    elif g.num_edges() == 0:
+        from sage.rings.infinity import Infinity
+        return {}
+    sig_on()
+    # These variables are automatically deleted when the function terminates.
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef int N = g.num_verts()
+    cdef vector[vector[double]] result
+    cdef vector[double] closeness
+    cdef double farness
+    cdef int i, j, reach
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+        result = g_boost_dir.johnson_shortest_paths()
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+        result = g_boost_und.johnson_shortest_paths()
+
+    if result.size() == 0:
+        sig_off()
+        raise ValueError("The graph contains a negative cycle.")
+
+    import sys
+    for i in range(N):
+        farness = 0
+        reach = 0
+        for j in range(N):
+            if result[i][j] != sys.float_info.max:
+                farness += result[i][j]
+                reach += 1
+        if reach > 1:
+            closeness.push_back((<double>reach-1) * (reach-1) / ((N-1) * farness))
+        else:
+            closeness.push_back(sys.float_info.max)
+    sig_off()
+    return {v: closeness[i] for i,v in enumerate(g.vertices()) if closeness[i] != sys.float_info.max}

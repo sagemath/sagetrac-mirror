@@ -1,23 +1,25 @@
 """
 Tornaria Methods for Computing with Quadratic Forms
-
 """
 
-########################################################################
-## Routines from Gonzalo Tornaria (7/9/07)
-## for computing with ternary quadratic forms.
-#######################################################################
-
-
-#from sage.rings.rational_field import QQ
+#*****************************************************************************
+#       Copyright (C) 2007 Gonzalo Tornaria
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from six.moves import range
 
 from sage.rings.integer_ring import ZZ
 from sage.misc.functional import is_odd
 
 from sage.libs.pari.all import pari
 from sage.misc.all import prod
-from sage.rings.arith import factor, gcd, prime_to_m_part, CRT_vectors
-from sage.rings.arith import hilbert_symbol, kronecker_symbol
+from sage.arith.all import (factor, gcd, prime_to_m_part, CRT_vectors,
+        hilbert_symbol, kronecker_symbol)
 
 from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor as QuadraticForm
 from sage.modules.free_module import FreeModule
@@ -555,13 +557,13 @@ def representation_vector_list(self, B, maxvectors = 10**8):
         sage: Q.representation_vector_list(10)
         [[(0, 0)],
          [(0, 1), (0, -1), (1, 0), (-1, 0)],
-         [(1, 1), (-1, -1), (-1, 1), (1, -1)],
+         [(1, 1), (-1, -1), (1, -1), (-1, 1)],
          [],
          [(0, 2), (0, -2), (2, 0), (-2, 0)],
-         [(1, 2), (-1, -2), (-1, 2), (1, -2), (2, 1), (-2, -1), (-2, 1), (2, -1)],
+         [(1, 2), (-1, -2), (1, -2), (-1, 2), (2, 1), (-2, -1), (2, -1), (-2, 1)],
          [],
          [],
-         [(2, 2), (-2, -2), (-2, 2), (2, -2)],
+         [(2, 2), (-2, -2), (2, -2), (-2, 2)],
          [(0, 3), (0, -3), (3, 0), (-3, 0)]]
         sage: map(len, _)
         [1, 4, 4, 0, 4, 8, 0, 0, 4, 4]
@@ -572,7 +574,7 @@ def representation_vector_list(self, B, maxvectors = 10**8):
     n, m, vs = self._pari_().qfminim(2*(B-1), maxvectors)
     if n != 2 * len(vs):
         raise RuntimeError("insufficient number of vectors")
-    ms = [[] for _ in xrange(B)]
+    ms = [[] for _ in range(B)]
     ms[0] = [vector([0] * self.dim())]
     for v in vs._sage_().columns():
         ms[int(self(v))] += [v, -v]

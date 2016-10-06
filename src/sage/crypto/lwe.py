@@ -88,13 +88,14 @@ REFERENCES:
    http://dx.doi.org/10.1007/978-3-642-19074-2_21
 
 .. [LPR10] Vadim Lyubashevsky, Chris Peikert, and Oded Regev. On Ideal Lattices
-   and Learning with Errors over Rings. in Advances in Cryptology – EUROCRYPT
+   and Learning with Errors over Rings. in Advances in Cryptology -- EUROCRYPT
    2010. Springer 2010. http://dx.doi.org/10.1007/978-3-642-13190-5_1
 
 .. [CGW13] Daniel Cabarcas, Florian Göpfert, and Patrick Weiden. Provably Secure
    LWE-Encryption with Uniform Secret. Cryptology ePrint Archive, Report
    2013/164. 2013.  2013/164. http://eprint.iacr.org/2013/164
 """
+from six.moves import range
 
 from sage.functions.log import exp, log
 from sage.functions.other import sqrt, floor, ceil
@@ -106,7 +107,7 @@ from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
 from sage.rings.all import ZZ, RealField, IntegerModRing, RR
-from sage.rings.arith import next_prime, euler_phi
+from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 from sage.symbolic.constants import pi
@@ -757,7 +758,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
         f = lambda a_c: a_c
     else:
         f = balance_sample
-    return [f(lwe()) for _ in xrange(m)]
+    return [f(lwe()) for _ in range(m)]
 
 def balance_sample(s, q=None):
     r"""

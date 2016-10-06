@@ -25,7 +25,7 @@ The algorithm used in this file comes from
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.composition import Composition
 from sage.combinat.combinat import CombinatorialClass
-from sage.rings.arith import euler_phi,factorial, divisors, gcd
+from sage.arith.all import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.combinat.misc import DoublyLinkedList
@@ -145,9 +145,9 @@ class Necklaces_evaluation(CombinatorialClass):
             True
             sage: [1,2,2,2] in Necklaces([2,2])
             False
-            sage: all([ n in Necklaces([2,1,3,1]) for n in Necklaces([2,1,3,1])])
+            sage: all(n in Necklaces([2,1,3,1]) for n in Necklaces([2,1,3,1]))
             True
-            sage: all([ n in Necklaces([0,1,2,3]) for n in Necklaces([0,1,2,3])])
+            sage: all(n in Necklaces([0,1,2,3]) for n in Necklaces([0,1,2,3]))
             True
         """
         xl = list(x)
@@ -210,8 +210,8 @@ class Necklaces_evaluation(CombinatorialClass):
         ::
 
             sage: comps = [[],[2,2],[3,2,7],[4,2],[0,4,2],[2,0,4]]+Compositions(4).list()
-            sage: ns = [ Necklaces(comp) for comp in comps]
-            sage: all( [ n.cardinality() == len(n.list()) for n in ns] )
+            sage: ns = [Necklaces(comp) for comp in comps]
+            sage: all(n.cardinality() == len(n.list()) for n in ns)
             True
         """
         evaluation = self._content

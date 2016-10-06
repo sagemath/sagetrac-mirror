@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 """
 Parametric Plots
 """
+from __future__ import absolute_import
 
-from parametric_surface import ParametricSurface
-from shapes2 import line3d
-from sage.misc.misc import xsrange, srange
+from .parametric_surface import ParametricSurface
+from .shapes2 import line3d
+from sage.arith.srange import xsrange, srange
 from sage.structure.element import is_Vector
 
 from sage.ext.fast_eval import fast_float, fast_float_constant
@@ -137,12 +139,12 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         ....:   (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
         sage: P.show(viewer='tachyon')
 
-    Another example, a colored Mobius band::
+    Another example, a colored Möbius band::
 
         sage: cm = colormaps.ocean
         sage: def c(x,y): return sin(x*y)**2
-        sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-        sage: MobiusStrip(5,1,plot_points=200, color=(c,cm))
+        sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
+        sage: MoebiusStrip(5,1,plot_points=200, color=(c,cm))
         Graphics3d Object
 
     Yet another colored example::
@@ -254,9 +256,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: parametric_plot3d([f_x, f_y, f_z], (u, -pi, pi), (v, -pi, pi), frame=False, color="green")
         Graphics3d Object
 
-    Boy's surface http://en.wikipedia.org/wiki/Boy's_surface
-
-    ::
+    Boy's surface (see :wikipedia:`Boy's_surface`)::
 
         sage: u, v = var('u,v')
         sage: fx = 2/3* (cos(u)* cos(2*v) + sqrt(2)* sin(u)* cos(v))* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))
@@ -265,7 +265,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: parametric_plot3d([fx, fy, fz], (u, -2*pi, 2*pi), (v, 0, pi), plot_points = [90,90], frame=False, color="orange") # long time -- about 30 seconds
         Graphics3d Object
 
-    Maeder's Owl (pretty but can't find an internet reference)::
+    Maeder's Owl (see :wikipedia:`Bour's_minimal_surface`)::
 
         sage: u, v = var('u,v')
         sage: fx = v *cos(u) - 0.5* v^2 * cos(2* u)
@@ -430,7 +430,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
         Graphics3d Object
 
-    A Mobius strip::
+    A Möbius strip::
 
         sage: u,v = var("u,v")
         sage: parametric_plot3d([cos(u)*(1+v*cos(u/2)), sin(u)*(1+v*cos(u/2)), 0.2*v*sin(u/2)], (u,0, 4*pi+0.5), (v,0, 0.3),plot_points=[50,50])
@@ -468,7 +468,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         sage: plot3d(u^2-v^2, (u, -1, 1), (v, -1, 1), plot_points=[50,50])
         Graphics3d Object
 
-    A weird looking surface - like a Mobius band but also an O::
+    A weird looking surface - like a Möbius band but also an O::
 
         sage: u, v = var('u,v')
         sage: parametric_plot3d([sin(u)*cos(u)*log(u^2)*sin(v), (u^2)^(1/6)*(cos(u)^2)^(1/4)*cos(v), sin(v)], (u, 0.001, 1), (v, -pi, pi+0.2), plot_points=[50,50])
