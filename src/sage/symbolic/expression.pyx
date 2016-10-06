@@ -11,26 +11,6 @@ We create a relational expression::
     sage: eqn.subs(x == 5)
     16 <= 18
 
-Notice that squaring the relation squares both sides.
-
-::
-
-    sage: eqn^2
-    (x - 1)^4 <= (x^2 - 2*x + 3)^2
-    sage: eqn.expand()
-    x^2 - 2*x + 1 <= x^2 - 2*x + 3
-
-This can transform a true relation into a false one::
-
-    sage: eqn = SR(-5) < SR(-3); eqn
-    -5 < -3
-    sage: bool(eqn)
-    True
-    sage: eqn^2
-    25 < 9
-    sage: bool(eqn^2)
-    False
-
 We can do arithmetic with relations::
 
     sage: e = x+1 <= x-2
