@@ -468,7 +468,7 @@ from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.defaults import series_precision
 from sage.misc.superseded import experimental
-from sage.rings.all import RIF
+from sage.rings.all import QQ, RIF
 
 
 class NoConvergenceError(RuntimeError):
@@ -4045,7 +4045,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
     def coefficients_of_generating_function(self, function, singularities, precision=None,
-                             return_singular_expansions=False):
+                             return_singular_expansions=False, exponent_ring=QQ):
         r"""
         Return the asymptotic growth of the coefficients of some
         generating function by means of Singularity Analysis.
@@ -4061,6 +4061,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``return_singular_expansions`` -- (default: ``False``) a boolean.
           If set, the singular expansions are also returned.
+
+        - ``exponent_ring`` -- (default: ``QQ``) a ring.
 
         OUTPUT:
 
@@ -4114,6 +4116,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ....:    'n', precision=5))
             True
 
+        Non-rational exponent::
+
+            sage: B.<n> = AsymptoticRing('n^QQbar', SR)
+            sage: B.coefficients_of_generating_function(
+            ....:     lambda z: (1-z)^QQbar(sqrt(2)), [1], precision=1, exponent_ring=QQbar)
+            0.384695296551923*n^(-2.414213562373095?) + O(n^(-3.414213562373095?))
+
         .. WARNING::
 
             Once singular expansions around points other than infinity
@@ -4131,15 +4140,21 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large n.
         """
+        from sage.categories.cartesian_product import cartesian_product
         from sage.symbolic.ring import SR
         from .misc import NotImplementedOZero
+        from .growth_group import MonomialGrowthGroup
 
         singular_expansions = {}
 
         OZeroEncountered = False
 
-        A = AsymptoticRing('T^QQ * log(T)^QQ', coefficient_ring=SR,
-                           default_prec=precision)
+        A = AsymptoticRing(
+            cartesian_product([MonomialGrowthGroup(exponent_ring, 'T'),
+                               MonomialGrowthGroup(exponent_ring, 'log(T)')]),
+            SR,
+            default_prec=precision)
+
         T = A.gen()
 
         result = A.zero()

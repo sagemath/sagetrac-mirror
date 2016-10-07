@@ -898,10 +898,20 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.arith.srange import srange
         from sage.rings.rational_field import QQ
         from sage.rings.integer_ring import ZZ
+        from sage.rings.qqbar import QQbar, AA
         from sage.symbolic.ring import SR
 
         SCR = SR.subring(no_variables=True)
         s = SR('s')
+
+        # the following is required because gamma(QQbar(1/2)) fails.
+        try:
+            if alpha in QQ and alpha.parent() in (QQbar, AA):
+                alpha = QQ(alpha)
+        except AttributeError:
+            # if alpha is int, then it has no parent
+            pass
+
         iga = 1/gamma(alpha)
         if iga.parent() is SR:
             try:
