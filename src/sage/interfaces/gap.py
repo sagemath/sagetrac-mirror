@@ -508,9 +508,13 @@ class Gap_generic(ExtraTabCompletion, Expect):
             print("Loading GAP package %s" % pkg)
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
-            raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages and/or database_gap SPKGs. "+
-                               "Alternatively, You may install the package locally, into ~/.gap/pkg directory.")
+            error_text = ("Error loading Gap package {0}. \n"
+              "You may want to install the gap_packages and/or database_gap SPKGs. \n"
+              "Alternatively, You may install the package locally, into ~/.gap/pkg directory. \n"
+              "NOTE: Loading GAP packages that use loadable modules (e.g. IO, json) \n"
+              "will break libGAP and should not be used with Sage at the moment!")
+
+            raise RuntimeError(error_text.format(pkg))
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
