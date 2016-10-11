@@ -43,17 +43,17 @@ cdef class PowerSeries_poly(PowerSeries):
             elif isinstance(f, PowerSeries):  # not only PowerSeries_poly
                 prec = (<PowerSeries>f)._prec
                 f = R(f.polynomial())
-            elif isinstance(f, pari_gen) and f.type() == 't_SER':
-                if f._valp() < 0:
-                    raise ValueError('series has negative valuation')
-                if prec is infinity:
-                    prec = f.length() + f._valp()
-                f = R(f.truncate())
             else:
                 if f:
                     f = R(f, check=check)
                 else:
                     f = R(None)
+        elif isinstance(f, pari_gen) and f.type() == 't_SER':
+            if f._valp() < 0:
+                raise ValueError('series has negative valuation')
+            if prec is infinity:
+                prec = f.length() + f._valp()
+            f = R(f.truncate())
         else:
             if f:
                 f = R(f, check=check)
