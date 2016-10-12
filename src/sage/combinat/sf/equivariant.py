@@ -477,14 +477,15 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq._to_rees_on_basis(Partition([2]))
-            1/d*s[3]
+            -1/d*s[1, 1, 1]
             sage: Eq._to_rees_on_basis(Partition([2,1]))
-            1/d^2*s[3, 2] + 1/d^2*s[4, 1] + 1/d^2*s[5]
+            -1/d^2*s[1, 1, 1, 1, 1] - 1/d^2*s[2, 1, 1, 1] - 1/d^2*s[2, 2, 1]
         """
         rees = self.rees_ring()
         d,t = self.rees_gens()
+        e = rees.e()
         s = rees.s()
-        return s.prod([(1/d)*s[i+1] for i in part])
+        return s(e.prod([(-1)**(i+1)*(1/d)*e[i+1] for i in part]))
 
     def to_rees(self, f):
         r"""
@@ -497,9 +498,9 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq.to_rees(Eq.eq()[2])
-            1/3/d*p[3]
+            -1/3/d*p[3]
             sage: Eq.to_rees(Eq.es()[2])
-            1/4*p[2] + 1/8/d^2*p[2, 2] + 1/6/d*p[3]
+            -1/4*p[2] + 1/8/d^2*p[2, 2] - 1/6/d*p[3]
         """
         eq = self.eq()
         f = eq(f)
