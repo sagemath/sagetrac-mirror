@@ -1802,6 +1802,9 @@ ext_modules = [
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
 
+    Extension('sage.structure.metaclass.metaclass',
+              sources = ['sage/structure/metaclass/metaclass.pyx']),
+
     Extension('*', ['sage/structure/*.pyx']),
 
     ################################
