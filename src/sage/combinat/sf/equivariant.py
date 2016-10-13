@@ -11,7 +11,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.partition import Partition, Partitions
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
+from sage.categories.tensor import tensor
 import sfa
 
 class EquivariantSymmetricFunctions(UniqueRepresentation):
@@ -547,7 +547,29 @@ class EquivariantSymmetricFunctions_generic(sfa.SymmetricFunctionAlgebra_generic
         return self._equivariant
 
     class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
-        pass
+        def separate(self):
+            r"""
+            Separate an element into nonequivariant symmetric functions and equivariant terms
+
+            EXAMPLES::
+
+                sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
+                sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+                sage: from sage.combinat.sf.sf import SymmetricFunctions
+                sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
+                sage: es = Eq.es()
+                sage: es[2].separate()
+                b_0*s[] # s[1] + s[] # s[1, 1] + (-b_0)*s[1] # s[] - s[1] # s[1] + s[2] # s[]
+                sage: eq = Eq.eq()
+                sage: eq[1].separate()
+                -s[] # s[1] + s[1] # s[]
+                sage: eq[2].separate()
+                (a_1+b_0)*s[] # s[1] + s[] # s[1, 1] - s[] # s[2] + (-a_1-b_0)*s[1] # s[] - s[1, 1] # s[] + s[2] # s[]
+                sage: eq[3].separate()
+                (-a_2*a_1-a_1*b_0-b_1*b_0)*s[] # s[1] + (-a_1-b_1-b_0)*s[] # s[1, 1] - s[] # s[1, 1, 1] + (a_2+a_1+b_0)*s[] # s[2] + s[] # s[2, 1] - s[] # s[3] + (a_2*a_1+a_1*b_0+b_1*b_0)*s[1] # s[] + (-a_2+b_1)*s[1] # s[1] + (a_2+a_1+b_0)*s[1, 1] # s[] + s[1, 1, 1] # s[] + (-a_1-b_1-b_0)*s[2] # s[] - s[2, 1] # s[] + s[3] # s[]
+            """
+            s = self.parent().equivariant_family().symmetric_function_ring().s()
+            return s(self).coproduct().apply_multilinear_morphism(lambda a,b: tensor([a,b.antipode()]))
 
 class Equivariant_s(EquivariantSymmetricFunctions_generic):
     r"""
