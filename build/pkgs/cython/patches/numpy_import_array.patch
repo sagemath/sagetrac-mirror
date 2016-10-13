@@ -1,0 +1,53 @@
+commit d7b5368b8daa8b1eba06c576a9ba366215e00f51
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Thu Oct 13 16:12:34 2016 +0200
+
+    Implement numpy's import_array and import_ufunc in Cython
+
+diff --git a/Cython/Includes/numpy/__init__.pxd b/Cython/Includes/numpy/__init__.pxd
+index 0b501cc..947b1cb 100644
+--- a/Cython/Includes/numpy/__init__.pxd
++++ b/Cython/Includes/numpy/__init__.pxd
+@@ -369,7 +369,7 @@ cdef extern from "numpy/arrayobject.h":
+         npy_intp *ptr
+         int len
+ 
+-    void import_array()
++    int _import_array() except -1
+ 
+     #
+     # Macros from ndarrayobject.h
+@@ -960,7 +960,7 @@ cdef extern from "numpy/ufuncobject.h":
+              (PyUFuncGenericFunction *, void **, char *, int, int, int,
+               int, char *, char *, int, char *)
+ 
+-    void import_ufunc()
++    int _import_umath() except -1
+ 
+ 
+ cdef inline void set_array_base(ndarray arr, object base):
+@@ -978,3 +978,24 @@ cdef inline object get_array_base(ndarray arr):
+         return None
+     else:
+         return <object>arr.base
++
++
++# Versions of the import_* functions which are more suitable for
++# Cython code.
++cdef inline int import_array() except -1:
++    try:
++        _import_array()
++    except Exception:
++        raise ImportError("numpy.core.multiarray failed to import")
++
++cdef inline int import_umath() except -1:
++    try:
++        _import_umath()
++    except Exception:
++        raise ImportError("numpy.core.umath failed to import")
++
++cdef inline int import_ufunc() except -1:
++    try:
++        _import_umath()
++    except Exception:
++        raise ImportError("numpy.core.umath failed to import")
