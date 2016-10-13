@@ -32,7 +32,7 @@ from __future__ import absolute_import
 ########################################################################
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.algebras import Algebras
+from sage.categories.super_algebras import SuperAlgebras
 from sage.categories.modules import Modules
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.sets.family import Family
@@ -434,7 +434,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: H = RP2.cohomology_ring(GF(5))
             sage: TestSuite(H).run()
         """
-        cat = Algebras(base_ring).WithBasis().Graded().FiniteDimensional()
+        cat = SuperAlgebras(base_ring).WithBasis().Graded().FiniteDimensional().Commutative()
         HomologyVectorSpaceWithBasis.__init__(self, base_ring, cell_complex, True, cat)
 
     def _repr_(self):
