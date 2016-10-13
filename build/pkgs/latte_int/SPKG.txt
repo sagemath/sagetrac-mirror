@@ -17,3 +17,5 @@ Matthias Köppe, UC Davis, CA, USA
 
 GMP (MPIR), 4ti2, NTL, cddlib.
 
+Recommended to be installed:  lidia, lrslib
+
