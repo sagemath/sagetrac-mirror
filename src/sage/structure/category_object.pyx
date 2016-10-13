@@ -45,7 +45,6 @@ This example illustrates generators for a free module over `\ZZ`.
     sage: M.gens()
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
-
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,37 +61,6 @@ from sage.categories.category import Category
 from sage.structure.debug_options cimport debug
 from sage.misc.cachefunc import cached_method
 
-
-def guess_category(obj):
-    # this should be obsolete if things declare their categories
-    try:
-        if obj.is_field():
-            from sage.categories.all import Fields
-            return Fields()
-    except (AttributeError, NotImplementedError):
-        pass
-    try:
-        if obj.is_ring():
-            from sage.categories.all import CommutativeAlgebras, Algebras, CommutativeRings, Rings
-            if obj.is_commutative():
-                if obj._base is not obj:
-                    return CommutativeAlgebras(obj._base)
-                else:
-                    return CommutativeRings()
-            else:
-                if obj._base is not obj:
-                    return Algebras(obj._base)
-                else:
-                    return Rings()
-    except Exception:
-        pass
-    from sage.structure.parent import Parent
-    #if isinstance(obj, Parent):
-    #    import sys
-    #    sys.stderr.write("bla: %s"%obj)
-    #    from sage.categories.all import Sets
-    #    return Sets()
-    return None # don't want to risk importing stuff...
 
 cpdef inline check_default_category(default_category, category):
     ## The resulting category is guaranteed to be
@@ -171,11 +139,7 @@ cdef class CategoryObject(SageObject):
             sage: P.category()
             Category of sets
         """
-        if category is None:
-            if debug.bad_parent_warnings:
-                print("No category for %s" % type(self))
-            category = guess_category(self) # so generators don't crash
-        elif isinstance(category, (list, tuple)):
+        if isinstance(category, (list, tuple)):
             category = Category.join(category)
         self._category = category
 
