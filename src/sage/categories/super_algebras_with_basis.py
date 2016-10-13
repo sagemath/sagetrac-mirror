@@ -11,6 +11,7 @@ Super algebras with basis
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
+from sage.categories.tensor import TensorProductsCategory, tensor
 
 class SuperAlgebrasWithBasis(SuperModulesCategory):
     """
@@ -59,3 +60,34 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
             from sage.algebras.associated_graded import AssociatedGradedAlgebra
             return AssociatedGradedAlgebra(self)
 
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of super algebras with basis constructed by tensor product of superalgebras with basis
+        """
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: SuperAlgebrasWithBasis(QQ).TensorProducts().extra_super_categories()
+                [Category of super algebras with basis over Rational Field]
+                sage: SuperAlgebrasWithBasis(QQ).TensorProducts().super_categories()
+                [Category of super algebras with basis over Rational Field,
+                 Category of tensor products of algebras with basis over Rational Field]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            """
+            implements operations on tensor products of superalgebras with basis
+            """
+
+            def product_on_basis(self, t1, t2):
+                """
+                The product of the superalgebra on the basis, as per
+                ``SuperalgebrasWithBasis.ParentMethods.product_on_basis``.
+                """
+
+                l = (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self._sets, t1, t2))
+
+                return (-1)^(x1.degree()*x2.degree())*tensor(l)
