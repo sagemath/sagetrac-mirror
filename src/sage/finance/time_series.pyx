@@ -57,6 +57,8 @@ from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 
+cnumpy.import_array() #This must be called before using the numpy C/api or you will get segfault
+
 max_print = 10
 digits = 4
 
@@ -2108,7 +2110,6 @@ cdef class TimeSeries:
             sage: v
             [20.0000, -3.0000, 4.5000, -2.0000]
         """
-        cnumpy.import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef cnumpy.npy_intp dims[1]
         dims[0] = self._length
         cdef cnumpy.ndarray n = cnumpy.PyArray_SimpleNewFromData(1, dims, cnumpy.NPY_DOUBLE, self._values)
