@@ -11,10 +11,6 @@ fi
 
 TOP=`pwd`
 
-#######################################################################
-# Apply all patches.  See patches/README.txt for details about the
-# patches.
-#######################################################################
 cd src
 
 # Prepare all variables for building PARI/GP, except for CFLAGS

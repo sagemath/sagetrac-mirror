@@ -62,10 +62,6 @@ esac
 
 unset SHARED_FLAG # Currently leave the Makefile default ('-shared'); for safety.
 
-###############################################################################
-# Apply patches (if any):
-###############################################################################
-
 cd src/
 
 # use 2to3 if we are running on python3
