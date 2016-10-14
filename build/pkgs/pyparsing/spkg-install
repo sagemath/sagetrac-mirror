@@ -8,9 +8,6 @@ fi
 
 cd src
 
-# Apply patch as binary since source has incorrect line endings
-sage-apply-patches -- --binary || exit 1
-
 $PIP_INSTALL .
 
 if [ $? -ne 0 ]; then
