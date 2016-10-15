@@ -1293,8 +1293,14 @@ class RayClassGroup(AbelianGroup_class):
             if not test_subgrp:
                 raise ValueError("subgroup does not define a subgroup of this ray class group.")
             gens_coords = [h.exponents() for h in subgroup.gens()]
-            from sage.matrix.special import column_matrix
-            subgroup = column_matrix(gens_coords)
+            if len(gens_coords) == 0:
+                subgroup = None
+                subgroup_mat = None
+            else:
+                from sage.matrix.special import column_matrix
+                subgroup_mat = column_matrix(gens_coords)
+        else:
+            subgroup_mat = None
 
         from sage.libs.pari.handle_error import PariError
         from sage.misc.all import verbose
@@ -1303,30 +1309,30 @@ class RayClassGroup(AbelianGroup_class):
         if algorithm == 'stark_only':
             if len(self._modulus.infinite_part()) > 0 or not self._number_field.is_totally_real():
                 raise NotImplementedError("Stark's conjecture algorithm only implemented for totally real extensions of a totally real base field.")
-            f = bnr.bnrstark(subgroup=subgroup)
+            f = bnr.bnrstark(subgroup=subgroup_mat)
         elif algorithm == 'kummer_only':
             if (subgroup is None and not self.order().is_prime()) or (subgroup is not None and not self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
                 raise NotImplementedError("Kummer theory algorithm only implemented extensions of prime degree.")
-            f = bnr.rnfkummer(subgp=subgroup)
+            f = bnr.rnfkummer(subgp=subgroup_mat)
         elif algorithm == 'stark':
             if len(self._modulus.infinite_part()) > 0 or not self._number_field.is_totally_real():
                 if (subgroup is None and not self.order().is_prime()) or (subgroup is not None and not self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
                     raise NotImplementedError("Ray class fields only implemented for totally real extensions of totally real base fields, or for extensions of prime degree.")
-                f = bnr.rnfkummer(subgp=subgroup)
+                f = bnr.rnfkummer(subgp=subgroup_mat)
             else:
                 try:
-                    f = bnr.bnrstark(subgroup=subgroup)
+                    f = bnr.bnrstark(subgroup=subgroup_mat)
                 except PariError:
                     if (subgroup is None and self.order().is_prime()) or (subgroup is not None and self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
                         verbose("bnrstark failed; trying rnfkummer.")
-                        f = bnr.rnfkummer(subgp=subgroup)
+                        f = bnr.rnfkummer(subgp=subgroup_mat)
                     else:
                         raise
         elif algorithm == 'kummer':
             if (subgroup is None and self.order().is_prime()) or (subgroup is not None and self.order().divide_knowing_divisible_by(subgroup.order()).is_prime()):
-                f = bnr.rnfkummer(subgp=subgroup)
+                f = bnr.rnfkummer(subgp=subgroup_mat)
             else:
-                f = bnr.bnrstark(subgroup=subgroup)
+                f = bnr.bnrstark(subgroup=subgroup_mat)
         else:
             raise ValueError("Value of algorithm must be one of \'stark\', \'stark_only\', \'kummer\', or \'kummer_only\'.")
         if f.type() == 't_VEC':
