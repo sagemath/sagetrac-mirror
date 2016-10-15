@@ -1,0 +1,19 @@
+#! /usr/bin/env python
+# This is a poor person's 'pv'.
+# Call this with PYTHONUNBUFFERED=1
+
+from timeit import default_timer as timer
+import sys
+import datetime
+
+period = 300
+    
+start = timer()
+last = start
+
+for line in iter(sys.stdin.readline, ''):
+    current = timer()
+    if current - last >= period:
+        sys.stderr.write("elapsed: {}\n".format(datetime.timedelta(seconds=current - start)))
+        last = current
+

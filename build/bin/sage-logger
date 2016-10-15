@@ -60,8 +60,18 @@ if [[ "$V" = 0 && $use_prefix = true ]]; then
     echo "[$logname] installing. Log file: $logfile"
     # Use verbose mode for output to logfiles.
     export V=1
-    ( exec>> $logfile 2>&1 ; eval "$cmd" )
-    status=$?
+
+    if [[ -n "$SAGE_PV" ]]; then
+	# Redirect stdout and stderr to a subprocess running tee.
+	# We trap SIGINT such that SIGINT interrupts the main process being
+	# run, not the logging.
+	( exec 2>&1; eval "$cmd" ) | \
+	    ( trap '' SIGINT; tee -a "$logfile" | $SAGE_PV > /dev/null )
+	status=(${PIPESTATUS[*]})
+    else
+	( exec>> $logfile 2>&1 ; eval "$cmd" )
+	status=$?
+    fi
     if [[ $status != 0 ]]; then
 	echo "  [$logname] error installing, exit status $status. Log file: $logfile"
     else
