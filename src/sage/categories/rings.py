@@ -937,11 +937,15 @@ class Rings(CategoryWithAxiom):
 
             The following test checks that :trac:`21723` is fixed::
 
-                sage: v = GF(3).zero()._vector_()
+                sage: x = GF(3).one()
+                sage: v = x._vector_()
                 sage: v
-                (0)
+                (1)
                 sage: v.parent()
                 Vector space of dimension 1 over Finite Field of size 3
+                sage: V = GF(3).vector_space()
+                sage: V(x)
+                (1)
             """
             if base_ring is None:
                 base_ring = self.parent()
