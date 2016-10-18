@@ -916,6 +916,38 @@ class Rings(CategoryWithAxiom):
                 return False
             raise NotImplementedError
 
+
+        def _vector_(self, base_ring=None):
+            r"""
+            TESTS::
+
+                sage: (3)._vector_()
+                (3)
+                sage: (1/2)._vector_()
+                (1/2)
+
+                sage: (3)._vector_(base_ring=QQ)
+                (3)
+                sage: (3)._vector_(base_ring=QQ).parent()
+                Vector space of dimension 1 over Rational Field
+                sage: (1/2)._vector_(base_ring=ZZ)
+                Traceback (most recent call last):
+                ...
+                TypeError: no conversion of this rational to integer
+
+            The following test checks that :trac:`21723` is fixed::
+
+                sage: v = GF(3).zero()._vector_()
+                sage: v
+                (0)
+                sage: v.parent()
+                Vector space of dimension 1 over Finite Field of size 3
+            """
+            if base_ring is None:
+                base_ring = self.parent()
+            from sage.modules.free_module import FreeModule
+            return FreeModule(base_ring, 1)([self])
+
 def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the

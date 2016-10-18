@@ -694,3 +694,4 @@ class Fields(CategoryWithAxiom):
                 return (P.one(), P.zero(), ~other)
             # else both are 0
             return (P.zero(), P.zero(), P.zero())
+
