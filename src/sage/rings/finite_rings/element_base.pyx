@@ -207,22 +207,28 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
             sage: e._vector_(reverse=True)
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
+
+        TESTS::
+
+            sage: K = GF(2^3)
+            sage: l1 = [x._vector_(reverse=False) for x in K]
+            sage: l2 = [x._vector_(reverse=True) for x in K]
+            sage: l3 = K.vector_space().list()
+            sage: l1.sort(); l2.sort(); l3.sort()
+            sage: assert l1 == l2 == l3
         """
-        #vector(foo) might pass in ZZ
+        # NOTE: the second argument to _vector_ is generally a base ring. However,
+        # here we use a boolean argument to specify the ordering... should we
+        # change that?
+        # (see also the _matrix_ below)
         if isinstance(reverse, Parent):
             raise TypeError("Base field is fixed to prime subfield.")
 
         k = self.parent()
-
-        v = self.polynomial().list()
-
-        ret = [v[i] for i in range(len(v))]
-
-        for i in range(k.degree() - len(ret)):
-            ret.append(0)
-
+        p = self.polynomial()
+        ret = p.list() + [0] * (k.degree() - p.degree() - 1)
         if reverse:
-            ret = list(reversed(ret))
+            ret.reverse()
         return k.vector_space()(ret)
 
     def _matrix_(self, reverse=False):
@@ -234,7 +240,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``reverse`` - if True act on vectors in reversed order
+        - ``reverse`` - if set to ``True`` then the matrix acts by
+          right multiplication
 
         EXAMPLE::
 
@@ -243,32 +250,33 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ((0, 0, 1, 0), (0, 1, 0, 0))
             sage: vector(a), matrix(a) * vector(a)
             ((0, 1, 0, 0), (0, 0, 1, 0))
-        """
-        import sage.matrix.matrix_space
 
+        TESTS::
+
+            sage: for K in [GF(2^7), GF(3^5), GF(17^32)]:
+            ....:     V = K.vector_space()
+            ....:     g = K.gen()
+            ....:     for _ in range(50):
+            ....:         a = K.random_element()
+            ....:         i = randint(0, K.degree()-1)
+            ....:         assert matrix(a) * V.gen(i) == vector(a * K.gen() ** i)
+        """
+        # NOTE: the second argument to _vector_ is generally a base ring. However,
+        # here we use a boolean argument to specify the ordering... should we
+        # change that?
+        # (see also the _vector_ above)
         K = self.parent()
         a = K.gen()
-        x = K(1)
         d = K.degree()
 
-        columns = []
-
-        if not reverse:
-            l = xrange(d)
-        else:
-            l = reversed(range(d))
-
-        for i in l:
-            columns.append( (self * x)._vector_() )
-            x *= a
-
-        k = K.base_ring()
-        M = sage.matrix.matrix_space.MatrixSpace(k, d)
-
+        from sage.matrix.matrix_space import MatrixSpace
+        M = MatrixSpace(K.base_ring(), d)
+        m = M([(self * a**i)._vector_() for i in range(d)])
         if reverse:
-            return M(columns)
+            return m
         else:
-            return M(columns).transpose()
+            return m.transpose()
+
     def _latex_(self):
         r"""
         Return the latex representation of self, which is just the
