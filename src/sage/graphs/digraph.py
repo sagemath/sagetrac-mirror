@@ -3474,6 +3474,36 @@ class DiGraph(GenericGraph):
             eqs.append(eq)
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
+    
+    def is_simple(self):
+        """
+        Check if `self` is simple.
+
+        A directed graph is said to be simple if there is at most one 
+        directed edge between any two vertices.
+        """
+        return all([len(self.edge_boundary([v], [w]))<=1 for v in self.vertices() for w in self.vertices()])
+
+    def is_deterministic(self):
+        """
+        Check if `self` is deterministic.
+        
+        A directed graph with labeled edges is deterministic if the labels
+        of all out-edges from each vertex are distinct.
+        """
+        def all_distinct(L):
+            """
+            Check if all elements of ``L`` are distinct.
+            """
+            seen = set()
+            return not any(i in seen or seen.add(i) for i in L)            
+        return all([all_distinct([e[2] for e in self.outgoing_edges(v)]) for v in self.vertices()])
+
+    def is_cayley_directed(self):
+        """
+        Check if ``self`` is a Cayley directed graph.
+        """
+        return self.is_strongly_connected() and self.is_vertex_transitive() and self.is_simple() and self.is_deterministic()
 
 import types
 
