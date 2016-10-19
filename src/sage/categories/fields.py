@@ -382,6 +382,28 @@ class Fields(CategoryWithAxiom):
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
 
+        def vector_space(self, dim=1):
+            r"""
+            Return the vector space of the given dimension over this field.
+
+            INPUT:
+
+            - ``dim`` - integer, default to 1.
+
+            EXAMPLES::
+
+                sage: QQ.vector_space()
+                Vector space of dimension 1 over Rational Field
+                sage: QQ.vector_space(3)
+                Vector space of dimension 3 over Rational Field
+
+            Note that one can also use the shorter::
+
+                sage: QQ^5
+                Vector space of dimension 5 over Rational Field
+            """
+            return self ** dim
+
         def _xgcd_univariate_polynomial(self, left, right):
             r"""
             Return an extended gcd of ``left`` and ``right``.
