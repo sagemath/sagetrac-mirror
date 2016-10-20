@@ -238,6 +238,7 @@ class DocBuilder(object):
     linkcheck = builder_helper('linkcheck')
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
+    texinfo = builder_helper('texinfo')
 
 ##########################################
 #      Parallel Building Ref Manual      #
