@@ -11,7 +11,7 @@ from __future__ import print_function
 
 from sage.misc.sageinspect import _extract_embedded_position
 
-def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_functions=True):
+def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_functions=True, include_classes=False):
     r"""
     Return a ReST table describing a list of functions.
 
@@ -39,6 +39,11 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
       a module, ``only_local_functions = True`` means that imported functions
       will be filtered out. This can be useful to disable for making indexes of
       e.g. catalog modules such as :mod:`sage.coding.codes_catalog`.
+
+    - ``include_classes`` (boolean; ``False``) -- if ``list_of_entries`` is a
+      module, ``inlcude_classes = True`` means that module classes will show up
+      in the table as well. This can be useful when making indexes of e.g.
+      catalog modules such as :mod:`sage.coding.codes_catalog`.
 
     .. WARNING::
 
@@ -151,7 +156,9 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
     if (inspect.isclass(list_of_entries) or
         inspect.ismodule(list_of_entries)):
         root = list_of_entries
-        list_of_entries,names = list_of_subfunctions(root, only_local_functions=only_local_functions)
+        list_of_entries, names = list_of_subfunctions(root,
+                                                      only_local_functions=only_local_functions,
+                                                      include_classes=include_classes)
 
     fname = lambda x:names.get(x,getattr(x,"__name__",""))
 
@@ -171,6 +178,8 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
             link = ":meth:`~"+str(e.im_class.__module__)+"."+str(e.im_class.__name__)+"."+fname(e)+"`"
         elif inspect.isfunction(e):
             link = ":func:`~"+str(e.__module__)+"."+fname(e)+"`"
+        elif inspect.isclass(e):
+            link = ":class:`~"+str(e.__module__)+"."+fname(e)+"`"
         else:
             continue
 
@@ -192,7 +201,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
 
     return s+'\n'
 
-def list_of_subfunctions(root, only_local_functions=True):
+def list_of_subfunctions(root, only_local_functions=True, include_classes=False):
     r"""
     Returns the functions (resp. methods) of a given module (resp. class) with their names.
 
@@ -204,6 +213,11 @@ def list_of_subfunctions(root, only_local_functions=True):
       ``only_local_functions = True`` means that imported functions will be
       filtered out. This can be useful to disable for making indexes of
       e.g. catalog modules such as :mod:`sage.coding.codes_catalog`.
+
+    - ``include_classes`` (boolean; ``False``) -- if ``list_of_entries`` is a
+      module, ``inlcude_classes = True`` means that module classes will show up
+      in the table as well. This can be useful when making indexes of e.g.
+      catalog modules such as :mod:`sage.coding.codes_catalog`.
 
     OUTPUT:
 
@@ -247,11 +261,11 @@ def list_of_subfunctions(root, only_local_functions=True):
             return inspect.isclass(root) or not (f is gen_rest_table_index)
 
     functions =  {getattr(root,name):name for name,f in root.__dict__.items() if
-                  (not name.startswith('_')          and # private functions
-                   not hasattr(f,'trac_number')      and # deprecated functions
-                   not inspect.isclass(f)            and # classes
-                   callable(getattr(f,'__func__',f)) and # e.g. GenericGraph.graphics_array_defaults
-                   local_filter(f,name))                 # possibly filter imported functions
+                  (not name.startswith('_')                    and # private functions
+                   not hasattr(f,'trac_number')                and # deprecated functions
+                   (include_classes or not inspect.isclass(f)) and # classes
+                   callable(getattr(f,'__func__',f))           and # e.g. GenericGraph.graphics_array_defaults
+                   local_filter(f,name))                           # possibly filter imported functions
                   }
 
     return functions.keys(),functions
