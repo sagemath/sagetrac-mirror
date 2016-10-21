@@ -49,6 +49,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ ! -a $SAGE_LOCAL/lib/liblapack.so ] ; then
+    curwd=$(pwd)
+    cd $SAGE_LOCAL/lib/
+    ln -s libopenblas.so liblapack.so
+    cd $curwd
+fi;
 
 cd ..
 ./write_pc_file.py
