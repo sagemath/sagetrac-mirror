@@ -63,6 +63,13 @@ latex_documents = [
 ('index', name + '.tex', project, u'The Sage Development Team', 'manual')
 ]
 
+# Grouping the document tree into texinfo files. List of tuples
+# (source start file, target name, title, author, dir_entry,
+# description, category).
+texinfo_documents = [
+('index', name, title, u'The Sage Development Team', project, 'The ' + title + ' manual', 'SageMath')
+]
+
 #Ignore all .rst in the _sage subdirectory
 exclude_patterns = exclude_patterns + ['_sage']
 
