@@ -28,6 +28,21 @@ from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
      INCREMENTAL_BUILD, ABORT_ON_ERROR)
 
+import sphinx.builders.texinfo
+sphinx.builders.texinfo.TEXINFO_MAKEFILE = '''\
+# modified Makefile for Sphinx Texinfo output
+
+MAKEINFO = makeinfo --no-split --footnote-style separate
+ALLDOCS = $(basename $(wildcard *.texi))
+
+all: info
+info: $(addsuffix .info,$(ALLDOCS))
+
+%.info: %.texi
+\t$(MAKEINFO) -o '$@' '$<'
+
+.PHONY: all info
+'''
 
 def excepthook(*exc_info):
     """
@@ -221,6 +236,31 @@ class DocBuilder(object):
         if subprocess.call(make_target%(tex_dir, command, pdf_dir), shell=True):
             raise RuntimeError(error_message%(command, tex_dir))
         logger.warning("Build finished.  The built documents can be found in %s", pdf_dir)
+
+    def info(self):
+        """
+        Builds the info files for this document.  This is done by first
+        (re)-building the texinfo output, going into that texinfo
+        directory, and running 'makeinfo -- all-pdf' (or for the special case of
+        the ja docs, 'all-pdf-ja(ex,to run platex)' there.
+
+        EXAMPLES::
+
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: b = DocBuilder('tutorial')
+            sage: b.info() #not tested
+        """
+        self.texinfo()
+        texinfo_dir = self._output_dir('texinfo')
+        info_dir = self._output_dir('info')
+        #make_target = "cd '%s' && $MAKE %s && mv -f *.info '%s' && cp -f *.png '%s'"
+        make_target = "cd '%s' && $MAKE %s"
+        error_message = "failed to run $MAKE %s in %s"
+
+#        if subprocess.call(make_target%(texinfo_dir, "info", info_dir, info_dir), shell=True):
+        if subprocess.call(make_target%(texinfo_dir, "info"), shell=True):
+            raise RuntimeError(error_message%("info", texinfo_dir))
+        logger.warning("Build finished.  The built documents can be found in %s", info_dir)
 
     def clean(self, *args):
         shutil.rmtree(self._doctrees_dir())
