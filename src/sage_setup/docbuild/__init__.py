@@ -28,22 +28,6 @@ from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
      INCREMENTAL_BUILD, ABORT_ON_ERROR)
 
-import sphinx.builders.texinfo
-sphinx.builders.texinfo.TEXINFO_MAKEFILE = '''\
-# modified Makefile for Sphinx Texinfo output
-
-MAKEINFO = makeinfo --no-split --footnote-style separate
-ALLDOCS = $(basename $(wildcard *.texi))
-
-all: info
-info: $(addsuffix .info,$(ALLDOCS))
-
-%.info: %.texi
-\t$(MAKEINFO) -o '$@' '$<'
-
-.PHONY: all info
-'''
-
 def excepthook(*exc_info):
     """
     Print docbuild error and hint how to solve it
@@ -253,12 +237,10 @@ class DocBuilder(object):
         self.texinfo()
         texinfo_dir = self._output_dir('texinfo')
         info_dir = self._output_dir('info')
-        #make_target = "cd '%s' && $MAKE %s && mv -f *.info '%s' && cp -f *.png '%s'"
-        make_target = "cd '%s' && $MAKE %s"
+        make_target = "cd '%s' && $MAKE install-info MAKEINFO='makeinfo --no-split --footnote-style separate' infodir='%s'"
         error_message = "failed to run $MAKE %s in %s"
 
-#        if subprocess.call(make_target%(texinfo_dir, "info", info_dir, info_dir), shell=True):
-        if subprocess.call(make_target%(texinfo_dir, "info"), shell=True):
+        if subprocess.call(make_target%(texinfo_dir, info_dir), shell=True):
             raise RuntimeError(error_message%("info", texinfo_dir))
         logger.warning("Build finished.  The built documents can be found in %s", info_dir)
 
