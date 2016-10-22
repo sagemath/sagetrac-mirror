@@ -3876,8 +3876,23 @@ class AlgebraicNumber(AlgebraicNumber_base):
             0.6234898018587335? - 0.7818314824680299?*I
             sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
             1.000000000000000? + 0.?e-18*I
+
+        TESTS:
+
+        Check that algebraic exponents work if they
+        are rational (:trac:`21740`)::
+
+            sage: 2^QQbar(1/2)
+            1.414213562373095?
+            sage: 2^QQbar(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Algebraic Field to Rational Field
         """
-        e = QQ._coerce_(e)
+        try:
+            e = QQ(e)
+        except (TypeError, ValueError):
+            e = QQ._coerce_(e)
         n = e.numerator()
         d = e.denominator()
         if d == 1:
