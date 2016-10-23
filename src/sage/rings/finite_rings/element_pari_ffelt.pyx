@@ -304,7 +304,10 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             self.construct(result)
 
         elif isinstance(x, Rational):
-            self.construct_from(x % self._parent.characteristic())
+            p = self._parent.characteristic()
+            num = x.numerator() % p
+            den = x.denominator().inverse_mod(p)
+            self.construct_from(num * den)
 
         elif isinstance(x, Polynomial):
             if x.base_ring() is not self._parent.base_ring():
