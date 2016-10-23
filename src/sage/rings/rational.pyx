@@ -1543,10 +1543,21 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(2).is_padic_square(5)
             False
 
+            sage: QQ(17).is_padic_square(2)
+            True
+            sage: Qp(2)(17).sqrt()
+            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            sage: (5/13).is_padic_square(2)
+            True
+            sage: Qp(2)(5/13).sqrt()
+            1 + 2 + 2^3 + 2^4 + 2^7 + 2^9 + 2^13 + O(2^19)
+
         TESTS::
 
             sage: QQ(5/7).is_padic_square(int(2))
             False
+            sage: QQ(4).is_padic_square(2)
+            True
         """
         ## Special case when self is zero
         if self.is_zero():
@@ -1566,14 +1577,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Deal with finite primes
         e, m = self.val_unit(p)
 
-        if e % 2 == 1:
+        if (e % 2).is_one():
             return False
 
         if p == 2:
-            return ((m % 8) == 1)
+            return m.numerator() % 8 == m.denominator() % 8
 
         from sage.arith.all import kronecker_symbol
-        return (kronecker_symbol(m, p) == 1)
+        return kronecker_symbol(m, p).is_one()
 
     def val_unit(self, p):
         r"""
