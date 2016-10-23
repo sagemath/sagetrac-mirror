@@ -3212,7 +3212,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2
             sage: z.powermod(0,31)
             1
-            sage: z.powermod(-31,31) == 2^-31 % 31
+            sage: z.powermod(-31,31) == Zmod(31)(2^-31)
             True
 
         As expected, the following is invalid::
@@ -3254,7 +3254,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: (3/7)%100
+            sage: Zmod(100)(3/7)
             29
             sage: (29).rational_reconstruction(100)
             3/7
