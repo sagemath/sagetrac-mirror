@@ -684,7 +684,7 @@ def K33dual():
     The matroid `M*(K_{3, 3})` is a 9-element matroid of rank-4.
     It is an excluded minor for the class of graphic matroids.
     It is the graft matroid of the 4-wheel with every vertex except the hub
-    being coloured. See [Oxl2011]_, p. 652.
+    being colored. See [Oxl2011]_, p. 652.
 
     EXAMPLES::
 
@@ -1032,7 +1032,7 @@ def R10():
 
     The matroid `R_{10}` is a 10-element regular matroid of rank-5.
     It is the unique splitter for the class of regular matroids.
-    It is the graft matroid of `K_{3, 3}` in which every vertex is coloured.
+    It is the graft matroid of `K_{3, 3}` in which every vertex is colored.
     See [Oxl2011]_, p. 656.
 
     EXAMPLES::

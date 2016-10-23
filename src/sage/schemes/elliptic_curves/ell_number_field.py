@@ -2881,7 +2881,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: G = C.graph()
             sage: G.show(edge_labels=False) # long time
 
-        It is possible to display a 3-dimensional plot, with colours
+        It is possible to display a 3-dimensional plot, with colors
         to represent the different edge labels, in a form which can be
         rotated!::
 

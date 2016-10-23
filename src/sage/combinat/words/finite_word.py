@@ -6586,11 +6586,11 @@ class FiniteWord_class(Word_class):
     def colored_vector(self, x=0, y=0, width='default', height=1, cmap='hsv', thickness=1, label=None):
         r"""
         Return a vector (Graphics object) illustrating ``self``. Each letter
-        is represented by a coloured rectangle.
+        is represented by a colored rectangle.
 
         If the parent of ``self`` is a class of words over a finite alphabet,
-        then each letter in the alphabet is assigned a unique colour, and
-        this colour will be the same every time this method is called. This
+        then each letter in the alphabet is assigned a unique color, and
+        this color will be the same every time this method is called. This
         is especially useful when plotting and comparing words defined on
         the same alphabet.
 

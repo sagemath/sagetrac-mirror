@@ -76,11 +76,11 @@ class Image(SageObject):
 
         - ``size`` -- 2-tuple, containing (width, height) in pixels.
 
-        - ``color`` -- string or tuple of numeric. What colour to use
+        - ``color`` -- string or tuple of numeric. What color to use
           for the image. Default is black.  If given, this should be a
           a tuple with one value per band. When creating RGB images,
-          you can also use colour strings as supported by the
-          ImageColor module.  If the colour is None, the image is not
+          you can also use color strings as supported by the
+          ImageColor module.  If the color is None, the image is not
           initialised.
 
         OUTPUT:

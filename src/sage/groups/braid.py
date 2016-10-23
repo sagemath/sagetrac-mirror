@@ -1923,7 +1923,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
                     newforest.remove(tree)  # Cut down the original tree
                     # Add two greater trees, admissibly. We need to check two
                     # things to ensure that the tree will eventually define a
-                    # basis elements: that its 'colour' is not too large, and
+                    # basis elements: that its 'color' is not too large, and
                     # that it is positive.
                     if tree[-1] < treesize - len(tree) + 1:
                         newtreeup.append(tree[-1] + 1)

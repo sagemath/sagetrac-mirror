@@ -838,7 +838,7 @@ class Color(object):
 
     def __int__(self):
         """
-        Return the integer representation of this colour.
+        Return the integer representation of this color.
 
         OUTPUT:
 
