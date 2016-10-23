@@ -1757,7 +1757,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         if isinstance(value, sage.rings.integer.Integer):
             z = value
         elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
+            num = value.numerator() % self.__modulus.sageInteger
+            den = value.denominator().inverse_mod(self.__modulus.sageInteger)
+            z = (num * den) % self.__modulus.sageInteger
         elif isinstance(value, int):
             self.set_from_long(value)
             return
@@ -2225,7 +2227,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if isinstance(value, sage.rings.integer.Integer):
             z = value
         elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
+            num = value.numerator() % self.__modulus.sageInteger
+            den = value.denominator().inverse_mod(self.__modulus.sageInteger)
+            z = (num * den) % self.__modulus.sageInteger
         else:
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
@@ -3047,7 +3051,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         if isinstance(value, sage.rings.integer.Integer):
             z = value
         elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
+            num = value.numerator() % self.__modulus.sageInteger
+            den = value.denominator().inverse_mod(self.__modulus.sageInteger)
+            z = (num * den) % self.__modulus.sageInteger
         else:
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
