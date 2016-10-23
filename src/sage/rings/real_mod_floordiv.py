@@ -58,9 +58,11 @@ versions::
     sage: R1 = Zmod(2**10)
     sage: R2 = Zmod(2**40)
     sage: R3 = Zmod(2**100)
-    sage: b_old = (R1(5/3), R2(5/3), R3(5/3))
+    sage: R4 = GF(3**20)
+    sage: R5 = GF(18446744073709551629)
+    sage: b_old = (R1(5/3), R2(5/3), R3(5/3), R4(5/7), R5(12/35))
     sage: sage.rings.real_mod_floordiv.NEW = True
-    sage: b_new = (R1(5/3), R2(5/3), R3(5/3))
+    sage: b_new = (R1(5/3), R2(5/3), R3(5/3), R4(5/7), R5(12/35))
     sage: sage.rings.real_mod_floordiv.NEW = False
     sage: b_old == b_new
     True
