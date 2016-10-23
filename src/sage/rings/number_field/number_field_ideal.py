@@ -1611,6 +1611,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = QuadraticField(23)
             sage: K.ideal(a).quadratic_form()
             23*x^2 - y^2
+            sage: K.ideal(13/7*a + 1/3).quadratic_form()
+            23*x^2 - y^2
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.class_group().order()
@@ -1663,12 +1665,13 @@ class NumberFieldIdeal(Ideal_generic):
                 alpha, beta = gens
             if QQ((beta * alpha.galois_conjugate() - alpha * beta.galois_conjugate()) / K.gen()) < 0:
                 alpha, beta = beta, alpha
+            # NOTE: after trac ticket 21745 the division below can be consistently changed to floor divisions
             N = self.norm()
-            a = alpha.norm() // N
+            a = alpha.norm() / N
             b = ZZ(alpha * beta.galois_conjugate() +
-                    beta * alpha.galois_conjugate()) // N
-            c = beta.norm() // N
-            return BinaryQF([a, b, c])
+                    beta * alpha.galois_conjugate()) / N
+            c = beta.norm() / N
+            return BinaryQF([ZZ(a), ZZ(b), ZZ(c)])
 
         raise ValueError("not defined for ideals in number fields of degree > 2 over Q.")
 
