@@ -376,6 +376,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         sage: QQ(np.float16('12'))
         12
+
+    .. automethod:: _mod_
+    .. automethod:: _floordiv_
     """
     def __cinit__(self):
         r"""
@@ -2273,6 +2276,71 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         return coercion_model.bin_op(left, right, operator.div)
 
+    cpdef _floordiv_(self, right):
+        r"""
+        Return the floor division of ``self`` and ``right``.
+
+        The floor division of `x` and `y` is the floor of the quotient `x / y`.
+        Sage used to return the standard division in place of the floor
+        division. This behavior is conserved with a deprecation but will be
+        modified in a future release. It is possible to use by default the new
+        behavior by setting ``sage.rings.real_mod_floordiv.NEW``
+        to ``True``. See in the examples below.
+
+        TESTS::
+
+            sage: alist = [-7/2, -1/1, 0/1, 2/1, 5/3]
+            sage: blist= [-2/1, -1/5, 2/3, 57/4]
+            sage: import sage.rings.real_mod_floordiv
+            sage: sage.rings.real_mod_floordiv.NEW = True
+            sage: for a in alist:
+            ....:     for b in blist:
+            ....:         q = a // b; r = a % b
+            ....:         print("{} = {} * {} + {}".format(a, b, q, r))
+            ....:         assert a == q*b + r
+            -7/2 = -2 * 1 + -3/2
+            -7/2 = -1/5 * 17 + -1/10
+            -7/2 = 2/3 * -6 + 1/2
+            -7/2 = 57/4 * -1 + 43/4
+            -1 = -2 * 0 + -1
+            -1 = -1/5 * 5 + 0
+            -1 = 2/3 * -2 + 1/3
+            -1 = 57/4 * -1 + 53/4
+            0 = -2 * 0 + 0
+            0 = -1/5 * 0 + 0
+            0 = 2/3 * 0 + 0
+            0 = 57/4 * 0 + 0
+            2 = -2 * -1 + 0
+            2 = -1/5 * -10 + 0
+            2 = 2/3 * 3 + 0
+            2 = 57/4 * 0 + 2
+            5/3 = -2 * -1 + -1/3
+            5/3 = -1/5 * -9 + -2/15
+            5/3 = 2/3 * 2 + 1/3
+            5/3 = 57/4 * 0 + 5/3
+            sage: sage.rings.real_mod_floordiv.NEW = False
+
+        The old behavior is just the standard division::
+
+            sage: for a in alist:
+            ....:     for b in blist:
+            ....:         assert a // b == a / b
+            doctest:...: DeprecationWarning: In a future Sage release the
+            behavior of the modulo operator % and floor division operator //
+            involving real numbers will change. If you want to use the new
+            behavior and get rid of this message execute the two following
+            commands
+                import sage.rings.real_mod_floordiv
+                sage.rings.real_mod_floordiv.NEW = True
+            See http://trac.sagemath.org/21745 for details.
+        """
+        from sage.rings.real_mod_floordiv import NEW, mod_floordiv_deprecation
+        if NEW:
+            return (self / right).floor()
+        else:
+            mod_floordiv_deprecation()
+            return self / right
+
     cpdef _div_(self, right):
         """
         Return ``self`` divided by ``right``.
@@ -2635,41 +2703,70 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_off()
         return int((num * ai.inverse_mod_int(den, n)) % n)
 
-    def __mod__(x, y):
+    cpdef _mod_(x, y):
         """
-        Return the remainder of division of ``x`` by ``y``, where ``y`` is
-        something that can be coerced to an integer.
+        Return the remainder of floor division of ``x`` by ``y``.
 
-        INPUT:
+        The behavior of this method depends on the value
+        ``sage.rings.real_mod_floordiv.NEW`` If it is ``False`` (the default)
+        then ``y`` is assumed to be an integer and the answer is the result of
+        the division ``x.numerator() / x.numerator()`` in the quotient ring
+        `\ZZ / y \ ZZ`. If the value of ``sage.rings.real_mod_floordiv.NEW`` is
+        ``True`` then this method returns the unique rational number of the
+        form ``x + n y`` that is in ``[0, y)`` if ``y`` is positive or ``(y,
+        0]`` if ``y`` is negative.
 
-        -  ``other`` - object that coerces to an integer.
+        The old behavior returning an integer raises a warning and will be
+        removed in some future Sage release. See :trac:`21745` and
+        :mod:`sage.rings.real_mod_floordiv`.
 
-        OUTPUT: integer
+        .. SEEALSO::
+
+            The method :meth:`_floordiv_` and the module :mod:`sage.rings.real_mod_floordiv`.
 
         EXAMPLES::
 
-            sage: (-4/17).__mod__(3/1)
+            sage: (-4/17) % (3/1)
+            doctest:...: DeprecationWarning: In a future Sage release the
+            behavior of the modulo operator % and floor division operator //
+            involving real numbers will change. If you want to use the new
+            behavior and get rid of this message execute the two following
+            commands
+                import sage.rings.real_mod_floordiv
+                sage.rings.real_mod_floordiv.NEW = True
+            See http://trac.sagemath.org/21745 for details.
             1
+            sage: sage.rings.real_mod_floordiv.NEW = True
+            sage: (-4/17) % (3/1)
+            47/17
+            sage: sage.rings.real_mod_floordiv.NEW = False
+
 
         TESTS:
 
         Check that :trac:`14870` is fixed::
 
+            sage: sage.rings.real_mod_floordiv.NEW = True
+            sage: int(4) % QQ(3)
+            1
+            sage: sage.rings.real_mod_floordiv.NEW = False
             sage: int(4) % QQ(3)
             1
         """
-        cdef Rational rat
-        if not isinstance(x, Rational):
-            rat = Rational(x)
-        else:
-            rat = x
-        cdef other = integer.Integer(y)
-        if not other:
+        if not y:
             raise ZeroDivisionError("Rational modulo by zero")
-        n = rat.numer() % other
-        d = rat.denom() % other
-        d = d.inverse_mod(other)
-        return (n * d) % other
+
+        from sage.rings.real_mod_floordiv import NEW, mod_floordiv_deprecation
+        if NEW:
+            return x - (x / y).floor() * y
+        else:
+            if not x.denominator().is_one() or not y.denominator().is_one():
+                mod_floordiv_deprecation()
+            other = integer.Integer(y)
+            n = x.numer() % other
+            d = x.denom() % other
+            d = d.inverse_mod(other)
+            return (n * d) % other
 
     def norm(self):
         r"""
