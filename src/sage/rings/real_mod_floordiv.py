@@ -6,7 +6,7 @@ for real numbers. As discussed in https://groups.google.com/forum/#!topic/sage-d
 this will be changed in a future SageMath release as follows:
 
 The remainder `x % y` for two real numbers is the unique real number in `[0, y)` (if `y` is
-positive) or `(y, 0]` (if `y` is negative) of the form `x + n y` with `n` an integer. This
+positive) or `(y, 0]` (if `y` is negative) of the form `x + n y` with `n` an integer. This
 integer `n` is the floor division `x // y`.
 
 This module defines a global variable ``NEW`` so that when set to ``False`` the
