@@ -1007,7 +1007,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
               To:   Integer Ring
             sage: lift(F(12345/67890))
             33
-            sage: (12345/67890) % 61
+            sage: Zmod(61)(12345/67890)
             33
 
         Construction can be from a prime ideal instead of a prime::
