@@ -62,5 +62,6 @@ Utilities
    sage/rings/infinity
    sage/rings/numbers_abc
    sage/rings/misc
+   sage/rings/real_mod_floordiv
 
 .. include:: ../footer.txt
