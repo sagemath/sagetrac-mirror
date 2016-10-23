@@ -3887,12 +3887,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: 2^QQbar(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Algebraic Field to Rational Field
+            ValueError: Cannot coerce irrational Algebraic Real 1.414213562...
         """
         try:
-            e = QQ(e)
-        except (TypeError, ValueError):
             e = QQ._coerce_(e)
+        except (TypeError, ValueError):
+            e = QQ(e)
         n = e.numerator()
         d = e.denominator()
         if d == 1:
