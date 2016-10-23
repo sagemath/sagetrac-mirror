@@ -2245,7 +2245,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
         # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
         # have to sum terms for which n does not exceed N
-        N = (aprec // (x_val - e/(p-1))).floor()
+        N = (aprec / (x_val - e/(p-1))).floor()
 
         # We evaluate the exponential series:
         # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
