@@ -66,8 +66,19 @@ latex_documents = [
 # Grouping the document tree into texinfo files. List of tuples
 # (source start file, target name, title, author, dir_entry,
 # description, category).
+
+# for example, with target name = 'name', sphinx produces
+# @setfilename name.info
+# ...
+# @settitle title
+# ...
+# @dircategory category
+# @direntry
+# * dir_entry: (name.info). description
+# @end direntry
+
 texinfo_documents = [
-('index', name, title, u'The Sage Development Team', project, 'The ' + title + ' manual', 'SageMath')
+('index', name, title, u'The Sage Development Team', name, title, 'SageMath')
 ]
 
 #Ignore all .rst in the _sage subdirectory

@@ -238,10 +238,10 @@ class DocBuilder(object):
         texinfo_dir = self._output_dir('texinfo')
         info_dir = self._output_dir('info')
         make_target = "cd '%s' && $MAKE install-info MAKEINFO='makeinfo --no-split --footnote-style separate' infodir='%s'"
-        error_message = "failed to run $MAKE %s in %s"
+        error_message = "failed to run $MAKE install-info in %s"
 
         if subprocess.call(make_target%(texinfo_dir, info_dir), shell=True):
-            raise RuntimeError(error_message%("info", texinfo_dir))
+            raise RuntimeError(error_message%texinfo_dir)
         logger.warning("Build finished.  The built documents can be found in %s", info_dir)
 
     def clean(self, *args):
