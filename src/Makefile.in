@@ -83,12 +83,16 @@ TREECMD=find . -name "*.pyc" -prune		\
 		-o -name "*\#" -prune		\
 		-o -name build -prune		\
 		-o -name doc -prune		\
+		-o -name dist -prune		\
 		-o -name sage-\* -prune		\
+		-o -name .git\* -prune		\
 		-o -name mac-app -prune		\
 		-o -print
+
 sdistcheck-compare-trees:
 	$(TREECMD) > srctree.list
 	(cd sage-$(PACKAGE_VERSION) && $(TREECMD) > srctree.list)
+	echo "Comparing source trees:"
 	diff -u srctree.list sage-$(PACKAGE_VERSION)/srctree.list
 
 sdistcheck: sdist sdistcheck-unpack sdistcheck-build
