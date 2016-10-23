@@ -3,19 +3,72 @@ Make sure that titles of rubrics do not contain line breaks
 diff -ru a/sphinx/writers/texinfo b/sphinx/writers/texinfo
 --- a/sphinx/writers/texinfo.py	2016-06-11 12:57:23.000000000 +0200
 +++ b/sphinx/writers/texinfo.py	2016-10-23 21:10:55.198715409 +0200
-@@ -615,6 +615,7 @@
-         self.body.append('\n\n')
- 
-     def visit_rubric(self, node):
-+        self.escape_newlines += 1
-         if len(node.children) == 1 and node.children[0].astext() in \
-                 ('Footnotes', _('Footnotes')):
              raise nodes.SkipNode
-@@ -626,6 +627,7 @@
- 
+         parent = node.parent
+         if isinstance(parent, nodes.table):
++            self.escape_newlines += 1
+             return
+         if isinstance(parent, (nodes.Admonition, nodes.sidebar, nodes.topic)):
+             raise nodes.SkipNode
+@@ -603,16 +604,19 @@
+             self.builder.warn(
+                 'encountered title node not in section, topic, table, '
+                 'admonition or sidebar', (self.curfilestack[-1], node.line))
++            # this is going to increase self.escape_newlines
+             self.visit_rubric(node)
+         else:
+             try:
+                 heading = self.headings[self.section_level]
+             except IndexError:
+                 heading = self.headings[-1]
++            self.escape_newlines += 1
+             self.body.append('\n%s ' % heading)
+
+     def depart_title(self, node):
+         self.body.append('\n\n')
++        self.escape_newlines -= 1
+
+     def visit_rubric(self, node):
+         if len(node.children) == 1 and node.children[0].astext() in \
+@@ -622,10 +626,12 @@
+             rubric = self.rubrics[self.section_level]
+         except IndexError:
+             rubric = self.rubrics[-1]
++        self.escape_newlines += 1
+         self.body.append('\n%s ' % rubric)
+
      def depart_rubric(self, node):
          self.body.append('\n\n')
-+        self.escape_newlines -= 1        
- 
++        self.escape_newlines -= 1
+
      def visit_subtitle(self, node):
          self.body.append('\n\n@noindent\n')
+@@ -1127,11 +1133,12 @@
+         if 'contents' in node.get('classes', []):
+             raise nodes.SkipNode
+         title = node[0]
++        # this is going to increase self.escape_newlines
+         self.visit_rubric(title)
+         self.body.append('%s\n' % self.escape(title.astext()))
+
+     def depart_topic(self, node):
+-        pass
++        self.escape_newlines -= 1
+
+     def visit_transition(self, node):
+         self.body.append('\n\n%s\n\n' % ('_' * 66))
+@@ -1328,11 +1335,14 @@
+         raise nodes.SkipNode
+
+     def visit_seealso(self, node):
++        # not sure about that one
++        self.escape_newlines += 1
+         self.body.append(u'\n\n@subsubheading %s\n\n' %
+                          admonitionlabels['seealso'])
+
+     def depart_seealso(self, node):
+         self.body.append('\n')
++        self.escape_newlines -= 1
+
+     def visit_meta(self, node):
+         raise nodes.SkipNode
