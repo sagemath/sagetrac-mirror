@@ -5,13 +5,20 @@ The behavior of the remainder and floordiv operators (``%`` and ``//``) used to 
 for real numbers. As discussed in https://groups.google.com/forum/#!topic/sage-devel/PfMop0nyiL0
 this will be changed in a future SageMath release as follows:
 
-The remainder `x % y` for two real numbers is the unique real number in `[0, y)` (if `y` is
-positive) or `(y, 0]` (if `y` is negative) of the form `x + n y` with `n` an integer. This
-integer `n` is the floor division `x // y`.
+    The *(floor) remainder* `r` of a real number `x` and a non-zero real number
+    `y` is the unique real number in `[0, y)` (if `y` is positive) or `(y, 0]`
+    (if `y` is negative) of the form `x + n y` with `n` an integer. This
+    integer `n` is the *floor division* of `x` and `y`.
 
-This module defines a global variable ``NEW`` so that when set to ``False`` the
-old beaviour is preserved but a deprecation warning is raised.  While if set to
-``True`` the modulo and floordiv operators follow the above specifications.
+The implementations of ``//`` and ``%`` in Python 3 for floating point numbers
+and fractions also follow this specification. However in Sage, the result of
+`//` will always be a Sage integer (whereas in Python 3 ``2.5 // 1.3`` is the
+floating point ``1.0``).
+
+This Python module defines a global variable ``NEW`` so that when set to
+``False`` the old beaviour is preserved but a deprecation warning is raised.
+While if set to ``True`` the modulo and floordiv operators follow the above
+specification.
 
 EXAMPLES::
 
@@ -21,6 +28,8 @@ EXAMPLES::
     2/3
     sage: (7/5) % (-1/3)
     -4/15
+    sage: (19/3) // (4/7)
+    11
 
     sage: sage.rings.real_mod_floordiv.NEW = False
     sage: 5/3 % 1
@@ -36,6 +45,8 @@ EXAMPLES::
     Traceback (most recent call last):
     ...
     TypeError: no conversion of this rational to integer
+    sage: (19/3) // (4/7)
+    133/12
 
 TESTS:
 
@@ -51,7 +62,7 @@ Check that both implementations of remainders coincide on integer entries::
     sage: a_old == a_new
     True
 
-Check that initialization of integer mod elements works with both old and new
+Check that initialization of finite fields works with both old and new
 versions::
 
     sage: import sage.rings.real_mod_floordiv
