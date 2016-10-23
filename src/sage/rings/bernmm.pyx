@@ -103,27 +103,14 @@ def bernmm_bern_modp(long p, long k):
     EXAMPLES::
 
         sage: from sage.rings.bernmm import bernmm_bern_modp
+        sage: bernmm_bern_modp(5, 18)
+        4
 
-        sage: bernoulli(0) % 5, bernmm_bern_modp(5, 0)
-        (1, 1)
-        sage: bernoulli(1) % 5, bernmm_bern_modp(5, 1)
-        (2, 2)
-        sage: bernoulli(2) % 5, bernmm_bern_modp(5, 2)
-        (1, 1)
-        sage: bernoulli(3) % 5, bernmm_bern_modp(5, 3)
-        (0, 0)
-        sage: bernoulli(4), bernmm_bern_modp(5, 4)
-        (-1/30, -1)
-        sage: bernoulli(18) % 5, bernmm_bern_modp(5, 18)
-        (4, 4)
-        sage: bernoulli(19) % 5, bernmm_bern_modp(5, 19)
-        (0, 0)
-
-        sage: p = 10000019; k = 1000
-        sage: bernoulli(k) % p
-        1972762
-        sage: bernmm_bern_modp(p, k)
-        1972762
+        sage: for k in (0, 1, 2, 3, 4, 18, 19,1000):
+        ....:     for p in (2, 3, 5, 7, 11, 10000019):
+        ....:         bk = bernoulli(k)
+        ....:         if bk.denominator() % p:
+        ....:             assert Zmod(p)(bk) == bernmm_bern_modp(p, k), "p = {} and k = {}".format(p,k)
 
     TESTS:
 
@@ -131,7 +118,7 @@ def bernmm_bern_modp(long p, long k):
     arithmetic from :trac:`19874`::
 
         sage: from sage.rings.bernmm import bernmm_bern_modp
-        sage: bernmm_bern_modp(7, 128) == bernoulli(128) % 7
+        sage: bernmm_bern_modp(7, 128) == Zmod(7)(bernoulli(128))
         True
     """
     cdef long x

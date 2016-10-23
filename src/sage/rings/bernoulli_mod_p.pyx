@@ -119,7 +119,7 @@ def bernoulli_mod_p(int p):
 
         sage: bernoulli_mod_p(37)
         [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
-        sage: [bernoulli(n) % 37 for n in range(0, 36, 2)]
+        sage: [Zmod(37)(bernoulli(n)) for n in range(0, 36, 2)]
         [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
 
     Boundary case::
@@ -243,7 +243,7 @@ def bernoulli_mod_p_single(long p, long k):
 
         sage: bernoulli_mod_p_single(1009, 48)
         628
-        sage: bernoulli(48) % 1009
+        sage: Zmod(1009)(bernoulli(48))
         628
 
         sage: bernoulli_mod_p_single(1, 5)
