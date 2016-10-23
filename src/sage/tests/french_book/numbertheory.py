@@ -58,7 +58,7 @@ ArithmeticError: rational reconstruction of 409 (mod 1000) does not exist
 sage: def harmonic(n):
 ...    return sum([1/x for x in range(1,n+1)])
 sage: def harmonic_mod(n,m):
-...    return add([1/x % m for x in range(1,n+1)])
+...    return add([ZZ(x).inverse_mod(m) for x in range(1,n+1)])
 sage: def harmonic2(n):
 ...    q = lcm(range(1,n+1))
 ...    pmax = RR(q*(log(n)+1))
@@ -68,7 +68,7 @@ sage: def harmonic2(n):
 ...    return rational_reconstruction(a,m)
 sage: harmonic(100) == harmonic2(100)
 True
-sage: a=2; b=3; m=5; n=7; lambda0=(b-a)/m % n; a+lambda0*m
+sage: a=2; b=3; m=5; n=7; lambda0=Zmod(n)((b-a)/m).lift(); a+lambda0*m
 17
 sage: crt(2,3,5,7)
 17
