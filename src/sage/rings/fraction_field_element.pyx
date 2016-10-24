@@ -484,7 +484,7 @@ cdef class FractionFieldElement(FieldElement):
 
         return s
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -507,6 +507,12 @@ cdef class FractionFieldElement(FieldElement):
             (y + 1)/(x*y)
             sage: Frac(CDF['x']).gen() + 3
             x + 3.0
+
+        Subtraction is implemented by adding the negative::
+
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: t - 1/t # indirect doctest
+            (t^2 + 6)/t
         """
         rnum = self.__numerator
         rden = self.__denominator
@@ -563,27 +569,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum*sden + rden*snum, rden*sden,
             coerce=False, reduce=False)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
-        """
-        Computes the difference of ``self`` and ``right``.
-
-        INPUT:
-
-        - ``right`` - ``ModuleElement`` to subtract from ``self``
-
-        OUTPUT:
-
-        - Difference of ``self`` and ``right``
-
-        EXAMPLES::
-
-            sage: K.<t> = Frac(GF(7)['t'])
-            sage: t - 1/t # indirect doctest
-            (t^2 + 6)/t
-        """
-        return self._add_(-right)
-
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Computes the product of ``self`` and ``right``.
 
@@ -648,7 +634,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum * snum, rden * sden,
             coerce=False, reduce=False)
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Computes the quotient of ``self`` and ``right``.
 
@@ -841,7 +827,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 

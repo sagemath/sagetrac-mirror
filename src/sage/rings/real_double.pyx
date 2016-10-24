@@ -54,9 +54,7 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-import sage.libs.pari.pari_instance
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational
@@ -1218,7 +1216,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = 1.0 / self._value
         return x
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two real numbers with the same parent.
 
@@ -1231,7 +1229,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -1244,7 +1242,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -1257,7 +1255,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1581,7 +1579,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
-        return pari.double_to_gen_c(self._value)
+        return new_gen_from_double(self._value)
 
 
     ###########################################
@@ -1646,7 +1644,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return gsl_isinf(self._value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 

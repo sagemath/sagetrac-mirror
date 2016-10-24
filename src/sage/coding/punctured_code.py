@@ -5,6 +5,7 @@ Let `C` be a linear code. Let `C_i` be the set of all words of `C` with the
 `i`-th coordinate being removed. `C_i` is the punctured code of `C`
 on the `i`-th position.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
@@ -16,11 +17,9 @@ on the `i`-th position.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .linear_code import AbstractLinearCode
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
@@ -107,7 +106,7 @@ class PuncturedCode(AbstractLinearCode):
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(11, 5, GF(7))
+        sage: C = codes.random_linear_code(GF(7), 11, 5)
         sage: Cp = codes.PuncturedCode(C, 3)
         sage: Cp
         Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
@@ -125,7 +124,7 @@ class PuncturedCode(AbstractLinearCode):
 
         If one of the positions to puncture is bigger than the length of ``C``, an exception will be raised::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, {4,8,15})
             Traceback (most recent call last):
             ...
@@ -154,7 +153,7 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp1 = codes.PuncturedCode(C, 2)
             sage: Cp2 = codes.PuncturedCode(C, 2)
             sage: Cp1 == Cp2
@@ -170,7 +169,7 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp
             Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
@@ -184,7 +183,7 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: latex(Cp)
             \textnormal{Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) } [3]
@@ -198,7 +197,7 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp.punctured_positions()
             {3}
@@ -211,7 +210,7 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp.original_code()
             Linear code of length 11, dimension 5 over Finite Field of size 7
@@ -225,7 +224,7 @@ class PuncturedCode(AbstractLinearCode):
         EXAMPLES::
 
             sage: set_random_seed(42)
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp.dimension()
             5
@@ -239,7 +238,7 @@ class PuncturedCode(AbstractLinearCode):
         r"""
         Returns a random codeword of ``self``.
 
-        This methods does not trigger the computation of
+        This method does not trigger the computation of
         ``self``'s :meth:`sage.coding.linear_code.generator_matrix`.
 
         INPUT:
@@ -249,11 +248,10 @@ class PuncturedCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
-            sage: set_random_seed(10)
-            sage: Cp.random_element()
-            (2, 0, 1, 3, 3, 3, 2, 6, 0, 5)
+            sage: Cp.random_element() in Cp
+            True
         """
         C_original = self.original_code()
         m = (C_original.base_ring() ** C_original.dimension()).random_element()
@@ -318,7 +316,7 @@ class PuncturedCode(AbstractLinearCode):
         Another example with structureless linear codes::
 
             sage: set_random_seed(42)
-            sage: C_lin  = codes.RandomLinearCode(10, 5, GF(2))
+            sage: C_lin  = codes.random_linear_code(GF(2), 10, 5)
             sage: Cp_lin = codes.PuncturedCode(C_lin, 2)
             sage: Cp_lin.structured_representation()
             Linear code of length 9, dimension 5 over Finite Field of size 2
@@ -353,7 +351,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
     - ``code`` -- The associated code of this encoder.
 
         EXAMPLES::
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
@@ -366,7 +364,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
 
         If ``code`` is not a ``PuncturedCode``, an exception is raised::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: codes.encoders.PuncturedCodePuncturedMatrixEncoder(C)
             Traceback (most recent call last):
             ...
@@ -382,7 +380,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
@@ -396,7 +394,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: latex(E)
@@ -412,7 +410,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
         EXAMPLES::
 
             sage: set_random_seed(10)
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E.generator_matrix()
@@ -505,7 +503,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         If ``code`` is not a ``PuncturedCode``, an exception is raised::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: codes.decoders.PuncturedCodeOriginalCodeDecoder(C)
             Traceback (most recent call last):
             ...
@@ -525,7 +523,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
         If one tries to use ``'error-erasure'`` strategy when the original code has no such
         decoder, it returns an error::
 
-            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp, strategy = 'error-erasure')
             Traceback (most recent call last):
@@ -662,7 +660,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             for i in list_pts:
                 yl.insert(i + shift, zero)
                 shift += 1
-            values = I.next()
+            values = next(I)
             while not end:
                 try:
                     shift = 0
@@ -670,7 +668,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         yl[i + shift] =  values[shift]
                         shift += 1
                     y = A(yl)
-                    values = I.next()
+                    values = next(I)
                     try:
                         c_or = self.original_decoder().decode_to_code(y)
                         end = True
@@ -718,5 +716,3 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 PuncturedCode._registered_encoders["PuncturedMatrix"] = PuncturedCodePuncturedMatrixEncoder
 PuncturedCode._registered_decoders["OriginalCode"] = PuncturedCodeOriginalCodeDecoder
 PuncturedCodeOriginalCodeDecoder._decoder_type = {"dynamic"}
-PuncturedCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-PuncturedCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

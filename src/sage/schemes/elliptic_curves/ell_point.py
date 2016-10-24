@@ -117,6 +117,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 
@@ -130,7 +131,8 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
-from sage.libs.pari.pari_instance import pari, prec_words_to_bits
+from sage.libs.pari.pari_instance import prec_words_to_bits
+from sage.libs.pari import pari
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
@@ -138,7 +140,7 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
                                                       SchemeMorphism_point_abelian_variety_field)
 from sage.schemes.generic.morphism import is_SchemeMorphism
 
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.misc.superseded import deprecated_function_alias
 
 oo = rings.infinity       # infinity

@@ -292,21 +292,22 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Left scalar multiplication. Internal usage only.
 
         INPUT:
 
-            - `right` -- a ring element which must already be in the basering of self (no coercion done here).
+        - `right` -- a ring element which must already be in the basering
+          of self (no coercion done here).
 
         OUTPUT:
 
-            - the matrix self*right
+        - the matrix self * right
 
         EXAMPLES::
 
-            sage: M=Matrix(QQ,3,6,xrange(18),sparse=true); M
+            sage: M = Matrix(QQ, 3, 6, xrange(18), sparse=true); M
             [ 0  1  2  3  4  5]
             [ 6  7  8  9 10 11]
             [12 13 14 15 16 17]
@@ -361,7 +362,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         return cmp(self._dict(), right._dict())
 
     def transpose(self):
@@ -1007,7 +1008,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             Z._subdivide_on_augment(self, other)
         return Z
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -1040,7 +1041,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             s[j] += v[i] * a
         return s
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         Returns the matrix times vector product.
 

@@ -1060,7 +1060,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             if not isinstance(im_gens, (tuple, list)):
                 im_gens = [im_gens]
             im_gens = sage.structure.all.Sequence(im_gens, parent.codomain(),
-                    immutable=True)
+                                                  check=check, immutable=True)
         if check:
             if len(im_gens) != parent.domain().ngens():
                 raise ValueError("number of images must equal number of generators")
@@ -1138,7 +1138,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         r"""
         EXAMPLES:
 
@@ -1436,7 +1436,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         r"""
         EXAMPLES:
 
@@ -2096,7 +2096,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

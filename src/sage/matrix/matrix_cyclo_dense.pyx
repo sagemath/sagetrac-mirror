@@ -36,7 +36,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
@@ -46,13 +46,13 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.libs.gmp.randomize cimport *
 
-from constructor import matrix
-from matrix_space import MatrixSpace
-from matrix cimport Matrix
-import matrix_dense
-from matrix_integer_dense import _lift_crt
+from .constructor import matrix
+from .matrix_space import MatrixSpace
+from .matrix cimport Matrix
+from . import matrix_dense
+from .matrix_integer_dense import _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
-from misc import matrix_integer_dense_rational_reconstruction
+from .misc import matrix_integer_dense_rational_reconstruction
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -469,7 +469,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return the sum of two dense cyclotomic matrices.
 
@@ -497,7 +497,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix + (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return the difference of two dense cyclotomic matrices.
 
@@ -524,7 +524,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 
@@ -566,7 +566,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             A._matrix = T * self._matrix
         return A
 
-    cdef baseMatrix _matrix_times_matrix_(self, baseMatrix right):
+    cdef _matrix_times_matrix_(self, baseMatrix right):
         """
         Return the product of two cyclotomic dense matrices.
 
@@ -708,7 +708,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             raise TypeError("mutable matrices are unhashable")
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         Implements comparison of two cyclotomic matrices with
         identical parents.
@@ -1508,7 +1508,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         K = self.base_ring()
         phi = K.defining_polynomial()
         from sage.rings.all import GF
-        from constructor import matrix
+        from .constructor import matrix
         F = GF(p)
         aa = [a for a, _ in phi.change_ring(F).roots()]
         n = K.degree()

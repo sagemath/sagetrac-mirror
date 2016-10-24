@@ -72,7 +72,10 @@ from __future__ import print_function
 import os
 import six
 import time
+from IPython import get_ipython
+
 from sage.repl.load import load, load_wrap
+import sage.repl.inputhook
 import sage.env
 
 # The attached files as a dict of {filename:mtime}
@@ -265,6 +268,13 @@ def attach(*files):
     Attach a file or files to a running instance of Sage and also load
     that file.
 
+    .. NOTE::
+
+        Attaching files uses the Python inputhook, which will conflict
+        with other inputhook users. This generally includes GUI main loop
+        integrations, for example tkinter. So you can only use tkinter or
+        attach, but not both at the same time.
+
     INPUT:
 
     - ``files`` -- a list of filenames (strings) to attach.
@@ -363,6 +373,7 @@ def add_attached_file(filename):
         sage: af.attached_files()
         []
     """
+    sage.repl.inputhook.install()
     fpath = os.path.abspath(filename)
     attached[fpath] = os.path.getmtime(fpath)
 
@@ -389,7 +400,7 @@ def attached_files():
         True
     """
     global attached
-    return list(sorted(attached.keys()))
+    return sorted(attached)
 
 
 def detach(filename):
@@ -465,6 +476,8 @@ def detach(filename):
             attached.pop(fpath)
         else:
             raise ValueError("file '{0}' is not attached, see attached_files()".format(filename))
+    if not attached:
+        sage.repl.inputhook.uninstall()
 
 def reset():
     """
@@ -570,11 +583,20 @@ def reload_attached_files_if_modified():
         []
         sage: shell.quit()
     """
+    ip = get_ipython()
     for filename, mtime in modified_file_iterator():
         basename = os.path.basename(filename)
         timestr = time.strftime('%T', mtime)
-        from sage.libs.readline import interleaved_output
-        with interleaved_output():
-            print('### reloading attached file {0} modified at {1} ###'.format(basename, timestr))
+        notice = '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
+        if ip and ip.pt_cli:
+            with ip.pt_cli.patch_stdout_context():
+                print(notice)
+                code = load_wrap(filename, attach=True)
+                ip.run_cell(code)
+        elif ip:
+            print(notice)
             code = load_wrap(filename, attach=True)
-            get_ipython().run_cell(code)
+            ip.run_cell(code)
+        else:
+            print(notice)
+            load(filename, globals(), attach=True)

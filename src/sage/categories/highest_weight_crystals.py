@@ -240,7 +240,7 @@ class HighestWeightCrystals(Category_singleton):
 
             where `\Delta_+^{\vee}` denotes the set of positive coroots.
             Taking the limit as `q \to 1` gives the dimension of `B(\lambda)`.
-            For more information, see [Kac]_ Section 10.10.
+            For more information, see [Ka1990]_ Section 10.10.
 
             INPUT:
 
@@ -327,10 +327,6 @@ class HighestWeightCrystals(Category_singleton):
                  + 9*q^7 + 13*q^8 + 16*q^9 + 22*q^10 + 27*q^11
                  + 36*q^12 + 44*q^13 + 57*q^14 + 70*q^15 + O(x^16)
 
-            REFERENCES:
-
-            .. [Kac] Victor G. Kac. *Infinite-dimensional Lie Algebras*.
-               Third edition. Cambridge University Press, Cambridge, 1990.
             """
             from sage.rings.all import ZZ
             WLR = self.weight_lattice_realization()
@@ -500,12 +496,12 @@ class HighestWeightCrystals(Category_singleton):
                     sage: C = crystals.Tableaux(['B',3], shape=[2,2])
                     sage: D = crystals.Tableaux(['B',3], shape=[1])
                     sage: T = crystals.TensorProduct(D, C)
-                    sage: T.global_options(convention='Kashiwara')
+                    sage: T.options(convention='Kashiwara')
                     sage: T.highest_weight_vectors()
                     ([[[1, 1], [2, 2]], [[1]]],
                      [[[1, 1], [2, 2]], [[3]]],
                      [[[1, 1], [2, 2]], [[-2]]])
-                    sage: T.global_options.reset()
+                    sage: T.options._reset()
                     sage: T.highest_weight_vectors()
                     ([[[1]], [[1, 1], [2, 2]]],
                      [[[3]], [[1, 1], [2, 2]]],

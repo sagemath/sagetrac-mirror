@@ -1044,7 +1044,8 @@ cdef class Ring(ParentWithGens):
         - ``n`` -- positive integer
 
         - ``all`` -- bool (default: False) - whether to return
-          a list of all primitive `n`-th roots of unity.
+          a list of all primitive `n`-th roots of unity. If True, raise a ``ValueError``
+          if ``self`` is not an integral domain.
 
         OUTPUT:
 
@@ -1092,7 +1093,13 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             ValueError: no 3rd root of unity in Rational Field
+            sage: IntegerModRing(8).zeta(2, all = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ring is not an integral domain
         """
+        if all and not self.is_integral_domain():
+            raise ValueError("ring is not an integral domain")
         if n == 2:
             if all:
                 return [self(-1)]
@@ -1448,7 +1455,7 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
-    def extension(self, poly, name=None, names=None, embedding=None):
+    def extension(self, poly, name=None, names=None, embedding=None, structure=None):
         """
         Algebraically extends self by taking the quotient ``self[x] / (f(x))``.
 
@@ -1494,6 +1501,8 @@ cdef class CommutativeRing(Ring):
             name = str(poly.parent().gen(0))
         if embedding is not None:
             raise NotImplementedError("ring extension with prescripted embedding is not implemented")
+        if structure is not None:
+            raise NotImplementedError("ring extension with additional structure is not implemented")
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

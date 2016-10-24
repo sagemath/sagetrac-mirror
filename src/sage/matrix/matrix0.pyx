@@ -4132,7 +4132,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT:
 
         A matrix over an ordered ring is in weak Popov form if all
-        leading positions are different [MulSto]_. A leading position
+        leading positions are different [MS2003]_. A leading position
         is the position `i` in a row with the highest order (for
         polynomials this is the degree), for multiple entries with
         equal but highest order the maximal `i` is chosen (which is
@@ -4200,12 +4200,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. SEEALSO::
 
             - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
-
-        REFERENCES:
-
-        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
-          for polynomial matrices", J. Symbolic Comput. 35 (2003),
-          no. 4, 377--401
 
         AUTHOR:
 
@@ -4280,7 +4274,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac:`5014`)::
+        entries are polynomials over a finite field (:trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
@@ -4592,7 +4586,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Arithmetic
     ###################################################
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -4650,7 +4644,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return sum([v[i] * self.row(i, from_list=True)
                     for i in xrange(self._nrows)], M(0))
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES::
 
@@ -4760,7 +4754,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Add two matrices with the same parent.
 
@@ -4783,7 +4777,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Subtract two matrices with the same parent.
 
@@ -4849,7 +4843,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return self.change_ring(self._base_ring.quotient_ring(p))
 
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -4886,7 +4880,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES:
 
@@ -5355,7 +5349,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cpdef int _cmp_(left,Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two matrices.
 

@@ -34,6 +34,7 @@ include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
@@ -377,6 +378,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f(2)          # indirect doctest
             3
+
+        TESTS:
+
+            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            True
         """
         cdef Polynomial_integer_dense_flint f
         cdef Integer a, z
@@ -394,7 +400,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, (int, long)):
+            if isinstance(x0, int):
+                z = PY_NEW(Integer)
+                sig_on()
+                fmpz_init(a_fmpz)
+                fmpz_init(z_fmpz)
+                fmpz_set_si(a_fmpz, PyInt_AS_LONG(x0))
+                fmpz_poly_evaluate_fmpz(z_fmpz, self.__poly, a_fmpz)
+                fmpz_get_mpz(z.value, z_fmpz)
+                fmpz_clear(a_fmpz)
+                fmpz_clear(z_fmpz)
+                sig_off()
+                return z
+            if isinstance(x0, long):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0
@@ -587,7 +605,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name=name, latex=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -607,7 +625,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -627,7 +645,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Returns negative of self.
 
@@ -879,7 +897,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             return self._parent(rr), ss, tt
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 
@@ -927,7 +945,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -946,7 +964,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef _rmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -998,8 +1016,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (x)^(1/2) does not lie in Univariate
-            Polynomial Ring in x over Integer Ring
+            ValueError: not a 2nd power
+
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1020,8 +1038,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (R^2 + 3)^(1/2) does not lie in Univariate
-            Polynomial Ring in R over Integer Ring
+            ValueError: 3 is not a 2nd power
 
             Ring in R over Integer Ring
             sage: P(2)^P(2)
@@ -1086,6 +1103,32 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     fmpz_poly_pow(res.__poly, self.__poly, nn)
                     sig_off()
                 return res
+
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
+        r"""
+        Truncated power
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: (x**2 - x + 1).power_trunc(100, 5)
+            4411275*x^4 - 171600*x^3 + 5050*x^2 - 100*x + 1
+            sage: R.zero().power_trunc(0, 1)
+            1
+
+            sage: x._power_trunc(2, -1)
+            0
+            sage: parent(_) is R
+            True
+        """
+        if prec <= 0:
+            # NOTE: flint crashes for prec < 0
+            return self._parent.zero()
+
+        cdef Polynomial_integer_dense_flint res
+        res = self._new()
+        fmpz_poly_pow_trunc(res.__poly, self.__poly, n, prec)
+        return res
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """

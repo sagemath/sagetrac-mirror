@@ -78,7 +78,9 @@ TESTS::
 include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
-include 'sage/modules/vector_modn_sparse_c.pxi'
+
+from sage.modules.vector_modn_sparse cimport *
+
 from cpython.sequence cimport *
 
 cimport matrix
@@ -97,9 +99,9 @@ from sage.structure.element import is_Vector
 
 cimport sage.structure.element
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+
 from matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
 
@@ -255,7 +257,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -506,7 +508,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             #endfor
             if min_row != -1:
                 r = min_row
-                #print "min number of entries in a pivoting row = ", min
+                # print("min number of entries in a pivoting row = ", min)
                 pivots.append(c)
                 # Since we can use row r to clear column c, the
                 # entry in position c in row r must be the first nonzero entry.
