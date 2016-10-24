@@ -373,7 +373,7 @@ def is_affine_polar(int v,int k,int l,int mu):
     if power%2:
         return
     for e in divisors(power/2):
-        q = prime**(power//(2*e))
+        q = prime**(power/(2*e))
         assert v == q**(2*e)
         if (k == (q**(e-1) + 1)*(q**e-1) and
             l == q*(q**(e-2) + 1)*(q**(e-1)-1)+q-2 and

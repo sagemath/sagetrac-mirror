@@ -577,7 +577,7 @@ def _polar_graph(m, q, g, intersection_size=None):
     B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
     V = libgap.Orbit(g,B[0],libgap.OnLines) # orbit on isotropic points
     gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
-    s = libgap.Subspace(W,[B[i] for i in range(m//2)]) # a totally isotropic subspace
+    s = libgap.Subspace(W,[B[i] for i in range(int(m/2))]) # a totally isotropic subspace
     # and the points there
     sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
     h = libgap.Set(map(lambda x: libgap.Position(V, x), sp)) # indices of the points in s
