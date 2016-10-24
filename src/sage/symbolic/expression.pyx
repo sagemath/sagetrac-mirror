@@ -3724,6 +3724,16 @@ cdef class Expression(CommutativeRingElement):
             0.000000000000000
             sage: exp(x)^1.0
             (e^x)^1.00000000000000
+
+        Check that symbolic powers of ``numeric``s that evaluated would
+        raise a `TypeError` are held unevaluated (:trac:`21758`)::
+
+            sage: 2^QQbar(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion ...
+            sage: SR(2) ^ SR(QQbar(sqrt(2)))
+            2^1.414213562373095?
         """
         cdef Expression base, nexp
 
@@ -3742,7 +3752,11 @@ cdef class Expression(CommutativeRingElement):
                            g_pow(base._gobj.rhs(), nexp._gobj),
                            relational_operator(base._gobj))
         else:
-            x = g_pow(base._gobj, nexp._gobj)
+            try:
+                x = g_pow(base._gobj, nexp._gobj)
+            except TypeError:
+                x = g_hold2_wrapper(g_power_construct, base._gobj, nexp._gobj,
+                        True)
         return new_Expression_from_GEx(base._parent, x)
 
     def derivative(self, *args):
