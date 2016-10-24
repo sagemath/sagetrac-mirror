@@ -325,7 +325,9 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
         #assert(self in self.parent().roots() is not False)
         scaled_coroot = self.parent().to_coroot_space_morphism()(self)
         s = self.scalar(scaled_coroot)
-        return scaled_coroot.map_coefficients(lambda c: (2*c) // s)
+        # NOTE: once the deprecation warning from trac ticket #21745 is removed
+        # we can modify the code below to use a floordiv
+        return scaled_coroot.map_coefficients(lambda c: ((2*c) / s).floor())
 
     def quantum_root(self):
         r"""
