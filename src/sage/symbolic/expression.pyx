@@ -5470,6 +5470,16 @@ cdef class Expression(CommutativeRingElement):
             162.000000000000
             sage: (ex+1).n()
             163.000000000000
+            sage: (ex^2).n()
+            26244.0000000000
+
+        We can also compute otherwise inaccessible powers
+        (:trac:`21754`)::
+
+            sage: SR(2).power(SR(QQbar(3).sqrt() + QQbar(2).sqrt()), hold=True)
+            2^3.146264369941973?
+            sage: _.n()
+            8.85360107441145
         """
         if prec is None:
             prec = digits_to_bits(digits)
@@ -5483,6 +5493,16 @@ cdef class Expression(CommutativeRingElement):
                     from sage.calculus.calculus import symbolic_sum
                     return symbolic_sum(*(ex.operands()))
                 return super(DefiniteSumExpander, self).composition(ex, operator)
+            def arithmetic(self, ex, operator):
+                # we don't want the default behaviour of reducing
+                # arithmetical operations here
+                import operator as _operator
+                if operator is _operator.pow and (
+                    is_a_numeric((<Expression>ex.operands()[0])._gobj)
+                and is_a_numeric((<Expression>ex.operands()[1])._gobj)):
+                    return ex.operands()[0].power(ex.operands()[1], hold=True)
+                return super(DefiniteSumExpander, self).arithmetic(ex, operator)
+
 
         s = DefiniteSumExpander(self)
         cdef Expression x = self._parent(s())
