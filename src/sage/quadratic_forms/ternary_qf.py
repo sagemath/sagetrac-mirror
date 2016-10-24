@@ -224,7 +224,8 @@ class TernaryQF(SageObject):
             ## Check if v has 3 cols
             if v.ncols() == 3:
                 M = v.transpose() * self.matrix() * v
-                return TernaryQF([M[0,0]//2, M[1,1]//2, M[2,2]//2, M[1,2], M[0,2], M[0,1]])
+                # NOTE: as soon as the deprecation from #21745 is over we can move the code below to a floordiv
+                return TernaryQF([(M[0,0]/2).floor(), (M[1,1]/2).floor(), (M[2,2]/2).floor(), M[1,2], M[0,2], M[0,1]])
             else:
                 return QuadraticForm(ZZ, v.transpose() * self.matrix() * v)
         elif (is_Vector(v) or isinstance(v, (list, tuple))):

@@ -1008,8 +1008,8 @@ def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
 
     if m02%p!=0:
 
-        m0 = (-m00/m02/2) % p**2
-        m1 = (-m01/m02) % p
+        m0 = (((-m00//2) % p**2) * m02.inverse_mod(p**2)) % p**2
+        m1 = ((-m01 % p) * (m02.inverse_mod(p))) % p
 
         b00 = m0**2*m22/p**2 + 2*m0*m02/p**2 + m00/p**2
         b11 = m1**2*m22 + 2*m1*m12 + m11
@@ -1036,8 +1036,8 @@ def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
 
     if m01%p!=0:
 
-        m0 = (-m00/m01/2) % p**2
-        m1 = (-m02/m01) % p
+        m0 = (((-m00//2) % p**2) * m01.inverse_mod(p**2)) % p**2
+        m1 = ((-m02 % p) * m01.inverse_mod(p)) % p
 
         b00 = m0**2*m11/p**2 + 2*m0*m01/p**2 + m00/p**2
         b11 = m1**2*m11 + 2*m1*m12 + m22

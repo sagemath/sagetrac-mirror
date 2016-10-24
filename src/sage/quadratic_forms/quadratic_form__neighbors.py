@@ -214,7 +214,7 @@ def find_p_neighbor_from_vec(self, p, v):
     ## Lift the vector v to a vector v1 s.t. Q(v1) = 0 (mod p^2)
     s = self(v)
     if (s % p**2 != 0):
-        al = (-s / (p * vw_prod)) % p
+        al = (((-s // p) % p) * vw_prod.inverse_mod(p)) % p
         v1 = v + p * al * w
         v1w_prod = (v1 * self.matrix()).dot_product(w)
     else:
@@ -232,7 +232,7 @@ def find_p_neighbor_from_vec(self, p, v):
     good_basis = extend_to_primitive([v1, w])
     for i in range(2,n):
         ith_prod = (good_basis[i] * self.matrix()).dot_product(v)
-        c = (ith_prod / v1w_prod) % p
+        c = ((ith_prod % p) * v1w_prod.inverse_mod(p)) % p
         good_basis[i] = good_basis[i] - c * w  ## Ensures that this extension has <v_i, v> = 0 (mod p)
 
     ## DIAGNOSTIC
