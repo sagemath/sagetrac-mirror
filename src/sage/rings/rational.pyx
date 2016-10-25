@@ -2289,7 +2289,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     cpdef _floordiv_(self, right):
         r"""
-        Return the floor division of ``self`` and ``right``.
+        Return the floor division of ``self`` and ``right`` as a Sage Rational.
 
         The floor division of `x` and `y` is the floor of the quotient `x / y`.
         Sage used to return the standard division in place of the floor
@@ -2309,6 +2309,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             ....:         q = a // b; r = a % b
             ....:         print("{} = {} * {} + {}".format(a, b, q, r))
             ....:         assert a == q*b + r
+            ....:         assert isinstance(r, Rational)
+            ....:         assert isinstance(q, Rational)
             -7/2 = -2 * 1 + -3/2
             -7/2 = -1/5 * 17 + -1/10
             -7/2 = 2/3 * -6 + 1/2
@@ -2344,13 +2346,27 @@ cdef class Rational(sage.structure.element.FieldElement):
                 import sage.rings.real_mod_floordiv
                 sage.rings.real_mod_floordiv.NEW = True
             See http://trac.sagemath.org/21745 for details.
+
+        Check division by zero::
+
+            sage: (2/5) / (0/1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
+        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
+            raise ZeroDivisionError('rational division by zero')
+
         from sage.rings.real_mod_floordiv import NEW, mod_floordiv_deprecation
+        cdef Rational ans
+        ans = <Rational> Rational.__new__(Rational)
+        mpq_div(ans.value, self.value, (<Rational>right).value)
         if NEW:
-            return (self / right).floor()
-        else:
+            mpz_fdiv_q(mpq_numref(ans.value), mpq_numref(ans.value), mpq_denref(ans.value))
+            mpz_set_ui(mpq_denref(ans.value), 1)
+        elif not ans.is_integer():
             mod_floordiv_deprecation()
-            return self / right
+        return ans
 
     cpdef _div_(self, right):
         """
