@@ -68,8 +68,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport pari_instance as pari
+from sage.libs.pari.gen cimport gen as pari_gen, new_ref
+from sage.libs.pari.pari_instance cimport get_var, pari_instance as pari
 from sage.libs.pari.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 
 from sage.misc.superseded import deprecated_function_alias
@@ -92,7 +92,7 @@ cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
     """
     cdef long t = typ(g.g)
     v = parent.variable_name()
-    if t == t_SER and varn(g.g) == pari.get_var(v):
+    if t == t_SER and varn(g.g) == get_var(v):
         prec = lg(g.g) - 2 + valp(g.g)
     elif t == t_RFRAC:
         prec = parent.default_prec()
@@ -165,7 +165,7 @@ cdef class PowerSeries_pari(PowerSeries):
             t = typ(g.g)
             if t == t_POL:
                 g = P(g)._pari_()
-            elif t == t_SER and varn(g.g) == pari.get_var(v):
+            elif t == t_SER and varn(g.g) == get_var(v):
                 if valp(g.g) < 0:
                     raise ValueError('series has negative valuation')
                 if prec is infinity:
@@ -661,13 +661,13 @@ cdef class PowerSeries_pari(PowerSeries):
 
         """
         cdef pari_gen g = self.g
-        cdef long vn = pari.get_var(self._parent.variable_name())
+        cdef long vn = get_var(self._parent.variable_name())
         R = self.base_ring()
         if typ(g.g) == t_SER and varn(g.g) == vn:
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(pari.new_ref(gel(g.g, i), g)) for i in xrange(2, lg(g.g))]
+            return [R(new_ref(gel(g.g, i), g)) for i in xrange(2, lg(g.g))]
         else:
             return [R(g)]
 
@@ -721,24 +721,24 @@ cdef class PowerSeries_pari(PowerSeries):
         cdef long l, m
 
         R = self.base_ring()
-        if typ(g.g) == t_POL and varn(g.g) == pari.get_var(self._parent.variable_name()):
+        if typ(g.g) == t_POL and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_POL has 2 codewords
             if n <= l:
-                return [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n)]
+                return [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(n)]
             else:
-                return ([R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                return ([R(new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
                         + [R.zero()] * (n - l))
-        elif typ(g.g) == t_SER and varn(g.g) == pari.get_var(self._parent.variable_name()):
+        elif typ(g.g) == t_SER and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_SER has 2 codewords
             m = valp(g.g)
             if n <= m:
                 return [R.zero()] * n
             elif n <= l + m:
                 return ([R.zero()] * m
-                        + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n - m)])
+                        + [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(n - m)])
             else:
                 return ([R.zero()] * m
-                        + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                        + [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
                         + [R.zero()] * (n - l - m))
         else:
             return [R(g)] + [R.zero()] * (n - 1)
