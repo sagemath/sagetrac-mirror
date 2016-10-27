@@ -3476,8 +3476,30 @@ class DiGraph(GenericGraph):
         return Polyhedron(ieqs=ineqs, eqns=eqs)
     
     def is_simple_deterministic(self):
-        """
-        Check if ``self`` is simple and deterministic.
+        r"""
+        Check if the graph is simple and deterministic.
+
+        A graph is said to be simple if there is at most one edge between
+        any two vertices. A graph is said to be deterministic if all the
+        out-edges from any vertex have distinct labels.
+
+        EXAMPLES::
+
+            sage: g = DiGraph([(1, 2, 1)])
+            sage: g.is_simple_deterministic()
+            True
+
+        A digraph that is simple but not deterministic::
+
+            sage: g = DiGraph([(1, 2, 1), (1, 3, 1)])
+            sage: g.is_simple_deterministic()
+            False
+
+        A digraph that is deterministic but not simple::
+
+            sage: g = DiGraph([(1, 2, 1), (1, 2, 2)], multiedges=True)
+            sage: g.is_simple_deterministic()
+            False
         """
         for v in self.vertices():
             seen_ends = set()
@@ -3491,8 +3513,50 @@ class DiGraph(GenericGraph):
         return True
 
     def is_cayley_directed(self):
-        """
-        Check if ``self`` is a Cayley directed graph.
+        r"""
+        Check if the graph is a directed Cayley graph.
+
+        EXAMPLES::
+
+            sage: g = DiGraph([(1, 2, 1), (2, 1, 1)])
+            sage: g.is_cayley()
+            True
+
+        This method is sensitive to edge labels::
+
+            sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 1, 1), (2, 1, 1), (3, 2, 1), (1, 3, 1)])
+            sage: g.is_cayley()
+            True
+            sage: g.is_cayley_directed()
+            False
+
+        ALGORITHM:
+
+        Didier Caucal's criterion [C16]_ for a graph to be Cayley is used:
+        A directed graph with labeled edges is Cayley if and only if it is
+        strongly connected, vertex transitive, simple and deterministic.
+
+        The traditional algorithm implemented in::
+
+            :meth:`sage.graphs.generic_graph.GenericGraph.is_cayley`
+
+        looks for a free transitive subgroup of the autmorphism group of the
+        graph. It requires the use of optional GAP packages ``gap_packages``
+        and ``database_gap``.
+
+        REFERENCES:
+
+        .. [C16] Dider Caucal, Structural Characterization of Cayley graphs
+          :arxiv:`1609.08272`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.is_cayley`
+
+        AUTHOR:
+
+        - Amritanshu Prasad (2016-10-28)
+
         """
         return self.is_strongly_connected() and self.is_vertex_transitive() and self.is_simple_deterministic()
 
