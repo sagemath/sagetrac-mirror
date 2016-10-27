@@ -488,34 +488,6 @@ class AlphabetWithInverses(Parent):
         """
         return self._negative
 
-    def compare_letters(self, a, b):
-        """
-        Compares the letters ``a`` and ``b`` according to their
-        rank in ``self``.
-
-        INPUT:
-
-        - ``a`` -- letter to compare with ''b''
-        - ``b`` -- letter to compare with ''a''
-
-        OUTPUT:
-
-        - return        -1 if a < b
-                         0 if a == b
-                         1 if a > b
-
-        EXAMPLES::
-
-            sage: A = AlphabetWithInverses(['a','b','c'], ['A','B','C'])
-            sage: A.compare_letters('a','A')
-            -1
-            sage: A.compare_letters('c','a')
-            1
-            sage: A.compare_letters('B','B')
-            0
-        """
-        return cmp(self.rank(a), self.rank(b))
-
     def less_letter(self, a, b):
         """
         ``True`` if ``a`` is before ``b`` in the alphabet.
