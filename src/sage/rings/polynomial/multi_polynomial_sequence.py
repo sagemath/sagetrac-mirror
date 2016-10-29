@@ -18,6 +18,7 @@ AUTHORS:
 - Martin Albrecht (2011): refactoring, moved to sage.rings.polynomial
 - Alex Raichev (2011-06): added algebraic_dependence()
 - Charles Bouillaguet (2013-1): added solve()
+- Rusydi H. Makarim (2016-10): added change_ring()
 
 EXAMPLES:
 
@@ -1087,6 +1088,35 @@ class PolynomialSequence_generic(Sequence_generic):
 
         """
         return self.ideal().basis_is_groebner()
+
+    def change_ring(self, base_ring=None, names=None, order=None):
+        """
+        Return a new PolynomialSequence defined over a new polynomial ring
+        which is isomorphic to ``self.ring()`` but with different term ordering
+        defined by 'order' or variable names given by 'names'. Each polynomial
+        will be mapped to its isomorphic image in the new polynomial ring.
+
+        INPUT:
+
+        - ``base_ring`` -- base ring for the coefficients
+        - ``names`` -- variables names
+        - ``order`` -- a term order
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = GF(31)[]
+            sage: F = Sequence([x*y + z, y*z^3 + z^2 + + y^2 + x])
+            sage: F
+            [x*y + z, y*z^3 + y^2 + z^2 + x]
+            sage: Flex = F.change_ring(order="lex")
+            sage: Flex
+            [x*y + z, x + y^2 + y*z^3 + z^2]
+            sage: F_ = F.change_ring(names=['a', 'b', 'c'])
+            sage: F_
+            [a*b + c, b*c^3 + b^2 + c^2 + a]
+        """
+        return PolynomialSequence(self._ring.change_ring(base_ring, names, order),\
+                self._parts)
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
     """
