@@ -1091,10 +1091,12 @@ class PolynomialSequence_generic(Sequence_generic):
 
     def change_ring(self, base_ring=None, names=None, order=None):
         """
-        Return a new PolynomialSequence defined over a new polynomial ring
-        which is isomorphic to ``self.ring()`` but with different term ordering
-        defined by 'order' or variable names given by 'names'. Each polynomial
-        will be mapped to its isomorphic image in the new polynomial ring.
+        Return a PolynomialSequence defined over a new polynomial ring isomorphic
+        to ``self.ring()``.
+
+        The term ordering of the new polynomial ring is given by the parameter ``order``
+        whereas ``names`` defines the variable names. Each polynomial in ``self`` will be
+        mapped to its isomorphic image in the new polynomial ring.
 
         INPUT:
 
