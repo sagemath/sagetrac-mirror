@@ -1,5 +1,3 @@
-# distutils: extra_compile_args = -std=c99
-
 # -*- coding: utf-8 -*-
 """
 Dense matrices over the integer ring
