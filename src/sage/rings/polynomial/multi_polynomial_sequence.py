@@ -1118,8 +1118,8 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F_
             [a*b + c, b*c^3 + b^2 + c^2 + a]
         """
-        return PolynomialSequence(self._ring.change_ring(base_ring, names, order),\
-                self._parts)
+        return PolynomialSequence(self._ring.change_ring(base_ring, names, order),
+                                  self._parts)
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
     """
