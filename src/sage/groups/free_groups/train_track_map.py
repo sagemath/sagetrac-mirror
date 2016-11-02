@@ -1040,8 +1040,7 @@ class TrainTrackMap(GraphSelfMap):
         return result_morph
 
     def stabilize(self, verbose=False):
-        """
-        Given an irreducible train-track representative, computes a
+        """Given an irreducible train-track representative, computes a
         stable train-track representative by folding non-essential
         inps or finds a reduction.
 
@@ -1051,7 +1050,8 @@ class TrainTrackMap(GraphSelfMap):
 
         OUTPUT:
 
-        An irreducible train-track representative
+        A ``WordMorphism`` that maps old edges to paths in the new
+        graph.
 
         EXAMPLES::
 
@@ -1059,6 +1059,7 @@ class TrainTrackMap(GraphSelfMap):
             sage: f = TrainTrackMap.from_edge_map("a->caaa,b->caa,c->b")
             sage: f.stabilize()
             WordMorphism: A->ACBA, B->BA, C->C, a->abca, b->ab, c->c
+
         """
 
         A = self._domain.alphabet()
@@ -1170,7 +1171,11 @@ class TrainTrackMap(GraphSelfMap):
             if len(self._strata) > 1:
                 done = True
 
-        return result_morph
+        if result_morph:
+            return result_morph
+        else:
+            return WordMorphism(dict((a, a) for a in
+                                     self._domain._alphabet))
 
     def has_connected_local_whitehead_graphs(self, verbose=False):
         """

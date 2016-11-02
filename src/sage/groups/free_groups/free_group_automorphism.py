@@ -1005,7 +1005,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         5/ If there are no periodic Nielsen loop then it is an
         atoroidal iwip [Kapo-algo]
 
-        6/ If there is more than two Nielsen loops then it is not iwip
+        6/ If there are two or more Nielsen loops then it is not iwip
 
         7/ If there is one iwip check whether it is contained in a
         non-trivial free factor.
