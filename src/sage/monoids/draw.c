@@ -198,7 +198,7 @@ SDL_Surface *GetSurface (Surface s)
 	{
 		for (x=0;x<s.sx;x++)
 		{
-			//*ptr = SDL_MapRGBA(r->format, x, y, x-y, 255);
+			// *ptr = SDL_MapRGBA(r->format, x, y, x-y, 255);
 			*ptr = SDL_MapRGBA(r->format, s.pix[x][y].r, s.pix[x][y].g, s.pix[x][y].b, s.pix[x][y].a);
 			ptr++;
 		}
@@ -318,7 +318,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 				if (x < 0 || y < 0 || x >=s->w || y >= s->h)
 					continue; //le point n'est pas dedans
 				SDL_GetRGBA(*((Uint32 *)s->pixels+x+(s->pitch/4)*y), s->format, &r0, &g0, &b0, &a);
-				if (a >= 10)
+				if (a >= 50)
 				{
 					if (ok)
 						*ok = true;
@@ -326,6 +326,12 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 					nmax = nn;
 				}
 			}
+		}
+		if (nmax == -1)
+		{
+			if (ok)
+				*ok = false;
+			return r;
 		}
 		lt[j] = imax;
 		r = add(r, prod(b.t[imax], inv(m)));
@@ -493,6 +499,186 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				    f = powC(b.b, -np);
 				    if (verb)
 					    printf("np = %d\n", np);
+				}
+				if ( event.key.keysym.sym == SDLK_ESCAPE )
+				{
+					quit = 1;
+				}
+				break;
+			case SDL_MOUSEBUTTONUP:
+				clic = false;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEMOTION:
+				x = event.motion.x;
+				y = event.motion.y;
+				Complexe c = getComplexe(x, y, screen->w, screen->h);
+				//cherche le morceau le plus proche du point c
+				rt = t;
+				t = FindTr(np, c, b, s, &ok, verb);
+				if (!ok)
+					break;
+				//
+				if (event.type == SDL_MOUSEBUTTONDOWN || (clic && event.motion.state & SDL_BUTTON_LMASK))
+				{ //clic
+					clic = true;
+					if (addA(&r, np)) //ajoute le morceau à l'automate
+					{ //si morceau ajouté
+						drawTransf(s, sf, f, t, colf);
+						SDL_BlitSurface(sf, NULL, screen, NULL);
+						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
+						DrawRond(x, y, screen);
+						SDL_UpdateWindowSurface(win);
+					}
+				}else
+				{
+					if (rt.x != t.x || rt.y != t.y)
+					{
+						SDL_BlitSurface(sf, NULL, screen, NULL);
+						drawTransf(s, screen, f, t, col);
+						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
+						DrawRond(x, y, screen);
+						SDL_UpdateWindowSurface(win);
+					}
+				}
+				break;
+		}
+		if (quit)
+			break;
+	}            
+	
+	SDL_FreeSurface(sf);
+	SDL_FreeSurface(s);
+    SDL_Quit();
+    return r;
+}
+
+//ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
+//en cours d'implémentation...
+void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
+{
+	if (SDL_Init(SDL_INIT_VIDEO) == -1)
+    {
+        printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
+        return r;
+    }
+
+	Surface s0 = NewSurface(sx, sy);
+	if (verb)
+	{
+		printf("Dessin de la fractale...\n");
+		printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
+	}
+	Draw(b, s0, n, ajust, col, verb);
+	if (verb)
+		printf("Conversion en SDL...\n");
+	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
+	
+	    Uint32 rmask, gmask, bmask, amask;
+
+    // SDL interprets each pixel as a 32-bit number, so our masks must depend
+    //  on the endianness (byte order) of the machine
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+    
+	if (verb)
+	{
+		printf("s de taille %dx%d\n", s->w, s->h);
+		printf("Ouverture de la fenêtre...\n");
+    }
+    
+    SDL_Window* win;
+	SDL_Surface *screen;
+
+    // Création de la fenêtre
+    win = SDL_CreateWindow("Fenetre Draw zoom", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy, SDL_WINDOW_SHOWN);
+    if( win == NULL )
+	{
+		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+		exit(1);
+	}else
+	{
+		//Get window surface
+		screen = SDL_GetWindowSurface( win );
+	}
+    if (verb)
+    	printf("Mode vidéo: %dx%d %d bits/pixel\n", screen->w, screen->h, screen->format->BitsPerPixel);
+    
+    //surface dans laquelle on dessine le résultat
+    SDL_Surface *sf = SDL_CreateRGBSurface(0, screen->w, screen->h, 32, rmask, gmask, bmask, amask);
+    if(sf == NULL)
+    {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+    //SDL_SetAlpha(sf, 0, 255);
+         
+    //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    col.r = 80;
+    col.g = 80;
+    col.b = 80;
+    drawTransf(s, sf, un(), zero(), col);
+    SDL_BlitSurface(sf, NULL, screen, NULL);
+    int np = 4;
+    Complexe f = powC(b.b, -np);
+    Complexe t;
+    Complexe rt;
+    t.x = -b.t[0].x;
+    t.y = -b.t[0].y;
+    Color colf;
+    col.r = 100;
+    col.g = 200;
+    col.b = 50;
+    colf.r = 150;
+    colf.g = 100;
+    colf.b = 200;
+    drawTransf(s, screen, f, t, col);
+    SDL_UpdateWindowSurface(win);
+    
+    int quit = 0;
+    int x, y;
+	SDL_Event event;
+	bool ok;
+	bool clic = false;
+	for(;;)
+	{
+		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
+		switch(event.type)
+		{
+			case SDL_QUIT: // Clic sur la croix
+				quit=1;
+				break;
+			case SDL_KEYUP: // Relâchement d'une touche
+				if ( event.key.keysym.sym == SDLK_p ) // Touche p
+				{
+					if (np < 255)
+					{
+				    	np++;
+				    	f = powC(b.b, -np);
+				    	if (verb)
+					    	printf("np = %d\n", np);
+				    }
+				}
+				if ( event.key.keysym.sym == SDLK_m ) // Touche m
+				{
+				    np--;
+				    f = powC(b.b, -np);
+				    if (verb)
+					    printf("np = %d\n", np);
+				}
+				if ( event.key.keysym.sym == SDLK_ESCAPE )
+				{
+					quit = 1;
 				}
 				break;
 			case SDL_MOUSEBUTTONUP:

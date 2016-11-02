@@ -110,6 +110,7 @@ void printInvertDict (InvertDict id);
 void putEtat (Etats *f, int ef); ////////////////////////////////// à améliorer !!!!
 void Determinise_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
 Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
+NAutomaton Proj (Automaton a, Dict d, bool verb);
 
 Automaton DeterminiseN (NAutomaton a, bool puits);
 

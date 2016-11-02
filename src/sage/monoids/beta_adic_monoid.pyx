@@ -2782,22 +2782,27 @@ class BetaAdicMonoid(Monoid_class):
 			B = list(set(b.A))
 		if ar is None:
 			#compute the relations automaton with translation t
-			ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=verb)
+			ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=False)
 		#compute the product of a and b
 		if verb: print("product...")
 		ap = a.product(b)
+		if verb: print "ap = %s"%ap
 		#compute the intersections
 		if verb: print("intersection...")
 		ai = ar.intersection(ap)
+		if verb: print "ai = %s"%ai
 		if verb: print("min...")
 		ai = ai.minimise()
+		if verb: print "ai = %s"%ai
 		#project on one side
 		d={}
 		for c1 in A:
 			for c2 in B:
 				d[(c1,c2)] = c2
+		if verb: print "d=%s"%d
 		if verb: print("determinise...")
 		ai = ai.determinise_proj(d, verb=verb)
+		if verb: print "ai=%s"%ai
 		if verb: print("min")
 		return ai.emonde().minimise()
 	
@@ -2960,15 +2965,15 @@ class BetaAdicMonoid(Monoid_class):
 		a.set_initial_state(e)
 		return a
 	
-	def zero_complete (self, a, verb=False):
-		while True:
-			if verb: print "a = %s"%a
-			aoc = self.move2(0, a)
-			aoc.zero_completeOP()
-			aoc = aoc.zero_complete2()
-			if a.equals_langages(aoc):
-				break
-			a = aoc
+	def zero_complete (self, a, verb=False, test=False):
+		if verb: print "a = %s"%a
+		a2 = a.zero_complete2()
+		a2.zero_completeOP()
+		if verb: print "a2 = %s (après zero-complétion)"%a2
+		aoc = self.move2(0, a2)
+		if verb: print "aoc = %s"%aoc
+		aoc.zero_completeOP()
+		aoc = aoc.zero_complete2()
 		return aoc
 	
 	#calcule la liste triée (par rapport à la place >1) des premiers points dans omega-omega
@@ -3389,9 +3394,9 @@ class BetaAdicMonoid(Monoid_class):
 		if lt is None:
 			if verb: print("compute the pieces exchange...")
 			if method == 1:
-				lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=True)
+				lt = self.compute_morceaux(aoc, method=method_tr, imax=imax, verb=verb)
 			else:
-				lt = self.compute_morceaux2(aoc, iplus, verb=True)
+				lt = self.compute_morceaux2(aoc, iplus, verb=verb)
 		if verb: print("Exchange of %s pieces"%len(lt))
 		#calcule l'induction à partir de la liste de (morceau, translation)
 		#précalculs

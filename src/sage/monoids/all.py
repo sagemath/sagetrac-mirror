@@ -13,3 +13,4 @@ from .string_ops import (
     coincidence_discriminant)
 
 from .beta_adic_monoid import BetaAdicMonoid
+from .beta_adic_monoid import ImageIn

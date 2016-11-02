@@ -52,6 +52,7 @@ cdef extern from "automataC.h":
 	Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 	Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 	Automaton DeterminiseN (NAutomaton a, bool puits)
+	NAutomaton Proj (Automaton a, Dict d, bool verb)
 	void ZeroComplete (Automaton *a, int l0, bool verb)
 	Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 	Automaton ZeroInv (Automaton *a, int l0)
@@ -577,11 +578,11 @@ cdef class FastAutomaton:
 		sig_off()
 		return r.emonde().minimise()
 	
-	def zero_inv (self):		
+	def zero_inv (self, z=0):		
 		sig_on()
 		cdef Automaton a
 		r = FastAutomaton(None)
-		a = ZeroInv(self.a, list(self.A).index(0))
+		a = ZeroInv(self.a, list(self.A).index(z))
 		r.a[0] = a
 		r.A = self.A
 		sig_off()
@@ -850,24 +851,44 @@ cdef class FastAutomaton:
 		r.a[0] = aut
 		r.A = self.A
 		return r
-		
-	def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
+	
+	def proj (self, dict d, verb=False):
 		sig_on()
-		cdef Automaton a
+		cdef NAutomaton a
 		cdef Dict dC
-		r = FastAutomaton(None)
+		r = NFastAutomaton(None)
 		A2 = []
 		d1 = imagDict(d, self.A, A2=A2)
 		if verb:
 			print "d1=%s, A2=%s"%(d1,A2)
 		dC = getDict(d, self.A, d1=d1)
-		a = Determinise (self.a[0], dC, noempty, onlyfinals, nof, verb)
+		a = Proj (self.a[0], dC, verb)
 		FreeDict(&dC)
-		#FreeAutomaton(self.a[0])
 		r.a[0] = a
 		r.A = A2
 		sig_off()
 		return r
+	
+	def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
+		cdef Automaton a
+		cdef Dict dC
+		if noempty and not onlyfinals and not nof:
+			return self.proj(d=d, verb=verb).determinise()
+		else:
+			sig_on()
+			r = FastAutomaton(None)
+			A2 = []
+			d1 = imagDict(d, self.A, A2=A2)
+			if verb:
+				print "d1=%s, A2=%s"%(d1,A2)
+			dC = getDict(d, self.A, d1=d1)
+			a = Determinise (self.a[0], dC, noempty, onlyfinals, nof, verb)
+			FreeDict(&dC)
+			#FreeAutomaton(self.a[0])
+			r.a[0] = a
+			r.A = A2
+			sig_off()
+			return r
 	
 	#change les lettres selon d, en dupliquant les arêtes si nécessaire
 	#the result is assumed deterministic !!!

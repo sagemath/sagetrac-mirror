@@ -192,6 +192,7 @@ NAutomaton NewNAutomaton (int n, int na)
 	a.na = na;
 	if (n == 0)
 	{
+		a.e = NULL;
 		return a;
 	}
 	a.e = (NEtat *)malloc(sizeof(NEtat)*n);
@@ -390,7 +391,7 @@ Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 	if (n > 0)
 		r.e[n-1].f[w[n-1]] = e+n;
 	//teste si vide
-	if (f == -1)
+	if (n > 0 && f == -1)
 	{
 		FreeAutomaton(&r);
 		return NewAutomaton(0, a.na);
@@ -1668,6 +1669,7 @@ void putEtat (Etats *f, int ef)
 	f->n++;
 }
 
+//fonction utilisée par Determinise()
 //Etats : liste d'états de a
 void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bool onlyfinals, bool nof, int niter)
 {
@@ -1743,6 +1745,7 @@ void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 	FreeEtats(f);
 }
 
+//Déterminise l'automate obtenu par changement de l'alphabet
 Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 {
 	int i;
@@ -1915,6 +1918,49 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	return r;
 }
 
+//change l'alphabet de l'automate
+NAutomaton Proj (Automaton a, Dict d, bool verb)
+{
+	//calcule la taille du nouvel alphabet
+	int nv = 0;
+	int i,j;
+	for (i=0;i<d.n;i++)
+	{
+		if (d.e[i] >= nv)
+			nv = d.e[i]+1;
+	}
+	//
+	NAutomaton r = NewNAutomaton(a.n, nv);
+	for (i=0;i<a.n;i++)
+	{
+		//compte le nombre d'arêtes
+		nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+				nv++;
+		}
+		//alloue les nouvelles arêtes
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+			{
+				r.e[i].a[nv].l = d.e[j];
+				r.e[i].a[nv].e = a.e[i].f[j];
+				nv++;
+			}
+		}
+		r.e[i].final = a.e[i].final;
+		r.e[i].initial = (a.i == i);
+	}
+	return r;
+}
+
+//déterminise un automate non-déterministe
 Automaton DeterminiseN (NAutomaton a, bool puits)
 {
 	int verb = 0;
