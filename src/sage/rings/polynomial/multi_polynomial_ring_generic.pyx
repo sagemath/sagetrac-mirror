@@ -945,7 +945,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         ``base_ring``, variable names set to ``names``, and term
         ordering given by ``order``.
 
-        Note that each argument above are optional. If ``base_ring``
+        Note that each argument above is optional. If ``base_ring``
         is not specified then the new polynomial ring is isomorphic
         to ``self``.
 

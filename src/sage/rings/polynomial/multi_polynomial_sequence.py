@@ -1094,7 +1094,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Return a ``PolynomialSequence`` with its elements defined over a new polynomial ring
         determined by parameters ``base_ring``, ``names``, and ``order``.
 
-        Each argument above are optional. The term ordering of the new polynomial ring is given
+        Each argument above is optional. The term ordering of the new polynomial ring is given
         by the parameter ``order`` whereas ``names`` defines the variable names. The coefficients
         of polynomials in ``self`` are converted to ``base_ring`` elements. Note that when
         ``base_ring`` is not specified, the new polynomial ring is isomorphic to ``self.ring()``.
