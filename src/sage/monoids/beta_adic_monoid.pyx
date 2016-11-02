@@ -277,6 +277,7 @@ cdef extern from "draw.h":
 	void FreeBetaAdic (BetaAdic b)
 	BetaAdic2 NewBetaAdic2 (int n, int na)
 	void FreeBetaAdic2 (BetaAdic2 b)
+	void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
 	Automate UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
 	void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
@@ -909,6 +910,29 @@ class BetaAdicMonoid(Monoid_class):
 		r.a[0] = a
 		r.A = list(self.C)
 		return r
+	
+	def draw_zoom (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, verb=False):
+		if tss is None:
+			tss = self.reduced_words_automaton2()
+		sig_on()
+		cdef BetaAdic b
+		b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
+		#if verb:
+		#	printAutomaton(b.a)
+		#dessin
+		cdef Color col
+		col.r = color[0]
+		col.g = color[1]
+		col.b = color[2]
+		col.a = color[3]
+		if n is None:
+			n = -1
+		if method == 0:
+			DrawZoom(b, sx, sy, n, ajust, col, verb)
+		elif method == 1:
+			print "Not implemented !"
+			return
+		sig_off()
 	
 	def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, verb=False):
 		r"""

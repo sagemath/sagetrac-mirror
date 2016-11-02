@@ -553,6 +553,58 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     return r;
 }
 
+void invert(const SDL_PixelFormat* format, Uint32 *p)
+{
+	Uint8 r,g,b;
+	SDL_GetRGB(*p, format, &r, &g, &b);
+	*p = SDL_MapRGB(format, 255-r, 255-g, 255-b);
+}
+
+int mini (int a, int b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+int max (int a, int b)
+{
+	if (a > b)
+		return a;
+	return b;
+}
+
+void invertRect(SDL_Surface *s, int x1, int y1, int x2, int y2)
+{
+	if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
+		return;
+	if (x1 >= s->w || x2 >= s->w || y1 >= s->h || y2 >= s->h)
+		return;
+	int x,y;
+	Uint32 *ptr = s->pixels;
+	for (x=mini(x1,x2);x<max(x1,x2);x++)
+	{
+		invert(s->format, ptr+x+y1*s->pitch/4);
+		invert(s->format, ptr+x+y2*s->pitch/4);
+	}
+	for (y=mini(y1,y2);y<max(y1,y2);y++)
+	{
+		invert(s->format, ptr+x1+y*s->pitch/4);
+		invert(s->format, ptr+x2+y*s->pitch/4);
+	}
+}
+
+int sign(int a)
+{
+	if (a > 0)
+		return 1;
+	if (a == 0)
+		return 0;
+	return -1;
+}
+
+double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
+
 //ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
 //en cours d'implémentation...
 void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
@@ -560,10 +612,36 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
         printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
-        return r;
+        return;
     }
-
-	Surface s0 = NewSurface(sx, sy);
+    
+    Surface s0 = NewSurface(sx, sy);
+    
+    Rmaj = NULL;
+    if (ajust)
+    {
+    	//réinitialise les extremum observés
+    	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
+    	/*
+    	if (b.a.n < 10)
+    	{
+    		Rmaj = (double *)malloc(sizeof(double)*b.a.n);
+    		if (verb)
+    			printf("Calcule des bornes pour chaque état...\n");
+    		//calcule les majorants
+    		int i;
+    		for (i=0;i<b.a.n;i++)
+    		{
+    			printf("Calul du majorant de %d...\n", i);
+    			mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000; //réinitialise les extremum observés
+    			Draw(b, s0, n, ajust, col, verb);
+    			Rmaj[i] = sqrt((Mx2-mx2)*(Mx2-mx2) + (My2-my2)*(My2-my2))/2;
+    			printf("	-> %lf\n", Rmaj[i]);
+    		}
+    	}
+    	*/
+    }
+    
 	if (verb)
 	{
 		printf("Dessin de la fractale...\n");
@@ -573,22 +651,6 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb
 	if (verb)
 		printf("Conversion en SDL...\n");
 	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
-	
-	    Uint32 rmask, gmask, bmask, amask;
-
-    // SDL interprets each pixel as a 32-bit number, so our masks must depend
-    //  on the endianness (byte order) of the machine
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-#else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-#endif
     
 	if (verb)
 	{
@@ -612,44 +674,17 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb
 	}
     if (verb)
     	printf("Mode vidéo: %dx%d %d bits/pixel\n", screen->w, screen->h, screen->format->BitsPerPixel);
-    
-    //surface dans laquelle on dessine le résultat
-    SDL_Surface *sf = SDL_CreateRGBSurface(0, screen->w, screen->h, 32, rmask, gmask, bmask, amask);
-    if(sf == NULL)
-    {
-        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-        exit(1);
-    }
-    //SDL_SetAlpha(sf, 0, 255);
          
     //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-    col.r = 80;
-    col.g = 80;
-    col.b = 80;
-    drawTransf(s, sf, un(), zero(), col);
-    SDL_BlitSurface(sf, NULL, screen, NULL);
-    int np = 4;
-    Complexe f = powC(b.b, -np);
-    Complexe t;
-    Complexe rt;
-    t.x = -b.t[0].x;
-    t.y = -b.t[0].y;
-    Color colf;
-    col.r = 100;
-    col.g = 200;
-    col.b = 50;
-    colf.r = 150;
-    colf.g = 100;
-    colf.b = 200;
-    drawTransf(s, screen, f, t, col);
+    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
+    SDL_BlitSurface(s, NULL, screen, NULL);
     SDL_UpdateWindowSurface(win);
-    
+       
     int quit = 0;
-    int x, y;
+    int x, y, rx, ry, x1, y1, x2, y2;
 	SDL_Event event;
-	bool ok;
 	bool clic = false;
+	bool redraw = false;
 	for(;;)
 	{
 		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
@@ -659,74 +694,132 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb
 				quit=1;
 				break;
 			case SDL_KEYUP: // Relâchement d'une touche
-				if ( event.key.keysym.sym == SDLK_p ) // Touche p
-				{
-					if (np < 255)
-					{
-				    	np++;
-				    	f = powC(b.b, -np);
-				    	if (verb)
-					    	printf("np = %d\n", np);
-				    }
-				}
-				if ( event.key.keysym.sym == SDLK_m ) // Touche m
-				{
-				    np--;
-				    f = powC(b.b, -np);
-				    if (verb)
-					    printf("np = %d\n", np);
-				}
-				if ( event.key.keysym.sym == SDLK_ESCAPE )
+				if (event.key.keysym.sym == SDLK_ESCAPE )
 				{
 					quit = 1;
 				}
+				if (event.key.keysym.sym == SDLK_RIGHT)
+				{
+					double px = (Mx - mx)/10;
+					Mx += px;
+					mx += px;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_LEFT)
+				{
+					double px = (Mx - mx)/10;
+					Mx -= px;
+					mx -= px;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_UP)
+				{
+					double py = (My - my)/10;
+					My -= py;
+					my -= py;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_DOWN)
+				{
+					double py = (My - my)/10;
+					My += py;
+					my += py;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_m)
+				{
+					double m = 1.4;
+					double m2;
+					m2 = (Mx+mx - (Mx-mx)*m)/2;
+					Mx = (Mx+mx + (Mx-mx)*m)/2;
+					mx = m2;
+					m2 = (My+my - (My-my)*m)/2;
+					My = (My+my + (My-my)*m)/2;
+					my = m2;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_p)
+				{
+					double m = 1/1.4;
+					double m2;
+					m2 = (Mx+mx - (Mx-mx)*m)/2;
+					Mx = (Mx+mx + (Mx-mx)*m)/2;
+					mx = m2;
+					m2 = (My+my - (My-my)*m)/2;
+					My = (My+my + (My-my)*m)/2;
+					my = m2;
+					redraw = true;
+				}
 				break;
 			case SDL_MOUSEBUTTONUP:
-				clic = false;
-				break;
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEMOTION:
 				x = event.motion.x;
 				y = event.motion.y;
-				Complexe c = getComplexe(x, y, screen->w, screen->h);
-				//cherche le morceau le plus proche du point c
-				rt = t;
-				t = FindTr(np, c, b, s, &ok, verb);
-				if (!ok)
-					break;
-				//
-				if (event.type == SDL_MOUSEBUTTONDOWN || (clic && event.motion.state & SDL_BUTTON_LMASK))
-				{ //clic
-					clic = true;
-					if (addA(&r, np)) //ajoute le morceau à l'automate
-					{ //si morceau ajouté
-						drawTransf(s, sf, f, t, colf);
-						SDL_BlitSurface(sf, NULL, screen, NULL);
-						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
-						DrawRond(x, y, screen);
-						SDL_UpdateWindowSurface(win);
-					}
-				}else
+				//Complexe c = getComplexe(x, y, screen->w, screen->h);
+				if (clic)
 				{
-					if (rt.x != t.x || rt.y != t.y)
+					if (abs(x-x1)*sy > abs(y-y1)*sx)
 					{
-						SDL_BlitSurface(sf, NULL, screen, NULL);
-						drawTransf(s, screen, f, t, col);
-						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
-						DrawRond(x, y, screen);
-						SDL_UpdateWindowSurface(win);
+						x = x1 + sign(x-x1)*abs(y-y1)*sx/sy;
+					}else
+					{
+						y = y1 + sign(y - y1)*abs(x-x1)*sy/sx;
 					}
+				}else if (event.type == SDL_MOUSEBUTTONDOWN)
+				{
+					clic = true;
+					x1 = x;
+					y1 = y;
+					rx = -1;
 				}
+				if (event.type == SDL_MOUSEBUTTONUP)
+				{
+					x2 = rx;
+					y2 = ry;
+					// change la fenetre de dessin et redessine
+					mx = mx + (double)mini(x1,x2)*(Mx-mx)/sx;
+					my = my + (double)mini(y1,y2)*(My-my)/sy;
+					Mx = mx + (double)max(x1,x2)*(Mx-mx)/sx;
+					My = my + (double)max(y1,y2)*(My-my)/sy;
+					//invertRect(screen, x1, y1, rx, ry); //éfface le précédent dessin
+					redraw = true;
+					clic = false;
+				}
+				if (clic && (x != rx || y != ry))
+				{
+					if (rx != -1)
+						invertRect(screen, x1, y1, rx, ry); //éfface le précédent rectangle
+					invertRect(screen, x1, y1, x, y); //dessine le nouveau rectangle
+					SDL_UpdateWindowSurface(win);
+				}
+				rx = x;
+				ry = y;
 				break;
+		}
+		if (redraw)
+		{
+			redraw = false;
+			if (verb)
+			{
+				printf("Dessin de la fractale...\n");
+				printf("zone (%lf ... %lf)x(%lf ... %lf)\n", mx, Mx, my, My);
+				printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
+			}
+			Draw(b, s0, n, false, col, verb);
+			s = GetSurface(s0);	//utilisé pour dessiner les transformées
+		    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
+		    SDL_BlitSurface(s, NULL, screen, NULL);
+		    SDL_UpdateWindowSurface(win);
 		}
 		if (quit)
 			break;
 	}            
 	
-	SDL_FreeSurface(sf);
+	if (Rmaj)
+		free(Rmaj);
 	SDL_FreeSurface(s);
     SDL_Quit();
-    return r;
 }
 
 ColorList NewColorList (int n)
@@ -995,6 +1088,8 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 	}
 }
 
+double Maj = 1000; //majorant
+
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
 	if (n == 0)
@@ -1022,6 +1117,22 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 		set_pix (s, p);
 	}else
 	{
+		if (n > 5)
+		{
+			//teste si l'on sort de la zone de dessin
+			//sous-arbre inclus dans le disque de centre p et de rayon abs(bn)*M
+			double Mn = Maj*sqrt(cnorm(bn));
+			if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
+			{
+				/*
+				if (Rmaj != NULL)
+				{
+					///////////TODO !!!
+				}
+				*/
+			}else
+				return; //intersection des rectangles vide
+		}
 		int i;
 		for (i=0;i<b.a.na;i++)
 		{
@@ -1033,13 +1144,6 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 				Draw_rec (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
 		}
 	}
-}
-
-int max (int a, int b)
-{
-	if (a < b)
-		return b;
-	return a;
 }
 
 Color randColor (int a)
@@ -1075,6 +1179,21 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		colors[i] = randCol(255);
 	}
 	*/
+	
+	if (cnorm(b.b) < 1)
+	{
+		//calcul du majorant
+		Maj = 0;
+		double m;
+		for (i=0;i<b.n;i++)
+		{
+			m = cnorm(b.t[i]);
+			if (Maj < m)
+				Maj = m;
+		}
+		Maj = sqrt(Maj)/(1. - sqrt(cnorm(b.b)));
+	}
+	
 	if (verb)
 	{
 		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
@@ -1127,7 +1246,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		ns = 0;
 		cs.x = 0;
 		cs.y = 0;
-		Draw_rec (b, s, n, zero(), un(), b.a.i);
+		Draw_rec(b, s, n, zero(), un(), b.a.i);
 		barycentre.x = cs.x/ns;
 		barycentre.y = cs.y/ns;
 		mx = mx2 - (Mx2 - mx2)/100;
@@ -1159,6 +1278,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		{
 			double ratio = pow(cnorm(b.b), n/2);
 			n = .75 + 2.*absd(log(ratio*max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+			//change d'échelle pour dessiner la fractale à la bonne échelle
 			ratio = pow(cnorm(b.b), n/2)/ratio;
 			Mx = Mx*ratio;
 			mx = mx*ratio;
@@ -1179,7 +1299,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 			printf("n = %d\n", n);
 	}
 	//niter = n;
-	Draw_rec (b, s, n, zero(), un(), b.a.i);
+	Draw_rec(b, s, n, zero(), un(), b.a.i);
 }
 
 void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
