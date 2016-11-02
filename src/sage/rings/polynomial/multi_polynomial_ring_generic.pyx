@@ -941,9 +941,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def change_ring(self, base_ring=None, names=None, order=None):
         """
-        Return a new multivariate polynomial ring which isomorphic to
-        self, but has a different ordering given by the parameter
-        'order' or names given by the parameter 'names'.
+        Return a new multivariate polynomial ring with base ring
+        ``base_ring``, variable names set to ``names``, and term
+        ordering given by ``order``.
+
+        Note that each argument above are optional. If ``base_ring``
+        is not specified then the new polynomial ring is isomorphic
+        to ``self``.
 
         INPUT:
 
