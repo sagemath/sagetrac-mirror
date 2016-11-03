@@ -1,4 +1,4 @@
-# distutils: extra_compile_args = GIVARO_CFLAGS
+# distutils: extra_compile_args = GIVARO_CFLAGS -std=c++11
 
 from libcpp.vector cimport vector
 ctypedef vector[int] intvec

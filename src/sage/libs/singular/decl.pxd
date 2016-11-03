@@ -1,4 +1,4 @@
-# distutils: extra_compile_args = SINGULAR_CFLAGS
+# distutils: extra_compile_args = SINGULAR_CFLAGS -std=c++11
 # distutils: libraries = SINGULAR_LIBRARIES
 # distutils: library_dirs = SINGULAR_LIBDIR
 # distutils: language = c++
