@@ -16402,18 +16402,18 @@ class GenericGraph(GenericGraph_pyx):
         if new_version:
             n = self.order()
             perm_inv = self.vertices()
-            perm = dict(zip(perm_inv,range(n)))
+            perm = dict(zip(perm_inv, range(n)))
 
             if not initial_vertex is None:
                 i = perm[initial_vertex]
-                if i>0:
+                if i:
                     v = perm_inv[0]
                     perm[initial_vertex], perm[v] = 0, i
                     perm_inv[i], perm_inv[0] = v, initial_vertex
 
-            slice_of   = [0]*n
-            slice_head = [0]*n
-            subslice   = [0]*n
+            slice_of   = [0] * n
+            slice_head = [0] * n
+            subslice   = [0] * n
             pred       = {}
 
             k = 1
@@ -16428,9 +16428,9 @@ class GenericGraph(GenericGraph_pyx):
                         continue
                     a = slice_of[j]
                     if slice_head[a] <= i:
-                        slice_head[a] = i+1
+                        slice_head[a] = i + 1
                     l = slice_head[a]
-                    if l==n-1 or slice_of[l+1] != a:
+                    if l == n - 1 or slice_of[l + 1] != a:
                         continue
                     if l != j:
                         u = perm_inv[l]
