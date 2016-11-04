@@ -144,9 +144,12 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         '...'
     """
-    proc = subprocess.Popen(["pip", "list"], stdout=subprocess.PIPE)
-    stdout = str(proc.communicate()[0])
-    return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
+    cmd = ["pip", "list"]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdoutdata, stderrdata = proc.communicate()
+    if proc.poll():
+        raise ValueError("pip command \"{}\" failed with\n{}".format("".join(cmd), stderrdata))
+    return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdoutdata))
 
 def list_packages(*pkg_types, **opts):
     r"""
