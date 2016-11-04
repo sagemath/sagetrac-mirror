@@ -48,6 +48,9 @@ from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_
 #PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings
 
+#Integer arrays
+from .integer_array import IntegerArray, IntegerArrays
+
 # Integer lists
 from .integer_lists import IntegerListsLex
 
