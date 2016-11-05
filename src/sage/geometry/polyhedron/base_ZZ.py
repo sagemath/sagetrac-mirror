@@ -321,7 +321,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         p = ans.splitlines()[-2]
 
         return R(p)
-
+    
     @cached_method
     def polar(self):
         """
