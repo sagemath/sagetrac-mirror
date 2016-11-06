@@ -641,7 +641,8 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
-
+        if self.ng == 0:
+            return
         memset(self.busy, 0, self.ng * sizeof(int))
         # 0 is the first vertex we use, so it is at first busy
         self.busy[0] = 1
@@ -678,6 +679,8 @@ cdef class SubgraphSearch:
         self.ng = G.order()
         self.nh = H.order()
 
+        if self.ng == 0:
+            return
         # Storing the list of vertices
         self.g_vertices = G.vertices()
 
@@ -763,6 +766,8 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
+        if self.ng == 0:
+            return
         sig_on()
         cdef bint is_admissible
         cdef int * tmp_array = self.tmp_array
@@ -837,6 +842,8 @@ cdef class SubgraphSearch:
         r"""
         Freeing the allocated memory.
         """
+        if self.ng == 0:
+            return
         if self.line_h_in  is not NULL:
             sig_free(self.line_h_in[0])
         if self.line_h_out is not NULL:
