@@ -445,7 +445,7 @@ class Gamma1_class(GammaH_class):
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
 
-        Examples with half-integral weights: ::
+        Examples with half-integral weights::
 
             sage: Gamma1(44).dimension_cusp_forms(3/2)
             12
@@ -579,7 +579,7 @@ class Gamma1_class(GammaH_class):
             sage: [Gamma1(48).dimension_eis(3,eps,algorithm="Quer") for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
 
-        Examples with half-integral weights: ::
+        Examples with half-integral weights::
 
             sage: Gamma1(44).dimension_eis(3/2)
             38

@@ -534,7 +534,7 @@ def dimension_cusp_forms(X, k=2):
         sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
         5
 
-    Examples with half-integral weights: ::
+    Examples with half-integral weights::
 
         sage: dimension_cusp_forms(44,3/2)
         2
@@ -653,7 +653,7 @@ def dimension_eis(X, k=2):
         sage: dimension_modular_forms(Gamma1(4), 11)
         6
 
-    Examples with half-integral weights: ::
+    Examples with half-integral weights::
 
         sage: dimension_eis(44,3/2)
         3
@@ -732,7 +732,7 @@ def dimension_modular_forms(X, k=2):
         sage: dimension_modular_forms(11,2)
         2
 
-    Examples with half-integral weights: ::
+    Examples with half-integral weights::
 
         sage: dimension_modular_forms(44,3/2)
         5
