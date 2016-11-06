@@ -826,6 +826,15 @@ cdef class FastAutomaton:
 		r.A = self.A
 		return r
 	
+	#this function could be written in a more efficient way
+	def unshiftl (self, list l):
+		a = self
+		l.reverse()
+		for i in l:
+			a = a.unshift1(i)
+		l.reverse()
+		return a
+	
 	def unshift (self, int a, int np, final=None):
 		if final is None:
 			if self.a.i == -1:

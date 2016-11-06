@@ -911,7 +911,7 @@ class BetaAdicMonoid(Monoid_class):
 		r.A = list(self.C)
 		return r
 	
-	def draw_zoom (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, coeff=2., verb=False):
+	def draw_zoom (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, coeff=8., verb=False):
 		if tss is None:
 			tss = self.reduced_words_automaton2()
 		sig_on()
@@ -934,7 +934,7 @@ class BetaAdicMonoid(Monoid_class):
 			return
 		sig_off()
 	
-	def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=2., verb=False):
+	def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=8., verb=False):
 		r"""
 		Draw the limit set of the beta-adic monoid (with or without subshift).
 

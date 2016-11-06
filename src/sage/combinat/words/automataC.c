@@ -2940,7 +2940,7 @@ Automaton SubAutomaton (Automaton a, Dict d, bool verb)
 	r.i = -1;
 	if (a.i != -1)
 	{
-		a.i = l[a.i];
+		r.i = l[a.i];
 	}
 	free(l);
 	return r;

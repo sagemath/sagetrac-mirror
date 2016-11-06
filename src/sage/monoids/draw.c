@@ -622,6 +622,7 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
     {
     	//réinitialise les extremum observés
     	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
+    	mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
     	/*
     	if (b.a.n < 10)
     	{
@@ -748,6 +749,14 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 					m2 = (My+my - (My-my)*m)/2;
 					My = (My+my + (My-my)*m)/2;
 					my = m2;
+					redraw = true;
+				}
+				if (event.key.keysym.sym == SDLK_r)
+				{
+					//réinitialise les extremum observés
+			    	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
+			    	mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
+    				Draw(b, s0, n, true, col, coeff, verb);
 					redraw = true;
 				}
 				break;
@@ -1170,6 +1179,10 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 	int auto_n = (n < 0);
 	//set global variables
 	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	if (ajust)
+	{
+		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
+	}
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
@@ -1275,7 +1288,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 	if (auto_n)
 	{
 		if (cnorm(b.b) < 1)
-			n = .75 + coeff*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+			n = coeff + 2.*absd(log(max(s.sx/(Mx-mx), s.sy/(My-my)))/log(cnorm(b.b)));
 		else
 		{
 			double ratio = pow(cnorm(b.b), n/2);
