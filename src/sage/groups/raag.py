@@ -23,7 +23,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
-from sage.groups.free_group import FreeGroup
+from sage.groups.free_groups.free_group import FreeGroup
 from sage.graphs.graph import Graph
 
 

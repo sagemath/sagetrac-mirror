@@ -2,8 +2,8 @@
 LibGAP-based Groups
 
 This module provides helper class for wrapping GAP groups via
-:mod:`~sage.libs.gap.libgap`. See :mod:`~sage.groups.free_group` for an
-example how they are used.
+:mod:`~sage.libs.gap.libgap`. See :mod:`~sage.groups.free_groups.free_group`
+for an example how they are used.
 
 The parent class keeps track of the libGAP element object, to use it
 in your Python parent you have to derive both from the suitable group
@@ -501,7 +501,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: a._repr_()
             'a'
             sage: type(a)
-            <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
+            <class 'sage.groups.free_groups.free_group.FreeGroup_class_with_category.element_class'>
 
             sage: x = G([1, 2, -1, -2])
             sage: x._repr_()
