@@ -3475,46 +3475,38 @@ class DiGraph(GenericGraph):
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
     
-    def is_simple_deterministic(self):
+    def is_deterministic(self):
         r"""
-        Check if the graph is simple and deterministic.
+        Check if the graph is deterministic.
 
-        A graph is said to be simple if there is at most one edge between
-        any two vertices. A graph is said to be deterministic if all the
+        A directed graph is said to be deterministic if all the
         out-edges from any vertex have distinct labels.
 
         EXAMPLES::
 
             sage: g = DiGraph([(1, 2, 1)])
-            sage: g.is_simple_deterministic()
+            sage: g.is_deterministic()
             True
-
-        A digraph that is simple but not deterministic::
-
             sage: g = DiGraph([(1, 2, 1), (1, 3, 1)])
-            sage: g.is_simple_deterministic()
+            sage: g.is_deterministic()
             False
-
-        A digraph that is deterministic but not simple::
-
             sage: g = DiGraph([(1, 2, 1), (1, 2, 2)], multiedges=True)
-            sage: g.is_simple_deterministic()
-            False
+            sage: g.is_deterministic()
+            True
         """
         for v in self.vertices():
             seen_ends = set()
             seen_labels = set()
             for e in self.outgoing_edges(v):
-                if e[1] in seen_ends or e[2] in seen_labels:
+                if e[2] in seen_labels:
                     return False
                 else:
-                    seen_ends.add(e[1])
                     seen_labels.add(e[2])
         return True
 
     def is_cayley_directed(self):
         r"""
-        Check if the graph is a directed Cayley graph.
+        Check if directed graph with specified edge labels is Cayley.
 
         EXAMPLES::
 
@@ -3558,7 +3550,7 @@ class DiGraph(GenericGraph):
         - Amritanshu Prasad (2016-10-28)
 
         """
-        return self.is_strongly_connected() and self.is_vertex_transitive() and self.is_simple_deterministic()
+        return not(self.has_multiple_edges()) and self.is_strongly_connected() and self.is_vertex_transitive() and self.is_deterministic()
 
 import types
 
