@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Cached Functions and Methods
 

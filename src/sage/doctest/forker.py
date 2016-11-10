@@ -36,7 +36,15 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import hashlib
+import multiprocessing
+import os
+import sys
+import time
+import warnings
+import signal
+import linecache
+import codecs
 import doctest, traceback
 import tempfile
 import sage.misc.randstate as randstate
@@ -391,6 +399,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR
             <sage.doctest.forker.SageDocTestRunner instance at ...>
         """
+        # Replace stdout by an UTF-8 version of stdout, such
+        # that Unicode doctest output can be compared.
+        sys.stdout = codecs.getwriter("utf-8")(sys.__stdout__)
         O = kwds.pop('outtmpfile', None)
         self.msgfile = kwds.pop('msgfile', None)
         self.options = kwds.pop('sage_options')
@@ -768,7 +779,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example))
+        s = pre_hash(get_source(example)).encode('utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
