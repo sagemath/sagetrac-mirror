@@ -14,11 +14,11 @@ The main objects which are exported from this module are:
 
 AUTHORS:
 
- * Original authors `erf`/`error_fcn` (c) 2006-2014:
+ * Original authors ``erf``/``error_fcn`` (c) 2006-2014:
    Karl-Dieter Crisman, Benjamin Jones, Mike Hansen, William Stein,
    Burcin Erocal, Jeroen Demeyer, W. D. Joyner, R. Andrew Ohana
- * Reorganisation in new file, addition of `erfi`/`erfinv`/`erfc` (c) 2016:
-   Ralf Stephan
+ * Reorganisation in new file, addition of ``erfi``/``erfinv``/``erfc``
+   (c) 2016: Ralf Stephan
 
 REFERENCES:
 
@@ -47,12 +47,13 @@ from sage.symbolic.expression import Expression
 from sage.functions.all import sqrt, exp
 from sage.symbolic.constants import pi
 from sage.rings.infinity import unsigned_infinity
+from sage.misc.superseded import deprecation
 
 class Function_erf(BuiltinFunction):
     r"""
     The error function, defined for real values as
 
-    `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
+    `\operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
 
     This function is also defined for complex values, via analytic
     continuation.
@@ -441,7 +442,24 @@ class Function_erfc(BuiltinFunction):
         """
         return -2*exp(-x**2)/sqrt(pi)
 
-error_fcn = erfc = Function_erfc()
+erfc = Function_erfc()
+
+def error_fcn(x):
+    """
+    Deprecated. Please use erfc().
+
+    EXAMPLES::
+
+        sage: error_fcn(x)
+        doctest:warning
+        ...
+        DeprecationWarning: error_fcn() is deprecated. Please use erfc()
+        See http://trac.sagemath.org/21819 for details.
+        erfc(x)
+    """
+    deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
+    return erfc(x)
+
 
 class Function_erfinv(BuiltinFunction):
     def __init__(self):
@@ -453,10 +471,13 @@ class Function_erfinv(BuiltinFunction):
 
             sage: erfinv(2)._sympy_()
             erfinv(2)
+            sage: maxima(erfinv(2))
+            inverse_erf(2)
         """
         BuiltinFunction.__init__(self, "erfinv",
                                  latex_name=r"\operatorname{erfinv}",
-                                 conversions=dict(sympy='erfinv'))
+                                 conversions=dict(sympy='erfinv',
+                                     maxima='inverse_erf'))
 
     def _eval_(self, x):
         """
