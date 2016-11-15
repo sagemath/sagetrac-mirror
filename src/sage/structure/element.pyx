@@ -482,15 +482,27 @@ cdef class Element(SageObject):
             sage: dir(1/2)
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
-        Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
+        TESTS:
 
-            sage: 1.__dir__()
+        Test that this also works on extension types::
+
+            sage: dir(1)
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
-            sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
+
+        Test that :trac:`21880` has been resolved, i.e., this works for
+        morphisms which are extension types::
+
+            sage: f = ZZ.hom(QQ)
+            sage: '__invert__' in dir(f)
+            True
+
         """
-        from .misc import dir_with_other_class
-        return dir_with_other_class(self, self.parent().category().element_class)
+        P = self.parent()
+        if P is None:
+            return super(Element, self).__dir__()
+        else:
+            from .misc import dir_with_other_class
+            return dir_with_other_class(self, P._abstract_element_class)
 
     def _repr_(self):
         return "Generic element of a structure"
