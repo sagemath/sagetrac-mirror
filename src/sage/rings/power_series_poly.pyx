@@ -9,7 +9,7 @@ from __future__ import print_function
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.libs.all import PariError
 from sage.misc.superseded import deprecated_function_alias
 

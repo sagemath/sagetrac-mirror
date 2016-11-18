@@ -107,7 +107,7 @@ import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from warnings import warn
 

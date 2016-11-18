@@ -68,9 +68,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pari.gen cimport gen as pari_gen, new_ref
-from sage.libs.pari.pari_instance cimport get_var, pari_instance as pari
-from sage.libs.pari.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
+from sage.libs.cypari2.gen cimport gen as pari_gen, new_ref
+from sage.libs.cypari2.pari_instance cimport get_var, pari_instance as pari
+from sage.libs.cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 
 from sage.misc.superseded import deprecated_function_alias
 
