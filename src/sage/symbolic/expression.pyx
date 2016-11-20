@@ -1573,7 +1573,7 @@ cdef class Expression(CommutativeRingElement):
             ...           else:
             ...               hashes.add(n)
 
-        Check whether `oo` keeps its hash in `SR` (:trac:`19918`)::
+        Check whether `oo` keeps its hash in `SR` (:trac:`19928`)::
 
             sage: hash(oo) == hash(SR(oo))
             True
@@ -1582,6 +1582,8 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(-oo) == hash(SR(-oo))
             True
             sage: hash(-oo) == hash((-x).subs(x=oo))
+            True
+            sage: hash(unsigned_infinity) == hash(SR(unsigned_infinity))
             True
         """
         return self._gobj.gethash()
@@ -6407,7 +6409,7 @@ cdef class Expression(CommutativeRingElement):
             sage: R(z^3 + 10*z)
             z^3 + 3*z
 
-        .. note::
+        .. NOTE::
 
            If the base ring of the polynomial ring is the symbolic ring,
            then a constant polynomial is always returned.
@@ -6702,7 +6704,7 @@ cdef class Expression(CommutativeRingElement):
         A new expression, equivalent to the original one, with the
         coefficients of ``s`` grouped.
 
-        .. note::
+        .. NOTE::
 
             The expression is not expanded or factored before the
             grouping takes place. For best results, call :meth:`expand`
@@ -8855,7 +8857,7 @@ cdef class Expression(CommutativeRingElement):
         is, the form `a + bi` where `a` and `b` are real numbers and
         `i` is the imaginary unit.
 
-        .. note::
+        .. NOTE::
 
            The name \"rectangular\" comes from the fact that, in the
            complex plane, `a` and `bi` are perpendicular.
@@ -8995,7 +8997,7 @@ cdef class Expression(CommutativeRingElement):
         """
         Return a simplified version of this symbolic expression.
 
-        .. note::
+        .. NOTE::
 
            Currently, this just sends the expression to Maxima
            and converts it back to Sage.
@@ -10190,7 +10192,7 @@ cdef class Expression(CommutativeRingElement):
 
         -  ``dontfactor`` - see docs for :meth:`factor`
 
-        .. note::
+        .. NOTE::
 
            If you already have a factored expression and just want to
            get at the individual factors, use the ``_factor_list`` method
@@ -10427,7 +10429,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.roots(x)
             [(0, 1)]
 
-        .. note::
+        .. NOTE::
 
             It is possible to solve a greater variety of equations
             using ``solve()`` and the keyword ``to_poly_solve``,
@@ -11555,7 +11557,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
-        .. note::
+        .. NOTE::
 
            #. Sage can currently only understand a subset of the output of Maxima, Maple and
               Mathematica, so even if the chosen backend can perform the summation the
@@ -11779,7 +11781,7 @@ cdef class Expression(CommutativeRingElement):
         Return a relation obtained by multiplying both sides of this
         relation by *x*.
 
-        .. note::
+        .. NOTE::
 
            The *checksign* keyword argument is currently ignored and
            is included for backward compatibility reasons only.
@@ -11828,7 +11830,7 @@ cdef class Expression(CommutativeRingElement):
         Return a relation obtained by dividing both sides of this
         relation by *x*.
 
-        .. note::
+        .. NOTE::
 
            The *checksign* keyword argument is currently ignored and
            is included for backward compatibility reasons only.
