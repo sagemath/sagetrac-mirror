@@ -52,6 +52,8 @@ cdef extern from "automataC.h":
 	Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 	Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 	Automaton DeterminiseN (NAutomaton a, bool puits)
+	NAutomaton Concat (Automaton a, Automaton b, bool verb)
+	NAutomaton CopyN (Automaton a, bool verb)
 	NAutomaton Proj (Automaton a, Dict d, bool verb)
 	void ZeroComplete (Automaton *a, int l0, bool verb)
 	Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
@@ -349,10 +351,14 @@ cdef class NFastAutomaton:
 	
 	def __init__(self, a, I=None, F=None, A=None):
 		#print "init"
+		cdef NAutomaton r
 		if a is None:
 			return
 		else:
-			raise ValueError("Cannot construct directly a NFastAutomaton for the moment.")
+			if type(a) == FastAutomaton:
+				self = a.copyn()
+			else:
+				raise ValueError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
 	
 	def __dealloc__ (self):
 		#print "free"
@@ -361,6 +367,43 @@ cdef class NFastAutomaton:
 	
 	def __repr__ (self):
 		return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+	
+	def n_states (self):
+		return self.a.n
+	
+	def n_succs (self, int i):
+		if i >= self.a.n or i < -1:
+			raise ValueError("There is no state %s !"%i)
+		return self.a.e[i].n
+	
+	#give the state at end of the jth edge of the state i
+	def succ (self, int i, int j):
+		if i >= self.a.n or i < 0:
+			raise ValueError("There is no state %s !"%i)
+		if j >= self.a.e[i].n or j < 0:
+			raise ValueError("The state %s has no edge number %s !"%(i,j))
+		return self.a.e[i].a[j].e
+	
+	#give the label of the jth edge of the state i
+	def label (self, int i, int j):
+		if i >= self.a.n or i < 0:
+			raise ValueError("There is no state %s !"%i)
+		if j >= self.a.e[i].n or j < 0:
+			raise ValueError("The state %s has no edge number %s !"%(i,j))
+		return self.a.e[i].a[j].l
+	
+	def is_final (self, int i):
+		if i >= self.a.n or i < -1:
+			raise ValueError("There is no state %s !"%i)
+		return self.a.e[i].final
+	
+	def is_initial (self, int i):
+		if i >= self.a.n or i < -1:
+			raise ValueError("There is no state %s !"%i)
+		return self.a.e[i].initial
+		
+	def Alphabet (self):
+		return self.A
 	
 	def add_edge (self, f, d, l, initial, final):
 		raise NotImplemented()
@@ -588,6 +631,28 @@ cdef class FastAutomaton:
 		sig_off()
 		return r.emonde().minimise()
 	
+	#change the final states of the automaton
+	#new final states are the one in a strongly connected component containing a final state, others states are not final
+	#this function can be accelerated
+	def emonde_inf2OP (self, verb=False):
+		cc = self.strongly_connected_components()
+		f = []
+		for c in cc:
+			#test que l'on peut boucler dans cette composante
+			ok = False
+			for i in range(self.a.na):
+				if self.a.e[c[0]].f[i] in c:
+					ok = True
+					break
+			if not ok:
+				continue
+			for i in c:
+				if self.a.e[i].final:
+					f += c
+					break
+		self.set_final_states(f)
+		
+	#new final states are the ones in strongly connected components
 	def emonde_inf (self, verb=False):
 		sig_on()
 		cdef Automaton a
@@ -859,6 +924,26 @@ cdef class FastAutomaton:
 		aut.i = ne+np-1
 		r.a[0] = aut
 		r.A = self.A
+		return r
+	
+	def copyn (self, verb=False):
+		sig_on()
+		cdef NAutomaton a
+		r = NFastAutomaton(None)
+		a = CopyN(self.a[0], verb)
+		r.a[0] = a
+		r.A = self.A
+		sig_off()
+		return r
+	
+	def concat (self, FastAutomaton b, verb=False):
+		sig_on()
+		cdef NAutomaton a
+		r = NFastAutomaton(None)
+		a = Concat (self.a[0], b.a[0], verb)
+		r.a[0] = a
+		r.A = self.A
+		sig_off()
 		return r
 	
 	def proj (self, dict d, verb=False):

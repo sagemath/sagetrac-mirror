@@ -1918,6 +1918,122 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	return r;
 }
 
+NAutomaton Concat (Automaton a, Automaton b, bool verb)
+{
+	int i, j, f;
+	// !!! devrait tenir compte des alphabets différents !!!
+	// On suppose pour l'instant que a et b ont mêmes alphabets
+	NAutomaton r = NewNAutomaton(a.n+b.n, a.na);
+	//copie a
+	for (i=0;i<a.n;i++)
+	{
+		//compte le nombre d'arêtes
+		int nv = 0, rnv;
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+			{
+				nv++;
+				if (a.e[f].final)
+					nv++; //ajoute une arete vers l'autre automate
+			}
+		}
+		rnv = nv;
+		//alloue les nouvelles arêtes
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+			{
+				r.e[i].a[nv].l = j;
+				r.e[i].a[nv].e = f;
+				nv++;
+				if (a.e[f].final)
+				{
+					//ajoute une arete vers l'état initial de l'autre automate
+					r.e[i].a[nv].l = j;
+					r.e[i].a[nv].e = a.n+b.i;
+					nv++;
+				}
+			}
+		}
+		if (rnv != nv)
+		{
+			printf("Erreur : nv n'a pas la bonne valeur !!!\n");
+			exit(1);
+		}
+		r.e[i].final = false; //a.e[i].final;
+		r.e[i].initial = (a.i == i);
+	}
+	//copie b
+	for (i=0;i<b.n;i++)
+	{
+		//compte le nombre d'arêtes
+		int nv = 0;
+		for (j=0;j<b.na;j++)
+		{
+			if (b.e[i].f[j] != -1)
+				nv++;
+		}
+		//alloue les nouvelles arêtes
+		r.e[a.n+i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[a.n+i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<b.na;j++)
+		{
+			if (b.e[i].f[j] != -1)
+			{
+				r.e[a.n+i].a[nv].l = j;
+				r.e[a.n+i].a[nv].e = a.n + b.e[i].f[j];
+				nv++;
+			}
+		}
+		r.e[a.n+i].final = b.e[i].final;
+		r.e[a.n+i].initial = false; //(a.i == i);
+	}
+	return r;
+}
+
+//convertit un automate déterministe en un automate non déterministe
+NAutomaton CopyN (Automaton a, bool verb)
+{
+	int i,j;
+	NAutomaton r = NewNAutomaton(a.n, a.na);
+	for (i=0;i<a.n;i++)
+	{
+		//compte le nombre d'arêtes
+		int nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+				nv++;
+		}
+		//alloue les nouvelles arêtes
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+			{
+				r.e[i].a[nv].l = j;
+				r.e[i].a[nv].e = a.e[i].f[j];
+				nv++;
+			}
+		}
+		r.e[i].final = a.e[i].final;
+		r.e[i].initial = (a.i == i);
+	}
+	return r;
+}
+
 //change l'alphabet de l'automate
 NAutomaton Proj (Automaton a, Dict d, bool verb)
 {
@@ -2543,7 +2659,7 @@ void StronglyConnectedComponents_rec(Automaton a, int etat, int *pile, int *m, i
 }
 
 //Tarjan algorithm
-int StronglyConnectedComponents (Automaton a, int *res)
+int StronglyConnectedComponents (Automaton a, int *res) //, bool strict) //if strict is True, consider only composant in which there is a loop
 {
 	int *m = (int *)malloc(sizeof(int)*a.n);
 	int *pile = (int *)malloc(sizeof(int)*a.n);
