@@ -176,4 +176,41 @@ class HypergraphGenerators():
         from itertools import combinations
         return IncidenceStructure(list(combinations(range(n),k)))
 
+    def RandomBinomialUniform(self, n, k, p, seed=None):
+        r"""
+        Return a random `k`-uniform hypergraph on `n` points, in which each
+        edge is inserted independently with probability `p`.
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``k`` -- uniformity
+
+        - ``p`` -- probability of an edge
+
+        - ``seed`` -- integer seed for random number generator (default=None).
+
+        TESTS::
+
+            sage: set_random_seed(0)
+            sage: hypergraphs.RandomBinomialUniform(50, 3, 1).num_blocks()
+            19600
+            sage: hypergraphs.RandomBinomialUniform(50, 3, 0).num_blocks()
+            0
+            sage: hypergraphs.RandomBinomialUniform(50, 3, 0.2).num_blocks()
+            3926
+        """
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from sage.misc.randstate import current_randstate
+        if seed is None:
+            seed = current_randstate().long_seed()
+        if p <= 0:
+            return IncidenceStructure(n, [])
+        if p >= 1:
+            return self.CompleteUniform(n, k)
+        from itertools import combinations
+        from sage.misc.prandom import random
+        edges = [e for e in combinations(range(n), k) if random() < p]
+        return IncidenceStructure(edges)
+
+
 hypergraphs = HypergraphGenerators()
