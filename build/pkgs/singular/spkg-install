@@ -70,8 +70,10 @@ export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
-export CXXFLAGS="$CXXFLAGS -fPIC"
-export CFLAGS="$CFLAGS -fPIC"
+if [ "$UNAME" != "CYGWIN" ]; then
+    export CXXFLAGS="$CXXFLAGS -fPIC"
+    export CFLAGS="$CFLAGS -fPIC"
+fi
 
 # Singular does not respect LDFLAGS; Ugly hack:
 # Used on Linux and Darwin (see singular-3.1.7-use_cxx_for_linking.patch)

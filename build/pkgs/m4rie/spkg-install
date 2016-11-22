@@ -13,7 +13,11 @@ ROOT_DIR="`pwd`"
 INCLUDES="-I$SAGE_LOCAL/include"
 LIBDIRS="-L$SAGE_LOCAL/lib"
 
-CFLAGS="`testcflags.sh -fPIC -Wall -pedantic -g` $CFLAGS $INCLUDES"
+if [ "$UNAME" = "CYGWIN" ]; then
+    CFLAGS="`testcflags.sh -Wall -pedantic -g` $CFLAGS $INCLUDES"
+else
+    CFLAGS="`testcflags.sh -fPIC -Wall -pedantic -g` $CFLAGS $INCLUDES"
+fi
 LDFLAGS="$LIBDIRS $LDFLAGS"
 
 COMPILER=`testcc.sh $CC`

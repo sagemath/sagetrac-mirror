@@ -6,7 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-CFLAGS="-O2 -g -fPIC $CFLAGS"
+if [ "$UNAME" != "CYGWIN" ]; then
+    CFLAGS="-fPIC $CFLAGS"
+fi
+CFLAGS="-O2 -g $CFLAGS"
 
 if [ "x$SAGE64" = xyes ]; then
     CFLAGS="$CFLAGS -m64"

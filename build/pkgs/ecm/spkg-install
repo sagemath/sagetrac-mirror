@@ -92,8 +92,10 @@ fi
 if ! (echo $ECM_CONFIGURE | egrep -- "--enable-shared|--with-pic" >/dev/null) ||
      (echo $ECM_CONFIGURE | egrep -- "--disable-shared" >/dev/null);
 then
-    echo "Adding '-fPIC' to CFLAGS since we don't (also) build a shared library."
-    CFLAGS="$CFLAGS -fPIC" # alternatively add '--with-pic' to 'configure' options
+    if [ "$UNAME" != "CYGWIN" ]; then
+        echo "Adding '-fPIC' to CFLAGS since we don't (also) build a shared library."
+        CFLAGS="$CFLAGS -fPIC" # alternatively add '--with-pic' to 'configure' options
+    fi
 else
     # PIC usually slows down the execution, so don't use it for the *static*
     # library (unless '--with-pic' was given). libtool does the right thing

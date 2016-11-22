@@ -15,7 +15,12 @@ if [ "x$SAGE64" = xyes ] ; then
     CFLAGS="$CFLAGS $CFLAG64"
 fi
 
-export CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
+export CFLAGS="-O2 -g $CFLAGS"
+
+if [ "$UNAME" != "CYGWIN" ]; then
+    export CFLAGS="$CFLAGS -fPIC"
+fi
+export CFLAGS="$CFLAGS -DFAST -DALLTRUE"
 
 
 cd src

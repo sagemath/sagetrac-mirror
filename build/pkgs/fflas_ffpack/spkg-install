@@ -22,9 +22,13 @@ done
 # Use newer version of config.guess and config.sub (see Trac #19757)
 cp "$SAGE_ROOT"/config/config.* build-aux
 
+if [ "$UNAME" != "CYGWIN" ]; then
+    export CFLAGS="-fPIC $CFLAGS"
+    export CXXFLAGS="-fPIC $CXXFLAGS"
+fi
 
-export CFLAGS="-g -O2 -fPIC $CFLAGS"
-export CXXFLAGS="-g -O2 -fPIC $CXXFLAGS"
+export CFLAGS="-g -O2 $CFLAGS"
+export CXXFLAGS="-g -O2 $CXXFLAGS"
 
 # GCC 4.9 <= 4.9.2 is broken, cf. https://trac.sagemath.org/ticket/17635#comment:178 ff.:
 case `$CXX -dumpversion 2>/dev/null` in
