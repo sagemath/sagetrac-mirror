@@ -598,11 +598,19 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.in_lib
             True
         """
-        return (self.options.force_lib or
-                self.basename.startswith('sage.') or
-                self.basename.startswith('doc.') or
-                self.basename.startswith('sage_setup.docbuild') or
-                self.basename.startswith('sagenb.'))
+
+        in_lib_packages = [
+                'doc',
+                'sage',
+                'sage_setup.autogen.interpreters',
+                'sage_setup.docbuild',
+                'sagenb'
+        ]
+
+        in_lib_re = re.compile(r'^({0})(\.|$)'.format(
+            '|'.join([p.replace('.', '\\.') for p in in_lib_packages])))
+
+        return self.options.force_lib or bool(in_lib_re.match(self.basename))
 
     def create_doctests(self, namespace):
         r"""
