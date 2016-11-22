@@ -97,6 +97,163 @@ TreeLikeTableauxOptions=GlobalOptions(
     )
 )
 
+class _drawing_tool:
+    r"""
+    TODO
+    Technical class to produce TIKZ drawing.
+
+    This class contains some 2D geometric tools to produce some TIKZ 
+    drawings.
+    With that classes you can use options to set up drawing informations.
+    The the class will produce a drawin by using those informations.
+
+    EXAMPLES::
+        sage: from sage.combinat.parallelogram_polyomino import (
+        ....:     _drawing_tool, default_tikz_options,
+        ....:     ParallelogramPolyominoesOptions
+        ....: )
+        sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+        sage: dt = _drawing_tool(opt)
+        sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+
+        sage: fct = lambda vec: [2*vec[0], vec[1]]
+        sage: dt = _drawing_tool(opt, fct)
+        sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (2.000000, 1.000000) -- (-2.000000, -1.000000);'
+
+        sage: import copy
+        sage: opt = copy.deepcopy(opt)
+        sage: opt['mirror'] = [0,1]
+        sage: dt = _drawing_tool(opt)
+        sage: dt.draw_line([1, 1], [-1, -1])
+        '\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) -- (1.000000, -1.000000);'
+
+    """
+    def __init__(self, options, XY=lambda v: v):
+        self._XY = lambda v: XY([float(v[0]), float(v[1])])
+        self._translation = options['translation']
+        self._mirror = options['mirror']
+        self._rotation = options['rotation']
+        self._color_line = options['color_line']
+        self._line_size = options['line_size']
+        self._point_size = options['point_size']
+        self._color_point = options['color_point']
+
+    def XY(self, v):
+        """
+        This function give the image of v by some transformation given by the 
+        drawingoption of ``_drawing_tool``.
+
+        The transformation is the composition of rotation, mirror, translation 
+        and XY user function.
+        First we apply XY function, then the translation, then the mirror and 
+        finaly the rotation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.XY( [1, 1] )
+            [1.0, 1.0]
+
+            sage: fct = lambda vec: [2*vec[0], vec[1]]
+            sage: dt = _drawing_tool(opt, fct)
+            sage: dt.XY([1, 1])
+            [2.0, 1.0]
+
+            sage: import copy
+            sage: opt = copy.deepcopy(opt)
+            sage: opt['mirror'] = [0, 1]
+            sage: dt = _drawing_tool(opt)
+            sage: dt.XY([1, 1])
+            [-1.0, 1.0]
+        """
+        def translate(pos, v):
+            return [pos[0]+v[0], pos[1]+v[1]]
+
+        def rotate(pos, angle):
+            [x, y] = pos
+            return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
+
+        def mirror(pos,  axe):
+            if axe is None:
+                return pos
+            if not isinstance(axe, (list, tuple)):
+                raise ValueError(
+                    "mirror option should be None or a list of two real" +
+                    " encoding a 2D vector."
+                )
+            n = float(sqrt(axe[0]**2 + axe[1]**2))
+            axe[0] = float(axe[0]/n)
+            axe[1] = float(axe[1]/n)
+            sp = (pos[0]*axe[0] + pos[1]*axe[1])
+            sn = (- pos[0]*axe[1] + pos[1]*axe[0])
+            return [
+                sp*axe[0] + sn*axe[1],
+                sp*axe[1] - sn*axe[0]
+            ]
+        return rotate(
+            mirror(
+                translate(self._XY(v), self._translation),
+                self._mirror
+            ), self._rotation
+        )
+
+    def draw_line(self, v1, v2, color=None, size=None):
+        """
+        Return the TIKZ code for a line according the drawing option given 
+        to ``_drawing_tool``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_line([1, 1], [-1, -1])
+            '\n  \\draw[color=black, line width=1] (1.000000, 1.000000) -- (-1.000000, -1.000000);'
+
+        """
+        if color is None:
+            color = self._color_line
+        if size is None:
+            size = self._line_size
+        [x1, y1] = self.XY(v1)
+        [x2, y2] = self.XY(v2)
+        return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);" % (
+            color, size, float(x1), float(y1), float(x2), float(y2)
+        )
+
+    def draw_point(self, p1, color=None, size=None):
+        """
+        Return the TIKZ code for a point according the drawing option given 
+        to ``_drawing_tool``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import (
+            ....:     _drawing_tool, ParallelogramPolyominoesOptions
+            ....: )
+            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
+            sage: dt = _drawing_tool(opt)
+            sage: dt.draw_point([1, 1])
+            '\n  \\filldraw[color=black] (1.000000, 1.000000) circle (3.5pt);'
+
+        """
+        if color is None:
+            color = self._color_point
+        if size is None:
+            size = self._point_size
+        [x1, y1] = self.XY(p1)
+        return "\n  \\draw[color=black, fill=%s] (%f, %f) circle (%spt);" % (
+            color, float(x1), float(y1), size
+        )
+
 class TreeLikeTableau( ClonableList ):
     r"""
     The class of Tree-Like tableaux.
@@ -146,6 +303,7 @@ class TreeLikeTableau( ClonableList ):
         ClonableList.__init__(self, parent, value, check)
         # This dispatches the input verification to the :meth:`check`
         # method.
+        self._options = None
 
     def __eq__(self, other):
         r"""
@@ -308,7 +466,66 @@ class TreeLikeTableau( ClonableList ):
                     self._check_cell_is_not_a_forbidden_pattern(irow, icol)
                 icol += 1
 
+    def options(self,  *get_value, **set_values):
+        r"""
+        Return all the options of the object.
 
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
+            sage: pp.get_options()
+            options for Parallelogram Polyominoes
+        """
+        if self._options is None:
+            return self.parent()._options( *get_value, **set_values)
+        return self._options( *get_value, **set_values)
+
+    def _get_options(self):
+        if self._options is None:
+            return self.parent()._get_options()
+
+    def __repr__(self):
+        r"""
+        TODO
+        Return a string representation of the parallelogram polyomino.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
+            ....: )
+            sage: pp
+            [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
+            sage: pp.set_options(display='drawing')
+            sage: pp
+            [1 1 0]
+            [1 1 0]
+            [0 1 1]
+        """
+        return self._get_options().dispatch(self, '_repr_', 'display')
+
+    def _repr_list(self):
+        r"""
+        TODO
+        Return a string representation with list style.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
+            ....: )
+            sage: pp._repr_list()
+            '[[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]'
+        """
+        return ClonableList._repr_(self)
+
+    def _repr_drawing(self):
+        res = ""
+        for row in self:
+            for cell in row:
+                res+=str(cell)+" "
+            res=res[-1]
+        return res[:-1]
 
 
     def height( self ):
@@ -1672,6 +1889,12 @@ class TreeLikeTableaux_size(TreeLikeTableaux):
                         tlt1.insert_point(i)
                     yield tlt1
 
+    def options(self, *get_value, **set_values):
+        return self._options( *get_value, **set_values)
+
+    def _get_options(self):
+        return self._options
+
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
@@ -1735,7 +1958,7 @@ class TreeLikeTableaux_size(TreeLikeTableaux):
             720
         """
         return factorial(self._size)
-    global_options = TreeLikeTableauxOptions
+    _options = TreeLikeTableauxOptions
 
 
 
@@ -1794,7 +2017,13 @@ class TreeLikeTableaux_all( TreeLikeTableaux, DisjointUnionEnumeratedSets ):
         """
         pass
 
-    global_options = TreeLikeTableauxOptions
+    def options(self, *get_value, **set_values):
+        return self._options( *get_value, **set_values)
+
+    def _get_options(self):
+        return self._options
+
+    _options = TreeLikeTableauxOptions
     Element = TreeLikeTableau
 
 class SymmetricTreeLikeTableau(TreeLikeTableau):
