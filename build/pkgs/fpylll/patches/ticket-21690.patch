@@ -1,0 +1,1372 @@
+Properly disable long double support on Cygwin; see https://trac.sagemath.org/ticket/21690
+diff --git a/setup.py b/setup.py
+index 2bac75f..e83f96f 100755
+--- a/setup.py
++++ b/setup.py
+@@ -86,6 +86,12 @@ if have_numpy:
+ else:
+     config_pxi.append("DEF HAVE_NUMPY=False")
+ 
++# Ideally this would check the fplll headers explicitly for the
++# the FPLLL_WITH_LONG_DOUBLE define, but for now it suffices to
++# say that long double support is disabled on Cygwin
++have_long_double = not sys.platform.startswith('cygwin')
++config_pxi.append("DEF HAVE_LONG_DOUBLE={0}".format(have_long_double))
++
+ 
+ # CONFIG.PXI
+ config_pxi_path = os.path.join(".", "src", "fpylll", "config.pxi")
+diff --git a/src/fpylll/config.pyx b/src/fpylll/config.pyx
+index 007484a..8d03f45 100644
+--- a/src/fpylll/config.pyx
++++ b/src/fpylll/config.pyx
+@@ -6,12 +6,19 @@ include "cysignals/signals.pxi"
+ from fplll.fplll cimport default_strategy as default_strategy_c
+ from fplll.fplll cimport default_strategy_path as default_strategy_path_c
+ 
++IF HAVE_LONG_DOUBLE:
++    have_long_double = True
++    float_types = ("d", "ld")
++ELSE:
++    have_long_double = False
++    float_types = ("d",)
++
+ IF HAVE_QD:
+     have_qd = True
+-    float_types = ("d", "ld", "dpe", "dd", "qd", "mpfr")
++    float_types = float_types + ("dpe", "dd", "qd", "mpfr")
+ ELSE:
+     have_qd = False
+-    float_types = ("d", "ld", "dpe", "mpfr")
++    float_types = float_types + ("dpe", "mpfr")
+ 
+ IF HAVE_SAGE:
+     have_sage = True
+diff --git a/src/fpylll/fplll/bkz.pyx b/src/fpylll/fplll/bkz.pyx
+index 45e1430..5518e14 100644
+--- a/src/fpylll/fplll/bkz.pyx
++++ b/src/fpylll/fplll/bkz.pyx
+@@ -54,10 +54,13 @@ cdef class BKZAutoAbort:
+                                                                       num_rows,
+                                                                       start_row)
+         elif M._type == mpz_ld:
+-            self._type = mpz_ld
+-            self._core.mpz_ld = new BKZAutoAbort_c[FP_NR[longdouble]](M._core.mpz_ld[0],
+-                                                          num_rows,
+-                                                          start_row)
++            IF HAVE_LONG_DOUBLE:
++                self._type = mpz_ld
++                self._core.mpz_ld = new BKZAutoAbort_c[FP_NR[longdouble]](M._core.mpz_ld[0],
++                                                              num_rows,
++                                                              start_row)
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif M._type == mpz_dpe:
+             self._type = mpz_dpe
+             self._core.mpz_dpe = new BKZAutoAbort_c[FP_NR[dpe_t]](M._core.mpz_dpe[0],
+@@ -98,7 +101,10 @@ cdef class BKZAutoAbort:
+         if self._type == mpz_double:
+             return self._core.mpz_double.test_abort(scale, max_no_dec)
+         elif self._type == mpz_ld:
+-            return self._core.mpz_ld.test_abort(scale, max_no_dec)
++            IF HAVE_LONG_DOUBLE:
++                return self._core.mpz_ld.test_abort(scale, max_no_dec)
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             return self._core.mpz_dpe.test_abort(scale, max_no_dec)
+         elif self._type == mpz_mpfr:
+@@ -133,10 +139,13 @@ cdef class BKZReduction:
+                                                                       self.lll_obj._core.mpz_double[0],
+                                                                       param.o[0])
+         elif M._type == mpz_ld:
+-            self._type = mpz_ld
+-            self._core.mpz_ld = new BKZReduction_c[FP_NR[longdouble]](self.M._core.mpz_ld[0],
+-                                                                      self.lll_obj._core.mpz_ld[0],
+-                                                                      param.o[0])
++            IF HAVE_LONG_DOUBLE:
++                self._type = mpz_ld
++                self._core.mpz_ld = new BKZReduction_c[FP_NR[longdouble]](self.M._core.mpz_ld[0],
++                                                                          self.lll_obj._core.mpz_ld[0],
++                                                                          param.o[0])
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif M._type == mpz_dpe:
+             self._type = mpz_dpe
+             self._core.mpz_dpe = new BKZReduction_c[FP_NR[dpe_t]](self.M._core.mpz_dpe[0],
+@@ -167,8 +176,9 @@ cdef class BKZReduction:
+     def __dealloc__(self):
+         if self._type == mpz_double:
+             del self._core.mpz_double
+-        if self._type == mpz_ld:
+-            del self._core.mpz_ld
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                del self._core.mpz_ld
+         if self._type == mpz_dpe:
+             del self._core.mpz_dpe
+         IF HAVE_QD:
+@@ -194,9 +204,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.bkz()
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.bkz()
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.bkz()
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.bkz()
+@@ -239,9 +252,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.svp_preprocessing(kappa, block_size, param.o[0])
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.svp_preprocessing(kappa, block_size, param.o[0])
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.svp_preprocessing(kappa, block_size, param.o[0])
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.svp_preprocessing(kappa, block_size, param.o[0])
+@@ -291,12 +307,15 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.svp_postprocessing(kappa, block_size, solution_.double)
+             sig_off()
+         elif self._type == mpz_ld:
+-            for s in solution:
+-                t.ld = float(s)
+-                solution_.ld.push_back(t.ld)
+-            sig_on()
+-            r = self._core.mpz_ld.svp_postprocessing(kappa, block_size, solution_.ld)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                for s in solution:
++                    t.ld = float(s)
++                    solution_.ld.push_back(t.ld)
++                sig_on()
++                r = self._core.mpz_ld.svp_postprocessing(kappa, block_size, solution_.ld)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             for s in solution:
+                 t.dpe = float(s)
+@@ -358,12 +377,15 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.dsvp_postprocessing(kappa, block_size, solution_.double)
+             sig_off()
+         elif self._type == mpz_ld:
+-            for s in solution:
+-                t.ld = float(s)
+-                solution_.ld.push_back(t.ld)
+-            sig_on()
+-            r = self._core.mpz_ld.dsvp_postprocessing(kappa, block_size, solution_.ld)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                for s in solution:
++                    t.ld = float(s)
++                    solution_.ld.push_back(t.ld)
++                sig_on()
++                r = self._core.mpz_ld.dsvp_postprocessing(kappa, block_size, solution_.ld)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             for s in solution:
+                 t.dpe = float(s)
+@@ -420,9 +442,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.svp_reduction(kappa, block_size, param.o[0], int(dual))
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.svp_reduction(kappa, block_size, param.o[0], dual)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.svp_reduction(kappa, block_size, param.o[0], dual)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.svp_reduction(kappa, block_size, param.o[0], dual)
+@@ -468,9 +493,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.tour(loop, kappa_max, param.o[0], min_row, max_row)
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.tour(loop, kappa_max, param.o[0], min_row, max_row)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.tour(loop, kappa_max, param.o[0], min_row, max_row)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.tour(loop, kappa_max, param.o[0], min_row, max_row)
+@@ -515,9 +543,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.sd_tour(loop, param.o[0], min_row, max_row)
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.sd_tour(loop, param.o[0], min_row, max_row)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.sd_tour(loop, param.o[0], min_row, max_row)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.sd_tour(loop, param.o[0], min_row, max_row)
+@@ -564,9 +595,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.slide_tour(loop, param.o[0], min_row, max_row)
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.slide_tour(loop, param.o[0], min_row, max_row)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.slide_tour(loop, param.o[0], min_row, max_row)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.slide_tour(loop, param.o[0], min_row, max_row)
+@@ -614,9 +648,12 @@ cdef class BKZReduction:
+             r = self._core.mpz_double.hkz(kappa_max, param.o[0], min_row, max_row)
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.hkz(kappa_max, param.o[0], min_row, max_row)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                r = self._core.mpz_ld.hkz(kappa_max, param.o[0], min_row, max_row)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.hkz(kappa_max, param.o[0], min_row, max_row)
+@@ -652,9 +689,12 @@ cdef class BKZReduction:
+             self._core.mpz_double.rerandomize_block(min_row, max_row, density)
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            self._core.mpz_ld.rerandomize_block(min_row, max_row, density)
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                self._core.mpz_ld.rerandomize_block(min_row, max_row, density)
++                sig_off()
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             self._core.mpz_dpe.rerandomize_block(min_row, max_row, density)
+@@ -684,7 +724,10 @@ cdef class BKZReduction:
+         if self._type == mpz_double:
+             return self._core.mpz_double.status
+         elif self._type == mpz_ld:
+-            return self._core.mpz_ld.status
++            IF HAVE_LONG_DOUBLE:
++                return self._core.mpz_ld.status
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             return self._core.mpz_dpe.status
+         elif self._type == mpz_mpfr:
+@@ -706,7 +749,10 @@ cdef class BKZReduction:
+         if self._type == mpz_double:
+             return self._core.mpz_double.nodes
+         elif self._type == mpz_ld:
+-            return self._core.mpz_ld.nodes
++            IF HAVE_LONG_DOUBLE:
++                return self._core.mpz_ld.nodes
++            ELSE:
++                raise RuntimeError("BKZAutoAbort object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             return self._core.mpz_dpe.nodes
+         elif self._type == mpz_mpfr:
+diff --git a/src/fpylll/fplll/decl.pxd b/src/fpylll/fplll/decl.pxd
+index 0e8be8f..22ef445 100644
+--- a/src/fpylll/fplll/decl.pxd
++++ b/src/fpylll/fplll/decl.pxd
+@@ -33,124 +33,231 @@ ELSE:
+         mpz_dpe    =  4
+         mpz_mpfr   = 32
+ 
+-IF HAVE_QD:
+-    # we cannot use a union because of non-trivial constructors
+-    ctypedef struct fp_nr_t:
+-        FP_NR[double] double
+-        FP_NR[longdouble] ld
+-        FP_NR[dpe_t] dpe
+-        FP_NR[dd_real] dd
+-        FP_NR[qd_real] qd
+-        FP_NR[mpfr_t] mpfr
+-ELSE:
+-    ctypedef struct fp_nr_t:
+-        FP_NR[double] double
+-        FP_NR[longdouble] ld
+-        FP_NR[dpe_t] dpe
+-        FP_NR[mpfr_t] mpfr
++IF HAVE_LONG_DOUBLE:
++    IF HAVE_QD:
++        # we cannot use a union because of non-trivial constructors
++        ctypedef struct fp_nr_t:
++            FP_NR[double] double
++            FP_NR[longdouble] ld
++            FP_NR[dpe_t] dpe
++            FP_NR[dd_real] dd
++            FP_NR[qd_real] qd
++            FP_NR[mpfr_t] mpfr
++    ELSE:
++        ctypedef struct fp_nr_t:
++            FP_NR[double] double
++            FP_NR[longdouble] ld
++            FP_NR[dpe_t] dpe
++            FP_NR[mpfr_t] mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union mat_gso_core_t:
+-        MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
+-        MatGSO[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
+-        MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
+-        MatGSO[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
+-        MatGSO[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
+-        MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
+-ELSE:
+-    ctypedef union mat_gso_core_t:
+-        MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
+-        MatGSO[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
+-        MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
+-        MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    IF HAVE_QD:
++        ctypedef union mat_gso_core_t:
++            MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            MatGSO[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
++            MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            MatGSO[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
++            MatGSO[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
++            MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union mat_gso_core_t:
++            MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            MatGSO[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
++            MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union lll_reduction_core_t:
+-        LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
+-        LLLReduction[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
+-        LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
+-        LLLReduction[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
+-        LLLReduction[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
+-        LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
+-ELSE:
+-    ctypedef union lll_reduction_core_t:
+-        LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
+-        LLLReduction[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
+-        LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
+-        LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    IF HAVE_QD:
++        ctypedef union lll_reduction_core_t:
++            LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            LLLReduction[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
++            LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            LLLReduction[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
++            LLLReduction[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
++            LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union lll_reduction_core_t:
++            LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            LLLReduction[Z_NR[mpz_t], FP_NR[longdouble]] *mpz_ld
++            LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union bkz_auto_abort_core_t:
+-        BKZAutoAbort[FP_NR[double]] *mpz_double
+-        BKZAutoAbort[FP_NR[longdouble]] *mpz_ld
+-        BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
+-        BKZAutoAbort[FP_NR[dd_real]] *mpz_dd
+-        BKZAutoAbort[FP_NR[qd_real]] *mpz_qd
+-        BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
+-ELSE:
+-    ctypedef union bkz_auto_abort_core_t:
+-        BKZAutoAbort[FP_NR[double]] *mpz_double
+-        BKZAutoAbort[FP_NR[longdouble]] *mpz_ld
+-        BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
+-        BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
++    IF HAVE_QD:
++        ctypedef union bkz_auto_abort_core_t:
++            BKZAutoAbort[FP_NR[double]] *mpz_double
++            BKZAutoAbort[FP_NR[longdouble]] *mpz_ld
++            BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
++            BKZAutoAbort[FP_NR[dd_real]] *mpz_dd
++            BKZAutoAbort[FP_NR[qd_real]] *mpz_qd
++            BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union bkz_auto_abort_core_t:
++            BKZAutoAbort[FP_NR[double]] *mpz_double
++            BKZAutoAbort[FP_NR[longdouble]] *mpz_ld
++            BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
++            BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union bkz_reduction_core_t:
+-        BKZReduction[FP_NR[double]] *mpz_double
+-        BKZReduction[FP_NR[longdouble]] *mpz_ld
+-        BKZReduction[FP_NR[dpe_t]] *mpz_dpe
+-        BKZReduction[FP_NR[dd_real]] *mpz_dd
+-        BKZReduction[FP_NR[qd_real]] *mpz_qd
+-        BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
+-ELSE:
+-    ctypedef union bkz_reduction_core_t:
+-        BKZReduction[FP_NR[double]] *mpz_double
+-        BKZReduction[FP_NR[longdouble]] *mpz_ld
+-        BKZReduction[FP_NR[dpe_t]] *mpz_dpe
+-        BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
++    IF HAVE_QD:
++        ctypedef union bkz_reduction_core_t:
++            BKZReduction[FP_NR[double]] *mpz_double
++            BKZReduction[FP_NR[longdouble]] *mpz_ld
++            BKZReduction[FP_NR[dpe_t]] *mpz_dpe
++            BKZReduction[FP_NR[dd_real]] *mpz_dd
++            BKZReduction[FP_NR[qd_real]] *mpz_qd
++            BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union bkz_reduction_core_t:
++            BKZReduction[FP_NR[double]] *mpz_double
++            BKZReduction[FP_NR[longdouble]] *mpz_ld
++            BKZReduction[FP_NR[dpe_t]] *mpz_dpe
++            BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union fast_evaluator_core_t:
+-        FastEvaluator[FP_NR[double]] *double
+-        FastEvaluator[FP_NR[longdouble]] *ld
+-        FastEvaluator[FP_NR[dpe_t]] *dpe
+-        FastEvaluator[FP_NR[dd_real]] *dd
+-        FastEvaluator[FP_NR[qd_real]] *qd
+-        FastEvaluator[FP_NR[mpfr_t]] *mpfr
+-ELSE:
+-    ctypedef union fast_evaluator_core_t:
+-        FastEvaluator[FP_NR[double]] *double
+-        FastEvaluator[FP_NR[longdouble]] *ld
+-        FastEvaluator[FP_NR[dpe_t]] *dpe
+-        FastEvaluator[FP_NR[mpfr_t]] *mpfr
++    IF HAVE_QD:
++        ctypedef union fast_evaluator_core_t:
++            FastEvaluator[FP_NR[double]] *double
++            FastEvaluator[FP_NR[longdouble]] *ld
++            FastEvaluator[FP_NR[dpe_t]] *dpe
++            FastEvaluator[FP_NR[dd_real]] *dd
++            FastEvaluator[FP_NR[qd_real]] *qd
++            FastEvaluator[FP_NR[mpfr_t]] *mpfr
++    ELSE:
++        ctypedef union fast_evaluator_core_t:
++            FastEvaluator[FP_NR[double]] *double
++            FastEvaluator[FP_NR[longdouble]] *ld
++            FastEvaluator[FP_NR[dpe_t]] *dpe
++            FastEvaluator[FP_NR[mpfr_t]] *mpfr
+ 
+-IF HAVE_QD:
+-    ctypedef union enumeration_core_t:
+-        Enumeration[FP_NR[double]] *double
+-        Enumeration[FP_NR[longdouble]] *ld
+-        Enumeration[FP_NR[dpe_t]] *dpe
+-        Enumeration[FP_NR[dd_real]] *dd
+-        Enumeration[FP_NR[qd_real]] *qd
+-        Enumeration[FP_NR[mpfr_t]] *mpfr
+-ELSE:
+-    ctypedef union enumeration_core_t:
+-        Enumeration[FP_NR[double]] *double
+-        Enumeration[FP_NR[longdouble]] *ld
+-        Enumeration[FP_NR[dpe_t]] *dpe
+-        Enumeration[FP_NR[mpfr_t]] *mpfr
++    IF HAVE_QD:
++        ctypedef union enumeration_core_t:
++            Enumeration[FP_NR[double]] *double
++            Enumeration[FP_NR[longdouble]] *ld
++            Enumeration[FP_NR[dpe_t]] *dpe
++            Enumeration[FP_NR[dd_real]] *dd
++            Enumeration[FP_NR[qd_real]] *qd
++            Enumeration[FP_NR[mpfr_t]] *mpfr
++    ELSE:
++        ctypedef union enumeration_core_t:
++            Enumeration[FP_NR[double]] *double
++            Enumeration[FP_NR[longdouble]] *ld
++            Enumeration[FP_NR[dpe_t]] *dpe
++            Enumeration[FP_NR[mpfr_t]] *mpfr
+ 
+-IF HAVE_QD:
+-    # we cannot use a union because of non-trivial constructors
+-    ctypedef struct vector_fp_nr_t:
+-        vector[FP_NR[double]] double
+-        vector[FP_NR[longdouble]] ld
+-        vector[FP_NR[dpe_t]] dpe
+-        vector[FP_NR[dd_real]] dd
+-        vector[FP_NR[qd_real]] qd
+-        vector[FP_NR[mpfr_t]] mpfr
++    IF HAVE_QD:
++        # we cannot use a union because of non-trivial constructors
++        ctypedef struct vector_fp_nr_t:
++            vector[FP_NR[double]] double
++            vector[FP_NR[longdouble]] ld
++            vector[FP_NR[dpe_t]] dpe
++            vector[FP_NR[dd_real]] dd
++            vector[FP_NR[qd_real]] qd
++            vector[FP_NR[mpfr_t]] mpfr
++    ELSE:
++        ctypedef struct vector_fp_nr_t:
++            vector[FP_NR[double]] double
++            vector[FP_NR[longdouble]] ld
++            vector[FP_NR[dpe_t]] dpe
++            vector[FP_NR[mpfr_t]] mpfr
+ ELSE:
+-    ctypedef struct vector_fp_nr_t:
+-        vector[FP_NR[double]] double
+-        vector[FP_NR[longdouble]] ld
+-        vector[FP_NR[dpe_t]] dpe
+-        vector[FP_NR[mpfr_t]] mpfr
++    IF HAVE_QD:
++        # we cannot use a union because of non-trivial constructors
++        ctypedef struct fp_nr_t:
++            FP_NR[double] double
++            FP_NR[dpe_t] dpe
++            FP_NR[dd_real] dd
++            FP_NR[qd_real] qd
++            FP_NR[mpfr_t] mpfr
++    ELSE:
++        ctypedef struct fp_nr_t:
++            FP_NR[double] double
++            FP_NR[dpe_t] dpe
++            FP_NR[mpfr_t] mpfr
++
++    IF HAVE_QD:
++        ctypedef union mat_gso_core_t:
++            MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            MatGSO[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
++            MatGSO[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
++            MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union mat_gso_core_t:
++            MatGSO[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            MatGSO[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            MatGSO[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++
++    IF HAVE_QD:
++        ctypedef union lll_reduction_core_t:
++            LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            LLLReduction[Z_NR[mpz_t], FP_NR[dd_real]] *mpz_dd
++            LLLReduction[Z_NR[mpz_t], FP_NR[qd_real]] *mpz_qd
++            LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union lll_reduction_core_t:
++            LLLReduction[Z_NR[mpz_t], FP_NR[double]] *mpz_double
++            LLLReduction[Z_NR[mpz_t], FP_NR[dpe_t]] *mpz_dpe
++            LLLReduction[Z_NR[mpz_t], FP_NR[mpfr_t]] *mpz_mpfr
++
++    IF HAVE_QD:
++        ctypedef union bkz_auto_abort_core_t:
++            BKZAutoAbort[FP_NR[double]] *mpz_double
++            BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
++            BKZAutoAbort[FP_NR[dd_real]] *mpz_dd
++            BKZAutoAbort[FP_NR[qd_real]] *mpz_qd
++            BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union bkz_auto_abort_core_t:
++            BKZAutoAbort[FP_NR[double]] *mpz_double
++            BKZAutoAbort[FP_NR[dpe_t]] *mpz_dpe
++            BKZAutoAbort[FP_NR[mpfr_t]] *mpz_mpfr
++
++    IF HAVE_QD:
++        ctypedef union bkz_reduction_core_t:
++            BKZReduction[FP_NR[double]] *mpz_double
++            BKZReduction[FP_NR[dpe_t]] *mpz_dpe
++            BKZReduction[FP_NR[dd_real]] *mpz_dd
++            BKZReduction[FP_NR[qd_real]] *mpz_qd
++            BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
++    ELSE:
++        ctypedef union bkz_reduction_core_t:
++            BKZReduction[FP_NR[double]] *mpz_double
++            BKZReduction[FP_NR[dpe_t]] *mpz_dpe
++            BKZReduction[FP_NR[mpfr_t]] *mpz_mpfr
++
++    IF HAVE_QD:
++        ctypedef union fast_evaluator_core_t:
++            FastEvaluator[FP_NR[double]] *double
++            FastEvaluator[FP_NR[dpe_t]] *dpe
++            FastEvaluator[FP_NR[dd_real]] *dd
++            FastEvaluator[FP_NR[qd_real]] *qd
++            FastEvaluator[FP_NR[mpfr_t]] *mpfr
++    ELSE:
++        ctypedef union fast_evaluator_core_t:
++            FastEvaluator[FP_NR[double]] *double
++            FastEvaluator[FP_NR[dpe_t]] *dpe
++            FastEvaluator[FP_NR[mpfr_t]] *mpfr
++
++    IF HAVE_QD:
++        ctypedef union enumeration_core_t:
++            Enumeration[FP_NR[double]] *double
++            Enumeration[FP_NR[dpe_t]] *dpe
++            Enumeration[FP_NR[dd_real]] *dd
++            Enumeration[FP_NR[qd_real]] *qd
++            Enumeration[FP_NR[mpfr_t]] *mpfr
++    ELSE:
++        ctypedef union enumeration_core_t:
++            Enumeration[FP_NR[double]] *double
++            Enumeration[FP_NR[dpe_t]] *dpe
++            Enumeration[FP_NR[mpfr_t]] *mpfr
++
++    IF HAVE_QD:
++        # we cannot use a union because of non-trivial constructors
++        ctypedef struct vector_fp_nr_t:
++            vector[FP_NR[double]] double
++            vector[FP_NR[dpe_t]] dpe
++            vector[FP_NR[dd_real]] dd
++            vector[FP_NR[qd_real]] qd
++            vector[FP_NR[mpfr_t]] mpfr
++    ELSE:
++        ctypedef struct vector_fp_nr_t:
++            vector[FP_NR[double]] double
++            vector[FP_NR[dpe_t]] dpe
++            vector[FP_NR[mpfr_t]] mpfr
+diff --git a/src/fpylll/fplll/enumeration.pyx b/src/fpylll/fplll/enumeration.pyx
+index b08ebe3..80cd88e 100644
+--- a/src/fpylll/fplll/enumeration.pyx
++++ b/src/fpylll/fplll/enumeration.pyx
+@@ -31,7 +31,8 @@ cdef class Enumeration:
+         """
+ 
+         cdef MatGSO_c[Z_NR[mpz_t], FP_NR[double]]  *m_double
+-        cdef MatGSO_c[Z_NR[mpz_t], FP_NR[longdouble]] *m_ld
++        IF HAVE_LONG_DOUBLE:
++            cdef MatGSO_c[Z_NR[mpz_t], FP_NR[longdouble]] *m_ld
+         cdef MatGSO_c[Z_NR[mpz_t], FP_NR[dpe_t]] *m_dpe
+         IF HAVE_QD:
+             cdef MatGSO_c[Z_NR[mpz_t], FP_NR[dd_real]] *m_dd
+@@ -39,7 +40,8 @@ cdef class Enumeration:
+         cdef MatGSO_c[Z_NR[mpz_t], FP_NR[mpfr_t]]  *m_mpfr
+ 
+         cdef FastEvaluator_c[FP_NR[double]]  *fe_double
+-        cdef FastEvaluator_c[FP_NR[longdouble]] *fe_ld
++        IF HAVE_LONG_DOUBLE:
++            cdef FastEvaluator_c[FP_NR[longdouble]] *fe_ld
+         cdef FastEvaluator_c[FP_NR[dpe_t]] *fe_dpe
+         IF HAVE_QD:
+             cdef FastEvaluator_c[FP_NR[dd_real]] *fe_dd
+@@ -53,9 +55,12 @@ cdef class Enumeration:
+             self._fe_core.double = new FastEvaluator_c[FP_NR[double]]()
+             self._core.double = new Enumeration_c[FP_NR[double]](m_double[0], self._fe_core.double[0])
+         elif M._type == mpz_ld:
+-            m_ld = M._core.mpz_ld
+-            self._fe_core.ld = new FastEvaluator_c[FP_NR[longdouble]]()
+-            self._core.ld = new Enumeration_c[FP_NR[longdouble]](m_ld[0], self._fe_core.ld[0])
++            IF HAVE_LONG_DOUBLE:
++                m_ld = M._core.mpz_ld
++                self._fe_core.ld = new FastEvaluator_c[FP_NR[longdouble]]()
++                self._core.ld = new Enumeration_c[FP_NR[longdouble]](m_ld[0], self._fe_core.ld[0])
++            ELSE:
++                raise RuntimeError("MatGSO object '%s' has no core."%self)
+         elif M._type == mpz_dpe:
+             m_dpe = M._core.mpz_dpe
+             self._fe_core.dpe = new FastEvaluator_c[FP_NR[dpe_t]]()
+@@ -83,9 +88,10 @@ cdef class Enumeration:
+         if self.M._type == mpz_double:
+             del self._fe_core.double
+             del self._core.double
+-        if self.M._type == mpz_ld:
+-            del self._fe_core.ld
+-            del self._core.ld
++        IF HAVE_LONG_DOUBLE:
++            if self.M._type == mpz_ld:
++                del self._fe_core.ld
++                del self._core.ld
+         if self.M._type == mpz_dpe:
+             del self._fe_core.dpe
+             del self._core.dpe
+@@ -128,7 +134,8 @@ cdef class Enumeration:
+ 
+         cdef double max_dist__ = max_dist
+         cdef FP_NR[double] max_dist_d = max_dist__
+-        cdef FP_NR[longdouble] max_dist_ld = max_dist__
++        IF HAVE_LONG_DOUBLE:
++            cdef FP_NR[longdouble] max_dist_ld = max_dist__
+         cdef FP_NR[dpe_t] max_dist_dpe = max_dist__
+         IF HAVE_QD:
+             cdef FP_NR[dd_real] max_dist_dd = max_dist__
+@@ -136,7 +143,8 @@ cdef class Enumeration:
+         cdef FP_NR[mpfr_t] max_dist_mpfr = max_dist__
+ 
+         cdef vector[FP_NR[double]] target_coord_d
+-        cdef vector[FP_NR[longdouble]] target_coord_ld
++        IF HAVE_LONG_DOUBLE:
++            cdef vector[FP_NR[longdouble]] target_coord_ld
+         cdef vector[FP_NR[dpe_t]] target_coord_dpe
+         IF HAVE_QD:
+             cdef vector[FP_NR[dd_real]] target_coord_dd
+@@ -158,18 +166,19 @@ cdef class Enumeration:
+ 
+             max_dist = max_dist_d.get_d()
+ 
+-        if self.M._type == mpz_ld:
+-            sig_on()
+-            self._core.ld.enumerate(first, last, max_dist_ld, max_dist_expo,
+-                                    target_coord_ld, sub_tree_, pruning_, dual)
+-            sig_off()
+-            if not self._fe_core.ld.sol_coord.size():
+-                raise EnumerationError("No vector found.")
++        IF HAVE_LONG_DOUBLE:
++            if self.M._type == mpz_ld:
++                sig_on()
++                self._core.ld.enumerate(first, last, max_dist_ld, max_dist_expo,
++                                        target_coord_ld, sub_tree_, pruning_, dual)
++                sig_off()
++                if not self._fe_core.ld.sol_coord.size():
++                    raise EnumerationError("No vector found.")
+ 
+-            for i in range(self._fe_core.ld.sol_coord.size()):
+-                solution.append(self._fe_core.ld.sol_coord[i].get_d())
++                for i in range(self._fe_core.ld.sol_coord.size()):
++                    solution.append(self._fe_core.ld.sol_coord[i].get_d())
+ 
+-            max_dist = max_dist_ld.get_d()
++                max_dist = max_dist_ld.get_d()
+ 
+         if self.M._type == mpz_dpe:
+             sig_on()
+@@ -231,8 +240,9 @@ cdef class Enumeration:
+         """
+         if self.M._type == mpz_double:
+             return self._core.double.get_nodes()
+-        if self.M._type == mpz_ld:
+-            return self._core.ld.get_nodes()
++        IF HAVE_LONG_DOUBLE:
++            if self.M._type == mpz_ld:
++                return self._core.ld.get_nodes()
+         if self.M._type == mpz_dpe:
+             return self._core.dpe.get_nodes()
+         IF HAVE_QD:
+diff --git a/src/fpylll/fplll/gso.pyx b/src/fpylll/fplll/gso.pyx
+index 0aa9645..7353645 100644
+--- a/src/fpylll/fplll/gso.pyx
++++ b/src/fpylll/fplll/gso.pyx
+@@ -135,8 +135,11 @@ cdef class MatGSO:
+             self._type = mpz_double
+             self._core.mpz_double = new MatGSO_c[Z_NR[mpz_t],FP_NR[double]](b[0], u[0], u_inv_t[0], flags)
+         elif float_type_ == FT_LONG_DOUBLE:
+-            self._type = mpz_ld
+-            self._core.mpz_ld = new MatGSO_c[Z_NR[mpz_t],FP_NR[longdouble]](b[0], u[0], u_inv_t[0], flags)
++            IF HAVE_LONG_DOUBLE:
++                self._type = mpz_ld
++                self._core.mpz_ld = new MatGSO_c[Z_NR[mpz_t],FP_NR[longdouble]](b[0], u[0], u_inv_t[0], flags)
++            ELSE:
++                raise ValueError("Float type '%s' not understood." % float_type)
+         elif float_type_ == FT_DPE:
+             self._type = mpz_dpe
+             self._core.mpz_dpe = new MatGSO_c[Z_NR[mpz_t],FP_NR[dpe_t]](b[0], u[0], u_inv_t[0], flags)
+@@ -161,8 +164,9 @@ cdef class MatGSO:
+     def __dealloc__(self):
+         if self._type == mpz_double:
+             del self._core.mpz_double
+-        if self._type == mpz_ld:
+-            del self._core.mpz_ld
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                del self._core.mpz_ld
+         if self._type == mpz_dpe:
+             del self._core.mpz_dpe
+         IF HAVE_QD:
+@@ -196,8 +200,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return "double"
+-        if self._type == mpz_ld:
+-            return "long double"
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return "long double"
+         if self._type == mpz_dpe:
+             return "dpe"
+         IF HAVE_QD:
+@@ -222,8 +227,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.d
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.d
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.d
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.d
+         IF HAVE_QD:
+@@ -254,8 +260,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.enable_int_gram)
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.enable_int_gram)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.enable_int_gram)
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.enable_int_gram)
+         IF HAVE_QD:
+@@ -286,8 +293,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.enable_row_expo)
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.enable_row_expo)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.enable_row_expo)
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.enable_row_expo)
+         IF HAVE_QD:
+@@ -320,8 +328,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.enable_transform)
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.enable_transform)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.enable_transform)
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.enable_transform)
+         IF HAVE_QD:
+@@ -354,8 +363,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.enable_inverse_transform)
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.enable_inverse_transform)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.enable_inverse_transform)
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.enable_inverse_transform)
+         IF HAVE_QD:
+@@ -386,8 +396,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.row_op_force_long)
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.row_op_force_long)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.row_op_force_long)
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.row_op_force_long)
+         IF HAVE_QD:
+@@ -411,8 +422,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.row_op_begin(first, last)
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.row_op_begin(first, last)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.row_op_begin(first, last)
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.row_op_begin(first, last)
+         IF HAVE_QD:
+@@ -437,8 +449,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.row_op_end(first, last)
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.row_op_end(first, last)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.row_op_end(first, last)
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.row_op_end(first, last)
+         IF HAVE_QD:
+@@ -478,8 +491,9 @@ cdef class MatGSO:
+         # TODO: don't just return doubles
+         if self._type == mpz_double:
+             return self._core.mpz_double.get_gram(t.double, i, j).get_d()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.get_gram(t.ld, i, j).get_d()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.get_gram(t.ld, i, j).get_d()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.get_gram(t.dpe, i, j).get_d()
+         IF HAVE_QD:
+@@ -514,8 +528,9 @@ cdef class MatGSO:
+         # TODO: don't just return doubles
+         if self._type == mpz_double:
+             return self._core.mpz_double.get_r(t.double, i, j).get_d()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.get_r(t.ld, i, j).get_d()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.get_r(t.ld, i, j).get_d()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.get_r(t.dpe, i, j).get_d()
+         IF HAVE_QD:
+@@ -548,9 +563,10 @@ cdef class MatGSO:
+         if self._type == mpz_double:
+             r = self._core.mpz_double.get_r_exp(i, j, expo).get_data()
+             return r, expo
+-        if self._type == mpz_ld:
+-            r = self._core.mpz_ld.get_r_exp(i, j, expo).get_d()
+-            return r, expo
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                r = self._core.mpz_ld.get_r_exp(i, j, expo).get_d()
++                return r, expo
+         if self._type == mpz_dpe:
+             r = self._core.mpz_dpe.get_r_exp(i, j, expo).get_d()
+             return r, expo
+@@ -582,8 +598,9 @@ cdef class MatGSO:
+         # TODO: don't just return doubles
+         if self._type == mpz_double:
+             return self._core.mpz_double.get_mu(t.double, i, j).get_d()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.get_mu(t.ld, i, j).get_d()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.get_mu(t.ld, i, j).get_d()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.get_mu(t.dpe, i, j).get_d()
+         IF HAVE_QD:
+@@ -616,9 +633,10 @@ cdef class MatGSO:
+         if self._type == mpz_double:
+             r = self._core.mpz_double.get_mu_exp(i, j, expo).get_data()
+             return r, expo
+-        if self._type == mpz_ld:
+-            r = self._core.mpz_ld.get_mu_exp(i, j, expo).get_d()
+-            return r, expo
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                r = self._core.mpz_ld.get_mu_exp(i, j, expo).get_d()
++                return r, expo
+         if self._type == mpz_dpe:
+             r = self._core.mpz_dpe.get_mu_exp(i, j, expo).get_d()
+             return r, expo
+@@ -645,10 +663,11 @@ cdef class MatGSO:
+             with nogil:
+                 r = self._core.mpz_double.update_gso()
+             return bool(r)
+-        if self._type == mpz_ld:
+-            with nogil:
+-                r = self._core.mpz_ld.update_gso()
+-            return bool(r)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                with nogil:
++                    r = self._core.mpz_ld.update_gso()
++                return bool(r)
+         if self._type == mpz_dpe:
+             with nogil:
+                 r = self._core.mpz_dpe.update_gso()
+@@ -680,8 +699,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return bool(self._core.mpz_double.update_gso_row(i, last_j))
+-        if self._type == mpz_ld:
+-            return bool(self._core.mpz_ld.update_gso_row(i, last_j))
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return bool(self._core.mpz_ld.update_gso_row(i, last_j))
+         if self._type == mpz_dpe:
+             return bool(self._core.mpz_dpe.update_gso_row(i, last_j))
+         IF HAVE_QD:
+@@ -701,8 +721,9 @@ cdef class MatGSO:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.discover_all_rows()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.discover_all_rows()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.discover_all_rows()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.discover_all_rows()
+         IF HAVE_QD:
+@@ -727,8 +748,9 @@ cdef class MatGSO:
+         preprocess_indices(old_r, new_r, self.d, self.d)
+         if self._type == mpz_double:
+             return self._core.mpz_double.move_row(old_r, new_r)
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.move_row(old_r, new_r)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.move_row(old_r, new_r)
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.move_row(old_r, new_r)
+         IF HAVE_QD:
+@@ -798,9 +820,10 @@ cdef class MatGSO:
+         if self._type == mpz_double:
+             x_.double = float(x)
+             return self._core.mpz_double.row_addmul(i, j, x_.double)
+-        if self._type == mpz_ld:
+-            x_.ld = float(x)
+-            return self._core.mpz_ld.row_addmul(i, j, x_.ld)
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                x_.ld = float(x)
++                return self._core.mpz_ld.row_addmul(i, j, x_.ld)
+         if self._type == mpz_dpe:
+             x_.dpe = float(x)
+             return self._core.mpz_dpe.row_addmul(i, j, x_.dpe)
+@@ -828,8 +851,9 @@ cdef class MatGSO:
+ 
+         if self._type == mpz_double:
+             return self._core.mpz_double.create_row()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.create_row()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.create_row()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.create_row()
+         IF HAVE_QD:
+@@ -852,8 +876,9 @@ cdef class MatGSO:
+ 
+         if self._type == mpz_double:
+             return self._core.mpz_double.remove_last_row()
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.remove_last_row()
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.remove_last_row()
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.remove_last_row()
+         IF HAVE_QD:
+@@ -884,11 +909,12 @@ cdef class MatGSO:
+             r = self._core.mpz_double.get_current_slope(start_row, stop_row)
+             sig_off()
+             return r
+-        if self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.get_current_slope(start_row, stop_row)
+-            sig_off()
+-            return r
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                sig_on()
++                r = self._core.mpz_ld.get_current_slope(start_row, stop_row)
++                sig_off()
++                return r
+         if self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.get_current_slope(start_row, stop_row)
+@@ -927,11 +953,6 @@ cdef class MatGSO:
+             r = self._core.mpz_double.get_root_det(start_row, stop_row).get_d()
+             sig_off()
+             return r
+-        elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.get_root_det(start_row, stop_row).get_d()
+-            sig_off()
+-            return r
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.get_root_det(start_row, stop_row).get_d()
+@@ -943,6 +964,12 @@ cdef class MatGSO:
+             sig_off()
+             return r
+         else:
++            IF HAVE_LONG_DOUBLE:
++                if self._type == mpz_ld:
++                    sig_on()
++                    r = self._core.mpz_ld.get_root_det(start_row, stop_row).get_d()
++                    sig_off()
++                    return r
+             IF HAVE_QD:
+                 if self._type == mpz_dd:
+                     sig_on()
+@@ -970,11 +997,6 @@ cdef class MatGSO:
+             r = self._core.mpz_double.get_log_det(start_row, stop_row).get_d()
+             sig_off()
+             return r
+-        elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.get_log_det(start_row, stop_row).get_d()
+-            sig_off()
+-            return r
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.get_log_det(start_row, stop_row).get_d()
+@@ -986,6 +1008,12 @@ cdef class MatGSO:
+             sig_off()
+             return r
+         else:
++            IF HAVE_LONG_DOUBLE:
++                if self._type == mpz_ld:
++                    sig_on()
++                    r = self._core.mpz_ld.get_log_det(start_row, stop_row).get_d()
++                    sig_off()
++                    return r
+             IF HAVE_QD:
+                 if self._type == mpz_dd:
+                     sig_on()
+@@ -1014,11 +1042,6 @@ cdef class MatGSO:
+             r = self._core.mpz_double.get_slide_potential(start_row, stop_row, block_size).get_d()
+             sig_off()
+             return r
+-        elif self._type == mpz_ld:
+-            sig_on()
+-            r = self._core.mpz_ld.get_slide_potential(start_row, stop_row, block_size).get_d()
+-            sig_off()
+-            return r
+         elif self._type == mpz_dpe:
+             sig_on()
+             r = self._core.mpz_dpe.get_slide_potential(start_row, stop_row, block_size).get_d()
+@@ -1030,6 +1053,12 @@ cdef class MatGSO:
+             sig_off()
+             return r
+         else:
++            IF HAVE_LONG_DOUBLE:
++                if self._type == mpz_ld:
++                    sig_on()
++                    r = self._core.mpz_ld.get_slide_potential(start_row, stop_row, block_size).get_d()
++                    sig_off()
++                    return r
+             IF HAVE_QD:
+                 if self._type == mpz_dd:
+                     sig_on()
+diff --git a/src/fpylll/fplll/lll.pyx b/src/fpylll/fplll/lll.pyx
+index 13d7058..142df19 100644
+--- a/src/fpylll/fplll/lll.pyx
++++ b/src/fpylll/fplll/lll.pyx
+@@ -78,11 +78,14 @@ cdef class LLLReduction:
+                                                                                    delta,
+                                                                                    eta, flags)
+         elif M._type == mpz_ld:
+-            m_ld = M._core.mpz_ld
+-            self._type = mpz_ld
+-            self._core.mpz_ld = new LLLReduction_c[Z_NR[mpz_t], FP_NR[longdouble]](m_ld[0],
+-                                                                                   delta,
+-                                                                                   eta, flags)
++            IF HAVE_LONG_DOUBLE:
++                m_ld = M._core.mpz_ld
++                self._type = mpz_ld
++                self._core.mpz_ld = new LLLReduction_c[Z_NR[mpz_t], FP_NR[longdouble]](m_ld[0],
++                                                                                       delta,
++                                                                                       eta, flags)
++            ELSE:
++                raise RuntimeError("MatGSO object '%s' has no core."%self)
+         elif M._type == mpz_dpe:
+             m_dpe = M._core.mpz_dpe
+             self._type = mpz_dpe
+@@ -120,8 +123,9 @@ cdef class LLLReduction:
+     def __dealloc__(self):
+         if self._type == mpz_double:
+             del self._core.mpz_double
+-        if self._type == mpz_ld:
+-            del self._core.mpz_ld
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                del self._core.mpz_ld
+         if self._type == mpz_dpe:
+             del self._core.mpz_dpe
+         IF HAVE_QD:
+@@ -161,10 +165,13 @@ cdef class LLLReduction:
+             r = self._core.mpz_double.status
+             sig_off()
+         elif self._type == mpz_ld:
+-            sig_on()
+-            self._core.mpz_ld.lll(kappa_min, kappa_start, kappa_end)
+-            r = self._core.mpz_ld.status
+-            sig_off()
++            IF HAVE_LONG_DOUBLE:
++                sig_on()
++                self._core.mpz_ld.lll(kappa_min, kappa_start, kappa_end)
++                r = self._core.mpz_ld.status
++                sig_off()
++            ELSE:
++                raise RuntimeError("LLLReduction object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             sig_on()
+             self._core.mpz_dpe.lll(kappa_min, kappa_start, kappa_end)
+@@ -208,7 +215,10 @@ cdef class LLLReduction:
+         if self._type == mpz_double:
+             r = self._core.mpz_double.size_reduction(kappa_min, kappa_end)
+         elif self._type == mpz_ld:
+-            r = self._core.mpz_ld.size_reduction(kappa_min, kappa_end)
++            IF HAVE_LONG_DOUBLE:
++                r = self._core.mpz_ld.size_reduction(kappa_min, kappa_end)
++            ELSE:
++                raise RuntimeError("LLLReduction object '%s' has no core."%self)
+         elif self._type == mpz_dpe:
+             r = self._core.mpz_dpe.size_reduction(kappa_min, kappa_end)
+         elif self._type == mpz_mpfr:
+@@ -236,8 +246,9 @@ cdef class LLLReduction:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.final_kappa
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.final_kappa
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.final_kappa
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.final_kappa
+         IF HAVE_QD:
+@@ -260,8 +271,9 @@ cdef class LLLReduction:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.last_early_red
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.last_early_red
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.last_early_red
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.last_early_red
+         IF HAVE_QD:
+@@ -284,8 +296,9 @@ cdef class LLLReduction:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.zeros
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.zeros
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.zeros
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.zeros
+         IF HAVE_QD:
+@@ -308,8 +321,9 @@ cdef class LLLReduction:
+         """
+         if self._type == mpz_double:
+             return self._core.mpz_double.n_swaps
+-        if self._type == mpz_ld:
+-            return self._core.mpz_ld.n_swaps
++        IF HAVE_LONG_DOUBLE:
++            if self._type == mpz_ld:
++                return self._core.mpz_ld.n_swaps
+         if self._type == mpz_dpe:
+             return self._core.mpz_dpe.n_swaps
+         IF HAVE_QD:
+@@ -438,8 +452,10 @@ def is_LLL_reduced(M, delta=LLL_DEF_DELTA, eta=LLL_DEF_ETA):
+ 
+     if M_._type == mpz_double:
+         return bool(is_lll_reduced[Z_NR[mpz_t], FP_NR[double]](M_._core.mpz_double[0], delta, eta))
+-    if M_._type == mpz_ld:
+-        return bool(is_lll_reduced[Z_NR[mpz_t], FP_NR[longdouble]](M_._core.mpz_ld[0], delta, eta))
++
++    IF HAVE_LONG_DOUBLE:
++        if M_._type == mpz_ld:
++            return bool(is_lll_reduced[Z_NR[mpz_t], FP_NR[longdouble]](M_._core.mpz_ld[0], delta, eta))
+     IF HAVE_QD:
+         if M_._type == mpz_dd:
+             return bool(is_lll_reduced[Z_NR[mpz_t], FP_NR[dd_real]](M_._core.mpz_dd[0], delta, eta))
+diff --git a/src/fpylll/fplll/pruner.pyx b/src/fpylll/fplll/pruner.pyx
+index ef81efd..228621d 100644
+--- a/src/fpylll/fplll/pruner.pyx
++++ b/src/fpylll/fplll/pruner.pyx
+@@ -172,7 +172,8 @@ def _prune_gso(double enumeration_radius, double preproc_cost, double target_pro
+             raise ValueError("Inconsistent cores in parameter list.")
+ 
+     cdef vector[MatGSO_c[Z_NR[mpz_t], FP_NR[double]]] v_double
+-    cdef vector[MatGSO_c[Z_NR[mpz_t], FP_NR[longdouble]]] v_ld
++    IF HAVE_LONG_DOUBLE:
++        cdef vector[MatGSO_c[Z_NR[mpz_t], FP_NR[longdouble]]] v_ld
+     cdef vector[MatGSO_c[Z_NR[mpz_t], FP_NR[dpe_t]]] v_dpe
+     IF HAVE_QD:
+         cdef vector[MatGSO_c[Z_NR[mpz_t], FP_NR[dd_real]]] v_dd
+@@ -188,12 +189,15 @@ def _prune_gso(double enumeration_radius, double preproc_cost, double target_pro
+         sig_off()
+ 
+     elif type == mpz_ld:
+-        for m in M:
+-            v_ld.push_back((<MatGSO>m)._core.mpz_ld[0])
++        IF HAVE_LONG_DOUBLE:
++            for m in M:
++                v_ld.push_back((<MatGSO>m)._core.mpz_ld[0])
+ 
+-        sig_on()
+-        pruning_c = prune_c[FP_NR[longdouble], Z_NR[mpz_t], FP_NR[longdouble]](enumeration_radius, preproc_cost, target_probability, v_ld, descent_method, start_row, stop_row)
+-        sig_off()
++            sig_on()
++            pruning_c = prune_c[FP_NR[longdouble], Z_NR[mpz_t], FP_NR[longdouble]](enumeration_radius, preproc_cost, target_probability, v_ld, descent_method, start_row, stop_row)
++            sig_off()
++        ELSE:
++            RuntimeError("Unknown type %d."%type)
+ 
+     elif type == mpz_dpe:
+         for m in M:
+@@ -269,8 +273,9 @@ def svp_probability(pr, float_type="double"):
+ 
+     if ft == FT_DOUBLE:
+         return svp_probability_c[FP_NR[double]]((<Pruning>pr)._core.coefficients)
+-    if ft == FT_LONG_DOUBLE:
+-        return svp_probability_c[FP_NR[longdouble]]((<Pruning>pr)._core.coefficients)
++    IF HAVE_LONG_DOUBLE:
++        if ft == FT_LONG_DOUBLE:
++            return svp_probability_c[FP_NR[longdouble]]((<Pruning>pr)._core.coefficients)
+     if ft == FT_DPE:
+         return svp_probability_c[FP_NR[dpe_t]]((<Pruning>pr)._core.coefficients)
+     if ft == FT_MPFR:
+diff --git a/src/fpylll/numpy.pyx b/src/fpylll/numpy.pyx
+index e74daa2..a0fbd83 100644
+--- a/src/fpylll/numpy.pyx
++++ b/src/fpylll/numpy.pyx
+@@ -28,8 +28,9 @@ def _dump_mu(ndarray[double, ndim=2, mode="c"] mu not None, MatGSO M, int kappa,
+      """
+     if M._type == mpz_double:
+         return M._core.mpz_double.dump_mu_d(&mu[0,0], kappa, block_size)
+-    if M._type == mpz_ld:
+-        return M._core.mpz_ld.dump_mu_d(&mu[0,0], kappa, block_size)
++    IF HAVE_LONG_DOUBLE:
++        if M._type == mpz_ld:
++            return M._core.mpz_ld.dump_mu_d(&mu[0,0], kappa, block_size)
+     if M._type == mpz_dpe:
+         return M._core.mpz_dpe.dump_mu_d(&mu[0,0], kappa, block_size)
+     IF HAVE_QD:
+@@ -70,8 +71,9 @@ def _dump_r(ndarray[double, ndim=1, mode="c"] r not None, MatGSO M, int kappa, i
+ 
+     if M._type == mpz_double:
+         return M._core.mpz_double.dump_r_d(&r[0], kappa, block_size)
+-    if M._type == mpz_ld:
+-        return M._core.mpz_ld.dump_r_d(&r[0], kappa, block_size)
++    IF HAVE_LONG_DOUBLE:
++        if M._type == mpz_ld:
++            return M._core.mpz_ld.dump_r_d(&r[0], kappa, block_size)
+     if M._type == mpz_dpe:
+         return M._core.mpz_dpe.dump_r_d(&r[0], kappa, block_size)
+     IF HAVE_QD:
+diff --git a/src/fpylll/util.pyx b/src/fpylll/util.pyx
+index 0249907..8680be8 100644
+--- a/src/fpylll/util.pyx
++++ b/src/fpylll/util.pyx
+@@ -136,8 +136,9 @@ def get_precision(float_type="mpfr"):
+ 
+     if float_type_ == FT_DOUBLE:
+         return FP_NR[double].get_prec()
+-    if float_type_ == FT_LONG_DOUBLE:
+-        return FP_NR[longdouble].get_prec()
++    IF HAVE_LONG_DOUBLE:
++        if float_type_ == FT_LONG_DOUBLE:
++            return FP_NR[longdouble].get_prec()
+     if float_type_ == FT_DPE:
+         return FP_NR[dpe_t].get_prec()
+     IF HAVE_QD:

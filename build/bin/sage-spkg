@@ -553,6 +553,11 @@ fi
 
 echo "Finished extraction"
 
+echo "Applying Sage-specific patches"
+pushd src
+sage-apply-patches || exit 1
+popd
+
 ##################################################################
 # The package has been extracted, prepare for installation
 ##################################################################

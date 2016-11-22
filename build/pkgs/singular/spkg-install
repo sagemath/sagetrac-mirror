@@ -93,36 +93,19 @@ export MAKE="$MAKE -j1"
 # Workaround for GCC6: https://trac.sagemath.org/ticket/20926
 export CXXFLAGS="$CXXFLAGS -fno-delete-null-pointer-checks -fno-strict-overflow"
 
-choose_patches()
-{
-    cd "$PATCHES" || return $?
-
-    if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        mv conditional/sage_debug.patch . || return $?
-        # Remove old omalloc files, except for configure
-        mv "$SRC/omalloc/configure" configure_omalloc
-        rm -r "$SRC/omalloc"/*
-        mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
-    fi
-}
-
 apply_patches()
 {
     # cd down to the root of src/
     cd ..
 
-    # Apply all patches
-    for patch in ../patches/*.patch; do
-        [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-        echo "Applying $patch"
-        patch -p1 <"$patch"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'"
-            return 1
-        fi
-    done
+    if [ "x$SAGE_DEBUG" = "xyes" ]; then
+        # Remove old omalloc files, except for configure
+        mv "$SRC/omalloc/configure" "$SRC/configure_omalloc"
+        rm -r "$SRC/omalloc"/*
+        sage-apply-patches "$PATCHES/debug"
+    else
+        sage-apply-patches "$PATCHES/standard"
+    fi
 }
 
 remove_old_version()
@@ -324,7 +307,7 @@ install_docs()
 
 
 # Actually run all the functions defined above
-for i in choose_patches apply_patches remove_old_version config \
+for i in apply_patches remove_old_version config \
   build_singular build_libsingular build_factory build_libfac \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"
