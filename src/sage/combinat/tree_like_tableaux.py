@@ -1658,14 +1658,13 @@ class TreeLikeTableaux_size(TreeLikeTableaux):
 
     def __iter__(self):
         r"""
-        TODO a refaire
         """
         n = self._size
 
         if n==0:
-            yield SymmetricTreeLikeTableau([[]])
+            yield TreeLikeTableau([[]])
         if n==1:
-            yield SymmetricTreeLikeTableau([[1]])
+            yield TreeLikeTableau([[1]])
         else:
             for tlt in TreeLikeTableaux(n-1):
                 for i in range(n):
