@@ -477,8 +477,9 @@ class TreeLikeTableau( ClonableList ):
             options for Parallelogram Polyominoes
         """
         if self._options is None:
-            return self.parent()._options( *get_value, **set_values)
-        return self._options( *get_value, **set_values)
+            if **set_values==[]:
+                self._options=deepcopy(self.parent()._get_options())
+        return self._options(*get_value, **set_values)
 
     def _get_options(self):
         if self._options is None:
