@@ -1057,6 +1057,21 @@ class IncidenceStructure(object):
         B = self._blocks
         return all(B[i] != B[i+1] for i in range(len(B)-1))
 
+    def is_berge_acyclic(self):
+        r"""
+        A hypergraph is Berge-acyclic if its incidence graph is acyclic.
+
+        EXAMPLES::
+
+            sage: h = Hypergraph(5, [[1, 2, 3], [2, 3 ,4]])
+            sage: h.is_berge_acyclic()
+            False
+            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
+            sage: h.is_berge_acyclic()
+            True
+        """
+        return self.incidence_graph().is_forest()
+
     def _gap_(self):
         """
         Return the GAP string describing the design.
