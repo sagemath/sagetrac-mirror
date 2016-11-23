@@ -7430,6 +7430,166 @@ class Graph(GenericGraph):
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
 
+    ### Expansion
+
+    @doc_index("Algorithmically hard stuff")
+    def cheeger_constant(self):
+        r"""
+        There are many different definitions for cheeger constants.  It is
+        sometimes called the *transition isoperimetric number*.
+
+        The default definition which is used here is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<\text{Vol}(S)\le|E|}}
+            \frac{|\partial S|}{\text{Vol}(S)},
+
+        where
+
+        .. MATH::
+
+            \text{Vol}(S) = \sum_{v\in S} d(v)
+
+        and `\partial S` is the edge boundary of `S`.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.cheeger_constant()
+            3/4
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.cheeger_constant()
+            1/3
+
+        REFERENCES:
+
+        .. [Chu07] Fan Chung, Random walks and local cuts in graphs, Linear
+           Algebra and its Applications 423 (2007), no. 1, 22–32.
+
+        .. [CT98] Fan Chung and Prasad Tetali, Isoperimetric inequalities for
+           Cartesian products of graphs, Combinatorics, Probability and
+           Computing 7 (1998), no. 2, 141–148.
+
+        .. [Moh88] Bojan Mohar, Isoperimetric inequalities, growth, and the
+           spectrum of graphs, Linear Algebra and its Applications 103 (1988),
+           119–131.
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        e = self.num_edges()
+        for s in Subsets(self.vertices()):
+            vol = sum(self.degree(s))
+            if not vol:
+                continue
+            if vol > e:
+                continue
+            boundary = len(self.edge_boundary(s))
+            n = Integer(boundary) / Integer(vol)
+            if n < c:
+                c = n
+
+        return c
+
+    @doc_index("Algorithmically hard stuff")
+    def edge_isoperimetric_number(self):
+        r"""
+        The edge-isoperimetric number of a graph (sometimes simply called the
+        isoperimetric number) is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
+            \frac{|\partial S|}{|S|},
+
+        where `\partial S` is the edge boundary of `S`.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.edge_isoperimetric_number()
+            3
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.edge_isoperimetric_number()
+            2/3
+
+        REFERENCES:
+
+        .. [ABS04] Noga Alon, Itai Benjamini and Alan Stacey, Percolation on
+           finite graphs and isoperimetric inequalities, The Annals of
+           Probability 32 (2004), no. 3A, 1727–1745.
+
+        [CT98]_
+
+        [Moh88]_
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        mc = Integer(self.num_verts()) / 2
+        for s in Subsets(self.vertices()):
+            card = s.cardinality()
+            if not card:
+                continue
+            if card > mc:
+                continue
+            boundary = len(self.edge_boundary(s))
+            n = Integer(boundary) / Integer(card)
+            if n < c:
+                c = n
+
+        return c
+
+    @doc_index("Algorithmically hard stuff")
+    def vertex_isoperimetric_number(self):
+        r"""
+        The vertex-isoperimetric number of a graph (sometimes simply called the
+        magnifying constant) is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
+            \frac{|N(S)|}{|S|},
+
+        where `N(S)` is the vertex boundary of `S`.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.vertex_isoperimetric_number()
+            3/2
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.vertex_isoperimetric_number()
+            2/3
+
+        REFERENCES:
+
+        .. [Ben98] Itai Benjamini, Expanders are not hyperbolic, Israel Journal
+           of Mathematics 108 (1998), 33–36.
+
+        .. [BS97] Itai Benjamini and Oded Schramm, Every graph with a positive
+           Cheeger constant contains a tree with a positive Cheeger constant,
+           Geometric and Functional Analysis 7 (1997), no. 3, 403–419.
+
+        [Moh88]_
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        mc = Integer(self.num_verts()) / 2
+        for s in Subsets(self.vertices()):
+            card = s.cardinality()
+            if not card:
+                continue
+            if card > mc:
+                continue
+            boundary = len(self.vertex_boundary(s))
+            n = Integer(boundary) / Integer(card)
+            if n < c:
+                c = n
+
+        return c
 
 # Aliases to functions defined in Cython modules
 import types
