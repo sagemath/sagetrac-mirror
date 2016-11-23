@@ -7205,7 +7205,7 @@ class Graph(GenericGraph):
 
             \text{Vol}(S) = \sum_{v\in S} d(v)
 
-        and $\partial S$ is the edge boundary of S.
+        and `\partial S` is the edge boundary of `S`.
 
         EXAMPLES::
 
@@ -7257,7 +7257,7 @@ class Graph(GenericGraph):
             \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
             \frac{|\partial S|}{|S|},
 
-        where$ \partial S$ is the edge boundary of S.
+        where `\partial S` is the edge boundary of `S`.
 
         EXAMPLES::
 
