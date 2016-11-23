@@ -1,0 +1,29 @@
+Run code through sage auto_vars
+
+diff --git a/IPython/core/interactiveshell.py b/IPython/core/interactiveshell.py
+index 4fdbbdc..b10a841 100644
+--- a/IPython/core/interactiveshell.py
++++ b/IPython/core/interactiveshell.py
+@@ -85,6 +85,8 @@
+ # See https://github.com/ipython/ipykernel/issues/157
+ from IPython.utils.contexts import NoOpContext
+
++from sage.misc import auto_vars
++
+ try:
+     import docrepr.sphinxify as sphx
+
+@@ -2856,7 +2858,10 @@ def run_code(self, code_obj, result=None):
+             try:
+                 self.hooks.pre_run_code_hook()
+                 #rprint('Running code', repr(code_obj)) # dbg
+-                exec(code_obj, self.user_global_ns, self.user_ns)
++                if auto_vars.auto_vars.enabled:
++                  auto_vars.auto_var_exec(code_obj, self.user_global_ns, self.user_ns)
++                else:
++                  exec(code_obj, self.user_global_ns, self.user_ns)
+             finally:
+                 # Reset our crash handler in place
+                 sys.excepthook = old_excepthook
+--
+2.10.0
