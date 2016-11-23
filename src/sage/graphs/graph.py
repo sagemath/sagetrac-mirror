@@ -7430,6 +7430,66 @@ class Graph(GenericGraph):
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
 
+    @doc_index("Algorithmically hard stuff")
+    def cheeger_constant(self):
+        r"""
+        There are many different definitions for cheeger constants.  It is
+        sometimes called the *transition isoperimetric number*.
+
+        The default definition which is used here is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<\text{Vol}(S)\le|E|}}
+            \frac{|\partial S|}{\text{Vol}(S)},
+
+        where
+
+        .. MATH::
+
+            \text{Vol}(S) = \sum_{v\in S} d(v)
+
+        and $\partial S$ is the edge boundary of S.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.cheeger_constant()
+            3/4
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.cheeger_constant()
+            1/3
+
+        REFERENCES:
+
+        .. [Chu07] Fan Chung, Random walks and local cuts in graphs, Linear
+           Algebra and its Applications 423 (2007), no. 1, 22–32.
+
+        .. [CT98] Fan Chung and Prasad Tetali, Isoperimetric inequalities for
+           Cartesian products of graphs, Combinatorics, Probability and
+           Computing 7 (1998), no. 2, 141–148.
+
+        .. [Moh88] Bojan Mohar, Isoperimetric inequalities, growth, and the
+           spectrum of graphs, Linear Algebra and its Applications 103 (1988),
+           119–131.
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        e = self.num_edges()
+        for s in Subsets(self.vertices()):
+            vol = sum(self.degree(s))
+            if not vol:
+                continue
+            if vol > e:
+                continue
+            boundary = len(self.edge_boundary(s))
+            n = Integer(boundary) / Integer(vol)
+            if n < c:
+                c = n
+
+        return c
+
 
 # Aliases to functions defined in Cython modules
 import types
