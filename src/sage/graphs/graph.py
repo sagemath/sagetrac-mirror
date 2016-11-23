@@ -7541,6 +7541,56 @@ class Graph(GenericGraph):
 
         return c
 
+    @doc_index("Algorithmically hard stuff")
+    def vertex_isoperimetric_number(self):
+        r"""
+        The vertex-isoperimetric number of a graph (sometimes simply called the
+        magnifying constant) is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
+            \frac{|N(S)|}{|S|},
+
+        where `N(S)` is the vertex boundary of `S`.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.vertex_isoperimetric_number()
+            3/2
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.vertex_isoperimetric_number()
+            2/3
+
+        REFERENCES:
+
+        .. [Ben98] Itai Benjamini, Expanders are not hyperbolic, Israel Journal
+           of Mathematics 108 (1998), 33–36.
+
+        .. [BS97] Itai Benjamini and Oded Schramm, Every graph with a positive
+           Cheeger constant contains a tree with a positive Cheeger constant,
+           Geometric and Functional Analysis 7 (1997), no. 3, 403–419.
+
+        [Moh88]_
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        mc = Integer(self.num_verts()) / 2
+        for s in Subsets(self.vertices()):
+            card = s.cardinality()
+            if not card:
+                continue
+            if card > mc:
+                continue
+            boundary = len(self.vertex_boundary(s))
+            n = Integer(boundary) / Integer(card)
+            if n < c:
+                c = n
+
+        return c
+
 # Aliases to functions defined in Cython modules
 import types
 
