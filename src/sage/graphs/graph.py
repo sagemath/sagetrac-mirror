@@ -7430,6 +7430,8 @@ class Graph(GenericGraph):
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
 
+    ### Expansion
+
     @doc_index("Algorithmically hard stuff")
     def cheeger_constant(self):
         r"""
@@ -7490,6 +7492,54 @@ class Graph(GenericGraph):
 
         return c
 
+    @doc_index("Algorithmically hard stuff")
+    def edge_isoperimetric_number(self):
+        r"""
+        The edge-isoperimetric number of a graph (sometimes simply called the
+        isoperimetric number) is
+
+        .. MATH::
+
+            \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
+            \frac{|\partial S|}{|S|},
+
+        where$ \partial S$ is the edge boundary of S.
+
+        EXAMPLES::
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: K5.edge_isoperimetric_number()
+            3
+            sage: C7 = graphs.CycleGraph(7)
+            sage: C7.edge_isoperimetric_number()
+            2/3
+
+        REFERENCES:
+
+        .. [ABS04] Noga Alon, Itai Benjamini and Alan Stacey, Percolation on
+           finite graphs and isoperimetric inequalities, The Annals of
+           Probability 32 (2004), no. 3A, 1727–1745.
+
+        [CT98]_
+
+        [Moh88]_
+        """
+        from sage.combinat.subset import Subsets
+        from sage.rings import infinity
+        c = infinity
+        mc = Integer(self.num_verts()) / 2
+        for s in Subsets(self.vertices()):
+            card = s.cardinality()
+            if not card:
+                continue
+            if card > mc:
+                continue
+            boundary = len(self.edge_boundary(s))
+            n = Integer(boundary) / Integer(card)
+            if n < c:
+                c = n
+
+        return c
 
 # Aliases to functions defined in Cython modules
 import types
