@@ -205,6 +205,6 @@ class logstr(str):
 
 lazy_import("sage.misc", "messaging", deprecation=18140)
 
+from .verbose import (basic_sage_logging_config, DynamicStdErrStreamHandler)
 
-import logging
-logging.basicConfig()
+basic_sage_logging_config()
