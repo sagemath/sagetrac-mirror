@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = LINBOX_CFLAGS
+# distutils: libraries = LINBOX_LIBRARIES
+# distutils: library_dirs = LINBOX_LIBDIR
+# distutils: language = c++
+
 r"""
 Linbox interface
 """
@@ -8,7 +13,6 @@ Linbox interface
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
-from sage.misc.misc import cputime, UNAME
 from sage.misc.verbose import verbose, get_verbose
 
 ##########################################################################

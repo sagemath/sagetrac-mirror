@@ -221,11 +221,12 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: v.parent() is QQbar
             True
         """
+        from six.moves import range
         from sage.misc.verbose import verbose
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!
-        return sum([self._gen_elements[i] * ZZ(v[i]) for i in xrange(len(v))], self.universe()(0))
+        return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
 
     def _discrete_log(self,x):
         r"""
