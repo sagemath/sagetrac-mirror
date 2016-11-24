@@ -14,7 +14,6 @@ from __future__ import absolute_import, division
 import six
 from copy import copy
 import sage.repl.preparse as preparser
-import sage.misc.auto_vars as auto_vars
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""
