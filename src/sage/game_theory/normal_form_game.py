@@ -2765,11 +2765,11 @@ class NormalFormGame(SageObject, MutableMapping):
             3
             sage: tab[1]
             3
-            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
             [-2.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
             [-3.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
-            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
             [-5.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
             [-6.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
@@ -2786,12 +2786,12 @@ class NormalFormGame(SageObject, MutableMapping):
             4
             sage: tab[1]
             3
-            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00  1.00 0.000 0.000 0.000 0.000 -117. -162. -1.00]
             [-2.00  1.00 0.000 0.000 0.000 0.000 -132. -137. -2.00]
             [-3.00  1.00 0.000 0.000 0.000 0.000 -158. -161. -7.00]
             [-4.00  1.00 0.000 0.000 0.000 0.000 -77.0 -164. -6.00]
-            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-5.00  1.00 0.000 0.000 0.000 -3.00 -2.00 -4.00 -5.00]
             [-6.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -5.00 -2.00]
             [-7.00  1.00 0.000 0.000 0.000 -3.00 -1.00 -2.00 -3.00]
@@ -2800,12 +2800,12 @@ class NormalFormGame(SageObject, MutableMapping):
             4
             sage: tab[1]
             3
-            sage: print tab[2][0]
+            sage: print(tab[2][0])
             [  -1    1    0    0    0    0 -117 -162   -1]
             [  -2    1    0    0    0    0 -132 -137   -2]
             [  -3    1    0    0    0    0 -158 -161   -7]
             [  -4    1    0    0    0    0  -77 -164   -6]
-            sage: print tab[2][1]
+            sage: print(tab[2][1])
             [-5  1  0  0  0 -3 -2 -4 -5]
             [-6  1  0  0  0 -3 -1 -5 -2]
             [-7  1  0  0  0 -3 -1 -2 -3]
@@ -2898,11 +2898,11 @@ class NormalFormGame(SageObject, MutableMapping):
             3
             sage: tab[1]
             3
-            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
             [-2.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
             [-3.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
-            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -1.00]
             [-5.00  1.00 0.000 0.000 0.000 -1.00 -2.00 -1.00]
             [-6.00  1.00 0.000 0.000 0.000 -1.00 -1.00 -2.00]
@@ -2919,12 +2919,12 @@ class NormalFormGame(SageObject, MutableMapping):
             4
             sage: tab[1]
             3
-            sage: print tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00  1.00 0.000 0.000 0.000 0.000 -160. -205. -44.0]
             [-2.00  1.00 0.000 0.000 0.000 0.000 -175. -180. -45.0]
             [-3.00  1.00 0.000 0.000 0.000 0.000 -201. -204. -50.0]
             [-4.00  1.00 0.000 0.000 0.000 0.000 -120. -207. -49.0]
-            sage: print tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-5.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -3.00 -4.00]
             [-6.00  1.00 0.000 0.000 0.000 -2.00 0.000 -4.00 -1.00]
             [-7.00  1.00 0.000 0.000 0.000 -2.00 0.000 -1.00 -2.00]
@@ -2933,15 +2933,15 @@ class NormalFormGame(SageObject, MutableMapping):
             4
             sage: tab[1]
             3
-            sage: print tab[2][0]#.str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [  -1    1    0    0    0    0 -160 -205  -44]
-            [  -2    1    0    0    0    0 -175 -180  -45]
-            [  -3    1    0    0    0    0 -201 -204  -50]
-            [  -4    1    0    0    0    0 -120 -207  -49]
-            sage: print tab[2][1]#.str(rep_mapping=lambda x: str(x.n(digits=3)))
-            [-5  1  0  0  0 -2 -1 -3 -4]
-            [-6  1  0  0  0 -2  0 -4 -1]
-            [-7  1  0  0  0 -2  0 -1 -2]
+            sage: print(tab[2][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
+            [-1.00  1.00 0.000 0.000 0.000 0.000 -160. -205. -44.0]
+            [-2.00  1.00 0.000 0.000 0.000 0.000 -175. -180. -45.0]
+            [-3.00  1.00 0.000 0.000 0.000 0.000 -201. -204. -50.0]
+            [-4.00  1.00 0.000 0.000 0.000 0.000 -120. -207. -49.0]
+            sage: print(tab[2][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
+            [-5.00  1.00 0.000 0.000 0.000 -2.00 -1.00 -3.00 -4.00]
+            [-6.00  1.00 0.000 0.000 0.000 -2.00 0.000 -4.00 -1.00]
+            [-7.00  1.00 0.000 0.000 0.000 -2.00 0.000 -1.00 -2.00]
             sage: type(tab[2][0][0,0])
             <type 'sage.rings.rational.Rational'>
             sage: type(tab[2][1][0,0])
@@ -3120,22 +3120,22 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A, A])
             sage: tab = g._init_lh_tableau(A, A)
             sage: res = g._lh_solve_tableau(tab[2], 1)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [  4.00  0.500 -0.500  0.000  0.000  0.000 -0.500 -0.500]
             [ -2.00  0.500  0.500  0.000  0.000  0.000  -1.50 -0.500]
             [ -3.00  0.500  0.500  0.000  0.000  0.000 -0.500  -1.50]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [  1.00  0.500 -0.500  0.000  0.000  0.000 -0.500 -0.500]
             [ -5.00  0.500  0.500  0.000  0.000  0.000  -1.50 -0.500]
             [ -6.00  0.500  0.500  0.000  0.000  0.000 -0.500  -1.50]
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]]
             [[[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]]
             sage: res = g._lh_solve_tableau(tab[2], 5)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [ -1.00  0.500  0.000  0.500  0.000  -1.50  0.000 -0.500]
             [  5.00  0.500  0.000 -0.500  0.000 -0.500  0.000 -0.500]
             [ -3.00  0.500  0.000  0.500  0.000 -0.500  0.000  -1.50]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [ -4.00  0.500  0.000  0.500  0.000  -1.50  0.000 -0.500]
             [  2.00  0.500  0.000 -0.500  0.000 -0.500  0.000 -0.500]
             [ -6.00  0.500  0.000  0.500  0.000 -0.500  0.000  -1.50]
@@ -3143,44 +3143,44 @@ class NormalFormGame(SageObject, MutableMapping):
             [[[0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]]
             sage: tab = g._init_lh_tableau(matrix(3), matrix(3))
             sage: res = g._lh_solve_tableau(tab[2], 1)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]]
             [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
             sage: res = g._lh_solve_tableau(tab[2], 2)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]]
             [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
             sage: res = g._lh_solve_tableau(tab[2], 4)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in [res[1]]]
             [[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0]]]
             sage: res = g._lh_solve_tableau(tab[2], 5)
-            sage: print res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][0].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-1.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-2.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 6.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
-            sage: print res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3)))
+            sage: print(res[0][1].str(rep_mapping=lambda x: str(x.n(digits=3))))
             [-4.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [-5.00 0.000 0.000 0.000  1.00 0.000 0.000 0.000]
             [ 3.00  1.00 0.000 0.000 -1.00 -1.00 -1.00 0.000]
@@ -3685,7 +3685,7 @@ class _LHEquilibrium():
             sage: from sage.game_theory.normal_form_game import _LHEquilibrium
             sage: A = matrix.identity(3)
             sage: e = _LHEquilibrium([A, A], [[0]*3, [0]*3])
-            sage: print str(e)
+            sage: print(str(e))
             Equ [[0, 0, 0], [0, 0, 0]] Labels [-1, -1, -1, -1, -1, -1]
         """
         s = "Equ " + str(self.eq)
@@ -3701,7 +3701,7 @@ class _LHEquilibrium():
             sage: from sage.game_theory.normal_form_game import _LHEquilibrium
             sage: A = matrix.identity(3)
             sage: e = _LHEquilibrium([A, A], [[0]*3, [0]*3])
-            sage: print e.__repr__()
+            sage: print(e.__repr__())
             Equ [[0, 0, 0], [0, 0, 0]] Labels [-1, -1, -1, -1, -1, -1]
         """
         return str(self)
