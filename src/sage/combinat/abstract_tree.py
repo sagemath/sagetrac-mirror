@@ -2034,7 +2034,9 @@ class AbstractLabelledTree(AbstractTree):
 
     .. SEEALSO:: :class:`AbstractTree`
     """
-    def __init__(self, parent, children, label = None, check = True):
+    def __init__(
+        self, parent, children, label = None, check = True, *args, **keywords
+    ):
         """
         TESTS::
 
@@ -2083,7 +2085,9 @@ class AbstractLabelledTree(AbstractTree):
                 self._label = label
         else:
             self._label = label
-        super(AbstractLabelledTree, self).__init__(parent, children, check=check)
+        super(AbstractLabelledTree, self).__init__(
+            parent, children, check=check, *args, **keywords
+        )
 
     def _repr_(self):
         """
