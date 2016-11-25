@@ -27,17 +27,18 @@ from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
-from sage.combinat.combinatorial_map import combinatorial_map
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.functions.other import binomial
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
 
 class KAryTree(AbstractClonableTree, ClonableArray):
@@ -172,7 +173,7 @@ class KAryTree(AbstractClonableTree, ClonableArray):
         """
         return KAryTrees_all()
 
-    def __init__(self, parent, children = None, arity = None, check = True):
+    def __init__(self, parent, children=None, arity=None, check=True):
         """
         TESTS::
 
@@ -195,20 +196,19 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             True
         """
         if (isinstance(children, str)):  # if the input is the repr of a binary tree
-            children = children.replace(".","None")
+            children = children.replace(".", "None")
             from ast import literal_eval
             children = literal_eval(children)
-        if children is None:
-            children = []
-        elif (children == [] or children == ()) and not arity is None:
-            children = [None for i in range(arity)]
+        elif not children and arity is not None:
+            children = [None] * arity
         if (children.__class__ is self.__class__ and
-            children.parent() == parent):
+                children.parent() == parent):
             children = list(children)
         else:
-            children = [self.__class__(parent, x, arity=len( children ) ) for x in children]
+            children = [self.__class__(parent, x, arity=len(children))
+                        for x in children]
         if arity is None:
-            self._arity = len( children )
+            self._arity = len(children)
         else:
             self._arity = arity
         ClonableArray.__init__(self, parent, children, check=check)
@@ -243,11 +243,11 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             sage: KAryTree(None) # indirect doctest
             .
         """
-        if self and len(self) != self._arity :
-            raise ValueError("this is not a %d-ary tree"%(self._arity))
+        if self and len(self) != self._arity:
+            raise ValueError("this is not a %d-ary tree" % self._arity)
             for tree in self:
                 if tree and tree.arity() != self.arity():
-                    raise ValueError("this is not a %d-ary tree"%(self._arity))
+                    raise ValueError("this is not a %d-ary tree" % self._arity)
 
     def _repr_(self):
         """
@@ -341,26 +341,24 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             sage: T = KAryTree([[[[None]]]])
             sage: T.comb(0)
             [[None], [None], [None]]
-
-
         """
         if self.is_empty():
             return []
-        d=self.arity()
-        if not side < d :
-            raise ValueError("Value %d is a wrong side value : it must be strictly smaller than the arity %d of the tree"%(side,d))
-        tree=self[side]
-        res=[]
-        fc=[]
+        d = self.arity()
+        if not side < d:
+            raise ValueError("Value %d is a wrong side value : it must be strictly smaller than the arity %d of the tree" % (side, d))
+        tree = self[side]
+        res = []
+        fc = []
         while not tree.is_empty():
             for i in range(d):
-                if i==side:
+                if i == side:
                     fc.append(None)
                 else:
                     fc.append(tree[i])
             res.append(fc)
-            fc=[]
-            tree=tree[side]
+            fc = []
+            tree = tree[side]
         return res
 
     def hook_number(self):
@@ -393,15 +391,15 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             sage: T.hook_number()
             3
         """
-        if self.is_empty() or self==None:
+        if self.is_empty() or self is None:
             return 0
-        s=1
+        s = 1
         for i in range(self.arity()):
             for h in self.comb(i):
-                if len(h)>0:
+                if h:
                     for el in h:
-                        if not(el==None) and not(el.is_empty()):
-                            s+=el.hook_number()
+                        if (el is not None) and not(el.is_empty()):
+                            s += el.hook_number()
         return s
 
     def twisting_number(self):
@@ -428,24 +426,24 @@ class KAryTree(AbstractClonableTree, ClonableArray):
             sage: T.twisting_number()
             [1, 1, 2]
         """
-        wn=[]
-        d=self.arity()
+        wn = []
+        d = self.arity()
         for i in range(d):
             wn.append(0)
-        if self.is_empty() or self==None:
+        if self.is_empty() or self is None:
             return wn
         for i in range(self.arity()):
-            if len(self.comb(i))>0:
-                wn[i]=wn[i]+1
+            if len(self.comb(i)):
+                wn[i] += 1
             for h in self.comb(i):
                 for j in range(len(h)):
-                    el=h[j]
-                    if not(el==None) and not(el.is_empty()):
-                        partres=el.twisting_number()
+                    el = h[j]
+                    if (el is not None) and not(el.is_empty()):
+                        partres = el.twisting_number()
                         for k in range(d):
-                            wn[k]=wn[k]+partres[k]
+                            wn[k] += partres[k]
                         if el[j].is_empty:
-                            wn[j]=wn[j]+1
+                            wn[j] += 1
         return wn
 
 
@@ -534,22 +532,18 @@ class KAryTrees(UniqueRepresentation, Parent):
         return self(None)
 
 
-from sage.structure.parent import Parent
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.integer import Integer
-from sage.structure.list_clone import ClonableArray
-
-
 class IntegerPair(ClonableArray):
-    def __init__(self, parent, v, check = True):
+    def __init__(self, parent, v, check=True):
         ClonableArray.__init__(self, parent, v, check=check)
+
     def check(self):
         if not (not self or len(self) == 2):
             raise ValueError("this is not a pair o integer")
+
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
+
     @lazy_class_attribute
     def _auto_parent(cls):
         return IntegerPairs()
@@ -557,15 +551,15 @@ class IntegerPair(ClonableArray):
 
 class IntegerPairs(UniqueRepresentation, Parent):
     def __init__(self):
-        Parent.__init__(self, category = InfiniteEnumeratedSets())
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
 
     def _repr_(self):
         return "Pair of non negative integers"
 
     def __contains__(self, elt):
         return (
-            ( Integer(elt[0]) == Integer(0) ) and
-            ( Integer(elt[1]) == Integer(0) )
+            (Integer(elt[0]) == Integer(0)) and
+            (Integer(elt[1]) == Integer(0))
         ) or (
             Integer(elt[0]) >= Integer(1) and Integer(elt[0]) >= Integer(1)
         )
@@ -575,29 +569,27 @@ class IntegerPairs(UniqueRepresentation, Parent):
         n = 2
         while True:
             for i in range(1, n):
-                yield self._element_constructor_([i, n-i])
+                yield self._element_constructor_([i, n - i])
             n += 1
 
     def __call__(self, elt):
         if elt in self:
-            return self._element_constructor_( elt )
+            return self._element_constructor_(elt)
         else:
-            raise ValueError("Value %s is not a pair of non negative integer."%(elt))
+            raise ValueError("Value %s is not a pair of non negative integers" % elt)
 
     def an_element(self):
-        return self._element_constructor_([Integer(42),Integer(3)])
+        return self._element_constructor_([Integer(42), Integer(3)])
 
     def next(self, v):
         if v[1] == 1:
-            return self._element_constructor_( [1, v[0]+1] )
-        return self._element_constructor_( [v[0]+1, v[0]-1] )
+            return self._element_constructor_([1, v[0] + 1])
+        return self._element_constructor_([v[0] + 1, v[0] - 1])
 
     def _element_constructor_(self, *args, **keywords):
-        return self.element_class(self,*args, **keywords)
+        return self.element_class(self, *args, **keywords)
 
     Element = IntegerPair
-
-
 
 
 #################################################################
@@ -636,9 +628,9 @@ class KAryTrees_all(DisjointUnionEnumeratedSets, KAryTrees):
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
                 IntegerPairs(),
-                lambda x : KAryTrees_size(arity=x[0], size=x[1])
+                lambda x: KAryTrees_size(arity=x[0], size=x[1])
             ),
-            facade=True, keepkey = False
+            facade=True, keepkey=False
         )
 
     def _repr_(self):
@@ -749,7 +741,7 @@ class KAryTrees_arity(DisjointUnionEnumeratedSets, KAryTrees):
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
                 NonNegativeIntegers(), lambda x: KAryTrees_size(self._arity, x)
-            ), facade=True, keepkey = False
+            ), facade=True, keepkey=False
         )
 
     def _repr_(self):
@@ -759,7 +751,7 @@ class KAryTrees_arity(DisjointUnionEnumeratedSets, KAryTrees):
             sage: KAryTrees(3)   # indirect doctest
             3-ary trees
         """
-        return "%d-ary trees"%(self._arity)
+        return "%d-ary trees" % self._arity
 
     def __contains__(self, x):
         """
@@ -842,8 +834,6 @@ class KAryTrees_arity(DisjointUnionEnumeratedSets, KAryTrees):
     Element = KAryTree
 
 
-
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 #################################################################
 # Enumerated set of k-ary trees of a given size
 #################################################################
@@ -853,10 +843,8 @@ class KAryTrees_size(KAryTrees):
 
     TESTS::
 
-    TODO
-
-        #sage: from sage.combinat.k_ary_tree import KAryTrees_size
-        #sage: for i in range(6): TestSuite(KAryTrees_size(3,i)).run()
+        sage: # from sage.combinat.k_ary_tree import KAryTrees_size
+        sage: # for i in range(6): TestSuite(KAryTrees_size(3,i)).run()
     """
     def __init__(self, arity, size):
         """
@@ -869,9 +857,7 @@ class KAryTrees_size(KAryTrees):
             sage: S is KAryTrees(2, 3)
             True
         """
-        super(KAryTrees_size, self).__init__(
-            category = FiniteEnumeratedSets()
-        )
+        super(KAryTrees_size, self).__init__(category=FiniteEnumeratedSets())
         self._arity = arity
         self._size = size
 
@@ -929,9 +915,8 @@ class KAryTrees_size(KAryTrees):
             sage: KAryTrees(2, 5).cardinality()
             42
         """
-        return binomial(self._arity*self._size, self._size)/(
-            (self._arity-1)*self._size + 1
-        )
+        return (binomial(self._arity * self._size, self._size) /
+                ((self._arity - 1) * self._size + 1))
 
     def __iter__(self):
         """
@@ -952,15 +937,14 @@ class KAryTrees_size(KAryTrees):
              [., [[., .], .]],
              [., [., [., .]]]]
         """
-        if self._size == 0:
+        if not self._size:
             yield self._element_constructor_(None)
         else:
-            for v in IntegerVectors( self._size-1, length=self._arity ):
+            for v in IntegerVectors(self._size - 1, length=self._arity):
                 cp = CartesianProduct(
-                    * map( lambda x:self.__class__(self._arity, x), v )
-                )
+                    *map(lambda x: self.__class__(self._arity, x), v))
                 for children in cp:
-                    yield self._element_constructor_( children )
+                    yield self._element_constructor_(children)
 
     @lazy_attribute
     def _parent_for(self):
@@ -1014,6 +998,7 @@ class KAryTrees_size(KAryTrees):
         if res.node_number() != self._size:
             raise ValueError("wrong number of nodes")
         return res
+
 
 class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
     """
@@ -1156,7 +1141,6 @@ class LabelledKAryTree(AbstractLabelledClonableTree, KAryTree):
         """
         return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
 
-
     @lazy_class_attribute
     def _auto_parent(cls):
         """
@@ -1219,10 +1203,10 @@ class LabelledKAryTrees(LabelledOrderedTrees):
             toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]
         """
         LT = self._element_constructor_
-        t  = LT([None, None], label = 3)
-        t1 = LT([t,t], label = 42)
-        t2  = LT([[None, None], [None, None]], label = 5)
-        return LT([t1,t2], label = "toto")
+        t = LT([None, None], label=3)
+        t1 = LT([t, t], label=42)
+        t2 = LT([[None, None], [None, None]], label=5)
+        return LT([t1, t2], label="toto")
 
     def unlabelled_trees(self):
         """
