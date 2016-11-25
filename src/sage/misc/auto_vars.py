@@ -13,6 +13,8 @@ AUTHORS:
 """
 
 import re
+import sys,inspect
+
 
 class __auto_vars(object):
   """ Enable/Disable automatic variable creation in sage.
@@ -58,25 +60,31 @@ class __auto_vars(object):
     `state`: Enabled/Disabled state.
     """
     self.enabled = state
+    if state:
+      ip = get_ipython()
+      ip.set_custom_exc((NameError,), ipython_exception_wrapper)
+
 
 auto_vars = __auto_vars()
 
-def auto_var_exec(code, globals, locals):
-    """ exec wrapper that attempts to add undefined symbols via the 'var' function.
+def ipython_exception_wrapper(self, etype, value, tb, tb_offset=None):
+  if not (etype is NameError and auto_vars.enabled):
+      return tb
 
-    See `exec` for additional documentation.
-    """
-    try:
-      exec(code, globals, locals)
-    except NameError as e:
-      if not auto_vars.enabled:
-        raise
-      m = e.args[0]
-      result = auto_vars.var_pattern.search(m)
-      if result is None:
-        raise
-      name = result.group().strip("'")
+  m = value.args[0]
+  result = auto_vars.var_pattern.search(m)
+  if result is None:
+    return tb
 
-      name_eval_src = "var('%s');" % name
-      exec(name_eval_src, globals, locals)
-      auto_var_exec(code , globals, locals)
+  name = result.group().strip("'")
+  name_eval_src = "var('%s');" % name
+
+  ip = get_ipython()
+  try:
+    ip.run_cell(name_eval_src, store_history=False, silent=True)
+
+    ip.run_cell(inspect.getsource(sys.exc_info()[2].tb_next))
+  except:
+    ip.showtraceback()
+
+  return None
