@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 r"""
 Incidence structures (i.e. hypergraphs, i.e. set systems)
 
@@ -1059,6 +1061,13 @@ class IncidenceStructure(object):
 
     def is_berge_acyclic(self):
         r"""
+        Test whether the hypergraph does not contain a Berge cycle.
+
+        A `k`-uniform Berge cycle (named after Claude Berge) of length is a
+        cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
+        distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
+        i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
+
         A hypergraph is Berge-acyclic if its incidence graph is acyclic.
 
         EXAMPLES::
@@ -1069,8 +1078,52 @@ class IncidenceStructure(object):
             sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
             sage: h.is_berge_acyclic()
             True
+
+        REFERENCES:
+
+            .. [Fag83] Fagin, Ronald. "Degrees of acyclicity for hypergraphs
+               and relational database schemes." Journal of the ACM (JACM) 30.3
+               (1983): 514-550.
+
+            .. [FT14] Füredi, Zoltán, and Tao Jiang. "Hypergraph Turán numbers
+               of linear cycles." Journal of Combinatorial Theory, Series A
+               123.1 (2014): 252-270.
+
         """
+        if not self.is_uniform():
+            raise TypeError(
+                "Berge cycles are defined for uniform hypergraphs only")
+
         return self.incidence_graph().is_forest()
+
+    def is_berge_cyclic(self):
+        r"""
+        Test whether the hypergraph contains a Berge cycle.
+
+        A `k`-uniform Berge cycle (named after Claude Berge) of length is a
+        cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
+        distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
+        i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
+
+        A hypergraph is Berge-cyclic if its incidence graph is cyclic.
+
+        EXAMPLES::
+
+            sage: h = Hypergraph(5, [[1, 2, 3], [2, 3 ,4]])
+            sage: h.is_berge_cyclic()
+            True
+            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
+            sage: h.is_berge_cyclic()
+            False
+
+        REFERENCES:
+
+            [Fag83]_
+
+            [FT14]_
+
+        """
+        return not self.is_berge_acyclic()
 
     def _gap_(self):
         """
