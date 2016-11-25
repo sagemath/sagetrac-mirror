@@ -126,9 +126,9 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         if children is None:
             children = []
         elif children == [] or isinstance(children, (Integer, int)):
-            children = [None for i in xrange(m)]
+            children = [None] * m
         if (children.__class__ is self.__class__ and
-            children.parent() == parent):
+                children.parent() == parent):
             children = list(children)
         else:
             children = [self.__class__(parent, x) for x in children]
@@ -136,7 +136,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def arity(self):
         r"""
-        Returns the arity of the tree
+        Return the arity of the tree.
 
         EXAMPLES::
 
@@ -185,7 +185,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def is_empty(self):
         """
-        Returns whether ``self`` is  empty.
+        Return whether ``self`` is  empty.
 
         EXAMPLES::
 
@@ -200,7 +200,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def canonical_labelling(self, shift=0):
         """
-        Returns a labelled version of ``self``.
+        Return a labelled version of ``self``.
 
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -228,7 +228,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
             shift += sz0 + 1
             label = shift
             otherTrees = []
-            for i in xrange(len(self) - 1, 0, -1):
+            for i in range(len(self) - 1, 0, -1):
                 child = self[i]
                 otherTrees.append(child.canonical_labelling(shift))
                 shift += child.node_number()
@@ -270,17 +270,17 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         # we transform the tree into a word
         word = self.prefix_word()
         # we create the new node we want to add
-        node = [0 for i in xrange(self.arity() + 1)]
+        node = [0 for i in range(self.arity() + 1)]
         node[0] = 1
         # we find the last node of the tree
-        for ind in xrange(len(word) - 1, -1, -1):
+        for ind in range(len(word) - 1, -1, -1):
             if(word[ind] == 1):
                 break
         else:
             ind = -1
         # for each leaf following the last node, we create a tree
         # where the leaf has been replaced by the new node
-        for i in xrange(ind + 1, len(word)):
+        for i in range(ind + 1, len(word)):
             new_word = word[:i]
             new_word.extend(node)
             new_word.extend(word[i + 1:])
@@ -289,7 +289,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
     def prefix_word(self):
         r"""
         Prefix read of the tree.
-        
+
         We read the tree recursively in this order: ``self``,
         ``self[0]``, ``self[1]``, ..., ``self[m-1]`` and we write 0
         for a leaf and 1 for a node.
@@ -401,7 +401,7 @@ class MAryTrees(UniqueRepresentation, Parent):
 
     def arity(self):
         r"""
-        Returns the arity of the trees of the set.
+        Return the arity of the trees of the set.
 
         EXAMPLES::
 
@@ -452,7 +452,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def _get_m_ary_trees_size(self, n):
         r"""
-        Returns the set of m-ary trees of size ``n``
+        Return the set of m-ary trees of size ``n``
 
         EXAMPLES::
 
@@ -501,7 +501,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -512,7 +512,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -568,7 +568,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             return self()
         ind += 1
         trees = []
-        for i in xrange(self._m):
+        for i in range(self._m):
             tree = self.from_prefix_word(word, ind)
             trees.append(tree)
             ind += tree.node_number() * self._m + 1
@@ -587,7 +587,7 @@ class MAryTrees_size(MAryTrees):
     TESTS::
 
         sage: from sage.combinat.mary_tree import MAryTrees_size
-        sage: for i in xrange(6): TestSuite(MAryTrees_size(3, i)).run()
+        sage: for i in range(6): TestSuite(MAryTrees_size(3, i)).run()
     """
     def __init__(self, arity, size):
         """
@@ -598,7 +598,6 @@ class MAryTrees_size(MAryTrees):
             True
             sage: MA3_2 is MAryTrees(3, 2)
             True
-
         """
         super(MAryTrees_size, self).__init__(category=FiniteEnumeratedSets())
         self._size = size
@@ -626,7 +625,7 @@ class MAryTrees_size(MAryTrees):
 
     def size(self):
         r"""
-        Returns the size of the elements of the set
+        Return the size of the elements of the set.
 
         EXAMPLES::
 
@@ -666,8 +665,9 @@ class MAryTrees_size(MAryTrees):
             sage: MAryTrees(4)([[], None, None, None]) in MA3_2
             False
         """
-        return (isinstance(x, self.element_class)
-                and x.node_number() == self._size and x.arity() == self._m)
+        return (isinstance(x, self.element_class) and
+                x.node_number() == self._size and
+                x.arity() == self._m)
 
     def _an_element_(self):
         """
@@ -714,11 +714,13 @@ class MAryTrees_size(MAryTrees):
             sage: MAryTrees(3, 2).list()
             [[[., ., .], ., .], [., [., ., .], .], [., ., [., ., .]]]
         """
-        if(self._size == 0):
+        if not self._size:
             yield self()
         else:
             roots = MAryTrees(self._m, 0)
-            children = lambda x: x.unique_growth()
+
+            def children(x):
+                return x.unique_growth()
             from sage.combinat.backtrack import SearchForest
             SF = SearchForest(roots, children, algorithm='breath')
             it = SF.elements_of_depth_iterator(self._size)
@@ -862,7 +864,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
 
     def arity(self):
         r"""
-        Returns the arity of the trees of the set
+        Return the arity of the trees of the set.
 
         EXAMPLES::
 
@@ -883,7 +885,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
 
     def _an_element_(self):
         """
-        Returns a labelled m-ary tree
+        Return a labelled m-ary tree.
 
         EXAMPLE::
 
@@ -912,7 +914,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -936,7 +938,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
