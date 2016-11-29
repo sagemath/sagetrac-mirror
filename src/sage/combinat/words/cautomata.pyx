@@ -54,6 +54,8 @@ cdef extern from "automataC.h":
 	Automaton DeterminiseN (NAutomaton a, bool puits)
 	NAutomaton Concat (Automaton a, Automaton b, bool verb)
 	NAutomaton CopyN (Automaton a, bool verb)
+	void AddEdgeN (NAutomaton *a, int e, int f, int l)
+	void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb)
 	NAutomaton Proj (Automaton a, Dict d, bool verb)
 	void ZeroComplete (Automaton *a, int l0, bool verb)
 	Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
@@ -405,8 +407,21 @@ cdef class NFastAutomaton:
 	def Alphabet (self):
 		return self.A
 	
-	def add_edge (self, f, d, l, initial, final):
+	def add_edge (self, e, f, l):
+		sig_on()
+		AddEdgeN(self.a, e, f, l)
+		sig_off()
+		
+	def add_state (self, bool final):
 		raise NotImplemented()
+	
+	def add_path (self, int e, int f, list li, verb=False):
+		sig_on()
+		cdef int *l = <int *>malloc(sizeof(int)*len(li));
+		for i in range(len(li)):
+			l[i] = li[i];
+		AddPathN(self.a, e, f, l, len(li), verb)
+		sig_off()
 	
 	def determinise (self, puits=False):
 		cdef Automaton a

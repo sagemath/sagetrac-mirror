@@ -223,6 +223,8 @@ void ReallocNAutomaton (NAutomaton *a, int n)
 		{
 			a->e[i].a = NULL;
 			a->e[i].n = 0;
+			a->e[i].initial = false;
+			a->e[i].final = false;
 		}
 	}
 	a->n = n;
@@ -242,6 +244,50 @@ void FreeNAutomaton (NAutomaton *a)
 	}
 	free(a->e);
 	a->n = 0;
+}
+
+//add an edge on the NFastAutomaton
+void AddEdgeN (NAutomaton *a, int e, int f, int l)
+{
+	a->e[e].n++;
+	if (a->e[e].n > 1)
+		a->e[e].a = (Arete *)realloc(a->e[e].a, sizeof(Arete)*a->e[e].n);
+	else
+		a->e[e].a = (Arete *)malloc(sizeof(Arete));
+	a->e[e].a[a->e[e].n - 1].e = f;
+	a->e[e].a[a->e[e].n - 1].l = l;
+}
+
+//Add a path between states e and f of NFastAutomaton a
+void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb)
+{
+	int n = a->n;
+	if (len > 1)
+	{
+		//Add new states
+		if (verb)
+			printf("realloc to size %d\n", a->n+len-1);
+		ReallocNAutomaton(a, a->n+len-1);
+		int i;
+		if (verb)
+			printf("add edge %d --%d--> %d\n", e, l[0], n+i);
+		AddEdgeN(a, 0, n, l[0]);
+		for (i=1;i<len-1;i++)
+		{
+			if (verb)
+				printf("add edge %d --%d--> %d\n", n+i-1, l[i], n+i);
+			AddEdgeN(a, n+i-1, n+i, l[i]);
+		}
+		if (verb)
+			printf("add edge %d --%d--> %d\n", n+len-2, l[len-1], f);
+		AddEdgeN(a, n+len-2, f, l[len-1]);
+	}else
+	{
+		if (len == 1)
+		{
+			AddEdgeN(a, e, f, l[0]);
+		}
+	}
 }
 
 void ReallocAutomaton (Automaton *a, int n, bool init)
@@ -2237,6 +2283,14 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	}
 	return r;
 }
+
+/*
+//stabilization of the language by prefix (i.e. 
+void PrefixStabilize (Automaton *a)
+{
+		
+}
+*/
 
 void ZeroComplete_rec (Automaton *a, int etat, bool *vu, int l0, bool verb)
 {

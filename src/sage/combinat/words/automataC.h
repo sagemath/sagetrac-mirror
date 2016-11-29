@@ -24,6 +24,8 @@ void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
 void FreeAutomates (Automate* a, int n);
 void FreeNAutomaton (NAutomaton *a);
+void AddEdgeN (NAutomaton *a, int e, int f, int l);
+void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
 void init (Automaton *a);

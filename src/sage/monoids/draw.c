@@ -603,6 +603,8 @@ int sign(int a)
 	return -1;
 }
 
+double mousex = 0, mousey = 0;
+
 double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
 
 //ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
@@ -969,10 +971,10 @@ Color moy (Color a, Color b, double ratio)
 int ns;
 Complexe cs;
 
-void set_pix (Surface s, Complexe p)
+bool set_pix (Surface s, Complexe p)
 {
 	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
-		return;
+		return false;
 	cs.x += p.x;
 	cs.y += p.y;
 	ns++;
@@ -990,7 +992,9 @@ void set_pix (Surface s, Complexe p)
 			s.pix[x+1][y+1] = moy(s.pix[x+1][y+1], color, (fx-x)*(fy-y));
 		}else
 			s.pix[x][y] = color;
+		return true;
 	}
+	return false;
 }
 
 void print_word (BetaAdic b, int n, int etat)
@@ -1101,6 +1105,69 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 
 double Maj = 1000; //majorant
 
+//compute the (almost) longest word w such that w(w^{-1}L) and L give the same drawing in the zone
+//where L is the language given by b
+//NON UTILISE : NE FONCTIONNE PAS BIEN
+void WordZone (BetaAdic b, int *word, int nmax)
+{
+	Complexe p = zero();
+	Complexe bn = un();
+	int e = b.a.i;
+	int i, n, f;
+	if (cnorm(b.b) < 1)
+	{
+		//calcul du majorant
+		Maj = 0;
+		double m;
+		for (i=0;i<b.n;i++)
+		{
+			m = cnorm(b.t[i]);
+			if (Maj < m)
+				Maj = m;
+		}
+		Maj = sqrt(Maj)/(1. - sqrt(cnorm(b.b)));
+	}
+	//parcours
+	bool ok;
+	for (n=0;n<nmax;n++)
+	{
+		ok = false;
+		//parcours les fils
+		for (i=0;i<b.a.na;i++)
+		{
+			f = b.a.e[e].f[i];
+			if (f != -1)
+			{
+				//teste si l'on est dans la zone de dessin ou pas
+				double Mn = Maj*sqrt(cnorm(bn));
+				if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
+				{
+					if (ok)
+					{ //il y a déjà un autre fils dans la zone de dessin
+						word[n] = -1;
+						return;
+					}
+					ok = true;
+					word[n] = i;
+				}
+			}
+		}
+		if (!ok)
+		{ //il n'y a rien dans la zone de dessin
+			word[n] = -1;
+			return;
+		}
+	}
+}
+
+int word[1024];
+
+int *WordDrawn ()
+{
+	word[1023] = -1;
+	return word;
+}
+
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
 	if (n == 0)
@@ -1125,7 +1192,8 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
-		set_pix (s, p);
+		if (set_pix(s, p))
+			word[0] = -2;
 	}else
 	{
 		if (n > 5)
@@ -1152,7 +1220,17 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 			//	color = colors[i];
 			//}
 			if (b.a.e[etat].f[i] != -1)
+			{
 				Draw_rec (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
+				if (n < 1024)
+				{
+					if (word[n-1] == -2)
+					{
+						word[n-1] = i;
+						word[n] = -2;
+					}
+				}
+			}
 		}
 	}
 }
@@ -1194,6 +1272,8 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 		colors[i] = randCol(255);
 	}
 	*/
+	
+	word[0] = -1; //initialise le mot
 	
 	if (cnorm(b.b) < 1)
 	{

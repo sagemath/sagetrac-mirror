@@ -279,6 +279,8 @@ cdef extern from "draw.h":
 	void FreeBetaAdic2 (BetaAdic2 b)
 	void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
 	Automate UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
+#	void WordZone (BetaAdic b, int *word, int nmax)
+	int *WordDrawn ()
 	void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
 	void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
@@ -933,6 +935,20 @@ class BetaAdicMonoid(Monoid_class):
 			print "Not implemented !"
 			return
 		sig_off()
+	
+	#give a word corresponding to one of the previously drawn points
+	def word_drawn (self):
+		sig_on()
+		cdef int *word = WordDrawn ()
+		sig_off()
+		cdef int i
+		res = []
+		for i in xrange(1024):
+			if word[i] < 0:
+				break
+			res.append(word[i])
+		res.reverse()
+		return res
 	
 	def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=8., verb=False):
 		r"""
