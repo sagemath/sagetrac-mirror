@@ -10,18 +10,19 @@ Parallel Iterator built using Python's multiprocessing module
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
+from __future__ import absolute_import
 
 from multiprocessing import Pool
 from functools import partial
 from sage.misc.fpickle import pickle_function
-import ncpus
+from . import ncpus
 
 def pyprocessing(processes=0):
     """
     Return a parallel iterator using a given number of processes
     implemented using pyprocessing.
 
-    INPUTS:
+    INPUT:
 
     - ``processes`` -- integer (default: 0); if 0, set to the number
       of processors on the computer.
@@ -103,3 +104,5 @@ def parallel_iter(processes, f, inputs):
     result = p.imap_unordered(call_pickled_function, [ (fp, t) for t in inputs ])
     for res in result:
         yield res
+    p.close()
+    p.join()

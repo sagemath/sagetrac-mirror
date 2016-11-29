@@ -29,7 +29,7 @@ conf = dict()
 #
 # Linux?, Solaris?, Darwin?, FreeBSD?, CYGWIN?  # system
 # OS_X_Lion?                                    # release
-# Intel?, PPC?, SPARC?                          # processor
+# Intel?, PPC?, SPARC? ARM?                     # processor
 # 64bit?, 32bit?                                # bits
 # fortran_g95?, fortran_GNU?                    # fortran
 # linker_GNU?, linker_Solaris?, linker_Darwin?  # ld
@@ -151,6 +151,7 @@ conf['machine'] = platform.machine()
 
 conf['processor'] = platform.processor()
 
+conf['ARM?'] = (platform.machine().startswith('arm'))
 conf['Intel?'] = (platform.machine() in ('i386', 'i486', 'i586', 'i686', 'x86_64',
                                          'AMD64', 'i86pc'))
 conf['IA64?']   = ((platform.processor() == 'ia64')
@@ -159,6 +160,8 @@ conf['PPC?']   = (platform.processor() == 'powerpc')
 conf['SPARC?'] = (platform.processor() == 'sparc')
 
 conf['generic_binary?'] = (os.environ.get('SAGE_FAT_BINARY', 'no') == 'yes')
+
+conf['user'] = os.environ.get('ATLAS_CONFIGURE', '')
 
 ######################################################################
 ### bit width
@@ -252,9 +255,5 @@ conf['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
 ######################################################################
 
 print("Configuration:")
-for key, value in conf.items():
-    print('    '+str(key)+': '+str(value))
-
-
-
-
+for k in sorted(conf, key=str.lower):
+    print('    {}: {}'.format(k, conf[k]))

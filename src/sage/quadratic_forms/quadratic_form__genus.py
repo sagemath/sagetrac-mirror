@@ -1,6 +1,5 @@
 """
 Local and Global Genus Symbols
-
 """
 
 
@@ -24,7 +23,7 @@ from sage.quadratic_forms.genera.genus import Genus, LocalGenusSymbol, \
 
 
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.arith import is_prime, prime_divisors
+from sage.arith.all import is_prime, prime_divisors
 
 
 
@@ -55,13 +54,13 @@ def global_genus_symbol(self):
     """
     ## Check that the form is defined over ZZ
     if not self.base_ring() == IntegerRing():
-        raise TypeError, "Oops!  The quadratic form is not defined over the integers."
+        raise TypeError("Oops!  The quadratic form is not defined over the integers.")
 
     ## Return the result
     try:
         return Genus(self.Hessian_matrix())
-    except StandardError:
-        raise TypeError, "Oops!  There is a problem computing the genus symbols for this form."
+    except Exception:
+        raise TypeError("Oops!  There is a problem computing the genus symbols for this form.")
 
 
 
@@ -75,6 +74,7 @@ def local_genus_symbol(self, p):
     coefficients the p-adic integers) of the following form:
 
         1. If p>2 then return triples of the form [`m`, `n`, `d`] where
+
             `m` = valuation of the component
 
             `n` = rank of A
@@ -82,6 +82,7 @@ def local_genus_symbol(self, p):
             `d` = det(A) in {1,u} for normalized quadratic non-residue u.
 
         2. If p=2 then return quintuples of the form [`m`,`n`,`s`, `d`, `o`] where
+
             `m` = valuation of the component
 
             `n` = rank of A
@@ -103,6 +104,7 @@ def local_genus_symbol(self, p):
         -`p` -- a prime number > 0
 
     OUTPUT:
+
         Returns a Conway-Sloane genus symbol at p, which is an
         instance of the Genus_Symbol_p_adic_ring class.
 
@@ -119,16 +121,16 @@ def local_genus_symbol(self, p):
     """
     ## Check that p is prime and that the form is defined over ZZ.
     if not is_prime(p):
-        raise TypeError, "Oops!  The number " + str(p) + " isn't prime."
+        raise TypeError("Oops!  The number " + str(p) + " isn't prime.")
     if not self.base_ring() == IntegerRing():
-        raise TypeError, "Oops!  The quadratic form is not defined over the integers."
+        raise TypeError("Oops!  The quadratic form is not defined over the integers.")
 
     ## Return the result
     try:
         M = self.Hessian_matrix()
         return LocalGenusSymbol(M, p)
-    except StandardError:
-        raise TypeError, "Oops!  There is a problem computing the local genus symbol at the prime " + str(p) + " for this form."
+    except Exception:
+        raise TypeError("Oops!  There is a problem computing the local genus symbol at the prime " + str(p) + " for this form.")
 
 
 

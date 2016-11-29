@@ -37,7 +37,8 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
-python setup.py install
+$PIP_INSTALL .
+
 if [ $? -ne 0 ]; then
     echo "Error building/installing cvxopt"
     exit 1
@@ -58,6 +59,6 @@ if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
       rm -rf $SAGE_LOCAL/share/doc/cvxopt/html
    fi
    mkdir -p $SAGE_LOCAL/share/doc/cvxopt/html
-   cp -r build/html/* $SAGE_LOCAL/share/doc/cvxopt/html/
+   cp -r html/* $SAGE_LOCAL/share/doc/cvxopt/html/
 fi
 

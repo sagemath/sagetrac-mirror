@@ -119,19 +119,19 @@ You can compute conjugacy classes of a finite group using "natively"::
     sage: CG = G.conjugacy_classes_representatives()
     sage: gamma = CG[2]
     sage: CG; gamma
-    [(), (1,2), (1,2)(3,4), (1,2,3), (1,2,3)(4,7), (1,2,3,4), (1,2,3,4,7)]
-    (1,2)(3,4)
+    [(), (4,7), (3,4,7), (2,3)(4,7), (2,3,4,7), (1,2)(3,4,7), (1,2,3,4,7)]
+    (3,4,7)
 
 You can use the Sage-GAP interface::
 
     sage: gap.eval("G := Group((1,2)(3,4),(1,2,3))")
     'Group([ (1,2)(3,4), (1,2,3) ])'
     sage: gap.eval("CG := ConjugacyClasses(G)")
-    '[ ()^G, (1,2)(3,4)^G, (1,2,3)^G, (1,2,4)^G ]'
+    '[ ()^G, (2,3,4)^G, (2,4,3)^G, (1,2)(3,4)^G ]'
     sage: gap.eval("gamma := CG[3]")
-    '(1,2,3)^G'
+    '(2,4,3)^G'
     sage: gap.eval("g := Representative(gamma)")
-    '(1,2,3)'
+    '(2,4,3)'
 
 Or, here's another (more "pythonic") way to do this type of computation::
 
@@ -140,15 +140,15 @@ Or, here's another (more "pythonic") way to do this type of computation::
     sage: gamma = CG[2]
     sage: g = gamma.Representative()
     sage: CG; gamma; g
-    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3)(4,7) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3,4) ),
+    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (3,4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3)(4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3,4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4,7) ), 
       ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3,4,7) ) ]
-    ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2) )
-    (1,2)
+    ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) )
+    (4,7)
 
 .. index::
    pair: group; normal subgroups
@@ -175,18 +175,18 @@ or
 
 Here's another way, working more directly with GAP::
 
-    sage: print gap.eval("G := AlternatingGroup( 5 )")
+    sage: print(gap.eval("G := AlternatingGroup( 5 )"))
     Alt( [ 1 .. 5 ] )
-    sage: print gap.eval("normal := NormalSubgroups( G )")
+    sage: print(gap.eval("normal := NormalSubgroups( G )"))
     [ Group(()), Alt( [ 1 .. 5 ] ) ]
     sage: G = gap.new("DihedralGroup( 10 )")
     sage: G.NormalSubgroups()
     [ Group( <identity> of ... ), Group( [ f2 ] ), Group( [ f1, f2 ] ) ]
-    sage: print gap.eval("G := SymmetricGroup( 4 )")
+    sage: print(gap.eval("G := SymmetricGroup( 4 )"))
     Sym( [ 1 .. 4 ] )
-    sage: print gap.eval("normal := NormalSubgroups( G );")
-    [ Group(()), Group([ (1,4)(2,3), (1,3)(2,4) ]),
-      Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ]), Sym( [ 1 .. 4 ] ) ]
+    sage: print(gap.eval("normal := NormalSubgroups( G );"))
+    [ Group(()), Group([ (1,4)(2,3), (1,3)(2,4) ]), Group([ (2,4,3), (1,4)
+      (2,3), (1,3)(2,4) ]), Sym( [ 1 .. 4 ] ) ]
 
 .. index::
    pair: groups; center
@@ -225,9 +225,8 @@ The group id database
 =====================
 
 The function ``group_id`` requires that the Small Groups Library of
-E. A. O'Brien, B. Eick, and H. U. Besche be installed (you can do
-this by typing ``./sage -i database_gap-4.4.9`` in the Sage home
-directory).
+E. A. O'Brien, B. Eick, and H. U. Besche be installed.  You can do
+this by typing ``sage -i database_gap`` in the shell.
 
 ::
 
@@ -298,7 +297,7 @@ from there.
 
     sage: G = H.semidirect_product(K, phi)
 
-To avoid unnecessary repitition, we will now give commands that one can use to
+To avoid unnecessary repetition, we will now give commands that one can use to
 create the cyclic group of order `n`, `C_n`, and the dihedral group on `n`
 letters, `D_n`. We will present one more example of each to ensure that the
 reader understands the command, then it will be withheld.
@@ -482,6 +481,7 @@ Order Group Description                                Command(s)               
 30    `D_3 \times C_5`                                                                                                                                [30,1]
 31    `C_{31}`                                                                                                                                        [31,1]
 ===== =============================================== =============================================================================================== ===========================
+
 
 Table By Kevin Halasz
 

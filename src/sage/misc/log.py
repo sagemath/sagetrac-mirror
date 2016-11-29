@@ -1,8 +1,10 @@
 r"""
 Logging of Sage sessions
 
-TODO: Pressing "control-D" can mess up the I/O sequence because of
-a known bug.
+.. TODO::
+
+    Pressing "control-D" can mess up the I/O sequence because of
+    a known bug.
 
 You can create a log of your Sage session as a web page and/or as a
 latex document. Just type ``log_html()`` to create an HTML log, or
@@ -57,13 +59,15 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import time
 
-import interpreter
-import latex
-import misc
+import sage.repl.interpreter as interpreter
+from . import latex
+from . import misc
 
 from   sage.misc.viewer  import browser, dvi_viewer
 
@@ -155,8 +159,6 @@ class Log:
         # see note at end of this function for info about output and
         # input
         (O, I) = (self._output, self._input)
-        #print "O:", O
-        #print "I:", I
         K = O.keys()
         while self._n < max(len(I), max(K + [-1])):
             n = self._n
@@ -254,7 +256,7 @@ class log_html(Log):
         x = self._output[n]
         try:
             L = latex.latex(x)
-        except StandardError:
+        except Exception:
             L = "\\mbox{error TeXing object}"
         single_png = os.path.join(self._images, '%s.png' % n)
         try:
@@ -265,7 +267,7 @@ class log_html(Log):
         open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre><img src="%s">'%(
             x, L, single_png))
         extra_img_opts = ''
-        #if sage.plot.all.is_Graphics(x):
+        #if sage.plot.graphics.is_Graphics(x):
         #    extra_img_opts = 'width=300'
         return """<center> <table border=0 cellpadding=20 cellspacing=2
                 bgcolor=lightgrey>

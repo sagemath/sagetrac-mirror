@@ -7,6 +7,7 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
+from __future__ import absolute_import
 
 
 ###########################################################################
@@ -23,8 +24,8 @@ from sage.modular.modform.element import Newform
 from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1, is_GammaH
 
 
-from abvar import ModularAbelianVariety_modsym_abstract
-import homspace
+from .abvar import ModularAbelianVariety_modsym_abstract
+from . import homspace
 
 class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """
@@ -45,7 +46,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             Newform abelian subvariety 37a of dimension 1 of J0(37)
         """
         if not isinstance(f, Newform):
-            raise TypeError, "f must be a newform"
+            raise TypeError("f must be a newform")
         self.__f = f
         self._is_hecke_stable = True
         K = f.qexp().base_ring()

@@ -1,3 +1,4 @@
+# cython: old_style_globals=True
 """
 Function, method, and module pickling
 
@@ -24,8 +25,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import types, copy_reg, cPickle
+import types
+from six.moves import copyreg
+from six.moves import cPickle
 
 def pickle_code(co):
     """
@@ -54,7 +58,7 @@ def pickle_code(co):
         ValueError: Cannot pickle code objects from closures
     """
     if co.co_freevars or co.co_cellvars:
-        raise ValueError, "Cannot pickle code objects from closures"
+        raise ValueError("Cannot pickle code objects from closures")
     return code_ctor, (co.co_argcount, co.co_nlocals, co.co_stacksize,
                        co.co_flags, co.co_code, co.co_consts, co.co_names,
                        co.co_varnames, co.co_filename, co.co_name,
@@ -73,7 +77,7 @@ def code_ctor(*args):
     """
     return types.CodeType(*args)
 
-copy_reg.pickle(types.CodeType, pickle_code)
+copyreg.pickle(types.CodeType, pickle_code)
 
 def pickle_function(func):
     """
@@ -92,7 +96,7 @@ def pickle_function(func):
 
     OUTPUT:
 
-    Returns the pickled function as a string.
+    the pickled function as a string
 
     EXAMPLES::
 
@@ -101,7 +105,7 @@ def pickle_function(func):
         sage: unpickle_function(pickled)(2)
         3
     """
-    return cPickle.dumps(func.func_code)
+    return cPickle.dumps(func.__code__)
 
 def unpickle_function(pickled):
     """
@@ -113,7 +117,7 @@ def unpickle_function(pickled):
 
     OUTPUT:
 
-    Returns the unpickled function.
+    the unpickled function
 
     EXAMPLES::
 
@@ -138,7 +142,7 @@ def pickleMethod(method):
 
     OUTPUT:
 
-    Returns data that can be used to unpickle the method.
+    data that can be used to unpickle the method
 
     TESTS::
 
@@ -213,20 +217,22 @@ def unpickleMethod(im_name, im_self, im_class):
     """
     if hasattr(im_class, im_name):
         unbound = getattr(im_class, im_name)
-    elif im_self is not None and hasattr(im_self.__class__, im_name):
+    elif __self__ is not None and hasattr(__self__.__class__, im_name):
         # Attempt a common fix before bailing -- if classes have
         # changed around since we pickled this method, we may still be
         # able to get it by looking on the instance's current class.
-        unbound = getattr(im_self.__class__, im_name)
+        unbound = getattr(__self__.__class__, im_name)
     else:
         from pickle import UnpicklingError
         raise UnpicklingError, "no method `%s' in class `%s'"%(im_name, im_class.__name__)
 
-    if im_self is None:
+    if __self__ is None:
         return unbound
-    return types.MethodType(unbound.im_func, im_self)
+    return types.MethodType(unbound.__func__, __self__)
 
-copy_reg.pickle(types.MethodType, pickleMethod, unpickleMethod)
+copyreg.pickle(types.MethodType,
+                pickleMethod,
+                unpickleMethod)
 
 def pickleModule(module):
     """
@@ -276,4 +282,4 @@ def unpickleModule(name):
     """
     return __import__(name,{},{})
 
-copy_reg.pickle(types.ModuleType, pickleModule, unpickleModule)
+copyreg.pickle(types.ModuleType, pickleModule, unpickleModule)

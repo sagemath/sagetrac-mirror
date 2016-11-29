@@ -45,9 +45,17 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-
+# We don't want to think about Fink or Macports
 export NO_FINK=1
 export NO_DARWIN_PORTS=1
+
+# Use softlinks instead of hardlinks (see Trac #19467)
+export NO_INSTALL_HARDLINKS=1
+
+# OSX Git with FSF GCC is broken, disable completely for now. See #17091
+if [ "$UNAME" = "Darwin" ]; then
+    export NO_OPENSSL=1
+fi
 
 # First make GIT-VERSION-FILE (we patched Makefile such that configure
 # no longer depends on this, so it's safer to explicitly build this).
@@ -58,6 +66,7 @@ $MAKE GIT-VERSION-FILE
 # some systems, leading for example to a different "make" being used.
 echo "Configuring git..."
 ./configure --prefix="$SAGE_LOCAL" \
+            --libexecdir="$SAGE_LOCAL"/libexec \
             --with-python="$SAGE_LOCAL"/bin/python \
             --without-tcltk \
             --with-sane-tool-path=

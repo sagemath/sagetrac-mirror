@@ -124,10 +124,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
-import sage.rings.arith as arith
-import sage.misc.misc as misc
+import sage.arith.all as arith
+import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -143,7 +145,7 @@ def _ex_set(p):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.gal_reps import _ex_set
-        sage: for p in prime_range(3,30): print p, _ex_set(p)
+        sage: for p in prime_range(3,30): print("{} {}".format(p, _ex_set(p)))
         3 [0, 1, 2, 1]
         5 [0, 1, 2, 4]
         7 [0, 1, 2, 4]
@@ -240,7 +242,7 @@ class GaloisRepresentation(SageObject):
         # isomorphism between rho and rho' unless E
         # is isomorphic to E'
         # Note that rho can not depend on the Weierstrass model
-        if not type(self) == type(other):
+        if type(self) is not type(other):
             return False
         return self._E.is_isomorphic(other._E)
 
@@ -311,7 +313,7 @@ class GaloisRepresentation(SageObject):
         if t:
             self.__is_reducible[p] = False
             return False  # definitely not reducible
-        isogeny_matrix = self._E.isogeny_class(use_tuple=False).matrix(fill=True)
+        isogeny_matrix = self._E.isogeny_class().matrix(fill=True)
         v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
@@ -362,9 +364,14 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        isocls = self._E.isogeny_class(algorithm='sage', use_tuple=False)
-        X = set(isocls.matrix().list())
-        R = [p for p in X if arith.is_prime(p)]
+
+        E = self._E
+        j = E.j_invariant()
+        from .isogeny_small_degree import sporadic_j
+        if j in sporadic_j: # includes all CM j-invariants
+            R = [sporadic_j[j]]
+        else:
+            R = [l for l in [2,3,5,7,13] if len(E.isogenies_prime_degree(l))>0]
         self.__reducible_primes = R
         return R
 
@@ -868,7 +875,7 @@ class GaloisRepresentation(SageObject):
         a4_str =        "The image in PGL_2(F_%s) is the exceptional group A_4."%p
         a5_str =        "The image in PGL_2(F_%s) is the exceptional group A_5."%p
 
-        # we first treat p=3 and 5 seperately. p=2 has already been done.
+        # we first treat p=3 and 5 separately. p=2 has already been done.
 
         if p == 3:
             # this implies that the image of rhobar in PGL_2 = S_4
@@ -918,7 +925,7 @@ class GaloisRepresentation(SageObject):
         # if we find both an element of order 3 and one of order 4, we know that we have a S_4 in PGL_2
 
         if p == 5:
-            # we filter here a few cases and leave the rest to the computation of the galois group later
+            # we filter here a few cases and leave the rest to the computation of the Galois group later
             ell = 1
             k = GF(p)
             Np = self._E.conductor()*p
@@ -1078,10 +1085,10 @@ class GaloisRepresentation(SageObject):
             K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
-            misc.verbose("field of degree %s.  try to compute galois group"%(d),2)
+            misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
             try:
                 G = K.galois_group()
-            except StandardError:
+            except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
                 return self.__image_type[p]
 
@@ -1238,7 +1245,6 @@ class GaloisRepresentation(SageObject):
                 d = (self._E.ap(ell)**2 * ell.inverse_mod(p)) % p
                 res[d] += 1
                 co += 1
-        # print res
         Rt = RealField(16)
         res = [Rt(x)/Rt(co) for x in res]
         return res
@@ -1328,7 +1334,7 @@ class GaloisRepresentation(SageObject):
 
     def is_quasi_unipotent(self,p,ell):
         r"""
-        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a fintie extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
+        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a finite extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
 
         For a Galois representation attached to an elliptic curve `E`, this returns always True.
 
