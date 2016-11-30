@@ -7451,16 +7451,32 @@ class Graph(GenericGraph):
 
             \text{Vol}(S) = \sum_{v\in S} d(v)
 
-        and `\partial S` is the edge boundary of `S`.
+        and `\partial S` is the edge boundary of `S`
+        (that is, `\partial S = E(S,\overline{S})`).
 
-        EXAMPLES::
+        The Cheeger constant of a complete graph on `n` vertices is
+        `\lceil n/2 \rceil / (n-1)`::
 
-            sage: K5 = graphs.CompleteGraph(5)
-            sage: K5.cheeger_constant()
+            sage: graphs.CompleteGraph(5).cheeger_constant()
             3/4
-            sage: C7 = graphs.CycleGraph(7)
-            sage: C7.cheeger_constant()
+
+        The Cheeger constant of a cycle on `n` vertices is
+        `1/\lfloor n/2 \rfloor`::
+
+            sage: graphs.CycleGraph(7).cheeger_constant()
             1/3
+
+        And the Cheeger constant of a disconnected graph is `0`::
+
+            sage: Graph([[1,2,3,4],[(1,2),(3,4)]]).cheeger_constant()
+            0
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().cheeger_constant()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cheeger constant is not defined for the empty graph
 
         REFERENCES:
 
@@ -7475,8 +7491,19 @@ class Graph(GenericGraph):
            spectrum of graphs, Linear Algebra and its Applications 103 (1988),
            119–131.
         """
-        from sage.combinat.subset import Subsets
+        if self.order() == 0:
+            raise ValueError(
+                "Cheeger constant is not defined for the empty graph")
+
         from sage.rings import infinity
+        if self.order() == 1:
+            return infinity
+
+        from sage.rings.rational import Rational
+        if not self.is_connected():
+            return Rational(0)
+
+        from sage.combinat.subset import Subsets
         c = infinity
         e = self.num_edges()
         for s in Subsets(self.vertices()):
@@ -7503,16 +7530,39 @@ class Graph(GenericGraph):
             \min_{\substack{S\subseteq V\\0<|S|\le|V|/2}}
             \frac{|\partial S|}{|S|},
 
-        where `\partial S` is the edge boundary of `S`.
+        where `\partial S` is the edge boundary of `S`
+        (that is, `\partial S = E(S,\overline{S})`).
 
-        EXAMPLES::
+        The edge-isoperimetric number of a complete graph on `n` vertices is
+        `\lceil n/2 \rceil`::
 
-            sage: K5 = graphs.CompleteGraph(5)
-            sage: K5.edge_isoperimetric_number()
+            sage: graphs.CompleteGraph(5).edge_isoperimetric_number()
             3
-            sage: C7 = graphs.CycleGraph(7)
-            sage: C7.edge_isoperimetric_number()
+
+        The edge-isoperimetric constant of a cycle on `n` vertices is
+        `2/\lfloor n/2 \rfloor`::
+
+            sage: graphs.CycleGraph(7).edge_isoperimetric_number()
             2/3
+
+        In general, for `d`-regular graphs the edge-isoperimetric number is
+        `d` times larger than the Cheeger constant of the graph::
+
+            sage: g = graphs.RandomRegular(3, 10)
+            sage: g.edge_isoperimetric_number() == g.cheeger_constant() * 3
+            True
+
+        And the edge-isoperimetric constant of a disconnected graph is `0`::
+
+            sage: Graph([[1,2,3,4],[(1,2),(3,4)]]).edge_isoperimetric_number()
+            0
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().edge_isoperimetric_number()
+            Traceback (most recent call last):
+            ...
+            ValueError: the edge-isoperimetric number is not defined for the empty graph
 
         REFERENCES:
 
@@ -7524,8 +7574,19 @@ class Graph(GenericGraph):
 
         [Moh88]_
         """
-        from sage.combinat.subset import Subsets
+        if self.order() == 0:
+            raise ValueError("the edge-isoperimetric number is not defined" +
+                             " for the empty graph")
+
         from sage.rings import infinity
+        if self.order() == 1:
+            return infinity
+
+        from sage.rings.rational import Rational
+        if not self.is_connected():
+            return Rational(0)
+
+        from sage.combinat.subset import Subsets
         c = infinity
         mc = Integer(self.num_verts()) / 2
         for s in Subsets(self.vertices()):
@@ -7554,14 +7615,30 @@ class Graph(GenericGraph):
 
         where `N(S)` is the vertex boundary of `S`.
 
-        EXAMPLES::
 
-            sage: K5 = graphs.CompleteGraph(5)
-            sage: K5.vertex_isoperimetric_number()
+        The vertex-isoperimetric number of a complete graph on `n` vertices is
+        `\lceil n/2 \rceil/\lfloor n/2 \rfloor`::
+
+            sage: graphs.CompleteGraph(5).vertex_isoperimetric_number()
             3/2
-            sage: C7 = graphs.CycleGraph(7)
-            sage: C7.vertex_isoperimetric_number()
+
+        The vertex-isoperimetric constant of a cycle on `n` vertices is
+        `2/\lfloor n/2 \rfloor`::
+
+            sage: graphs.CycleGraph(7).vertex_isoperimetric_number()
             2/3
+
+        And the vertex-isoperimetric constant of a disconnected graph is `0`::
+
+            sage: Graph([[1,2,3],[(1,2)]]).vertex_isoperimetric_number()
+            0
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().vertex_isoperimetric_number()
+            Traceback (most recent call last):
+            ...
+            ValueError: the vertex-isoperimetric number is not defined for the empty graph
 
         REFERENCES:
 
@@ -7574,8 +7651,19 @@ class Graph(GenericGraph):
 
         [Moh88]_
         """
-        from sage.combinat.subset import Subsets
+        if self.order() == 0:
+            raise ValueError("the vertex-isoperimetric number is not defined" +
+                             " for the empty graph")
+
         from sage.rings import infinity
+        if self.order() == 1:
+            return infinity
+
+        from sage.rings.rational import Rational
+        if not self.is_connected():
+            return Rational(0)
+
+        from sage.combinat.subset import Subsets
         c = infinity
         mc = Integer(self.num_verts()) / 2
         for s in Subsets(self.vertices()):
