@@ -37,6 +37,10 @@ REFERENCES:
    \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
    Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
 
+.. [ABS2004] Noga Alon, Itai Benjamini and Alan Stacey, Percolation on finite
+             graphs and isoperimetric inequalities, The Annals of Probability
+             32 (2004), no.  3A, 1727–1745.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -183,6 +187,9 @@ REFERENCES:
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
+.. [Ben1998] Itai Benjamini, Expanders are not hyperbolic, Israel Journal of
+             Mathematics 108 (1998), 33–36.
+
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
              Memoirs of the American Mathematical Society, vol. 192
@@ -271,6 +278,10 @@ REFERENCES:
             Vol. 1: Efficient Algorithms*. MIT Press, 1996. ISBN
             978-0262024051.
 
+.. [BS1997] Itai Benjamini and Oded Schramm, Every graph with a positive
+            Cheeger constant contains a tree with a positive Cheeger constant,
+            Geometric and Functional Analysis 7 (1997), no. 3, 403–419.
+
 .. [BS2003] \I. Bouyukliev and J. Simonis, Some new results on optimal
             codes over `F_5`, Designs, Codes and Cryptography 30,
             no. 1 (2003): 97-111,
@@ -343,6 +354,9 @@ REFERENCES:
 
 .. [ChenDB] Eric Chen, Online database of two-weight codes,
             http://moodle.tec.hkr.se/~chen/research/2-weight-codes/search.php
+
+.. [Chu2007] Fan Chung, Random walks and local cuts in graphs, Linear Algebra
+             and its Applications 423 (2007), no. 1, 22–32.
 
 .. [CK1999] David A. Cox and Sheldon Katz. *Mirror symmetry and
             algebraic geometry*, volume 68 of *Mathematical Surveys
@@ -433,6 +447,10 @@ REFERENCES:
 .. [CS1986] \J. Conway and N. Sloane. *Lexicographic codes:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
+
+.. [CT1998] Fan Chung and Prasad Tetali, Isoperimetric inequalities for
+            Cartesian products of graphs, Combinatorics, Probability and
+            Computing 7 (1998), no. 2, 141–148.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -1090,6 +1108,10 @@ REFERENCES:
              maps", C. R. Acad. Sci. Paris, projet de Note, 2003
              Systèmes dynamiques/Dynamical
              Systems. :arxiv:`math/0304469v1`
+
+.. [Moh1988] Bojan Mohar, Isoperimetric inequalities, growth, and the spectrum
+             of graphs, Linear Algebra and its Applications 103 (1988),
+             119–131.
 
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
