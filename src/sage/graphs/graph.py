@@ -7435,10 +7435,12 @@ class Graph(GenericGraph):
     @doc_index("Algorithmically hard stuff")
     def cheeger_constant(self):
         r"""
-        There are many different definitions for cheeger constants.  It is
-        sometimes called the *transition isoperimetric number*.
+        Return the Cheeger constant of the graph (sometimes called the
+        *transition isoperimetric number*).
 
-        The default definition which is used here is
+        While there are a couple of different definitions for the term *Cheeger
+        constant*, the definition which is used here is adopted from [CT1998]_,
+        [Chu2007]_ and [Moh1988]_:
 
         .. MATH::
 
@@ -7453,6 +7455,8 @@ class Graph(GenericGraph):
 
         and `\partial S` is the edge boundary of `S`
         (that is, `\partial S = E(S,\overline{S})`).
+
+        EXAMPLES:
 
         The Cheeger constant of a complete graph on `n` vertices is
         `\lceil n/2 \rceil / (n-1)`::
@@ -7471,25 +7475,23 @@ class Graph(GenericGraph):
             sage: Graph([[1,2,3,4],[(1,2),(3,4)]]).cheeger_constant()
             0
 
+        .. NOTE::
+
+            The term *Cheeger constant* is sometimes used to describe the
+            vertex-isoperimetric number of the graph (see, e.g., [BS1997]_,
+            [Ben1998]_).  For that meaning, use
+            :meth:`~Graph.vertex_isoperimetric_number`.
+
+        .. SEEALSO::
+
+            - :meth:`~Graph.edge_isoperimetric_number`
+
         TESTS::
 
             sage: graphs.EmptyGraph().cheeger_constant()
             Traceback (most recent call last):
             ...
             ValueError: Cheeger constant is not defined for the empty graph
-
-        REFERENCES:
-
-        .. [Chu07] Fan Chung, Random walks and local cuts in graphs, Linear
-           Algebra and its Applications 423 (2007), no. 1, 22–32.
-
-        .. [CT98] Fan Chung and Prasad Tetali, Isoperimetric inequalities for
-           Cartesian products of graphs, Combinatorics, Probability and
-           Computing 7 (1998), no. 2, 141–148.
-
-        .. [Moh88] Bojan Mohar, Isoperimetric inequalities, growth, and the
-           spectrum of graphs, Linear Algebra and its Applications 103 (1988),
-           119–131.
         """
         if self.order() == 0:
             raise ValueError(
@@ -7519,11 +7521,16 @@ class Graph(GenericGraph):
 
         return c
 
+    transition_isoperimetric_number = cheeger_constant
+
     @doc_index("Algorithmically hard stuff")
     def edge_isoperimetric_number(self):
         r"""
-        The edge-isoperimetric number of a graph (sometimes simply called the
-        isoperimetric number) is
+        Return the edge-isoperimetric number of the graph (sometimes called the
+        *isoperimetric number*).
+
+        The edge-isoperimetric number of a graph (see [ABS2004]_, [Moh1988]_,
+        [CT1998]_) is defined as follows:
 
         .. MATH::
 
@@ -7532,6 +7539,8 @@ class Graph(GenericGraph):
 
         where `\partial S` is the edge boundary of `S`
         (that is, `\partial S = E(S,\overline{S})`).
+
+        EXAMPLES:
 
         The edge-isoperimetric number of a complete graph on `n` vertices is
         `\lceil n/2 \rceil`::
@@ -7557,22 +7566,17 @@ class Graph(GenericGraph):
             sage: Graph([[1,2,3,4],[(1,2),(3,4)]]).edge_isoperimetric_number()
             0
 
+        .. SEEALSO::
+
+            - :meth:`~Graph.cheeger_constant`
+            - :meth:`~Graph.vertex_isoperimetric_number`
+
         TESTS::
 
             sage: graphs.EmptyGraph().edge_isoperimetric_number()
             Traceback (most recent call last):
             ...
             ValueError: the edge-isoperimetric number is not defined for the empty graph
-
-        REFERENCES:
-
-        .. [ABS04] Noga Alon, Itai Benjamini and Alan Stacey, Percolation on
-           finite graphs and isoperimetric inequalities, The Annals of
-           Probability 32 (2004), no. 3A, 1727–1745.
-
-        [CT98]_
-
-        [Moh88]_
         """
         if self.order() == 0:
             raise ValueError("the edge-isoperimetric number is not defined" +
@@ -7602,11 +7606,16 @@ class Graph(GenericGraph):
 
         return c
 
+    isoperimetric_number = edge_isoperimetric_number
+
     @doc_index("Algorithmically hard stuff")
     def vertex_isoperimetric_number(self):
         r"""
-        The vertex-isoperimetric number of a graph (sometimes simply called the
-        magnifying constant) is
+        Return the vertex-isoperimetric number of the graph (sometimes called
+        the *magnifying constant*).
+
+        The vertex-isoperimetric number of a graph (see [ABS2004]_, [Moh1988]_,
+        [BS1997]_, [Ben1998]_) is defined as follows:
 
         .. MATH::
 
@@ -7639,17 +7648,6 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: the vertex-isoperimetric number is not defined for the empty graph
-
-        REFERENCES:
-
-        .. [Ben98] Itai Benjamini, Expanders are not hyperbolic, Israel Journal
-           of Mathematics 108 (1998), 33–36.
-
-        .. [BS97] Itai Benjamini and Oded Schramm, Every graph with a positive
-           Cheeger constant contains a tree with a positive Cheeger constant,
-           Geometric and Functional Analysis 7 (1997), no. 3, 403–419.
-
-        [Moh88]_
         """
         if self.order() == 0:
             raise ValueError("the vertex-isoperimetric number is not defined" +
@@ -7678,6 +7676,9 @@ class Graph(GenericGraph):
                 c = n
 
         return c
+
+    magnifying_constant = vertex_isoperimetric_number
+
 
 # Aliases to functions defined in Cython modules
 import types
