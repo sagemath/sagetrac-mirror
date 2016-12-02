@@ -20,7 +20,6 @@ from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
 from sage.rings.all import Integer
 import sage.structure.element
-from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -195,7 +194,7 @@ class CombinatorialFreeModuleElement(Element):
             [('c', 2), ('b', 3), ('a', 1)]
             sage: F.print_options(sorting_reverse=False) #reset to original state
 
-        .. seealso:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
+        .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
         v = self._monomial_coefficients.items()
@@ -255,6 +254,8 @@ class CombinatorialFreeModuleElement(Element):
                ***        *             *        ****         ***      **
                *          *           ***        *           **
                *                      *
+            sage: ascii_art(M.zero())
+            0
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -297,7 +298,7 @@ class CombinatorialFreeModuleElement(Element):
                 s += AsciiArt([coeff], break_points) + b
                 first = False
         if first:
-            return "0"
+            return AsciiArt(["0"])
         elif s == empty_ascii_art:
             return AsciiArt(["1"])
         else:
@@ -1122,10 +1123,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         turn triggers ``self._repr_()``::
 
             sage: class MyAlgebra(CombinatorialFreeModule):
-            ...       def _repr_(self):
-            ...           return "MyAlgebra on %s"%(self.basis().keys())
-            ...       def product_on_basis(self,i,j):
-            ...           pass
+            ....:     def _repr_(self):
+            ....:         return "MyAlgebra on %s"%(self.basis().keys())
+            ....:     def product_on_basis(self,i,j):
+            ....:         pass
             sage: MyAlgebra(ZZ, ZZ, category = AlgebrasWithBasis(QQ))
             MyAlgebra on Integer Ring
 
@@ -1266,7 +1267,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return x
 
     # What semantic do we want for containment?
-    # Accepting anything that can be coerced is not reasonnable, especially
+    # Accepting anything that can be coerced is not reasonable, especially
     # if we allow coercion from the enumerated set.
     # Accepting anything that can be converted is an option, but that would
     # be expensive. So far, x in self if x.parent() == self
@@ -2195,7 +2196,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         def _tensor_of_elements(self, elements):
             """
             Returns the tensor product of the specified elements.
-            The result should be in self.
+            The result should be in ``self``.
 
             EXAMPLES::
 

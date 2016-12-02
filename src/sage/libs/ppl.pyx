@@ -126,7 +126,7 @@ Since Python and C++ syntax are not always compatible, there are
 necessarily some differences. The main ones are:
 
 * The :class:`Linear_Expression` also accepts an iterable as input for
-  the homogeneous cooefficients.
+  the homogeneous coefficients.
 
 * :class:`Polyhedron` and its subclasses as well as
   :class:`Generator_System` and :class:`Constraint_System` can be set
@@ -2868,7 +2868,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         r"""
         Assign to ``self`` the concatenation of ``self`` and ``y``.
 
-        This functions returns the Cartiesian product of ``self`` and
+        This function returns the Cartesian product of ``self`` and
         ``y``.
 
         Viewing a polyhedron as a set of tuples (its points), it is
