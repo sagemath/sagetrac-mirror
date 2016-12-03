@@ -91,6 +91,9 @@ REFERENCES:
                Journal of Combinatorial Theory, Series B, vol 98, n.6,
                pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
+.. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
+              preprint, 2009.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
