@@ -37,6 +37,9 @@ REFERENCES:
    \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
    Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
 
+.. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
+              preprint, 2009.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -702,6 +705,9 @@ REFERENCES:
 
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
+
+.. [Gra2015] \C. Graf, 'Tete-a-tete graphs and twists', 
+             :arxiv:`1408.1865`, 2015.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion
