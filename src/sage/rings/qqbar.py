@@ -5723,9 +5723,9 @@ class ANRoot(ANDescr):
         uinfo = {}
 
         def update_info(info, x):
-            info['endpoint'] = x
+            info['endpoint'] = field(x)
             val = interval_p(field(x))
-            info['value'] = val
+            info['value'] = field(val)
             # sign == 1 if val is bounded greater than 0
             # sign == -1 if val is bounded less than 0
             # sign == 0 if val might be 0
