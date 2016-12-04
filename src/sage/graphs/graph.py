@@ -7432,7 +7432,7 @@ class Graph(GenericGraph):
 
     ### Expansion
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Expansion properties")
     def cheeger_constant(self):
         r"""
         Return the Cheeger constant of the graph (sometimes called the
@@ -7523,7 +7523,7 @@ class Graph(GenericGraph):
 
     transition_isoperimetric_number = cheeger_constant
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Expansion properties")
     def edge_isoperimetric_number(self):
         r"""
         Return the edge-isoperimetric number of the graph (sometimes called the
@@ -7608,7 +7608,7 @@ class Graph(GenericGraph):
 
     isoperimetric_number = edge_isoperimetric_number
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Expansion properties")
     def vertex_isoperimetric_number(self):
         r"""
         Return the vertex-isoperimetric number of the graph (sometimes called
