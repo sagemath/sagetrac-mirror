@@ -27,30 +27,3 @@ def is_RealIntervalFieldElement(x):
         True
     """
     return isinstance(x, RealIntervalFieldElement)
-
-def __reduce__RealIntervalField(prec, sci_not):
-    """
-    For pickling.
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_interval_field import __reduce__RealIntervalField
-        sage: R = RealIntervalField(sci_not=1, prec=200)
-        sage: __reduce__RealIntervalField(200, 1) == R
-        True
-    """
-    return RealIntervalField_class(prec, sci_not)
-
-def __reduce__RealIntervalFieldElement(parent, x, base=10):
-    """
-    For pickling.
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_interval_field import __reduce__RealIntervalFieldElement
-        sage: R = RealIntervalField(sci_not=1, prec=200)
-        sage: elt = R(2.5)
-        sage: __reduce__RealIntervalFieldElement(R, 2.5) == elt
-        True
-    """
-    return RealIntervalFieldElement(parent, x, base=base)

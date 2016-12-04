@@ -3729,7 +3729,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    cpdef int _cmp_(left, right) except -2:
+    def _cmp_(left, right) except -2:
         """
         Compare two intervals lexicographically.
 
