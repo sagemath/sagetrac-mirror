@@ -1113,6 +1113,9 @@ REFERENCES:
              of graphs, Linear Algebra and its Applications 103 (1988),
              119–131.
 
+.. [Moh1989] Bojan Mohar, Isoperimetric numbers of graphs, Journal of
+             Combinatorial Theory. Series B 47 (1989), no. 3, 274–291.
+
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.

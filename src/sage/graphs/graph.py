@@ -7530,7 +7530,7 @@ class Graph(GenericGraph):
         *isoperimetric number*).
 
         The edge-isoperimetric number of a graph (see [ABS2004]_, [Moh1988]_,
-        [CT1998]_) is defined as follows:
+        [Moh1989], [CT1998]_) is defined as follows:
 
         .. MATH::
 
