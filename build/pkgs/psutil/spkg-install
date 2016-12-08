@@ -5,4 +5,8 @@ if [ "$UNAME" = "Darwin" ] && [ $MACOSX_VERSION -ge 16 ]; then
     CC=clang
 fi
 
-cd src && $PIP_INSTALL .
+if [ "$UNAME" = "CYGWIN" ]; then
+    echo "psutil cannot currently be installed on Cygwin"
+else
+    cd src && $PIP_INSTALL .
+fi
