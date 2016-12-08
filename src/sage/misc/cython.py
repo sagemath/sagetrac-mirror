@@ -37,7 +37,7 @@ cblas_include_dirs = list(cblas_pc['include_dirs'])
 
 # TODO: Remove Cygwin hack by installing a suitable cblas.pc
 if os.path.exists('/usr/lib/libblas.dll.a'):
-    cblas_libs = 'gslcblas'
+    cblas_libs = ['gslcblas']
 
 standard_libs = [
     'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 
