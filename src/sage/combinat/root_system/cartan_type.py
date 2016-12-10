@@ -2982,7 +2982,7 @@ class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract
 
 ##############################################################################
 # For backward compatibility
-class CartanType_simple_finite(object):
+class CartanType_simple_finite(UniqueRepresentation, SageObject, CartanType_abstract):
     def __setstate__(self, dict):
         """
         Implements the unpickling of Cartan types pickled by Sage <= 4.0.
