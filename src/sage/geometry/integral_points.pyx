@@ -862,7 +862,7 @@ cdef class Inequality_int:
     cdef int dim
     # the innermost coefficient
     cdef int coeff
-    cdef int cache
+    cdef long cache
     # the next-to-innermost coefficient
     cdef int coeff_next
     cdef int cache_next
