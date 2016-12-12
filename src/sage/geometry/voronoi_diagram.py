@@ -15,7 +15,8 @@ Voronoi diagram of a finite list of points in \RR^d.
 
 from sage.structure.sage_object import SageObject
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.all import RDF, QQ
+from sage.all import RDF, QQ, AA
+from sage.rings.real_mpfr import RealField_class
 from sage.geometry.triangulation.point_configuration import PointConfiguration
 from sage.modules.all import vector
 from sage.plot.all import line, point, rainbow, plot
@@ -35,7 +36,8 @@ class voronoi_diagram(SageObject):
         Get the Voronoi diagram for some points in \RR^3
         ::
         sage: V=voronoi_diagram([[1,3,.3],[2,-2,1],[-1,2,-.1]]); V
-        The Voronoi diagram of 3 points.
+        The Voronoi diagram of 3 points of dimension 3 in the Real Double Field
+
         sage: voronoi_diagram([])
         The empty Voronoi diagram.
 
@@ -61,18 +63,25 @@ class voronoi_diagram(SageObject):
         See ``voronoi_diagram`` for full documentation.
         EXAMPLES::
         sage: V=voronoi_diagram([[1,3,3],[2,-2,1],[-1,2,-1]]); V
-        The Voronoi diagram of 3 points.
-
+        The Voronoi diagram of 3 points of dimension 3 in the Rational Field
         """
-        self._P=[]
+        self._P={}
         self._points=PointConfiguration(points)
         self._n=self._points.n_points()
         if self._n==0 or self._points.base_ring().is_subring(QQ):
             self._base_ring=QQ
-        else:
+        elif self._points.base_ring() in [RDF,AA]:
+            self._base_ring=self._points.base_ring()
+        elif isinstance(self._points.base_ring(), RealField_class):
             self._base_ring=RDF
+        else:
+            raise NotImplementedError('Base ring of the Voronoi diagram must '
+                                    +'be one of '+str(QQ)+', ' + str(RDF)+
+                                     ', '+str(RDF)+'. Real Field will be converted '
+                                     +'to '+str(RDF))
 
-        if self._n:
+
+        if self._n > 0:
             self._d=self._points.ambient_dim()
             e=[([sum(vector(i)[k]**2 for k in
             range(self._d))]+[(-2)*vector(i)[l] for l in range(self._d)]+[1])
@@ -80,15 +89,15 @@ class voronoi_diagram(SageObject):
             e=[[self._base_ring(i) for i in k] for k in e]
             p=Polyhedron(ieqs = e, base_ring=self._base_ring)
         for i in range(self._n):
-            equ=p.Hrepresentation(i)
+            equ=p.Hrepresentation(i) #TODO: here we assume that the order of these inequalities is the same as when p was defined two lines above.
             pvert=[[u[k] for k in range(self._d)] for u in equ.incident() if
             u.is_vertex()]
             prays=[[u[k] for k in range(self._d)] for u in equ.incident() if
             u.is_ray()]
             pline=[[u[k] for k in range(self._d)] for u in equ.incident() if
             u.is_line()]
-            (self._P).append(Polyhedron(vertices=pvert, lines=pline, rays=prays,
-             base_ring=self._base_ring))
+            (self._P)[self._points[i]]=Polyhedron(vertices=pvert, lines=pline, rays=prays,
+             base_ring=self._base_ring)
 
     def points(self):
         r""" Returns the input points (as a PointConfiguration).
@@ -123,12 +132,9 @@ class voronoi_diagram(SageObject):
 
         EXAMPLES::
             sage: V=voronoi_diagram([[1,3,.3],[2,-2,1],[-1,2,-.1]]); V.regions()
-            [A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1
-             vertex, 2 rays, 1 line, A 3-dimensional polyhedron in RDF^3 defined
-              as the
-            convex hull of 1 vertex, 2 rays, 1 line, A 3-dimensional polyhedron
-            in RDF^3 defined
-            as the convex hull of 1 vertex, 2 rays, 1 line]
+            {P(1.00000000000000, 3.00000000000000, 0.300000000000000): A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+            P(2.00000000000000, -2.00000000000000, 1.00000000000000): A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+            P(-1.00000000000000, 2.00000000000000, -0.100000000000000): A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 2 rays, 1 line}
         """
         return self._P
 
@@ -151,17 +157,17 @@ class voronoi_diagram(SageObject):
         Return a description of the Voronoi diagram.
 
         EXAMPLES::
-            sage: V=voronoi_diagram([[1,3,.3],[2,-2,1],[-1,2,-.1]]); V
-            The Voronoi diagram of 3 points.
+            sage: V=voronoi_diagram(polytopes.regular_polygon(3).vertices()); V
+            The Voronoi diagram of 3 points of dimension 2 in the Algebraic Real Field
             sage: voronoi_diagram([])
             The empty Voronoi diagram.
 
         """
         desc = ''
         if self._n:
-            desc+= 'The Voronoi diagram of '
-            desc+=str(self._n)
-            desc+= ' points.'
+            desc+= 'The Voronoi diagram of '+str(self._n)
+            desc+= ' points of dimension '+str(self.ambient_dim())
+            desc+=' in the '+str(self.base_ring())
         else:
             desc+='The empty Voronoi diagram.'
 
@@ -202,10 +208,11 @@ class voronoi_diagram(SageObject):
         if self.ambient_dim()==2:
             S=line([])
             for i,j in enumerate(self._points):
-                S+=(self._P[i]).render_solid(color=rainbow(self._n)[i],
+                S+=(self._P[j]).render_solid(color=rainbow(self._n)[i],
                 zorder=1)
                 S+=point(j, color=rainbow(self._n)[i], pointsize=10,zorder=3)
                 S+=point(vector(j), color='black',pointsize=20,zorder=2)
             return plot(S,**kwds)
         raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
                                   '-dimensional Voronoi diagrams not'+
+                                  ' implemented')
