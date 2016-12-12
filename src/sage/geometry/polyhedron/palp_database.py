@@ -45,7 +45,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 
 @contextmanager
 def terminate(sp):
-    """
+    r"""
     Context manager that terminates or kills the given `subprocess.Popen`
     when it is no longer needed, in case the process does not end on its
     own.
