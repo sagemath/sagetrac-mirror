@@ -1,0 +1,20 @@
+Patch for https://trac.sagemath.org/ticket/22049
+In newlib (an hence Cygwin) all the defines needed from xlocale.h are in
+locale.h
+diff --git a/numpy/core/src/multiarray/numpyos.c b/numpy/core/src/multiarray/numpyos.c
+index 450ec40..9eb369c 100644
+--- a/numpy/core/src/multiarray/numpyos.c
++++ b/numpy/core/src/multiarray/numpyos.c
+@@ -15,7 +15,11 @@
+ 
+ #ifdef HAVE_STRTOLD_L
+ #include <stdlib.h>
+-#include <xlocale.h>
++#ifdef __NEWLIB__
++    #include <locale.h>
++#else
++    #include <xlocale.h>
++#endif
+ #endif
+ 
+ 
