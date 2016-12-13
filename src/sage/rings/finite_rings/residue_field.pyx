@@ -153,6 +153,7 @@ from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
@@ -356,7 +357,7 @@ class ResidueFieldFactory(UniqueFactory):
             elif (q % 2 == 0) and (impl is None or impl == 'ntl'):
                 FFclass = FiniteField_ntl_gf2e
             elif impl is None or impl == 'pari':
-                FFclass = FiniteField_ext_pari
+                FFclass = FiniteField_pari_ffelt
             else:
                 raise ValueError("unrecognized finite field type")
             RFclass = dynamic_class("PolyResidue" + FFclass.__name__[6:], (ResidueField_polyring, FFclass))
@@ -416,7 +417,7 @@ class ResidueFieldFactory(UniqueFactory):
         elif characteristic == 2 and (impl is None or impl == 'ntl'):
             FFclass = FiniteField_ntl_gf2e
         elif impl is None or impl == 'pari':
-            FFclass = FiniteField_ext_pari
+            FFclass = FiniteField_pari_ffelt
         else:
             raise ValueError("unrecognized finite field type")
         RFclass = dynamic_class("NFResidue" + FFclass.__name__[6:], (ResidueField_nf, FFclass))
