@@ -253,7 +253,7 @@ class GraphPlot(SageObject):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
-        self._nodelist = graph.vertices()
+        self._nodelist = graph.vertices(key=id)
         self._graph = graph
         self._options = options # contains both plot and show options
         self.set_pos()
@@ -630,9 +630,12 @@ class GraphPlot(SageObject):
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
-                    key = tuple(sorted([edge[0],edge[1]]))
-                    if key == (edge[0],edge[1]): head = 1
-                    else: head = 0
+                    if id(edge[0]) >= id(edge[1]):
+                        key = tuple(edge[:2])
+                        head = 1
+                    else:
+                        key = tuple(edge[1::-1])
+                        head = 0
 
                     if len(edge) < 3:
                         label = self._graph.edge_label(edge[0],edge[1])
@@ -661,16 +664,22 @@ class GraphPlot(SageObject):
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
                 if (edge[0],edge[1],edge[2]) not in edges_drawn:
-                    key = tuple(sorted([edge[0],edge[1]]))
-                    if key == (edge[0],edge[1]): head = 1
-                    else: head = 0
+                    if id(edge[0]) >= id(edge[1]):
+                        key = tuple(edge[:2])
+                        head = 1
+                    else:
+                        key = tuple(edge[1::-1])
+                        head = 0
                     append_or_set(key, edge[2], self._options['edge_color'], head)
 
         else:
             for edge in self._graph.edges(sort=True):
-                key = tuple(sorted([edge[0],edge[1]]))
-                if key == (edge[0],edge[1]): head = 1
-                else: head = 0
+                if id(edge[0]) >= id(edge[1]):
+                    key = tuple(edge[:2])
+                    head = 1
+                else:
+                    key = tuple(edge[1::-1])
+                    head = 0
                 append_or_set(key, edge[2], self._options['edge_color'], head)
 
         if edges_to_draw:
