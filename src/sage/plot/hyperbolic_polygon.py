@@ -118,18 +118,12 @@ class HyperbolicPolygon(BezierPath):
         hyperbolic plane.
         """
         z0, z3 = (CC(z0), CC(z3))
-        if maxY == 0:
-            if z0 == CC(infinity):
-                z0 = CC(real(z3), imag(z3) + 100)
-            else:
-                if z3 == CC(infinity):
-                    z3 = CC(real(z0), imag(z0) + 100)
+
+        if z0 == CC(infinity):
+            z0 = CC(real(z3), maxY + 100)
         else:
-            if z0 == CC(infinity):
-                z0 = CC(real(z3), maxY + 100)
-            else:
-                if z3 == CC(infinity):
-                    z3 = CC(real(z0), maxY + 100)
+            if z3 == CC(infinity):
+                z3 = CC(real(z0), maxY + 100)
 
         p = (abs(z0)*abs(z0)-abs(z3)*abs(z3))/(z0-z3).real()/2
         r = abs(z0-p)
