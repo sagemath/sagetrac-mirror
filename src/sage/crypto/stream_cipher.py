@@ -1,6 +1,7 @@
 """
 Stream Ciphers
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -9,8 +10,8 @@ Stream Ciphers
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from lfsr import lfsr_sequence
-from cipher import SymmetricKeyCipher
+from .lfsr import lfsr_sequence
+from .cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
 
 class LFSRCipher(SymmetricKeyCipher):
@@ -88,7 +89,7 @@ class LFSRCipher(SymmetricKeyCipher):
         """
         B = self.domain() # = plaintext_space = ciphertext_space
         if not isinstance(M, StringMonoidElement) and M.parent() == B:
-            raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
+            raise TypeError("Argument M (= %s) must be a string in the plaintext space." % M)
         (poly, IS) = self.key()
         n = B.ngens() # two for binary strings
         N = len(M)
@@ -176,9 +177,9 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
             Shrinking generator cipher on Free binary string monoid
         """
         if not isinstance(e1, LFSRCipher):
-            raise TypeError, "Argument e1 (= %s) must be a LFSR cipher." % e1
+            raise TypeError("Argument e1 (= %s) must be a LFSR cipher." % e1)
         if not isinstance(e2, LFSRCipher):
-            raise TypeError, "Argument e2 (= %s) must be a LFSR cipher." % e2
+            raise TypeError("Argument e2 (= %s) must be a LFSR cipher." % e2)
         SymmetricKeyCipher.__init__(self, parent, key = (e1, e2))
 
     def keystream_cipher(self):
@@ -254,7 +255,7 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
         """
         B = self.domain() # = plaintext_space = ciphertext_space
         if not isinstance(M, StringMonoidElement) and M.parent() == B:
-            raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
+            raise TypeError("Argument M (= %s) must be a string in the plaintext space." % M)
         (e1, e2) = self.key()
         MStream = M._element_list
         g1 = e1.connection_polynomial()

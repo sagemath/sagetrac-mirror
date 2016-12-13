@@ -2,17 +2,21 @@
 """
 The Eisenstein Subspace
 """
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.all import Sequence
 from sage.misc.all import verbose
 import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix
+from sage.rings.all import CyclotomicField
+from sage.arith.all import lcm, euler_phi
 
 
-import eis_series
-import element
-import submodule
+from . import eis_series
+from . import element
+from . import submodule
 
 class EisensteinSubmodule(submodule.ModularFormsSubmodule):
     """
@@ -336,7 +340,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             q^2 + 9*q^4 + 28*q^6 + 73*q^8 + 126*q^10 + 252*q^12 + 344*q^14 + O(q^15),
             q^11 + O(q^15)]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         else:
             prec = rings.Integer(prec)
@@ -435,11 +439,11 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             [ 0  0  9  0]
             [ 0  1 -4 10]
         """
-        from cuspidal_submodule import _convert_matrix_from_modsyms
+        from .cuspidal_submodule import _convert_matrix_from_modsyms
         symbs = self.modular_symbols(sign=0)
         d = self.rank()
         wrong_mat, pivs = _convert_matrix_from_modsyms(symbs, A)
-        c = Matrix(self.base_ring(), d, [self.basis()[i][j+1] for i in xrange(d) for j in pivs])
+        c = Matrix(self.base_ring(), d, [self.basis()[i][j+1] for i in range(d) for j in pivs])
         return c * wrong_mat * ~c
 
     def _compute_hecke_matrix(self, n, bound=None):
@@ -564,8 +568,6 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         #raise NotImplementedError, "must restrict scalars down correctly."
 
 
-from sage.rings.all import CyclotomicField, lcm, euler_phi
-
 def cyclotomic_restriction(L,K):
     r"""
     Given two cyclotomic fields L and K, compute the compositum
@@ -657,14 +659,14 @@ def cyclotomic_restriction_tower(L,K):
         x + zeta6
     """
     if not L.has_coerce_map_from(K):
-        raise ValueError, "K must be contained in L"
+        raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
     x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:
-        raise ValueError, "K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K._n(), L._n())
+        raise ValueError("K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K._n(), L._n()))
     h = h_ls[0]
     def z(a):
         """

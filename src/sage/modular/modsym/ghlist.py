@@ -1,7 +1,6 @@
 r"""
 List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`
 """
-
 ###########################################################################
 #       Sage: System for Algebra and Geometry Experimentation
 #
@@ -18,9 +17,10 @@ List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import absolute_import
 
+from . import p1list
 
-import p1list
 
 class GHlist:
     r"""
@@ -47,8 +47,7 @@ class GHlist:
         N = group.level()
         coset_reps = set([a for a, b, _ in v if b == 1])
         w = [group._reduce_coset(x*u, x*v) for x in coset_reps for u,v in p1list.P1List(N).list()]
-        w = list(set(w))
-        w.sort()
+        w = sorted(set(w))
         self.__list = w
 
     def __getitem__(self, i):

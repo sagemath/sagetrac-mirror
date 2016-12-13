@@ -172,7 +172,8 @@ cdef extern from 'symmetrica/macro.h':
         INT exist
         INT reihenart
         INT z
-        reihe *x, *y
+        reihe *x
+        reihe *y
         reihe *p
         INT (*eingabefkt)()
         char ope
@@ -377,7 +378,7 @@ cdef object sqrt
 cdef object Rational
 cdef object QQ
 cdef object ZZ
-cdef object SymmetricFunctionAlgebra
+cdef object SymmetricFunctions
 cdef object PolynomialRing
 cdef object SchubertPolynomialRing, SchubertPolynomial_class
 cdef object two, fifteen, thirty, zero, sage_maxint
@@ -397,7 +398,7 @@ cdef void late_import():
            Rational, \
            QQ, \
            ZZ, \
-           SymmetricFunctionAlgebra, \
+           SymmetricFunctions, \
            sqrt, \
            builtinlist, \
            MPolynomialRing_generic, is_MPolynomial,\
@@ -432,8 +433,8 @@ cdef void late_import():
     import sage.functions.all
     sqrt = sage.functions.all.sqrt
 
-    import sage.misc.misc
-    prod = sage.misc.misc.prod
+    import sage.misc.all
+    prod = sage.misc.all.prod
 
     import sage.rings.polynomial.polynomial_ring_constructor
     PolynomialRing =  sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing
@@ -443,12 +444,12 @@ cdef void late_import():
     Rational = sage.rings.all.Rational
     ZZ = sage.rings.all.ZZ
 
-    #Symmetric Function Algebra
-    import sage.combinat.sf.sfa
-    SymmetricFunctionAlgebra = sage.combinat.sf.sfa.SymmetricFunctionAlgebra
+    #Symmetric Functions
+    import sage.combinat.sf.sf
+    SymmetricFunctions = sage.combinat.sf.sf.SymmetricFunctions
 
-    import __builtin__
-    builtinlist = __builtin__.list
+    from six.moves import builtins
+    builtinlist = builtins.list
 
     import sage.rings.polynomial.multi_polynomial_ring
     MPolynomialRing_generic = sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_generic
@@ -469,7 +470,6 @@ cdef void late_import():
 cdef object _py(OP a):
     cdef OBJECTKIND objk
     objk = s_o_k(a)
-    #print objk
     if objk == INTEGER:
         return _py_int(a)
     elif objk == LONGINT:
@@ -510,7 +510,7 @@ cdef object _py(OP a):
         return _py_schubert(a)
     else:
         #println(a)
-        raise NotImplementedError, str(objk)
+        raise NotImplementedError(str(objk))
 
 cdef int _op(object a, OP result) except -1:
     late_import()
@@ -521,7 +521,7 @@ cdef int _op(object a, OP result) except -1:
     elif isinstance(a, Rational):
         _op_fraction(a, result)
     else:
-        raise TypeError, "cannot convert a (= %s) to OP"%a
+        raise TypeError("cannot convert a (= %s) to OP" % a)
 
 def test_integer(object x):
     """
@@ -545,7 +545,7 @@ def test_integer(object x):
         -1267650600228229401496703205376
         sage: for i in range(100):
         ....:     if test_integer(2^i) != 2^i:
-        ....:         print "Failure at", i
+        ....:         print("Failure at {}".format(i))
     """
     cdef OP a = callocobject()
     _op_integer(x, a)
@@ -837,12 +837,12 @@ cdef object _op_polynom(object d, OP res):
 
     poly_ring = d.parent()
 
-    if not PY_TYPE_CHECK(poly_ring, MPolynomialRing_generic):
-        raise TypeError, "you must pass a multivariate polynomial"
+    if not isinstance(poly_ring, MPolynomialRing_generic):
+        raise TypeError("you must pass a multivariate polynomial")
     base_ring = poly_ring.base_ring()
 
     if not ( base_ring == ZZ or base_ring == QQ):
-        raise TypeError, "the base ring must be either ZZ or QQ"
+        raise TypeError("the base ring must be either ZZ or QQ")
 
     cdef OP c = callocobject(), v = callocobject()
     cdef OP pointer = res
@@ -873,12 +873,12 @@ cdef object _py_schur(OP a):
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='s')(0)
+        return SymmetricFunctions(ZZ).s()(0)
 
     #Figure out the parent ring of a coefficient
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    s = SymmetricFunctionAlgebra(R, basis='s')
+    s = SymmetricFunctions(R).s()
     z = s(0)
     z._monomial_coefficients = z_elt
     return z
@@ -890,11 +890,11 @@ cdef object _py_monomial(OP a): #Monomial symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='m')(0)
+        return SymmetricFunctions(ZZ).m()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    m = SymmetricFunctionAlgebra(R, basis='m')
+    m = SymmetricFunctions(R).m()
     z = m(0)
     z._monomial_coefficients = z_elt
     return z
@@ -910,11 +910,11 @@ cdef object _py_powsym(OP a):  #Power-sum symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='p')(0)
+        return SymmetricFunctions(ZZ).p()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    p = SymmetricFunctionAlgebra(R, basis='p')
+    p = SymmetricFunctions(R).p()
     z = p(0)
     z._monomial_coefficients = z_elt
     return z
@@ -931,11 +931,11 @@ cdef object _py_elmsym(OP a): #Elementary symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='e')(0)
+        return SymmetricFunctions(ZZ).e()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    e = SymmetricFunctionAlgebra(R, basis='e')
+    e = SymmetricFunctions(R).e()
     z = e(0)
     z._monomial_coefficients = z_elt
     return z
@@ -952,11 +952,11 @@ cdef object _py_homsym(OP a): #Homogenous symmetric functions
     late_import()
     z_elt = _py_schur_general(a)
     if len(z_elt) == 0:
-        return SymmetricFunctionAlgebra(ZZ, basis='h')(0)
+        return SymmetricFunctions(ZZ).h()(0)
 
     R = z_elt[ z_elt.keys()[0] ].parent()
 
-    h = SymmetricFunctionAlgebra(R, basis='h')
+    h = SymmetricFunctions(R).h()
     z = h(0)
     z._monomial_coefficients = z_elt
     return z
@@ -989,7 +989,7 @@ cdef void* _op_schur_general_sf(object f, OP res):
     late_import()
     base_ring = f.parent().base_ring()
     if not ( base_ring is QQ or base_ring is ZZ ):
-        raise ValueError, "the base ring must be either ZZ or QQ"
+        raise ValueError("the base ring must be either ZZ or QQ")
 
     _op_schur_general_dict( f.monomial_coefficients(), res)
 
@@ -1005,7 +1005,7 @@ cdef void* _op_schur_general_dict(object d, OP res):
     n = len(keys)
 
     if n == 0:
-        raise ValueError, "the dictionary must be nonempty"
+        raise ValueError("the dictionary must be nonempty")
 
     b_skn_s( callocobject(), callocobject(), NULL, res)
     _op_partition( keys[0], s_s_s(res))
@@ -1042,7 +1042,7 @@ cdef void* _op_schubert_sp(object f, OP res):
     late_import()
     base_ring = f.parent().base_ring()
     if not ( base_ring is QQ or base_ring is ZZ ):
-        raise ValueError, "the base ring must be either ZZ or QQ"
+        raise ValueError("the base ring must be either ZZ or QQ")
 
     _op_schubert_dict( f.monomial_coefficients(), res)
 
@@ -1057,7 +1057,7 @@ cdef void* _op_schubert_dict(object d, OP res):
     n = len(keys)
 
     if n == 0:
-        raise ValueError, "the dictionary must be nonempty"
+        raise ValueError("the dictionary must be nonempty")
 
     b_skn_sch( callocobject(), callocobject(), NULL, res)
     _op_permutation( keys[0], s_sch_s(res))

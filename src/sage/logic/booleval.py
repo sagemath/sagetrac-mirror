@@ -1,5 +1,5 @@
 r"""
-Module used to evaluate boolean formulas
+Evaluation of Boolean Formulas
 
 AUTHORS:
 
@@ -23,6 +23,7 @@ We can change our assignment of values by modifying the dictionary::
     sage: booleval.eval_formula(t, d)
     False
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
 #       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
@@ -33,7 +34,7 @@ We can change our assignment of values by modifying the dictionary::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import logicparser
+from . import logicparser
 
 # dictionary containing variable keys and boolean values
 __vars = {}
@@ -46,19 +47,17 @@ def eval_formula(tree, vdict):
     INPUT:
 
     - ``tree`` -- a list of three elements corresponding to a branch of a
-      parse tree.
+      parse tree
 
-    - ``vdict`` -- a dictionary containing variable keys and boolean values.
+    - ``vdict`` -- a dictionary containing variable keys and boolean values
 
     OUTPUT:
 
-    The result of the evaluation as a boolean value
+    The result of the evaluation as a boolean value.
 
     EXAMPLES:
 
-    This example illustrates evaluating a boolean formula.
-
-    ::
+    This example illustrates evaluating a boolean formula::
 
         sage: import sage.logic.booleval as booleval
         sage: t = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
@@ -79,33 +78,27 @@ def eval_formula(tree, vdict):
 
 def eval_f(tree):
     r"""
-    Evaluate the tree
+    Evaluate the tree.
 
     INPUT:
 
     - ``tree`` -- a list of three elements corresponding to a branch of a
-      parse tree.
+      parse tree
 
     OUTPUT:
 
-    The result of the evaluation as a boolean value
+    The result of the evaluation as a boolean value.
 
     EXAMPLES:
 
-    This example illustrates how to evaluate a parse tree.
-
-    ::
+    This example illustrates how to evaluate a parse tree::
 
          sage: import sage.logic.booleval as booleval
          sage: booleval.eval_f(['&', True, False])
          False
 
-    ::
-
          sage: booleval.eval_f(['^', True, True])
          False
-
-    ::
 
          sage: booleval.eval_f(['|', False, True])
          True
@@ -118,32 +111,26 @@ def eval_op(op, lv, rv):
 
     INPUT:
 
-    - ``op`` -- a string or character representing a boolean operator.
+    - ``op`` -- a string or character representing a boolean operator
 
-    - ``lv`` -- a boolean or variable.
+    - ``lv`` -- a boolean or variable
 
-    - ``rv`` -- a boolean or variable.
+    - ``rv`` -- a boolean or variable
 
     OUTPUT:
 
-    The evaluation of ``lv op rv`` as a boolean value
+    The evaluation of ``lv op rv`` as a boolean value.
 
     EXAMPLES:
 
-    We can evaluate an operator given the values on either side.
-
-    ::
+    We can evaluate an operator given the values on either side::
 
         sage: import sage.logic.booleval as booleval
         sage: booleval.eval_op('&', True, False)
         False
 
-    ::
-
         sage: booleval.eval_op('^', True, True)
         False
-
-    ::
 
         sage: booleval.eval_op('|', False, True)
         True

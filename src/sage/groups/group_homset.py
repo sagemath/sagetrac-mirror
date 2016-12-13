@@ -14,9 +14,6 @@ Set of homomorphisms between two groups.
 from sage.categories.all import HomsetWithBase, Groups
 import sage.rings.integer_ring
 
-GROUPS = Groups()
-
-
 def is_GroupHomset(H):
     return isinstance(H, GroupHomset_generic)
 
@@ -30,7 +27,7 @@ class GroupHomset_generic(HomsetWithBase):
     is undefined and morphism.GroupHomomorphism_im_gens is undefined.
     """
     def __init__(self, G, H):
-        HomsetWithBase.__init__(self, G, H, GROUPS, sage.rings.integer_ringer.ZZ)
+        HomsetWithBase.__init__(self, G, H, Groups(), sage.rings.integer_ringer.ZZ)
 
     def _repr_(self):
         return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())
@@ -42,8 +39,8 @@ class GroupHomset_generic(HomsetWithBase):
         """
         try:
             return morphism.GroupHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
-            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+        except (NotImplementedError, ValueError) as err:
+            raise TypeError("images (=%s) do not define a valid homomorphism"%im_gens)
 
     def natural_map(self):
         return morphism.GroupHomomorphism_coercion(self)

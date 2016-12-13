@@ -4,6 +4,11 @@ for the book "k-Schur functions and affine Schubert calculus"
 by Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono,
 and Mike Zabrocki, :arxiv:`1301.3569`.
 The code was written by Anne Schilling and Mike Zabrocki, 2012 and 2013.
+
+IF IT BECOMES NECESSARY TO CHANGE ANY TESTS IN THIS FILE, THERE
+NEEDS TO BE A ONE-YEAR DEPRECATION PERIOD. ALSO, PLEASE IN THIS CASE
+CONTACT Anne Schilling (anne@math.ucdavis.edu) AND Mike Zabrocki
+(zabrocki@mathstat.yorku.ca) REGARDING THE CHANGES!
 """
 
 """
@@ -158,7 +163,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1082::
     sage: ord = lambda x,y: x.weak_le(y)
     sage: P = Poset([C, ord], cover_relations = False)  # long time (3.99 s, 2013)
     sage: H = P.hasse_diagram()                         # long time
-    sage: view(H)                                       #optional
+    sage: view(H)  # not tested
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 1253::
 
@@ -247,7 +252,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1568::
   sage: H = Mac.H()
   sage: s = Sym.schur()
   sage: for la in Partitions(3):
-  ....:     print "H", la, "=", s(H(la))
+  ....:     print("H {} = {}".format(la, s(H(la))))
   H [3] = q^3*s[1, 1, 1] + (q^2+q)*s[2, 1] + s[3]
   H [2, 1] = q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
   H [1, 1, 1] = s[1, 1, 1] + (t^2+t)*s[2, 1] + t^3*s[3]
@@ -259,7 +264,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1581::
   sage: H = Mac.H()
   sage: s = Sym.schur()
   sage: for la in Partitions(3):
-  ....:    print "H",la, "=", s(H(la))
+  ....:     print("H {} = {}".format(la, s(H(la))))
   H [3] = s[3]
   H [2, 1] = s[2, 1] + t*s[3]
   H [1, 1, 1] = s[1, 1, 1] + (t^2+t)*s[2, 1] + t^3*s[3]
@@ -274,7 +279,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1596::
   sage: H = Mac.H()
   sage: s = Sym.schur()
   sage: for la in Partitions(3):
-  ....:    print "H",la, "=", s(H(la))
+  ....:     print("H {} = {}".format(la, s(H(la))))
   H [3] = q^3*s[1, 1, 1] + (q^2+q)*s[2, 1] + s[3]
   H [2, 1] = q*s[1, 1, 1] + s[2, 1]
   H [1, 1, 1] = s[1, 1, 1]
@@ -356,8 +361,8 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2382::
     [3, 2, 1]
     sage: for mu in Partitions(la.size(), max_part = 3):
     ....:     T = WeakTableaux(k, c, mu)
-    ....:     print "weight", mu
-    ....:     print T.list()
+    ....:     print("weight {}".format(mu))
+    ....:     print(T.list())
     ....:
     weight [3, 3]
     []
@@ -382,8 +387,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2487::
     sage: ks = Sym.kschur(3,t=1)
     sage: h = Sym.homogeneous()
     sage: for mu in Partitions(7, max_part =3):
-    ....:     print h(ks(mu))
-    ....:
+    ....:     print(h(ks(mu)))
     h[3, 3, 1]
     h[3, 2, 2] - h[3, 3, 1]
     h[3, 2, 1, 1] - h[3, 2, 2]
@@ -419,10 +423,9 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2658::
     sage: weight = Partition([4,3,1])
     sage: for la in Partitions(weight.size(), max_part = k):
     ....:     if la.dominates(weight):
-    ....:         print la
+    ....:         print(la)
     ....:         T = WeakTableaux(k, la, weight, representation = 'bounded')
-    ....:         print T.list()
-    ....:
+    ....:         print(T.list())
     [6, 2]
     [[[1, 1, 1, 1, 2, 2], [2, 3]]]
     [6, 1, 1]
@@ -470,8 +473,8 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2799::
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 2810::
 
     sage: c = Partition([3,2,1]).to_core(3)
-    sage: for p in f.support():
-    ....:   print p, SkewPartition([p.to_core(3).to_partition(),c.to_partition()])
+    sage: for p in sorted(f.support()):   # Sorted for consistant doctest ordering
+    ....:   print("{} {}".format(p, SkewPartition([p.to_core(3).to_partition(),c.to_partition()])))
     ....:
     [3, 1, 1, 1, 1] [[5, 2, 1, 1, 1], [5, 2, 1]]
     [3, 2, 1, 1] [[6, 3, 1, 1], [5, 2, 1]]
@@ -575,7 +578,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 4055::
 
     sage: t = var('t')
     sage: for mu in Partitions(5):
-    ....:     print mu, sum(t^T.spin() for T in StrongTableaux(3,[4,1,1],mu))
+    ....:     print("{} {}".format(mu, sum(t^T.spin() for T in StrongTableaux(3,[4,1,1],mu))))
     [5] 0
     [4, 1] t
     [3, 2] t
@@ -620,11 +623,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 4456::
     Traceback (most recent call last):
     ...
     ValueError: t^2*s[1, 1, 1, 1, 1] + t*s[2, 1, 1, 1] + s[2, 2, 1] is not
-    in the image of Generic morphism:
-    From: 3-bounded Symmetric Functions over Fraction Field of Univariate
-    Polynomial Ring in t over Rational Field in the 3-Schur basis
-    To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring
-    in t over Rational Field in the Schur basis
+    in the image
 
     sage: s = Sym.schur()
     sage: s(ks3[3,2])
@@ -792,4 +791,3 @@ sage: G2 = SymQ3.AffineGrothendieckPolynomial([2],6)
 sage: (G1*G2).lift().scalar(Kks3[3,1])
 -1
 """
-

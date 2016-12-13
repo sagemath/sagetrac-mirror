@@ -8,17 +8,18 @@ TESTS::
     sage: loads(dumps(J1(13))) == J1(13)
     True
 """
+from __future__ import absolute_import
 
 import weakref
 from sage.structure.sequence import Sequence
 
-from abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbelianVariety,
+from .abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbelianVariety,
                                simple_factorization_of_modsym_space, modsym_lattices,
                                ModularAbelianVariety_modsym)
 from sage.rings.all    import QQ
 
 from sage.modular.modsym.modsym import ModularSymbols
-import morphism
+from . import morphism
 
 
 _cache = {}
@@ -286,9 +287,9 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         """
         if check:
             if (level % self.level()) and (self.level() % level):
-                raise ValueError, "level must be divisible by level of self"
+                raise ValueError("level must be divisible by level of self")
             if (max(level,self.level()) // min(self.level(),level)) % t:
-                raise ValueError, "t must divide the quotient of the two levels"
+                raise ValueError("t must divide the quotient of the two levels")
 
         Mself = self.modular_symbols()
         #Jdest = Mself.ambient_module().modular_symbols_of_level(level).cuspidal_subspace().abelian_variety()

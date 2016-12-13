@@ -11,7 +11,7 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 # Read gap-version, which was written by spkg-src
-VERSION=`cat gap-version`
+VERSION=`cat src/gap-version`
 GAP_DIR="gap-$VERSION"
 INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
 
@@ -50,6 +50,9 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
+
+# Use newer version of config.guess and config.sub (see Trac #19726)
+cp "$SAGE_ROOT"/config/config.* cnf
 
 # Configure
 echo "Configuring GAP..."
@@ -109,3 +112,8 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
         exit 1
     fi
 fi
+
+# Delete tests that rely on the non-GPL small group library
+rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
+rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
+rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst

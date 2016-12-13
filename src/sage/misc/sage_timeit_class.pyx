@@ -1,20 +1,23 @@
+# This is here in Cython so we can access the interpreter globals
+# cython: old_style_globals=True
 """
 The ``timeit`` command
 
 This uses the function :func:`~sage.misc.sage_timeit.sage_timeit`.
 """
+from __future__ import absolute_import
 
-# This is here in Cython so we can get the interpreter globals
+from . import sage_timeit
 
-import sage_timeit
 
 class SageTimeit:
-    r"""
-    Time execution of a command or block of commands.  Displays the
-    best WALL TIME for execution of the given code.  This is based on
-    the Python timeit module, which avoids a number of common traps
-    for measuring execution times.  It is also based on IPython's
-    %timeout command.
+    r"""nodetex
+    Time execution of a command or block of commands.
+
+    Displays the best WALL TIME for execution of the given code. This
+    is based on the Python timeit module, which avoids a number of
+    common traps for measuring execution times.  It is also based on
+    IPython's %timeit command.
 
     TYPICAL INPUT FORMAT::
 
@@ -41,7 +44,7 @@ class SageTimeit:
         sage: timeit("a = 2\nb=131\nfactor(a^b-1)", number=25)
         25 loops, best of 3: ... per loop
 
-    .. seealso:: :func:`runsnake`
+    .. SEEALSO:: :func:`runsnake`
     """
     def eval(self, code, globs=None, locals=None, **kwds):
         r"""
@@ -51,7 +54,8 @@ class SageTimeit:
 
         - ``code`` -- string of code to evaluate; may contain newlines.
 
-        - ``globs``  -- global variables; if not given, uses module scope globals.
+        - ``globs``  -- global variables; if not given, uses module scope
+          globals.
 
         - ``locals`` -- ignored completely.
 
@@ -66,9 +70,9 @@ class SageTimeit:
             sage: timeit.eval("2+2")                     # random output
             '625 loops, best of 3: 1.47 us per loop'
 
-        We emphasize that timeit times WALL TIME.  This is good in the context of
-        Sage where commands often call out to other subprocesses that don't appear
-        in CPU time. ::
+        We emphasize that timeit times WALL TIME. This is good in the
+        context of Sage where commands often call out to other
+        subprocesses that don't appear in CPU time. ::
 
             sage: timeit('sleep(0.5)', number=3)  # long time (5s on sage.math, 2012)
             3 loops, best of 3: ... ms per loop
@@ -111,9 +115,7 @@ class SageTimeit:
         """
         if 'seconds' in kwds:
             return self.eval(code, globals, preparse=preparse, **kwds)
-        print self.eval(code, globals, preparse=preparse, **kwds)
+        print(self.eval(code, globals, preparse=preparse, **kwds))
 
 
 timeit = SageTimeit()
-
-

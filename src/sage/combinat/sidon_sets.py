@@ -25,7 +25,7 @@ def sidon_sets(N, g = 1):
     that any integer `M` can be obtain at most `g` times as sums of unordered pairs of
     elements of `A` (the two elements are not necessary distinct):
 
-    .. math::
+    .. MATH::
 
         \#\{ (a_i, a_j) | a_i, a_j \in A, a_i + a_j = M,a_i \leq a_j \} \leq g
 
@@ -46,12 +46,12 @@ def sidon_sets(N, g = 1):
         sage: S.cardinality()
         8
         sage: S.category()
-        Category of sets
+        Category of finite sets
         sage: sid = S.an_element()
         sage: sid
         {2}
         sage: sid.category()
-        Category of sets
+        Category of finite sets
 
     TESTS::
 

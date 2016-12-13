@@ -11,8 +11,20 @@ AUTHORS:
 - David Roe
 """
 
-from __builtin__ import min as python_min
-from __builtin__ import max as python_max
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import absolute_import
+
+from six.moves.builtins import min as python_min
+from six.moves.builtins import max as python_max
 from sage.rings.infinity import infinity
 
 def min(*L):

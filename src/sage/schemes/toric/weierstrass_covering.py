@@ -18,7 +18,7 @@ the weighted projective space `\mathbb{P}^2[2,3,1]` with homogeneous
 coordinates `[X:Y:Z] = [\lambda^2 X, \lambda^3 Y, \lambda Z]`. The
 homogenized Weierstrass equation is
 
-.. math::
+.. MATH::
 
     Y^2 = X^3 + f X Z^4 + g Z^6
 
@@ -150,7 +150,7 @@ def WeierstrassMap(polynomial, variables=None):
     toric hypersurface to its Weierstrass form in
     `\mathbb{P}^2[2,3,1]`. That is, the triple satisfies
 
-    .. math::
+    .. MATH::
 
         Y^2 = X^3 + f X Z^4 + g Z^6
 
@@ -224,23 +224,7 @@ def WeierstrassMap(polynomial, variables=None):
         ....:     p = sum( (-S.K()).sections_monomials() )
         ....:     f, g = WeierstrassForm(p)
         ....:     X,Y,Z = WeierstrassForm(p, transformation=True)
-        ....:     print P, p.divides(-Y^2 + X^3 + f*X*Z^4 + g*Z^6)
-        Reflexive polytope    0: 2-dimensional, 3 vertices. True
-        Reflexive polytope    1: 2-dimensional, 3 vertices. True
-        Reflexive polytope    2: 2-dimensional, 4 vertices. True
-        Reflexive polytope    3: 2-dimensional, 4 vertices. True
-        Reflexive polytope    4: 2-dimensional, 4 vertices. True
-        Reflexive polytope    5: 2-dimensional, 5 vertices. True
-        Reflexive polytope    6: 2-dimensional, 3 vertices. True
-        Reflexive polytope    7: 2-dimensional, 4 vertices. True
-        Reflexive polytope    8: 2-dimensional, 5 vertices. True
-        Reflexive polytope    9: 2-dimensional, 6 vertices. True
-        Reflexive polytope   10: 2-dimensional, 4 vertices. True
-        Reflexive polytope   11: 2-dimensional, 5 vertices. True
-        Reflexive polytope   12: 2-dimensional, 3 vertices. True
-        Reflexive polytope   13: 2-dimensional, 4 vertices. True
-        Reflexive polytope   14: 2-dimensional, 4 vertices. True
-        Reflexive polytope   15: 2-dimensional, 3 vertices. True
+        ....:     assert p.divides(-Y^2 + X^3 + f*X*Z^4 + g*Z^6)
     """
     if variables is None:
         variables = polynomial.variables()
@@ -304,7 +288,7 @@ def WeierstrassMap_P2(polynomial, variables=None):
     Input/output is the same as :func:`WeierstrassMap`, except that
     the input polynomial must be a cubic in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -417,7 +401,7 @@ def WeierstrassMap_P2_112(polynomial, variables=None):
     the input polynomial must be a standard anticanonical hypersurface
     in weighted projective space `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;

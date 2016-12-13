@@ -5,15 +5,8 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include 'sage/misc/bitset_pxd.pxi'
+from sage.data_structures.bitset cimport *
 
-cdef extern from "stdlib.h":
-    int rand()
-
-cdef extern from "flint/ulong_extras.h":
-    int n_is_prime(unsigned long n)
 
 cdef enum:
     # The following is for the automorphism group computation, says what the

@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.modules.module_element
+from sage.structure.element import ModuleElement
 
 def is_HeckeModuleElement(x):
     """
@@ -38,15 +38,17 @@ def is_HeckeModuleElement(x):
     """
     return isinstance(x, HeckeModuleElement)
 
-class HeckeModuleElement(sage.modules.module_element.ModuleElement):
+class HeckeModuleElement(ModuleElement):
     """
     Element of a Hecke module.
     """
     def __init__(self, parent, x=None):
         """
         INPUT:
-           -  ``parent`` - a Hecke module
-           -  ``x`` - element of the free module associated to parent
+
+        - ``parent`` -- a Hecke module
+
+        - ``x`` -- element of the free module associated to parent
 
         EXAMPLES::
 
@@ -63,8 +65,8 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
             sage: loads(dumps(v)) == v
             True
         """
-        sage.modules.module_element.ModuleElement.__init__(self, parent)
-        if not x is None:
+        ModuleElement.__init__(self, parent)
+        if x is not None:
             self.__element = x
 
     def _repr_(self):
@@ -101,7 +103,7 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
         # The main reason for this is it allows for lazy constructors who
         # compute the representation of an element (e.g., a q-expansion) in
         # terms of the basis only when needed.
-        raise NotImplementedError, "_compute_element *must* be defined in the derived class if element is set to None in constructor"
+        raise NotImplementedError("_compute_element *must* be defined in the derived class if element is set to None in constructor")
 
     def element(self):
         """

@@ -7,19 +7,22 @@ AUTHORS:
 
 Sage supports a wide range of specific free string monoids.
 """
+from __future__ import absolute_import
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# from sage.rings.integer import Integer
-# from sage.structure.parent_gens import ParentWithGens, normalize_names
-from free_monoid import FreeMonoid_class
-from string_monoid_element import StringMonoidElement
-from string_ops import strip_encoding
+
+from .free_monoid import FreeMonoid_class
+from .string_monoid_element import StringMonoidElement
+from .string_ops import strip_encoding
 
 import weakref
 
@@ -55,9 +58,6 @@ def BinaryStrings():
         True
     """
     # Here we cache the binary strings to make them unique
-    # if _cache.has_key(2):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 2 in _cache:
         S = _cache[2]()
         if not S is None:
@@ -87,9 +87,6 @@ def OctalStrings():
         033355556
     """
     # Here we cache the octal strings to make them unique
-    # if _cache.has_key(8):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 8 in _cache:
         S = _cache[8]()
         if not S is None:
@@ -120,9 +117,6 @@ def HexadecimalStrings():
         0aaaf
     """
     # Here we cache the hexadecimal strings to make them unique
-    # if _cache.has_key(16):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 16 in _cache:
         S = _cache[16]()
         if not S is None:
@@ -158,9 +152,6 @@ def Radix64Strings():
         /
     """
     # Here we cache the radix-64 strings to make them unique
-    # if _cache.has_key(64):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 64 in _cache:
         S = _cache[64]()
         if not S is None:
@@ -189,9 +180,6 @@ def AlphabeticStrings():
         Z
     """
     # Here we cache the alphabetic strings to make them unique
-    # if _cache.has_key(26):
-    # The method .has_key() has been deprecated since Python 2.2. Use
-    # "k in Dict" instead of "Dict.has_key(k)".
     if 26 in _cache:
         S = _cache[26]()
         if not S is None:
@@ -237,6 +225,23 @@ class StringMonoid_class(FreeMonoid_class):
 
     def alphabet(self):
         return tuple(self._alphabet)
+
+    def one(self):
+        r"""
+        Return the identity element of ``self``.
+
+        EXAMPLES::
+
+            sage: b = BinaryStrings(); b
+            Free binary string monoid
+            sage: b.one() * b('1011')
+            1011
+            sage: b.one() * b('110') == b('110')
+            True
+            sage: b('10101') * b.one() == b('101011')
+            False
+        """
+        return StringMonoidElement(self, '')
 
     def gen(self, i=0):
         r"""
@@ -364,10 +369,9 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             00000100
         """
-        from Crypto.Util.number import bytes_to_long
         bit_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             bits = []
             for i in range(8):
                 bits.append(n%2)
@@ -543,10 +547,9 @@ class HexadecimalStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             02
         """
-        from Crypto.Util.number import bytes_to_long
         hex_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             n0 = n % 16
             n1 = n // 16
             if not padic:
@@ -738,8 +741,8 @@ class AlphabeticStringMonoid(StringMonoid_class):
         referred to as the characteristic frequency probability distribution.
         Various studies report slightly different values for the
         characteristic frequency probability of an English letter. For
-        instance, [Lew00]_ reports that "E" has a characteristic
-        frequency probability of 0.12702, while [BekPip82]_ reports this
+        instance, [Lew2000]_ reports that "E" has a characteristic
+        frequency probability of 0.12702, while [BP1982]_ reports this
         value as 0.127. The concepts of characteristic frequency probability
         and characteristic frequency probability distribution can also be
         applied to non-empty alphabets other than the English alphabet.
@@ -762,12 +765,12 @@ class AlphabeticStringMonoid(StringMonoid_class):
           following tables are supported:
 
           - ``"beker_piper"`` -- the table of characteristic frequency
-            probability distribution by Beker and Piper [BekPip82]_. This is
+            probability distribution by Beker and Piper [BP1982]_. This is
             the default table to use.
 
           - ``"lewand"`` -- the table of characteristic frequency
             probability distribution by Lewand as described on page 36
-            of [Lew00]_.
+            of [Lew2000]_.
 
         OUTPUT:
 
@@ -778,7 +781,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
         EXAMPLES:
 
         The characteristic frequency probability distribution table of
-        Beker and Piper [BekPip82]_::
+        Beker and Piper [BP1982]_::
 
             sage: A = AlphabeticStrings()
             sage: table = A.characteristic_frequency(table_name="beker_piper")
@@ -812,7 +815,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
             ('Z', 0.00100000000000000)]
 
         The characteristic frequency probability distribution table
-        of Lewand [Lew00]_::
+        of Lewand [Lew2000]_::
 
             sage: table = A.characteristic_frequency(table_name="lewand")
             sage: sorted(table.items())
@@ -898,14 +901,6 @@ class AlphabeticStringMonoid(StringMonoid_class):
             Traceback (most recent call last):
             ...
             ValueError: Table name must be either 'beker_piper' or 'lewand'.
-
-        REFERENCES:
-
-        .. [BekPip82] H. Beker and F. Piper. *Cipher Systems: The
-          Protection of Communications*. John Wiley and Sons, 1982.
-
-        .. [Lew00] Robert Edward Lewand. *Cryptological Mathematics*.
-          The Mathematical Association of America, 2000.
         """
         supported_tables = ["beker_piper", "lewand"]
         if table_name not in supported_tables:
