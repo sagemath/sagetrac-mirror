@@ -74,22 +74,29 @@ class voronoi_diagram(SageObject):
             self._base_ring=self._points.base_ring()
         elif isinstance(self._points.base_ring(), RealField_class):
             self._base_ring=RDF
+            self._points=PointConfiguration([[RDF(cor) for cor in poi] for poi in self._points])
         else:
             raise NotImplementedError('Base ring of the Voronoi diagram must '
                                     +'be one of '+str(QQ)+', ' + str(RDF)+
                                      ', '+str(RDF)+'. Real Field will be converted '
                                      +'to '+str(RDF))
 
-
         if self._n > 0:
             self._d=self._points.ambient_dim()
             e=[([sum(vector(i)[k]**2 for k in
             range(self._d))]+[(-2)*vector(i)[l] for l in range(self._d)]+[1])
-            for i in self._points]
+            for i in self._points] # we attach hyperplane to the paraboloid
             e=[[self._base_ring(i) for i in k] for k in e]
             p=Polyhedron(ieqs = e, base_ring=self._base_ring)
+            if self.base_ring()==QQ:
+                esorted=sorted(e)
         for i in range(self._n):
-            equ=p.Hrepresentation(i) #TODO: here we assume that the order of these inequalities is the same as when p was defined two lines above.
+            #for base ring RDF and AA, Polyhedron keeps the order of the
+            #points in the input, for QQ we resort
+            if self.base_ring()==QQ:
+                equ=p.Hrepresentation(esorted.index(e[i]))
+            else:
+                equ=p.Hrepresentation(i)
             pvert=[[u[k] for k in range(self._d)] for u in equ.incident() if
             u.is_vertex()]
             prays=[[u[k] for k in range(self._d)] for u in equ.incident() if
@@ -216,3 +223,8 @@ class voronoi_diagram(SageObject):
         raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
                                   '-dimensional Voronoi diagrams not'+
                                   ' implemented')
+    def _are_points_in_regions(self):
+        """
+        Checks if all points are contained in their regions.
+        """
+        return all([self.regions()[p].contains(p) for p in self.points()])
