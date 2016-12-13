@@ -27,6 +27,8 @@ from sage.plot.bezier_path import BezierPath
 from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.rings.all import CC
+from sage.rings.infinity import infinity
+from sage.functions.other import real, imag
 
 class HyperbolicArc(BezierPath):
     """
@@ -79,6 +81,13 @@ class HyperbolicArc(BezierPath):
         hyperbolic plane.
         """
         z0, z3 = (CC(z0), CC(z3))
+        
+        if z0 == CC(infinity):
+            z0 = CC(real(z3), imag(z3) + 100)
+        else:
+            if z3 == CC(infinity):
+                z3 = CC(real(z0), imag(z0) + 100)
+                
         p = (abs(z0)*abs(z0)-abs(z3)*abs(z3))/(z0-z3).real()/2
         r = abs(z0-p)
 

@@ -1101,6 +1101,12 @@ class Graphics(WithEqualityById, SageObject):
         g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
+        maxmin = self.get_axes_range()
+        maxmin_other = other.get_axes_range()
+        g.set_axes_range(xmin = min(maxmin['xmin'],maxmin_other['xmin']),
+                         xmax = max(maxmin['xmax'],maxmin_other['xmax']),
+                         ymin = min(maxmin['ymin'],maxmin_other['ymin']),
+                         ymax = max(maxmin['ymax'],maxmin_other['ymax']))
         if self.aspect_ratio()=='automatic':
             g.set_aspect_ratio(other.aspect_ratio())
         elif other.aspect_ratio()=='automatic':
