@@ -19937,7 +19937,7 @@ class GenericGraph(GenericGraph_pyx):
         Relabeling using a dictionary. Note that the dictionary does not define
         the new label of vertex `0`::
 
-            sage: G.relabel({1:2,2:1}, inplace=False).am()
+            sage: G.relabel({int(1):2,int(2):1}, inplace=False).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]

@@ -1707,6 +1707,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             if labels:
                 for v in self.iterator_verts():
                     v_int = self.get_vertex(v)
+                    v = self.vertex_label(v_int)
                     for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
                         if u_int >= v_int:
                             u = self.vertex_label(u_int)
@@ -1716,6 +1717,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             else:
                 for v in self.iterator_verts():
                     v_int = self.get_vertex(v)
+                    v = self.vertex_label(v_int)
                     for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
                         if u_int >= v_int:
                             u = self.vertex_label(u_int)
@@ -1723,8 +1725,8 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         # One vertex
         elif len(vertices) == 1:
-            v = vertices[0]
-            v_int = self.get_vertex(v)
+            v_int = self.get_vertex(vertices[0])
+            v = self.vertex_label(v_int)
 
             if labels:
                 for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
@@ -1742,6 +1744,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             if labels:
                 for v in vertices:
                     v_int = self.get_vertex(v)
+                    v = self.vertex_label(v_int)
 
                     for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
                         if u_int >= v_int or u_int not in b_vertices:
@@ -1751,6 +1754,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             else:
                 for v in vertices:
                     v_int = self.get_vertex(v)
+                    v = self.vertex_label(v_int)
                     for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
                         if u_int >= v_int or u_int not in b_vertices:
                             u = self.vertex_label(u_int)

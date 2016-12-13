@@ -1253,10 +1253,20 @@ cdef class CGraphBackend(GenericGraphBackend):
         Returns an int representing the arbitrary hashable vertex u, and updates,
         if necessary, the translation dict and list. Adds a vertex if the label
         is new.
+
+        TESTS::
+
+            sage: g = DiGraph([[1..12],lambda i,j: i!=j and i.divides(j)])
+            sage: all(type(v) is int for v in g.vertices())
+            True
         """
         cdef CGraph G = self._cg
         cdef CGraph G_rev = self._cg_rev
 
+        try:
+            u = pyobject_to_long(u)
+        except Exception:
+            pass
         cdef int u_int = self.get_vertex(u)
         if u_int != -1:
             if not bitset_in(G.active_vertices, u_int):
@@ -2066,8 +2076,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict new_vx_labels = {}
         for v in self.iterator_verts(None):
             i = self.get_vertex(v)
-            new_vx_ints[perm[v]] = i
-            new_vx_labels[i] = perm[v]
+            new_label = perm[v]
+            try:
+                new_label = pyobject_to_long(new_label)
+            except Exception:
+                pass
+            new_vx_ints[new_label] = i
+            new_vx_labels[i] = new_label
         self.vertex_ints = new_vx_ints
         self.vertex_labels = new_vx_labels
 
