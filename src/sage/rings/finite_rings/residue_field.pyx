@@ -102,8 +102,6 @@ First over a small non-prime field::
     sage: F1.<u> = NumberField(x^6 + 6*x^5 + 124*x^4 + 452*x^3 + 4336*x^2 + 8200*x + 42316)
     sage: reduct_id = F1.factor(47)[0][0]
     sage: Rf = F1.residue_field(reduct_id)
-    sage: type(Rf)
-    <class 'sage.rings.residue_field.NFResidueField_ext_pari_with_category'>
     sage: Rf.cardinality().factor()
     47^3
     sage: R.<X, Y> = PolynomialRing(Rf)
@@ -119,8 +117,6 @@ And now over a large prime field::
     sage: F1.<u> = NumberField(x^2 + 6*x + 324)
     sage: reduct_id = F1.prime_above(next_prime(2^42))
     sage: Rf = F1.residue_field(reduct_id)
-    sage: type(Rf)
-    <class 'sage.rings.residue_field.NFResidueField_prime_modn_with_category'>
     sage: Rf.cardinality().factor()
     4398046511119
     sage: S.<X, Y, Z> = PolynomialRing(Rf, order='lex')
@@ -443,13 +439,10 @@ class ResidueField_generic(Field):
         Fractional ideal (I + 1)
         sage: k = I.residue_field(); k
         Residue field of Fractional ideal (I + 1)
-        sage: type(k)
-        <class 'sage.rings.residue_field.NFResidueField_prime_modn_with_category'>
 
         sage: R.<t> = GF(29)[]; P = R.ideal(t^2 + 2); k.<a> = ResidueField(P); k
         Residue field in a of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 29
-        sage: type(k)
-        <class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
+
     """
     def __init__(self, ideal, p, k, name, modulus):
         """
@@ -483,6 +476,7 @@ class ResidueField_generic(Field):
 
             sage: TestSuite(k).run()
             sage: TestSuite(F).run()
+
         """
         self.p = ideal
         FFclass = self._finite_field_class()
@@ -891,8 +885,7 @@ cdef class ReductionMap(Map):
             Partially defined reduction map:
               From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
               To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-            sage: type(k)
-            <class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
+
         """
         self._K = K
         self._F = F   # finite field
@@ -990,8 +983,6 @@ cdef class ReductionMap(Map):
             sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
             sage: k.<a> = R.residue_field(h); K = R.fraction_field()
             sage: f = k.convert_map_from(K)
-            sage: type(f)
-            <type 'sage.rings.residue_field.ReductionMap'>
             sage: f(1/t)
             a^4 + a
             sage: f(1/h)
@@ -1152,8 +1143,6 @@ class ResidueField_polyring(ResidueField_generic):
 
         sage: R.<t> = GF(5)[]; P = R.ideal(4*t^12 + 3*t^11 + 4*t^10 + t^9 + t^8 + 3*t^7 + 2*t^6 + 3*t^4 + t^3 + 3*t^2 + 2)
         sage: k.<a> = P.residue_field()
-        sage: type(k)
-        <class 'sage.rings.residue_field.PolyResidueField_ext_pari_with_category'>
         sage: k(1/t)
         3*a^11 + a^10 + 3*a^9 + 2*a^8 + 2*a^7 + a^6 + 4*a^5 + a^3 + 2*a^2 + a
 
@@ -1164,9 +1153,8 @@ class ResidueField_polyring(ResidueField_generic):
 
     Residue fields implemented using Givaro::
 
-        sage: R.<t> = GF(7)[]; P = R.ideal(t^2 + 4) # not implemented
-        sage: k.<a> = R.residue_field(P); type(k) # not implemented
-        <class 'sage.rings.residue_field.PolyResidueFiniteField_givaro_with_category'>
+        sage: R.<t> = GF(7)[]; P = R.ideal(t^2 + 4)
+        sage: k.<a> = R.residue_field(P)
         sage: k(1/t) # not implemented
         5*a
 
@@ -1185,13 +1173,11 @@ class ResidueField_polyring(ResidueField_generic):
         Residue fields of prime order::
 
             sage: R.<t> = GF(7)[]; P = R.ideal(2*t + 3)
-            sage: k = P.residue_field(); type(k)
-            <class 'sage.rings.residue_field.PolyResidueField_prime_modn_with_category'>
+            sage: k = P.residue_field()
 
         Residue fields implemented using Givaro::
 
-            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field(); type(k)
-            <class 'sage.rings.residue_field.PolyResidueField_givaro_with_category'>
+            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field()
             sage: a^5
             a^3 + 2*a^2 + a + 2
 
@@ -1260,8 +1246,6 @@ class ResidueField_nf(ResidueField_generic):
         sage: k(2r)
         2
         sage: V = k.vector_space(); v = V([3])
-        sage: type(k.convert_map_from(V))
-        <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
         sage: k(v) # indirect doctest
         3
 
@@ -1288,15 +1272,11 @@ class ResidueField_nf(ResidueField_generic):
         2
         sage: ff.<alpha> = P.residue_field(); ff
         Residue field in alpha of Fractional ideal (-12*aa^2 + 189*aa - 475)
-        sage: type(ff)
-        <class 'sage.rings.residue_field.NFResidueField_ext_pari_with_category'>
         sage: ff(alpha^2 + 1)
         7521*alpha + 4131
         sage: ff(17/3)
         6677
         sage: V = ff.vector_space(); v = V([3,-2])
-        sage: type(ff.convert_map_from(V))
-        <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
         sage: ff(v) # indirect doctest
         10005*alpha + 3
 
@@ -1322,8 +1302,6 @@ class ResidueField_nf(ResidueField_generic):
         sage: k(77*a^7+4)
         2*abar + 4
         sage: V = k.vector_space(); v = V([3,-2])
-        sage: type(k.convert_map_from(V))
-        <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
         sage: k(v) # indirect doctest
         59*abar + 3
 
@@ -1334,8 +1312,6 @@ class ResidueField_nf(ResidueField_generic):
         sage: k = P.residue_field(names="a")
         sage: k
         Residue field in a of Fractional ideal (2, a^18 + a^17 + a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 + a + 1)
-        sage: type(k)
-        <class 'sage.rings.residue_field.NFResidueField_ntl_gf2e_with_category'>
         sage: OK = K.maximal_order()
         sage: c = OK(a)
         sage: b = k(a)
@@ -1357,15 +1333,12 @@ class ResidueField_nf(ResidueField_generic):
 
             sage: K.<i> = QuadraticField(-1)
             sage: kk = ResidueField(K.factor(5)[0][0])
-            sage: type(kk)
-            <class 'sage.rings.residue_field.NFResidueField_prime_modn_with_category'>
 
         Residue fields implemented using Pari::
 
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(923478923).factor()[0][0]
-            sage: type(P.residue_field())
-            <class 'sage.rings.residue_field.NFResidueField_ext_pari_with_category'>
+            sage: k = P.residue_field()
 
         Residue fields implemented using Givaro::
 
@@ -1379,8 +1352,6 @@ class ResidueField_nf(ResidueField_generic):
             sage: K.<a> = NumberField(x^30 + 3*x^17 + 9)
             sage: P = K.ideal(2).factor()[0][0]
             sage: k = K.residue_field(P)
-            sage: type(k)
-            <class 'sage.rings.residue_field.NFResidueField_ntl_gf2e_with_category'>
 
         """
         ResidueField_generic.__init__(self, ideal, p, k, name, modulus)
@@ -1470,8 +1441,6 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             Ring morphism:
               From: Maximal Order in Cyclotomic Field of order 5 and degree 4
               To:   Residue field in a of Fractional ideal (7)
-            sage: type(phi)
-            <type 'sage.rings.finite_rings.residue_field.ResidueFieldHomomorphism_global'>
 
             sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
             sage: k = P.residue_field(); f = k.coerce_map_from(R)
