@@ -99,7 +99,7 @@ cdef class FiniteField(Field):
         """
         Field.__init__(self, base, names, normalize, category=_FiniteFields)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         String representation of this finite field.
 
