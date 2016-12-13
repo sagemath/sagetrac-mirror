@@ -15,7 +15,7 @@ lazy_import('sage.groups.class_function', 'ClassFunction')
 
 from .additive_abelian.all import *
 
-from free_groups.all import *
+from .free_groups.all import *
 
 lazy_import('sage.groups.conjugacy_classes', ['ConjugacyClass', 'ConjugacyClassGAP'])
 
