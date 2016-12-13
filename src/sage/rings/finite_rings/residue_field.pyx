@@ -486,11 +486,11 @@ class ResidueField_generic(Field):
         """
         self.p = ideal
         FFclass = self._finite_field_class()
-        if modulus is None:
+        if k == 1:
             # prime field
-            FFclass.__init__(self, p, name)
+            FFclass.__init__(self, p=p, modulus=modulus)
         else:
-            FFclass.__init__(self, p**k, name, modulus)
+            FFclass.__init__(self, q=p**k, name=name, modulus=modulus)
 
     def _repr_(self):
         """

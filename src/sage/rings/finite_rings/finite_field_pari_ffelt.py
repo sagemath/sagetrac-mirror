@@ -98,11 +98,10 @@ class FiniteField_pari_ffelt(FiniteField):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, p, modulus, name=None):
+    def __init__(self, q, modulus, name=None):
         """
-        Create a finite field of characteristic `p` defined by the
-        polynomial ``modulus``, with distinguished generator called
-        ``name``.
+        Create a finite field of ``q`` elements defined by the polynomial
+        ``modulus``, with distinguished generator called ``name``.
 
         EXAMPLE::
 
@@ -115,6 +114,7 @@ class FiniteField_pari_ffelt(FiniteField):
         if n < 2:
             raise ValueError("the degree must be at least 2")
 
+        p, n = q.is_prime_power(get_data=True)
         FiniteField.__init__(self, base=GF(p), names=name, normalize=True)
 
         self._modulus = modulus

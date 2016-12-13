@@ -69,7 +69,7 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     - ``q`` -- `2^n` (must be 2 power)
 
-    - ``names`` -- variable used for poly_repr (default: ``'a'``)
+    - ``name`` -- variable used for poly_repr (default: ``'a'``)
 
     - ``modulus`` -- A minimal polynomial to use for reduction.
 
@@ -107,7 +107,7 @@ class FiniteField_ntl_gf2e(FiniteField):
         True
     """
 
-    def __init__(self, q, names="a", modulus=None, repr="poly"):
+    def __init__(self, q, name="a", modulus=None, repr="poly"):
         """
         Initialize ``self``.
 
@@ -145,7 +145,7 @@ class FiniteField_ntl_gf2e(FiniteField):
         k = q.exact_log(2)
         if q != 1 << k:
             raise ValueError("q must be a 2-power")
-        FiniteField.__init__(self, GF2, names, normalize=True)
+        FiniteField.__init__(self, GF2, name, normalize=True)
 
         self._kwargs = {'repr':repr}
 
