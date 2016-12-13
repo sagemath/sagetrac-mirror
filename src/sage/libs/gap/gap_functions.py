@@ -116,6 +116,7 @@ common_gap_functions = [
   'ConwayPolynomial',
   'CosetTable',
   'CosetTableInWholeGroup',
+  'CosetLeadersMatFFE',
   'Cycle',
   'CycleLength',
   'CycleLengths',
