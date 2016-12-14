@@ -23,6 +23,10 @@ from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.type cimport type as pytype
+cdef extern from "Python.h":
+    # Internal API to look for a name through the MRO.
+    # This returns a borrowed reference, and doesn't set an exception!
+    PyObject* _PyType_Lookup(type t, name)
 
 __all__ = ['ClasscallMetaclass', 'typecall', 'timeCall']
 
@@ -118,6 +122,35 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
 
         self.classcontains = getattr(self, "__classcontains__", None)
         self.classget = getattr(self, "__classget__", None)
+
+        from sage.misc.fast_methods import WithEqualityById
+        def __new__(cls):
+            print(cls)
+            return super(WithEqualityById, cls).__new__(cls)
+            return object.__new__(cls)
+
+        self.__new__ = staticmethod(__new__)
+
+        # cdef descrgetfunc getter
+        # cdef PyObject* attr = _PyType_Lookup(<type>object, "__new__")
+        # if attr is NULL:
+        #     print("attr failed")
+        # else:
+        #     attribute = <object>attr
+        #     print(self, attribute)
+        #     getter = Py_TYPE(attribute).tp_descr_get
+        #     if getter is NULL:
+        #         print("getter null")
+        #     else:
+        #         self.__new__ = getter(attribute, self, object)
+
+        # from sage.misc.fast_methods import WithEqualityById
+        # from sage.structure.misc import is_extension_type
+        # for cls in self.__mro__:
+        #     if is_extension_type(cls) and cls is not WithEqualityById:
+        #         print(self, cls)
+        #         #self.__new__ = cls.__new__
+        #         break
 
     def _set_classcall(cls, function):
         r"""

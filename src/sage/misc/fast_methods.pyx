@@ -130,6 +130,9 @@ cdef class WithEqualityById:
         False
 
     """
+    #def __new__(cls):
+    #    return super(WithEqualityById, cls).__new__(cls)
+
     def __hash__(self):
         """
         The hash provided by this class coincides with that of ``<type 'object'>``.

@@ -316,6 +316,19 @@ cpdef getattr_from_other_class(self, cls, name):
     dummy_error_message.name = name
     raise dummy_attribute_error
 
+def test(cls):
+    name = "__new__"
+    cdef PyObject* attr = _PyType_Lookup(<type>object, name)
+    attribute = <object>attr
+    # Check for a descriptor (__get__ in Python)
+    cdef descrgetfunc getter = Py_TYPE(attribute).tp_descr_get
+    if getter is NULL:
+        print "no descriptor"
+        return attribute
+    try:
+        return getter(attribute, cls, object)
+    except TypeError:
+        pass
 
 def dir_with_other_class(self, cls):
     r"""

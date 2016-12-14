@@ -1176,7 +1176,7 @@ def unreduce(cls, args, keywords):
     return cls(*args, **keywords)
 
 
-class UniqueRepresentation(WithEqualityById, CachedRepresentation):
+class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     r"""
     Classes derived from UniqueRepresentation inherit a unique
     representation behavior for their instances.
