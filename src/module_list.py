@@ -1610,8 +1610,7 @@ ext_modules = [
     ################################
 
     Extension("sage.schemes.elliptic_curves.chow_heegner_fast",
-              sources = ["sage/schemes/elliptic_curves/chow_heegner_fast.pyx"],
-              libraries = ['gmp', 'mpfr', 'gsl', 'cblas', 'atlas']),    
+              sources = ["sage/schemes/elliptic_curves/chow_heegner_fast.pyx"]),
 
     Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
               sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
