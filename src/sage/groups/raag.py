@@ -27,6 +27,7 @@ from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPrese
 from sage.groups.free_groups.free_group import FreeGroup
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
+
 from sage.graphs.graph import Graph
 
 

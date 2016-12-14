@@ -995,7 +995,11 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         `i_1 \dots i_j`, such that the abelianization of the
         group is isomorphic to
 
+<<<<<<< HEAD
         .. MATH::
+=======
+        .. math::
+>>>>>>> d92640a431ce2ef957ca16b4113eb6abf986230d
 
             \ZZ / (i_1) \times \dots \times \ZZ / (i_j)
 
