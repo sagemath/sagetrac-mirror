@@ -5,6 +5,7 @@ import os, sys, time, errno, platform, subprocess
 from distutils import log
 from distutils.core import setup, DistutilsSetupError
 from distutils.command.build_ext import build_ext
+from distutils.command.build_py import build_py
 from distutils.command.install import install
 from distutils.dep_util import newer_group
 
@@ -61,7 +62,7 @@ sage.env.SAGE_SRC = os.getcwd()
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules, library_order, aliases
+from module_list import ext_modules, library_order, aliases, package_data
 from sage.env import *
 
 #########################################################
@@ -655,12 +656,12 @@ class sage_build_ext(build_ext):
         be installed in site-packages/sage.
         """
         dist = self.distribution
-        from sage_setup.find import find_extra_files
         self.cythonized_files = find_extra_files(dist.packages,
             ".", SAGE_CYTHONIZED, ["ntlwrap.cpp"])
 
         for (dst_dir, src_files) in self.cythonized_files:
             dst = os.path.join(self.build_lib, dst_dir)
+            self.mkpath(dst)
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 
@@ -681,13 +682,35 @@ autogen_all()
 
 print("Discovering Python/Cython source code....")
 t = time.time()
-from sage_setup.find import find_python_sources
+from sage_setup.find import find_python_sources, find_extra_files
 python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
 
 log.info('python_packages = {0}'.format(python_packages))
-
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
+
+
+class sage_build_py(build_py):
+    # Find additional data files used by some packages
+    # This information would best be moved out to per-package configuration data
+
+    def finalize_options(self):
+        build_py.finalize_options(self)
+        self.extra_files = []
+
+    def run(self):
+        build_py.run(self)
+        self.copy_extra_files()
+
+    def copy_extra_files(self):
+        for pkg, patterns in package_data.items():
+            for dst_dir, filenames in find_extra_files(
+                    pkg, '.', special_filenames=patterns):
+                self.extra_files.append((dst_dir, filenames))
+                dst = os.path.join(self.build_lib, dst_dir)
+                self.mkpath(dst)
+                for filename in filenames:
+                    self.copy_file(filename, dst, preserve_mode=False)
 
 
 #########################################################
@@ -749,7 +772,7 @@ class sage_install(install):
                     dist.packages,
                     py_modules,
                     dist.ext_modules,
-                    cmd_build_ext.cythonized_files)
+                    cmd_build_ext.cythonized_files + cmd_build_py.extra_files)
 
 
 #########################################################
@@ -764,5 +787,6 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
+      cmdclass = dict(build_ext=sage_build_ext, build_py=sage_build_py,
+                      install=sage_install),
       ext_modules = ext_modules)
