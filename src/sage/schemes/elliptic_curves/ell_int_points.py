@@ -94,6 +94,7 @@ REFERENCE:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from six.moves import range
 
 from copy import copy
 from sage.functions.all import sqrt
@@ -729,9 +730,9 @@ def _cyc_iter(id, gens, mult, both_signs=False):
         P = gens[0]
         cur = id
         if both_signs:
-            ran = xrange(mult[0])
+            ran = range(mult[0])
         else:
-            ran = xrange(mult[0]/2 + 1)
+            ran = range(mult[0] / 2 + 1)
         for k in ran:
             for rest, coefs in _cyc_iter(id, gens[1:], mult[1:],
                                          both_signs or k != 0):
@@ -778,7 +779,7 @@ def _L_points_iter(id, gens, bound, all_zero=True):
     else:
         P = gens[0]
         cur = id
-        for k in xrange(bound+1):
+        for k in range(bound + 1):
             for rest, coefs in _L_points_iter(id, gens[1:], bound,
                                               all_zero=(all_zero and k == 0)):
                 yield cur + rest, [k] + coefs
@@ -887,7 +888,7 @@ def _calculate_Q(E, L):
     gl_con['c3'] = C3 = _c3(E, L)
     gl_con['h_E'] = h = _h_E(E)
     verbose("Global constants")
-    for name, val in gl_con.iteritems():
+    for name, val in gl_con.items():
         verbose('%s = %s' % (name, val))
     verbose("-"*45)
     Q = []
@@ -941,7 +942,7 @@ def _calculate_Q(E, L):
         loc_con['d8'] = D8 = _d8(E, L, Elog, Periods, D7)
         loc_con['d9'] = D9 = _d9(E, L, Elog, Periods, D7)
         loc_con['d10'] = D10 = _d10(E, L, Elog, Periods, D7)
-        for name, val in loc_con.iteritems():
+        for name, val in loc_con.items():
             verbose("{0} = {1}".format(name, val))
         # Find the reduced bound for the coefficients in the linear logarithmic form
         loginitQ = _InitialQ(K.degree(), len(L), Q0, C9, C10, D8, D9, D10,
