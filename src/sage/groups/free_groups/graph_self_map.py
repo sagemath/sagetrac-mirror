@@ -203,7 +203,7 @@ class GraphSelfMap(GraphMap):
         # images of edges must be edge paths
         for a in edge_morph.domain().alphabet():
             w = edge_morph.image(a)
-            for i in xrange(len(w) - 1):
+            for i in range(len(w) - 1):
                 x = alphabet.inverse_letter(w[i])
                 if equiv[x] != equiv[w[i + 1]]:
                     tmp = equiv[w[i + 1]]
@@ -214,7 +214,7 @@ class GraphSelfMap(GraphMap):
 
         # path must be an edge-path
         if path is not None:
-            for i in xrange(len(path) - 1):
+            for i in range(len(path) - 1):
                 x = alphabet.inverse_letter(path[i])
                 if equiv[x] != equiv[path[i + 1]]:
                     tmp = equiv[path[i + 1]]
@@ -227,12 +227,12 @@ class GraphSelfMap(GraphMap):
         done = False
         while not done:
             done = True
-            for i in xrange(len(alphabet) * 2 - 1):
+            for i in range(len(alphabet) * 2 - 1):
                 a = alphabet[i]
                 im_a = edge_morph.image(a)
                 if len(im_a) == 0:
                     continue
-                for j in xrange(i + 1, len(alphabet) * 2):
+                for j in range(i + 1, len(alphabet) * 2):
                     b = alphabet[j]
                     im_b = edge_morph.image(b)
                     if len(im_b) == 0:
@@ -433,7 +433,7 @@ class GraphSelfMap(GraphMap):
         for e in A.positive_letters():  # Builds the list of turns
             #  in the image of the edges
             w = self.image(e)
-            for i in xrange(len(w) - 1):
+            for i in range(len(w) - 1):
                 x = A.inverse_letter(w[i])
                 y = w[i + 1]
                 if A.less_letter(y, x):
@@ -745,7 +745,7 @@ class GraphSelfMap(GraphMap):
                 else:
                     result_morph = subdivide_morph
 
-                for i in xrange(1, len(turns)):
+                for i in range(1, len(turns)):
                     turns[i] = (subdivide_morph.image(turns[i][0])[0],
                                 subdivide_morph.image(turns[i][1])[0])
                 prefix = subdivide_morph.image(subdivide[0])[0:1]
@@ -780,7 +780,7 @@ class GraphSelfMap(GraphMap):
 
             # update turns
             turns.pop()
-            for i in xrange(1, len(turns)):
+            for i in range(1, len(turns)):
                 u = fold_morph.image(turns[i][0])
                 v = fold_morph.image(turns[i][1])
                 if len(u) == 0 or len(v) == 0:
@@ -842,7 +842,7 @@ class GraphSelfMap(GraphMap):
                         if done:
                             break
                         w = self.image(a)
-                        for i in xrange(len(w) - 1):
+                        for i in range(len(w) - 1):
                             if (w[i] == b and w[i + 1] == turns[1][1]) or \
                                     (w[i] == c and w[i + 1] == turns[1][0]):
                                 turns[0] = [a, i + 1]
@@ -1014,8 +1014,8 @@ class GraphSelfMap(GraphMap):
                 if e in AA and e > pf:
                     pfv = v[0]
                     pf = e
-            for i in xrange(len(lines)):
-                for j in xrange(len(lines[i]) - 1):
+            for i in range(len(lines)):
+                for j in range(len(lines[i]) - 1):
                     k = A.rank(A.to_positive_letter(lines[i][j + 1]))
                     if pfv[k] < pfv[least_vector_index[i]]:
                         target_edge_index[i] = j + 1
@@ -1026,8 +1026,8 @@ class GraphSelfMap(GraphMap):
                   [line[target_edge_index[i]] for i, line in enumerate(lines)])
 
         edge_list = [lines[i][j]
-                     for i in xrange(len(lines))
-                     for j in xrange(len(lines[i]))
+                     for i in range(len(lines))
+                     for j in range(len(lines[i]))
                      if j != target_edge_index[i]]
 
         lines_image = [self(Word(line)) for line in lines]
@@ -1037,7 +1037,7 @@ class GraphSelfMap(GraphMap):
 
         result_map = {}
 
-        for i in xrange(len(lines)):
+        for i in range(len(lines)):
             e = lines[i][target_edge_index[i]]
             a = fusion_map[e][0]
             result_map[a] = fusion_morph(lines_image[i])
@@ -1091,7 +1091,7 @@ class GraphSelfMap(GraphMap):
         for e in pretrivial_edges:
             v = G.initial_vertex(e)
             vv = G.terminal_vertex(e)
-            t = [i for i in xrange(len(forest)) if
+            t = [i for i in range(len(forest)) if
                  v in vertices[i] or vv in vertices[i]]
             if len(t) == 0:
                 forest.append(set([e]))
@@ -1630,7 +1630,7 @@ class GraphSelfMap(GraphMap):
         if stratum is None:
             for a in A.positive_letters():
                 u = self.image(a)
-                for i in xrange(len(u) - 1):
+                for i in range(len(u) - 1):
                     t = (A.inverse_letter(u[i]), u[i + 1])
                     if not A.less_letter(t[0], t[1]):
                         t = (t[1], t[0])
@@ -1642,7 +1642,7 @@ class GraphSelfMap(GraphMap):
             for a in self._strata[stratum]:
                 u = [b for b in self.image(a)
                      if A.to_positive_letter(b) in self._strata[stratum]]
-                for i in xrange(len(u) - 1):
+                for i in range(len(u) - 1):
                     t = (A.inverse_letter(u[i]), u[i + 1])
                     if not A.less_letter(t[0], t[1]):
                         t = (t[1], t[0])
@@ -1810,7 +1810,7 @@ class GraphSelfMap(GraphMap):
                 illegal_turns.append(new)
 
         if iteration:
-            illegal_turns = [(t, i + 1) for i in xrange(len(illegal_turns))
+            illegal_turns = [(t, i + 1) for i in range(len(illegal_turns))
                              for t in illegal_turns[i]]
         else:
             illegal_turns = [t for new in illegal_turns for t in new]
@@ -1882,7 +1882,7 @@ class GraphSelfMap(GraphMap):
             ext = next.pop(0)
             laces = places.pop(0)
 
-            for j in xrange(2):
+            for j in range(2):
                 if ext[j] != None:
                     u[j] = t[j] * Word([ext[j]])
                     uu[j] = self.image(ext[j])
@@ -1959,7 +1959,7 @@ class GraphSelfMap(GraphMap):
                         places.insert(0, laces)
 
             elif tt[0][0] in extension and tt[1][0] in extension:
-                for j in xrange(2):
+                for j in range(2):
                     uu[j] = Word([a for a in tt[j] if a in extension])
                 tt = (uu[0], uu[1])
 
@@ -1989,7 +1989,7 @@ class GraphSelfMap(GraphMap):
             t = result.pop(inp)
             tt = image.pop(0)
             ext = next.pop(0)
-            for j in xrange(2):
+            for j in range(2):
                 if ext[j] != None:
                     u[j] = t[j] * Word([ext[j]])
                     uu[j] = tt[j] * Word(
@@ -2037,7 +2037,7 @@ class GraphSelfMap(GraphMap):
             p = G.common_prefix_length(u, v)
             tt = (u[p:], v[p:])
             new_t = []
-            for j in xrange(2):
+            for j in range(2):
                 a = t[j][-1:]
                 s_len_a = 1
                 post_s_len = len(tt[j]) - len(t[j])
@@ -2477,7 +2477,7 @@ class GraphSelfMap(GraphMap):
                 done = False
                 filtration.insert(0, smaller)
         self._strata[s] = filtration[0]
-        for i in xrange(1, len(filtration)):
+        for i in range(1, len(filtration)):
             self._strata.insert(s + i,
                                 filtration[i].difference(filtration[i - 1]))
         return len(filtration)
@@ -2525,7 +2525,7 @@ class GraphSelfMap(GraphMap):
             verbose=verbose and verbose > 1 and verbose - 1)
 
         strata = [filtration[0]]
-        for i in xrange(1, len(filtration)):
+        for i in range(1, len(filtration)):
             strata.append(
                 set(e for e in filtration[i] if e not in filtration[i - 1]))
         self._strata = strata
@@ -2564,7 +2564,7 @@ class GraphSelfMap(GraphMap):
         # Apply morph to the strata
         if morph:
             below = set()
-            for s in xrange(len(self._strata)):
+            for s in range(len(self._strata)):
                 self._strata[s] = \
                     set(A.to_positive_letter(a)
                         for b in self._strata[s] for a in morph.image(b))
@@ -2575,11 +2575,11 @@ class GraphSelfMap(GraphMap):
 
         result_strata = []
         shift = 0
-        for s in xrange(len(self._strata)):
+        for s in range(len(self._strata)):
             n = self.filtre_stratum(s + shift,
                                     verbose=verbose and verbose > 1 and
                                     verbose - 1)
-            heritage[s] = [s + shift + i for i in xrange(n)]
+            heritage[s] = [s + shift + i for i in range(n)]
             shift += n - 1
 
         if verbose:
@@ -2806,7 +2806,7 @@ class GraphSelfMap(GraphMap):
                     edge_map[subdivide_map[e][0]] = \
                         subdivide_morph(self.image(e))
 
-            for i in xrange(len(self._strata)):
+            for i in range(len(self._strata)):
                 if i != s:
                     for e in self._strata[i]:
                         edge_map[subdivide_map[e][0]] = \
@@ -2814,7 +2814,7 @@ class GraphSelfMap(GraphMap):
 
             self.set_edge_map(edge_map)
 
-            for i in xrange(len(self._strata)):
+            for i in range(len(self._strata)):
                 if i != s:
                     self._strata[i] = \
                         set(subdivide_map[e][0] for e in self._strata[i])
@@ -3025,7 +3025,7 @@ class GraphSelfMap(GraphMap):
                     i = i + 1
             if i > 0:
                 trees = self._domain.connected_components(
-                    [a for j in xrange(i) for a in self._strata[j]])
+                    [a for j in range(i) for a in self._strata[j]])
                 if verbose:
                     print("Strata under", i, "are contractible... "
                            "Contracting "
@@ -3064,7 +3064,7 @@ class GraphSelfMap(GraphMap):
             i = 0
             while i < len(lines):
                 line = lines[i]
-                for j in xrange(1, len(line)):
+                for j in range(1, len(line)):
                     sj = self.stratum(line[j])
                     if sj > highest_stratum[i]:
                         highest_stratum[i] = sj
@@ -3095,7 +3095,7 @@ class GraphSelfMap(GraphMap):
                     least_vector = pfv[index[
                         self._domain._alphabet.to_positive_letter(
                             line[highest_edges[i][0]])]]
-                    for j in xrange(1, len(highest_edges[i])):
+                    for j in range(1, len(highest_edges[i])):
                         current_vector = pfv[index[
                             self._domain._alphabet.to_positive_letter(
                                 line[highest_edges[i][j]])]]
@@ -3110,7 +3110,7 @@ class GraphSelfMap(GraphMap):
                     if highest_edges[i][1] > 2:
                         tmp_lines.append(line[:highest_edges[i][1]])
                         tmp_target_edge_index.append(highest_edges[i][0])
-                    for k in xrange(2, len(highest_edges[i]) - 1, 2):
+                    for k in range(2, len(highest_edges[i]) - 1, 2):
                         if highest_edges[i][k + 1] \
                                 - highest_edges[i][k - 1] > 2:
                             tmp_lines.append(
@@ -3156,7 +3156,7 @@ class GraphSelfMap(GraphMap):
                         left_line = line[:highest_edges[i][0]]
                         left_target = 0
                         left_top_stratum = self.stratum(left_line[0])
-                        for j in xrange(1, len(left_line)):
+                        for j in range(1, len(left_line)):
                             e = left_line[j]
                             s = self.stratum(e)
                             if s > left_top_stratum:
@@ -3181,7 +3181,7 @@ class GraphSelfMap(GraphMap):
                         right_line = line[highest_edges[i][-1] + 1:]
                         right_top_stratum = self.stratum(right_line[0])
                         right_target = 0
-                        for j in xrange(1, len(right_line)):
+                        for j in range(1, len(right_line)):
                             e = right_line[j]
                             s = self.stratum(e)
                             if s > right_top_stratum:
@@ -3286,7 +3286,7 @@ class GraphSelfMap(GraphMap):
         vertices_up.update(G.terminal_vertex(a) for a in self._strata[s])
 
         edges_below = set(self._strata[0])
-        for i in xrange(1, s):
+        for i in range(1, s):
             edges_below.update(self._strata[i])
 
         vertices_below = set(G.initial_vertex(a) for a in edges_below)
@@ -3378,10 +3378,10 @@ class GraphSelfMap(GraphMap):
         # Build the list of paths from pairs of identified points of
         # the border mapped to trivial paths
         result = []
-        for v, vpreimages in multiple_preimages.iteritems():
-            for i in xrange(len(vpreimages) - 1):
+        for v, vpreimages in iter(multiple_preimages.items()):
+            for i in range(len(vpreimages) - 1):
                 v1 = vpreimages[i]
-                for j in xrange(i + 1, len(vpreimages)):
+                for j in range(i + 1, len(vpreimages)):
                     v2 = vpreimages[j]
                     u1 = rootpath[v1]
                     u2 = rootpath[v2]
@@ -3468,7 +3468,7 @@ class GraphSelfMap(GraphMap):
 
             used_edges = set(A.to_positive_letter(a) for a in p)
             subdivide_edges = \
-                [a for a in used_edges for i in xrange(len(self.image(a)) - 1)]
+                [a for a in used_edges for i in range(len(self.image(a)) - 1)]
 
             if len(subdivide_edges) > 0:
                 subdivide_morph = self.subdivide(
@@ -3551,7 +3551,7 @@ class GraphSelfMap(GraphMap):
             {0: 2.414213562373095?, 2: 1.618033988749895?}
         """
         result = {}
-        for s in xrange(len(self._strata)):
+        for s in range(len(self._strata)):
             if self.is_exponential_stratum(s):
 
                 eigenvalues = self.relative_matrix(s).eigenvalues()
@@ -3918,8 +3918,8 @@ class GraphSelfMap(GraphMap):
                                     edges = edges + [A.inverse_letter(a) for a
                                                      in edges]
                                     turns = []
-                                    for i in xrange(len(edges) - 1):
-                                        for j in xrange(i + 1, len(edges)):
+                                    for i in range(len(edges) - 1):
+                                        for j in range(i + 1, len(edges)):
                                             a = edges[i]
                                             b = edges[j]
                                             if G.initial_vertex(
@@ -3961,7 +3961,7 @@ class GraphSelfMap(GraphMap):
                                             inps = [(folding_morph(t[0]),
                                                      folding_morph(t[1])) for t
                                                     in inps]
-                                            for i in xrange(len(inps)):
+                                            for i in range(len(inps)):
                                                 inp = inps[i]
                                                 cpl = G.common_prefix_length(
                                                     inp[0], inp[1])
@@ -4002,7 +4002,7 @@ class GraphSelfMap(GraphMap):
                                                 inps = [(folding_morph(t[0]),
                                                          folding_morph(t[1]))
                                                         for t in inps]
-                                                for i in xrange(len(inps)):
+                                                for i in range(len(inps)):
                                                     inp = inps[i]
                                                     cpl = \
                                                         G.common_prefix_length(

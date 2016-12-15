@@ -102,26 +102,26 @@ class AlphabetWithInverses(Parent):
             if type == 'abc':
                 if alphabet < 27:
                     self._positive = \
-                        ["%c" % (i + 97) for i in xrange(alphabet)]
+                        ["%c" % (i + 97) for i in range(alphabet)]
                     self._negative = \
-                        ["%c" % (i + 65) for i in xrange(alphabet)]
+                        ["%c" % (i + 65) for i in range(alphabet)]
                 else:
                     self._positive =\
-                        ["%c" % (i + 97) for i in xrange(26)] + \
-                        ["x%s" % i for i in xrange(alphabet - 26)]
+                        ["%c" % (i + 97) for i in range(26)] + \
+                        ["x%s" % i for i in range(alphabet - 26)]
                     self._negative = \
-                        ["%c" % (i + 65) for i in xrange(26)] + \
-                        ["X%s" % i for i in xrange(alphabet - 26)]
+                        ["%c" % (i + 65) for i in range(26)] + \
+                        ["X%s" % i for i in range(alphabet - 26)]
 
             elif type == 'a0':
-                self._positive = ["a%s" % i for i in xrange(alphabet)]
-                self._negative = ["A%s" % i for i in xrange(alphabet)]
+                self._positive = ["a%s" % i for i in range(alphabet)]
+                self._negative = ["A%s" % i for i in range(alphabet)]
             elif type == 'num' and alphabet < 10:
-                self._positive = ["%s" % i for i in xrange(alphabet)]
-                self._negative = ["%s" % i for i in xrange(alphabet)]
+                self._positive = ["%s" % i for i in range(alphabet)]
+                self._negative = ["%s" % i for i in range(alphabet)]
             else:  # type is assumed to be 'x0'
-                self._positive = ["x%s" % i for i in xrange(alphabet)]
-                self._negative = ["X%s" % i for i in xrange(alphabet)]
+                self._positive = ["x%s" % i for i in range(alphabet)]
+                self._negative = ["X%s" % i for i in range(alphabet)]
 
         else:
             self._positive = list(alphabet)
@@ -133,10 +133,10 @@ class AlphabetWithInverses(Parent):
         self._inverse = {}
         self._inverse.update(
             (self._negative[i], self._positive[i])
-            for i in xrange(len(self._positive)))
+            for i in range(len(self._positive)))
         self._inverse.update(
             (self._positive[i], self._negative[i])
-            for i in xrange(len(self._negative)))
+            for i in range(len(self._negative)))
         self._type = type
 
     def __repr__(self):

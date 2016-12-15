@@ -562,7 +562,7 @@ class TrainTrackMap(GraphSelfMap):
             tt = image.pop(0)
             ext = next.pop(0)
 
-            for j in xrange(2):
+            for j in range(2):
                 if ext[j] != None:
                     u[j] = t[j] * Word([ext[j]])
                     uu[j] = tt[j] * self.image(ext[j])
@@ -718,7 +718,7 @@ class TrainTrackMap(GraphSelfMap):
             else:
                 compatible = False
                 for tt in possible_np:
-                    for j in xrange(2):
+                    for j in range(2):
                         p = G.common_prefix_length(tt[j], uu)
                         q = G.common_prefix_length(tt[1 - j], vv)
                         if (len(uu) == p or len(tt[j]) == p) and \
@@ -779,7 +779,7 @@ class TrainTrackMap(GraphSelfMap):
         for i, t in enumerate(images):
             found = False
             for j, tt in enumerate(possible_np):
-                for k in xrange(2):
+                for k in range(2):
                     p = G.common_prefix_length(t[0], tt[k])
                     q = G.common_prefix_length(t[1], tt[1 - k])
                     if p == len(tt[k]) and q == len(tt[1 - k]):  # tt is a
@@ -847,7 +847,7 @@ class TrainTrackMap(GraphSelfMap):
                     vv = v
                     prefix_ab = matrix(len(A), 1)  # abelianized form
                     # of the prefix
-                    for j in xrange(period):
+                    for j in range(period):
                         uu = self(uu)
                         vv = self(vv)
                         p = G.common_prefix_length(uu, vv)
@@ -856,10 +856,10 @@ class TrainTrackMap(GraphSelfMap):
                             new_prefix_ab[A.rank(a) % N, 0] += 1
                         # new_prefix_ab=uu[:p].abelian_vector()
                         # new_prefix_ab=matrix(len(A),1,[new_prefix_ab[k]+
-                        # new_prefix_ab[k+len(A)] for k in xrange(len(A))])
+                        # new_prefix_ab[k+len(A)] for k in range(len(A))])
                         # new_prefix_ab=uu[:p].parikh_vector(A)
                         # new_prefix_ab=matrix(len(A),1,[new_prefix_ab[k]+
-                        # new_prefix_ab[k+len(A)] for k in xrange(len(A))])
+                        # new_prefix_ab[k+len(A)] for k in range(len(A))])
 
                         prefix_ab = M * prefix_ab + new_prefix_ab
                         uu = uu[p:p + maxl]
@@ -873,12 +873,12 @@ class TrainTrackMap(GraphSelfMap):
                         u_ab[A.rank(a) % N, 0] += 1
                     # u_ab=u.abelian_vector()
                     # u_ab=matrix(len(A),1,[u_ab[k]+u_ab[k+len(A)] for k in
-                    #  xrange(len(A))])
+                    #  range(len(A))])
 
                     # u_ab = u.parikh_vector(A)
                     # u_ab = matrix(
                     #    len(A), 1,
-                    #    [u_ab[k] + u_ab[k + len(A)] for k in xrange(len(A))])
+                    #    [u_ab[k] + u_ab[k + len(A)] for k in range(len(A))])
                     uu_ab = Mperiod * u_ab
                     right1 = sum(uu_ab.column(0)) - prefix_len - len(u)
                     v_ab = matrix(N, 1)
@@ -886,12 +886,12 @@ class TrainTrackMap(GraphSelfMap):
                         v_ab[A.rank(a) % N, 0] += 1
                     # v_ab=v.abelian_vector()
                     # v_ab=matrix(len(A),1,[v_ab[k]+v_ab[k+len(A)] for k in
-                    # xrange(len(A))])
+                    # range(len(A))])
 
                     # v_ab = v.parikh_vector(A)
                     # v_ab = matrix(
                     #    len(A), 1,
-                    #   [v_ab[k] + v_ab[k + len(A)] for k in xrange(len(A))])
+                    #   [v_ab[k] + v_ab[k + len(A)] for k in range(len(A))])
                     vv_ab = Mperiod * v_ab
                     right2 = sum(vv_ab.column(0)) - prefix_len - len(v)
 
@@ -987,7 +987,7 @@ class TrainTrackMap(GraphSelfMap):
                 full_edges = []
                 partial_edges = []
                 full_done = False
-                for i in xrange(2):
+                for i in range(2):
                     if not full_done and \
                                     len(self.image(
                                         inp[i][0])) == prefix_length + 1:
@@ -1087,7 +1087,7 @@ class TrainTrackMap(GraphSelfMap):
                     pfv = v[0]
                     pf = e
             critic = 0
-            for i in xrange(len(A)):
+            for i in range(len(A)):
                 critic += pfv[i]
             critic = critic * (pf - 1)
             for inp in inps:
@@ -1322,7 +1322,7 @@ class TrainTrackMap(GraphSelfMap):
                     elif verbose:
                         print("contractable loop at vertex", vv1)
                 else:  # we fusion the two components
-                    for (v, (vv, w, p)) in components_tree.iteritems():
+                    for (v, (vv, w, p)) in iter(components_tree.items()):
                         if vv == vv2:
                             if len(vv2) == 4 and len(link) > 0 and \
                                             len(w) > 0 and w[0] == link[-1]:
@@ -1546,7 +1546,7 @@ class TrainTrackMap(GraphSelfMap):
                 c0 = c[0]
                 if not len(c0) == 4:
                     c0 = c0[0]
-                for i in xrange(1, len(c)):
+                for i in range(1, len(c)):
                     ci = c[i]
                     if not len(ci) == 4:
                         ci = ci[0]
@@ -1789,7 +1789,7 @@ class TrainTrackMap(GraphSelfMap):
             for c in component:
                 if component[c] == b:
                     components[-1].append(c)
-            for i in xrange(len(components[-1]) - 1):
+            for i in range(len(components[-1]) - 1):
                 component.pop(components[-1][i + 1])
 
         return components
@@ -1855,12 +1855,12 @@ class TrainTrackMap(GraphSelfMap):
 
         if period > 1:
             M1 = self.matrix()
-            M = [M1 ** (i + 1) for i in xrange(period)]
+            M = [M1 ** (i + 1) for i in range(period)]
             left_ab_i = matrix(len(A), 1)
             left_ab_period = left_ab_i
             left_length_period = 0
             a = e
-            for i in xrange(1, period):
+            for i in range(1, period):
                 u = self(a)
                 left_ab_i = M[0] * left_ab_i
                 for a in u:
@@ -1878,7 +1878,7 @@ class TrainTrackMap(GraphSelfMap):
                 if period % i == 0 and a == e:
                     left_periodic_length = \
                         left_length_period + sum(left_ab_i)[0]
-                    for k in xrange(1, period // i):
+                    for k in range(1, period // i):
                         left_periodic_length = \
                             left_periodic_length + sum(M[k * i] * left_ab_i)[0]
                     if left_periodic_length == left:

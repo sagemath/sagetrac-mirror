@@ -106,7 +106,7 @@ class FreeGroupMorphism(object):
                 codomain = FreeGroup(co_alphabet)
             self._codomain = codomain
             self._morph = dict()
-            for a,im in data._morph.iteritems():
+            for a,im in iter(data._morph.items()):
                 a = self._domain(a)
                 im = self._codomain(im)
                 self._morph[a] = im
@@ -129,7 +129,7 @@ class FreeGroupMorphism(object):
 
             self._morph = {}
 
-            for (key, val) in data.iteritems():
+            for (key, val) in iter(data.items()):
                 if isinstance(key, str):
                     key = domain([key])
                 else:
@@ -207,7 +207,7 @@ class FreeGroupMorphism(object):
 
         """
         codom_alphabet = set()
-        for key, val in data.iteritems():
+        for key, val in iter(data.items()):
             for a in val:
                 if isinstance(a,str):
                     a = a.lower()
@@ -378,14 +378,14 @@ class FreeGroupMorphism(object):
 
         """
         if not isinstance(other, FreeGroupMorphism):
-            return cmp(self.__class__, other.__class__)
+            return ((self.__class__ > other.__class__) -(self.__class__ < other.__class__))
         if self.domain() != other.domain():
-            return cmp(self.domain(), other.domain())
+            return ((self.domain() > other.domain()) - (self.domain() < other.domain()))
         if self.codomain() != other.codomain():
-            return cmp(self.codomain(), other.codomain())
+            return ((self.codomain() > other.codomain()) -(self.codomain() < other.codomain()))
 
         for a in self.domain().gens():
-            test = cmp(self(a), other(a))
+            test = ((self(a) > other(a)) - (self(a) < other(a)))
             if test:
                 return test
         return 0
@@ -1248,7 +1248,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         a = F([i])
         b = F([j])
         result = FreeGroupAutomorphism.Nielsen_automorphism(F, a, b, on_left=side)
-        for i in xrange(length-1):
+        for i in range(length-1):
             new_k = randint(1, 2*l*(2*l-2)-1)
             if new_k>=k:
                 new_k += 1
@@ -1309,14 +1309,14 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         """
 
-        result = dict((F.gen(j),F.gen(j)) for j in xrange(2 * i +1))
+        result = dict((F.gen(j),F.gen(j)) for j in range(2 * i +1))
 
         a = F.gen(2 * i)
         aa = a**-1
 
         result[F.gen(2 * i + 1)] = a * F.gen(2 * i + 1)
 
-        for j in xrange(2 * i + 2, F.rank()):
+        for j in range(2 * i + 2, F.rank()):
             result[F.gen(j)] = a * F.gen(j) * aa
 
         return FreeGroupAutomorphism(result, domain=F)
@@ -1446,7 +1446,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             result = FreeGroupAutomorphism.surface_dehn_twist(F, i)**-1
         if verbose:
             used_dehn_twists = [(i, 1 - 2 * j)]
-        for ii in xrange(length - 1):
+        for ii in range(length - 1):
             new_k=randint(0,2*r)
             if k<=new_k:
                 new_k += 1
@@ -1544,7 +1544,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         j = randint(0, 1)
         k = i + (l - 1) * j
         result = FreeGroupAutomorphism.braid_automorphism(F, i, j != 0)
-        for ii in xrange(length-1):
+        for ii in range(length-1):
             new_k = randint(1, 2 * l - 3)
             if k < new_k:
                 new_k += 1

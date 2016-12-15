@@ -657,7 +657,7 @@ class GraphWithInverses(DiGraph):
         for e in edge_list:
             v = self.initial_vertex(e)
             vv = self.terminal_vertex(e)
-            t = [i for i in xrange(len(components)) if v in vertices[i] or
+            t = [i for i in range(len(components)) if v in vertices[i] or
                  vv in vertices[i]]
             if len(t) == 0:
                 components.append([e])
@@ -1356,7 +1356,7 @@ class GraphWithInverses(DiGraph):
         while len(germ_class) > 0:
             (a, b) = germ_class.popitem()
             germ_classes.append([a])
-            for c, d in germ_class.iteritems():
+            for c, d in iter(germ_class.items()):
                 if d == b:
                     germ_classes[-1].append(c)
             for c in germ_classes[-1][1:]:
@@ -1400,7 +1400,7 @@ class GraphWithInverses(DiGraph):
         """
         graph = dict()
         A = AlphabetWithInverses(3 * rank - 3)
-        for i in xrange(rank - 2):
+        for i in range(rank - 2):
             graph[A[2 * i]] = (2 * i + 1, 2 * i + 3)
             graph[A[2 * i + 1]] = (2 * i + 1, 2 * i + 2)
             graph[A[i + 2 * rank - 4]] = (2 * i, 2 * i + 2)

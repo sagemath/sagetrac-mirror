@@ -50,7 +50,7 @@ def test(rang, longueur, nombre):
     stat = 0
     t = cputime()
 
-    for i in xrange(nombre):
+    for i in range(nombre):
         phi = FreeGroupAutomorphism.random_automorphism(F, longueur)
         print(i, ":", phi)
         f = phi.train_track(stable=True, relative=True)
@@ -85,7 +85,7 @@ def test_stat(rangs, longueurs, puissance):
         for l in longueurs:
             stat = 0
             t = cputime()
-            for i in xrange(puissance):
+            for i in range(puissance):
                 phi = FreeGroupAutomorphism.random_automorphism(F, l)
                 try:
                     f = phi.train_track(relative=True, stable=True)

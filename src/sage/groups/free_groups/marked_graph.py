@@ -127,7 +127,7 @@ class MarkedGraph(GraphWithInverses):
 
                 edge_map = dict()
 
-                for i in xrange(j):
+                for i in range(j):
                     a = letter[i]
                     edge_map[B[i]] = graph.reduce_path(
                         tree[graph.initial_vertex(a)] * Word([a]) *
@@ -601,13 +601,13 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
         B = A.copy()
         [e, ee] = B.add_new_letter()
 
-        for j in xrange(i):
+        for j in range(i):
             a = A[j]
             graph[a] = (0, 0)
             length[a] = 0
             marking[a] = Word([a])
 
-        for j in xrange(i, len(A)):
+        for j in range(i, len(A)):
             a = A[j]
             graph[a] = (1, 1)
             length[a] = 0

@@ -243,7 +243,7 @@ class ConvexCore():
                 if start == len(wp) and start > common_len:
                     start -= 1
                 wp = w
-                for i in xrange(start, len(w) - 1):
+                for i in range(start, len(w) - 1):
                     a = w[i]
                     empty_slice = False
                     if A0.is_positive_letter(a):
@@ -511,7 +511,7 @@ class ConvexCore():
         #  are of the form [vi,vt,(a,side)]
 
         edges = list(edges)
-        for i in xrange(len(edges)):
+        for i in range(len(edges)):
             e = edges[i]
             b = self.boundary(e)
             edges[i] = [bisect.bisect(vertex_labels, b[0]) - 1,
@@ -527,16 +527,16 @@ class ConvexCore():
         # We change the heavy squares such that they are
         # of the form [c1,c2,c3,c4,a,b]
 
-        for i in xrange(len(heavy_squares)):
+        for i in range(len(heavy_squares)):
             sq = heavy_squares[i]
             b = self.boundary(sq)
             sq = [bisect.bisect(vertex_labels, (b[j][0], b[j][1])) - 1 for j in
-                  xrange(4)] + [sq[2], sq[3]]
+                  range(4)] + [sq[2], sq[3]]
             heavy_squares[i] = sq
 
         # We change the twice_light_squares in the same fashion
 
-        for i in xrange(len(twice_light_squares)):
+        for i in range(len(twice_light_squares)):
             sq = twice_light_squares[i]
             b = self.boundary(sq)
             c0 = bisect.bisect(vertex_labels, (b[0][0], b[0][1])) - 1
@@ -653,7 +653,7 @@ class ConvexCore():
                     isolated_edges.pop(i)
 
         if quotient:
-            for i in xrange(1, len(equivalent)):
+            for i in range(1, len(equivalent)):
                 j = i
                 k = equivalent[j]
                 l = equivalent[k]
@@ -664,18 +664,18 @@ class ConvexCore():
                     l = equivalent[l]
                 equivalent[i] = l
 
-            vertices = [i for i in xrange(len(vertices)) if equivalent[i] == i]
+            vertices = [i for i in range(len(vertices)) if equivalent[i] == i]
 
             for e in edges:
-                for i in xrange(2):
+                for i in range(2):
                     e[i] = equivalent[e[i]]
 
             for sq in heavy_squares:
-                for i in xrange(4):
+                for i in range(4):
                     sq[i] = equivalent[sq[i]]
 
             for sq in twice_light_squares:
-                for i in xrange(4):
+                for i in range(4):
                     sq[i] = equivalent[sq[i]]
 
         self._squares = heavy_squares
@@ -1281,7 +1281,7 @@ class ConvexCore():
             else:
                 valence[(sq[3], sq[2], (sq[4], 0))] = False
 
-        boundary_squares = [s for e, s in valence.iteritems() if
+        boundary_squares = [s for e, s in iter(valence.items()) if
                             ((s is not True) and (s is not False))]
 
         return boundary_squares
@@ -1326,7 +1326,7 @@ class ConvexCore():
             return []
 
         squares_orientation = [orientation] + \
-                              [0 for i in xrange(1, len(squares))]
+                              [0 for i in range(1, len(squares))]
 
         todo = [0]  # oriented squares with not yet oriented neighboors
 
@@ -1336,7 +1336,7 @@ class ConvexCore():
             while len(todo) > 0 and oriented < len(squares):
                 i = todo.pop()
                 sqi = squares[i]
-                for j in xrange(1, len(squares)):
+                for j in range(1, len(squares)):
                     if squares_orientation[j] == 0:
                         sqj = squares[j]
                         if sqi[4] == sqj[4] and (
@@ -1367,7 +1367,7 @@ class ConvexCore():
                 # strongly connected component
                 if verbose:
                     print("There is another strongly connected component")
-                for i in xrange(1, len(squares)):
+                for i in range(1, len(squares)):
                     if squares_orientation[i] == 0:
                         break
                 todo.append(i)
@@ -1632,7 +1632,7 @@ class ConvexCore():
             if verbose:
                 print(e, current)
 
-            for i in xrange(current + 1, len(boundary)):
+            for i in range(current + 1, len(boundary)):
                 if boundary[i] == e:
                     boundary[i], boundary[current] = \
                         boundary[current], boundary[i]
@@ -1649,7 +1649,7 @@ class ConvexCore():
             # orientation
 
             oriented = set()
-            for i in xrange(current + 1):
+            for i in range(current + 1):
                 e = boundary[i]
                 if e[2][2] != 0 and -e[2][
                         2] in oriented:  # edges with orientation 0
@@ -1730,7 +1730,7 @@ class ConvexCore():
             # both side there is only one connected component.
 
             if (cyclic_order_0 is None) and (cyclic_order_1 is None):
-                tmp_cyclic_0 = [boundary[i][2][0] for i in xrange(current + 1)
+                tmp_cyclic_0 = [boundary[i][2][0] for i in range(current + 1)
                                 if boundary[i][2][1] == 0]
                 i = 0
                 if len(tmp_cyclic_0) < 2 * len(A0):
@@ -1760,7 +1760,7 @@ class ConvexCore():
                 if not acceptable:
                     continue
 
-                tmp_cyclic_1 = [boundary[i][2][0] for i in xrange(current + 1)
+                tmp_cyclic_1 = [boundary[i][2][0] for i in range(current + 1)
                                 if boundary[i][2][1] == 1]
                 i = 0
                 if len(tmp_cyclic_1) < 2 * len(A1):
@@ -1793,7 +1793,7 @@ class ConvexCore():
             if current + 1 == boundary_length:
                 eulerian_circuits.append(boundary[:current + 1])
 
-            for i in xrange(current + 1, len(boundary)):
+            for i in range(current + 1, len(boundary)):
                 e = boundary[i]
                 if e[0] != boundary[current][1] or (
                         e[2][2] != 0 and -e[2][2] in oriented):
@@ -1844,7 +1844,7 @@ class ConvexCore():
 
         direct_orientation = set(e[2][2] for e in cyclic_order if e[2][2] != 0)
 
-        for i in xrange(len(self.squares())):
+        for i in range(len(self.squares())):
             if orientation[i] in direct_orientation:
                 orientation[i] = -1
             else:
@@ -1864,7 +1864,7 @@ class ConvexCore():
 
         for a in A0.positive_letters():
             aa = A0.inverse_letter(a)
-            slicea = [i for i in xrange(len(squares)) if squares[i][4] == a]
+            slicea = [i for i in range(len(squares)) if squares[i][4] == a]
             size = len(slicea) + 1
 
             if size == 1:
@@ -1934,7 +1934,7 @@ class ConvexCore():
         a = A0.inverse_letter(cyclic_order[i][2][0])
         polygon_side_0 = [a]
 
-        for j in xrange(2 * N - 1):
+        for j in range(2 * N - 1):
             k = 0
             while cyclic_order[k][2][1] == 1 or cyclic_order[k][2][0] != a:
                 k += 1
