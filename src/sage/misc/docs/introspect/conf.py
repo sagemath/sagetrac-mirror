@@ -3,8 +3,7 @@
 # See sagenb.notebook.cell.Cell.set_introspect_html() for details.
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC_SRC'])
-from common.conf import *
+from sage.misc.docs.common.conf import *
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'sphinx.ext.todo',
               'sphinx.ext.extlinks']

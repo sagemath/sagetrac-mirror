@@ -8,7 +8,18 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 #########################################################
 ### additional per-package data files
 #########################################################
-package_data = {}
+package_data = {
+    'sage.misc.docs.common': [
+        'python.inv',
+        os.path.join('themes', '*', '*.html'),
+        os.path.join('themes', '*', '*.conf'),
+        os.path.join('themes', '*', 'static', '*.*')
+    ],
+    'sage.misc.docs.introspect': [
+        os.path.join('static', 'empty'),
+        os.path.join('templates', '*.html')
+    ]
+}
 
 
 #########################################################

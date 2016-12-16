@@ -69,7 +69,7 @@ There are several ways to create and build Cython code in Sage.
 
    #. First, add a listing for the Cython extension to the variable
       ``ext_modules`` in the file
-      ``SAGE_ROOT/src/module_list.py``. See the
+      ``SAGE_ROOT/src/sage_setup/module_list.py``. See the
       ``distutils.extension.Extension`` class for more information on
       creating a new Cython extension.
 
@@ -77,7 +77,7 @@ There are several ways to create and build Cython code in Sage.
 
    For example, in order to compile
    ``SAGE_ROOT/src/sage/graphs/chrompoly.pyx``, we see the following
-   lines in ``module_list.py``::
+   lines in ``sage_setup/module_list.py``::
 
     Extension('sage.graphs.chrompoly',
               sources = ['sage/graphs/chrompoly.pyx'],

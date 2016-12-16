@@ -1,4 +1,6 @@
-import sys, os, sphinx
+import os
+import sys
+import sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR
 from datetime import date
 
@@ -44,7 +46,8 @@ plot_html_show_formats = False
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = [os.path.join(SAGE_DOC_SRC, 'common', 'templates'), 'templates']
+templates_path = [os.path.join(SAGE_SRC, 'sage', 'misc', 'docs', 'common',
+                               'templates'), 'templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -114,7 +117,8 @@ todo_include_todos = True
 # Cross-links to other project's online documentation.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
+                os.path.join(SAGE_SRC, "sage", "misc", "docs", "common",
+                             "python.inv"))}
 
 def set_intersphinx_mappings(app):
     """
@@ -176,7 +180,8 @@ html_theme = 'sage'
 html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
+html_theme_path = [os.path.join(SAGE_SRC, 'sage', 'misc', 'docs', 'common',
+                                'themes')]
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
@@ -201,8 +206,11 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
-                    'static']
+html_static_path = [
+    os.path.join(SAGE_SRC, 'sage', 'misc', 'docs', 'common', 'static'),
+    'static',
+    THEBE_DIR
+]
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if

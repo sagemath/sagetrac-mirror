@@ -106,14 +106,14 @@ of the directory containing the Sage sources::
             pkgs/     # install, patch, and metadata from spkgs
         src/
             setup.py
-            module_list.py
+            sage_setup/ # Additional data and utilities used by setup.py
             ...
-            sage/     # sage library (formerly devel/sage-main/sage)
-            ext/      # extra sage resources (formerly devel/ext-main)
-            mac-app/  # would no longer have to awkwardly be in extcode
-            bin/      # the scripts in local/bin that are tracked
-        upstream/     # tarballs of upstream sources
-        local/        # installed binaries
+            sage/       # sage library (formerly devel/sage-main/sage)
+            ext/        # extra sage resources (formerly devel/ext-main)
+            mac-app/    # would no longer have to awkwardly be in extcode
+            bin/        # the scripts in local/bin that are tracked
+        upstream/       # tarballs of upstream sources
+        local/          # installed binaries
 
 Python Sage library code goes into ``src/`` and uses the following
 conventions. Directory names may be plural (e.g. ``rings``) and file

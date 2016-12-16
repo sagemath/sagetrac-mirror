@@ -254,7 +254,7 @@ def skip_TESTS_block(docstring):
     - lines which look like a ReST header: one line containing
       anything, followed by a line consisting only of whitespace,
       followed by a string of hyphens, equal signs, or other
-      characters which are valid markers for ReST headers: 
+      characters which are valid markers for ReST headers:
       ``- = ` : ' " ~ _ ^ * + # < >``.
 
     Return the string obtained from ``docstring`` by removing these
@@ -272,7 +272,7 @@ def skip_TESTS_block(docstring):
         sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
-        True 
+        True
         sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
@@ -335,7 +335,7 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
         previous = l
-    return s[1:] # Remove empty line from the beginning. 
+    return s[1:] # Remove empty line from the beginning.
 
 def process_dollars(s):
     r"""nodetex
@@ -437,7 +437,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
+    the dictionary ``extlinks`` in sage/misc/docs/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -463,10 +463,9 @@ def process_extlinks(s, embedded=False):
     """
     if embedded:
         return s
-    oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
-    from conf import extlinks
-    sys.path = oldpath
+
+    from .docs.common.conf import extlinks
+
     for key in extlinks:
         while True:
             m = re.search(':%s:`([^`]*)`' % key, s)
@@ -1258,7 +1257,7 @@ def my_getsource(obj, oname=''):
     - ``oname`` -- str (optional). A name under which the object is
       known. Currently ignored by Sage.
 
-    OUTPUT: 
+    OUTPUT:
 
     Its documentation (string)
 
