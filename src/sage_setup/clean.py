@@ -72,13 +72,17 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
 
         sage: from sage.env import SAGE_SRC, SAGE_LIB, SAGE_CYTHONIZED
         sage: from sage_setup.find import find_python_sources, find_extra_files
+        sage: from sage_setup.module_list import package_data
         sage: python_packages, python_modules = find_python_sources(
         ....:     SAGE_SRC, ['sage', 'sage_setup'])
         sage: extra_files = find_extra_files(python_packages, SAGE_SRC,
         ....:     SAGE_CYTHONIZED, ["ntlwrap.cpp"])
+        sage: for package, patterns in package_data.items():
+        ....:     extra_files += find_extra_files(package, SAGE_SRC,
+        ....:         special_filenames=patterns)
         sage: from sage_setup.clean import _find_stale_files
 
-    TODO: move ``module_list.py`` into ``sage_setup`` and also check
+    TODO: Now that ``module_list.py`` into ``sage_setup`` also check
     extension modules::
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [], extra_files)

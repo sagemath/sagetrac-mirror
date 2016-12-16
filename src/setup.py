@@ -59,10 +59,11 @@ sage.env.SAGE_SRC = os.getcwd()
 ### List of Extensions
 ###
 ### The list of extensions resides in module_list.py in
-### the same directory as this file
+### the sage_setup package
 #########################################################
 
-from module_list import ext_modules, library_order, aliases
+from sage_setup.module_list import (ext_modules, library_order, aliases,
+                                    package_data)
 from sage.env import *
 
 #########################################################
@@ -690,7 +691,6 @@ print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t
 class sage_build_py(build_py):
     # Find additional data files used by some packages
     # This information would best be moved out to per-package configuration data
-    sage_package_data = {}
 
     def finalize_options(self):
         build_py.finalize_options(self)
@@ -701,7 +701,7 @@ class sage_build_py(build_py):
         self.copy_extra_files()
 
     def copy_extra_files(self):
-        for pkg, patterns in self.sage_package_data.items():
+        for pkg, patterns in package_data.items():
             for dst_dir, filenames in find_extra_files(
                     pkg, '.', special_filenames=patterns):
                 self.extra_files.append((dst_dir, filenames))

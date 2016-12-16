@@ -111,7 +111,7 @@ def find_extra_files(packages, src_dir, cythonized_dir=None,
         sage: from sage.env import SAGE_SRC, SAGE_CYTHONIZED
         sage: find_extra_files(["sage.modular.arithgroup"], SAGE_SRC, SAGE_CYTHONIZED)
         [('sage/modular/arithgroup',
-          ['.../src/sage/modular/arithgroup/farey.pxd', ...farey_symbol.h...])]
+          ['...src/sage/modular/arithgroup/farey.pxd', ...farey_symbol.h...])]
     """
 
     # `Destination-directory: source-files` mapping
