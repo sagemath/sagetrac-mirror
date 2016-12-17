@@ -2270,6 +2270,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f._multipliermod(P(5,4), 3, 11, 2)
             [80]
         """
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+
         N = self.domain().dimension_relative()
         BR = FractionField(self.codomain().base_ring())
         l = identity_matrix(BR, N, N)
@@ -2278,7 +2280,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         Q.scale_by(1 / g)
         index = N
         indexlist = [] #keep track of which dehomogenizations are needed
-        while Q[index] % p == 0:
+        Zp = Zmod(p)
+        Zpk = Zmod(p**k)
+        while not Zp(Q[index]):
             index -= 1
         indexlist.append(index)
         for i in range(0, n):
@@ -2287,14 +2291,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             g = gcd(R._coords)
             R.scale_by(1 / g)
             for index in range(N + 1):
-                R._coords[index] = R._coords[index] % (p ** k)
+                R._coords[index] = Zpk(R._coords[index]).lift()
             index = N
-            while R[index] % p == 0:
+            while not Zp(R[index]):
                 index -= 1
             indexlist.append(index)
             #dehomogenize and compute multiplier
             F = self.dehomogenize((indexlist[i],indexlist[i+1]))
-            l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l) % (p ** k)
+            l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l).change_ring(Zpk).lift()
             Q = R
         return(l)
 
