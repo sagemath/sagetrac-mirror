@@ -1,6 +1,6 @@
-###############################################
-# Options for building the Sage documentation #
-###############################################
+######################################################
+# Global Options for building the Sage documentation #
+######################################################
 
 import os, re
 
@@ -31,3 +31,8 @@ INCREMENTAL_BUILD = os.path.isdir(SAGE_DOC)
 
 # Error out on errors
 ABORT_ON_ERROR = True
+
+UNDERSCORE = False
+INHERITED = False
+UPDATE_MTIMES = False
+OUTPUT_DIR = None
