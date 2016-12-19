@@ -274,7 +274,7 @@ class ModularSymbol(SageObject):
             -1
             sage: m = EllipticCurve('389a1').modular_symbol()
             sage: m._scaling
-            -1/2
+            -1
             sage: m = EllipticCurve('389a1').modular_symbol(implementation="sage")
             sage: m._scaling
             2
@@ -503,14 +503,14 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: M(0)
             0
             sage: M(1/7)
-            -2
+            -1
 
             sage: M = EllipticCurve('121d1').modular_symbol(implementation="eclib")
             sage: M(0)
             2
             sage: M = EllipticCurve('121d1').modular_symbol(implementation="eclib",normalize='none')
             sage: M(0)
-            8
+            4
 
             sage: E = EllipticCurve('15a1')
             sage: [C.modular_symbol(implementation="eclib",normalize='L_ratio')(0) for C in E.isogeny_class()]
