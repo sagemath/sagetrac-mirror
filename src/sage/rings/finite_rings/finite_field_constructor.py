@@ -494,6 +494,7 @@ class FiniteFieldFactory(UniqueFactory):
                     if 'prefix' not in kwds:
                         kwds['prefix'] = 'z'
                     name = kwds['prefix'] + str(n)
+                    name = normalize_names(1, name)
                     if modulus is not None:
                         raise ValueError("no modulus may be specified if variable name not given")
                     if 'conway' in kwds:
