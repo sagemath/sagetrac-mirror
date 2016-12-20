@@ -111,9 +111,14 @@ class AllBuilder(Builder):
 
         # Ensure that the reference guide is compiled first so that links from
         # the other documents to it are correctly resolved.
-        if 'en/reference' in documents:
-            documents.remove('en/reference')
-        documents.insert(0, 'en/reference')
+        if default_lang == 'en':
+            ref = 'reference'
+        else:
+            ref = os.path.join('en', 'reference')
+
+        if ref in documents:
+            documents.remove(ref)
+        documents.insert(0, ref)
 
         return documents
 
