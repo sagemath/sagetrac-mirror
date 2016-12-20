@@ -228,16 +228,16 @@ def output_formatter(type):
             logger.debug(build_command)
 
             # Run Sphinx with Sage's special logger
-            # TODO: Save off old sys.argv; while not normally important it's a
-            # polite thing to do, especially in testing, when messing with sys
-            # globals
-            sys.argv = ["sphinx-build"] + build_command.split()
             from ..sphinxbuild import runsphinx
+            old_argv = sys.argv[:]
+            sys.argv = ["sphinx-build"] + build_command.split()
             try:
                 runsphinx()
             except Exception:
                 if opts.ABORT_ON_ERROR:
                     raise
+            finally:
+                sys.argv = old_argv
 
             if "/latex" in output_dir:
                 logger.warning("LaTeX file written to {}".format(output_dir))
