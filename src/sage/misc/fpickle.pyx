@@ -1,3 +1,4 @@
+# cython: old_style_globals=True
 """
 Function pickling
 
@@ -7,7 +8,7 @@ from __future__ import absolute_import
 
 import types
 from six.moves import copyreg
-import cPickle
+from six.moves import cPickle
 
 def code_ctor(*args):
     """
