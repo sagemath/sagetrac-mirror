@@ -68,7 +68,7 @@ class ReferenceBuilder(AllBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
             '.../html/en/reference'
@@ -226,7 +226,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
@@ -547,7 +547,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceSubBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceSubBuilder
             sage: ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../doc/en/reference/sage/combinat/partition.rst'
         """

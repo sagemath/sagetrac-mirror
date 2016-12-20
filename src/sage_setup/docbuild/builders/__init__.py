@@ -47,9 +47,9 @@ class Builder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_setup.docbuild.builders.docbuilder import DocBuilder
             sage: DocBuilder.output_formats()
-            ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
+            ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pdf', 'pickle', 'web']
 
         """
         # Go through all the attributes of self and check to see which ones
@@ -136,7 +136,7 @@ class AllBuilder(Builder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import AllBuilder
+            sage: from sage_setup.docbuild.builders import AllBuilder
             sage: documents = AllBuilder().get_all_documents()
             sage: 'en/tutorial' in documents
             True

@@ -53,7 +53,7 @@ class DocBuilder(Builder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_setup.docbuild.builders.docbuilder import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._output_dir('html')
             '.../html/en/tutorial'
@@ -70,7 +70,7 @@ class DocBuilder(Builder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_setup.docbuild.builders.docbuilder import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._doctrees_dir()
             '.../doctrees/en/tutorial'
@@ -89,7 +89,7 @@ class DocBuilder(Builder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_setup.docbuild.builders.docbuilder import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b.pdf() #not tested
         """
