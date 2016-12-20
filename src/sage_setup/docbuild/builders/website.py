@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import shutil
 
+from . import output_formatter
 from .docbuilder import DocBuilder
 from .reference import ReferenceBuilder
 
@@ -11,6 +12,14 @@ __all__ = ['WebsiteBuilder']
 
 
 class WebsiteBuilder(DocBuilder):
+    priority = 70
+
+    @classmethod
+    def match(cls, name):
+        if name.endswith('website'):
+            return cls(name)
+
+    @output_formatter
     def html(self):
         """
         After we've finished building the website index page, we copy

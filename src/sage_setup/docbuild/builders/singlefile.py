@@ -25,6 +25,9 @@ class SingleFileBuilder(DocBuilder):
     command line option "-o DIR", or in ``DOT_SAGE/docbuild/foo/``
     otherwise.
     """
+
+    priority = 60
+
     def __init__(self, path):
         """
         INPUT:
@@ -113,6 +116,17 @@ def setup(app):
             os.symlink(path, os.path.join(self.dir, os.path.basename(path)))
         except OSError:
             pass
+
+    @classmethod
+    def match(cls, name):
+        if name.startswith('file='):
+            path = name[5:]
+            if path.endswith('.sage') or path.endswith('.pyx'):
+                raise NotImplementedError(
+                    'Building documentation for a single file only works for '
+                    'Python files.')
+
+            return cls(path)
 
     def _output_dir(self, type):
         """

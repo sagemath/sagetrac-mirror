@@ -4,7 +4,7 @@ The documentation builder
 It is the main entry point for building the documentation, and is responsible
 for figuring out what to build and with which options. The actual documentation
 build for each individual document is then done in a subprocess call to sphinx,
-see :func:`builder_helper`.
+see :func:`output_formatter`.
 
 * The builder can be configured in build_options.py
 * The sphinx subprocesses are configured in conf.py
@@ -21,8 +21,7 @@ from six.moves import range
 
 from sage.env import SAGE_DOC_SRC
 
-from . import build_options
-from .builders import get_builder
+from . import build_options, get_builder
 from .utils import (help_usage, IndentedHelpFormatter2, help_description,
                     help_message_short, help_message_long, help_wrapper,
                     IntersphinxCache, delete_empty_directories)

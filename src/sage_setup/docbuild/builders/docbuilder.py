@@ -7,7 +7,7 @@ import subprocess
 from sage.env import SAGE_DOC, SAGE_DOC_SRC
 from sage.misc.misc import sage_makedirs
 
-from . import Builder, builder_helper
+from . import Builder, AllBuilder, output_formatter
 from .. import build_options as opts
 
 
@@ -15,6 +15,9 @@ __all__ = ['DocBuilder']
 
 
 class DocBuilder(Builder):
+
+    priority = 50
+
     def __init__(self, name, lang='en'):
         """
         INPUT:
@@ -33,6 +36,14 @@ class DocBuilder(Builder):
         self.name = os.path.join(*doc)
         self.lang = lang
         self.dir = os.path.join(SAGE_DOC_SRC, self.lang, self.name)
+
+    @classmethod
+    def match(cls, name):
+        all_builder = AllBuilder()
+
+        if (name in all_builder.get_all_documents() or
+                name in all_builder.get_all_documents(default_lang='en')):
+            return cls(name)
 
     def _output_dir(self, type):
         """
@@ -68,29 +79,7 @@ class DocBuilder(Builder):
         sage_makedirs(d)
         return d
 
-    # TODO: This looks like it could just be a classmethod
-    def _output_formats(self):
-        """
-        Returns a list of the possible output formats.
-
-        EXAMPLES::
-
-            sage: from sage_setup.docbuild import DocBuilder
-            sage: b = DocBuilder('tutorial')
-            sage: b._output_formats()
-            ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
-
-        """
-        #Go through all the attributes of self and check to
-        #see which ones have an 'is_output_format' attribute.  These
-        #are the ones created with builder_helper.
-        output_formats = []
-        for attr in dir(self):
-            if hasattr(getattr(self, attr), 'is_output_format'):
-                output_formats.append(attr)
-        output_formats.sort()
-        return output_formats
-
+    @output_formatter
     def pdf(self):
         """
         Builds the PDF files for this document.  This is done by first
@@ -127,13 +116,13 @@ class DocBuilder(Builder):
         for format in output_formats:
             shutil.rmtree(self._output_dir(format), ignore_errors=True)
 
-    html = builder_helper('html')
-    pickle = builder_helper('pickle')
+    html = output_formatter('html')
+    pickle = output_formatter('pickle')
     web = pickle
-    json = builder_helper('json')
-    htmlhelp = builder_helper('htmlhelp')
-    latex = builder_helper('latex')
-    changes = builder_helper('changes')
-    linkcheck = builder_helper('linkcheck')
+    json = output_formatter('json')
+    htmlhelp = output_formatter('htmlhelp')
+    latex = output_formatter('latex')
+    changes = output_formatter('changes')
+    linkcheck = output_formatter('linkcheck')
     # import the customized builder for object.inv files
-    inventory = builder_helper('inventory')
+    inventory = output_formatter('inventory')

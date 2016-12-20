@@ -19,8 +19,9 @@ from six.moves import cPickle
 
 from sphinx.environment import BuildEnvironment
 
-from . import AllBuilder, build_many, get_builder
+from . import AllBuilder, build_many
 from .docbuilder import DocBuilder
+from .. import get_builder
 from .. import build_options as opts
 
 
@@ -36,6 +37,9 @@ class ReferenceBuilder(AllBuilder):
     build the top-level page and ReferenceSubBuilder for each
     sub-component.
     """
+
+    priority = 90
+
     def __init__(self, name, lang='en'):
         """
         Records the reference manual's name, in case it's not
@@ -50,6 +54,11 @@ class ReferenceBuilder(AllBuilder):
 
         self.name = doc[0]
         self.lang = lang
+
+    @classmethod
+    def match(cls, name):
+        if name.endswith('reference'):
+            return cls(name)
 
     def _output_dir(self, type, lang='en'):
         """
@@ -252,11 +261,20 @@ class ReferenceSubBuilder(DocBuilder):
     2. The actual module gets updated and possibly contains a new
        title.
     """
+
+    priority = 80
+
     def __init__(self, *args, **kwds):
         super(ReferenceSubBuilder, self).__init__(*args, **kwds)
-        self._wrap_builder_helpers()
+        self._wrap_output_formatters()
 
-    def _wrap_builder_helpers(self):
+    @classmethod
+    def match(cls, name):
+        if ('reference' in name and
+                os.path.exists(os.path.join(SAGE_DOC_SRC, 'en', name))):
+            return cls(name)
+
+    def _wrap_output_formatters(self):
         for attr in dir(self):
             if hasattr(getattr(self, attr), 'is_output_format'):
                 f = partial(self._wrapper, attr)
@@ -266,7 +284,7 @@ class ReferenceSubBuilder(DocBuilder):
 
     def _wrapper(self, build_type, *args, **kwds):
         """
-        This is the wrapper around the builder_helper methods that
+        This is the wrapper around the output_formatter methods that
         goes through and makes sure things are up to date.
         """
         # Delete the auto-generated .rst files, if the inherited

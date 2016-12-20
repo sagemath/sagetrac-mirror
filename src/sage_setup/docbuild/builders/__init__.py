@@ -9,6 +9,7 @@ from functools import partial
 
 from sage.env import SAGE_DOC_SRC
 
+from .. import get_builder
 from .. import build_options as opts
 
 
@@ -23,11 +24,52 @@ class Builder(object):
     Currently just a placeholder.
     """
 
+    priority = 0
+
+    @classmethod
+    def match(cls, name):
+        """
+        Checks whether this Builder class can build the document of the given
+        name, and if so returns an instance of that class configured to build
+        that document, and returns None otherwise.
+
+        Builders are searched by order of priority, with document names matched
+        against the Builders with highest priority first, but in general it is
+        best to make matches as unambiguous as possible.
+        """
+
+        raise NotImplementedError('must be implemented by subclasses')
+
+    @classmethod
+    def output_formats(self):
+        """
+        Returns a list of the possible output formats.
+
+        EXAMPLES::
+
+            sage: from sage_setup.docbuild import DocBuilder
+            sage: DocBuilder.output_formats()
+            ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
+
+        """
+        # Go through all the attributes of self and check to see which ones
+        # have an 'is_output_format' attribute.  These are the ones created
+        # with output_formatter.
+        output_formats = []
+        for attr in dir(self):
+            if hasattr(getattr(self, attr), 'is_output_format'):
+                output_formats.append(attr)
+        output_formats.sort()
+        return output_formats
+
 
 class AllBuilder(Builder):
     """
     A class used to build all of the documentation.
     """
+
+    priority = 100
+
     def __getattr__(self, attr):
         """
         For any attributes not explicitly defined, we just go through
@@ -36,6 +78,12 @@ class AllBuilder(Builder):
         and call the json() method on their builders.
         """
         return partial(self._wrapper, attr)
+
+    @classmethod
+    def match(cls, name):
+        if name == 'all':
+            return cls()
+
 
     @staticmethod
     def _build_other_doc(args):
@@ -153,84 +201,53 @@ else:
         return results
 
 
-def builder_helper(type):
+def output_formatter(type):
     """
     Returns a function which builds the documentation for
     output type type.
     """
-    def f(self, *args, **kwds):
-        output_dir = self._output_dir(type)
 
-        options = opts.ALLSPHINXOPTS
+    if isinstance(type, str):
+        def formatter(self, *args, **kwds):
+            output_dir = self._output_dir(type)
 
-        if self.name == 'website':
-            # WEBSITESPHINXOPTS is either empty or " -A hide_pdf_links=1 "
-            options += opts.WEBSITESPHINXOPTS
+            options = opts.ALLSPHINXOPTS
 
-        if kwds.get('use_multidoc_inventory', True):
-            options += ' -D multidoc_first_pass=0'
-        else:
-            options += ' -D multidoc_first_pass=1'
+            if self.name == 'website':
+                # WEBSITESPHINXOPTS is either empty or " -A hide_pdf_links=1 "
+                options += opts.WEBSITESPHINXOPTS
 
-        build_command = '-b %s -d %s %s %s %s'%(type, self._doctrees_dir(),
-                                                  options, self.dir,
-                                                  output_dir)
-        logger.debug(build_command)
+            if kwds.get('use_multidoc_inventory', True):
+                options += ' -D multidoc_first_pass=0'
+            else:
+                options += ' -D multidoc_first_pass=1'
 
-        # Run Sphinx with Sage's special logger
-        # TODO: Save off old sys.argv; while not normally important it's a
-        # polite thing to do, especially in testing, when messing with sys
-        # globals
-        sys.argv = ["sphinx-build"] + build_command.split()
-        from ..sphinxbuild import runsphinx
-        try:
-            runsphinx()
-        except Exception:
-            if opts.ABORT_ON_ERROR:
-                raise
+            build_command = '-b %s -d %s %s %s %s'%(type, self._doctrees_dir(),
+                                                      options, self.dir,
+                                                      output_dir)
+            logger.debug(build_command)
 
-        if "/latex" in output_dir:
-            logger.warning("LaTeX file written to {}".format(output_dir))
-        else:
-            logger.warning(
-                "Build finished.  The built documents can be found in {}".
-                format(output_dir))
+            # Run Sphinx with Sage's special logger
+            # TODO: Save off old sys.argv; while not normally important it's a
+            # polite thing to do, especially in testing, when messing with sys
+            # globals
+            sys.argv = ["sphinx-build"] + build_command.split()
+            from ..sphinxbuild import runsphinx
+            try:
+                runsphinx()
+            except Exception:
+                if opts.ABORT_ON_ERROR:
+                    raise
 
-    f.is_output_format = True
-    return f
-
-
-def get_builder(name):
-    """
-    Returns an appropriate *Builder object for the document ``name``.
-    DocBuilder and its subclasses do all the real work in building the
-    documentation.
-    """
-
-    from .docbuilder import *
-    from .reference import *
-    from .singlefile import *
-    from .website import *
-
-    all_builder = AllBuilder()
-
-    if name == 'all':
-        return all_builder
-    elif name.endswith('reference'):
-        return ReferenceBuilder(name)
-    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC_SRC, 'en', name)):
-        return ReferenceSubBuilder(name)
-    elif name.endswith('website'):
-        return WebsiteBuilder(name)
-    elif name.startswith('file='):
-        path = name[5:]
-        if path.endswith('.sage') or path.endswith('.pyx'):
-            raise NotImplementedError('Building documentation for a single file only works for Python files.')
-        return SingleFileBuilder(path)
-    elif (name in all_builder.get_all_documents() or
-            name in all_builder.get_all_documents(default_lang='en')):
-        return DocBuilder(name)
+            if "/latex" in output_dir:
+                logger.warning("LaTeX file written to {}".format(output_dir))
+            else:
+                logger.warning(
+                    "Build finished.  The built documents can be found in {}".
+                    format(output_dir))
     else:
-        print("'%s' is not a recognized document. Type 'sage --docbuild -D' for a list"%name)
-        print("of documents, or 'sage --docbuild --help' for more help.")
-        sys.exit(1)
+        # In case of use as a decorator
+        formatter = type
+
+    formatter.is_output_format = True
+    return formatter
