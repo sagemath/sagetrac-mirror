@@ -92,7 +92,7 @@ def get_builders():
     return builders
 
 
-def get_documents():
+def get_documents(default_lang=None):
     """
     Returns a list of document names the Sage documentation builder
     will accept as command-line arguments.
@@ -101,7 +101,7 @@ def get_documents():
     from .builders import AllBuilder
 
     all_b = AllBuilder()
-    docs = all_b.get_all_documents(default_lang='en')
+    docs = all_b.get_all_documents(default_lang=default_lang)
     return docs
 
 

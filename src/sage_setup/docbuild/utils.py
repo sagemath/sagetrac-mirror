@@ -100,7 +100,7 @@ def help_documents(s=u""):
     shortcut 'all' for all documents, available to the Sage
     documentation builder.
     """
-    docs = get_documents()
+    docs = get_documents(default_lang='en')
     s += "DOCUMENTs:\n"
     s += format_columns(docs + ['all  (!)'])
     s += "(!) Builds everything.\n\n"
