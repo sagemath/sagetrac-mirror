@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import importlib
 import logging
 import os
 import re
 import shutil
-import sys
 import time
 import types
 
@@ -524,11 +524,10 @@ class ReferenceSubBuilder(DocBuilder):
         """
         #Try to import the module
         try:
-            __import__(module_name)
+            module = importlib.import_module(module_name)
         except ImportError as err:
             logger.error("Warning: Could not import %s %s", module_name, err)
             return "UNABLE TO IMPORT MODULE"
-        module = sys.modules[module_name]
 
         #Get the docstring
         doc = module.__doc__

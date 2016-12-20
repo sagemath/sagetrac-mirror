@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import importlib
 import logging
 
 
@@ -80,10 +81,7 @@ def get_builders():
     builders = [AllBuilder]
 
     for submodule in submodules:
-        # TODO: Replace this with importlib rather than using __import__
-        # directly
-        mod = __import__(__package__ + '.builders.' + submodule,
-                         fromlist=['.'])
+        mod = importlib.import_module(__package__ + '.builders.' + submodule)
         for name in mod.__all__:
             obj = getattr(mod, name)
             if isinstance(obj, type) and issubclass(obj, Builder):
