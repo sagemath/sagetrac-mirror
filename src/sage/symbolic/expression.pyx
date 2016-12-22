@@ -6617,6 +6617,44 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
+    def gosper_sum(self, *args):
+        """
+        EXAMPLES::
+
+            sage: _ = var('k n')
+            sage: SR(1).gosper_sum(k,0,n)
+            n + 1
+            sage: (k).gosper_sum(k,0,n)
+            1/2*(n + 1)*n
+        """
+        cdef Expression s, a, b
+        cdef GEx x
+        cdef int i
+        if type(args) is tuple:
+            n, l1, l2 = args
+            s = self.coerce_in(n)
+            a = self.coerce_in(l1)
+            b = self.coerce_in(l2)
+            sig_on()
+            try:
+                x = g_gosper_sum_definite(self._gobj, s._gobj,
+                        a._gobj, b._gobj, &i)
+            finally:
+                sig_off()
+            if i == 0:
+                raise ValueError("expression not Gosper-summable")
+            return new_Expression_from_GEx(self._parent, x)
+        else:
+            s = self.coerce_in(args)
+            sig_on()
+            try:
+                x = g_gosper_sum_indefinite(self._gobj, s._gobj, &i)
+            finally:
+                sig_off()
+            if i == 0:
+                raise ValueError("expression not Gosper-summable")
+            return new_Expression_from_GEx(self._parent, x)
+
     def lcm(self, b):
         """
         Return the lcm of self and b.
