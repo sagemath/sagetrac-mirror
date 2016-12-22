@@ -1167,10 +1167,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            much faster in implementation ``sage`` is chosen,
            though evaluation of it after computing it won't be any faster.
 
-        -  ``implementation`` - either 'eclib' (default) or 'sage'. Here 'eclib' uses
-           John Cremona's implementation in his library eclib; it only works
-           for ``sign`` +1 currently. Instead 'sage' uses the implementation within
-           sage which is often quite a bit slower.
+        - ``implementation`` - either 'eclib' (default) or
+           'sage'. Here 'eclib' uses John Cremona's implementation in
+           the eclib library, while 'sage' uses an implementation
+           in Sage which is often quite a bit slower.
 
         .. SEEALSO::
 
@@ -1244,7 +1244,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
         if implementation == 'eclib':
-            M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
+            M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
         else: # implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         return M
