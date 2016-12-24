@@ -60,7 +60,7 @@ class Function_erf(BuiltinFunction):
         x*erf(x) + e^(-x^2)/sqrt(pi)
 
     ALGORITHM:
-
+    
     Sage implements numerical evaluation of the error function via the
     ``erf()`` function from mpmath. Symbolics are handled by Sage and Maxima.
 
@@ -1426,6 +1426,29 @@ def incomplete_gamma(*args, **kwds):
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
 symbol_table['functions']['gamma'] = gamma
+
+class qGamma(BuiltinFunction):
+
+    def _init_(self):
+        BuiltinFunction._init_(self, "qgamma",
+                               nargs = 2,
+                               latex_name=r"\text{qgamma}",
+                               conversions=dict(sympy='qgamma'))
+
+    
+    def _eval_(self,z,q):
+        if q == 1:
+            return Integer(1)
+
+    def _evalf_(self,z,q):
+        R = parent or parent(z)
+        from mpmath import qgamma
+        return mpmath_utils.call(qgamma, z, q, parent=R)
+
+    def _print_latex_(self,z,q):
+        return r"\mathbb{G}_$s($s)" % (latex(q), latex(z))
+
+qgamma = qGamma()
 
 class Function_psi1(GinacFunction):
     def __init__(self):
