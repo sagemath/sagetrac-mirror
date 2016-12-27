@@ -210,26 +210,29 @@ class PiecewiseFunction(BuiltinFunction):
             piecewise(x|-->-x^y on (-2, 0), x|-->x - y on [0, 2]; x)
             sage: p.subs(y=sin(y))
             piecewise(x|-->-x^sin(y) on (-2, 0), x|-->x - sin(y) on [0, 2]; x)
+
+        Changes to the main variable are only applied in the pieces::
+
+            sage: p.subs(x=x+1)
+            piecewise(x|-->-(x + 1)^y on (-2, 0), x|-->x - y + 1 on [0, 2]; x)
+            sage: p.subs({x^y: exp(x)})
+            piecewise(x|-->-e^x on (-2, 0), x|-->x - y on [0, 2]; x)
         """
         point = subs_map.apply_to(x, 0)
-        if point == x:
-            # substitution only in auxiliary variables
-            new_params = []
-            for domain, func in parameters:
-                new_params.append((domain, subs_map.apply_to(func, 0)))
-            return piecewise(new_params, var=x)
         if ((point.is_numeric() or point.is_constant())
             and (point.is_real())):
             if hasattr(point, 'pyobject'):
                 # unwrap any numeric values
                 point = point.pyobject()
-        else:
-            raise ValueError('substituting the piecewise variable must result in real number')
-
+            for domain, func in parameters:
+                if domain.contains(point):
+                    return subs_map.apply_to(func, 0)
+            raise ValueError('point {} is not in the domain'.format(point))
+        new_params = []
         for domain, func in parameters:
-            if domain.contains(point):
-                return subs_map.apply_to(func, 0)
-        raise ValueError('point {} is not in the domain'.format(point))
+            new_params.append((domain, subs_map.apply_to(func, 0)))
+        return piecewise(new_params, var=x)
+
 
     @staticmethod
     def in_operands(ex):
