@@ -1416,6 +1416,9 @@ ext_modules = [
     Extension('sage.rings.padics.padic_capped_relative_element',
               sources = ['sage/rings/padics/padic_capped_relative_element.pyx']),
 
+    Extension('sage.rings.padics.padic_floating_point_element',
+              sources = ['sage/rings/padics/padic_floating_point_element.pyx']),
+
     Extension('sage.rings.padics.padic_ext_element',
               sources = ['sage/rings/padics/padic_ext_element.pyx'],
               libraries=['ntl', 'gmp', 'gmpxx', 'm'],
@@ -1477,6 +1480,10 @@ ext_modules = [
 
     Extension('sage.rings.padics.qadic_flint_FM',
               sources = ['sage/rings/padics/qadic_flint_FM.pyx'],
+              libraries = ["flint"]),
+
+    Extension('sage.rings.padics.qadic_flint_FP',
+              sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
               libraries = ["flint"]),
 
     ################################
