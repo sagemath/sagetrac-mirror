@@ -407,6 +407,13 @@ def factorial(n, algorithm='gmp'):
        factorial of `10^6` in 7 seconds. (Mathematica is notably
        very efficient at memory usage when doing factorial
        calculations.)
+
+    Note that you must explicitly import the function to make
+    the algorithm keyword work::
+
+        sage: from sage.arith.misc import factorial
+        sage: factorial(71, algorithm='pari') == 71*factorial(70)
+        True
     """
     if n < 0:
         raise ValueError("factorial -- must be nonnegative")
