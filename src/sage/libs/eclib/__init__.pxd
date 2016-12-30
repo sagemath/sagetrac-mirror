@@ -114,8 +114,6 @@ cdef extern from "eclib/newforms.h":
         rational plus_modular_symbol(rational r, int i, int base_at_infinity)
         rational minus_modular_symbol(rational r, int i, int base_at_infinity)
         pair[rational,rational] full_modular_symbol(rational r, int i, int base_at_infinity)
-        #
-        #void get_real_period(int i, NTL::RR& x, int verbose)
 
     cdef cppclass newform:
         newforms* nf
