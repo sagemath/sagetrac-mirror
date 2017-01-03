@@ -907,7 +907,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, implementation='eclib'):
     if sign >= 0:
         plus_sym = E.modular_symbol(sign=1, implementation=implementation)
     if sign <= 0:
-        minus_sym = E.modular_symbol(sign=-1, implementation='sage')
+        minus_sym = E.modular_symbol(sign=-1, implementation=implementation)
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)
