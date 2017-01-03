@@ -60,10 +60,10 @@ REFERENCES:
    On `p`-adic analogues of the conjectures of Birch and
    Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
 
-.. [Cre] John Cremona, Algorithms for modular elliptic curves,
+.. [Crem97] John Cremona, Algorithms for modular elliptic curves,
    Cambridge University Press, 1997.
 
-.. [SW] William Stein and Christian Wuthrich, Algorithms for the
+.. [StWu] William Stein and Christian Wuthrich, Algorithms for the
    Arithmetic of Elliptic Curves using Iwasawa Theory, Mathematics
    of Computation 82 (2013), 1757-1792.
 
@@ -161,7 +161,7 @@ class ModularSymbol(SageObject):
     symmetrized (or anti-symmetrized) integral `\infty` to `r`.
 
     This is as defined in [MaTaTe]_, but normalized to depend on the curve
-    and not only its isogeny class as in [SW]_.
+    and not only its isogeny class as in [StWu]_.
 
     See the documentation of ``E.modular_symbol()`` in elliptic curves
     over the rational numbers for help.
