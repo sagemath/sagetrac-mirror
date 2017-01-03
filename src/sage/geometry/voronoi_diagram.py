@@ -41,6 +41,15 @@ class voronoi_diagram(SageObject):
         sage: voronoi_diagram([])
         The empty Voronoi diagram.
 
+        Get the Voronoi diagram of a regular dodecahedron in \AA^3;
+        all cells meet at the origin
+        sage: DV=voronoi_diagram([[AA(c) for c in v] for v in polytopes.dodecahedron().vertices_list()]); DV
+        The Voronoi diagram of 20 points of dimension 3 in the Algebraic Real Field
+        sage: all([P.contains([0,0,0]) for P in DV.regions().values()])
+        True
+        sage: any([P.interior_contains([0,0,0]) for P in DV.regions().values()])
+        False
+
     ALGORITHM:
 
     We use hyperplanes tangent to the paraboloid one dimension higher to
@@ -88,13 +97,30 @@ class voronoi_diagram(SageObject):
             for i in self._points] # we attach hyperplane to the paraboloid
             e=[[self._base_ring(i) for i in k] for k in e]
             p=Polyhedron(ieqs = e, base_ring=self._base_ring)
+            #To understand the reordering that takes place when defining a
+            #rational polyhedron, we generate two sorted lists, that are used a few lines below
             if self.base_ring()==QQ:
-                esorted=sorted(e)
+                enormalized=[]
+                for ineq in e:
+                    if ineq[0]==0:
+                        enormalized.append(ineq)
+                    else:
+                        enormalized.append([i/ineq[0] for i in ineq[1:]])
+                #print enormalized
+                hlist=[list(ineq) for ineq in p.Hrepresentation()]
+                hlistnormalized=[]
+                for ineq in hlist:
+                    if ineq[0]==0:
+                        hlistnormalized.append(ineq)
+                    else:
+                        hlistnormalized.append([i/ineq[0] for i in ineq[1:]])
+                #print hlistnormalized
+
         for i in range(self._n):
             #for base ring RDF and AA, Polyhedron keeps the order of the
             #points in the input, for QQ we resort
             if self.base_ring()==QQ:
-                equ=p.Hrepresentation(esorted.index(e[i]))
+                equ=p.Hrepresentation(hlistnormalized.index(enormalized[i]))
             else:
                 equ=p.Hrepresentation(i)
             pvert=[[u[k] for k in range(self._d)] for u in equ.incident() if
@@ -134,8 +160,8 @@ class voronoi_diagram(SageObject):
 
     def regions(self):
         r"""
-        Returns the Voronoi regions of the Voronoi diagram as a list of
-        polyhedra.
+        Returns the Voronoi regions of the Voronoi diagram as a
+        dictionary of polyhedra.
 
         EXAMPLES::
             sage: V=voronoi_diagram([[1,3,.3],[2,-2,1],[-1,2,-.1]]); V.regions()
@@ -212,13 +238,17 @@ class voronoi_diagram(SageObject):
                 implemented
 
         """
-        if self.ambient_dim()==2:
+        from random import shuffle
+
+        if self.ambient_dim() in [2]:
             S=line([])
-            for i,j in enumerate(self._points):
-                S+=(self._P[j]).render_solid(color=rainbow(self._n)[i],
-                zorder=1)
-                S+=point(j, color=rainbow(self._n)[i], pointsize=10,zorder=3)
-                S+=point(vector(j), color='black',pointsize=20,zorder=2)
+            random_colors=rainbow(self._n)
+            shuffle(random_colors)
+            for i,p in enumerate(self._P):
+                col=random_colors[i]
+                S+=(self.regions()[p]).render_solid(color=col,zorder=1)
+                S+=point(p, color=col, pointsize=10,zorder=3)
+                S+=point(p, color='black',pointsize=20,zorder=2)
             return plot(S,**kwds)
         raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
                                   '-dimensional Voronoi diagrams not'+
@@ -226,5 +256,12 @@ class voronoi_diagram(SageObject):
     def _are_points_in_regions(self):
         """
         Checks if all points are contained in their regions.
+
+        EXAMPLES::
+            sage: py_trips=[[a,b] for a in range(1,50) for b in range(1,50) if (a^2+b^2).is_square()]
+            sage: v=voronoi_diagram(py_trips)
+            sage: v._are_points_in_regions()
+            True
+
         """
         return all([self.regions()[p].contains(p) for p in self.points()])
