@@ -144,7 +144,7 @@ cdef class ECModularSymbol:
             sage: E = EllipticCurve('37a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
-            [0, 0, 0, 0, -1, 0, -1, -1, 0]
+            [0, 0, 0, 0, 1, 0, 1, 1, 0]
             sage: E = EllipticCurve('389a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
