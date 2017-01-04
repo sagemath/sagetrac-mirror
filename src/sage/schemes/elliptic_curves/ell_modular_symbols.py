@@ -470,7 +470,7 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: Mminus = E.modular_symbol(-1); Mminus
             Modular symbol with sign -1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: [Mminus(1/i) for i in [1..11]]
-            [0, 0, -1/2, -1/2, 0, 0, 1/2, 1/2, 0, 0, 0]
+            [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
 
 
         The scaling factor relative to eclib's normalization is 2 for curves of negative discriminant::

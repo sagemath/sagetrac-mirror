@@ -51,9 +51,9 @@ cdef class ECModularSymbol:
         sage: M = ECModularSymbol(E,0); M
         Modular symbol with sign 0 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: [M(1/i, -1) for i in range(1,11)]
-        [0, 0, -1, -1, 0, 0, 1, 1, 0, 0]
+        [0, 0, 1, 1, 0, 0, -1, -1, 0, 0]
         sage: [M(1/i, -1, base_at_infinity=False) for i in range(1,11)]
-        [0, 0, -1, -1, 0, 0, 1, 1, 0, 0]
+        [0, 0, 1, 1, 0, 0, -1, -1, 0, 0]
 
     If the ECModularSymbol is created with sign 0 then as well as
     asking for both + and - symbols, we can also obtain both (as a
@@ -65,12 +65,12 @@ cdef class ECModularSymbol:
         Modular symbol with sign 0 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: [M(1/i) for i in range(2,11)]
         [[-8/5, 0],
-         [-3/5, -1],
-         [7/5, -1],
-         [12/5, 0],
-         [12/5, 0],
-         [7/5, 1],
          [-3/5, 1],
+         [7/5, 1],
+         [12/5, 0],
+         [12/5, 0],
+         [7/5, -1],
+         [-3/5, -1],
          [-8/5, 0],
          [2/5, 0]]
 
@@ -90,7 +90,7 @@ cdef class ECModularSymbol:
         sage: M1(0)
         [2/5, 0]
         sage: M1(1/3)
-        [-3/5, -1]
+        [-3/5, 1]
 
     One non-optimal curve has real period 1/5 that of the optimal one, so plus symbols scale up by a factor of 5 while minus symbols are unchanged::
 
@@ -101,7 +101,7 @@ cdef class ECModularSymbol:
         sage: M2(0)
         [2, 0]
         sage: M2(1/3)
-        [-3, -1]
+        [-3, 1]
         sage: all((M2(r,1)==5*M1(r,1)) for r in QQ.range_by_height(10))
         True
         sage: all((M2(r,-1)==M1(r,-1)) for r in QQ.range_by_height(10))
@@ -116,7 +116,7 @@ cdef class ECModularSymbol:
         sage: M3(0)
         [2/25, 0]
         sage: M3(1/3)
-        [-3/25, -1]
+        [-3/25, 1]
         sage: all((5*M3(r,1)==M1(r,1)) for r in QQ.range_by_height(10))
         True
         sage: all((M3(r,-1)==M1(r,-1)) for r in QQ.range_by_height(10))
@@ -279,15 +279,15 @@ cdef class ECModularSymbol:
             sage: [M(1/i, 1) for i in range(2,11)]
             [-8/5, -3/5, 7/5, 12/5, 12/5, 7/5, -3/5, -8/5, 2/5]
             sage: [M(1/i, -1) for i in range(2,11)]
-            [0, -1, -1, 0, 0, 1, 1, 0, 0]
+            [0, 1, 1, 0, 0, -1, -1, 0, 0]
             sage: [M(1/i) for i in range(2,11)]
             [[-8/5, 0],
-             [-3/5, -1],
-             [7/5, -1],
-             [12/5, 0],
-             [12/5, 0],
-             [7/5, 1],
              [-3/5, 1],
+             [7/5, 1],
+             [12/5, 0],
+             [12/5, 0],
+             [7/5, -1],
+             [-3/5, -1],
              [-8/5, 0],
              [2/5, 0]]
 

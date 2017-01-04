@@ -1262,7 +1262,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Mminus = E.modular_symbol(-1); Mminus
             Modular symbol with sign -1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: [Mminus(1/i) for i in [1..11]]
-            [0, 0, -1/2, -1/2, 0, 0, 1/2, 1/2, 0, 0, 0]
+            [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
 
         """
         sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
