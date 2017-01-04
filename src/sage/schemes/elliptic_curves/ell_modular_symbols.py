@@ -471,7 +471,7 @@ class ModularSymbolSage(ModularSymbol):
             1
             sage: m = EllipticCurve('37a1').modular_symbol()
             sage: m._scaling
-            -1
+            1
             sage: m = EllipticCurve('389a1').modular_symbol()
             sage: m._scaling
             1
