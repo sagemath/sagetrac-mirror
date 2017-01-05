@@ -247,7 +247,7 @@ CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGr
 
 
 from sage.combinat.posets.cartesian_product import CartesianProductPoset
-from growth_group import GenericGrowthGroup
+from .growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
@@ -299,7 +299,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                         for factor in self.cartesian_factors()),
                    tuple())
         from itertools import groupby
-        from growth_group import Variable
+        from .growth_group import Variable
         Vars = Variable(tuple(v for v, _ in groupby(vars)), repr=self._repr_short_())
 
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
@@ -693,7 +693,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
             Growth Group QQ^x * x^QQ
         """
-        from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+        from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from misc import merge_overlapping
         from misc import underlying_class
 
@@ -859,7 +859,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     class Element(CartesianProductPoset.Element):
 
-        from growth_group import _is_lt_one_
+        from .growth_group import _is_lt_one_
         is_lt_one = _is_lt_one_
 
 
@@ -969,7 +969,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                        tuple())
 
 
-        from growth_group import _log_factor_, _log_
+        from .growth_group import _log_factor_, _log_
         log = _log_
         log_factor = _log_factor_
 
@@ -1020,7 +1020,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                                     (self, self.parent())), e)
 
 
-        from growth_group import _rpow_
+        from .growth_group import _rpow_
         rpow = _rpow_
 
 
@@ -1059,7 +1059,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             factors = self.factors()
             if len(factors) != 1:
                 raise ValueError  # calling method has to deal with it...
-            from growth_group import MonomialGrowthGroup
+            from .growth_group import MonomialGrowthGroup
             factor = factors[0]
             if not isinstance(factor.parent(), MonomialGrowthGroup):
                 raise ValueError  # calling method has to deal with it...
@@ -1181,7 +1181,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     *tuple(x._substitute_(rules)
                            for x in self.cartesian_factors()))
             except (ArithmeticError, TypeError, ValueError) as e:
-                from misc import substitute_raise_exception
+                from .misc import substitute_raise_exception
                 substitute_raise_exception(self, e)
 
 
