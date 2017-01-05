@@ -47,11 +47,11 @@ class Encoder(SageObject):
       need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
     - As :class:`Encoder` is not designed to be instantiated, it does not have any representation
-      methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+      methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
     REFERENCES:
 
-    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
+    - [Nie]_
     """
 
     def __init__(self, code):
@@ -70,7 +70,8 @@ class Encoder(SageObject):
 
         We first create a new :class:`Encoder` subclass::
 
-            sage: class EncoderExample(sage.coding.encoder.Encoder):
+            sage: from sage.coding.encoder import Encoder
+            sage: class EncoderExample(Encoder):
             ....:   def __init__(self, code):
             ....:       super(EncoderExample, self).__init__(code)
 
@@ -83,9 +84,29 @@ class Encoder(SageObject):
         We can check its parameters::
 
             sage: E.code()
-            Linear code of length 4, dimension 2 over Finite Field of size 2
+            [4, 2] linear code over GF(2)
         """
         self._code = code
+
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: E1 = LinearCode(G).encoder()
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 != E2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: E2 = LinearCode(G).encoder()
+            sage: E1 != E2
+            True
+        """
+        return not self == other
 
     def encode(self, word):
         r"""
@@ -126,7 +147,7 @@ class Encoder(SageObject):
             sage: E.encode(word)
             Traceback (most recent call last):
             ...
-            ValueError: The value to encode must be in Vector space of dimension 4 over Finite Field of size 2
+            ArithmeticError: reduction modulo 2 not defined
         """
         M = self.message_space()
         if word not in M:
@@ -141,12 +162,11 @@ class Encoder(SageObject):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as :meth:`code` over the
-          base field of :meth:`code`.
+        - ``c`` -- a codeword of :meth:`code`.
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in :meth:`code`. You might set
           this to ``True`` to disable the check for saving computation. Note that if ``c`` is
-          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not in :meth:`self` and ``nocheck = True``, then the output of :meth:`unencode` is
           not defined (except that it will be in the message space of ``self``).
 
         OUTPUT:
@@ -177,16 +197,14 @@ class Encoder(SageObject):
             ...
             EncodingError: Given word is not in the code
 
-        If ones tries to unencode a codeword of a code of dimension 0, it
-        returns the empty vector::
+        Note that since ticket :trac: `21326`, codes cannot be of length zero::
 
             sage: G = Matrix(GF(17), [])
             sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
-            sage: c = C.random_element()
-            sage: E.unencode(c)
-            ()
-        """
+            Traceback (most recent call last):
+            ...
+            ValueError: length must be a non-zero positive integer
+       """
         if nocheck == False and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)
@@ -199,7 +217,7 @@ class Encoder(SageObject):
 
         AUTHORS:
 
-            This function is taken from codinglib [Nielsen]_
+            This function is taken from codinglib [Nie]_
 
         EXAMPLES::
 
@@ -226,16 +244,16 @@ class Encoder(SageObject):
 
         AUTHORS:
 
-            This function is taken from codinglib [Nielsen]_
+            This function is taken from codinglib [Nie]_
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+
+        - ``c`` -- a codeword of :meth:`code`.
 
         OUTPUT:
 
-        - a vector
+        - an element of the message space of ``self``.
 
         EXAMPLES::
 

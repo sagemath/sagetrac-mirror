@@ -16,12 +16,12 @@ EXAMPLES::
 
     sage: S = simplicial_complexes.Sphere(1)
     sage: S
-    Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+    Minimal triangulation of the 1-sphere
     sage: C = S.chain_complex()
     sage: C.differential()
-    {0: [], 1: [ 1  1  0]
-    [ 0 -1 -1]
-    [-1  0  1], 2: []}
+    {0: [], 1: [-1 -1  0]
+     [ 1  0 -1]
+     [ 0  1  1], 2: []}
     sage: f = {0:zero_matrix(ZZ,3,3),1:zero_matrix(ZZ,3,3)}
     sage: G = Hom(C,C)
     sage: x = G(f)
@@ -91,12 +91,12 @@ class ChainComplexMorphism(Morphism):
 
             sage: S = simplicial_complexes.Sphere(1)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Minimal triangulation of the 1-sphere
             sage: C = S.chain_complex()
             sage: C.differential()
-            {0: [], 1: [ 1  1  0]
-            [ 0 -1 -1]
-            [-1  0  1], 2: []}
+            {0: [], 1: [-1 -1  0]
+             [ 1  0 -1]
+             [ 0  1  1], 2: []}
             sage: f = {0:zero_matrix(ZZ,3,3),1:zero_matrix(ZZ,3,3)}
             sage: G = Hom(C,C)
             sage: x = G(f)
@@ -228,7 +228,7 @@ class ChainComplexMorphism(Morphism):
         degree; otherwise, return the (block) matrix for the whole
         chain map.
 
-        INPUTS:
+        INPUT:
 
         - ``deg`` -- (optional, default ``None``) the degree
 

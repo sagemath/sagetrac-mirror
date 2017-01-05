@@ -636,7 +636,7 @@ class CoxeterMatrix(CoxeterType):
             [   1 -3/2]
             [-3/2    1]
         """
-        return self._matrix.__repr__()
+        return repr(self._matrix)
 
     def _repr_option(self, key):
         """
@@ -678,10 +678,10 @@ class CoxeterMatrix(CoxeterType):
         EXAMPLES::
 
             sage: CM = CoxeterMatrix([[1,8],[8,1]])
-            sage: CM.__iter__().next()
+            sage: next(CM.__iter__())
             (1, 8)
         """
-        return self._matrix.__iter__()
+        return iter(self._matrix)
 
     def __getitem__(self, key):
         """
@@ -716,22 +716,43 @@ class CoxeterMatrix(CoxeterType):
             sage: CM.__hash__()
             4
         """        
-        return self._matrix.__hash__()
+        return hash(self._matrix)
 
     def __eq__(self, other):
         r"""
-        Return if ``self`` and ``other`` are equal, ``False`` otherwise.
+        Return if ``self`` and ``other`` are equal.
 
         EXAMPLES::
 
             sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
-            sage: CM.__hash__()
-            1
-            sage: CM = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
-            sage: CM.__hash__()
-            4
+            sage: CM2 = CoxeterMatrix([[1,-2],[-2,1]],['1','2'])
+            sage: CM == CM2
+            True
+            sage: CM == matrix(CM)
+            False
+            sage: CM3 = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM == CM3
+            False
         """
-        return self._matrix.__eq__(other._matrix)
+        return isinstance(other, CoxeterMatrix) and self._matrix == other._matrix
+
+    def __ne__(self, other):
+        """
+        Return if ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix([[1,-2],[-2,1]],['a','b'])
+            sage: CM2 = CoxeterMatrix([[1,-2],[-2,1]],['1','2'])
+            sage: CM != CM2
+            False
+            sage: matrix(CM) != CM
+            True
+            sage: CM3 = CoxeterMatrix([[1,-3],[-3,1]],['1','2'])
+            sage: CM != CM3
+            True
+        """
+        return not (self == other)
 
     def _matrix_(self, R=None):
         """
@@ -743,7 +764,7 @@ class CoxeterMatrix(CoxeterType):
             sage: matrix(CM)
             [ 1 -3]
             [-3  1]
-            sage: matrix(CM,RR)
+            sage: matrix(RR, CM)
             [ 1.00000000000000 -3.00000000000000]
             [-3.00000000000000  1.00000000000000]
         """
@@ -818,7 +839,7 @@ class CoxeterMatrix(CoxeterType):
         """
         return self
 
-    def bilinear_form(self):
+    def bilinear_form(self, R=None):
         r"""
         Return the bilinear form of ``self``.
 
@@ -838,7 +859,7 @@ class CoxeterMatrix(CoxeterType):
             [-1  1 -1]
             [-1 -1  1]
         """
-        return CoxeterType.bilinear_form(self)
+        return CoxeterType.bilinear_form(self, R=R)
 
     @cached_method
     def coxeter_graph(self):
@@ -1031,6 +1052,22 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix, relabelling_perm)
         ....:     if C.is_finite() or C.is_affine():
         ....:         assert recognized_type == C.coxeter_type()
+
+    We check the rank 2 cases (:trac:`20419`)::
+
+        sage: for i in range(2, 10):
+        ....:     M = matrix([[1,i],[i,1]])
+        ....:     CoxeterMatrix(M).coxeter_type()
+        Coxeter type of A1xA1 relabelled by {1: 2}
+        Coxeter type of ['A', 2]
+        Coxeter type of ['B', 2]
+        Coxeter type of ['I', 5]
+        Coxeter type of ['G', 2]
+        Coxeter type of ['I', 7]
+        Coxeter type of ['I', 8]
+        Coxeter type of ['I', 9]
+        sage: CoxeterMatrix(matrix([[1,-1],[-1,1]]), index_set=[0,1]).coxeter_type()
+        Coxeter type of ['A', 1, 1]
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
@@ -1049,8 +1086,10 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         if r == 2: # Type B2, G2, or I_2(p)
             e = S.edge_labels()[0]
             if e == 3: # Can't be 2 because it is connected
-                ct = CoxeterType(['B',2])
+                ct = CoxeterType(['A',2])
             elif e == 4:
+                ct = CoxeterType(['B',2])
+            elif e == 6:
                 ct = CoxeterType(['G',2])
             elif e > 0 and e < float('inf'): # Remaining non-affine types
                 ct = CoxeterType(['I',e])
@@ -1088,7 +1127,7 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         for ct in test:
             ct = CoxeterType(ct)
             T = ct.coxeter_graph()
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True

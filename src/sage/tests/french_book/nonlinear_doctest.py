@@ -45,7 +45,7 @@ Sage example in ./nonlinear.tex, line 231::
     ....:         v.extend(R(c).roots(multiplicities=False))
     ....:     return v
     sage: data = build_complex_roots(12) # long time
-    sage: g = plot(points(data, pointsize=1), aspect_ratio=1) # long time
+    sage: g = points(data, pointsize=1, aspect_ratio=1)  # long time
 
 Sage example in ./nonlinear.tex, line 275::
 
@@ -119,11 +119,11 @@ Sage example in ./nonlinear.tex, line 367::
 Sage example in ./nonlinear.tex, line 424::
 
     sage: alpha, m, x = var('alpha, m, x')
-    sage: p = function('p', x)
-    sage: q = function('q', x)
+    sage: p = function('p')(x)
+    sage: q = function('q')(x)
     sage: p = (x - alpha)^m * q
     sage: p.derivative(x)
-    (-alpha + x)^(m - 1)*m*q(x) + (-alpha + x)^m*D[0](q)(x)
+    (-alpha + x)^(m - 1)*m*q(x) + (-alpha + x)^m*diff(q(x), x)
     sage: simplify(p.derivative(x)(x=alpha))
     0
 
@@ -263,9 +263,9 @@ Sage example in ./nonlinear.tex, line 805::
     ....:         niter += 1
     ....:         u, v, w = v, w, next(series)
     ....:         if check(u, v, w, prec):
-    ....:             print 'After {0} iterations: {1}'.format(niter, w)
+    ....:             print('After {0} iterations: {1}'.format(niter, w))
     ....:             return
-    ....:     print 'Failed after {0} iterations'.format(maxit)
+    ....:     print('Failed after {0} iterations'.format(maxit))
 
 Sage example in ./nonlinear.tex, line 837::
 

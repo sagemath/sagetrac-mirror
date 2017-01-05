@@ -688,7 +688,7 @@ class Rings(CategoryWithAxiom):
             """
             return self.quotient(I,names=names)
 
-        def __div__(self, I):
+        def __truediv__(self, I):
             """
             Since assigning generator names would not work properly,
             the construction of a quotient ring using division syntax
@@ -736,6 +736,13 @@ class Rings(CategoryWithAxiom):
                 Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
+
+            We can create skew polynomial rings::
+
+                sage: k.<t> = GF(5^3)
+                sage: Frob = k.frobenius_endomorphism()
+                sage: k['x',Frob]
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             We can also create power series rings by using double brackets::
 
@@ -802,11 +809,11 @@ class Rings(CategoryWithAxiom):
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
                 sage: QQ[['a,b','c']]
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
 
                 sage: QQ[[['x']]]
                 Traceback (most recent call last):
@@ -848,6 +855,12 @@ class Rings(CategoryWithAxiom):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
+
+            if isinstance(arg, tuple):
+                from sage.categories.morphism import Morphism
+                if len(arg) == 2 and isinstance(arg[1], Morphism):
+                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension
@@ -919,7 +932,7 @@ def _gen_names(elts):
         'aa'
     """
     import re
-    from sage.structure.parent_gens import _certify_names
+    from sage.structure.category_object import certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     next(it) # skip empty word
@@ -929,7 +942,7 @@ def _gen_names(elts):
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:
-            _certify_names([name])
+            certify_names([name])
         except ValueError:
             name = next(it).string_rep()
         yield name

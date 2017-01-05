@@ -58,7 +58,7 @@ EXAMPLES::
     sage: j
     Simplicial complex morphism:
       From: Simplicial complex with 4 vertices and 4 facets
-      To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      To:   Minimal triangulation of the 2-sphere
       Defn: L1R1 |--> 1
             L3R3 |--> 3
             L2R2 |--> 2
@@ -75,14 +75,14 @@ EXAMPLES::
     sage: U = simplicial_complexes.Sphere(1)
     sage: G = Hom(U,S)
     sage: U
-    Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+    Minimal triangulation of the 1-sphere
     sage: g = {0:0,1:1,2:2}
     sage: y = G(g)
     sage: z = y.fiber_product(x)
     sage: z                                     # this is the mapping path space
     Simplicial complex morphism:
       From: Simplicial complex with 6 vertices and 6 facets
-      To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      To:   Minimal triangulation of the 2-sphere
       Defn: ['L2R(2, 0)', 'L2R(2, 1)', 'L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)'] --> [2, 2, 0, 0, 1, 1]
 """
 
@@ -101,6 +101,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.homology.simplicial_complex import Simplex, SimplicialComplex
 from sage.matrix.constructor import matrix, zero_matrix
@@ -157,9 +159,9 @@ class SimplicialComplexMorphism(Morphism):
             False
         """
         if not isinstance(X,SimplicialComplex) or not isinstance(Y,SimplicialComplex):
-            raise ValueError("X and Y must be SimplicialComplexes.")
-        if not set(f.keys()) == X._vertex_set.set():
-            raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y.")
+            raise ValueError("X and Y must be SimplicialComplexes")
+        if not set(f.keys()) == set(X._vertex_set):
+            raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y")
         dim = X.dimension()
         Y_faces = Y.faces()
         for k in range(dim+1):
@@ -170,7 +172,7 @@ class SimplicialComplexMorphism(Morphism):
                     fi.append(f[j])
                 v = Simplex(set(fi))
             if not v in Y_faces[v.dimension()]:
-                raise ValueError("f must be a dictionary from the vertices of X to the vertices of Y.")
+                raise ValueError("f must be a dictionary from the vertices of X to the vertices of Y")
         self._vertex_dictionary = f
         Morphism.__init__(self, Hom(X,Y,SimplicialComplexes()))
 
@@ -184,7 +186,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: H = Hom(S,S)
             sage: i = H.identity()
             sage: i
-            Simplicial complex endomorphism of Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex endomorphism of Minimal triangulation of the 2-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -223,9 +225,9 @@ class SimplicialComplexMorphism(Morphism):
             sage: S = simplicial_complexes.Sphere(2)
             sage: T = simplicial_complexes.Sphere(3)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Minimal triangulation of the 2-sphere
             sage: T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
+            Minimal triangulation of the 3-sphere
             sage: f = {0:0,1:1,2:2,3:3}
             sage: H = Hom(S,T)
             sage: x = H(f)
@@ -279,11 +281,11 @@ class SimplicialComplexMorphism(Morphism):
         EXAMPLES::
 
             sage: S = simplicial_complexes.Simplex(1)
-            sage: print Hom(S,S).identity()._repr_defn()
+            sage: print(Hom(S,S).identity()._repr_defn())
             0 |--> 0
             1 |--> 1
             sage: T = simplicial_complexes.Torus()
-            sage: print Hom(T,T).identity()._repr_defn()
+            sage: print(Hom(T,T).identity()._repr_defn())
             [0, 1, 2, 3, 4, 5, 6] --> [0, 1, 2, 3, 4, 5, 6]
         """
         vd = self._vertex_dictionary
@@ -304,8 +306,8 @@ class SimplicialComplexMorphism(Morphism):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-              To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 1-sphere
+              To:   Minimal triangulation of the 2-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -315,17 +317,15 @@ class SimplicialComplexMorphism(Morphism):
               From: Chain complex with at most 2 nonzero terms over Integer Ring
               To:   Chain complex with at most 3 nonzero terms over Integer Ring
             sage: a._matrix_dictionary
-            {0: [0 0 0]
-            [0 1 0]
-            [0 0 1]
-            [1 0 0],
-             1: [0 0 0]
-            [0 1 0]
-            [0 0 0]
-            [1 0 0]
-            [0 0 0]
-            [0 0 1],
-             2: []}
+            {0: [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             [0 0 0], 1: [1 0 0]
+             [0 1 0]
+             [0 0 0]
+             [0 0 1]
+             [0 0 0]
+             [0 0 0], 2: []}
             sage: x.associated_chain_complex_morphism(augmented=True)
             Chain complex morphism:
               From: Chain complex with at most 3 nonzero terms over Integer Ring
@@ -347,16 +347,15 @@ class SimplicialComplexMorphism(Morphism):
 
             sage: g = {0:1, 1:2, 2:0}
             sage: H(g).associated_chain_complex_morphism()._matrix_dictionary
-            {0: [0 0 0]
+            {0: [0 0 1]
              [1 0 0]
              [0 1 0]
-             [0 0 1], 1: [ 0  0  0]
-             [-1  0  0]
+             [0 0 0], 1: [ 0 -1  0]
+             [ 0  0 -1]
              [ 0  0  0]
-             [ 0  0  1]
+             [ 1  0  0]
              [ 0  0  0]
-             [ 0 -1  0], 2: []}
-
+             [ 0  0  0], 2: []}
             sage: X = SimplicialComplex([[0, 1]], is_mutable=False)
             sage: Hom(X,X)({0:1, 1:0}).associated_chain_complex_morphism()._matrix_dictionary
             {0: [0 1]
@@ -520,7 +519,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: T = simplicial_complexes.Sphere(1)
             sage: G = Hom(T,T)
             sage: T
-            Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Minimal triangulation of the 1-sphere
             sage: j = G({0:0,1:1,2:2})
             sage: j.is_identity()
             True
@@ -532,8 +531,8 @@ class SimplicialComplexMorphism(Morphism):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-              To:   Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
+              From: Minimal triangulation of the 2-sphere
+              To:   Minimal triangulation of the 3-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -545,7 +544,7 @@ class SimplicialComplexMorphism(Morphism):
             return False
         else:
             f = dict()
-            for i in self.domain()._vertex_set.set():
+            for i in self.domain()._vertex_set:
                 f[i] = i
             if self._vertex_dictionary != f:
                 return False
@@ -649,7 +648,7 @@ class SimplicialComplexMorphism(Morphism):
         """
         The map in (co)homology induced by this map
 
-        INPUTS:
+        INPUT:
 
         - ``base_ring`` -- must be a field (optional, default ``QQ``)
 
@@ -665,11 +664,11 @@ class SimplicialComplexMorphism(Morphism):
             sage: h = diag.induced_homology_morphism(QQ)
             sage: h
             Graded vector space morphism:
-              From: Homology module of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} over Rational Field
+              From: Homology module of Minimal triangulation of the 1-sphere over Rational Field
               To:   Homology module of Simplicial complex with 9 vertices and 18 facets over Rational Field
               Defn: induced by:
                 Simplicial complex morphism:
-                  From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+                  From: Minimal triangulation of the 1-sphere
                   To:   Simplicial complex with 9 vertices and 18 facets
                   Defn: 0 |--> L0R0
                         1 |--> L1R1
@@ -680,26 +679,26 @@ class SimplicialComplexMorphism(Morphism):
             sage: h.to_matrix(0) # in degree 0
             [1]
             sage: h.to_matrix(1) # in degree 1
-            [ 2]
-            [-1]
+            [1]
+            [0]
             sage: h.to_matrix()  # the entire homomorphism
-            [ 1| 0]
-            [--+--]
-            [ 0| 2]
-            [ 0|-1]
-            [--+--]
-            [ 0| 0]
+            [1|0]
+            [-+-]
+            [0|1]
+            [0|0]
+            [-+-]
+            [0|0]
 
         We can evaluate it on (co)homology classes::
 
             sage: coh = diag.induced_homology_morphism(QQ, cohomology=True)
             sage: coh.to_matrix(1)
-            [1 1]
+            [1 0]
             sage: x,y = list(T.cohomology_ring(QQ).basis(1))
             sage: coh(x)
             h^{1,0}
             sage: coh(2*x+3*y)
-            5*h^{1,0}
+            2*h^{1,0}
 
         Note that the complexes must be immutable for this to
         work. Many, but not all, complexes are immutable when
@@ -720,5 +719,69 @@ class SimplicialComplexMorphism(Morphism):
             True
             sage: h = Hom(S,S2)({0: 0, 1:1, 2:2}).induced_homology_morphism()
         """
-        from homology_morphism import InducedHomologyMorphism
+        from .homology_morphism import InducedHomologyMorphism
         return InducedHomologyMorphism(self, base_ring, cohomology)
+
+    def is_contiguous_to(self, other):
+        r"""
+        Return ``True`` if ``self`` is contiguous to ``other``.
+
+        Two morphisms `f_0, f_1: K \to L` are *contiguous* if for any
+        simplex `\sigma \in K`, the union `f_0(\sigma) \cup
+        f_1(\sigma)` is a simplex in `L`. This is not a transitive
+        relation, but it induces an equivalence relation on simplicial
+        maps: `f` is equivalent to `g` if there is a finite sequence
+        `f_0 = f`, `f_1`, ..., `f_n = g` such that `f_i` and `f_{i+1}`
+        are contiguous for each `i`.
+
+        This is related to maps being homotopic: if they are
+        contiguous, then they induce homotopic maps on the geometric
+        realizations. Given two homotopic maps on the geometric
+        realizations, then after barycentrically subdividing `n` times
+        for some `n`, the maps have simplicial approximations which
+        are in the same contiguity class. (This last fact is only true
+        if the domain is a *finite* simplicial complex, by the way.)
+
+        See Section 3.5 of Spanier [Spa1966]_ for details.
+
+        ALGORITHM:
+
+        It is enough to check when `\sigma` ranges over the facets.
+
+        INPUT:
+
+        - ``other`` -- a simplicial complex morphism with the same
+          domain and codomain as ``self``
+
+        EXAMPLES::
+
+            sage: K = simplicial_complexes.Simplex(1)
+            sage: L = simplicial_complexes.Sphere(1)
+            sage: H = Hom(K, L)
+            sage: f = H({0: 0, 1: 1})
+            sage: g = H({0: 0, 1: 0})
+            sage: f.is_contiguous_to(f)
+            True
+            sage: f.is_contiguous_to(g)
+            True
+            sage: h = H({0: 1, 1: 2})
+            sage: f.is_contiguous_to(h)
+            False
+
+        TESTS::
+
+            sage: one = Hom(K,K).identity()
+            sage: one.is_contiguous_to(f)
+            False
+            sage: one.is_contiguous_to(3) # nonsensical input
+            False
+        """
+        if not isinstance(other, SimplicialComplexMorphism):
+            return False
+        if self.codomain() != other.codomain() or self.domain() != other.domain():
+            return False
+        domain = self.domain()
+        codomain = self.codomain()
+        return all(Simplex(self(sigma).set().union(other(sigma))) in codomain
+                   for sigma in domain.facets())
+

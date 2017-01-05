@@ -126,7 +126,7 @@ class QuotientRingElement(RingElement):
         """
         return self.__rep
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if quotient ring element is non-zero in the
         quotient ring `R/I`, by determining whether the element
@@ -143,12 +143,12 @@ class QuotientRingElement(RingElement):
 
         TESTS::
 
-            sage: S(0).__nonzero__()
-            False
-            sage: (a-a).__nonzero__()
+            sage: bool(a - a)
             False
         """
         return self.__rep not in self.parent().defining_ideal()
+
+    __nonzero__ = __bool__
 
     def is_unit(self):
         """
@@ -189,7 +189,7 @@ class QuotientRingElement(RingElement):
             sage: a-2*a*b     # indirect doctest
             -2*a*b + a
 
-        In trac ticket #11068, the case of quotient rings without
+        In :trac:`11068`, the case of quotient rings without
         assigned names has been covered as well::
 
             sage: S = SteenrodAlgebra(2)
@@ -394,7 +394,7 @@ class QuotientRingElement(RingElement):
                 return L * R.inverse_mod(I)
             except NotImplementedError:
                 if R.is_unit():
-                    return L * R.__invert__()
+                    return L * ~R
                 else:
                     raise
 
@@ -428,7 +428,7 @@ class QuotientRingElement(RingElement):
           one for each `x` in ``self.parent().gens()``, that define
           a homomorphism `f` from ``self.parent()`` to ``codomain``
 
-        OUPUT:
+        OUTPUT:
 
         The image of ``self`` in ``codomain`` under the above
         homomorphism `f`.
@@ -703,7 +703,7 @@ class QuotientRingElement(RingElement):
 
     def lc(self):
         """
-        Return the leading coefficent of this quotient ring element.
+        Return the leading coefficient of this quotient ring element.
 
         EXAMPLE::
 
@@ -785,6 +785,7 @@ class QuotientRingElement(RingElement):
             sage: I = sage.rings.ideal.FieldIdeal(P)
             sage: Q = P.quo(I)
             sage: Q._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 2
             //   number of vars : 2
             //        block   1 : ordering dp

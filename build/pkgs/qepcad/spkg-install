@@ -7,26 +7,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 
-cd qesource
-
-
-# Test if saclib is installed
-if [ ! -d "$SAGE_LOCAL/lib/saclib" ] ; then
-    echo >&2 'You should install saclib first.'
-    exit 1
-fi
-
-
-# Apply patches.
-echo 'Patching qepcad'
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
+cd src
 
 # build qepcad
 saclib="$SAGE_LOCAL/lib/saclib"
@@ -42,8 +23,8 @@ fi
 
 
 # install binaries to the Sage tree
-find . -name *.a -exec cp {} $SAGE_LOCAL/lib/ \;
-cp source/qepcad $SAGE_LOCAL/bin/
-cp bin/qepcad.help $SAGE_LOCAL/bin/
-cp ../sage-qepcad $SAGE_LOCAL/bin/
-
+find . -name *.a -exec cp {} "$SAGE_LOCAL/lib/" \;
+cp source/qepcad "$SAGE_LOCAL/bin/"
+cp bin/qepcad.help "$SAGE_LOCAL/bin/"
+chmod 0644 "$SAGE_LOCAL/bin/qepcad.help"
+cp ../sage-qepcad "$SAGE_LOCAL/bin/"

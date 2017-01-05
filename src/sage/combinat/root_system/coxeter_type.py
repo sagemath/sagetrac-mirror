@@ -178,10 +178,10 @@ class CoxeterType(SageObject):
                                             ['E', 6], ['E', 7], ['E', 8], ['F', 4],
                                             ['H', 3], ['H', 4], ['I', 10]]]
 
-        affine = [CoxeterType(t)  for t in ['A', 2, 1], ['B', 5, 1],
+        affine = [CoxeterType(t)  for t in [['A', 2, 1], ['B', 5, 1],
                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
-                                           ['G', 2, 1], ['A', 1, 1]]
+                                           ['G', 2, 1], ['A', 1, 1]]]
 
         return finite + affine
 
@@ -375,10 +375,14 @@ class CoxeterType(SageObject):
 
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         UCF = UniversalCyclotomicField()
-        if UCF.has_coerce_map_from(base_ring):
+
+        if R is None:
             R = UCF
-        else:
-            R = base_ring
+        # if UCF.has_coerce_map_from(base_ring):
+        #     R = UCF
+        # else:
+        #     R = base_ring
+
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
         if R is UCF:
             val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x > -1 else R.one()*x

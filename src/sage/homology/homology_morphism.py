@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 # To do: implement morphisms of cubical complexes, with methods
 #   - domain
@@ -39,7 +40,7 @@ class InducedHomologyMorphism(Morphism):
     induced by a map of simplicial complexes. It requires working
     with field coefficients.
 
-    INPUTS:
+    INPUT:
 
     - ``map`` -- the map of simplicial complexes
     - ``base_ring`` -- a field (optional, default ``QQ``)
@@ -60,9 +61,9 @@ class InducedHomologyMorphism(Morphism):
         sage: f = H({0:0, 1:2, 2:1})  # f switches two vertices
         sage: f_star = f.induced_homology_morphism(QQ, cohomology=True)
         sage: f_star
-        Graded algebra endomorphism of Cohomology ring of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} over Rational Field
+        Graded algebra endomorphism of Cohomology ring of Minimal triangulation of the 1-sphere over Rational Field
           Defn: induced by:
-            Simplicial complex endomorphism of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Simplicial complex endomorphism of Minimal triangulation of the 1-sphere
               Defn: 0 |--> 0
                     1 |--> 2
                     2 |--> 1
@@ -76,20 +77,20 @@ class InducedHomologyMorphism(Morphism):
         sage: T = simplicial_complexes.Torus()
         sage: y = T.homology_with_basis(QQ).basis()[(1,1)]
         sage: y.to_cycle()
-        (0, 3) - (0, 6) + (3, 6)
+        (0, 2) - (0, 5) + (2, 5)
 
-    Since `(0,3) - (0,6) + (3,6)` is a cycle representing a homology
+    Since `(0,2) - (0,5) + (2,5)` is a cycle representing a homology
     class in the torus, we can define a map `S^1 \to T` inducing an
     inclusion on `H_1`::
 
-        sage: Hom(S1, T)({0:0, 1:3, 2:6})
+        sage: Hom(S1, T)({0:0, 1:2, 2:5})
         Simplicial complex morphism:
-          From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-          To: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+          From: Minimal triangulation of the 1-sphere
+          To: Minimal triangulation of the torus
           Defn: 0 |--> 0
-                1 |--> 3
-                2 |--> 6
-        sage: g = Hom(S1, T)({0:0, 1:3, 2: 6})
+                1 |--> 2
+                2 |--> 5
+        sage: g = Hom(S1, T)({0:0, 1:2, 2: 5})
         sage: g_star = g.induced_homology_morphism(QQ)
         sage: g_star.to_matrix(0)
         [1]
@@ -118,11 +119,11 @@ class InducedHomologyMorphism(Morphism):
         sage: diag_c(b)
         h^{1,0}
         sage: diag_c(c)
-        h^{1,0}
+        0
     """
     def __init__(self, map, base_ring=None, cohomology=False):
         """
-        INPUTS:
+        INPUT:
 
         - ``map`` -- the map of simplicial complexes
         - ``base_ring`` -- a field (optional, default ``QQ``)
@@ -200,7 +201,7 @@ class InducedHomologyMorphism(Morphism):
         degree; otherwise, return the block matrix representing the
         entire map.
 
-        INPUTS:
+        INPUT:
 
         - ``deg`` -- (optional, default ``None``) the degree
 
@@ -280,7 +281,7 @@ class InducedHomologyMorphism(Morphism):
         """
         Return ``True`` if and only if this map agrees with ``other``.
 
-        INPUTS:
+        INPUT:
 
         - ``other`` -- another induced homology morphism
 
@@ -395,11 +396,11 @@ class InducedHomologyMorphism(Morphism):
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: K = simplicial_complexes.Simplex(2)
             sage: f = Hom(S1, K)({0: 0, 1:1, 2:2})
-            sage: print f.induced_homology_morphism()._repr_defn()
+            sage: print(f.induced_homology_morphism()._repr_defn())
             induced by:
               Simplicial complex morphism:
-                From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-                To:   Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+                From: Minimal triangulation of the 1-sphere
+                To:   The 2-simplex
                 Defn: 0 |--> 0
                       1 |--> 1
                       2 |--> 2

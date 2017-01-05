@@ -638,8 +638,8 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     if index_set is not None or abelian:
         if abelian:
             from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
@@ -857,7 +857,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         `i_1 \dots i_j`, such that the abelianization of the
         group is isomorphic to
 
-        .. math::
+        .. MATH::
 
             \ZZ / (i_1) \times \dots \times \ZZ / (i_j)
 
@@ -915,4 +915,4 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __div__ = quotient
+    __truediv__ = quotient

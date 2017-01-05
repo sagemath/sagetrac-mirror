@@ -3,7 +3,7 @@ Abstract SAT Solver
 
 All SAT solvers must inherit from this class.
 
-.. note::
+.. NOTE::
 
     Our SAT solver interfaces are 1-based, i.e., literals start at
     1. This is consistent with the popular DIMACS format for SAT
@@ -70,7 +70,7 @@ cdef class SatSolver:
 
         - ``lits`` - a tuple of integers != 0
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
@@ -210,10 +210,10 @@ cdef class SatSolver:
         """
         TESTS::
 
-        sage: from sage.sat.solvers.satsolver import SatSolver
-        sage: solver = SatSolver()
-        sage: solver
-        a generic SAT solver (don't use me, inherit from me)
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver
+            a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
 

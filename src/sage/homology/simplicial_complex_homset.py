@@ -15,8 +15,8 @@ EXAMPLES::
     sage: x = H(f)
     sage: x
     Simplicial complex morphism:
-      From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-      To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      From: Minimal triangulation of the 1-sphere
+      To: Minimal triangulation of the 2-sphere
       Defn: 0 |--> 0
             1 |--> 1
             2 |--> 3
@@ -96,8 +96,8 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
-              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 3-sphere
+              To: Minimal triangulation of the 2-sphere
               Defn: [0, 1, 2, 3, 4] --> [0, 1, 2, 2, 2]
         """
         return SimplicialComplexMorphism(f,self.domain(),self.codomain())
@@ -113,7 +113,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: d = H.diagonal_morphism()
             sage: d
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 2-sphere
               To:   Simplicial complex with 16 vertices and 96 facets
               Defn: 0 |--> L0R0
                     1 |--> L1R1
@@ -138,9 +138,9 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             raise TypeError("diagonal morphism is only defined for Hom(X,XxX)")
         f = {}
         if rename_vertices:
-            f = {i: "L{0}R{0}".format(i) for i in self._domain.vertices().set()}
+            f = {i: "L{0}R{0}".format(i) for i in self._domain.vertices()}
         else:
-            f = {i: (i,i) for i in self._domain.vertices().set()}
+            f = {i: (i,i) for i in self._domain.vertices()}
         return SimplicialComplexMorphism(f, self._domain, X)
 
     def identity(self):
@@ -164,7 +164,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         """
         if not self.is_endomorphism_set():
             raise TypeError("identity map is only defined for endomorphism sets")
-        f = {i:i for i in self._domain.vertices().set()}
+        f = {i: i for i in self._domain.vertices()}
         return SimplicialComplexMorphism(f, self._domain, self._codomain)
 
     def an_element(self):
@@ -179,18 +179,18 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: x = H.an_element()
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
-              To:   Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 7 facets
+              From: Minimal triangulation of the Klein bottle
+              To:   Minimal triangulation of the 5-sphere
               Defn: [0, 1, 2, 3, 4, 5, 6, 7] --> [0, 0, 0, 0, 0, 0, 0, 0]
         """
-        X_vertices = self._domain.vertices().set()
+        X_vertices = self._domain.vertices()
         try:
-            i = next(self._codomain.vertices().set().__iter__())
+            i = next(iter(self._codomain.vertices()))
         except StopIteration:
             if not X_vertices:
                 return {}
             else:
                 raise TypeError("there are no morphisms from a non-empty simplicial complex to an empty simplicial complex")
-        f = {x:i for x in X_vertices}
+        f = {x: i for x in X_vertices}
         return SimplicialComplexMorphism(f, self._domain, self._codomain)
 
