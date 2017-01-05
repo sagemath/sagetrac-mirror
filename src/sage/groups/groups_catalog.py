@@ -42,6 +42,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - Finitely Presented Groups (``groups.presentation.<tab>``)
 
   - :func:`groups.presentation.Alternating <sage.groups.finitely_presented_named.AlternatingPresentation>`
+  - :func:`groups.presentation.Cactus <sage.groups.finitely_presented_named.CactusPresentation>`
   - :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
   - :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
   - :func:`groups.presentation.DiCyclic <sage.groups.finitely_presented_named.DiCyclicPresentation>`
@@ -69,9 +70,9 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
     - :func:`groups.misc.AdditiveAbelian <sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup>`
     - :class:`groups.misc.AdditiveCyclic <sage.rings.finite_rings.integer_mod_ring.IntegerModFactory>`
+    - :func:`groups.misc.Cactus <sage.groups.cactus_group.CactusGroup>`
     - :func:`groups.misc.Free <sage.groups.free_group.FreeGroup>`
     - :func:`groups.misc.SemimonomialTransformation <sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup>`
-
 """
 
 # Implementation notes:
