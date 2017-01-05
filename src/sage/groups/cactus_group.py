@@ -25,6 +25,8 @@ from sage.categories.groups import Groups
 from sage.groups.group import Group
 from sage.groups.kernel_subgroup import KernelSubgroup
 from sage.combinat.permutation import Permutations
+from sage.structure.sage_object import richcmp
+
 
 class CactusGroup(UniqueRepresentation, Group):
     r"""
@@ -68,7 +70,7 @@ class CactusGroup(UniqueRepresentation, Group):
 
     REFERENCES:
 
-    .. [DJS02] M. Davis, T. Januszkiewicz, and R. Scott.
+    .. [DJS02] \M. Davis, T. Januszkiewicz, and R. Scott.
        *Fundamental groups of blow-ups*.
        Sel. math., New ser. 4 (2002) pp 491-547. :arxiv:`math/0203127`.
 
@@ -91,8 +93,10 @@ class CactusGroup(UniqueRepresentation, Group):
             cat = cat.Infinite()
         # Set the names
         l = len(str(n))
-        names = ['s{}{}'.format('0'*(l-len(str(i))) + str(i), '0'*(l-len(str(j))) + str(j))
-                 for i in range(1, self._n+1) for j in range(i+1, self._n+1)]
+        names = ['s{}{}'.format('0' * (l - len(str(i))) + str(i),
+                                '0' * (l - len(str(j))) + str(j))
+                 for i in range(1, self._n + 1)
+                 for j in range(i + 1, self._n + 1)]
         Group.__init__(self, category=cat)
         self._assign_names(names)
 
@@ -142,7 +146,8 @@ class CactusGroup(UniqueRepresentation, Group):
             sage: J3.group_generators()
             Finite family {(1, 2): s[1,2], (1, 3): s[1,3], (2, 3): s[2,3]}
         """
-        l = [(i,j) for i in range(1, self._n+1) for j in range(i+1, self._n+1)]
+        l = [(i, j) for i in range(1, self._n + 1)
+             for j in range(i + 1, self._n + 1)]
         return Family(l, lambda x: self.element_class(self, [x]))
 
     @cached_method
@@ -190,8 +195,8 @@ class CactusGroup(UniqueRepresentation, Group):
         if self._n <= 1:
             return self.one()
         if self._n == 2:
-            return self.element_class(self, [(1,2)])
-        return self.element_class(self, [(1,2), (2,3), (1,3)])
+            return self.element_class(self, [(1, 2)])
+        return self.element_class(self, [(1, 2), (2, 3), (1, 3)])
 
     def random_element(self, max_length=10):
         """
@@ -208,7 +213,7 @@ class CactusGroup(UniqueRepresentation, Group):
         gens = list(self.group_generators())
         ret = self.one()
         for _ in range(l):
-            ret *= gens[randint(0, len(gens)-1)]
+            ret *= gens[randint(0, len(gens) - 1)]
         return ret
 
     def bilinear_form(self, t=None):
@@ -275,9 +280,9 @@ class CactusGroup(UniqueRepresentation, Group):
             for y in K:
                 if x is y:
                     ret.append(R.one())
-                elif (x[1] < y[0] or x[0] > y[1] # Disjoint
-                      or (x[0] <= y[0] and y[1] <= x[1]) # y <= x
-                      or (y[0] <= x[0] and x[1] <= y[1])): # x <= y
+                elif (x[1] < y[0] or x[0] > y[1] or  # Disjoint
+                      (x[0] <= y[0] and y[1] <= x[1]) or  # y <= x
+                      (y[0] <= x[0] and x[1] <= y[1])):  # x <= y
                     ret.append(R.zero())
                 else:
                     ret.append(-t)
@@ -326,14 +331,14 @@ class CactusGroup(UniqueRepresentation, Group):
         V = FreeModule(F, len(K))
         basis = V.basis()
         ret = {}
-        for ik,k in enumerate(K):
+        for ik, k in enumerate(K):
             E = [basis[ik]]
             ME = matrix(E)
             # The only non-trivial elements are those reflected by the interval k
-            for low in range(k[0], k[1]+1):
-                for high in range(low+1, k[1]+1):
+            for low in range(k[0], k[1] + 1):
+                for high in range(low + 1, k[1] + 1):
                     v = (low, high)
-                    vp = (k[0]+k[1]-high, k[0]+k[1]-low)
+                    vp = (k[0] + k[1] - high, k[0] + k[1] - low)
                     if v == vp:
                         continue
                     elt = basis[K.index(v)] - basis[K.index(vp)]
@@ -343,7 +348,7 @@ class CactusGroup(UniqueRepresentation, Group):
             # Get the orthogonal complement wrt to the bilinear form B
             Fv = (ME * B).right_kernel().basis_matrix()
             T = ME.stack(Fv).transpose()
-            rho = matrix.diagonal(F, [-1]*len(E) + [1]*(len(K)-len(E)))
+            rho = matrix.diagonal(F, [-1] * len(E) + [1] * (len(K) - len(E)))
             ret[k] = T * rho * ~T
         return Family(K, lambda k: ret[k])
 
@@ -374,13 +379,13 @@ class CactusGroup(UniqueRepresentation, Group):
         """
         if x == y:
             return ()
-        if x[1] < y[0]: # Disjoint and in order
+        if x[1] < y[0]:  # Disjoint and in order
             return (x, y)
-        if x[0] > y[1]: # Disjoint but out of order
+        if x[0] > y[1]:  # Disjoint but out of order
             return (y, x)
         # They must not be disjoint
-        if x[0] <= y[0] and y[1] <= x[1]: # x contains y, swap
-            return ((x[0]+x[1]-y[1],x[0]+x[1]-y[0]), x)
+        if x[0] <= y[0] and y[1] <= x[1]:  # x contains y, swap
+            return ((x[0] + x[1] - y[1], x[0] + x[1] - y[0]), x)
         return (x, y)
 
     class Element(MultiplicativeGroupElement):
@@ -430,7 +435,7 @@ class CactusGroup(UniqueRepresentation, Group):
             """
             if not self._word:
                 return '1'
-            return ' '.join("s_{%s,%s}"%x for x in self._word)
+            return ' '.join("s_{%s,%s}" % x for x in self._word)
 
         def __hash__(self):
             """
@@ -444,7 +449,7 @@ class CactusGroup(UniqueRepresentation, Group):
             """
             return hash((self.parent(), self._word))
 
-        def _cmp_(self, other):
+        def _richcmp_(self, other, op):
             """
             Compare ``self`` and ``other``.
 
@@ -460,7 +465,7 @@ class CactusGroup(UniqueRepresentation, Group):
                 sage: elt == s12*s23*s13
                 True
             """
-            return cmp(self._word, other._word)
+            return richcmp(self._word, other._word, op)
 
         def _mul_(self, other):
             """
@@ -485,20 +490,20 @@ class CactusGroup(UniqueRepresentation, Group):
                 return self
             word = list(self._word + other._word)
             P = self.parent()
-            cur_pos = len(self._word) - 1 # We know self._word is in order
+            cur_pos = len(self._word) - 1  # We know self._word is in order
             end = len(word) - 1
             while cur_pos < end:
-                ret = P._product_on_gens(word[cur_pos], word[cur_pos+1])
-                if not ret: # Reduce the length
+                ret = P._product_on_gens(word[cur_pos], word[cur_pos + 1])
+                if not ret:  # Reduce the length
                     word.pop(cur_pos)
                     word.pop(cur_pos)
-                    if cur_pos > 0: # Nothing else to the left
+                    if cur_pos > 0:  # Nothing else to the left
                         cur_pos -= 1
                     end -= 2
-                elif ret != (word[cur_pos], word[cur_pos+1]):
+                elif ret != (word[cur_pos], word[cur_pos + 1]):
                     word[cur_pos] = ret[0]
-                    word[cur_pos+1] = ret[1]
-                    if cur_pos == 0: # Nothing else to check to the left
+                    word[cur_pos + 1] = ret[1]
+                    if cur_pos == 0:  # Nothing else to check to the left
                         cur_pos += 1
                     else:
                         cur_pos -= 1
@@ -555,17 +560,17 @@ class CactusGroup(UniqueRepresentation, Group):
                 sage: elt = s12*s23
                 sage: elt.to_permutation() == P3(s12) * P3(s23)
                 True
-                sage: Permutations.global_options(mult='r2l')
+                sage: Permutations.options.mult='r2l'
                 sage: elt.to_permutation() == P3(s12) * P3(s23)
                 True
-                sage: Permutations.global_options.reset()
+                sage: Permutations.options.mult='l2r'
             """
             n = self.parent().n()
             P = Permutations(n)
             ret = P.one()
             for x in self._word:
-                lst = list(range(1, n+1))
-                lst[x[0]-1:x[1]] = list(reversed(lst[x[0]-1:x[1]]))
+                lst = list(range(1, n + 1))
+                lst[x[0] - 1:x[1]] = list(reversed(lst[x[0] - 1:x[1]]))
                 ret *= P(lst)
             return ret
 
@@ -598,12 +603,13 @@ class CactusGroup(UniqueRepresentation, Group):
                 True
             """
             G = self.parent().representation_generators()
-            ret = G[(1,2)].parent().one()
+            ret = G[(1, 2)].parent().one()
             for x in self._word:
                 ret *= G[x]
             return ret
 
         to_matrix = _matrix_
+
 
 class PureCactusGroup(KernelSubgroup):
     """
@@ -667,4 +673,3 @@ class PureCactusGroup(KernelSubgroup):
             3
         """
         return self.ambient().n()
-
