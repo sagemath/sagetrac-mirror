@@ -6629,8 +6629,8 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression s, a, b
         cdef GEx x
-        cdef int i
-        if type(args) is tuple:
+        cdef int i = 1
+        if len(args) > 1:
             n, l1, l2 = args
             s = self.coerce_in(n)
             a = self.coerce_in(l1)
@@ -6645,7 +6645,7 @@ cdef class Expression(CommutativeRingElement):
                 raise ValueError("expression not Gosper-summable")
             return new_Expression_from_GEx(self._parent, x)
         else:
-            s = self.coerce_in(args)
+            s = self.coerce_in(args[0])
             sig_on()
             try:
                 x = g_gosper_sum_indefinite(self._gobj, s._gobj, &i)
