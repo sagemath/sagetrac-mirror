@@ -6619,13 +6619,46 @@ cdef class Expression(CommutativeRingElement):
 
     def gosper_sum(self, *args):
         """
+        Return the summation of this hypergeometric expression using
+        Gosper's algorithm.
+
+        INPUT::
+
+            - a symbolic expression that may contain rational functions,
+            powers, factorials, gamma function terms, binomial
+            coefficients, and Pochhammer symbols that are rational-linear
+            in their arguments.
+
+            - the main variable and, optionally, summation limits
+
         EXAMPLES::
 
-            sage: _ = var('k n')
-            sage: SR(1).gosper_sum(k,0,n)
-            n + 1
-            sage: (k).gosper_sum(k,0,n)
-            1/2*(n + 1)*n
+            sage: _ = var('a b k m n')
+            sage: SR(1).gosper_sum(n)
+            n
+            sage: SR(1).gosper_sum(n,5,8)
+            4
+            sage: SR(n).gosper_sum(n)
+            1/2*(n - 1)*n
+            sage: SR(n).gosper_sum(n,0,5)
+            15
+            sage: SR(n).gosper_sum(n,0,m)
+            1/2*(m + 1)*m
+            sage: SR(n).gosper_sum(n,a,b)
+            -1/2*(a + b)*(a - b - 1)
+
+        ::
+
+            sage: (factorial(m + n)/factorial(n)).gosper_sum(n)
+            n*factorial(m + n)/((m + 1)*factorial(n))
+            sage: (binomial(m + n, n)).gosper_sum(n)
+            n*binomial(m + n, n)/(m + 1)
+            sage: (binomial(m + n, n)).gosper_sum(n, 0, a)
+            (a + m + 1)*binomial(a + m, a)/(m + 1)
+            sage: (binomial(m + n, n)).gosper_sum(n, 0, 5)
+            1/120*(m + 6)*(m + 5)*(m + 4)*(m + 3)*(m + 2)
+            sage: (rising_factorial(a,n)/rising_factorial(b,n)).gosper_sum(n)
+            (b + n - 1)*gamma(a + n)*gamma(b)/((a - b + 1)*gamma(a)*gamma(b + n))
         """
         cdef Expression s, a, b
         cdef GEx x
