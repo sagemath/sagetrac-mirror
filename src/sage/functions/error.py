@@ -526,3 +526,5 @@ class Function_erfinv(BuiltinFunction):
 
 erfinv = Function_erfinv()
 
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.functions.other', 'Function_erf', Function_erf)
