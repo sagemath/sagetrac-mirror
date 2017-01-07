@@ -830,6 +830,27 @@ class Rings(CategoryWithAxiom):
                 sage: K.base_field().base_field()
                 Number Field in b with defining polynomial x^3 - 3
 
+            When only one element is provided, the method tries to choose the
+            embedding appropriately::
+
+                sage: K = QQ[3^(1/3)]
+                sage: K
+                Number Field in a with defining polynomial x^3 - 3
+                sage: K.coerce_embedding()
+                Generic morphism:
+                  From: Number Field in a with defining polynomial x^3 - 3
+                  To:   Algebraic Real Field
+                  Defn: a -> 1.442249570307409?
+
+                sage: UCF = UniversalCyclotomicField()
+                sage: K = QQ[UCF.zeta(3)]
+                sage: K
+                Number Field in a with defining polynomial x^2 + x + 1
+                sage: K.coerce_embedding()
+                Generic morphism:
+                  From: Number Field in a with defining polynomial x^2 + x + 1
+                  To:   Universal Cyclotomic Field
+                  Defn: a -> E(3)
             """
             def normalize_arg(arg):
                 if isinstance(arg, (tuple, list)):
@@ -874,8 +895,20 @@ class Rings(CategoryWithAxiom):
 
             if minpolys:
                 # how to pass in names?
-                # TODO: set up embeddings
                 names = tuple(_gen_names(elts))
+                if len(minpolys) == 1:
+                    # we make an exception for the symbolic ring since we do not want
+                    # to declare an embedding into the symbolic ring
+                    from sage.symbolic.ring import SR
+                    from sage.rings.all import AA, QQbar
+                    from sage.structure.element import parent
+
+                    a = elts[0]
+                    if parent(a) is SR:
+                        field = AA if a.is_real() else QQbar
+                        a = field(a)
+                    return self.extension(minpolys[0], names[0], embedding=a)
+
                 try:
                     # Doing the extension all at once is best, if possible...
                     return self.extension(minpolys, names)
