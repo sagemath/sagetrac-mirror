@@ -1,0 +1,24 @@
+diff --git a/Include/pyport.h b/Include/pyport.h
+--- a/Include/pyport.h
++++ b/Include/pyport.h
+@@ -699,6 +699,12 @@
+ #endif
+ 
+ #ifdef _PY_PORT_CTYPE_UTF8_ISSUE
++#ifndef __cplusplus
++   /* The workaround below is unsafe in C++ because
++    * the <locale> defines these symbols as real functions,
++    * with a slightly different signature.
++    * See issue #10910
++    */
+ #include <ctype.h>
+ #include <wctype.h>
+ #undef isalnum
+@@ -716,6 +722,7 @@
+ #undef toupper
+ #define toupper(c) towupper(btowc(c))
+ #endif
++#endif
+ 
+ 
+ /* Declarations for symbol visibility.
