@@ -1911,13 +1911,13 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'integer')
             sage: x.is_integer()
-            False
+            Unknown
             sage: x.decl_assume(decl._assumption)
             sage: x.is_integer()
             True
             sage: x.decl_forget(decl._assumption)
             sage: x.is_integer()
-            False
+            Unknown
         """
         pynac_forget_gdecl(self._gobj, decl)
 
@@ -2063,14 +2063,23 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(5).is_integer()
             True
+            sage: x.is_integer()
+            Unknown
 
-        TESTS:
-
-        Check that integer variables are recognized (:trac:`18921`)::
+        Integer variables are recognized (:trac:`18921`), and so
+        are some composed expressions::
 
             sage: _ = var('n', domain='integer')
             sage: n.is_integer()
             True
+            sage: (binomial(n+3, n, hold=True) + factorial(2*n+3)).is_integer()
+            True
+            sage: ex = binomial(n+3, n); ex
+            1/6*(n + 3)*(n + 2)*(n + 1)
+            sage: ex.is_integer()
+            Unknown
+            sage: (n * x).is_integer()
+            Unknown
 
         Assumption of integer has the same effect as setting the domain::
 
@@ -2080,7 +2089,11 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: forget()
         """
-        return self._gobj.info(info_integer)
+        if self._gobj.info(info_integer):
+            return True
+        else:
+            from sage.misc.unknown import Unknown
+            return Unknown
 
     def is_symbol(self):
         """
