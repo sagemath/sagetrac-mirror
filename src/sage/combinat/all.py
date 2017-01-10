@@ -109,6 +109,9 @@ from .tuple import Tuples, UnorderedTuples
 #Alternating sign matrices
 from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
 
+#Descending plane partitions
+from .descending_plane_partition import DescendingPlanePartition, DescendingPlanePartitions
+
 # Parking Functions
 from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from .parking_functions import ParkingFunctions, ParkingFunction
