@@ -1,6 +1,8 @@
 """
 Shuffle operads
 
+Basic implementation of shuffle operads.
+
 REFERENCES:
 
 .. [DoKo] V. Dotsenko and A. Khoroshkin, Anton, *Gröbner bases for operads*.
@@ -12,9 +14,9 @@ from sage.combinat.ordered_tree import LabelledOrderedTrees
 
 class FreeShuffleOperad(CombinatorialFreeModule):
     r"""
-    The free shuffle operad over any given set of generators
+    The free shuffle operad over any given set of generators.
 
-    Generators are given as a list of labelled ordered trees
+    Generators are given as a list of labelled ordered trees.
     """
     def __init__(self, R, gens, order='pathlex'):
         """
@@ -33,17 +35,20 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         self._gens = gens
         self._term_order = order
 
-    def cmp_fun(self, order):
+    def cmp_fun(self, order=None):
         """
         ordering according to a term order
+
+        IL FAUT UTILISER plutot une "key" !
 
         possible values so far for order:
 
         - 'pathlex'
         """
+        if order is None:
+            order = 'pathlex'
         if order == 'pathlex':
             return lambda x, y: self.pathlex_cmp(x, y)
-        return lambda x, y: cmp(x, y)
 
     def pathlex_cmp(self, x, y):
         """
@@ -132,7 +137,13 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
+            sage: L = LabelledOrderedTrees()
+            sage: lf = lambda A: L([],label=A) # leaf
+            sage: g = L([lf(1),lf(2)],label="a")
+            sage: A = FreeShuffleOperad(QQ,(g,))
+            sage: A.degree_on_basis(g)
+            2
         """
         return len(x.leaf_labels())
 
@@ -192,9 +203,26 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         This is done in a recursive way, and assumes that all leaves
         have distinct labels.
 
+        INPUT:
+
+        - ``x`` and ``y`` are labeled ordered trees
+
+        - ``i`` is an integer between 1 and the number of leaves of ``x``
+
+        OUTPUT:
+
+        a labelled ordered tree
+
         EXAMPLES::
 
-            sage: TODO
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
+            sage: L = LabelledOrderedTrees()
+            sage: lf = lambda A: L([],label=A) # leaf
+            sage: g = L([lf(1),lf(2)],label="a")
+            sage: h = L([lf(2),lf(3)],label="a")
+            sage: A = FreeShuffleOperad(QQ,(g,))
+            sage: A.graft(g, h, 2)
+            ?
         """
         if x.node_number() == 1:
             return y
@@ -217,7 +245,7 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         - ``x`` and ``y`` are labeled ordered trees
 
-        - ``i`` is an integer between 1 and the number of leaves of x
+        - ``i`` is an integer between 1 and the number of leaves of ``x``
 
         - ``sigma`` is a permutation
 
@@ -270,3 +298,94 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         if self.shuffle_composition_on_basis is not NotImplemented:
             return self._module_morphism(self._module_morphism(self.shuffle_composition_on_basis, position=0, codomain=self), position=1)
         return NotImplemented
+
+
+def divisors_of_shape(alpha, beta):
+    """
+    Find all occurences of the tree beta as a divisor of the tree alpha.
+
+    pas au point, il faudrait renvoyer des arbres avec trous ?
+    """
+    for t in alpha.subtrees():
+        b = extract_divisor_at_root(t, beta)
+        if b is False:
+            pass
+        else:
+            yield b  # il faudrait renvoyer l'arbre total
+
+
+def extract_divisor_at_root(alpha, beta):
+    """
+    Check if beta is a divisor of alpha at the root
+
+    If yes, return the tree with beta collapsed.
+
+    If no, return ``False``
+
+    pas au point a cause des etiquettes ! penible..
+
+    EXAMPLES::
+
+        sage: L = LabelledOrderedTrees()
+        sage: lf = lambda A: L([],label=A)  # leaf
+        sage: ga = L([lf(1),lf(2)],label="a")
+        sage: gb = L([lf(1),lf(2)],label="b")
+        sage: h = L([ga,lf(3)],label="a")
+        sage: i = L([L([lf(1),lf(2)],'b'),L([lf(3),lf(4)],'c')],label="a"
+        sage: extract_divisor_at_root(ga,h)
+        False
+
+        sage: x0 = L([lf(1),lf(3)],label="a")
+        sage: x1 = L([x0,lf(2)],label="a")
+        sage: x2 = L([lf(1),lf(2)],label="a")
+        sage: x3 = L([x2,lf(3)],label="a")
+        sage: extract_divisor_at_root(x1, x3)
+        False
+
+    Large example::
+
+        sage: x13 = L([lf(1),lf(3)],label="a")
+        sage: x45 = L([lf(4),lf(5)],label="a")
+        sage: x1345 = L([x13,x45], label="a")
+        sage: large = L([x1345,lf(2)], label="a")
+        sage: small = L([x13,lf(2)], label="a")
+        sage: extract_divisor_at_root(large, small)
+        False
+    """
+    if len(alpha) != len(beta) or alpha.label() != beta.label():
+        return False
+
+    list_match = []
+    alpha_labels = []
+    beta_labels = []
+    for i, beta_i in enumerate(beta):
+        alpha_i = alpha[i]
+        if len(beta_i):
+            match = extract_divisor_at_root(alpha_i, beta_i)
+            if match is False:
+                return False
+            list_match.append(match)
+            alpha_labels.append(leftmost_leaf_label(match))
+        else:
+            list_match.append(LabelledOrderedTree([alpha_i], label="H"))
+            alpha_labels.append(leftmost_leaf_label(alpha_i))
+        beta_labels.append(leftmost_leaf_label(beta_i))
+
+    wa = Word(alpha_labels).standard_permutation()
+    wb = Word(beta_labels).standard_permutation()
+    print wa, wb
+    if wa != wb:
+        return False
+
+    return LabelledOrderedTree([subtree for t in list_match for subtree in t],
+                               label="H")
+
+
+
+def leftmost_leaf_label(tree):
+    """
+    c'est aussi l'etiquette minimale
+    """
+    if not(len(tree)):
+        return tree.label()
+    return leftmost_leaf_label(tree[0])
