@@ -304,9 +304,9 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: k.<a> = GF(9)
             sage: SR(a).is_real()
-            False
+            Unknown
             sage: SR(a).is_positive()
-            False
+            Unknown
 
         We get a sensible error message if conversion fails::
 
@@ -325,11 +325,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: sin(x).subs(x=RR('NaN'))
             sin(NaN)
             sage: SR(RR('NaN')).is_real()
-            False
+            Unknown
             sage: sin(x).subs(x=float('NaN'))
             sin(NaN)
             sage: SR(float('NaN')).is_real()
-            False
+            Unknown
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
         """

@@ -1897,7 +1897,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'real')
             sage: x.is_real()
-            False
+            Unknown
             sage: x.decl_assume(decl._assumption)
             sage: x.is_real()
             True
@@ -1956,11 +1956,16 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: SR(1.2).is_algebraic()
             False
+            sage: x.is_algebraic()
+            Unknown
         """
         try:
             ex = sage.rings.all.QQbar(self)
-        except (TypeError, ValueError, NotImplementedError):
+        except (TypeError, ValueError):
             return False
+        except NotImplementedError:
+            from sage.misc.unknown import Unknown
+            return Unknown
         return True
 
     def is_real(self):
@@ -1973,21 +1978,21 @@ cdef class Expression(CommutativeRingElement):
             sage: t0.is_real()
             True
             sage: t0.is_positive()
-            False
+            Unknown
             sage: t1 = SR.symbol("t1", domain='positive')
             sage: (t0+t1).is_real()
             True
             sage: (t0+x).is_real()
-            False
+            Unknown
             sage: (t0*t1).is_real()
             True
             sage: (t0*x).is_real()
-            False
+            Unknown
 
         The following is real, but we cannot deduce that.::
 
             sage: (x*x.conjugate()).is_real()
-            False
+            Unknown
 
         Assumption of real has the same effect as setting the domain::
 
@@ -1997,7 +2002,11 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: forget()
         """
-        return self._gobj.info(info_real)
+        if self._gobj.info(info_real):
+            return True
+        else:
+            from sage.misc.unknown import Unknown
+            return Unknown
 
     def is_positive(self):
         """
@@ -2018,7 +2027,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (t0 + t1).is_positive()
             True
             sage: (t0*x).is_positive()
-            False
+            Unknown
 
         ::
 
@@ -2032,7 +2041,13 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: forget()
         """
-        return self._gobj.info(info_positive)
+        if self._gobj.info(info_positive):
+            return True
+        elif self._gobj.info(info_negative) or self.is_trivial_zero():
+            return False
+        else:
+            from sage.misc.unknown import Unknown
+            return Unknown
 
     def is_negative(self):
         """
@@ -2053,7 +2068,13 @@ cdef class Expression(CommutativeRingElement):
             sage: (-pi).is_negative()
             True
         """
-        return self._gobj.info(info_negative)
+        if self._gobj.info(info_negative):
+            return True
+        elif self._gobj.info(info_positive) or self.is_trivial_zero():
+            return False
+        else:
+            from sage.misc.unknown import Unknown
+            return Unknown
 
     def is_integer(self):
         """
