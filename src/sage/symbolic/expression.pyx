@@ -2078,7 +2078,9 @@ cdef class Expression(CommutativeRingElement):
             1/6*(n + 3)*(n + 2)*(n + 1)
             sage: ex.is_integer()
             Unknown
-            sage: (n * x).is_integer()
+            sage: (6 * ex).is_integer()
+            True
+            sage: (x * ex).is_integer()
             Unknown
 
         Assumption of integer has the same effect as setting the domain::
