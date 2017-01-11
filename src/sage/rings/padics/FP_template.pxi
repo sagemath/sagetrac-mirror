@@ -212,6 +212,12 @@ cdef class FPElement(pAdicTemplateElement):
         """
         Normalize this element, so that ``self.ordp`` is correct.
 
+        .. NOTE::
+
+            The methods in this template all assume their inputs to be
+            normalized. At the same time, all outputs returned are guaranteed
+            to be normalized.
+
         TESTS::
 
             sage: R = ZpFP(5)
@@ -313,7 +319,7 @@ cdef class FPElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             cadd(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-            ans._normalize() # safer than trying to leave unnormalized
+            ans._normalize()
         else:
             if self.ordp > right.ordp:
                 # Addition is commutative, swap so self.ordp < right.ordp
@@ -365,7 +371,7 @@ cdef class FPElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             csub(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-            ans._normalize() # safer than trying to leave unnormalized
+            ans._normalize()
         elif self.ordp < right.ordp:
             if very_neg_val(self.ordp):
                 return self
