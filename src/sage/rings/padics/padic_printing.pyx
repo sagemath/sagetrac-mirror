@@ -505,32 +505,32 @@ cdef class pAdicPrinter_class(SageObject):
             sage: R._printer.cmp_modes(S._printer)
             -1
         """
-        c = cmp(self.mode, other.mode)
+        c = (self.mode > other.mode)-(self.mode < other.mode)
         if c != 0:
             return c
         p = self.ring.prime()
         q = other.ring.prime()
-        c = cmp(p, q)
+        c = (p > q)-(p < q)
         if c != 0:
             return c
         if p != 2 and (self.mode == terse or self.mode == series or self.mode == val_unit or self.mode == bars):
-            c = cmp(self.pos, other.pos)
+            c = (self.pos > other.pos)-(self.pos < other.pos)
             if c != 0:
                 return c
         if self.mode != digits:
-            c = cmp(self.ram_name, other.ram_name)
+            c = (self.ram_name > other.ram_name)-(self.ram_name < other.ram_name)
             if c != 0:
                 return c
         if self.mode == bars:
-            c = cmp(self.sep, other.sep)
+            c = (self.sep > other.sep)-(self.sep < other.sep)
             if c != 0:
                 return c
         if self.mode == digits:
-            c = cmp(self.alphabet[:p], other.alphabet[:q])
+            c = (self.alphabet[:p] > other.alphabet[:q])-(self.alphabet[:p] < other.alphabet[:q])
             if c != 0:
                 return c
         if self.mode == series or self.mode == digits or self.mode == bars:
-            c = cmp(self.max_ram_terms, other.max_ram_terms)
+            c = (self.max_ram_terms > other.max_ram_terms)-(self.max_ram_terms < other.max_ram_terms)
             if c != 0:
                 return c
         f = self.ring.f()
@@ -538,23 +538,23 @@ cdef class pAdicPrinter_class(SageObject):
             f = other.ring.f()
         if f > 1:
             if self.mode == series or self.mode == bars:
-                c = cmp(self.unram_name, other.unram_name)
+                c = (self.unram_name > other.unram_name)-(self.unram_name < other.unram_name)
                 if c != 0:
                     return c
-                c = cmp(self.max_unram_terms, other.max_unram_terms)
+                c = (self.max_unram_terms > other.max_unram_terms)-(self.max_unram_terms < other.max_unram_terms)
                 if c != 0:
                     return c
         f = self.ring.degree()
         if other.ring.degree() > f:
             f = other.ring.degree()
         if f > 1 and self.mode == terse:
-            c = cmp(self.var_name, other.var_name)
+            c = (self.var_name > other.var_name)-(self.var_name < other.var_name)
             if c != 0:
                 return c
-            c = cmp(self.max_terse_terms, other.max_terse_terms)
+            c = (self.max_terse_terms > other.max_terse_terms)-(self.max_terse_terms < other.max_terse_terms)
             if c != 0:
                 return c
-        return cmp(self.show_prec, other.show_prec)
+        return (self.show_prec > other.show_prec)-(self.show_prec < other.show_prec)
 
     def _repr_(self):
         """
