@@ -1,5 +1,12 @@
 r"""
-Descending plane partitions
+Descending plane partition
+
+Descending plane partitions are strict shifted plane partitions such that the 
+largest part in a row is greater than the number of parts in that row and at 
+most the number of parts in the previous row. Interest in these objects stems
+primarily from the fact that descending plane partitions with parts of size at 
+most `n` are known to be equinumerous with `n \times n` alternating sign 
+matrices, but no explicit bijection is known.
 
 AUTHORS:
 
@@ -40,11 +47,11 @@ class DescendingPlanePartition():
 
     REFERENCES:
 
-    .. [MiRoRu] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
+    .. [MiRoRu] \W. H. Mills, \D P. Robbins, \H. Rumsey Jr.,
        *Alternating sign matrices and descending plane partitions*,
        Journal of Combinatorial Theory, Series A,
        Volume 34, Issue 3, May 1983, Pages 340--359.
-       http://www.sciencedirect.com/science/article/pii/0097316583900687
+       :doi:`10.1016/0097-3165(83)90068-7`
     """
     def __init__(self, DPP):
         """
@@ -83,7 +90,6 @@ class DescendingPlanePartition():
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
             sage: DPP._pretty_string()
             '544\n 32\n'
-        
         """
         rstr = ""
         for i in range(len(self.DPP)):
@@ -98,6 +104,14 @@ class DescendingPlanePartition():
         r"""
         Return a formatted string representing ``self``.
        
+        EXAMPLES::
+            
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
+            sage: DPP.pp()
+            544
+             32
+            <BLANKLINE>
+
         """
         print self._pretty_string()
     
@@ -106,6 +120,11 @@ class DescendingPlanePartition():
         Return True if each column of the descending plane partition is strictly 
         decreasing and False otherwise.
 
+        EXAMPLES::
+            
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
+            sage: DPP._is_columnar_descending(DPP)
+            True
         """
         #len == 2 len dpp[-2]>len dpp[-1]
         if len(dpp[-1])>=len(dpp[-2]):
@@ -119,6 +138,12 @@ class DescendingPlanePartition():
         """
         Return the next descending plane partition row given a starting 
         descending plane partition row.
+
+        EXAMPLES::
+            
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
+            sage: DPP._increment_row([5,3,3,3])
+            [5, 4]
 
         """
         if type(dpprow) is type([]):
@@ -187,7 +212,6 @@ class DescendingPlanePartition():
         return dpp
     
     def increment(self):
-        
         """
         Return the next descending plane partition in the iterator's sequence.
         
@@ -203,7 +227,6 @@ class DescendingPlanePartition():
         self.DPP = self.getNextDPP()
     
     def __getitem__(self, rowIndex):
-        
         """
         Return the row with index rowIndex of the descending plane partition.
         
@@ -217,7 +240,6 @@ class DescendingPlanePartition():
         return self.DPP[rowIndex]
     
     def __copy__(self):
-        
         """
         Return a copy of the descending plane partition.
 
@@ -231,11 +253,11 @@ class DescendingPlanePartition():
         return DescendingPlanePartition(self.DPP)
     
     def sum(self):
-        
         """
         Return the sum of ``self``.
         
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
             sage: DPP.sum()
             21
@@ -250,12 +272,11 @@ class DescendingPlanePartition():
 
     
     def special_parts(self):
-        
         """
         Return special parts in ``self``.
 
-        A special part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that the value of $p$ is strictly less 
+        A special part of a descending plane partition is a part, `p`, of the 
+        descending plane partition such that the value of `p` is strictly less 
         than its position from the left of start of the row.
         
         EXAMPLES::
@@ -277,12 +298,11 @@ class DescendingPlanePartition():
         return sparts
 
     def number_of_special_parts(self):
-        
         """
         Return the number of special parts in ``self``.
 
-        A special part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that the value of $p$ is strictly less 
+        A special part of a descending plane partition is a part, `p`, of the 
+        descending plane partition such that the value of `p` is strictly less 
         than its position from the left of start of the row.
         
         EXAMPLES::
@@ -299,12 +319,11 @@ class DescendingPlanePartition():
         return len(self.special_parts())
 
     def regular_parts(self):
-        
         """
         Return the regular parts in ``self``.
 
-        A regular part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that $p$ is greater than or equal to its 
+        A regular part of a descending plane partition is a part, `p`, of the 
+        descending plane partition such that `p` is greater than or equal to its 
         position from the left of start of the row.
         
         EXAMPLES::
@@ -317,7 +336,6 @@ class DescendingPlanePartition():
             [5, 2]
         
         """
-        
         rparts = []
         for i in range(len(self.DPP)):
             for j in range(len(self.DPP[i])):
@@ -326,12 +344,11 @@ class DescendingPlanePartition():
         return rparts
 
     def number_of_regular_parts(self):
-        
         """
         Return the number of regular parts in ``self``.
 
-        A regular part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that $p$ is greater than or equal to its 
+        A regular part of a descending plane partition is a part, `p`, of the 
+        descending plane partition such that `p` is greater than or equal to its 
         position from the left of start of the row.
         
         EXAMPLES::
@@ -348,12 +365,11 @@ class DescendingPlanePartition():
         return len(self.regular_parts())
      
     def is_Catalan(self):
-        
         """
         Return True if this DPP is a Catalan DPP.
         
-        A Catalan DPP is a row $a_{i,1} \dots a_{i,{\lambda}}$ of a descending 
-        plane partition such that each entry satisfies $a_{i,j} \leq a_{i,1} - j + 1$
+        A Catalan DPP is a row `a_{i,1} \dots a_{i,{\lambda}}` of a descending 
+        plane partition such that each entry satisfies `a_{i,j} \leq a_{i,1} - j + 1`
         
         EXAMPLES::
 
@@ -378,14 +394,13 @@ class DescendingPlanePartition():
             return False
         
     def get_catalan_dpp_path(self):
-        
         """
         Return the Catalan DPP path that corresponds to ``self`` if this is a 
         valid Catalan descending plane partition.
         
-        A Catalan DPP path is a word composed of $1$'s and $-1$'s such that the 
-        partial sum of each word is always greater than or equal to $0$ when 
-        taken from left to right, and the complete sum is greater than $0$ if 
+        A Catalan DPP path is a word composed of `1`'s and `-1`'s such that the 
+        partial sum of each word is always greater than or equal to `0` when 
+        taken from left to right, and the complete sum is greater than `0` if 
         the word is non-empty.
         
         EXAMPLES::
@@ -410,7 +425,6 @@ class DescendingPlanePartition():
         
     @staticmethod
     def catalan_dpp_path_to_dpp(path):
-        
         """
         Return the corresponding Catalan DPP from the given Catalan DPP Path.
         
@@ -435,12 +449,10 @@ class DescendingPlanePartition():
         return DescendingPlanePartition([row])
     
     def _latex_(self):
-        
         """
         Return the latex representation of ``self``.
 
         """
-        
         xaxis = "210"
         yaxis = "-30"
         zaxis = "90"
@@ -473,7 +485,6 @@ class DescendingPlanePartition():
 class DescendingPlanePartitions():
     
     def __init__(self, n = None, is_Catalan = False):
-        
         """
         Initialize ``self`` to represent either regular or Catalan DPPs with 
         largest part less than or equal to `n`.
@@ -496,7 +507,6 @@ class DescendingPlanePartitions():
     
     @staticmethod
     def is_dpp(dpp):
-        
         """
         Return True if dpp is a valid descending plane partition.
     
@@ -553,8 +563,8 @@ class DescendingPlanePartitions():
         """
         Return True if a DPP is a Catalan DPP.
         
-        A Catalan DPP is a row $a_{i,1} \dots a_{i,{\lambda}}$ of a descending 
-        plane partition such that each entry satisfies $a_{i,j} \leq a_{i,1} - j + 1$
+        A Catalan DPP is a row `a_{i,1} \dots a_{i,{\lambda}}` of a descending 
+        plane partition such that each entry satisfies `a_{i,j} \leq a_{i,1} - j + 1`
         
         EXAMPLES::
 
@@ -573,7 +583,6 @@ class DescendingPlanePartitions():
             return False
                 
     def __contains__(self, DPP):
-        
         """
         Return True if a DPP is a part of this DescendingPlanePartitions object.
         
@@ -625,7 +634,7 @@ class DescendingPlanePartitions():
         Return the string representing this object.
 
         """
-        if self.n == None:
+        if self.n is None:
             if self.catalan:
                 return "The class of all Catalan Descending Plane partitions"
             else:
@@ -653,7 +662,7 @@ class DescendingPlanePartitions():
             218348            
 
         """
-        if self.n == None:
+        if self.n is None:
             return 'Infinite'
         else:        
-            return Integer(prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] ))
+            return Integer(prod( factorial(3*k+1)/factorial(self.n+k) for k in range(self.n) ))
