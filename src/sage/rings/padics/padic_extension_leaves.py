@@ -387,6 +387,11 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             Unramified Extension of 3-adic Ring with floating precision 10000 in a defined by x^3 + 2*x + 1
             sage: R.<a> = ZqFP(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
+
+        TESTS::
+
+            sage: TestSuite(R).run()
+
         """
         self._shift_seed = None
         self._pre_poly = prepoly
@@ -438,6 +443,11 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
             Unramified Extension of 3-adic Field with floating precision 10000 in a defined by x^3 + 2*x + 1
             sage: R.<a> = Qq(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
+
+        TESTS::
+
+            sage: TestSuite(R).run()
+
         """
         # Currently doesn't support polynomials with non-integral coefficients
         self._shift_seed = None
