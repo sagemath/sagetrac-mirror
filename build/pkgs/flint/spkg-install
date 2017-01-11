@@ -26,6 +26,11 @@ fi
 
 cd src
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    # See https://trac.sagemath.org/ticket/22169
+    export CXXFLAGS="$CXXFLAGS -std=gnu++98"
+fi
+
 echo "Configuring FLINT."
 ./configure \
     --disable-static \
