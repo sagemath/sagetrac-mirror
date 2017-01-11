@@ -1,0 +1,54 @@
+= cgal =
+
+== Description ==
+
+CGAL provides efficient and reliable geometric algorithms in the form
+of a C++ library.
+
+== License ==
+
+Various open source licenses: GPL v3+, LGPL v3+, Boost Software
+License, permissive license.  See file LICENSE in the sources for
+details.
+
+== Upstream Contact ==
+
+http://www.cgal.org/
+
+== Dependencies ==
+
+The following dependencies are not handled. As a result, not all
+functionality of CGAL is available.
+
+     - EIGEN (>=3.1)
+       Required by the packages:
+       o Estimation of Local Differential Properties of Point-Sampled Surfaces
+       o Approximation of Ridges and Umbilics on Triangulated Surface Meshes
+       o Planar Parameterization of Triangulated Surface Meshes
+       o Surface Reconstruction from Point Sets
+       http://eigen.tuxfamily.org
+
+    - RS (root isolation)
+       Required by the package:
+       o Algebraic Kernel
+       http://vegas.loria.fr/rs/
+       Note: This is non-free software ("RS is freely distributable for non-commercial use")
+
+     - ESBTL
+       Optional to read PDB files:
+       o Import data from a PDB file as CGAL points or weighted points.
+         An example is given in package Skin_surface (see example skin_surface_pdb_reader.cpp)
+       http://esbtl.sourceforge.net/
+
+     - Qt5 (>= 5.3)
+       http://qt-project.org/
+
+     - libQGLViewer
+       http://www.libqglviewer.com/
+
+     - Geomview
+       http://www.geomview.org/
+       Not supported with Visual C++
+
+== Special Update/Build Instructions ==
+

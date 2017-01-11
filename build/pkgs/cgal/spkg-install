@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+cd src/
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+## Workaround for: CMake Error: CMAKE_OSX_DEPLOYMENT_TARGET is '10.9'
+## but CMAKE_OSX_SYSROOT:"" is not set to a MacOSX SDK with a
+## recognized version.  Either set CMAKE_OSX_SYSROOT to a valid SDK or
+## set CMAKE_OSX_DEPLOYMENT_TARGET to empty.
+unset MACOSX_DEPLOYMENT_TARGET
+
+cmake -DWITH_CGAL_Qt5=FALSE -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL" .
+$MAKE
+$SAGE_SUDO $MAKE install
+
