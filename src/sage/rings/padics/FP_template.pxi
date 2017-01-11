@@ -668,9 +668,8 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: R = QpFP(2)
             sage: b = R(2)>>(2**61)
-            sage: a>>(2**61)
+            sage: b >> (2**61)
             infinity
-
         """
         if shift < 0:
             return self._lshift_c(-shift)
