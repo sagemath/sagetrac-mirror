@@ -95,7 +95,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         """
         Initialize quantum shuffle algebra instance. 
 
-        EXAMPLES: 
+        EXAMPLES::
             sage: QS = QuantumShuffleAlgebra(); QS
             Quantum Shuffle Algebra on 2 generators ['a', 'b'] over Univariate Laurent Polynomial Ring in q over Rational Field
         """
@@ -106,13 +106,13 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         if cartan != 0:
             self._cartan = cartan
             if names.cardinality() != cartan.nrows():
-                names = Alphabet([str(i) for i in range(0, cartan.nrows())])
+                names = Alphabet([str(i) for i in range(cartan.nrows())])
         else:
             self._cartan = CartanMatrix(['A', names.cardinality()])
 
         ShuffleAlgebra.__init__(self, R, names)
 
-        self._idx = dict(zip(self.variable_names(),range(0, names.cardinality())))
+        self._idx = dict(zip(self.variable_names(),range(names.cardinality())))
         self._alphabet = Alphabet(names)
         self.__ngens = self._alphabet.cardinality()
 
