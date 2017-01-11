@@ -5,7 +5,7 @@ Quantum shuffle algebras are noncommutative associative algebras
 with bases generated from words. 
 
 This class is built using parent class ShuffleAlgebra() but uses a 
-customized shuffle product for calculating the appropriate laurent 
+customized shuffle product for calculating the appropriate Laurent 
 polynomial coefficients from the cartan matrix. 
 
 The effective difference between a quantum shuffle algebra (QSA)
@@ -17,7 +17,7 @@ and associated matrix
 [-1  2]
 then the quantum shuffle product 'a'*'b' is given by 
 'ab' + q'ba'
-(powers of the laurent monomial q are introduced when characters from 
+(powers of the Laurent monomial q are introduced when characters from 
 the second word move past characters from the first word. These powers 
 are the negative of the corresponding entry in the cartan matrix
 
@@ -195,17 +195,17 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         mylist = list()
         for term1 in t1.terms():
             coef1 = term1.leading_coefficient()
-            w1 = str(term1.leading_monomial().support[0])
+            w1 = str(term1.leading_monomial().support()[0])
             name1 = [[x, 1] for x in str(w1)]
             for term2 in t2.terms():
                 coef2 = term2.leading_coefficient()
-                w2 = str(term2.leading_monomial().support[0])
+                w2 = str(term2.leading_monomial().support()[0])
                 name2 = [[x, 2] for x in str(w2)]
 
                 name3 = interleave(name2, name1)
                 for name in name3: 
                     word = ''.join([y[0] for y in name])
-                    nameval = calclaurent(name, self._cartan, self._idx)
+                    nameval = self.calclaurent(name)# self._cartan, self._idx)
                     mylist.append(list((word, coef1 * coef2 * (base_multiple**nameval))))
         return sum(u[1] * self.basis()[u[0]] for u in mylist)
 
@@ -235,24 +235,39 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         name3 = interleave(name2, name1)
         for name in name3:
             word = ''.join([y[0] for y in name])
-            nameval = calclaurent(name, self._cartan, self._idx)
+            nameval = self.calclaurent(name)#, self._cartan, self._idx)
             mylist.append(list((word, base_multiple**nameval)))
         return sum(u[1] * self.basis()[u[0]] for u in mylist)
 
 
-def calclaurent(base, cartan, idx):
-    r"""
-    Return the power for laurent polynomial associated to a product of two 
-    words (stored in base) given underlying cartan matrix. 
-    """
-    power = 0
-    for i, char in enumerate(base):
-        if char[1] == 2:
-            for j, passing in enumerate(base[i:]):
-                if passing[1] == 1:
-                    power -= cartan[idx[char[0]], idx[passing[0]]]
-    return power
-
+    def calclaurent(self, base):
+        r"""
+        Return the power for Laurent polynomial associated to a product of two 
+        words (stored in base) given underlying cartan matrix. 
+    
+        EXAMPLES::
+    
+            sage: from sage.algebras.quantum_shuffle_algebra import interleave
+            sage: QS = QuantumShuffleAlgebra()
+            sage: a = QS.term('a')
+            sage: b = QS.term('ab')
+            sage: alist = [[x, 1] for x in a.leading_monomial().support()[0]]
+            sage: blist = [[x, 2] for x in b.leading_monomial().support()[0]]
+            sage: shuffled = interleave(alist, blist)
+            sage: QS.calclaurent(shuffled[0])
+            -1
+            sage: QS.calclaurent(shuffled[1])
+            -2
+            sage: QS.calclaurent(shuffled[2])
+            0
+        """
+        power = 0
+        for i, char in enumerate(base):
+            if char[1] == 2:
+                for j, passing in enumerate(base[i:]):
+                    if passing[1] == 1:
+                        power -= self._cartan[self._idx[char[0]], self._idx[passing[0]]]
+        return power
 
 def interleave(str1, str2, min_idx=0):
     r"""
@@ -263,7 +278,36 @@ def interleave(str1, str2, min_idx=0):
     )
     but recording the base string each character 
     in the final result comes from so that the powers for the 
-    laurent polynomial coefficients can be generated. 
+    Laurent polynomial coefficients can be generated. 
+
+    EXAMPLES::
+
+        sage: from sage.algebras.quantum_shuffle_algebra import interleave
+        sage: word1 = 'abc'
+        sage: word2 = 'def'
+        sage: list1 = [[x, 1] for x in word1]
+        sage: list2 = [[x, 2] for x in word2]
+        sage: interleave(list1, list2)
+        [[['d', 2], ['e', 2], ['f', 2], ['a', 1], ['b', 1], ['c', 1]],
+         [['d', 2], ['e', 2], ['a', 1], ['f', 2], ['b', 1], ['c', 1]],
+         [['d', 2], ['e', 2], ['a', 1], ['b', 1], ['f', 2], ['c', 1]],
+         [['d', 2], ['e', 2], ['a', 1], ['b', 1], ['c', 1], ['f', 2]],
+         [['d', 2], ['a', 1], ['e', 2], ['f', 2], ['b', 1], ['c', 1]],
+         [['d', 2], ['a', 1], ['e', 2], ['b', 1], ['f', 2], ['c', 1]],
+         [['d', 2], ['a', 1], ['e', 2], ['b', 1], ['c', 1], ['f', 2]],
+         [['d', 2], ['a', 1], ['b', 1], ['e', 2], ['f', 2], ['c', 1]],
+         [['d', 2], ['a', 1], ['b', 1], ['e', 2], ['c', 1], ['f', 2]],
+         [['d', 2], ['a', 1], ['b', 1], ['c', 1], ['e', 2], ['f', 2]],
+         [['a', 1], ['d', 2], ['e', 2], ['f', 2], ['b', 1], ['c', 1]],
+         [['a', 1], ['d', 2], ['e', 2], ['b', 1], ['f', 2], ['c', 1]],
+         [['a', 1], ['d', 2], ['e', 2], ['b', 1], ['c', 1], ['f', 2]],
+         [['a', 1], ['d', 2], ['b', 1], ['e', 2], ['f', 2], ['c', 1]],
+         [['a', 1], ['d', 2], ['b', 1], ['e', 2], ['c', 1], ['f', 2]],
+         [['a', 1], ['d', 2], ['b', 1], ['c', 1], ['e', 2], ['f', 2]],
+         [['a', 1], ['b', 1], ['d', 2], ['e', 2], ['f', 2], ['c', 1]],
+         [['a', 1], ['b', 1], ['d', 2], ['e', 2], ['c', 1], ['f', 2]],
+         [['a', 1], ['b', 1], ['d', 2], ['c', 1], ['e', 2], ['f', 2]],
+         [['a', 1], ['b', 1], ['c', 1], ['d', 2], ['e', 2], ['f', 2]]]
     """
     mylist = []
 
@@ -289,4 +333,5 @@ def interleave(str1, str2, min_idx=0):
             ret_val = interleave(st, str2[1:n2], minvec[i]+1)
             mylist.extend(ret_val)
         return mylist
+
 
