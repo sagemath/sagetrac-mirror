@@ -303,6 +303,5 @@ cdef class pAdicFloatingPointElement(FPElement):
         if very_pos_val(self.ordp):
             mpz_set_ui(selfvalue.value, 0)
         else:
-            # Need to do this better.
             mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
         return Mod(selfvalue, modulus)
