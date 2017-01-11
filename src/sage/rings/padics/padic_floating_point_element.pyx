@@ -130,7 +130,11 @@ cdef class pAdicFloatingPointElement(FPElement):
         sage: R(pari(R(0,5)))
         0
 
-    # todo: doctests for converting from other types of p-adic rings
+    Conversions from other types of p-adic rings::
+
+        sage: S = ZpFM(5)
+        sage: R(S(1))
+        1
 
     """
     def lift(self):
