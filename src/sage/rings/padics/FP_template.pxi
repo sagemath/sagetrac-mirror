@@ -733,7 +733,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         OUTPUT:
 
-            - a new element truncated modulo `\pi^{\mbox{absprec}}`.
+        - a new element truncated modulo `\pi^{\mbox{absprec}}`.
 
         EXAMPLES::
 
