@@ -7,5 +7,3 @@ from .invariants import (igusa_clebsch_invariants,
                         clebsch_invariants)
 from .mestre import (Mestre_conic, HyperellipticCurve_from_invariants)
 from . import monsky_washnitzer
-
-
