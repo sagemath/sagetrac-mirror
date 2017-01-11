@@ -103,22 +103,3 @@ cdef class qAdicFloatingPointElement(FPElement):
             return self._flint_rep(var), Integer(self.ordp)
         cshift(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.prime_pow.prec_cap, self.prime_pow, False)
         return self.prime_pow._new_fmpz_poly(self.prime_pow.poly_flint_rep, var), Integer(0)
-
-    def __hash__(self):
-        r"""
-        Raise a ``TypeError`` since this element is not hashable
-        (:trac:`11895`.)
-
-        TESTS::
-
-            sage: K.<a> = QqFP(9)
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_FP.qAdicFloatingPointElement'
-
-        """
-        # Eventually, hashing will be disabled for all (non-fixed-mod) p-adic
-        # elements (#11895), until then, we only to this for types which did
-        # not support hashing before we switched some elements to FLINT
-        raise TypeError("unhashable type: 'sage.rings.padics.qadic_flint_FP.qAdicFloatingPointElement'")
