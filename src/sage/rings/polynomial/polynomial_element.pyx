@@ -1613,6 +1613,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             implement a generic truncated Karatsuba and use it here.
         """
         cdef Polynomial pol
+        cdef list x, y
         if not self or not right:
             return self._parent.zero()
         elif n < self._parent._Karatsuba_threshold:
@@ -2684,8 +2685,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self is right:
             return self._square_generic()
-        x = self.list()
-        y = right.list()
+        cdef list x = self.list()
+        cdef list y = right.list()
         return self._new_generic(do_schoolbook_product(x, y, -1))
 
     def _square_generic(self):
@@ -2927,8 +2928,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self
         elif right.is_zero():
             return right
-        f = self.list()
-        g = right.list()
+        cdef list f = self.list()
+        cdef list g = right.list()
         n = len(f)
         m = len(g)
         if n == 1:
@@ -9023,7 +9024,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_schoolbook_product(x, y, Py_ssize_t deg):
+cdef list do_schoolbook_product(list x, list y, Py_ssize_t deg):
     """
     Compute the truncated multiplication of two polynomials represented by
     lists, using the schoolbook algorithm.
@@ -9075,7 +9076,7 @@ cdef do_schoolbook_product(x, y, Py_ssize_t deg):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
+cdef list do_karatsuba_different_size(list left, list right, Py_ssize_t K_threshold):
     """
     Multiply two polynomials of different degrees by splitting the one of
     largest degree in chunks that are multiplied with the other using the
@@ -9157,7 +9158,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
+cdef list do_karatsuba(list left, list right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
     """
     Core routine for Karatsuba multiplication. This function works for two
     polynomials of the same degree.
