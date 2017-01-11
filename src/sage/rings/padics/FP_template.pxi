@@ -1282,7 +1282,7 @@ cdef class FPElement(pAdicTemplateElement):
             return 0
         if very_neg_val(self.ordp):
             return 314159
-        return chash(self.unit, self.ordp, self.prime_pow.prec_cap, self.prime_pow) ^ self.ordp
+        return chash(self.unit, self.ordp, self.prime_pow.prec_cap, self.prime_pow)
 
 cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
     """
