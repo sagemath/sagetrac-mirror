@@ -797,7 +797,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 
@@ -827,7 +827,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         For most applications, explicitly specifying the power of p
         modulo which the element is supposed to be nonzero is
-        preferrable.
+        preferrable, see :meth:`is_zero`.
 
         EXAMPLES::
 
