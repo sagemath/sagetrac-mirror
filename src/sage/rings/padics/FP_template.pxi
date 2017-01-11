@@ -1179,9 +1179,6 @@ cdef class FPElement(pAdicTemplateElement):
         r"""
         Return the unit part of this element.
 
-        If the valuation of this element is positive, then the high
-        digits of the result will be zero.
-
         EXAMPLES::
 
             sage: R = Zp(17, 4, 'floating-point')
