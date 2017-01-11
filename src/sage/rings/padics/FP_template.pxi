@@ -401,20 +401,17 @@ cdef class FPElement(pAdicTemplateElement):
             4 + 3*7 + 3*7^2 + 3*7^3
             sage: ~R(0)
             infinity
+            sage: ~~R(0)
+            0
             sage: ~R(7)
             7^-1
         """
-        # Input should be normalized!
         cdef FPElement ans = self._new_c()
         if ans.prime_pow.in_field == 0:
             ans._parent = self._parent.fraction_field()
             ans.prime_pow = ans._parent.prime_pow
         ans.ordp = -self.ordp
-        if very_pos_val(ans.ordp):
-            csetone(ans.unit, ans.prime_pow)
-        elif very_neg_val(ans.ordp):
-            csetzero(ans.unit, ans.prime_pow)
-        else:
+        if not overunderflow(&ans.ordp, ans.unit, ans.prime_pow):
             cinvert(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
