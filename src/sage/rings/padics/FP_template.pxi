@@ -281,7 +281,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: -R(0)
             0
             sage: -~R(0)
-            infinity
+            Infinity
 
         """
         if huge_val(self.ordp):
@@ -311,9 +311,9 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(0) + R(0)
             0
             sage: 1/R(0) + 1/R(0)
-            infinity
+            Infinity
             sage: 1/R(0) + R(0)
-            infinity
+            Infinity
 
         """
         cdef FPElement ans
@@ -361,11 +361,11 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(0) - R(0)
             0
             sage: 1/R(0) - 1/R(0)
-            infinity
+            Infinity
             sage: 1/R(0) - R(0)
-            infinity
+            Infinity
             sage: R(0) - 1/R(0)
-            infinity
+            Infinity
 
         """
         cdef FPElement ans
@@ -412,7 +412,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: ~R(2)
             4 + 3*7 + 3*7^2 + 3*7^3
             sage: ~R(0)
-            infinity
+            Infinity
             sage: ~~R(0)
             0
             sage: ~R(7)
@@ -442,11 +442,11 @@ cdef class FPElement(pAdicTemplateElement):
         cdef FPElement right = _right
         if very_pos_val(self.ordp):
             if very_neg_val(right.ordp):
-                raise ZeroDivisionError("Cannot multipy 0 by infinity")
+                raise ZeroDivisionError("Cannot multipy 0 by Infinity")
             return self
         elif very_pos_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot multiply 0 by infinity")
+                raise ZeroDivisionError("Cannot multiply 0 by Infinity")
             return right
         elif very_neg_val(self.ordp):
             return self
@@ -470,7 +470,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(3) / R(2) #indirect doctest
             5 + 3*7 + 3*7^2 + 3*7^3
             sage: R(5) / R(0)
-            infinity
+            Infinity
             sage: R(7) / R(49)
             7^-1
         """
@@ -486,7 +486,7 @@ cdef class FPElement(pAdicTemplateElement):
             ans._set_exact_zero()
         elif very_neg_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot divide infinity by infinity")
+                raise ZeroDivisionError("Cannot divide Infinity by Infinity")
             ans._set_exact_zero()
         elif very_neg_val(self.ordp) or very_pos_val(right.ordp):
             ans._set_infinity()
@@ -627,7 +627,7 @@ cdef class FPElement(pAdicTemplateElement):
                 # this code path can currently not be reached, shifts by
                 # 2**62-1 or more raise a "valuation overflow" in the
                 # implementation of __lshift__
-                raise ZeroDivisionError("Cannot multiply zero by infinity")
+                raise ZeroDivisionError("Cannot multiply zero by Infinity")
             ans._set_exact_zero()
         else:
             ans.ordp = self.ordp + shift
@@ -671,7 +671,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R = QpFP(2)
             sage: b = R(2)>>(2**61)
             sage: b >> (2**61)
-            infinity
+            Infinity
         """
         if shift < 0:
             return self._lshift_c(-shift)
@@ -718,10 +718,10 @@ cdef class FPElement(pAdicTemplateElement):
             sage: ZpFP(5,5)(1/3) # indirect doctest
             2 + 3*5 + 5^2 + 3*5^3 + 5^4
             sage: ~QpFP(5,5)(0)
-            infinity
+            Infinity
         """
         if very_neg_val(self.ordp):
-            return "infinity"
+            return "Infinity"
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
     def add_bigoh(self, absprec):
@@ -1190,14 +1190,14 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(0).unit_part()
             Traceback (most recent call last):
             ...
-            ValueError: unit part of 0 and infinity not defined
+            ValueError: unit part of 0 and Infinity not defined
             sage: type(R(5).unit_part())
             <type 'sage.rings.padics.padic_floating_point_element.pAdicFloatingPointElement'>
             sage: R = ZpFP(5, 5); a = R(75); a.unit_part()
             3
         """
         if huge_val(self.ordp):
-            raise ValueError("unit part of 0 and infinity not defined")
+            raise ValueError("unit part of 0 and Infinity not defined")
         cdef FPElement ans = (<FPElement>self)._new_c()
         ans.ordp = 0
         ccopy(ans.unit, (<FPElement>self).unit, ans.prime_pow)
@@ -1261,7 +1261,7 @@ cdef class FPElement(pAdicTemplateElement):
         if p is not None and p != self.parent().prime():
             raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if huge_val(self.ordp):
-            raise ValueError("unit part of 0 and infinity not defined")
+            raise ValueError("unit part of 0 and Infinity not defined")
         cdef Integer valuation = PY_NEW(Integer)
         mpz_set_si(valuation.value, self.ordp)
         cdef FPElement unit = self._new_c()
