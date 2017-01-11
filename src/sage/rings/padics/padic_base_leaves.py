@@ -273,9 +273,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
-            if R.precision_cap() < self.precision_cap():
-                return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() <= self.precision_cap():
                 return True
 
     def _repr_(self, do_latex=False):
@@ -379,9 +377,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             return True
         if isinstance(R, pAdicRingCappedAbsolute) and R.prime() == self.prime():
-            if R.precision_cap() < self.precision_cap():
-                return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() <= self.precision_cap():
                 return True
 
 class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric):
@@ -452,9 +448,7 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
             False
         """
         if isinstance(R, pAdicRingFloatingPoint) and R.prime() == self.prime():
-            if R.precision_cap() > self.precision_cap():
-                return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() >= self.precision_cap():
                 return True
 
     def _repr_(self, do_latex=False):
@@ -541,9 +535,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         #if isistance(R, pAdicRingLazy) and R.prime() == self.prime():
         #    return True
         if isinstance(R, pAdicRingFixedMod) and R.prime() == self.prime():
-            if R.precision_cap() > self.precision_cap():
-                return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() >= self.precision_cap():
                 return True
 
     def _repr_(self, do_latex=False):
@@ -662,9 +654,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         if isinstance(R, (pAdicRingCappedRelative, pAdicRingCappedAbsolute)) and R.prime() == self.prime():
             return True
         if isinstance(R, pAdicFieldCappedRelative) and R.prime() == self.prime():
-            if R.precision_cap() < self.precision_cap():
-                return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() <= self.precision_cap():
                 return True
 
     def _repr_(self, do_latex=False):
@@ -777,9 +767,7 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             False
         """
         if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
-            if R.precision_cap() > self.precision_cap():
-                return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            if R.precision_cap() >= self.precision_cap():
                 return True
 
     def _repr_(self, do_latex=False):
