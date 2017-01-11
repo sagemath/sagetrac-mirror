@@ -1372,11 +1372,10 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         - ``x`` -- an Integer
 
         - ``absprec``, or the first positional argument -- the maximum
-          absolute precision (unused for floating point elements).
+          absolute precision
 
         - ``relprec``, or the second positional argument -- the
-          maximum relative precision (unused for floating point
-          elements)
+          maximum relative precision
 
         EXAMPLES::
 
@@ -1771,11 +1770,10 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         - ``x`` -- a Rational
 
         - ``absprec``, or the first positional argument -- the maximum
-          absolute precision (unused for floating point elements).
+          absolute precision
 
         - ``relprec``, or the second positional argument -- the
-          maximum relative precision (unused for floating point
-          elements)
+          maximum relative precision
 
         EXAMPLES::
 
