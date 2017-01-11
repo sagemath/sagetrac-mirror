@@ -46,7 +46,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
     EXAMPLES:: 
 
         sage: QS = QuantumShuffleAlgebra('abc', CartanMatrix(['A', 3])); QS
-        Shuffle Algebra on 3 generators ['a', 'b', 'c'] over Univariate Laurent Polynomial Ring in q over Rational Field
+        Quantum Shuffle Algebra on 3 generators ['a', 'b', 'c'] over Univariate Laurent Polynomial Ring in q over Rational Field
 
         sage: mul(QS.gens())
         B['abc'] + q*B['acb'] + q*B['bac'] + q*B['bca'] + q*B['cab'] + q^2*B['cba']
@@ -84,7 +84,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
         EXAMPLES: 
             sage: QS = QuantumShuffleAlgebra(); QS
-            Shuffle Algebra on 2 generators ['a', 'b'] over Univariate Laurent Polynomial Ring in q over Rational Field
+            Quantum Shuffle Algebra on 2 generators ['a', 'b'] over Univariate Laurent Polynomial Ring in q over Rational Field
         """
         R = LaurentPolynomialRing(QQ, 'q')
 
