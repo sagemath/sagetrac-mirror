@@ -1,18 +1,21 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 p-Adic Extension Leaves
 
-The final classes for extensions of Zp and Qp (ie classes that are not
+The final classes for extensions of `\\Z_p` and `\\Q_p` (ie classes that are not
 just designed to be inherited from).
 
 AUTHORS:
 
-- David Roe
+- David Roe: initial version
+- Julian Rüth (2017-01-10): docstring cleanup
 """
 from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
+#                     2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -58,7 +61,7 @@ from .qadic_flint_FM import qAdicFixedModElement
 from .qadic_flint_FP import qAdicFloatingPointElement
 
 def _make_integral_poly(prepoly, p, prec):
-    """
+    r"""
     Converts a defining polynomial into one with integral coefficients.
 
     INPUTS:
@@ -94,35 +97,35 @@ def _make_integral_poly(prepoly, p, prec):
     return Zpoly
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = ZqCR(27,10000)
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A capped relative representation of Zq.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -154,35 +157,35 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
             self.register_conversion(pAdicConvert_QQ_CR(self))
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = QqCR(27,10000)
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
-        A representation of Qq.
+        r"""
+        A representation of `\\Q_q`.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Q_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -225,35 +228,35 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
 #        pAdicLazyFieldGeneric.__init__(self, poly.base_ring().prime(), prec, print_mode, names, halt)
 
 class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = ZqCA(27,10000)
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A capped absolute representation of Zq.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -286,35 +289,35 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
             self.register_conversion(pAdicConvert_QQ_CA(self))
 
 class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = ZqFM(27,10000)
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A fixed modulus representation of Zq.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Q_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -351,35 +354,35 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
     #    return None
 
 class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = ZqFP(27,10000); R == loads(dumps(R))
         True
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A floating point representation of Zq.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -407,35 +410,35 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
         self.register_conversion(pAdicConvert_QQ_FP(self))
 
 class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointFieldGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R.<a> = QqFP(27,10000); R == loads(dumps(R))
         True
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A representation of Qq.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Q_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -464,7 +467,7 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
         self.register_coercion(pAdicCoercion_QQ_FP(self))
 
 class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R = Zp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
@@ -472,28 +475,28 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
-        """
-        A capped relative representation of an eisenstein extension of Zp.
+        r"""
+        A capped relative representation of an Eisenstein extension of `\\Z_p`.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -522,7 +525,7 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
 
 class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeFieldGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R = Qp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
@@ -530,28 +533,28 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
-        """
-        A capped relative representation of an eisenstein extension of Qp.
+        r"""
+        A capped relative representation of an Eisenstein extension of `\\Q_p`.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Q_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -591,7 +594,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
 #        pAdicLazyFieldGeneric.__init__(self, poly.base_ring().prime(), prec, print_mode, names, halt)
 
 class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
@@ -599,28 +602,28 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation):
-        """
-        A capped absolute representation of an eisenstein extension of Zp.
+        r"""
+        A capped absolute representation of an Eisenstein extension of `\\Z_p`.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -649,7 +652,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCAElement)
 
 class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
-    """
+    r"""
     TESTS::
 
         sage: R = ZpFM(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
@@ -657,28 +660,28 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         sage: TestSuite(R).run()
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
-        """
-        A fixed modulus representation of an eisenstein extension of Zp.
+        r"""
+        A fixed modulus representation of an Eisenstein extension of `\\Z_p`.
 
         INPUT:
 
-            - prepoly -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``prepoly`` -- The original polynomial defining the extension.  This
+          could be a polynomial with integer coefficients, for example, while
+          ``poly`` has coefficients in `\\Z_p`.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- The polynomial with coefficients in the base ring
+          defining this extension.
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- The precision cap of this ring.
 
-            - halt -- unused
+        - ``halt`` -- unused
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options.
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
