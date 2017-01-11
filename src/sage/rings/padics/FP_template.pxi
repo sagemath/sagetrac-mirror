@@ -1915,7 +1915,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g
             Generic morphism:
               From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-              To:   Unramified Extension of 3-adic Ring with floating relative precision 20 in a defined by x^3 + 2*x + 1
+              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
             sage: g == f
             True
             sage: g is f
