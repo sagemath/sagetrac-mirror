@@ -22,15 +22,19 @@ AUTHORS:
 # python3
 
 from copy import copy
+from sage.rings.integer import Integer
+from sage.misc.misc_c import prod
+from sage.functions.other import factorial
 
 class DescendingPlanePartition():
     r"""
     A descending plane partition. 
     
-    A descending plane partition (DPP) is a strict shifted plane partition with 
-    the additional restrictions that: the number of parts in each row is less 
-    than the greatest part in that row, and the number of parts in each row is 
-    greater than or equal to the largest part in the next row.
+    A descending plane partition (DPP) is a strict shifted plane partition 
+    (so each row is indented one additional space) with the additional 
+    restrictions that: the number of parts in each row is less than the 
+    greatest part in that row, and the number of parts in each row is greater 
+    than or equal to the largest part in the next row.
     
     These were introduced in [MiRoRu]_.
 
@@ -49,10 +53,8 @@ class DescendingPlanePartition():
         EXAMPLES::
             
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
-            sage: DPP #not sure if this is correct
-            A descending plane partition: 
-            544
-             32
+            sage: DPP 
+            [[5, 4, 4], [3, 2]]
         """
         if DescendingPlanePartitions.is_dpp(DPP):
             self.DPP = DPP
@@ -67,13 +69,10 @@ class DescendingPlanePartition():
         EXAMPLES::
             
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
-            sage: DPP #not sure if this is correct
-            A descending plane partition: 
-            544
-             32
+            sage: DPP 
+            [[5, 4, 4], [3, 2]]
         """
-        return "A descending plane partition: \n" + self._pretty_string()
-    #self.dpp= DPP
+        return repr(self.DPP)
     
     def _pretty_string(self):
         r"""
@@ -197,85 +196,11 @@ class DescendingPlanePartition():
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
             sage: DPP.increment()
             sage: DPP
-            A descending plane partition:
-            5441
+            [[5, 4, 4, 1]]
             
         """
         
         self.DPP = self.getNextDPP()
-        
-    def sum(self):
-        
-        """
-        Return the sum of ``self``.
-        
-        EXAMPLES:
-            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
-            sage: DPP.sum()
-            21
-        
-        """
-        
-        sum = 0
-        for row in self.DPP:
-            for entry in row:
-                sum = sum + entry
-        return sum
-
-    
-    def special_parts(self):
-        
-        """
-        Return the number of special parts in ``self``.
-
-        A special part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that $p$ is less than its position from 
-        the left of start of the row.
-        
-        EXAMPLES::
-
-            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
-            sage: DPP.special_parts()
-            0
-            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
-            sage: DPP.special_parts()
-            2
-        
-        """
-        
-        sparts = 0
-        for i in range(len(self.DPP)):
-            for j in range(len(self.DPP[i])):
-                if self.DPP[i][j] <= j:
-                    sparts = sparts +1
-        return sparts
-
-    def regular_parts(self):
-        
-        """
-        Return the number of regular parts in ``self``.
-
-        A regular part of a descending plane partition is a part, $p$, of the 
-        descending plane partition such that $p$ is greater than or equal to its 
-        position from the left of start of the row.
-        
-        EXAMPLES::
-
-            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
-            sage: DPP.regular_parts()
-            6
-            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
-            sage: DPP.regular_parts()
-            2
-        
-        """
-        
-        rparts = 0
-        for i in range(len(self.DPP)):
-            for j in range(len(self.DPP[i])):
-                if self.DPP[i][j] > j:
-                    rparts = rparts +1
-        return rparts
     
     def __getitem__(self, rowIndex):
         
@@ -300,14 +225,128 @@ class DescendingPlanePartition():
 
             sage: DPP = DescendingPlanePartition([[5,4,4],[3,2]])
             sage: DPP.__copy__()
-            A descending plane partition: 
-            544
-             32
-            <BLANKLINE>
+            [[5, 4, 4], [3, 2]]
         """
   
         return DescendingPlanePartition(self.DPP)
     
+    def sum(self):
+        
+        """
+        Return the sum of ``self``.
+        
+        EXAMPLES:
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
+            sage: DPP.sum()
+            21
+        
+        """
+        
+        sum = 0
+        for row in self.DPP:
+            for entry in row:
+                sum = sum + entry
+        return sum
+
+    
+    def special_parts(self):
+        
+        """
+        Return special parts in ``self``.
+
+        A special part of a descending plane partition is a part, $p$, of the 
+        descending plane partition such that the value of $p$ is strictly less 
+        than its position from the left of start of the row.
+        
+        EXAMPLES::
+
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
+            sage: DPP.special_parts()
+            []
+            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
+            sage: DPP.special_parts()
+            [2, 2]
+        
+        """
+        
+        sparts = []
+        for i in range(len(self.DPP)):
+            for j in range(len(self.DPP[i])):
+                if self.DPP[i][j] <= j:
+                    sparts.append(self.DPP[i][j])
+        return sparts
+
+    def number_of_special_parts(self):
+        
+        """
+        Return the number of special parts in ``self``.
+
+        A special part of a descending plane partition is a part, $p$, of the 
+        descending plane partition such that the value of $p$ is strictly less 
+        than its position from the left of start of the row.
+        
+        EXAMPLES::
+
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
+            sage: DPP.number_of_special_parts()
+            0
+            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
+            sage: DPP.number_of_special_parts()
+            2
+        
+        """
+        
+        return len(self.special_parts())
+
+    def regular_parts(self):
+        
+        """
+        Return the regular parts in ``self``.
+
+        A regular part of a descending plane partition is a part, $p$, of the 
+        descending plane partition such that $p$ is greater than or equal to its 
+        position from the left of start of the row.
+        
+        EXAMPLES::
+
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
+            sage: DPP.regular_parts()
+            [5, 4, 4, 3, 3, 2]
+            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
+            sage: DPP.regular_parts()
+            [5, 2]
+        
+        """
+        
+        rparts = []
+        for i in range(len(self.DPP)):
+            for j in range(len(self.DPP[i])):
+                if self.DPP[i][j] > j:
+                    rparts.append(self.DPP[i][j])
+        return rparts
+
+    def number_of_regular_parts(self):
+        
+        """
+        Return the number of regular parts in ``self``.
+
+        A regular part of a descending plane partition is a part, $p$, of the 
+        descending plane partition such that $p$ is greater than or equal to its 
+        position from the left of start of the row.
+        
+        EXAMPLES::
+
+            sage: DPP = DescendingPlanePartition([[5,4,4],[3,3],[2]])
+            sage: DPP.number_of_regular_parts()
+            6
+            sage: DPP = DescendingPlanePartition([[5,2,2,2]])
+            sage: DPP.number_of_regular_parts()
+            2
+        
+        """
+        
+        return len(self.regular_parts())
+     
     def is_Catalan(self):
         
         """
@@ -378,8 +417,7 @@ class DescendingPlanePartition():
         EXAMPLES::
 
             sage: DescendingPlanePartition.catalan_dpp_path_to_dpp([1,-1,1])
-            A descending plane partition:
-            32
+            [[3, 2]]
         """
         
         row = []
@@ -534,33 +572,32 @@ class DescendingPlanePartitions():
         else:
             return False
                 
-    
-#    def __contains__(self, DPP):
-#        
-#        """
-#        Return True if a DPP is a part of this DescendingPlanePartitions object.
-#        
-#        EXAMPLES::
-#            
-#            sage: DPPs = DescendingPlanePartitions(3)
-#            sage: DPP = DescendingPlanePartition([[3,3]])
-#            sage: DPP in DPPs
-#            True
-#        
-#        """
-#        
-#        if DescendingPlanePartitions.is_dpp(DPP):
-#            if self.n is None:
-#                return True
-#            elif len(DPP[0]) ==0:
-#                return True
-#            else:
-#                if DPP[0][0] <= self.n:
-#                    return True
-#                else:
-#                    return False
-#        else:
-#            return False
+    def __contains__(self, DPP):
+        
+        """
+        Return True if a DPP is a part of this DescendingPlanePartitions object.
+        
+        EXAMPLES::
+            
+            sage: DPPs = DescendingPlanePartitions(3)
+            sage: DPP = [[3,3]]
+            sage: DPP in DPPs
+            True
+        
+        """
+        
+        if DescendingPlanePartitions.is_dpp(DPP):
+            if self.n is None:
+                return True
+            elif len(DPP[0]) ==0:
+                return True
+            else:
+                if DPP[0][0] <= self.n:
+                    return True
+                else:
+                    return False
+        else:
+            return False
     
     def __iter__(self):
         """
@@ -598,3 +635,25 @@ class DescendingPlanePartitions():
                 return "Catalan Descending Plane Partitions with largest part at most {}".format(int(self.n))
             else:
                 return "Descending Plane Partitions with largest part at most {}".format(int(self.n))
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``.
+
+        The number of descending plane partitions of order `n` is equal to
+
+        .. MATH::
+
+            \prod_{k=0}^{n-1} \frac{(3k+1)!}{(n+k)!} = \frac{1! 4! 7! 10!
+            \cdots (3n-2)!}{n! (n+1)! (n+2)! (n+3)! \cdots (2n-1)!}
+
+        EXAMPLES::
+
+            sage: DescendingPlanePartitions(7).cardinality()            
+            218348            
+
+        """
+        if self.n == None:
+            return 'Infinite'
+        else:        
+            return Integer(prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] ))
