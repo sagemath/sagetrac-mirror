@@ -179,8 +179,7 @@ class FloatingPointGeneric(LocalGeneric):
 
     def _test_distributivity(self, **options):
         r"""
-        Test the distributivity of `*` on `+` on (not necessarily
-        all) elements of this set.
+        Test the distributivity of `*` on `+` on elements of this set.
 
         p-adic floating point rings only satisfy distributivity
         up to a precision that depends on the elements.
@@ -225,8 +224,7 @@ class FloatingPointGeneric(LocalGeneric):
 
     def _test_additive_associativity(self, **options):
         r"""
-        Test associativity for (not necessarily all) elements of this
-        additive semigroup.
+        Test associativity for elements of this additive semigroup.
 
         INPUT:
 
