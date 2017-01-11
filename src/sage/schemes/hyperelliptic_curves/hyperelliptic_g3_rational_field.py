@@ -4,7 +4,9 @@ Hyperelliptic curves of genus 3 over the rationals
 from __future__ import absolute_import
 
 #*****************************************************************************
-#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
+#  Copyright (C) 2016 Sorina Ionica <sorina.ionica@gmail.com>
+#                2016 Elisa Lorenzo Garcia <elisa.lorenzo@gmail.com>
+#                2016 Anna Somoza <anna.somoza@upc.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************

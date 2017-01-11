@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Compute invariants of quintics and sextics via 'Ueberschiebung'.
+Compute invariants genus 2 and 3 hyperelliptic curves via 'Ueberschiebung'.
 
 REFERENCES:
 
@@ -11,6 +11,9 @@ REFERENCES:
 
 .. [I] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
    Ann. of Math. (2) 72 1960 612--649.
+   
+.. [Sh] Shioda, Tetsuji. *On the graded ring of invariants of binary octavics*.
+   American J. of Math., 89(4):1022-1046, 1967.
 
 .. TODO::
 
@@ -18,9 +21,11 @@ REFERENCES:
 
     * Cardona-Quer and additional invariants for classifying automorphism groups.
 
-AUTHOR:
+AUTHORS:
 
-* Nick Alexander
+- Nick Alexander: Initial version
+- Soria Ionica, Elisa Lorenzo Garcia, Anna Somoza (2016-01-11): Added 
+  functionality for genus 3.
 """
 from sage.rings.all import ZZ
 from sage.rings.all import PolynomialRing
@@ -412,10 +417,34 @@ def absolute_igusa_invariants_kohel(f):
     return (i1, i2, i3)
 
 def shioda_invariants(f):
+    r"""
+    Given a octavic form `f`, return the 9 Shioda invariants, [Sh]_.
+
+    `f` may be homogeneous in two variables or inhomogeneous in one.
+
+    REFERENCES:
+
+    .. [Sh] Shioda, Tetsuji. *On the graded ring of invariants of binary octavics*.
+       American J. of Math., 89(4):1022-1046, 1967.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = x^7 - x^4 + 3
+        sage: from sage.schemes.hyperelliptic_curves.invariants import shioda_invariants 
+        sage: shioda_invariants(f)
+        [1/70,  -9/34300,  1/57624,  -1/672280,  1/33882912,  333534899/6324810240,
+        2334744453/1033052339200,  333534907/1859494210560,  778248143/101239129241600]
+        sage: R.<x,y> = QQ[]
+        sage: shioda_invariants(x^8 + 3*x^2*y^6 + 2*x*y^7 + y^8)
+        [2,  81/392,  2/3,  27/196,  -2/9,  -47/1568,  -174401/4609920,  17/1344,
+        703679/55319040]
+    """
+    F = f
     if f.parent().ngens() == 1:
         f = PolynomialRing(f.parent().base_ring(), 1, f.parent().variable_name())(f)
         x1, x2 = f.homogenize().parent().gens()
-        F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9) ])
+        F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9)])
     #P.<x,y> = PolynomialRing(f.parent().base_ring(),2)
     #F = f(x/y).numerator()
     #if F.degree(x) == 7:

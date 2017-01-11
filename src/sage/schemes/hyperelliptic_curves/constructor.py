@@ -1,5 +1,11 @@
 """
 Hyperelliptic curve constructor
+
+AUTHORS:
+
+- David Kohel: Initial version
+- Soria Ionica, Elisa Lorenzo Garcia, Anna Somoza (2016-01-11): Added 
+  functionality for genus 3.
 """
 from __future__ import absolute_import
 
@@ -228,28 +234,28 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     if is_FiniteField(R):
         if g == 2:
             return HyperellipticCurve_g2_finite_field(PP, f, h, names=names, genus=g)
-	elif g == 3:
+        elif g == 3:
             return HyperellipticCurve_g3_finite_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_finite_field(PP, f, h, names=names, genus=g)
     elif is_RationalField(R):
         if g == 2:
             return HyperellipticCurve_g2_rational_field(PP, f, h, names=names, genus=g)
-	elif g == 3:
+        elif g == 3:
             return HyperellipticCurve_g3_rational_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_rational_field(PP, f, h, names=names, genus=g)
     elif is_pAdicField(R):
         if g == 2:
             return HyperellipticCurve_g2_padic_field(PP, f, h, names=names, genus=g)
-	elif g == 3:
+        elif g == 3:
             return HyperellipticCurve_g3_padic_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_padic_field(PP, f, h, names=names, genus=g)
     else:
         if g == 2:
             return HyperellipticCurve_g2_generic(PP, f, h, names=names, genus=g)
-	elif g == 3:
+        elif g == 3:
             return HyperellipticCurve_g3_generic(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_generic(PP, f, h, names=names, genus=g)
