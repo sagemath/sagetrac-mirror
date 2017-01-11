@@ -276,14 +276,18 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R = Zp(7, 4, 'floating-point', 'series')
             sage: -R(7) #indirect doctest
             6*7 + 6*7^2 + 6*7^3 + 6*7^4
+            sage: -R(0)
+            0
+            sage: -~R(0)
+            infinity
+
         """
+        if huge_val(self.ordp):
+            return self
         cdef FPElement ans = self._new_c()
         ans.ordp = self.ordp
-        if huge_val(self.ordp): # zero or infinity
-            ccopy(ans.unit, self.unit, ans.prime_pow)
-        else:
-            cneg(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-            creduce_small(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+        cneg(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+        creduce_small(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     cpdef _add_(self, _right):
