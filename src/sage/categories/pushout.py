@@ -2314,7 +2314,7 @@ class CompletionFunctor(ConstructionFunctor):
         return c
 
     _real_types = ['Interval','Ball','MPFR','RDF','RLF']
-    _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
+    _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy','floating-point']
 
     def merge(self, other):
         """
