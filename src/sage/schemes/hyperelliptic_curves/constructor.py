@@ -19,6 +19,10 @@ from .hyperelliptic_g2_generic import HyperellipticCurve_g2_generic
 from .hyperelliptic_g2_finite_field import HyperellipticCurve_g2_finite_field
 from .hyperelliptic_g2_rational_field import HyperellipticCurve_g2_rational_field
 from .hyperelliptic_g2_padic_field import HyperellipticCurve_g2_padic_field
+from .hyperelliptic_g3_generic import HyperellipticCurve_g3_generic
+from .hyperelliptic_g3_finite_field import HyperellipticCurve_g3_finite_field
+from .hyperelliptic_g3_rational_field import HyperellipticCurve_g3_rational_field
+from .hyperelliptic_g3_padic_field import HyperellipticCurve_g3_padic_field
 
 from sage.rings.padics.all import is_pAdicField
 
@@ -224,20 +228,28 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     if is_FiniteField(R):
         if g == 2:
             return HyperellipticCurve_g2_finite_field(PP, f, h, names=names, genus=g)
+	elif g == 3:
+            return HyperellipticCurve_g3_finite_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_finite_field(PP, f, h, names=names, genus=g)
     elif is_RationalField(R):
         if g == 2:
             return HyperellipticCurve_g2_rational_field(PP, f, h, names=names, genus=g)
+	elif g == 3:
+            return HyperellipticCurve_g3_rational_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_rational_field(PP, f, h, names=names, genus=g)
     elif is_pAdicField(R):
         if g == 2:
             return HyperellipticCurve_g2_padic_field(PP, f, h, names=names, genus=g)
+	elif g == 3:
+            return HyperellipticCurve_g3_padic_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_padic_field(PP, f, h, names=names, genus=g)
     else:
         if g == 2:
             return HyperellipticCurve_g2_generic(PP, f, h, names=names, genus=g)
+	elif g == 3:
+            return HyperellipticCurve_g3_generic(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_generic(PP, f, h, names=names, genus=g)

@@ -410,3 +410,33 @@ def absolute_igusa_invariants_kohel(f):
     i2 = I2**3*I4/I10
     i3 = I2**2*I6/I10
     return (i1, i2, i3)
+
+def shioda_invariants(f):
+    if f.parent().ngens() == 1:
+        f = PolynomialRing(f.parent().base_ring(), 1, f.parent().variable_name())(f)
+        x1, x2 = f.homogenize().parent().gens()
+        F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9) ])
+    #P.<x,y> = PolynomialRing(f.parent().base_ring(),2)
+    #F = f(x/y).numerator()
+    #if F.degree(x) == 7:
+    #    F = F*y
+    # The Ueberschiebung operator is the classical transvectant
+    H = Ueberschiebung(F,F,2)
+    g = Ueberschiebung(F,F,4)
+    k = Ueberschiebung(F,F,6)
+    h = Ueberschiebung(k,k,2)
+    m = Ueberschiebung(F,k,4)
+    n = Ueberschiebung(F,h,4)
+    p = Ueberschiebung(g,k,4)
+    q = Ueberschiebung(g,h,4)
+    # Invariants
+    J2 = Ueberschiebung(F,F,8)
+    J3 = Ueberschiebung(F,g,8)
+    J4 = Ueberschiebung(k,k,4)
+    J5 = Ueberschiebung(m,k,4)
+    J6 = Ueberschiebung(k,h,4)
+    J7 = Ueberschiebung(m,h,4)
+    J8 = Ueberschiebung(p,h,4)
+    J9 = Ueberschiebung(n,h,4)
+    J10 = Ueberschiebung(q,h,4)
+    return [J2,J3,J4,J5,J6,J7,J8,J9,J10]
