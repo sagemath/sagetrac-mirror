@@ -137,7 +137,7 @@ cdef class pAdicFloatingPointElement(FPElement):
         1
 
     """
-    def lift(self):
+    cpdef lift(self):
         """
         Return an integer or rational congruent to ``self`` modulo ``self``'s
         precision.  If a rational is returned, its denominator will equal
@@ -153,14 +153,6 @@ cdef class pAdicFloatingPointElement(FPElement):
             8
             sage: R = QpFP(7,4); a = R(8/7); a.lift()
             8/7
-        """
-        return self.lift_c()
-
-    cdef lift_c(self):
-        """
-        Implementation of lift.
-
-        TESTS::
 
             sage: ZpFP(5)(0).lift() #indirect doctest
             0
@@ -231,10 +223,10 @@ cdef class pAdicFloatingPointElement(FPElement):
 
             sage: R = ZpFP(5); a = R(-1); a._integer_()
             95367431640624
-         """
+        """
         if self.ordp < 0:
             raise ValueError("Cannot form an integer out of a p-adic field element with negative valuation")
-        return self.lift_c()
+        return self.lift()
 
     def residue(self, absprec=1):
         """
