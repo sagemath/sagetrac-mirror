@@ -600,6 +600,18 @@ cdef class FPElement(pAdicTemplateElement):
             3 + 5
             sage: a >> 3
             3 + 5
+
+        TESTS::
+
+            sage: b = R(1) << 2**61
+            sage: b << (2**61)
+            0
+
+            sage: b << (2**62) # this should probably return 0
+            Traceback (most recent call last):
+            ...
+            OverflowError: valuation oveflow
+
         """
         if shift < 0:
             return self._rshift_c(-shift)
@@ -610,9 +622,11 @@ cdef class FPElement(pAdicTemplateElement):
         if very_pos_val(shift) or very_pos_val(self.ordp + shift):
             # need to check that we're not shifting infinity
             if very_neg_val(self.ordp):
+                # this code path can currently not be reached, shifts by
+                # 2**62-1 or more raise a "valuation overflow" in the
+                # implementation of __lshift__
                 raise ZeroDivisionError("Cannot multiply zero by infinity")
-            ans.ordp = maxordp
-            csetzero(ans.unit, ans.prime_pow)
+            ans._set_exact_zero()
         else:
             ans.ordp = self.ordp + shift
             ccopy(ans.unit, self.unit, ans.prime_pow)
@@ -640,7 +654,26 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: a >> -3
             964*997^4 + 572*997^5 + 124*997^6
+
+        TESTS::
+
+            sage: b = R(1) << 2**61
+            sage: b >> -(2**61)
+            0
+
+            sage: b >> (2**62) # this should probably return 0
+            Traceback (most recent call last):
+            ...
+            OverflowError: valuation oveflow
+
+            sage: R = QpFP(2)
+            sage: b = R(2)>>(2**61)
+            sage: a>>(2**61)
+            infinity
+
         """
+        if shift < 0:
+            return self._lshift_c(-shift)
         if shift == 0:
             return self
         elif very_pos_val(self.ordp):
@@ -648,16 +681,12 @@ cdef class FPElement(pAdicTemplateElement):
                 raise ZeroDivisionError("Cannot divide zero by zero")
             return self
         elif very_neg_val(self.ordp):
-            if very_neg_val(shift):
-                raise ZeroDivisionError("Cannot divide infinity by infinity")
             return self
         cdef FPElement ans = self._new_c()
         cdef long diff
         if self.prime_pow.in_field == 1 or shift <= self.ordp:
             if very_pos_val(shift):
                 ans._set_infinity()
-            elif very_neg_val(shift):
-                ans._set_exact_zero()
             else:
                 ans.ordp = self.ordp - shift
                 ccopy(ans.unit, self.unit, ans.prime_pow)
