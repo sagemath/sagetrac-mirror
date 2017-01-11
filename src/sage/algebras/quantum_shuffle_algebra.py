@@ -6,7 +6,7 @@ with bases generated from words.
 
 This class is built using parent class ShuffleAlgebra() but uses a 
 customized shuffle product for calculating the appropriate Laurent 
-polynomial coefficients from the cartan matrix. 
+polynomial coefficients from the Cartan matrix. 
 
 The effective difference between a quantum shuffle algebra (QSA)
 and a normal shuffle algebra (SA) is that the characters in the 
@@ -19,7 +19,7 @@ then the quantum shuffle product 'a'*'b' is given by
 'ab' + q'ba'
 (powers of the Laurent monomial q are introduced when characters from 
 the second word move past characters from the first word. These powers 
-are the negative of the corresponding entry in the cartan matrix
+are the negative of the corresponding entry in the Cartan matrix
 
 AUTHORS: 
 
@@ -54,7 +54,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
     - ``names`` -- generator names for basis (string or alphabet)
 
-    - ``cartan`` -- cartan matrix for underlying connectivitystructure
+    - ``cartan`` -- Cartan matrix for underlying connectivitystructure
 
     EXAMPLES:: 
 
@@ -243,7 +243,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
     def calclaurent(self, base):
         r"""
         Return the power for Laurent polynomial associated to a product of two 
-        words (stored in base) given underlying cartan matrix. 
+        words (stored in base) given underlying Cartan matrix. 
     
         EXAMPLES::
     
