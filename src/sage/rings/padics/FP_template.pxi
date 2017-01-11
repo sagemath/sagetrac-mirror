@@ -261,22 +261,6 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return unpickle_fpe_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp)
 
-#    def __richcmp__(self, right, int op):
-#        """
-#        Compare this element to ``right`` using the comparison operator ``op``.
-#
-#        TESTS::
-#
-#            sage: R = ZpFP(5)
-#            sage: a = R(17)
-#            sage: b = R(21)
-#            sage: a == b
-#            False
-#            sage: a < b
-#            True
-#        """
-#        return (<Element>self)._richcmp(right, op)
-
     cpdef _neg_(self):
         r"""
         Return the additive inverse of this element.
