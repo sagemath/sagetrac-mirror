@@ -1256,7 +1256,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: b.val_unit()
             Traceback (most recent call last):
             ...
-            ValueError: unit part of 0 and infinity not defined
+            ValueError: unit part of 0 and Infinity not defined
         """
         if p is not None and p != self.parent().prime():
             raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
