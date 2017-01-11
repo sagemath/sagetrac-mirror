@@ -2,7 +2,7 @@
 r"""
 p-Adic Extension Leaves
 
-The final classes for extensions of `\\Z_p` and `\\Q_p` (ie classes that are not
+The final classes for extensions of `\Z_p` and `\Q_p` (ie classes that are not
 just designed to be inherited from).
 
 AUTHORS:
@@ -111,7 +111,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -165,13 +165,13 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
         r"""
-        A representation of `\\Q_q`.
+        A representation of `\Q_q`.
 
         INPUT:
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Q_p`.
+          ``poly`` has coefficients in `\Q_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -242,7 +242,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -303,7 +303,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Q_p`.
+          ``poly`` has coefficients in `\Q_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -368,7 +368,7 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -424,7 +424,7 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Q_p`.
+          ``poly`` has coefficients in `\Q_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -476,13 +476,13 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         r"""
-        A capped relative representation of an Eisenstein extension of `\\Z_p`.
+        A capped relative representation of an Eisenstein extension of `\Z_p`.
 
         INPUT:
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -534,13 +534,13 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         r"""
-        A capped relative representation of an Eisenstein extension of `\\Q_p`.
+        A capped relative representation of an Eisenstein extension of `\Q_p`.
 
         INPUT:
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Q_p`.
+          ``poly`` has coefficients in `\Q_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -603,13 +603,13 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation):
         r"""
-        A capped absolute representation of an Eisenstein extension of `\\Z_p`.
+        A capped absolute representation of an Eisenstein extension of `\Z_p`.
 
         INPUT:
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
@@ -661,13 +661,13 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         r"""
-        A fixed modulus representation of an Eisenstein extension of `\\Z_p`.
+        A fixed modulus representation of an Eisenstein extension of `\Z_p`.
 
         INPUT:
 
         - ``prepoly`` -- The original polynomial defining the extension.  This
           could be a polynomial with integer coefficients, for example, while
-          ``poly`` has coefficients in `\\Z_p`.
+          ``poly`` has coefficients in `\Z_p`.
 
         - ``poly`` -- The polynomial with coefficients in the base ring
           defining this extension.
