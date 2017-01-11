@@ -847,7 +847,7 @@ cdef class FPElement(pAdicTemplateElement):
         INPUT:
 
         - ``_right`` -- a p-adic element with the same parent
-        - ``absprec`` -- a positive integer or ``None`` (default: ``None``)
+        - ``absprec`` -- a integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 

@@ -499,14 +499,15 @@ cdef class FMElement(pAdicTemplateElement):
 
     def is_equal_to(self, _right, absprec=None):
         r"""
-        Returns whether this element is equal to ``right`` modulo `p^{\mbox{absprec}}`.
+        Returns whether this element is equal to ``_right`` modulo `p^{\mbox{absprec}}`.
 
-        If ``absprec`` is ``None``, returns if ``self == 0``.
+        If ``absprec`` is ``None``, returns whether this element and ``_right``
+        are indistinguishable.
 
         INPUT:
 
-        - ``right`` -- a p-adic element with the same parent
-        - ``absprec`` -- a positive integer or ``None`` (default: ``None``)
+        - ``_right`` -- a p-adic element with the same parent
+        - ``absprec`` -- an integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 
