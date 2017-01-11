@@ -253,11 +253,11 @@ class FloatingPointGeneric(LocalGeneric):
 
 class FloatingPointRingGeneric(FloatingPointGeneric):
     pass
-class FloatingPointFieldGeneric(FloatingPointGeneric):#, sage.rings.ring.Field):
+class FloatingPointFieldGeneric(FloatingPointGeneric):
     pass
 class CappedRelativeRingGeneric(CappedRelativeGeneric):
     pass
-class CappedRelativeFieldGeneric(CappedRelativeGeneric):#, sage.rings.ring.Field):
+class CappedRelativeFieldGeneric(CappedRelativeGeneric):
     pass
 
 
