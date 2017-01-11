@@ -1,12 +1,25 @@
 r"""
-The quantum shuffle algebra on some generators over a base ring. 
+Quantum shuffle algebra on some generators over a base ring. 
 
-quantum shuffle algebras are noncommutative associative algebras 
+Quantum shuffle algebras are noncommutative associative algebras 
 with bases generated from words. 
 
 This class is built using parent class ShuffleAlgebra() but uses a 
 customized shuffle product for calculating the appropriate laurent 
 polynomial coefficients from the cartan matrix. 
+
+The effective difference between a quantum shuffle algebra (QSA)
+and a normal shuffle algebra (SA) is that the characters in the 
+'words' in a QSA are associated to a Cartan matrix that specifies 
+a connectivity between them. e.g. if we have the generators 'a','b' 
+and associated matrix 
+[ 2 -1]
+[-1  2]
+then the quantum shuffle product 'a'*'b' is given by 
+'ab' + q'ba'
+(powers of the laurent monomial q are introduced when characters from 
+the second word move past characters from the first word. These powers 
+are the negative of the corresponding entry in the cartan matrix
 
 AUTHORS: 
 
@@ -80,7 +93,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
     """
     def __init__(self, names='ab', cartan=0):
         """
-        initialize quantum shuffle algebra instance
+        Initialize quantum shuffle algebra instance. 
 
         EXAMPLES: 
             sage: QS = QuantumShuffleAlgebra(); QS
@@ -106,7 +119,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
     def _repr_(self):
         r"""
-        Text representation of this quantum shuffle algebra.
+        Return text representation of this quantum shuffle algebra.
 
         EXAMPLES::
 
@@ -143,7 +156,12 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
     def product_on_terms(self, t1, t2):
         r"""
-        Multiply two terms together
+        Returns the quantum shuffle product of two terms. 
+        e.g. the product q^-2'ab' * 'a' will be: 
+        q^-2 ( 'aba' + q'aab' + q*q^-2'aab') 
+        which is  
+        (q^-3 + q^-1)'aab' + q^-2'aba'
+        in simplified form. 
 
         EXAMPLES:: 
 
@@ -194,7 +212,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
     def product_on_basis(self, w1, w2):
         r"""
-        Multiply two basis 'words' elements together 
+        Return the Quantum Shuffle product of two basis 'words' together. 
 
         EXAMPLES::
 
@@ -224,7 +242,8 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
 def calclaurent(base, cartan, idx):
     r"""
-    Calculate the power for laurent polynomial given underlying cartan matrix
+    Return the power for laurent polynomial associated to a product of two 
+    words (stored in base) given underlying cartan matrix. 
     """
     power = 0
     for i, char in enumerate(base):
@@ -237,14 +256,14 @@ def calclaurent(base, cartan, idx):
 
 def interleave(str1, str2, min_idx=0):
     r"""
-    shuffle the two words str1 and str2 together using the normal 
-    shuffle method (see, e.g. 
+    Return the shuffle product of two words str1 and str2 together 
+    using the normal shuffle method (see, e.g. 
     :mod:`~sage.combinat.words.shuffle_product` and
     :meth:`~sage.combinat.words.finite_word.FiniteWord_class.shuffle()`.
     )
     but recording the base string each character 
     in the final result comes from so that the powers for the 
-    laurent polynomial coefficients can be generated
+    laurent polynomial coefficients can be generated. 
     """
     mylist = []
 
