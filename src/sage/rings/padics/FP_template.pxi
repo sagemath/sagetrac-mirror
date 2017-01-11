@@ -293,33 +293,41 @@ cdef class FPElement(pAdicTemplateElement):
             1 + 4*7^3
             sage: x + y #indirect doctest
             7 + 2*7^3
+
+        TESTS::
+
+            sage: R(0) + R(0)
+            0
+            sage: 1/R(0) + 1/R(0)
+            infinity
+            sage: 1/R(0) + R(0)
+            infinity
+
         """
         cdef FPElement ans
         cdef FPElement right = _right
         cdef long tmpL
         if self.ordp == right.ordp:
+            if huge_val(self.ordp):
+                return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cadd(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                ans._normalize() # safer than trying to leave unnormalized
+            cadd(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            ans._normalize() # safer than trying to leave unnormalized
         else:
             if self.ordp > right.ordp:
                 # Addition is commutative, swap so self.ordp < right.ordp
                 ans = right; right = self; self = ans
+            if very_neg_val(self.ordp):
+                return self
             tmpL = right.ordp - self.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                cadd(ans.unit, ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            cadd(ans.unit, ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     cpdef _sub_(self, _right):
@@ -335,42 +343,51 @@ cdef class FPElement(pAdicTemplateElement):
             1 + 4*7^3
             sage: x - y #indirect doctest
             5 + 7^3
+
+        TESTS::
+
+            sage: R(0) - R(0)
+            0
+            sage: 1/R(0) - 1/R(0)
+            infinity
+            sage: 1/R(0) - R(0)
+            infinity
+            sage: R(0) - 1/R(0)
+            infinity
+
         """
         cdef FPElement ans
         cdef FPElement right = _right
         cdef long tmpL
         if self.ordp == right.ordp:
+            if huge_val(self.ordp):
+                return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                csub(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                ans._normalize() # safer than trying to leave unnormalized
+            csub(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            ans._normalize() # safer than trying to leave unnormalized
         elif self.ordp < right.ordp:
+            if very_neg_val(self.ordp):
+                return self
             tmpL = right.ordp - self.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                csub(ans.unit, self.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            csub(ans.unit, self.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         else:
+            if very_neg_val(right.ordp):
+                return right
             tmpL = self.ordp - right.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return right._neg_()
             ans = self._new_c()
             ans.ordp = right.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, self.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                csub(ans.unit, ans.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, self.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            csub(ans.unit, ans.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     def __invert__(self):
