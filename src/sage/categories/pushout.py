@@ -2234,7 +2234,7 @@ class CompletionFunctor(ConstructionFunctor):
                     raise ValueError("completion type must be one of %s"%(", ".join(self._real_types)))
             else:
                 if self.type not in self._dvr_types:
-                    raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
+                    raise ValueError("completion type must be one of %s"%(", ".join(map(str,self._dvr_types))))
 
     def _repr_(self):
         """
