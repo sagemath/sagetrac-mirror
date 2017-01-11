@@ -403,7 +403,7 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             raise NotImplementedError
         Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
         cache_limit = min(prec, 30)
-        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='floating-point')
+        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='floating-point')
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, qAdicFloatingPointElement)
         from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
