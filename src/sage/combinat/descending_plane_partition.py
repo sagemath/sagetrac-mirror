@@ -47,11 +47,7 @@ class DescendingPlanePartition():
 
     REFERENCES:
 
-    .. [MiRoRu] \W. H. Mills, \D P. Robbins, \H. Rumsey Jr.,
-       *Alternating sign matrices and descending plane partitions*,
-       Journal of Combinatorial Theory, Series A,
-       Volume 34, Issue 3, May 1983, Pages 340--359.
-       :doi:`10.1016/0097-3165(83)90068-7`
+    .. [MiRoRu]_
     """
     def __init__(self, DPP):
         """
@@ -113,7 +109,7 @@ class DescendingPlanePartition():
             <BLANKLINE>
 
         """
-        print self._pretty_string()
+        print(self._pretty_string())
     
     def _is_columnar_descending(self, dpp):
         """
