@@ -610,7 +610,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: b << (2**62) # this should probably return 0
             Traceback (most recent call last):
             ...
-            OverflowError: valuation oveflow
+            OverflowError: valuation overflow
 
         """
         if shift < 0:
@@ -664,7 +664,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: b >> (2**62) # this should probably return 0
             Traceback (most recent call last):
             ...
-            OverflowError: valuation oveflow
+            OverflowError: valuation overflow
 
             sage: R = QpFP(2)
             sage: b = R(2)>>(2**61)
