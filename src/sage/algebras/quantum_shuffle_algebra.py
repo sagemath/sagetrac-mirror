@@ -53,7 +53,7 @@ Multiplication::
 
 REFERENCES: 
 
-Bernard Leclerc, Dual canonical bases, quantum shuffles and q-characters, Mathematische Zeitschrift 246
+- [Lec2004]_
 
 """
 

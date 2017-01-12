@@ -971,6 +971,10 @@ REFERENCES:
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
 
+.. [Lec2004] \B. Leclerc, *Dual canonical bases, quantum shuffles and 
+             q-characters*, Mathematische Zeitschrift 2004 246: 691; 
+             :doi:`10.1007/s00209-003-0609-9'
+
 .. [Lee1997] \J. M. Lee, *Riemannian Manifolds*, Springer (New York) (1997);
              :doi:`10.1007/b98852`
 
