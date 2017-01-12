@@ -23,14 +23,38 @@ are the negative of the corresponding entry in the Cartan matrix
 
 AUTHORS: 
 
-- Mary Barker
+- Mary Barker (2017-01-11)
 
-- Joseph Brown
+- Joseph Brown (2017-01-11)
 
+
+EXAMPLES:
+
+Create a quantum shuffle algebra instance::
+
+    sage: A = QuantumShuffleAlgebra(names=build_alphabet(name='lower'));A
+    Quantum Shuffle Algebra on 26 generators ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'] over Univariate Laurent Polynomial Ring in q over Rational Field
+    sage: A.is_commutative()
+    False
+
+Multiplication::
+
+    sage: A.product_on_basis('abc','de')
+    B['abcde'] + q*B['abdce'] + q*B['abdec'] + q*B['adbce'] + q*B['adbec'] + q*B['adebc'] + q*B['dabce'] + q*B['dabec'] + q*B['daebc'] + q*B['deabc']
+
+::
+
+    sage: a = A.term('aa')*A.term('bb');a
+    B['aabb'] + q*B['abab'] + q^2*B['abba'] + q^2*B['baab'] + q^3*B['baba'] + q^4*B['bbaa']
+    sage: b = A.term('c'); b
+    B['c']
+    sage: a*b
+    B['aabbc'] + q*B['aabcb'] + q^2*B['aacbb'] + q*B['ababc'] + q^2*B['abacb'] + q^2*B['abbac'] + q^2*B['abbca'] + q^2*B['abcab'] + q^3*B['abcba'] + q^2*B['acabb'] + q^3*B['acbab'] + q^4*B['acbba'] + q^2*B['baabc'] + q^3*B['baacb'] + q^3*B['babac'] + q^3*B['babca'] + q^3*B['bacab'] + q^4*B['bacba'] + q^4*B['bbaac'] + q^4*B['bbaca'] + q^4*B['bbcaa'] + q^3*B['bcaab'] + q^4*B['bcaba'] + q^5*B['bcbaa'] + q^2*B['caabb'] + q^3*B['cabab'] + q^4*B['cabba'] + q^4*B['cbaab'] + q^5*B['cbaba'] + q^6*B['cbbaa']
 
 REFERENCES: 
 
 Bernard Leclerc, Dual canonical bases, quantum shuffles and q-characters, Mathematische Zeitschrift 246
+
 """
 
 #*****************************************************************************
@@ -95,7 +119,14 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         """
         Initialize quantum shuffle algebra instance. 
 
+        INPUT: 
+
+        - 'names' -- (default: 2) a string or alphabet
+
+        - 'cartan' -- (default: 0) a CartanMatrix() instance
+
         EXAMPLES::
+
             sage: QS = QuantumShuffleAlgebra(); QS
             Quantum Shuffle Algebra on 2 generators ['a', 'b'] over Univariate Laurent Polynomial Ring in q over Rational Field
         """
@@ -163,6 +194,12 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         (q^-3 + q^-1)'aab' + q^-2'aba'
         in simplified form. 
 
+        INPUT: 
+
+        - 't1' -- finite sum of laurent polynomial multiples of base elements in the quantum shuffle algebra
+
+        - 't2' -- finite sum of laurent polynomial multiples of base elements in the quantum shuffle algebra
+
         EXAMPLES:: 
 
             sage: QS = QuantumShuffleAlgebra(names='xyz')
@@ -214,6 +251,12 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         r"""
         Return the Quantum Shuffle product of two basis 'words' together. 
 
+        INPUT: 
+
+        - 'w1' -- basis element i.e. a finite string composed of generators for the algebra
+
+        - 'w2' -- basis element i.e. a finite string composed of generators for the algebra
+
         EXAMPLES::
 
             sage: QS = QuantumShuffleAlgebra(names='xyz')
@@ -245,6 +288,10 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         Return the power for Laurent polynomial associated to a product of two 
         words (stored in base) given underlying Cartan matrix. 
     
+        INPUT: 
+
+        - 'base' -- list of lists. in each list is a series of tuples of the form ('a', idx) where idx is an integer referring to the word it came from and 'a' is a character from that word
+
         EXAMPLES::
     
             sage: from sage.algebras.quantum_shuffle_algebra import interleave
@@ -279,6 +326,12 @@ def interleave(str1, str2, min_idx=0):
     but recording the base string each character 
     in the final result comes from so that the powers for the 
     Laurent polynomial coefficients can be generated. 
+
+        INPUT: 
+
+        - 'str1' -- a list with each element of the form ['a', 1] where 'a' is a character from the first string in the shuffle product.
+
+        - 'str2' -- a list with each element of the form ['a', 2] where 'a' is a character from the second string in the shuffle product.
 
     EXAMPLES::
 
