@@ -101,6 +101,214 @@ class MotzkinWord(ClonableArray):
         """
         return "MotzkinWord %" % self.mword
 
+    def number_of_up_steps(self):
+        r"""
+        Return the number of up steps in ``self``.
+
+        EXAMPLES::
+
+            sage: MotzkinWord([1, 0, 1, -1]).number_of_up_steps()
+            2
+            sage: MotzkinWord([1, -1, 1, 1, 0]).number_of_up_steps()
+            3
+
+        TESTS::
+
+            sage: MotzkinWord([]).number_of_up_steps()
+            0
+        """
+        return len([x for x in self if x == 1])
+
+    def number_of_down_steps(self):
+        r"""
+        Return the number of down steps in ``self``.
+
+        EXAMPLES::
+
+            sage: MotzkinWord([1, 0, 1, -1]).number_of_down_steps()
+            1
+            sage: MotzkinWord([1, -1, 1, 0, -1]).number_of_down_steps()
+            2
+
+        TESTS::
+
+            sage: MotzkinWord([]).number_of_down_steps()
+            0
+        """
+        return len([x for x in self if x == -1])
+
+    def number_of_horizontal_steps(self):
+        r"""
+        Return the number of horizontal steps in ``self``.
+
+        EXAMPLES::
+
+            sage: MotzkinWord([1, 0, 1, -1, 0]).number_of_horizontal_steps()
+            2
+            sage: MotzkinWord([0, 1, 0, 0, -1, 0]).number_of_horizontal_steps()
+            4
+
+        TESTS::
+
+            sage: MotzkinWord([]).number_of_horizontal_steps()
+            0
+        """
+        return len([x for x in self if x == 0])
+
+
+    def ends_at_horizontal_axis(self):
+        r"""
+        Return ``True`` if ``self`` ends at the horizontal axis.
+
+        A Dyck word `d` ends at the horizontal axis if `d` contains as many
+        up steps as down steps.
+
+        EXAMPLES::
+
+            sage: DyckWord([1, 0, -1, 0, 1, -1]).is_complete()
+            True
+            sage: DyckWord([1, -1, 0, 1, -1, 0]).is_complete()
+            True
+            sage: DyckWord([1, 0, 1, -1, 0]).is_complete()
+            False
+
+        TESTS::
+
+            sage: DyckWord([]).is_complete()
+            True
+        """
+        return self.number_of_up_steps() == self.number_of_down_steps()
+
+    def height(self):
+        r"""
+        Return the height of ``self``.
+
+        We view the Motzkin word as a Motzkin path from `(0, 0)` to
+        `(n, k1-k2)` in the first quadrant by letting ``1``'s represent
+        steps in the direction `(1, 1)`, ``-1``'s represent steps in the
+        direction `(1, -1)`,  and ``0``'s represent steps in the direction
+        `(1, 0)`.
+
+        The height is the maximum `y`-coordinate reached.
+
+        .. SEEALSO:: :meth:`heights`
+
+        EXAMPLES::
+
+            sage: DyckWord([]).height()
+            0
+            sage: DyckWord([1,0]).height()
+            1
+            sage: DyckWord([1, 1, -1, 0, 1]).height()
+            2
+            sage: DyckWord([1, 1, 0, 1, -1]).height()
+            3
+            sage: DyckWord([1, 1, 0, -1, 0]).height()
+            2
+            sage: DyckWord([0, 0]).height()
+            0
+            sage: DyckWord([1, 1, 0, 0, 1, -1, -1, 0, 0, 0]).height()
+            3
+        """
+        height = 0
+        for i in range(1,self._n+1):
+            if sum(self[1:i]) > height:
+                height=sum(self[1:i])
+        return height 
+#        height = 0
+#        height_max = 0
+#        for letter in self:
+#            if letter == 1:
+#                height += 1
+#                height_max = max(height, height_max)
+#            elif letter == close_symbol:
+#                height -= 1
+#        return height_max
+
+    def has_horizontal_step_on_top(self):
+        r"""
+        Returns True if the word has a horizontal step on the highest
+        height of ``self``.
+
+        We view the Motzkin word as a Motzkin path from `(0, 0)` to
+        `(n, k1-k2)` in the first quadrant by letting ``1``'s represent
+        steps in the direction `(1, 1)`, ``-1``'s represent steps in the
+        direction `(1, -1)`,  and ``0``'s represent steps in the direction
+        `(1, 0)`.
+
+        The height is the maximum `y`-coordinate reached.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).height()
+            False
+            sage: DyckWord([1,0]).height()
+            True
+            sage: DyckWord([1, 1, -1, 0, 1]).height()
+            False
+            sage: DyckWord([1, 1, 0, 1, -1]).height()
+            False
+            sage: DyckWord([1, 1, 0, -1, 0]).height()
+            True
+            sage: DyckWord([0, 0]).height()
+            True
+            sage: DyckWord([1, 1, 0, 0, 1, -1, -1, 0, 0, 0]).height()
+            False
+        """
+        horizontaltop = False
+        height = 0
+        for i in range(1,self._n + 1):
+            if sum(self[1:i]) > height:
+                height=sum(self[1:i])
+                horizontaltop=False
+            if (i<self._n) and (sum(self[1:i])==height and sum(self[1:(i+1)])==height):
+                horizontaltop=True
+        return height 
+
+
+    def heights(self):
+        r"""
+        Return the heights of ``self``.
+
+        We view the Motzkin word as a Motzkin path from `(0, 0)` to
+        `(n, k1-k2)` in the first quadrant by letting ``1``'s represent
+        steps in the direction `(1, 1)`, ``-1``'s represent steps in the
+        direction `(1, -1)`,  and ``0``'s represent steps in the direction
+        `(1, 0)`.
+
+        The heights is the sequence of the `y`-coordinates of all
+        `n+1` lattice points along the path.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).heights()
+            (0)
+            sage: DyckWord([1,0]).heights()
+            (0, 1, 1)
+            sage: DyckWord([1, 1, -1, -1]).heights()
+            (0, 1, 2, 1, 0)
+            sage: DyckWord([0, 1, 1, -1, 1, 0]).heights()
+            (0, 0, 1, 2, 1, 2, 2)
+            sage: DyckWord([1, 1, -1, 0, 1, 0]).heights()
+            (0, 1, 2, 1, 1, 2, 2)
+            sage: DyckWord([1, 0, 1, 0]).heights()
+            (0, 1, 1, 2, 2)
+            sage: DyckWord([1, 1, 0, -1, 1, -1, 1, 0, -1, 0]).heights()
+            (0, 1, 2, 2, 1, 2, 1, 2, 2, 1, 1)
+        """
+        heights=[0]*(len(self)+1)
+        for i in range(1,self._n+1):
+            heights[i + 1] = sum(self[1:i])
+#        height = 0
+#        heights = [0] * (len(self) + 1)
+#        for i, letter in enumerate(self):
+#            if letter == open_symbol:
+#                height += 1
+#            elif letter == close_symbol:
+#                height -= 1
+#            heights[i + 1] = height
+        return tuple(heights)
+
 
 class MotzkinWords(UniqueRepresentation, Parent):
     r"""
@@ -216,6 +424,7 @@ class MotzkinWordBacktracker(GenericBacktracker):
         k3 = ZZ(k3)
         self.n = k1 + k2 + k3
         self.endht = k1 - k2
+
     def _rec(self, path, state):
         r"""
         TESTS::
