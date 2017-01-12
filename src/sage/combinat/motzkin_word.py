@@ -46,7 +46,7 @@ from sage.categories.enumerated_sets import EnumeratedSets
 
 
 
-class MotzkinWord(ClonableArray):
+class MotzkinWord(Element):
     r"""
     A Motzkin word.
 
@@ -69,37 +69,53 @@ class MotzkinWord(ClonableArray):
 
     """
 
-    __metaclass__ = InheritComparisonClasscallMetaclass
+#    def check(self):
+#        """
+#        TODO CHANGE THIS DOCUMENTTION
+#        Check if ``self`` is a valid 6 vertex configuration.
 
-    @staticmethod
-    def __classcall_private__(cls, mword):
-        """
-        Create a MotzkinWord.
+#        EXAMPLES::
+#
+#            sage: M = SixVertexModel(3, boundary_conditions='ice')
+#            sage: M[0].check()
+#        """
+#        if self not in self.parent():
+#            raise ValueError("invalid configuration")
 
-        EXAMPLES::
 
-            sage: MotzkinWord([1,1,0,-1,1,-1,0])
-            [1,1,0,-1,1,-1,0]
-        """
-        mword = list(mword)
-        for i in range(1,len(mword)+1):
-            if sum(mword[0:i]) < 0:
-                raise ValueError("A Motzkin word is not allowed to go beneath the starting level!")
-            if ((mword[i-1]) not in [1, -1, 0]):
-                raise ValueError("In a Motzkin word only steps in {1,-1,0} are allowed!")
-        return mword
 
-    def __init__(self, parent, mword):
+#    __metaclass__ = InheritComparisonClasscallMetaclass
+
+#    @staticmethod
+#    def __classcall_private__(cls, mword):
+#        """
+#        Create a MotzkinWord.
+
+#        EXAMPLES::
+
+#            sage: MotzkinWord([1,1,0,-1,1,-1,0])
+#            [1,1,0,-1,1,-1,0]
+#        """
+#        mword = list(mword)
+#        for i in range(1,len(mword)+1):
+#            if sum(mword[0:i]) < 0:
+#                raise ValueError("A Motzkin word is not allowed to go beneath the starting level!")
+#            if ((mword[i-1]) not in [1, -1, 0]):
+#                raise ValueError("In a Motzkin word only steps in {1,-1,0} are allowed!")
+#        return mword
+
+    def __init__(self, parent, mw):
         """
         Initialize ``self``.
         """
-        ClonableArray.__init__(self, parent, mword)
+        self._word=mw
+        Element.__init__(self, parent)
 
-    def _repr_(self):
+    def __repr__(self):
         """
         Return a string representation of ``self``.
         """
-        return "MotzkinWord %" % self.mword
+        return "MotzkinWord {}".format(self._word)
 
     def number_of_up_steps(self):
         r"""
@@ -117,7 +133,7 @@ class MotzkinWord(ClonableArray):
             sage: MotzkinWord([]).number_of_up_steps()
             0
         """
-        return len([x for x in self if x == 1])
+        return len([x for x in self._word if x == 1])
 
     def number_of_down_steps(self):
         r"""
@@ -324,21 +340,21 @@ class MotzkinWords(UniqueRepresentation, Parent):
 
     """
 
-    __metaclass__ = InheritComparisonClasscallMetaclass
+#    __metaclass__ = InheritComparisonClasscallMetaclass
 
-    @staticmethod
-    def __classcall_private__(cls, n):
-        """
-        Choose the correct parent based upon input.
-
-        EXAMPLES::
-
-            sage: DW1 = DyckWords(3,3)
-            sage: DW2 = DyckWords(3)
-            sage: DW1 is DW2
-            True
-        """
-        return MotzkinWords()
+#    @staticmethod
+#    def __classcall_private__(cls, n):
+#        """
+#        Choose the correct parent based upon input.
+#
+#        EXAMPLES::
+#
+#            sage: DW1 = DyckWords(3,3)
+#            sage: DW2 = DyckWords(3)
+#            sage: DW1 is DW2
+#            True
+#        """
+#        return MotzkinWords()
 
     def __init__(self,n):
         """
@@ -363,21 +379,21 @@ class MotzkinWords(UniqueRepresentation, Parent):
         return "Motzkinwords of length %s" % self._n
 
 
-    def _element_constructor_(self, mword):
-        """
-        Construct an element of ``self``.
+#    def _element_constructor_(self, mword):
+#        """
+#        Construct an element of ``self``.
 
-        EXAMPLES::
+#        EXAMPLES::
 
-            sage: D = MotzkinWords()
-            sage: elt = D([1, 1, 0, 1, 0, 0]); elt
-            [1, 1, 0, 1, 0, 0]
-            sage: elt.parent() is D
-            True
-        """
-        if isinstance(mword, MotzkinWord) and mword.parent() is self:
-            return mword
-        return self.element_class(self, list(mword))
+#            sage: D = MotzkinWords()
+#            sage: elt = D([1, 1, 0, 1, 0, 0]); elt
+#            [1, 1, 0, 1, 0, 0]
+#            sage: elt.parent() is D
+#            True
+#        """
+#        if isinstance(mword, MotzkinWord) and mword.parent() is self:
+#            return mword
+#        return self.element_class(self, list(mword))
 
     def __iter__(self):
         """
@@ -393,12 +409,12 @@ class MotzkinWords(UniqueRepresentation, Parent):
         yield self.element_class(self, [])
         while True:
             for k1 in range(1, n+1):
-                for k2 in range(1, min[n+1-k1,k1]):
-                    for x in DyckWords_size(k1, k2, n-k1-k2):
+                for k2 in range(1, min([n+1-k1,k1])):
+                    for x in MotzkinWords_size(k1, k2, n-k1-k2):
                         yield self.element_class(self, list(x))
             n += 1
 
-
+    Element=MotzkinWord
 
 class MotzkinWordBacktracker(GenericBacktracker):
     r"""
@@ -482,7 +498,7 @@ class MotzkinWords_size(MotzkinWords):
         self.k3 = ZZ(k3)
         MotzkinWords.__init__(self, k1+k2+k3)
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         TESTS::
 
@@ -525,20 +541,22 @@ class MotzkinWords_size(MotzkinWords):
             for w in MotzkinWordBacktracker(self.k1, self.k2, self.k3):
                 yield self.element_class(self, w)
 
-    def __contains__(self, x):
-        r"""
-        IRGENDSOWAS TODO!!
-        EXAMPLES::
+    Element=MotzkinWord
 
-            sage: [1, 0, 0, 1] in DyckWords(2,2)
-            False
-            sage: [1, 0, 1, 0] in DyckWords(2,2)
-            True
-            sage: [1, 0, 1, 0, 1] in DyckWords(3,2)
-            True
-            sage: [1, 0, 1, 1, 0] in DyckWords(3,2)
-            True
-            sage: [1, 0, 1, 1] in DyckWords(3,1)
-            True
-        """
-        return is_a(x, self.k1, self.k2, self.k3)
+#    def __contains__(self, x):
+#        r"""
+#        IRGENDSOWAS TODO!!
+#        EXAMPLES::
+
+#            sage: [1, 0, 0, 1] in DyckWords(2,2)
+#            False
+#            sage: [1, 0, 1, 0] in DyckWords(2,2)
+#            True
+#            sage: [1, 0, 1, 0, 1] in DyckWords(3,2)
+#            True
+#            sage: [1, 0, 1, 1, 0] in DyckWords(3,2)
+#            True
+#            sage: [1, 0, 1, 1] in DyckWords(3,1)
+#            True
+#        """
+#        return is_a(x, self.k1, self.k2, self.k3)
