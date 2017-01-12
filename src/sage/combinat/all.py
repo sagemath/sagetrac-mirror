@@ -132,8 +132,8 @@ from .subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
-from .dyck_word import DyckWords, DyckWord, DyckWords_size
-from .motzkin_word import MotzkinWords, MotzkinWord, MotzkinWords_size
+from .dyck_word import DyckWords, DyckWord
+from .motzkin_word import MotzkinWords, MotzkinWord
 from .sloane_functions import sloane
 
 from .root_system.all import *

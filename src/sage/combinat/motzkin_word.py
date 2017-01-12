@@ -19,8 +19,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+
 from sage.structure.list_clone import ClonableArray
-from .backtrack import GenericBacktracker
+from sage.combinat.backtrack import GenericBacktracker
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
@@ -69,40 +71,35 @@ class MotzkinWord(Element):
 
     """
 
-#    def check(self):
-#        """
-#        TODO CHANGE THIS DOCUMENTTION
-#        Check if ``self`` is a valid 6 vertex configuration.
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
-#        EXAMPLES::
-#
-#            sage: M = SixVertexModel(3, boundary_conditions='ice')
-#            sage: M[0].check()
-#        """
-#        if self not in self.parent():
-#            raise ValueError("invalid configuration")
+    @staticmethod
+    def __classcall_private__(cls, mw):
+        """
+        Create a MotzkinWord.
 
+        EXAMPLES::
 
+            sage: MotzkinWord([1,1,0,-1,1,-1,0])
+            [1,1,0,-1,1,-1,0]
+        """
+        mw = list(mw)
+        n=len(mw)
+        M = MotzkinWords(n)
+        for i in range(1,len(mw)+1):
+            if sum(mw[0:i]) < 0:
+                raise ValueError("A Motzkin word is not allowed to go beneath the starting level!")
+            if ((mw[i-1]) not in [1, -1, 0]):
+                raise ValueError("In a Motzkin word only steps in {1,-1,0} are allowed!")
+        return M(mw)
 
-#    __metaclass__ = InheritComparisonClasscallMetaclass
-
-#    @staticmethod
-#    def __classcall_private__(cls, mword):
-#        """
-#        Create a MotzkinWord.
-
-#        EXAMPLES::
-
-#            sage: MotzkinWord([1,1,0,-1,1,-1,0])
-#            [1,1,0,-1,1,-1,0]
-#        """
-#        mword = list(mword)
-#        for i in range(1,len(mword)+1):
-#            if sum(mword[0:i]) < 0:
-#                raise ValueError("A Motzkin word is not allowed to go beneath the starting level!")
-#            if ((mword[i-1]) not in [1, -1, 0]):
-#                raise ValueError("In a Motzkin word only steps in {1,-1,0} are allowed!")
-#        return mword
+        asm = matrix(asm)
+        if not asm.is_square():
+            raise ValueError("The alternating sign matrices must be square")
+        P = AlternatingSignMatrices(asm.nrows())
+        if asm not in P:
+            raise ValueError("Invalid alternating sign matrix")
+        return P(asm)
 
     def __init__(self, parent, mw):
         """
@@ -151,7 +148,7 @@ class MotzkinWord(Element):
             sage: MotzkinWord([]).number_of_down_steps()
             0
         """
-        return len([x for x in self if x == -1])
+        return len([x for x in self._word if x == -1])
 
     def number_of_horizontal_steps(self):
         r"""
@@ -169,7 +166,7 @@ class MotzkinWord(Element):
             sage: MotzkinWord([]).number_of_horizontal_steps()
             0
         """
-        return len([x for x in self if x == 0])
+        return len([x for x in self._word if x == 0])
 
 
     def ends_at_horizontal_axis(self):
@@ -207,8 +204,6 @@ class MotzkinWord(Element):
 
         The height is the maximum `y`-coordinate reached.
 
-        .. SEEALSO:: :meth:`heights`
-
         EXAMPLES::
 
             sage: DyckWord([]).height()
@@ -227,19 +222,10 @@ class MotzkinWord(Element):
             3
         """
         height = 0
-        for i in range(1,self._n+1):
-            if sum(self[1:i]) > height:
-                height=sum(self[1:i])
+        for i in range(0,len(self._word)):
+            if sum(self._word[0:i+1]) > height:
+                height=sum(self._word[0:i+1])
         return height 
-#        height = 0
-#        height_max = 0
-#        for letter in self:
-#            if letter == 1:
-#                height += 1
-#                height_max = max(height, height_max)
-#            elif letter == close_symbol:
-#                height -= 1
-#        return height_max
 
     def has_horizontal_step_on_top(self):
         r"""
@@ -273,13 +259,13 @@ class MotzkinWord(Element):
         """
         horizontaltop = False
         height = 0
-        for i in range(1,self._n + 1):
-            if sum(self[1:i]) > height:
-                height=sum(self[1:i])
+        for i in range(0,len(self._word)):
+            if sum(self._word[0:i+1]) > height:
+                height=sum(self._word[0:i+1])
                 horizontaltop=False
-            if (i<self._n) and (sum(self[1:i])==height and sum(self[1:(i+1)])==height):
+            if (i<len(self._word)) and (sum(self._word[0:i])==height and sum(self._word[0:(i+1)])==height):
                 horizontaltop=True
-        return height 
+        return horizontaltop 
 
 
     def heights(self):
@@ -312,18 +298,52 @@ class MotzkinWord(Element):
             sage: DyckWord([1, 1, 0, -1, 1, -1, 1, 0, -1, 0]).heights()
             (0, 1, 2, 2, 1, 2, 1, 2, 2, 1, 1)
         """
-        heights=[0]*(len(self)+1)
-        for i in range(1,self._n+1):
-            heights[i + 1] = sum(self[1:i])
-#        height = 0
-#        heights = [0] * (len(self) + 1)
-#        for i, letter in enumerate(self):
-#            if letter == open_symbol:
-#                height += 1
-#            elif letter == close_symbol:
-#                height -= 1
-#            heights[i + 1] = height
+        heights=[0]*(len(self._word)+1)
+        for i in range(0,len(self._word)):
+            heights[i + 1] = sum(self._word[0:i+1])
         return tuple(heights)
+
+    def pretty_print(self):
+        r"""
+        A path representation of the Motzkin word consisting of steps
+        ``/``, ``\`` and ``_``.
+
+        EXAMPLES::
+
+            sage: print(MotzkinWord([1, -1, 1, -1, 0, 0]).pretty_print())
+            /\/\__
+            sage: print(MotzkinWord([1, 1, 0, 0, -1,-1]).pretty_print())
+              __
+             /  \
+            /    \
+            sage: print(MotzkinWord([1,1,0,-1,1,1,-1,0,-1,0,-1]).pretty_print())
+              _  /\_
+             / \/   \_
+            /         \
+        """
+        space = ' '
+        up    = '/'
+        down  = '\\'
+        hztl  = '_'
+
+        if self.has_horizontal_step_on_top():
+            res = [([space]*len(self._word)) for _ in range(self.height()+1)]
+        else:
+            res = [([space]*len(self._word)) for _ in range(self.height())]
+        h = 1
+        i = 0
+        for p in self._word:
+            if p == 1:
+                res[-h][i] = up
+                h += 1
+            elif p == -1:
+                h -= 1
+                res[-h][i] = down
+            else:
+                res[-h][i] = hztl
+            i=i+1
+        return "\n".join("".join(l) for l in res)
+
 
 
 class MotzkinWords(UniqueRepresentation, Parent):
@@ -339,22 +359,6 @@ class MotzkinWords(UniqueRepresentation, Parent):
     EXAMPLES::
 
     """
-
-#    __metaclass__ = InheritComparisonClasscallMetaclass
-
-#    @staticmethod
-#    def __classcall_private__(cls, n):
-#        """
-#        Choose the correct parent based upon input.
-#
-#        EXAMPLES::
-#
-#            sage: DW1 = DyckWords(3,3)
-#            sage: DW2 = DyckWords(3)
-#            sage: DW1 is DW2
-#            True
-#        """
-#        return MotzkinWords()
 
     def __init__(self,n):
         """
@@ -376,7 +380,7 @@ class MotzkinWords(UniqueRepresentation, Parent):
             sage: M = MotzkinWords(4); M
             Motzkinwords of length 4
         """
-        return "Motzkinwords of length %s" % self._n
+        return "Motzkinwords of length {}".format(self._n)
 
 
 #    def _element_constructor_(self, mword):
@@ -398,165 +402,57 @@ class MotzkinWords(UniqueRepresentation, Parent):
     def __iter__(self):
         """
         Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: it = MotzkinWords.__iter__()
-            sage: [next(it) for x in range(10)]
-
         """
-        n = 0
-        yield self.element_class(self, [])
-        while True:
-            for k1 in range(1, n+1):
-                for k2 in range(1, min([n+1-k1,k1])):
-                    for x in MotzkinWords_size(k1, k2, n-k1-k2):
-                        yield self.element_class(self, list(x))
-            n += 1
+        n = self._n
+        for k1 in range(0, n+1):
+            for k2 in range(0, min([n-k1,k1])+1):
+                if n == 0:
+                    yield self.element_class(self, [])
+                elif (k1==n):
+                    yield self.element_class(self, [1]*k1)
+                elif n==1 and (k1 == 0 and k2==0):
+                    yield self.element_class(self, [0])
+                else:
+                    for w in MotzkinWordBacktracker(k1, k2, n-k2-k1):
+                        yield self.element_class(self, w)
 
     Element=MotzkinWord
 
 class MotzkinWordBacktracker(GenericBacktracker):
     r"""
-    This class is an iterator for all Dyck words
+    This class is an iterator for all Motzkin words
     with `k1` up steps, `k2` down steps and `k3` horizontal steps using
-    the backtracker class. It is used by the :class:`MotzkinWords_size` class.
+    the backtracker class. It is used by the :class:`MotzkinWords` class.
 
     This is not really meant to be called directly.
     """
 
     def __init__(self, k1, k2, k3):
         r"""
-        TESTS::
-
-        """
-        GenericBacktracker.__init__(self, [], (0, 0))
-        # note that the comments in this class think of our objects as
-        # Dyck paths, not words; having k1 opening parens and k2 closing
-        # parens corresponds to paths of length k1 + k2 ending at height
-        # k1 - k2.
-        k1 = ZZ(k1)
-        k2 = ZZ(k2)
-        k3 = ZZ(k3)
-        self.n = k1 + k2 + k3
-        self.endht = k1 - k2
-
-    def _rec(self, path, state):
-        r"""
-        TESTS::
-        !!!SOMETHING LIKE THAT BUT DIFFERENT (TO-DO)
-            sage: from sage.combinat.dyck_word import DyckWordBacktracker
-            sage: dwb = DyckWordBacktracker(3, 3)
-            sage: list(dwb._rec([1,1,0],(3, 2)))
-            [([1, 1, 0, 0], (4, 1), False), ([1, 1, 0, 1], (4, 3), False)]
-            sage: list(dwb._rec([1,1,0,0],(4, 0)))
-            [([1, 1, 0, 0, 1], (5, 1), False)]
-            sage: list(DyckWordBacktracker(4, 4)._rec([1,1,1,1],(4, 4)))
-            [([1, 1, 1, 1, 0], (5, 3), False)]
-        """
-        len, ht = state
-        if len < self.n - 1:
-            # if length is less than n-1, new path won't have length n, so
-            # don't yield it, and keep building paths
-
-            # if the path isn't too low and is not touching the x-axis, we can
-            # yield a path with a downstep at the end
-            if ht > (self.endht - (self.n - len)) and ht > 0:
-                yield path + [-1], (len + 1, ht - 1), False
-
-            # if the path isn't too high, it can also take an upstep
-            if ht < (self.endht + (self.n - len)):
-                yield path + [1], (len + 1, ht + 1), False
-
-            # there can always be a horizontal step
-            yield path + [0], (len + 1, ht), False
-
-        else:
-            # length is n - 1, so add a single step (up, down or horizontal,
-            # according to current height and endht), don't try to
-            # construct more paths, and yield the path
-            if ht < self.endht:
-                yield path + [1], None, True
-            elif ht > self.endht:
-                yield path + [-1], None, True
-            else:
-                yield path + [0], None, True
-
-
-class MotzkinWords_size(MotzkinWords):
-    """
-    Motzkin words with `k1` up steps, `k2` down steps  and `k_3` horizontal
-    steps
-    """
-    def __init__(self, k1, k2, k3):
-        r"""
-        TESTS:
-
+        init for Generic Backtracker
         """
         self.k1 = ZZ(k1)
         self.k2 = ZZ(k2)
         self.k3 = ZZ(k3)
-        MotzkinWords.__init__(self, k1+k2+k3)
+        self.n = k1 + k2 + k3
+        GenericBacktracker.__init__(self, [], (0, 0, 0))
 
-    def __repr__(self):
+    def _rec(self, path, state):
         r"""
-        TESTS::
-
-            sage: MotzkinWords(4,2,3)
-            Motzkin words with 4 upsteps, 2 downsteps and 3 horziontalsteps
+        _rec for Generic Backtracker
         """
-        return "Motzkin words with %s up steps, %s down steps and %s horziontal steps" % (self.k1, self.k2, self.k3)
-
-
-    def __iter__(self):
-        r"""
-        Return an iterator for Motzkin words with `k1` up steps, `k2` down
-        steps  and `k_3` horizontal steps.
-
-        EXAMPLES::
-
-        !!!SOMETHING LIKE THAT BUT DIFFERENT (TO-DO)
-            sage: list(DyckWords(0))
-            [[]]
-            sage: list(DyckWords(1))
-            [[1, 0]]
-            sage: list(DyckWords(2))
-            [[1, 0, 1, 0], [1, 1, 0, 0]]
-            sage: len(DyckWords(5))
-            42
-            sage: list(DyckWords(3,2))
-            [[1, 0, 1, 0, 1],
-             [1, 0, 1, 1, 0],
-             [1, 1, 0, 0, 1],
-             [1, 1, 0, 1, 0],
-             [1, 1, 1, 0, 0]]
-        """
-        if self.k1 == 0:
-            yield self.element_class(self, [])
-        elif (self.k2 == 0 and self.k3==0):
-            yield self.element_class(self, [1]*self.k1)
-        elif (self.k1 == 0 and self.k2==0):
-            yield self.element_class(self, [0]*self.k1)
+        l1, l2, l3 = state
+        if (l1+l2+l3) < (self.n - 1):
+            if l1 < self.k1:
+                yield path + [1], (l1+1,l2,l3), False
+            if (l2 < self.k2) and (l2<l1):
+                yield path + [-1], (l1,l2+1,l3), False
+            if l3 < self.k3:
+                yield path + [0], (l1,l2,l3+1), False
         else:
-            for w in MotzkinWordBacktracker(self.k1, self.k2, self.k3):
-                yield self.element_class(self, w)
-
-    Element=MotzkinWord
-
-#    def __contains__(self, x):
-#        r"""
-#        IRGENDSOWAS TODO!!
-#        EXAMPLES::
-
-#            sage: [1, 0, 0, 1] in DyckWords(2,2)
-#            False
-#            sage: [1, 0, 1, 0] in DyckWords(2,2)
-#            True
-#            sage: [1, 0, 1, 0, 1] in DyckWords(3,2)
-#            True
-#            sage: [1, 0, 1, 1, 0] in DyckWords(3,2)
-#            True
-#            sage: [1, 0, 1, 1] in DyckWords(3,1)
-#            True
-#        """
-#        return is_a(x, self.k1, self.k2, self.k3)
+            if l1 < self.k1:
+                yield path + [1], None, True
+            elif l2 < self.k2:
+                yield path + [-1], None, True
+            else:
+                yield path + [0], None, True
