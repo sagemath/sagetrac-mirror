@@ -507,9 +507,9 @@ class DescendingPlanePartitions():
         Return True if dpp is a valid descending plane partition.
     
         EXAMPLES::
-        
-        sage: DescendingPlanePartitions.is_dpp([[4,4],[2]])
-        True
+
+            sage: DescendingPlanePartitions.is_dpp([[4,4],[2]])
+            True
         """
         
         if type(dpp) is type([]):
