@@ -23,9 +23,9 @@ are the negative of the corresponding entry in the Cartan matrix
 
 AUTHORS: 
 
-- Mary Barker (2017-01-11)
+- Mary Barker (2017-01-11) initial version
 
-- Joseph Brown (2017-01-11)
+- Joseph Brown (2017-01-11) initial version
 
 
 EXAMPLES:
