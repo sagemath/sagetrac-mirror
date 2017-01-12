@@ -17,7 +17,7 @@ and associated matrix
 [-1  2]
 then the quantum shuffle product 'a'*'b' is given by 
 'ab' + q'ba'
-(powers of the Laurent monomial q are introduced when characters from 
+powers of the Laurent monomial q are introduced when characters from 
 the second word move past characters from the first word. These powers 
 are the negative of the corresponding entry in the Cartan matrix
 
@@ -319,10 +319,9 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 def interleave(str1, str2, min_idx=0):
     r"""
     Return the shuffle product of two words str1 and str2 together 
-    using the normal shuffle method (see, e.g. 
-    :mod:`~sage.combinat.words.shuffle_product` and
-    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.shuffle()`.
-    )
+    using the normal shuffle method see, e.g. 
+    :mod:`sage.combinat.words.shuffle_product` and
+    :meth:`sage.combinat.words.finite_word.FiniteWord_class.shuffle()`, 
     but recording the base string each character 
     in the final result comes from so that the powers for the 
     Laurent polynomial coefficients can be generated. 
