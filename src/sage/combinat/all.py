@@ -133,7 +133,7 @@ from .subset import Subsets
 from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
-from .motzkin_word import MotzkinWords, MotzkinWord
+from .motzkin_word import MotzkinWords, MotzkinWord, MotzkinWords_size
 from .sloane_functions import sloane
 
 from .root_system.all import *
