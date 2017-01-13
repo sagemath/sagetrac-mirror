@@ -78,7 +78,7 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
 
     - ``names`` -- generator names for basis (string or alphabet)
 
-    - ``cartan`` -- Cartan matrix for underlying connectivitystructure
+    - ``cartan`` -- Cartan matrix for underlying connectivity structure
 
     EXAMPLES:: 
 
@@ -137,7 +137,8 @@ class QuantumShuffleAlgebra(ShuffleAlgebra):
         if cartan != 0:
             self._cartan = cartan
             if names.cardinality() != cartan.nrows():
-                names = Alphabet([str(i) for i in range(cartan.nrows())])
+                print 'Error: Cartan Matrix Is not the same size as the associated generator set'
+                return
         else:
             self._cartan = CartanMatrix(['A', names.cardinality()])
 
