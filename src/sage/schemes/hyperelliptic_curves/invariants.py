@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Compute invariants genus 2 and 3 hyperelliptic curves via 'Ueberschiebung'.
+Compute invariants of genus 2 and 3 hyperelliptic curves via 'Ueberschiebung'.
 
 REFERENCES:
 
