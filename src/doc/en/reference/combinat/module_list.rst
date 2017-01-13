@@ -30,6 +30,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed
+    sage/combinat/cluster_algebra_quiver/cluster_snakegraph
     sage/combinat/cluster_algebra_quiver/mutation_class
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
