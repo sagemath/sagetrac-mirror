@@ -11,9 +11,6 @@ REFERENCES:
 
 .. [I] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
    Ann. of Math. (2) 72 1960 612--649.
-   
-.. [Sh] Shioda, Tetsuji. *On the graded ring of invariants of binary octavics*.
-   American J. of Math., 89(4):1022-1046, 1967.
 
 .. TODO::
 

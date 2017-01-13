@@ -42,6 +42,11 @@ class HyperellipticCurve_g3_generic(hyperelliptic_generic.HyperellipticCurve_gen
             sage: C = HyperellipticCurve(x*(x^6 + 1))
             sage: C.shioda_invariants()
             [-1/4, 0, 1/1536, 0, 1/147456, 0, 1/4587520, 0, 1/440401920]
+            sage: C = HyperellipticCurve(x**8+4*x**4+5, x)
+            sage: C.shioda_invariants()
+            [358/35, 1901607/1097600, 1858655/115248, 5952869/1075648, -447875123/16941456,
+            -229108271171/25299240960, -289161500810731/12396628070400, 
+            2763886995805/185949421056, 1393753442816093/36446086526976]
 
         
         REFERENCES:
@@ -51,5 +56,7 @@ class HyperellipticCurve_g3_generic(hyperelliptic_generic.HyperellipticCurve_gen
 
         """
         f, h = self.hyperelliptic_polynomials()
-        assert h == 0, 'Argument must be a simplified model of genus 3.'
+        #assert h == 0, 'Argument must be a simplified model of genus 3.'
+        if h != 0:
+            f = f + h**2/4
         return invariants.shioda_invariants(f)
