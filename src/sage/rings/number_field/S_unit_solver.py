@@ -4,6 +4,7 @@ code to solve S-unit equation x + y = 1
 
 REFERENCES::
 
+[MR] = B. Malmskog and C. Rasmussen, Picard curves over Q with good reduction away from 3
 [TCDF] = N.P. Smart, The Solution of Triangularly Connected Decomposable Form Equations
 [Smart] = N.P. Smart, The algorithmic resolution of Diophantine equations
 
@@ -39,6 +40,8 @@ import math
 
 from sage.rings.ring import Field
 #from sage.rings.real_mpfr import RealField
+from sage.rings.integer_ring import ZZ
+
 
 from sage.rings.all import Infinity
 from sage.rings.number_field.number_field import NumberField
@@ -54,6 +57,9 @@ from sage.arith.all import factorial
 from sage.misc.all import prod
 from sage.rings.real_mpfr import RealField
 from math import pi
+from sage.misc.prandom import random
+
+
 
 
 def set_R(prec = None):
@@ -225,7 +231,7 @@ def c1_func(SUK, prec = None):
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
 
         sage: c1_func(SUK)
-        1.174298947359884426898831030919
+        1.174298947359884381924644003448
 
     REFERENCES:
     .. [TCDF] p. 823
@@ -244,8 +250,7 @@ def c1_func(SUK, prec = None):
         C = Matrix(SUK.rank(), SUK.rank(), columns_of_C)
         # Is it invertible?
         if abs(C.determinant()) > 10**(-10):
-            A = C.inverse().apply_map(abs)
-            poss_c1 = max([sum(i) for i in list(A)])
+            poss_c1 = C.inverse().apply_map(abs).norm(Infinity)
             c1 = max(poss_c1,c1)
     return R(c1)
 
@@ -265,7 +270,7 @@ def c3_func(SUK, prec = None):
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
 
         sage: c3_func(SUK)
-        0.4257859134798034905777797121118
+        0.4257859134798034746197327286726
 
     ..NOTE::
         The numerator should be as close to 1 as possible, especially as the rank of the `S`-units grows large
@@ -276,7 +281,7 @@ def c3_func(SUK, prec = None):
     """
 
     R = set_R(prec)
-    return R(0.9999999/(c1_func(SUK)*SUK.rank()))
+    return R(R(0.9999999)/(c1_func(SUK)*SUK.rank()))
 
 def c4_func(SUK,v, A, prec = None):
     r"""
@@ -333,7 +338,7 @@ def c5_func(SUK, v, prec = None):
         sage: v_fin = tuple(K.primes_above(3))[0]
 
         sage: c5_func(SUK,v_fin)
-        0.1291890135314859427129849620671
+        0.1291890135314859378711048471736
 
     REFERENCES:
     .. [TCDF] p. 824
@@ -679,7 +684,7 @@ def c10_func(SUK, v, A, prec = None):
         sage: A = K.roots_of_unity()
 
         sage: c10_func(SUK,v_fin,A)
-        9.659069151659341551509042989895e21
+        9.659069151659341920819081830115e21
 
     REFERENCES:
     .. [TCDF] p. 824
@@ -712,10 +717,10 @@ def c11_func(SUK, v, A, prec = None):
         sage: A = K.roots_of_unity()
 
         sage: c11_func(SUK,phi_real,A)
-        3.255848343572896031429547409663
+        3.255848343572896153455615423662
 
         sage: c11_func(SUK,phi_complex,A)
-        6.511696687145792062859094819326
+        6.511696687145792306911230847323
 
     REFERENCES:
     .. [TCDF] p. 825
@@ -787,10 +792,10 @@ def c13_func(SUK, v, prec = None):
         sage: phi_complex = K.places()[1]
 
         sage: c13_func(SUK,phi_real)
-        0.4257859134798034905777797121118
+        0.4257859134798034746197327286726
 
         sage: c13_func(SUK,phi_complex)
-        0.2128929567399017452888898560559
+        0.2128929567399017373098663643363
 
     REFERENCES:
     .. [TCDF] p. 825
@@ -920,10 +925,10 @@ def c15_func(SUK, v, A, prec = None):
         sage: A = K.roots_of_unity()
 
         sage: c15_func(SUK,phi_real,A)
-        4.396386097852707225469494870675e16
+        4.396386097852707394927181864635e16
 
         sage: c15_func(SUK,phi_complex,A)
-        2.034870098399844351862009972531e17
+        2.034870098399844430207420286581e17
 
     REFERENCES:
     .. [TCDF] p. 825
@@ -951,7 +956,7 @@ def K0_func(SUK, A, prec = None):
         sage: A = K.roots_of_unity()
 
         sage: K0_func(SUK,A)
-        9.659069151659341551509042989895e21
+        9.659069151659341920819081830115e21
 
     REFERENCES:
     .. [TCDF] p. 824
@@ -981,10 +986,10 @@ def K1_func(SUK, v, A, prec = None):
         sage: A = K.roots_of_unity()
 
         sage: K1_func(SUK,phi_real,A)
-        4.396386097852707225469494870675e16
+        4.396386097852707394927181864635e16
 
         sage: K1_func(SUK,phi_complex,A)
-        2.034870098399844351862009972531e17
+        2.034870098399844430207420286581e17
 
     REFERENCES:
     .. [TCDF] p. 825
