@@ -1428,6 +1428,31 @@ def incomplete_gamma(*args, **kwds):
 symbol_table['functions']['gamma'] = gamma
 
 class qGamma(BuiltinFunction):
+    """
+    Evaluates the q-gamma function
+    .. MATH::
+
+        \Gamma_q(z) = \frac{(q; q)_{\infty}}{(q^z; q)_{\infty}} (1-q)^{1-z}.
+    
+    EXAMPLES::
+
+        sage: qgamma(4,0.75)
+        4.046875
+        sage: qgamma(6,6)
+        121226245.0
+        sage: qgamma(3+4j, 0.5j)
+        (0.1663082382255199834630088 + 0.01952474576025952984418217j)
+
+    The q-gamma function satisfies a functional equation similar
+    to that of the ordinary gamma function::
+        sage: qgamma(z+1,q)
+        1.428277424823760954685912
+        sage: (1-q**z)/(1-q)*qgamma(z,q)
+        1.428277424823760954685912
+
+    REFERENCES:
+    - :wikipedia:`Q-gamma_function`
+    """
 
     def _init_(self):
         BuiltinFunction._init_(self, "qgamma",
