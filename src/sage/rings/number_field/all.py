@@ -9,3 +9,5 @@ from totallyreal_data import hermite_constant
 from totallyreal_rel import enumerate_totallyreal_fields_all, enumerate_totallyreal_fields_rel
 
 from unit_group import UnitGroup
+
+from S_unit_solver_over_Q import *
