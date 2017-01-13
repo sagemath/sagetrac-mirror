@@ -468,4 +468,5 @@ def shioda_invariants(f):
     J8 = Ueberschiebung(p,h,4)
     J9 = Ueberschiebung(n,h,4)
     J10 = Ueberschiebung(q,h,4)
-    return [J2,J3,J4,J5,J6,J7,J8,J9,J10]
+    JI = [J2,J3,J4,J5,J6,J7,J8,J9,J10]
+    return [j.constant_coefficient() for j in JI]
