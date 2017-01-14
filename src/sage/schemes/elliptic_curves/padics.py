@@ -125,7 +125,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     -  ``use_eclib`` - deprecated, use ``implementation`` instead
 
-    - ``implementation`` - 'eclib' (default), 'sage', 'num' or 'pollackstevens';
+    -  ``implementation`` - 'eclib' (default), 'sage', 'num' or 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
        numerical modular symbols
        or Pollack-Stevens' implementation of overconvergent
