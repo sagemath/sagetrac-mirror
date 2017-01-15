@@ -1,20 +1,21 @@
-###############################################################################
-#       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#   Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-###############################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from util cimport *
+from .util cimport *
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-cdef libGAP_Obj make_gap_list(sage_list)
-cdef libGAP_Obj make_gap_record(sage_dict)
-cdef libGAP_Obj make_gap_integer(sage_dict)
-cdef libGAP_Obj make_gap_string(sage_string)
+cdef libGAP_Obj make_gap_list(sage_list) except NULL
+cdef libGAP_Obj make_gap_record(sage_dict) except NULL
+cdef libGAP_Obj make_gap_integer(sage_dict) except NULL
+cdef libGAP_Obj make_gap_string(sage_string) except NULL
 
 cdef GapElement make_any_gap_element(parent, libGAP_Obj obj)
 cdef GapElement make_GapElement(parent, libGAP_Obj obj)
@@ -42,10 +43,6 @@ cdef class GapElement(RingElement):
 
     cdef _initialize(self, parent, libGAP_Obj obj)
     cpdef _type_number(self)
-    cpdef ModuleElement _add_(self, ModuleElement right)
-    cpdef ModuleElement _sub_(self, ModuleElement right)
-    cpdef RingElement _mul_(self, RingElement right)
-    cpdef RingElement _div_(self, RingElement right)
     cpdef is_bool(self)
 
 

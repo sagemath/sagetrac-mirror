@@ -9,7 +9,7 @@ EXAMPLES:
 Initialization of a simple iet with integer lengths::
 
     sage: T = iet.IntervalExchangeTransformation(Permutation([3,2,1]), [3,1,2])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, 6[ with permutation
     1 2 3
     3 2 1
@@ -18,13 +18,13 @@ Rotation corresponds to iet with two intervals::
 
     sage: p = iet.Permutation('a b', 'b a')
     sage: T = iet.IntervalExchangeTransformation(p, [1, (sqrt(5)-1)/2])
-    sage: print T.in_which_interval(0)
+    sage: print(T.in_which_interval(0))
     a
-    sage: print T.in_which_interval(T(0))
+    sage: print(T.in_which_interval(T(0)))
     a
-    sage: print T.in_which_interval(T(T(0)))
+    sage: print(T.in_which_interval(T(T(0))))
     b
-    sage: print T.in_which_interval(T(T(T(0))))
+    sage: print(T.in_which_interval(T(T(T(0)))))
     a
 
 There are two plotting methods for iet::
@@ -42,10 +42,13 @@ There are two plotting methods for iet::
     sage: T.plot_function()
     Graphics object consisting of 3 graphics primitives
 """
+from __future__ import print_function
+from __future__ import absolute_import
+
 from copy import copy
 from sage.structure.sage_object import SageObject
 
-from template import side_conversion, interval_conversion
+from .template import side_conversion, interval_conversion
 
 class IntervalExchangeTransformation(SageObject):
     r"""
@@ -91,7 +94,7 @@ class IntervalExchangeTransformation(SageObject):
         sage: iet.IntervalExchangeTransformation(('a b','b a'),['e','f'])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='e') into a real number
+        TypeError: unable to convert 'e' to a float
 
     The value for the lengths must be positive::
 
@@ -114,7 +117,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: p == loads(dumps(p))
             True
         """
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
         if permutation is None or lengths is None:
             self._permutation = LabelledPermutationIET()
             self._lengths = []
@@ -203,7 +206,7 @@ class IntervalExchangeTransformation(SageObject):
            sage: s = t.normalize('bla')
            Traceback (most recent call last):
            ...
-           TypeError: unable to convert total (='bla') into a real number
+           TypeError: unable to convert 'bla' to a float
            sage: s = t.normalize(-691)
            Traceback (most recent call last):
            ...
@@ -212,8 +215,7 @@ class IntervalExchangeTransformation(SageObject):
         try:
             float(total)
         except ValueError:
-            raise TypeError("unable to convert total (='%s') into a real number"
-                            % (str(total)))
+            raise TypeError("unable to convert {!r} to a float".format(total))
 
         if total <= 0:
             raise ValueError("the total length must be positive")
@@ -240,7 +242,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t.lengths()
             [2]
         """
-        self._lengths = map(lambda t: t*x, self._lengths)
+        self._lengths = [t*x for t in self._lengths]
 
     def _repr_(self):
         r"""
@@ -412,7 +414,7 @@ class IntervalExchangeTransformation(SageObject):
                self.length() == other.length()):
             raise ValueError("self and other are not IET of the same length")
 
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]
@@ -489,7 +491,7 @@ class IntervalExchangeTransformation(SageObject):
             True
         """
         return (
-            isinstance(self, type(other)) and
+            type(self) is type(other) and
             self._permutation == other._permutation and
             self._lengths == other._lengths)
 
@@ -504,7 +506,7 @@ class IntervalExchangeTransformation(SageObject):
             False
         """
         return (
-            not isinstance(self, type(other)) or
+            type(self) is not type(other) or
             self._permutation != other._permutation or
             self._lengths != other._lengths)
 
@@ -823,9 +825,9 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``position`` - a 2-uple of the position
 
-        - ``horizontal_alignment`` - left (defaut), center or right
+        - ``horizontal_alignment`` - left (default), center or right
 
-        - ``labels`` - boolean (defaut: True)
+        - ``labels`` - boolean (default: True)
 
         - ``fontsize`` - the size of the label
 
@@ -847,7 +849,7 @@ class IntervalExchangeTransformation(SageObject):
 
         G = Graphics()
 
-        lengths = map(float,self._lengths)
+        lengths = [float(_) for _ in self._lengths]
         total_length = sum(lengths)
 
         if colors is None:

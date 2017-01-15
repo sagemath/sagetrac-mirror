@@ -113,8 +113,8 @@ eight dimensional ambient space onto 3D described on
 :wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
-    ...               [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
-    ...               [0.338261212718, 0, 0, -0.338261212718, 0.672816364803, 0.171502564281, 0, -0.171502564281]])
+    ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
+    ....:             [0.338261212718, 0, 0, -0.338261212718, 0.672816364803, 0.171502564281, 0, -0.171502564281]])
     sage: L = RootSystem(["E",8]).ambient_space()
     sage: L.dimension()
     8
@@ -199,7 +199,7 @@ level 1::
 .. NOTE::
 
     Such pictures may tend to be a bit flat, and it may be helpful to
-    play with the aspect_ratio and more generaly with the various
+    play with the aspect_ratio and more generally with the various
     options of the :meth:`~sage.plot.plot3d.base.Graphics3d.show`
     method::
 
@@ -230,7 +230,7 @@ small height in the root poset::
     sage: succ = attrcall("pred")
     sage: positive_roots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_roots)
-    sage: first_positive_roots = [it.next() for i in range(10)]
+    sage: first_positive_roots = [next(it) for i in range(10)]
     sage: L.plot(roots=first_positive_roots, affine=False, alcoves=False)
     Graphics object consisting of 24 graphics primitives
 
@@ -257,11 +257,11 @@ Here is a polished solution for the first exercise::
     sage: succ = attrcall("pred")
     sage: positive_coroots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_coroots)
-    sage: first_positive_coroots = [it.next() for i in range(20)]
+    sage: first_positive_coroots = [next(it) for i in range(20)]
     sage: p = L.plot(fundamental_chamber=True, reflection_hyperplanes=first_positive_coroots,
-    ...              affine=False, alcove_labels=1,
-    ...              bounding_box=[[-9,9],[-1,2]],
-    ...              projection=lambda x: matrix([[1,-1],[1,1]])*vector(x))
+    ....:            affine=False, alcove_labels=1,
+    ....:            bounding_box=[[-9,9],[-1,2]],
+    ....:            projection=lambda x: matrix([[1,-1],[1,1]])*vector(x))
     sage: p.show(figsize=20)                           # long time
 
 
@@ -368,8 +368,8 @@ and pass it down to each piece. We use this to plot our two walks::
 And another with some foldings::
 
     sage: p += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-    ...                           foldings= [False, False, True, False, False, False, True, False, True, False],
-    ...                           color="purple")
+    ....:                         foldings= [False, False, True, False, False, False, True, False, True, False],
+    ....:                         color="purple")
     sage: p.axes(False)
     sage: p.show(figsize=20)
 
@@ -416,7 +416,7 @@ We conclude with a rank `3 + 1` alcove walk::
     ::
 
         sage: L = RootSystem(["A",3,1]).ambient_space()
-        sage: alcoves = CartesianProduct([0,1],[0,1],[0,1])
+        sage: alcoves = cartesian_product([[0,1],[0,1],[0,1]])
         sage: color = lambda i: "black" if i==0 else None
         sage: L.plot_alcoves(alcoves=alcoves, color=color, bounding_box=10,wireframe=True).show(frame=False) # long time
 
@@ -472,7 +472,7 @@ fundamental alcove::
     sage: positions = {w: plot_options.projection(w.action(rho)) for w in W}
     sage: p = L.plot_alcoves()
     sage: p += g.plot(pos = positions, vertex_size=0,
-    ...               color_by_label=plot_options.color)
+    ....:             color_by_label=plot_options.color)
     sage: p.axes(False)
     sage: p
     Graphics object consisting of 30 graphics primitives
@@ -518,7 +518,7 @@ according to its weight::
     sage: positions = {x: plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot()
     sage: p += g.plot(pos = positions,
-    ...               color_by_label=plot_options.color, vertex_size=0)
+    ....:             color_by_label=plot_options.color, vertex_size=0)
     sage: p.axes(False)
     sage: p.show(figsize=15)
 
@@ -540,7 +540,7 @@ Here is an analogue picture in 3D::
     sage: positions = {x:plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot(reflection_hyperplanes=False, fundamental_weights=False)
     sage: p += g.plot3d(pos3d = positions, vertex_labels=True,
-    ...                 color_by_label=plot_options.color, edge_labels=True)
+    ....:               color_by_label=plot_options.color, edge_labels=True)
     sage: p
     Graphics3d Object
 
@@ -560,7 +560,9 @@ Enjoy and please post your best pictures on the
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
+import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -670,7 +672,7 @@ class PlotOptions:
         # Bounding box
         from sage.rings.real_mpfr import RR
         from sage.geometry.polyhedron.all import Polyhedron
-        from sage.combinat.cartesian_product import CartesianProduct
+        from itertools import product
         if bounding_box in RR:
             bounding_box = [[-bounding_box,bounding_box]] * self.dimension
         else:
@@ -678,7 +680,7 @@ class PlotOptions:
                 raise TypeError("bounding_box argument doesn't match with the plot dimension")
             elif not all(len(b)==2 for b in bounding_box):
                 raise TypeError("Invalid bounding box %s"%bounding_box)
-        self.bounding_box = Polyhedron(vertices=CartesianProduct(*bounding_box))
+        self.bounding_box = Polyhedron(vertices=product(*bounding_box))
 
     @cached_method
     def in_bounding_box(self, x):
@@ -704,7 +706,7 @@ class PlotOptions:
         """
         return self.bounding_box.contains(self.projection(x))
 
-    def text(self, label, position):
+    def text(self, label, position, rgbcolor=(0,0,0)):
         r"""
         Return text widget with label ``label`` at position ``position``
 
@@ -715,6 +717,8 @@ class PlotOptions:
 
         - ``position`` -- a position
 
+        - ``rgbcolor`` -- the color as an RGB tuple
+
         EXAMPLES::
 
             sage: L = RootSystem(["A",2]).root_lattice()
@@ -723,32 +727,34 @@ class PlotOptions:
             [Text 'coucou' at the point (0.0,1.0)]
             sage: list(options.text(L.simple_root(1), [0,1]))
             [Text '$\alpha_{1}$' at the point (0.0,1.0)]
+            sage: list(options.text(L.simple_root(2), [1,0], rgbcolor=(1,0.5,0)))
+            [Text '$\alpha_{2}$' at the point (1.0,0.0)]
 
             sage: options = RootSystem(["A",2]).root_lattice().plot_parse_options(labels=False)
             sage: options.text("coucou", [0,1])
             0
 
             sage: options = RootSystem(["B",3]).root_lattice().plot_parse_options()
-            sage: print options.text("coucou", [0,1,2]).x3d_str()
+            sage: print(options.text("coucou", [0,1,2]).x3d_str())
             <Transform translation='0 1 2'>
-            <Shape><Text string='coucou' solid='true'/><Appearance><Material diffuseColor='0.0 0.0 0.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Shape><Text string='coucou' solid='true'/><Appearance><Material diffuseColor='0.0 0.0 0.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             <BLANKLINE>
             </Transform>
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, basestring):
+                if not isinstance(label, six.string_types):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
-                return text(label, position, fontsize=15)
+                return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, basestring):
+                if isinstance(label, six.string_types):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)
                 from sage.plot.plot3d.shapes2 import text3d
-                return text3d(label, position)
+                return text3d(label, position, rgbcolor=rgbcolor)
             else:
                 raise NotImplementedError("Plots in dimension > 3")
         else:
@@ -804,7 +810,7 @@ class PlotOptions:
             sage: options.thickness(2)
             1
             sage: for alpha in L.simple_roots():
-            ....:     print alpha, options.thickness(alpha)
+            ....:     print("{} {}".format(alpha, options.thickness(alpha)))
             alpha[0] 2
             alpha[1] 1
             alpha[2] 1
@@ -835,7 +841,7 @@ class PlotOptions:
             sage: options.color(2)
             'red'
             sage: for alpha in L.roots():
-            ...       print alpha, options.color(alpha)
+            ....:     print("{} {}".format(alpha, options.color(alpha)))
             alpha[1]             blue
             alpha[2]             red
             alpha[1] + alpha[2]  black
@@ -1192,7 +1198,7 @@ class PlotOptions:
 
         TESTS::
 
-            sage: print H.description()
+            sage: print(H.description())
             Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15)
             Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
 
@@ -1211,7 +1217,7 @@ class PlotOptions:
         ::
 
             sage: all(options.reflection_hyperplane(c, as_polyhedron=True).dim() == 2
-            ...       for c in alphacheck)
+            ....:     for c in alphacheck)
             True
 
 
@@ -1318,9 +1324,9 @@ def barycentric_projection_matrix(n, angle=0):
     TESTS::
 
         sage: for n in range(1, 7):
-        ...       m = barycentric_projection_matrix(n)
-        ...       assert sum(m.columns()).is_zero()
-        ...       assert matrix(QQ, n+1,n+1, lambda i,j: 1 if i==j else -1/n) == m.transpose()*m
+        ....:     m = barycentric_projection_matrix(n)
+        ....:     assert sum(m.columns()).is_zero()
+        ....:     assert matrix(QQ, n+1,n+1, lambda i,j: 1 if i==j else -1/n) == m.transpose()*m
 
     """
     from sage.matrix.constructor import matrix

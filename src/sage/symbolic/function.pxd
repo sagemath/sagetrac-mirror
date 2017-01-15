@@ -1,20 +1,4 @@
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element
-
-include "sage/ext/stdsage.pxi"
-
-# In many applications, such as plotting, these functions are called many times
-# repeatedly. This method is slightly faster than sage.structure.coerce.parent
-# The only difference is the PyNumber_Check clause.
-from cpython.number cimport *
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, Element):
-        return (<Element>x)._parent
-    elif PyNumber_Check(x):
-        return <object>PY_TYPE(x)
-    elif hasattr(x, 'parent'):
-        return x.parent()
-    return <object>PY_TYPE(x)
 
 cdef class Function(SageObject):
     cdef unsigned int _serial
@@ -28,6 +12,7 @@ cdef class Function(SageObject):
     cdef _register_function(self)
 
 cdef class BuiltinFunction(Function):
+    cdef object _preserved_arg
     cdef _is_registered(self)
 
 cdef class GinacFunction(BuiltinFunction):

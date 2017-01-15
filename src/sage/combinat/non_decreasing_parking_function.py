@@ -30,8 +30,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.rings.integer import Integer
-from combinat import (CombinatorialClass, CombinatorialObject,
+from .combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass, catalan_number)
 from copy import copy
 
@@ -103,7 +105,7 @@ def NonDecreasingParkingFunctions(n=None):
         sage: NonDecreasingParkingFunctions("foo")
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=foo) to an integer
+        TypeError: unable to convert 'foo' to an integer
     """
     if n is None:
         return NonDecreasingParkingFunctions_all()
@@ -184,10 +186,10 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
         TESTS::
 
             sage: (NonDecreasingParkingFunctions()._infinite_cclass_slice(4)
-            ...    == NonDecreasingParkingFunctions(4))
+            ....:  == NonDecreasingParkingFunctions(4))
             True
             sage: it = iter(NonDecreasingParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 2, 2]]
          """
         return NonDecreasingParkingFunctions_n(n)
@@ -263,7 +265,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
             True
             sage: [1,1,4] in PF3
             False
-            sage: all([p in PF3 for p in PF3])
+            sage: all(p in PF3 for p in PF3)
             True
         """
         if isinstance(x, NonDecreasingParkingFunction):
@@ -328,14 +330,6 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
         Complexity: constant amortized time.
         """
-# FIXME : currently composition is extremenly slow.
-# Activate the following code as soon as compositions use
-# the integer_list_lex machinery
-#         for i in range(self.n, self.n*(self.n+1)/2+1):
-#             for z in Compositions(i, length=self.n, outer=range(1, self.n+1),
-#                                   min_slope=0).__iter__():
-#                 yield NonDecreasingParkingFunction(z._list)
-#         return
         def iterator_rec(n):
             """
             TESTS::

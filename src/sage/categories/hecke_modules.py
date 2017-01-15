@@ -1,6 +1,7 @@
 r"""
 Hecke modules
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -68,7 +69,7 @@ class HeckeModules(Category_module):
             ...
             TypeError: R (=Partitions of the integer 3) must be a commutative ring
         """
-        from commutative_rings import CommutativeRings
+        from .commutative_rings import CommutativeRings
         if R not in CommutativeRings():
             raise TypeError("R (=%s) must be a commutative ring"%R)
         Category_module.__init__(self, R)
@@ -105,7 +106,7 @@ class HeckeModules(Category_module):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- an Hecke module
             - ``category`` -- a subcategory of :class:`HeckeModules`() or None
@@ -151,15 +152,11 @@ class HeckeModules(Category_module):
             return HeckeModuleHomspace(self, Y, category = category)
 
     class Homsets(HomsetsCategory):
-        def extra_super_categories_disabled(self):
-            """
-            EXAMPLES::
+        """
+        TESTS::
 
-                sage: HeckeModules(ZZ).Homsets().extra_super_categories()
-                [Category of homsets]
-            """
-            return [] # FIXME: what category structure is there on Homsets of hecke modules?
-
+            sage: TestSuite(HeckeModules(ZZ).Homsets()).run()
+        """
 
         def base_ring(self):
             """
@@ -169,6 +166,21 @@ class HeckeModules(Category_module):
                 Rational Field
             """
             return self.base_category().base_ring()
+
+        def extra_super_categories(self):
+            """
+            TESTS:
+
+            Check that Hom sets of Hecke modules are in the correct
+            category (see :trac:`17359`)::
+
+                sage: HeckeModules(ZZ).Homsets().super_categories()
+                [Category of modules over Integer Ring, Category of homsets]
+                sage: HeckeModules(QQ).Homsets().super_categories()
+                [Category of vector spaces over Rational Field, Category of homsets]
+            """
+            from sage.categories.modules import Modules
+            return [Modules(self.base_ring())]
 
         class ParentMethods:
             pass

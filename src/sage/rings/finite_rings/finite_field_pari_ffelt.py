@@ -6,6 +6,7 @@ AUTHORS:
 - Peter Bruin (June 2013): initial version, based on
   finite_field_ext_pari.py by William Stein et al.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013 Peter Bruin <peter.bruin@math.uzh.ch>
@@ -17,9 +18,9 @@ AUTHORS:
 #*****************************************************************************
 
 
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_base import FiniteField
-from constructor import GF
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_base import FiniteField
+from .finite_field_constructor import GF
 
 class FiniteField_pari_ffelt(FiniteField):
     """
@@ -237,7 +238,7 @@ class FiniteField_pari_ffelt(FiniteField):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_ffelt').objgen()
+            sage: k.<a> = FiniteField(5^2, 'a', impl='pari_ffelt')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -251,7 +252,7 @@ class FiniteField_pari_ffelt(FiniteField):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_ffelt').objgen()
+            sage: Q.<q> = FiniteField(5^7, 'q', impl='pari_ffelt')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)

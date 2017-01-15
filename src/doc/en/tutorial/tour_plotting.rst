@@ -13,7 +13,7 @@ plots of functions in rectangular coordinates; and also polar
 plots, contour plots and vector field plots. We present examples of
 some of these here. For more examples of plotting with Sage, see
 :ref:`section-systems` and :ref:`section-maxima`, and also the
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 documentation.
 
 This command produces a yellow circle of radius 1, centered at the
@@ -104,8 +104,8 @@ example, here is a green deltoid:
 
 ::
 
-    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
-    ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),
+    ....:     2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
     Graphics object consisting of 1 graphics primitive
@@ -116,8 +116,8 @@ You can add text to a plot:
 
 ::
 
-    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),\
-    ...   6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),
+    ....:     6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
     sage: t = text("hypotrochoid", (5,4), rgbcolor=(1,0,0))
     sage: show(p+t)

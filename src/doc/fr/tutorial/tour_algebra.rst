@@ -4,7 +4,7 @@ Algèbre de base et calcul infinitésimal
 Sage peut accomplir divers calculs d'algèbre et d'analyse de base : par
 exemple, trouver les solutions d'équations, dériver, intégrer, calculer
 des transformées de Laplace. Voir la documentation
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 pour plus d'exemples.
 
 Résolution d'équations
@@ -129,7 +129,7 @@ ordinaires. Pour résoudre l'équation :math:`x'+x-1=0` :
 ::
 
     sage: t = var('t')    # on définit une variable t
-    sage: function('x',t)   # on déclare x fonction de cette variable
+    sage: function('x')(t)   # on déclare x fonction de cette variable
     x(t)
     sage: DE = lambda y: diff(y,t) + y - 1
     sage: desolve(DE(x(t)), [x(t),t])
@@ -239,8 +239,8 @@ On peut en tracer le graphe paramétrique en utilisant
 ::
 
     sage: t = var('t')
-    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),\
-    ...   (t, 0, 2*pi), rgbcolor=hue(0.9))
+    sage: P = parametric_plot((cos(2*t) + 2*cos(t), 4*cos(t) - cos(2*t) ),
+    ....:     (t, 0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
 Les coordonnées individuelles peuvent être tracées en utilisant

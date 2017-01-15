@@ -12,6 +12,7 @@ TESTS::
     sage: k = GF(3)
     sage: TestSuite(k).run()
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -120,7 +121,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         elif S is ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            from residue_field import ResidueField_generic
+            from .residue_field import ResidueField_generic
             if S.characteristic() == self.characteristic() and \
                (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:
@@ -185,7 +186,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__polynomial[name]
         except  AttributeError:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = FiniteField(self.characteristic())[name]
             f = self[name]([0,1])
             try:
@@ -254,7 +255,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             self.__gen = -(self._modulus[0])
         except AttributeError:
-            self.__gen = self.one_element()
+            self.__gen = self.one()
         return self.__gen
 
     def __iter__(self):
@@ -271,11 +272,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
             sage: K = GF(next_prime(2^256))
             sage: all = iter(K)
-            sage: all.next()
+            sage: next(all)
             0
-            sage: all.next()
+            sage: next(all)
             1
-            sage: all.next()
+            sage: next(all)
             2
         """
         yield self(0)

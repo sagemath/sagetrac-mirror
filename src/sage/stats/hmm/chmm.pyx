@@ -3,7 +3,7 @@ Continuous Emission Hidden Markov Models
 
 AUTHOR:
 
-   - William Stein, 2010-03
+- William Stein, 2010-03
 """
 
 #############################################################################
@@ -13,23 +13,15 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
-cdef extern from "math.h":
-    double log(double)
-    double sqrt(double)
-    double exp(double)
-    int isnormal(double)
-    int isfinite(double)
+from cpython.object cimport PyObject_RichCompare
 
-import math
+from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
+cdef double sqrt2pi = sqrt(2*M_PI)
 
 from sage.misc.flatten  import flatten
 from sage.matrix.matrix import is_Matrix
-
-cdef double sqrt2pi = sqrt(2*math.pi)
 
 from sage.finance.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList
@@ -153,7 +145,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         matrix A, normal emissions given by B, and initial state
         probability distribution pi.
 
-        INPUT::
+        INPUT:
 
            - A -- a list of lists or a square N x N matrix, whose
              (i,j) entry gives the probability of transitioning from
@@ -218,7 +210,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         self.B = TimeSeries(B)
         self.probability_init()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other, which must both be GaussianHiddenMarkovModel's.
 
@@ -236,8 +228,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """
@@ -272,7 +265,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         if i < 0:
             i += self.N
         if i < 0 or i >= self.N:
-            raise IndexError, 'index out of range'
+            raise IndexError('index out of range')
 
         # TODO: change to be a normal distribution class (next version)
         return self.B[2*i], self.B[2*i+1]
@@ -355,7 +348,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             ...
             ValueError: length must be nonnegative
 
-        Example in which the starting state is 0 (see trac 11452)::
+        Example in which the starting state is 0 (see :trac:`11452`)::
 
             sage: set_random_seed(23);  m.generate_sequence(2)
             ([0.6501, -2.0151], [0, 1])
@@ -373,7 +366,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             0.0998200000000000
         """
         if length < 0:
-            raise ValueError, "length must be nonnegative"
+            raise ValueError("length must be nonnegative")
 
         # Create Integer lists for states and observations
         cdef IntList states = IntList(length)
@@ -402,7 +395,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         else:
             q = starting_state
             if q < 0 or q>= self.N:
-                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
+                raise ValueError("starting state must be between 0 and %s"%(self.N-1))
 
         states._values[0] = q
         obs._values[0] = self.random_sample(q, rstate)
@@ -933,7 +926,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                 if not isfinite(gamma._values[0*N+i]):
                     # Before raising an error, leave self in a valid state.
                     util.normalize_probability_TimeSeries(self.pi, 0, self.pi._length)
-                    raise RuntimeError, "impossible to compute gamma during reestimation"
+                    raise RuntimeError("impossible to compute gamma during reestimation")
                 self.pi._values[i] = gamma._values[0*N+i]
 
             # Update the probabilities pi to define a valid discrete distribution
@@ -947,7 +940,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                 for t in range(T-1):
                     denominator_A += gamma._values[t*N+i]
                 if not isnormal(denominator_A):
-                    raise RuntimeError, "unable to re-estimate transition matrix"
+                    raise RuntimeError("unable to re-estimate transition matrix")
                 for j in range(N):
                     numerator_A = 0.0
                     for t in range(T-1):
@@ -961,7 +954,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                 if not fix_emissions:
                     denominator_B = denominator_A + gamma._values[(T-1)*N + i]
                     if not isnormal(denominator_B):
-                        raise RuntimeError, "unable to re-estimate emission probabilities"
+                        raise RuntimeError("unable to re-estimate emission probabilities")
 
                     numerator_mean = 0.0
                     numerator_std = 0.0
@@ -1089,12 +1082,12 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         self.N = len(self.pi)
         self.A = util.state_matrix_to_TimeSeries(A, self.N, normalize)
         if self.N*self.N != len(self.A):
-            raise ValueError, "number of entries of transition matrix A must be the square of the number of entries of pi"
+            raise ValueError("number of entries of transition matrix A must be the square of the number of entries of pi")
 
         self.mixture = [b if isinstance(b, GaussianMixtureDistribution) else \
                             GaussianMixtureDistribution([flatten(x) for x in b]) for b in B]
         if len(self.mixture) != self.N:
-            raise ValueError, "number of GaussianMixtures must be the same as number of entries of pi"
+            raise ValueError("number of GaussianMixtures must be the same as number of entries of pi")
 
     def __repr__(self):
         """
@@ -1125,7 +1118,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                (self.A, self.B, self.pi, self.mixture)
 
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other, which must both be GaussianMixtureHiddenMarkovModel's.
 
@@ -1143,8 +1136,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianMixtureHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """
@@ -1186,7 +1180,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
         if i < 0:
             i += self.N
         if i < 0 or i >= self.N:
-            raise IndexError, 'index out of range'
+            raise IndexError('index out of range')
         return self.mixture[i]
 
     def emission_parameters(self):
@@ -1396,7 +1390,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                 if not isfinite(gamma._values[0*N+i]):
                     # Before raising an error, leave self in a valid state.
                     util.normalize_probability_TimeSeries(self.pi, 0, self.pi._length)
-                    raise RuntimeError, "impossible to compute gamma during reestimation"
+                    raise RuntimeError("impossible to compute gamma during reestimation")
                 self.pi._values[i] = gamma._values[0*N+i]
 
             # Update the probabilities pi to define a valid discrete distribution
@@ -1410,7 +1404,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                 for t in range(T-1):
                     denominator_A += gamma._values[t*N+i]
                 if not isnormal(denominator_A):
-                    raise RuntimeError, "unable to re-estimate pi (1)"
+                    raise RuntimeError("unable to re-estimate pi (1)")
                 for j in range(N):
                     numerator_A = 0.0
                     for t in range(T-1):
@@ -1518,7 +1512,7 @@ def unpickle_gaussian_hmm_v1(A, B, pi, prob, n_out):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianHiddenMarkovModel m = PY_NEW(GaussianHiddenMarkovModel)
+    cdef GaussianHiddenMarkovModel m = GaussianHiddenMarkovModel.__new__(GaussianHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi
@@ -1534,7 +1528,7 @@ def unpickle_gaussian_mixture_hmm_v1(A, B, pi, mixture):
         sage: loads(dumps(m)) == m   # indirect test
         True
     """
-    cdef GaussianMixtureHiddenMarkovModel m = PY_NEW(GaussianMixtureHiddenMarkovModel)
+    cdef GaussianMixtureHiddenMarkovModel m = GaussianMixtureHiddenMarkovModel.__new__(GaussianMixtureHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi

@@ -1,0 +1,146 @@
+--- src/sage/functions/other.py
++++ src/sage/functions/other.py
+@@ -1957,6 +1957,143 @@ class Function_binomial(GinacFunction):
+ 
+ binomial = Function_binomial()
+ 
++class Function_falling_factorial(GinacFunction):
++    r"""
++    Returns the falling factorial `(x)_a`.
++
++    The notation in the literature is a mess: often `(x)_a`,
++    but there are many other notations: GKP: Concrete Mathematics uses
++    `x^{\underline{a}}`.
++
++    Definition: for integer `a \ge 0` we have
++    `x(x-1) \cdots (x-a+1)`. In all other cases we use the
++    GAMMA-function: `\frac {\Gamma(x+1)} {\Gamma(x-a+1)}`.
++
++    INPUT:
++
++    -  ``x`` - element of a ring
++
++    -  ``a`` - a non-negative integer or
++
++    OR
++
++    -  ``x and a`` - any numbers
++
++    OUTPUT: the falling factorial
++
++    EXAMPLES::
++
++        sage: falling_factorial(10, 3)
++        720
++        sage: falling_factorial(10, RR('3.0'))
++        720.000000000000
++        sage: falling_factorial(10, RR('3.3'))
++        1310.11633396601
++        sage: falling_factorial(10, 10)
++        3628800
++        sage: factorial(10)
++        3628800
++        sage: a = falling_factorial(1+I, I); a
++        gamma(I + 2)
++        sage: CC(a)
++        0.652965496420167 + 0.343065839816545*I
++        sage: falling_factorial(1+I, 4)
++        4*I + 2
++        sage: falling_factorial(I, 4)
++        -10
++
++    ::
++
++        sage: M = MatrixSpace(ZZ, 4, 4)
++        sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
++        sage: falling_factorial(A, 2) # A(A - I)
++        [  1   0  10  10]
++        [  1   0  10  10]
++        [ 20   0 101 100]
++        [  2   0  11  10]
++
++    ::
++
++        sage: x = ZZ['x'].0
++        sage: falling_factorial(x, 4)
++        x^4 - 6*x^3 + 11*x^2 - 6*x
++    """
++    def __init__(self):
++        GinacFunction.__init__(self, "falling_factorial", nargs=2,
++                preserved_arg=1,
++                conversions=dict(mathematica='FactorialPower',
++                                 sympy='FallingFactorial'))
++
++    def _eval_(self, a, k):
++        return sage.arith.all.falling_factorial(a, k)
++    def _evalf_(self, a, k):
++        return sage.arith.all.falling_factorial(a, k)
++falling_factorial = Function_falling_factorial()
++
++class Function_rising_factorial(GinacFunction):
++    r"""
++    Returns the rising factorial `(x)^a`.
++
++    INPUT:
++
++
++    -  ``x`` - element of a ring
++
++    -  ``a`` - a non-negative integer or
++
++    -  ``x and a`` - any numbers
++
++
++    OUTPUT: the rising factorial
++
++    EXAMPLES::
++
++        sage: rising_factorial(10,3)
++        1320
++
++    ::
++
++        sage: rising_factorial(10,RR('3.0'))
++        1320.00000000000
++
++    ::
++
++        sage: rising_factorial(10,RR('3.3'))
++        2826.38895824964
++
++    ::
++
++        sage: a = rising_factorial(1+I, I); a
++        gamma(2*I + 1)/gamma(I + 1)
++        sage: CC(a)
++        0.266816390637832 + 0.122783354006372*I
++
++    ::
++
++        sage: a = rising_factorial(I, 4); a
++        -10
++
++    See falling_factorial(I, 4).
++
++    ::
++
++        sage: x = polygen(ZZ)
++        sage: rising_factorial(x, 4)
++        x^4 + 6*x^3 + 11*x^2 + 6*x
++    """
++    def __init__(self):
++        GinacFunction.__init__(self, "rising_factorial", nargs=2,
++                preserved_arg=1,
++                conversions=dict(mathematica='Pochhammer',
++                                 sympy='RisingFactorial'))
++
++    def _eval_(self, a, k):
++        print("eval", a,k)
++        return sage.arith.all.rising_factorial(a, k)
++    def _evalf_(self, a, k):
++        return sage.arith.all.rising_factorial(a, k)
++rising_factorial = Function_rising_factorial()
++
+ class Function_beta(GinacFunction):
+     def __init__(self):
+         r"""

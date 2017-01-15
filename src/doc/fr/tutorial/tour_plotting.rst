@@ -15,7 +15,7 @@ représentations de champs de vecteurs. Nous présentons quelques exemples
 de ces objets ici. Pour plus d'exemples de graphiques avec Sage, on
 consultera :ref:`section-systems`, :ref:`section-maxima` et aussi la
 documentation
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 
 La commande suivante produit un cercle jaune de rayon 1 centré à l'origine :
 
@@ -96,8 +96,8 @@ par ces points. Par example, voici un deltoïde vert :
 
 ::
 
-    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
-    ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),
+    ....:     2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: polygon(L, rgbcolor=(1/8,3/4,1/2))
     Graphics object consisting of 1 graphics primitive
 
@@ -108,8 +108,8 @@ On peut ajouter un texte à un graphique :
 
 ::
 
-    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),\
-    ...   6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),
+    ....:     6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
     sage: t = text("hypotrochoid", (5,4), rgbcolor=(1,0,0))
     sage: show(p+t)

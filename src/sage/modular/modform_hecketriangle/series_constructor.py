@@ -10,6 +10,7 @@ AUTHORS:
 
    ``J_inv_ZZ`` is the main function used to determine all Fourier expansions.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -20,16 +21,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity, rising_factorial, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
+from sage.rings.all import ZZ, QQ, infinity, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
 from sage.rings.big_oh import O
 from sage.functions.all import exp
-from sage.rings.arith import bernoulli, sigma
+from sage.arith.all import bernoulli, sigma, rising_factorial
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_groups import HeckeTriangleGroup
+from .hecke_triangle_groups import HeckeTriangleGroup
 
 
 
@@ -236,7 +237,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         q        = self._series_ring.gen()
 
         # the current implementation of power series reversion is slow
-        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
+        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reverse())
 
         temp_f   = (q*Phi.exp()).polynomial()
         new_f    = temp_f.revert_series(temp_f.degree()+1)

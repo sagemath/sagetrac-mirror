@@ -57,18 +57,18 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from functor cimport Functor
-from morphism cimport Morphism
-from map cimport Map
+from .functor cimport Functor
+from .morphism cimport Morphism
+from .map cimport Map
 from sage.structure.parent cimport Parent
 
-import homset
+from . import homset
 import sage.structure.element
 from weakref import ref
 from sage.misc.constant_function import ConstantFunction
 
-include "sage/ext/stdsage.pxi"
 
 cdef inline category(x):
     try:
@@ -80,7 +80,7 @@ cdef inline category(x):
 cdef class Action(Functor):
 
     def __init__(self, G, S, bint is_left = 1, op=None):
-        from groupoid import Groupoid
+        from .groupoid import Groupoid
         Functor.__init__(self, Groupoid(G), category(S))
         self.G = G
         self.US = ref(S)
@@ -98,7 +98,7 @@ cdef class Action(Functor):
             elif g == self.G:
                 return self.underlying_set()
             else:
-                raise TypeError, "%s not an element of %s"%(g, self.G)
+                raise TypeError("%s not an element of %s" % (g, self.G))
         elif len(args) == 2:
             if self._is_left:
                 return self._call_(self.G(args[0]), self.underlying_set()(args[1]))
@@ -106,7 +106,7 @@ cdef class Action(Functor):
                 return self._call_(self.underlying_set()(args[0]), self.G(args[1]))
 
     cpdef _call_(self, a, b):
-        raise NotImplementedError, "Action not implemented."
+        raise NotImplementedError("Action not implemented.")
 
     def act(self, g, a):
         """
@@ -183,7 +183,7 @@ cdef class Action(Functor):
         """
         S = self.US()
         if S is None:
-            raise RuntimeError, "This action acted on a set that became garbage collected"
+            raise RuntimeError("This action acted on a set that became garbage collected")
         return S
 
     def codomain(self):
@@ -243,7 +243,7 @@ cdef class InverseAction(Action):
                 return
         except (AttributeError, NotImplementedError):
             pass
-        raise TypeError, "No inverse defined for %r." % action
+        raise TypeError("No inverse defined for %r." % action)
 
     cpdef _call_(self, a, b):
         if self._action._is_left:
@@ -419,7 +419,7 @@ cdef class ActionEndomorphism(Morphism):
 
     def __mul__(left, right):
         cdef ActionEndomorphism left_c, right_c
-        if PY_TYPE_CHECK(left, ActionEndomorphism) and PY_TYPE_CHECK(right, ActionEndomorphism):
+        if isinstance(left, ActionEndomorphism) and isinstance(right, ActionEndomorphism):
             left_c = left
             right_c = right
             if left_c._action is right_c._action:
