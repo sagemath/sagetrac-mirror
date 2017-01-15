@@ -2032,7 +2032,7 @@ def sage_getsourcelines(obj):
           '    cpdef object pyobject(self):\n',
         ...)
         sage: sage_getsourcelines(x)[0][-1]    # last line
-        '        return self.operator()(self.lhs() / x, self.rhs() / x)\n'
+        '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
     use a dummy parent class that has defined an element class by a
