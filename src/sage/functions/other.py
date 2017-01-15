@@ -881,6 +881,7 @@ class Function_gamma_inc(BuiltinFunction):
         if x == 0:
             return -Ei(-y)
         if x == Rational(1)/2: #only for x>0
+            from sage.functions.error import erf
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
