@@ -29,7 +29,7 @@ Dirichlet characters and for the computation of `p`-adic L-functions.
 
 ALGORITHM:
 
-The implementation of modular symbols in ec lib and directly in sage
+The implementation of modular symbols in eclib and directly in sage
 uses the algorithm described in Cremona's book [Crem]_ and Stein's
 book [Ste]_. First the space of all
 modular symbols of the given level is computed, then the space
@@ -52,7 +52,8 @@ by using the Fourier expansion at other cusps than `\infty`.
 
     There is one assumption for the correctness of these computations: The
     Manin constant for the `X_0`-optimal curve should be `1` if the curve
-    lies outside the Cremona tables.
+    lies outside the Cremona tables. This is known for all curves in the
+    Cremona table, but only conjectured for general curves.
 
 EXAMPLES:
 
@@ -105,13 +106,10 @@ to any proven binary precision::
 
 There are a few other things that one can do with ``M``. The Manin
 symbol `M(c:d)` for a point `(c:d)` in the projective line can be
-computed. Also the value of `\lambda(r\to r')`; here its imaginary part
-divided by the appropriate period::
+computed.::
 
     sage: M.manin_symbol(1,5)
     -1
-    sage: M.value_r_to_rr(1/3,1/7)
-    1
 
 In some cases useful, there is a function that returns all `[a/m]^{+}`
 for a fixed denominator `m`. This is rather quicker for small `m` than
@@ -1187,7 +1185,7 @@ cdef class ModularSymbolNumerical:
             Nt = Et.conductor()
             for ell in D.prime_divisors():
                 if Nt.valuation(ell) >= 2:
-                    D = D // (ell**D.valuation(ell))
+                    D = D.prime_to_m_part(ell)
                     if ell % 4 == 3:
                         D = -D
             if D % 4 == 3:
@@ -2484,14 +2482,14 @@ cdef class ModularSymbolNumerical:
 
     # (key=lambda r,sign,use_partials:(r,sign)) lead to a compiler crash
     @cached_method
-    def value_ioo_to_r(self, Rational r, int sign = 0,
+    def _value_ioo_to_r(self, Rational r, int sign = 0,
                         int use_partials=2):
         r"""
         This function returns `[r]^+` or `[r]^-` for a rational `r`.
 
         INPUT:
 
-        - ``r`` -- a rational number
+        - ``r`` -- a rational number, which has to be a unitary cusp
 
         - ``sign`` -- optional either +1 or -1, or 0 (default),
           in which case the sign passed to the class is taken.
@@ -2504,23 +2502,25 @@ cdef class ModularSymbolNumerical:
 
         EXAMPLES::
 
+            sage: from sage.schemes.elliptic_curves.mod_sym_num \
+            ....: import ModularSymbolNumerical
             sage: E = EllipticCurve("11a1")
             sage: M = E.modular_symbol(implementation="num")
-            sage: M.value_ioo_to_r(0/1)
+            sage: M._value_ioo_to_r(0/1)
             1/5
-            sage: M.value_ioo_to_r(3/11,-1)
+            sage: M._value_ioo_to_r(3/11,-1)
             1/2
 
             sage: E = EllipticCurve("5077a1")
             sage: M = E.modular_symbol(implementation="num")
-            sage: M.value_ioo_to_r(0/1)
+            sage: M._value_ioo_to_r(0/1)
             0
-            sage: M.value_ioo_to_r(123/456)
+            sage: M._value_ioo_to_r(123/456)
             -3
-            sage: M.value_ioo_to_r(-9/55,-1)
+            sage: M._value_ioo_to_r(-9/55,-1)
             -2
         """
-        #verbose("       enter value_ioo_to_r with r=%s, sign=%s"%(r,sign),
+        #verbose("       enter _value_ioo_to_r with r=%s, sign=%s"%(r,sign),
         #        level=5)
         cdef:
             double eps
@@ -2540,7 +2540,7 @@ cdef class ModularSymbolNumerical:
         return self._round(lap, sign, True)
 
     @cached_method
-    def value_r_to_rr(self, Rational r, Rational rr, int sign = 0,
+    def _value_r_to_rr(self, Rational r, Rational rr, int sign = 0,
                        int use_partials=2):
         r"""
         This returns the rational number `[r']^+ - [r]^+`. However the
@@ -2550,7 +2550,8 @@ cdef class ModularSymbolNumerical:
 
         INPUT:
 
-        - ``r`` and ``rr`` -- two rational number
+        - ``r`` and ``rr`` -- two rational number, both have to be
+          uniraty cusps.
 
         - ``sign`` -- optional either +1 or -1, or 0 (default),
           in which case the sign passed to the class is taken.
@@ -2563,17 +2564,19 @@ cdef class ModularSymbolNumerical:
 
         EXAMPLES::
 
+            sage: from sage.schemes.elliptic_curves.mod_sym_num \
+            ....: import ModularSymbolNumerical
             sage: E = EllipticCurve("57a1")
             sage: M = E.modular_symbol(implementation="num")
-            sage: M.value_r_to_rr(0/1,8/9)
+            sage: M._value_r_to_rr(0/1,8/9)
             0
-            sage: M.value_r_to_rr(0/1,8/9,use_partials=0)
+            sage: M._value_r_to_rr(0/1,8/9,use_partials=0)
             0
-            sage: M.value_r_to_rr(17/19,-5/9)
+            sage: M._value_r_to_rr(17/19,-5/9)
             1/2
-            sage: M.value_r_to_rr(14/19,-5/9,-1)
+            sage: M._value_r_to_rr(14/19,-5/9,-1)
             1/2
-            sage: M.value_r_to_rr(174/179,-53/91,-1)
+            sage: M._value_r_to_rr(174/179,-53/91,-1)
             -1
 
             sage: E = EllipticCurve([91,127])
@@ -2582,12 +2585,12 @@ cdef class ModularSymbolNumerical:
             sage: E.conductor().factor()
             2^4 * 3449767
             sage: M = E.modular_symbol(implementation="num")
-            sage: M.value_r_to_rr(0/1,4/5)
+            sage: M._value_r_to_rr(0/1,4/5)
             1
-            sage: M.value_r_to_rr(7/11,14/75) # long time
+            sage: M._value_r_to_rr(7/11,14/75) # long time
             -1
         """
-        #verbose("       enter value_r_to_rr with r=%s, rr=%s,"
+        #verbose("       enter _value_r_to_rr with r=%s, rr=%s,"
         #        " sign=%s"%(r,rr,sign), level=5)
         cdef:
             double eps
@@ -2791,11 +2794,11 @@ cdef class ModularSymbolNumerical:
         if u == 0:
             verbose("   integrating from 0 to i*oo", level=3)
             r = Rational(0)
-            return self.value_ioo_to_r(r, sign, use_partials=0)
+            return self._value_ioo_to_r(r, sign, use_partials=0)
         elif v == 0:
             verbose("   integrating from i*oo to 0", level=3)
             r = Rational(0)
-            return - self.value_ioo_to_r(r, sign, use_partials=0)
+            return - self._value_ioo_to_r(r, sign, use_partials=0)
         else :
             # (c:d) = (u:v) but c and d are fairly small
             # in absolute value
@@ -2847,16 +2850,16 @@ cdef class ModularSymbolNumerical:
                 r =Rational( (x, (-d)) )
             if isunitary:
                 verbose("   integrate between %s and %s"%(r, rr), level=3)
-                return self.value_r_to_rr(r, rr, sign, use_partials=2)
+                return self._value_r_to_rr(r, rr, sign, use_partials=2)
             else:
                 if dv > 1:
                     res = self._symbol_non_unitary(r,sign)
                 else:
-                    res = self.value_ioo_to_r(r,sign, use_partials=2)
+                    res = self._value_ioo_to_r(r,sign, use_partials=2)
                 if du > 1:
                     res -= self._symbol_non_unitary(rr,sign)
                 else:
-                    res -= self.value_ioo_to_r(rr,sign, use_partials=2)
+                    res -= self._value_ioo_to_r(rr,sign, use_partials=2)
                 return res
 
 
@@ -3081,13 +3084,13 @@ cdef class ModularSymbolNumerical:
         #verbose("     cusp is %s/%s of width %s"%(a,m,Q), level=4)
 
         if r == 0:
-            return self.value_ioo_to_r(r, sign=sign)
+            return self._value_ioo_to_r(r, sign=sign)
 
         if m < self._cut_val:
             # now at some point we go directly to ioo
             M = N//Q
             if Q.gcd(M) == 1:
-                res = self.value_ioo_to_r(r, sign=sign)
+                res = self._value_ioo_to_r(r, sign=sign)
             else:
                 res = self._symbol_non_unitary(r, sign=sign)
         else:
@@ -3235,9 +3238,6 @@ cdef class ModularSymbolNumerical:
         Computes the value of the modular symbol by
         using the symbols of the quadratic twist.
 
-        Note that _set_up_twist needs to be called first
-        and D must be different from 1.
-
         INPUT:
 
         - ``ra`` -- a rational number
@@ -3267,6 +3267,8 @@ cdef class ModularSymbolNumerical:
         #        level=5)
         if sign == 0:
             sign = self._global_sign
+        if self._D == -1:
+            self._set_up_twist()
         D = self._D
         Da = D.abs()
         a = Integer(1)
