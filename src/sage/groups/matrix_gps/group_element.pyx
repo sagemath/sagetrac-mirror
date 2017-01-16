@@ -431,10 +431,22 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             [0 1]
             sage: g = G.random_element()
             sage: TestSuite(g).run()
+
+        Check that :trac:`22192` is fixed::
+
+            sage: G = GL(2, GF(2))
+            sage: H = G.subgroup([])
+            sage: g = G([[0, 1], [1, 0]])
+            sage: H(g.gap())
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix is not in the finitely generated group
         """
         if isinstance(M, GapElement):
-            ElementLibGAP.__init__(self, parent, M)
-            return
+            if not (check or convert):
+                ElementLibGAP.__init__(self, parent, M)
+                return
+            M, M_gap = M.matrix(parent.base_ring()), M
         if convert:
             M = parent.matrix_space()(M)
         from sage.libs.gap.libgap import libgap

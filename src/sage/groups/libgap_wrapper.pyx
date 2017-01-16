@@ -336,7 +336,7 @@ class ParentLibGAP(SageObject):
         if not (0 <= i < self.ngens()):
             raise ValueError('i must be in range(ngens)')
         gap = self._gap_gens()[i]
-        return self.element_class(self, gap)
+        return self.element_class(self, gap, check=False)
 
     @cached_method
     def gens(self):
