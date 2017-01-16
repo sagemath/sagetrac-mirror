@@ -36,6 +36,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
+- :class:`algebras.QuantumShuffle <sage.algebras.quantum_shuffle_algebra.QuantumShuffleAlgebra>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
@@ -64,6 +65,7 @@ lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZin
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon')
+lazy_import('sage.algebras.quantum_shuffle_algebra', 'QuantumShuffleAlgebra', 'QuantumShuffle')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
