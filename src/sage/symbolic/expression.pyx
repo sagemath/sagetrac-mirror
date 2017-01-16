@@ -600,13 +600,6 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS::
 
-            # printing of modular number equal to -1 as coefficient
-            sage: k.<a> = GF(9); k(2)*x
-            2*x
-
-            sage: (x+1)*Mod(6,7)
-            6*x + 6
-
             #printing rational functions
             sage: x/y
             x/y
@@ -669,7 +662,9 @@ cdef class Expression(CommutativeRingElement):
             (-x)^(1/4)
             sage: k.<a> = GF(9)
             sage: SR(a+1)^x
-            (a + 1)^x
+            Traceback (most recent call last):
+            ...
+            TypeError: Power with symbolic variable and an element of a ring with positive characteristic.
 
         Check if :trac:`7876` is fixed::
 
@@ -938,7 +933,9 @@ cdef class Expression(CommutativeRingElement):
             \left(-x\right)^{\frac{1}{4}}
             sage: k.<a> = GF(9)
             sage: latex(SR(a+1)^x)
-            \left(a + 1\right)^{x}
+            Traceback (most recent call last):
+            ...
+            TypeError: Power with symbolic variable and an element of a ring with positive characteristic.
 
         More powers (:trac:`7406`)::
 
@@ -964,8 +961,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: latex(6.5/x)
             \frac{6.50000000000000}{x}
-            sage: latex(Mod(2,7)/x)
-            \frac{2}{x}
 
         Check if we avoid extra parenthesis in rational functions (:trac:`8688`)::
 
@@ -1935,6 +1930,36 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         return haswild(self._gobj)
+
+    def has_finite_parent(self):
+        """
+        Return True if this expression wraps a Sage object and its
+        parent is known to be finite or has positive characteristic.
+
+        EXAMPLES::
+
+            sage: SR(Mod(1,3)).has_finite_parent()
+            True
+            sage: k.<a> = GF(7)
+            sage: SR(a).has_finite_parent()
+            True
+            sage: SR(matrix()).has_finite_parent()
+            False
+            sage: x.has_finite_parent()
+            False
+        """
+        if (not self.is_numeric()
+            or not isinstance(self.pyobject(), Element)):
+            return False
+        p = self.pyobject().parent()
+        try:
+            if hasattr(p, 'is_finite'):
+                return p.is_finite()
+            if hasattr(p, 'characteristic'):
+                return p.characteristic() > 0
+        except NotImplementedError:
+            pass
+        return False
 
     def is_algebraic(self):
         """
@@ -3019,12 +3044,10 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
-        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
-                and (<Element>left.pyobject()).parent().characteristic() > 0
-                and has_symbol((<Expression>right)._gobj))
-            or (right.is_numeric() and isinstance(right.pyobject(), Element)
-                and (<Element>right.pyobject()).parent().characteristic() > 0
-                and has_symbol((<Expression>left)._gobj))):
+        if ((left.has_finite_parent()
+             and has_symbol((<Expression>right)._gobj))
+            or (right.has_finite_parent()
+             and has_symbol((<Expression>left)._gobj))):
             raise TypeError("Addition of symbolic variable and an element of a ring with positive characteristic.")
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
@@ -3078,7 +3101,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = 1000 + 300*x + x^3 + 30*x^2
             sage: a*Mod(1,7)
-            x^3 + 2*x^2 + 6*x + 6
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
 
             sage: var('z')
             z
@@ -3153,11 +3178,9 @@ cdef class Expression(CommutativeRingElement):
             sage: var('y')
             y
             sage: e = t*x + u*y
-            sage: t*e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field
-            of size 7' and 'Finite Field of size 5'
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
 
         The same issue (with a different test case) was reported in
         :trac:`10960`::
@@ -3257,12 +3280,10 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
-        if ((left.is_numeric() and isinstance(left.pyobject(), Element)
-                and (<Element>left.pyobject()).parent().characteristic() > 0
-                and has_symbol((<Expression>right)._gobj))
-            or (right.is_numeric() and isinstance(right.pyobject(), Element)
-                and (<Element>right.pyobject()).parent().characteristic() > 0
-                and has_symbol((<Expression>left)._gobj))):
+        if ((left.has_finite_parent()
+             and has_symbol((<Expression>right)._gobj))
+            or (right.has_finite_parent()
+             and has_symbol((<Expression>left)._gobj))):
             raise TypeError("Multiplication of symbolic variable and an element of a ring with positive characteristic.")
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
@@ -3654,20 +3675,9 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: (Mod(2,7)*x^2 + Mod(2,7))^7
-            (2*x^2 + 2)^7
-
-        The leading coefficient in the result above is 1 since::
-
-            sage: t = Mod(2,7); gcd(t, t)^7
-            1
-            sage: gcd(t,t).parent()
-            Ring of integers modulo 7
-
-        ::
-
-            sage: k = GF(7)
-            sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f # known bug
-            x^35 + x^14 + 2
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
 
             sage: x^oo
             Traceback (most recent call last):
