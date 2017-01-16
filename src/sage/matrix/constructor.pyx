@@ -570,6 +570,18 @@ class MatrixFactory(object):
         ...
         TypeError: invalid matrix constructor: type matrix? for help
 
+    The matrix constructor works with any callable input (see :trac:`18713`)::
+
+        sage: @cached_function
+        ....: def L(n,k):
+        ....:         if n==k: return 1
+        ....:         if k<0 or k>n: return 0
+        ....:         return L(n-1,k-1)+(n+k-1)*L(n-1,k)
+        ....:
+        sage: m = matrix(ZZ, 8, L)
+        sage: m[7][4]
+        4200
+
     TESTS:
 
     Some calls using an iterator (note that xrange is no longer available
@@ -663,79 +675,94 @@ class MatrixFactory(object):
             # If no entries are specified, pass back a zero matrix
             entries = 0
         elif len(args) == 1:
+            of_other_type = False
             arg = args[0]
-            if isinstance(arg, (types.FunctionType, types.LambdaType, types.MethodType)):
-                if ncols is None and nrows is None:
-                    raise TypeError("when passing in a callable, the dimensions of the matrix must be specified")
-                if ncols is None:
-                    ncols = nrows
-                elif nrows is None:
-                    nrows = ncols
-
-                irange = srange(nrows)
-                jrange = srange(ncols)
-                arg = [[arg(i, j) for j in jrange] for i in irange]
-
-            if isinstance(arg, xrange):
-                arg = list(arg)
-            if isinstance(arg, (list, tuple)):
-                if not arg:
-                    # no entries are specified, pass back the zero matrix
-                    entries = 0
-                elif isinstance(arg[0], (list, tuple)) or isinstance(arg[0], Vector):
-                    # Ensure we have a list of lists, each inner list having the same number of elements
-                    first_len = len(arg[0])
-                    if not all( (isinstance(v, (list, tuple)) or isinstance(v, Vector)) and len(v) == first_len for v in arg):
-                        raise ValueError("list of rows is not valid (rows are wrong types or lengths)")
-                    # We have a list of rows or vectors
-                    if nrows is None:
-                        nrows = len(arg)
-                    elif nrows != len(arg):
-                        raise ValueError("number of rows does not match up with specified number")
+            try:
+                _ = iter(arg)
+            except TypeError:
+            # not iterable
+                from sage.symbolic.expression import Expression
+                from sage.symbolic.function import Function
+                if (callable(arg)
+                and not (isinstance(arg, Expression)
+                        and not isinstance(arg, Function))):
+                    if ncols is None and nrows is None:
+                        raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
                     if ncols is None:
-                        ncols = len(arg[0])
-                    elif ncols != len(arg[0]):
-                        raise ValueError("number of columns does not match up with specified number")
+                        ncols = nrows
+                    elif nrows is None:
+                        nrows = ncols
 
-                    entries = []
-                    for v in arg:
-                        entries.extend(v)
-
+                    irange = srange(nrows)
+                    jrange = srange(ncols)
+                    arg = [[arg(i,j) for j in jrange] for i in irange]
                 else:
-                    # We have a flat list; figure out nrows and ncols
-                    if nrows is None:
-                        nrows = 1
+                    of_other_type = True
 
-                    if nrows > 0:
+            if not of_other_type:
+                if isinstance(arg, xrange):
+                    arg = list(arg)
+                if isinstance(arg, (list, tuple)):
+                    if not arg:
+                        # no entries are specified, pass back the zero matrix
+                        entries = 0
+                    elif isinstance(arg[0], (list, tuple)) or is_Vector(args[0][0]):
+                        # Ensure we have a list of lists, each inner list having the same number of elements
+                        first_len = len(arg[0])
+                        if not all( (isinstance(v, (list, tuple)) or isinstance(v, Vector)) and len(v) == first_len for v in arg):
+                            raise ValueError("list of rows is not valid (rows are wrong types or lengths)")
+                        # We have a list of rows or vectors
+                        if nrows is None:
+                            nrows = len(arg)
+                        elif nrows != len(arg):
+                            raise ValueError("number of rows does not match up with specified number")
                         if ncols is None:
-                            ncols = len(arg) // nrows
-                        elif ncols != len(arg) // nrows:
+                            ncols = len(arg[0])
+                        elif ncols != len(arg[0]):
+                            raise ValueError("number of columns does not match up with specified number")
+
+                        entries = []
+                        for v in arg:
+                            entries.extend(v)
+
+                    else:
+                        # We have a flat list; figure out nrows and ncols
+                        if nrows is None:
+                            nrows = 1
+
+                        if nrows > 0:
+                            if ncols is None:
+                                ncols = len(arg) // nrows
+                            elif ncols != len(arg) // nrows:
+                                raise ValueError("entries has the wrong length")
+                        elif len(arg) > 0:
                             raise ValueError("entries has the wrong length")
-                    elif len(arg) > 0:
-                        raise ValueError("entries has the wrong length")
 
-                    entries = arg
+                        entries = arg
 
-                if nrows > 0 and ncols > 0 and ring is None:
-                    entries, ring = prepare(entries)
+                    if nrows > 0 and ncols > 0 and ring is None:
+                        entries, ring = prepare(entries)
 
-            elif isinstance(arg, dict):
-                # We have a dictionary: default to sparse
-                if sparse is None:
-                    sparse = True
-                if not arg:
-                    # no entries are specified, pass back the zero matrix
-                    entries = 0
+                elif isinstance(arg, dict):
+                    # We have a dictionary: default to sparse
+                    if sparse is None:
+                        sparse = True
+                    if not arg:
+                        # no entries are specified, pass back the zero matrix
+                        entries = 0
+                    else:
+                        entries, entry_ring = prepare_dict(arg)
+                        if nrows is None:
+                            nrows = nrows_from_dict(entries)
+                            ncols = ncols_from_dict(entries)
+                        # note that ncols can still be None if nrows is set --
+                        # it will be assigned nrows down below.
                 else:
-                    entries, entry_ring = prepare_dict(arg)
-                    if nrows is None:
-                        nrows = nrows_from_dict(entries)
-                        ncols = ncols_from_dict(entries)
-                    # note that ncols can still be None if nrows is set --
-                    # it will be assigned nrows down below.
+                    of_other_type = True
+                    # See the construction after the numpy case below.
 
-                # See the construction after the numpy case below.
-            else:
+            if of_other_type:
+                import numpy
                 if is_numpy_type(type(arg)):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
