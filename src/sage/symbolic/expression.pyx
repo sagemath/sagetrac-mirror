@@ -4209,7 +4209,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
-            1/48*(3*a^3 + 9*a^2 + 9*a - 1)*x^3 - 1/8*(a^2 + 2*a + 1)*x^2 + 1/2*(a + 1)*x + 1
+            -1/8*(a + 1)^2*x^2 + 1/48*(3*(a + 1)^3 - 4)*x^3 + 1/2*(a + 1)*x + 1
 
         ::
 
@@ -4259,6 +4259,8 @@ cdef class Expression(CommutativeRingElement):
             B.append(Integer(A[len(A)-1]))
         except Exception:
             raise NotImplementedError("Wrong arguments passed to taylor. See taylor? for more details.")
+        if not isinstance(A[0],tuple):
+            return self.series(A[0]==A[1], A[2]+1).truncate()
         l = self._maxima_().taylor(B)
         return self.parent()(l)
 
