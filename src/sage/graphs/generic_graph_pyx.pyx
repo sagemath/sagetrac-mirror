@@ -641,10 +641,11 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
+        if self.ng > 0:
+            memset(self.busy, 0, self.ng * sizeof(int))
+            # 0 is the first vertex we use, so it is at first busy
+            self.busy[0] = 1
 
-        memset(self.busy, 0, self.ng * sizeof(int))
-        # 0 is the first vertex we use, so it is at first busy
-        self.busy[0] = 1
         # stack -- list of the vertices which are part of the partial copy of H
         # in G.
         #
@@ -653,7 +654,6 @@ cdef class SubgraphSearch:
         #
         # stack[i] = -1 means that i is not represented
         # ... yet!
-
         self.stack[0] = 0
         self.stack[1] = -1
 
@@ -689,8 +689,13 @@ cdef class SubgraphSearch:
 
         # A vertex is said to be busy if it is already part of the partial copy
         # of H in G.
-        self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
+        if self.ng > 0:
+            self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
+            self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
+        else:
+            self.busy = NULL
+            self.tmp_array = NULL
+
         self.stack      = <int *>  sig_malloc(self.nh * sizeof(int))
         self.vertices   = <int *>  sig_malloc(self.nh * sizeof(int))
         self.line_h_out = <int **> sig_malloc(self.nh * sizeof(int *))
@@ -701,8 +706,8 @@ cdef class SubgraphSearch:
         if self.line_h_in is not NULL:
             self.line_h_in[0]  = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
 
-        if (self.tmp_array     == NULL or
-            self.busy          == NULL or
+        if ((self.ng > 0 and (self.tmp_array == NULL or
+                              self.busy      == NULL)) or
             self.stack         == NULL or
             self.vertices      == NULL or
             self.line_h_out    == NULL or
@@ -825,7 +830,7 @@ cdef class SubgraphSearch:
             # the previous vertex.
 
             else:
-                if self.stack[self.active] != -1:
+                if self.ng > 0 and self.stack[self.active] != -1:
                     self.busy[self.stack[self.active]] = 0
                 self.stack[self.active] = -1
                 self.active -= 1
@@ -843,7 +848,9 @@ cdef class SubgraphSearch:
             sig_free(self.line_h_out[0])
 
         # Free the memory
-        sig_free(self.busy)
+        if self.ng > 0:
+            sig_free(self.busy)
+            sig_free(self.tmp_array)
         sig_free(self.stack)
         sig_free(self.vertices)
         sig_free(self.line_h_out)
