@@ -134,7 +134,7 @@ def test_ecl_options():
         sage: test_ecl_options()
         ECL_OPT_INCREMENTAL_GC = 0
         ECL_OPT_TRAP_SIGSEGV = 1
-        ECL_OPT_TRAP_SIGFPE = 1
+        ECL_OPT_TRAP_SIGFPE = 0
         ECL_OPT_TRAP_SIGINT = 1
         ECL_OPT_TRAP_SIGILL = 1
         ECL_OPT_TRAP_SIGBUS = 1
@@ -244,6 +244,8 @@ def init_ecl():
 
     # we need it to stop handling SIGCHLD
     ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
+    # we need it to stop handling SIGFPE - as of ECL 16.1.3
+    ecl_set_option(ECL_OPT_TRAP_SIGFPE, 0);
 
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
