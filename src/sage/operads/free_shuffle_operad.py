@@ -5,11 +5,151 @@ Basic implementation of shuffle operads.
 
 REFERENCES:
 
-.. [DoKo] V. Dotsenko and A. Khoroshkin, Anton, *Gröbner bases for operads*.
+.. [DoKo] V. Dotsenko and A. Khoroshkin, Anton, *Groebner bases for operads*.
    Duke Math. J. 153 (2010), no. 2, 363-396.
 """
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.ordered_tree import LabelledOrderedTrees
+from sage.combinat.ordered_tree import LabelledOrderedTrees, LabelledOrderedTree
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.combinat.permutation import Permutation
+from sage.combinat.words.word import Word
+
+
+class ShuffleTree(LabelledOrderedTree):
+    @staticmethod
+    def __classcall_private__(cls, *args, **opts):
+        """
+        Ensure that trees created by the sets and directly are the same and
+        that they are instances of :class:`LabelledOrderedTree`
+
+        TESTS::
+
+            sage: issubclass(LabelledOrderedTrees().element_class, LabelledOrderedTree)
+            True
+            sage: t0 = LabelledOrderedTree([[],[[], []]], label = 3)
+            sage: t0.parent()
+            Labelled ordered trees
+            sage: type(t0)
+            <class 'sage.combinat.ordered_tree.LabelledOrderedTrees_with_category.element_class'>
+        """
+        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
+
+    @lazy_class_attribute
+    def _auto_parent(cls):
+        """
+        The automatic parent of the elements of this class.
+
+        When calling the constructor of an element of this class, one needs a
+        parent. This class attribute specifies which parent is used.
+
+        EXAMPLES::
+
+            sage: LabelledOrderedTree._auto_parent
+            Labelled ordered trees
+            sage: LabelledOrderedTree([], label = 3).parent()
+            Labelled ordered trees
+        """
+        return ShuffleTrees()
+
+    def paths_to_leaves(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.operads.free_shuffle_operad import ShuffleTree
+            sage: L = ShuffleTree
+            sage: lf = lambda A: L([],label=A) # leaf
+            sage: u = L([L([lf(1),lf(3)],label="a"),lf(2)],label="b")
+            sage: u.paths_to_leaves()
+            ['ba', 'b', 'ba']
+
+            sage: v = L([L([lf(1),lf(2)],label="a"),lf(3)],label="b")
+            sage: v.paths_to_leaves()
+            ['ba', 'ba', 'b']
+        """
+        first_step = [p for p in self.paths() if not self[p]]
+        n = len(first_step)
+        second_step = [[self[p[:i]].label() for i in range(len(p) + 1)]
+                       for p in first_step]
+        resu = list(range(n))
+        for word in second_step:
+            resu[word[-1] - 1] = ''.join(word[:-1])
+        return resu
+
+    def pathlex_key(self):
+        """
+        term order according to Dotsenko-Koroshkin
+
+        First one compares the number of leaves,
+
+        then one compares the words one by one in deglex order,
+
+        then one compares the permutations in revlex order.
+
+        EXAMPLES::
+
+            sage: from sage.operads.free_shuffle_operad import ShuffleTree
+            sage: L = ShuffleTree
+            sage: lf = lambda A: L([],label=A) # leaf
+
+            sage: u = L([L([lf(1),lf(3)],label="a"),lf(2)],label="b")
+            sage: u.pathlex_key()
+            (3, ((2, 'ba'), (1, 'b'), (2, 'ba')), [3, 1, 2])
+
+            sage: v = L([L([lf(1),lf(2)],label="a"),lf(3)],label="b")
+            sage: v.pathlex_key()
+            (3, ((2, 'ba'), (2, 'ba'), (1, 'b')), [3, 2, 1])
+
+            sage: w = L([lf(1),L([lf(2),lf(3)],label="a")],label="b")
+            sage: w.pathlex_key()
+            (3, ((1, 'b'), (2, 'ba'), (2, 'ba')), [3, 2, 1])
+        """
+        leaves = self.leaf_labels()
+        return (len(leaves), tuple((len(u), u) for u in self.paths_to_leaves()),
+                Permutation(leaves).complement())
+
+    def map_leaves(self, f):
+        """
+        Apply the function `f` on the leaves of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.operads.free_shuffle_operad import ShuffleTree
+            sage: L = ShuffleTree
+            sage: lf = lambda A: L([],label=A) # leaf
+
+            sage: u = L([L([lf(1),lf(3)],label="a"),lf(2)],label="b"); u
+            b[a[1[], 3[]], 2[]]
+            sage: u.map_leaves(lambda x: x+1)
+            b[a[2[], 4[]], 3[]]
+        """
+        if not self:
+            return ShuffleTree([], label=f(self.label()))
+        return ShuffleTree([t.map_leaves(f) for t in self], self.label())
+
+    def leftmost_leaf_label(self):
+        """
+        c'est aussi l'etiquette minimale
+
+        EXAMPLES::
+
+            sage: from sage.operads.free_shuffle_operad import ShuffleTree
+            sage: L = ShuffleTree
+            sage: lf = lambda A: L([],label=A) # leaf
+
+            sage: u = L([L([lf(1),lf(3)],label="a"),lf(2)],label="b"); u
+            b[a[1[], 3[]], 2[]]
+            sage: u.leftmost_leaf_label()
+            1
+            sage: u[1].leftmost_leaf_label()
+            2
+        """
+        if not(len(self)):
+            return self.label()
+        return self[0].leftmost_leaf_label()
+
+
+class ShuffleTrees(LabelledOrderedTrees):
+    Element = ShuffleTree
 
 
 class FreeShuffleOperad(CombinatorialFreeModule):
@@ -22,81 +162,32 @@ class FreeShuffleOperad(CombinatorialFreeModule):
         """
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,)); A
             The Free shuffle operad over Rational Field with generators (a[1[], 2[]],)
             sage: TestSuite(A).run()
         """
-        CombinatorialFreeModule.__init__(self, R, LabelledOrderedTrees(),
-                                         monomial_cmp=self.cmp_fun(order))
+        CombinatorialFreeModule.__init__(self, R, ShuffleTrees(),
+                                         sorting_key=self.sortkey(order))
         self._gens = gens
         self._term_order = order
 
-    def cmp_fun(self, order=None):
+    def sortkey(self, order=None):
         """
         ordering according to a term order
 
-        IL FAUT UTILISER plutot une "key" !
-
-        possible values so far for order:
+        possible values so far for the parameter "order":
 
         - 'pathlex'
         """
         if order is None:
             order = 'pathlex'
         if order == 'pathlex':
-            return lambda x, y: self.pathlex_cmp(x, y)
-
-    def pathlex_cmp(self, x, y):
-        """
-        term order according to Dotsenko-Koroshkin
-
-        First one compares the number of leaves,
-
-        then one compares the words one by one in deglex order,
-
-        then one compares the permutations in revlex order.
-
-        EXAMPLES::
-
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
-            sage: lf = lambda A: L([],label=A) # leaf
-            sage: g = L([lf(1),lf(2)],label="a")
-            sage: A = FreeShuffleOperad(QQ,(g,))
-
-            sage: u = L([L([lf(1),lf(3)],label="a"),lf(2)],label="b")
-            sage: u.pathlex_key()
-            (['ba', 'b', 'ba'], [1, 3, 2])
-
-            sage: v = L([L([lf(1),lf(2)],label="a"),lf(3)],label="b")
-            sage: v.pathlex_key()
-            (['ba', 'ba', 'b'], [1, 2, 3])
-
-            sage: w = L([lf(1),L([lf(2),lf(3)],label="a")],label="b")
-            sage: w.pathlex_key()
-            (['b', 'ba', 'ba'], [1, 2, 3])
-
-            sage: A.pathlex_cmp(u,v)
-            -1
-        """
-        lx, px = x.pathlex_key()
-        ly, py = y.pathlex_key()
-        if len(px) != len(py):
-            return len(px) < len(py)  # ok
-        elif lx != ly:
-            dlx = []
-            for u in lx:
-                dlx += [len(u), u]
-            dly = []
-            for v in ly:
-                dly += [len(v), v]
-            return cmp(dlx, dly)  # ok ? degree-lex ?
-        else:
-            return cmp(px.complement(), py.complement())  # ok reverse-lex
+            return lambda x: self.pathlex_key(x)
+        raise ValueError('unknown order')
 
     def gens(self):
         """
@@ -104,8 +195,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,)); A.gens()
@@ -119,8 +210,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: FreeShuffleOperad(QQ,(g,))            # indirect doctest
@@ -137,8 +228,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,))
@@ -166,8 +257,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,))
@@ -215,14 +306,14 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: h = L([lf(2),lf(3)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,))
             sage: A.graft(g, h, 2)
-            ?
+            a[1[], a[2[], 3[]]]
         """
         if x.node_number() == 1:
             return y
@@ -251,8 +342,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,))
@@ -279,8 +370,8 @@ class FreeShuffleOperad(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad
-            sage: L = LabelledOrderedTrees()
+            sage: from sage.operads.free_shuffle_operad import FreeShuffleOperad, ShuffleTree
+            sage: L = ShuffleTree
             sage: lf = lambda A: L([],label=A) # leaf
             sage: g = L([lf(1),lf(2)],label="a")
             sage: A = FreeShuffleOperad(QQ,(g,))
@@ -305,6 +396,17 @@ def divisors_of_shape(alpha, beta):
     Find all occurences of the tree beta as a divisor of the tree alpha.
 
     pas au point, il faudrait renvoyer des arbres avec trous ?
+
+    EXAMPLES::
+
+        sage: from sage.operads.free_shuffle_operad import *
+        sage: L = ShuffleTree
+        sage: lf = lambda A: L([],label=A)  # leaf
+        sage: ga = L([lf(1),lf(2)],label="a")
+        sage: gb = L([lf(1),lf(2)],label="b")
+        sage: h = L([ga,lf(3)],label="a")
+        sage: list(divisors_of_shape(ga,ga))
+        [H[1[], 2[]]]
     """
     for t in alpha.subtrees():
         b = extract_divisor_at_root(t, beta)
@@ -326,12 +428,13 @@ def extract_divisor_at_root(alpha, beta):
 
     EXAMPLES::
 
-        sage: L = LabelledOrderedTrees()
+        sage: from sage.operads.free_shuffle_operad import *
+        sage: L = ShuffleTree
         sage: lf = lambda A: L([],label=A)  # leaf
         sage: ga = L([lf(1),lf(2)],label="a")
         sage: gb = L([lf(1),lf(2)],label="b")
         sage: h = L([ga,lf(3)],label="a")
-        sage: i = L([L([lf(1),lf(2)],'b'),L([lf(3),lf(4)],'c')],label="a"
+        sage: i = L([L([lf(1),lf(2)],'b'),L([lf(3),lf(4)],'c')],label="a")
         sage: extract_divisor_at_root(ga,h)
         False
 
@@ -365,27 +468,16 @@ def extract_divisor_at_root(alpha, beta):
             if match is False:
                 return False
             list_match.append(match)
-            alpha_labels.append(leftmost_leaf_label(match))
+            alpha_labels.append(match.leftmost_leaf_label())
         else:
-            list_match.append(LabelledOrderedTree([alpha_i], label="H"))
-            alpha_labels.append(leftmost_leaf_label(alpha_i))
-        beta_labels.append(leftmost_leaf_label(beta_i))
+            list_match.append(ShuffleTree([alpha_i], label="H"))
+            alpha_labels.append(alpha_i.leftmost_leaf_label())
+        beta_labels.append(beta_i.leftmost_leaf_label())
 
     wa = Word(alpha_labels).standard_permutation()
     wb = Word(beta_labels).standard_permutation()
-    print wa, wb
     if wa != wb:
         return False
 
-    return LabelledOrderedTree([subtree for t in list_match for subtree in t],
-                               label="H")
-
-
-
-def leftmost_leaf_label(tree):
-    """
-    c'est aussi l'etiquette minimale
-    """
-    if not(len(tree)):
-        return tree.label()
-    return leftmost_leaf_label(tree[0])
+    return ShuffleTree([subtree for t in list_match for subtree in t],
+                       label="H")
