@@ -321,6 +321,7 @@ def init_ecl():
         """))
     safe_funcall_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-funcall)"))
 
+    cl_eval(string_to_object("(si::trap-fpe T NIL)"))
     ecl_has_booted = 1
 
 cdef cl_object ecl_safe_eval(cl_object form) except NULL:
