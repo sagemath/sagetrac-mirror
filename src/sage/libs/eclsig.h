@@ -10,15 +10,18 @@
 
 #include <signal.h>
 static struct sigaction ecl_sigint_handler;
+static struct sigaction ecl_sigfpe_handler;
 static struct sigaction ecl_sigbus_handler;
 static struct sigaction ecl_sigsegv_handler;
 static struct sigaction sage_sigint_handler;
+static struct sigaction sage_sigfpe_handler;
 static struct sigaction sage_sigbus_handler;
 static struct sigaction sage_sigsegv_handler;
 
 static inline void set_ecl_signal_handler(void)
 {
     sigaction(SIGINT, &ecl_sigint_handler, &sage_sigint_handler);
+    sigaction(SIGFPE, &ecl_sigfpe_handler, &sage_sigfpe_handler);
     sigaction(SIGBUS, &ecl_sigbus_handler, &sage_sigbus_handler);
     sigaction(SIGSEGV, &ecl_sigsegv_handler, &sage_sigsegv_handler);
 }
@@ -26,6 +29,7 @@ static inline void set_ecl_signal_handler(void)
 static inline void unset_ecl_signal_handler(void)
 {
     sigaction(SIGINT, &sage_sigint_handler, NULL);
+    sigaction(SIGFPE, &sage_sigfpe_handler, NULL);
     sigaction(SIGBUS, &sage_sigbus_handler, NULL);
     sigaction(SIGSEGV, &sage_sigsegv_handler, NULL);
 }

@@ -19,7 +19,7 @@ include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 
 from libc.stdlib cimport abort
-from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD, SIGFPE
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
 
@@ -45,6 +45,7 @@ cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
     cdef sigaction_t ecl_sigint_handler
+    cdef sigaction_t ecl_sigfpe_handler
     cdef sigaction_t ecl_sigbus_handler
     cdef sigaction_t ecl_sigsegv_handler
     cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
@@ -134,7 +135,7 @@ def test_ecl_options():
         sage: test_ecl_options()
         ECL_OPT_INCREMENTAL_GC = 0
         ECL_OPT_TRAP_SIGSEGV = 1
-        ECL_OPT_TRAP_SIGFPE = 0
+        ECL_OPT_TRAP_SIGFPE = 1
         ECL_OPT_TRAP_SIGINT = 1
         ECL_OPT_TRAP_SIGILL = 1
         ECL_OPT_TRAP_SIGBUS = 1
@@ -245,7 +246,7 @@ def init_ecl():
     # we need it to stop handling SIGCHLD
     ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
     # we need it to stop handling SIGFPE - as of ECL 16.1.3
-    ecl_set_option(ECL_OPT_TRAP_SIGFPE, 0);
+    # ecl_set_option(ECL_OPT_TRAP_SIGFPE, 0);
 
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
@@ -264,6 +265,7 @@ def init_ecl():
 
     #save signal handler from ECL
     sigaction(SIGINT, NULL, &ecl_sigint_handler)
+    sigaction(SIGFPE, NULL, &ecl_sigfpe_handler)
     sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
@@ -314,6 +316,10 @@ def init_ecl():
                 (serious-condition (cnd)
                     (values nil (princ-to-string cnd)))))
         """))
+    cl_eval(string_to_object("(si:trap-fpe 'cl:floating-point-invalid-operation nil)"))
+    cl_eval(string_to_object("(si:trap-fpe 'cl:floating-point-inexact           nil)"))
+    cl_eval(string_to_object("(si:trap-fpe 'cl:division-by-zero                 nil)"))
+    cl_eval(string_to_object("(si:trap-fpe 'cl:floating-point-overflow          nil)"))
     safe_funcall_clobj=cl_eval(string_to_object("(symbol-function 'sage-safe-funcall)"))
 
     ecl_has_booted = 1
