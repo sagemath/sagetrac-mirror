@@ -2581,7 +2581,7 @@ cdef class Expression(CommutativeRingElement):
             if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
                 return pynac_result == relational_true
 
-            if pynac_result == relational_true:
+            if (pynac_result != relational_notimplemented):
                 if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
                     m = self._maxima_()
                     s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
@@ -2590,7 +2590,7 @@ cdef class Expression(CommutativeRingElement):
                     else:
                         return True
                 else:
-                    return True
+                    return pynac_result == relational_true
 
             # If assumptions are involved, falsification is more complicated...
             need_assumptions = False
