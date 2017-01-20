@@ -4537,7 +4537,7 @@ cpdef Gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if isinstance(s, basestring):
+    if isinstance(s, (bytes, basestring)):
         sig_on()
         g = gp_read_str(s)
         if g == gnil:
