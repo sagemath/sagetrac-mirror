@@ -2567,6 +2567,14 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s)...
+
+        Check that we use all results from Pynac (:trac:`18882`)::
+
+            sage: forget()
+            sage: bool(exp(x) >= 0)
+            False
+            sage: bool(exp(real(x)) >= 0)
+            True
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -2591,6 +2599,8 @@ cdef class Expression(CommutativeRingElement):
                         return True
                 else:
                     return pynac_result == relational_true
+            elif self.operator != operator.eq and self.operator != operator.ne:
+                return False
 
             # If assumptions are involved, falsification is more complicated...
             need_assumptions = False
