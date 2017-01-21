@@ -149,6 +149,8 @@ cdef extern from "sage/libs/pynac/wrap.h":
             GEx n, GEx a, GEx b, int* p) except +
     GEx g_gosper_sum_indefinite "gosper_sum_indefinite"(GEx the_ex,
             GEx n, int* p) except +
+    GEx to_gamma(GEx expr)          except +
+    GEx gamma_normalize(GEx expr)   except +
 
     # Pattern matching wildcards
     GEx g_wild "wild"(unsigned int label) except +
