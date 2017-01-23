@@ -117,8 +117,8 @@ doing random summations::
     sage: x = var('x')
     sage: (factorial(n-1)^2 / factorial(n-x) / factorial(n+x)).gosper_sum(n,1,m)
     (m^2*factorial(m - 1)^2*factorial(x + 1)*factorial(-x + 1) + x^2*factorial(m + x)*factorial(m - x) - factorial(m + x)*factorial(m - x))/(x^2*factorial(m + x)*factorial(m - x)*factorial(x + 1)*factorial(-x + 1))
-    sage: ((n*(n+a+b)*a^n*b^n)/factorial(n+a)/factorial(n+b)).gosper_sum(n,1,m) # known bug
-    ...   # TODO: take limit if result is NaN
+    sage: ((n*(n+a+b)*a^n*b^n)/factorial(n+a)/factorial(n+b)).gosper_sum(n,1,m).simplify_full()
+    -(a^(m + 1)*b^(m + 1)*factorial(a - 1)*factorial(b - 1) - factorial(a + m)*factorial(b + m))/(factorial(a + m)*factorial(a - 1)*factorial(b + m)*factorial(b - 1))
 
     sage: check_unsolvable(1/n, n,1,m)
     sage: check_unsolvable(1/n^2, n,1,m)
@@ -146,13 +146,19 @@ them out for now.
     -k/factorial(k)
     sage: F(n, k) = binomial(n, k) / 2^n
     sage: check_unsolvable(F(n, k), k)
-    sage: _ = (F(n+1, k) - F(n, k)).gosper_sum(k)
+    sage: _ = (F(n+1,k)-F(n,k)).gosper_term(k)
+    sage: F(n,k).WZ_certificate(n,k)
+    1/2*k/(k - n - 1)
     sage: F(n, k) = binomial(n, k)^2 / binomial(2*n, n)
     sage: check_unsolvable(F(n, k), k)
-    sage: _ = (F(n+1, k) - F(n, k)).gosper_sum(k)
+    sage: _ =(F(n+1, k) - F(n, k)).gosper_term(k)
+    sage: F(n,k).WZ_certificate(n,k)
+    1/2*(2*k - 3*n - 3)*k^2/((k - n - 1)^2*(2*n + 1))
     sage: F(n, k) = binomial(n,k) * factorial(n) / factorial(k) / factorial(a-k) / factorial(a+n)
     sage: check_unsolvable(F(n, k), k)
-    sage: _ = (F(n+1, k) - F(n, k)).gosper_sum(k)   # known bug
+    sage: _ = (F(n+1, k) - F(n, k)).gosper_term(k)
+    sage: F(n,k).WZ_certificate(n,k)
+    k^2/((a + n + 1)*(k - n - 1))
 
     sage: (1/n/(n+1)/(n+2)/(n+5)).gosper_sum(n)
     1/720*(55*n^5 + 550*n^4 + 1925*n^3 + 2510*n^2 - 1728)/((n + 4)*(n + 3)*(n + 2)*(n + 1)*n)
@@ -160,5 +166,24 @@ them out for now.
     1/1050*(91*n^7 + 1911*n^6 + 15925*n^5 + 66535*n^4 + 142534*n^3 + 132104*n^2 - 54000)/((n + 6)*(n + 5)*(n + 4)*(n + 3)*(n + 2)*(n + 1)*n)
     sage: (1/n/(n+1)/(n+2)/(n+5)/(n+7)).gosper_sum(n)
     1/10080*(133*n^7 + 2793*n^6 + 23275*n^5 + 97755*n^4 + 213472*n^3 + 206892*n^2 - 103680)/((n + 6)*(n + 5)*(n + 4)*(n + 3)*(n + 2)*(n + 1)*n)
+
+The following are from A=B, 7 The WZ Phenomenon::
+
+    sage: _ = var('a b c i j k m n r')
+    sage: F(n,k) = factorial(n+k)*factorial(b+k)*factorial(c-n-1)*factorial(c-b-1)/factorial(c+k)/factorial(n-1)/factorial(c-n-b-1)/factorial(k+1)/factorial(b-1)
+    sage: F(n,k).WZ_certificate(n,k)
+    -(c + k)*(k + 1)/((c - n - 1)*n)
+    sage: F(n,k) = factorial(n-i)*factorial(n-j)*factorial(i-1)*factorial(j-1)/factorial(n-1)/factorial(k-1)/factorial(n-i-j+k)/factorial(i-k)/factorial(j-k)
+    sage: F(n,k).WZ_certificate(n,k)
+    (k - 1)/n
+    sage: F(n,k) = binomial(3*n,k)/8^n
+    sage: F(n,k).WZ_certificate(n,k)
+    1/8*(4*k^2 - 30*k*n + 63*n^2 - 22*k + 93*n + 32)*k/((k - 3*n - 1)*(k - 3*n - 2)*(k - 3*n - 3))
 """
+# sage: F(n,k)=(-1)^k*binomial(n+b,n+k)*binomial(n+c,n+k)*binomial(b+c,b+k)/factorial(n+b+c)*factorial(n)*factorial(b)*factorial(c)
+# sage: F(n,k)=(-1)^(n+k)*factorial(2*n+c-1)*factorial(n)*factorial(n+c-1)/factorial(2*n+c-1-k)/factorial(2*n-k)/factorial(c+k-1)/factorial(k)
+# correct?
+#    sage: F(n,k)=2^(k+1)*(k+1)*factorial(2*n-k-2)*factorial(n)/factorial(n-k-1)/factorial(2*n)
+#    sage: F(n,k).WZ_certificate(n,k)
+#    -1/2*(k - 2*n + 1)*k/((k - n)*(2*n + 1))
 

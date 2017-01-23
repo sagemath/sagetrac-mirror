@@ -145,6 +145,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
     # Algorithms
     GEx g_gcd "gcd"(GEx a, GEx b) except +
+    GEx g_gosper_term "gosper_term"(GEx the_ex, GEx n) except +
     GEx g_gosper_sum_definite "gosper_sum_definite"(GEx the_ex,
             GEx n, GEx a, GEx b, int* p) except +
     GEx g_gosper_sum_indefinite "gosper_sum_indefinite"(GEx the_ex,
