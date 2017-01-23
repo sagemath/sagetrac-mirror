@@ -54,6 +54,8 @@ polytopes and polyhedra (with rational or numerical coordinates).
 
    sage/geometry/ribbon_graph
 
+   sage/geometry/tat_graph
+
 Hyperbolic Geometry
 -------------------
 
