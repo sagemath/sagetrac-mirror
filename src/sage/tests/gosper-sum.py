@@ -167,12 +167,24 @@ them out for now.
     sage: (1/n/(n+1)/(n+2)/(n+5)/(n+7)).gosper_sum(n)
     1/10080*(133*n^7 + 2793*n^6 + 23275*n^5 + 97755*n^4 + 213472*n^3 + 206892*n^2 - 103680)/((n + 6)*(n + 5)*(n + 4)*(n + 3)*(n + 2)*(n + 1)*n)
 
-The following are from A=B, 7 The WZ Phenomenon::
+The following are from A=B, 7.2 WZ Proofs of the hypergeometric database::
 
     sage: _ = var('a b c i j k m n r')
     sage: F(n,k) = factorial(n+k)*factorial(b+k)*factorial(c-n-1)*factorial(c-b-1)/factorial(c+k)/factorial(n-1)/factorial(c-n-b-1)/factorial(k+1)/factorial(b-1)
     sage: F(n,k).WZ_certificate(n,k)
     -(c + k)*(k + 1)/((c - n - 1)*n)
+    sage: F(n,k)=(-1)^(n+k)*factorial(2*n+c-1)*factorial(n)*factorial(n+c-1)/factorial(2*n+c-1-k)/factorial(2*n-k)/factorial(c+k-1)/factorial(k)
+    sage: F(n,k).WZ_certificate(n,k)
+    1/2*(c^2 - 2*c*k + k^2 + 7*c*n - 6*k*n + 10*n^2 + 4*c - 3*k + 10*n + 2)*(c + k - 1)*k/((c - k + 2*n + 1)*(c - k + 2*n)*(k - 2*n - 1)*(k - 2*n - 2))
+    sage: F(n,k)=factorial(a+k-1)*factorial(b+k-1)*factorial(n)*factorial(n+c-b-a-k-1)*factorial(n+c-1)/factorial(k)/factorial(n-k)/factorial(k+c-1)/factorial(n+c-a-1)/factorial(n+c-b-1)
+    sage: F(n,k).WZ_certificate(n,k)
+    -(a + b - c + k - n)*(c + k - 1)*k/((a - c - n)*(b - c - n)*(k - n - 1))
+    sage: F(n,k)=(-1)^k*binomial(n+b,n+k)*binomial(n+c,c+k)*binomial(b+c,b+k)/factorial(n+b+c)*factorial(n)*factorial(b)*factorial(c)
+    sage: F(n,k).WZ_certificate(n,k)
+    1/2*(b + k)*(c + k)/((b + c + n + 1)*(k - n - 1))
+
+The following are also from A=B, 7 The WZ Phenomenon::
+
     sage: F(n,k) = factorial(n-i)*factorial(n-j)*factorial(i-1)*factorial(j-1)/factorial(n-1)/factorial(k-1)/factorial(n-i-j+k)/factorial(i-k)/factorial(j-k)
     sage: F(n,k).WZ_certificate(n,k)
     (k - 1)/n
@@ -180,8 +192,9 @@ The following are from A=B, 7 The WZ Phenomenon::
     sage: F(n,k).WZ_certificate(n,k)
     1/8*(4*k^2 - 30*k*n + 63*n^2 - 22*k + 93*n + 32)*k/((k - 3*n - 1)*(k - 3*n - 2)*(k - 3*n - 3))
 """
-# sage: F(n,k)=(-1)^k*binomial(n+b,n+k)*binomial(n+c,n+k)*binomial(b+c,b+k)/factorial(n+b+c)*factorial(n)*factorial(b)*factorial(c)
-# sage: F(n,k)=(-1)^(n+k)*factorial(2*n+c-1)*factorial(n)*factorial(n+c-1)/factorial(2*n+c-1-k)/factorial(2*n-k)/factorial(c+k-1)/factorial(k)
+# sage: phi(t)=factorial(a+t-1)*factorial(b+t-1)/factorial(t)/factorial(-1/2+a+b+t)
+# sage: psi(t)=factorial(t+a+b-1/2)*factorial(t)*factorial(t+2*a+2*b-1)/factorial(t+2*a-1)/factorial(t+a+b-1)/factorial(t+2*b-1)
+# sage: F(n,k)=phi(k)*phi(n-k)*psi(n)
 # correct?
 #    sage: F(n,k)=2^(k+1)*(k+1)*factorial(2*n-k-2)*factorial(n)/factorial(n-k-1)/factorial(2*n)
 #    sage: F(n,k).WZ_certificate(n,k)

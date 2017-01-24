@@ -6791,7 +6791,7 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         g = new_Expression_from_GEx(self._parent, x)
-        return (f*g / self).simplify_full().factor()
+        return (f*g / self).to_gamma().gamma_normalize().simplify_full().factor()
 
     def lcm(self, b):
         """
