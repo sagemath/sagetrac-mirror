@@ -3021,6 +3021,40 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return hash((self + QQbar_hash_offset).interval_exact(CIF))
 
+    def is_trivial_one(self):
+        r"""
+        Return whether this algebraic number is trivially equal to one
+        (i.e. without any exactification).
+
+        EXAMPLES::
+
+            sage: QQbar(1).is_trivial_one()
+            True
+            sage: QQbar(1/42).is_trivial_one()
+            False
+
+            sage: s = sum(QQbar(i)^(1/i) for i in range(1,4))
+            sage: (s/s).is_trivial_one()
+            False
+            sage: (s/s) == 1
+            True
+
+        ::
+
+            sage: AA(1).is_trivial_one()
+            True
+            sage: AA(1/42).is_trivial_one()
+            False
+
+            sage: s = sum(AA(i)^(1/i) for i in range(1,4))
+            sage: (s/s).is_trivial_one()
+            False
+            sage: (s/s) == 1
+            True
+        """
+        descr = self._descr
+        return isinstance(descr, ANRational) and descr._value.is_one()
+
     def is_square(self):
         """
         Return whether or not this number is square.
