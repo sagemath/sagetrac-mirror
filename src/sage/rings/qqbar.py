@@ -3891,8 +3891,13 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: ZZ(1)^QQbar(sqrt(5))
             1
         """
-        if self == self.parent().one():
-            return self.parent().one()
+        descr = self._descr
+        rational = isinstance(descr, ANRational)
+        if rational:
+            rational_value = descr._value
+            if rational_value.is_one():
+                return self.parent().one()
+
         e = QQ._coerce_(e)
         n = e.numerator()
         d = e.denominator()
@@ -3900,10 +3905,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
             return generic_power(self, n)
 
         # First, check for exact roots.
-        if isinstance(self._descr, ANRational):
-            rt = rational_exact_root(abs(self._descr._value), d)
+        if rational:
+            rt = rational_exact_root(abs(rational_value), d)
             if rt is not None:
-                if self._descr._value < 0:
+                if rational_value < 0:
                     z = QQbar.zeta(2*d)**n
                     return z * AlgebraicNumber(ANRational(rt**n))
                 else:
