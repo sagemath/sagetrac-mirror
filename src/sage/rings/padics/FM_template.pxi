@@ -499,14 +499,15 @@ cdef class FMElement(pAdicTemplateElement):
 
     def is_equal_to(self, _right, absprec=None):
         r"""
-        Returns whether this element is equal to ``right`` modulo `p^{\mbox{absprec}}`.
+        Returns whether this element is equal to ``_right`` modulo `p^{\mbox{absprec}}`.
 
-        If ``absprec`` is ``None``, returns if ``self == 0``.
+        If ``absprec`` is ``None``, returns whether this element and ``_right``
+        are indistinguishable.
 
         INPUT:
 
-        - ``right`` -- a p-adic element with the same parent
-        - ``absprec`` -- a positive integer or ``None`` (default: ``None``)
+        - ``_right`` -- a p-adic element with the same parent
+        - ``absprec`` -- an integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 
@@ -986,7 +987,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f.category()
             Category of homsets of sets
         """
-        if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
+        if R.degree() > 1:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))

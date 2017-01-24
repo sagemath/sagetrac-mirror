@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Floating point template for complete discrete valuation rings.
 
 In order to use this template you need to write a linkage file and
@@ -19,12 +20,13 @@ The gluing file does the following:
 
 AUTHORS:
 
-- David Roe (2016-03-21) -- initial version
+- David Roe (2016-03-21): initial version
+- Julian Rüth (2017-01-10): bug fixes, cleanup
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007-2016 David Roe <roed.math@gmail.com>
-#                               William Stein <wstein@gmail.com>
+#       Copyright (C) 2016 David Roe <roed.math@gmail.com>
+#                     2017 Julian Rüth <julian.rueth@fsfe.org> 
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -46,7 +48,7 @@ from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
 
 cdef inline bint overunderflow(long* ordp, celement unit, PowComputer_ prime_pow):
-    """
+    r"""
     Check for over and underflow.  If detected, sets ordp and unit
     appropriately, and returns True.  If not, returns False.
     """
@@ -61,7 +63,7 @@ cdef inline bint overunderflow(long* ordp, celement unit, PowComputer_ prime_pow
     return True
 
 cdef inline bint overunderflow_mpz(long* ordp, mpz_t ordp_mpz, celement unit, PowComputer_ prime_pow):
-    """
+    r"""
     Check for over and underflow with an mpz_t ordp.  If detected, sets ordp and unit
     appropriately, and returns True.  If not, returns False.
     """
@@ -86,8 +88,8 @@ cdef inline bint huge_val(long ordp):
 
 cdef class FPElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
-        """
-        Sets the value of this element from given defining data.
+        r"""
+        Set the value of this element from given defining data.
 
         This function is intended for use in conversion, and should
         not be called on an element created with :meth:`_new_c`.
@@ -140,8 +142,8 @@ cdef class FPElement(pAdicTemplateElement):
                 cconv(self.unit, x, self.prime_pow.prec_cap, val, self.prime_pow)
 
     cdef int _set_exact_zero(self) except -1:
-        """
-        Sets this element to zero.
+        r"""
+        Set this element to zero.
 
         TESTS::
 
@@ -152,8 +154,8 @@ cdef class FPElement(pAdicTemplateElement):
         self.ordp = maxordp
 
     cdef int _set_infinity(self) except -1:
-        """
-        Sets this element to zero.
+        r"""
+        Set this element to zero.
 
         TESTS::
 
@@ -164,8 +166,8 @@ cdef class FPElement(pAdicTemplateElement):
         self.ordp = minusmaxordp
 
     cdef FPElement _new_c(self):
-        """
-        Creates a new element with the same basic info.
+        r"""
+        Create a new element with the same basic info as this element.
 
         TESTS::
 
@@ -180,7 +182,7 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     cdef int check_preccap(self) except -1:
-        """
+        r"""
         Check that the precision of this element does not exceed the
         precision cap. Does nothing for floating point elements.
 
@@ -192,7 +194,7 @@ cdef class FPElement(pAdicTemplateElement):
         pass
 
     def __copy__(self):
-        """
+        r"""
         Return a copy of this element.
 
         EXAMPLES::
@@ -209,8 +211,14 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     cdef int _normalize(self) except -1:
-        """
-        Normalizes this element, so that ``self.ordp`` is correct.
+        r"""
+        Normalize this element, so that ``self.ordp`` is correct.
+
+        .. NOTE::
+
+            The methods in this template all assume their inputs to be
+            normalized. At the same time, all outputs returned are guaranteed
+            to be normalized.
 
         TESTS::
 
@@ -235,7 +243,7 @@ cdef class FPElement(pAdicTemplateElement):
                     self._set_exact_zero()
 
     def __dealloc__(self):
-        """
+        r"""
         Deallocate the underlying data structure.
 
         TESTS::
@@ -247,7 +255,7 @@ cdef class FPElement(pAdicTemplateElement):
         cdestruct(self.unit, self.prime_pow)
 
     def __reduce__(self):
-        """
+        r"""
         Return a tuple of a function and data that can be used to unpickle this
         element.
 
@@ -261,22 +269,6 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return unpickle_fpe_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp)
 
-#    def __richcmp__(self, right, int op):
-#        """
-#        Compare this element to ``right`` using the comparison operator ``op``.
-#
-#        TESTS::
-#
-#            sage: R = ZpFP(5)
-#            sage: a = R(17)
-#            sage: b = R(21)
-#            sage: a == b
-#            False
-#            sage: a < b
-#            True
-#        """
-#        return (<Element>self)._richcmp(right, op)
-
     cpdef _neg_(self):
         r"""
         Return the additive inverse of this element.
@@ -286,14 +278,18 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R = Zp(7, 4, 'floating-point', 'series')
             sage: -R(7) #indirect doctest
             6*7 + 6*7^2 + 6*7^3 + 6*7^4
+            sage: -R(0)
+            0
+            sage: -~R(0)
+            Infinity
+
         """
+        if huge_val(self.ordp):
+            return self
         cdef FPElement ans = self._new_c()
         ans.ordp = self.ordp
-        if huge_val(self.ordp): # zero or infinity
-            ccopy(ans.unit, self.unit, ans.prime_pow)
-        else:
-            cneg(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-            creduce_small(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+        cneg(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+        creduce_small(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     cpdef _add_(self, _right):
@@ -309,33 +305,41 @@ cdef class FPElement(pAdicTemplateElement):
             1 + 4*7^3
             sage: x + y #indirect doctest
             7 + 2*7^3
+
+        TESTS::
+
+            sage: R(0) + R(0)
+            0
+            sage: 1/R(0) + 1/R(0)
+            Infinity
+            sage: 1/R(0) + R(0)
+            Infinity
+
         """
         cdef FPElement ans
         cdef FPElement right = _right
         cdef long tmpL
         if self.ordp == right.ordp:
+            if huge_val(self.ordp):
+                return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cadd(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                ans._normalize() # safer than trying to leave unnormalized
+            cadd(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            ans._normalize()
         else:
             if self.ordp > right.ordp:
                 # Addition is commutative, swap so self.ordp < right.ordp
                 ans = right; right = self; self = ans
+            if very_neg_val(self.ordp):
+                return self
             tmpL = right.ordp - self.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                cadd(ans.unit, ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            cadd(ans.unit, ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     cpdef _sub_(self, _right):
@@ -351,47 +355,56 @@ cdef class FPElement(pAdicTemplateElement):
             1 + 4*7^3
             sage: x - y #indirect doctest
             5 + 7^3
+
+        TESTS::
+
+            sage: R(0) - R(0)
+            0
+            sage: 1/R(0) - 1/R(0)
+            Infinity
+            sage: 1/R(0) - R(0)
+            Infinity
+            sage: R(0) - 1/R(0)
+            Infinity
+
         """
         cdef FPElement ans
         cdef FPElement right = _right
         cdef long tmpL
         if self.ordp == right.ordp:
+            if huge_val(self.ordp):
+                return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                csub(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                ans._normalize() # safer than trying to leave unnormalized
+            csub(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            ans._normalize()
         elif self.ordp < right.ordp:
+            if very_neg_val(self.ordp):
+                return self
             tmpL = right.ordp - self.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return self
             ans = self._new_c()
             ans.ordp = self.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                csub(ans.unit, self.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, right.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            csub(ans.unit, self.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         else:
+            if very_neg_val(right.ordp):
+                return right
             tmpL = self.ordp - right.ordp
             if tmpL > self.prime_pow.prec_cap:
                 return right._neg_()
             ans = self._new_c()
             ans.ordp = right.ordp
-            if huge_val(ans.ordp):
-                ccopy(ans.unit, self.unit, ans.prime_pow)
-            else:
-                cshift(ans.unit, self.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
-                csub(ans.unit, ans.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-                creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            cshift(ans.unit, self.unit, tmpL, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            csub(ans.unit, ans.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     def __invert__(self):
         r"""
-        Returns multiplicative inverse of this element.
+        Return multiplicative inverse of this element.
 
         EXAMPLES::
 
@@ -399,21 +412,18 @@ cdef class FPElement(pAdicTemplateElement):
             sage: ~R(2)
             4 + 3*7 + 3*7^2 + 3*7^3
             sage: ~R(0)
-            infinity
+            Infinity
+            sage: ~~R(0)
+            0
             sage: ~R(7)
             7^-1
         """
-        # Input should be normalized!
         cdef FPElement ans = self._new_c()
         if ans.prime_pow.in_field == 0:
             ans._parent = self._parent.fraction_field()
             ans.prime_pow = ans._parent.prime_pow
         ans.ordp = -self.ordp
-        if very_pos_val(ans.ordp):
-            csetone(ans.unit, ans.prime_pow)
-        elif very_neg_val(ans.ordp):
-            csetzero(ans.unit, ans.prime_pow)
-        else:
+        if not overunderflow(&ans.ordp, ans.unit, ans.prime_pow):
             cinvert(ans.unit, self.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
@@ -432,11 +442,11 @@ cdef class FPElement(pAdicTemplateElement):
         cdef FPElement right = _right
         if very_pos_val(self.ordp):
             if very_neg_val(right.ordp):
-                raise ZeroDivisionError("Cannot multipy 0 by infinity")
+                raise ZeroDivisionError("Cannot multipy 0 by Infinity")
             return self
         elif very_pos_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot multiply 0 by infinity")
+                raise ZeroDivisionError("Cannot multiply 0 by Infinity")
             return right
         elif very_neg_val(self.ordp):
             return self
@@ -460,7 +470,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(3) / R(2) #indirect doctest
             5 + 3*7 + 3*7^2 + 3*7^3
             sage: R(5) / R(0)
-            infinity
+            Infinity
             sage: R(7) / R(49)
             7^-1
         """
@@ -476,7 +486,7 @@ cdef class FPElement(pAdicTemplateElement):
             ans._set_exact_zero()
         elif very_neg_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot divide infinity by infinity")
+                raise ZeroDivisionError("Cannot divide Infinity by Infinity")
             ans._set_exact_zero()
         elif very_neg_val(self.ordp) or very_pos_val(right.ordp):
             ans._set_infinity()
@@ -489,8 +499,8 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     def __pow__(FPElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.prec_cap
-        """
-        Exponentiation by an integer
+        r"""
+        Return the exponentiation of this element by ``_right``.
 
         EXAMPLES::
 
@@ -558,8 +568,8 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     cdef pAdicTemplateElement _lshift_c(self, long shift):
-        """
-        Multiplies self by `\pi^{shift}`.
+        r"""
+        Return this element multiplied by `\pi^{shift}`.
 
         Negative shifts may truncate the result if the parent is not a
         field.
@@ -592,6 +602,18 @@ cdef class FPElement(pAdicTemplateElement):
             3 + 5
             sage: a >> 3
             3 + 5
+
+        TESTS::
+
+            sage: b = R(1) << 2**61
+            sage: b << (2**61)
+            0
+
+            sage: b << (2**62) # this should probably return 0
+            Traceback (most recent call last):
+            ...
+            OverflowError: valuation overflow
+
         """
         if shift < 0:
             return self._rshift_c(-shift)
@@ -602,16 +624,18 @@ cdef class FPElement(pAdicTemplateElement):
         if very_pos_val(shift) or very_pos_val(self.ordp + shift):
             # need to check that we're not shifting infinity
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot multiply zero by infinity")
-            ans.ordp = maxordp
-            csetzero(ans.unit, ans.prime_pow)
+                # this code path can currently not be reached, shifts by
+                # 2**62-1 or more raise a "valuation overflow" in the
+                # implementation of __lshift__
+                raise ZeroDivisionError("Cannot multiply zero by Infinity")
+            ans._set_exact_zero()
         else:
             ans.ordp = self.ordp + shift
             ccopy(ans.unit, self.unit, ans.prime_pow)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
-        """
+        r"""
         Divides by `\pi^{shift}`.
 
         Positive shifts may truncate the result if the parent is not a
@@ -632,7 +656,25 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: a >> -3
             964*997^4 + 572*997^5 + 124*997^6
+
+        TESTS::
+
+            sage: b = R(1) << 2**61
+            sage: b >> -(2**61)
+            0
+
+            sage: b >> (2**62) # this should probably return 0
+            Traceback (most recent call last):
+            ...
+            OverflowError: valuation overflow
+
+            sage: R = QpFP(2)
+            sage: b = R(2)>>(2**61)
+            sage: b >> (2**61)
+            Infinity
         """
+        if shift < 0:
+            return self._lshift_c(-shift)
         if shift == 0:
             return self
         elif very_pos_val(self.ordp):
@@ -640,16 +682,12 @@ cdef class FPElement(pAdicTemplateElement):
                 raise ZeroDivisionError("Cannot divide zero by zero")
             return self
         elif very_neg_val(self.ordp):
-            if very_neg_val(shift):
-                raise ZeroDivisionError("Cannot divide infinity by infinity")
             return self
         cdef FPElement ans = self._new_c()
         cdef long diff
         if self.prime_pow.in_field == 1 or shift <= self.ordp:
             if very_pos_val(shift):
                 ans._set_infinity()
-            elif very_neg_val(shift):
-                ans._set_exact_zero()
             else:
                 ans.ordp = self.ordp - shift
                 ccopy(ans.unit, self.unit, ans.prime_pow)
@@ -664,8 +702,8 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     def _repr_(self, mode=None, do_latex=False):
-        """
-        Returns a string representation of this element.
+        r"""
+        Return a string representation of this element.
 
         INPUT:
 
@@ -680,15 +718,15 @@ cdef class FPElement(pAdicTemplateElement):
             sage: ZpFP(5,5)(1/3) # indirect doctest
             2 + 3*5 + 5^2 + 3*5^3 + 5^4
             sage: ~QpFP(5,5)(0)
-            infinity
+            Infinity
         """
         if very_neg_val(self.ordp):
-            return "infinity"
+            return "Infinity"
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
     def add_bigoh(self, absprec):
-        """
-        Returns a new element truncated modulo `\pi^{\mbox{absprec}}`.
+        r"""
+        Return a new element truncated modulo `\pi^{\mbox{absprec}}`.
 
         INPUT:
 
@@ -696,7 +734,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         OUTPUT:
 
-            - a new element truncated modulo `\pi^{\mbox{absprec}}`.
+        - a new element truncated modulo `\pi^{\mbox{absprec}}`.
 
         EXAMPLES::
 
@@ -728,7 +766,7 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     cpdef bint _is_exact_zero(self) except -1:
-        """
+        r"""
         Tests whether this element is exactly zero.
 
         EXAMPLES::
@@ -741,8 +779,8 @@ cdef class FPElement(pAdicTemplateElement):
         return very_pos_val(self.ordp)
 
     cpdef bint _is_inexact_zero(self) except -1:
-        """
-        Returns True if self is indistinguishable from zero.
+        r"""
+        Return whether this element is indistinguishable from zero.
 
         EXAMPLES::
 
@@ -756,11 +794,11 @@ cdef class FPElement(pAdicTemplateElement):
 
     def is_zero(self, absprec = None):
         r"""
-        Returns whether self is zero modulo `\pi^{\mbox{absprec}}`.
+        Return whether this element is zero modulo `\pi^{\mbox{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 
@@ -785,12 +823,12 @@ cdef class FPElement(pAdicTemplateElement):
         return mpz_cmp_si((<Integer>absprec).value, self.ordp) <= 0
 
     def __nonzero__(self):
-        """
-        Returns True if this element is distinguishable from zero.
+        r"""
+        Return True if this element is distinguishable from zero.
 
         For most applications, explicitly specifying the power of p
         modulo which the element is supposed to be nonzero is
-        preferrable.
+        preferrable, see :meth:`is_zero`.
 
         EXAMPLES::
 
@@ -802,15 +840,15 @@ cdef class FPElement(pAdicTemplateElement):
 
     def is_equal_to(self, _right, absprec=None):
         r"""
-        Returns whether this element is equal to ``right`` modulo `p^{\mbox{absprec}}`.
+        Return whether this element is equal to ``_right`` modulo `p^{\mbox{absprec}}`.
 
-        If ``absprec`` is ``None``, determines whether self and right
-        have the same value.
+        If ``absprec`` is ``None``, determines whether this element and
+        ``_right`` have the same value.
 
         INPUT:
 
-        - ``right`` -- a p-adic element with the same parent
-        - ``absprec`` -- a positive integer or ``None`` (default: ``None``)
+        - ``_right`` -- a p-adic element with the same parent
+        - ``absprec`` -- a integer, infinity, or ``None`` (default: ``None``)
 
         EXAMPLES::
 
@@ -863,7 +901,7 @@ cdef class FPElement(pAdicTemplateElement):
                     self.prime_pow) == 0
 
     cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
-        """
+        r"""
         Comparison of units, used in equality testing.
 
         EXAMPLES::
@@ -879,8 +917,8 @@ cdef class FPElement(pAdicTemplateElement):
         return ccmp(self.unit, right.unit, self.prime_pow.prec_cap, False, False, self.prime_pow)
 
     cdef pAdicTemplateElement lift_to_precision_c(self, long absprec):
-        """
-        Lifts this element to another with precision at least absprec.
+        r"""
+        Lift this element to another with precision at least absprec.
 
         Since floating point elements don't track precision, this
         function just returns the same element.
@@ -897,7 +935,7 @@ cdef class FPElement(pAdicTemplateElement):
 
     def list(self, lift_mode = 'simple', start_val = None):
         r"""
-        Returns a list of coefficients in a power series expansion of
+        Return a list of coefficients in a power series expansion of
         this element in terms of `\pi`.  If this is a field element,
         they start at `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
@@ -1018,7 +1056,7 @@ cdef class FPElement(pAdicTemplateElement):
 
     def teichmuller_list(self):
         r"""
-        Returns a list [`a_0`, `a_1`,..., `a_n`] such that
+        Return a list [`a_0`, `a_1`,..., `a_n`] such that
 
         - `a_i^q = a_i`
 
@@ -1063,8 +1101,8 @@ cdef class FPElement(pAdicTemplateElement):
         return ans
 
     def _teichmuller_set_unsafe(self):
-        """
-        Sets this element to the Teichmuller representative with the
+        r"""
+        Set this element to the Teichmuller representative with the
         same residue.
 
         .. WARNING::
@@ -1098,7 +1136,7 @@ cdef class FPElement(pAdicTemplateElement):
             cteichmuller(self.unit, self.unit, self.prime_pow.prec_cap, self.prime_pow)
 
     def precision_absolute(self):
-        """
+        r"""
         The absolute precision of this element.
 
         EXAMPLES::
@@ -1140,10 +1178,7 @@ cdef class FPElement(pAdicTemplateElement):
 
     cpdef pAdicTemplateElement unit_part(FPElement self):
         r"""
-        Returns the unit part of this element.
-
-        If the valuation of this element is positive, then the high
-        digits of the result will be zero.
+        Return the unit part of this element.
 
         EXAMPLES::
 
@@ -1155,22 +1190,22 @@ cdef class FPElement(pAdicTemplateElement):
             sage: R(0).unit_part()
             Traceback (most recent call last):
             ...
-            ValueError: unit part of 0 and infinity not defined
+            ValueError: unit part of 0 and Infinity not defined
             sage: type(R(5).unit_part())
             <type 'sage.rings.padics.padic_floating_point_element.pAdicFloatingPointElement'>
             sage: R = ZpFP(5, 5); a = R(75); a.unit_part()
             3
         """
         if huge_val(self.ordp):
-            raise ValueError("unit part of 0 and infinity not defined")
+            raise ValueError("unit part of 0 and Infinity not defined")
         cdef FPElement ans = (<FPElement>self)._new_c()
         ans.ordp = 0
         ccopy(ans.unit, (<FPElement>self).unit, ans.prime_pow)
         return ans
 
     cdef long valuation_c(self):
-        """
-        Returns the valuation of this element.
+        r"""
+        Return the valuation of this element.
 
         If this element is an exact zero, returns ``maxordp``, which is defined as
         ``(1L << (sizeof(long) * 8 - 2))-1``.
@@ -1206,8 +1241,8 @@ cdef class FPElement(pAdicTemplateElement):
         return self.ordp
 
     cpdef val_unit(self, p=None):
-        """
-        Returns a 2-tuple, the first element set to the valuation of
+        r"""
+        Return a 2-tuple, the first element set to the valuation of
         this element, and the second to the unit part.
 
         If this element is either zero or infinity, raises an error.
@@ -1221,12 +1256,12 @@ cdef class FPElement(pAdicTemplateElement):
             sage: b.val_unit()
             Traceback (most recent call last):
             ...
-            ValueError: unit part of 0 and infinity not defined
+            ValueError: unit part of 0 and Infinity not defined
         """
         if p is not None and p != self.parent().prime():
             raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if huge_val(self.ordp):
-            raise ValueError("unit part of 0 and infinity not defined")
+            raise ValueError("unit part of 0 and Infinity not defined")
         cdef Integer valuation = PY_NEW(Integer)
         mpz_set_si(valuation.value, self.ordp)
         cdef FPElement unit = self._new_c()
@@ -1235,7 +1270,7 @@ cdef class FPElement(pAdicTemplateElement):
         return valuation, unit
 
     def __hash__(self):
-        """
+        r"""
         Hashing.
 
         EXAMPLES::
@@ -1248,10 +1283,10 @@ cdef class FPElement(pAdicTemplateElement):
             return 0
         if very_neg_val(self.ordp):
             return 314159
-        return chash(self.unit, self.ordp, self.prime_pow.prec_cap, self.prime_pow) ^ self.ordp
+        return chash(self.unit, self.ordp, self.prime_pow.prec_cap, self.prime_pow)
 
 cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
-    """
+    r"""
     The canonical inclusion from the integer ring to a floating point ring.
 
     EXAMPLES::
@@ -1262,7 +1297,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
           To:   5-adic Ring with floating precision 20
     """
     def __init__(self, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1275,7 +1310,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         self._section = pAdicConvert_FP_ZZ(R)
 
     cdef dict _extra_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1294,7 +1329,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         return RingHomomorphism_coercion._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1313,7 +1348,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1331,7 +1366,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
-        """
+        r"""
         This function is used when some precision cap is passed in (relative or absolute or both).
 
         INPUT:
@@ -1339,11 +1374,10 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         - ``x`` -- an Integer
 
         - ``absprec``, or the first positional argument -- the maximum
-          absolute precision (unused for floating point elements).
+          absolute precision
 
         - ``relprec``, or the second positional argument -- the
-          maximum relative precision (unused for floating point
-          elements)
+          maximum relative precision
 
         EXAMPLES::
 
@@ -1377,7 +1411,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         return ans
 
     def section(self):
-        """
+        r"""
         Returns a map back to ZZ that approximates an element of this
         `p`-adic ring by an integer.
 
@@ -1390,7 +1424,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         return self._section
 
 cdef class pAdicConvert_FP_ZZ(RingMap):
-    """
+    r"""
     The map from a floating point ring back to ZZ that returns the the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
@@ -1404,7 +1438,7 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
           To:   Integer Ring
     """
     def __init__(self, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1414,13 +1448,13 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
             sage: f.category()
             Category of homsets of sets
         """
-        if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
+        if R.degree() > 1 or R.is_field():
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))
 
     cpdef Element _call_(self, _x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1452,7 +1486,7 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
         return ans
 
 cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
-    """
+    r"""
     The canonical inclusion from the rationals to a floating point field.
 
     EXAMPLES::
@@ -1463,7 +1497,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
           To:   5-adic Field with floating precision 20
     """
     def __init__(self, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1476,7 +1510,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         self._section = pAdicConvert_FP_QQ(R)
 
     cdef dict _extra_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1501,7 +1535,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         return RingHomomorphism_coercion._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1526,7 +1560,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1548,7 +1582,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
-        """
+        r"""
         This function is used when some precision cap is passed in
         (relative or absolute or both).
 
@@ -1587,7 +1621,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         return ans
 
     def section(self):
-        """
+        r"""
         Returns a map back to the rationals that approximates an element by
         a rational number.
 
@@ -1602,7 +1636,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         return self._section
 
 cdef class pAdicConvert_FP_QQ(RingMap):
-    """
+    r"""
     The map from the floating point ring back to the rationals that returns a
     rational approximation of its input.
 
@@ -1614,7 +1648,7 @@ cdef class pAdicConvert_FP_QQ(RingMap):
           To:   Rational Field
     """
     def __init__(self, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1627,7 +1661,7 @@ cdef class pAdicConvert_FP_QQ(RingMap):
         RingMap.__init__(self, Hom(R, QQ, SetsWithPartialMaps()))
 
     cpdef Element _call_(self, _x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1651,7 +1685,7 @@ cdef class pAdicConvert_FP_QQ(RingMap):
         return ans
 
 cdef class pAdicConvert_QQ_FP(Morphism):
-    """
+    r"""
     The inclusion map from QQ to a floating point ring.
 
     EXAMPLES::
@@ -1662,7 +1696,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
           To:   5-adic Ring with floating precision 20
     """
     def __init__(self, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1674,7 +1708,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         self._zero = R._element_constructor(R, 0)
 
     cdef dict _extra_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1692,7 +1726,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         return Morphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         EXAMPLES::
@@ -1710,7 +1744,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1730,7 +1764,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
-        """
+        r"""
         This function is used when some precision cap is passed in (relative or absolute or both).
 
         INPUT:
@@ -1738,11 +1772,10 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         - ``x`` -- a Rational
 
         - ``absprec``, or the first positional argument -- the maximum
-          absolute precision (unused for floating point elements).
+          absolute precision
 
         - ``relprec``, or the second positional argument -- the
-          maximum relative precision (unused for floating point
-          elements)
+          maximum relative precision
 
         EXAMPLES::
 
@@ -1776,8 +1809,319 @@ cdef class pAdicConvert_QQ_FP(Morphism):
             raise ValueError("p divides the denominator")
         return ans
 
-def unpickle_fpe_v2(cls, parent, unit, ordp):
+cdef class pAdicConvert_FP_frac_field(Morphism):
     """
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqFP(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: f = R.convert_map_from(K); f
+        Generic morphism:
+          From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+          To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+    """
+    def __init__(self, K, R):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); type(f)
+            <type 'sage.rings.padics.qadic_flint_FP.pAdicConvert_FP_frac_field'>
+        """
+        Morphism.__init__(self, Hom(K, R, SetsWithPartialMaps()))
+        self._zero = R(0)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: f(K.gen())
+            a
+        """
+        cdef FPElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef FPElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        ccopy(ans.unit, x.unit, ans.prime_pow)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); a = K(a)
+            sage: f(a, 3)
+            a
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2
+            sage: f(b, 4, 1)
+            a*3^2
+            sage: f(b, 4, 3)
+            a*3^2
+            sage: f(b, absprec=4)
+            a*3^2
+            sage: f(b, relprec=3)
+            a*3^2
+            sage: f(b, absprec=1)
+            0
+            sage: f(K(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef FPElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef FPElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            return self._zero
+        else:
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+            ans.ordp = x.ordp
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, True)
+        return ans
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
+
+cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
+    """
+    The canonical inclusion of Zq into its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqFP(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: K.coerce_map_from(R)
+        Ring Coercion morphism:
+          From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+          To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+    """
+    def __init__(self, R, K):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R); type(f)
+            <type 'sage.rings.padics.qadic_flint_FP.pAdicCoercion_FP_frac_field'>
+        """
+        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        self._zero = K(0)
+        self._section = pAdicConvert_FP_frac_field(K, R)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a)
+            a
+            sage: f(R(0))
+            0
+        """
+        cdef FPElement x = _x
+        cdef FPElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        ccopy(ans.unit, x.unit, x.prime_pow)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a, 3)
+            a
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2
+            sage: f(b, 4, 1)
+            a*3^2
+            sage: f(b, 4, 3)
+            a*3^2
+            sage: f(b, absprec=4)
+            a*3^2
+            sage: f(b, relprec=3)
+            a*3^2
+            sage: f(b, absprec=1)
+            0
+            sage: f(R(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef FPElement x = _x
+        cdef FPElement ans = self._zero._new_c()
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            return self._zero
+        else:
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+            ans.ordp = x.ordp
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, True)
+        return ans
+
+    def section(self):
+        """
+        Returns a map back to the ring that converts elements of
+        non-negative valuation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(K.gen())
+            a
+        """
+        return self._section
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
+def unpickle_fpe_v2(cls, parent, unit, ordp):
+    r"""
     Unpickles a floating point element.
 
     EXAMPLES::

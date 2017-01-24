@@ -79,6 +79,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
             elif R._prec_type() == 'capped-rel':
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+            elif R._prec_type() == 'floating-point':
+                from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+            else:
+                raise NotImplementedError()
             return coerce_map(R, self)
 
     def __cmp__(self, other):

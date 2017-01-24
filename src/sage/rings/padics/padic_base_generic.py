@@ -43,9 +43,11 @@ class pAdicBaseGeneric(pAdicGeneric):
             if self.is_capped_relative():
                 coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
                 convert_list = []
-            else:
+            elif self.is_floating_point():
                 coerce_list = [pAdicCoercion_ZZ_FP(self), pAdicCoercion_QQ_FP(self)]
                 convert_list = []
+            else:
+                raise NotImplementedError()
         elif self.is_capped_relative():
             coerce_list = [pAdicCoercion_ZZ_CR(self)]
             convert_list = [pAdicConvert_QQ_CR(self)]

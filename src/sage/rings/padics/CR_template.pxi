@@ -1740,7 +1740,7 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             sage: Zp(5).coerce_map_from(ZZ).section().category()
             Category of homsets of sets
         """
-        if R.is_field() or R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
+        if R.is_field() or R.degree() > 1:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))

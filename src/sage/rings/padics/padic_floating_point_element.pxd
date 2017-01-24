@@ -5,7 +5,7 @@ ctypedef mpz_t celement
 include "FP_template_header.pxi"
 
 cdef class pAdicFloatingPointElement(FPElement):
-    cdef lift_c(self)
+    cpdef lift(self)
     cdef pari_gen _to_gen(self)
 
 from sage.rings.padics.pow_computer cimport PowComputer_base
