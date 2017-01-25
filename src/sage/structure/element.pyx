@@ -997,12 +997,12 @@ cdef class Element(SageObject):
         """
         return not self
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare ``left`` and ``right`` using the coercion framework.
 
         ``self`` and ``other`` are coerced to a common parent and then
-        ``_cmp_`` and ``_richcmp_`` are tried.
+        ``_richcmp_`` and ``_cmp_`` are tried.
 
         EXAMPLES:
 
@@ -1044,31 +1044,15 @@ cdef class Element(SageObject):
             try:
                 left, right = coercion_model.canonical_coercion(self, other)
             except TypeError:
-                # Compare by id()
-                if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
-                    # It cannot happen that self is other, since they don't
-                    # have the same parent.
-                    return 1
-                else:
-                    return -1
-
-            if not isinstance(left, Element):
-                assert type(left) is type(right)
-                return cmp(left, right)
+                return NotImplemented
 
         # Now we have two Sage Elements with the same parent
         try:
-            # First attempt: use _cmp_()
-            return (<Element>left)._cmp_(<Element>right)
+            # First attempt: use _richcmp_()
+            return (<Element>left)._richcmp_(right, op):
         except NotImplementedError:
-            # Second attempt: use _richcmp_()
-            if (<Element>left)._richcmp_(right, Py_EQ):
-                return 0
-            if (<Element>left)._richcmp_(right, Py_LT):
-                return -1
-            if (<Element>left)._richcmp_(right, Py_GT):
-                return 1
-            raise
+            # Second attempt: use _cmp_()
+            return rich_to_bool(op, (<Element>left)._cmp_(<Element>right))
 
     def _cache_key(self):
         """
