@@ -3890,6 +3890,27 @@ class AlgebraicNumber(AlgebraicNumber_base):
             1
             sage: ZZ(1)^QQbar(sqrt(5))
             1
+
+        As no exactification is done by default, the following
+        does not provide a result::
+
+            sage: s = sum(QQbar(i)^(1/i) for i in range(1, 4))
+            sage: (s/s)^QQbar(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Algebraic Field to Rational Field
+
+        However, when comparing
+        ::
+
+            sage: (s/s) == 1
+            True
+
+        exactification happens and is cached. Therefore, a second try
+        now leads to a result::
+
+            sage: (s/s)^QQbar(1/2)
+            1
         """
         descr = self._descr
         rational = isinstance(descr, ANRational)
@@ -4466,6 +4487,22 @@ class AlgebraicReal(AlgebraicNumber_base):
 
             sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
             0
+
+        TESTS:
+
+        :trac:`22250`::
+
+            sage: AA(1)^AA(sqrt(2))
+            1
+            sage: QQ(1)^AA(sqrt(3))
+            1
+            sage: ZZ(1)^AA(sqrt(5))
+            1
+
+        ::
+
+            sage: s = sum(AA(i)^(1/i) for i in range(1, 20))
+            sage: (s/s)^4  # not tested -- this has to evaluate fast
         """
         descr = self._descr
         rational = isinstance(descr, ANRational)
