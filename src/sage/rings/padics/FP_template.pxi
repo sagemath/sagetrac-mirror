@@ -102,7 +102,7 @@ cdef class FPElement(pAdicTemplateElement):
         - ``val`` -- the valuation of the resulting element (unused;
           for compatibility with other `p`-adic precision modes)
 
-        - ``xprec -- an inherent precision of ``x`` (unused; for
+        - ``xprec`` -- an inherent precision of ``x`` (unused; for
           compatibility with other `p`-adic precision modes)
 
         - ``absprec`` -- an absolute precision cap for this element

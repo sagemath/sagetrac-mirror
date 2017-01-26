@@ -140,7 +140,7 @@ cdef inline bint creduce_small(mpz_t out, mpz_t a, long prec, PowComputer_ prime
     """
     Reduce modulo a power of the maximal ideal.
 
-    This function assumes that the input satisfies `-p <= a < 2p`, so
+    This function assumes that the input satisfies `-p^prec <= a < 2 p^prec`, so
     that it doesn't need any divisions.
 
     INPUT:
