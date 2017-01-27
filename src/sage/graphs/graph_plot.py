@@ -606,7 +606,10 @@ class GraphPlot(SageObject):
                                         self._options['edge_style'],
                                         return_type='long')
         if 'edge_thickness' in self._options:
-            eoptions['thickness'] = self._options['edge_thickness']
+            if self._graph.is_directed():
+                eoptions['width'] = self._options['edge_thickness']
+            else:
+                eoptions['thickness'] = self._options['edge_thickness']
 
         # Set labels param to add labels on the fly
         labels = False
