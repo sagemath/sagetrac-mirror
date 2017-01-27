@@ -927,6 +927,8 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         gen_str = ', '.join(gap_names)
         return 'FreeGroup(['+gen_str+'])'
 
+
+
     def _element_constructor_(self, *args, **kwds):
         """
         TESTS::
