@@ -196,7 +196,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x)
+        sage: L.<y> = K.extension(y^3 - x)
         sage: d = L.derivation()
 
     """
@@ -242,14 +242,14 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.<y> = K.extension(y^3 - x^2)
             sage: d = L.derivation()
             sage: d(x) # indirect doctest
             1
             sage: d(y)
-            (-1/2/-x)*y
+            (-2/3/-x)*y
             sage: d(y^2)
-            1
+            (-4/3/-x)*y^2
 
         """
         if x.is_zero():
