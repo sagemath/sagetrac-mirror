@@ -72,7 +72,7 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
            _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
@@ -99,17 +99,17 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
-from matrix_modn_dense_float cimport Matrix_modn_dense_template
-from matrix_modn_dense_float cimport Matrix_modn_dense_float
-from matrix_modn_dense_double cimport Matrix_modn_dense_double
+from .matrix_modn_dense_float cimport Matrix_modn_dense_template
+from .matrix_modn_dense_float cimport Matrix_modn_dense_float
+from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
-from matrix_mod2_dense import Matrix_mod2_dense
-from matrix_mod2_dense cimport Matrix_mod2_dense
+from .matrix_mod2_dense import Matrix_mod2_dense
+from .matrix_mod2_dense cimport Matrix_mod2_dense
 
 
-from matrix2 import decomp_seq
+from .matrix2 import decomp_seq
 
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
 cimport sage.structure.element
 
@@ -5394,7 +5394,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
         """
         return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 
@@ -5537,7 +5537,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
         """
-        cdef gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef Gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
         sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)

@@ -66,8 +66,8 @@ cimport sage.structure.element
 
 from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
-from matrix cimport Matrix
-from matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
+from .matrix cimport Matrix
+from .matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
@@ -84,7 +84,7 @@ from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)
 from sage.libs.cypari2.stack cimport clear_stack

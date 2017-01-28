@@ -119,14 +119,15 @@ import sys
 import re
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 
+from cpython.object cimport Py_NE
+
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.misc.randstate cimport randstate, current_randstate
-cimport sage.rings.ring
 
-cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.sage_object cimport rich_to_bool_sgn
 cdef bin_op
 from sage.structure.element import bin_op
 
@@ -135,13 +136,13 @@ import sage.misc.weak_dict
 import operator
 
 from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
-from integer cimport Integer
-from rational cimport Rational
+from .integer cimport Integer
+from .rational cimport Rational
 
 from sage.categories.map cimport Map
 
@@ -149,7 +150,7 @@ cdef ZZ, QQ, RDF
 from integer_ring import ZZ
 from rational_field import QQ
 from real_double import RDF
-from real_double cimport RealDoubleElement
+from .real_double cimport RealDoubleElement
 
 import sage.rings.rational_field
 
@@ -501,7 +502,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         self.sci_not = sci_not
 
         self.rnd = <mpfr_rnd_t>rnd
-        cdef char* rnd_str = mpfr_print_rnd_mode(self.rnd)
+        cdef const char* rnd_str = mpfr_print_rnd_mode(self.rnd)
         if rnd_str is NULL:
             raise ValueError("unknown rounding mode {}".format(rnd))
         self.rnd_str = (rnd_str + 5)  # Strip "MPFR_"
@@ -1416,7 +1417,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # Real Numbers are supposed to be immutable.
         cdef RealNumber n, d
         cdef RealField_class parent
-        cdef gen _gen
+        cdef Gen _gen
         parent = self._parent
         if isinstance(x, RealNumber):
             if isinstance(x, RealLiteral):
@@ -1430,7 +1431,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif isinstance(x, Rational):
             mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
-        elif isinstance(x, gen) and typ((<gen>x).g) == t_REAL:
+        elif isinstance(x, Gen) and typ((<Gen>x).g) == t_REAL:
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
         elif isinstance(x, int):
@@ -2962,7 +2963,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(pi).__int__()
             3
             sage: type(RR(pi).__int__())
-            <type 'int'>
+            <... 'int'>
         """
         if not mpfr_number_p(self.value):
             raise ValueError('Cannot convert infinity or NaN to Python int')
@@ -2998,7 +2999,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(pi).__complex__()
             (3.141592653589793+0j)
             sage: type(RR(pi).__complex__())
-            <type 'complex'>
+            <... 'complex'>
         """
 
         return complex(float(self))
@@ -3810,63 +3811,74 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return not mpfr_zero_p(self.value)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
-        Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
-        if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``
-        are equal, and ``1`` if ``left`` is greater than ``right``.
+        Compare ``self`` and ``other`` according to the rich
+        comparison operator ``op``.
 
         EXAMPLES::
 
-            sage: RR('-inf')<RR('inf')
+            sage: RR('-inf') < RR('inf')
             True
-            sage: RR('-inf')<RR('-10000')
+            sage: RR('-inf') < RR(-10000)
             True
-            sage: RR('100000000')<RR('inf')
+            sage: RR(100000000) < RR('inf')
             True
-            sage: RR('100000000')>RR('inf')
+            sage: RR(100000000) > RR('inf')
             False
-            sage: RR('100000000')<RR('inf')
+            sage: RR(100000000) < RR('inf')
             True
-            sage: RR('nan')==RR('nan')
+            sage: RR(-1000) < RR(1000)
             True
-            sage: RR('-1000')<RR('1000')
+            sage: RR(1) < RR(1).nextabove()
             True
-            sage: RR('1')<RR('1').nextabove()
+            sage: RR(1) <= RR(1).nextabove()
             True
-            sage: RR('1')<=RR('1').nextabove()
+            sage: RR(1) <= RR(1)
             True
-            sage: RR('1')<=RR('1')
-            True
-            sage: RR('1')<RR('1')
+            sage: RR(1) < RR(1)
             False
-            sage: RR('1')>RR('1')
+            sage: RR(1) > RR(1)
             False
-            sage: RR('1')>=RR('1')
+            sage: RR(1) >= RR(1)
             True
-            sage: RR('inf')==RR('inf')
+            sage: RR('inf') == RR('inf')
             True
-            sage: RR('inf')==RR('-inf')
+            sage: RR('inf') == RR('-inf')
+            False
+
+        A ``NaN`` is not equal to anything, including itself::
+
+            sage: RR('nan') == RR('nan')
+            False
+            sage: RR('nan') != RR('nan')
+            True
+            sage: RR('nan') < RR('nan')
+            False
+            sage: RR('nan') > RR('nan')
+            False
+            sage: RR('nan') <= RR('nan')
+            False
+            sage: RR('nan') >= RR('nan')
+            False
+            sage: RR('nan') == RR(0)
+            False
+            sage: RR('nan') != RR(0)
+            True
+            sage: RR('nan') < RR(0)
+            False
+            sage: RR('nan') > RR(0)
+            False
+            sage: RR('nan') <= RR(0)
+            False
+            sage: RR('nan') >= RR(0)
             False
         """
-        cdef RealNumber self, x
-        self = left
-        x = right
-
-        cdef int a,b
-        a = mpfr_nan_p(self.value)
-        b = mpfr_nan_p(x.value)
-        if a != b:
-            return -1    # nothing is equal to Nan
-        cdef int i
-        i = mpfr_cmp(self.value, x.value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
-
+        cdef RealNumber y = <RealNumber>other
+        if mpfr_nan_p(self.value) or mpfr_nan_p(y.value):
+            return op == Py_NE
+        cdef int c = mpfr_cmp(self.value, y.value)
+        return rich_to_bool_sgn(op, c)
 
     ############################
     # Special Functions
@@ -5042,7 +5054,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: R(z)
             1.64493406684823
         """
