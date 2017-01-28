@@ -182,6 +182,11 @@ The following are from A=B, 7.2 WZ Proofs of the hypergeometric database::
     sage: F(n,k)=(-1)^k*binomial(n+b,n+k)*binomial(n+c,c+k)*binomial(b+c,b+k)/factorial(n+b+c)*factorial(n)*factorial(b)*factorial(c)
     sage: F(n,k).WZ_certificate(n,k)
     1/2*(b + k)*(c + k)/((b + c + n + 1)*(k - n - 1))
+    sage: phi(t) = factorial(a+t-1)*factorial(b+t-1)/factorial(t)/factorial(-1/2+a+b+t)
+    sage: psi(t) = factorial(t+a+b-1/2)*factorial(t)*factorial(t+2*a+2*b-1)/factorial(t+2*a-1)/factorial(t+a+b-1)/factorial(t+2*b-1)
+    sage: F(n,k) = phi(k)*phi(n-k)*psi(n)
+    sage: F(n,k).WZ_certificate(n,k)
+    (2*a + 2*b + 2*k - 1)*(2*a + 2*b - 2*k + 3*n + 2)*(a - k + n)*(b - k + n)*k/((2*a + 2*b - 2*k + 2*n + 1)*(2*a + n)*(a + b + n)*(2*b + n)*(k - n - 1))
 
 The following are also from A=B, 7 The WZ Phenomenon::
 
@@ -191,12 +196,21 @@ The following are also from A=B, 7 The WZ Phenomenon::
     sage: F(n,k) = binomial(3*n,k)/8^n
     sage: F(n,k).WZ_certificate(n,k)
     1/8*(4*k^2 - 30*k*n + 63*n^2 - 22*k + 93*n + 32)*k/((k - 3*n - 1)*(k - 3*n - 2)*(k - 3*n - 3))
+
+Example 7.5.1 gets a different but correct certificate (the certificate
+in the book fails the proof)::
+
+    sage: F(n,k) = 2^(k+1)*(k+1)*factorial(2*n-k-2)*factorial(n)/factorial(n-k-1)/factorial(2*n)
+    sage: c = F(n,k).WZ_certificate(n,k); c
+    -1/2*(k - 2*n + 1)*k/((k - n)*(2*n + 1))
+    sage: G(n,k) = c*F(n,k)
+    sage: t = (F(n+1,k) - F(n,k) - G(n,k+1) + G(n,k))
+    sage: t.simplify_full().is_trivial_zero()
+    True
+    sage: c = k/2/(-1+k-n)
+    sage: GG(n,k) = c*F(n,k)
+    sage: t = (F(n+1,k) - F(n,k) - GG(n,k+1) + GG(n,k))
+    sage: t.simplify_full().is_trivial_zero()
+    False
 """
-# sage: phi(t)=factorial(a+t-1)*factorial(b+t-1)/factorial(t)/factorial(-1/2+a+b+t)
-# sage: psi(t)=factorial(t+a+b-1/2)*factorial(t)*factorial(t+2*a+2*b-1)/factorial(t+2*a-1)/factorial(t+a+b-1)/factorial(t+2*b-1)
-# sage: F(n,k)=phi(k)*phi(n-k)*psi(n)
-# correct?
-#    sage: F(n,k)=2^(k+1)*(k+1)*factorial(2*n-k-2)*factorial(n)/factorial(n-k-1)/factorial(2*n)
-#    sage: F(n,k).WZ_certificate(n,k)
-#    -1/2*(k - 2*n + 1)*k/((k - n)*(2*n + 1))
 
