@@ -522,7 +522,9 @@ cdef class FPElement(pAdicTemplateElement):
         cdef Integer right
         cdef FPElement base, pright, ans
         cdef bint exact_exp
-        if isinstance(_right, (Integer, int, long, Rational)):
+        if isinstance(_right, Rational):
+            raise NotImplementedError
+        if isinstance(_right, (Integer, int, long)):
             if _right < 0:
                 self = ~self
                 _right = -_right
@@ -550,7 +552,7 @@ cdef class FPElement(pAdicTemplateElement):
         ans = self._new_c()
         if exact_exp:
             # exact_pow_helper is defined in padic_template_element.pxi
-            right = exact_pow_helper(&dummyL, self.prime_pow.prec_cap, _right, self.prime_pow)
+            right = <Integer> Integer(_right)
             mpz_init(tmp)
             try:
                 mpz_mul_si(tmp, right.value, self.ordp)
