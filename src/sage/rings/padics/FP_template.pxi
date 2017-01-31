@@ -233,14 +233,15 @@ cdef class FPElement(pAdicTemplateElement):
         elif very_neg_val(self.ordp):
             self._set_infinity()
         else:
-            is_zero = creduce(self.unit, self.unit, self.prime_pow.prec_cap, self.prime_pow)
-            if is_zero:
-                self.ordp = maxordp
+            if ciszero(self.unit, self.prime_pow):
+                self._set_exact_zero()
             else:
-                diff = cremove(self.unit, self.unit, self.prime_pow.prec_cap, self.prime_pow)
+                diff = cremove(self.unit, self.unit, maxordp, self.prime_pow)
                 self.ordp += diff
                 if very_pos_val(self.ordp):
                     self._set_exact_zero()
+                else:
+                    creduce(self.unit, self.unit, self.prime_pow.prec_cap, self.prime_pow)
 
     def __dealloc__(self):
         r"""
