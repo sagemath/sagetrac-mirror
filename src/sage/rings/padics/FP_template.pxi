@@ -443,11 +443,11 @@ cdef class FPElement(pAdicTemplateElement):
         cdef FPElement right = _right
         if very_pos_val(self.ordp):
             if very_neg_val(right.ordp):
-                raise ZeroDivisionError("Cannot multipy 0 by Infinity")
+                raise ValueError("Cannot multipy 0 by Infinity")
             return self
         elif very_pos_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot multiply 0 by Infinity")
+                raise ValueError("Cannot multiply 0 by Infinity")
             return right
         elif very_neg_val(self.ordp):
             return self
@@ -483,11 +483,11 @@ cdef class FPElement(pAdicTemplateElement):
             ans.prime_pow = ans._parent.prime_pow
         if very_pos_val(self.ordp):
             if very_pos_val(right.ordp):
-                raise ZeroDivisionError("Cannot divide 0 by 0")
+                raise ValueError("Cannot divide 0 by 0")
             ans._set_exact_zero()
         elif very_neg_val(right.ordp):
             if very_neg_val(self.ordp):
-                raise ZeroDivisionError("Cannot divide Infinity by Infinity")
+                raise ValueError("Cannot divide Infinity by Infinity")
             ans._set_exact_zero()
         elif very_neg_val(self.ordp) or very_pos_val(right.ordp):
             ans._set_infinity()
@@ -628,7 +628,7 @@ cdef class FPElement(pAdicTemplateElement):
                 # this code path can currently not be reached, shifts by
                 # 2**62-1 or more raise a "valuation overflow" in the
                 # implementation of __lshift__
-                raise ZeroDivisionError("Cannot multiply zero by Infinity")
+                raise ValueError("Cannot multiply zero by Infinity")
             ans._set_exact_zero()
         else:
             ans.ordp = self.ordp + shift
@@ -680,7 +680,7 @@ cdef class FPElement(pAdicTemplateElement):
             return self
         elif very_pos_val(self.ordp):
             if very_pos_val(shift):
-                raise ZeroDivisionError("Cannot divide zero by zero")
+                raise ValueError("Cannot divide zero by zero")
             return self
         elif very_neg_val(self.ordp):
             return self
