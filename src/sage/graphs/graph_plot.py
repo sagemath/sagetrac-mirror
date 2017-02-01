@@ -608,6 +608,9 @@ class GraphPlot(SageObject):
         if 'edge_thickness' in self._options:
             eoptions['thickness'] = self._options['edge_thickness']
 
+        if 'arrowsize' in self._options:
+            eoptions['arrowsize'] = self._options['arrowsize']
+
         # Set labels param to add labels on the fly
         labels = False
         if self._options['edge_labels']:
