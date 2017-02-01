@@ -146,6 +146,7 @@ graphplot_options.update(
                         'one of "solid", "dashed", "dotted", dashdot", or '
                         '"-", "--", ":", "-.", respectively. ',
                     'edge_thickness': 'The thickness of the edges.',
+                    'arrowsize': 'Size of arrows.',
                     'edge_color': 'The default color for edges not listed in edge_colors.',
                     'edge_colors': 'a dictionary specifying edge colors: each '
                         'key is a color recognized by matplotlib, and each '
@@ -200,6 +201,7 @@ DEFAULT_PLOT_OPTIONS = {
     "layout"              : None,
     "edge_style"          : 'solid',
     "edge_thickness"      : 1,
+    "arrowsize"           : 5,
     "edge_color"          : 'black',
     "edge_colors"         : None,
     "edge_labels"         : False,
