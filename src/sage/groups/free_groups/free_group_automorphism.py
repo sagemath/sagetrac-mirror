@@ -1,5 +1,4 @@
-# coding=utf-8
-r"""
+"""
 FreeGroupMorphism, FreeGroupAutomorphism and free_group_automorphisms
 
 free_group_automorphism.py defines FreeGroupMorphism, FreeGroupAutomorphism

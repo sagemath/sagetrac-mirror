@@ -1055,4 +1055,47 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __truediv__ = quotient
+    def __truediv__(self, relations):
+        """
+        Return the quotient of ``self`` by the normal subgroup generated
+        by the given elements.
+
+        This quotient is a finitely presented groups with the same
+        generators as ``self``, and relations given by the elements of
+        ``relations``.
+
+        INPUT:
+
+        - ``relations`` -- A list/tuple/iterable with the elements of
+          the free group.
+
+        OUTPUT:
+
+        A finitely presented group, with generators corresponding to
+        the generators of the free group, and relations corresponding
+        to the elements in ``relations``.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: F.__truediv__([a*b^2*a, b^3])
+            Finitely presented group < a, b | a*b^2*a, b^3 >
+
+        Division is shorthand for :meth:`quotient` ::
+
+            sage: F /  [a*b^2*a, b^3]
+            Finitely presented group < a, b | a*b^2*a, b^3 >
+
+        Relations are converted to the free group, even if they are not
+        elements of it (if possible) ::
+
+            sage: F1.<a,b,c,d>=FreeGroup()
+            sage: F2.<a,b>=FreeGroup()
+            sage: r=a*b/a
+            sage: r.parent()
+            Free Group on generators {a, b}
+            sage: F1/[r]
+            Finitely presented group < a, b, c, d | a*b*a^-1 >
+
+        """
+        return self.quotient(relations)

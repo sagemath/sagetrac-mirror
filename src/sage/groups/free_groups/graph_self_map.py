@@ -1,4 +1,4 @@
-r"""
+"""
 GraphSelfMap
 
 graph_self_map.py module defines a GraphSelfMap Class

@@ -1,5 +1,4 @@
-# coding=utf-8
-r"""
+"""
 ConvexCore
 
 convex_core.py defines ConvexCore class.

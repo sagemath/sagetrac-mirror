@@ -1,4 +1,3 @@
-# coding=utf-8
 r""" test_train_track.py testing module for train_track
 to run with long option.
 

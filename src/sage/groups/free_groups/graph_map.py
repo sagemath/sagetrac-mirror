@@ -1,4 +1,4 @@
-r"""
+"""
 GraphMap
 graph_map module, defines Class for GraphMap
 
