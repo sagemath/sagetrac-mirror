@@ -122,37 +122,35 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 6, 1], [[5,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67
             sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
-            sage: bijection._next_index(3, 4)
-            4
+            sage: bijection._next_index(3, 5)
+            2
             sage: bijection._next_index(2, 5)
             5
             sage: bijection._next_index(3, 4)
             4
             sage: bijection._next_index(1, 5)
-            6
+            3
             sage: bijection._next_index(1, 4)
             3
-            sage: bijection._next_index(1, 2)
-            6
             sage: bijection._next_index(1, 6)
             6
         """
         if self.tp_krt.cartan_type().classical().rank() == 6:
-            #       6 - 2 - 5
-            #      /
+            #       6   2 - 5
+            #      /   /
             # 0 - 1 - 3 - 4
             if r == 0:
                 return 1
             if r == 1:
-                if target in [2,5,6]:
+                if target == 6:
                     return 6
                 return 3
+            if r == 3:
+                if target == 4:
+                    return 4
+                return 2
             if r == 2:
                 return 5
-            if r == 3:
-                return 4
-            if r == 6:
-                return 2
         else: # rank == 7
             #     1-2-3
             #    /
@@ -270,20 +268,16 @@ class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
             sage: from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67
             sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1],[1]]))
             sage: bijection._next_index(2)
-            6
-            sage: bijection._next_index(6)
-            1
-            sage: bijection._next_index(3)
-            1
+            3
         """
         if self.KRT.cartan_type().classical().rank() == 6:
-            #       6 - 2 - 5
-            #      /
+            #       6   2 - 5
+            #      /   /
             # 0 - 1 - 3 - 4
             if r == 1:
                 return 0
             if r == 2:
-                return 6
+                return 3
             if r == 3:
                 return 1
             if r == 4:
@@ -337,7 +331,7 @@ def endpoint6(r):
         sage: endpoint6(1)
         (1,)
         sage: endpoint6(2)
-        (-6, 2)
+        (-3, 2)
         sage: endpoint6(3)
         (-1, 3)
         sage: endpoint6(4)
@@ -351,7 +345,7 @@ def endpoint6(r):
     if r == 1:
         return C.module_generators[0]  # C((1,))
     elif r == 2:
-        return C((-6, 2))
+        return C((-3, 2))
     elif r == 3:
         return C((-1, 3))
     elif r == 4:
