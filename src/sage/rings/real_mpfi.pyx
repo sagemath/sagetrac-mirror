@@ -729,13 +729,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         are coerced to a precise interval, with upper and lower bounds
         equal; otherwise, the upper and lower bounds will typically be
         adjacent floating-point numbers that surround the given value.
+
+        TESTS:
+
+        We do not allow coercions from ``RR`` to ``RIF``, see :trac:`15114`
+        for details::
+
+            sage: RIF.has_coerce_map_from(RR)
+            False
         """
-        if isinstance(x, real_mpfr.RealNumber):
-            P = x.parent()
-            if (<RealField_class> P).__prec >= self.__prec:
-                return self(x)
-            else:
-                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, RealIntervalFieldElement):
             P = x.parent()
             if (<RealIntervalField_class> P).__prec >= self.__prec:
