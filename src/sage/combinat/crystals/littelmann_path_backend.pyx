@@ -22,6 +22,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.functions.other import floor
+cimport cython
 
 cdef class LittelmannPath(object):
     """
@@ -45,6 +46,12 @@ cdef class LittelmannPath(object):
 
     def __cmp__(self, other):
         return cmp(self.value, other.value)
+
+    cpdef copy(self):
+        """
+        Make a (deep) copy of ``self``.
+        """
+        return LittelmannPath([list(v) for v in self.value])
 
     cpdef list endpoint(self):
         r"""
@@ -75,6 +82,8 @@ cdef class LittelmannPath(object):
             add_inplace_lists(ret, v)
         return ret
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cdef compress(self):
         r"""
         Merge consecutive positively parallel steps present in the path
@@ -127,6 +136,8 @@ cdef class LittelmannPath(object):
         s2 = [r*a for a in v]
         self.value = self.value[:which_step] + [s1, s2] + self.value[which_step+1:]
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef reflect_step(self, int which_step, int i, list root):
         r"""
         Apply the `i`-th simple reflection to the indicated step in ``self``.
@@ -141,9 +152,11 @@ cdef class LittelmannPath(object):
             (2*Lambda[1] - Lambda[2],)
         """
         c = -self.value[which_step][i]
-        add_inplace_lists(self.value[which_step], [c*rval for rval in root])
+        inplace_axpy(c, root, self.value[which_step])
 
-    cdef tuple _string_data(self, int i):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef list _string_data(self, int i):
         r"""
         Computes the `i`-string data of ``self``.
 
@@ -161,23 +174,24 @@ cdef class LittelmannPath(object):
             ((0, -1, -1),)
         """
         if not self.value:
-            return ()
-        # Compute the i-heights of the steps of vs
-        # Note that 
-        cdef list steps = [v[i] for v in self.value]
+            return []
         # Get the wet step data
         cdef list minima_pos = []
         cdef int ix
         ps = 0
         psmin = 0
-        for ix, step in enumerate(steps):
+        for ix in range(len(self.value)):
+            # Compute the i-height of the step
+            step = self.value[ix][i]
             ps += step
             if ps < psmin:
                 minima_pos.append((ix, ps, step))
                 psmin = ps
-        return tuple(minima_pos)
+        return minima_pos
 
-    cpdef LittelmannPath dualize(self, inplace=False):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef LittelmannPath dualize(self, inplace=True):
         r"""
         Return the dualized path of ``self``.
 
@@ -198,12 +212,20 @@ cdef class LittelmannPath(object):
         """
         if not self.value:
             return self
-        cdef list L = [[-a for a in v] for v in reversed(self.value)]
-        if inplace:
-            self.value = L
-            return self
-        return LittelmannPath(L)
+        if not inplace:
+            return LittelmannPath([[-c for c in v] for v in reversed(self.value)])
+        self.value.reverse()
+        cdef int n = len(self.value[0])
+        cdef int i, j
+        cdef list row
+        for i in range(len(self.value)):
+            row = self.value[i]
+            for j in range(n):
+                row[j] = -row[j]
+        return self
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef int epsilon(self, int i):
         r"""
         Returns the distance to the beginning of the `i`-string.
@@ -219,12 +241,20 @@ cdef class LittelmannPath(object):
             sage: [c.epsilon(2) for c in C]
             [0, 0, 1, 2, 1, 1, 0, 0]
         """
-        cdef tuple data = self._string_data(i)
-        # compute the minimum i-height M on the path
-        if not data:
+        if not self.value:
             return 0
-        return floor(-data[-1][1])
+        cdef int ix
+        ps = 0
+        psmin = 0
+        for ix in range(len(self.value)):
+            # Compute the i-height of the step
+            ps += self.value[ix][i]
+            if ps < psmin:
+                psmin = ps
+        return floor(-psmin)
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef int phi(self, int i):
         r"""
         Returns the distance to the end of the `i`-string.
@@ -240,8 +270,20 @@ cdef class LittelmannPath(object):
             sage: [c.phi(2) for c in C]
             [1, 2, 1, 0, 0, 0, 0, 1]
         """
-        return self.dualize().epsilon(i)
+        if not self.value:
+            return 0
+        cdef int ix
+        ps = 0
+        psmin = 0
+        for ix in range(len(self.value)-1,-1,-1):
+            # Compute the i-height of the step
+            ps -= self.value[ix][i]
+            if ps < psmin:
+                psmin = ps
+        return floor(-psmin)
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef e(self, int i, list root, int power=1, to_string_end=False):
         r"""
         Return the `i`-th crystal raising operator on ``self``.
@@ -272,13 +314,13 @@ cdef class LittelmannPath(object):
             sage: c.e(1,length_only=True)
             0
         """
-        cdef tuple data = self._string_data(i)
+        cdef list data = self._string_data(i)
         # compute the minimum i-height M on the path
         cdef int p
         if not data:
             M = 0
         else:
-            M = data[-1][1]
+            M = data[len(data)-1][1]
         cdef int max_raisings = floor(-M)
 
         # set the power of e_i to apply
@@ -288,9 +330,6 @@ cdef class LittelmannPath(object):
             p = power
         if p > max_raisings:
             return None
-
-        # Make a copy of self to mutate
-        cdef LittelmannPath ws = LittelmannPath([list(v) for v in self.value])
 
         cdef int ix = len(data) - 1
         cdef int j
@@ -304,13 +343,13 @@ cdef class LittelmannPath(object):
                 prev_ht = min(data[ix-1][1], M+p)
             # if necessary split the step, then reflect the wet part
             if data[ix][1] - data[ix][2] > prev_ht:
-                ws.split_step(j, 1 - (prev_ht - data[ix][1]) / -data[ix][2])
-                ws.reflect_step(j + 1, i, root)
+                self.split_step(j, 1 - (prev_ht - data[ix][1]) / -data[ix][2])
+                self.reflect_step(j + 1, i, root)
             else:
-                ws.reflect_step(j, i, root)
+                self.reflect_step(j, i, root)
             ix = ix - 1
-        ws.compress()
-        return ws
+        self.compress()
+        return self
 
     cpdef f(self, int i, list root, int power=1, to_string_end=False):
         r"""
@@ -343,11 +382,10 @@ cdef class LittelmannPath(object):
             sage: c.f(2,power=2)
             (Lambda[0] + Lambda[1] - 2*Lambda[2],)
         """
-        cdef LittelmannPath dual_path = self.dualize()
-        dual_path = dual_path.e(i, root, power, to_string_end)
+        dual_path = self.dualize().e(i, root, power, to_string_end)
         if dual_path is None:
             return None
-        return dual_path.dualize(inplace=True)
+        return dual_path.dualize()
 
     cpdef LittelmannPath s(self, int i, list root):
         r"""
@@ -569,10 +607,20 @@ class InfinityCrystalOfLSPathsElement(LittelmannPath):
 #####################################################################
 ## Helper functions
 
-cdef add_inplace_lists(list l, list a):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline add_inplace_lists(list l, list a):
     for i, c in enumerate(a):
         l[i] += c
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline inplace_axpy(a, list x, list y):
+    for i, c in enumerate(x):
+        y[i] += a * c
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef positively_parallel_weights(list v, list w):
     """
     Check whether the vectors ``v`` and ``w`` are positive scalar
