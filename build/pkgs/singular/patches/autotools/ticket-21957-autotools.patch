@@ -1,0 +1,556 @@
+diff --git a/Singular/Makefile.am b/Singular/Makefile.am
+index be84a08..d1c8337 100644
+--- a/Singular/Makefile.am
++++ b/Singular/Makefile.am
+@@ -6,7 +6,11 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_builddir} -I${top_srcdir}/kernel -I${top_b
+ 
+ all-local: feOpt.inc feOptTS.inc feOptES.inc iparith.inc all.lib gftables MOD ${abs_builddir}/LIB Singular$(EXEEXT) ESingular$(EXEEXT) TSingular$(EXEEXT)
+ 
+-SUBDIRS = dyn_modules
++if SING_WIN
++SUBDIRS = ${BUILTIN_MODULES} . dyn_modules
++else
++SUBDIRS = dyn_modules .
++endif
+ 
+ ########################### Possible builtin modules... #########################
+ BUILTIN_FLAGS = ${BUILTIN_LIBS}
+@@ -123,7 +127,7 @@ SingularHEADERS = \
+ # plural_cmd.inc
+ nodist_libSingular_la_SOURCES = feOpt.inc iparith.inc
+ 
+-libSingular_la_LDFLAGS    =${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} -release ${PACKAGE_VERSION} ${PTHREAD_LDFLAGS}
++libSingular_la_LDFLAGS    =$(SINGULAR_LDFLAGS) ${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} -release ${PACKAGE_VERSION} ${PTHREAD_LDFLAGS}
+ libSingular_la_LIBADD     =${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} ${BUILTIN_FLAGS} ${top_builddir}/kernel/libkernel.la ${PTHREAD_LIBS}
+ 
+ libSingular_includedir = ${includedir}/singular/Singular
+diff --git a/Singular/dyn_modules/Order/Makefile.am b/Singular/dyn_modules/Order/Makefile.am
+index 39b2790..e0d6ff3 100644
+--- a/Singular/dyn_modules/Order/Makefile.am
++++ b/Singular/dyn_modules/Order/Makefile.am
+@@ -24,7 +24,12 @@ endif
+ 
+ Order_la_SOURCES   = $(SOURCES)
+ Order_la_CPPFLAGS  = ${MYINCLUDES} ${P_PROCS_CPPFLAGS_COMMON}
+-Order_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS} ${GOOGLE_PERFTOOL_LDFLAGS}
++Order_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS} ${GOOGLE_PERFTOOL_LDFLAGS} $(SINGULAR_LDFLAGS)
++if SING_WIN
++if !SI_BUILTIN_ORDER
++Order_la_LIBADD    = ${top_builddir}/Singular/libSingular.la
++endif
++endif
+ 
+ # AM_COLOR_TESTS=always
+ #
+diff --git a/Singular/dyn_modules/Order/nforder_elt.cc b/Singular/dyn_modules/Order/nforder_elt.cc
+index 24da60f..48705d3 100644
+--- a/Singular/dyn_modules/Order/nforder_elt.cc
++++ b/Singular/dyn_modules/Order/nforder_elt.cc
+@@ -8,6 +8,8 @@
+ #include "nforder.h"
+ #include <coeffs/bigintmat.h>
+ 
++
++#ifdef SINGULAR_4_2
+ extern n_coeffType nforder_type;
+ 
+ static void WriteRing(const coeffs r, BOOLEAN details)
+@@ -265,5 +267,6 @@ BOOLEAN n_nfOrderInit(coeffs r,  void * parameter)
+ #endif
+   return FALSE;
+ }
++#endif /* SINGULAR_4_2 */
+ 
+ 
+diff --git a/Singular/dyn_modules/bigintm/Makefile.am b/Singular/dyn_modules/bigintm/Makefile.am
+index 85c73ef..6db63c8 100644
+--- a/Singular/dyn_modules/bigintm/Makefile.am
++++ b/Singular/dyn_modules/bigintm/Makefile.am
+@@ -20,7 +20,12 @@ $(FLINT_CFLAGS) $(NTL_CFLAGS) $(GMP_CFLAGS)
+ 
+ bigintm_la_SOURCES  = mod_main.cc bigintm.cc bigintm.h
+ bigintm_la_CPPFLAGS = ${MYINCLUDES} ${P_PROCS_CPPFLAGS_COMMON}
+-bigintm_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS}
++bigintm_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
++if SING_WIN
++if !SI_BUILTIN_BIGINTM
++bigintm_la_LIBADD   = ${top_builddir}/Singular/libSingular.la
++endif
++endif
+ 
+ # AM_COLOR_TESTS=always
+ #
+diff --git a/Singular/dyn_modules/customstd/Makefile.am b/Singular/dyn_modules/customstd/Makefile.am
+index c7e0972..dbd8026 100644
+--- a/Singular/dyn_modules/customstd/Makefile.am
++++ b/Singular/dyn_modules/customstd/Makefile.am
+@@ -22,7 +22,12 @@ endif
+ customstd_la_SOURCES  = $(SOURCES)
+ 
+ customstd_la_CPPFLAGS = ${MY_CPPFLAGS} ${P_PROCS_CPPFLAGS_COMMON} ${CDDGMPCPPFLAGS}
+-customstd_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS}
++customstd_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
++if SING_WIN
++if !SI_BUILTIN_CUSTOMSTD
++customstd_la_LIBADD   = ${top_builddir}/Singular/libSingular.la
++endif
++endif
+ 
+ #AM_COLOR_TESTS=always
+ #
+diff --git a/Singular/dyn_modules/gfanlib/Makefile.am b/Singular/dyn_modules/gfanlib/Makefile.am
+index 399c0df..8b6d180 100644
+--- a/Singular/dyn_modules/gfanlib/Makefile.am
++++ b/Singular/dyn_modules/gfanlib/Makefile.am
+@@ -27,13 +27,20 @@ endif
+ gfanlib_la_SOURCES  = $(SOURCES)
+ 
+ gfanlib_la_CPPFLAGS = ${MY_CPPFLAGS} ${P_PROCS_CPPFLAGS_COMMON} ${CDDGMPCPPFLAGS}
+-gfanlib_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS}
++gfanlib_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
+ 
+ # forcefully enable exceptions for polymake
+ CXXFLAGS+= $(FEXCEPTIONSFRTTI_CXXFLAGS)
+ 
++gfanlib_la_LIBADD   =
++if SING_WIN
++if !SI_BUILTIN_GFANLIB
++ gfanlib_la_LIBADD   += ${top_builddir}/Singular/libSingular.la
++endif
++endif
++
+ if HAVE_GFANLIB
+- gfanlib_la_LIBADD   = ${abs_top_builddir}/gfanlib/libgfan.la ${CDDGMPLDFLAGS}
++ gfanlib_la_LIBADD   += ${abs_top_builddir}/gfanlib/libgfan.la ${CDDGMPLDFLAGS}
+ endif
+ 
+ #AM_COLOR_TESTS=always
+diff --git a/Singular/dyn_modules/polymake/Makefile.am b/Singular/dyn_modules/polymake/Makefile.am
+index aa5d274..81b42d3 100644
+--- a/Singular/dyn_modules/polymake/Makefile.am
++++ b/Singular/dyn_modules/polymake/Makefile.am
+@@ -20,12 +20,19 @@ else
+ # Add under Mac OS X: -flat_namespace -weak_reference_mismatches weak -undefined dynamic_lookup
+ endif
+ 
++polymake_la_LIBADD =
++if SING_WIN
++if !SI_BUILTIN_POLYMAKE
++ polymake_la_LIBADD += ${top_builddir}/Singular/libSingular.la
++endif
++endif
++
+ if SING_HAVE_POLYMAKE
+ # forcefully enable exceptions for polymake
+  CXXFLAGS+= $(FEXCEPTIONSFRTTI_CXXFLAGS)
+  PM_CXXFLAGS= ${FEXCEPTIONSFRTTI_CXXFLAGS}
+  P_PROCS_MODULE_LDFLAGS+= ${PM_LDFLAGS}
+- polymake_la_LIBADD= ${PM_LIBS}
++ polymake_la_LIBADD+= ${PM_LIBS}
+ endif
+ 
+ SOURCES = polymake_conversion.h polymake_conversion.cc \
+@@ -38,4 +45,4 @@ polymake_la_CPPFLAGS = ${AM_CPPFLAGS} ${P_PROCS_CPPFLAGS_COMMON} ${PM_CXXFLAGS}
+ polymake_la_CXXFLAGS = ${PM_CXXFLAGS}
+ polymake_la_CFLAGS   = ${PM_CXXFLAGS}
+ 
+-polymake_la_LDFLAGS = ${P_PROCS_MODULE_LDFLAGS}
++polymake_la_LDFLAGS = ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
+diff --git a/Singular/dyn_modules/pyobject/Makefile.am b/Singular/dyn_modules/pyobject/Makefile.am
+index b7a307e..7b81cd8 100644
+--- a/Singular/dyn_modules/pyobject/Makefile.am
++++ b/Singular/dyn_modules/pyobject/Makefile.am
+@@ -23,5 +23,10 @@ pyobject_la_SOURCES = pyobject.cc
+ pyobject_la_CXXFLAGS = $(PYTHON_CSPEC)
+ pyobject_la_CPPFLAGS = $(PYTHON_CPPFLAGS)  ${AM_CPPFLAGS} ${P_PROCS_CPPFLAGS_COMMON}
+ 
+-pyobject_la_LDFLAGS = $(PYTHON_EXTRA_LIBS)  $(PYTHON_LSPEC) ${AM_LDFLAGS} $(PYTHON_EXTRA_LDFLAGS) $(PYTHON_LDFLAGS) ${P_PROCS_MODULE_LDFLAGS}
++pyobject_la_LDFLAGS = $(PYTHON_EXTRA_LIBS)  $(PYTHON_LSPEC) ${AM_LDFLAGS} $(PYTHON_EXTRA_LDFLAGS) $(PYTHON_LDFLAGS) ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
+ pyobject_la_LIBADD = $(PYTHON_EXTRA_LIBS) $(PYTHON_LSPEC) $(PYTHON_EXTRA_LDFLAGS) $(PYTHON_LDFLAGS)
++if SING_WIN
++if !SI_BUILTIN_PYOBJECT
++  pyobject_la_LIBADD += ${top_builddir}/Singular/libSingular.la
++endif
++endif
+diff --git a/Singular/dyn_modules/singmathic/Makefile.am b/Singular/dyn_modules/singmathic/Makefile.am
+index 72cd910..870aca8 100644
+--- a/Singular/dyn_modules/singmathic/Makefile.am
++++ b/Singular/dyn_modules/singmathic/Makefile.am
+@@ -19,7 +19,13 @@ $(FLINT_CFLAGS) $(NTL_CFLAGS) $(GMP_CFLAGS) $(CPPFLAGS)
+ 
+ singmathic_la_SOURCES  = singmathic.cc
+ singmathic_la_CPPFLAGS = ${MYINCLUDES} ${P_PROCS_CPPFLAGS_COMMON}
+-singmathic_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS} ${MATHIC_LIBS}
++singmathic_la_LDFLAGS  = ${P_PROCS_MODULE_LDFLAGS} ${MATHIC_LIBS} $(SINGULAR_LDFLAGS)
++
++if SING_WIN
++if !SI_BUILTIN_SINGMATHIC
++ singmathic_la_LIBADD = ${top_srcdir}/Singular/libSingular.la
++endif
++endif
+ 
+ # AM_COLOR_TESTS=always
+ #
+diff --git a/Singular/dyn_modules/staticdemo/Makefile.am b/Singular/dyn_modules/staticdemo/Makefile.am
+index 07dcace..d6ae2bc 100644
+--- a/Singular/dyn_modules/staticdemo/Makefile.am
++++ b/Singular/dyn_modules/staticdemo/Makefile.am
+@@ -12,7 +12,7 @@ if SI_BUILTIN_STATICDEMO
+ 
+   staticdemo_la_SOURCES   = staticdemo.cc
+   staticdemo_la_CPPFLAGS  = ${MYINCLUDES} ${P_PROCS_CPPFLAGS_COMMON}
+-  staticdemo_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS}
++  staticdemo_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS} $(SINGULAR_LDFLAGS)
+ else
+   EXTRA_DIST=staticdemo.cc
+ endif
+diff --git a/Singular/dyn_modules/syzextra/Makefile.am b/Singular/dyn_modules/syzextra/Makefile.am
+index facd2a5..e99e752 100644
+--- a/Singular/dyn_modules/syzextra/Makefile.am
++++ b/Singular/dyn_modules/syzextra/Makefile.am
+@@ -20,7 +20,12 @@ endif
+ SOURCES = mod_main.cc DebugPrint.cc DebugPrint.h myNF.cc myNF.h singularxx_defs.h syzextra.cc syzextra.h
+ syzextra_la_SOURCES   = $(SOURCES)
+ syzextra_la_CPPFLAGS  = ${MYINCLUDES} ${P_PROCS_CPPFLAGS_COMMON}
+-syzextra_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS} ${GOOGLE_PERFTOOL_LDFLAGS}
++syzextra_la_LDFLAGS   = ${AM_LDFLAGS} ${P_PROCS_MODULE_LDFLAGS} ${GOOGLE_PERFTOOL_LDFLAGS} $(SINGULAR_LDFLAGS)
++if SING_WIN
++if !SI_BUILTIN_SYZEXTRA
++syzextra_la_LIBADD    = ${top_builddir}/Singular/libSingular.la
++endif
++endif
+ 
+ AM_COLOR_TESTS=always
+ 
+diff --git a/configure.ac b/configure.ac
+index a2add82..7a959f6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -49,7 +49,7 @@ if test -z "$DOXYGEN";
+ fi
+ AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+ 
+-LT_INIT
++LT_INIT([win32-dll])
+ 
+ link_all_deplibs=yes
+ link_all_deplibs_CXX=yes
+@@ -106,12 +106,7 @@ AC_FUNC_MALLOC
+ AC_CHECK_SIZEOF(long,4)
+ SING_CHECK_CPU
+ 
+-#check for host:
+-AC_CANONICAL_HOST
+-
+-case $host_os in
+-  *cygwin* ) AX_APPEND_LINK_FLAGS([-Wl,-Bdynamic]);;
+-esac
++SING_WIN_FLAGS
+ 
+ PKG_REQUIRE="$PKG_REQUIRE"
+ AC_SUBST(PKG_REQUIRE)
+diff --git a/factory/Makefile.am b/factory/Makefile.am
+index fe97169..de0350e 100644
+--- a/factory/Makefile.am
++++ b/factory/Makefile.am
+@@ -11,7 +11,7 @@ lib_LTLIBRARIES = libfactory.la
+ libfactory_la_LIBADD     =$(RESOURCES_LIBS) $(OMALLOC_LIBS) \
+ $(FLINT_LIBS) $(NTL_LIBS) $(GMP_LIBS)
+ 
+-libfactory_la_LDFLAGS    = -release ${PACKAGE_VERSION}
++libfactory_la_LDFLAGS    = $(SINGULAR_LDFLAGS) -release ${PACKAGE_VERSION}
+ 
+ # factory source files
+ SOURCES = \
+diff --git a/factory/configure.ac b/factory/configure.ac
+index a9caf73..0299f5c 100644
+--- a/factory/configure.ac
++++ b/factory/configure.ac
+@@ -44,7 +44,7 @@ AC_PROG_LN_S
+ AC_PROG_INSTALL
+ ## AC_DISABLE_STATIC
+ AC_PROG_YACC
+-LT_INIT
++LT_INIT([win32-dll])
+ AC_PROG_MAKE_SET
+ AC_CHECK_PROG(AR, ar, ar, where-is-your-ar)
+ AC_CHECK_PROG(M4, m4, m4, where-is-your-m4)
+@@ -54,6 +54,9 @@ AC_C_CONST
+ AC_C_INLINE
+ 
+ 
++SING_WIN_FLAGS
++
++
+ #
+ # - check withs and enables.
+ #
+diff --git a/gfanlib/Makefile.am b/gfanlib/Makefile.am
+index 2039af0..cfc94a0 100644
+--- a/gfanlib/Makefile.am
++++ b/gfanlib/Makefile.am
+@@ -16,6 +16,7 @@ AM_CXXFLAGS = @CXX11_FLAG@
+ 
+ SOURCES = gfanlib_circuittableint.cpp gfanlib_mixedvolume.cpp gfanlib_paralleltraverser.cpp gfanlib_polyhedralfan.cpp gfanlib_polymakefile.cpp gfanlib_symmetriccomplex.cpp gfanlib_symmetry.cpp gfanlib_traversal.cpp gfanlib_zcone.cpp gfanlib_zfan.cpp
+ libgfan_la_SOURCES = $(SOURCES)
++libgfan_la_LDFLAGS = $(SINGULAR_LDFLAGS) $(CDDGMPLDFLAGS)
+ 
+ libgfan_includedir =$(includedir)/gfanlib
+ libgfan_include_HEADERS = config.h gfanlib_mixedvolume.h gfanlib_polymakefile.h gfanlib_symmetry.h gfanlib_vector.h gfanlib_z.h _config.h  gfanlib.h gfanlib_paralleltraverser.h gfanlib_q.h  gfanlib_traversal.h gfanlib_zcone.h gfanlib_circuittableint.h gfanlib_matrix.h gfanlib_polyhedralfan.h gfanlib_symmetriccomplex.h gfanlib_tropicalhomotopy.h gfanlib_zfan.h
+diff --git a/gfanlib/configure.ac b/gfanlib/configure.ac
+index d3d2cd7..ec0d002 100644
+--- a/gfanlib/configure.ac
++++ b/gfanlib/configure.ac
+@@ -27,7 +27,9 @@ AC_PROG_LN_S
+ #AC_PROG_INSTALL
+ 
+ # Checks for libraries.
+-LT_INIT
++LT_INIT([win32-dll])
++
++SING_WIN_FLAGS
+ 
+ # Checks for header files.
+ AC_HEADER_STDC
+diff --git a/kernel/Makefile.am b/kernel/Makefile.am
+index 93ab5d7..86f6d47 100644
+--- a/kernel/Makefile.am
++++ b/kernel/Makefile.am
+@@ -15,6 +15,7 @@ SOURCES = polys.cc \
+ libkernelCommon_la_SOURCES  = $(SOURCES)
+ libkernelCommon_la_LIBADD   = ${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} \
+ ${abs_top_builddir}/libpolys/polys/libpolys.la
++libkernelCommon_la_LDFLAGS = $(SINGULAR_LDFLAGS)
+ 
+ ###### libkerneldir = $(libdir)/singular
+ 
+@@ -22,6 +23,7 @@ KERNELHEADERS = mod2.h structs.h polys.h ideals.h \
+ 	preimage.h fast_mult.h digitech.h
+ 
+ libkernel_la_SOURCES=$(KERNELHEADERS)
++libkernel_la_LDFLAGS = $(SINGULAR_LDFLAGS)
+ 
+ libkernel_la_includedir=${includedir}/singular/kernel
+ libkernel_la_include_HEADERS=$(KERNELHEADERS)
+diff --git a/libpolys/coeffs/Makefile.am b/libpolys/coeffs/Makefile.am
+index 0cd9423..7e8760a 100644
+--- a/libpolys/coeffs/Makefile.am
++++ b/libpolys/coeffs/Makefile.am
+@@ -32,6 +32,8 @@ libcoeffs_la_LIBADD = ${top_builddir}/reporter/libreporter.la ${top_builddir}/mi
+ $(FACTORY_LIBS) $(RESOURCES_LIBS) $(OMALLOC_LIBS) \
+ $(FLINT_LIBS) $(GMP_LIBS) $(NTL_LIBS)
+ 
++libcoeffs_la_LDFLAGS = $(SINGULAR_LDFLAGS)
++
+ TESTS_ENVIRONMENT = SINGULARPATH='${top_srcdir}/../factory:${top_builddir}/../factory'
+ TESTS_ENVIRONMENT += SINGULAR_ROOT_DIR='$(top_builddir)'
+ 
+diff --git a/libpolys/configure.ac b/libpolys/configure.ac
+index 4b2f1ae..5c34a1c 100644
+--- a/libpolys/configure.ac
++++ b/libpolys/configure.ac
+@@ -29,9 +29,11 @@ AC_PROG_INSTALL
+ 
+ # Turn off shared libraries during beta-testing, since they
+ # make the build process take too long.
+-LT_INIT
++LT_INIT([win32-dll])
+ # ([shared])
+-# LT_INIT(dlopen disable-static) # doesn't work on PowerPC!
++# LT_INIT([win32-dll])(dlopen disable-static) # doesn't work on PowerPC!
++
++SING_WIN_FLAGS
+ 
+ # Checks for libraries.
+ LB_CHECK_GMP(3.1.1,,AC_MSG_ERROR([Unable to find GMP on your machine: please use --with-gmp=PATH_TO_DIR_CONTAINING_LIB_AND_INCLUDE (see also ./configure --help if you do not understand what we are talking about)]))
+diff --git a/libpolys/misc/Makefile.am b/libpolys/misc/Makefile.am
+index 79bf036..ada93d7 100644
+--- a/libpolys/misc/Makefile.am
++++ b/libpolys/misc/Makefile.am
+@@ -9,6 +9,7 @@ noinst_LTLIBRARIES = libmisc.la
+ ## libmisc_la_LDFLAGS    = -release ${PACKAGE_VERSION}
+ 
+ libmisc_la_SOURCES   = int64vec.cc options.c sirandom.c intvec.cc prime.cc
++libmisc_la_LDFLAGS = $(SINGULAR_LDFLAGS)
+ 
+ libmisc_la_includedir = $(includedir)/singular/misc
+ libmisc_la_include_HEADERS = mylimits.h options.h intvec.h int64vec.h \
+diff --git a/libpolys/polys/Makefile.am b/libpolys/polys/Makefile.am
+index 3311a96..307cb48 100644
+--- a/libpolys/polys/Makefile.am
++++ b/libpolys/polys/Makefile.am
+@@ -65,7 +65,7 @@ p_Procs_FieldIndep_la_CPPFLAGS = -Dp_Procs_FieldIndep ${P_PROCS_CPPFLAGS_COMMON}
+ p_Procs_FieldQ_la_CPPFLAGS = -Dp_Procs_FieldQ ${P_PROCS_CPPFLAGS_COMMON}
+ p_Procs_FieldZp_la_CPPFLAGS = -Dp_Procs_FieldZp ${P_PROCS_CPPFLAGS_COMMON}
+ 
+-P_PROCS_MODULE_LDFLAGS = -shared -module -dynamic -export-dynamic -avoid-version -weak_reference_mismatches weak -undefined dynamic_lookup -Wl,-undefined -Wl,dynamic_lookup -flat_namespace
++P_PROCS_MODULE_LDFLAGS = -shared -module -dynamic -export-dynamic -avoid-version -weak_reference_mismatches weak -undefined dynamic_lookup -Wl,-undefined -Wl,dynamic_lookup -flat_namespace $(SINGULAR_LDFLAGS)
+ 
+ p_Procs_FieldGeneral_la_LDFLAGS = ${P_PROCS_MODULE_LDFLAGS}
+ p_Procs_FieldIndep_la_LDFLAGS = ${P_PROCS_MODULE_LDFLAGS}
+@@ -94,7 +94,7 @@ libpolys_la_SOURCES = ${SOURCES}
+ 
+ EXTRA_libpolys_la_SOURCES = templates/p_Procs_Static.cc templates/p_Procs_Dynamic.cc
+ 
+-libpolys_la_LDFLAGS= ${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} -release ${PACKAGE_VERSION}
++libpolys_la_LDFLAGS= $(SINGULAR_LDFLAGS) ${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} -release ${PACKAGE_VERSION}
+ libpolys_la_LIBADD = ${USEPPROCSDYNAMICLDFLAGS} ${USEPPROCSDYNAMICLD} ${top_builddir}/coeffs/libcoeffs.la
+ 
+ 
+diff --git a/libpolys/reporter/Makefile.am b/libpolys/reporter/Makefile.am
+index 391cd11..9eeccaf 100644
+--- a/libpolys/reporter/Makefile.am
++++ b/libpolys/reporter/Makefile.am
+@@ -6,6 +6,7 @@ noinst_LTLIBRARIES = libreporter.la
+ #### libreporterdir = $(libdir)/singular
+ 
+ libreporter_la_SOURCES  = dError.cc reporter.cc s_buff.cc
++libreporter_la_LDFLAGS = $(SINGULAR_LDFLAGS)
+ ## libreporter_la_LDFLAGS  = -release ${PACKAGE_VERSION}
+ ## libreporter_la_LIBADD   = ${top_builddir}/misc/libmisc.la
+ 
+diff --git a/m4/options.m4 b/m4/options.m4
+index 066dc4d..ec69da5 100644
+--- a/m4/options.m4
++++ b/m4/options.m4
+@@ -328,6 +328,7 @@ AC_DEFUN([SING_BUILTIN_MODULES],
+       L="${L} add($a)"
+       LL="${LL} $a"
+       BUILTIN_LIBS="${BUILTIN_LIBS} dyn_modules/$a/$a.la"
++      BUILTIN_MODULES="${BUILTIN_MODULES} dyn_modules/$a"
+       AC_MSG_RESULT(yes)
+ 
+ # *) AC_MSG_ERROR([bad value ${enableval} for	    --enable-debug]) ;;
+@@ -366,6 +367,7 @@ AC_DEFUN([SING_BUILTIN_MODULES],
+ 
+  AC_DEFINE_UNQUOTED([SI_BUILTINMODULES_ADD(add)],[$L],[Add(list) for Builtin modules])
+  AC_SUBST(BUILTIN_LIBS)
++ AC_SUBST(BUILTIN_MODULES)
+ 
+  AM_CONDITIONAL([SI_BUILTIN_STATICDEMO], [test x$bi_staticdemo = xtrue])
+  AM_CONDITIONAL([SI_BUILTIN_SYZEXTRA], [test x$bi_syzextra = xtrue])
+diff --git a/m4/win-flags.m4 b/m4/win-flags.m4
+new file mode 100755
+index 0000000..b3ecbf9
+--- /dev/null
++++ b/m4/win-flags.m4
+@@ -0,0 +1,22 @@
++AC_DEFUN([SING_WIN_FLAGS], [
++dnl To ensure that $enable_shared is defined
++  AC_REQUIRE([LT_INIT])
++
++  AC_CANONICAL_HOST
++
++dnl Maybe necessary for mingw as well but haven't tested
++  case $host_os in
++    *cygwin* | *mingw*) os_win32=yes;;
++    *) os_win32=no;;
++  esac
++
++  AC_SUBST(SINGULAR_LDFLAGS)
++
++  if test x$os_win32 = xyes; then
++    AX_APPEND_LINK_FLAGS([-Wl,-Bdynamic])
++dnl libtool requires "-no-undefined" for win32 dll
++    SINGULAR_LDFLAGS="$SINGULAR_LDFLAGS -no-undefined"
++  fi
++
++  AM_CONDITIONAL([SING_WIN], [test x$os_win32 = xyes])
++])
+diff --git a/omalloc/Makefile.am b/omalloc/Makefile.am
+index d9dd22e..f5bc4e1 100644
+--- a/omalloc/Makefile.am
++++ b/omalloc/Makefile.am
+@@ -30,7 +30,7 @@ AM_CPPFLAGS =-I${top_srcdir}/.. -I${top_builddir}/..
+ 
+ libomalloc_la_SOURCES=$(SOURCES) $(noinst_HEADERS)
+ 
+-libomalloc_la_LDFLAGS    = -release ${PACKAGE_VERSION}
++libomalloc_la_LDFLAGS    = $(SINGULAR_LDFLAGS) -release ${PACKAGE_VERSION}
+ 
+ nodist_libomalloc_la_SOURCES = omTables.inc omTables.h mylimits.h
+ nodist_libomalloc_include_HEADERS = omConfig.h mylimits.h omTables.h
+diff --git a/omalloc/configure.ac b/omalloc/configure.ac
+index f2d7ed4..16f9ee8 100644
+--- a/omalloc/configure.ac
++++ b/omalloc/configure.ac
+@@ -17,6 +17,8 @@ AC_PROG_CXX
+ 
+ SING_RESET_FLAGS()
+ 
++SING_WIN_FLAGS
++
+ AM_MAINTAINER_MODE([enable])
+ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects]) # -Wno-extra-portability -Werror silent-rules
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+@@ -113,7 +115,7 @@ AM_PROG_CC_C_O
+ AC_C_CONST
+ AC_C_INLINE
+ 
+-LT_INIT
++LT_INIT([win32-dll])
+ 
+ 
+ dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+diff --git a/resources/Makefile.am b/resources/Makefile.am
+index 934175b..e6f8f17 100644
+--- a/resources/Makefile.am
++++ b/resources/Makefile.am
+@@ -11,7 +11,7 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_builddir}
+ SOURCES  = omFindExec.c feResource.cc feFopen.cc
+ libsingular_resources_la_SOURCES   = $(SOURCES)
+ 
+-libsingular_resources_la_LDFLAGS   = -release ${PACKAGE_VERSION}
++libsingular_resources_la_LDFLAGS   = $(SINGULAR_LDFLAGS) -release ${PACKAGE_VERSION}
+ 
+ libsingular_resources_includedir  =$(includedir)/resources
+ 
+diff --git a/resources/configure.ac b/resources/configure.ac
+index 212a1d5..e5403e6 100644
+--- a/resources/configure.ac
++++ b/resources/configure.ac
+@@ -38,12 +38,14 @@ AC_TYPE_SIZE_T
+ 
+ # Turn off shared libraries during beta-testing, since they
+ # make the build process take too long.
+-LT_INIT
++LT_INIT([win32-dll])
+ # ([shared])
+-# LT_INIT(dlopen disable-static) # doesn't work on PowerPC!
++# LT_INIT([win32-dll])(dlopen disable-static) # doesn't work on PowerPC!
+ 
+ # SING_CHECK_PIPE
+ 
++SING_WIN_FLAGS
++
+ ##### SEE http://www.gnu.org/prep/standards/html_node/Directory-Variables.html
+ 
+ AX_RECURSIVE_EVAL([[$]prefix], [config_prefix])
+diff --git a/xalloc/Makefile.am b/xalloc/Makefile.am
+index 403674b..9e5124c 100644
+--- a/xalloc/Makefile.am
++++ b/xalloc/Makefile.am
+@@ -12,7 +12,7 @@ AM_CPPFLAGS =-I${top_srcdir}/.. -I${top_builddir}/..
+ 
+ libomalloc_la_SOURCES=$(SOURCES) $(noinst_HEADERS)
+ 
+-libomalloc_la_LDFLAGS    = -release ${PACKAGE_VERSION}
++libomalloc_la_LDFLAGS    = $(SINGULAR_LDFLAGS) -release ${PACKAGE_VERSION}
+ 
+ libomalloc_la_CPPFLAGS  = ${AM_CPPFLAGS}
+ 
+diff --git a/xalloc/configure.ac b/xalloc/configure.ac
+index 630ecf0..166d563 100644
+--- a/xalloc/configure.ac
++++ b/xalloc/configure.ac
+@@ -43,7 +43,9 @@ AM_PROG_CC_C_O
+ AC_C_CONST
+ AC_C_INLINE
+ 
+-LT_INIT
++LT_INIT([win32-dll])
++
++SING_WIN_FLAGS
+ 
+ 
+ dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
