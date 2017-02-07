@@ -1581,6 +1581,10 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+    
+    Extension('sage.rings.polynomial.skew_polynomial_finite_field',
+              sources = ['sage/rings/polynomial/skew_polynomial_finite_field.pyx']),
+
 
 
     ################################
