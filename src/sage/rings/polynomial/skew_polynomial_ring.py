@@ -76,7 +76,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
          twisted by t |--> t + 1
 
     One can also use a shorter syntax::
-
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]; S
         Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
          twisted by t |--> t + 1
@@ -725,16 +726,24 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
         multiplication and factorization.
     """
     @staticmethod
-    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
+    def __classcall__(cls, base_ring, twist_map=None, name=None, sparse=False, element_class=None):
         if not element_class:
             if sparse:
                 raise NotImplementedError("sparse skew polynomials are not implemented")
             else:
                 from sage.rings.polynomial import skew_polynomial_finite_field
                 element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
-                return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
+        if twist_map is None:
+            twist_map = IdentityMorphism(base_ring)
+        else:
+            if not isinstance(twist_map, Morphism):
+                raise TypeError("given map is not a ring homomorphism")
+            if twist_map.domain() != base_ring or twist_map.codomain() != base_ring:
+                raise TypeError("given map is not an automorphism of %s" % base_ring)
+        return super(SkewPolynomialRing_general,cls).__classcall__(cls,
+            base_ring, twist_map,name,sparse,element_class)
 
-    def __init__(self, base_ring, map, name, sparse, element_class):
+    def __init__(self, base_ring, twist_map, name, sparse, element_class):
         """
         This method is a constructor for a general, dense univariate skew polynomial ring
         over a finite field.
@@ -743,7 +752,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
 
         - ``base_ring`` -- a commutative ring
 
-        - ``map`` -- an automorphism of the base ring
+        - ``twist_map`` -- an automorphism of the base ring
 
         - ``name`` -- string or list of strings representing the name of the variables of ring
 
@@ -764,19 +773,19 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
         """
         self._order = -1
         try:
-            self._order = map.order()
+            self._order = twist_map.order()
         except (AttributeError,NotImplementedError):
             pass
         if self._order < 0:
             try:
-                if map.is_identity():
+                if twist_map.is_identity():
                     self._order = 1
             except (AttributeError,NotImplementedError):
                 pass
         if self._order < 0:
-            raise NotImplementedError("unable to determine the order of %s" % map)
-        SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
-        self._maps = [ map**i for i in range(self._order) ]
+            raise NotImplementedError("unable to determine the order of %s" % twist_map)
+        SkewPolynomialRing_general.__init__ (self, base_ring, twist_map, name, sparse, element_class)
+        self._maps = [ twist_map**i for i in range(self._order) ]
 
     def twist_map(self, n=1):
         """

@@ -82,7 +82,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
         endowed with a finite order twist morphism``. It may cause
         new phenomena due to the non trivality of the Brauer group.
     """
-    def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
+    def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
         """
         This method constructs a generic dense skew polynomial over a finite field.
 
@@ -123,7 +123,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_generic_dense):
             True
 
        """
-        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
+        SkewPolynomial_generic_dense.__init__ (self, parent, x, check, construct, **kwds)
 
     cdef SkewPolynomial_finite_field_dense _rgcd(self, SkewPolynomial_finite_field_dense other):
         """

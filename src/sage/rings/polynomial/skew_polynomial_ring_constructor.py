@@ -34,6 +34,7 @@ import sage.rings.ring as ring
 from sage.structure.category_object import normalize_names
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.categories.morphism import Morphism, IdentityMorphism
+from sage.categories.finite_fields import FiniteFields
 
 def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, sparse=False):
     r"""
@@ -207,11 +208,11 @@ def SkewPolynomialRing(base_ring, base_ring_automorphism=None, names=None, spars
     try:
         names = normalize_names(1, names)[0]
     except IndexError:
-        raise NotImplementedError("multivariate skew polynomials rings not supported.")
+        raise NotImplementedError("multivariate skew polynomials rings not supported")
 
-    import sage.rings.polynomial.skew_polynomial_ring
-    if is_FiniteField(base_ring):
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field(base_ring, base_ring_automorphism, names, sparse)
+    if base_ring in FiniteFields:
+        from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing_finite_field
+        return SkewPolynomialRing_finite_field(base_ring, base_ring_automorphism, names, sparse)
     else:
-        R = sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
-    return R
+        from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing_general
+        return SkewPolynomialRing_general(base_ring, base_ring_automorphism, names, sparse)
