@@ -90,7 +90,7 @@ from .convert cimport (integer_to_gen, gen_to_integer,
 from .pari_instance cimport (prec_bits_to_words, prec_words_to_bits,
                              default_bitprec, get_var)
 from .pari_instance cimport _pari_instance as pari_instance
-from .stack cimport new_gen, new_gen_noclear, clear_stack
+from .stack cimport new_gen, new_gen_noclear, clear_stack, deepcopy_to_python_heap
 from .closure cimport objtoclosure
 
 
@@ -102,8 +102,31 @@ cdef class Gen(Gen_auto):
     """
     Cython extension class that models the PARI GEN type.
     """
-    def __init__(self):
-        raise RuntimeError("PARI objects cannot be instantiated directly; use pari(x) to convert x to PARI")
+    def __init__(self, obj):
+        """
+        TESTS::
+
+            sage: from sage.libs.cypari2 import Gen
+            sage: Gen(pari.zero())
+            0
+            sage: Gen(0)
+            0
+            sage: Gen(GF(2)(0))
+            Mod(0, 2)
+            sage: 1^Gen(1.5)   # indirect doctest
+            1.00000000000000
+        """
+        cdef Gen tmp
+        cdef pari_sp address
+
+        tmp = objtogen(obj)
+        if tmp is not None:
+            sig_on()
+            self.g = deepcopy_to_python_heap(tmp.g, &address)
+            self.b = address
+            clear_stack()
+        else:
+            raise ValueError("Cannot create PARI object")
 
     def __dealloc__(self):
         sig_free(<void*>self.b)
