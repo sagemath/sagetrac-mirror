@@ -4498,11 +4498,6 @@ class AlgebraicReal(AlgebraicNumber_base):
             1
             sage: ZZ(1)^AA(sqrt(5))
             1
-
-        ::
-
-            sage: s = sum(AA(i)^(1/i) for i in range(1, 20))
-            sage: (s/s)^4  # not tested -- this has to evaluate fast
         """
         descr = self._descr
         rational = isinstance(descr, ANRational)
