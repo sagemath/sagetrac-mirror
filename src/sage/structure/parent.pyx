@@ -2878,9 +2878,9 @@ cdef class Set_PythonType_class(Set_generic):
         if self is other:
             return 0
         if isinstance(other, Set_PythonType_class):
-            return cmp(self._type, other._type)
+            return 1
         else:
-            return cmp(self._type, other)
+            return 1
 
     def __contains__(self, x):
         """

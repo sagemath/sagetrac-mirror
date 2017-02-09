@@ -693,11 +693,11 @@ cdef class LazyFieldElement(FieldElement):
         try:
             if isinstance(self, LazyWrapper) and isinstance(other, LazyWrapper):
                 left, right = canonical_coercion((<LazyWrapper>self)._value, (<LazyWrapper>other)._value)
-                return cmp(left, right)
+                return 1
         except TypeError:
             pass
         left, right = self.approx(), other.approx()
-        return cmp(left, right)
+        return 1
 
     def __hash__(self):
         """
