@@ -308,7 +308,7 @@ and arbitrary objects for entries, one can make that association::
     sage: d[2]
     Moebius-Kantor Graph: Graph on 16 vertices
     sage: T = graphs.TetrahedralGraph()
-    sage: T.vertices()
+    sage: T.vertices(sort=False)
     [0, 1, 2, 3]
     sage: T.set_vertices(d)
     sage: T.get_vertex(1)
@@ -589,9 +589,9 @@ class Graph(GenericGraph):
 
         sage: g = Graph(5); g
         Graph on 5 vertices
-        sage: g.vertices()
+        sage: g.vertices(sort=False)
         [0, 1, 2, 3, 4]
-        sage: g.edges()
+        sage: g.edges(sort=False)
         []
 
     #. A dictionary of dictionaries::
@@ -623,7 +623,7 @@ class Graph(GenericGraph):
        ::
 
           sage: g=Graph([GF(13), lambda i,j: i!=j and (i-j).is_square()])
-          sage: g.vertices()
+          sage: g.vertices(sort=False)
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
           sage: g.adjacency_matrix()
           [0 1 0 1 1 0 0 0 0 1 1 0 1]
@@ -648,7 +648,7 @@ class Graph(GenericGraph):
           sage: line_graph=Graph([g.edges(labels=false), \
                  lambda i,j: len(set(i).intersection(set(j)))>0], \
                  loops=False)
-          sage: line_graph.vertices()
+          sage: line_graph.vertices(sort=False)
           [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
           sage: line_graph.adjacency_matrix()
           [0 1 1 1 1 0]
@@ -776,7 +776,7 @@ class Graph(GenericGraph):
             sage: M = Matrix([[1], [-1]]); M
             [ 1]
             [-1]
-            sage: Graph(M).edges()
+            sage: Graph(M).edges(sort=False)
             [(0, 1, None)]
 
     #.  A Seidel adjacency matrix::
@@ -826,16 +826,16 @@ class Graph(GenericGraph):
        the vertex attribute ``'name'``, if available::
 
            sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
-           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           sage: Graph(g).vertices(sort=False)                                                   # optional - python_igraph
            ['a', 'b', 'c']
            sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
-           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           sage: Graph(g).vertices(sort=False)                                                   # optional - python_igraph
            [0, 1, 2]
 
        If the igraph Graph has edge attributes, they are used as edge labels::
 
            sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
-           sage: Graph(g).edges()                                                               # optional - python_igraph
+           sage: Graph(g).edges(sort=False)                                                               # optional - python_igraph
            [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
 
@@ -904,7 +904,7 @@ class Graph(GenericGraph):
 
         sage: G = Graph([[1,2,3],[(1,2)]]); G
         Graph on 3 vertices
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(1, 2, None)]
     """
     _directed = False
@@ -980,7 +980,7 @@ class Graph(GenericGraph):
         Graphs returned when setting ``immutable=False`` are mutable::
 
             sage: g = graphs.PetersenGraph()
-            sage: g = Graph(g.edges(),immutable=False)
+            sage: g = Graph(g.edges(sort=False),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
 
         And their name is set::
@@ -1365,7 +1365,7 @@ class Graph(GenericGraph):
         if n > 262143:
             raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
         else:
-            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            v_to_int = {v:i for i,v in enumerate(self.vertex_iterator())}
             edges = [sorted((v_to_int[u],v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
             edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
@@ -1578,7 +1578,7 @@ class Graph(GenericGraph):
 
         if self.is_connected() and len(self):
             forest = Graph([])
-            forest.add_vertices(self.vertices())
+            forest.add_vertices(self.vertices(sort=False))
             forest.add_edges(self.bridges())
             return _recursive_spanning_trees(Graph(self,immutable=False,loops=False), forest)
         else:
@@ -1935,7 +1935,7 @@ class Graph(GenericGraph):
         vertex is the unique apex vertex ::
 
             sage: G = graphs.Grid2dGraph(4,4)
-            sage: G.apex_vertices() == G.vertices()
+            sage: G.apex_vertices() == G.vertices(sort=False)
             True
             sage: G.add_edges([('universal',v) for v in G.vertex_iterator()])
             sage: G.apex_vertices()
@@ -1997,7 +1997,7 @@ class Graph(GenericGraph):
 
         # Easy cases: null graph, subgraphs of K_5 and K_3,3
         if self.order() <= 5 or ( self.order() <= 6 and self.is_bipartite() ):
-            return self.vertices()[:k]
+            return self.vertices(sort=False)[:k]
 
 
         if not self.is_connected():
@@ -2008,7 +2008,7 @@ class Graph(GenericGraph):
 
             P = [H for H in self.connected_components_subgraphs() if not H.is_planar()]
             if not P: # The graph is planar
-                return self.vertices()[:k]
+                return self.vertices(sort=False)[:k]
             elif len(P) > 1:
                 return []
             else:
@@ -2017,7 +2017,7 @@ class Graph(GenericGraph):
 
         elif self.is_planar():
             # A planar graph is apex.
-            return self.vertices()[:k]
+            return self.vertices(sort=False)[:k]
 
         else:
             # We make a basic copy of the graph since we will modify it
@@ -2042,7 +2042,7 @@ class Graph(GenericGraph):
                         return list(apex)[:k]
                 continue
 
-            E = H.edges_incident(u, labels=0)
+            E = H.edges_incident(u, labels=0, sort=False)
             H.delete_vertex(u)
             if H.is_planar():
                 apex.add(u)
@@ -2754,7 +2754,7 @@ class Graph(GenericGraph):
 
         if k is not None and k >= g.order()-1:
             if certificate:
-                return Graph({sage.sets.set.Set(g.vertices()):[]},
+                return Graph({sage.sets.set.Set(g.vertices(sort=False)):[]},
                              name="Tree decomposition")
             return True
 
@@ -2848,7 +2848,7 @@ class Graph(GenericGraph):
             return False
 
         # Main call to rec function, i.e. rec({v},V-{v})
-        V = g.vertices()
+        V = g.vertices(sort=False)
         v = frozenset([V.pop(0)])
         TD = rec(v,frozenset(V))
 
@@ -2871,7 +2871,7 @@ class Graph(GenericGraph):
         changed = True
         while changed:
             changed=False
-            for v in G.vertices():
+            for v in G.vertices(sort=False):
                 for u in G.neighbors(v):
                     if u.issuperset(v):
                         G.merge_vertices([u,v]) # the new vertex is named 'u'
@@ -2979,7 +2979,7 @@ class Graph(GenericGraph):
             sage: g = Graph()
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
-            sage: g.edges()
+            sage: g.edges(sort=False)
             [(0, 0, None)]
             sage: g.is_perfect()
             Traceback (most recent call last):
@@ -3331,7 +3331,7 @@ class Graph(GenericGraph):
 
         for v in self:
             minimum,maximum = f_bounds(v)
-            p.add_constraint(p.sum( b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)), min=minimum, max=maximum)
+            p.add_constraint(p.sum( b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v, sort=False)), min=minimum, max=maximum)
 
         p.set_objective(p.sum( b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()))
 
@@ -3421,7 +3421,7 @@ class Graph(GenericGraph):
         seen[v] = i
 
         # indicates the stack of edges to explore
-        next_ = self.edges_incident(v)
+        next_ = self.edges_incident(v, sort=False)
 
         while next_:
             e = next_.pop(-1)
@@ -3431,7 +3431,7 @@ class Graph(GenericGraph):
             # If we discovered a new vertex
             if seen.get(e[1],False) is False:
                 d.add_edge(e)
-                next_.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
+                next_.extend([ee for ee in self.edges_incident(e[1], sort=False) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
                 i+=1
                 seen[e[1]]=i
 
@@ -3664,7 +3664,7 @@ class Graph(GenericGraph):
         if n == 0:
             return DiGraph()
 
-        vertices = self.vertices()
+        vertices = self.vertices(sort=False)
         vertices_id = dict((y, x) for x,y in enumerate(vertices))
 
         b = {}
@@ -3749,10 +3749,10 @@ class Graph(GenericGraph):
             sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
             sage: it = G.orientations()
             sage: D = next(it)
-            sage: D.edges()
+            sage: D.edges(sort=False)
             [(1, 2, 'a'), (1, 3, 'b')]
             sage: D = next(it)
-            sage: D.edges()
+            sage: D.edges(sort=False)
             [(1, 2, 'a'), (3, 1, 'b')]
 
         TESTS::
@@ -3817,8 +3817,8 @@ class Graph(GenericGraph):
 
         from itertools import product
         E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
-             for u,v,label in self.edges()]
-        verts = self.vertices()
+             for u,v,label in self.edges(sort=False)]
+        verts = self.vertices(sort=False)
         for edges in product(*E):
             D = DiGraph(data=[verts, edges],
                         format='vertices_and_edges',
@@ -4127,7 +4127,7 @@ class Graph(GenericGraph):
             R = ZZ
         p = SymmetricFunctions(R).p()
         ret = p.zero()
-        for F in powerset(self.edges()):
+        for F in powerset(self.edges(sort=False)):
             la = _Partitions(self.subgraph(edges=F).connected_components_sizes())
             ret += (-1)**len(F) * p[la]
         return ret
@@ -4227,7 +4227,7 @@ class Graph(GenericGraph):
             R = t.parent()
         M = QuasiSymmetricFunctions(R).M()
         ret = M.zero()
-        V = self.vertices()
+        V = self.vertices(sort=False)
         def asc(sigma):
             stat = 0
             for i, s in enumerate(sigma):
@@ -4260,9 +4260,9 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
+            \mbox{Maximize : }&\sum_{e\in G.edges(sort=False)} w_e b_e\\
             \mbox{Such that : }&\forall v \in G,
-            \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            \sum_{(u,v)\in G.edges(sort=False)} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
@@ -4406,7 +4406,7 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbose)
                 b = p.get_values(b)
-                return [(u, v, w) for u, v, w in g.edges()
+                return [(u, v, w) for u, v, w in g.edges(sort=False)
                         if b[min(u, v), max(u, v)] == 1]
 
         else:
@@ -4753,7 +4753,7 @@ class Graph(GenericGraph):
         Returns an independent set of representatives.
 
         Given a graph `G` and a family `F=\{F_i:i\in [1,...,k]\}` of
-        subsets of ``g.vertices()``, an Independent Set of Representatives
+        subsets of ``g.vertices(sort=False)``, an Independent Set of Representatives
         (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
         such that `v_i != v_j` if `i<j` (they are representatives) and the
         set `\cup_{i}v_i` is an independent set in `G`.
@@ -4765,7 +4765,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``family`` -- A list of lists defining the family `F`
-          (actually, a Family of subsets of ``G.vertices()``).
+          (actually, a Family of subsets of ``G.vertices(sort=False)``).
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5247,13 +5247,13 @@ class Graph(GenericGraph):
             sage: H = Graph(2)
             sage: J = G.join(H); J
             Cycle graph join : Graph on 5 vertices
-            sage: J.vertices()
+            sage: J.vertices(sort=False)
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
             sage: J = G.join(H, labels='integers'); J
             Cycle graph join : Graph on 5 vertices
-            sage: J.vertices()
+            sage: J.vertices(sort=False)
             [0, 1, 2, 3, 4]
-            sage: J.edges()
+            sage: J.edges(sort=False)
             [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None), (1, 2, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
 
         ::
@@ -5264,11 +5264,11 @@ class Graph(GenericGraph):
             sage: H.name("Graph on 2 vertices")
             sage: J = G.join(H); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
-            sage: J.vertices()
+            sage: J.vertices(sort=False)
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
             sage: J = G.join(H, labels='integers'); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
-            sage: J.edges()
+            sage: J.edges(sort=False)
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
         if verbose_relabel is not None:
@@ -5283,8 +5283,8 @@ class Graph(GenericGraph):
             G.add_edges((u,v) for u in range(self.order())
                         for v in range(self.order(), self.order()+other.order()))
         else:
-            G.add_edges(((0,u), (1,v)) for u in self.vertices()
-                        for v in other.vertices())
+            G.add_edges(((0,u), (1,v)) for u in self.vertices(sort=False)
+                        for v in other.vertices(sort=False))
 
         G.name('%s join %s'%(self.name(), other.name()))
 
@@ -5426,7 +5426,7 @@ class Graph(GenericGraph):
                 T.append([x,y,z])
 
         T = TwoGraph(T)
-        T.relabel({i:v for i,v in enumerate(self.vertices())})
+        T.relabel({i:v for i,v in enumerate(self.vertex_iterator())})
 
         return T
 
@@ -5462,7 +5462,7 @@ class Graph(GenericGraph):
         if filename[-4:] != '.eps':
             filename += '.eps'
         f = open(filename, 'w')
-        f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
+        f.write( print_graph_eps(self.vertices(sort=False), self.edge_iterator(), pos) )
         f.close()
 
     @doc_index("Algorithmically hard stuff")
@@ -6133,7 +6133,7 @@ class Graph(GenericGraph):
         if value_only:
             return self.order() - my_cover
         else:
-            return [u for u in self.vertices() if not u in my_cover]
+            return [u for u in self.vertices(sort=False) if not u in my_cover]
 
 
     @doc_index("Algorithmically hard stuff")
@@ -6155,7 +6155,7 @@ class Graph(GenericGraph):
         .. MATH::
 
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
-            \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
+            \mbox{Such that : }&\forall (u,v) \in G.edges(sort=False), b_u+b_v\geq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
@@ -6376,7 +6376,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g.vertices() if not u in independent]
+                cover_g = [u for u in g.vertices(sort=False) if not u in independent]
 
         elif algorithm == "MILP":
 
@@ -6385,7 +6385,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum(b[v] for v in g.vertices()))
+            p.set_objective(p.sum(b[v] for v in g.vertices(sort=False)))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -6396,7 +6396,7 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g.vertices() if b[v] == 1]
+                cover_g = [v for v in g.vertices(sort=False) if b[v] == 1]
         else:
             raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
 
@@ -6911,7 +6911,7 @@ class Graph(GenericGraph):
         
         D = modular_decomposition(self)
 
-        id_label = dict(enumerate(self.vertices()))
+        id_label = dict(enumerate(self.vertex_iterator()))
 
         relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
 
@@ -6985,7 +6985,7 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree(frozenset(g.vertices()))
+            sage: t = g._gomory_hu_tree(frozenset(g.vertices(sort=False)))
         """
         self._scream_if_not_simple()
 
@@ -7098,7 +7098,7 @@ class Graph(GenericGraph):
         On the other hand, such a tree has lost nothing of the initial
         graph connectedness::
 
-            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ])
+            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(sort=False), 2 ) ])
             True
 
         Just to make sure, we can check that the same is true for two vertices
@@ -7136,9 +7136,9 @@ class Graph(GenericGraph):
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
-                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()), algorithm=algorithm))
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices(sort=False)), algorithm=algorithm))
         else:
-            g = self._gomory_hu_tree(frozenset(self.vertices()), algorithm=algorithm)
+            g = self._gomory_hu_tree(frozenset(self.vertices(sort=False)), algorithm=algorithm)
 
         if self.get_pos() is not None:
             g.set_pos(dict(self.get_pos()))
@@ -7299,7 +7299,7 @@ class Graph(GenericGraph):
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        edges = self.edges()
+        edges = self.edges(sort=False)
         cycles = self.cycle_basis(output='edge')
 
         edge2int = {e: j for j, e in enumerate(edges)}
@@ -7459,7 +7459,7 @@ class Graph(GenericGraph):
         from sage.matrix.constructor import matrix
 
         H = self.subgraph(vertices=self.cores(k=2)[1])
-        E = H.edges()
+        E = H.edges(sort=False)
         m = len(E)
         # compute (Hashimoto) edge matrix T
         T = matrix(ZZ, 2 * m, 2 * m, 0)
@@ -7543,7 +7543,7 @@ class Graph(GenericGraph):
         # if every connected component has an even number of vertices
         if all(len(cc) % 2 == 0 for cc in self.connected_components()):
             v = next(self.vertex_iterator())
-            for e in self.edges_incident(v, labels=labels):
+            for e in self.edges_incident(v, labels=labels, sort=False):
                 Gp = self.copy(immutable=False)
                 Gp.delete_vertices([e[0], e[1]])
                 for mat in Gp.perfect_matchings(labels):

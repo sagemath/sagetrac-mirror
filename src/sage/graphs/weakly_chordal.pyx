@@ -431,7 +431,7 @@ def is_weakly_chordal(g, certificate = False):
         sage: r,s = g.is_weakly_chordal(certificate = True)
         sage: r
         False
-        sage: l = len(s.vertices())
+        sage: l = len(s.vertices(sort=False))
         sage: s.is_isomorphic( graphs.CycleGraph(l) )
         True
 

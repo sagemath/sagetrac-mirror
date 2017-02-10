@@ -62,7 +62,7 @@ from the smaller of the two and its complement.
     sage: tree.has_edge(u,v)
     True
     sage: m = min(u,v)
-    sage: bipartition = (m, Set(g.vertices()) - m)
+    sage: bipartition = (m, Set(g.vertices(sort=False)) - m)
     sage: bipartition
     ({8, 9}, {0, 1, 2, 3, 4, 5, 6, 7})
 
@@ -243,7 +243,7 @@ cdef int sage_graph_to_matrix(G):
     memset(adjacency_matrix, 0, sizeof(subset_t) * num_vertices)
 
     # Initializing the lists of vertices
-    for i,v in enumerate(G.vertices()):
+    for i,v in enumerate(G.vertex_iterator()):
         id_to_vertices.append(v)
         vertices_to_id[v] = i
 

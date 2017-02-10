@@ -185,7 +185,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         self._labels = tuple([x[2] for x in self._sorted_edges])
         self._label_index = {s[2]: i for i,s in enumerate(self._sorted_edges)}
         self._nb_arrows = max(len(self._sorted_edges), 1)
-        names = ['e_{0}'.format(v) for v in Q.vertices()] + list(self._labels)
+        names = ['e_{0}'.format(v) for v in Q.vertices(sort=False)] + list(self._labels)
         self._quiver = Q
         if Q.num_verts() == 1:
             cat = cat.join([cat,Monoids()])
@@ -374,9 +374,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if check:
             Q = self._quiver
             if start is None or start not in Q:
-                raise ValueError("Startpoint {} should belong to {}".format(start, Q.vertices()))
+                raise ValueError("Startpoint {} should belong to {}".format(start, Q.vertices(sort=False)))
             if end is None or end not in Q:
-                raise ValueError("Endpoint {} should belong to {}".format(end, Q.vertices()))
+                raise ValueError("Endpoint {} should belong to {}".format(end, Q.vertices(sort=False)))
             if not path:
                 if start != end:
                     raise ValueError("Start and endpoint of a path of length 0 must coincide")
@@ -423,7 +423,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.idempotents()
             (e_1, e_2, e_3)
         """
-        return tuple(self.element_class(self, v,v, []) for v in self._quiver.vertices())
+        return tuple(self.element_class(self, v,v, []) for v in self._quiver.vertices(sort=False))
 
     def ngens(self):
         """
@@ -606,7 +606,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         length_d_available = True
         while length_d_available:
             length_d_available = False
-            for v in self._quiver.vertices():
+            for v in self._quiver.vertices(sort=False):
                 for w in self.iter_paths_by_length_and_startpoint(d,v):
                     length_d_available = True
                     yield w

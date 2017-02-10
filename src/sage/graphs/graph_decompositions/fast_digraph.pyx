@@ -44,7 +44,7 @@ cdef class FastDigraph:
         # When the vertices are not consecutive integers
         cdef dict vertices_to_int = {}
         self.int_to_vertices = {}
-        for i,v in enumerate(D.vertices()):
+        for i,v in enumerate(D.vertex_iterator()):
             vertices_to_int[v] = i
             self.int_to_vertices[i] = v
 

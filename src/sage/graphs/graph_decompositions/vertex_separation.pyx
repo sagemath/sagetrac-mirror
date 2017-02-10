@@ -405,9 +405,9 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         1
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()
+        sage: sorted(h.vertices(sort=False))
         [{3, 4}, {0, 1}, {2, 3}, {1, 2}]
-        sage: h.edges(labels=None)
+        sage: sorted(h.edges(labels=None))
         [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
 
     Giving a non-optimal linear ordering::
@@ -418,7 +418,7 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: width_of_path_decomposition(g, L)
         3
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()
+        sage: h.vertices(sort=False)
         [{0, 2, 3, 4}, {0, 1, 2}]
         
     The bags of the path decomposition of a cycle have three vertices each::
@@ -427,7 +427,7 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         2
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()
+        sage: sorted(h.vertices(sort=False))
         [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
         sage: h.edges(labels=None)
         [({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5}), ({2, 4, 5}, {2, 3, 4})]
@@ -544,7 +544,7 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         sage: g.pathwidth()
         2
         sage: pw, decomp = g.pathwidth(certificate=True)
-        sage: decomp.vertices()
+        sage: sorted(decomp.vertices(sort=False))
         [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
 
     The pathwidth of a Petersen graph is 5::
@@ -1099,7 +1099,7 @@ def is_valid_ordering(G, L):
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: G = graphs.CycleGraph(6)
-        sage: L = [u for u in G.vertices()]
+        sage: L = [u for u in G.vertices(sort=False)]
         sage: vertex_separation.is_valid_ordering(G, L)
         True
         sage: vertex_separation.is_valid_ordering(G, [1,2])
@@ -1131,7 +1131,7 @@ def is_valid_ordering(G, L):
     if not isinstance(L, list):
         raise ValueError("The second parameter must be of type 'list'.")
 
-    return set(L) == set(G.vertices())
+    return set(L) == set(G.vertices(sort=False))
 
 
 ####################################################################
@@ -1167,7 +1167,7 @@ def width_of_path_decomposition(G, L):
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: G = graphs.CycleGraph(6)
-        sage: L = [u for u in G.vertices()]
+        sage: L = [u for u in G.vertices(sort=False)]
         sage: vertex_separation.width_of_path_decomposition(G, L)
         2
 
@@ -1175,7 +1175,7 @@ def width_of_path_decomposition(G, L):
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: G = digraphs.Circuit(6)
-        sage: L = [u for u in G.vertices()]
+        sage: L = [u for u in G.vertices(sort=False)]
         sage: vertex_separation.width_of_path_decomposition(G, L)
         1
 
@@ -1344,7 +1344,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.num_verts()
-    V = G.vertices()
+    V = G.vertices(sort=False)
     neighbors_out = G.neighbors_out if G.is_directed() else G.neighbors
 
     # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2

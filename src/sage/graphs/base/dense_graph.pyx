@@ -601,7 +601,7 @@ def _test_adjacency_sequence_out():
     randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
     n = randg.order()
     cdef DenseGraph g = DenseGraph(n,
-                                   verts=randg.vertices(),
+                                   verts=randg.vertices(sort=False),
                                    arcs=randg.edges(labels=False))
     assert g.num_verts == randg.order(), (
         "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
@@ -656,7 +656,7 @@ cdef class DenseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: G.vertices()
+        sage: sorted(G.vertices(sort=False))
         [0,
         ...
          29,

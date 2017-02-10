@@ -1629,7 +1629,7 @@ class GraphLatex(SageObject):
         # We record the index of each vertex in the graph's list of vertices
         # Which is just a convenience for forming vertex names internal to tkz-graph
         index_of_vertex = {}
-        vertex_list = self._graph.vertices()
+        vertex_list = self._graph.vertices(sort=False)
         for u in self._graph:
             index_of_vertex[u] = vertex_list.index(u)
 
@@ -1765,7 +1765,7 @@ class GraphLatex(SageObject):
                 el_slope = {}
                 el_placement = {}
 
-            for e in self._graph.edges():
+            for e in self._graph.edges(sort=False):
                 edge = (e[0], e[1])
                 reverse = (e[1], e[0])
                 #
@@ -1880,7 +1880,7 @@ class GraphLatex(SageObject):
             edge_color_names = {}
             edge_fill_color_names = {}
             edge_label_color_names = {}
-            for e in self._graph.edges():
+            for e in self._graph.edges(sort=False):
                 edge = (e[0], e[1])
                 edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
                 s += ['\definecolor{', edge_color_names[edge], '}{rgb}{']
@@ -1943,7 +1943,7 @@ class GraphLatex(SageObject):
         s += ['%\n']
 
         # Create each edge or loop
-        for e in self._graph.edges():
+        for e in self._graph.edges(sort=False):
             edge = (e[0], e[1])
             loop = e[0] == e[1]
             if loop:

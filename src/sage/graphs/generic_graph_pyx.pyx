@@ -125,7 +125,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
                                         **options)
 
     G = G.to_undirected()
-    vlist = G.vertices() # this defines a consistent order
+    vlist = G.vertices(sort=False) # this defines a consistent order
 
     cdef int i, j, x
     cdef int n = G.order()
@@ -149,7 +149,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     # where elist[2*i], elist[2*i+1] represents the i-th edge
     cdef int* elist
     try:
-        elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
+        elist = <int*>check_allocarray(2 * len(G.edges(sort=False)) + 2, sizeof(int))
     except MemoryError:
         sig_free(pos)
         raise
@@ -683,7 +683,7 @@ cdef class SubgraphSearch:
         self.nh = H.order()
 
         # Storing the list of vertices
-        self.g_vertices = G.vertices()
+        self.g_vertices = G.vertices(sort=False)
 
         # Are the graphs directed (in __init__(), we check
         # whether both are of the same type)
@@ -1189,7 +1189,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if n == 0:
         return False, []
     if n == 1:
-        return False, G.vertices()
+        return False, G.vertices(sort=False)
 
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
@@ -1197,7 +1197,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if G.is_clique():
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
-        return find_path or n >= 3, G.vertices()
+        return find_path or n >= 3, G.vertices(sort=False)
 
     cdef list best_path, p
     if not G.is_connected():
@@ -1354,7 +1354,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
                 done = has_edge(sd, path[n-1], path[0] ) != NULL
 
         if bigcount * reset_bound > max_iter:
-            verts = G.vertices()
+            verts = G.vertices(sort=False)
             output = [verts[ longest_path[i] ] for i in range(longest)]
             free_short_digraph(sd)
             return (False, output)
@@ -1375,7 +1375,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if not find_path and has_edge(sd, path[0], path[n-1] ) == NULL:
         raise RuntimeError('vertices %d and %d are not adjacent' % (path[0], path[n-1]))
 
-    verts = G.vertices()
+    verts = G.vertices(sort=False)
     output = [verts[path[i]] for i in range(length)]
     free_short_digraph(sd)
 
@@ -1397,7 +1397,7 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertex_iterator())}
     cdef int  u, v, i
 
     cdef list linear_extension

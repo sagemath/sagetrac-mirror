@@ -2606,7 +2606,7 @@ def SRG_126_50_13_24():
     from sage.graphs.strongly_regular_db import SRG_175_72_20_36
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
-    s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
+    s = set(hs.vertex_iterator()).difference(hs.neighbors(0)+[0])
     return SRG_175_72_20_36().subgraph(hs.edge_boundary(s,s))
 
 

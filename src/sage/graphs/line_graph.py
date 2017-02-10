@@ -300,14 +300,14 @@ def line_graph(self, labels=True):
 
         sage: g = graphs.CompleteGraph(4)
         sage: h = g.line_graph()
-        sage: h.vertices()
+        sage: V = sorted(h.vertices(sort=False)); V
         [(0, 1, None),
         (0, 2, None),
         (0, 3, None),
         (1, 2, None),
         (1, 3, None),
         (2, 3, None)]
-        sage: h.am()
+        sage: h.am(vertices=V)
         [0 1 1 1 1 0]
         [1 0 1 1 0 1]
         [1 1 0 0 1 1]
@@ -315,20 +315,20 @@ def line_graph(self, labels=True):
         [1 0 1 1 0 1]
         [0 1 1 1 1 0]
         sage: h2 = g.line_graph(labels=False)
-        sage: h2.vertices()
+        sage: V2 = sorted(h2.vertices(sort=False)); V2
         [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-        sage: h2.am() == h.am()
+        sage: h2.am(vertices=V2) == h.am(vertices=V)
         True
         sage: g = DiGraph([[1..4],lambda i,j: i<j])
         sage: h = g.line_graph()
-        sage: h.vertices()
+        sage: sorted(h.vertices(sort=False))
         [(1, 2, None),
         (1, 3, None),
         (1, 4, None),
         (2, 3, None),
         (2, 4, None),
         (3, 4, None)]
-        sage: h.edges()
+        sage: sorted(h.edges(sort=False))
         [((1, 2, None), (2, 3, None), None),
          ((1, 2, None), (2, 4, None), None),
          ((1, 3, None), (3, 4, None), None),

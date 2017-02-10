@@ -92,7 +92,7 @@ def KneserGraph(n,k):
     EXAMPLE::
 
         sage: KG=graphs.KneserGraph(5,2)
-        sage: print(KG.vertices())
+        sage: print(KG.vertices(sort=False))
         [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
         sage: P=graphs.PetersenGraph()
         sage: P.is_isomorphic(KG)
@@ -483,9 +483,9 @@ def chang_graphs():
 
         sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
         sage: c8=graphs.CycleGraph(8)
-        sage: s=[K8.subgraph_search(c8).edges(),
+        sage: s=[K8.subgraph_search(c8).edges(sort=False),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
-        ....:    K8.subgraph_search(c3c5).edges()]
+        ....:    K8.subgraph_search(c3c5).edges(sort=False)]
         sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
         ....:                  s, chang_graphs))
         [True, True, True]
@@ -1406,21 +1406,21 @@ def MycielskiStep(g):
     gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
-    renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
+    renamer = dict( [ (v, (1,v)) for v in g.vertices(sort=False) ] )
     gg.relabel(renamer)
 
     # add the w vertices to gg as (2,v)
-    wlist = [ (2,v) for v in g.vertices() ]
+    wlist = [ (2,v) for v in g.vertices(sort=False) ]
     gg.add_vertices(wlist)
 
     # add the z vertex as (0,0)
     gg.add_vertex((0,0))
 
     # add the edges from z to w_i
-    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
+    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices(sort=False) ] )
 
     # make the v_i w_j edges
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
 
     return gg
@@ -1556,7 +1556,7 @@ def OddGraph(n):
     EXAMPLE::
 
         sage: OG=graphs.OddGraph(3)
-        sage: print(OG.vertices())
+        sage: print(OG.vertices(sort=False))
         [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
         sage: P=graphs.PetersenGraph()
         sage: P.is_isomorphic(OG)
@@ -2228,7 +2228,7 @@ def SierpinskiGasketGraph(n):
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
     dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
-                for (x, y) in dg.vertices()})
+                for (x, y) in dg.vertices(sort=False)})
     dg.relabel()
     return dg
 
@@ -2382,7 +2382,7 @@ def RingedTree(k, vertex_labels = True):
         sage: G = graphs.RingedTree(5)
         sage: P = G.plot(vertex_labels=False, vertex_size=10)
         sage: P.show() # long time
-        sage: G.vertices()
+        sage: G.vertices(sort=False)
         ['', '0', '00', '000', '0000', '0001', '001', '0010', '0011', '01',
          '010', '0100', '0101', '011', '0110', '0111', '1', '10', '100',
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
@@ -2395,7 +2395,7 @@ def RingedTree(k, vertex_labels = True):
         ...
         ValueError: The number of levels must be >= 1.
         sage: G = graphs.RingedTree(5, vertex_labels = False)
-        sage: G.vertices()
+        sage: G.vertices(sort=False)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
@@ -2830,7 +2830,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
     L = CompleteGraph(m)
     L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
-    L_i = [L.edges_incident(x, labels=False) for x in range(m)]
+    L_i = [L.edges_incident(x, labels=False, sort=False) for x in range(m)]
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()
     atInf = projBlocks[-1]

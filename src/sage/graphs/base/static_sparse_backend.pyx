@@ -365,11 +365,11 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             sage: g=DiGraph(digraphs.DeBruijn(4,3),data_structure="static_sparse")
             sage: gi=DiGraph(g,data_structure="static_sparse")
-            sage: gi.edges()[0]
+            sage: sorted(gi.edges(sort=False))[0]
             ('000', '000', '0')
-            sage: gi.edges_incident('111')
+            sage: sorted(gi.edges_incident('111', sort=False))
             [('111', '110', '0'), ('111', '111', '1'), ('111', '112', '2'), ('111', '113', '3')]
-            sage: sorted(g.edges()) == sorted(gi.edges())
+            sage: sorted(g.edges(sort=False)) == sorted(gi.edges(sort=False))
             True
 
         ::
@@ -378,13 +378,13 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: gi=Graph(g,data_structure="static_sparse")
             sage: g == gi
             True
-            sage: sorted(g.edges()) == sorted(gi.edges())
+            sage: sorted(g.edges(sort=False)) == sorted(gi.edges())
             True
 
         ::
 
             sage: gi = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, data_structure="static_sparse")
-            sage: (0,4,2) in gi.edges()
+            sage: (0,4,2) in gi.edges(sort=False)
             True
             sage: gi.has_edge(0,4)
             True
@@ -402,7 +402,7 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: d = G.diameter()
             sage: H = G.distance_graph(list(range(d+1)))
             sage: HI = Graph(H,data_structure="static_sparse")
-            sage: HI.size() == len(HI.edges())
+            sage: HI.size() == len(HI.edges(sort=False))
             True
 
         ::
@@ -412,9 +412,9 @@ cdef class StaticSparseBackend(CGraphBackend):
             3
             sage: g.order()
             1
-            sage: g.vertices()
+            sage: g.vertices(sort=False)
             [1]
-            sage: g.edges()
+            sage: g.edges(sort=False)
             [(1, 1, 1), (1, 1, 2), (1, 1, 3)]
 
         :trac:`15810` is fixed::
@@ -427,7 +427,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         self._directed = cg._directed
 
-        vertices = G.vertices()
+        vertices = G.vertices(sort=False)
         self._order = len(vertices)
 
         # Does it allow loops/multiedges ?
@@ -792,7 +792,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             sage: g=digraphs.RandomDirectedGNP(10,.3)
             sage: gi=DiGraph(g,data_structure="static_sparse")
-            sage: gi.size() == len(gi.edges())
+            sage: gi.size() == len(gi.edges(sort=False))
             True
         """
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> self._cg
@@ -837,7 +837,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         :trac:`15665`::
 
-            sage: Graph(immutable=True).edges()
+            sage: Graph(immutable=True).edges(sort=False)
             []
         """
         cdef FrozenBitset b_vertices

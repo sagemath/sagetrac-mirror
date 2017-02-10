@@ -52,7 +52,7 @@ def graph_to_js(g):
     vertex_list = g.get_vertices().keys()
     string += 'num_vertices=' + str(len(vertex_list)) + ';'
     string += 'edges=['
-    for i, e in enumerate(g.edges()):
+    for i, e in enumerate(g.edge_iterator()):
         if(i != 0):
             string += ','
         string += '[' + str(vertex_list.index(e[0])) + ',' + str(vertex_list.index(e[1])) + ']'

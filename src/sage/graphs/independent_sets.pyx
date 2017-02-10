@@ -178,7 +178,7 @@ cdef class IndependentSets:
         cdef int i
 
         # Map from Vertex to Integer, and from Integer to Vertex
-        self.vertices = G.vertices()
+        self.vertices = G.vertices(sort=False)
         self.n = G.order()
         self.maximal = maximal
         self.vertex_to_int = dense_graph_init(self.g, G, translation = True)
@@ -351,17 +351,17 @@ cdef class IndependentSets:
 
         And only them are::
 
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G.vertices(sort=False)) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
 
         Same with maximal independent sets::
 
             sage: IS = IndependentSets(graphs.PetersenGraph(), maximal = True)
-            sage: S = Subsets(G.vertices())
+            sage: S = Subsets(G.vertices(sort=False))
             sage: all(s in IS for s in IS)
             True
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G.vertices(sort=False)) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
         """

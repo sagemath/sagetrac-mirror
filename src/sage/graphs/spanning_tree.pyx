@@ -260,7 +260,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     If the input graph is a tree, then return its edges. ::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: T.edges() == kruskal(T, check=True)  # long time
+        sage: T.edges(sort=False) == kruskal(T, check=True)  # long time
         True
 
     If the input is not a Graph::
@@ -288,7 +288,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            return G.edges()
+            return G.edges(sort=False)
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
@@ -298,11 +298,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     if wfunction is None:
         if g.weighted():
             from operator import itemgetter
-            sortedE_iter = iter(sorted(g.edges(), key=itemgetter(2)))
+            sortedE_iter = iter(sorted(g.edges(sort=False), key=itemgetter(2)))
         else:
-            sortedE_iter = iter(sorted(g.edges()))
+            sortedE_iter = iter(sorted(g.edges(sort=False)))
     else:
-        sortedE_iter = iter(sorted(g.edges(), key=wfunction))
+        sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
 
 
     # Kruskal's algorithm

@@ -170,8 +170,8 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
     if n == 0: return
     if n < 0: raise ValueError("n must be non-negative.")
 
-    V = G.vertices()
-    E = G.edges()
+    V = G.vertices(sort=False)
+    E = G.edges(sort=False)
 
     nV=len(V)
     nE=len(E)
@@ -414,9 +414,9 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
             if value_only:
                 return 1
             elif hex_colors:
-                return {rainbow(1)[0]: g.vertices()}
+                return {rainbow(1)[0]: g.vertices(sort=False)}
             else:
-                return [g.vertices()]
+                return [g.vertices(sort=False)]
         # - Bipartite set
         if g.is_bipartite():
             if value_only:
@@ -489,7 +489,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
         # Vertices whose degree is less than k are of no importance in
         # the coloring.
         if min(g.degree()) < k:
-            vertices = set(g.vertices())
+            vertices = set(g.vertices(sort=False))
             deg = []
             tmp = [v for v in vertices if g.degree(v) < k]
             while len(tmp) > 0:
@@ -525,7 +525,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
         color = p.new_variable(binary = True)
 
         # a vertex has exactly one color
-        for v in g.vertices():
+        for v in g.vertices(sort=False):
             p.add_constraint(p.sum([color[v,i] for i in range(k)]), min=1, max=1)
 
         # adjacent vertices have different colors
@@ -550,7 +550,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
         # builds the color classes
         classes = [[] for i in range(k)]
 
-        for v in g.vertices():
+        for v in g.vertices(sort=False):
             for i in range(k):
                 if color[v,i] == 1:
                     classes[i].append(v)
@@ -843,7 +843,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
     is_used = p.new_variable(binary = True)
 
     # Each vertex is in exactly one class
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         p.add_constraint(p.sum(color[v,i] for i in range(k)), min=1, max=1)
 
     # Adjacent vertices have distinct colors
@@ -855,7 +855,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
     # then it has a neighbor colored j for every j != i
 
 
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         for i in classes:
             for j in classes:
                 if j != i:
@@ -871,17 +871,17 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     #if color i is used, there is a vertex colored i
     for i in classes:
-        p.add_constraint(p.sum(color[v,i] for v in g.vertices()) - is_used[i], min = 0)
+        p.add_constraint(p.sum(color[v,i] for v in g.vertices(sort=False)) - is_used[i], min = 0)
 
     #if there is a vertex colored with color i, then i is used
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         for i in classes:
             p.add_constraint(color[v,i] - is_used[i], max = 0)
 
 
     #a color class is used if and only if it has one b-vertex
     for i in classes:
-       p.add_constraint(p.sum(b[w,i] for w in g.vertices()) - is_used[i], min = 0, max = 0)
+       p.add_constraint(p.sum(b[w,i] for w in g.vertices(sort=False)) - is_used[i], min = 0, max = 0)
 
 
     #We want to maximize the number of used colors
@@ -1002,7 +1002,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     if g.is_clique():
         if value_only:
             return g.order()-1 if g.order() % 2 == 0 else g.order()
-        vertices = g.vertices()
+        vertices = g.vertices(sort=False)
         r = round_robin(g.order())
         classes = [[] for v in g]
         if g.order() % 2 == 0 and not vizing:
@@ -1029,7 +1029,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
         k += 1
     #  A vertex can not have two incident edges with the same color.
     [p.add_constraint(
-            p.sum([color[R(e),i] for e in g.edges_incident(v, labels=False)]), max=1)
+            p.sum([color[R(e),i] for e in g.edges_incident(v, labels=False, sort=False)]), max=1)
                 for v in g.vertex_iterator()
                     for i in range(k)]
     # an edge must have a color
@@ -1092,12 +1092,12 @@ def round_robin(n):
     EXAMPLES::
 
         sage: from sage.graphs.graph_coloring import round_robin
-        sage: round_robin(3).edges()
+        sage: round_robin(3).edges(sort=False)
         [(0, 1, 2), (0, 2, 1), (1, 2, 0)]
 
     ::
 
-        sage: round_robin(4).edges()
+        sage: round_robin(4).edges(sort=False)
         [(0, 1, 2), (0, 2, 1), (0, 3, 0), (1, 2, 0), (1, 3, 1), (2, 3, 2)]
 
 
@@ -1107,7 +1107,7 @@ def round_robin(n):
     ::
 
         sage: g = round_robin(9)
-        sage: sum([Set([e[2] for e in g.edges_incident(v)]).cardinality() for v in g]) == 2*g.size()
+        sage: sum([Set([e[2] for e in g.edges_incident(v, sort=False)]).cardinality() for v in g]) == 2*g.size()
         True
         sage: Set([e[2] for e in g.edge_iterator()]).cardinality()
         9
@@ -1115,7 +1115,7 @@ def round_robin(n):
     ::
 
         sage: g = round_robin(10)
-        sage: sum([Set([e[2] for e in g.edges_incident(v)]).cardinality() for v in g]) == 2*g.size()
+        sage: sum([Set([e[2] for e in g.edges_incident(v, sort=False)]).cardinality() for v in g]) == 2*g.size()
         True
         sage: Set([e[2] for e in g.edge_iterator()]).cardinality()
         9
@@ -1283,7 +1283,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
 
         # Maximum degree 2
-        for u in g.vertices():
+        for u in g.vertices(sort=False):
             p.add_constraint(p.sum([c[i,E(u,v)] for v in g.neighbors(u)]),max = 2)
 
             # no cycles
@@ -1311,7 +1311,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
             return answer[i].append(uv)
     else:
         gg = copy(g)
-        gg.delete_edges(g.edges())
+        gg.delete_edges(g.edges(sort=False))
         answer = [copy(gg) for i in range(k)]
         def add(uv, i):
             return answer[i].add_edge(uv)
@@ -1484,12 +1484,12 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     for i in range(k):
 
         # Maximum degree 1
-        for u in g.vertices():
+        for u in g.vertices(sort=False):
             p.add_constraint(p.sum([c[i,E(u,v)] for v in g.neighbors(u)]),max = 1)
 
     for i,j in Subsets(range(k),2):
         # r is greater than c
-        for u in g.vertices():
+        for u in g.vertices(sort=False):
             p.add_constraint(p.sum([r[(i,j),(u,v)] for v in g.neighbors(u)]),max = MAD)
 
         # r greater than c
@@ -1518,7 +1518,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
             return answer[i].append(uv)
     else:
         gg = copy(g)
-        gg.delete_edges(g.edges())
+        gg.delete_edges(g.edges(sort=False))
         answer = [copy(gg) for i in range(k)]
         def add(uv, i):
             return answer[i].add_edge(uv)

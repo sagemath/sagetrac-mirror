@@ -80,7 +80,7 @@ cdef extern from "tdlib/sage_tdlib.cpp":
 #between Sage graph encoding and BGL graph encoding.
 
 cdef make_tdlib_graph(G, vector[unsigned int] &V, vector[unsigned int] &E):
-    for v in G.vertices():
+    for v in G.vertices(sort=False):
         V.push_back(v)
 
     for u,v in G.edges(labels=False):
@@ -139,7 +139,7 @@ def treedecomposition_exact(G, lb=-1):
     cdef vector[unsigned int] V_G, E_G, E_T
     cdef vector[vector[int]] V_T
 
-    V = G.vertices()
+    V = G.vertices(sort=False)
     G_int = G.relabel(inplace=False)
 
     make_tdlib_graph(G_int, V_G, E_G)

@@ -195,7 +195,7 @@ def gen_html_code(G,
     multiple_edges = G.has_multiple_edges()
 
     # Associated an integer to each vertex
-    v_to_id = {v: i for i, v in enumerate(G.vertices())}
+    v_to_id = {v: i for i, v in enumerate(G.vertex_iterator())}
 
     # Vertex colors
     if vertex_colors is not None:
@@ -207,7 +207,7 @@ def gen_html_code(G,
 
     # Vertex list
     nodes = []
-    for v in G.vertices():
+    for v in G.vertices(sort=False):
         nodes.append({"name": str(v), "group": str(color[v_to_id[v]])})
 
     # Edge colors.
@@ -225,7 +225,7 @@ def gen_html_code(G,
     edges = []
     seen = {}  # How many times has this edge been seen ?
 
-    for u, v, l in G.edges():
+    for u, v, l in G.edges(sort=False):
 
         # Edge color
         color = edge_color.get((u, v, l), edge_color_default)
@@ -276,7 +276,7 @@ def gen_html_code(G,
         link_strength = 0
         gravity = 0
 
-        for v in G.vertices():
+        for v in G.vertices(sort=False):
             x, y = Gpos[v]
             pos.append([float(x), float(-y)])
 

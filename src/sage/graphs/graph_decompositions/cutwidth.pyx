@@ -204,7 +204,7 @@ def width_of_cut_decomposition(G, L):
 
         sage: from sage.graphs.graph_decompositions import cutwidth
         sage: G = graphs.CycleGraph(6)
-        sage: L = G.vertices()
+        sage: L = G.vertices(sort=False)
         sage: cutwidth.width_of_cut_decomposition(G, L)
         2
 
@@ -365,7 +365,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         raise ValueError("The specified cut off parameter must be an integer.")
     elif G.size() <= cut_off:
         # We have a trivial solution
-        return width_of_cut_decomposition(G, G.vertices()), G.vertices()
+        return width_of_cut_decomposition(G, G.vertices(sort=False)), G.vertices()
 
     if not G.is_connected():
         # The graph has several connected components. We solve the problem on
@@ -671,7 +671,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.order()
-    V = G.vertices()
+    V = G.vertices(sort=False)
 
     # All vertices at different positions
     for v in V:

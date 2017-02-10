@@ -1331,7 +1331,7 @@ def _test_adjacency_sequence_out():
     # set all labels to 0
     E = [(u, v, 0) for u, v in randg.edges(labels=False)]
     cdef SparseGraph g = SparseGraph(n,
-                                     verts=randg.vertices(),
+                                     verts=randg.vertices(sort=False),
                                      arcs=E)
     assert g.num_verts == randg.order(), (
         "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
@@ -1384,7 +1384,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: G.vertices()
+        sage: sorted(G.vertices(sort=False))
         [0,
         ...
          29,
@@ -1458,7 +1458,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: D = DiGraph(implementation='c_graph', sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
-            sage: D.edges()
+            sage: D.edges(sort=False)
             [(0, 1, 3)]
 
         """
@@ -1556,14 +1556,14 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: G = Graph(implementation='c_graph', sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             []
 
             sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(0, 1, 2)]
 
         Do we remove loops correctly? (:trac:`12135`)::
@@ -1689,7 +1689,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         TEST::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.edges_incident([0,1,2])
+            sage: g.edges_incident([0,1,2], sort=False)
             [(0, 1, None),
              (0, 4, None),
              (0, 5, None),

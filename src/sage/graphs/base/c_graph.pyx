@@ -1195,7 +1195,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: S.<x> = R[]
             sage: G.add_vertex(a**2)
             sage: G.add_vertex(x)
-            sage: G.vertices()
+            sage: G.vertices(sort=False)
             [a^2, x]
 
         And that the bug described in :trac:`9610` is gone::
@@ -1204,7 +1204,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: k = 3
             sage: g = DiGraph()
             sage: g.add_edges( (i,Mod(i+j,n)) for i in range(n) for j in range(1,k+1) )
-            sage: g.vertices()
+            sage: g.vertices(sort=False)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: g.strongly_connected_components()
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
@@ -1216,7 +1216,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
             sage: G = Graph()
             sage: G.add_vertices(A)
-            sage: Set(G.vertices()) == A
+            sage: Set(G.vertices(sort=False)) == A
             True
 
         """
@@ -1414,12 +1414,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.add_edge(1,1,'b')
             sage: G.add_edge(1,1)
             sage: G.add_edge(1,1)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 1, None), (1, 1, None), (1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             11
             sage: G.allow_loops(False)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             3
@@ -1427,12 +1427,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.allow_loops(True)
             sage: G.add_edge(1,1,'b')
             sage: G.add_edge(1,1,'b')
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             7
             sage: G.allow_loops(False)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             3
@@ -2044,7 +2044,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.relabel(range(9,-1,-1), False)
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(0, 2, None),
              (0, 3, None),
              (0, 5, None),
@@ -2795,7 +2795,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: def random_acyclic(n, p):
             ....:  g = graphs.RandomGNP(n, p)
             ....:  h = DiGraph()
-            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges(sort=False) ])
             ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time

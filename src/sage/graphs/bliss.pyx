@@ -125,7 +125,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
     if g == NULL:
         raise MemoryError("Allocation Failed")
 
-    for i,v in enumerate(G.vertices()):
+    for i,v in enumerate(G.vertex_iterator()):
         vert2int[v] = i
         int2vert[i] = v
 
@@ -155,7 +155,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
     """
     cdef Digraph *g = new Digraph(G.order())
 
-    for i,v in enumerate(G.vertices()):
+    for i,v in enumerate(G.vertex_iterator()):
         vert2int[v] = i
         int2vert[i] = v
 

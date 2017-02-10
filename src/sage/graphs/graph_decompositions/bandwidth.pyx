@@ -213,9 +213,9 @@ def bandwidth(G, k=None):
     if G.order() <= 1:
         from sage.matrix.constructor import Matrix
         if k is None:
-            return (0,G.vertices())
+            return (0,G.vertices(sort=False))
         else:
-            return (G.vertices())
+            return (G.vertices(sort=False))
 
     if not G.is_connected():
         max_k = 0 if k is None else k
@@ -234,7 +234,7 @@ def bandwidth(G, k=None):
     # bandwidth_C
 
     cdef int n = G.order()
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = list(G.vertex_iterator())
 
     cdef MemoryAllocator mem = MemoryAllocator()
 

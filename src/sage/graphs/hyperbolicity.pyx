@@ -228,7 +228,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         sage: H = mysub(graphs.PetersenGraph(), [0,2,4,6])
         sage: H.edges(labels=None)
         [(0, 4)]
-        sage: H.vertices()
+        sage: H.vertices(sort=False)
         [0, 2, 4, 6]
     """
     if not isinstance(G,Graph):
@@ -1236,7 +1236,7 @@ def hyperbolicity(G,
         ....:         d5,_,_ = hyperbolicity(cc, algorithm='BCCM')
         ....:         l3,_,u3 = hyperbolicity(cc, approximation_factor=2)
         ....:         if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
-        ....:             print("Error in graph ", cc.edges())
+        ....:             print("Error in graph ", cc.edges(sort=False))
 
     The hyperbolicity of a graph is the maximum value over all its biconnected
     components::
@@ -1331,16 +1331,16 @@ def hyperbolicity(G,
     if G.num_verts() <= 3:
         # The hyperbolicity of a graph with 3 vertices is 0.
         # The certificate is the set of vertices.
-        return 0, G.vertices(), 0
+        return 0, G.vertices(sort=False), 0
 
     elif G.num_verts() == G.num_edges() + 1:
         # G is a tree
         # Any set of 4 vertices is a valid certificate
-        return 0, G.vertices()[:4], 0
+        return 0, G.vertices(sort=False)[:4], 0
 
     elif G.is_clique():
         # Any set of 4 vertices is a valid certificate
-        return 0, G.vertices()[:4], 0
+        return 0, G.vertices(sort=False)[:4], 0
 
 
     cdef int i, j, D
@@ -1454,7 +1454,7 @@ def hyperbolicity(G,
         while len(DOM)<4:
             DOM.add(G.random_vertex())
         # We map the dominating set to [0..N-1]
-        map = dict( (v,i) for i,v in enumerate(G.vertices()) )
+        map = dict( (v,i) for i,v in enumerate(G.vertex_iterator()) )
         DOM_int = set( map[v] for v in DOM )
         # We set null distances to vertices outside DOM. This way these
         # vertices will not be considered anymore.
@@ -1483,7 +1483,7 @@ def hyperbolicity(G,
     sig_free(far_apart_pairs)
 
     # Map the certificate 'certif' with the corresponding vertices in the graph
-    V = G.vertices()
+    V = G.vertices(sort=False)
     certificate = [V[i] for i in certif]
 
     # Last, we return the computed value and the certificate

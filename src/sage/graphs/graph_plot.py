@@ -256,7 +256,7 @@ class GraphPlot(SageObject):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
-        self._nodelist = graph.vertices()
+        self._nodelist = graph.vertices(sort=False)
         self._graph = graph
         self._options = options # contains both plot and show options
         self.set_pos()
@@ -584,7 +584,7 @@ class GraphPlot(SageObject):
             sage: test_graphs = graphs.FruchtGraph(), graphs.BullGraph()
             sage: tol = 0.001
             sage: for G in test_graphs:
-            ....:     E=G.edges()
+            ....:     E=G.edges(sort=False)
             ....:     for e0, e1, elab in E:
             ....:         G.set_edge_label(e0, e1, '%d %d' % (e0, e1))
             ....:     gp = G.graphplot(save_pos=True,edge_labels=True)
@@ -946,14 +946,14 @@ class GraphPlot(SageObject):
         ::
 
             sage: G = graphs.HeawoodGraph().copy(sparse=True)
-            sage: for u,v,l in G.edges():
+            sage: for u,v,l in G.edges(sort=False):
             ....:  G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.graphplot(edge_labels=True).show()
 
         .. PLOT::
 
             G = graphs.HeawoodGraph().copy(sparse=True)
-            for u,v,l in G.edges():
+            for u,v,l in G.edges(sort=False):
                 G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sphinx_plot(G.graphplot(edge_labels=True))
 
@@ -963,7 +963,7 @@ class GraphPlot(SageObject):
             ....:  4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13],
             ....:  10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16],
             ....:  16: [17], 17: [18], 18: [19], 19: []})
-            sage: for u,v,l in D.edges():
+            sage: for u,v,l in D.edges(sort=False):
             ....:  D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
 
@@ -973,7 +973,7 @@ class GraphPlot(SageObject):
                 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11],
                 11: [12, 18],12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17],
                 17: [18], 18: [19], 19: []})
-            for u,v,l in D.edges():
+            for u,v,l in D.edges(sort=False):
                 D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sphinx_plot(D.graphplot(edge_labels=True, layout='circular'))
 
@@ -985,7 +985,7 @@ class GraphPlot(SageObject):
             sage: edge_colors = {}
             sage: for i in range(5):
             ....:  edge_colors[R[i]] = []
-            sage: for u,v,l in C.edges():
+            sage: for u,v,l in C.edges(sort=False):
             ....:  for i in range(5):
             ....:      if u[i] != v[i]:
             ....:          edge_colors[R[i]].append((u,v,l))
@@ -999,7 +999,7 @@ class GraphPlot(SageObject):
             edge_colors = {}
             for i in range(5):
                 edge_colors[R[i]] = []
-            for u,v,l in C.edges():
+            for u,v,l in C.edges(sort=False):
                 for i in range(5):
                     if u[i] != v[i]:
                         edge_colors[R[i]].append((u,v,l))

@@ -195,8 +195,8 @@ def RandomBipartite(n1, n2, p):
 
     EXAMPLE::
 
-        sage: g=graphs.RandomBipartite(5,2,0.5)
-        sage: g.vertices()
+        sage: g = graphs.RandomBipartite(5,2,0.5)
+        sage: sorted(g.vertices(sort=False))
         [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1)]
 
     TESTS::
@@ -1245,8 +1245,8 @@ def RandomBicubicPlanar(n):
         True
         sage: G.is_bipartite() and G.is_planar() and G.is_regular(3)
         True
-        sage: dic = {'red':[v for v in G.vertices() if v[0] == 'n'],
-        ....:        'blue': [v for v in G.vertices() if v[0] != 'n']}
+        sage: dic = {'red':[v for v in G.vertices(sort=False) if v[0] == 'n'],
+        ....:        'blue': [v for v in G.vertices(sort=False) if v[0] != 'n']}
         sage: G.plot(vertex_labels=False,vertex_size=20,vertex_colors=dic)
         Graphics object consisting of ... graphics primitives
 
@@ -1254,8 +1254,8 @@ def RandomBicubicPlanar(n):
         :width: 300 px
 
         G = graphs.RandomBicubicPlanar(200)
-        V0 = [v for v in G.vertices() if v[0] == 'n']
-        V1 = [v for v in G.vertices() if v[0] != 'n']
+        V0 = [v for v in G.vertices(sort=False) if v[0] == 'n']
+        V1 = [v for v in G.vertices(sort=False) if v[0] != 'n']
         dic = {'red': V0, 'blue': V1}
         sphinx_plot(G.plot(vertex_labels=False,vertex_colors=dic))
 
@@ -1319,7 +1319,7 @@ def RandomBicubicPlanar(n):
     # there remains to add three edges to elements of "not_touched"
     # from a new vertex labelled "n"
     for i in not_touched:
-        taken_colours = [edge[2] for edge in G.edges_incident(w[i - 1])]
+        taken_colours = [edge[2] for edge in G.edges_incident(w[i - 1], sort=False)]
         colour = [u for u in Z3 if u not in taken_colours][0]
         G.add_edge((('n', -1), w[i - 1], colour))
 

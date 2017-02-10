@@ -75,8 +75,8 @@ def _triangulate(g, comb_emb):
     if g.is_connected() == False:
         raise NotImplementedError("_triangulate() only knows how to handle connected graphs.")
 
-    if g.order() == 3 and len(g.edges()) == 2:             # if g is o--o--o
-        vertex_list = g.vertices()
+    if g.order() == 3 and len(g.edges(sort=False)) == 2:             # if g is o--o--o
+        vertex_list = g.vertices(sort=False)
         if len(g.neighbors(vertex_list[0])) == 2:          # figure out which of the vertices already has two neighbors
             new_edge = (vertex_list[1], vertex_list[2])    # and connect the other two together.
         elif len(g.neighbors(vertex_list[1])) == 2:
@@ -186,7 +186,7 @@ def _normal_label(g, comb_emb, external_face):
     v1_neighbors = Set(g.neighbors(v1))
 
     neighbor_count = {}
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         neighbor_count[v] = 0
     for v in g.neighbors(v1):
         neighbor_count[v] = len(v1_neighbors.intersection(Set(g.neighbors(v))))
@@ -225,7 +225,7 @@ def _normal_label(g, comb_emb, external_face):
 
     # expansion phase:
 
-    v1, v2, v3 = g.vertices()  # always in sorted order
+    v1, v2, v3 = sorted(g.vertices(sort=False))  # always in sorted order
 
     labels[v1] = {(v2, v3): 1}
     labels[v2] = {(v1, v3): 2}
@@ -490,7 +490,7 @@ def _compute_coordinates(g, x):
     coordinates[t2.label] = [0, g.order() - 2]
     coordinates[t3.label] = [1, 0]
 
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         if v not in [t1.label, t2.label, t3.label]:
             # Computing coordinates for v
             r = list((0, 0, 0))
@@ -715,7 +715,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
         sage: g.set_embedding({'a':['b',0,'c'],'b':['c',0,'a'],
         ....:  'c':['a',0,'b'],0:['a','b','c']})
         sage: newg = minimal_schnyder_wood(g)
-        sage: newg.edges()
+        sage: newg.edges(sort=False)
         [(0, 'a', 'green'), (0, 'b', 'blue'), (0, 'c', 'red')]
         sage: newg.plot(color_by_label={'red':'red','blue':'blue',
         ....:  'green':'green',None:'black'})
@@ -728,7 +728,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
         sage: g.set_embedding({'a':['b',2,0,'c'],'b':['c',1,2,'a'],
         ....: 'c':['a',0,1,'b'],0:['a',2,1,'c'],1:['b','c',0,2],2:['a','b',1,0]})
         sage: newg = minimal_schnyder_wood(g)
-        sage: sorted(newg.edges(), key=lambda e:(str(e[0]),str(e[1])))
+        sage: sorted(newg.edges(sort=False), key=lambda e:(str(e[0]),str(e[1])))
         [(0, 2, 'blue'),
          (0, 'a', 'green'),
          (0, 'c', 'red'),
@@ -739,7 +739,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
          (2, 'a', 'green'),
          (2, 'b', 'blue')]
         sage: newg2 = minimal_schnyder_wood(g, minimal=False)
-        sage: sorted(newg2.edges(), key=lambda e:(str(e[0]),str(e[1])))
+        sage: sorted(newg2.edges(sort=False), key=lambda e:(str(e[0]),str(e[1])))
         [(0, 1, 'blue'),
          (0, 'a', 'green'),
          (0, 'c', 'red'),

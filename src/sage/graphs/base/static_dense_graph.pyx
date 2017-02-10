@@ -66,7 +66,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     binary_matrix_init(m, n, n)
 
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
-    if g.vertices() == list(xrange(n)):
+    if g.vertices(sort=False) == list(xrange(n)):
         if translation:
             d_translation = {i: i for i in range(n)}
 
@@ -75,7 +75,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
             if is_undirected:
                 binary_matrix_set1(m, j, i)
     else:
-        d_translation = {v:i for i,v in enumerate(g.vertices())}
+        d_translation = {v:i for i,v in enumerate(g.vertex_iterator())}
 
         for u,v in g.edge_iterator(labels = False):
             binary_matrix_set1(m, d_translation[u], d_translation[v])
@@ -271,7 +271,7 @@ def triangles_count(G):
             count[j] += tmp_count
 
     ans = {v:Integer(count[i]/2)
-           for i,v in enumerate(G.vertices())}
+           for i,v in enumerate(G.vertex_iterator())}
 
     bitset_free(b_tmp)
     binary_matrix_free(g)

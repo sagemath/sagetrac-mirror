@@ -63,7 +63,7 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
         raise ValueError("The Boost graph in input must be empty")
 
     N = g_sage.num_verts()
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertex_iterator())}
 
     for i in range(N):
         g.add_vertex()
@@ -102,7 +102,7 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
         raise ValueError("The Boost graph in input must be empty")
 
     N = g_sage.num_verts()
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertex_iterator())}
 
     for i in range(N):
         g.add_vertex()
@@ -171,8 +171,7 @@ cpdef edge_connectivity(g):
         sage: from sage.graphs.base.boost_graph import edge_connectivity
         sage: g = graphs.GridGraph([2,2])
         sage: edge_connectivity(g)
-        [2, [((0, 0), (0, 1)), ((0, 0), (1, 0))]]
-
+        [2, [((0, 1), (1, 1)), ((0, 1), (0, 0))]]
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -180,7 +179,7 @@ cpdef edge_connectivity(g):
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
-    cdef list int_to_vertex = g.vertices()
+    cdef list int_to_vertex = list(g.vertex_iterator())
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
@@ -272,7 +271,7 @@ cpdef clustering_coeff(g, vertices = None):
     sig_on()
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
-    cdef list g_vertices = g.vertices()
+    cdef list g_vertices = g.vertices(sort=False)
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g_vertices)}
 
     if not isinstance(g, Graph):
@@ -395,7 +394,7 @@ cpdef dominator_tree(g, root, return_dict = False):
 
     if not isinstance(g, Graph) and not isinstance(g, DiGraph):
         raise ValueError("The input g must be a Sage graph.")
-    if not root in g.vertices():
+    if not root in g.vertices(sort=False):
         raise ValueError("The input root must be a vertex of g.")
 
     sig_on()
@@ -403,8 +402,8 @@ cpdef dominator_tree(g, root, return_dict = False):
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
     cdef vector[v_index] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertex_iterator())}
+    cdef list int_to_vertex = list(g.vertex_iterator())
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
@@ -419,9 +418,9 @@ cpdef dominator_tree(g, root, return_dict = False):
     cdef v_index no_parent = -1
 
     if return_dict:
-        return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()};
+        return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices(sort=False)};
 
-    edges = [[int_to_vertex[<int> result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+    edges = [[int_to_vertex[<int> result[vertex_to_int[v]]], v] for v in g.vertices(sort=False) if result[vertex_to_int[v]] != no_parent]
 
     if g.is_directed():
         if len(edges) == 0:
@@ -480,9 +479,9 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
         sage: bandwidth_heuristics(graphs.PathGraph(10))
         (1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
-        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
+        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
-        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
+        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
 
     TESTS:
 
@@ -523,14 +522,14 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
     if not algorithm in ['cuthill_mckee', 'king']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if g.num_edges()==0:
-        return (0, g.vertices());
+        return (0, g.vertices(sort=False));
 
     sig_on()
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
     cdef vector[v_index] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertex_iterator())}
+    cdef list int_to_vertex = list(g.vertex_iterator())
 
     boost_graph_from_sage_graph(&g_boost, g)
     result = <vector[v_index]> g_boost.bandwidth_ordering(algorithm=='cuthill_mckee')
@@ -637,8 +636,8 @@ cpdef min_spanning_tree(g,
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecWeightedGraph g_boost
     cdef vector[v_index] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef list int_to_vertex = g.vertices()
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertex_iterator())}
+    cdef list int_to_vertex = list(g.vertex_iterator())
 
     try:
         boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
@@ -770,8 +769,8 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
 
     # These variables are automatically deleted when the function terminates.
-    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertex_iterator())}
+    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertex_iterator())}
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
@@ -930,10 +929,10 @@ cpdef johnson_shortest_paths(g, weight_function = None):
         raise ValueError("The input g must be a Sage Graph or DiGraph.")
     elif g.num_edges() == 0:
         from sage.rings.infinity import Infinity
-        return {v:{v:0} for v in g.vertices()}
+        return {v:{v:0} for v in g.vertices(sort=False)}
     # These variables are automatically deleted when the function terminates.
-    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
-    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertex_iterator())}
+    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertex_iterator())}
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef int N = g.num_verts()
@@ -1069,4 +1068,4 @@ cpdef johnson_closeness_centrality(g, weight_function = None):
         else:
             closeness.push_back(sys.float_info.max)
     sig_off()
-    return {v: closeness[i] for i,v in enumerate(g.vertices()) if closeness[i] != sys.float_info.max}
+    return {v: closeness[i] for i,v in enumerate(g.vertex_iterator()) if closeness[i] != sys.float_info.max}

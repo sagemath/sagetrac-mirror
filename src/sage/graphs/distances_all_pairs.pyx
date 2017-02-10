@@ -73,7 +73,7 @@ Breadth First Search per vertex of the (di)graph.
 **Technical details**
 
     - The vertices are encoded as `1, ..., n` as they appear in the ordering of
-      ``G.vertices()``.
+      ``G.vertices(sort=False)``.
 
     - Because this function works on matrices whose size is quadratic compared
       to the number of vertices when computing all distances or predecessors, it
@@ -171,7 +171,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     from sage.rings.infinity import Infinity
 
-    cdef list int_to_vertex = gg.vertices()
+    cdef list int_to_vertex = list(gg.vertex_iterator())
     cdef int i
     cdef MemoryAllocator mem = MemoryAllocator()
 
@@ -337,7 +337,7 @@ def shortest_path_all_pairs(G):
     jump from `P[u,v]` to `v` as it is one of its outneighbors.
 
     The integer corresponding to a vertex is its index in the list
-    ``G.vertices()``.
+    ``G.vertices(sort=False)``.
 
     EXAMPLE::
 
@@ -369,7 +369,7 @@ def shortest_path_all_pairs(G):
 
     cdef CGraphBackend cg = <CGraphBackend> G._backend
 
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = list(G.vertex_iterator())
     cdef int i, j
 
     for i, l in enumerate(int_to_vertex):
@@ -401,7 +401,7 @@ cdef unsigned short * c_distances_all_pairs(G):
 
     The matrix `M` returned is of length `n^2`, and the distance between
     vertices `u` and `v` is `M[u,v]`. The integer corresponding to a vertex is
-    its index in the list ``G.vertices()``.
+    its index in the list ``G.vertices(sort=False)``.
     """
 
     cdef unsigned int n = G.order()
@@ -449,7 +449,7 @@ def distances_all_pairs(G):
     cdef dict d = {}
     cdef dict d_tmp
 
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = list(G.vertex_iterator())
     cdef int i, j
 
     for j in range(n):
@@ -617,7 +617,7 @@ def distances_and_predecessors_all_pairs(G):
 
     Distances : the matrix `M` returned is of length `n^2`, and the distance
     between vertices `u` and `v` is `M[u,v]`. The integer corresponding to a
-    vertex is its index in the list ``G.vertices()``.
+    vertex is its index in the list ``G.vertices(sort=False)``.
 
     Predecessors : the matrix `P` returned has size `n^2`, and is such that
     vertex `P[u,v]` is a predecessor of `v` on a shortest `uv`-path. Hence, this
@@ -627,7 +627,7 @@ def distances_and_predecessors_all_pairs(G):
     outneighbors.
 
     The integer corresponding to a vertex is its index in the list
-    ``G.vertices()``.
+    ``G.vertices(sort=False)``.
 
 
     EXAMPLE::
@@ -681,7 +681,7 @@ def distances_and_predecessors_all_pairs(G):
     cdef dict t_distance = {}
     cdef dict t_predecessor = {}
 
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = list(G.vertex_iterator())
     cdef int i, j
 
     for j in range(n):
@@ -716,7 +716,7 @@ cdef uint32_t * c_eccentricity(G) except NULL:
     Return the vector of eccentricities in G.
 
     The array returned is of length n, and its ith component is the eccentricity
-    of the ith vertex in ``G.vertices()``.
+    of the ith vertex in ``G.vertices(sort=False)``.
     """
     cdef unsigned int n = G.order()
 
@@ -732,7 +732,7 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     Return the vector of eccentricities in G using the algorithm of [TK13]_.
 
     The array returned is of length n, and its ith component is the eccentricity
-    of the ith vertex in ``G.vertices()``.
+    of the ith vertex in ``G.vertices(sort=False)``.
 
     The algorithm proposed in [TK13]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
@@ -812,7 +812,7 @@ def eccentricity(G, algorithm="standard"):
     Return the vector of eccentricities in G.
 
     The array returned is of length `n`, and its `i`-th component is the
-    eccentricity of the ith vertex in ``G.vertices()``.
+    eccentricity of the ith vertex in ``G.vertices(sort=False)``.
 
     INPUT:
 
@@ -1366,7 +1366,7 @@ def diameter(G, algorithm='iFUB', source=None):
     init_short_digraph(sd, G)
 
     # and we map the source to an int in [0,n-1] 
-    cdef uint32_t isource = 0 if source is None else G.vertices().index(source)
+    cdef uint32_t isource = 0 if source is None else G.vertices(sort=False).index(source)
 
     cdef bitset_t seen
     cdef uint32_t * tab

@@ -82,7 +82,7 @@ Technical details
 -----------------
 
     * When creating a ``fast_digraph`` from a ``Graph`` or ``DiGraph`` named
-      ``G``, the `i^{\text{th}}` vertex corresponds to ``G.vertices()[i]``
+      ``G``, the `i^{\text{th}}` vertex corresponds to ``G.vertices(sort=False)[i]``
 
     * Some methods return ``bitset_t`` objets when lists could be
       expected. There is a very useful ``bitset_list`` function for this kind of
@@ -225,7 +225,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     else:
         raise ValueError("The source graph must be either a DiGraph or a Graph object !")
 
-    cdef list vertices = G.vertices()
+    cdef list vertices = G.vertices(sort=False)
     cdef dict v_to_id = {}
     cdef int i,j,v_id
     cdef list neighbor_label
@@ -261,7 +261,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
         # of its neighbors anymore. One should never try to think. It never ends
         # well.
         for i in range(1,(<int>g.n)+1):
-            g.neighbors[i] = g.neighbors[i-1] + <int> len(G.edges_incident(vertices[i-1]))
+            g.neighbors[i] = g.neighbors[i-1] + <int> len(G.edges_incident(vertices[i-1], sort=False))
 
     if not edge_labelled:
         for u,v in G.edge_iterator(labels = False):
@@ -289,7 +289,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
         edge_labels = [None]*n_edges
         for v in G:
             neighbor_label = [(v_to_id[uu],l) if uu != v else (v_to_id[u],l)
-                              for u,uu,l in G.edges_incident(v)]
+                              for u,uu,l in G.edges_incident(v, sort=False)]
             neighbor_label.sort()
             v_id = v_to_id[v]
 
@@ -639,7 +639,7 @@ def tarjan_strongly_connected_components(G):
     cdef int i
     cdef list output = list(list() for i in range(nscc)) # We cannot use [] here
 
-    for i,v in enumerate(G.vertices()):
+    for i,v in enumerate(G.vertex_iterator()):
         output[scc[i]].append(v)
     sig_off()
     return output
@@ -737,7 +737,7 @@ def strongly_connected_components_digraph(G):
         ....:     g = digraphs.RandomDirectedGNM(n,m)
         ....:     scc_digraph,sccs = strongly_connected_components_digraph(g)
         ....:     assert(scc_digraph.is_directed_acyclic())
-        ....:     for e in g.edges():
+        ....:     for e in g.edges(sort=False):
         ....:         assert(sccs[e[0]]==sccs[e[1]] or scc_digraph.has_edge(sccs[e[0]],sccs[e[1]]))
         ....:         assert(sccs[e[0]] >= sccs[e[1]])
     """
@@ -763,7 +763,7 @@ def strongly_connected_components_digraph(G):
             edges.append((i, scc_g.neighbors[i][j]))
     output.add_edges(edges)
     sig_off()
-    return output, {v:scc[i] for i,v in enumerate(G.vertices())}
+    return output, {v:scc[i] for i,v in enumerate(G.vertex_iterator())}
 
 
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):
@@ -842,7 +842,7 @@ def triangles_count(G):
             count[v] += tmp_count
 
     ans = {w:Integer(count[i]/2)
-           for i,w in enumerate(G.vertices())}
+           for i,w in enumerate(G.vertex_iterator())}
 
     sig_free(count)
     return ans

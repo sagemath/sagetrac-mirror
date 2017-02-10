@@ -181,7 +181,7 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     if certificate:
         if ret:
-            V = G.vertices()
+            V = G.vertices(sort=False)
             return False, [V[i] for i in ret]
         return True, []
 

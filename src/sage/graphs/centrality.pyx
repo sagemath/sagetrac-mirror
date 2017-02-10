@@ -323,7 +323,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         else:
             betweenness_list = [2*x/((n-1)*(n-2)) for x in betweenness_list]
 
-    return {vv:betweenness_list[i] for i,vv in enumerate(G.vertices())}
+    return {vv:betweenness_list[i] for i,vv in enumerate(G.vertex_iterator())}
 
 cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* reachU):
     r"""
@@ -810,5 +810,5 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     if verbose > 0:
         print("Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n]-sd.edges))))
 
-    cdef list V = G.vertices()
+    cdef list V = G.vertices(sort=False)
     return sorted([(1.0/farness[v], V[v]) for v in topk[:k] if v != -1], reverse=True)

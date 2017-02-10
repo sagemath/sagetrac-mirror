@@ -83,10 +83,10 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     # First take care of a trivial cases
     if g.size() == 0: # There are no edges
         if set_embedding:
-            g._embedding = dict((v, []) for v in g.vertices())
+            g._embedding = dict((v, []) for v in g.vertices(sort=False))
         return (True, None) if kuratowski else True
     if len(g) == 2 and g.is_connected(): # P_2 is too small to be triangulated
-        u,v = g.vertices()
+        u,v = g.vertices(sort=False)
         if set_embedding:
             g._embedding = { u: [v], v: [u] }
         if set_pos:
@@ -95,7 +95,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
 
     # create to and from mappings to relabel vertices to the set {0,...,n-1}
     cdef int i
-    listto = g.vertices()
+    listto = g.vertices(sort=False)
     ffrom = {}
     for vvv in listto:
         ffrom[vvv] = listto.index(vvv)

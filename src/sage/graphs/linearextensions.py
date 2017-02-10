@@ -94,7 +94,7 @@ class LinearExtensions(CombinatorialClass):
         while dag_copy.num_verts() != 0:
             #Find all the minimal elements of dag_copy
             minimial_elements = []
-            for node in dag_copy.vertices():
+            for node in dag_copy.vertices(sort=False):
                 if len(dag_copy.incoming_edges(node)) == 0:
                     minimial_elements.append(node)
             if len(minimial_elements) == 1:

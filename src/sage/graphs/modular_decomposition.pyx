@@ -116,7 +116,7 @@ cpdef modular_decomposition(g):
     cdef int j
 
     # Building the dictionary associating id to labels
-    for id,label in enumerate(g.vertices()):
+    for id,label in enumerate(g.vertex_iterator()):
         label_id[label] = id
 
     G.n = g.order()

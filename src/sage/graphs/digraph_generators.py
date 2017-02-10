@@ -318,7 +318,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: g = digraphs.Path(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=False)
             [0, 1, 2, 3, 4]
             sage: g.size()
             4
@@ -349,7 +349,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: g = digraphs.TransitiveTournament(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=False)
             [0, 1, 2, 3, 4]
             sage: g.size()
             10
@@ -900,11 +900,11 @@ class DiGraphGenerators():
               '212': 7})
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
-            sage: K.edges()
+            sage: K.edges(sort=False)
             [('1B', 'B1', '1'), ('1B', 'Ba', 'a'), ('1a', 'a1', '1'), ('1a', 'aB', 'B'), ('B1', '1B', 'B'), ('B1', '1a', 'a'), ('Ba', 'a1', '1'), ('Ba', 'aB', 'B'), ('a1', '1B', 'B'), ('a1', '1a', 'a'), ('aB', 'B1', '1'), ('aB', 'Ba', 'a')]
 
             sage: K = digraphs.Kautz([1,'aA','BB'], 2)
-            sage: K.edges()
+            sage: K.edges(sort=False)
             [('1,BB', 'BB,1', '1'), ('1,BB', 'BB,aA', 'aA'), ('1,aA', 'aA,1', '1'), ('1,aA', 'aA,BB', 'BB'), ('BB,1', '1,BB', 'BB'), ('BB,1', '1,aA', 'aA'), ('BB,aA', 'aA,1', '1'), ('BB,aA', 'aA,BB', 'BB'), ('aA,1', '1,BB', 'BB'), ('aA,1', '1,aA', 'aA'), ('aA,BB', 'BB,1', '1'), ('aA,BB', 'BB,aA', 'aA')]
 
 

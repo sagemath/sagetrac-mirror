@@ -62,12 +62,12 @@ def removed_multiedge(G, unlabeled_edge):
         sage: from sage.graphs.tutte_polynomial import removed_multiedge
         sage: G = Graph(multiedges=True)
         sage: G.add_edges([(0,1,'a'),(0,1,'b')])
-        sage: G.edges()
+        sage: sorted(G.edges(sort=False))
         [(0, 1, 'a'), (0, 1, 'b')]
         sage: with removed_multiedge(G,(0,1)) as Y:
-        ....:     G.edges()
+        ....:     G.edges(sort=False)
         []
-        sage: G.edges()
+        sage: sorted(G.edges(sort=False))
         [(0, 1, 'a'), (0, 1, 'b')]
     """
     u, v = unlabeled_edge
@@ -91,13 +91,13 @@ def removed_edge(G, edge):
         sage: from sage.graphs.tutte_polynomial import removed_edge
         sage: G = Graph()
         sage: G.add_edge(0,1)
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 1, None)]
         sage: with removed_edge(G,(0,1)) as Y:
-        ....:     G.edges(); G.vertices()
+        ....:     G.edges(sort=False); G.vertices(sort=False)
         []
         [0, 1]
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 1, None)]
     """
     G.delete_edge(edge)
@@ -118,18 +118,18 @@ def contracted_edge(G, unlabeled_edge):
         sage: from sage.graphs.tutte_polynomial import contracted_edge
         sage: G = Graph(multiedges=True)
         sage: G.add_edges([(0,1,'a'),(1,2,'b'),(0,3,'c')])
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 1, 'a'), (0, 3, 'c'), (1, 2, 'b')]
         sage: with contracted_edge(G,(0,1)) as Y:
-        ....:     G.edges(); G.vertices()
+        ....:     G.edges(sort=False); G.vertices(sort=False)
         [(1, 2, 'b'), (1, 3, 'c')]
         [1, 2, 3]
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 1, 'a'), (0, 3, 'c'), (1, 2, 'b')]
     """
     v1, v2 = unlabeled_edge
 
-    v1_edges = G.edges_incident(v1)
+    v1_edges = G.edges_incident(v1, sort=False)
     G.delete_vertex(v1)
     added_edges = []
 
@@ -160,14 +160,14 @@ def removed_loops(G):
         sage: from sage.graphs.tutte_polynomial import removed_loops
         sage: G = Graph(multiedges=True, loops=True)
         sage: G.add_edges([(0,1,'a'),(1,2,'b'),(0,0,'c')])
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 0, 'c'), (0, 1, 'a'), (1, 2, 'b')]
         sage: with removed_loops(G) as Y:
-        ....:     G.edges(); G.vertices(); Y
+        ....:     G.edges(sort=False); G.vertices(sort=False); Y
         [(0, 1, 'a'), (1, 2, 'b')]
         [0, 1, 2]
         [(0, 0, 'c')]
-        sage: G.edges()
+        sage: G.edges(sort=False)
         [(0, 0, 'c'), (0, 1, 'a'), (1, 2, 'b')]
     """
     loops = G.loops()
@@ -190,9 +190,9 @@ def underlying_graph(G):
         sage: from sage.graphs.tutte_polynomial import underlying_graph
         sage: G = Graph(multiedges=True)
         sage: G.add_edges([(0,1,'a'),(0,1,'b')])
-        sage: G.edges()
+        sage: sorted(G.edges(sort=False))
         [(0, 1, 'a'), (0, 1, 'b')]
-        sage: underlying_graph(G).edges()
+        sage: underlying_graph(G).edges(sort=False)
         [(0, 1, None)]
     """
     g = Graph()
@@ -299,7 +299,7 @@ class Ear(object):
             sage: E.unlabeled_edges
             [(0, 1), (1, 2), (2, 3)]
         """
-        return self.graph.edges_incident(vertices=self.interior, labels=False)
+        return self.graph.edges_incident(vertices=self.interior, labels=False, sort=False)
 
     @staticmethod
     def find_ear(g):
@@ -324,7 +324,7 @@ class Ear(object):
                                if degree == 2]
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
-            edges = g.edges_incident(vertices=component, labels=True)
+            edges = g.edges_incident(vertices=component, labels=True, sort=False)
             all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
             if len(all_vertices) < 3:
                 continue
@@ -350,18 +350,18 @@ class Ear(object):
 
             sage: G = graphs.PathGraph(4)
             sage: G.add_edges([(0,4),(0,5),(3,6),(3,7)])
-            sage: len(G.edges())
+            sage: len(G.edges(sort=False))
             7
             sage: from sage.graphs.tutte_polynomial import Ear
             sage: E = Ear.find_ear(G)
             sage: with E.removed_from(G) as Y:
-            ....:     G.edges()
+            ....:     G.edges(sort=False)
             [(0, 4, None), (0, 5, None), (3, 6, None), (3, 7, None)]
-            sage: len(G.edges())
+            sage: len(G.edges(sort=False))
             7
         """
         deleted_edges = []
-        for edge in G.edges_incident(vertices=self.interior, labels=True):
+        for edge in G.edges_incident(vertices=self.interior, labels=True, sort=False):
             G.delete_edge(edge)
             deleted_edges.append(edge)
         for v in self.interior:
@@ -408,7 +408,7 @@ class VertexOrder(EdgeSelection):
             (3, 4, None)
         """
         for v in self.order:
-            edges = graph.edges_incident([v])
+            edges = graph.edges_incident([v], sort=False)
             if edges:
                 edges.sort(key=lambda x: self.inverse_order[x[0] if x[0] != v else x[1]])
                 return edges[0]
@@ -428,7 +428,7 @@ class MinimizeSingleDegree(EdgeSelection):
         degrees = list(graph.degree_iterator(labels=True))
         degrees.sort(key=lambda x: x[1])  # Sort by degree
         for v, degree in degrees:
-            for e in graph.edges_incident([v], labels=True):
+            for e in graph.edges_incident([v], labels=True, sort=False):
                 return e
         raise RuntimeError("no edges left to select")
 
@@ -683,7 +683,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-eaars
     ear = Ear.find_ear(uG)
     if ear is not None:
-        if (ear.is_cycle and ear.vertices == G.vertices()):
+        if (ear.is_cycle and ear.vertices == G.vertices(sort=False)):
             #The graph is an ear (cycle) We should never be in this
             #case since we check for multi-cycles above
             return y + sum(x**i for i in range(1, ear.s))

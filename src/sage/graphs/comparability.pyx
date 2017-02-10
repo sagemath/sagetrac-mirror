@@ -380,7 +380,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     gg = copy(g)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
-    h.add_vertices(gg.vertices())
+    h.add_vertices(gg.vertices(sort=False))
 
     for u,v in certif:
         gg.delete_edge(u,v)
@@ -472,7 +472,7 @@ def is_comparability_MILP(g, certificate = False):
         # Building the transitive orientation
         from sage.graphs.digraph import DiGraph
         d = DiGraph()
-        d.add_vertices(g.vertices())
+        d.add_vertices(g.vertices(sort=False))
 
         o = p.get_values(o)
         for u,v in g.edges(labels = False):
@@ -734,7 +734,7 @@ def is_transitive(g, certificate = False):
     cdef unsigned short * distances = c_distances_all_pairs(g)
     cdef unsigned short * c_distances = distances
 
-    cdef list int_to_vertex = g.vertices()
+    cdef list int_to_vertex = list(g.vertex_iterator())
     cdef int i, j
 
     # Only 3 distances can appear in the matrix of all distances : 0, 1, and

@@ -650,7 +650,7 @@ cdef class GenericGraphBackend(SageObject):
         No problems with loops and multiple edges, with Labels::
 
             sage: g = Graph(multiedges = True, loops = True)
-            sage: g.add_edges(2*graphs.PetersenGraph().edges())
+            sage: g.add_edges(2*graphs.PetersenGraph().edges(sort=False))
             sage: g.add_edge(0,0)
             sage: g.add_edge(1,1, "a label")
             sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
@@ -663,7 +663,7 @@ cdef class GenericGraphBackend(SageObject):
 
             sage: g = DiGraph(multiedges = True, loops = True)
             sage: H = 2*(digraphs.Circuit(15)+DiGraph(graphs.PetersenGraph()))
-            sage: g.add_edges(H.edges())
+            sage: g.add_edges(H.edges(sort=False))
             sage: g.add_edge(0,0)
             sage: g.add_edge(1,1, "a label")
             sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
@@ -799,7 +799,7 @@ class NetworkXGraphDeprecated(SageObject):
             sage: X.adj = {1:{2:7}, 2:{1:7}, 3:{2:[4,5,6,7]}, 2:{3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 2), (2, 3)]
             sage: G.edges(data=True)
             [(1, 2, {'weight': 7}), (2, 3, {4: {}, 5: {}, 6: {}, 7: {}})]
@@ -867,7 +867,7 @@ class NetworkXDiGraphDeprecated(SageObject):
             sage: X.adj = {1:{2:7}, 2:{1:[7,8], 3:[4,5,6,7]}}
             sage: X.multiedges = True
             sage: G = X.mutate()
-            sage: G.edges()
+            sage: G.edges(sort=False)
             [(1, 2), (2, 1), (2, 3)]
             sage: G.edges(data=True)
             [(1, 2, {'weight': 7}),
