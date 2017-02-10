@@ -17,6 +17,9 @@ EXAMPLES::
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
+from .double_coset cimport double_coset, int_cmp
+
+
 def is_isomorphic(self, other):
     r"""
     Return the bijection as a permutation if two lists are isomorphic, return
@@ -34,12 +37,12 @@ def is_isomorphic(self, other):
     cdef int *output
     cdef int *ordering
     part = PS_new(n, 1)
-    ordering = <int *> sage_malloc((len(self)) * sizeof(int))
-    output = <int *> sage_malloc((len(self)) * sizeof(int))
+    ordering = <int *> sig_malloc((len(self)) * sizeof(int))
+    output = <int *> sig_malloc((len(self)) * sizeof(int))
     if part is NULL or ordering is NULL or output is NULL:
         PS_dealloc(part)
-        sage_free(ordering)
-        sage_free(output)
+        sig_free(ordering)
+        sig_free(output)
         raise MemoryError
     for i from 0 <= i < (len(self)):
         ordering[i] = i
@@ -47,12 +50,12 @@ def is_isomorphic(self, other):
     cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, (len(self)), &all_list_children_are_equivalent, &refine_list, &compare_lists, NULL, NULL, output)
 
     PS_dealloc(part)
-    sage_free(ordering)
+    sig_free(ordering)
     if isomorphic:
         output_py = [output[i] for i from 0 <= i < (len(self))]
     else:
         output_py = False
-    sage_free(output)
+    sig_free(output)
     return output_py
 
 cdef bint all_list_children_are_equivalent(PartitionStack *PS, void *S):
@@ -69,6 +72,6 @@ cdef int compare_lists(int *gamma_1, int *gamma_2, void *S1, void *S2, int degre
     cdef list MS2 = <list> S2
     cdef int i, j
     for i from 0 <= i < degree:
-        j = cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
+        j = int_cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
         if j != 0: return j
     return 0

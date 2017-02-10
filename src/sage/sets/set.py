@@ -35,7 +35,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
@@ -225,14 +225,20 @@ class Set_object(Set_generic):
             '<class 'sage.sets.set.Set_object_enumerated_with_category'>'
             and 'Integer Ring'
         """
+        from six.moves import range
         from sage.rings.integer import is_Integer
-        if isinstance(X, (int,long)) or is_Integer(X):
+        if isinstance(X, (int, long)) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 
         category = Sets()
-        if X in Sets().Finite() or isinstance(X, (tuple,list,set,frozenset)):
+        if X in Sets().Finite() or isinstance(X, (tuple, list,
+                                                  set, frozenset)):
             category = Sets().Finite()
+
+        elif isinstance(X, range):
+            category = Sets().Finite()
+            X = tuple(X)
 
         Parent.__init__(self, category=category)
         self.__object = X
@@ -265,9 +271,9 @@ class Set_object(Set_generic):
 
         ::
 
-            sage: print latex(Primes())
+            sage: print(latex(Primes()))
             \text{\texttt{Set{ }of{ }all{ }prime{ }numbers:{ }2,{ }3,{ }5,{ }7,{ }...}}
-            sage: print latex(Set([1,1,1,5,6]))
+            sage: print(latex(Set([1,1,1,5,6])))
             \left\{1, 5, 6\right\}
         """
         return latex(self.__object)
@@ -689,7 +695,7 @@ class Set_object_enumerated(Set_object):
 
             sage: S = Set(GF(19)); S
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
-            sage: print latex(S)
+            sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
         """
@@ -798,7 +804,7 @@ class Set_object_enumerated(Set_object):
             sage: X.list()
             [0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
             sage: type(X.list())
-            <type 'list'>
+            <... 'list'>
 
         .. TODO::
 

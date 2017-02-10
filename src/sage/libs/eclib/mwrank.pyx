@@ -6,7 +6,7 @@ EXAMPLES::
     sage: from sage.libs.eclib.mwrank import _Curvedata, _mw
     sage: c = _Curvedata(1,2,3,4,5)
 
-    sage: print c
+    sage: print(c)
     [1,2,3,4,5]
     b2 = 9       b4 = 11         b6 = 29         b8 = 35
     c4 = -183           c6 = -3429
@@ -18,6 +18,7 @@ EXAMPLES::
     sage: t
     [[1:2:1]]
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -25,7 +26,7 @@ import sys
 from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 cdef extern from "wrap.cpp":
     ### misc functions ###
@@ -72,7 +73,7 @@ cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
-    sage_free(s)
+    sig_free(s)
     return t
 
 # set the default
@@ -676,7 +677,7 @@ cdef class _mw:
           efficient to add several points at once and then saturate
           just once at the end).
 
-        .. note::
+        .. NOTE::
 
            The eclib function which implements this only carries out
            any saturation if the rank of the points increases upon
@@ -894,7 +895,7 @@ cdef class _mw:
           some details of the processing, finding linear relations,
           and partial saturation are output.
 
-        .. note::
+        .. NOTE::
 
            The effect of the search is also governed by the class
            options, notably whether the points found are processed:
@@ -915,7 +916,8 @@ cdef class _mw:
             sage: E = _Curvedata(0,0,1,-19569,-4064513) # 873c1
             sage: EQ = _mw(E)
             sage: EQ = _mw(E)
-            sage: for i in [1..11]: print i, EQ.search(i), EQ
+            sage: for i in [1..11]:
+            ....:     print("{} {} {}".format(i, EQ.search(i), EQ))
             1 None []
             2 None []
             3 None []
@@ -1249,7 +1251,7 @@ cdef class _two_descent:
         `\ZZ/2\ZZ`-basis for `E(\QQ)/2E(\QQ)` (modulo torsion),
         otherwise possibly only for a proper subgroup.
 
-        .. note::
+        .. NOTE::
 
            You must call ``saturate()`` first, or a RunTimeError will be raised.
 

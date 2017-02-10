@@ -23,7 +23,7 @@ import operator
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
-from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+import sage.data_structures.blas_dict as blas
 from sage.combinat.free_module import _divide_if_possible
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
@@ -209,37 +209,35 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: x0,x1,x2,dx0,dx1,dx2 = W.gens()
             sage: latex( ((x0^3-x2)*dx0 + dx1)^2 )
             \frac{\partial^{2}}{\partial x_{1}^{2}}
-             + 2 \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-             - 2 \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-             + \frac{\partial^{2}}{\partial x_{0}^{2}}
-             - 2 \frac{\partial^{2}}{\partial x_{0}^{2}}
-             + \frac{\partial^{2}}{\partial x_{0}^{2}}
-             + 3 \frac{\partial}{\partial x_{0}}
-             - 3 \frac{\partial}{\partial x_{0}}
+             + 2 x_{0}^{3} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             - 2 x_{2} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             + x_{0}^{6} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             - 2 x_{0}^{3} x_{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + x_{2}^{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + 3 x_{0}^{5} \frac{\partial}{\partial x_{0}}
+             - 3 x_{0}^{2} x_{2} \frac{\partial}{\partial x_{0}}
         """
         def term(m):
-            # Variable part
             R = self.parent()._poly_ring
-            ret = repr( R.sum(R.gen(i)**e for i,e in enumerate(m[0])) )
-            # Differential part
-            m = m[1]
-            total = sum(m)
-            if total == 0:
+            exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
+            def half_term(mon, polynomial):
+                total = sum(mon)
+                if total == 0:
+                    return '1'
+                ret = ' '.join('{}{}'.format(latex(R.gen(i)), exp(power)) if polynomial
+                               else '\\partial {}{}'.format(latex(R.gen(i)), exp(power))
+                               for i,power in enumerate(mon) if power > 0)
+                if not polynomial:
+                    return '\\frac{{\\partial{}}}{{{}}}'.format(exp(total), ret)
                 return ret
-            ret += ' '
-            if total == 1:
-                ret = '\\frac{\\partial}{'
+            p = half_term(m[0], True)
+            d = half_term(m[1], False)
+            if p == '1': # No polynomial part
+                return d
+            elif d == '1': # No differential part
+                return p
             else:
-                ret = '\\frac{\\partial^{' + repr(total) + '}}{'
-            for i, power in enumerate(m):
-                if power == 0:
-                    continue
-                name = R.gen(i)
-                if power == 1:
-                    ret += '\\partial {0}'.format(latex(name))
-                else:
-                    ret += '\\partial {0}^{{{1}}}'.format(latex(name), power)
-            return ret + '}'
+                return p + ' ' + d
         return repr_from_monomials(self.list(), term, True)
 
     # Copied from CombinatorialFreeModuleElement
@@ -312,7 +310,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             dx*dy + dz + x^3 - 2
         """
         F = self.parent()
-        return self.__class__(F, dict_addition([self.__monomials, other.__monomials]))
+        return self.__class__(F, blas.add(self.__monomials, other.__monomials))
 
         d = copy(self.__monomials)
         zero = self.parent().base_ring().zero()
@@ -506,7 +504,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         if F.base_ring().is_field():
             x = F.base_ring()( x )
             x_inv = x**-1
-            D = dict_linear_combination( [ ( D, x_inv ) ] )
+            D = blas.linear_combination( [ ( D, x_inv ) ] )
 
             return self.__class__(F, D)
 
