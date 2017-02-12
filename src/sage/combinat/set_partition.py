@@ -151,7 +151,19 @@ class SetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: s.check()
         """
-        assert self in self.parent()
+        # self must be a set
+        if not (isinstance(self, (SetPartition, set, frozenset)) or is_Set(self)):
+            raise ValueError("%s is not a set"%self)
+
+        # Check that all parts are disjoint
+        base_set = reduce( lambda x,y: x.union(y), map(Set, self), Set([]) )
+        if len(base_set) != sum(map(len, self)):
+            raise ValueError("The parts of %s are not all disjoint"%self)
+
+        # Check to make sure each element of x is a set
+        for s in self:
+            if not (isinstance(s, (set, frozenset)) or is_Set(s)):
+                raise ValueError("The parts of %s are not all sets"%self)
 
     def __hash__(self):
         """
