@@ -351,11 +351,12 @@ class HeckeCharacter(DualAbelianGroupElement):
 
         OUTPUT:
 
-        - A Dokchitser L-function object used to compute values of the L-function of this Hecke character.
+        A Dokchitser L-function object used to compute values of the
+        L-function of this Hecke character.
 
         EXAMPLES:
 
-            A totally odd character of a real quadratic field.
+        A totally odd character of a real quadratic field::
 
             sage: F.<a> = NumberField(x^2 - 5)
             sage: mf = F.modulus(F.ideal(4), [0, 1])
@@ -384,8 +385,9 @@ class HeckeCharacter(DualAbelianGroupElement):
                 it_worked = True
             except RuntimeError:
                 number_of_allocs += 1
-        L.rename('Hecke L-function of %s'%(self))
+        L.rename('Hecke L-function of %s' % (self))
         return L
+
 
 class HeckeCharacterGroup_class(DualAbelianGroup_class):
     r"""
