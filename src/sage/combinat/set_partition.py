@@ -1057,37 +1057,6 @@ class SetPartitions(UniqueRepresentation, Parent):
         else:
             return SetPartitions_set(s)
 
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: S = SetPartitions(4, [2,2])
-            sage: SA = SetPartitions()
-            sage: all(sp in SA for sp in S)
-            True
-            sage: Set([Set([1,2]),Set([3,7])]) in SA
-            True
-            sage: Set([Set([1,2]),Set([2,3])]) in SA
-            False
-            sage: Set([]) in SA
-            True
-        """
-        # x must be a set
-        if not (isinstance(x, (SetPartition, set, frozenset)) or is_Set(x)):
-            return False
-
-        # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
-        if len(base_set) != sum(map(len, x)):
-            return False
-
-        # Check to make sure each element of x is a set
-        for s in x:
-            if not (isinstance(s, (set, frozenset)) or is_Set(s)):
-                return False
-
-        return True
-
     def _element_constructor_(self, s):
         """
         Construct an element of ``self`` from ``s``.
