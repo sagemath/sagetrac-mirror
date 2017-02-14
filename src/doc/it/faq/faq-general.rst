@@ -1,9 +1,9 @@
 .. -*- coding: utf-8 -*-
 .. _chapter-faq-general:
 
-============
+================
 FAQ: Generalita'
-============
+================
 
 
 Perche' esiste questo progetto ?
@@ -184,7 +184,7 @@ La maggior parte delle persone che contribuiscono a Sage lo fanno nel loro tempo
 
 
 Perche' ci sono cosi' tanti bachi in Sage, con centinaia di modifiche in corso, perche' non producete una versione stabilizzata ?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Ogni software contiene bachi. In qualcosa di cosi' complesso come Sage nessuno, ne' la squadra di sviluppo di Sage ne' la sua comunita', ha alcuna pretesa che esso sia libero da bachi. Farlo sarebbe un atto di disonesta'.
 

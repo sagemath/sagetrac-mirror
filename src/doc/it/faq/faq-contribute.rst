@@ -118,7 +118,7 @@ La risposta sostanzialmente e' si', ma riscrivere e' una parola grossa per cio' 
 
 •  la seconda cosa importante da tenere presente e' la necessita' di importare tutto cio' di cui hai bisogno. Nel dettaglio, ogni volta che usi una funzione Sage la devi prima importare all'inizio del file. Ad esempio, se hai bisogno di PolynomialRing, dovrai scrivere::
 
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
 

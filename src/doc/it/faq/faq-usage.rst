@@ -108,7 +108,7 @@ probabilmente significa che hai compilato/installato Sage usando un determinato 
 
 
 Ho scaricato il binario di Sage e va in crash quando lo lancio, con il messaggio "illegal instruction" (istruzione non permessa). Cosa posso fare?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Un modo di risolvere e' compilare Sage interamente dal codice sorgente. Un'altra possibilita' e' correggere la tua installazione di Sage con la ricompilazione dei componenti MPIR e ATLAS (richiede da 15 a 20 minuti), da effettuarsi a riga di comando a partire dalla cartella ``SAGE_ROOT`` della tua installazione con le 2 istruzioni::
 
@@ -119,7 +119,7 @@ E' possibile che i binari siano stati compilati per un'architettura piu' recente
 
 
 Ho usato Debian/Ubuntu per installare la versione 3.0.5 di Sage ed essa sta dando un sacco di errori. Cosa posso fare?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 La versione di Sage distribuita con ``apt-get`` in Debian e Ubuntu (tipo la 3.0.5) e' molto vecchia. Nessuno ha ancora avuto tempo di aggiornare la versione di Sage per Debian/Ubuntu. Qualunque aiuto in tal senso sara' molto apprezzato. Dovresti scaricare la versione piu' recente di Sage dal `link di download <http://www.sagemath.org/download.html>`_ del sito web di Sage. Se vuoi aiutarci ad aggiornare la versione di Sage per Debian/Ubuntu manda un'email alla mailing list `sage-devel <http://groups.google.com/group/sage-devel>`_.
 
@@ -193,7 +193,7 @@ Sfortunamente il supporto che NumPy fornisce a questi tipi avanzati di Sage, qua
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
     sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
-    (array(0.07675295564533369), 0.94070490247380478)
+    Ttest_indResult(statistic=0.076752955645333687, pvalue=0.94070490247380478)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])
 
@@ -214,7 +214,7 @@ Puoi lanciare Ipython da solo dalla riga di comando con ``sage -ipython``, cosa 
 
 
 Come faccio a salvare un oggetto cosi' che non devo ridigitarlo ogni volta che apro un foglio di lavoro (worksheet) ?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 I comandi ``save`` e ``load`` rispettivamente registrano e caricano un oggetto. Nella sessione di lavoro Notebook la variabile ``DATA`` e' la locazione dello spazio di salvataggio del foglio di lavoro (worksheet). Per registrare l'oggetto ``my_stuff`` in un foglio di lavoro puoi digitare::
 
@@ -226,7 +226,7 @@ e, per ricaricarlo, ti basta digitare::
 
 
 Ho un errore da jsMath oppure un simbolo matematico non e' visualizzato correttamente nella sessione Notebook.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Se vedi l'errore ::
 
@@ -295,7 +295,7 @@ Ora se riavvii il sistema ti troverai davanti all'interfaccia di login testuale.
 
 
 Quando lancio i doctest su Mac OS X vedo dei messaggi con "malloc", ma alla fine Sage dice che tutto e' andato bene.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 I messaggi "malloc" a cui ti riferisci potrebbero essere qualcosa tipo::
 
@@ -318,13 +318,13 @@ Su Ubuntu, prova a disabilitare “Power Manager” (gestione alimentazione) via
 
 
 Sage termina con il messaggio d'errore "restore segment prot after reloc: Permission denied". Cosa c'e' che non va?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Il problema e' collegato a SELinux. Vai al link seguente per dei suggerimenti su come risolvere questo problema: http://www.ittvis.com/services/techtip.asp?ttid=3092. Stiamo seguendo questo problema come  `correzione #480 <http://www.sagetrac.org/sage_trac/ticket/480>`_.
 
 
 Quando lancio Sage, SELinux segnala che "/path/to/libpari-gmp.so.2" richiede "text-relocation" (riallocazione del testo). Come posso risolvere?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Il problema puo' essere risolto eseguendo il seguente comando::
 
@@ -332,7 +332,7 @@ Il problema puo' essere risolto eseguendo il seguente comando::
 
 
 L'aggiornamento di Sage e' andato bene, ma adesso l'indicatore continua a mostrare la versione precedente. Come posso risolvere?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 L'indicatore (banner in inglese) e' memorizzato e non ricalcolato ad ogni esecuzione di Sage. Il fatto che non sia aggiornato non dovrebbe impedire a Sage di funzionare regolarmente. Digita ``banner()`` in una sessione di Sage per verificare la versione reale. Se vuoi l'indicatore corretto allora devi ricompilare Sage digitando ``make build`` in un terminale.
 
@@ -344,7 +344,7 @@ Al momento non abbiamo una soluzione pronta. Ci sono parecchie possibilita'. Puo
 
 
 Sto utilizzando MacOS X. Dove devo mettere la cartella di font jsMath per far sparire il riquadro rosso?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Vai al link http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html dove dice::
 
@@ -370,7 +370,7 @@ Si'! Assolutamente ! Fondamentalmente l'unico *limite* che hai e' che se fai dei
 
 
 Voglio scrivere del codice Cython che usa l'aritmetica dei campi finiti, ma l'istruzione "cimport sage.rings.finite_field_givaro" non funziona. Cosa posso fare?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Devi segnalare a Sage di usare C++ (sia Givaro che NTL sono librerie C++) ed hai bisogno anche delle librerie GMP e STDC C++. Ecco un piccolo esempio::
 
@@ -459,8 +459,7 @@ Le parentesi sono necessarie affinche' Sage non supponga di avere a che fare con
 Un'altra possibilita', che aggira il preparser di Sage, e' ::
 
     sage: def xor(a, b):
-    ...       return eval("%s^%s" % (a, b))
-    ...
+    ....:     return eval("%s^%s" % (a, b))
     sage: xor(3, 8)
     11
 
@@ -474,7 +473,7 @@ La risposta piu' ampia, ma forse non la piu' utile, e' che hai bisogno di instal
 
 
 Con degli oggetti "a" e "b" ed una funzione "f" ho digitato accidentalmente "f(a)=b" anziche' "f(a)==b". Questo mi ha dato un errore "TypeError" (come mi aspettavo) ma ha anche cancellato l'oggetto "a". Perche' ?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Questo e' dovuto a come sono definite le funzioni in Sage con la notazione ``f(x)=expr`` usando il preparser. Nota anche che se fai quest'errore in un costrutto ``if``, avrai un errore ``SyntaxError`` prima di qualunque altro comportamento errato, quindi, in questo caso, non hai il problema.
 
