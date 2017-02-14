@@ -7549,11 +7549,7 @@ class NumberField_absolute(NumberField_generic):
         Test that caching works::
 
             sage: K.<a> = NumberField(x^3 - 2)
-<<<<<<< HEAD
             sage: K.order(a) is K.order(a)      # indirect doctest
-=======
-            sage: K.order(a) is K.order(a) # indirect doctest
->>>>>>> fe1008a0f466922585b2dae00e4e598dbffa35e4
             True
 
         Keywords have no influence on the caching::
@@ -9067,7 +9063,6 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def construction(self):
         """
-<<<<<<< HEAD
         Return data defining a functorial construction of ``self``.
 
         EXAMPLES::
@@ -9083,18 +9078,10 @@ class NumberField_cyclotomic(NumberField_absolute):
             [0.309016994374948? + 0.951056516295154?*I]
             sage: F.structures
             [None]
-=======
-        The construction of self.
-
-        EXAMPLES::
-
-            sage: k = CyclotomicField(3)
-            sage: F, R = k.construction()
->>>>>>> fe1008a0f466922585b2dae00e4e598dbffa35e4
-        """
-        F,R = NumberField_generic.construction(self)
+       """
+        F, R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
-        return F,R
+        return F, R
 
     def _magma_init_(self, magma):
         """
