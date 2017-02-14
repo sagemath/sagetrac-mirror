@@ -1801,27 +1801,26 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         else:
             raise NotImplementedError
 
-    def weak_approximation(self,I = None,S = None,J = None,T = None):
+    def weak_approximation(self, I=None, S=None, J=None, T=None):
         r"""
-
-        Weak approximation at finite places if a number field
-
+        Weak approximation at finite places in a number field.
 
         .. WARNING::
 
-           When S or T are non-empty, it is only implemented for number fields of
-           narrow class number 1.
+            When S or T are non-empty, it is only implemented for
+            number fields of narrow class number 1.
 
         INPUT:
 
-        - ``I`` - a fractional ideal (trivial by default) of ``self``.
-        - ``S`` - a list (empty by default) of real places of ``self``.
-        - ``J`` - a fractional ideal (trivial by default) of ``self``.
-        - ``T`` - a list (empty by default) of real places of ``self``.
+        - ``I`` -- a fractional ideal (trivial by default) of ``self``
+        - ``S`` -- a list (empty by default) of real places of ``self``
+        - ``J`` -- a fractional ideal (trivial by default) of ``self``
+        - ``T`` -- a list (empty by default) of real places of ``self``
 
         OUTPUT:
 
         An element x in ``self`` satisfying:
+
             1. `v_p(x) = v_p(I)` for all prime ideals `p` dividing ``I``.
             2. `v_p(x) = 0` for all prime ideals `p` dividing ``J``.
             3. `v_p(x) \geq 0` for all prime ideals coprime to ``I``+``J``.
@@ -1855,7 +1854,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             S = []
         if T is None:
             T = []
-        if (len(S) > 0 or len(T) > 0) and len(self.narrow_class_group()) > 1:
+        if (len(S) or len(T)) and len(self.narrow_class_group()) > 1:
             raise NotImplementedError('Only implemented for fields of narrow class number 1')
         from itertools import chain
         from sage.libs.pari.all import pari
@@ -1863,15 +1862,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         n = 0
         entrylist = []
         if I is not None:
-            for p,e in I.factor():
-                entrylist.extend([p.pari_prime(),e])
+            for p, e in I.factor():
+                entrylist.extend([p.pari_prime(), e])
                 n += 1
         if J is not None:
-            for p,_ in J.factor():
-                entrylist.extend([p.pari_prime(),0])
+            for p, _ in J.factor():
+                entrylist.extend([p.pari_prime(), 0])
                 n += 1
         if n > 0:
-            a = self(nf.idealappr(pari.matrix(n,2,entrylist),1))
+            a = self(nf.idealappr(pari.matrix(n, 2, entrylist), 1))
         else:
             a = self.one()
         if len(S) == 0 and len(T) == 0:
@@ -1880,12 +1879,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Funits = list(self.units()) + [-1]
             Sa = [-v(a).sign() for v in S] + [v(a).sign() for v in T]
             ST = S + T
-            for uu in product([False,True],repeat = len(Funits)):
-                u = prod((eps for eps,i in zip(Funits,uu) if i),self.one())
-                if all((v(u).sign() == e for v,e in zip(ST,Sa))):
-                    return a*u
-        assert 0,'Signs not compatible'
-
+            for uu in product([False, True], repeat=len(Funits)):
+                u = prod((eps for eps, i in zip(Funits, uu) if i), self.one())
+                if all(v(u).sign() == e for v, e in zip(ST, Sa)):
+                    return a * u
+        assert 0, 'Signs not compatible'
 
     def primitive_element(self):
         r"""
