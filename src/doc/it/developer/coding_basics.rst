@@ -673,8 +673,11 @@ devono essere scritti i doctest.
 
       sage: for n in srange(1,10):
       ....:     if n.is_prime():
-      ....:         print n,
-      2 3 5 7
+      ....:         print(n)
+      2
+      3
+      5
+      7
 
 - **Spezzare linee lunghe:** Potresti voler spezzare linee di codice lunghe con 
   una backslash. Nota: questa sintassi non \`e standard e potrebbe essere deprecata 
@@ -751,7 +754,7 @@ Eccone una lista completa:
   doctest con tolleranza contiene parecchi numeri, ognuno di essi \`e verificato 
   individualmente::
 
-      sage: print "The sum of 1 and 1 equals 5"  # abs tol 1
+      sage: print("The sum of 1 and 1 equals 5")  # abs tol 1
       The sum of 2 and 2 equals 4
       sage: e^(i*pi/4).n() # rel tol 1e-1
       0.7 + 0.7*I
