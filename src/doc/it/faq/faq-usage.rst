@@ -47,7 +47,7 @@ Questo aggancera' automaticamente la libreria Tcl/Tk. Dopo aver reinstallato cor
     import _tkinter
     import Tkinter
 
-Se non ti viene segnalato alcun errore di ``ImportError` allora il problema e' risolto.
+Se non ti viene segnalato alcun errore di ``ImportError`` allora il problema e' risolto.
 
 
 Come faccio ad importare Sage in uno script Python?
