@@ -242,7 +242,7 @@ Il seguente ciclo *pu\`o* essere interrotto:
 
 .. code-block:: python
 
-    sage: cython('while True: print "Hello"')
+    sage: cython('while True: print("Hello")')
 
 Il tipico caso d'uso per ``sig_check()`` \`e dentro piccoli cicli che fanno cose 
 complicate (codice Python e Cython mescolati, che possono sollevare eccezioni).
@@ -413,7 +413,7 @@ Se vuoi catturare anche quest'eccezione, hai bisogno di una ``try`` annidata::
             finally:
                 sig_off()
         except Exception:
-            print "Trouble!Trouble!"
+            print("Trouble!Trouble!")
 
 ``sig_on()`` \`e implementata usando la chiamata di libreria C ``setjmp()`` 
 che richiede una piccola ma non trascurabile quantit\`a di tempo.
