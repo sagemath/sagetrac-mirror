@@ -6,7 +6,7 @@ This module deals with a new combinatorial objects called BDiagrams.
 
 AUTHORS:
 
-- Imad Eddine Bousbaa 
+- Imad Eddine Bousbaa
 - Adrien Boussicault
 - Zakaria Chemli
 
@@ -17,7 +17,7 @@ REFERENCES:
    :arxiv:`1512.05937`.
 """
 #******************************************************************************
-#  Copyright (C) 2016    
+#  Copyright (C) 2016
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -65,8 +65,24 @@ from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWi
 
 class BDiagram(ClonableList):
     r"""
+    The BDiagram is vertex     
+    
+    .. MATH::
 
+        \Delta(P_i) = \sum_{j=0}^i P_{i-j} \otimes P_j
+
+        INPUT:
+
+    OUTPUT:
+        ``
     TESTS::
+
+        sage: BDiagram(
+        ....:     ( [3,3,4,2,3,2],
+        ....:     {1,2,3,4,5,6,11}, {0,1,3,5,6,7,9,10,13,14,16},
+        ....:     [(1,7),(2,13),(3,10),(11,16)])
+        ....: )
+        sage: 
         sage: BDiagram( [[], [], [], []] )
         [[], {}, {}, ()]
     """
@@ -75,11 +91,33 @@ class BDiagram(ClonableList):
     def __classcall_private__(cls, value):
         r"""
         """
-        return BDiagrams()(value) 
+        return BDiagrams()(value)
     def check(self):
         pass
     def __init__(self, parent, value):
         r"""
+        Initialize ``self``
+
+        INPUT:
+
+        - ``parent`` -- The BDiagrams.
+
+        - ``value`` -- The number of half-edges.
+        EXAMPLES::
+
+            sage: 
+            sage:
+
+        TESTS::
+
+        sage: BDiagrams(3)
+        BDiagrams of size 3
+        sage: list( BDiagrams(1) )
+        [[[1], {}, {}, ()],
+        [[1], {}, {1}, ()],
+        [[1], {1}, {}, ()],
+        [[1], {1}, {1}, ()]]
+        
         """
         if not isinstance(value, (list, tuple)):
             raise ValueError(
@@ -98,7 +136,7 @@ class BDiagram(ClonableList):
             )
         )
         self.check()
-            
+
     def size(self):
         r"""
         Return the number of half edges.
@@ -138,7 +176,7 @@ class BDiagram(ClonableList):
             {}
         """
         return self[1]
-   
+
 # set of non-cut inner half-edges
     def inner_set(self):
         r"""
@@ -160,6 +198,8 @@ class BDiagram(ClonableList):
 # set of edges
     def edges_set(self):
         r"""
+        EXAMPLES::
+
             sage: exem2 = BDiagram(
             ....:     ( [3,3,4,2,3,2],
             ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
@@ -175,6 +215,22 @@ class BDiagram(ClonableList):
 
 # set of outer cut half-edges
     def outer_cut_set(self):
+        r"""
+        Return the set of the outers cut half edges.
+
+        EXAMPLES::
+
+            sage: exem2 = BDiagram(
+            ....:     ( [3,3,4,2,3,2],
+            ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
+            ....:     [(1,7),(2,13),(3,10),(11,16)])
+            ....: )
+            sage: exem2.outer_cut_set()
+            [0, 7, 8, 9, 10, 12, 13, 14, 15, 16]
+            sage: exem2 = BDiagram([[], [], [], []])
+            sage: exem2.size()
+            0
+        """
         return [e for e in range (n) if e not in self[1]]
 # set of inner cut half-edges
     def inner_cut_set(self):
@@ -207,10 +263,10 @@ class BDiagram(ClonableList):
             0
         """
         return len (self.composition())
-    
+
     def composition(self):
         return self[0]
-    
+
     def _edge_to_bug_number( self, half_edge):
         r"""
             sage: exem2 = BDiagram(
@@ -242,10 +298,10 @@ class BDiagram(ClonableList):
             ...
             AssertionError
         """
-        assert( self.bug_number() > 0 ) 
-        i=0; compo=self.composition()[i] 
+        assert( self.bug_number() > 0 )
+        i=0; compo=self.composition()[i]
         while half_edge>=compo:
-            i+=1            
+            i+=1
             compo=compo+self.composition()[i]
         return i
 
@@ -256,6 +312,8 @@ class BDiagram(ClonableList):
 
     def _bug_digraph(self):
         r"""
+        EXAMPLES::
+
             sage: exem2 = BDiagram(
             ....:     ( [3,3,4,2,3,2],
             ....:     {1,2,3,4,6,5,11}, {0,1,3,5,6,7,9,10,13,14,16},
@@ -323,7 +381,7 @@ class BDiagram(ClonableList):
             sage: exem2 = BDiagram([[], [], [], []])
             sage: exem2.sub_bdiagram([])
             [[], {}, {}, ()]
-            
+
         """
         sub_edges = []
         sub_compo = []
@@ -348,7 +406,7 @@ class BDiagram(ClonableList):
                     sub_outers.append( dictio_of_outers[i] )
             for i in self.inner_set():
                 if interval[0] <= i and i< interval[1]:
-                    dictio_of_inners [i] = i-interval[0] + lenght 
+                    dictio_of_inners [i] = i-interval[0] + lenght
                     sub_inners.append( dictio_of_inners[i] )
             lenght+=sub_compo[index]
             index+=1
@@ -356,7 +414,7 @@ class BDiagram(ClonableList):
         for edge in self.edges_set():
             if self._edge_to_bug_number(edge[0]) in list_of_bug:
                 sub_edges.append( ( dictio_of_outers[edge[0]], dictio_of_inners[edge[1]] ) )
-        # return the sub diagram 
+        # return the sub diagram
         return BDiagram ( [sub_compo,sub_outers,sub_inners,sub_edges]  )
 
 
@@ -376,7 +434,7 @@ class BDiagrams_all(DisjointUnionEnumeratedSets):
     Element = BDiagram
     def __init__(self):
         DisjointUnionEnumeratedSets.__init__(
-            self,            
+            self,
             Family(NonNegativeIntegers(), self.graded_component),
             facade=True, keepkey=False
         )
@@ -412,7 +470,7 @@ class BDiagrams_size(UniqueRepresentation, Parent):
         r"""
         EXAMPLES::
         """
-        size=self._size 
+        size=self._size
         for comp in Compositions(size):
             for c in cartesian_product( [Subsets(size), Subsets(size)] ) :
                 for edges in self._allowed_matchings( c[0], c[1], comp ):
@@ -435,14 +493,14 @@ class BDiagrams_size(UniqueRepresentation, Parent):
     def _allowed_matchings( self, inner_set, outer_set, comp ):
         if len(outer_set) == 0:
             yield []
-            return    
+            return
         for m in self._allowed_matchings2_rec( 0, inner_set, outer_set, comp ):
             yield m
 
     def _get_bug_position( self, comp, half_edge):
-        i=0; compo=comp[i] 
+        i=0; compo=comp[i]
         while half_edge>compo:
-            i+=1            
+            i+=1
             compo=compo+comp[i]
         return i
 
@@ -450,7 +508,7 @@ class BDiagrams_size(UniqueRepresentation, Parent):
         if edge[0]>=edge[1]:
             return False
         if self._get_bug_position( comp,edge[0]) < self._get_bug_position( comp,edge[1]):
-            return True 
+            return True
 
 
 BDiagrams = BDiagramsFactory()
@@ -465,12 +523,12 @@ BDiagrams = BDiagramsFactory()
 #
 #def diagram_outer_half_edges( d ):
 #    return d[1]
-# 
+#
 #def diagram_inner_half_edges( d ):
 #    return d[2]
 #
 #def nb_outer_free_half_edges( d ):
-#    return len( diagram_outer_half_edges( d ) )-len( diagram_edges( d ) ) 
+#    return len( diagram_outer_half_edges( d ) )-len( diagram_edges( d ) )
 #
 #var('x,y')
 #
@@ -506,7 +564,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
         return bd.size()
 
     def _repr_(self):
-        return "BDiagram Hopf algebrawith basis over %s" % self.base_ring()
+        return "BDiagram Hopf algebra with basis over %s" % self.base_ring()
 
     def _repr_term(self, bd):
         return 'B' + repr(bd)
@@ -518,7 +576,16 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
 
     def _shift_list(self,l,sh):
         return map(lambda x: x+sh, l )
-    
+
+    def _shift_tuple( self, tup, sh ):
+        return map (lambda x: tuple([x[0]+sh,x[1]+sh]), tup)
+        #return tuple(map(lambda x: tuple(map(lambda y: y+sh,x)),tup))
+        #for i,j in shifted:
+        #    print (i,j)
+        #    res.append((i+sh,j+sh)
+        #    print res
+        #return tuple(res)
+
     def _matchings_rec( self, pos_inner_edge, inner_set, outer_set):
         if len(inner_set) <= pos_inner_edge or len(outer_set) == 0:
             yield []
@@ -534,7 +601,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
     def _matchings( self, inner_set, outer_set):
         if len(outer_set) == 0 or len(inner_set) == 0:
             yield []
-            return    
+            return
         for m in self._matchings_rec( 0, inner_set, outer_set):
             yield m
 
@@ -543,7 +610,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
         comp = bdiag_1[0]+bdiag_2[0]
         outer_set =list(bdiag_1.outer_set())+list(self._shift_list(bdiag_2.outer_set(),bdiag_1.size()))
         inner_set = list(bdiag_1.inner_set())+list(self._shift_list(bdiag_2.inner_set(),bdiag_1.size()))
-        edges = list(bdiag_1.edges_set())+list(self._shift_list(bdiag_2.edges_set(),bdiag_1.size()))
+        edges = list( bdiag_1.edges_set() ) +list( self._shift_tuple( bdiag_2.edges_set(), bdiag_1.size() ) )
 
         for match in self._matchings(bdiag_1.free_outer_set(),self._shift_list(bdiag_2.free_inner_set(), bdiag_1.size() )):
             res += self( BDiagram( (comp,outer_set,inner_set,edges+match) ) )
@@ -574,7 +641,7 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
             ....:     [(1,7),(2,13),(3,10),(11,16)])
             ....: )
             sage: hbd.coproduct_on_basis( b )
-            B[[], {}, {}, ()] # B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] + B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))] # B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] + B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] # B[[], {}, {}, ()] + B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] # B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))] 
+            B[[], {}, {}, ()] # B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] + B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))] # B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] + B[[3, 3, 4, 2, 3, 2], {1, 2, 3, 4, 5, 6, 11}, {0, 1, 3, 5, 6, 7, 9, 10, 13, 14, 16}, ((1, 7), (2, 13), (3, 10), (11, 16))] # B[[], {}, {}, ()] + B[[3, 4, 3], {1, 2, 3}, {0, 1, 3, 4, 6, 8, 9}, ((1, 4), (2, 8))] # B[[3, 2, 2], {0, 1, 2, 4}, {0, 2, 3, 6}, ((0, 3), (4, 6))]
         """
         res = 0
         graph = bdiagram._bug_digraph()
@@ -590,6 +657,6 @@ class BDiagramHopfAlgebra(CombinatorialFreeModule):
             for i in right_compo:
                 right += connected_components[i]
             left = bdiagram.sub_bdiagram( left )
-            right = bdiagram.sub_bdiagram( right ) 
+            right = bdiagram.sub_bdiagram( right )
             res += self( left ).tensor( self(right) )
         return res
