@@ -24,7 +24,7 @@ from sage.symbolic.operators import arithmetic_operators, relation_operators, FD
 from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
-GaussianField = I.pyobject().parent()
+GaussianField = I.parent()
 
 
 class FakeExpression(object):
