@@ -391,11 +391,12 @@ Ecco un altro modo di fare lo stesso calcolo nell'interfaccia Sage a Singular::
 
     sage: singular.LIB("brnoeth.lib")
     sage: singular.ring(5,'(x,y)','lp')
-        //   characteristic : 5
-        //   number of vars : 2
-        //        block   1 : ordering lp
-        //                  : names    x y
-        //        block   2 : ordering C
+    polynomial ring, over a field, global ordering
+    //   characteristic : 5
+    //   number of vars : 2
+    //        block   1 : ordering lp
+    //                  : names    x y
+    //        block   2 : ordering C
     sage: f = singular('y^2-x^9-x')
     sage: print(singular.eval("list X1=Adj_div(%s);"%f.name()))
     Computing affine singular points ...
