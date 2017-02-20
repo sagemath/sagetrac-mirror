@@ -15,6 +15,7 @@ cdef class Expression(CommutativeRingElement):
     cpdef Expression _subs_expr(self, expr)
     cpdef int _cmp_add(Expression left, Expression right) except -2
     cpdef int _cmp_mul(Expression left, Expression right) except -2
+    cpdef _sage_input_(self, sib, coerced)
 
 cpdef bint is_Expression(x)
 cdef Expression new_Expression_from_GEx(parent, GEx juice)

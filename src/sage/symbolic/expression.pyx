@@ -1588,6 +1588,20 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.gethash()
 
+    cpdef _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: sage_input(2*x*y^z+3, verify=True)
+            # Verified
+            SR('2*x*y^z + 3')
+        """
+        return sib.name('SR')(repr(self))
+
     cpdef _richcmp_(left, right, int op):
         """
         Create a formal symbolic inequality or equality.
@@ -2111,7 +2125,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _is_registered_constant_(self):
         """
-        Return True if this symbolic expression is interally represented as
+        Return True if this symbolic expression is internally represented as
         a constant.
 
         This function is intended to provide an interface to query the internal
