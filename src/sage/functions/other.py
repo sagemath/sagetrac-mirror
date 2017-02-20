@@ -924,7 +924,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: r = gamma_inc(float(0), float(1)); r
             0.21938393439552029
             sage: type(r)
-            <type 'float'>
+            <... 'float'>
         """
         R = parent or s_parent(x)
         # C is the complex version of R
@@ -1719,7 +1719,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(5.r, 3)
             10.0
             sage: type(binomial._evalf_(5.r, 3))
-            <type 'float'>
+            <... 'float'>
             sage: binomial._evalf_(1/2,1/1)
             1/2
             sage: binomial._evalf_(10^20+1/1,10^20)
@@ -2213,7 +2213,7 @@ class Function_real_part(GinacFunction):
         TESTS::
 
             sage: type(real(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.real
@@ -2272,7 +2272,7 @@ class Function_imag_part(GinacFunction):
         TESTS::
 
             sage: type(imag(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.imag
