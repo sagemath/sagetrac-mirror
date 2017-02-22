@@ -112,6 +112,7 @@ cdef class ProbabilityDistribution:
 
         EXAMPLE::
 
+            sage: import matplotlib; matplotlib.use('Agg')
             sage: from sage.probability.probability_distribution import GeneralDiscreteDistribution
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)

@@ -89,6 +89,7 @@ EXAMPLES:
 
 We draw a curve::
 
+    sage: import matplotlib; matplotlib.use('Agg')
     sage: plot(x^2, (x,0,5))
     Graphics object consisting of 1 graphics primitive
 
