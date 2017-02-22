@@ -11092,7 +11092,7 @@ cdef class Expression(CommutativeRingElement):
             ret = ret[0]
         return ret
 
-    def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+    def find_root(self, a, b, var=None, xtol=10e-13, rtol=0, maxiter=100, full_output=False):
         """
         Numerically find a root of self on the closed interval [a,b] (or
         [b,a]) if possible, where self is a function in the one variable.
@@ -11208,7 +11208,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if is_a_relational(self._gobj) and self.operator() is not operator.eq:
             raise ValueError("Symbolic equation must be an equality.")
-        from sage.numerical.optimize import find_root
+        from sage.numerical.optimize import find_root, default_rtol
         if self.number_of_arguments() == 0:
             if bool(self == 0):
                 return a
@@ -11217,7 +11217,7 @@ cdef class Expression(CommutativeRingElement):
         elif self.number_of_arguments() == 1:
             f = self._fast_float_(self.default_variable())
             return find_root(f, a=a, b=b, xtol=xtol,
-                             rtol=rtol,maxiter=maxiter,
+                             rtol=(rtol or default_rtol),maxiter=maxiter,
                              full_output=full_output)
         else:
             raise NotImplementedError("root finding currently only implemented in 1 dimension.")

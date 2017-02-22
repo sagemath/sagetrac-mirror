@@ -15,8 +15,11 @@ from six.moves import range
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
+from numpy import finfo
+default_rtol = 4*finfo(float).eps
 
-def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+
+def find_root(f, a, b, xtol=10e-13, rtol=default_rtol, maxiter=100, full_output=False):
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
