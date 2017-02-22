@@ -85,8 +85,8 @@ def get_basename(path):
     root = os.path.dirname(path)
     # If the file is in the sage library, we can use our knowledge of
     # the directory structure
-    dev = SAGE_SRC
-    sp = os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages')
+    dev = os.path.normpath(SAGE_SRC)
+    sp = os.path.normpath(os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages'))
     if path.startswith(dev):
         # there will be a branch name
         i = path.find(os.path.sep, len(dev))
