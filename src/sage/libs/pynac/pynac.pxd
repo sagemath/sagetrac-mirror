@@ -1,6 +1,6 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
-# distutils: extra_compile_args = -std=c++11
+# distutils: extra_compile_args = -std=c++11 SINGULAR_CFLAGS
 """
 Declarations for pynac, a Python frontend for ginac
 
