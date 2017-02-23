@@ -586,7 +586,7 @@ def quaternion_algebra_invariants_from_ramification(F, I, S=None):
     INPUT:
 
     - ``F`` -- a number field
-    - ``I`` -- an ideal in ``F``
+    - ``I`` -- a list of prime ideals in ``F``
     - ``S`` -- (default: ``None``) a list of real embeddings or real places
       of ``F``
 
@@ -599,7 +599,7 @@ def quaternion_algebra_invariants_from_ramification(F, I, S=None):
 
         sage: F.<r> = QuadraticField(5)
         sage: from sage.algebras.quatalg.quaternion_algebra import quaternion_algebra_invariants_from_ramification
-        sage: quaternion_algebra_invariants_from_ramification(F,F.ideal(11),[]) # random
+        sage: quaternion_algebra_invariants_from_ramification(F,[(F.ideal(11))],[]) # random
         (22, -22*r - 31)
         sage: F.<r> = NumberField(x^2 - x - 24)
         sage: D = F.ideal(106*r + 469)
@@ -630,12 +630,11 @@ def quaternion_algebra_invariants_from_ramification(F, I, S=None):
     from sage.misc.misc_c import prod
     if S is None:
         S = []
-    I = F.ideal(I)
-    P = I.factor()
-    if (len(P) + len(S)) % 2:
+    I = list(set(I)) # Remove repetitions
+    if (len(I) + len(S)) % 2:
         raise ValueError('Number of ramified places must be even')
-    if any([ri > 1 for _, ri in P]):
-        raise ValueError('All exponents in the discriminant factorization must be odd')
+    if any((not p.is_prime() for p in I)):
+        raise ValueError('I must be a list of distinct prime ideals')
     Foo = F.real_places(prec=infinity)
     T = F.real_places(prec=infinity)
     Sold, S = S, []
@@ -647,11 +646,11 @@ def quaternion_algebra_invariants_from_ramification(F, I, S=None):
                 break
     if  len(S) != len(Sold):
         raise ValueError('Please specify more precision for the places.')
-    a = F.weak_approximation(I, J=None, S=S, T=[v for v in Foo if v not in S])
-    if len(P) == 0 and all([F.hilbert_symbol(-F.one(),a,pp) == 1 for pp,_ in F.ideal(2*a).factor()]):
+    a = F.weak_approximation([(p,1) for p in I], J=None, S=S, T=[v for v in Foo if v not in S])
+    if len(I) == 0 and all([F.hilbert_symbol(-F.one(),a,pp) == 1 for pp,_ in F.ideal(2*a).factor()]):
         return -F.one(), a
     Ps = []
-    for p, _ in P:
+    for p in I:
         if F.ideal(2).valuation(p) == 0:
             Ps.append((p, 1, False))
         else:

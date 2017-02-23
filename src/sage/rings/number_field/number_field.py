@@ -1812,9 +1812,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         INPUT:
 
-        - ``I`` -- a fractional ideal (trivial by default) of ``self``
+        - ``I`` -- a list of (primes,exponents) or a fractional ideal (trivial by default) of ``self``
         - ``S`` -- a list (empty by default) of real places of ``self``
-        - ``J`` -- a fractional ideal (trivial by default) of ``self``
+        - ``J`` -- a list of (primes,exponents) or a fractional ideal (trivial by default) of ``self``
         - ``T`` -- a list (empty by default) of real places of ``self``
 
         OUTPUT:
@@ -1862,11 +1862,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         n = 0
         entrylist = []
         if I is not None:
-            for p, e in I.factor():
+            if not isinstance(I,list):
+                I = I.factor()
+            for p, e in I:
                 entrylist.extend([p.pari_prime(), e])
                 n += 1
         if J is not None:
-            for p, _ in J.factor():
+            if not isinstance(J,list):
+                J = J.factor()
+            for p, _ in J:
                 entrylist.extend([p.pari_prime(), 0])
                 n += 1
         if n > 0:
