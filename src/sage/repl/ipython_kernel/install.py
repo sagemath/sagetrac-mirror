@@ -89,11 +89,19 @@ class SageKernelSpec(object):
             sage: os.listdir(path)
             ['b']
         """
+        if os.path.islink(dst):
+            origsrc = os.path.join(os.path.dirname(dst), os.readlink(dst))
+            if os.path.abspath(origsrc) == os.path.abspath(src):
+                return
         try:
             os.remove(dst)
         except OSError as err:
             if err.errno == errno.EEXIST:
                 return
+            elif err.errno == errno.ENOENT:
+                pass
+            else:
+                raise
         os.symlink(src, dst)
 
     def use_local_mathjax(self):
