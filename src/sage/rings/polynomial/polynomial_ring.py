@@ -2638,6 +2638,17 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         """
         return self.base_ring().characteristic()
 
+    @cached_method
+    def factored_modulus(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = Zmod(150)[]
+            sage: R.factored_modulus()
+            2 * 3 * 5^2
+        """
+        return self.modulus().factor()
+
     def _repr_(self):
         """
         TESTS::

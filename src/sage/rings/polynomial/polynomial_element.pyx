@@ -89,6 +89,7 @@ from sage.structure.element cimport (parent, have_same_parent,
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer cimport Integer, smallInteger
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
@@ -1373,9 +1374,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
         system for the coefficients of s and t for inexact rings (as the
         Euclidean algorithm may not converge in that case).
 
+        In the case of polynomial rings over Zmod(k), factors k and uses
+        the Chinese Remainder Theorem to combine inverses mod prime power
+        divisors.  The first such computation may be slow while k is factored.
+
         AUTHORS:
 
         - Robert Bradshaw (2007-05-31)
+
+        TESTS:
+
+        Check that :trac: `15788` is fixed:
+        
+            sage: K.<t> = PolynomialRing(IntegerModRing(42), 't', implementation='NTL')
+            sage: (t^2+1).inverse_mod(t^2)
+            1
+
+        And an error noted in :trac: `22237`:
+
+            sage: _.<x> = Zmod(4)[]
+            sage: (2*x + 1).inverse_mod(x^2 + x + 1)
+            2*x + 1
         """
         from sage.rings.ideal import is_Ideal
         if is_Ideal(m):
@@ -1392,7 +1411,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if u.is_unit():
                 return a.parent()(~u)
         if a.parent().is_exact():
-            # use xgcd
+            R = a.parent().base_ring()
+            if is_IntegerModRing(R) and not R.is_field():
+                # xgcd is not well defined, use an alternative algorithm, broken out below
+                return _inverse_mod_in_integer_mod_polynomial_ring(a,m)
+            # might be other failing cases, but we try xgcd
             g, s, _ = a.xgcd(m)
             if g == 1:
                 return s
@@ -10301,3 +10324,94 @@ cdef class PolynomialBaseringInjection(Morphism):
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
         return ConstantPolynomialSection(self._codomain, self.domain())
+
+# In the rings Zmod(n)['x'], the above implementation of
+# inverse_mod will fail, as 'xgcd' is troublesome (not
+# all ideals are principal).  An alternative implementation
+# avoids this problem.  It is defined here so that it can be
+# used by both polynomial_zmod_flint, polynomial_dense_modn_ntl_zz,
+# and polynomial_dense_modn_ntl_ZZ.  'Polynomial' is the closest common
+# superclass.
+
+# For some discussion on xgcd in rings that are not PIDs, such as we have here,
+# see trac #17674 and https://groups.google.com/forum/#!topic/sage-devel/JV8fCPUqTzo.
+
+cdef _inverse_mod_prime_power(a, m, p, k):
+    '''return i so that a*i % m = 1 mod p^k, if such an i exists.
+    Otherwise raise an exception.
+
+    INPUT:
+
+    `a` - a polynomial over ZZ
+    `m` - a polynomial over ZZ
+    `p` - a prime number
+    `k` - a positive integer
+
+    OUTPUT:
+
+    A polynomial `i` over ZZ, with coefficients reduced mod p^k,
+    such that a*i = 1 mod (m, p^k), when such a result exists.
+
+    TBD: citation for the algorithm.  Hensel lifting is used
+    after solving for the inverse mod p using the extended gcd.'''
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+    zp = IntegerModRing(p)
+    (g,s,t) = a.change_ring(zp).xgcd(m.change_ring(zp))
+    s = s.change_ring(ZZ)
+    t = t.change_ring(ZZ)
+    if g != 1:
+        raise Exception("Impossible inverse")
+    pj = p
+    j = 1
+    while j < k:
+        r = s*a + t*m - 1
+        # invariant: s*a + t*m = 1 + r  and  p^j | r  and j is a power of 2
+        pj = pj**2
+        f = 1 - r
+        s = (f*s) % pj
+        t = (f*t) % pj
+        j = 2*j
+    return s
+
+cdef _inverse_mod_in_integer_mod_polynomial_ring(a, modulus):
+    """The inverse of the polynomial ``a`` modulo ``modulus``.
+
+    Raises Exception('Impossible inverse') if no such inverse exists.
+
+    For polynomials of an IntegerModRing, this has to factor the modulus,
+    (once, and then the factorization is cached), so can be slow when
+    the modulus is large.
+
+    EXAMPLES::
+
+        sage: _.<x> = Zmod(8)[]
+        sage: (1+x).inverse_mod(x^4 + x^2 - 3)  # indirect doctest
+        x^3 + 7*x^2 + 2*x + 6
+        sage: (x+1).inverse_mod(x^2 + 2*x + 1) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        Exception: Impossible inverse
+        sage: y = PolynomialRing(Zmod(360),'y',implementation='NTL').gen() # NTL_zz
+        sage: a = 79*y^2 - 8*y + 4
+        sage: m = y^7 + 1
+        sage: i = a.inverse_mod(m) # indirect doctest
+        sage: i
+        352*y^6 + 305*y^5 + 168*y^4 + 316*y^3 + 224*y^2 + 312*y + 280
+        sage: (a * i) % m == 1
+        True
+        sage: _.<z> = Zmod(3^4 * 17^9 * 97^3 * 1009 * 2003^5)[] # big enough to be NTL_ZZ
+        sage: a = z^5 + 1
+        sage: m = z^18 - 100*z
+        sage: i = a.inverse_mod(m) # indirect doctest
+        sage: (a * i) % m == 1
+        True
+    """
+    from sage.arith.misc import crt
+    R = a.parent()
+    az = a.change_ring(ZZ)
+    mz = modulus.change_ring(ZZ)
+    factors = R.factored_modulus()
+    inverses = [_inverse_mod_prime_power(az,mz, p, k) for p,k in factors]
+    if len(inverses) == 1:
+       return R(inverses[0]) % modulus # CRT does not do this modular reduction step.
+    return R(crt(inverses, [p**k for p,k in factors])) % modulus
