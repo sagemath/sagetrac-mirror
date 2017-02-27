@@ -1,0 +1,22 @@
+= MathLine =
+
+== Description ==
+
+MathLine is a Mathematica command Line front end to the Mathematica kernel. The front end has feature parity with the textual front end that ships with Mathematica. 
+https://github.com/rljacobson/MathLine
+
+== License ==
+
+BSD, MIT components.
+
+== Upstream Contact ==
+
+Robert Jacobson, rljacobson@gmail.com
+
+== Dependencies ==
+
+* CMake
+* Mathematica (WSTP or MathLink header and library at compile time, kernel at runtime)
+
+== Special Update/Build Instructions ==
+

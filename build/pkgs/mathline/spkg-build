@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+cd src
+mkdir build
+cd build
+
+cmake -Wno-dev -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL" ../
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring MathLine."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building MathLine."
+    exit 1
+fi

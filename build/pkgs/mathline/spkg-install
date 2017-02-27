@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cd src/build
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing MathLine."
+    exit 1
+fi
