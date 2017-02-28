@@ -1,7 +1,6 @@
 r"""
 code to solve S-unit equation x + y = 1
 
-
 REFERENCES::
 
 [MR] = B. Malmskog and C. Rasmussen, Picard curves over `\mathbb{Q}` with good reduction away from 3
@@ -18,9 +17,10 @@ EXAMPLES::
     sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
     sage: S=SUK.primes()
     sage: solve_S_unit_equation(K, S, 200)
-    [[(2, 1), (4, 0), xi + 2, -xi - 1], [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3], [(5, 0), (1, 0), -xi, xi + 1], [(1, 1), (2, 0), -xi + 1, xi]]
-
-
+    [[(2, 1), (4, 0), xi + 2, -xi - 1],
+     [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
+     [(5, 0), (1, 0), -xi, xi + 1],
+     [(1, 1), (2, 0), -xi + 1, xi]]
 """
 
 
@@ -43,7 +43,7 @@ from __future__ import absolute_import
 
 import numpy
 from math import pi
-from random import random
+from sage.misc.prandom import random
 
 from sage.rings.ring import Field
 from sage.rings.all import Infinity
@@ -735,7 +735,6 @@ def c11_func(SUK, v, A, prec = None):
 
     """
     R = set_R(prec)
-    #assert v in SUK.number_field().places(prec)
     from sage.functions.log import log
     if is_real(v,prec):
         return R(log(4*c4_func(SUK, v, A, prec))/(c3_func(SUK, prec)))
@@ -774,7 +773,6 @@ def c12_func(SUK, v, A, prec = None):
 
     """
     R = set_R(prec)
-    #assert v in SUK.number_field().places(prec)
     if is_real(v,prec):
         return R(2*c4_func(SUK, v, A, prec))
     else:
@@ -810,7 +808,6 @@ def c13_func(SUK, v, prec = None):
 
     """
     R = set_R(prec)
-    #assert v in SUK.number_field().places(prec)
     if is_real(v,prec):
         return c3_func(SUK,prec)
     else:
@@ -870,8 +867,6 @@ def hprime(SUK, alpha, v, prec = None):
 
     """
     R = set_R(prec)
-    #assert v in SUK.number_field().places(prec)
-    #assert alpha in SUK.number_field()
     from sage.functions.log import log
     return R(max(alpha.global_height(), 1/SUK.number_field().degree(), log(v(alpha)).abs()/SUK.number_field().degree()))
 
@@ -907,7 +902,6 @@ def c14_func(SUK,v,A,prec = None):
 
     """
     R = set_R(prec)
-    #assert v in SUK.number_field().places(prec)
     c_1 = Baker_C(SUK.rank(),SUK.number_field().degree(),prec)
     hproduct = c_1 * prod([hprime(SUK, alpha, v, prec) for alpha in SUK.gens_values()])
     return hproduct
@@ -946,7 +940,7 @@ def c15_func(SUK, v, A, prec = None):
     from sage.functions.log import log
     return R(2*(log(c12_func(SUK,v,A,prec))+c14_func(SUK,v,A,prec)*log((SUK.rank()+1)*c14_func(SUK,v,A,prec)/c13_func(SUK,v,prec)))/c13_func(SUK,v,prec))
 
-def K0_func(SUK, v, A, prec = None):
+def K0_func(SUK, A, prec = None):
     r"""
     Return the constant `K0` from Smart's TCDF paper
 
@@ -963,9 +957,8 @@ def K0_func(SUK, v, A, prec = None):
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: A = K.roots_of_unity()
-        sage: phi_fin = SUK.primes()[0]
 
-        sage: K0_func(SUK,phi_fin,A)
+        sage: K0_func(SUK,A)
         9.475576673109275443280257946930e17
 
     REFERENCES:
@@ -1033,7 +1026,7 @@ def cx_LLL_bound_one_embed(SUK, v, c11_LLL, c12_LLL, c13_LLL, old_K1, gens=None,
         sage: A = K.roots_of_unity()
 
         sage: cx_LLL_bound_one_embed(SUK, phi_real, c11_func(SUK,phi_real, A), c12_func(SUK,phi_real,A), c13_func(SUK,phi_real),K1_func(SUK, phi_real, A)) #random
-        104.0000000000000000000000000000
+        99.00000000000000000000000000000
 
     ..NOTE::
         The constant C0 used has an element of randomness, which should improve the algorithm. For easily replicable results, one may double C0 instead
@@ -1120,17 +1113,14 @@ def minimal_vector(A,y):
     r"""
 
     INPUT:
-        - ``A`` : an square non-singular integer matrix whose rows generate a lattice `\mathcal L`
-        - ``y`` : a row vector with integer coordinates
+        - ``A`` : an square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
+        - ``y`` : a row (1 by n) vector with integer coordinates
 
     OUTPUT:
         A low bound for the square of `\ell (\mathcal L,\vec y) =\begin{cases}\displaystyle\min_{\vec x\in\mathcal L}\Vert\vec x-\vec y\Vert &, \vec y\not\in\mathcal L. \\ \displaystyle\min_{0\neq\vec x\in\mathcal L}\Vert\vec x\Vert&,\vec y\in\mathcal L.\end{cases}`
 
     COMMENT:
-        The algorithm is based on V.9 and V.10 of the reference
-
-    REFERENCE:
-        Nigel P. Smart. The Algorithmic Resolution of Diophantine Equations. Number 41 in Students Texts. London Mathematical Society, 1998.
+        The algorithm is based on V.9 and V.10 of [Smart]
 
     EXAMPLE::
 
@@ -1232,12 +1222,12 @@ def e_s_real(a,place):
 
         sage: K.<a> = NumberField(x^4-7)
         sage: place = K.places()[0]
-        sage: place(a)
-            -1.626576561697785743211232345494
         sage: e_s_real(a,place)
             -a
         sage: e_s_real(-a,place)
             -a
+        sage: place(a)
+        -1.626576561697785743211232345494
     """
 
     if place(a) < 0:
@@ -1256,7 +1246,7 @@ def reduction_step_real_case(place,B0,G,c7):
 
     OUTPUT:
         - a new upper bound
-        - ``True`` if we have to increse precision, otherwise ``False``
+        - ``True`` if we have to increase precision, otherwise ``False``
 
     COMMENT:
         The constant ``c7`` in the reference page 137
@@ -1332,7 +1322,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
     OUTPUT:
         - a new upper bound
-        - ``True`` if we have to increse precision, otherwise ``False``
+        - ``True`` if we have to increase precision, otherwise ``False``
 
     COMMENT:
         The constant ``c7`` in the reference page 138
@@ -1349,8 +1339,8 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         sage: reduction_step_complex_case(p1,10^5,G,-1,2)
         (17, False)
     """
-    R = set_R(1000)
     precision = place.codomain().precision()
+    R = set_R(precision)
     n = len(G)
     from sage.functions.log import log
     Glog_imag = [R((log(place(g))).imag_part()) for g in G]
@@ -1455,7 +1445,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
                 l = minimal_vector(A,y)
 
 
-                if l < T**2 + S:
+                if l <= T**2 + S:
                     C *= 2
                     #The same as above if for the new C the precision is low
                     if precision < log(C)/log(2):
@@ -1569,9 +1559,10 @@ def log_p_of_a_list(L,prime,prec):
     EXAMPLE::
 
         sage: K.<a> = QuadraticField(17)
-        sage: p = K.prime_above(13);
+        sage: p = K.prime_above(13); p
+            Fractional ideal (-a + 2)
         sage: log_p_of_a_list([3*a^3+1,2*a^2+a+7],p,20)
-        [90957756839706500805798/13*a + 800239096845092924869910/13,
+            [90957756839706500805798/13*a + 800239096845092924869910/13,
              2062304673797573083577432/13*a + 1425114372563713406518529/13]
     """
     K = prime.ring()
@@ -1804,7 +1795,8 @@ def embedding_to_Kp(a,prime,precision):
     EXAMPLE::
 
         sage: K.<a> = QuadraticField(17)
-        sage: p = K.prime_above(13);
+        sage: p = K.prime_above(13); p
+            Fractional ideal (-a + 2)
         sage: embedding_to_Kp(a-3,p,15)
             -20542890112375827
 
@@ -1914,6 +1906,7 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision):
             return 0,True
 
         #We construct the matrix A as a block matrix
+
         A11 = copy(identity_matrix(ZZ,n))
         A12 = copy(zero_matrix(ZZ,n,m))
         A21 = copy(zero_matrix(ZZ,n,m))
@@ -1960,7 +1953,7 @@ def p_adic_LLL_bound(SUK,A, prec = None):
     if prec == None:
         prec = 106
     S = SUK.primes()
-    K0_by_finite_place = [K0_func(SUK, v, A, prec) for v in S]
+    K0_by_finite_place = [K0_func(SUK, A, prec)]
     LLL_K0_by_finite_place = []
     for i,v in enumerate(S):
         Kv_old = K0_by_finite_place[i]
@@ -2027,32 +2020,39 @@ def completely_split_primes(K, Bound = 200):
             split_primes.append(p)
     return split_primes
 
-def split_primes_large_lcm(K, Bound):
+def split_primes_large_lcm(SUK, Bound):
     r"""
-    Returns a list L of completely split primes in K such that lcm {q - 1 : q in L } exceeds 2*Bound + 1
+    Return a list L of rational primes `q` which split completely in `K` and which have desirable properties (see NOTES).
 
     INPUT:
 
-    - ``K`` -- a number field
+    - ``SUK`` -- the S-unit group of an absolute number field `K`.
     - ``Bound`` -- a positive integer
 
     OUTPUT:
 
-    A list L of rational primes q, each splitting completely in K, and such that
-    lcm {q - 1 : q in L } is greater than or equal to 2 * Bound + 1.
+    A list `L` of rational primes `q`, with the following properties:
+        - each prime `q` in `L` splits completely in K
+        - if `Q` is a prime in `S` and `q` is the rational
+          prime below `Q`, then `q` is **not** in `L`
+        - the value lcm { `q - 1` : `q` in `L` } is greater than or equal
+           to 2 * Bound + 1.
 
     NOTES:
 
-    - A series of compatible exponent vectors for the primes in L will lift to **at most**
-      one integer exponent vector whose entries a_i satisfy |a_i| <= Bound.
+    - A series of compatible exponent vectors for the primes in L will
+      lift to **at most** one integer exponent vector whose entries
+      `a_i` satisfy `|a_i|` is less than or equal to Bound.
 
-    - The ordering of this set is not very intelligent for the purposes of the later
-      sieving processes.
+    - The ordering of this set is not very intelligent for the purposes
+      of the later sieving processes.
 
     EXAMPLES::
 
         sage: K.<xi> = NumberField(x^3 - 3*x + 1)
-        sage: split_primes_large_lcm(K, 200)
+        sage: S = K.primes_above(3)
+        sage: SUK = UnitGroup(K,S=tuple(S))
+        sage: split_primes_large_lcm(SUK, 200)
         [17, 19, 37, 53]
 
     With a tiny bound, SAGE may ask you to increase the bound.
@@ -2060,12 +2060,22 @@ def split_primes_large_lcm(K, Bound):
     ::
 
         sage: K.<xi> = NumberField(x^2 + 163)
-        sage: split_primes_large_lcm(K, 8)
+        sage: S = K.primes_above(23)
+        sage: SUK = UnitGroup(K,S=tuple(S))
+        sage: split_primes_large_lcm(SUK, 8)
         Traceback (most recent call last):
         ...
         ValueError: Not enough split primes found. Increase bound.
 
     """
+
+    K = SUK.number_field()
+    S0 = []
+    # we recover the rational primes below S:
+    for prime_ideal in SUK.primes():
+        q0 = prime_ideal.residue_field().characteristic()
+        if q0 not in S0:
+            S0.append( q0 )
 
     split_prime_list = completely_split_primes(K, 4*Bound + 4)
     lcm_list = []
@@ -2075,8 +2085,11 @@ def split_primes_large_lcm(K, Bound):
             # Need More Primes!
             raise ValueError('Not enough split primes found. Increase bound.')
         q = split_prime_list.pop(0)
-        L = lcm(L, q-1)
-        lcm_list.append(q)
+        # only use q if it is *not* below a prime in S -- that is,
+        # only if q does *not* appear in S0.
+        if q not in S0:
+            L = lcm(L, q-1)
+            lcm_list.append(q)
     return lcm_list
 
 def sieve_ordering(SUK, q):
@@ -2547,7 +2560,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         # turns (a, (b1,...,bn)) to (a, b1, ..., bn)
         return tuple([vec[0]] + list(vec[1]))
 
-    # We initialize some data.
+    # We initialize some dictionaries.
 
     rho = SUK.gens_values()
     rho_length = len(rho)
@@ -2578,12 +2591,13 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
     if verbose_flag:
         print "Using the following primes: ", split_primes_list
+        sys.stdout.flush()
     import itertools
     for q in split_primes_list:
         rho_images = rho_images_dict[q]
         if verbose_flag:
             print "q = ", q
-
+            sys.stdout.flush()
         def epsilon_q(a, i):
             # a is an exponent vector
             # i is an index for one of the primes over q
@@ -2597,7 +2611,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print "The evaluation function epsilon has beend defined using rho_images = ", rho_images
-
+            sys.stdout.flush()
         # Now, we run through the vectors in the iterator, but only keep the ones
         # which are compatible with the previously constructed dictionaries. That is,
         # in order to keep an exp_vec mod q, there must exist a compatible exp_vec mod p
@@ -2621,7 +2635,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
-
+                sys.stdout.flush()
         else:
             ev_to_rfv_dict = {}
             # We use compatibility requirements to keep the size of the dictionary down.
@@ -2640,7 +2654,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
-
+            sys.stdout.flush()
         # At this point, we now have a dictionary ev_to_rfv_dict, which attaches
         # to each exponent vector a 'residue field vector,' which is a tuple of the
         # nK values epsilon_q(a,0),...,epsilon_q(a,nK-1).
@@ -2650,7 +2664,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         if verbose_flag:
             print "clean_rfv_dict executed."
             print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
-
+            sys.stdout.flush()
         # We essentially construct an inverse dictionary: one whose keys are residue field vectors,
         # and whose values are the exponent vectors that yield each key
 
@@ -2659,6 +2673,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         if verbose_flag:
             print "construct_rfv_to_ev executed."
             print "The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys."
+            sys.stdout.flush()
 
         comp_exp_vec[q] = construct_comp_exp_vec( rfv_to_ev[q], q )
 
@@ -2667,6 +2682,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print "Size of comp_exp_vec[q]: ", len(comp_exp_vec[q])
+            sys.stdout.flush()
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
         # looking for opportunities to remove 'impossible' solutions.
@@ -2675,14 +2691,16 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print "Comparing dictionaries for p = ", p, "and q = ", q, "."
+                sys.stdout.flush()
 
             old_size_p = len(comp_exp_vec[p])
 
             if verbose_flag:
                 print "Size of comp_exp_vec[p] is: ", old_size_p, "."
-                cv_size = ( (q-1)/py_gcd(p-1, q-1) )**( rho_length - 1 )
+                cv_size = ( (q-1)/gcd(p-1, q-1) )**( rho_length - 1 )
                 print "Length of compatible_vectors: ", cv_size, "."
                 print "Product: ", old_size_p * cv_size
+                sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[p].copy():
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
@@ -2690,6 +2708,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print "Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p])
+                sys.stdout.flush()
 
             # Now, repeat, but swap p and q.
 
@@ -2697,9 +2716,10 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print "Size of comp_exp_vec[q] is: ", old_size_q, "."
-                cv_size = ( (p-1)/py_gcd(p-1, q-1) )**( rho_length - 1 )
+                cv_size = ( (p-1)/gcd(p-1, q-1) )**( rho_length - 1 )
                 print "Length of compatible_vectors: ", cv_size, "."
                 print "Product: ", old_size_q * cv_size
+                sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[q].copy():
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
@@ -2707,6 +2727,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print "Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q])
+                sys.stdout.flush()
 
     return comp_exp_vec
 
@@ -3123,7 +3144,7 @@ def clean_sfs( sfs_list ):
 
     NOTES:
 
-        - The function looks for cases where x + y = 1 and y + x = 1 appear
+        - The function looks for cases where x + y = 1 and y + x = 1 appear\
           as separate solutions, and removes one.
 
     EXAMPLES:
@@ -3196,7 +3217,7 @@ def solve_S_unit_equation(K, S, prec = None):
 
     final_LLL_bound = max(all_LLL_bounds)
 
-    split_primes_list = split_primes_large_lcm(K, final_LLL_bound)
+    split_primes_list = split_primes_large_lcm(SUK, final_LLL_bound)
 
     complement_exp_vec_dict = construct_complement_dictionaries(split_primes_list, SUK)
 
