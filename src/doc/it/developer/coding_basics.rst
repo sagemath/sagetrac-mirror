@@ -19,8 +19,9 @@ sono fatte in accordo con il modo in cui gli oggetti corrispondenti sono
 usati nella matematica di tutti i giorni.
 
 .. [1]
-   Vedi http://www.sagemath.org/links-components.html per una lista completa 
-   dei pacchetti inclusi in ogni copia di Sage
+
+   Vedi http://www.sagemath.org/links-components.html per una lista
+   completa dei pacchetti inclusi in ogni copia di Sage
 
 Per raggiungere l'obiettivo di rendere Sage facile da leggere, manutenere, e
 migliorare, tutto il codice Python/Cython incluso in Sage deve aderire alle 
@@ -374,7 +375,9 @@ informazioni. Puoi usare le funzioni già presenti in Sage come template.
       .. [SC] Conventions for coding in sage.
          http://www.sagemath.org/doc/developer/conventions.html.
 
-  Vedi `markup Sphinx/ReST per citazioni <http://sphinx.pocoo.org/rest.html#citations>`_. Per link a tickets Trac o wikipedia, vedi :ref:`chapter-sage_manuals_links`.
+  Vedi `markup Sphinx/ReST per citazioni
+  <http://sphinx.pocoo.org/rest.html#citations>`_. Per link a tickets
+  Trac o wikipedia, vedi :ref:`chapter-sage_manuals_links`.
 
 - Un blocco **TESTS** (opzionale)
 
