@@ -14,6 +14,8 @@ This is different from rooted trees as we want to fix the number of subtrees.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
+
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -32,6 +34,7 @@ from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class MAryTree(AbstractClonableTree, ClonableArray):
     r"""
     The class of `m`-ary trees
@@ -61,8 +64,6 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         ...
         TypeError: This is not a 3-ary tree
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""
@@ -445,9 +446,8 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             sage: TestSuite(MA3).run()
             """
         self._m = m
-        DisjointUnionEnumeratedSets.__init__(self,
-                                             Family(NonNegativeIntegers(),
-                                                    self._get_m_ary_trees_size),
+        F = Family(NonNegativeIntegers(), self._get_m_ary_trees_size)
+        DisjointUnionEnumeratedSets.__init__(self, F,
                                              facade=True, keepkey=False)
 
     def _get_m_ary_trees_size(self, n):
@@ -775,18 +775,17 @@ class MAryTrees_size(MAryTrees):
         return res
 
 
+@add_metaclass(ClasscallMetaclass)
 class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
     r"""
     The class of labelled `m`-ary tree
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: LMT = LabelledMAryTree
         sage: t1 = LMT(3, [LMT(3, [], label=1), None, None], label=2);t1
         2[1[., ., .], ., .]
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -795,7 +794,8 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
 
         TESTS::
 
-            sage: issubclass(LabelledMAryTrees(3).element_class, LabelledMAryTree)
+            sage: LMT = LabelledMAryTree
+            sage: issubclass(LabelledMAryTrees(3).element_class, LMT)
             True
             sage: t0 = LabelledMAryTree(3, [None, None, []], label=2)
             sage: t0.parent()
@@ -887,7 +887,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
         """
         Return a labelled m-ary tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LMA3 = LabelledMAryTrees(3)  # indirect doctest
             sage: LMA3.an_element()
