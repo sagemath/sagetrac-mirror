@@ -6,10 +6,10 @@
 Eseguire i doctest di Sage
 ==========================
 
-L'eseguire i doctest \`e di una funzione assicura che essa si comporti 
-come dichiarato nella sua documentazione. Il test pu\`o essere fatto 
-usano uno o pi\`u thread. Dopo aver compilato una versione di Sage da 
-sorgente, il doctest pu\`o essere lanciato sull'intera libreria Sage, 
+L'eseguire i doctest è di una funzione assicura che essa si comporti 
+come dichiarato nella sua documentazione. Il test può essere fatto 
+usano uno o più thread. Dopo aver compilato una versione di Sage da 
+sorgente, il doctest può essere lanciato sull'intera libreria Sage, 
 su tutti i moduli in una determinata directory, o solo su uno specifico 
 modulo. Per gli scopi di questo capitolo, supponiamo di aver compilato 
 Sage 6.0 da sorgente e che la directory radice di Sage sia::
@@ -18,26 +18,28 @@ Sage 6.0 da sorgente e che la directory radice di Sage sia::
     /scratch/jdemeyer/build/sage-6.0
 
 Vedi la sezione :ref:`chapter-testing` per informazioni sul processo di 
-test automatico di Sage. La sintassi generale per fare i doctest \`e la 
+test automatico di Sage. La sintassi generale per fare i doctest è la 
 seguente. Per fare il doctest di un modulo nella libraria di una versione 
 di Sage, usa la seguente sintassi::
 
     /path/to/sage-x.y.z/sage -t [--long] /path/to/sage-x.y.z/path/to/module.py[x]
 
-dove ``--long`` \`e un argomento opzionale (vedi :ref:`section-options` per 
-le altre opzioni). La versione di ``sage`` usata deve essere uguale alla versione
-di Sage contenente il modulo di cui vogliamo fare il doctest. Un modulo Sage pu\`o 
-essere sia uno script Python (con l'estensione ".py") o pu\`o essere uno script 
-Cython, nel qual caso ha l'estensione ".pyx".
+dove ``--long`` è un argomento opzionale (vedi :ref:`section-options`
+per le altre opzioni). La versione di ``sage`` usata deve essere
+uguale alla versione di Sage contenente il modulo di cui vogliamo fare
+il doctest. Un modulo Sage può essere sia uno script Python (con
+l'estensione ".py") o può essere uno script Cython, nel qual caso ha
+l'estensione ".pyx".
 
 
 Fare il test di un modulo
 =========================
 
-Diciamo che vogliamo eseguire tutti i test nel modulo sudoku 
-``sage/games/sudoku.py``. In una finestra del terminale, prima diamo ``cd`` alla 
-directory radice di Sage della nostra installazione locale. A questo punto 
-possiamo lanciare i doctest come nella seguente sessione del terminale::
+Diciamo che vogliamo eseguire tutti i test nel modulo sudoku
+``sage/games/sudoku.py``. In una finestra del terminale, prima diamo
+``cd`` alla directory radice di Sage della nostra installazione
+locale. A questo punto possiamo lanciare i doctest come nella seguente
+sessione del terminale::
 
     [jdemeyer@sage sage-6.0]$ ./sage -t src/sage/games/sudoku.py
     Running doctests with ID 2012-07-03-03-36-49-d82849c6.
@@ -56,8 +58,8 @@ richiede circa 4 secondi, mentre fare il test di tutti i moduli specificati
 richiede circa lo stesso tempo; il tempo totale richiesto include un po' di 
 tempo di avvio per il codice che esegue i test. In questo caso, abbiamo solo 
 fatto il test di un modulo quindi non ci sorprende il fatto che il tempo totale 
-di test \`e approssimativamente lo stesso del tempo richiest per fare il test 
-solo di quell'unico modulo. Nota che la sintassi \`e::
+di test è approssimativamente lo stesso del tempo richiest per fare il test 
+solo di quell'unico modulo. Nota che la sintassi è::
 
     [jdemeyer@sage sage-6.0]$ ./sage -t src/sage/games/sudoku.py
     Running doctests with ID 2012-07-03-03-39-02-da6accbb.
@@ -97,23 +99,25 @@ Possiamo anche prima fare ``cd`` alla directory contenente il modulo
         cpu time: 3.6 seconds
         cumulative wall time: 3.6 seconds
 
-In tutte le suddette sessioni di terminale, abbiamo utilizzato un installazione 
-locale di Sage per fare il test dei suoi moduli. Anche se abbiamo una installazione 
-di Sage a livello di sistema, usare tale versione per fare i doctest dei moduli di 
-un'installazione locale \`e una ricetta per la confusione.
+In tutte le suddette sessioni di terminale, abbiamo utilizzato un
+installazione locale di Sage per fare il test dei suoi moduli. Anche
+se abbiamo una installazione di Sage a livello di sistema, usare tale
+versione per fare i doctest dei moduli di un'installazione locale è
+una ricetta per la confusione.
 
 
 Risoluzione dei problemi
 ========================
 
-Per fare il doctest dei moduli di un'installazione di Sage, dal terminale diamo 
-prima ``cd`` alla directory radice di Sage, altrimenti nota come ``SAGE_ROOT`` 
-di tale installazione. Quando eseguiamo i test, usiamo tale particolare installazione 
-di Sage con la sintassi ``./sage``; nota il "punto e barra" davanti a ``sage``. 
-Questa \`e una precauzione contro la confusione che potrebbe nascere quando sul nostro 
-sistema vi sono pi\`u installazioni di Sage. Ad esempio, la seguente sintassi \`e 
-accettabile perch\`e specifichiamo esplicitamente l'installazione di Sage nella 
-``SAGE_ROOT`` corrente::
+Per fare il doctest dei moduli di un'installazione di Sage, dal
+terminale diamo prima ``cd`` alla directory radice di Sage, altrimenti
+nota come ``SAGE_ROOT`` di tale installazione. Quando eseguiamo i
+test, usiamo tale particolare installazione di Sage con la sintassi
+``./sage``; nota il "punto e barra" davanti a ``sage``.  Questa è una
+precauzione contro la confusione che potrebbe nascere quando sul
+nostro sistema vi sono più installazioni di Sage. Ad esempio, la
+seguente sintassi è accettabile perchè specifichiamo esplicitamente
+l'installazione di Sage nella ``SAGE_ROOT`` corrente::
 
     [jdemeyer@sage sage-6.0]$ ./sage -t src/sage/games/sudoku.py
     Running doctests with ID 2012-07-03-03-43-24-a3449f54.
@@ -138,8 +142,8 @@ accettabile perch\`e specifichiamo esplicitamente l'installazione di Sage nella
         cpu time: 3.6 seconds
         cumulative wall time: 3.6 seconds
 
-LA seguente sintassi non \`e raccomandata dal momento che stiamo usando un'installazione 
-di Sage a livello di sistema(se esiste):
+LA seguente sintassi non è raccomandata dal momento che stiamo usando
+un'installazione di Sage a livello di sistema(se esiste):
 
 .. skip
 
@@ -182,27 +186,29 @@ di Sage a livello di sistema(se esiste):
             sage -t  "src/sage/games/sudoku.py"
     Total time for all tests: 21.3 seconds
 
-In questo caso, abbiamo un errore poich\`e because l'installazione di Sage 
-a livello di sistema \`e di una versione differente (pi\`u vecchia) di quella 
+In questo caso, abbiamo un errore poichè because l'installazione di Sage 
+a livello di sistema è di una versione differente (più vecchia) di quella 
 che stiamo usando per fare sviluppo. Accertatisempre di fare i test dei file 
 della versione corretta di Sage.
 
 Fare test paralleli di molti moduli
 ===================================
 
-Finora abbiamo usato un thread singolo per fare i doctest di un modulo nella
-libraria Sage. Ci sono centinaia o migliaia di moduli nella libreria Sage. 
-Fare il test di tutti usando un singolo thread richiederebbe alcune ore. 
-In base al nostro hardware, pu\`o richiedere da 6 ore in s\`u. Su un sistema 
-dotato di pi\`u di un core, effettuare i doctest in parallelo pu\`o ridurre 
-significativamente il tempo dei test. Se non abbiamo bisogno di usare il nostro 
-computer mentre effettuiamo i doctest in parallelo, possiamo scegliere di dedicare 
+Finora abbiamo usato un thread singolo per fare i doctest di un modulo
+nella libraria Sage. Ci sono centinaia o migliaia di moduli nella
+libreria Sage.  Fare il test di tutti usando un singolo thread
+richiederebbe alcune ore.  In base al nostro hardware, può richiedere
+da 6 ore in sù. Su un sistema dotato di più di un core, effettuare i
+doctest in parallelo può ridurre significativamente il tempo dei
+test. Se non abbiamo bisogno di usare il nostro computer mentre
+effettuiamo i doctest in parallelo, possiamo scegliere di dedicare
 tutti i core del nostro sistema per fare i test.
 
-Effettuiamo i doctest di tutti i moduli in una directory, dapprima usando un thread 
-singolo e poi usando 4 thread. Per questo esempio, supponiamo che vogliamo testare 
-tutti i moduli sotto ``sage/crypto/``. Possiamo usare una sintassi simile a quella 
-mostrata sotto per fare ci\`o::
+Effettuiamo i doctest di tutti i moduli in una directory, dapprima
+usando un thread singolo e poi usando 4 thread. Per questo esempio,
+supponiamo che vogliamo testare tutti i moduli sotto
+``sage/crypto/``. Possiamo usare una sintassi simile a quella mostrata
+sotto per fare ciò::
 
     [jdemeyer@sage sage-6.0]$ ./sage -t src/sage/crypto
     Running doctests with ID 2012-07-03-03-45-40-7f837dcf.
@@ -324,7 +330,7 @@ Ora facciamo la stessa cosa, ma utilizzando l'argomento opzionale ``--long``::
 
 Nota la differenza di tempo fra il primo insieme di test ed il secondo, 
 che usa l'argomento opzionale ``--long``. Molti test nella libreria Sage 
-hanno il flag ``# long time`` perch\`e si sa che essi richiedono molto 
+hanno il flag ``# long time`` perchè si sa che essi richiedono molto 
 tempo per essere intieramente eseguiti. Se non si usa l'argomento opzionale 
 ``--long``, il modulo ``sage/crypto/mq/sr.py`` richiede circa 5 secondi. 
 Con tale argumento ne richiede 82 per eseguire tutti i test di quel modulo. 
@@ -482,28 +488,30 @@ Incrementando il numero di thread diminuisce il tempo totale di test.
 Fare test paralleli dell'intera libreria di Sage
 ================================================
 
-La libreria principale di Sage si trova nella directory ``SAGE_ROOT/src/``. 
-Possiamo usare la sintassi descritta sopra per fare i doctest della libreria 
-principale usando pi\`u di un thread. Quando si fa gestione della release o 
-fi fa una patch della libreria principale di Sage, un manager di release farebbe 
-i test in parallelo della libreria usando 10 thread con il seguente comando::
+La libreria principale di Sage si trova nella directory
+``SAGE_ROOT/src/``.  Possiamo usare la sintassi descritta sopra per
+fare i doctest della libreria principale usando più di un
+thread. Quando si fa gestione della release o fi fa una patch della
+libreria principale di Sage, un manager di release farebbe i test in
+parallelo della libreria usando 10 thread con il seguente comando::
 
     [jdemeyer@sage sage-6.0]$ ./sage -tp 10 --long src/
 
-Un altro modo \`e lanciare ``make ptestlong``, che compila Sage (se necessario),
-compila la documentazione di Sage (se necessario), e poi esegue in parallelo i 
-doctest. Questo determina il numero di thread da usare leggendo la variabile 
-d'ambiente :envvar:`MAKE`: se \`e impostata a ``make -j12``, allora utilizzer\`a 
-12 thread.  Se :envvar:`MAKE` non \`e impostata, di default utilizzer\`a il 
-numero di core della CPU (come determinato dalla funzione Python 
-``multiprocessing.cpu_count()``) con un minimo di 2 ed un massimo di 8.
+Un altro modo è lanciare ``make ptestlong``, che compila Sage (se
+necessario), compila la documentazione di Sage (se necessario), e poi
+esegue in parallelo i doctest. Questo determina il numero di thread da
+usare leggendo la variabile d'ambiente :envvar:`MAKE`: se è impostata
+a ``make -j12``, allora utilizzerà 12 thread.  Se :envvar:`MAKE` non è
+impostata, di default utilizzerà il numero di core della CPU (come
+determinato dalla funzione Python ``multiprocessing.cpu_count()``) con
+un minimo di 2 ed un massimo di 8.
 
-In ogni caso tester\`a la libreria Sage con pi\`u di un thread::
+In ogni caso testerà la libreria Sage con più di un thread::
 
     [jdemeyer@sage sage-6.0]$ make ptestlong
 
-Uno qualunque dei seguenti comandi fare anche i doctest della libreria Sage o di 
-uno dei suoi clone::
+Uno qualunque dei seguenti comandi fare anche i doctest della libreria
+Sage o di uno dei suoi clone::
 
     make test
     make check
@@ -514,8 +522,8 @@ uno dei suoi clone::
 Le differenze sono:
 
 * ``make test`` e ``make check`` --- Questi 2 comandi eseguono lo stesso
-  insieme di test. Prima \`e testata la documentazione standard di Sage, 
-  cio\`e la documentazione che risiede in
+  insieme di test. Prima è testata la documentazione standard di Sage, 
+  cioè la documentazione che risiede in
 
   * ``SAGE_ROOT/src/doc/common``
   * ``SAGE_ROOT/src/doc/en``
@@ -639,9 +647,10 @@ script Python, e fare il doctest di questo::
 Fare i doctest da dentro Sage
 =============================
 
-Puoi eseguire i doctest da dentro Sage, cosa che pu\`o essere utile poich\`e 
-non devi aspettare che Sage parta.  Usa la funzione ``run_doctests`` nel spazio 
-dei nomi globale, passandogli una string o un modulo::
+Puoi eseguire i doctest da dentro Sage, cosa che può essere utile
+poichè non devi aspettare che Sage parta.  Usa la funzione
+``run_doctests`` nel spazio dei nomi globale, passandogli una string o
+un modulo::
 
     sage: run_doctests(sage.coding.sd_codes)
     Doctesting /Users/roed/sage/sage-5.3/src/sage/coding/sd_codes.py
@@ -666,15 +675,15 @@ Eseguire test lunghi
 
 Idealmente, i doctest non dovrebbero richiedere un significativo intervallo 
 di tempo. Se realmente hai bisogno di eseguire dei test che durano un po' di 
-pi\`u (in sostanza pi\`u di qualche secondo) allora marcali come::
+più (in sostanza più di qualche secondo) allora marcali come::
 
     sage: my_long_test()  # long time
 
-Anche cos\`i i doctest lunghi si dovrebbero concludere idealmente in 5 
-secondi o meno. Sappiamo che tu (l'autore) vuoi mettere in mostra le capacit\`a 
-del tuo codice, ma questo non \`e posto per farlo. I test troppo lunghi prima o 
-poi danneggeranno la nostra capacit\`a di eseguire la suite di test. Davvero,
-i doctest devono essere veloci il pi\`u possibile pur coprendo completamente il 
+Anche così i doctest lunghi si dovrebbero concludere idealmente in 5 
+secondi o meno. Sappiamo che tu (l'autore) vuoi mettere in mostra le capacità 
+del tuo codice, ma questo non è posto per farlo. I test troppo lunghi prima o 
+poi danneggeranno la nostra capacità di eseguire la suite di test. Davvero,
+i doctest devono essere veloci il più possibile pur coprendo completamente il 
 codice.
 
 Usa il flag ``--long`` per eseguire dei doctest che sono stati marcati col 
@@ -707,9 +716,9 @@ Per eseguire anche i test lunghi, fa quanto segue::
         cpu time: 25.2 seconds
         cumulative wall time: 34.7 seconds
 
-Per trovare dei test che durano pi\`u del tempo permesso usa il flag 
-``--warn-long``. Senza opzioni far\`a s\`i che i test mostrino a video 
-un warning se impiegano pi\`u di 1.0 secondo. Nota che questo \`e appunto un 
+Per trovare dei test che durano più del tempo permesso usa il flag 
+``--warn-long``. Senza opzioni farà sì che i test mostrino a video 
+un warning se impiegano più di 1.0 secondo. Nota che questo è appunto un 
 warning, non un errore::
 
     [roed@sage sage-6.0]$ sage -t --warn-long src/sage/rings/factorint.pyx
@@ -744,7 +753,7 @@ warning, non un errore::
         cpu time: 9.7 seconds
         cumulative wall time: 10.9 seconds
 
-Puoi anche passare esplicitamente una quantit\`a di tempo::
+Puoi anche passare esplicitamente una quantità di tempo::
 
     [roed@sage sage-6.0]$ sage -t --long --warn-long 2.0 src/sage/rings/tests.py
     Running doctests with ID 2012-07-14-03-30-13-c9164c9d.
@@ -776,11 +785,11 @@ Infine, puoi disabilitare i warnings sui test lunghi con ``--warn-long 0``.
 Eseguire test opzionali
 -----------------------
 
-Puoi eseguire test che richiedono pacchetti opzionali utilizzando il flag 
-``--optional``.  Ovviamente deve aver installato i necessari pacchetti 
-opzionali perch\`e tali tests abbiano successo. Vedi 
-http://www.sagemath.org/packages/optional/ per come fare il download di 
-pacchetti opzionali.
+Puoi eseguire test che richiedono pacchetti opzionali utilizzando il
+flag ``--optional``.  Ovviamente deve aver installato i necessari
+pacchetti opzionali perchè tali tests abbiano successo. Vedi
+http://www.sagemath.org/packages/optional/ per come fare il download
+di pacchetti opzionali.
 
 Di default, Sage esegue solo i doctest che non sono marcati con il tag 
 ``optional``. Questo equivale ad eseguire ::
@@ -825,8 +834,8 @@ Per poter eseguire solo i test marcati come richiedenti magma, ometti ``sage``::
         cpu time: 0.1 seconds
         cumulative wall time: 2.0 seconds
 
-Per eseguire tutti i test, indiffentemente al fatto che siano marcati opzionali o 
-no, passa ``all`` come ``optional`` tag::
+Per eseguire tutti i test, indiffentemente al fatto che siano marcati
+opzionali o no, passa ``all`` come ``optional`` tag::
 
     [roed@sage sage-6.0]$ sage -t --optional=all src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-31-18-8c097f55
@@ -843,10 +852,11 @@ no, passa ``all`` come ``optional`` tag::
 Eseguire i test in parallelo
 ----------------------------
 
-Se stai facendo il test di parecchi file, puoi velocizzare molto le cose 
-utilizzando pi\`u di un thread.  Per eseguire i doctest in parallelo usa il flag 
-``--nthreads`` (``-p`` \`e una versione abbreviata). Per passare il numero di thread 
-useresti (di default Sage ne usa solo 1)::
+Se stai facendo il test di parecchi file, puoi velocizzare molto le
+cose utilizzando più di un thread.  Per eseguire i doctest in
+parallelo usa il flag ``--nthreads`` (``-p`` è una versione
+abbreviata). Per passare il numero di thread useresti (di default Sage
+ne usa solo 1)::
 
     [roed@sage sage-6.0]$ sage -tp 2 src/sage/doctest/
     Running doctests with ID 2012-06-22-19-09-25-a3afdb8c.
@@ -878,10 +888,10 @@ useresti (di default Sage ne usa solo 1)::
 Fare i doctesting di tutto Sage
 -------------------------------
 
-Per fare i doctest di tutta la libreria Sage usa il flag ``--all`` (``-a`` come 
-abbreviazione). Oltre a testare il codice nei file Python e Cython di Sage, 
-questo comando eseguir\`a i test definiti nella documentazione si Sage cos\`i come 
-i test dei notebook Sage::
+Per fare i doctest di tutta la libreria Sage usa il flag ``--all``
+(``-a`` come abbreviazione). Oltre a testare il codice nei file Python
+e Cython di Sage, questo comando eseguirà i test definiti nella
+documentazione si Sage così come i test dei notebook Sage::
 
     [roed@sage sage-6.0]$ sage -t -a
     Running doctests with ID 2012-06-22-19-10-27-e26fce6d.
@@ -898,12 +908,14 @@ Se vuoi solo eseguire i test dei notebook, usa invece il flag ``--sagenb``.
 Strumenti di debug
 ------------------
 
-A volte i doctest falliscono (\`e per questo che li eseguiamo, dopotutto). Ci sono 
-vari flag che possono essere utili quando qualcosa va storto. Se un doctest d\`a 
-un errore Python, allora di solito i test continuano dopo averlo segnalato. Se usi 
-il flag ``--debug`` (abbreviabile``-d``) allora ti si aprir\`a un debugger Python 
-interattivo ogni volta che viene sollevata un'eccezione Python. Ad esempio, ho modificato 
-:mod:`sage.schemes.elliptic_curves.constructor` per produrre un errore::
+A volte i doctest falliscono (è per questo che li eseguiamo,
+dopotutto). Ci sono vari flag che possono essere utili quando qualcosa
+va storto. Se un doctest dà un errore Python, allora di solito i test
+continuano dopo averlo segnalato. Se usi il flag ``--debug``
+(abbreviabile``-d``) allora ti si aprirà un debugger Python
+interattivo ogni volta che viene sollevata un'eccezione Python. Ad
+esempio, ho modificato :mod:`sage.schemes.elliptic_curves.constructor`
+per produrre un errore::
 
     [roed@sage sage-6.0]$ sage -t --debug src/sage/schemes/elliptic_curves/constructor.py
     Running doctests with ID 2012-06-23-12-09-04-b6352629.
@@ -959,11 +971,12 @@ interattivo ogni volta che viene sollevata un'eccezione Python. Ad esempio, ho m
         cpu time: 4.5 seconds
         cumulative wall time: 89.2 seconds
 
-A volte un errore pu\`o essere cos\`i grave da causare un segfault o il blocco di 
-Sage. In tali situazioni hai un certo numero di opzioni. Il doctest framework 
-mostrer\`a a video l'output fin l\`i, cos\`i che tu possa almeno sapere la causa del 
-problema (se vuoi che quest'output appaia in tempo reale usa il flag ``--verbose``). 
-Per eseguire i doctests sotto il controllo di gdb, usa il flag ``--gdb``::
+A volte un errore può essere così grave da causare un segfault o il
+blocco di Sage. In tali situazioni hai un certo numero di opzioni. Il
+doctest framework mostrerà a video l'output fin lì, così che tu possa
+almeno sapere la causa del problema (se vuoi che quest'output appaia
+in tempo reale usa il flag ``--verbose``).  Per eseguire i doctests
+sotto il controllo di gdb, usa il flag ``--gdb``::
 
     [roed@sage sage-6.0]$ sage -t --gdb src/sage/schemes/elliptic_curves/constructor.py
     gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
@@ -991,14 +1004,16 @@ Per eseguire i doctests sotto il controllo di gdb, usa il flag ``--gdb``::
     (gdb) quit
 
 
-Sage include anche valgrind, e puoi eseguire i doctests sotto vari strumenti di 
-valgrind per tracciare problemi di memoria: i flag utili a ci\`o sono 
-``--valgrind`` (o ``--memcheck``), ``--massif``, ``--cachegrind`` e 
-``--omega``. Vedi http://wiki.sagemath.org/ValgrindingSage per maggiori dettagli.
+Sage include anche valgrind, e puoi eseguire i doctests sotto vari
+strumenti di valgrind per tracciare problemi di memoria: i flag utili
+a ciò sono ``--valgrind`` (o ``--memcheck``), ``--massif``,
+``--cachegrind`` e ``--omega``. Vedi
+http://wiki.sagemath.org/ValgrindingSage per maggiori dettagli.
 
-Una volta che hai finito di sistemare eventuali problem che fossero stati evidenziati 
-dai doctest, puoi rieseguire solo quei file che hanno fallito l'ultimo test usando il 
-flag ``--failed`` (abbreviato ``-f``)::
+Una volta che hai finito di sistemare eventuali problem che fossero
+stati evidenziati dai doctest, puoi rieseguire solo quei file che
+hanno fallito l'ultimo test usando il flag ``--failed`` (abbreviato
+``-f``)::
 
     [roed@sage sage-6.0]$ sage -t -fa
     Running doctests with ID 2012-07-07-00-45-35-d8b5a408.
@@ -1010,21 +1025,23 @@ flag ``--failed`` (abbreviato ``-f``)::
 Opzioni varie
 -------------
 
-Ci sono varie opzioni che modificano il comportamento del codice dei doctest di Sage.
+Ci sono varie opzioni che modificano il comportamento del codice dei
+doctest di Sage.
 
 Mostra solo primo errore
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Il primo errore in un file spesso ne causa degli altri a cascata, poich\`e i
-NameErrors nascono da variabili non definite ed i tests falliscono a causa di vecchi 
-valori delle variabili in uso. Per vedere solo il primo errore in ciascun blocco di 
-doctest block usa il flag ``--initial`` (abbreviato ``-i``).
+Il primo errore in un file spesso ne causa degli altri a cascata,
+poichè i NameErrors nascono da variabili non definite ed i tests
+falliscono a causa di vecchi valori delle variabili in uso. Per vedere
+solo il primo errore in ciascun blocco di doctest block usa il flag
+``--initial`` (abbreviato ``-i``).
 
 Mostra i test opzionali saltati
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Per mostrare un riassunto alla fine di ogni file con il numero di test opzionali 
-saltati, usa il flag ``--show-skipped``::
+Per mostrare un riassunto alla fine di ogni file con il numero di test
+opzionali saltati, usa il flag ``--show-skipped``::
 
    [roed@sage sage-6.0]$ sage -t --show-skipped src/sage/rings/finite_rings/integer_mod.pyx
    Running doctests with ID 2013-03-14-15-32-05-8136f5e3.
@@ -1046,10 +1063,10 @@ saltati, usa il flag ``--show-skipped``::
 Eseguire i test con iterazioni
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A volte i test falliscono in modo intermittente. Ci sono 2 opzioni che ti 
-permettono di eseguire i test ripetutamente nel tentativo di cercare Heisenbugs.
-Il flag ``--global-iterations`` prende un intero ed esegue l'intero insieme di 
-test quel numero di volte di seguito::
+A volte i test falliscono in modo intermittente. Ci sono 2 opzioni che
+ti permettono di eseguire i test ripetutamente nel tentativo di
+cercare Heisenbugs.  Il flag ``--global-iterations`` prende un intero
+ed esegue l'intero insieme di test quel numero di volte di seguito::
 
     [roed@sage sage-6.0]$ sage -t --global-iterations 2 src/sage/sandpiles
     Running doctests with ID 2012-07-07-00-59-28-e7048ad9.
@@ -1079,8 +1096,8 @@ test quel numero di volte di seguito::
         cpu time: 26.4 seconds
         cumulative wall time: 28.5 seconds
 
-Puoi anche iterare in ordine differente: il flag ``--file-iterations`` esegue 
-i test in ciascun file ``N`` volte prima di procedere::
+Puoi anche iterare in ordine differente: il flag ``--file-iterations``
+esegue i test in ciascun file ``N`` volte prima di procedere::
 
     [roed@sage sage-6.0]$ sage -t --file-iterations 2 src/sage/sandpiles
     Running doctests with ID 2012-07-07-01-01-43-8f954206.
@@ -1099,16 +1116,16 @@ i test in ciascun file ``N`` volte prima di procedere::
         cumulative wall time: 13.3 seconds
 
 
-Nota che i risultati riportati sono il tempo medio impiegato da tutti i test in 
-quel file per finire.  Se capita un errore in un file, allora l'errore \`e 
-segnalato ed i test procedono con il file seguente.
+Nota che i risultati riportati sono il tempo medio impiegato da tutti
+i test in quel file per finire.  Se capita un errore in un file,
+allora l'errore è segnalato ed i test procedono con il file seguente.
 
 Usare un timeout differente
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Su una macchina lenta il timeout di default di 5 minuti pu\`o non essere abbastanza 
-per i file pi\`u lenti.  Usa il flag ``--timeout`` (abbreviato ``-T``) per 
-impostarlo a qualcos'altro::
+Su una macchina lenta il timeout di default di 5 minuti può non essere
+abbastanza per i file più lenti.  Usa il flag ``--timeout``
+(abbreviato ``-T``) per impostarlo a qualcos'altro::
 
     [roed@sage sage-6.0]$ sage -tp 2 --all --timeout 1
     Running doctests with ID 2012-07-07-01-09-37-deb1ab83.
@@ -1141,10 +1158,10 @@ path assoluti al posto, passa il flag ``--abspath``::
 Testare i file modificati
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Se stai lavorando su qualche file nella libreria Sage pu\`o essere conveniente 
-fare i test solo dei file che sono stati modificati. Per farlo usa il flag 
-``--new``, che testa i file che sono stati modificati o aggiunti dopo l'ultimo 
-commit::
+Se stai lavorando su qualche file nella libreria Sage può essere
+conveniente fare i test solo dei file che sono stati modificati. Per
+farlo usa il flag ``--new``, che testa i file che sono stati
+modificati o aggiunti dopo l'ultimo commit::
 
     [roed@sage sage-6.0]$ sage -t --new
     Running doctests with ID 2012-07-07-01-15-52-645620ee.
@@ -1164,7 +1181,7 @@ Eseguire i test in ordine casuale
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Di default, i test sono eseguiti nell'ordine in cui appaiono nel file. 
-Per eseguire i test in ordinecasuale (cosa che pu\`o rivelare bachi sottili),
+Per eseguire i test in ordinecasuale (cosa che può rivelare bachi sottili),
 usa il flag ``--randorder`` e passa un "random seed"::
 
     [roed@sage sage-6.0]$ sage -t --new --randorder 127
@@ -1180,23 +1197,24 @@ usa il flag ``--randorder`` e passa un "random seed"::
         cpu time: 0.2 seconds
         cumulative wall time: 3.6 seconds
 
-Nota che anche con quest'opzione, i test in ciascun blocco di doctest sono ancora 
-eseguiti in ordine.
+Nota che anche con quest'opzione, i test in ciascun blocco di doctest
+sono ancora eseguiti in ordine.
 
 Testare file esterni
 ^^^^^^^^^^^^^^^^^^^^
 
-Quando si testa un file che non \`e parte della libreria Sage, il codice di test 
-carica le quantit\`a globali da quel file nello spazio dei nomi (namespace) prima 
-di eseguire i test. Per modellare il comportamento utilizzato invece sulla libreria 
-Sage (dove gli import devono essere specificati esplicitamente), usa il flag 
-``--force-lib``.
+Quando si testa un file che non è parte della libreria Sage, il codice
+di test carica le quantità globali da quel file nello spazio dei nomi
+(namespace) prima di eseguire i test. Per modellare il comportamento
+utilizzato invece sulla libreria Sage (dove gli import devono essere
+specificati esplicitamente), usa il flag ``--force-lib``.
 
 File ausiliari
 ^^^^^^^^^^^^^^
 
-Per specificare un file di log (piuttosto di utilizzare quello di default che \`e creato 
-da ``sage -t --all``), usa il flag ``--logfile``::
+Per specificare un file di log (piuttosto di utilizzare quello di
+default che è creato da ``sage -t --all``), usa il flag
+``--logfile``::
 
     [roed@sage sage-6.0]$ sage -t --logfile test1.log src/sage/doctest/control.py
     Running doctests with ID 2012-07-07-01-25-49-e7c0e52d.
@@ -1222,10 +1240,10 @@ da ``sage -t --all``), usa il flag ``--logfile``::
         cumulative wall time: 4.3 seconds
 
 
-Per dare un file json che contenga le tempistiche per ciascun file, usa il flag 
-``--stats_path``. Queste statistiche sono usate nell'ordinare i file cos\`i che 
-i test pi\`u lenti sono eseguiti prima (e cos\`i processi multipli sono 
-utilizzati in modo pi\`u efficiente)::
+Per dare un file json che contenga le tempistiche per ciascun file,
+usa il flag ``--stats_path``. Queste statistiche sono usate
+nell'ordinare i file così che i test più lenti sono eseguiti prima (e
+così processi multipli sono utilizzati in modo più efficiente)::
 
     [roed@sage sage-6.0]$ sage -tp 2 --stats-path ~/.sage/timings2.json --all
     Running doctests with ID 2012-07-07-01-28-34-2df4251d.

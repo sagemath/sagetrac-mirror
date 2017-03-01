@@ -4,16 +4,29 @@
 Il processo di sviluppo di Sage
 ===============================
 
-Questa sezione \`e un riassunto stringato di com'\`e il processo di sviluppo di Sage: vedremo come effettuare modifiche al codice sorgente di Sage e registrarle nel sistema di controlloversione di Git. Nella seguente sezione su :ref:`chapter-git_trac` vedremo come comunicare indietro al progetto Sage questi cambimenti.
+Questa sezione è un riassunto stringato di com'è il processo di
+sviluppo di Sage: vedremo come effettuare modifiche al codice sorgente
+di Sage e registrarle nel sistema di controlloversione di Git. Nella
+seguente sezione su :ref:`chapter-git_trac` vedremo come comunicare
+indietro al progetto Sage questi cambimenti.
 
-Abbiamo anche una pratica paginetta promemoria <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_ dei comandi pi\`u comunemente usati di Git che puoi stampare e lasciare sulla tua scrivania. Abbiamo anche dei :ref:`tutorial e materiale di riferimento raccomandato<section-git-tutorials>`. In alternativa puoi effettuare un fork e e creare una richiesta di pull su `github <http://github.com/sagemath/sage>`_ che automaticamente andr\`a a prendere il tuo codice e aprir\`a un ticket sul nostro server Trac.
+Abbiamo anche una pratica paginetta promemoria
+<http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
+dei comandi più comunemente usati di Git che puoi stampare e lasciare
+sulla tua scrivania. Abbiamo anche dei :ref:`tutorial e materiale di
+riferimento raccomandato<section-git-tutorials>`. In alternativa puoi
+effettuare un fork e e creare una richiesta di pull su `github
+<http://github.com/sagemath/sage>`_ che automaticamente andrà a
+prendere il tuo codice e aprirà un ticket sul nostro server Trac.
 
 .. _section-walkthrough-setup-git:
 
 Configurare Git
 ===============
 
-In un modo o in un altro, ``Git`` \`e ci\`o che \`e utilizzato da Sage per tenere traccia delle modifiche. Quindi innanzitutto apri una shell (ad esempio Terminale in Utility su Mac) e verifica che ``Git`` funzioni::
+In un modo o in un altro, ``Git`` è ciò che è utilizzato da Sage per
+tenere traccia delle modifiche. Quindi innanzitutto apri una shell (ad
+esempio Terminale in Utility su Mac) e verifica che ``Git`` funzioni::
 
     
     [user@localhost]$ git
@@ -29,14 +42,22 @@ In un modo o in un altro, ``Git`` \`e ci\`o che \`e utilizzato da Sage per tener
     to read about a specific subcommand or concept.
 
 
-Non preoccuparti della gigantesca lista di sottocomandi. In realt\`a te ne bastano una manciata per lo sviluppo effettivo, che ti accompagneremo al loro utilizzo in questa guida. Se ricevi un errore "command not found" allora non Git non e' installato. E' giunto il momento di installarlo: vedi :ref:`chapter-git-setup` per istruzioni.
+Non preoccuparti della gigantesca lista di sottocomandi. In realtà te
+ne bastano una manciata per lo sviluppo effettivo, che ti
+accompagneremo al loro utilizzo in questa guida. Se ricevi un errore
+"command not found" allora non Git non e' installato. E' giunto il
+momento di installarlo: vedi :ref:`chapter-git-setup` per istruzioni.
 
-Dal momento che tracciamo anche chi effettua modifiche in Sage con Git, devi dire a Git come voui essere conosciuto. Questo dev'essere fatto solo una volta:
+Dal momento che tracciamo anche chi effettua modifiche in Sage con
+Git, devi dire a Git come voui essere conosciuto. Questo dev'essere
+fatto solo una volta:
 
     [user@localhost]$ git config --global user.name "Your Name"
     [user@localhost]$ git config --global user.email you@yourdomain.example.com
 
-Se hai piu' accounts e/o computers usa lo stesso nome su tutti. Questa combinazione di nome ed email finisce nei commits, quindi fallo adesso prima di dimenticartene!
+Se hai piu' accounts e/o computers usa lo stesso nome su tutti. Questa
+combinazione di nome ed email finisce nei commits, quindi fallo adesso
+prima di dimenticartene!
 
 
 .. _section-walkthrough-sage-source:
@@ -44,7 +65,11 @@ Se hai piu' accounts e/o computers usa lo stesso nome su tutti. Questa combinazi
 Ottenere il codice sorgente
 ===========================
 
-Ovviamente uno ha bisogno del codice sorgente di Sage per fare sviluppo. Puoi utilizzare la tua installazione locale di Sage, oppure (per iniziare senza Sage) scaricarlo da Github, che e' un mirror pubblico di sola lettura (piu' veloce) del nostro repository Git interno::
+Ovviamente uno ha bisogno del codice sorgente di Sage per fare
+sviluppo. Puoi utilizzare la tua installazione locale di Sage, oppure
+(per iniziare senza Sage) scaricarlo da Github, che e' un mirror
+pubblico di sola lettura (piu' veloce) del nostro repository Git
+interno::
 
     [user@localhost]$ git clone git://github.com/sagemath/sage.git
     Cloning into 'sage'...
@@ -52,30 +77,44 @@ Ovviamente uno ha bisogno del codice sorgente di Sage per fare sviluppo. Puoi ut
     Checking connectivity... done.
     
 
-Questo crea una directory di nome ``sage`` contenete i sorgenti per le versioni di Sage corrente stabile e di sviluppo. Dovrai `compilare Sage <http://www.sagemath.org/doc/installation/source.html>`_ per poterla utilizzare.
+Questo crea una directory di nome ``sage`` contenete i sorgenti per le
+versioni di Sage corrente stabile e di sviluppo. Dovrai `compilare
+Sage <http://www.sagemath.org/doc/installation/source.html>`_ per
+poterla utilizzare.
 
-(Per gli esperti, si noti che il repository presso `git.sagemath.org <http://git.sagemath.org>`_ \`e dove realmente avviene lo sviluppo).
+(Per gli esperti, si noti che il repository presso `git.sagemath.org
+<http://git.sagemath.org>`_ è dove realmente avviene lo sviluppo).
 
 .. _section-walkthrough-branch:
 
 Aggiungere un ramo (branch) locale
 ==================================
 
-Per iniziare a modificare Sage dobbiamo fare un *ramo* (branch) di Sage. Un branch e' una copia (eccetto che non richiede il doppio dello spazio) del codice sorgente di Sage, dove puoi immagazzinare le tue modifiche al codice sorgente di Sage e che puoi reinviare collegate al relativo ticket su Trac.
+Per iniziare a modificare Sage dobbiamo fare un *ramo* (branch) di
+Sage. Un branch e' una copia (eccetto che non richiede il doppio dello
+spazio) del codice sorgente di Sage, dove puoi immagazzinare le tue
+modifiche al codice sorgente di Sage e che puoi reinviare collegate al
+relativo ticket su Trac.
 
-\`E facile creare un nuovo branch, semplicemente passa al ramo da cui vuoi partire (che sar\`a ``master``) ed usa il comando ``git branch``::
+È facile creare un nuovo branch, semplicemente passa al ramo da cui
+vuoi partire (che sarà ``master``) ed usa il comando ``git branch``::
 
     [user@localhost sage]$ git checkout master
     [user@localhost sage]$ git branch last_twin_prime
     [user@localhost sage]$ git checkout last_twin_prime
 
-Puoi mostrare una lista di tutte le ramificazioni, cio\`e di tutti i branch, con::
+Puoi mostrare una lista di tutte le ramificazioni, cioè di tutti i
+branch, con::
 
     [user@localhost]$ git branch
       master
     * last_twin_prime
 
-L'asterisco evidenzia su quale branch ti trovi. Senza argomenti ``git branch`` mostra semplicemente una lista di tutti i rami locali con quello corrente marcato con un asterisco. Nota anche che ``git branch`` crea un nuovo ramo, ma non passa ad esso. Per fare questo devi usare il comando ``git checkout``::
+L'asterisco evidenzia su quale branch ti trovi. Senza argomenti ``git
+branch`` mostra semplicemente una lista di tutti i rami locali con
+quello corrente marcato con un asterisco. Nota anche che ``git
+branch`` crea un nuovo ramo, ma non passa ad esso. Per fare questo
+devi usare il comando ``git checkout``::
 
     [user@localhost sage]$ git checkout master
     Switched to branch 'master'
@@ -86,9 +125,13 @@ L'asterisco evidenzia su quale branch ti trovi. Senza argomenti ``git branch`` m
     [user@localhost sage]$ git checkout last_twin_prime
     Switched to branch 'last_twin_prime'
 
-Nota che, se non reinvii esplicitamente le modifiche (``push``) fatte in un branch locale al repository Git remoto, il branch locale sar\`a soltanto sul tuo computer e non sar\`a visibile da nessun altro.
+Nota che, se non reinvii esplicitamente le modifiche (``push``) fatte
+in un branch locale al repository Git remoto, il branch locale sarà
+soltanto sul tuo computer e non sarà visibile da nessun altro.
 
-Per evitare di digitare due volte il nome del nuovo branch puoi usare la scorciatoia ``git checkout -b mioNuovoBranch`` per contemporaneamente creare il nuovo branch e passare ad esso.
+Per evitare di digitare due volte il nome del nuovo branch puoi usare
+la scorciatoia ``git checkout -b mioNuovoBranch`` per
+contemporaneamente creare il nuovo branch e passare ad esso.
 
 
 
@@ -97,17 +140,23 @@ Per evitare di digitare due volte il nome del nuovo branch puoi usare la scorcia
 La storia
 =========
 
-\`E sempre una buona idea verificare che stai facendo le tue modifiche sulla versione su cui pensi di essere. Questo comando ti mostra nel dettaglio l'ultimo commit, inclusi i suoi cambiamenti al codice::
+È sempre una buona idea verificare che stai facendo le tue modifiche
+sulla versione su cui pensi di essere. Questo comando ti mostra nel
+dettaglio l'ultimo commit, inclusi i suoi cambiamenti al codice::
 
     [user@localhost sage]$ git show
 
-Per andare pi\`u a fondo puoi verificare i log::
+Per andare più a fondo puoi verificare i log::
 
     [user@localhost sage]$ git log
 
-di default questo mostra una lista di tutti i commit in ordine cronologico inverso. Se scopri che il tuo branch \`e nel posto sbagliato puoi usare il comando ``git reset --hard`` per resettarlo a qualcos'altro; vedi :ref:`section-git-recovery` per dettagli.
+di default questo mostra una lista di tutti i commit in ordine
+cronologico inverso. Se scopri che il tuo branch è nel posto sbagliato
+puoi usare il comando ``git reset --hard`` per resettarlo a
+qualcos'altro; vedi :ref:`section-git-recovery` per dettagli.
 
-Vi sono molti programmi che ti possono aiutare a visualizzare meglio l'albero delle modifiche, quali ad esempio ``tig``.
+Vi sono molti programmi che ti possono aiutare a visualizzare meglio
+l'albero delle modifiche, quali ad esempio ``tig``.
 
 
 .. _section-walkthrough-add-edit:
@@ -115,9 +164,13 @@ Vi sono molti programmi che ti possono aiutare a visualizzare meglio l'albero de
 Modificare il codice sorgente
 =============================
 
-Una volta che hai il tuo proprio branch, sentiti libero di fare qualunque cambiamento ti piaccia. Alcuni :ref:`capitoli pi\`u avanti <section-writing-code-for-sage>` in questa Guida, ti spiegheranno come il tuo codice dovrebbe essere per andar bene in Sage, e come ci assicuriamo dell'elevata qualita' del codice.
-Il comando piu' importante di Git e' probabilmente *status*. Esso ti dice quali file sono cambiati, e come continuare a registrare i cambiamenti:
-:
+Una volta che hai il tuo proprio branch, sentiti libero di fare
+qualunque cambiamento ti piaccia. Alcuni :ref:`capitoli più avanti
+<section-writing-code-for-sage>` in questa Guida, ti spiegheranno come
+il tuo codice dovrebbe essere per andar bene in Sage, e come ci
+assicuriamo dell'elevata qualita' del codice.  Il comando piu'
+importante di Git e' probabilmente *status*. Esso ti dice quali file
+sono cambiati, e come continuare a registrare i cambiamenti: :
 
     [user@localhost sage]$ git status
     On branch master
@@ -148,16 +201,27 @@ per mostrare le differenze.
 Ricompilare Sage
 ================
 
-Una volta che hai fatto qualche modifica ovviamente vorrai ricompilare Sage per provarle. Finche' hai solo modificato la libreria di Sage (cioe' i files Python e Cython nelle sottodirectory di ``src/sare/...``) ti basta eseguire::
+Una volta che hai fatto qualche modifica ovviamente vorrai ricompilare
+Sage per provarle. Finche' hai solo modificato la libreria di Sage
+(cioe' i files Python e Cython nelle sottodirectory di
+``src/sare/...``) ti basta eseguire::
 
     [user@localhost sage]$ ./sage -br
 
 come se stessi installando `Sage from scratch
-<http://www.sagemath.org/doc/installation/source.html>`_. Comunque la sola esecuzione di ``make`` ricompilera' solamente i pacchetti che sono cambiati, cosi' che dovrebbe essere molto piu' veloce che compilare Sage la prima volta. Raramenteci sono conflitti con altri pacchetti, o con la versione piu' vecchia gia' installata del pacchetto che hai modificato, nel qual caso dovresti ricompilare tutto usando::
+<http://www.sagemath.org/doc/installation/source.html>`_. Comunque la
+sola esecuzione di ``make`` ricompilera' solamente i pacchetti che
+sono cambiati, cosi' che dovrebbe essere molto piu' veloce che
+compilare Sage la prima volta. Raramenteci sono conflitti con altri
+pacchetti, o con la versione piu' vecchia gia' installata del
+pacchetto che hai modificato, nel qual caso dovresti ricompilare tutto
+usando::
 
     [user@localhost sage]$ make distclean && make
 
-Inoltre non dimenticare di lanciare i test (vedi :ref:`chapter-doctesting`) e produrre la documentazione (vedi :ref:`chapter-sage_manuals`).
+Inoltre non dimenticare di lanciare i test (vedi
+:ref:`chapter-doctesting`) e produrre la documentazione (vedi
+:ref:`chapter-sage_manuals`).
 
 
 .. _section-walkthrough-commit:
@@ -165,9 +229,15 @@ Inoltre non dimenticare di lanciare i test (vedi :ref:`chapter-doctesting`) e pr
 I commit (snapshots)
 ===================
 
-Ogni volta che hai raggiunto il tuo scopo, o completato un passo importante verso di esso, o semplicemente voui consolidare il lavoro fatto, dovresti effettuare il commit delle modifiche. Un *commit* \`e semplicemente una fotografia dello stato (snapshot) di tutti i file del *repository* (il programma su cui stai lavorando).
+Ogni volta che hai raggiunto il tuo scopo, o completato un passo
+importante verso di esso, o semplicemente voui consolidare il lavoro
+fatto, dovresti effettuare il commit delle modifiche. Un *commit* è
+semplicemente una fotografia dello stato (snapshot) di tutti i file
+del *repository* (il programma su cui stai lavorando).
 
-A differenza di altri sistemi di controllo versione in Git occorre innanzitutto effettuare lo *stage* dei file modificati, cosa che comunica a Git quali file vuoi che siano parte del prossimo commit::
+A differenza di altri sistemi di controllo versione in Git occorre
+innanzitutto effettuare lo *stage* dei file modificati, cosa che
+comunica a Git quali file vuoi che siano parte del prossimo commit::
 
     [user@localhost sage]$ git status
     # On branch my_branch
@@ -186,7 +256,8 @@ A differenza di altri sistemi di controllo versione in Git occorre innanzitutto 
     #   new file:   src/sage/primes/last_pair.py
     #
 
-Una volta che sei soddisfatto della lista dei file in fase "stage" puoi creare un nuovo snapshot con il comando ``git commit``::
+Una volta che sei soddisfatto della lista dei file in fase "stage"
+puoi creare un nuovo snapshot con il comando ``git commit``::
 
     [user@localhost sage]$ git commit
     ... editor opens ...
@@ -194,7 +265,9 @@ Una volta che sei soddisfatto della lista dei file in fase "stage" puoi creare u
      1 file changed, 1 insertion(+)
       create mode 100644 foobar.txt
 
-Questo aprira' un editor dove potrai scrivere il tuo messaggio di commit. Esso dovrebbe essere in generale una descrizione di una riga, seguito da una riga vuota, seguito da ulteriore testo di spiegazione::
+Questo aprira' un editor dove potrai scrivere il tuo messaggio di
+commit. Esso dovrebbe essere in generale una descrizione di una riga,
+seguito da una riga vuota, seguito da ulteriore testo di spiegazione::
 
     Added the last twin prime
 
@@ -202,9 +275,8 @@ Questo aprira' un editor dove potrai scrivere il tuo messaggio di commit. Esso d
     summary followed by more detailed description, if necessary.
 
 
-Poi puoi continuare a lavorare per il tuo prossimo obiettivo, effettuare un altro commit, e cosi' via finche' avrai finito. Finche' non effetui ``git checkout` di un altro branch, tutti i commit che fai saranno parte del branch che hai creato.
-
-
-
-
+Poi puoi continuare a lavorare per il tuo prossimo obiettivo,
+effettuare un altro commit, e cosi' via finche' avrai finito. Finche'
+non effetui ``git checkout` di un altro branch, tutti i commit che fai
+saranno parte del branch che hai creato.
 

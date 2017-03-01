@@ -6,12 +6,12 @@ Convenzioni generali
 
 
 Ci sono molti modi di contribuire a Sage incluso il condividere script 
-e worksheet Sage che implementino nuove functionalit\`a usando Sage, 
+e worksheet Sage che implementino nuove functionalità usando Sage, 
 migliorando la libreria Sage, o lavorando alle molte librerie sottostanti 
 distribuite con Sage [1]_.
 Questa guida si focalizza sul modificare la libreria di Sage.
 
-Sage non \`e solo mettere assieme delle functionalit\`a. \`E fornire un 
+Sage non è solo mettere assieme delle functionalità. È fornire un 
 chiaro, sistematico e coerente modo di accedere un gran numero di 
 algoritmi, in un framework coerente che abbia senso matematicamente. 
 Nel design di Sage, la semantica degli oggetti, le definizioni, ecc., 
@@ -40,19 +40,19 @@ Sage, come spiegato agli URL seguenti:
 
 In particolare,
 
-- Usa 4 spazi per i livelli di indentazione. Non usare tabulazioni poich\`e 
+- Usa 4 spazi per i livelli di indentazione. Non usare tabulazioni poichè 
   possono risultare in confuzione nell'indentazione. La maggior parte degli 
-  editor ha una funzionalit\`a che inserisce 4 spazi quando permi il tasto TAB.
+  editor ha una funzionalità che inserisce 4 spazi quando permi il tasto TAB.
   Inoltre molti editor ricercano e sostituiscono automaticamente le tabulazioni
   con 4 spazi.
 
-- Gli spazi bianchi prima e dopo le assegnazioni e gli operatori binari di pi\`u 
-  bassa priorit\`a nell'espressione::
+- Gli spazi bianchi prima e dopo le assegnazioni e gli operatori binari di più 
+  bassa priorità nell'espressione::
 
       i = i + 1
       c = (a+b) * (a-b)
 
-- Nessun spazio bianco prima o dopo il segno ``=`` se \`e utilizzato per parole 
+- Nessun spazio bianco prima o dopo il segno ``=`` se è utilizzato per parole 
   chiave come argomenti::
 
       def complex(real, imag=0.0):
@@ -63,16 +63,18 @@ In particolare,
        spam(ham[1], {eggs: 2})
        [i^2 for i in range(3)]
 
-- Usa nomi di funzioni in lettere tutte minuscole con parole separate da caratteri 
-  di sottolineatura (underscore). Ad esempio, ti suggeriamo di scrivere funzioni 
-  Python usando la convenzione di denominazione::
+- Usa nomi di funzioni in lettere tutte minuscole con parole separate
+  da caratteri di sottolineatura (underscore). Ad esempio, ti
+  suggeriamo di scrivere funzioni Python usando la convenzione di
+  denominazione::
 
       def set_some_value():
           return 1
 
-  Nota, comunque, che qualche funzione ha effettivamente lettere maiuscole laddove
-  necessario. Ad esempio, la funzione per la riduzione di un lattice con l'algoritmo 
-  LLL \`e chiamata ``Matrix_integer_dense.LLL``.
+  Nota, comunque, che qualche funzione ha effettivamente lettere
+  maiuscole laddove necessario. Ad esempio, la funzione per la
+  riduzione di un lattice con l'algoritmo LLL è chiamata
+  ``Matrix_integer_dense.LLL``.
 
 - Usa la convezione ``a cammello`` (CamelCase) per i nomi di classe::
 
@@ -116,18 +118,19 @@ Nota che usiamo ``SAGE_ROOT`` nel seguito come abbreviazione per il nome
         upstream/     # tarballs of upstream sources
         local/        # installed binaries
 
-Il codice Python della libreria Sage \`e in ``src/`` e usa le convenzioni 
-seguenti. I nomi di directory possono essere plurali (ad esempio ``rings``) 
-ed i nomi di file sono quasi sempre singolari (ad esempio ``polynomial_ring.py``). 
-Nota che il file ``polynomial_ring.py`` pu\`o ancora contenere le definizioni 
-di molti tipi differenti di anelli di polinomi.
+Il codice Python della libreria Sage è in ``src/`` e usa le
+convenzioni seguenti. I nomi di directory possono essere plurali (ad
+esempio ``rings``) ed i nomi di file sono quasi sempre singolari (ad
+esempio ``polynomial_ring.py``).  Nota che il file
+``polynomial_ring.py`` può ancora contenere le definizioni di molti
+tipi differenti di anelli di polinomi.
 
 .. NOTE::
 
-   Ti essortiamo ad includere note varie, email, discussioni sul design, 
-   ecc., nel tuo pacchetto.  Metti ci\`o in file di testo semplice (con 
-   estensione ``.txt``) in una sottodirectory detta ``notes``. Ad esempio 
-   vedi ``SAGE_ROOT/src/sage/ext/notes/``.
+   Ti essortiamo ad includere note varie, email, discussioni sul
+   design, ecc., nel tuo pacchetto.  Metti ciò in file di testo
+   semplice (con estensione ``.txt``) in una sottodirectory detta
+   ``notes``. Ad esempio vedi ``SAGE_ROOT/src/sage/ext/notes/``.
 
 Se vuoi creare una nuova directory nella libreria Sage ``SAGE_ROOT/src/sage`` 
 (ad esempio sia ``measure_theory``), quella directory dovrebbe contenere 
@@ -141,7 +144,7 @@ Il file ``all.py`` potrebbe essere come il seguente::
     from borel_measure import BorelMeasure
     from banach_tarski import BanachTarskiParadox
 
-Ma in genere \`e meglio usare il lazy import framework::
+Ma in genere è meglio usare il lazy import framework::
 
     from sage.misc.lazy_import import lazy_import
     lazy_import('sage.measure_theory.borel_measue', 'BorelMeasure')
@@ -155,13 +158,15 @@ Allora nel file ``SAGE_ROOT/src/sage/all.py``, aggiungi la linea ::
 Imparare facendo copia/incolla
 ==============================
 
-Per tutte le convenzioni discusse qui, puoi trovare molti esempi nella 
-libreria Sage. Esplorare il codice \`e di aiuto, ma anche il cercare: vale la pena 
-conoscere le funzioni ``search_src``, ``search_def``, e ``search_doc``. In breve, 
-dal prompt "sage:", la ``search_src(string)`` ricerca nel codice della libreria Sage 
-la stringa ``string``. Il comando ``search_def(string)`` fa una ricerca simile, 
-ma ristretta alle definizioni di funzione, mentre ``search_doc(string)`` ricerca tutta 
-la documentazione di Sage. Vedi le loro docstring per maggiori informazioni ed opzioni.
+Per tutte le convenzioni discusse qui, puoi trovare molti esempi nella
+libreria Sage. Esplorare il codice è di aiuto, ma anche il cercare:
+vale la pena conoscere le funzioni ``search_src``, ``search_def``, e
+``search_doc``. In breve, dal prompt "sage:", la
+``search_src(string)`` ricerca nel codice della libreria Sage la
+stringa ``string``. Il comando ``search_def(string)`` fa una ricerca
+simile, ma ristretta alle definizioni di funzione, mentre
+``search_doc(string)`` ricerca tutta la documentazione di Sage. Vedi
+le loro docstring per maggiori informazioni ed opzioni.
 
 
 Intestazioni dei file di codice della libreria Sage
@@ -195,14 +200,15 @@ La testata di ciascun file di codice di Sage deve seguire questo formato::
     #                  http://www.gnu.org/licenses/
     #*****************************************************************************
 
-Ad esempio, vedi ``SAGE_ROOT/src/sage/rings/integer.pyx`` che contiene 
-l'implementazione di `\ZZ`. La sezione ``AUTHORS:`` \`e ridondante, poich`\e il log 
-d'autorit\`a per chi ha scritto cosa \`e sempre il repository git (vedi l'output di 
-``git blame``). Cionondimeno \`e a volte utile avere una panoramica molto semplificata 
-sulla history, specialmente se molte persone hanno lavorato su quel file sorgente.
+Ad esempio, vedi ``SAGE_ROOT/src/sage/rings/integer.pyx`` che contiene
+l'implementazione di `\ZZ`. La sezione ``AUTHORS:`` è ridondante,
+poich`\e il log d'autorità per chi ha scritto cosa è sempre il
+repository git (vedi l'output di ``git blame``). Cionondimeno è a
+volte utile avere una panoramica molto semplificata sulla history,
+specialmente se molte persone hanno lavorato su quel file sorgente.
 
-Tutto il codice incluso in Sage deve avere licenza o GPLv2+ o una compatibile, cio\`e 
-meno restrittiva (ad esempio la licenza BSD).
+Tutto il codice incluso in Sage deve avere licenza o GPLv2+ o una
+compatibile, cioè meno restrittiva (ad esempio la licenza BSD).
 
 
 .. _section-docstrings:
@@ -216,7 +222,7 @@ La docstring di una funzione: contenuto
 ---------------------------------------
 
 **Ogni** funzione deve avere una docstring che includa le seguenti 
-informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
+informazioni. Puoi usare le funzioni già presenti in Sage come template.
 
 -  La **descrizione in una frase** della funzione.
 
@@ -225,14 +231,15 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
    "Restituisce quest'altro"), non come "Restituisce il pathname ...".
 
 -  Un blocco **INPUT** ed un blocco **OUTPUT** che descrivono l'input/output 
-   della funzione. Questo non \`e opzionale.
+   della funzione. Questo non è opzionale.
 
    Il blocco INPUT descrive tutti gli argomenti che la funzione accetta, 
    ed il blocco OUTPUT descrive l'output che ci si aspetta.
 
-   1. I nomi di tipo devono essere descrittivi, ma non necessariamente rappresentare 
-      i tipi esatti di Sage/Python. Ad esempio usare "integer" per qualunque cosa si 
-      comporti come un intero, piuttosto che ``int``.
+   1. I nomi di tipo devono essere descrittivi, ma non necessariamente
+      rappresentare i tipi esatti di Sage/Python. Ad esempio usare
+      "integer" per qualunque cosa si comporti come un intero,
+      piuttosto che ``int``.
 
    2. segnala i valori di default degli argumenti di input quando ci sono.
 
@@ -259,18 +266,18 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
        - The plaintext resulting from decrypting the ciphertext ``C``
          using the Blum-Goldwasser decryption algorithm.
 
--  Un blocco **EXAMPLES** per gli esempi. Questo non \`e opzionale.
+-  Un blocco **EXAMPLES** per gli esempi. Questo non è opzionale.
 
    Questi esempio sono utilizzati per:
 
    1. Documentazione
    2. Test automatici prima di ogni nuova release.
 
-   Dovrebbero coprire bene tutte le funzionalit\`a in questione.
+   Dovrebbero coprire bene tutte le funzionalità in questione.
 
--  Un blocco **SEEALSO** (caldamente raccomandato) con collegamenti a parti di
-   Sage in relazione. Questo aiuta gli utenti a trovare le funzionalit\`a di interesse 
-   e a scoprirne di nuove. ::
+- Un blocco **SEEALSO** (caldamente raccomandato) con collegamenti a
+   parti di Sage in relazione. Questo aiuta gli utenti a trovare le
+   funzionalità di interesse e a scoprirne di nuove. ::
 
        .. SEEALSO::
 
@@ -283,9 +290,9 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
 
 -  Un blocco **ALGORITHM** (opzionale).
 
-   Indica quale algoritmo e/o quale software \`e utilizzato, ad esempio 
-   ``ALGORITHM: Uses Pari``. Qui di seguito vediamo un esempio un po' pi\`u 
-   lungo con delle referenze bibliografiche::
+   Indica quale algoritmo e/o quale software è utilizzato, ad esempio
+   ``ALGORITHM: Uses Pari``. Qui di seguito vediamo un esempio un po'
+   più lungo con delle referenze bibliografiche::
 
        ALGORITHM:
 
@@ -317,8 +324,8 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
 
 - Un blocco **WARNING** per informazioni critiche sul codice (opzionale).
 
-  Ad esempio situazioni note in cui il codice va in errore, o qualunque cosa di 
-  cui l'utente deve essere al corrente. ::
+  Ad esempio situazioni note in cui il codice va in errore, o
+  qualunque cosa di cui l'utente deve essere al corrente. ::
 
       .. WARNING::
 
@@ -331,7 +338,7 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
 
 - Un blocco **TODO** per miglioramenti futuri (opzionale).
 
-  Pu\`o contenere doctest disabilitati per dimostrare la funzionalit\`a 
+  Può contenere doctest disabilitati per dimostrare la funzionalità
   desiderata. Ecco un esempio di blocco TODO::
 
       .. TODO::
@@ -354,8 +361,8 @@ informazioni. Puoi usare le funzioni gi\`a presenti in Sage come template.
 
 - Un blocco **REFERENCES** per elencare libri o articoli collegati (opzionale)
 
-  Dovrebbe citare i libri/articoli di ricerca rilevanti per il codice, ad esempio 
-  il sorgente dell'algoritmo che implementa. ::
+  Dovrebbe citare i libri/articoli di ricerca rilevanti per il codice,
+  ad esempio il sorgente dell'algoritmo che implementa. ::
 
       This docstring is referencing [SC]_. Just remember that references
       are global, so we can also reference to [Nat2000]_ in the ALGORITHM
@@ -443,7 +450,8 @@ Usa il seguente template quando documenti delle funzioni. Nota l'indentazione:
 
 Sei caldamente incoraggiato a:
 
-- Usare le convenzioni di scrittura di LaTeX (vedi :ref:`section-latex-typeset`).
+- Usare le convenzioni di scrittura di LaTeX (vedi
+  :ref:`section-latex-typeset`).
 
 - Descrivere ampiamente cosa fanno gli esempi.
 
@@ -453,22 +461,24 @@ Sei caldamente incoraggiato a:
      testo di spiegazione dell'esempio successivo (l'indentazione non basta).
 
 - Illustra le eccezioni sollevate dalla funzione con degli esempi (come dato 
-  sopra: "\`E un errore [..]", ...)
+  sopra: "È un errore [..]", ...)
 
 - Includi molti esempi.
 
-  Sono utili agli utenti, e sono fondamentali per la qualit\`a e l'adattabilit\`a 
-  di Sage. Senza tali esempi, piccoli cambiamenti ad una parte di Sage che 
-  danneggiano qualcos'altro potrebbero non essere scoperti fino a parecchio tempo 
-  dopo quando qualcuno usa il sistema, cosa che \`e inaccettabile.
+  Sono utili agli utenti, e sono fondamentali per la qualità e
+  l'adattabilità di Sage. Senza tali esempi, piccoli cambiamenti ad
+  una parte di Sage che danneggiano qualcos'altro potrebbero non
+  essere scoperti fino a parecchio tempo dopo quando qualcuno usa il
+  sistema, cosa che è inaccettabile.
 
 Funzioni private
 ^^^^^^^^^^^^^^^^
 
-Le funzioni i cui nomi iniziano con una sottolineatura (underscore) sono considerati 
-privati. Non compaiononel manuale di riferimento, ed i loro docstring non dovrebbero 
-contenere informazioni cruciali per gli utenti di Sage. Puoi rendere i loro 
-docstring parte della documentazione di un altro metodo. Ad esempio::
+Le funzioni i cui nomi iniziano con una sottolineatura (underscore)
+sono considerati privati. Non compaiononel manuale di riferimento, ed
+i loro docstring non dovrebbero contenere informazioni cruciali per
+gli utenti di Sage. Puoi rendere i loro docstring parte della
+documentazione di un altro metodo. Ad esempio::
 
     class Foo(SageObject):
 
@@ -487,9 +497,9 @@ docstring parte della documentazione di un altro metodo. Ad esempio::
 
 Le funzioni private dovrebbero contenere un blocco EXAMPLES (o TESTS).
 
-Un caso speciale \`e il costruttore ``__init__``: per il suo speciale
-status, la doctring di ``__init__`` \`e utilizzata come docstring della 
-classe se non ce n'\`e gi\`a una. Cio\`e si pu\`o fare quanto segue::
+Un caso speciale è il costruttore ``__init__``: per il suo speciale
+status, la doctring di ``__init__`` è utilizzata come docstring della 
+classe se non ce n'è già una. Cioè si può fare quanto segue::
 
     sage: class Foo(SageObject):
     ....:     # no class docstring
@@ -507,14 +517,15 @@ classe se non ce n'\`e gi\`a una. Cio\`e si pu\`o fare quanto segue::
 Convenzioni di scrittura LaTeX
 ------------------------------
 
-Nella documentazione di Sage il codice LaTeX \`e permesso ed \`e marcato con 
+Nella documentazione di Sage il codice LaTeX è permesso ed è marcato con 
 **accenti obliqui o simboli di dollaro**:
 
     ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`.
 
-**Barre retroverse (backslash):** Per comandi LaTeX contenenti delle backslash, puoi 
-o usare dei doppi backslash o iniziare la docstring con un ``r"""`` invece di ``"""``. 
-Entrambe le scritture seguenti sono valide::
+**Barre retroverse (backslash):** Per comandi LaTeX contenenti delle
+backslash, puoi o usare dei doppi backslash o iniziare la docstring
+con un ``r"""`` invece di ``"""``.  Entrambe le scritture seguenti
+sono valide::
 
     def cos(x):
         """
@@ -526,8 +537,8 @@ Entrambe le scritture seguenti sono valide::
         Return $\sin(x)$.
         """
 
-**Blocco MATH:** Questo \`e simile alla sintassi LaTeX ``\[<math expression>\]`` 
-(oppure ``$$<math expression>$$``). Ad esempio::
+**Blocco MATH:** Questo è simile alla sintassi LaTeX ``\[<math
+expression>\]`` (oppure ``$$<math expression>$$``). Ad esempio::
 
     .. MATH::
 
@@ -557,12 +568,13 @@ L'ambiente **aligned** funziona nello stesso modo che in LaTeX::
      g(x) & = x^x - f(x - 2)
     \end{aligned}
 
-Quando si compila la documentazione in PDF, tutto \`e tradotto in LaTeX 
-ed ogni blocco MATH \`e automaticalmente passato in un ambiente ``math`` --
-in particolare, \`e convertito in ``\begin{gather} block \end{gather}``. 
-Quindi se vuoi usare un ambiente LaTeX (come ``align``) che in LaTeX 
-ordinario non sarebbe passato cos\`i, devi aggiungere un flag **:nowrap:** 
-al modo MATH. Vedi anche `documentazione Sphinx per blocchi math 
+Quando si compila la documentazione in PDF, tutto è tradotto in LaTeX
+ed ogni blocco MATH è automaticalmente passato in un ambiente ``math``
+-- in particolare, è convertito in ``\begin{gather} block
+\end{gather}``.  Quindi se vuoi usare un ambiente LaTeX (come
+``align``) che in LaTeX ordinario non sarebbe passato così, devi
+aggiungere un flag **:nowrap:** al modo MATH. Vedi anche
+`documentazione Sphinx per blocchi math
 <http://sphinx-doc.org/latest/ext/math.html?highlight=nowrap#directive-math>`_. ::
 
     .. MATH::
@@ -581,22 +593,25 @@ al modo MATH. Vedi anche `documentazione Sphinx per blocchi math
    &= O(n^2)\\
    \end{align}
 
-**Equilibrio di leggibilit\`a:** nella console interattiva, le formule LaTeX contenute nella 
-documentazione sono rappresentate con il loro codice LaTeX (dove le backslash sono 
-state tolte). In tale situazione ``\\frac{a}{b}`` \`e meno leggibile di ``a/b`` oppure 
-``a b^{-1}`` (alcuni utenti potrebbero anche non conoscere LaTeX). Cerca di rendere il testo 
-leggibile da tutti per quanto ti \`e possibile.
+**Equilibrio di leggibilità:** nella console interattiva, le formule
+LaTeX contenute nella documentazione sono rappresentate con il loro
+codice LaTeX (dove le backslash sono state tolte). In tale situazione
+``\\frac{a}{b}`` è meno leggibile di ``a/b`` oppure ``a b^{-1}``
+(alcuni utenti potrebbero anche non conoscere LaTeX). Cerca di rendere
+il testo leggibile da tutti per quanto ti è possibile.
 
-**Ring comuni** `(\Bold{Z},\Bold{N},...)`: Lo stile LaTeX di Sage \`e di evidenziare gli anelli  
-e campi standard usando la macro definita localmente ``\\Bold`` (ad esempio ``\\Bold{Z}`` da `\Bold{Z}`).
+**Ring comuni** `(\Bold{Z},\Bold{N},...)`: Lo stile LaTeX di Sage è di
+evidenziare gli anelli e campi standard usando la macro definita
+localmente ``\\Bold`` (ad esempio ``\\Bold{Z}`` da `\Bold{Z}`).
 
-**Abbreviazioni**: Sono disponibili per mantenere la leggibilit\`a, ad esempio ``\\ZZ`` (`\ZZ`),
-``\\RR`` (`\RR`), ``\\CC`` (`\CC`), e ``\\QQ`` (`\QQ`). Appaiono formattate in LaTeX ``\\Bold{Z}`` 
-nel manuale in html, e come ``Z`` nell'help interattivo. Altri esempi sono: ``\\GF{q}``, (`\GF{q}`) 
-e ``\\Zmod{p}`` (`\Zmod{p}`).
+**Abbreviazioni**: Sono disponibili per mantenere la leggibilità, ad
+esempio ``\\ZZ`` (`\ZZ`), ``\\RR`` (`\RR`), ``\\CC`` (`\CC`), e
+``\\QQ`` (`\QQ`). Appaiono formattate in LaTeX ``\\Bold{Z}`` nel
+manuale in html, e come ``Z`` nell'help interattivo. Altri esempi
+sono: ``\\GF{q}``, (`\GF{q}`) e ``\\Zmod{p}`` (`\Zmod{p}`).
 
-Vedi il file ``SAGE_ROOT/src/sage/misc/latex_macros.py`` per una lista completa e per dettagli 
-sul come aggiungere altre macro.
+Vedi il file ``SAGE_ROOT/src/sage/misc/latex_macros.py`` per una lista
+completa e per dettagli sul come aggiungere altre macro.
 
 .. _section-doctest-writing:
 
@@ -611,14 +626,14 @@ Gli esempi dalla documentazione di Sage hanno un doppio scopo:
   ci aiutano ad evitare nuovi bachi.
 
 Tutti i nuovi doctest aggiunti a Sage devono **passare tutti i test** (vedi 
-:ref:`chapter-doctesting`), cio\`e eseguire ``sage -t your_file.py`` non deve 
+:ref:`chapter-doctesting`), cioè eseguire ``sage -t your_file.py`` non deve 
 dare alcun messaggio di errore. Sotto ci sono instruzione riguardo a come 
 devono essere scritti i doctest.
 
 **Di cosa devono verificare i doctest:**
 
-- **Esempi interessanti** di ci\`o che una funzione pu\`o fare. Questa sar\`a la 
-  cosa pi\`u utile per un utente smarrito. \`E anche l'occasione per verificare 
+- **Esempi interessanti** di ciò che una funzione può fare. Questa sarà la 
+  cosa più utile per un utente smarrito. È anche l'occasione per verificare 
   teoremi famosi (a proposito)::
 
     sage: is_prime(6) # 6 is not prime
@@ -626,17 +641,20 @@ devono essere scritti i doctest.
     sage: 2 * 3 # and here is a proof
     6
 
-- Tuute le **combinazioni significative** degli argomenti di input. Ad esempio 
-  una funzione pu\`o accettare un argomento ``algorithm="B"``, ed i doctest devono 
-  verificare sia ``algorithm="A"`` che ``algorithm="B"``.
+- Tuute le **combinazioni significative** degli argomenti di input. Ad
+  esempio una funzione può accettare un argomento ``algorithm="B"``,
+  ed i doctest devono verificare sia ``algorithm="A"`` che
+  ``algorithm="B"``.
 
-- **Casi limite:** il codice dev'essere capace di gestire input 0, o un insieme 
-  vuoto, o una matrice nulla, o una funzione nulla, ... Tutti i casi limite vanno 
-  verificati, essendo quello che pi\`u probabilmente daranno problemi, ora o nel 
-  futuro. Questo spesso andr\`a messo nel blocco TESTS (vedi :ref:`section-docstring-function`).
+- **Casi limite:** il codice dev'essere capace di gestire input 0, o
+  un insieme vuoto, o una matrice nulla, o una funzione nulla,
+  ... Tutti i casi limite vanno verificati, essendo quello che più
+  probabilmente daranno problemi, ora o nel futuro. Questo spesso
+  andrà messo nel blocco TESTS (vedi
+  :ref:`section-docstring-function`).
 
-- **Test sistematici** di tutti gli input piccoli, o test di valori a caso (**random**) 
-  se possibile.
+- **Test sistematici** di tutti gli input piccoli, o test di valori a
+  caso (**random**) se possibile.
 
   .. NOTE::
 
@@ -646,30 +664,35 @@ devono essere scritti i doctest.
 
 **La sintassi:**
 
-- **Ambiente:** i doctest dovrebbero funzionare se fai copia/incolla nella console 
-  interattiva di Sage. Ad esempio, la funzione ``AA()`` nel file
-  ``SAGE_ROOT/src/sage/algebras/steenrod/steenrod_algebra.py`` include un blocco 
-  EXAMPLES contenente il seguente::
+- **Ambiente:** i doctest dovrebbero funzionare se fai copia/incolla
+  nella console interattiva di Sage. Ad esempio, la funzione ``AA()``
+  nel file
+  ``SAGE_ROOT/src/sage/algebras/steenrod/steenrod_algebra.py`` include
+  un blocco EXAMPLES contenente il seguente::
 
     sage: from sage.algebras.steenrod.steenrod_algebra import AA as A
     sage: A()
     mod 2 Steenrod algebra, milnor basis
 
-  Sage non conosce la funzione ``AA()`` di default, quindi ha bisogno di 
-  importarla prima di farne il test. Da qui la prima linea dell'esempio.
+  Sage non conosce la funzione ``AA()`` di default, quindi ha bisogno
+  di importarla prima di farne il test. Da qui la prima linea
+  dell'esempio.
 
-- **Preparse:** Come nella console di Sage, `4/3` restituisce `4/3` e non `1` come in
-  Python 2.7. I test vengono fatti con il preparse completo di Sage sull'input nell'ambiente  
-  shell standard di Sage, come descritto in :ref:`section-preparsing`.
+- **Preparse:** Come nella console di Sage, `4/3` restituisce `4/3` e
+  non `1` come in Python 2.7. I test vengono fatti con il preparse
+  completo di Sage sull'input nell'ambiente shell standard di Sage,
+  come descritto in :ref:`section-preparsing`.
 
-- **Scrivere file:** Se un test manda dell'output su un file, tale file dev'essere temporaneo. 
-  Usa :func:`tmp_filename` per avere un nome di file temporaneo, oppure :func:`tmp_dir` per 
-  avere una directory temporanea. Vedi ad esempio ``SAGE_ROOT/src/sage/plot/graphics.py``)::
+- **Scrivere file:** Se un test manda dell'output su un file, tale
+  file dev'essere temporaneo.  Usa :func:`tmp_filename` per avere un
+  nome di file temporaneo, oppure :func:`tmp_dir` per avere una
+  directory temporanea. Vedi ad esempio
+  ``SAGE_ROOT/src/sage/plot/graphics.py``)::
 
       sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
 
-- **Doctest multilinea:** Puoi scrivere dei test che occupano multe linee, usando il carattere 
-  di continuazione di linea ``....:`` ::
+- **Doctest multilinea:** Puoi scrivere dei test che occupano multe
+  linee, usando il carattere di continuazione di linea ``....:`` ::
 
       sage: for n in srange(1,10):
       ....:     if n.is_prime():
@@ -679,29 +702,29 @@ devono essere scritti i doctest.
       5
       7
 
-- **Spezzare linee lunghe:** Potresti voler spezzare linee di codice lunghe con 
-  una backslash. Nota: questa sintassi non \`e standard e potrebbe essere deprecata 
-  in futuro::
+- **Spezzare linee lunghe:** Potresti voler spezzare linee di codice
+  lunghe con una backslash. Nota: questa sintassi non è standard e
+  potrebbe essere deprecata in futuro::
 
       sage: n = 123456789123456789123456789\
       ....:     123456789123456789123456789
       sage: n.is_prime()
       False
 
-- **Flag di doctest:** sono disponibili dei flag per cambiare il comportamento dei doctest:
-  see :ref:`section-further_conventions`.
+- **Flag di doctest:** sono disponibili dei flag per cambiare il
+  comportamento dei doctest: see :ref:`section-further_conventions`.
 
 .. _section-further_conventions:
 
 Markup speciale per influenzare i test
 --------------------------------------
 
-Ci sono un certo numero commenti "magici" che puoi mettere nel codice di esempio, che 
-cambiano il modo in cui l'output \`e verificato dal framework di doctest di Sage. 
-Eccone una lista completa:
+Ci sono un certo numero commenti "magici" che puoi mettere nel codice
+di esempio, che cambiano il modo in cui l'output è verificato dal
+framework di doctest di Sage.  Eccone una lista completa:
 
-- **casuale:** La linea sar\`a eseguita, ma il suo output non sar\`a verificato con 
-  l'output nella stringa di documentazione::
+- **casuale:** La linea sarà eseguita, ma il suo output non sarà
+  verificato con l'output nella stringa di documentazione::
 
       sage: c = CombinatorialObject([1,2,3])
       sage: hash(c)  # random
@@ -709,33 +732,38 @@ Eccone una lista completa:
       sage: hash(c)  # random
       This doctest passes too, as the output is not checked
 
-  Comunque la maggior parte delle funzioni che generano output pseudocasuale non richiedono 
-  questo tag poich\`e il framework di doctest garantisce lo stato dei generatori di numeri 
-  pseudocasuali (PRNGs) usato in Sage per un dato doctest.
+  Comunque la maggior parte delle funzioni che generano output
+  pseudocasuale non richiedono questo tag poichè il framework di
+  doctest garantisce lo stato dei generatori di numeri pseudocasuali
+  (PRNGs) usato in Sage per un dato doctest.
 
-  Quando possibile, evita il problema, ad esempio: piuttosto di verificare il valore 
-  dell'hash in un doctest, pu\`o andare altrettanto bene usarlo come chiave in un dict.
+  Quando possibile, evita il problema, ad esempio: piuttosto di
+  verificare il valore dell'hash in un doctest, può andare altrettanto
+  bene usarlo come chiave in un dict.
 
-- **richiede molto tempo:** La linea \`e solo testata se \`e data l'opzione ``--long``, 
-  ad esmpio ``sage -t --long f.py``.
+- **richiede molto tempo:** La linea è solo testata se è data
+  l'opzione ``--long``, ad esmpio ``sage -t --long f.py``.
 
-  Usala per doctest che richiedono pi\`u di 1 secondo per essere eseguiti. Nessun esempio 
-  dovrebbe richiedere pi\`u di 30 secondi::
+  Usala per doctest che richiedono più di 1 secondo per essere
+  eseguiti. Nessun esempio dovrebbe richiedere più di 30 secondi::
 
       sage: E = EllipticCurve([0, 0, 1, -1, 0])
       sage: E.regulator()        # long time (1 second)
       0.0511114082399688
 
-- **tol** o **tolleranza:** I valori numerici restituiti dalla linea sono solo 
-  verificati entro una data tolleranza. \`E utile quando l'output \`e soggetto a 
-  imprecisione numerica per cause dipendenti dal sistema (aritmetica floating-point, math
-  libraries, ...) o per la scelta di algoritmi non-deterministici.
+- **tol** o **tolleranza:** I valori numerici restituiti dalla linea
+  sono solo verificati entro una data tolleranza. È utile quando
+  l'output è soggetto a imprecisione numerica per cause dipendenti dal
+  sistema (aritmetica floating-point, math libraries, ...) o per la
+  scelta di algoritmi non-deterministici.
 
-  - Pu\`o avere prefisso ``abs[olute]`` oppure ``rel[ative]`` per specificare se 
-    misurare l'errore **assoluto** o **relativo** (vedi :wikipedia:`Approximation_error`).
+  - Può avere prefisso ``abs[olute]`` oppure ``rel[ative]`` per
+    specificare se misurare l'errore **assoluto** o **relativo** (vedi
+    :wikipedia:`Approximation_error`).
 
-  - Se non \`e specificato ``abs/rel``, si considera l'errore ``absolute`` quando il 
-    valore atteso \`e **zero**, e ``relative`` per valori **diversi da zero**.
+  - Se non è specificato ``abs/rel``, si considera l'errore
+    ``absolute`` quando il valore atteso è **zero**, e ``relative``
+    per valori **diversi da zero**.
 
   ::
 
@@ -749,10 +777,10 @@ Eccone una lista completa:
      sage: N(zeta8)  # absolute tolerance 1e-10
      0.7071067812 + 0.7071067812*I
 
-  **Valori numerici multipli:** la rappresentazione dei numeri complessi, le 
-  matrici, ed i polinomi di solito richiede parecchi valori numerici. Se un 
-  doctest con tolleranza contiene parecchi numeri, ognuno di essi \`e verificato 
-  individualmente::
+  **Valori numerici multipli:** la rappresentazione dei numeri
+  complessi, le matrici, ed i polinomi di solito richiede parecchi
+  valori numerici. Se un doctest con tolleranza contiene parecchi
+  numeri, ognuno di essi è verificato individualmente::
 
       sage: print("The sum of 1 and 1 equals 5")  # abs tol 1
       The sum of 2 and 2 equals 4
@@ -766,41 +794,47 @@ Eccone una lista completa:
       [0 1 0]
       [0 0 1]
 
-  I valori che il framework di doctest assume nel calcolo degli errori sono
-  definiti dall'espressione regolare ``float_regex`` in
+  I valori che il framework di doctest assume nel calcolo degli errori
+  sono definiti dall'espressione regolare ``float_regex`` in
   :mod:`sage.doctest.parsing`.
 
-- **non implementato** oppure **non testato:** La linea non \`e mai testata.
+- **non implementato** oppure **non testato:** La linea non è mai testata.
 
-  Usala per doctest molto lunghi che sono solo intesi come documentazione. Pu\`o anche 
-  essere usata per note su ci\`o che dovr\`a essere implementato successivamente::
+  Usala per doctest molto lunghi che sono solo intesi come
+  documentazione. Può anche essere usata per note su ciò che dovrà
+  essere implementato successivamente::
 
       sage: factor(x*y - x*z)    # todo: not implemented
 
-  Dev'essere anche immediatamente chiaro all'utente che gli esempi indicati non 
-  funzionano ancora.
+  Dev'essere anche immediatamente chiaro all'utente che gli esempi
+  indicati non funzionano ancora.
 
   .. NOTE::
 
      Salta tutti i doctest di un file/directory
 
-     - **file:** Se una delle prime 10 linee di un file inizia con una delle seguenti 
-       ``r""" nodoctest`` (o ``""" nodoctest`` o ``# nodoctest`` o ``%
-       nodoctest`` o ``.. nodoctest``, o qualunque di queste con spaziature diverse),
-       allora quel file sar\`a saltato.
+     - **file:** Se una delle prime 10 linee di un file inizia con una
+       delle seguenti ``r""" nodoctest`` (o ``""" nodoctest`` o ``#
+       nodoctest`` o ``% nodoctest`` o ``.. nodoctest``, o qualunque
+       di queste con spaziature diverse), allora quel file sarà
+       saltato.
 
-     - **directory:** Se una directory contiene un file ``nodoctest.py``, allora 
-       l'intera directory sar\`a saltata.
+     - **directory:** Se una directory contiene un file
+       ``nodoctest.py``, allora l'intera directory sarà saltata.
 
-     Nessuna di queste si applica a file o directory che sono date esplicitamente 
-     come argomenti a linea di comando: di quelli viene sempre fatto il test.
+     Nessuna di queste si applica a file o directory che sono date
+     esplicitamente come argomenti a linea di comando: di quelli viene
+     sempre fatto il test.
 
-- **optional:** Di una linea con flag ``optional - keyword`` non \`e fatto il test 
-  a meno che non sia passato il flag ``--optional=keyword`` a ``sage -t`` (vedi 
-  :ref:`section-optional-doctest-flag`). Le principali applicazioni sono:
+- **optional:** Di una linea con flag ``optional - keyword`` non è
+  fatto il test a meno che non sia passato il flag
+  ``--optional=keyword`` a ``sage -t`` (vedi
+  :ref:`section-optional-doctest-flag`). Le principali applicazioni
+  sono:
 
-  - **optional packages:** Quando una linea richiede di installare un pacchetto opzionale 
-    (ad esempio il pacchetto ``sloane_database``)::
+  - **optional packages:** Quando una linea richiede di installare un
+    pacchetto opzionale (ad esempio il pacchetto
+    ``sloane_database``)::
 
       sage: SloaneEncyclopedia[60843]    # optional - sloane_database
 
@@ -808,8 +842,8 @@ Eccone una lista completa:
 
        sage: sloane_sequence(60843)       # optional - internet
 
-  - **bug:** Per linee che descrivono dei bachi. In alternativa usa ``# known bug``
-    al posto: \`e un alias per ``optional bug``. ::
+  - **bug:** Per linee che descrivono dei bachi. In alternativa usa
+    ``# known bug`` al posto: è un alias per ``optional bug``. ::
 
         The following should yield 4.  See :trac:`2`. ::
 
@@ -820,58 +854,62 @@ Eccone una lista completa:
 
   .. NOTE::
 
-      - Tutte le parole dopo ``# optional`` sono interpretate come una lista di
-        nomi di pacchetto, separati da spazi.
+      - Tutte le parole dopo ``# optional`` sono interpretate come una
+        lista di nomi di pacchetto, separati da spazi.
 
-      - Ogni punteggiatura (punti, virgole, trattini, due punti, ...) dopo la prima 
-        parola, termina la lista dei pacchetti. Trattini o punti e virgola fra la 
-        parola ``optional`` ed il primo nome di pacchetto sono permessi. Pertanto, 
-        non dovresti scrivere ``optional: needs package CHomP`` ma semplicemente 
-        ``optional: CHomP``.
+      - Ogni punteggiatura (punti, virgole, trattini, due punti, ...)
+        dopo la prima parola, termina la lista dei pacchetti. Trattini
+        o punti e virgola fra la parola ``optional`` ed il primo nome
+        di pacchetto sono permessi. Pertanto, non dovresti scrivere
+        ``optional: needs package CHomP`` ma semplicemente ``optional:
+        CHomP``.
 
-      - I tag opzionali sono indifferenti alle maiscole-minuscole, quindi puoi anche 
-        scrivere ``optional: chOMP``.
+      - I tag opzionali sono indifferenti alle maiscole-minuscole,
+        quindi puoi anche scrivere ``optional: chOMP``.
 
-- **doctest indiretti:** nella docstring di una function ``A(...)``, una linea che 
-  chiama ``A`` e nel cui nome ``A`` non appare dovrebbe avere questo flag. 
-  Questo evita che ``sage --coverage <file>`` riporti la docstring come 
-  "not testing what it should test".
+- **doctest indiretti:** nella docstring di una function ``A(...)``,
+  una linea che chiama ``A`` e nel cui nome ``A`` non appare dovrebbe
+  avere questo flag.  Questo evita che ``sage --coverage <file>``
+  riporti la docstring come "not testing what it should test".
 
-  Usala quando fai il test di funzioni speciali come ``__repr__``, ``__add__``,
-  ecc. Usala anche quando fai il test di funzioni chiamando ``B`` che chiama 
-  internamente ``A``::
+  Usala quando fai il test di funzioni speciali come ``__repr__``,
+  ``__add__``, ecc. Usala anche quando fai il test di funzioni
+  chiamando ``B`` che chiama internamente ``A``::
 
-      Questa \`e la docstring di un metodo ``__add__``. Il seguente esempio ne fa il 
-      tests, ma ``__add__`` non \`e scritta da nessuna parte::
+      Questa è la docstring di un metodo ``__add__``. Il seguente
+      esempio ne fa il tests, ma ``__add__`` non è scritta da nessuna
+      parte::
 
           sage: 1+1 # indirect doctest
           2
 
-- **32-bit** o **64-bit:** per test che si comportano differentemente su macchine a 
-  32-bit o a 64-bits. Nota che questo particolare flag va applicato sulle linee di
-  **output**, non su quelle di input::
+- **32-bit** o **64-bit:** per test che si comportano differentemente
+  su macchine a 32-bit o a 64-bits. Nota che questo particolare flag
+  va applicato sulle linee di **output**, non su quelle di input::
 
       sage: hash(-920390823904823094890238490238484)
       -873977844            # 32-bit
       6874330978542788722   # 64-bit
 
-Usando ``search_src`` dal prompt di Sage (oppure ``grep``), si possono trovare 
-facilmente le parole chiave suddette. Nel caso di ``todo: not implemented``, si 
-possono usare i risultati di tale ricerca per dirigere l'ulteriore sviluppo di 
-Sage.
+Usando ``search_src`` dal prompt di Sage (oppure ``grep``), si possono
+trovare facilmente le parole chiave suddette. Nel caso di ``todo: not
+implemented``, si possono usare i risultati di tale ricerca per
+dirigere l'ulteriore sviluppo di Sage.
 
 .. _chapter-testing:
 
 Eseguire i test automatici
 ==========================
 
-Questa sezione descrive i test automatici di Sage di file dei seguenti tipo: 
-``.py``, ``.pyx``, ``.sage``, ``.rst``. In breve, usa ``sage -t <file>`` per 
-fare il test che gli esempi in ``<file>`` si comportino esattamente come dichiarato. 
-Vedi le seguenti sottosezioni per maggiori dettagli. Vedi anche :ref:`section-docstrings` 
-per una discussione su come includere esempi nelle stringhe di documentazione e quali 
-convenzioni seguire. Il capitolo :ref:`chapter-doctesting` contiene un tutorial su come 
-fare i doctest dei moduli nella libreria Sage.
+Questa sezione descrive i test automatici di Sage di file dei seguenti
+tipo: ``.py``, ``.pyx``, ``.sage``, ``.rst``. In breve, usa ``sage -t
+<file>`` per fare il test che gli esempi in ``<file>`` si comportino
+esattamente come dichiarato.  Vedi le seguenti sottosezioni per
+maggiori dettagli. Vedi anche :ref:`section-docstrings` per una
+discussione su come includere esempi nelle stringhe di documentazione
+e quali convenzioni seguire. Il capitolo :ref:`chapter-doctesting`
+contiene un tutorial su come fare i doctest dei moduli nella libreria
+Sage.
 
 
 .. _section-testpython:
@@ -879,21 +917,24 @@ fare i doctest dei moduli nella libreria Sage.
 Fare i test dei file .py, .pyx e .sage
 --------------------------------------
 
-Esegui ``sage -t <filename.py>`` per fare il test di tutti gli esempi di codice in
-``filename.py``. Analogamente per i file ``.sage`` e ``.pyx``::
+Esegui ``sage -t <filename.py>`` per fare il test di tutti gli esempi
+di codice in ``filename.py``. Analogamente per i file ``.sage`` e
+``.pyx``::
 
       sage -t [--verbose] [--optional]  [files and directories ... ]
 
-Il framework di doctest di Sage \`e basato sul modulo doctest del Python standard, 
-ma con molte funzionalit\`a addizionali (come i test paralleli, i timeout, i test 
-opzionali). I processore di doctest di Sage riconosce il prompt ``sage:`` cos\`i 
-come il prompt ``>>>``. Fa anche il preparse dei doctest, cos\`i come nelle 
-sessioni interattive di Sage.
+Il framework di doctest di Sage è basato sul modulo doctest del Python
+standard, ma con molte funzionalità addizionali (come i test
+paralleli, i timeout, i test opzionali). I processore di doctest di
+Sage riconosce il prompt ``sage:`` così come il prompt ``>>>``. Fa
+anche il preparse dei doctest, così come nelle sessioni interattive di
+Sage.
 
-Il tuo file passer\`a i test se il codice in esso \`e in grado di essere eseguito 
-quando immesso al prompt ``sage:`` senza delle import extra. Cos\`i si garantisce 
-agli utenti di poter copiare esattamente il codice degli esempi che scrivi per la 
-documentazione e che essi funzionino.
+Il tuo file passerà i test se il codice in esso è in grado di essere
+eseguito quando immesso al prompt ``sage:`` senza delle import
+extra. Così si garantisce agli utenti di poter copiare esattamente il
+codice degli esempi che scrivi per la documentazione e che essi
+funzionino.
 
 Per maggiori informazioni, vedi :ref:`chapter-doctesting`.
 
@@ -901,12 +942,12 @@ Per maggiori informazioni, vedi :ref:`chapter-doctesting`.
 Fare il test della documentazione ReST
 --------------------------------------
 
-Esegui ``sage -t <filename.rst>`` per testare gli esempi verbatim (parola per parola) 
-nella documentazione ReST.
+Esegui ``sage -t <filename.rst>`` per testare gli esempi verbatim
+(parola per parola) nella documentazione ReST.
 
-Naturalmente nei file ReST spesso si inseriscono delle frasi di spiegazione fra 
-ambienti differenti. Per collegare insieme ambienti verbatim, usa il commento ``.. link``.
-Ad esempio::
+Naturalmente nei file ReST spesso si inseriscono delle frasi di
+spiegazione fra ambienti differenti. Per collegare insieme ambienti
+verbatim, usa il commento ``.. link``.  Ad esempio::
 
     EXAMPLES::
 
@@ -920,16 +961,17 @@ Ad esempio::
             sage: 1 + a
             2
 
-Se vuoi collegare fra loro tutti gli ambienti verbatim, puoi mettere 
-``.. linkall`` ovunque nel file, su una linea a s\`e.  (Per chiarezza, 
-potrebbe essere meglio metterla vicino alla cima del file.) Allora 
-``sage -t`` agir\`a come se ci fosse ``.. link`` davanti ad ogni ambiente 
-verbatim. Il file ``SAGE_ROOT/src/doc/en/tutorial/interfaces.rst`` 
-contiene una direttiva ``.. linkall``, ad esempio.
+Se vuoi collegare fra loro tutti gli ambienti verbatim, puoi mettere
+``.. linkall`` ovunque nel file, su una linea a sè.  (Per chiarezza,
+potrebbe essere meglio metterla vicino alla cima del file.) Allora
+``sage -t`` agirà come se ci fosse ``.. link`` davanti ad ogni
+ambiente verbatim. Il file
+``SAGE_ROOT/src/doc/en/tutorial/interfaces.rst`` contiene una
+direttiva ``.. linkall``, ad esempio.
 
-Puoi anche mettere ``.. skip`` subito davanti ad un ambiente verbatim perch\`e tale 
-esempio sia saltato durante il test del file. Questo va nello stesso posto di 
-``.. link`` nell'esempio precedente.
+Puoi anche mettere ``.. skip`` subito davanti ad un ambiente verbatim
+perchè tale esempio sia saltato durante il test del file. Questo va
+nello stesso posto di ``.. link`` nell'esempio precedente.
 
 Vedi i file in ``SAGE_ROOT/src/doc/en/tutorial/`` per altri esempi su come 
 includere test automatici nella documentazione ReST per Sage.
@@ -939,20 +981,22 @@ includere test automatici nella documentazione ReST per Sage.
 Il vaso dei sottaceti (pickle)
 ==============================
 
-Sage mantiene un vaso dei sottaceti (pickle) in 
-``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` che \`e un fille tar 
-di pickle "standard" creati da ``sage``. Questo ``vaso di pickle`` \`e 
-utilizzato per garantire che Sage mantenga la compatibilit\`a all'indietro facendo 
-s\`i che :func:`sage.structure.sage_object.unpickle_all` verifichi che ``sage`` 
-possa sempre prendere tutti i pickle nel vaso come parte del framework standard 
-di doctest.
+Sage mantiene un vaso dei sottaceti (pickle) in
+``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` che è un fille tar
+di pickle "standard" creati da ``sage``. Questo ``vaso di pickle`` è
+utilizzato per garantire che Sage mantenga la compatibilità
+all'indietro facendo sì che
+:func:`sage.structure.sage_object.unpickle_all` verifichi che ``sage``
+possa sempre prendere tutti i pickle nel vaso come parte del framework
+standard di doctest.
 
-La maggior parte delle persone si imbattono nella pickle_jar quando le loro patch 
-vanno in errore in tale fase di "presa dei sottaceti" durante i doctest::
+La maggior parte delle persone si imbattono nella pickle_jar quando le
+loro patch vanno in errore in tale fase di "presa dei sottaceti"
+durante i doctest::
 
     sage -t src/sage/structure/sage_object.pyx
 
-Quando questo succede un messagio di errore \`e mostrato contenente i seguenti 
+Quando questo succede un messagio di errore è mostrato contenente i seguenti 
 suggerimenti per correggere i "sottaceti immangiabili"::
 
     ----------------------------------------------------------------------
@@ -962,14 +1006,16 @@ suggerimenti per correggere i "sottaceti immangiabili"::
     ** NOTE: pickles should never be removed from the pickle_jar!
     ----------------------------------------------------------------------
 
-Per maggiori dettagli su come correggere gli errori sui pickle vedi :func:`sage.structure.sage_object.register_unpickle_override`
+Per maggiori dettagli su come correggere gli errori sui pickle vedi
+:func:`sage.structure.sage_object.register_unpickle_override`
 
 .. WARNING::
 
-    Il vaso dei sottaceti di Sag aiuta ad assicurare la compatibilit\`a all'indietro 
-    in Sage. I pickles vanno rimossi dal vaso **solo** quando i corrispondenti oggetti 
-    sono stati adeguatamente deprecati. Ogni proposta di rimozione dei sottaceti dal vaso 
-    va prima discussa su ``sage-devel``.
+    Il vaso dei sottaceti di Sag aiuta ad assicurare la compatibilità
+    all'indietro in Sage. I pickles vanno rimossi dal vaso **solo**
+    quando i corrispondenti oggetti sono stati adeguatamente
+    deprecati. Ogni proposta di rimozione dei sottaceti dal vaso va
+    prima discussa su ``sage-devel``.
 
 
 Opzioni globali
@@ -977,4 +1023,3 @@ Opzioni globali
 
 Opzioni globali per le classi possono essere definite in Sage usando
 :class:`~sage.structure.global_options.GlobalOptions`.
-

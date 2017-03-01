@@ -4,19 +4,19 @@
 Pacchettizzare codice di terze parti
 ====================================
 
-Uno degli slogan del progetto Sage \`e di non reinventare la ruota: se
-un algoritmo \`e gi\`a stato implementato in una libraria provata allora
+Uno degli slogan del progetto Sage è di non reinventare la ruota: se
+un algoritmo è già stato implementato in una libraria provata allora
 si considera come incorporarla in Sage. La lista corrente dei pacchetti
-disponibili \`e data dalle subdirectory di ``SAGE_ROOT/build/pkgs/``.
-La gestione dei pacchetti \`e fatta attraverso uno script bash posto in
-``SAGE_ROOT/local/bin/sage-spkg``. Questo script \`e di solito invocato 
+disponibili è data dalle subdirectory di ``SAGE_ROOT/build/pkgs/``.
+La gestione dei pacchetti è fatta attraverso uno script bash posto in
+``SAGE_ROOT/local/bin/sage-spkg``. Questo script è di solito invocato 
 dando il comando::
 
     [user@localhost]$ sage -i <options> <package name>...
 
 le opzioni possono essere:
 
-- f: installare un pacchetto anche se la stessa versione \`e gi\`a installata
+- f: installare un pacchetto anche se la stessa versione è già installata
 - s: non cancellare la directory temporanea di compilazione
 - c: dopo l'installazione, lancia la suite di test per spkg. Questo dovrebbe
   forzare sulle impostazioni di ``SAGE_CHECK`` e ``SAGE_CHECK_PACKAGES``.
@@ -24,13 +24,14 @@ le opzioni possono essere:
 
 Non tutti i pacchetti sono compilati di default, essi sono divisi in standard,
 opzionali e sperimentali. I pacchetti standard sono compilati di default e
-hanno requisiti di qualit\`a molto pi\`u stringenti.
+hanno requisiti di qualità molto più stringenti.
 
-La sezione :ref:`section-directory-structure` descrive la struttura di ciascun
-pacchetto in ``SAGE_ROOT/build/pkgs``. Nella sezione :ref:`section-manual-build`
-vediamo come puoi installare e fare test di un nuovo spkg che tu o qualcun'altro
-ha scritto. Infine, :ref:`section-inclusion-procedure` spiega come sottomettere
-la richiesta che un nuovo pacchetto sia incluso nel sorgente di Sage.
+La sezione :ref:`section-directory-structure` descrive la struttura di
+ciascun pacchetto in ``SAGE_ROOT/build/pkgs``. Nella sezione
+:ref:`section-manual-build` vediamo come puoi installare e fare test
+di un nuovo spkg che tu o qualcun'altro ha scritto. Infine,
+:ref:`section-inclusion-procedure` spiega come sottomettere la
+richiesta che un nuovo pacchetto sia incluso nel sorgente di Sage.
 
 
 .. _section-directory-structure:
@@ -40,7 +41,7 @@ Struttura delle directory
 
 I pacchetti di terze parti in Sage consistono di 2 parti: 
 
-#. Il tarball cos\`i com'\`e distribuito dalla terza parte, o quanto pi\`u
+#. Il tarball così com'è distribuito dalla terza parte, o quanto più
    possibile simile. Valide ragioni per modificarlo sono l'eleimanre file
    non necessari per ridurre la dimensione del download o rigenerate file
    auto-generati se necessario. Ma il codice effettivo non dev'essere
@@ -51,7 +52,7 @@ I pacchetti di terze parti in Sage consistono di 2 parti:
    una versione in caratteri minuscoli del nome pubblico del progetto. 
 
 Come esempio, consideriamo un ipotetico progetto FoO. Essi (upstream) 
-distribuiscono un tarball ``foo-1.3.tar.gz`` (che sar\`a automaticamente 
+distribuiscono un tarball ``foo-1.3.tar.gz`` (che sarà automaticamente 
 messo in ``SAGE_ROOT/upstream`` dal processo di installazione). Per 
 pacchettizzarlo in Sage, creiamo una subdirectory contenente::
 
@@ -77,9 +78,9 @@ Discutiamo i singoli file nel seguito.
 Script di installazione
 -----------------------
 
-Il file ``spkg-install`` \`e uno script di shell che installa il pacchetto,
-dove ``PACKAGE_NAME`` \`e sostituito dal nome del pacchetto stesso. Nel migliore 
-dei casi, il progetto a monte (upstream) pu\`o semplicemente essere installato 
+Il file ``spkg-install`` è uno script di shell che installa il pacchetto,
+dove ``PACKAGE_NAME`` è sostituito dal nome del pacchetto stesso. Nel migliore 
+dei casi, il progetto a monte (upstream) può semplicemente essere installato 
 dai soliti comandi ``configure / make / make install``. In tal caso, la script
 di compilazione consisterebbe semplicemente di::
 
@@ -106,11 +107,11 @@ di compilazione consisterebbe semplicemente di::
     fi
 
 
-Nota che la directory radice nel tarball \`e rinominata ``src`` 
-prima di invocare lo script ``spkg-install``, cos\`i che ti basta usare
+Nota che la directory radice nel tarball è rinominata ``src`` 
+prima di invocare lo script ``spkg-install``, così che ti basta usare
 ``cd src`` invece di ``cd foo-1.3``.
 
-Se c'\`e della documentazione buona inclusa ma non installata da 
+Se c'è della documentazione buona inclusa ma non installata da 
 ``make install``, allora puoi aggiungere qualcosa come questo per 
 installarla::
 
@@ -132,12 +133,12 @@ installarla::
 Autoverifiche (Self-Test)
 -------------------------
 
-Lo script ``spkg-check`` \`e opzionale, ma fortemente raccommandato, per 
-lanciare le autoverifiche del pacchetto. \`e lanciato dopo la compilazione 
-e l'installazione se la variabile d'ambiente ``SAGE_CHECK`` \`e impostata, 
+Lo script ``spkg-check`` è opzionale, ma fortemente raccommandato, per 
+lanciare le autoverifiche del pacchetto. è lanciato dopo la compilazione 
+e l'installazione se la variabile d'ambiente ``SAGE_CHECK`` è impostata, 
 vedi la guida all'installazione di Sage. Idealmente, il pacchetto a monte 
-(upstream) avr\`a qualche sorta di insieme di test da lanciare con lo 
-standard ``make check``. In tal caso, lo script ``spkg-check`` conterr\`a::
+(upstream) avrà qualche sorta di insieme di test da lanciare con lo 
+standard ``make check``. In tal caso, lo script ``spkg-check`` conterrà::
 
     #!/usr/bin/env bash
 
@@ -151,19 +152,20 @@ Gestire le ersioni dei pacchetti
 --------------------------------
 
 Il file ``package-version.txt`` contiene solo la versione. Quindi se il 
-pacchetto a monte (upstream) \`e ``foo-1.3.tar.gz`` allora il file di 
-versione del pacchetto conterr\`a solo ``1.3``.
+pacchetto a monte (upstream) è ``foo-1.3.tar.gz`` allora il file di 
+versione del pacchetto conterrà solo ``1.3``.
 
-Se il pacchetto a monte (upstream) \`e preso da qualche revisione non stabile, 
-dovresti usare la data a cui la revisione \`e stata fatta, ad esempio il
-pacchetto Singular ``20090818`` \`e stato fatto con una revisione del 
+Se il pacchetto a monte (upstream) è preso da qualche revisione non stabile, 
+dovresti usare la data a cui la revisione è stata fatta, ad esempio il
+pacchetto Singular ``20090818`` è stato fatto con una revisione del 
 2009-08-18. 
 
-Se hai fatto qualche cambiamento al tarball a monte (upstream, vedi 
-:ref:`section-directory-structure` per le modifiche possibili) allora dovresti 
-aggiungere l'appendice ``.p1`` in coda alla versione. Se fai ulteriori modifiche, 
-aumenta il livello della patch quanto necessario. Cos\`i le differenti versioni 
-saranno ``1.3``, ``1.3.p1``, ``1.3.p2``, ...
+Se hai fatto qualche cambiamento al tarball a monte (upstream, vedi
+:ref:`section-directory-structure` per le modifiche possibili) allora
+dovresti aggiungere l'appendice ``.p1`` in coda alla versione. Se fai
+ulteriori modifiche, aumenta il livello della patch quanto
+necessario. Così le differenti versioni saranno ``1.3``, ``1.3.p1``,
+``1.3.p2``, ...
 
 
 .. _section-spkg-SPKG-txt:
@@ -181,7 +183,7 @@ Il file ``SPKG.txt`` deve seguire questo pattern::
 
      == License ==
 
-     Qual'\`e la licenza? Se non-standard, \`e compatibile con la GPLv3+ ?
+     Qual'è la licenza? Se non-standard, è compatibile con la GPLv3+ ?
 
      == Manutentori SPKG ==
 
@@ -202,13 +204,13 @@ Il file ``SPKG.txt`` deve seguire questo pattern::
 
      == Special Update/Build Instructions ==
 
-     Se il tarball \`e stato modificati a mano e non con uno script spkg-src, 
-     descrivi cosa \`e stato cambiato.
+     Se il tarball è stato modificati a mano e non con uno script spkg-src, 
+     descrivi cosa è stato cambiato.
 
 
-dove al posto di ``PACKAGE_NAME`` v'\`e il nome del pacchetto. I vecchi file 
-``SPKG.txt`` hanno una sezione "changelog" addizionale, ma queste informazioni 
-ora sono all'interno del repository git.
+dove al posto di ``PACKAGE_NAME`` v'è il nome del pacchetto. I vecchi
+file ``SPKG.txt`` hanno una sezione "changelog" addizionale, ma queste
+informazioni ora sono all'interno del repository git.
 
 
 .. _section-spkg-patching:
@@ -216,11 +218,12 @@ ora sono all'interno del repository git.
 Fare le patch dei sorgenti
 --------------------------
 
-I cambiamenti in corso del codice sorgente vanno fatti con delle patch, 
-che andrebbero poste nella directory ``patches``. GNU patch \`e distribuito 
-con Sage, quindi puoi star certo che \`e disponibile. Le patch devono includere 
-la documentazione nella loro intestazione (prima del primo blocco di differenze), 
-cos\`i che un tipico patch file appaia come segue::
+I cambiamenti in corso del codice sorgente vanno fatti con delle
+patch, che andrebbero poste nella directory ``patches``. GNU patch è
+distribuito con Sage, quindi puoi star certo che è disponibile. Le
+patch devono includere la documentazione nella loro intestazione
+(prima del primo blocco di differenze), così che un tipico patch file
+appaia come segue::
 
     Add autodoc_builtin_argspec config option
 
@@ -242,7 +245,7 @@ cos\`i che un tipico patch file appaia come segue::
          app.add_event('autodoc-process-docstring')
 
 Le patch ai file in ``src/`` devono essere applicate in ``spkg-install``,
-cio\`e, se ci sono delle patch allora il tuo script ``spkg-install`` deve 
+cioè, se ci sono delle patch allora il tuo script ``spkg-install`` deve 
 contenere una sezione come questa::
 
     for patch in ../patches/*.patch; do
@@ -262,13 +265,13 @@ che applica le patch ai sorgenti.
 Tarball modificati
 ------------------
 
-Il file ``spkg-src`` \`e opzionale e solo per documentare come il tarball 
-upstream \`e stato cambiato. Idealmente, se non \`e modificato, allora non 
-c'\`e neppure un file ``spkg-src``.
+Il file ``spkg-src`` è opzionale e solo per documentare come il tarball 
+upstream è stato cambiato. Idealmente, se non è modificato, allora non 
+c'è neppure un file ``spkg-src``.
 
 Comunque se devi proprio modificare il tarball upstream allora si raccomanda 
 di scrivere uno script, detto ``spkg-src``, che faccia le modifiche. 
-Questo non serve solo come documentazione ma anche rende pi\`u semplice 
+Questo non serve solo come documentazione ma anche rende più semplice 
 applicare le stesse modifiche a future versioni.
 
 
@@ -276,7 +279,7 @@ Codici di controllo (Checksum)
 ------------------------------
 
 Il file ``checksums.ini`` contiene le checksum del tarball upstream.
-\`E autogenerato, quindi ti basta mettere il tarball upstream nella 
+È autogenerato, quindi ti basta mettere il tarball upstream nella 
 directory ``SAGE_ROOT/upstream/`` e lanciare::
 
     [user@localhost]$ sage -sh sage-fix-pkg-checksums
@@ -287,10 +290,11 @@ directory ``SAGE_ROOT/upstream/`` e lanciare::
 Compilazione ed installazione manuale dei pacchetti
 ===================================================
 
-A questo punto a un nuovo tarball che non \`e ancora distribuito con Sage 
-(``foo-1.3.tar.gz`` nell'esempio della sezione :ref:`section-directory-structure`).
-Ora hai bisogno di collocarlo manualmente nella directory ``SAGE_ROOT/upstream/``.
-Poi puoi lanciare l'installazione con::
+A questo punto a un nuovo tarball che non è ancora distribuito con
+Sage (``foo-1.3.tar.gz`` nell'esempio della sezione
+:ref:`section-directory-structure`).  Ora hai bisogno di collocarlo
+manualmente nella directory ``SAGE_ROOT/upstream/``.  Poi puoi
+lanciare l'installazione con::
 
     [user@localhost]$ sage -i package_name
 
@@ -299,12 +303,13 @@ oppure::
     [user@localhost]$ sage -i -f package_name
 
 per forzare una reinstallazione. Se il tuo pacchetto contiene uno script 
-``spkg-check`` (vedi :ref:`section-spkg-check`) esso pu\`o essere lanciato con::
+``spkg-check`` (vedi :ref:`section-spkg-check`) esso può essere lanciato con::
 
     [user@localhost]$ sage -i -c package_name
 
-Se \`e andato tutto bene, apri un ticket, metti un link al tarball originale nel
-ticket e fai upload del ramo con il codice sorgente sotto ``SAGE_ROOT/build/pkgs``.
+Se è andato tutto bene, apri un ticket, metti un link al tarball
+originale nel ticket e fai upload del ramo con il codice sorgente
+sotto ``SAGE_ROOT/build/pkgs``.
 
 
 .. _section-inclusion-procedure:
@@ -315,23 +320,23 @@ Procedura di inclusione per paccheti nuovi ed aggiornati
 I pacchetti che non sono parte di Sage diverranno prima opzionali o 
 sperimentali (quest'ultimo se non compilano su tutti i sistemi supportati.
 Dopo essere stati fra gli opzionali per qualche tempo senza aver dato 
-problemi si potr\`a proporre di includerli come pacchetti standard in Sage.
+problemi si potrà proporre di includerli come pacchetti standard in Sage.
 
-Per proporre un pacchetto per l'inclusione come opzionale/sperimentale aprire un 
-ticket Trac con il campo ``Component:`` impostato a ``packages:experimental`` 
-oppure ``packages:optional``. I requisiti associati per il codice sono 
-descritti nelle sezioni seguenti.
+Per proporre un pacchetto per l'inclusione come opzionale/sperimentale
+aprire un ticket Trac con il campo ``Component:`` impostato a
+``packages:experimental`` oppure ``packages:optional``. I requisiti
+associati per il codice sono descritti nelle sezioni seguenti.
 
-Dopo che \`e stata fatta la revisione del ticket ed \`e stato incluso, 
+Dopo che è stata fatta la revisione del ticket ed è stato incluso, 
 i pacchetti opzionali restano in tale status per almeno un anno, dopo il 
-quale si pu\`o proporre di includerli come pacchetti standard in Sage.
-Per fare ci\`o si apre un ticket Trac con il campo ``Component:`` impostato
-a ``packages:standard``. Nota che lo script in ``SAGE_ROOT/build/deps`` \`e
-richiamato quando si compila Sage quindi includi l\`i il comando build per 
+quale si può proporre di includerli come pacchetti standard in Sage.
+Per fare ciò si apre un ticket Trac con il campo ``Component:`` impostato
+a ``packages:standard``. Nota che lo script in ``SAGE_ROOT/build/deps`` è
+richiamato quando si compila Sage quindi includi lì il comando build per 
 il tuo pacchetto standard. Poi fai una proposta nel Google Group ``sage-devel``.
 
 Aggiornare dei pacchetti a nuove versioni upstream o con patch addizionali 
-include la necessit\`a di aprire un ticket nella rispettiva categoria, come 
+include la necessità di aprire un ticket nella rispettiva categoria, come 
 descritto sopra.
 
 Informazioni sulla licenza
@@ -340,14 +345,14 @@ Informazioni sulla licenza
 Se stai facendo una patch di un spkg standard di Sage, allora accertati 
 che le informazioni sulla licenza di quel pachetto sia aggiornate, sia nel 
 suo file ``SPKG.txt`` che nel file ``SAGE_ROOT/COPYING.txt``. Ad esempio, 
-se stai facendo un file spkg che aggiorna il codice base ("vanilla" cio\`e non
+se stai facendo un file spkg che aggiorna il codice base ("vanilla" cioè non
 modificato) ad una nuova versione, verifica che la licenza non sia cambiata 
 fra le versioni.
 
 Prerequisiti per nuovi pacchetti standard
 -----------------------------------------
 
-Perch\`e un pacchetto possa diventare parte della distribuzione standard di 
+Perchè un pacchetto possa diventare parte della distribuzione standard di 
 Sage, deve soddisfare i seguenti requisiti:
 
 - **Licenza**. Per pacchetti standard, la licenza dev'essere compatibile
@@ -361,33 +366,32 @@ Sage, deve soddisfare i seguenti requisiti:
   Un pacchetto standard deve anche funzionare su tutte le piattaforme su cui
   ci si aspetta che `Sage funzioni <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_
   e su cui Sage `funziona abbastanza <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_
-  ma poich\`e non supportiamo pienamente tali piattaforme e spesso manchiamo
+  ma poichè non supportiamo pienamente tali piattaforme e spesso manchiamo
   delle risorse per farci dei test, non ci aspettiamo che tu confermi che i
   tuoi pacchetti funzionino su di esse.
 
-- **Qualit\`a**. Il codice dovrebbe essere "migliore" di ogni altro codice
+- **Qualità**. Il codice dovrebbe essere "migliore" di ogni altro codice
   disponibile (che i 2 suddetti criteri), e gli autori devono giustificarlo.
   Il paragone dev'essere fatto sia per Python che per altro software.
-  I criteri per passare il test di qualit\`a includono:
+  I criteri per passare il test di qualità includono:
 
-  - Velocit\`a
+  - Velocità
 
   - Documentazione
 
-  - Usabilit\`a
+  - Usabilità
 
   - Assenza di memory leaks
 
-  - Manutenibilit\`a
+  - Manutenibilità
 
-  - Portabilit\`a
+  - Portabilità
 
   - Ragionevole tempo di compilazione, dimensioni e dipendenze
 
-- **Precedentemente pacchetto opzionale**. Un nuovo pacchetto standard deve avere
-  trascorso del tempo come pacchetto opzionale. O ci devono essere delle buone 
-  ragioni per cui ci\`o non \`e possibile.
+- **Precedentemente pacchetto opzionale**. Un nuovo pacchetto standard
+  deve avere trascorso del tempo come pacchetto opzionale. O ci devono
+  essere delle buone ragioni per cui ciò non è possibile.
 
-- **Arbitraggio**. Il codicee dev'essere giudicato, come discusso in :ref:`chapter-sage-trac`.
-
-
+- **Arbitraggio**. Il codicee dev'essere giudicato, come discusso in
+  :ref:`chapter-sage-trac`.
