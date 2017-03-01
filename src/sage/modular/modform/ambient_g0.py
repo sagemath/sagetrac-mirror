@@ -389,8 +389,8 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             2
         """
         N = self.level()
-        if not len(w) == len(N.prime_divisors()):
-            print w, N.prime_divisors()
+        if len(w) != len(N.prime_divisors()):
+            print("w={} but {} prime divisors".format(w, N.prime_divisors()))
             raise ValueError("Length of argument w must equal the number of "
                              "primes dividing the level")
         DivSeq = N.divisors()
