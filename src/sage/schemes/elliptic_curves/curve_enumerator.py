@@ -286,11 +286,11 @@ class CurveEnumerator_abstract(object):
         b2 = a1 ** 2 + 4 * a2
         b4 = 2 * a4 + a1 * a3
         b6 = a3 ** 2 + 4 * a6
-        b8 = ((a1 ** 2) * a6 + 4 * a2 * a6 - a1 * a3 * a4
-              + a2 * (a3 ** 2) - a4 ** 2)
+        b8 = ((a1 ** 2) * a6 + 4 * a2 * a6 - a1 * a3 * a4 +
+              a2 * (a3 ** 2) - a4 ** 2)
 
-        Delta = (-(b2 ** 2) * b8 - 8 * (b4 ** 3) - 27 * (b6 ** 2)
-                 + 9 * b2 * b4 * b6)
+        Delta = (-(b2 ** 2) * b8 - 8 * (b4 ** 3) - 27 * (b6 ** 2) +
+                 9 * b2 * b4 * b6)
         return Delta == 0
 
     def _coeffs_from_height(self, height_tuple):
@@ -324,7 +324,7 @@ class CurveEnumerator_abstract(object):
             sage: B = C.next_height(4); B
             (4, [1, 2], [1])
             sage: L = C._coeffs_from_height(B)
-            sage: for ell in L: print ell
+            sage: for ell in L: print(ell)
             (4, [0, 0, 0, -1, -2])
             (4, [0, 0, 0, -1, 2])
             (4, [0, 0, 0, 0, -2])
@@ -355,7 +355,7 @@ class CurveEnumerator_abstract(object):
             C = (height, self._coeffs_to_a_invariants(c))
             if not self._is_singular(C[1]):
                 # Some families can produce duplicate sets of coefficients
-                if not self._duplicates or not C in L2:
+                if not self._duplicates or C not in L2:
                     L2.append(C)
         return L2
 
@@ -460,8 +460,9 @@ class CurveEnumerator_abstract(object):
         H = self.heights(lowerbound, upperbound)
         L = self._coeffs_from_height_list(H)
 
-        #WAS:   open(savefile,'w').write('\n'.join('\t'.join([str(a) for a in C])))
-        #WAS: maybe leave in, but use consistent naming, e.g., output_filename...
+        # WAS:
+        # open(savefile,'w').write('\n'.join('\t'.join([str(a) for a in C])))
+        # maybe leave in, but use consistent naming, e.g., output_filename...
 
         # Save data to file
         if output_filename is not None:
@@ -1367,7 +1368,7 @@ class CurveEnumerator_abstract(object):
         else:
             raise IOError("Input must either be a string or a list")
 
-        #Compute running average
+        # Compute running average
         N = np.arange(X.shape[0], dtype=np.float64) + 1
         Y = np.cumsum(V) / N
 
@@ -1593,8 +1594,9 @@ class CurveEnumeratorRankTwo(CurveEnumerator_abstract):
         """
         a2, a4, b4, a6 = c[0], c[1], c[2], c[3]
         I = 3 * (a4 ** 2) + b4 ** 2 - 3 * a2 * a6
-        J = (-27 / 4 * (a2 ** 2) * a4 ** 2 + 18 * (a4 ** 2) * b4
-             - 2 * (b4 ** 3) + 9 * a2 * b4 * a6 - 27 * (a6 ** 2))
+        J = (-27 / 4 * (a2 ** 2) * a4 ** 2 +
+             18 * (a4 ** 2) * b4 - 2 * (b4 ** 3) +
+             9 * a2 * b4 * a6 - 27 * (a6 ** 2))
 
         # J may have denominator 2 or 4. If so, the following produces
         # an isomorphic curve with integral coefficients
@@ -1859,8 +1861,8 @@ class CurveEnumeratorF_22(CurveEnumerator_abstract):
         # A may be be a rational with denominator 2 or 4.
         # If so, the following converts to an integral model:
         if A.denominator() > 1:
-            A = A * 4
-            B = B * 64
+            A *= 4
+            B *= 64
 
         return [0, A, 0, 0, B]
 
@@ -2042,7 +2044,7 @@ class CurveEnumeratorF_14(CurveEnumeratorF_22):
             C = (height, self._coeffs_to_a_invariants(c))
             if not self._is_singular(C[1]):
                 # This family produces duplicate curves
-                if not C in L2:
+                if C not in L2:
                     L2.append(C)
         return L2
 
@@ -2161,7 +2163,7 @@ class CurveEnumeratorF_12x2(CurveEnumeratorF_22):
             C = (height, self._coeffs_to_a_invariants(c))
             if not self._is_singular(C[1]):
                 # This family produces duplicate curves
-                if not C in L2:
+                if C not in L2:
                     L2.append(C)
         return L2
 
