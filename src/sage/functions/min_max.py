@@ -25,7 +25,7 @@ This works as expected for more than two entries::
    sage: min_symbolic(3,5,x)
    min(x, 3)
 
-There is a fundamental difference between the min_sybolic()  and max_symbolic()
+There is a fundamental difference between the min_symbolic()  and max_symbolic()
 from the built-in python functions min() and max() function.The Python built-in
 max() and min() functions don’t work as expected when symbolic expressions are
 given as arguments. This function delays evaluation until all symbolic arguments
@@ -72,7 +72,7 @@ and max() earlier::
    p+=plot(max_symbolic(f2(x),f3(x),f1(x)),(x,0,2*pi),color='green') # min and max functions are plotted properly.
    p.show()
 
-    
+
 """
 ###############################################################################
 #   Sage: Open Source Mathematical Software
