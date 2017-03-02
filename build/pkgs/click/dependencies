@@ -1,4 +1,4 @@
-$(PYTHON) | pip werkzeug jinja2 itsdangerous click
+$(PYTHON) | pip
 
 ----------
 All lines of this file are ignored except the first.
