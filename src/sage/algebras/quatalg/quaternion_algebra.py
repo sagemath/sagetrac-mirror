@@ -386,14 +386,19 @@ class QuaternionAlgebra_abstract(Algebra):
             False
             sage: QuaternionAlgebra(2,9).is_division_algebra()
             False
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: QuaternionAlgebra(K, -a^2+2*a-4, a^2+1).is_division_algebra()
+            True
+            sage: QuaternionAlgebra(K, a^2-3, -a^2).is_division_algebra()
+            True
             sage: QuaternionAlgebra(RR(2.),1).is_division_algebra()
             Traceback (most recent call last):
             ...
-            NotImplementedError: base field must be rational numbers
+            NotImplementedError: base field must be rational numbers or number field
         """
-        if not is_RationalField(self.base_ring()):
-            raise NotImplementedError("base field must be rational numbers")
-        return self.discriminant() != 1
+        if not is_NumberField(self.base_ring()):
+            raise NotImplementedError("base field must be rational numbers or number field")
+        return len(self.ramified_infinite_places()) != 0 or self.discriminant() != 1
 
     def is_matrix_ring(self):
         """
@@ -409,15 +414,19 @@ class QuaternionAlgebra_abstract(Algebra):
             True
             sage: QuaternionAlgebra(2,9).is_matrix_ring()
             True
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: QuaternionAlgebra(K, -a^2+2*a-4, a^2+1).is_matrix_ring()
+            False
+            sage: QuaternionAlgebra(K, a^2-3, -a^2).is_matrix_ring()
+            False
             sage: QuaternionAlgebra(RR(2.),1).is_matrix_ring()
             Traceback (most recent call last):
             ...
-            NotImplementedError: base field must be rational numbers
-
+            NotImplementedError: base field must be rational numbers or number field
         """
-        if not is_RationalField(self.base_ring()):
-            raise NotImplementedError("base field must be rational numbers")
-        return self.discriminant() == 1
+        if not is_NumberField(self.base_ring()):
+            raise NotImplementedError("base field must be rational numbers or number field")
+        return len(self.ramified_infinite_places()) == 0 and self.discriminant() == 1
 
     def is_exact(self):
         """
