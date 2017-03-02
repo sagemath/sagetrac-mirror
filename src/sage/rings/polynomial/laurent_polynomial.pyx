@@ -10,6 +10,7 @@ Elements of Laurent polynomial rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iterkeys, iteritems
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -24,7 +25,91 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
     """
     A generic Laurent polynomial.
     """
-    pass
+
+    def _integer_(self, ZZ):
+        r"""
+        Convert this Laurent polynomial to an integer.
+
+        This is only possible if the Laurent polynomial is constant.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: L.<a> = LaurentPolynomialRing(QQ)
+            sage: L(42)._integer_(ZZ)
+            42
+            sage: a._integer_(ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant
+            sage: L(2/3)._integer_(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: ZZ(L(42))
+            42
+
+        ::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(42)._integer_(ZZ)
+            42
+            sage: a._integer_(ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant
+            sage: L(2/3)._integer_(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: ZZ(L(42))
+            42
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant'.format(self))
+        return ZZ(self.constant_coefficient())
+
+    def _rational_(self):
+        r"""
+        Convert this Laurent polynomial to a rational.
+
+        This is only possible if the Laurent polynomial is constant.
+
+        OUTPUT:
+
+        A rational.
+
+        TESTS::
+
+            sage: L.<a> = LaurentPolynomialRing(QQ)
+            sage: L(42)._rational_()
+            42
+            sage: a._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant
+            sage: QQ(L(2/3))
+            2/3
+
+        ::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(42)._rational_()
+            42
+            sage: a._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant
+            sage: QQ(L(2/3))
+            2/3
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant'.format(self))
+        from sage.rings.rational_field import QQ
+        return QQ(self.constant_coefficient())
 
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
@@ -68,6 +153,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             Univariate Laurent Polynomial Ring in s over Finite Field of size 5
             sage: parent(S(t)[1])
             Finite Field of size 5
+
+        ::
+
+            sage: R({})
+            0
         """
         CommutativeAlgebraElement.__init__(self, parent)
 
@@ -79,7 +169,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 f = parent.polynomial_ring()((<LaurentPolynomial_univariate>f).__u)
         elif (not isinstance(f, Polynomial)) or (parent is not f.parent()):
             if isinstance(f, dict):
-                v = min(f)
+                v = min(f) if f else 0
                 f = dict((i-v,c) for i,c in f.items())
                 n += v
             f = parent.polynomial_ring()(f)
@@ -1123,7 +1213,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
     def is_constant(self):
         """
-        Return ``True`` if ``self`` is constant.
+        Return whether this Laurent polynomial is constant.
 
         EXAMPLES::
 
@@ -1137,6 +1227,14 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: (x^2).is_constant()
             False
             sage: (x^-2 + 2).is_constant()
+            False
+            sage: R(0).is_constant()
+            True
+            sage: R(42).is_constant()
+            True
+            sage: x.is_constant()
+            False
+            sage: (1/x).is_constant()
             False
         """
         return self.__n == 0 and self.__u.is_constant()
@@ -1432,43 +1530,53 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
             sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
             1/42*w^-2*z^-1
+
+        :trac:`22398`::
+
+            sage: LQ = LaurentPolynomialRing(QQ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LZ = LaurentPolynomialRing(ZZ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LQ.inject_variables()
+            Defining x0, x1, x2, y0, y1, y2, y3, y4, y5
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1 in LZ
+            True
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1*x1^-1*y0*y3 + x0^-1 in LZ
+            True
+
+        Check that input is not modified::
+
+            sage: LQ.<x,y> = LaurentPolynomialRing(QQ)
+            sage: D = {(-1, 1): 1}
+            sage: k = tuple(D)[0]
+            sage: v = D[k]
+            sage: type(k), type(v)
+            (<... 'tuple'>, <type 'sage.rings.integer.Integer'>)
+            sage: LQ(D)
+            x^-1*y
+            sage: tuple(D)[0] is k
+            True
+            sage: D[k] is v
+            True
         """
-        if isinstance(x, LaurentPolynomial_mpair):
-            # check if parent contains all the generators of x.parent() for coercions
-            try:
-                inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
-                tmp_x = x.dict()
-                x = dict()
-                n = int(parent.ngens())
-                m = len(inject_dict)
-                for k in tmp_x.keys():
-                    img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
-                    x[img_k] = tmp_x[k]
-            # otherwise just pass along a dict for conversions
-            except Exception:
-                x = x.dict()
-        elif isinstance(x, PolyDict):
+        if isinstance(x, PolyDict):
             x = x.dict()
         if mon is not None:
             self._mon = ETuple(mon)
         else:
             if isinstance(x, dict):
                 self._mon = ETuple({},int(parent.ngens()))
-                for k in x: # ETuple-ize keys, set _mon
+                D = {}
+                for k, x_k in iteritems(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break
                     if isinstance(k, tuple):
-                        a = x[k]
-                        del x[k]
                         k = ETuple(k)
-                        x[k] = a
+                    D[k] = x_k
                     self._mon = self._mon.emin(k) # point-wise min of _mon and k
-                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
-                    D = {}
-                    for k in x:
-                        D[k.esub(self._mon)] = x[k]
+                else:
                     x = D
+                if not self._mon.is_constant(): # factor out _mon
+                    x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
@@ -1552,7 +1660,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     e = k
                 else:
                     e = e.emin(k)
-            if len(e.nonzero_positions()) > 0:
+            if not e.is_constant():
                 self._poly = self._poly // self._poly.parent()({e: 1})
                 self._mon = self._mon.eadd(e)
         else:
@@ -1581,7 +1689,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         """
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
-        if len(self._mon.nonzero_positions()) > 0:
+        if not self._mon.is_constant():
             DD = {}
             for k in D:
                 DD[k.eadd(self._mon)] = D[k]
@@ -2082,11 +2190,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly += right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly += right._poly
@@ -2109,11 +2217,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         cdef ETuple a, b
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly -= right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly -= right._poly
@@ -2550,6 +2658,25 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 variables[i] = in_dict[variables[i]]
         return self(tuple(variables))
 
+    def is_constant(self):
+        r"""
+        Return whether this Laurent polynomial is constant.
+
+        EXAMPLES::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(0).is_constant()
+            True
+            sage: L(42).is_constant()
+            True
+            sage: a.is_constant()
+            False
+            sage: (1/b).is_constant()
+            False
+        """
+        return (self._mon == ETuple({}, int(self.parent().ngens())) and
+                self._poly.is_constant())
+
     def _symbolic_(self, R):
         """
         EXAMPLES::
@@ -2638,11 +2765,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         except ValueError:
             # call _derivative() recursively on coefficients
             return P({m: c._derivative(var)
-                      for (m, c) in self.dict().iteritems()})
+                      for (m, c) in iteritems(self.dict())})
 
         # compute formal derivative with respect to generator
         d = {}
-        for m, c in self.dict().iteritems():
+        for m, c in iteritems(self.dict()):
             if m[index] != 0:
                 new_m = [u for u in m]
                 new_m[index] += -1

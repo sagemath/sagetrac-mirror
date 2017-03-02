@@ -487,10 +487,9 @@ Running Sage from a directory with spaces in its name will also fail.
    fast filesystem, avoiding
    `NFS <http://en.wikipedia.org/wiki/Network_File_System>`_ and the like.
    On personal computers, any subdirectory of your :envvar:`HOME` directory
-   should do.
-   The directory where you built Sage is **NOT** hardcoded.
-   You should be able to safely move or rename that directory.
-   (It's a bug if this is not the case.)
+   should do. Note that once you have built Sage (by running ``make``,
+   as described below), you will not be able to move or rename its
+   directory without likely breaking Sage.
 
 #. Extract the tarfile::
 
@@ -1039,7 +1038,7 @@ Here are some of the more commonly used variables affecting the build process:
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
   the graphics coming from the ``.. PLOT`` directive within the documentation,
-  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  or you can add ``--include-tests-blocks`` to include all "TESTS" blocks in the
   reference manual. Run ``sage --docbuild help`` to see the full list
   of options.
 
@@ -1120,6 +1119,19 @@ Here are some of the more commonly used variables affecting the build process:
   administrator wishes to install an additional Sage package that
   supports :envvar:`SAGE_SUDO`, into a root-owned installation
   hierarchy (:envvar:`SAGE_LOCAL`).
+
+- :envvar:`SAGE_PYTHON3` - set this to ``yes`` to build Sage using
+  Python 3 rather than Python 2.
+
+  .. WARNING::
+
+     This will probably break your Sage installation!
+
+  .. WARNING::
+
+     This environment variable may not be supported in future versions
+     of Sage; it may be replaced by (for example) ``configure``
+     options.
 
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
@@ -1452,4 +1464,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in January 2017 (for Sage 7.6).**
+**This page was last updated in February 2017 (Sage 7.6).**
