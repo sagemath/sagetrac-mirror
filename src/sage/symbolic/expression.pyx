@@ -6643,7 +6643,7 @@ cdef class Expression(CommutativeRingElement):
         Return the summation of this hypergeometric expression using
         Gosper's algorithm.
 
-        INPUT::
+        INPUT:
 
             - a symbolic expression that may contain rational functions,
             powers, factorials, gamma function terms, binomial
