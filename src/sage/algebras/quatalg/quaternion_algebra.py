@@ -34,7 +34,7 @@ Pickling test::
 from __future__ import print_function, absolute_import
 from six.moves import zip
 
-from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
+from sage.arith.all import (hilbert_conductor_inverse, hilbert_ramification,
         factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
@@ -64,6 +64,7 @@ from . import quaternion_algebra_cython
 from sage.modular.modsym.p1list import P1List
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -968,6 +969,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             210
             sage: QuaternionAlgebra(19).discriminant()
             19
+            sage: QuaternionAlgebra(1).discriminant()
+            1
 
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
@@ -977,33 +980,52 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(QQ[sqrt(2)],3,19).discriminant()
             Fractional ideal (1)
         """
-        try:
-            return self.__discriminant
-        except AttributeError:
-            pass
-        if not is_RationalField(self.base_ring()):
-            try:
-                F = self.base_ring()
-                self.__discriminant = F.hilbert_conductor(self._a, self._b)
-            except NotImplementedError:
-                raise ValueError("base field must be rational numbers or number field")
+        ram = self.ramified_primes()
+        if len(ram) == 0:
+            F = self.base_ring()
+            if is_RationalField(F):
+                return ZZ(1)
+            else:
+                return F.ideal(1)
         else:
-            self.__discriminant = hilbert_conductor(self._a, self._b)
-        return self.__discriminant
+            return prod(ram)
 
     def ramified_primes(self):
         """
-        Return the primes that ramify in this quaternion algebra. Currently
-        only implemented over the rational numbers.
+        Return the list of (finite) primes that ramify in this quaternion algebra.
 
         EXAMPLES::
 
             sage: QuaternionAlgebra(QQ, -1, -1).ramified_primes()
             [2]
-        """
-        #TODO: more examples
+            sage: QuaternionAlgebra(2*11*31).ramified_primes()
+            [2, 11, 31]
+            sage: QuaternionAlgebra(1).ramified_primes()
+            []
 
-        return [f[0] for f in factor(self.discriminant())]
+            sage: QuaternionAlgebra(QQ[sqrt(2)],3,19).ramified_primes()
+            []
+
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: QuaternionAlgebra(K, -a^2+2*a-4, a^2+1).ramified_primes()
+            [Fractional ideal (-a + 1), Fractional ideal (-2*a + 1)]
+        """
+
+        try:
+            #keeping a list for backwards compatibility
+            return list(self.__ramified_primes)
+        except AttributeError:
+            pass
+        F = self.base_ring()
+        a = self._a
+        b = self._b
+        if is_RationalField(F):
+            self.__ramified_primes = hilbert_ramification(a,b)
+        elif is_NumberField(F):
+            self.__ramified_primes = F.hilbert_ramification(a,b)
+        else:
+            raise ValueError("base field must be rational numbers or number field")
+        return list(self.__ramified_primes)
 
     def _magma_init_(self, magma):
         """

@@ -4191,7 +4191,7 @@ def hilbert_ramification(a, b):
     """
     a, b = ZZ(a), ZZ(b)
     ram = set()
-    for p in set().union([2], prime_divisors(a), prime_divisors(b)):
+    for p in set().union([ZZ(2)], prime_divisors(a), prime_divisors(b)):
         if hilbert_symbol(a, b, p) == -1:
             ram.add(p)
     return ram
