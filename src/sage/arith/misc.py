@@ -4161,6 +4161,40 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     else:
         raise ValueError("Algorithm %s not defined"%algorithm)
 
+def hilbert_ramification(a, b):
+    """
+    This is the set of all prime numbers where the Hilbert symbol is -1.
+    Equivalently, this is the set of finite primes where the quaternion algebra
+    `(a,b)` over `\QQ` ramifies.
+
+    INPUT:
+
+    - ``a``, ``b`` -- integers
+
+    OUTPUT:
+
+    - set of prime numbers
+
+    EXAMPLES::
+
+        sage: hilbert_ramification(1, 1)
+        set()
+        sage: hilbert_ramification(-1, -1)
+        {2}
+        sage: hilbert_ramification(1995, -43)
+        {3, 5, 7, 19}
+
+    AUTHOR:
+
+    - Aurel Page (2017)
+
+    """
+    a, b = ZZ(a), ZZ(b)
+    ram = set()
+    for p in set().union([2], prime_divisors(a), prime_divisors(b)):
+        if hilbert_symbol(a, b, p) == -1:
+            ram.add(p)
+    return ram
 
 def hilbert_conductor(a, b):
     """
@@ -4178,6 +4212,8 @@ def hilbert_conductor(a, b):
 
     EXAMPLES::
 
+        sage: hilbert_conductor(1, 1)
+        1
         sage: hilbert_conductor(-1, -1)
         2
         sage: hilbert_conductor(-1, -11)
@@ -4191,12 +4227,11 @@ def hilbert_conductor(a, b):
 
     - Gonzalo Tornaria (2009-03-02)
     """
-    a, b = ZZ(a), ZZ(b)
-    d = ZZ(1)
-    for p in set().union([2], prime_divisors(a), prime_divisors(b)):
-        if hilbert_symbol(a, b, p) == -1:
-            d *= p
-    return d
+    ram = hilbert_ramification(a,b)
+    if len(ram)==0:
+        return ZZ(1)
+    else:
+        return prod(ram)
 
 def hilbert_conductor_inverse(d):
     """

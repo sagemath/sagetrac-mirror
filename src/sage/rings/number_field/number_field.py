@@ -8666,11 +8666,48 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError("Non-prime ideal P (=%s) in hilbert_symbol" % P)
         return pari(self).nfhilbert(a, b, P.pari_prime())
 
+    def hilbert_ramification(self,a,b):
+        """
+        This is the set of all prime ideals where the Hilbert symbol is -1.
+        Equivalently, this is the set of finite primes where the quaternion
+        algebra `(a,b)` over ``self`` ramifies.
+
+        INPUT:
+
+        - ``a``, ``b`` -- elements of the number field ``self``
+
+        OUTPUT:
+
+        - set of prime ideals of the ring of integers of ``self``
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: F.hilbert_ramification(-a,8*a+1) 
+            {Fractional ideal (-2*a + 1), Fractional ideal (-3*a + 1)}
+            sage: K.<b> = NumberField(x^3-4*x+2)
+            sage: K.hilbert_ramification(2,-2)
+            set()
+            sage: K.hilbert_ramification(2*b,-2)
+            {Fractional ideal (b^2 + b - 2)}
+
+        AUTHOR:
+
+        - Aurel Page (2017)
+
+        """
+        a, b = self(a), self(b)
+        ram = set()
+        for p in union(union( self.ideal(2).prime_factors(), self.ideal(a).prime_factors()), self.ideal(b).prime_factors()):
+            if self.hilbert_symbol(a,b,p) == -1:
+                ram.add(p)
+        return ram
+
     def hilbert_conductor(self,a,b):
         """
         This is the product of all (finite) primes where the Hilbert symbol is -1.
         What is the same, this is the (reduced) discriminant of the quaternion
-        algebra `(a,b)` over a number field.
+        algebra `(a,b)` over the number field ``self``.
 
         INPUT:
 
@@ -8696,12 +8733,11 @@ class NumberField_absolute(NumberField_generic):
         - Aly Deines
 
         """
-        a, b = self(a), self(b)
-        d = self.ideal(1)
-        for p in union(union( self.ideal(2).prime_factors(), self.ideal(a).prime_factors()), self.ideal(b).prime_factors()):
-            if self.hilbert_symbol(a,b,p) == -1:
-                d *= p
-        return d
+        ram = self.hilbert_ramification(a,b)
+        if len(ram)==0:
+            return self.ideal(1)
+        else:
+            return prod(ram)
 
     def elements_of_bounded_height(self,bound,precision=53,LLL=False):
         r"""
