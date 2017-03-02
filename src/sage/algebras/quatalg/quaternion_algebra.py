@@ -1027,6 +1027,61 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             raise ValueError("base field must be rational numbers or number field")
         return list(self.__ramified_primes)
 
+    def ramified_infinite_places(self):
+        """
+        Return the list of infinite places that ramify in this quaternion algebra.
+
+        EXAMPLES::
+
+            sage: QuaternionAlgebra(QQ, -1, -1).ramified_infinite_places()
+            [Ring morphism:
+               From: Rational Field
+               To:   Algebraic Real Field
+               Defn: 1 |--> 1]
+            sage: QuaternionAlgebra(2*11*31).ramified_infinite_places()
+            [Ring morphism:
+               From: Rational Field
+               To:   Algebraic Real Field
+               Defn: 1 |--> 1]
+            sage: QuaternionAlgebra(1).ramified_infinite_places()
+            []
+
+            sage: QuaternionAlgebra(QQ[sqrt(2)],-3,-19).ramified_infinite_places()
+            [Ring morphism:
+               From: Number Field in sqrt2 with defining polynomial x^2 - 2
+               To:   Algebraic Real Field
+               Defn: sqrt2 |--> 1.414213562373095?, Ring morphism:
+               From: Number Field in sqrt2 with defining polynomial x^2 - 2
+               To:   Algebraic Real Field
+               Defn: sqrt2 |--> -1.414213562373095?]
+
+            sage: K.<a> = NumberField(x^3-3*x-1)
+            sage: QuaternionAlgebra(K, 5*a^2-15*a, -6*a^2+a+12).ramified_infinite_places()
+            [Ring morphism:
+               From: Number Field in a with defining polynomial x^3 - 3*x - 1
+               To:   Algebraic Real Field
+               Defn: a |--> 1.879385241571817?]
+
+            AUTHOR:
+
+            - Aurel Page (2017)
+
+        """
+        try:
+            return list(self.__ramified_infinite_places)
+        except AttributeError:
+            pass
+        F = self.base_ring()
+        if is_NumberField(F):
+            if is_RationalField(F):
+                Lpl = F.places(prec=infinity)
+            else:
+                Lpl = F.real_places(prec=infinity)
+            self.__ramified_infinite_places = {pl for pl in Lpl if pl(self._a)<0 and pl(self._b)<0}
+        else:
+            raise ValueError("base field must be rational numbers or number field")
+        return list(self.__ramified_infinite_places)
+
     def _magma_init_(self, magma):
         """
         Return Magma version of this quaternion algebra.
