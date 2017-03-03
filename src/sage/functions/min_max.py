@@ -25,7 +25,7 @@ This works as expected for more than two entries::
    sage: min_symbolic(3,5,x)
    min(x, 3)
 
-There is a fundamental difference between the min_sybolic()  and max_symbolic()
+There is a fundamental difference between the min_symbolic()  and max_symbolic()
 from the built-in python functions min() and max() function.The Python built-in
 max() and min() functions don’t work as expected when symbolic expressions are
 given as arguments. This function delays evaluation until all symbolic arguments
@@ -38,8 +38,8 @@ consider the following example::
    f2(x)=cos(x)
    f3(x)=x
    p=plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   p+=plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red') # f1(x) is plotted through out the domain even though its not                min at every point in the x-axis.
-   p+=plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # f2(x) is plotted through out the domain even though its not                max at every point in the x-axis.
+   p+=plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red') # f1(x) is plotted through out the domain even though its not min at every point in the x-axis.
+   p+=plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # f2(x) is plotted through out the domain even though its not max at every point in the x-axis.
    p.show()
 
 Considering some polynomial functions::
