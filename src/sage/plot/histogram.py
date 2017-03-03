@@ -289,50 +289,37 @@ def histogram(datalist, **options):
     in the axes or figures (e.g., lines, patches, etc.) are specified by the
     handler map, which defines the mapping between the plot elements and the
     legend handlers to be used.
-
-    Using histogram legends can sometimes yield results in which nothing seems
-    to happen even when the code has no error. There is a common problem that
-    legend is not initialised and set_legend_options doesn't seem to do anything
-    .However, it's not a bug rather it is the way it should be defined that
-    would help to yield a result.
-
-    *labelspacing : the vertical space between the legend entries
-    *handlelength : the length of the legend handles
-    *handleheight : the height of the legend handles
-    *handletextpad: the pad between the legend handle and text
-    *borderaxespad: the pad between the axes and legend border
-    *columnspacing: the spacing between columns
-    *title : the legend title
-
-    And many more parameters would decide how the labels would look like.
+    Histogram legends has a 'set_legend_options' which can take in various parameters
+    that can customise the labels.Different parameters would decide how the labels
+    would look like.
     Considering the following examples::
 
-        d1=[1,1,1,1,2,2,2,3,3,3]
-        d2=[4,4,4,4,3,3,3,2,2,2]
-        h=histogram([ d1,d1 ],label=["d1","d2"],stacked=True, color=['blue', 'red'])
-        h.legend(True)
-        h.set_legend_options(handlelength=1,handleheight=1,handletextpad=1,borderaxespad=2)
-        h
+        sage:d1=[1,1,1,1,2,2,2,3,3,3]
+        sage:d2=[4,4,4,4,3,3,3,2,2,2]
+        sage:h=histogram([ d1,d1 ],label=["d1","d2"],stacked=True, color=['blue', 'red'])
+        sage:h.legend(True)
+        sage:h.set_legend_options(handlelength=1,handleheight=1,handletextpad=1,borderaxespad=2)
+        sage:h
 
     The following example shows the result of change in parameters like
     handlelength,handleheight etc::
 
-        d1=[randint(0,10) for i in range(20)]
-        d2=[randint(0,10) for i in range(20)]
-        h=histogram([d1,d2],label=["d1","d2"])
-        h.legend(True)
-        h.set_legend_options(handlelength=5,handleheight=3,fontsize=50,labelspacing=0,title="Parameters")
-        h
+        sage:d1=[randint(0,10) for i in range(20)]
+        sage:d2=[randint(0,10) for i in range(20)]
+        sage:h=histogram([d1,d2],label=["d1","d2"])
+        sage:h.legend(True)
+        sage:h.set_legend_options(handlelength=5,handleheight=3,fontsize=50,labelspacing=0,title="Parameters")
+        sage:h
 
    The example below shows the combination of 2 Graphics Primitive::
 
-        nv = normalvariate
-        H = histogram([nv(0,1) for _ in range(1000)],label=["d1"], bins=20, normed=True, range=[-5,5])
-        P = plot( 1/sqrt(2*pi)*e^(-x^2/2), (x,-5,5), color='red', linestyle='--')
-        H.legend(True)
-        H.set_legend_options(handlelength=5,handleheight=1,fontsize=50,labelspacing=0,title="Parameters")
-        H
-        H+P
+        sage:nv = normalvariate
+        sage:H = histogram([nv(0,1) for _ in range(1000)],label=["d1"], bins=20, normed=True, range=[-5,5])
+        sage:P = plot( 1/sqrt(2*pi)*e^(-x^2/2), (x,-5,5), color='red', linestyle='--')
+        sage:H.legend(True)
+        sage:H.set_legend_options(handlelength=5,handleheight=1,fontsize=50,labelspacing=0,title="Parameters")
+        sage:H
+        sage:H+P
 
 
     """
