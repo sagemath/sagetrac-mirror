@@ -447,23 +447,41 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
 
     EXAMPLES::
 
-        sage: arrow((0), (1))
+    These are examples of creating a 1-dimensional arrow::
+
+        sage: arrow(0, 1)
+        Graphics object consisting of 1 graphics primitive
         sage: arrow([0], [1])
+        Graphics object consisting of 1 graphics primitive
+
+    These are examples of 2- and 3-dimensional arrows::
+
         sage: arrow((0,0), (1,1))
         Graphics object consisting of 1 graphics primitive
         sage: arrow((0,0,1), (1,1,1))
         Graphics3d Object
+
+    An error is raised when the dimensions of the points don't match::
+
+        sage: arrow((0,0), (0,1,2))
+        Traceback (most recent call last):
+        ...
+        TypeError: Arrow requires headpoint and tailpoint to be of the same dimension.
+        sage: arrow(0, [1])
+        Traceback (most recent call last):
+        ...
+        TypeError: Arrow requires headpoint and tailpoint to be of the same dimension.
     """
     if headpoint is not None and tailpoint is not None:
         if (
-            hasattr(headpoint, "__len__") and hasattr(tailpoint, "__len__") and 
+            hasattr(headpoint, "__len__") and hasattr(tailpoint, "__len__") and
             len(headpoint) !=  len(tailpoint)
             ) or (
             hasattr(headpoint, "__len__") and not hasattr(tailpoint, "__len__") or
             not hasattr(headpoint, "__len__") and hasattr(tailpoint, "__len__")
             ):
             raise TypeError('Arrow requires headpoint and tailpoint to be of the same dimension.')
-            
+
     try:
         return arrow2d(tailpoint, headpoint, **kwds)
     except ValueError:
