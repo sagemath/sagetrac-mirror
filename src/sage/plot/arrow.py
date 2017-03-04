@@ -438,9 +438,9 @@ class Arrow(GraphicPrimitive):
 
 def arrow(tailpoint=None, headpoint=None, **kwds):
     """
-    Returns either a 2-dimensional or 3-dimensional arrow depending
-    on value of points. Given a 1-dimensional arrow, returns a
-    1-dimensional arrow plotted on a 2-dimensional plane.
+    Returns either a 1-dimensional, 2-dimensional or 3-dimensional arrow
+    depending on value of points. In the case of a 1-dimensional arrow,
+    returns a 1-dimensional arrow plotted on a 2-dimensional plane.
 
     For information regarding additional arguments, see either arrow2d?
     or arrow3d?.
@@ -477,8 +477,7 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
             hasattr(headpoint, "__len__") and hasattr(tailpoint, "__len__") and
             len(headpoint) !=  len(tailpoint)
             ) or (
-            hasattr(headpoint, "__len__") and not hasattr(tailpoint, "__len__") or
-            not hasattr(headpoint, "__len__") and hasattr(tailpoint, "__len__")
+            hasattr(headpoint, "__len__") != hasattr(tailpoint, "__len__")
             ):
             raise TypeError('Arrow requires headpoint and tailpoint to be of the same dimension.')
 
@@ -591,15 +590,15 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
     #plotting 1D arrow on 2D plane
     if headpoint is not None and tailpoint is not None:
-        if hasattr(headpoint, "__len__") and len(headpoint) == 1:
-            headpoint = (headpoint[0],0)
-        elif not hasattr(headpoint, "__len__"):
+        if not hasattr(headpoint, "__len__"):
             headpoint = (headpoint,0)
-        if hasattr(tailpoint, "__len__") and len(tailpoint) == 1:
-            tailpoint = (tailpoint[0],0)
-        elif not hasattr(tailpoint, "__len__"):
+        elif len(headpoint) == 1:
+            headpoint = (headpoint[0],0)
+        if not hasattr(tailpoint, "__len__"):
             tailpoint = (tailpoint,0)
-        
+        elif len(tailpoint) == 1:
+            tailpoint = (tailpoint[0],0)
+
         xtail, ytail = tailpoint
         xhead, yhead = headpoint
         g.add_primitive(Arrow(xtail, ytail, xhead, yhead, options=options))
