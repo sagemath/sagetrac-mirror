@@ -6,7 +6,7 @@ from sage.combinat.words.word import Word
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
 from sage.rings.all import QQ, PolynomialRing
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.combinat.backtrack import GenericBacktracker
 import copy
 
@@ -371,9 +371,9 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             [1, 2, 1, 1, 2, 1]
         """
         ed = self.reading_word().evaluation_dict()
-        entries = ed.keys()
+        entries = list(ed)
         m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
+        return [ed.get(k, 0) for k in range(1, m)]
 
     def descents(self):
         """
@@ -624,7 +624,7 @@ class NonattackingFillings_shape(CombinatorialClass):
 
     def flip(self):
         """
-        Returns the nonattacking fillings of the the flipped shape.
+        Return the nonattacking fillings of the flipped shape.
 
         EXAMPLES::
 
@@ -689,7 +689,7 @@ class NonattackingBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
-        if pi==None:
+        if pi is None:
             pi=Permutation([1]).to_permutation_group_element()
         self.pi=pi
 
@@ -834,6 +834,13 @@ def E(mu, q=None, t=None, pi=None):
     - J. Haglund, M. Haiman, N. Loehr.
       *A combinatorial formula for non-symmetric Macdonald polynomials*.
       :arXiv:`math/0601693v3`.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.root_system.non_symmetric_macdonald_polynomials.NonSymmetricMacdonaldPolynomials`
+        for a type free implementation where the polynomials are
+        constructed recursively by the application of intertwining
+        operators.
 
     EXAMPLES::
 

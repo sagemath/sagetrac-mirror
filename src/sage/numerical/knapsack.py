@@ -242,7 +242,7 @@ class Superincreasing(SageObject):
         But if no solution exists, return ``None``::
 
             sage: L = [2, 3, 7, 25, 67, 179, 356, 819]
-            sage: Superincreasing(L).largest_less_than(-1) == None
+            sage: Superincreasing(L).largest_less_than(-1) is None
             True
 
         TESTS:
@@ -481,7 +481,7 @@ class Superincreasing(SageObject):
 
         ALGORITHMS:
 
-        The algorithm used is adapted from page 355 of [HPS08]_.
+        The algorithm used is adapted from page 355 of [HPS2008]_.
 
 
         EXAMPLES:
@@ -518,12 +518,6 @@ class Superincreasing(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: Element e (= -10) of seq must be a non-negative integer.
-
-
-        REFERENCES:
-
-        .. [HPS08] J. Hoffstein, J. Pipher, and J.H. Silverman. *An
-          Introduction to Mathematical Cryptography*. Springer, 2008.
         """
         # input error handling
         if not self.is_superincreasing():

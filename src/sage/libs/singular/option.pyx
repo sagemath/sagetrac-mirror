@@ -12,7 +12,8 @@ We compute a Groebner basis for Cyclic-5 in two different contexts::
 
     sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
     sage: I = sage.rings.ideal.Cyclic(P)
-    sage: std = sage.libs.singular.ff.std
+    sage: import sage.libs.singular.function_factory
+    sage: std = sage.libs.singular.function_factory.ff.std
 
 By default, tail reductions are performed::
 
@@ -26,7 +27,7 @@ If we don't want this, we can create an option context, which disables
 this::
 
     sage: with opt_ctx(red_tail=False, red_sb=False):
-    ...      std(I)[-1]
+    ....:    std(I)[-1]
     d^2*e^6 + 8*c^3 + ...
 
 However, this does not affect the global state::
@@ -47,7 +48,7 @@ change the global state::
 Assigning values within an option context, only affects this context::
 
     sage: with opt_ctx:
-    ...      opt['red_tail'] = False
+    ....:    opt['red_tail'] = False
 
     sage: opt['red_tail']
     True
@@ -55,16 +56,16 @@ Assigning values within an option context, only affects this context::
 Option contexts can also be safely stacked::
 
     sage: with opt_ctx:
-    ...       opt['red_tail'] = False
-    ...       print opt
-    ...       with opt_ctx:
-    ...           opt['red_through'] = False
-    ...           print opt
+    ....:     opt['red_tail'] = False
+    ....:     print(opt)
+    ....:     with opt_ctx:
+    ....:         opt['red_through'] = False
+    ....:         print(opt)
     ...
     general options for libSingular (current value 0x00000082)
     general options for libSingular (current value 0x00000002)
 
-    sage: print opt
+    sage: print(opt)
     general options for libSingular (current value 0x02000082)
 
 Furthermore, the integer valued options ``deg_bound`` and
@@ -99,6 +100,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options, Kstd1_deg, Kstd1_mu
 
@@ -204,8 +206,8 @@ cdef class LibSingularOptions_abstract:
             sage: opt['redTail']
             True
             sage: with opt_ctx:
-            ...      opt['redTail'] = False
-            ...      opt['redTail']
+            ....:    opt['redTail'] = False
+            ....:    opt['redTail']
             False
             sage: opt['red_tail']
             True
@@ -277,7 +279,7 @@ cdef class LibSingularOptions_abstract:
             sage: sopt['redTail']
             True
         """
-        if value == None:
+        if value is None:
             value = (None,0,0)
         self.global_options[0] = int(value[0])
         global Kstd1_deg
@@ -570,14 +572,13 @@ cdef class LibSingularOptionsContext:
     ::
 
         sage: with opt_ctx(redTail=False):
-        ...       print opt
-        ...       with opt_ctx(redThrough=False):
-        ...           print opt
-        ...
+        ....:     print(opt)
+        ....:     with opt_ctx(redThrough=False):
+        ....:         print(opt)
         general options for libSingular (current value 0x04000082)
         general options for libSingular (current value 0x04000002)
 
-        sage: print opt
+        sage: print(opt)
         general options for libSingular (current value 0x06000082)
     """
     cdef list bck
@@ -610,7 +611,7 @@ cdef class LibSingularOptionsContext:
             sage: opt['redTail']
             True
             sage: with opt_ctx(redTail=False):
-            ...     opt['redTail']
+            ....:   opt['redTail']
             False
         """
         self.bck.append(self.opt.global_options[0])
@@ -630,7 +631,7 @@ cdef class LibSingularOptionsContext:
             sage: opt['redTail']
             True
             sage: with opt_ctx(redTail=False):
-            ...     opt['redTail']
+            ....:   opt['redTail']
             False
         """
         new = self.__class__(self.opt, **kwds)
@@ -644,7 +645,7 @@ cdef class LibSingularOptionsContext:
             sage: opt['redTail']
             True
             sage: with opt_ctx(redTail=False):
-            ...     opt['redTail']
+            ....:   opt['redTail']
             False
         """
         self.opt.global_options[0] = self.bck.pop()

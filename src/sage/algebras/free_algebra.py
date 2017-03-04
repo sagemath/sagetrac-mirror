@@ -43,7 +43,7 @@ two-sided ideals, and thus provide ideal containment tests::
     True
 
 Positive integral degree weights for the letterplace implementation
-was introduced in trac ticket #...::
+was introduced in :trac:`7797`::
 
     sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
     sage: x.degree()
@@ -118,7 +118,6 @@ Note that the letterplace implementation can only be used if the corresponding
     NotImplementedError: The letterplace implementation is not available for the free algebra you requested
 
 """
-
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
@@ -127,6 +126,9 @@ Note that the letterplace implementation can only be used if the corresponding
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
+import six
 
 from sage.categories.rings import Rings
 
@@ -145,6 +147,8 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
+from sage.structure.category_object import normalize_names
+
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -298,7 +302,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        names = sage.structure.parent_gens.normalize_names(arg2, arg1)
+        names = normalize_names(arg2, arg1)
         return base_ring, names
 
     def create_object(self, version, key):
@@ -344,7 +348,7 @@ def is_FreeAlgebra(x):
         True
         sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace'))
         True
-        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace', degrees=range(1,11)))
+        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace', degrees=list(range(1,11))))
         True
 
     """
@@ -434,7 +438,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.one_basis().parent()
             Free monoid on 2 generators (x, y)
         """
-        return self._basis_keys.one()
+        return self._indices.one()
 
     def is_field(self, proof=True):
         """
@@ -469,7 +473,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Two free algebras are considered the same if they have the same
         base ring, number of generators and variable names, and the same
@@ -497,14 +501,14 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         """
         if not isinstance(other, FreeAlgebra_generic):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.__ngens, other.ngens())
-        if c: return c
-        c = cmp(self.variable_names(), other.variable_names())
-        if c: return c
-        return 0
+            return False
+        if self.base_ring() != other.base_ring():
+            return False
+        if self.__ngens != other.ngens():
+            return False
+        if self.variable_names() != other.variable_names():
+            return False
+        return True
 
     def _repr_(self):
         """
@@ -523,6 +527,23 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return "Free Algebra on {} generators {} over {}".format(
             self.__ngens, self.gens(), self.base_ring())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAlgebra(QQ,3,'x')
+            sage: latex(F)
+            \Bold{Q}\langle x_{0}, x_{1}, x_{2}\rangle
+            sage: F = FreeAlgebra(ZZ['q'], 3, 'a,b,c')
+            sage: latex(F)
+            \Bold{Z}[q]\langle a, b, c\rangle
+        """
+        from sage.misc.latex import latex
+        return "{}\\langle {}\\rangle".format(latex(self.base_ring()),
+                                              ', '.join(self.latex_variable_names()))
 
     def _element_constructor_(self, x):
         """
@@ -585,23 +606,23 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             P = x.parent()
             if self.has_coerce_map_from(P): # letterplace versus generic
                 ngens = P.ngens()
-                M = self._basis_keys
+                M = self._indices
                 def exp_to_monomial(T):
                     out = []
-                    for i in xrange(len(T)):
+                    for i in range(len(T)):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
                 return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in x.letterplace_polynomial().dict().iteritems()]))
         # ok, not a free algebra element (or should not be viewed as one).
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             from sage.all import sage_eval
             G = self.gens()
             d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
             return self(sage_eval(x, locals=d))
         R = self.base_ring()
         # coercion from free monoid
-        if isinstance(x, FreeMonoidElement) and x.parent() is self._basis_keys:
+        if isinstance(x, FreeMonoidElement) and x.parent() is self._indices:
             return self.element_class(self, {x: R.one()})
         # coercion from the PBW basis
         if isinstance(x, PBWBasisOfFreeAlgebra.Element) \
@@ -678,7 +699,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.1 + (z+1) * L.2
             b + (z+1)*c
         """
-        if self._basis_keys.has_coerce_map_from(R):
+        if self._indices.has_coerce_map_from(R):
             return True
 
         # free algebras in the same variable over any base that coerces in:
@@ -703,7 +724,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         if i < 0 or not i < self.__ngens:
             raise IndexError("Argument i (= {}) must be between 0 and {}.".format(i, self.__ngens-1))
         R = self.base_ring()
-        F = self._basis_keys
+        F = self._indices
         return self.element_class(self, {F.gen(i): R.one()})
 
     @cached_method
@@ -778,7 +799,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         if mats is None:
             return super(FreeAlgebra_generic, self).quotient(mons, names)
-        import free_algebra_quotient
+        from . import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
 
     quo = quotient
@@ -805,7 +826,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.monoid()
             Free monoid on 3 generators (x, y, z)
         """
-        return self._basis_keys
+        return self._indices
 
     def g_algebra(self, relations, names=None, order='degrevlex', check=True):
         """
@@ -847,8 +868,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         n = self.__ngens
         cmat = Matrix(base_ring, n)
         dmat = Matrix(self, n)
-        for i in xrange(n):
-            for j in xrange(i+1,n):
+        for i in range(n):
+            for j in range(i + 1, n):
                 cmat[i,j] = 1
         for (to_commute,commuted) in relations.iteritems():
             #This is dirty, coercion is broken
@@ -964,7 +985,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         if not w:
             return self.one()
-        M = self._basis_keys
+        M = self._indices
 
         if len(w) == 1:
             return self(M(w))
@@ -983,8 +1004,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             ret = ret * (self(x * y) - self(y * x))
         return ret
 
-from sage.misc.cache import Cache
-cache = Cache(FreeAlgebra_generic)
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """
@@ -1187,7 +1206,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: PBW.one_basis().parent()
             Free monoid on 2 generators (x, y)
         """
-        return self._basis_keys.one()
+        return self._indices.one()
 
     def algebra_generators(self):
         """
@@ -1201,7 +1220,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: all(g.parent() is PBW for g in gens)
             True
         """
-        return tuple(self.monomial(x) for x in self._basis_keys.gens())
+        return tuple(self.monomial(x) for x in self._indices.gens())
 
     gens = algebra_generators
 

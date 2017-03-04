@@ -6,6 +6,7 @@ AUTHORS:
 - Marco Streng (2010-07-20)
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
 #
@@ -31,7 +32,7 @@ from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.real_mpfi import is_RealIntervalField
 from sage.rings.complex_interval_field import is_ComplexIntervalField
 
-from con_field import ProjectiveConic_field
+from .con_field import ProjectiveConic_field
 
 class ProjectiveConic_number_field(ProjectiveConic_field):
     r"""
@@ -124,7 +125,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: C.has_rational_point(algorithm = 'local', read_cache = False)
             True
 
-        Examples over number fields ::
+        Examples over number fields::
 
             sage: K.<i> = QuadraticField(-1)
             sage: C = Conic(K, [1, 3, -5])
@@ -349,7 +350,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         ret = self.base_ring().hilbert_symbol(a, b, p)
 
         if ret == -1:
-            if self._local_obstruction == None:
+            if self._local_obstruction is None:
                 if (not is_RingHomomorphism(p)) or p.codomain() is AA or \
                     p.codomain() is RLF:
                     self._local_obstruction = p
@@ -393,7 +394,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         obs1 = []
         B = self.base_ring()
         if infinite:
-            if read_cache and self._infinite_obstructions != None:
+            if read_cache and self._infinite_obstructions is not None:
                 obs0 = self._infinite_obstructions
             else:
                 for b in B.embeddings(AA):
@@ -401,7 +402,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                         obs0.append(b)
                 self._infinite_obstructions = obs0
         if finite:
-            if read_cache and self._finite_obstructions != None:
+            if read_cache and self._finite_obstructions is not None:
                 obs1 = self._finite_obstructions
             else:
                 candidates = []

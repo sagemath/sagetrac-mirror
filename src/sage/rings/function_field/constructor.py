@@ -20,6 +20,7 @@ EXAMPLES::
     sage: K is L
     True
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
@@ -94,7 +95,7 @@ class FunctionFieldFactory(UniqueFactory):
             sage: K is L
             True
         """
-        from function_field import RationalFunctionField
+        from .function_field import RationalFunctionField
         return RationalFunctionField(key[0],names=key[1])
 
 FunctionField=FunctionFieldFactory("sage.rings.function_field.constructor.FunctionField")
@@ -137,12 +138,27 @@ class FunctionFieldPolymodFactory(UniqueFactory):
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y>=K[]
             sage: L.<w> = K.extension(x-y^2) # indirect doctest
+
+        TESTS:
+
+        Verify that :trac:`16530` has been resolved::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z-1)
+            sage: R.<z> = K[]
+            sage: N.<z> = K.extension(z-1)
+            sage: M is N
+            False
+
         """
         if names is None:
             names=polynomial.variable_name()
         if not isinstance(names,tuple):
             names=(names,)
-        return (polynomial,names)
+        return (polynomial,names,polynomial.base_ring())
 
     def create_object(self,version,key,**extra_args):
         """
@@ -159,7 +175,7 @@ class FunctionFieldPolymodFactory(UniqueFactory):
             sage: L is M
             True
         """
-        from function_field import FunctionField_polymod
+        from .function_field import FunctionField_polymod
         return FunctionField_polymod(key[0],names=key[1])
 
 FunctionField_polymod=FunctionFieldPolymodFactory("sage.rings.function_field.constructor.FunctionField_polymod")

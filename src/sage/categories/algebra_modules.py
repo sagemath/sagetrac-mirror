@@ -1,6 +1,7 @@
 r"""
 Algebra modules
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -10,9 +11,8 @@ Algebra modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from category_types import Category_module
-from modules import Modules
+from .category_types import Category_module
+from .modules import Modules
 
 class AlgebraModules(Category_module):
     """
@@ -73,7 +73,7 @@ class AlgebraModules(Category_module):
         """
         EXAMPLES::
 
-            sage: AlgebraModules(QQ[x]).algebra()
+            sage: AlgebraModules(QQ['x']).algebra()
             Univariate Polynomial Ring in x over Rational Field
         """
         return self.base_ring()
@@ -82,7 +82,7 @@ class AlgebraModules(Category_module):
         """
         EXAMPLES::
 
-            sage: AlgebraModules(QQ[x]).super_categories()
+            sage: AlgebraModules(QQ['x']).super_categories()
             [Category of modules over Univariate Polynomial Ring in x over Rational Field]
         """
         R = self.algebra()

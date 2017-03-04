@@ -1,8 +1,5 @@
-from random_variable import (
-     is_ProbabilitySpace,
-     is_DiscreteProbabilitySpace,
-     is_RandomVariable,
-     is_DiscreteRandomVariable,
+from __future__ import absolute_import
+
+from .random_variable import (
      DiscreteRandomVariable,
      DiscreteProbabilitySpace )
-
