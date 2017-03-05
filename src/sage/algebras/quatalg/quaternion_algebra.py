@@ -36,7 +36,7 @@ from six.moves import zip
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
-from sage.rings.all import RR, Integer
+from sage.rings.all import RR, Integer, NumberField, PolynomialRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -1039,17 +1039,17 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             1
             sage: x = QQ['x'].gen()
             sage: F.<r> = NumberField(x^3-x+1)
-            sage: A = QuaternionAlgebra(F,[-1,r])
+            sage: A = QuaternionAlgebra(F,-1,r)
             sage: pari(A).alghassei()[0]
             1
         """
         from sage.libs.cypari2.handle_error import PariError
         if is_RationalField(self.base_ring()):
-            F = NumberField(PolynomialRing(QQ).gen())
+            F = NumberField(PolynomialRing(QQ, names = 'x').gen(),names = 'a')
         else:
             F = self.base_ring()
         try:
-            return pari.pari(self.base_ring()).alginit(pari.pari([self._a,self._b]))
+            return pari.pari(F).alginit(pari.pari([F(self._a),F(self._b)]))
         except PariError:
             raise NotImplementedError("There is not yet a Pari object that represents this Sage object.")
 
@@ -1468,7 +1468,7 @@ class QuaternionOrder(Algebra):
             sage: A.quaternion_order([1,i,j,i-j])
             Traceback (most recent call last):
             ...
-            ValueError: basis must have rank 4
+            ValueError: basis must have rank 4 times the degree of the base field
             sage: A.quaternion_order([2,i,j,k])
             Traceback (most recent call last):
             ...
@@ -1476,7 +1476,7 @@ class QuaternionOrder(Algebra):
             sage: A.quaternion_order([1,i/2,j/2,k/2])
             Traceback (most recent call last):
             ...
-            ValueError: given lattice must be a ring
+            ValueError: lattice must be a ring
 
             sage: K = QuadraticField(10)
             sage: A.<i,j,k> = QuaternionAlgebra(K,-1,-1)
@@ -1485,18 +1485,18 @@ class QuaternionOrder(Algebra):
             sage: A.quaternion_order([1,i/2,j,k])
             Traceback (most recent call last):
             ...
-            ValueError: given lattice must be a ring
+            ValueError: lattice must be a ring
 
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.quaternion_order([1,i+2*j,j,i+j+3*k])
             Traceback (most recent call last):
             ...
-            ValueError: given lattice must be a ring
+            ValueError: lattice must be a ring
             sage: B.quaternion_order([1,i/2,j,k])
             Traceback (most recent call last):
             ...
-            ValueError: given lattice must be a ring
+            ValueError: lattice must be a ring
             sage: B.quaternion_order([1,i,j,i+j+k])
             Order of Quaternion Algebra (2*a, -1) with base ring Number Field in a with defining polynomial x^2 - x - 1 with basis (1, i, j, k)
             sage: K.<b> = NumberField(x^2+5)
@@ -1504,7 +1504,7 @@ class QuaternionOrder(Algebra):
             sage: A.quaternion_order([1,(b+5)*i,10*i,j,k])
             Traceback (most recent call last):
             ...
-            ValueError: basis must have length 4
+            ValueError: A pseudo-basis must have length 4, and a Z-basis must have length 4 * degree
             sage: bas = A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             sage: A.quaternion_order(bas[0],bas[1])
             Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis
@@ -1528,13 +1528,14 @@ class QuaternionOrder(Algebra):
 
         # Determine type of input
         F = A.base_ring()
+        Fideal = ZZ.ideal if is_RationalField(F) else F.ideal
         d = F.absolute_degree()
         if ideal_list is not None:
             # We are given a pseudobasis
             input_is_pseudobasis = True
             if len(basis) != 4 or len(ideal_list) != 4:
                 raise ValueError("A pseudo-basis must have length 4")
-            self.__pseudobasis = (basis,tuple(F.ideal(a) for a in ideal_list))
+            self.__pseudobasis = (basis,tuple(Fideal(a) for a in ideal_list))
             self.__Zbasis = None
         else:
             if len(basis) == 4 * d:
@@ -1544,21 +1545,21 @@ class QuaternionOrder(Algebra):
                 self.__pseudobasis = None
             elif len(basis) == 4:
                 input_is_pseudobasis = True
-                ideal_list = tuple(F.ideal(1) for _ in range(4))
+                ideal_list = tuple([Fideal(1) for _ in range(4)])
                 self.__pseudobasis = (basis, ideal_list)
                 self.__Zbasis = None
             else:
                 raise ValueError("A pseudo-basis must have length 4, and a Z-basis must have length 4 * degree")
         if is_RationalField(F):
             if input_is_pseudobasis:
-                self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(self.__pseudobasis)))
+                self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(*self.__pseudobasis)))
                 self.__pseudobasis = self.__Zbasis
             else:
                 self.__pseudobasis = (self.__Zbasis,(ZZ.unit_ideal() for _ in range(4)))
                 self.__Zbasis = self.__pseudobasis
         elif d == 1:
             if input_is_pseudobasis:
-                self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(self.__pseudobasis)))
+                self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(*self.__pseudobasis)))
                 self.__pseudobasis = self.__Zbasis
             else:
                 self.__pseudobasis = (self.__Zbasis,(F.unit_ideal() for _ in range(4)))
@@ -1608,7 +1609,7 @@ class QuaternionOrder(Algebra):
                     if M1 != M2:
                         raise ValueError("lattice must be a ring")
                 if len(M1) == 2:
-                    if M1[0][0] != 1 or M1[1][0] != A.base_ring().ideal(1):
+                    if M1[0][0] != 1 or M1[1][0] != Fideal(1):
                         raise ValueError("lattice must contain 1")
                     basis = tuple(M1[0])
                     ideal_list = tuple(M1[1])
@@ -1771,7 +1772,7 @@ class QuaternionOrder(Algebra):
         if self.__pseudobasis is None:
             # Compute pseudobasis from Zbasis
             self.__pseudobasis = self.__quaternion_algebra.basis_for_quaternion_lattice(self.__Zbasis)
-        return self.__pseudobasis
+        return tuple([tuple(self.__pseudobasis[0]),tuple(self.__pseudobasis[1])])
 
 
     def Zbasis(self):
@@ -1793,10 +1794,10 @@ class QuaternionOrder(Algebra):
         if self.__Zbasis is None:
             # Compute Zbasis from pseudobasis
             vec = []
-            for u,v in zip(self.__pseudobasis):
+            for u,v in zip(*self.__pseudobasis):
                 vec.extend([u * vi for vi in v.basis()])
             self.__Zbasis = self.__quaternion_algebra.Zbasis_for_quaternion_lattice(vec)
-        return self.__Zbasis
+        return tuple(self.__Zbasis)
 
 
     def quaternion_algebra(self):
@@ -1856,10 +1857,14 @@ class QuaternionOrder(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()
+            sage: A = QuaternionAlgebra(-11,-1)
+            sage: R = A.maximal_order()
+            sage: R.random_element() # random
             -4 - 4*i + j - k
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)
+            sage: R.random_element(-10,10) # random
             -9/2 - 7/2*i - 7/2*j - 3/2*k
+            sage: R.random_element() in A
+            True
         """
         return sum( (ZZ.random_element(*args, **kwds) * b for b in self.Zbasis()) )
 
@@ -1934,6 +1939,7 @@ class QuaternionOrder(Algebra):
         """
         try: return self.__free_module
         except AttributeError: pass
+        A = self.__quaternion_algebra
         F = A.base_ring()
         d = F.absolute_degree()
         V = A.base_ring()**(4*d)
