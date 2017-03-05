@@ -910,16 +910,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 return self.__exponents
             else:
                 return [tuple(e) for e in self.__exponents]
-
-    def inverse_of_unit(self):
-        d = self.element().dict()
-        k = d.keys()
-        if self.is_unit():
-            if len(k) != 1:
-                raise NotImplementedError
-            return ~d[k[0]]
-        raise ArithmeticError("is not a unit")        
-
     def is_homogeneous(self):
         """
         Return True if self is a homogeneous polynomial.

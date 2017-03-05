@@ -95,6 +95,7 @@ from sage.rings.integer import Integer
 from sage.structure.element import RingElement
 from sage.misc.cachefunc import cached_method
 import copy
+from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
 
 def InfinitePolynomial(A, p):
     """
@@ -487,6 +488,29 @@ class InfinitePolynomial_sparse(RingElement):
             True
         """
         return self._p.is_nilpotent()
+
+    def inverse_of_unit(self):
+        r"""
+        Return the multiplicative inverse of ``self``, if it exists.
+
+        EXAMPLES::
+
+            sage: R.<x> = InfinitePolynomialRing(Zmod(128))
+            sage: (1+4*x[0]).inverse_of_unit()
+            64*x_0^3 + 16*x_0^2 - 4*x_0 + 1
+            sage: p =71+28*x[0]+96*x[1]
+            sage: p * p.inverse_of_unit()
+            1
+
+        Sadly, :trac:`22514` afflicts this calculation; the following should not be an error::
+
+            sage: R(5).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            AttributeError: <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_sparse'> has no attribute constant_coefficient
+        """
+        return _inverse_of_unit_polynomial(self)
+
 
     @cached_method
     def variables(self):

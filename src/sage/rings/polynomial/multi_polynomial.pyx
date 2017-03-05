@@ -32,6 +32,7 @@ from sage.rings.rational_field import QQ
 from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
+from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
 
 from polydict cimport ETuple
 
@@ -2350,6 +2351,47 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
 
+
+    def inverse_of_unit(self):
+        r"""
+        Return the multiplicative inverse of ``self``, if it exists.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = Zmod(32)[]
+            sage: (1+4*x).inverse_of_unit()
+            16*x^2 - 4*x + 1
+            sage: p = 11+20*x+12*y-8*z
+            sage: q = p.inverse_of_unit(); q
+            16*x^2 + 16*y^2 + 12*x - 12*y + 8*z + 3
+            sage: q.parent()
+            Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 32
+            sage: p*q
+            1
+            sage: R(11).inverse_of_unit()
+            3
+            sage: _.<x,y> = Zmod(5^4)[]
+            sage: p = 99 + 100*x - 15*y^2
+            sage: q = p.inverse_of_unit(); q
+            250*y^6 + 400*y^4 + 500*x*y^2 + 515*y^2 + 525*x + 524
+            sage: p*q
+            1
+
+        TESTS::
+
+            sage: R.<x,y> = Zmod(32)[]
+            sage: (2+4*x+6*y).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: is not a unit
+            sage: R.<x,y> = Zmod(32)[]
+            sage: (3+4*x+7*y).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: is not a unit
+        """
+        return _inverse_of_unit_polynomial(self)
+    
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

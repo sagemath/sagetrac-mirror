@@ -1296,6 +1296,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def inverse_of_unit(self):
         """
+        Return the multiplicative inverse of ``self``, if it exists.
+
         EXAMPLES::
 
             sage: R.<x> = QQ[]
@@ -1308,12 +1310,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/90283
             sage: parent(g)
             Univariate Polynomial Ring in x over Rational Field
+
+        Polynomials over rings with nontrivial nilpotent elements
+        can have inverses of non-constant polynomials::
+
+            sage: R.<x> = Zmod(32)[]
+            sage: (1+4*x).inverse_of_unit()
+            16*x^2 + 28*x + 1
+            sage: p = 7-2*x-8*x^2
+            sage: q = p.inverse_of_unit(); q
+            16*x^4 + 8*x^3 + 4*x^2 + 2*x + 23
+            sage: p*q
+            1
+            sage: q.parent()
+            Univariate Polynomial Ring in x over Ring of integers modulo 32
         """
         if self.degree() > 0:
             if not self.is_unit():
                 raise ValueError("self is not a unit.")
             else:
-                raise NotImplementedError("polynomial inversion over non-integral domains not implemented")
+                return _inverse_of_unit_polynomial(self)
         return self.parent()(~(self[0]))
 
     def inverse_mod(a, m):
@@ -9272,6 +9288,65 @@ cdef list do_karatsuba(list left, list right, Py_ssize_t K_threshold,Py_ssize_t 
     for i from 0 <= i < lenac -e:
         ac[i] = ac[i] + tt1[e+i]
     return bd + ac
+
+# ----------------- this function will be used in some other polynomial classes,
+#  that do not inherit from ZPolynomial, so is defined here outside a class.
+#  See multi_polynomial.py and infinite_polynomial_element.py
+
+cpdef _inverse_of_unit_polynomial(p):
+    r"""
+    Return the multiplicative inverse of ``p``, if it exists.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
+        sage: R.<x> = Zmod(32)[]
+        sage: _inverse_of_unit_polynomial(1+4*x)
+        16*x^2 + 28*x + 1
+        sage: _inverse_of_unit_polynomial(11+4*x)
+        16*x^2 + 28*x + 3
+        sage: _inverse_of_unit_polynomial(R(3))
+        11
+        sage: _.<x,y> = Zmod(5^4)[]
+        sage: _inverse_of_unit_polynomial(99 + 100*x - 15*y^2)
+        250*y^6 + 400*y^4 + 500*x*y^2 + 515*y^2 + 525*x + 524
+        sage: _.<x> = InfinitePolynomialRing(Zmod(36))
+        sage: _inverse_of_unit_polynomial(19 - 6*x[0]*x[1]^2 + 12*x[0] + 18*x[1])
+        6*x_1^2*x_0 + 18*x_1 + 24*x_0 + 19
+
+    ALGORITHM:
+
+        $p = \sum a_i x^i$ is a unit iff $a_0$ is a unit and
+        the $a_i$ for $i > 0$ are nilpotent.
+        So then $p = a_0 + q$ where $q$ is nilpotent
+        Say $v = ~a_0$.  Then $p = a_0 (1 - m)$ where $m = -vq$.
+        Now $p v (1+m)(1+m^2)(1+m^4) \dots(1+m^(2^k))
+         = 1 - m^(2^(k+1))$, which is 0 for $k$ large enough.
+        So we compute $m$, start with $i = v(1+m)$, and keep multiplying
+        my successive terms $1+m^{2^k}$ until we find the inverse.
+
+        Note that the inverse of a unit is always unique.
+
+    TESTS::
+
+        sage: R.<x> = Zmod(32)[]
+        sage: _inverse_of_unit_polynomial(2+4*x)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: is not a unit    
+    """
+    
+    if not p.is_unit():
+        raise ArithmeticError("is not a unit")
+    u = p.constant_coefficient()
+    v =  ~u
+    m = v*(u - p)
+    i = v*(1+m)
+    while p*i != 1:
+        # invariant: i = v * prod(1 + m^(2^i) for i in range(k))
+        m *= m
+        i *= (1+m)
+    return i
 
 
 cdef class Polynomial_generic_dense(Polynomial):
