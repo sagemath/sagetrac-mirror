@@ -9295,7 +9295,12 @@ cdef list do_karatsuba(list left, list right, Py_ssize_t K_threshold,Py_ssize_t 
 
 cpdef _inverse_of_unit_polynomial(p):
     r"""
-    Return the multiplicative inverse of ``p``, if it exists.
+    Return the multiplicative inverse of polynomial ``p``, if it exists.
+
+    This inverse lies in the same ring as ``p``.  This differs from ``~p``,
+    which is sometimes in the fraction field of that ring.
+
+    If ``p`` is not a unit, raise ArithmeticError.
 
     EXAMPLES::
 
@@ -9307,6 +9312,9 @@ cpdef _inverse_of_unit_polynomial(p):
         16*x^2 + 28*x + 3
         sage: _inverse_of_unit_polynomial(R(3))
         11
+        sage: S.<y> = R[]
+        sage: _inverse_of_unit_polynomial(1+4*x + 8*y)
+        24*y + 16*x^2 + 28*x + 1
         sage: _.<x,y> = Zmod(5^4)[]
         sage: _inverse_of_unit_polynomial(99 + 100*x - 15*y^2)
         250*y^6 + 400*y^4 + 500*x*y^2 + 515*y^2 + 525*x + 524
@@ -9321,11 +9329,10 @@ cpdef _inverse_of_unit_polynomial(p):
         So then $p = a_0 + q$ where $q$ is nilpotent
         Say $v = ~a_0$.  Then $p = a_0 (1 - m)$ where $m = -vq$.
         Now $p v (1+m)(1+m^2)(1+m^4) \dots(1+m^(2^k))
-         = 1 - m^(2^(k+1))$, which is 0 for $k$ large enough.
+        = 1 - m^(2^(k+1))$, which is 1 for $k$ large enough.
         So we compute $m$, start with $i = v(1+m)$, and keep multiplying
-        my successive terms $1+m^{2^k}$ until we find the inverse.
-
-        Note that the inverse of a unit is always unique.
+        by successive terms $1+m^{2^k}$ until we find the inverse.
+        (Note that the inverse of a unit is always unique.)
 
     TESTS::
 
@@ -9339,7 +9346,12 @@ cpdef _inverse_of_unit_polynomial(p):
     if not p.is_unit():
         raise ArithmeticError("is not a unit")
     u = p.constant_coefficient()
-    v =  ~u
+    try:
+        v = u.inverse_of_unit()
+    except AttributeError:
+        v =  ~u # many rings don't implement inverse_of_unit
+        if v.parent() is not p.base_ring():
+            raise NotImplementedError
     m = v*(u - p)
     i = v*(1+m)
     while p*i != 1:
