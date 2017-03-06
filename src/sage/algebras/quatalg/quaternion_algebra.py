@@ -70,6 +70,7 @@ from sage.modular.modsym.p1list import P1List
 from sage.misc.cachefunc import cached_method
 
 from sage.categories.fields import Fields
+
 _Fields = Fields()
 
 ########################################################
@@ -389,7 +390,10 @@ class QuaternionAlgebra_abstract(Algebra):
         if not is_RationalField(F):
             try:
                 #create pari matrix and list of ideals
-                Mpari =  (matrix([vector(elt).list() for elt in gens]).transpose())._pari_()
+                if reverse:
+                    Mpari =  (matrix([list(reversed(vector(elt).list())) for elt in gens]).transpose())._pari_()
+                else:
+                    Mpari =  (matrix([vector(elt).list() for elt in gens]).transpose())._pari_()
                 if ideal_list:
                     Ipari = [ids._pari_() for ids in ideal_list]
                 else:
@@ -406,13 +410,20 @@ class QuaternionAlgebra_abstract(Algebra):
             I = [F.ideal(id) for id in I1]
 
             #and back to sage quaternion algebra elements
-            basis_elts = [sum(Mnl * bl for Mnl, bl in zip(Mn,self.basis())) for Mn in M.rows()]
+            if reverse:
+                basis_elts = [sum(Mnl * bl for Mnl, bl in zip(Mn,list(reversed(self.basis())))) for Mn in M.rows()]
+            else:
+                basis_elts = [sum(Mnl * bl for Mnl, bl in zip(Mn,self.basis())) for Mn in M.rows()]
+
+            if reverse:
+                I.reverse()
+                basis_elts.reverse()
 
             #if each ideal in I is principal, there is a basis:
             #check
             if all(id.is_principal() for id in I):
                 basis_tup = tuple(bk * ik.gens_reduced()[0] for bk, ik in zip(basis_elts,I))
-                return basis_tup
+                return basis_tup  # , tuple([F.unit_ideal() for _ in range(4)])
             #otherwise we only have a pseudo-basis
             else:
                 basis_tup = tuple(basis_elts)
@@ -802,13 +813,11 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             ....:     R = A.maximal_order(take_shortcuts=False)
             ....:     assert A.discriminant() == R.discriminant()
 
-        We don't support number fields other than the rationals yet::
+        We also support number fields other::
 
             sage: K = QuadraticField(5)
             sage: QuaternionAlgebra(K,-1,-1).maximal_order()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: maximal order only implemented for rational quaternion algebras
+            Order of Quaternion Algebra (-1, -1) with base ring Number Field in a with defining polynomial x^2 - 5 with Z-basis [1/4*a + 1/4 + (3/4*a + 1/4)*j + 1/2*a*k, 1/2*a + (1/4*a + 1/4)*j + (3/4*a + 1/4)*k, (1/4*a + 1/4)*i + 1/2*a*j + (3/4*a + 1/4)*k, 1/2*a*i + (3/4*a + 1/4)*j + (1/4*a + 1/4)*k, (1/2*a + 1/2)*j, a*j, (1/2*a + 1/2)*k, a*k
         """
         try: return self.__maximal_order
         except AttributeError: pass
@@ -1238,7 +1247,10 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: Q.quaternion_order([1,i,j,k], check=False)
             Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1, i, j, k)
             sage: Q.quaternion_order([i,j,k], check=False)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (i, j, k)
+            Traceback (most recent call last):
+            ...
+            ValueError: A pseudo-basis must have length 4, and a Z-basis must have length 4 * degree
+
         """
         return QuaternionOrder(self, basis, ideal_list=ideal_list, check=check)
 
@@ -1518,8 +1530,24 @@ class QuaternionOrder(Algebra):
             ...
             ValueError: lattice must contain 1
 
+            sage: F.<a> = NumberField(x^3+4*x-1)
+            sage: A.<i,j,k> = QuaternionAlgebra(F,-3*a^2,-5)
+            sage: basis = [1, a + i, j, 15*a + 5*i + (-3*a + 6)*j + k]
+            sage: ideal_list = map(F.ideal,[1,1/2,1,(1/6,1/16+1/30*a+4/5*a^2)])
+            sage: M = A.quaternion_order(basis,ideal_list)
+            Traceback (most recent call last):
+            ...
+            ValueError: lattice must be a ring
+
+            sage: basis = [1, a + i, j,  15*a + 5*i + (-3*a + 6)*j + k]
+            sage: ideal_list = map(F.ideal,[1, 1/2, 1, (1/6, 1/15+1/30*a+4/5*a^2)])
+            sage: M = A.quaternion_order(basis,ideal_list)
+
+
         """
         basis = tuple(A(e) for e in basis)
+        if ideal_list is not None:
+            ideal_list = tuple(ideal_list)
         self.__quaternion_algebra = A
 
         # right data type
@@ -1553,17 +1581,13 @@ class QuaternionOrder(Algebra):
         if is_RationalField(F):
             if input_is_pseudobasis:
                 self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(*self.__pseudobasis)))
-                self.__pseudobasis = self.__Zbasis
             else:
-                self.__pseudobasis = (self.__Zbasis,(ZZ.unit_ideal() for _ in range(4)))
-                self.__Zbasis = self.__pseudobasis
+                self.__pseudobasis = (self.__Zbasis,tuple(ZZ.unit_ideal() for _ in range(4)))
         elif d == 1:
             if input_is_pseudobasis:
                 self.__Zbasis = tuple((u*v.gens_reduced()[0] for u,v in zip(*self.__pseudobasis)))
-                self.__pseudobasis = self.__Zbasis
             else:
-                self.__pseudobasis = (self.__Zbasis,(F.unit_ideal() for _ in range(4)))
-                self.__Zbasis = self.__pseudobasis
+                self.__pseudobasis = (self.__Zbasis,tuple(F.unit_ideal() for _ in range(4)))
 
         if check and input_is_pseudobasis:
             # has rank 4
@@ -1608,15 +1632,23 @@ class QuaternionOrder(Algebra):
                         M2 = A.basis_for_quaternion_lattice(basis+tuple(x*y for x in basis for y in basis))
                     if M1 != M2:
                         raise ValueError("lattice must be a ring")
+
+                M1 = A.basis_for_quaternion_lattice(basis, ideal_list=ideal_list,reverse=True)
                 if len(M1) == 2:
-                    if M1[0][0] != 1 or M1[1][0] != Fideal(1):
+                    try:
+                        aa = F(M1[0][0])
+                    except TypeError:
+                        raise ValueError("lattice must contain 1")
+                    if F(1) not in aa * M1[1][0]: #M1[0][0] != 1 or M1[1][0] != Fideal(1):
                         raise ValueError("lattice must contain 1")
                     basis = tuple(M1[0])
                     ideal_list = tuple(M1[1])
-                    self.__pseudobasis = (basis, ideal_list)
                 else:
                     if M1[0] != 1:
                         raise ValueError("lattice must contain 1")
+                    basis = tuple(M1)
+                    ideal_list = tuple([F.unit_ideal() for _ in range(4)])
+                self.__pseudobasis = (basis, ideal_list)
         if check and not input_is_pseudobasis: # We were given a Z-basis
             # Check rank
             V = QQ**(4*d)
@@ -1712,11 +1744,11 @@ class QuaternionOrder(Algebra):
         if self.__quaternion_algebra != R.__quaternion_algebra:
             return False
         if self.__Zbasis is not None:
-            return self.__Zbasis == R.Zbasis()
+            return self.Zbasis() == R.Zbasis()
         elif R.__pseudobasis is not None:
-            return self.__pseudobasis == R.__pseudobasis
+            return self.pseudobasis() == R.pseudobasis()
         else:
-            return self.Zbasis() == R.__Zbasis
+            return self.Zbasis() == R.Zbasis()
 
     def __ne__(self, other):
         """
@@ -1746,7 +1778,11 @@ class QuaternionOrder(Algebra):
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: O = A.quaternion_order([1,i,j,k])
             sage: O.basis()
-            (1, i, j, k)
+            Traceback (most recent call last):
+            ...
+            AttributeError: Use only either pseudobasis() or Zbasis() over number fields
+            sage: O.pseudobasis()
+            (1,i,j,k)
 
         """
         if not is_RationalField(self.__quaternion_algebra.base_ring()):
@@ -1788,7 +1824,7 @@ class QuaternionOrder(Algebra):
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: O = A.quaternion_order([1,i,j,k],[K.ideal(1),A.discriminant(), K.ideal(1),K.ideal(1)])
             sage: O.Zbasis()
-
+            (1, b, (b + 5)*i, 2*b*i, j, b*j, k, b*k)
 
         """
         if self.__Zbasis is None:
@@ -1837,9 +1873,16 @@ class QuaternionOrder(Algebra):
         if is_RationalField(A.base_ring()):
             return 'Order of %s with basis %s'%(A, self.basis())
         if self.__pseudobasis is not None:
-            return 'Order of %s with pseudo-basis %s'%(A, self.__pseudobasis)
+            pbasis = self.pseudobasis()
+            idealgens = [o.gens_reduced() for o in pbasis[1]]
+            if all([len(o) == 1 for o in idealgens]):
+                pbasis = tuple([u*v[0] for u,v in zip(pbasis[0],idealgens)])
+                return 'Order of %s with basis %s'%(A, pbasis)
+            else:
+                ans = 'Order of %s with pseudo-basis %s'%(A, self.pseudobasis())
+                return ans.replace("Fractional ideal ","").replace(" of Integer Ring","")
         else:
-            return 'Order of %s with Z-basis %s'%(A, self.__Zbasis)
+            return 'Order of %s with Z-basis %s'%(A, self.Zbasis())
 
     def random_element(self, *args, **kwds):
         """
@@ -2793,7 +2836,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         #    left_order = self.__left_order
         #    right_order = right.__right_order
         A = self.quaternion_algebra()
-        basis = tuple(A.basis_for_quaternion_lattice(gens))
+        basis = tuple(A.basis_for_quaternion_lattice(gens)) # Needs to be extended to pseudo-bases
         return A.ideal(basis, check=False)
 
     @cached_method
@@ -2874,7 +2917,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         Jbar = [b.conjugate() for b in J.basis()]
         gens = [a*b for a in self.basis() for b in Jbar]
         R = self.quaternion_algebra()
-        basis = tuple(R.basis_for_quaternion_lattice(gens))
+        basis = tuple(R.basis_for_quaternion_lattice(gens)) # Needs to be extended
         return R.ideal(basis, check=False)
 
     def is_equivalent(I, J, B=10):
