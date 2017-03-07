@@ -1756,5 +1756,20 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
 
     is_field = is_integral_domain
 
+    def characteristic(self):
+        """
+        Coordinate function rings have characteristic zero.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: FR.characteristic()
+            0
+        """
+        from sage.rings.all import ZZ
+        return ZZ(0)
+
     Element = CoordFunctionSymb
 
