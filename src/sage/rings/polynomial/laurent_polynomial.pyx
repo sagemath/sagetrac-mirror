@@ -573,14 +573,13 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: g(x=2)
             9
 
-        The polynomial does not have to be over a field of
-        characteristic 0::
+        The polynomial must be over a field of characteristic 0::
 
             sage: R.<w> = LaurentPolynomialRing(GF(7))
             sage: f = SR(2*w^3 + 1); f
-            2*w^3 + 1
-            sage: f.variables()
-            (w,)
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
         """
         d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
         return self.subs(**d)

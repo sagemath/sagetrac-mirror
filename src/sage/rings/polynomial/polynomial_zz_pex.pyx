@@ -237,7 +237,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: SR(p)      #indirect doctest
-            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
             sage: p(2)
             x + 1
             sage: p(y=2)

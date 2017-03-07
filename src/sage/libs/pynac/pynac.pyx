@@ -809,8 +809,13 @@ cdef int py_get_parent_char(o) except -1:
         sage: p = next_prime(2^100)
         sage: R.<y> = FiniteField(p)[]
         sage: y = SR(y)
+        Traceback (most recent call last):
+        ...
+        TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
         sage: x + y
-        x + y
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for +: ...
         sage: p * y
         0
     """
