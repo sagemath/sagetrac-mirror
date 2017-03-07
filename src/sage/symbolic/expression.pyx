@@ -2975,6 +2975,17 @@ cdef class Expression(CommutativeRingElement):
             RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(unsigned_infinity) + nsr(unsigned_infinity)
             Infinity
+
+        Check that :trac:`18787` is fixed::
+
+            sage: f(x) = Zmod(7)(1) * x**2 + Zmod(9)(1) * x**3
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
+            sage: f(x) = Zmod(7)(3) * x**2 + Zmod(9)(3) * x**3
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplication of symbolic variable and an element of a ring with positive characteristic.
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
