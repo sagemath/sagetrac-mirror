@@ -47,6 +47,7 @@ Functions
 ---------
 """
 from __future__ import print_function, absolute_import
+import six
 from six.moves import range
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
@@ -1684,7 +1685,7 @@ def OA_10_469():
         blocks[len(B)].append(B)
 
     # Product of each symmetric design with the OA
-    for b_size,symmetric_design in blocks.iteritems():
+    for b_size,symmetric_design in six.iteritems(blocks):
         matrix = _reorder_matrix(symmetric_design)
         OA.extend([[B[xx] for xx in R]
                    for R in incomplete_orthogonal_array(9,b_size,[1]*b_size)
@@ -2694,7 +2695,7 @@ Vmt_vectors = {
     (12,413) : ((0,1,436,546,977,467,242,3695,682,483,3026,461,1334),     _ref_Abel_v_12_t),
 }
 # Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
-for (m,t),(vec,source) in Vmt_vectors.iteritems():
+for (m,t),(vec,source) in six.iteritems(Vmt_vectors):
     n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
@@ -4222,10 +4223,10 @@ def BIBD_66_6_1():
     BIBD = [frozenset([(x+i*5)%65 if x<65 else x for x in b])
             for i in range(65)
             for b in
-            [6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
+            [[6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
             [0, 12, 29, 46, 51, 63], [0, 6, 21, 30, 43, 48], [4, 17, 22, 36, 47, 59],
             [0, 1, 2, 3, 4, 65], [23, 39, 44, 53, 59, 63], [12, 22, 28, 48, 55, 60],
-            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]
+            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]]
     return map(list,frozenset(BIBD))
 
 def BIBD_76_6_1():

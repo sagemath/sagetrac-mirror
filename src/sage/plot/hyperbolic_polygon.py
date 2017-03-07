@@ -189,10 +189,20 @@ def hyperbolic_polygon(pts, **options):
         sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I])
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        P = hyperbolic_polygon([-1,3*I,2+2*I,1+I])
+        sphinx_plot(P)
+
     With more options::
 
         sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I], fill=True, color='red')
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        P = hyperbolic_polygon([-1,3*I,2+2*I,1+I], fill=True, color='red')
+        sphinx_plot(P)
 
     Polygons with ideal vertices are supported::
 
@@ -227,6 +237,7 @@ def hyperbolic_polygon(pts, **options):
         Q = hyperbolic_triangle(3+2*I,oo,4+3*I, rgbcolor='orange', fill=True)
         T = P + Q
         sphinx_plot(T)
+
 
     """
     from sage.plot.all import Graphics
@@ -279,6 +290,7 @@ def hyperbolic_triangle(a, b, c, **options):
     .. PLOT::
 
         P = hyperbolic_triangle(0, 0.5*(-1 + I*sqrt(3)), 0.5*(1+I*sqrt(3)))
+
         sphinx_plot(P)
 
     A hyperbolic triangle with coordinates `0, 1` and `2+i` and a dashed line::
