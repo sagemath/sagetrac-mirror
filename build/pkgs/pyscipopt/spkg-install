@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+pip-lock SHARED install --ignore-installed --verbose --no-deps --no-index --isolated git+https://github.com/mkoeppe/PySCIPOpt.git
