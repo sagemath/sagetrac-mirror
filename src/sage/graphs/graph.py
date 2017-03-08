@@ -4243,7 +4243,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
-                 use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=True, solver=None, verbose=0):
         r"""
         Return a maximum weighted matching of the graph
         represented by the list of its edges.
@@ -4277,7 +4277,7 @@ class Graph(GenericGraph):
 
           - ``"LP"`` uses a Linear Program formulation of the matching problem
 
-        - ``use_edge_labels`` -- boolean (default: ``False``)
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
           - when set to ``True``, computes a weighted matching where each edge
             is weighted by its label (if an edge has no label, `1` is assumed)
