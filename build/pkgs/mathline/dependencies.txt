@@ -4,4 +4,4 @@
 The WSTP header (wstp.h) and library need to be available at compile time. MathLine's build script should be able to locate these resources under most conceivable Mathematica installation configurations (using CMake and FindMathematica, see https://github.com/sakra/FindMathematica).
 
 Additionally MathLine requires the Mathematica kernel (Wolfram kernel) at runtime. By default, MathLine assumes a kernel can be launched with "math -wstp". The default can be changed with the --linkname option, e.g.: 
-	MathLine --linkname '/path/to/WolframKernel -wstp'
+	mathline --linkname '/path/to/WolframKernel -wstp'
