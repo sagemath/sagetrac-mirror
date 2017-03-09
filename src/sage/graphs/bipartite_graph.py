@@ -1281,3 +1281,121 @@ class BipartiteGraph(Graph):
         # now construct and return the matrix from the dictionary we created
         from sage.matrix.constructor import matrix
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
+
+    def matching(self, value_only=False, algorithm="Hopcroft-Karp", 
+	    use_edge_labels=False, solver=None, verbose=0):
+	r'''
+	Return a maximum matching of the graph
+        represented by the list of its edges.
+
+        For more information, see the `Wikipedia article on matchings
+        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+
+        Given a graph `G` such that each edge `e` has a weight `w_e`,
+        a maximum matching is a subset `S` of the edges of `G` of
+        maximum weight such that no two edges of `S` are incident
+        with each other.
+
+        As an optimization problem, it can be expressed as:
+
+        .. MATH::
+
+            \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
+            \mbox{Such that : }&\forall v \in G,
+            \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``value_only`` -- boolean (default: ``False``); when set to
+          ``True``, only the cardinal (or the weight) of the matching is
+          returned
+
+        - ``algorithm`` -- string (default: ``"Hopcroft-Karp"``)
+	
+	  - ``Hopcroft-Karp`` selects the default bipartite graph algorithm as
+	    implemented in NetworkX
+	    
+	  - ``Eppstein`` selects Eppstein's algorithm as implemented in NetworkX
+
+          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+
+          - ``"LP"`` uses a Linear Program formulation of the matching problem
+
+        - ``use_edge_labels`` -- boolean (default: ``False``)
+
+          - when set to ``True`` and ``algorithm == "Edmonds"`` or ``"LP"`` 
+	    , computes a weighted matching where each edge
+            is weighted by its label (if an edge has no label, `1` is assumed).
+	    The NetworkX algorithms for bipartite graphs do not consider edge weights.
+
+          - when set to ``False``, each edge has weight `1`
+
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity: set to 0 by default, which means quiet
+          (only useful when ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        ALGORITHM:
+
+        The problem is solved using the Hopcroft-Karp or the Eppstein algorithms
+	as implemented in NetworkX for bipartite matchings, or Edmond's algorithm implemented in
+        NetworkX for general graphs, or using Linear Programming depending on the value of
+        ``algorithm``.
+
+        EXAMPLES:
+
+        Maximum matching in a cycle graph::
+
+            sage: G = BipartiteGraph(graphs.CycleGraph(10))
+            sage: G.matching()
+            [(0, 1, None), (2, 3, None), (4, 5, None), (6, 7, None), (8, 9, None)]
+
+
+        The size of a maximum matching in a complete bipartite graph using Eppstein::
+
+            sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
+            sage: G.matching(algorithm="Eppstein", value_only=True)
+            4
+
+        TESTS:
+
+        If ``algorithm`` is not set to one of the supported algorithms, an exception is raised::
+
+            sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
+            sage: G.matching(algorithm="somethingdifferent")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"
+
+	'''
+        self._scream_if_not_simple()
+	
+	if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
+	    import networkx
+	    import six
+	    g = networkx.Graph()
+	    for u, v in self.edge_iterator(labels=False):
+                g.add_edge(u, v)
+	    if algorithm == "Hopcroft-Karp":
+	        d = networkx.bipartite.hopcroft_karp_matching(g)
+            else:
+		d = networkx.bipartite.eppstein_matching(g)
+	    if value_only:
+                return len(d) // 2
+            else:
+                return [(u, v, self.edge_label(u, v))
+                        for u, v in six.iteritems(d) if u < v]
+        elif algorithm == "Edmonds" or algorithm == "LP":
+            return Graph.matching(self, value_only=value_only, algorithm=algorithm, 
+	    use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
+        else:
+            raise ValueError('algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"')
