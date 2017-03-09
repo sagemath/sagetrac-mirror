@@ -10,9 +10,14 @@ An introduction to polyhedral computations in Sage
 
 .. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>, Jean-Philippe Labbé <labbe@math.fu-berlin.de>
 
-If you already know some convex geometry  *à la*  Grünbaum or
-Brøndsted, then you may have itched to get your hands dirty with some
-polytope calculations.  
+This tutorial aims to showcase some of the possibilities of Sage concerning
+polyhedral geometry and combinatorics.
+
+The classic litterature on the topic includes:
+
+ - *Convex Polytopes*, Branko Grünbaum, [Gru1967]_
+ - *An Introduction to Convex Polytopes*, Arne Brøndsted, [Bro1983]_
+ - *Lectures on Polytopes*, Günter M. Ziegler, [Zie2007]_
 
 .. contents:: Lectures Menu
     :depth: 2
@@ -164,12 +169,12 @@ It is also possible to define polyhedron over algebraic numbers.
 
     sage: sqrt_2 = AA(2)^(1/2)
     sage: cbrt_2 = AA(2)^(1/3)
-    sage: timeit('Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]])')
+    sage: timeit('Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]])')  # random
     5 loops, best of 3: 43.2 ms per loop
 
     sage: sqrt_2s = sqrt(2)
     sage: cbrt_2s = 2^(1/3)
-    sage: timeit('Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])')
+    sage: timeit('Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])')  # random
     5 loops, best of 3: 198 ms per loop
 
     sage: P4 = Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]]); P4
@@ -191,7 +196,7 @@ The **better option** is to use a :code:`NumberField`:
 
     sage: J = NumberField(x^2 - 2,'s')
     sage: s = J.gens()[0]
-    sage: timeit('Polyhedron(vertices = [[s, 0], [0, s]])')
+    sage: timeit('Polyhedron(vertices = [[s, 0], [0, s]])')  # random
     125 loops, best of 3: 5.18 ms per loop
 
 .. end of output
@@ -263,9 +268,9 @@ second group of four rows.
     ....:  [1, 0, 0, 0, -1, 0, 0, 0, 0],
     ....:  [1, 0, -1, 0, 0, 0, 0, 0, 0],
     ....:  [1, -1, 0, 0, 0, 0, 0, 0, 0]]
-    sage: timeit('Polyhedron(ieqs = H)')
+    sage: timeit('Polyhedron(ieqs = H)')  # random
     125 loops, best of 3: 5.99 ms per loop
-    sage: timeit('Polyhedron(ieqs = H[8:], eqns = H[:4])')
+    sage: timeit('Polyhedron(ieqs = H[8:], eqns = H[:4])')  # random
     125 loops, best of 3: 4.78 ms per loop
     sage: Polyhedron(ieqs = H) == Polyhedron(ieqs = H[8:], eqns = H[:4])
     True
@@ -541,7 +546,8 @@ This backend does not work with :code:`RDF`, or algebraic numbers or the :code:`
 
 .. end of output
 
-The backend :code:`normaliz` provides other methods such as :code:`integral_hull`:
+The backend :code:`normaliz` provides other methods such as 
+:code:`integral_hull`, which also works on unbounded polyhedron.
 
 ::
 
@@ -550,6 +556,8 @@ The backend :code:`normaliz` provides other methods such as :code:`integral_hull
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
     sage: P6.plot(color='blue')+IH.plot(color='red')                                              # optional - pynormaliz
     Launched png viewer for Graphics object consisting of 12 graphics primitives
+    sage: P1_normaliz.integral_hull()                                                             # optional - pynormaliz
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
 
 .. end of output
 
@@ -578,7 +586,7 @@ polytope is already defined!
 Lecture 4: To every polyhedron, the proper parent class
 =======================================================
 
-In other to **know all the methods that a polyhedron object has** one has to look into its :code:`base class`:
+In order to **know all the methods that a polyhedron object has** one has to look into its :code:`base class`:
 
  - :ref:`sage.geometry.polyhedron.base` : This is the generic class for Polyhedron related objects.
  - :ref:`sage.geometry.polyhedron.base_ZZ`
@@ -604,10 +612,10 @@ It is possible to do Minkowski sums of polyhedron, using two syntaxes.
 
 ::
 
-    sage: P1 + P3
+    sage: P1.Minkowski_sum(P3)
     A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices and 1 ray
 
-    sage: P1.Minkowski_sum(P3)
+    sage: P1 + P3
     A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices and 1 ray
 
 .. end of output
@@ -622,16 +630,16 @@ After adding, one would like to substract:
     sage: Cube = polytopes.cube()
     sage: Square = Polyhedron(vertices = [[1, -1, -1], [1, -1, 1], [1, 1, -1], [1, 1, 1]])
     
-    sage: Cube - Square
-    A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices
-    sage: Square - Cube
-    A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex
-    
     sage: Cube.Minkowski_difference(Square)
     A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices
     sage: Square.Minkowski_difference(Cube)
     A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex
 
+    sage: Cube - Square
+    A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+    sage: Square - Cube
+    A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+    
 .. end of output
 
 Product
@@ -641,9 +649,10 @@ It is also possible to multiply polyhedron:
 
 ::
 
-    sage: P1 * P3
-    A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 4 vertices and 1 ray
     sage: P1.product(P3)
+    A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 4 vertices and 1 ray
+
+    sage: P1 * P3
     A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 4 vertices and 1 ray
 
 .. end of output
@@ -657,6 +666,7 @@ Of course, it is possible to intersect two polyhedron objects:
 
     sage: P1.intersection(P7)
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+
     sage: P1 & P7
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
 
@@ -854,11 +864,254 @@ Dimension
 :math:`f`-vector
 ~~~~~~~~~~~~~~~~~
 
+Number of representation objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The number of objects used in each representations is stored in 
+several methods:
 
+::
+
+    sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+    sage: P1.n_Hrepresentation()  # The number of elements in the H-representation
+    3
+    sage: P1.n_Vrepresentation()  # The number of elements in the V-representation
+    3
+
+    sage: P1.n_equations()
+    0
+    sage: P1.n_inequalities()
+    3
+    sage: P1.n_lines()
+    0
+    sage: P1.n_rays()
+    1
+
+    sage: P1.n_vertices()
+    2
+    sage: P1.n_facets()
+    3
+
+.. end of output
 
 Geometric objects and properties
 --------------------------------
+
+Center and Representative point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :code:`center` returns the average of the vertices while the
+:code:`representative_point` returns a point in the interior as far as it is
+possible; if the polyhedron is not full dimensional a point in the relative
+interior is returned.
+
+::
+
+    sage: P1.center()
+    (1/2, 1/2)
+    sage: P1.representative_point()
+    (3/2, 3/2)
+
+    sage: P6.representative_point()  # optional - normaliz
+    (3/4, 9/8)
+
+.. end of output
+
+Containment
+~~~~~~~~~~~
+
+Testing if a polyhedron contains a point is done as follows.
+
+::
+
+    sage: P8 = P1 & P7
+    sage: P8.interior_contains([2,2])
+    True
+    sage: P8.interior_contains([2,0])
+    False
+
+.. end of output
+
+Face and Normal fans
+~~~~~~~~~~~~~~~~~~~~
+
+The *face fan* and the *normal fan* are two structures encoding geometrical
+data of the polyhedron.
+
+::
+
+    sage: FaceFan(Cube)
+    Rational polyhedral fan in 3-d lattice M
+    sage: NormalFan(P8)
+    Rational polyhedral fan in 2-d lattice N
+
+.. end of output
+
+Gale transform
+~~~~~~~~~~~~~~
+
+The Gale transform -- also called *Gale dual* -- is useful to study polytopes
+with few vertices. It allows to visualize polytopes and linear relations
+between the vertices in a relatively small dimensional space.
+
+::
+
+    sage: CP = polytopes.cyclic_polytope(5,8)  # A 5-dim. polytope with 8 vertices
+    sage: CP.gale_transform()
+    [(1, 0), (0, 1), (-21, -6), (70, 15), (-105, -20), (84, 15), (-35, -6), (6, 1)]
+
+.. end of ouput
+
+Hyperplane arrangement
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can obtain the hyperplane arrangement given by the
+:math:`H`-representation as an hyperplane arrangement object.
+
+::
+
+    sage: CP.hyperplane_arrangement()
+    Arrangement of 30 hyperplanes of dimension 5 and rank 5
+
+.. end of output
+
+Integral points
+~~~~~~~~~~~~~~~
+
+You can count integer points as follows. The package :code:`latte_int` is
+a useful addition in this kind of computations. You can install it by typing
+
+.. CODE::
+
+    sage -i latte_int
+
+.. end of output
+
+in a console.
+
+::
+    
+    sage: Square.integral_points()
+    ((1, -1, -1),
+     (1, -1, 0),
+     (1, -1, 1),
+     (1, 0, -1),
+     (1, 0, 0),
+     (1, 0, 1),
+     (1, 1, -1),
+     (1, 1, 0),
+     (1, 1, 1))
+    sage: Square.integral_points_count()  # optional - latte_int
+    9
+
+.. end of output
+
+Radius and radius square
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The radius is the distance from the vertices to the center. All rays and lines
+are ignored.
+
+::
+
+    sage: P1.radius()
+    sqrt(1/2)
+    sage: P1.radius_square()
+    1/2
+
+    sage: P6.radius()  # optional - normaliz
+    3/8*sqrt(29)
+    sage: P6.radius_square()  # optional - normaliz
+    261/64
+
+.. end of output
+
+Corresponding linear program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you would like to use some linear programming on your polyhedron object, use
+the :code:`to_linear_program` method to obtain the corresponding linear program object.
+
+::
+
+    sage: P1.to_linear_program()
+    Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
+    sage: P2.to_linear_program()
+    Mixed Integer Program  ( maximization, 3 variables, 3 constraints )
+    sage: P3.to_linear_program()
+    Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
+    sage: P4.to_linear_program()
+    Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
+    sage: P6.to_linear_program()  # optional - normaliz
+    Mixed Integer Program  ( maximization, 2 variables, 4 constraints )
+    sage: CP.to_linear_program()
+    Mixed Integer Program  ( maximization, 5 variables, 30 constraints )
+
+.. end of output
+
+Triangulation
+~~~~~~~~~~~~~
+
+You can triangulate a bounded polyhedron.
+
+::
+
+    sage: T = CP.triangulate()
+    sage: for t in T:
+    ....:     print t
+    (0, 1, 2, 3, 4, 5)
+    (0, 1, 2, 3, 5, 6)
+    (0, 1, 2, 3, 6, 7)
+    (0, 1, 2, 3, 7, 8)
+    (0, 1, 3, 4, 5, 6)
+    (0, 1, 3, 4, 6, 7)
+    (0, 1, 3, 4, 7, 8)
+    (0, 1, 4, 5, 6, 7)
+    (0, 1, 4, 5, 7, 8)
+    (0, 1, 5, 6, 7, 8)
+    (1, 2, 3, 4, 5, 6)
+    (1, 2, 3, 4, 6, 7)
+    (1, 2, 3, 4, 7, 8)
+    (1, 2, 4, 5, 6, 7)
+    (1, 2, 4, 5, 7, 8)
+    (1, 2, 5, 6, 7, 8)
+    (2, 3, 4, 5, 6, 7)
+    (2, 3, 4, 5, 7, 8)
+    (2, 3, 5, 6, 7, 8)
+    (3, 4, 5, 6, 7, 8)
+    sage: type(T)
+    <class 'sage.geometry.triangulation.element.PointConfiguration_with_category.element_class'>
+
+.. end of output
+
+.. note:: 
+
+    If one is interested in studying the triangulations of a polytope, it is
+    worth considering the class :ref:`sage.geometry.triangulation.point_configuration`.
+
+Volume
+~~~~~~
+
+The volume can be computed for full-dimensional bounded polyhedron. Setting
+:code:`engine='lrs'` makes it possible to compute volumes of faces without
+reducing the dimension of the ambient space.
+
+::
+
+    sage: P3.volume()
+    0.0
+    sage: CP.volume()
+    1216512
+    sage: Square.volume()
+    0
+    sage: Square.volume(engine='lrs')
+    4.0
+    sage: Cube.volume()
+    8
+    sage: Cube.volume(engine='lrs')
+    8.0
+
+.. end of output
 
 Combinatorial objects
 ----------------------------
@@ -867,8 +1120,22 @@ Visualizations
 ----------------
 
 
-Normal and Face fans
---------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Other stuff
 ============
