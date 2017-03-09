@@ -33,9 +33,11 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 from six.moves import range
 
 from .graph import Graph
+from sage.rings.integer import Integer
 
 class BipartiteGraph(Graph):
     r"""
@@ -1381,7 +1383,6 @@ class BipartiteGraph(Graph):
 	
 	if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
 	    import networkx
-	    import six
 	    g = networkx.Graph()
 	    for u, v in self.edge_iterator(labels=False):
                 g.add_edge(u, v)
@@ -1390,7 +1391,7 @@ class BipartiteGraph(Graph):
             else:
 		d = networkx.bipartite.eppstein_matching(g)
 	    if value_only:
-                return len(d) // 2
+                return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in six.iteritems(d) if u < v]
