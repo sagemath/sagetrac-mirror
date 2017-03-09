@@ -13,7 +13,7 @@ docstrings.
 -  Catalan numbers, :func:`catalan_number` (not to be
    confused with the Catalan constant)
 
--  Eulerian/Euler numbers, :func:`euler_number` (Maxima)
+-  Euler numbers, :func:`euler_number` (Maxima)
 
 -  Fibonacci numbers, :func:`fibonacci` (PARI) and
    :func:`fibonacci_number` (GAP) The PARI version is
