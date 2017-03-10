@@ -1081,9 +1081,9 @@ class IncidenceStructure(object):
 
         REFERENCES:
 
-            .. [Fag83]_
+            [Fag83]_
 
-            .. [FT14]_
+            [FT14]_
 
         """
         if not self.is_uniform():
