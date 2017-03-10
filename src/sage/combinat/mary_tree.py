@@ -41,10 +41,10 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     INPUT:
 
-    - ``m`` the arity
+    - `m` -- the arity
 
     - ``children`` -- ``None`` (default) or a list, tuple or iterable of
-      length m of `m`-ary trees or convertible objects.
+      length `m` of `m`-ary trees or convertible objects.
 
     - ``check`` -- (default to ``True``) whether check for `m`-arity should be
       performed or not.
@@ -105,7 +105,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
         INPUT:
 
-        - ``m`` the arity of the tree
+        - `m` -- the arity of the tree
 
         EXAMPLES::
 
@@ -152,7 +152,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def check(self):
         r"""
-        Checks that ``self`` is a `m`-ary tree
+        Check that ``self`` is a `m`-ary tree.
 
         EXAMPLES::
 
@@ -205,8 +205,8 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
-        node of the tree. Moreover, two (unlabelled) trees compare as equal if
-        and only if they canonical labelled trees compare as equal.
+        nodes of the tree. Moreover, two (unlabelled) trees compare as equal if
+        and only if their canonical labelled trees compare as equal.
 
         We use a labelling that generalizes the binary search tree labelling.
         Nodes are labelled in this order: self[0], self, self[m-1],
@@ -241,8 +241,8 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def unique_growth(self):
         r"""
-        This methods make the tree grow in such a way that a tree of size n
-        is obtained only by the growth of a unique tree of size n-1.
+        This methods make the tree grow in such a way that a tree of size `n`
+        is obtained only by the growth of a unique tree of size `n-1`.
 
         It is used to recursively generate `m`-ary trees. The principle of
         the growth of a tree is to replace a leaf by a node. To obtain
@@ -329,12 +329,12 @@ class MAryTrees(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``m`` an integer, the arity of the tree
+    - `m` -- an integer, the arity of the tree
     - ``size`` -- (optional) an integer
 
     OUPUT:
 
-    - the set of all m-ary trees (of arity ``m`` and of the given
+    - the set of all `m`-ary trees (of arity `m` and of the given
       ``size`` if specified)
 
     EXAMPLES::
@@ -452,7 +452,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def _get_m_ary_trees_size(self, n):
         r"""
-        Return the set of m-ary trees of size ``n``
+        Return the set of `m`-ary trees of size ``n``
 
         EXAMPLES::
 
