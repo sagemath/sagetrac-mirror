@@ -450,18 +450,6 @@ def test_relation_maxima(relation):
         True
         sage: forget()
         
-    In case one of the solutions while solving an equation is a real number::
-        
-        sage: var('K, d, R')
-        (K, d, R)
-        sage: assume(K>0)
-        sage: assume(K, 'noninteger')
-        sage: assume(R>0)
-        sage: assume(R<1)
-        sage: assume(d<R)
-        sage: assumptions()
-        [K > 0, K is noninteger, R > 0, R < 1, d < R]
-    
 
     """
     m = relation._maxima_()
@@ -685,8 +673,8 @@ def solve(f, *args, **kwds):
         x: -2, y: 4
 
     If there is a parameter in the answer, that will show up as
-    a new variable.  In the following example, ``r1`` is an arbitrary
-    constant (because of the ``r``)::
+    a new variable.  In the following example, ``r1`` is a real
+    free variable (because of the ``r``)::
 
         sage: solve([x+y == 3, 2*x+2*y == 6],x,y)
         [[x == -r1 + 3, y == r1]]
