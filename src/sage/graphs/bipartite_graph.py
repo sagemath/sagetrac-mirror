@@ -1285,9 +1285,9 @@ class BipartiteGraph(Graph):
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
 
     def matching(self, value_only=False, algorithm="Hopcroft-Karp", 
-	    use_edge_labels=False, solver=None, verbose=0):
-	r'''
-	Return a maximum matching of the graph
+            use_edge_labels=False, solver=None, verbose=0):
+        r'''
+        Return a maximum matching of the graph
         represented by the list of its edges.
 
         For more information, see the `Wikipedia article on matchings
@@ -1314,11 +1314,11 @@ class BipartiteGraph(Graph):
           returned
 
         - ``algorithm`` -- string (default: ``"Hopcroft-Karp"``)
-	
-	  - ``Hopcroft-Karp`` selects the default bipartite graph algorithm as
-	    implemented in NetworkX
-	    
-	  - ``Eppstein`` selects Eppstein's algorithm as implemented in NetworkX
+        
+          - ``Hopcroft-Karp`` selects the default bipartite graph algorithm as
+            implemented in NetworkX
+            
+          - ``Eppstein`` selects Eppstein's algorithm as implemented in NetworkX
 
           - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
 
@@ -1327,9 +1327,9 @@ class BipartiteGraph(Graph):
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - when set to ``True`` and ``algorithm == "Edmonds"`` or ``"LP"`` 
-	    , computes a weighted matching where each edge
+            , computes a weighted matching where each edge
             is weighted by its label (if an edge has no label, `1` is assumed).
-	    The NetworkX algorithms for bipartite graphs do not consider edge weights.
+            The NetworkX algorithms for bipartite graphs do not consider edge weights.
 
           - when set to ``False``, each edge has weight `1`
 
@@ -1349,7 +1349,7 @@ class BipartiteGraph(Graph):
         ALGORITHM:
 
         The problem is solved using the Hopcroft-Karp or the Eppstein algorithms
-	as implemented in NetworkX for bipartite matchings, or Edmond's algorithm implemented in
+        as implemented in NetworkX for bipartite matchings, or Edmond's algorithm implemented in
         NetworkX for general graphs, or using Linear Programming depending on the value of
         ``algorithm``.
 
@@ -1378,25 +1378,25 @@ class BipartiteGraph(Graph):
             ...
             ValueError: algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"
 
-	'''
+        '''
         self._scream_if_not_simple()
-	
-	if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
-	    import networkx
-	    g = networkx.Graph()
-	    for u, v in self.edge_iterator(labels=False):
+        
+        if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
+            import networkx
+            g = networkx.Graph()
+            for u, v in self.edge_iterator(labels=False):
                 g.add_edge(u, v)
-	    if algorithm == "Hopcroft-Karp":
-	        d = networkx.bipartite.hopcroft_karp_matching(g)
+            if algorithm == "Hopcroft-Karp":
+                d = networkx.bipartite.hopcroft_karp_matching(g)
             else:
-		d = networkx.bipartite.eppstein_matching(g)
-	    if value_only:
+                d = networkx.bipartite.eppstein_matching(g)
+            if value_only:
                 return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in six.iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only, algorithm=algorithm, 
-	    use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
+            use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"')
