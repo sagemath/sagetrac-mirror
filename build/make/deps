@@ -206,7 +206,7 @@ DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
 doc: doc-html
 
 doc-html: $(DOC_DEPENDENCIES)
-    $(MAKE) docbuild-html || ( $(MAKE) doc-clean ; $(MAKE) docbuild-html )
+	$(MAKE) docbuild-html || ( $(MAKE) doc-clean ; $(MAKE) docbuild-html )
 
 docbuild-html:
 	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
