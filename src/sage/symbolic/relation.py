@@ -450,7 +450,6 @@ def test_relation_maxima(relation):
         True
         sage: forget()
         
-
     """
     m = relation._maxima_()
 
