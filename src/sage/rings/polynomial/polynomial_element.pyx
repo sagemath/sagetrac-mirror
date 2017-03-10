@@ -9324,15 +9324,14 @@ cpdef _inverse_of_unit_polynomial(p):
 
     ALGORITHM:
 
-        $p = \sum a_i x^i$ is a unit iff $a_0$ is a unit and
-        the $a_i$ for $i > 0$ are nilpotent.
-        So then $p = a_0 + q$ where $q$ is nilpotent
-        Say $v = ~a_0$.  Then $p = a_0 (1 - m)$ where $m = -vq$.
-        Now $p v (1+m)(1+m^2)(1+m^4) \dots(1+m^(2^k))
-        = 1 - m^(2^(k+1))$, which is 1 for $k$ large enough.
-        So we compute $m$, start with $i = v(1+m)$, and keep multiplying
-        by successive terms $1+m^{2^k}$ until we find the inverse.
-        (Note that the inverse of a unit is always unique.)
+        `p = \sum a_i x^i` is a unit iff `a_0` is a unit and
+        the `a_i` for `i > 0` are nilpotent.
+        So then `p = a_0 + q` where `q` is nilpotent.
+        Let `v = a_0^{-1}`.  Then `p = a_0 (1 - m)` where `m = -vq`
+        is also nilpotent. Now `p v (1+m)(1+m^2)(1+m^4) \dots(1+m^{2^k})
+        = 1 - m^{2^{k+1}}`, which is 1 for `k` large enough.
+        So we compute `m`, start with `v(1+m)`, and keep multiplying
+        by successive terms `1+m^{2^k}` until we find the inverse.
 
     TESTS::
 
