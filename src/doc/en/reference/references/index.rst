@@ -620,6 +620,9 @@ REFERENCES:
 
 **F**
 
+.. [Fag83] Fagin, Ronald. "Degrees of acyclicity for hypergraphs and relational
+           database schemes." Journal of the ACM (JACM) 30.3 (1983): 514-550.
+
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
             Computational Geometry 18 (1997),
@@ -658,6 +661,10 @@ REFERENCES:
 .. [FST2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
             2012 (8): 1768-1804.
+
+.. [FT14] Füredi, Zoltán, and Tao Jiang. "Hypergraph Turán numbers of linear
+          cycles." Journal of Combinatorial Theory, Series A 123.1 (2014):
+          252-270.
 
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
