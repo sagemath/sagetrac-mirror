@@ -450,7 +450,7 @@ def test_relation_maxima(relation):
         True
         sage: forget()
         
-    In case one of the solutions while solving an equation is a real number::
+    In case one of the solutions of an equation is a real number::
         
         sage: var('K, d, R')
         (K, d, R)
