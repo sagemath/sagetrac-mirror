@@ -3955,7 +3955,17 @@ class Polyhedron_base(Element):
             0
             sage: I.volume(engine='lrs') #optional - lrslib
             1.0
+
+        The volume of an unbounded polyhedron is infinity::
+
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P.volume()
+            +Infinity
         """
+        if not self.is_compact():
+            from sage.rings.infinity import infinity
+            return infinity
+
         if engine == 'lrs':
             return self._volume_lrs(**kwds)
         dim = self.dim()
