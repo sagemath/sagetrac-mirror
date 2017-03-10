@@ -284,42 +284,31 @@ def histogram(datalist, **options):
         sage: histogram(list(range(10)), bins=3, weights=[1,2,3,4,5,5,4,3,2,1])
         Graphics object consisting of 1 graphics primitive
 
-    The Legend class can be considered as a container of legend handles and
-    legend texts.Creation of corresponding legend handles from the plot elements
-    in the axes or figures (e.g., lines, patches, etc.) are specified by the
-    handler map, which defines the mapping between the plot elements and the
-    legend handlers to be used.
     Histogram legends has a 'set_legend_options' which can take in various parameters
-    that can customise the labels.Different parameters would decide how the labels
-    would look like.
+    that can customise the labels.Further details about the parameters can be found from the
+    matplotlib documentation:
+                    http://matplotlib.org/api/legend_api.html
+
     Considering the following examples::
 
-        sage:d1=[1,1,1,1,2,2,2,3,3,3]
-        sage:d2=[4,4,4,4,3,3,3,2,2,2]
-        sage:h=histogram([ d1,d1 ],label=["d1","d2"],stacked=True, color=['blue', 'red'])
-        sage:h.legend(True)
-        sage:h.set_legend_options(handlelength=1,handleheight=1,handletextpad=1,borderaxespad=2)
-        sage:h
+        sage: d1 = [1,1,1,1,2,2,2,3,3,3]
+        sage: d2 = [4,4,4,4,3,3,3,2,2,2]
+        sage: h = histogram([ d1,d1 ],label=["d1","d2"],stacked=True, color=['blue', 'red'])
+        sage: h.legend(True)
+        sage: h.set_legend_options(handlelength=1,handleheight=1,handletextpad=1,borderaxespad=2)
+        sage: h
+        Graphics object consisting of 1 graphics primitive
 
     The following example shows the result of change in parameters like
     handlelength,handleheight etc::
 
-        sage:d1=[randint(0,10) for i in range(20)]
-        sage:d2=[randint(0,10) for i in range(20)]
-        sage:h=histogram([d1,d2],label=["d1","d2"])
-        sage:h.legend(True)
-        sage:h.set_legend_options(handlelength=5,handleheight=3,fontsize=50,labelspacing=0,title="Parameters")
-        sage:h
-
-   The example below shows the combination of 2 Graphics Primitive::
-
-        sage:nv = normalvariate
-        sage:H = histogram([nv(0,1) for _ in range(1000)],label=["d1"], bins=20, normed=True, range=[-5,5])
-        sage:P = plot( 1/sqrt(2*pi)*e^(-x^2/2), (x,-5,5), color='red', linestyle='--')
-        sage:H.legend(True)
-        sage:H.set_legend_options(handlelength=5,handleheight=1,fontsize=50,labelspacing=0,title="Parameters")
-        sage:H
-        sage:H+P
+        sage: d1 = [randint(0,10) for i in range(20)]
+        sage: d2 = [randint(0,10) for i in range(20)]
+        sage: h = histogram([d1,d2],label=["d1","d2"])
+        sage: h.legend(True)
+        sage: h.set_legend_options(handlelength=5,handleheight=3,fontsize=50,labelspacing=0,title="Parameters")
+        sage: h
+        Graphics object consisting of 1 graphics primitive
 
 
     """
