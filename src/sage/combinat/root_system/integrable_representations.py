@@ -1246,10 +1246,11 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sequence = self._default_rule(i)
         weyl_character_ring = WeylCharacterRing(wcr, style="coroots")
         if show_rule:
-            print self.cartan_type().dynkin_diagram()
-            print weyl_character_ring.dynkin_diagram()
+            print(self.cartan_type().dynkin_diagram())
+            print(weyl_character_ring.dynkin_diagram())
             for j in sequence:
-                print "%s => %s"%(j,sequence[j])
+                print("%s => %s" % (j, sequence[j]))
+
         def next_level(x):
             ret = []
             for j in self._index_set:
@@ -1278,4 +1279,3 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
                     ldict[contr] = x[1]
             ret.append(weyl_character_ring.char_from_weights(ldict))
         return ret
-
