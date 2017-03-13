@@ -408,7 +408,7 @@ class Simplex(SageObject):
         are not the same type::
 
             sage: type(Simplex(3).tuple())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(Simplex(3))
             <class 'sage.homology.simplicial_complex.Simplex'>
         """
@@ -1004,13 +1004,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._sorted = False
             return
 
-        try:  # vertex_set is an iterable
-            if sort_facets:
-                vertices = tuple(sorted(vertex_set))
-            else:
-                vertices = tuple(vertex_set)
-        except TypeError:  # vertex_set is an integer
+        if isinstance(vertex_set, (int, Integer)):
             vertices = tuple(range(vertex_set + 1))
+        elif sort_facets:
+            vertices = tuple(sorted(vertex_set))
+        else:
+            vertices = tuple(vertex_set)
         gen_dict = {}
         for v in vertices:
             if name_check:
@@ -1051,7 +1050,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # self._facets: list of facets
         self._facets = good_faces
         # self._sorted: True if the vertex set should be sorted. This
-        # gets used by the add_faces method.
+        # gets used by the add_face method.
         self._sorted = sort_facets
         # self._faces: dictionary of dictionaries of faces.  The main
         # dictionary is keyed by subcomplexes, and each value is a
@@ -2544,7 +2543,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
 
             # Update self._faces.
-            all_new_faces = SimplicialComplex([new_face]).faces()
+            all_new_faces = SimplicialComplex([new_face], sort_facets=self._sorted).faces()
             for L in self._faces:
                 L_complex = self._faces[L]
                 for dim in range(new_face.dimension()+1):
@@ -3463,41 +3462,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             True
         """
         return self == self.graph().clique_complex()
-
-    def is_connected(self):
-        """
-        Returns ``True`` if and only if ``self`` is connected.
-
-        .. WARNING::
-
-           This may give the wrong answer if the simplicial complex
-           was constructed with ``maximality_check`` set to ``False``.
-
-        EXAMPLES::
-
-            sage: V = SimplicialComplex([[0,1,2],[3]])
-            sage: V
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (3,)}
-            sage: V.is_connected()
-            False
-
-            sage: X = SimplicialComplex([[0,1,2]])
-            sage: X.is_connected()
-            True
-
-            sage: U = simplicial_complexes.ChessboardComplex(3,3)
-            sage: U.is_connected()
-            True
-
-            sage: W = simplicial_complexes.Sphere(3)
-            sage: W.is_connected()
-            True
-
-            sage: S = SimplicialComplex([[0,1],[2,3]])
-            sage: S.is_connected()
-            False
-        """
-        return self.graph().is_connected()
 
     def n_skeleton(self, n):
         """

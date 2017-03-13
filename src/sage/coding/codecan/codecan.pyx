@@ -81,6 +81,13 @@ is returned by generators::
     sage: A = P.get_autom_gens()
     sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
     True
+
+REFERENCES:
+
+.. [Feu2009] Thomas Feulner, The Automorphism Groups of Linear Codes and
+  Canonical Representatives of Their Semilinear Isometry Classes, Advances in
+  Mathematics of Communications 3 (4), pp. 363-383, 2009.
+
 """
 
 #*******************************************************************************
@@ -332,7 +339,7 @@ cdef class InnerGroup:
     cdef void gaussian_elimination(self, object m, int pos, int pivot, list nz_pos):
         r"""
         Minimize the column at position ``pos`` of the matrix ``m`` by the
-        action of ``self``.  We know that the there is some nonzero entry of this
+        action of ``self``. We know that there is some nonzero entry of this
         column at ``pivot >= self.rank``. All nonzero entries are stored in
         the list ``nz_pos``.
 

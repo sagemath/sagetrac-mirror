@@ -57,11 +57,10 @@ givaro_library_dirs = givaro_pc['library_dirs']
 givaro_cflags = pkgconfig.cflags('givaro').split()
 
 # GNU Scientific Library
-# Note we remove the built-in gslcblas
+# The default gslcblas is removed in the gsl spkg - not need to remove it.
 # The above cblas should already be in the list thanks to #20646
 gsl_pc = pkgconfig.parse('gsl')
 gsl_libs = gsl_pc['libraries']
-gsl_libs.remove('gslcblas')
 gsl_library_dirs = gsl_pc['library_dirs']
 gsl_include_dirs = gsl_pc['include_dirs']
 
@@ -227,7 +226,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/calculus/*.pyx']),
+    Extension('*', ['sage/calculus/**/*.pyx']),
 
     ################################
     ##
@@ -700,6 +699,14 @@ ext_modules = [
 
     ###################################
     ##
+    ## sage.libs.gsl
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/gsl/*.pyx"]),
+
+    ###################################
+    ##
     ## sage.libs.ntl
     ##
     ###################################
@@ -910,6 +917,9 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
+
+    Extension('sage.matrix.matrix_polynomial_dense',
+              sources = ['sage/matrix/matrix_polynomial_dense.pyx']),
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
@@ -1176,6 +1186,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.probability
+    ##
+    ################################
+
+    Extension('*', ['sage/probability/*.pyx']),
+
+    ################################
+    ##
     ## sage.quadratic_forms
     ##
     ################################
@@ -1215,7 +1233,7 @@ ext_modules = [
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'gmp'],
               language = 'c++'),
 
     Extension("sage.rings.complex_arb",
@@ -1276,6 +1294,9 @@ ext_modules = [
 
     Extension('sage.rings.power_series_poly',
               sources = ['sage/rings/power_series_poly.pyx']),
+
+    Extension('sage.rings.power_series_pari',
+              sources = ['sage/rings/power_series_pari.pyx']),
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']),
@@ -1376,7 +1397,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element_quadratic',
               sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['ntl', 'mpfi'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_morphisms',
@@ -1526,7 +1547,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
@@ -1541,7 +1562,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
@@ -1551,7 +1572,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_ring_homomorphism',
