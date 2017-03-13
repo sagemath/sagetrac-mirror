@@ -12,7 +12,8 @@ Utility functions for libGAP
 ###############################################################################
 from __future__ import print_function, absolute_import
 
-from sage.env import SAGE_LOCAL
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 from libc.stdint cimport uintptr_t
 from .element cimport *
 
@@ -59,17 +60,17 @@ cdef class ObjWrapper(object):
         cdef result
         cdef libGAP_Obj self_value = self.value
         cdef libGAP_Obj other_value = other.value
-        if op==0:      # <   0
+        if op == Py_LT:
             return self_value < other_value
-        elif op==1:    # <=  1
+        elif op == Py_LE:
             return self_value <= other_value
-        elif op==2:    # ==  2
+        elif op == Py_EQ:
             return self_value == other_value
-        elif op==4:    # >   4
+        elif op == Py_GT:
             return self_value > other_value
-        elif op==5:    # >=  5
+        elif op == Py_GE:
             return self_value >= other_value
-        elif op==3:    # !=  3
+        elif op == Py_NE:
             return self_value != other_value
         else:
             assert False  # unreachable
@@ -157,9 +158,8 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
-    if os.path.exists(gapdir):
-        return gapdir
+    if os.path.exists(GAP_ROOT_DIR):
+        return GAP_ROOT_DIR
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]

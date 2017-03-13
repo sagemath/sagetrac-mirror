@@ -15,7 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-
+from six.moves import range
 from six import itervalues
 
 # import from Sage library
@@ -44,7 +44,7 @@ def IntervalGraph(intervals, points_ordered = False):
           to create the graph are saved with the graph and can be recovered
           using ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following line creates the sequence of intervals
     `(i, i+2)` for i in `[0, ..., 8]`::
@@ -92,16 +92,16 @@ def IntervalGraph(intervals, points_ordered = False):
     g = Graph(n)
 
     if points_ordered:
-        for i in xrange(n-1):
+        for i in range(n-1):
             li,ri = intervals[i]
-            for j in xrange(i+1,n):
+            for j in range(i+1,n):
                 lj,rj = intervals[j]
                 if ri < lj or rj < li: continue
                 g.add_edge(i,j)
     else:
-        for i in xrange(n-1):
+        for i in range(n-1):
             I = intervals[i]
-            for j in xrange(i+1,n):
+            for j in range(i+1,n):
                 J = intervals[j]
                 if max(I) < min(J) or max(J) < min(I): continue
                 g.add_edge(i,j)
@@ -172,7 +172,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
       ``sorted(second_permutation)``, which yields the expected ordering when
       the elements of the graph are integers.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
       - Recognition of Permutation graphs in the :mod:`comparability module
         <sage.graphs.comparability>`.
@@ -296,7 +296,7 @@ def ToleranceGraph(tolrep):
         to create the graph is saved with the graph and can be recovered using
         ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following code creates a tolerance representation ``tolrep``, generates
     its tolerance graph ``g``, and applies some checks::
@@ -342,15 +342,15 @@ def ToleranceGraph(tolrep):
     """
     n = len(tolrep)
 
-    for i in xrange(n):
+    for i in range(n):
         if tolrep[i][2] <= 0:
             raise ValueError("Invalid tolerance representation at position "+str(i)+"; third value must be positive!")
 
     g = Graph(n)
 
-    for i in xrange(n-1):
+    for i in range(n-1):
         li,ri,ti = tolrep[i]
-        for j in xrange(i+1,n):
+        for j in range(i+1,n):
             lj,rj,tj = tolrep[j]
             if min(ri,rj) - max(li,lj) >= min(ti,tj):
                 g.add_edge(i,j)
@@ -518,7 +518,7 @@ def IntersectionGraph(S):
             The elements of `S` must be finite, hashable, and the elements of
             any `s\in S` must be hashable too.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.IntersectionGraph([(1,2,3),(3,4,5),(5,6,7)])
         Intersection Graph: Graph on 3 vertices

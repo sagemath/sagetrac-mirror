@@ -26,12 +26,12 @@ class SBox(SageObject):
     bits and transforms them into ``n`` output bits. This is called an
     ``mxn`` S-box and is often implemented as a lookup table. These
     S-boxes are carefully chosen to resist linear and differential
-    cryptanalysis [Heys02]_.
+    cryptanalysis [He2002]_.
 
     This module implements an S-box class which allows an algebraic
     treatment and determine various cryptographic properties.
 
-    EXAMPLE:
+    EXAMPLES:
 
     We consider the S-box of the block cipher PRESENT [PRESENT07]_::
 
@@ -71,20 +71,11 @@ class SBox(SageObject):
 
     REFERENCES:
 
-    .. [Heys02] \H. Heys *A Tutorial on Linear and Differential
-      Cryptanalysis* ; 2002' available at
-      http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
+    - [He2002]_
 
-    .. [PRESENT07] \A. Bogdanov, L. Knudsen, G. Leander, C. Paar,
-      A. Poschmann, M. Robshaw, Y. Seurin, C. Vikkelsoe *PRESENT: An
-      Ultra-Lightweight Block Cipher*; in Proceedings of CHES 2007;
-      LNCS 7427; pp. 450-466; Springer Verlag 2007; available at
-      http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+    - [PRESENT07]_
 
-    .. [CDL15] \A. Canteaut, Sebastien Duval, Gaetan Leurent *Construction
-      of Lightweight S-Boxes using Feistel and MISTY Structures*; in
-      Proceedings of SAC 2015; LNCS 9566; pp. 373-393; Springer-Verlag
-      2015; available at http://eprint.iacr.org/2015/711.pdf
+    - [CDL2015]_
     """
 
     def __init__(self, *args,  **kwargs):
@@ -100,7 +91,7 @@ class SBox(SageObject):
         - ``big_endian`` - controls whether bits shall be ordered in
           big endian order (default: ``True``)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a 3-bit S-box where e.g. the bits (0,0,1) are
         mapped to (1,1,1).::
@@ -154,7 +145,7 @@ class SBox(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mq.SBox(7,6,0,4,2,5,1,3) #indirect doctest
             (7, 6, 0, 4, 2, 5, 1, 3)
@@ -165,25 +156,38 @@ class SBox(SageObject):
         """
         Return the length of input bit strings.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: len(mq.SBox(7,6,0,4,2,5,1,3))
             3
         """
         return self.m
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         S-boxes are considered to be equal if all construction
         parameters match.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: loads(dumps(S)) == S
             True
         """
-        return cmp((self._S,self._big_endian), (other._S,self._big_endian))
+        return (self._S, self._big_endian) == (other._S, self._big_endian)
+
+    def __ne__(self, other):
+        """
+        S-boxes are considered to be equal if all construction
+        parameters match.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S != S
+            False
+        """
+        return not self.__eq__(other)
 
     def to_bits(self, x, n=None):
         """
@@ -196,7 +200,7 @@ class SBox(SageObject):
 
         - ``n`` - bit length (optional)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.to_bits(6)
@@ -227,7 +231,7 @@ class SBox(SageObject):
 
         - ``n`` - bit length (optional)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.from_bits( [1,1,0])
@@ -252,7 +256,7 @@ class SBox(SageObject):
         """
         Right pads ``x`` such that ``len(x) == n``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S._rpad([1,1])
@@ -276,7 +280,7 @@ class SBox(SageObject):
           `\GF{2^n}`. As a last resort this function tries to convert
           ``X`` to an integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: S(7)
@@ -360,7 +364,7 @@ class SBox(SageObject):
         """
         See  :meth:`SBox.__call__`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: S[7]
@@ -372,7 +376,7 @@ class SBox(SageObject):
         r"""
         Return ``True`` if this S-Box is a permutation.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: S = mq.SBox(7,6,0,4,2,5,1,3)
              sage: S.is_permutation()
@@ -388,7 +392,7 @@ class SBox(SageObject):
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: [e for e in S]
@@ -408,10 +412,10 @@ class SBox(SageObject):
         often ``Delta O`` is the actual output difference given
         ``Delta I`` as input difference.
 
-        See [Heys02]_ for an introduction to differential
+        See [He2002]_ for an introduction to differential
         cryptanalysis.
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
            sage: S.difference_distribution_matrix()
@@ -447,7 +451,7 @@ class SBox(SageObject):
         Equivalently, this is equal to the differential uniformity
         of this S-Box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability_absolute()
@@ -467,7 +471,7 @@ class SBox(SageObject):
         highest probability in the range between 0.0 and 1.0
         indicating 0\% or 100\% respectively.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability()
@@ -486,9 +490,9 @@ class SBox(SageObject):
         ``x_i`` and ``y_i`` represent the input and output variables
         of the S-box.
 
-        See [Heys02]_ for an introduction to linear cryptanalysis.
+        See [He2002]_ for an introduction to linear cryptanalysis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.linear_approximation_matrix()
@@ -539,7 +543,7 @@ class SBox(SageObject):
         approximation with the highest bias is true or false minus
         `2^{n-1}`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_absolute()
@@ -554,7 +558,7 @@ class SBox(SageObject):
         Return maximal bias of all linear approximations of this
         S-box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_relative()
@@ -567,7 +571,7 @@ class SBox(SageObject):
         Create, return and cache a polynomial ring for S-box
         polynomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.ring()
@@ -596,7 +600,7 @@ class SBox(SageObject):
 
         - ``Y`` - output variables (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: F = S.polynomials()
@@ -626,7 +630,7 @@ class SBox(SageObject):
         Return a list of polynomials satisfying this S-box.
 
         First, a simple linear fitting is performed for the given
-        ``degree`` (cf. for example [BC03]_). If ``groebner=True`` a
+        ``degree`` (cf. for example [BC2003]_). If ``groebner=True`` a
         Groebner basis is also computed for the result of that
         process.
 
@@ -675,13 +679,6 @@ class SBox(SageObject):
             [y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1,
              y1 + x0*x2 + x1 + 1,
              y2 + x0 + x1*x2 + x1 + x2 + 1]
-
-        REFERENCES:
-
-        .. [BC03] \A. Biryukov and C. D. Canniere *Block Ciphers and
-          Systems of Quadratic Equations*; in Proceedings of Fast
-          Software Encryption 2003; LNCS 2887; pp. 274-289,
-          Springer-Verlag 2003.
         """
         def nterms(nvars, deg):
             """
@@ -777,7 +774,7 @@ class SBox(SageObject):
 
         - ``k`` - an instance of `\GF{2^m}` (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
@@ -843,7 +840,7 @@ class SBox(SageObject):
         - ``dimacs_headless`` - a string in DIMACS format, but without
           the header. This is useful for concatenation of outputs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We give a very small example to explain the output format::
 
@@ -935,7 +932,7 @@ class SBox(SageObject):
 
         S-Boxes with m!=n also work:
 
-            sage: o = range(8) + range(8)
+            sage: o = list(range(8)) + list(range(8))
             sage: shuffle(o)
             sage: S = mq.SBox(o)
             sage: S.is_permutation()
@@ -1445,7 +1442,7 @@ def feistel_construction(*args):
     ``args``. The number of round in the construction is equal to the number of
     S-Boxes provided as input. For more results concerning the differential
     uniformity and the nonlinearity of S-Boxes constructed by Feistel structures
-    see [CDL15]_ .
+    see [CDL2015]_ .
 
     INPUT:
 
@@ -1501,7 +1498,7 @@ def misty_construction(*args):
     Return an S-Box constructed by MISTY structure using smaller S-Boxes in
     ``args``. The number of round in the construction is equal to the number of
     S-Boxes provided as input. For further result related to the nonlinearity
-    and differential uniformity of the constructed S-Box one may consult [CDL15]_.
+    and differential uniformity of the constructed S-Box one may consult [CDL2015]_.
 
     INPUT:
 
@@ -1510,7 +1507,7 @@ def misty_construction(*args):
     EXAMPLES:
 
     We construct an `8 \times 8` S-Box using 3-round MISTY structure with the following
-    `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL15]_)::
+    `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
 
         sage: S1 = mq.SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
         sage: S2 = mq.SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])

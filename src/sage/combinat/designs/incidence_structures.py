@@ -40,6 +40,7 @@ Methods
 #***************************************************************************
 from __future__ import print_function
 
+import six
 from six import itervalues
 from six.moves import range
 
@@ -164,7 +165,7 @@ class IncidenceStructure(object):
 
             sage: V = GF(5)
             sage: e0,e1,e2,e3,e4 = V
-            sage: [e0,e1,e2,e3,e4] == range(5)   # coercion makes them equal
+            sage: [e0,e1,e2,e3,e4] == list(range(5)) # coercion makes them equal
             True
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
@@ -394,7 +395,7 @@ class IncidenceStructure(object):
         `\{0,...,n-1\}` such that isomorphic incidence structures are
         relabelled to equal objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: fano1 = designs.balanced_incomplete_block_design(7,3)
             sage: fano2 = designs.projective_plane(2)
@@ -428,7 +429,7 @@ class IncidenceStructure(object):
           insomorphism from ``self`` to ``other`` instead of a boolean
           answer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: fano1 = designs.balanced_incomplete_block_design(7,3)
             sage: fano2 = designs.projective_plane(2)
@@ -483,8 +484,8 @@ class IncidenceStructure(object):
 
         if A == B:
             if certificate:
-                B_canon_rev = {y:x for x,y in B_canon.iteritems()}
-                return {x:B_canon_rev[xint] for x,xint in A_canon.iteritems()}
+                B_canon_rev = {y:x for x,y in six.iteritems(B_canon)}
+                return {x:B_canon_rev[xint] for x,xint in six.iteritems(A_canon)}
             else:
                 return True
         else:
@@ -563,7 +564,7 @@ class IncidenceStructure(object):
         r"""
         Return a copy of the incidence structure.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: IS = IncidenceStructure([[1,2,3,"e"]],name="Test")
             sage: IS
@@ -604,7 +605,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Fano plane with one point removed::
 
@@ -671,7 +672,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Baer subplane of order 2 (i.e. a Fano plane) in a projective plane of order 4::
 
@@ -898,9 +899,21 @@ class IncidenceStructure(object):
                 for s in combinations(b,size):
                     d[s]+=1
             if self._point_to_index:
-                return {tuple([self._points[x] for x in s]):v for s,v in d.iteritems()}
+                return {tuple([self._points[x] for x in s]):v for s,v in six.iteritems(d)}
             else:
                 return d
+
+    def rank(self):
+        r"""
+        Return the rank of the hypergraph (the maximum size of a block).
+
+        EXAMPLES::
+
+            sage: h = Hypergraph(8, [[0,1,3],[1,4,5,6],[1,2]])
+            sage: h.rank()
+            4
+        """
+        return max(len(b) for b in self._blocks)
 
     def is_regular(self,r=None):
         r"""
@@ -969,7 +982,7 @@ class IncidenceStructure(object):
 
         If ``k`` is defined, a boolean is returned. If ``k`` is set to ``None``
         (default), the method returns either ``False`` or the integer ``k`` such
-        that the incidence structure is `r`-regular.
+        that the incidence structure is `k`-uniform.
 
         .. WARNING::
 
@@ -987,10 +1000,10 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: IncidenceStructure([]).is_regular()
+            sage: IncidenceStructure([]).is_uniform()
             Traceback (most recent call last):
             ...
-            ValueError: This incidence structure has no points.
+            ValueError: This incidence structure has no blocks.
         """
         if self.num_blocks() == 0:
             raise ValueError("This incidence structure has no blocks.")
@@ -1073,7 +1086,7 @@ class IncidenceStructure(object):
           ``sizes`` to ``5`` has the same effect as ``sizes=[5]``. When set to
           ``None`` (default), behaves as ``sizes=PositiveIntegers()``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The intersection graph of a
         :func:`~sage.combinat.designs.bibd.balanced_incomplete_block_design` is
@@ -1154,7 +1167,7 @@ class IncidenceStructure(object):
               elements of :meth:`ground_set` mix :func:`Set` and non-:func:`Set
               <Set>` objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BD = IncidenceStructure(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.incidence_graph()
@@ -1350,7 +1363,7 @@ class IncidenceStructure(object):
 
         This object is mutable because of .relabel()
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: TD=designs.transversal_design(5,5)
             sage: hash(TD)
@@ -1388,7 +1401,7 @@ class IncidenceStructure(object):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
             [[1, 2], [3, 'A']]
@@ -1414,7 +1427,7 @@ class IncidenceStructure(object):
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
-                for i,v in p.get_values(b).iteritems() if v]
+                for i,v in six.iteritems(p.get_values(b)) if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -1508,7 +1521,7 @@ class IncidenceStructure(object):
             sage: D.is_t_design(return_parameters=True)
             (True, (1, 4, 2, 1))
 
-            sage: D = IncidenceStructure(4, [range(4)])
+            sage: D = IncidenceStructure(4, [list(range(4))])
             sage: D.is_t_design(return_parameters=True)
             (True, (4, 4, 4, 1))
 
@@ -1516,7 +1529,7 @@ class IncidenceStructure(object):
 
             sage: blocks = designs.steiner_quadruple_system(8)
             sage: S4_8 = IncidenceStructure(8, blocks)
-            sage: R = range(15)
+            sage: R = list(range(15))
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(3,v,k,l)]
             [(8, 4, 1)]
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(2,v,k,l)]
@@ -1649,7 +1662,7 @@ class IncidenceStructure(object):
           case, `s` and `t` are the integers defined above if they exist (each
           can be set to ``False`` otherwise).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: h = designs.CremonaRichmondConfiguration()
             sage: h.is_generalized_quadrangle()
@@ -1762,7 +1775,7 @@ class IncidenceStructure(object):
             gB = []
             for b in gblcks:
                 gB.append([x-1 for x in b])
-            return IncidenceStructure(range(v), gB, name=None, check=False)
+            return IncidenceStructure(list(range(v)), gB, name=None, check=False)
         else:
             return IncidenceStructure(
                           incidence_matrix=self.incidence_matrix().transpose(),
@@ -1788,7 +1801,7 @@ class IncidenceStructure(object):
 
         A non self-dual example::
 
-            sage: IS = IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
+            sage: IS = IncidenceStructure(list(range(4)), [[0,1,2,3],[1,2,3]])
             sage: IS.automorphism_group().cardinality()
             6
             sage: IS.dual().automorphism_group().cardinality()
@@ -1936,7 +1949,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t,i),v in p.get_values(b).iteritems():
+                    for (t,i),v in six.iteritems(p.get_values(b)):
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -2048,7 +2061,7 @@ class IncidenceStructure(object):
 
         col = [[] for i in range(k)]
 
-        for (x,i),v in p.get_values(b).iteritems():
+        for (x,i),v in six.iteritems(p.get_values(b)):
             if v:
                 col[i].append(self._points[x])
 

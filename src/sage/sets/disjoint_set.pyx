@@ -27,7 +27,7 @@ Disjoint set of integers from ``0`` to ``n - 1``::
     1
     sage: s.find(5)
     1
-    sage: map(s.find, range(6))
+    sage: list(map(s.find, range(6)))
     [0, 1, 2, 1, 2, 1]
 
 Disjoint set of hashables objects::
@@ -43,20 +43,22 @@ Disjoint set of hashables objects::
     sage: d.find('c')
     'a'
 """
+
 #*****************************************************************************
-#      Copyright (C) 2009 Sebastien Labbe <slabqc at gmail.com>
+#       Copyright (C) 2009 Sebastien Labbe <slabqc at gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import itervalues
 
-include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
-
-import itertools
 from sage.rings.integer import Integer
 from sage.structure.sage_object cimport SageObject
 from cpython.object cimport PyObject_RichCompare
+from sage.groups.perm_gps.partn_ref.data_structures cimport *
+
 
 def DisjointSet(arg):
     r"""
@@ -163,7 +165,7 @@ cdef class DisjointSet_class(SageObject):
             '{{0}, {1}, {2, 4}, {3}}'
         """
         res = []
-        for l in itervalues(self.root_to_elements_dict()):
+        for l in (<dict?>self.root_to_elements_dict()).itervalues():
             l.sort()
             res.append('{%s}' % ', '.join(repr(u) for u in l))
         res.sort()
@@ -184,7 +186,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return itervalues(self.root_to_elements_dict())
+        return (<dict?>self.root_to_elements_dict()).itervalues()
 
     def __richcmp__(self, other, int op):
         r"""
@@ -712,7 +714,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
         cdef int i
         for i from 0 <= i < self.cardinality():
             l.append(self._int_to_el[gs[i]])
-        return zip(self._int_to_el, l)
+        return list(zip(self._int_to_el, l))
 
     def __setstate__(self, l):
         r"""

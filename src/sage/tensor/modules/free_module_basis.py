@@ -9,6 +9,8 @@ bases of the dual module `M^*`).
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Travis Scrimshaw (2016): ABC Basis_abstract and list functionality for bases
+  (:trac:`20770`)
 
 REFERENCES:
 
@@ -20,6 +22,7 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -31,7 +34,6 @@ from six import itervalues
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class Basis_abstract(UniqueRepresentation, SageObject):
     """
@@ -70,8 +72,18 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             [Linear form e^0 on the Rank-3 free module M over the Integer Ring,
              Linear form e^1 on the Rank-3 free module M over the Integer Ring,
              Linear form e^2 on the Rank-3 free module M over the Integer Ring]
+
+        An example with indices starting at 1 instead of 0::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M1',
+            ....:                          start_index=1)
+            sage: e = M.basis('e')
+            sage: list(e)
+            [Element e_1 of the Rank-3 free module M1 over the Integer Ring,
+             Element e_2 of the Rank-3 free module M1 over the Integer Ring,
+             Element e_3 of the Rank-3 free module M1 over the Integer Ring]
         """
-        for i in range(self._fmodule._rank):
+        for i in self._fmodule.irange():
             yield self[i]
 
     def __len__(self):
@@ -337,6 +349,28 @@ class FreeModuleBasis(Basis_abstract):
         return FreeModuleBasis(self._fmodule, symbol, latex_symbol=latex_symbol)
 
     ###### End of methods to be redefined by derived classes ######
+
+    def module(self):
+        r"""
+        Return the free module on which the basis is defined.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
+          representing the free module of which ``self`` is a basis
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e.module()
+            Rank-3 free module M over the Integer Ring
+            sage: e.module() is M
+            True
+
+        """
+        return self._fmodule
 
     def dual_basis(self):
         r"""

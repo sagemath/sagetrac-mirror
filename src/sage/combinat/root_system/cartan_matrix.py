@@ -23,6 +23,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import add_metaclass
+
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
@@ -37,6 +40,8 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
 from sage.graphs.digraph import DiGraph
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     r"""
     A (generalized) Cartan matrix.
@@ -195,8 +200,6 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         :meth:`row_with_indices()` and :meth:`column_with_indices()`
         respectively.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, data=None, index_set=None,
                               cartan_type=None, cartan_type_check=True):
@@ -843,7 +846,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             [[], [2], [2]]
             
         """
-        iset = range(self.ncols());
+        iset = list(range(self.ncols()))
         ret = []
         for l in powerset(iset):
             if not proper or (proper and l != iset):

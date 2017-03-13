@@ -27,6 +27,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import iteritems, add_metaclass
 
 from sage.structure.sage_object import SageObject
 
@@ -894,7 +895,7 @@ class PermutationIET(Permutation):
 
         This `d*d` antisymmetric matrix is given by the rule :
 
-        .. math::
+        .. MATH::
 
             m_{ij} = \begin{cases}
                 1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
@@ -1646,7 +1647,7 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is *reducible* if there exists
         a decomposition
 
-        .. math::
+        .. MATH::
 
            A1 u B1 | ... | B1 u A2
 
@@ -1654,7 +1655,7 @@ class PermutationLI(Permutation):
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
-        right or on the left. The definition is due to [BL08]_ where they prove
+        right or on the left. The definition is due to [BL2008]_ where they prove
         that the property of being irreducible is stable under Rauzy induction.
 
         INPUT:
@@ -1979,6 +1980,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         return list(set(res))
 
 
+@add_metaclass(NestedClassMetaclass)
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -1992,7 +1994,6 @@ class RauzyDiagram(SageObject):
     - Vincent Delecroix (2008-12-20): initial version
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
-    __metaclass__ = NestedClassMetaclass
 
     class Path(SageObject):
         r"""
@@ -3521,16 +3522,17 @@ class RauzyDiagram(SageObject):
             Looped multi-digraph on 3 vertices
 
         """
-        G = DiGraph(loops=True,multiedges=True)
+        G = DiGraph(loops=True, multiedges=True)
 
-        for p,neighbours in self._succ.iteritems():
+        for p, neighbours in iteritems(self._succ):
             p = self._vertex_to_permutation(p)
-            for i,n in enumerate(neighbours):
+            for i, n in enumerate(neighbours):
                 if n is not None:
                     q = self._vertex_to_permutation(n)
-                    G.add_edge(p,q,i)
+                    G.add_edge(p, q, i)
 
         return G
+
 
 class FlippedRauzyDiagram(RauzyDiagram):
     r"""

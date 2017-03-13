@@ -675,7 +675,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute degree
         for the relative degree, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: K.degree()
@@ -1267,7 +1267,7 @@ class NumberField_relative(NumberField_generic):
         r"""
         Return True if for this relative extension `L/K`, `L` is a Galois extension of `\QQ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: y = polygen(K); L.<b> = K.extension(y^2 - a)
@@ -1488,7 +1488,7 @@ class NumberField_relative(NumberField_generic):
         deliberately not implemented, so that a user cannot confuse
         :meth:`~relative_vector_space` with :meth:`~absolute_vector_space`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: K.vector_space()
@@ -1707,9 +1707,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^2 + 2 over its base field
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
-
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1719,8 +1718,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in b with defining polynomial z^2 + 3 over its base field
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.cypari2.gen.Gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')
@@ -1770,7 +1769,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.roots_of_unity()[:5]
-            [b*a, -b^2*a - b^2, b^3, -a, b*a + b]
+            [b*a + b, b^2*a, -b^3, a + 1, b*a]
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()
@@ -1931,7 +1930,7 @@ class NumberField_relative(NumberField_generic):
         """
         Return the defining polynomial of this relative number field.
 
-        This is exactly the same as ``relative_polynomal()``.
+        This is exactly the same as ``relative_polynomial()``.
 
         EXAMPLES::
 
@@ -1950,7 +1949,7 @@ class NumberField_relative(NumberField_generic):
         not implemented.  Either :meth:`~relative_polynomial` or
         :meth:`~absolute_polynomial` must be used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.polynomial()
@@ -2215,7 +2214,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute different
         for the relative different, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.different()
@@ -2283,12 +2282,10 @@ class NumberField_relative(NumberField_generic):
             sage: L.relative_discriminant()
             Fractional ideal (2)
         """
-        nf = self._pari_base_nf()
         base = self.base_field()
-        abs_base, _, to_base = self.absolute_base_field()
+        nf = base.pari_nf()
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
-        D = [to_base(abs_base(x, check=False)) for x in abs_base.pari_zk() * D]
-        return base.ideal(D)
+        return base.ideal(nf.idealhnf(D))
 
     def discriminant(self):
         """
@@ -2296,7 +2293,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.discriminant()
@@ -2312,7 +2309,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.disc()

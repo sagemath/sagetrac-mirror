@@ -5,6 +5,9 @@ AUTHORS:
 
 - Chris Berg, Jeff Ferreira (2012-9): Initial version
 """
+from six.moves import range
+from six import add_metaclass
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
@@ -20,6 +23,7 @@ from sage.combinat.backtrack import GenericBacktracker
 import copy
 
 
+@add_metaclass(ClasscallMetaclass)
 class CompositionTableau(CombinatorialElement):
     r"""
     A composition tableau.
@@ -48,8 +52,6 @@ class CompositionTableau(CombinatorialElement):
         sage: CompositionTableau([])
         []
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -271,7 +273,7 @@ class CompositionTableau(CombinatorialElement):
             True
         """
         entries = sum(self,[])
-        return sorted(entries) == range(1, self.size() + 1)
+        return sorted(entries) == list(range(1, self.size() + 1))
 
 class CompositionTableaux(UniqueRepresentation, Parent):
     r"""

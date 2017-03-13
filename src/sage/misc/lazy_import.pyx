@@ -206,7 +206,7 @@ cdef class LazyImport(object):
             Option ``at_startup=True`` for lazy import ZZ not needed anymore
             Integer Ring
 
-        .. note::
+        .. NOTE::
 
            For a :class:`LazyImport` object that appears in a class
            namespace, we need to do something special. Indeed, the
@@ -217,9 +217,9 @@ cdef class LazyImport(object):
            ``__get__``::
 
                sage: class Foo(object):
-               ...       lazy_import('sage.all', 'plot')
+               ....:     lazy_import('sage.all', 'plot')
                sage: class Bar(Foo):
-               ...       pass
+               ....:     pass
                sage: type(Foo.__dict__['plot'])
                <type 'sage.misc.lazy_import.LazyImport'>
 
@@ -232,7 +232,7 @@ cdef class LazyImport(object):
            Now ``Bar`` has been replaced in the dictionary of ``Foo``::
 
                sage: type(Foo.__dict__['plot'])
-               <type 'function'>
+               <... 'function'>
         """
         if self._object is not None:
             return self._object
@@ -500,7 +500,7 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: class Foo:
-            ...       my_method = LazyImport('sage.all', 'my_method')
+            ....:     my_method = LazyImport('sage.all', 'my_method')
 
         Now we can use it as a usual method::
 
@@ -538,7 +538,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
@@ -552,7 +552,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
@@ -1033,15 +1033,15 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
     We check that :func:`lazy_import` also works for methods::
 
         sage: class Foo(object):
-        ...       lazy_import('sage.all', 'plot')
+        ....:     lazy_import('sage.all', 'plot')
         sage: class Bar(Foo):
-        ...       pass
+        ....:     pass
         sage: type(Foo.__dict__['plot'])
         <type 'sage.misc.lazy_import.LazyImport'>
         sage: 'EXAMPLES' in Bar.plot.__doc__
         True
         sage: type(Foo.__dict__['plot'])
-        <type 'function'>
+        <... 'function'>
 
     If deprecated then a deprecation warning is issued::
 
