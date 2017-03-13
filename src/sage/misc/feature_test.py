@@ -969,6 +969,11 @@ class LibFES(OptionalModule):
     A :class:`Feature` which describes whether the ;module:`sage.libs.fes`
     module has been enabled for this build of Sage and is functional.
 
+    .. NOTE::
+
+        This module does not depend on :class:`LibFESLibrary`. If the module
+        imports we just assume that the library is working.
+
     EXAMPLES::
 
         sage: from sage.misc.feature_test import LibFES
@@ -982,7 +987,7 @@ class LibFES(OptionalModule):
             sage: isinstance(LibFES(), LibFES)
             True
         """
-        OptionalModule.__init__(self, "sage.libs.fes", dependencies=[LibFESLibrary()], spkg="fes", url="http://www.lifl.fr/~bouillag/fes/")
+        OptionalModule.__init__(self, "sage.libs.fes", spkg="fes", url="http://www.lifl.fr/~bouillag/fes/")
 
 class BlissLibrary(SharedLibrary):
     r"""
@@ -1026,6 +1031,10 @@ class Bliss(OptionalModule):
     A :class:`Feature` which describes whether the ;module:`sage.graphs.bliss`
     module has been enabled for this build of Sage and is functional.
 
+    .. NOTE::
+
+        This module does not depend on :class:`LibFESLibrary`. If the module
+        imports we just assume that the library is working.
 
     EXAMPLES::
 
@@ -1042,4 +1051,4 @@ class Bliss(OptionalModule):
             Feature('sage.graphs.bliss')
 
         """
-        OptionalModule.__init__(self, "sage.graphs.bliss", dependencies=[BlissLibrary()], spkg="bliss", url="http://www.tcs.hut.fi/Software/bliss/")
+        OptionalModule.__init__(self, "sage.graphs.bliss", spkg="bliss", url="http://www.tcs.hut.fi/Software/bliss/")
