@@ -1284,7 +1284,7 @@ class BipartiteGraph(Graph):
         from sage.matrix.constructor import matrix
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
 
-    def matching(self, value_only=False, algorithm="Hopcroft-Karp", 
+    def matching(self, value_only=False, algorithm="Hopcroft-Karp",
             use_edge_labels=False, solver=None, verbose=0):
         r'''
         Return a maximum matching of the graph
@@ -1314,10 +1314,10 @@ class BipartiteGraph(Graph):
           returned
 
         - ``algorithm`` -- string (default: ``"Hopcroft-Karp"``)
-        
+
           - ``Hopcroft-Karp`` selects the default bipartite graph algorithm as
             implemented in NetworkX
-            
+
           - ``Eppstein`` selects Eppstein's algorithm as implemented in NetworkX
 
           - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
@@ -1380,7 +1380,7 @@ class BipartiteGraph(Graph):
 
         '''
         self._scream_if_not_simple()
-        
+
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
             import networkx
             g = networkx.Graph()
@@ -1396,7 +1396,7 @@ class BipartiteGraph(Graph):
                 return [(u, v, self.edge_label(u, v))
                         for u, v in six.iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
-            return Graph.matching(self, value_only=value_only, algorithm=algorithm, 
+            return Graph.matching(self, value_only=value_only, algorithm=algorithm,
             use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"')
