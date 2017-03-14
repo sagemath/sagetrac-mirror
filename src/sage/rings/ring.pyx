@@ -212,7 +212,7 @@ cdef class Ring(ParentWithGens):
         """
         if self.is_finite():
             return self.cardinality()
-        raise NotImplementedError('len() of an infinite set')
+        raise TypeError('len() of an infinite set')
 
     def __xor__(self, n):
         r"""
