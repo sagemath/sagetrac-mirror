@@ -104,6 +104,7 @@ sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from six import iteritems
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
@@ -383,9 +384,9 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
         mc = x.monomial_coefficients(copy=False)
         if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in mc.iteritems() )
+            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in iteritems(mc) )
         else:
-            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in mc.iteritems() ), self._zero)
+            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in iteritems(mc) ), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict
@@ -797,7 +798,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             ValueError: Morphism not known to be invertible;
             see the invertible option of module_morphism
             sage: phiinv = phi.section()
-            sage: map(phiinv*phi, X.basis().list()) == X.basis().list()
+            sage: list(map(phiinv*phi, X.basis().list())) == X.basis().list()
             True
             sage: phiinv(Y.basis()[1])
             Traceback (most recent call last):
@@ -1187,7 +1188,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
     A class for module morphisms built from a matrix in the
     distinguished bases of the domain and codomain.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism`
         - :meth:`ModulesWithBasis.FiniteDimensional.MorphismMethods.matrix`

@@ -155,6 +155,7 @@ old pickles to work).
 #
 ##########################################################################
 from __future__ import absolute_import
+from six import iteritems
 
 from pickletools import genops
 
@@ -2413,7 +2414,7 @@ def unpickle_newobj(klass, args):
     pers_load = lambda id: pers[int(id)]
 
     from six.moves import cStringIO as StringIO
-    import cPickle
+    from six.moves import cPickle
     unp = cPickle.Unpickler(StringIO(pickle))
     unp.persistent_load = pers_load
     return unp.load()
@@ -2443,12 +2444,12 @@ def unpickle_build(obj, state):
     if state is not None:
         assert(isinstance(state, dict))
         d = obj.__dict__
-        for k,v in state.iteritems():
+        for k, v in iteritems(state):
             d[k] = v
 
     if slots is not None:
         assert(isinstance(slots, dict))
-        for k,v in slots.iteritems():
+        for k, v in iteritems(slots):
             setattr(obj, k, v)
 
 def unpickle_instantiate(fn, args):
@@ -2611,7 +2612,7 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     if verbose_eval:
         print("loading pickle with cPickle:")
     from six.moves import cStringIO as StringIO
-    import cPickle
+    from six.moves import cPickle
     unp = cPickle.Unpickler(StringIO(p))
     unp.persistent_load = pers_load
     unp.find_global = unpickle_global
@@ -3027,7 +3028,7 @@ class TestGlobalFunnyName(object):
         r"""
         Print a TestGlobalFunnyName.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.explain_pickle import *
             sage: v = TestGlobalFunnyName()

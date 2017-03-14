@@ -22,7 +22,7 @@ from __future__ import division, print_function
 
 from libc.math cimport ceil
 from sage.rings.integer cimport Integer
-from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport parent
 from sage.structure.sequence import Sequence
 
 include "cysignals/signals.pxi"
@@ -208,7 +208,7 @@ def srange(*args, **kwds):
 
     OUTPUT: a list
 
-    .. note::
+    .. NOTE::
 
        This function is called ``srange`` to distinguish
        it from the built-in Python ``range`` command.  The s
