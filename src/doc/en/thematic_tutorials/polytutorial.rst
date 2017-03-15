@@ -171,35 +171,98 @@ It is also possible to define polyhedron over algebraic numbers.
     sage: cbrt_2 = AA(2)^(1/3)
     sage: timeit('Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]])')  # random
     5 loops, best of 3: 43.2 ms per loop
-
-    sage: sqrt_2s = sqrt(2)
-    sage: cbrt_2s = 2^(1/3)
-    sage: timeit('Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])')  # random
-    5 loops, best of 3: 198 ms per loop
-
     sage: P4 = Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]]); P4
     A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
-    sage: P5 = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]]); P5
-    A 1-dimensional polyhedron in (Symbolic Ring)^2 defined as the convex hull
-    of 2 vertices
 
 .. end of output
 
-.. WARNING::
-
-    As the above :code:`timeit` shows, it is considerably slower thus
-    strongly discouraged to use the :code:`Symbolic Ring`.
-
-The **better option** is to use a :code:`NumberField`:
+There is another way to create a polyhedron over algebraic numbers:
 
 ::
 
-    sage: J = NumberField(x^2 - 2,'s')
-    sage: s = J.gens()[0]
-    sage: timeit('Polyhedron(vertices = [[s, 0], [0, s]])')  # random
-    125 loops, best of 3: 5.18 ms per loop
+    sage: K.<a> = NumberField(x^2 - 2, embedding=AA(2)**(1/2))
+    sage: L.<b> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
+    sage: timeit('Polyhedron(vertices = [[a, 0], [0, b]])')  # random
+    5 loops, best of 3: 39.9 ms per loop
+    sage: P5 = Polyhedron(vertices = [[a, 0], [0, b]]); P5
+    A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
 
 .. end of output
+
+If the base ring is known it may be a good option to use the proper :code:`composite_field`:
+
+::
+
+    sage: J = K.composite_fields(L)[0]
+    sage: timeit('Polyhedron(vertices = [[J(a), 0], [0, J(b)]])')  # random
+    25 loops, best of 3: 9.8 ms per loop
+    sage: P5_comp = Polyhedron(vertices = [[J(a), 0], [0, J(b)]]); P5_comp
+    A 1-dimensional polyhedron in (Number Field in ab with defining polynomial x^6 - 6*x^4 - 4*x^3 + 12*x^2 - 24*x - 4)^2 defined as the convex hull of 2 vertices
+
+.. end of output
+
+Since the :code:`Symbolic Ring` is not exact, it is not possible to define a
+polyhedron over it:
+
+::
+
+    sage: sqrt_2s = sqrt(2)
+    sage: cbrt_2s = 2^(1/3)
+    sage: Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Symbolic Ring
+
+.. end of output
+
+Similarly, it is not possible to create polyhedron objects over :code:`floats`
+or over :code:`RR` (no matter how many bits of precision).
+
+::
+
+    sage: F45 = RealField(45)
+    sage: F100 = RealField(100)
+    sage: f = 1.1
+    sage: Polyhedron(vertices=[[F45(f)]])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 45
+    bits of precision
+    sage: Polyhedron(vertices=[[F100(f)]])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with
+    100 bits of precision
+    
+    sage: FLOATS EXAMPLE
+
+.. end of output
+
+There is one exception, when the number of bits of precision is 53, then the
+base ring is converted to :code:`RDF`:
+
+::
+
+    sage: F53 = RealField(53)
+    sage: Polyhedron(vertices=[[F53(f)]])
+    A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
+    sage: type(Polyhedron(vertices=[[F53(f)]]))
+    <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_RDF_cdd_with_category.element_class'>
+
+.. end of output
+
+This behavior can be seen as wrong, but it allows the following to be
+acceptable by Sage:
+
+::
+
+    sage: Polyhedron([(1.0, 2.3), (3.5, 2.0)])
+    A 1-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices
+
+.. end of output
+
+without having specified the base ring :code:`RDF` by the user.
+
 
 `H`-representation
 ------------------
@@ -499,7 +562,7 @@ backend :code:`field` is called.
     sage: P4.parent()
     Polyhedra in AA^2
     sage: P5.parent()
-    Polyhedra in (Symbolic Ring)^2
+    Polyhedra in AA^2
     sage: type(P4)
     <class 'sage.geometry.polyhedron.backend_field.Polyhedra_field_with_category.element_class'>
     sage: type(P5)
@@ -855,14 +918,59 @@ combinatorial and geometric information about this object.
 Enumerative properties
 ----------------------
 
-Ambient dimension
-~~~~~~~~~~~~~~~~~
+Dimensions
+~~~~~~~~~~~~
 
-Dimension
-~~~~~~~~~
+The ambient dimension is the dimension of the space in which the object is
+defined:
+
+::
+
+    sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+    sage: P1.ambient_dim()
+    2
+
+.. end of output
+
+Whereas the dimension of the object is the dimension of the smallest affine
+subspace containing it.
+
+::
+
+    sage: Polyhedron(rays = [[1, 1]])
+    A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+    and 1 ray
+    sage: Polyhedron(rays = [[1, 1]]).dim()
+    1
+    sage: Polyhedron(rays = [[1, 1]]).dimension()
+    1
+
+.. end of output
 
 :math:`f`-vector
 ~~~~~~~~~~~~~~~~~
+
+The :math:`f`-vector contains the number of faces of the object ordered by
+increasing dimension:
+
+The cube has 8 vertices, 12 edges and 6 polygons:
+
+::
+
+    sage: Cube.f_vector()
+    (1, 8, 12, 6, 1)
+
+.. end of output
+
+One can also ask the :math:`f`-vector of unbounded polyhedron. :code:`P1` has 2
+vertices and 3 edges.
+
+::
+
+    sage: P1.f_vector()
+    (1, 2, 3, 1)
+
+.. end of output
 
 Number of representation objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -872,7 +980,6 @@ several methods:
 
 ::
 
-    sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
     sage: P1.n_Hrepresentation()  # The number of elements in the H-representation
     3
     sage: P1.n_Vrepresentation()  # The number of elements in the V-representation
@@ -1116,6 +1223,122 @@ reducing the dimension of the ambient space.
 Combinatorial objects
 ----------------------------
 
+Face lattice
+~~~~~~~~~~~~~
+
+One of the most important object related to a polyhedron is its *face lattice*
+that records faces ordered by inclusion.
+
+::
+
+    sage: FL = S.face_lattice()
+    sage: BL = posets.BooleanLattice(4)
+    sage: FL.is_isomorphic(BL)
+    True
+
+.. end of output
+
+.. note ::
+
+    If one is interested in checking the combinatorial isomorphism of two
+    polyhedron objects, one should look at the `Combinatorial Isomorphism`_. 
+
+Facet and Vertex adjacency matrices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to know when two facets intersect or two vertices are contained in a
+common face, one can looks at adjacency matrices.
+
+::
+
+    sage: Cube.facet_adjacency_matrix()
+    [0 1 1 1 0 1]
+    [1 0 1 1 1 0]
+    [1 1 0 0 1 1]
+    [1 1 0 0 1 1]
+    [0 1 1 1 0 1]
+    [1 0 1 1 1 0]
+
+    sage: Cube.vertex_adjacency_matrix()
+    [0 1 1 0 1 0 0 0]
+    [1 0 0 1 0 1 0 0]
+    [1 0 0 1 0 0 1 0]
+    [0 1 1 0 0 0 0 1]
+    [1 0 0 0 0 1 1 0]
+    [0 1 0 0 1 0 0 1]
+    [0 0 1 0 1 0 0 1]
+    [0 0 0 1 0 1 1 0]
+
+.. end of output
+
+Graph or 1-skeleton
+~~~~~~~~~~~~~~~~~~~~
+
+The graph of a polyhedron consists of its vertices and edges.
+For unbounded polyhedron, only the bounded edges are used.
+
+::
+
+    sage: K4 = graphs.CompleteGraph(4)
+    sage: S.graph().is_isomorphic(K4)
+    True
+
+    sage: P1.graph()
+    Graph on 2 vertices
+
+.. end of output
+
+
+Incidence matrix
+~~~~~~~~~~~~~~~~~
+
+The entries of the incidence matrix of a polyhedron object are indexed as
+
+ - Rows :math:`\leftrightarrow` Vertices
+ - Columns :math:`\leftrightarrow` Facets
+
+There is a 1 when the corresponding vertex belongs to the corresponding facet
+and a 0 otherwise.
+
+::
+
+    sage: Cube.incidence_matrix()
+    [0 0 0 1 1 1]
+    [1 0 0 1 0 1]
+    [0 1 0 1 1 0]
+    [1 1 0 1 0 0]
+    [0 0 1 0 1 1]
+    [1 0 1 0 0 1]
+    [0 1 1 0 1 0]
+    [1 1 1 0 0 0]
+
+.. end of output
+
+Vertex directed graph
+~~~~~~~~~~~~~~~~~~~~~~
+
+Given a linear functional, sometimes also called an *objective function*, one
+can give a direction to the edges in the graph of the polyhedron from the
+smallest to the biggest value given by the functional (the default setup).
+
+When two vertices have the same value, then two oriented edges are placed
+between them. Checkout how :code:`G1` and :code:`G2` look like with the
+:code:`plot` method.
+
+::
+
+    sage: G1 = Cube.vertex_digraph(vector([1,1,1]))
+    sage: G1.sinks()
+    [A vertex at (1, 1, 1)]
+    sage: G2 = Cube.vertex_digraph(vector([1,1,0]))
+    sage: G2.sinks()
+    []
+    sage: G2.sources()
+    []
+
+.. end of output
+
+
 Visualizations
 ----------------
 
@@ -1128,7 +1351,20 @@ Visualizations
 
 
 
+Bibliography
+=============
 
+.. [Bro1983] Brondsted, A., An Introduction to Convex Polytopes, volume 90
+             of Graduate Texts in Mathematics. Springer-Verlag, New York, 1983. ISBN
+             978-1-4612-7023-2
+
+.. [Gru1967] Grünbaum, B., Convex polytopes, volume 221 of Graduate Texts in
+             Mathematics. Springer-Verlag, New York, 2003. ISBN
+             978-1-4613-0019-9
+
+.. [Zie2007] Ziegler, G. M., Lectures on polytopes, volume 152 of Graduate
+             Texts in Mathematics. Springer-Verlag, New York, 2007. 
+             ISBN 978-0-387-94365-7
 
 
 
