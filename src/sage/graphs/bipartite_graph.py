@@ -33,8 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-import six
-from six.moves import range
+from six.moves import range, iteritems
 
 from .graph import Graph
 from sage.rings.integer import Integer
@@ -1394,7 +1393,7 @@ class BipartiteGraph(Graph):
                 return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
-                        for u, v in six.iteritems(d) if u < v]
+                        for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only, algorithm=algorithm,
             use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
