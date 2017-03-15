@@ -1305,10 +1305,10 @@ class BipartiteGraph(Graph):
 
         - ``algorithm`` -- string (default: ``"Hopcroft-Karp"``)
 
-          - ``Hopcroft-Karp`` selects the default bipartite graph algorithm as
+          - ``"Hopcroft-Karp"`` selects the default bipartite graph algorithm as
             implemented in NetworkX
 
-          - ``Eppstein`` selects Eppstein's algorithm as implemented in NetworkX
+          - ``"Eppstein"`` selects Eppstein's algorithm as implemented in NetworkX
 
           - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
 
