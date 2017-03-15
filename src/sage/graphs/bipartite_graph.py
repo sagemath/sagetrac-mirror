@@ -1286,25 +1286,16 @@ class BipartiteGraph(Graph):
     def matching(self, value_only=False, algorithm="Hopcroft-Karp",
             use_edge_labels=False, solver=None, verbose=0):
         r'''
-        Return a maximum matching of the graph
-        represented by the list of its edges.
-
-        For more information, see the `Wikipedia article on matchings
-        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+        Return a maximum matching of the graph represented by the list of its
+        edges.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
         a maximum matching is a subset `S` of the edges of `G` of
         maximum weight such that no two edges of `S` are incident
         with each other.
 
-        As an optimization problem, it can be expressed as:
-
-        .. MATH::
-
-            \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
-            \mbox{Such that : }&\forall v \in G,
-            \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
-            &\forall x\in G, b_x\mbox{ is a binary variable}
+        For more information, see the `Wikipedia article on matchings
+        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
 
         INPUT:
 
