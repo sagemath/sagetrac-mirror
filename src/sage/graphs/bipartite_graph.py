@@ -1316,32 +1316,25 @@ class BipartiteGraph(Graph):
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
-          - when set to ``True`` and ``algorithm == "Edmonds"`` or ``"LP"`` 
-            , computes a weighted matching where each edge
-            is weighted by its label (if an edge has no label, `1` is assumed).
-            The NetworkX algorithms for bipartite graphs do not consider edge weights.
+          - when set to ``True``, , computes a weighted matching where each
+            edge is weighted by its label (if an edge has no label, `1` is
+            assumed). Only if ``algorithm`` is ``"Edmonds"`` or ``"LP"``.
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
-          solver to be used; if set to ``None``, the default one is used
+        - ``solver`` -- (default: ``None``) a specific Linear Program (LP)
+          solver to be used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity: set to 0 by default, which means quiet
-          (only useful when ``algorithm == "LP"``)
 
-        For more information on LP solvers and which default solver is
-        used, see the method
-        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-        of the class :class:`MixedIntegerLinearProgram
-        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        .. SEEALSO::
 
-        ALGORITHM:
-
-        The problem is solved using the Hopcroft-Karp or the Eppstein algorithms
-        as implemented in NetworkX for bipartite matchings, or Edmond's algorithm implemented in
-        NetworkX for general graphs, or using Linear Programming depending on the value of
-        ``algorithm``.
+            For more information on LP solvers and which default solver is
+            used, see the method :meth:`solve
+            <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+            :class:`MixedIntegerLinearProgram
+            <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         EXAMPLES:
 
@@ -1350,7 +1343,6 @@ class BipartiteGraph(Graph):
             sage: G = BipartiteGraph(graphs.CycleGraph(10))
             sage: G.matching()
             [(0, 1, None), (2, 3, None), (4, 5, None), (6, 7, None), (8, 9, None)]
-
 
         The size of a maximum matching in a complete bipartite graph using Eppstein::
 
