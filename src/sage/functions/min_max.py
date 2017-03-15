@@ -34,43 +34,43 @@ the minimum and maximum of functions in a domain, the first parameter inside the
 min() or max() function gets plotted irrespective of the actual values.Let's
 consider the following example::
 
-   f1(x)=sin(x)
-   f2(x)=cos(x)
-   f3(x)=x
-   p=plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   p+=plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red') # f1(x) is plotted through out the domain even though its not min at every point in the x-axis.
-   p+=plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # f2(x) is plotted through out the domain even though its not max at every point in the x-axis.
-   p.show()
+   sage: f1(x) = sin(x)
+   sage: f2(x) = cos(x)
+   sage: f3(x) = x
+   sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red') # f1(x) is plotted through out the domain even though its not min at every point in the x-axis.
+   sage: p += plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # f2(x) is plotted through out the domain even though its not max at every point in the x-axis.
+   sage: p.show()
 
 Considering some polynomial functions::
 
-   f1(x)=x*x + 4*x + 2
-   f2(x)=x^2
-   f3(x)=x
-   p=plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   p+=plot(min(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')  # always the first parameter in the min function gets plotted.
-   p+=plot(max(f2(x),f3(x),f2(x)),(x,0,2*pi),color='green') # always the first parameter in the max function gets plotted.
-   p.show()
+   sage: f1(x) = x*x + 4*x + 2
+   sage: f2(x) = x^2
+   sage: f3(x) = x
+   sage: p= plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')  # always the first parameter in the min function gets plotted.
+   sage: p += plot(max(f2(x),f3(x),f2(x)),(x,0,2*pi),color='green') # always the first parameter in the max function gets plotted.
+   sage: p.show()
 
 However, min_symbolic() and max_symbolic() are able to deal with variables as
 well as can be plotted with more than 2 parameters (functions) efficiently.
 Below are the examples of the same functions that were plotted by built-in min()
 and max() earlier::
 
-   f1(x)=sin(x)
-   f2(x)=cos(x)
-   f3(x)=x
-   p+=plot(min_symbolic(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red')
-   p+=plot(max_symbolic(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # min and max functions are plotted properly.
-   p.show()
+   sage: f1(x) = sin(x)
+   sage: f2(x) = cos(x)
+   sage: f3(x) = x
+   sage: p += plot(min_symbolic(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max_symbolic(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # min and max functions are plotted properly.
+   sage: p.show()
 
-   f1(x)=x*x + 4*x + 2
-   f2(x)=x^2
-   f3(x)=x
-   p=plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   p+=plot(min_symbolic(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')
-   p+=plot(max_symbolic(f2(x),f3(x),f1(x)),(x,0,2*pi),color='green') # min and max functions are plotted properly.
-   p.show()
+   sage: f1(x) = x*x + 4*x + 2
+   sage: f2(x) = x^2
+   sage: f3(x) = x
+   sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min_symbolic(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max_symbolic(f2(x),f3(x),f1(x)),(x,0,2*pi),color='green') # min and max functions are plotted properly.
+   sage: p.show()
 
 
 
