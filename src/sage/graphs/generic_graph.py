@@ -1660,7 +1660,7 @@ class GenericGraph(GenericGraph_pyx):
         return d
 
     def adjacency_matrix(self, sparse=None, vertices=None):
-        r""" 
+        r"""
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring
@@ -3718,7 +3718,7 @@ class GenericGraph(GenericGraph_pyx):
 
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
-                return kruskal(g, wfunction=wfunction_float, check=check)
+                return list(kruskal(g, wfunction=wfunction_float, check=check))
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
                 return min_spanning_tree(g,

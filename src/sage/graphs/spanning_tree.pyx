@@ -13,9 +13,7 @@ including minimum spanning trees.
 
 **Todo**
 
-* Rewrite :func:`kruskal` to use priority queues. Once Cython has support
-  for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
-  ``yield``.
+* Rewrite :func:`kruskal` to use priority queues. 
 * Prim's algorithm.
 * Boruvka's algorithm.
 * Parallel version of Boruvka's algorithm.
@@ -72,7 +70,7 @@ Methods
 ###########################################################################
 
 
-cpdef kruskal(G, wfunction=None, bint check=False):
+def kruskal(G, wfunction=None, bint check=False):
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
@@ -126,8 +124,8 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     OUTPUT:
 
-    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
-    returns the empty list.
+    A generator of the edges of a minimum spanning tree of ``G``, if one exists,
+    otherwise returns the empty list.
 
     .. SEEALSO::
 
@@ -140,14 +138,19 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: from sage.graphs.spanning_tree import kruskal
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
-        sage: E = kruskal(G, check=True); E
-        [(1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25)]
-
+        sage: E = list(kruskal(G, check=True)); E
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+        
     Variants of the previous example. ::
 
         sage: H = Graph(G.edges(labels=False))
-        sage: kruskal(H, check=True)
-        [(1, 2, None), (1, 6, None), (2, 3, None), (2, 7, None), (3, 4, None), (4, 5, None)]
+        sage: list(kruskal(H, check=True))
+        [(1, 2, None),
+         (1, 6, None),
+         (2, 3, None),
+         (2, 7, None),
+         (3, 4, None),
+         (4, 5, None)]
         sage: G.allow_loops(True)
         sage: G.allow_multiple_edges(True)
         sage: G
@@ -173,7 +176,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: sanitize(H)
         sage: H
         Graph on 7 vertices
-        sage: kruskal(G, check=True) == kruskal(H, check=True)
+        sage: list(kruskal(G, check=True)) == list(kruskal(H, check=True))
         True
 
     An example from pages 599--601 in [GoodrichTamassia2001]_. ::
@@ -187,8 +190,15 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "JFK":{"MIA":1090, "BWI":184},
         ....: "BWI":{"MIA":946}})
         sage: G.weighted(True)
-        sage: kruskal(G, check=True)
-        [('BOS', 'JFK', 187), ('BWI', 'JFK', 184), ('BWI', 'MIA', 946), ('BWI', 'ORD', 621), ('DFW', 'LAX', 1235), ('DFW', 'ORD', 802), ('JFK', 'PVD', 144), ('LAX', 'SFO', 337)]
+        sage: list(kruskal(G, check=True))
+        [('JFK', 'PVD', 144),
+         ('BWI', 'JFK', 184),
+         ('BOS', 'JFK', 187),
+         ('LAX', 'SFO', 337),
+         ('BWI', 'ORD', 621),
+         ('DFW', 'ORD', 802),
+         ('BWI', 'MIA', 946),
+         ('DFW', 'LAX', 1235)]
 
     An example from pages 568--569 in [CormenEtAl2001]_. ::
 
@@ -196,34 +206,41 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
         ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
-        sage: kruskal(G, check=True)
-        [('a', 'b', 4), ('a', 'h', 8), ('c', 'd', 7), ('c', 'f', 4), ('c', 'i', 2), ('d', 'e', 9), ('f', 'g', 2), ('g', 'h', 1)]
+        sage: list(kruskal(G, check=True))
+        [('g', 'h', 1),
+         ('c', 'i', 2),
+         ('f', 'g', 2),
+         ('a', 'b', 4),
+         ('c', 'f', 4),
+         ('c', 'd', 7),
+         ('a', 'h', 8),
+         ('d', 'e', 9)]
 
     An example with custom edge labels::
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
-        sage: kruskal(G, check=True)
+        sage: list(kruskal(G, check=True))
         [(0, 1, 1), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=True)
-        [(0, 2, 10), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=False)
-        [(0, 2, 10), (1, 2, 1)]
+        sage: list(kruskal(G, wfunction=weight, check=True))
+        [(1, 2, 1), (0, 2, 10)]
+        sage: list(kruskal(G, wfunction=weight, check=False))
+        [(1, 2, 1), (0, 2, 10)]
 
     TESTS:
 
     The input graph must not be empty. ::
 
         sage: from sage.graphs.spanning_tree import kruskal
-        sage: kruskal(graphs.EmptyGraph(), check=True)
+        sage: list(kruskal(graphs.EmptyGraph(), check=True))
         []
-        sage: kruskal(Graph(), check=True)
+        sage: list(kruskal(Graph(), check=True))
         []
-        sage: kruskal(Graph(multiedges=True), check=True)
+        sage: list(kruskal(Graph(multiedges=True), check=True))
         []
-        sage: kruskal(Graph(loops=True), check=True)
+        sage: list(kruskal(Graph(loops=True), check=True))
         []
-        sage: kruskal(Graph(multiedges=True, loops=True), check=True)
+        sage: list(kruskal(Graph(multiedges=True, loops=True), check=True))
         []
 
     The input graph must be connected. ::
@@ -248,28 +265,28 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....:         G.delete_edge(u, v)
         ....:     return G
         sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=False, loops=False)  # long time
-        sage: kruskal(G, check=True)  # long time
+        sage: list(kruskal(G, check=True))  # long time
         []
         sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=False)  # long time
-        sage: kruskal(G, check=True)  # long time
+        sage: list(kruskal(G, check=True))  # long time
         []
         sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=True)  # long time
-        sage: kruskal(G, check=True)  # long time
+        sage: list(kruskal(G, check=True))  # long time
         []
 
     If the input graph is a tree, then return its edges. ::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: T.edges() == kruskal(T, check=True)  # long time
+        sage: T.edges() == list(kruskal(T, check=True))  # long time
         True
 
     If the input is not a Graph::
 
-        sage: kruskal("I am not a graph")
+        sage: list(kruskal("I am not a graph"))
         Traceback (most recent call last):
         ...
         ValueError: The input G must be an undirected graph.
-        sage: kruskal(digraphs.Path(10))
+        sage: list(kruskal(digraphs.Path(10)))
         Traceback (most recent call last):
         ...
         ValueError: The input G must be an undirected graph.
@@ -328,15 +345,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             components.append(v)
         if components[0] != components[1]:
             i += 1
-            # NOTE: Once Cython supports generator and the yield statement,
-            # we should replace the following line with a yield statement.
-            # That way, we could access the edge of a minimum spanning tree
-            # immediately after it is found, instead of waiting for all the
-            # edges to be found and return the edges as a list.
-            T.append(e)
+            yield e
             # union the components by making one the parent of the other
             union_find[components[0]] = components[1]
-    return sorted(T)
+    return
 
 
 def random_spanning_tree(self, output_as_graph=False):
