@@ -286,6 +286,10 @@ REFERENCES:
             Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
             Erste Sectie, 10 (1910)
 
+.. [Bro1983] Brondsted, A., An Introduction to Convex Polytopes, volume 90
+             of Graduate Texts in Mathematics. Springer-Verlag, New York, 1983. ISBN
+             978-1-4612-7023-2
+
 .. [Br2000] Kenneth S. Brown, *Semigroups, rings, and Markov chains*,
             :arxiv:`math/0006145v1`.
 
@@ -756,6 +760,10 @@ REFERENCES:
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,
              437-465 (1967)
+
+.. [Gru1967] Grünbaum, B., Convex polytopes, volume 221 of Graduate Texts in
+             Mathematics. Springer-Verlag, New York, 2003. ISBN
+             978-1-4613-0019-9
 
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
