@@ -2481,10 +2481,17 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
         False
         sage: sage.rings.complex_number.create_ComplexNumber(0,s).imag()-1 == 0
         False
+        sage: sage.rings.complex_number.create_ComplexNumber(complex('13.8+6.2j')) == CC(complex('13.8+6.2j'))
+        True
 
     """
     if s_imag is None:
         s_imag = 0
+
+    if isinstance(s_real, complex):
+        from .complex_field import ComplexField
+        C = ComplexField(prec=min_prec)
+        return C(s_real.real, s_real.imag)
 
     if not isinstance(s_real, str):
         s_real = str(s_real).strip()
