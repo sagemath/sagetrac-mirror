@@ -1364,6 +1364,8 @@ class BipartiteGraph(Graph):
         self._scream_if_not_simple()
 
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
+            if use_edge_labels:
+                raise ValueError("use_edge_labels can not be used with Hopcroft-Karp or Eppstein")
             import networkx
             g = networkx.Graph()
             for u, v in self.edge_iterator(labels=False):
