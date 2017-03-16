@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _polytutorial:
+.. _lectures:
 
 ==================================================
 An introduction to polyhedral computations in Sage
