@@ -16,5 +16,7 @@ So far, the tutorials cover mostly things related to polyhedral computations.
 
    geometry/polytutorial
    geometry/lectures
+   geometry/new_from_old
+   geometry/related_objects
    geometry/visualization
    geometry/polytope_tikz
