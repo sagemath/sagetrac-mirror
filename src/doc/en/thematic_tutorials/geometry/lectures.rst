@@ -19,6 +19,9 @@ The classic litterature on the topic includes:
  - *An Introduction to Convex Polytopes*, Arne Brøndsted, [Bro1983]_
  - *Lectures on Polytopes*, Günter M. Ziegler, [Zie2007]_
 
+Preparation of this document was supported in part by the OpenDreamKit project and written
+during the SageDays 84 in Olot (Spain).
+
 .. contents:: Lectures Menu
     :depth: 2
 
