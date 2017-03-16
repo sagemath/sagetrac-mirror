@@ -4,11 +4,11 @@
 
 .. _lectures:
 
-==================================================
-An introduction to polyhedral computations in Sage
-==================================================
+=========================================================
+A longer introduction to polyhedral computations in Sage
+=========================================================
 
-.. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>, Jean-Philippe Labbé <labbe@math.fu-berlin.de>
+.. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
 
 This tutorial aims to showcase some of the possibilities of Sage concerning
 polyhedral geometry and combinatorics.
