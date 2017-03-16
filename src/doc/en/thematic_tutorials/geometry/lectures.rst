@@ -511,6 +511,35 @@ but not algebraic or symbolic values:
 
 .. end of output
 
+It is possible to get the :code:`cdd` format of any polyhedron object defined
+over :math:`\mathbb{Z}`, :math:`\mathbb{Q}`, or :code:`RDF`:
+
+::
+
+    sage: print P1.cdd_Vrepresentation()
+    V-representation
+    begin
+     3 3 rational
+     0 1 1
+     1 0 1
+     1 1 0
+    end
+    sage: print P3.cdd_Hrepresentation()
+    H-representation
+    begin
+     3 3 real
+     1.5 -1.0 1.0
+     -1.5 1.0 1.5
+     1.0 1.0 -1.0
+    end
+
+.. end of output
+
+You can also write this data to a file using the method :code:`.write_cdd_Hrepresentation(filename)`
+or :code:`.write_cdd_Vrepresentation(filename)`, where :code:`filename` is a
+string containing a path to a file to be written.
+
+
 The :code:`ppl` backend
 -----------------------
 
@@ -730,8 +759,33 @@ Of course, it is possible to intersect two polyhedron objects:
     sage: P1.intersection(P7)
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
 
-    sage: P1 & P7
+    sage: P1_and_P7 = P1 & P7; P1_and_P7
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+
+.. end of output
+
+Union
+---------
+
+It is also possible to take the *set theoretic* union of two polyhedron
+objects. It does the union of vertices, rays and lines to form the convex hull
+of the two objects.
+
+::
+
+    sage: R1 = Polyhedron(rays = [[-1]])
+    sage: R2 = Polyhedron(rays = [[1]])
+    sage: R1.convex_hull(R2)
+    A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+
+    sage: P1_union_P7 = P1.convex_hull(P7)
+    sage: P1_union_P7
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+    and 2 rays
+    sage: P1_union_P7.vertices()
+    (A vertex at (3, 0), A vertex at (1, 0))
+    sage: P1_union_P7.rays()
+    (A ray in the direction (-1, 1), A ray in the direction (1, 1))
 
 .. end of output
 
@@ -883,7 +937,7 @@ Similar, the pyramid is a join of a vertex with the polyhedron.
 
 ::
 
-    sage: (P1 & P7).pyramid()
+    sage: (P1_and_P7).pyramid()
     A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 5 vertices
 
 .. end of output
@@ -895,16 +949,24 @@ One can translate a polyhedron by a vector.
 
 ::
 
-    sage: (P1 & P7).vertices()
+    sage: (P1_and_P7).vertices()
     (A vertex at (2, 3),
      A vertex at (3, 2),
      A vertex at (2, 1),
      A vertex at (1, 2))
-    sage: (P1 & P7).translation([-1, 0]).vertices()
+    sage: P1P7_translate = (P1_and_P7).translation([-1, 0])
+    sage: P1P7_translate.vertices()
     (A vertex at (0, 2),
      A vertex at (1, 1),
      A vertex at (1, 3),
      A vertex at (2, 2))
+    
+    sage: P1_and_P7.find_translation(P17_translate)
+    (-1, 0)
+    sage: P1_and_P7.find_translation(P2)
+    Traceback (most recent call last):
+    ...
+    ValueError: polyhedron is not a translation of self
 
 .. end of output
 
@@ -1031,11 +1093,12 @@ Testing if a polyhedron contains a point is done as follows.
 
 ::
 
-    sage: P8 = P1 & P7
-    sage: P8.interior_contains([2,2])
+    sage: P1_and_P7.interior_contains([2,2])
     True
-    sage: P8.interior_contains([2,0])
+    sage: P1_and_P7.interior_contains([2,1])
     False
+    sage: P1_and_P7.contains([2,1])
+    True
 
 .. end of output
 
@@ -1049,7 +1112,7 @@ data of the polyhedron.
 
     sage: FaceFan(Cube)
     Rational polyhedral fan in 3-d lattice M
-    sage: NormalFan(P8)
+    sage: NormalFan(P1_and_P7)
     Rational polyhedral fan in 2-d lattice N
 
 .. end of output
@@ -1276,11 +1339,14 @@ Graph or 1-skeleton
 
 The graph of a polyhedron consists of its vertices and edges.
 For unbounded polyhedron, only the bounded edges are used.
+There are two ways to get it.
 
 ::
 
     sage: K4 = graphs.CompleteGraph(4)
     sage: S.graph().is_isomorphic(K4)
+    True
+    sage: S.vertex_graph().is_isomorphic(K4)
     True
 
     sage: P1.graph()
@@ -1338,73 +1404,6 @@ between them. Checkout how :code:`G1` and :code:`G2` look like with the
 
 .. end of output
 
-
-Lecture 7: Visualizations
-==========================
-
-There are different ways to visualize polyhedron object of dimension at most 4.
-
-:code:`render_wireframe`
---------------------------
-
-This plots the graph (with unbounded edges) of the polyhedron
-
-::
-
-    sage: Cube.render_wireframe()
-    Launched jmol viewer for Graphics3d Object
-    sage: P2.render_wireframe()
-    Launched jmol viewer for Graphics3d Object
-
-.. end of output
-
-:code:`render_solid`
---------------------
-
-This plots the polyhedron as a solid. You can also adjust the :code:`opacity`
-parameter.
-
-::
-
-    sage: Cube.render_solid(opacity=0.7)
-    Launched jmol viewer for Graphics3d Object
-
-.. end of output
-
-:code:`plot` 
---------------------
-
-The :code:`plot` method draws the graph, the polygons and vertices of the
-polyhedron all together.
-
-::
-
-    sage: Cube.plot()
-    Launched jmol viewer for Graphics3d Object
-
-.. end of output
-
-:code:`show`
---------------------
-
-This is similar to :code:`plot` but does not return an object that you can
-manipulate.
-
-
-:code:`schlegel_projection`
------------------------------
-
-It is possible to visualize 4-dimensional polytopes using a schlegel diagram.
-
-::
-
-    sage: HC = polytopes.hypercube(4)
-    sage: HC.schlegel_projection()
-    The projection of a polyhedron into 3 dimensions
-    sage: HC.schlegel_projection().plot()
-    Launched jmol viewer for Graphics3d Object
-
-.. end of output
 
 
 
@@ -1524,138 +1523,7 @@ However, if a polytope is  *not*  in `\ZZ`, for example if it's in `\QQ` or
 
 Keep all of this in mind as you take polar duals.
 
- 
 
-Polytope Constructions
-======================
-
-Minkowski sums!  Now with two syntaxes!
-
-
-::
-
-    sage: P1+P2
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 8 vertices
-
-.. end of output
-
-::
-
-    sage: P1.Minkowski_sum(P2)
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 8 vertices
-
-.. end of output
-
-Okay, fine.  We should have some 3\-dimensional examples, at least.
-(Note that in order to display polytopes effectively you'll need
-visualization software such as Javaview and Jmol installed.)
-
-
-::
-
-    sage: P3 = Polyhedron(vertices=[(0,0,0), (0,0,1/2), (0,1/2,0), (1/2,0,0), (3/4,1/5,3/2)]); P3
-    A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
-    sage: P4 = Polyhedron(vertices=[(-1,1,0),(1,1,0),(-1,0,1), (1,0,1),(0,-1,1),(0,1,1)]); P4
-    A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-    sage: P3.plot() + P4.plot()
-    Graphics3d Object
-
-.. end of output
-
-::
-
-    sage: (P3+P4).plot()
-    Graphics3d Object
-
-.. end of output
-
-We can also find the intersection of two polytopes... and this too has two
-syntaxes!
-
-
-::
-
-    sage: int12 = P1.intersection(P2*.5); int12.plot()
-    Graphics object consisting of 7 graphics primitives
-
-.. end of output
-
-::
-
-    sage: int34 = P3 & P4; int34.plot()
-    Graphics3d Object
-
-.. end of output
-
-Should one wish to translate, one can.
-
-
-::
-
-    sage: transP2 = P2.translation([2,1])
-    sage: P2.plot() + transP2.plot()
-    Graphics object consisting of 14 graphics primitives
-
-.. end of output
-
-Then of course we can take prisms, pyramids, and bipyramids of polytopes...
-
-
-::
-
-    sage: P2.prism().plot()
-    Graphics3d Object
-
-.. end of output
-
-::
-
-    sage: P1.pyramid().plot()
-    Graphics3d Object
-
-.. end of output
-
-::
-
-    sage: P2dual.bipyramid().plot()
-    Graphics3d Object
-
-.. end of output
-
-Okay, fine.  Yes, Sage has some kinds of polytopes built in.
-If you type ``polytopes.`` and then press ``TAB`` after the period, you'll get a
-list of pre\-built polytopes.
-
-
-::
-
-    sage: P5 = polytopes.hypercube(5)
-    sage: P6 = polytopes.cross_polytope(3)
-    sage: P7 = polytopes.simplex(7)
-
-
-.. end of output
-
-Let's look at a 4\-dimensional polytope.
-
-
-::
-
-    sage: P8 = polytopes.hypercube(4)
-    sage: P8.plot()
-    Graphics3d Object
-
-.. end of output
-
-We can see it from a different perspective:
-
-
-::
-
-    sage: P8.schlegel_projection([2,5,11,17]).plot()
-    Graphics3d Object
-
-.. end of output
 
 Queries to polytopes
 ====================
