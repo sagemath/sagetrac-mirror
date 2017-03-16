@@ -320,7 +320,7 @@ reducing the dimension of the ambient space.
 
 .. end of output
 
-Combinatorial objects
+Combinatorial objects and properties
 ==============================================================
 
 Face lattice
