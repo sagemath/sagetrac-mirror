@@ -10,9 +10,9 @@
 
 
 cdef extern from "<gap/system.h>":
-    ctypedef char libGAP_Char
-    ctypedef int libGAP_Int
-    ctypedef unsigned char libGAP_UChar
+    ctypedef char Char
+    ctypedef int Int
+    ctypedef unsigned char UChar
 
 cdef extern from "<gap/libgap.h>":
     void libgap_initialize(int argc, char** argv)
@@ -31,299 +31,299 @@ cdef extern from "<gap/libgap.h>":
     void libgap_exit()
 
 cdef extern from "<gap/code.h>":
-    ctypedef unsigned int libGAP_Stat
-    ctypedef libGAP_Stat* libGAP_PtrBody
+    ctypedef unsigned int Stat
+    ctypedef Stat* PtrBody
 
 cdef extern from "<gap/gap.h>":
-    ctypedef unsigned int libGAP_UInt
-    ctypedef void* libGAP_ExecStatus
-    void libGAP_ViewObjHandler(void*)
-    void libGAP_InitializeGap(int*, char** argv)
-    void libGAP_set_system_variables(char**, char**)
-    cdef libGAP_UInt libGAP_Last
-    cdef libGAP_UInt libGAP_Last2
-    cdef libGAP_UInt libGAP_Last3
-    cdef libGAP_ExecStatus libGAP_STATUS_END
-    cdef libGAP_ExecStatus libGAP_STATUS_RETURN_VAL
-    cdef libGAP_ExecStatus libGAP_STATUS_RETURN_VOID
-    cdef libGAP_ExecStatus libGAP_STATUS_TNM
-    cdef libGAP_ExecStatus libGAP_STATUS_QUIT
-    cdef libGAP_ExecStatus libGAP_STATUS_EOF
-    cdef libGAP_ExecStatus libGAP_STATUS_ERROR
-    cdef libGAP_ExecStatus libGAP_STATUS_QQUIT
+    ctypedef unsigned int UInt
+    ctypedef void* ExecStatus
+    void ViewObjHandler(void*)
+    void InitializeGap(int*, char** argv)
+    void set_system_variables(char**, char**)
+    cdef UInt Last
+    cdef UInt Last2
+    cdef UInt Last3
+    cdef ExecStatus STATUS_END
+    cdef ExecStatus STATUS_RETURN_VAL
+    cdef ExecStatus STATUS_RETURN_VOID
+    cdef ExecStatus STATUS_TNM
+    cdef ExecStatus STATUS_QUIT
+    cdef ExecStatus STATUS_EOF
+    cdef ExecStatus STATUS_ERROR
+    cdef ExecStatus STATUS_QQUIT
 
 cdef extern from "<gap/objects.h>":
-    ctypedef void* libGAP_Obj
-    libGAP_Obj libGAP_SHALLOW_COPY_OBJ(libGAP_Obj obj)
-    bint libGAP_IS_INTOBJ(libGAP_Obj obj)
-    libGAP_Obj libGAP_INTOBJ_INT(libGAP_Int)
-    libGAP_Int libGAP_INT_INTOBJ(libGAP_Obj)
-    libGAP_UInt libGAP_TNUM_OBJ(libGAP_Obj obj)
-    char* libGAP_TNAM_OBJ(libGAP_Obj obj)
-    cdef int libGAP_FIRST_REAL_TNUM
-    cdef int libGAP_FIRST_CONSTANT_TNUM
-    cdef int libGAP_T_INT
-    cdef int libGAP_T_INTPOS
-    cdef int libGAP_T_INTNEG
-    cdef int libGAP_T_RAT
-    cdef int libGAP_T_CYC
-    cdef int libGAP_T_FFE
-    cdef int libGAP_T_PERM2
-    cdef int libGAP_T_PERM4
-    cdef int libGAP_T_BOOL
-    cdef int libGAP_T_CHAR
-    cdef int libGAP_T_FUNCTION
-    cdef int libGAP_T_FLAGS
-    cdef int libGAP_T_MACFLOAT
-    cdef int libGAP_T_RESERVED_BY_GAP
-    cdef int libGAP_LAST_CONSTANT_TNUM
-    cdef int libGAP_IMMUTABLE
-    cdef int libGAP_FIRST_IMM_MUT_TNUM
-    cdef int libGAP_FIRST_RECORD_TNUM
-    cdef int libGAP_T_PREC
-    cdef int libGAP_LAST_RECORD_TNUM
-    cdef int libGAP_FIRST_LIST_TNUM
-    cdef int libGAP_FIRST_PLIST_TNUM
-    cdef int libGAP_T_PLIST
-    cdef int libGAP_T_PLIST_NDENSE
-    cdef int libGAP_T_PLIST_DENSE
-    cdef int libGAP_T_PLIST_DENSE_NHOM
-    cdef int libGAP_T_PLIST_DENSE_NHOM_SSORT
-    cdef int libGAP_T_PLIST_DENSE_NHOM_NSORT
-    cdef int libGAP_T_PLIST_EMPTY
-    cdef int libGAP_T_PLIST_HOM
-    cdef int libGAP_T_PLIST_HOM_NSORT
-    cdef int libGAP_T_PLIST_HOM_SSORT
-    cdef int libGAP_T_PLIST_TAB
-    cdef int libGAP_T_PLIST_TAB_NSORT
-    cdef int libGAP_T_PLIST_TAB_SSORT
-    cdef int libGAP_T_PLIST_TAB_RECT
-    cdef int libGAP_T_PLIST_TAB_RECT_NSORT
-    cdef int libGAP_T_PLIST_TAB_RECT_SSORT
-    cdef int libGAP_T_PLIST_CYC
-    cdef int libGAP_T_PLIST_CYC_NSORT
-    cdef int libGAP_T_PLIST_CYC_SSORT
-    cdef int libGAP_T_PLIST_FFE
-    cdef int libGAP_LAST_PLIST_TNUM
-    cdef int libGAP_T_RANGE_NSORT
-    cdef int libGAP_T_RANGE_SSORT
-    cdef int libGAP_T_BLIST
-    cdef int libGAP_T_BLIST_NSORT
-    cdef int libGAP_T_BLIST_SSORT
-    cdef int libGAP_T_STRING
-    cdef int libGAP_T_STRING_NSORT
-    cdef int libGAP_T_STRING_SSORT
-    cdef int libGAP_LAST_LIST_TNUM
-    cdef int libGAP_LAST_IMM_MUT_TNUM
-    cdef int libGAP_FIRST_EXTERNAL_TNUM
-    cdef int libGAP_T_COMOBJ
-    cdef int libGAP_T_POSOBJ
-    cdef int libGAP_T_DATOBJ
-    cdef int libGAP_T_WPOBJ
-    cdef int libGAP_LAST_EXTERNAL_TNUM
-    cdef int libGAP_LAST_REAL_TNUM
-    cdef int libGAP_LAST_VIRTUAL_TNUM
-    cdef int libGAP_FIRST_COPYING_TNUM
-    cdef int libGAP_COPYING
-    cdef int libGAP_LAST_COPYING_TNUM
-    cdef int libGAP_FIRST_TESTING_TNUM
-    cdef int libGAP_TESTING
-    cdef int libGAP_LAST_TESTING_TNUM
+    ctypedef void* Obj
+    Obj SHALLOW_COPY_OBJ(Obj obj)
+    bint IS_INTOBJ(Obj obj)
+    Obj INTOBJ_INT(Int)
+    Int INT_INTOBJ(Obj)
+    UInt TNUM_OBJ(Obj obj)
+    char* TNAM_OBJ(Obj obj)
+    cdef int FIRST_REAL_TNUM
+    cdef int FIRST_CONSTANT_TNUM
+    cdef int T_INT             "(FIRST_CONSTANT_TNUM+ 0)"
+    cdef int T_INTPOS
+    cdef int T_INTNEG
+    cdef int T_RAT
+    cdef int T_CYC
+    cdef int T_FFE
+    cdef int T_PERM2
+    cdef int T_PERM4
+    cdef int T_BOOL            "(FIRST_CONSTANT_TNUM+ 8)"
+    cdef int T_CHAR            "(FIRST_CONSTANT_TNUM+ 9)"
+    cdef int T_FUNCTION
+    cdef int T_FLAGS
+    cdef int T_MACFLOAT
+    cdef int T_RESERVED_BY_GAP
+    cdef int LAST_CONSTANT_TNUM
+    cdef int IMMUTABLE
+    cdef int FIRST_IMM_MUT_TNUM
+    cdef int FIRST_RECORD_TNUM
+    cdef int T_PREC
+    cdef int LAST_RECORD_TNUM
+    cdef int FIRST_LIST_TNUM
+    cdef int FIRST_PLIST_TNUM
+    cdef int T_PLIST
+    cdef int T_PLIST_NDENSE
+    cdef int T_PLIST_DENSE
+    cdef int T_PLIST_DENSE_NHOM
+    cdef int T_PLIST_DENSE_NHOM_SSORT
+    cdef int T_PLIST_DENSE_NHOM_NSORT
+    cdef int T_PLIST_EMPTY
+    cdef int T_PLIST_HOM
+    cdef int T_PLIST_HOM_NSORT
+    cdef int T_PLIST_HOM_SSORT
+    cdef int T_PLIST_TAB
+    cdef int T_PLIST_TAB_NSORT
+    cdef int T_PLIST_TAB_SSORT
+    cdef int T_PLIST_TAB_RECT
+    cdef int T_PLIST_TAB_RECT_NSORT
+    cdef int T_PLIST_TAB_RECT_SSORT
+    cdef int T_PLIST_CYC
+    cdef int T_PLIST_CYC_NSORT
+    cdef int T_PLIST_CYC_SSORT
+    cdef int T_PLIST_FFE
+    cdef int LAST_PLIST_TNUM
+    cdef int T_RANGE_NSORT
+    cdef int T_RANGE_SSORT
+    cdef int T_BLIST
+    cdef int T_BLIST_NSORT
+    cdef int T_BLIST_SSORT
+    cdef int T_STRING            "(FIRST_LIST_TNUM+50)"
+    cdef int T_STRING_NSORT
+    cdef int T_STRING_SSORT
+    cdef int LAST_LIST_TNUM
+    cdef int LAST_IMM_MUT_TNUM
+    cdef int FIRST_EXTERNAL_TNUM
+    cdef int T_COMOBJ
+    cdef int T_POSOBJ
+    cdef int T_DATOBJ
+    cdef int T_WPOBJ
+    cdef int LAST_EXTERNAL_TNUM
+    cdef int LAST_REAL_TNUM
+    cdef int LAST_VIRTUAL_TNUM
+    cdef int FIRST_COPYING_TNUM
+    cdef int COPYING
+    cdef int LAST_COPYING_TNUM
+    cdef int FIRST_TESTING_TNUM
+    cdef int TESTING
+    cdef int LAST_TESTING_TNUM
 
 cdef extern from "<gap/read.h>":
-    void* libGAP_ReadEvalCommand(libGAP_Obj context, libGAP_UInt *dualSemicolon)
-    void* libGAP_ReadEvalFile()
-    void* libGAP_ReadEvalResult
-    bint libGAP_READ_ERROR()
+    void* ReadEvalCommand(Obj context, UInt *dualSemicolon)
+    void* ReadEvalFile()
+    void* ReadEvalResult "TLS(ReadEvalResult)"
+    bint READ_ERROR()
 
 cdef extern from "<gap/scanner.h>":
-    void libGAP_ClearError()
-    libGAP_UInt libGAP_NrError
-    libGAP_UInt libGAP_Symbol
-    void libGAP_GetSymbol()
-    void libGAP_Match (libGAP_UInt symbol, char* msg, libGAP_UInt skipto)
-    int libGAP_S_ILLEGAL
-    int libGAP_S_IDENT
-    int libGAP_S_UNBIND
-    int libGAP_S_ISBOUND
-    int libGAP_S_TRYNEXT
-    int libGAP_S_INFO
-    int libGAP_S_ASSERT
-    int libGAP_S_SAVEWS
-    int libGAP_S_LOADWS
-    int libGAP_S_LBRACK
-    int libGAP_S_LBRACE
-    int libGAP_S_BLBRACK
-    int libGAP_S_BLBRACE
-    int libGAP_S_RBRACK
-    int libGAP_S_RBRACE
-    int libGAP_S_DOT
-    int libGAP_S_BDOT
-    int libGAP_S_LPAREN
-    int libGAP_S_RPAREN
-    int libGAP_S_COMMA
-    int libGAP_S_DOTDOT
-    int libGAP_S_COLON
-    int libGAP_S_PARTIALINT
-    int libGAP_S_INT
-    int libGAP_S_TRUE
-    int libGAP_S_FALSE
-    int libGAP_S_CHAR
-    int libGAP_S_STRING
-    int libGAP_S_PARTIALSTRING
-    int libGAP_S_REC
-    int libGAP_S_FUNCTION
-    int libGAP_S_LOCAL
-    int libGAP_S_END
-    int libGAP_S_MAPTO
-    int libGAP_S_MULT
-    int libGAP_S_DIV
-    int libGAP_S_MOD
-    int libGAP_S_POW
-    int libGAP_S_PLUS
-    int libGAP_S_MINUS
-    int libGAP_S_EQ
-    int libGAP_S_LT
-    int libGAP_S_GT
-    int libGAP_S_NE
-    int libGAP_S_LE
-    int libGAP_S_GE
-    int libGAP_S_IN
-    int libGAP_S_NOT
-    int libGAP_S_AND
-    int libGAP_S_OR
-    int libGAP_S_ASSIGN
-    int libGAP_S_IF
-    int libGAP_S_FOR
-    int libGAP_S_WHILE
-    int libGAP_S_REPEAT
-    int libGAP_S_THEN
-    int libGAP_S_ELIF
-    int libGAP_S_ELSE
-    int libGAP_S_FI
-    int libGAP_S_DO
-    int libGAP_S_OD
-    int libGAP_S_UNTIL
-    int libGAP_S_BREAK
-    int libGAP_S_RETURN
-    int libGAP_S_QUIT
-    int libGAP_S_QQUIT
-    int libGAP_S_CONTINUE
-    int libGAP_S_SEMICOLON
-    int libGAP_S_EOF
+    void ClearError()
+    UInt NrError  "TLS(NrError)"
+    UInt Symbol  "TLS(Symbol)"
+    void GetSymbol()
+    void Match (UInt symbol, char* msg, UInt skipto)
+    int S_ILLEGAL
+    int S_IDENT
+    int S_UNBIND
+    int S_ISBOUND
+    int S_TRYNEXT
+    int S_INFO
+    int S_ASSERT
+    int S_SAVEWS
+    int S_LOADWS
+    int S_LBRACK
+    int S_LBRACE
+    int S_BLBRACK
+    int S_BLBRACE
+    int S_RBRACK
+    int S_RBRACE
+    int S_DOT
+    int S_BDOT
+    int S_LPAREN
+    int S_RPAREN
+    int S_COMMA
+    int S_DOTDOT
+    int S_COLON
+    int S_PARTIALINT
+    int S_INT
+    int S_TRUE
+    int S_FALSE
+    int S_CHAR
+    int S_STRING
+    int S_PARTIALSTRING
+    int S_REC
+    int S_FUNCTION
+    int S_LOCAL
+    int S_END
+    int S_MAPTO
+    int S_MULT
+    int S_DIV
+    int S_MOD
+    int S_POW
+    int S_PLUS
+    int S_MINUS
+    int S_EQ
+    int S_LT
+    int S_GT
+    int S_NE
+    int S_LE
+    int S_GE
+    int S_IN
+    int S_NOT
+    int S_AND
+    int S_OR
+    int S_ASSIGN
+    int S_IF
+    int S_FOR
+    int S_WHILE
+    int S_REPEAT
+    int S_THEN
+    int S_ELIF
+    int S_ELSE
+    int S_FI
+    int S_DO
+    int S_OD
+    int S_UNTIL
+    int S_BREAK
+    int S_RETURN
+    int S_QUIT
+    int S_QQUIT
+    int S_CONTINUE
+    int S_SEMICOLON
+    int S_EOF
 
 cdef extern from "<gap/gvars.h>":
-    libGAP_UInt libGAP_GVarName(char* name)
-    void libGAP_AssGVar(libGAP_UInt gvar, libGAP_Obj val)
-    libGAP_Obj libGAP_VAL_GVAR(libGAP_UInt gvar)
+    UInt GVarName(char* name)
+    void AssGVar(UInt gvar, Obj val)
+    Obj VAL_GVAR(UInt gvar)
 
 cdef extern from "<gap/string.h>":
-    char* libGAP_CSTR_STRING(libGAP_Obj list)
-    int libGAP_GET_LEN_STRING(libGAP_Obj list)
-    bint libGAP_IS_STRING(libGAP_Obj obj)
-    bint libGAP_IsStringConv(libGAP_Obj obj)
-    bint libGAP_ConvString(libGAP_Obj obj)
-    void libGAP_C_NEW_STRING(libGAP_Obj new_gap_string, int length, char* c_string)
+    char* CSTR_STRING(Obj list)
+    int GET_LEN_STRING(Obj list)
+    bint IS_STRING(Obj obj)
+    bint IsStringConv(Obj obj)
+    bint ConvString(Obj obj)
+    void C_NEW_STRING(Obj new_gap_string, int length, char* c_string)
 
 cdef extern from "<gap/gasman.h>":
-    void libGAP_InitGlobalBag(libGAP_Obj* addr, char* cookie)
-    libGAP_Obj libGAP_NewBag(libGAP_UInt type, libGAP_UInt size)
-    void libGAP_CHANGED_BAG(libGAP_Obj bag)
-    void libGAP_MARK_BAG(libGAP_Obj bag)
-    bint libGAP_IS_MARKED_ALIVE(libGAP_Obj bag)
-    bint libGAP_IS_MARKED_DEAD(libGAP_Obj bag)
-    bint libGAP_IS_MARKED_HALFDEAD(libGAP_Obj bag)
-    cdef libGAP_UInt libGAP_NrAllBags
-    cdef libGAP_UInt libGAP_SizeAllBags
-    cdef libGAP_UInt libGAP_NrLiveBags
-    cdef libGAP_UInt libGAP_SizeLiveBags
-    cdef libGAP_UInt libGAP_NrDeadBags
-    cdef libGAP_UInt libGAP_SizeDeadBags
-    cdef libGAP_UInt libGAP_NrHalfDeadBags
-    libGAP_UInt libGAP_CollectBags(libGAP_UInt size, libGAP_UInt full)
-    void libGAP_CallbackForAllBags(void (*func)(libGAP_Obj))
-    char* libGAP_TNAM_BAG(libGAP_Obj obj)
-    libGAP_UInt libGAP_TNUM_BAG(libGAP_Obj)
-    libGAP_UInt libGAP_SIZE_BAG(libGAP_Obj)
-    void libGAP_CheckMasterPointers()
-    libGAP_Obj* libGAP_MptrBags
-    libGAP_Obj* libGAP_YoungBags
-    libGAP_Obj* libGAP_OldBags
-    libGAP_Obj* libGAP_AllocBags
-    libGAP_Obj* libGAP_MarkedBags
-    libGAP_Obj* libGAP_ChangedBags
+    void InitGlobalBag(Obj* addr, char* cookie)
+    Obj NewBag(UInt type, UInt size)
+    void CHANGED_BAG(Obj bag)
+    void MARK_BAG(Obj bag)
+    bint IS_MARKED_ALIVE(Obj bag)
+    bint IS_MARKED_DEAD(Obj bag)
+    bint IS_MARKED_HALFDEAD(Obj bag)
+    cdef UInt NrAllBags
+    cdef UInt SizeAllBags
+    cdef UInt NrLiveBags
+    cdef UInt SizeLiveBags
+    cdef UInt NrDeadBags
+    cdef UInt SizeDeadBags
+    cdef UInt NrHalfDeadBags
+    UInt CollectBags(UInt size, UInt full)
+    void CallbackForAllBags(void (*func)(Obj))
+    char* TNAM_BAG(Obj obj)
+    UInt TNUM_BAG(Obj)
+    UInt SIZE_BAG(Obj)
+    void CheckMasterPointers()
+    Obj* MptrBags
+    Obj* YoungBags
+    Obj* OldBags
+    Obj* AllocBags
+    Obj* MarkedBags
+    Obj* ChangedBags
 
 # in gasman.c but not declared in gasman.h
-cdef extern libGAP_Obj* libGAP_StopBags
-cdef extern libGAP_Obj* libGAP_EndBags
+cdef extern Obj* StopBags
+cdef extern Obj* EndBags
 
 cdef extern from "<gap/ariths.h>":
-    libGAP_Obj libGAP_SUM (libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_DIFF(libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_PROD(libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_QUO(libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_POW(libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_MOD(libGAP_Obj, libGAP_Obj)
-    libGAP_Obj libGAP_CALL_0ARGS(libGAP_Obj f)              # 0 arguments
-    libGAP_Obj libGAP_CALL_1ARGS(libGAP_Obj f, libGAP_Obj a1)      # 1 argument
-    libGAP_Obj libGAP_CALL_2ARGS(libGAP_Obj f, libGAP_Obj a1, libGAP_Obj a2)
-    libGAP_Obj libGAP_CALL_3ARGS(libGAP_Obj f, libGAP_Obj a1, libGAP_Obj a2, libGAP_Obj a3)
-    libGAP_Obj libGAP_CALL_4ARGS(libGAP_Obj f, libGAP_Obj a1, libGAP_Obj a2, libGAP_Obj a3,
-                                 libGAP_Obj a4)
-    libGAP_Obj libGAP_CALL_5ARGS(libGAP_Obj f, libGAP_Obj a1, libGAP_Obj a2, libGAP_Obj a3,
-                                 libGAP_Obj a4, libGAP_Obj a5)
-    libGAP_Obj libGAP_CALL_6ARGS(libGAP_Obj f, libGAP_Obj a1, libGAP_Obj a2, libGAP_Obj a3,
-                                 libGAP_Obj a4, libGAP_Obj a5, libGAP_Obj a6)
-    libGAP_Obj libGAP_CALL_XARGS(libGAP_Obj f, libGAP_Obj args)   # more than 6 arguments
-    bint libGAP_EQ(libGAP_Obj opL, libGAP_Obj opR)
-    bint libGAP_LT(libGAP_Obj opL, libGAP_Obj opR)
+    Obj SUM (Obj, Obj)
+    Obj DIFF(Obj, Obj)
+    Obj PROD(Obj, Obj)
+    Obj QUO(Obj, Obj)
+    Obj POW(Obj, Obj)
+    Obj MOD(Obj, Obj)
+    Obj CALL_0ARGS(Obj f)              # 0 arguments
+    Obj CALL_1ARGS(Obj f, Obj a1)      # 1 argument
+    Obj CALL_2ARGS(Obj f, Obj a1, Obj a2)
+    Obj CALL_3ARGS(Obj f, Obj a1, Obj a2, Obj a3)
+    Obj CALL_4ARGS(Obj f, Obj a1, Obj a2, Obj a3,
+                                 Obj a4)
+    Obj CALL_5ARGS(Obj f, Obj a1, Obj a2, Obj a3,
+                                 Obj a4, Obj a5)
+    Obj CALL_6ARGS(Obj f, Obj a1, Obj a2, Obj a3,
+                                 Obj a4, Obj a5, Obj a6)
+    Obj CALL_XARGS(Obj f, Obj args)   # more than 6 arguments
+    bint EQ(Obj opL, Obj opR)
+    bint LT(Obj opL, Obj opR)
 
 cdef extern from "<gap/calls.h>":
-    bint libGAP_IS_FUNC(libGAP_Obj)
+    bint IS_FUNC(Obj)
 
 cdef extern from "<gap/plist.h>":
-    libGAP_Obj libGAP_NEW_PLIST(int type, int len)
-    bint libGAP_IS_PLIST(libGAP_Obj lst)
-    int libGAP_LEN_PLIST(libGAP_Obj lst)
-    libGAP_Obj libGAP_ELM_PLIST(libGAP_Obj lst, int pos)
+    Obj NEW_PLIST(int type, int len)
+    bint IS_PLIST(Obj lst)
+    int LEN_PLIST(Obj lst)
+    Obj ELM_PLIST(Obj lst, int pos)
 
 cdef extern from "<gap/lists.h>":
-    void libGAP_UNB_LIST(libGAP_Obj list, int pos)
-    bint libGAP_IS_LIST(libGAP_Obj lst)
-    int libGAP_LEN_LIST(libGAP_Obj lst)
-    libGAP_Obj libGAP_ELM_LIST(libGAP_Obj lst, int pos)
+    void UNB_LIST(Obj list, int pos)
+    bint IS_LIST(Obj lst)
+    int LEN_LIST(Obj lst)
+    Obj ELM_LIST(Obj lst, int pos)
 
 cdef extern from "<gap/listfunc.h>":
-    void libGAP_AddList(libGAP_Obj list, libGAP_Obj obj)
-    void libGAP_AddPlist(libGAP_Obj list, libGAP_Obj obj)
+    void AddList(Obj list, Obj obj)
+    void AddPlist(Obj list, Obj obj)
 
 cdef extern from "<gap/records.h>":
-    char* libGAP_NAME_RNAM(libGAP_UInt rnam)
-    libGAP_UInt libGAP_RNamIntg(int i)
-    bint libGAP_IS_REC(libGAP_Obj obj)
-    libGAP_Obj libGAP_ELM_REC(libGAP_Obj rec, libGAP_UInt rnam)
-    libGAP_UInt libGAP_RNamName(libGAP_Char* name)
+    char* NAME_RNAM(UInt rnam)
+    UInt RNamIntg(int i)
+    bint IS_REC(Obj obj)
+    Obj ELM_REC(Obj rec, UInt rnam)
+    UInt RNamName(Char* name)
 
 cdef extern from "<gap/precord.h>":
-    libGAP_Obj libGAP_NEW_PREC(int len)
-    int libGAP_LEN_PREC(libGAP_Obj rec)
-    int libGAP_GET_RNAM_PREC(libGAP_Obj rec, int i)
-    libGAP_Obj libGAP_GET_ELM_PREC(libGAP_Obj rec, int i)
-    void libGAP_AssPRec(libGAP_Obj rec, libGAP_UInt rnam, libGAP_Obj val)
-    void libGAP_UnbPRec(libGAP_Obj rec, libGAP_UInt rnam)
-    bint libGAP_IsbPRec(libGAP_Obj rec, libGAP_UInt rnam)
-    libGAP_Obj libGAP_ElmPRec(libGAP_Obj rec, libGAP_UInt rnam)
+    Obj NEW_PREC(int len)
+    int LEN_PREC(Obj rec)
+    int GET_RNAM_PREC(Obj rec, int i)
+    Obj GET_ELM_PREC(Obj rec, int i)
+    void AssPRec(Obj rec, UInt rnam, Obj val)
+    void UnbPRec(Obj rec, UInt rnam)
+    bint IsbPRec(Obj rec, UInt rnam)
+    Obj ElmPRec(Obj rec, UInt rnam)
 
 cdef extern from "<gap/cyclotom.h>":
     pass
 
 cdef extern from "<gap/bool.h>":
-    cdef libGAP_Obj libGAP_True
-    cdef libGAP_Obj libGAP_False
+    cdef Obj True
+    cdef Obj False
 
 cdef extern from "<gap/vars.h>":
-     cdef int libGAP_T_LVARS
-     libGAP_Obj libGAP_BottomLVars
+     cdef int T_LVARS
+     Obj BottomLVars "TLS(BottomLVars)"
 
 
 

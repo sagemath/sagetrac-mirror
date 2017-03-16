@@ -15,9 +15,9 @@ from .gap_includes cimport *
 ############################################################################
 
 cdef class ObjWrapper(object):
-    cdef libGAP_Obj value
+    cdef Obj value
 
-cdef ObjWrapper wrap_obj(libGAP_Obj obj)
+cdef ObjWrapper wrap_obj(Obj obj)
 
 # a dictionary to keep all GAP elements
 cdef dict owned_objects_refcount
@@ -27,8 +27,8 @@ cpdef get_owned_objects()
 
 # Reference count GAP objects that you want to prevent from being
 # garbage collected
-cdef void reference_obj(libGAP_Obj obj)
-cdef void dereference_obj(libGAP_Obj obj)
+cdef void reference_obj(Obj obj)
+cdef void dereference_obj(Obj obj)
 
 # callback from the GAP memory manager so we can mark all_gap_elements.values()
 cdef void gasman_callback()
@@ -51,8 +51,8 @@ cdef initialize()
 # get deleted this works by assigning it to a global variable. This is
 # very simple, but you can't use it to keep two objects alive. Be
 # careful.
-cdef libGAP_UInt reference_holder
-cdef void hold_reference(libGAP_Obj obj)
+cdef UInt reference_holder
+cdef void hold_reference(Obj obj)
 
 
 ############################################################################
@@ -60,7 +60,7 @@ cdef void hold_reference(libGAP_Obj obj)
 ############################################################################
 
 # Evaluate a string
-cdef libGAP_Obj gap_eval(str gap_string) except? NULL
+cdef Obj gap_eval(str gap_string) except? NULL
 
 
 ############################################################################
