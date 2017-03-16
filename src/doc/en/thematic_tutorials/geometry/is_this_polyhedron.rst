@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _related_objects:
+.. _is_this_polyhedron:
 
 ==============================================================
 Is this polyhedron ... the one your looking for?
