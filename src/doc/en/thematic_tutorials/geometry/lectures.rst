@@ -5,7 +5,7 @@
 .. _lectures:
 
 =========================================================
-A longer introduction to polyhedral computations in Sage
+A Longer Introduction to Polyhedral Computations in Sage
 =========================================================
 
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
@@ -692,6 +692,7 @@ Don't be surprised if the classes look empty! The classes mainly contain private
 methods that implement some comparison methods: to verify equality and inequality 
 of numbers in the base ring and other internal functionalities.
 
+To get a full overview of methods offered to you, :ref:`sage.geometry.polyhedron.base` is the first place you want to go.
 
 
 Lecture 5: Getting new polyhedra from old ones
@@ -1432,162 +1433,4 @@ Bibliography
 
 
 
-
-
-Other stuff
-============
-
-Surely you want to compute the polar dual:
-
-::
-
-    sage: P1dual = P1.polar()
-    sage: P1dual
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
-
-.. end of output
-
-Check it out\-\-\-we started with an integer\-lattice polytope and dualized
-to a rational\-lattice polytope.  Let's look at that.
-
- 
-
-
-::
-
-    sage: P1dual.plot()
-    Graphics object consisting of 6 graphics primitives
-
-
-.. end of output
-
-::
-
-    sage: P1.plot() + P1dual.plot()
-    Graphics object consisting of 12 graphics primitives
-
-
-.. end of output
-
-Oh, yeah, unless the polytope is unit\-sphere\-sized, the dual will be a
-very different size.  Let's rescale.
-
-
-::
-
-    sage: ((1/4)*P1).plot() + (4*P1dual).plot()
-    Graphics object consisting of 12 graphics primitives
-
-.. end of output
-
-If you think that looks a little bit shady, you're correct.  Here is an
-example that makes the issue a bit clearer.
-
-
-::
-
-    sage: P2 = Polyhedron(vertices = [[-5,0], [-1,1], [-2,0], [1,0], [-2,-1], [-3,-1], [-5,-1]])
-    sage: P2
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices
-    sage: P2dual = P2.polar(); P2dual
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
-    sage: P2.plot() + P2dual.plot()
-    Graphics object consisting of 14 graphics primitives
-
-.. end of output
-
-That is clearly not computing what we think of as the polar dual.  But look
-at this...
-
-
-::
-
-    sage: P2.plot() + (-1*P2dual).plot()
-    Graphics object consisting of 14 graphics primitives
-
-.. end of output
-
-Here is what's going on. 
-
-If a polytope ``P`` is in `\ZZ`, then...
-
-(1) ...the dual is inverted in some way, which is vertically for polygons.
-
-(2) ...the dual is taken of P itself.
-
-(3) ...if the origin is not in P, then an error is returned.
-
-However, if a polytope is  *not*  in `\ZZ`, for example if it's in `\QQ` or
-``RDF``, then...
-
-(1') ...the dual is not inverted.
-
-(2') ...the dual is taken of P\-translated\-so\-barycenter\-is\-at\-origin.
-
-Keep all of this in mind as you take polar duals.
-
-
-
-Queries to polytopes
-====================
-
-Once you've constructed some polytope, you can ask Sage questions about it.
-
-
-::
-
-    sage: P1.contains([1,0])
-    True
-
-.. end of output
-
-::
-
-    sage: P1.interior_contains([3,0])
-    False
-
-.. end of output
-
-::
-
-    sage: P3.contains([1,0,0])
-    False
-
-.. end of output
-
-Face information can be useful.  
-
-
-::
-
-    sage: int34.f_vector()
-    (1, 8, 12, 6, 1)
-
-.. end of output
-
-Well, geometric information might be  *more*  helpful...
-Here we are told which of the vertices form each 2\-face:
-
-
-::
-
-    sage: int34.faces(2)
-    (<1,3,4>, <0,1,3,5>, <0,1,2,4,6>, <2,3,4,5,7>, <2,6,7>, <0,5,6,7>)
-
-.. end of output
-
-Yeah, that isn't so useful as it is.  Let's figure out the vertex and
-hyperplane representations of the first face in the list.
-
-
-::
-
-    sage: first2faceofint34 = P3.faces(2)[0]
-    sage: first2faceofint34.ambient_Hrepresentation(); first2faceofint34.vertices()
-    (An inequality (1, 0, 0) x + 0 >= 0,)
-    (A vertex at (0, 0, 0), A vertex at (0, 0, 1/2), A vertex at (0, 1/2, 0))
-
-.. end of output
-
-If you want more... :ref:`sage.geometry.polyhedron.base` is the first place you want to go.
 
