@@ -4106,7 +4106,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             factorial(234234209384023842034)
         """
         if mpz_sgn(self.value) < 0:
-            raise ValueError("factorial -- self = (%s) must be nonnegative"%self)
+            from sage.rings.infinity import unsigned_infinity
+            return unsigned_infinity
 
         if not mpz_fits_uint_p(self.value):
             from sage.functions.all import factorial
