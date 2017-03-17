@@ -1477,7 +1477,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
         q = region_plot(x^2+y^2>9,(x,-8,8),(y,-8,8),incol='blue',bordercol='black',borderstyle='dashed',borderwidth=1)
         sphinx_plot(p+q)
 
-    A function defined between a given range of input x::
+    A function defined for a certain value of x and y::
 
         sage: region_plot([x^2 + y^2 > 1, x^2 + y^2<3],(x,-4,4), (y,-4,4),bordercol='black',borderstyle='dotted',legend_label='Hello',incol='green',outcol='yellow')
         Graphics object consisting of 1 graphics primitive
