@@ -1463,6 +1463,30 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
         g = region_plot(x**2 + y**2 < 100, (x,1,10), (y,1,10), scale='loglog')
         sphinx_plot(g)
 
+    An example of a region plot in 'linear' scale with 2 graphics primitive simultaneously::
+
+        sage: p = region_plot(x^2+y^2<4,(x,-8,8),(y,-8,8),incol='yellow',plot_points=100,bordercol='black',aspect_ratio=1,scale="linear")
+        sage: q = region_plot(x^2+y^2>9,(x,-8,8),(y,-8,8),incol='blue',bordercol='black',borderstyle='dashed',borderwidth=1)
+        sage: p+q
+        Graphics object consisting of 2 graphics primitive
+
+    ..PLOT::
+
+        x,y = var("x y")
+        p = region_plot(x^2+y^2<4,(x,-8,8),(y,-8,8),incol='yellow',plot_points=100,bordercol='black',aspect_ratio=1,scale="linear")
+        q = region_plot(x^2+y^2>9,(x,-8,8),(y,-8,8),incol='blue',bordercol='black',borderstyle='dashed',borderwidth=1)
+        sphinx_plot(p+q)
+
+    An example showing the initial parameter can take into more than one inequalities::
+
+        sage: region_plot([x^2 + y^2 > 1, x^2 + y^2<3],(x,-4,4), (y,-4,4),bordercol='black',borderstyle='dotted',legend_label='Hello',incol='green',outcol='yellow')
+
+    ..PLOT::
+
+        x,y = var("x y")
+        g = region_plot([x^2 + y^2 > 1, x^2 + y^2<3],(x,-4,4), (y,-4,4),bordercol='black',borderstyle='dotted',legend_label='Hello',incol='green',outcol='yellow')
+        sphinx_plot(g)
+
     TESTS:
 
     To check that :trac:`16907` is fixed::
