@@ -5,7 +5,7 @@
 .. _related_objects:
 
 ==============================================================
-How to obtain ... related combinatorial and geometric objects
+How to obtain related ...
 ==============================================================
 
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
@@ -14,7 +14,7 @@ Once one constructed the polyhedron object, one would like to know some
 combinatorial and geometric information about this object.
 
 
-Enumerative properties
+... enumerative properties
 ==============================================================
 
 Dimensions
@@ -100,7 +100,7 @@ several methods:
 
 .. end of output
 
-Geometric objects and properties
+... geometric objects and properties
 ==============================================================
 
 Center and Representative point
@@ -320,7 +320,7 @@ reducing the dimension of the ambient space.
 
 .. end of output
 
-Combinatorial objects and properties
+... combinatorial objects and properties
 ==============================================================
 
 Face lattice

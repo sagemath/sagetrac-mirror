@@ -5,7 +5,7 @@
 .. _is_this_polyhedron:
 
 ==============================================================
-Is this polyhedron ... the one your looking for?
+Is this polyhedron ...
 ==============================================================
 
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
@@ -21,58 +21,66 @@ Here is a list of properties that Sage can check.
     check by making a :code:`tab` completion after typing :code:`is_` to see which methods
     are available.
 
-Combinatorial isomorphism
+... combinatorially isomorphic to this one?
 ==============================================================
 
 Two polyhedra are *combinatorially isomorphic* if their face lattices are isomorphic.
 
-The verification of this is done using the vertices to facets adjacency oriented graph.
 
-::
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_combinatorially_isomorphic`
 
-    sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
-    sage: P7 = Polyhedron(vertices = [[3, 0], [4, 1]], rays = [[-1, 1]])
-    sage: P1_and_P7 = P1 & P7
-    sage: Square = Polyhedron(vertices = [[1, -1, -1], [1, -1, 1], [1, 1, -1], [1, 1, 1]])
-    sage: Square.is_combinatorially_isomorphic(P1_and_P7)
-    True
-
-.. end of output
-
-Compactness or is it a polytope
+... compact/a polytope?
 ==============================================================
 
-Emptyness
+A compact polyhedron is also called a *polytope*.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_compact`
+
+... empty?
 ==============================================================
 
-Full-dimension
+This function although sounding trivial is very important!
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_empty`
+
+... full-dimensional?
 ==============================================================
 
-Lattice polyhedron
+A polyhedron is full dimensional when it does not have any equations in its
+:math:`H`-representation.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional`
+
+... a lattice polyhedron?
 ==============================================================
 
-Inscribed on a sphere
+BUG HERE!
+
+
+
+... inscribed on a sphere?
 ==============================================================
 
-Minkowski summand
+
+... a Minkowski sum of this other one?
 ==============================================================
 
-Neighborlyness
+... neighborly?
 ==============================================================
 
-Reflexiveness
+... reflexive?
 ==============================================================
 
-Simplicity
+... simple? (Aren't they all?)
 ==============================================================
 
-Simpliciality
+... simplicial?
 ==============================================================
 
-Is it the simplex?
+... the simplex?
 ==============================================================
 
-Is it the whole space?
+... the whole space?
 ==============================================================
 
  'is_universe'
