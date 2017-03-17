@@ -8,6 +8,9 @@
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
+# Force including this Python header first to work around the name
+# clashes between Python and GAP on T_BOOL, T_INT, T_CHAR, T_FLOAT,
+# T_STRING, ... See #22626 for details
 cdef extern from "<structmember.h>":
     pass
 
