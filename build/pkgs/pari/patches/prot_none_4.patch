@@ -1,0 +1,35 @@
+Fix mmap usage on Cygwin; see https://trac.sagemath.org/ticket/22633
+diff --git a/src/language/init.c b/src/language/init.c
+index c2bd218..70543ba 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -594,14 +594,18 @@ pari_add_defaults_module(entree *ep)
+ 
+ #ifdef HAS_MMAP
+ #define PARI_STACK_ALIGN (sysconf(_SC_PAGE_SIZE))
++#ifdef __CYGWIN__
++#define PARI_MMAP_FLAGS MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE
++#else
++#define PARI_MMAP_FLAGS MAP_PRIVATE | MAP_ANONYMOUS
++#endif
+ #ifndef MAP_ANONYMOUS
+ #define MAP_ANONYMOUS MAP_ANON
+ #endif
+ static void *
+ pari_mainstack_malloc(size_t size)
+ {
+-  void *b = mmap(NULL, size, PROT_READ|PROT_WRITE,
+-                             MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
++  void *b = mmap(NULL, size, PROT_READ|PROT_WRITE, PARI_MMAP_FLAGS, -1, 0);
+   return (b == MAP_FAILED) ? NULL: b;
+ }
+ 
+@@ -628,7 +632,7 @@ static void
+ pari_mainstack_mreset(pari_sp from, pari_sp to)
+ {
+   size_t s = to - from;
+-  mmap((void*)from, s, PROT_NONE, MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
++  mmap((void*)from, s, PROT_NONE, PARI_MMAP_FLAGS | MAP_FIXED, -1, 0);
+ }
+ 
+ /* Commit (make available) the virtual memory mapped between the
