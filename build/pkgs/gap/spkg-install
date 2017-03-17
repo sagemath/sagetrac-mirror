@@ -41,9 +41,6 @@ fi
 
 cd src
 
-# Use newer version of config.guess and config.sub (see Trac #19726)
-cp "$SAGE_ROOT"/config/config.* cnf
-
 # Configure
 echo "Configuring GAP..."
 ./configure \
