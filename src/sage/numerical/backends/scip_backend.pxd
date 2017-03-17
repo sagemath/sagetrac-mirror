@@ -1,5 +1,5 @@
 #*****************************************************************************
-#       Copyright (C) 2016 ...
+#       Copyright (C) 2017 Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10,5 +10,8 @@
 
 from generic_backend cimport GenericBackend
 
-cdef class GLPKBackend(GenericBackend):
-    pass
+cdef class SCIPBackend(GenericBackend):
+
+    cdef model
+
+    cpdef get_row_prim(self, int i)

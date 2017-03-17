@@ -22,9 +22,7 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
-
-# include "cysignals/memory.pxi"
-# include "cysignals/signals.pxi"
+from pyscipopt import Model
 
 cdef class SCIPBackend(GenericBackend):
 
@@ -47,6 +45,7 @@ cdef class SCIPBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver="SCIP")
         """
+        self.model = Model()
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
