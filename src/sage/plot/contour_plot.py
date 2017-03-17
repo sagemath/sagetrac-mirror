@@ -1480,6 +1480,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     An example showing the initial parameter can take into more than one inequalities::
 
         sage: region_plot([x^2 + y^2 > 1, x^2 + y^2<3],(x,-4,4), (y,-4,4),bordercol='black',borderstyle='dotted',legend_label='Hello',incol='green',outcol='yellow')
+        Graphics object consisting of 1 graphics primitive
+
 
     ..PLOT::
 
