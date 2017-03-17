@@ -547,32 +547,6 @@ We can get fancier options as well.
     sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', borderstyle='dashed', plot_points=250,aspect_ratio=1)
     Graphics object consisting of 2 graphics primitives
 
-The parameters that "region_plot" take in decides the representation of the plots
-for functional inequalities. The parameters can provide a clear demarcation between
-the different regions and can show the inequalities in a better way.
-You can refer the "region_plot" manual pages (sage: region_plot? )to know more on
-the different parameter functionalities. Considering a polynomial function and
-a sinusoidal function
-
-::
-
-    sage: f(x,y) = x^4 + x^2 + y^2 + 40
-    sage: region_plot(sin(x^2+y^2) <= 0, (x, -3, 3), (y, -3, 3),aspect_ratio=1, borderstyle='dashed')
-
-We can also plot two inequalities simultaneously
-
-::
-
-    sage: p = region_plot(x^2+y^2<4,(x,-8,8),(y,-8,8),incol='yellow',plot_points=100,bordercol='black',aspect_ratio=1,scale="linear")
-    sage: q = region_plot(x^2+y^2>9,(x,-8,8),(y,-8,8),incol='blue',bordercol='black',borderstyle='dashed',borderwidth=1)
-    sage: p+q
-
-The initial parameter can also take into more than one inequalities
-
-::
-
-    sage: region_plot([x^2 + y^2 > 1, x^2 + y^2<3],(x,-4,4), (y,-4,4),bordercol='black',borderstyle='dotted',legend_label='Hello',incol='green',outcol='yellow')
-
 Remember, what command would give full information about the syntax,
 options, and examples?
 
