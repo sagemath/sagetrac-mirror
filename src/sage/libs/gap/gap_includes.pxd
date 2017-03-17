@@ -8,6 +8,8 @@
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
+cdef extern from "<structmember.h>":
+    pass
 
 cdef extern from "<gap/system.h>":
     ctypedef char Char
@@ -62,7 +64,7 @@ cdef extern from "<gap/objects.h>":
     char* TNAM_OBJ(Obj obj)
     cdef int FIRST_REAL_TNUM
     cdef int FIRST_CONSTANT_TNUM
-    cdef int T_INT             "(FIRST_CONSTANT_TNUM+ 0)"
+    cdef int T_INT
     cdef int T_INTPOS
     cdef int T_INTNEG
     cdef int T_RAT
@@ -70,8 +72,8 @@ cdef extern from "<gap/objects.h>":
     cdef int T_FFE
     cdef int T_PERM2
     cdef int T_PERM4
-    cdef int T_BOOL            "(FIRST_CONSTANT_TNUM+ 8)"
-    cdef int T_CHAR            "(FIRST_CONSTANT_TNUM+ 9)"
+    cdef int T_BOOL
+    cdef int T_CHAR
     cdef int T_FUNCTION
     cdef int T_FLAGS
     cdef int T_MACFLOAT
@@ -110,7 +112,7 @@ cdef extern from "<gap/objects.h>":
     cdef int T_BLIST
     cdef int T_BLIST_NSORT
     cdef int T_BLIST_SSORT
-    cdef int T_STRING            "(FIRST_LIST_TNUM+50)"
+    cdef int T_STRING
     cdef int T_STRING_NSORT
     cdef int T_STRING_SSORT
     cdef int LAST_LIST_TNUM
