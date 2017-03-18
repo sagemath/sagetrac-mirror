@@ -1,0 +1,16 @@
+diff --git a/src/language/es.c b/src/language/es.c
+index 9805669..c0132c9 100644
+--- a/src/language/es.c
++++ b/src/language/es.c
+@@ -529,7 +529,10 @@ _puts_log(const char *s)
+   fputs(s, f);
+ }
+ static void
+-_flush_log(void) { (void)fflush(pari_logfile); }
++_flush_log(void) { 
++    if (pari_logfile != NULL)
++        (void)fflush(pari_logfile);
++}
+ 
+ static void
+ normalOutC(char c) { putc(c, pari_outfile); _putc_log(c); }
