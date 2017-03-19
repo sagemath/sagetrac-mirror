@@ -148,6 +148,28 @@ class Disk(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         """
+        One can get a ring/annulus(partial) this way::
+
+        EXAMPLES::
+
+            sage: import matplotlib.pyplot as plt
+            sage: import matplotlib.patches as patches
+
+            sage: fig = plt.figure()
+            sage: axis = fig.add_subplot(111, aspect='equal')
+            sage: for p in [
+            ....      patches.Wedge(
+            ....          (0.23, 0.5), # centre co-ordinates
+            ....          0.20,        # outer radius
+            ....          10, 350,     # theta1 to theta2 (in degrees)
+            ....          width=0.15,  # width of the ring
+            ....          fill=False   # color fill, by-default set to True
+            ....      )
+            ....  ]:
+            ........  axis.add_patch(p)
+            sage: fig.savefig('wedge10.png', dpi=90, bbox_inches='tight')
+            Graphics object consisting of 1 graphics primitive
+            
         TESTS::
 
             sage: D = disk((2,-1), 2, (0, pi), color='black', thickness=3, fill=False); D
