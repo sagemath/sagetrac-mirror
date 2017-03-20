@@ -27,6 +27,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
+from sage.modular.dirichlet import DirichletGroup
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer import Integer
@@ -40,7 +41,6 @@ from .modsym import (PSModularSymbolElement, PSModularSymbolElement_symk,
                     PSModularSymbolElement_dist, PSModSymAction)
 from .manin_map import ManinMap
 from .sigma0 import Sigma0, Sigma0Element
-
 
 class PollackStevensModularSymbols_factory(UniqueFactory):
     r"""
