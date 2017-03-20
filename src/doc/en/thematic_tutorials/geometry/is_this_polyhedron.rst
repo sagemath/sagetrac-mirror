@@ -51,36 +51,65 @@ A polyhedron is full dimensional when it does not have any equations in its
 
 Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional`
 
-... a lattice polyhedron?
+... a lattice polytope?
 ==============================================================
 
-BUG HERE!
+This functions checks for compactness and if the base ring is :math:`\mathbb{Z}`.
 
-
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_lattice_polytope`
 
 ... inscribed on a sphere?
 ==============================================================
 
+This functions checks if the vertices of the polyhedron lie on a sphere.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_inscribed`
 
 ... a Minkowski sum of this other one?
 ==============================================================
 
+This functions checks if the polyhedron can be used to produce another using a
+Minkowski sum.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_Minkowski_summand`
+
 ... neighborly?
 ==============================================================
+
+This functions checks if the polyhedron had full skeleton until hafl of the
+dimension.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_neighborly`
 
 ... reflexive?
 ==============================================================
 
+This functions checks if the polar of a lattice polytope is also a lattice
+polytope.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base_ZZ.is_reflexive`
+
 ... simple? (Aren't they all?)
 ==============================================================
+
+This functions checks if the degree of all vertices is equal to the dimension
+of the polytope.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_simple`
 
 ... simplicial?
 ==============================================================
 
+Simplicial polytopes have only simplices as faces.
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial`
+
 ... the simplex?
 ==============================================================
+
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_simplex`
 
 ... the whole space?
 ==============================================================
 
- 'is_universe'
+Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_universe`
