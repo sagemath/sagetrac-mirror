@@ -154,15 +154,12 @@ The following example demonstrates the limitations of :code:`RDF`.
 
 ::
 
-    sage: P = polytopes.dodecahedron()
-    sage: P
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining
-    polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
-    sage: P_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in
-    P.vertices()], base_ring=RDF)
-    sage: P_RDF
-    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 17
-    vertices
+    sage: D = polytopes.dodecahedron()
+    sage: D
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+    sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
+    sage: D_RDF
+    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 17 vertices
 
 .. end of output
 
@@ -619,9 +616,6 @@ examples.
 
 ::
 
-    sage: D = polytopes.dodecahedron()
-    sage: D
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
     sage: type(D)
     <class 'sage.geometry.polyhedron.backend_field.Polyhedra_field_with_category.element_class'>
 
@@ -749,10 +743,3 @@ Bibliography
 .. [Zie2007] Ziegler, G. M., Lectures on polytopes, volume 152 of Graduate
              Texts in Mathematics. Springer-Verlag, New York, 2007. 
              ISBN 978-0-387-94365-7
-
-
-
-
-
-
-

@@ -21,11 +21,13 @@ It is possible to do Minkowski sums of polyhedron, using two syntaxes.
 
 ::
 
-    sage: P1.Minkowski_sum(P3)
-    A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices and 1 ray
+    sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+    sage: P2 = Polyhedron(vertices = [[1/2, 0], [0, 1/2]])
+    sage: P1.Minkowski_sum(P2)
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
 
-    sage: P1 + P3
-    A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices and 1 ray
+    sage: P1 + P2
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
 
 .. end of output
 
@@ -59,13 +61,18 @@ decompositions.
 
 ::
 
-    sage: P1_and_P7.Minkowski_decompositions()
-
-    ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
-      A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
-     (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-      A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices))
-
+    sage: Square.Minkowski_decompositions()
+    ((A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex,
+      A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices),
+     (A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
+      A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices),
+     (A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
+      A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices),
+     (A 1-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
+      A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices),
+     (A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+      A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices))
+    
 .. end of output
 
 Product
@@ -75,11 +82,11 @@ It is also possible to multiply polyhedron:
 
 ::
 
-    sage: P1.product(P3)
-    A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 4 vertices and 1 ray
+    sage: P1.product(P2)
+    A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices and 1 ray
 
-    sage: P1 * P3
-    A 3-dimensional polyhedron in RDF^4 defined as the convex hull of 4 vertices and 1 ray
+    sage: P1 * P2
+    A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices and 1 ray
 
 .. end of output
 
@@ -90,10 +97,11 @@ Of course, it is possible to intersect two polyhedron objects:
 
 ::
 
-    sage: P1.intersection(P7)
+    sage: P3 = Polyhedron(vertices = [[3, 0], [4, 1]], rays = [[-1, 1]])
+    sage: P1.intersection(P3)
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
 
-    sage: P1_and_P7 = P1 & P7; P1_and_P7
+    sage: P1_and_P3 = P1 & P3; P1_and_P3
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
 
 .. end of output
@@ -112,13 +120,13 @@ of the two objects.
     sage: R1.convex_hull(R2)
     A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
 
-    sage: P1_union_P7 = P1.convex_hull(P7)
-    sage: P1_union_P7
+    sage: P1_union_P3 = P1.convex_hull(P3)
+    sage: P1_union_P3
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
     and 2 rays
-    sage: P1_union_P7.vertices()
+    sage: P1_union_P3.vertices()
     (A vertex at (3, 0), A vertex at (1, 0))
-    sage: P1_union_P7.rays()
+    sage: P1_union_P3.rays()
     (A ray in the direction (-1, 1), A ray in the direction (1, 1))
 
 .. end of output
@@ -210,10 +218,10 @@ It is possible to dilate a polyhedron by an arbitrary scalar.
     sage: D_P1 = P1.dilation(AA(sqrt(2))); D_P1.vertices()
     (A vertex at (0, 1.414213562373095?), A vertex at (1.414213562373095?, 0))
 
-    sage: P8 = Polyhedron(vertices = [[0, 0], [1, 0], [0, 1]])
-    sage: 2*P8
+    sage: P4 = Polyhedron(vertices = [[0, 0], [1, 0], [0, 1]])
+    sage: 2*P4
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
-    sage: P8.dilation(2) == 2*P8
+    sage: P4.dilation(2) == 2*P4
     True
 
 .. end of output
@@ -230,8 +238,8 @@ the angle of the truncation and how deep the cut is done.
     sage: Trunc1_P1 = P1.face_truncation(P1.faces(0)[0])
     sage: Trunc1_P1.plot()
     Launched png viewer for Graphics object consisting of 6 graphics primitives
-    sage: Trunc_P2 = P1.face_truncation(P1.faces(0)[0],linear_coefficients=(1, 1/2), cut_frac=3/4)
-    sage: Trunc_P2.plot()
+    sage: Trunc2_P1 = P1.face_truncation(P1.faces(0)[0],linear_coefficients=(1, 1/2), cut_frac=3/4)
+    sage: Trunc2_P1.plot()
     Launched png viewer for Graphics object consisting of 6 graphics primitives
 
 .. end of output
@@ -243,7 +251,7 @@ This method returns an encompassing lattice polytope.
 
 ::
 
-    sage: LP = P3_QQ.lattice_polytope(envelope=True)  # envelope=True for rational polytopes
+    sage: LP = P2.lattice_polytope(envelope=True)  # envelope=True for rational polytopes
     sage: LP.vertices()
     M(0, 0),
     M(0, 1),
@@ -259,10 +267,13 @@ The polar polytope is only defined for compact, or bounded, polyhedron.
 
 ::
 
-    sage: P3.polar()
-    A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 2 vertices and 1 line
-
     sage: P2.polar()
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 line
+    
+    sage: P5 = Polyhedron(vertices = [[1/2, 0, 0], [0, 1/2, 0]],
+    ....:                 rays = [[1, 1, 0]],
+    ....:                 lines = [[0, 0, 1]])
+    sage: P5.polar()
     Traceback (most recent call last):
     ...
     AssertionError: Not a polytope.
@@ -273,7 +284,7 @@ Prism
 =========================================================
 
 The prism construction is the same as taking the Minkowski sum of the
-polyhedorn with a segment (a 1-dimensional polytope) in an orthogonal space.
+polyhedron with a segment (a 1-dimensional polytope) in an orthogonal space.
 
 ::
 
@@ -289,7 +300,7 @@ Similar, the pyramid is a join of a vertex with the polyhedron.
 
 ::
 
-    sage: (P1_and_P7).pyramid()
+    sage: (P1_and_P3).pyramid()
     A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 5 vertices
 
 .. end of output
@@ -301,21 +312,21 @@ One can translate a polyhedron by a vector.
 
 ::
 
-    sage: (P1_and_P7).vertices()
+    sage: (P1_and_P3).vertices()
     (A vertex at (2, 3),
      A vertex at (3, 2),
      A vertex at (2, 1),
      A vertex at (1, 2))
-    sage: P1P7_translate = (P1_and_P7).translation([-1, 0])
-    sage: P1P7_translate.vertices()
+    sage: P1P3_translate = (P1_and_P3).translation([-1, 0])
+    sage: P1P3_translate.vertices()
     (A vertex at (0, 2),
      A vertex at (1, 1),
      A vertex at (1, 3),
      A vertex at (2, 2))
     
-    sage: P1_and_P7.find_translation(P17_translate)
+    sage: P1_and_P3.find_translation(P17_translate)
     (-1, 0)
-    sage: P1_and_P7.find_translation(P2)
+    sage: P1_and_P3.find_translation(P2)
     Traceback (most recent call last):
     ...
     ValueError: polyhedron is not a translation of self

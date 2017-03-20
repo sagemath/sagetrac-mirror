@@ -56,6 +56,7 @@ The cube has 8 vertices, 12 edges and 6 polygons:
 
 ::
 
+    sage: Cube = polytopes.cube()
     sage: Cube.f_vector()
     (1, 8, 12, 6, 1)
 
@@ -172,7 +173,8 @@ interior is returned.
     sage: P1.representative_point()
     (3/2, 3/2)
 
-    sage: P6.representative_point()  # optional - normaliz
+    sage: P2 = Polyhedron(vertices = [[0, 0], [3/2, 0], [3/2, 3/2], [0, 3]])
+    sage: P2.representative_point()
     (3/4, 9/8)
 
 .. end of output
@@ -184,16 +186,18 @@ Testing if a polyhedron contains a point is done as follows.
 
 ::
 
-    sage: P1_and_P7.interior_contains([2,2])
+    sage: P3 = Polyhedron(vertices=[(2, 3), (3, 2), (2, 1), (1, 2)])
+    sage: P3.interior_contains([2, 2])
     True
-    sage: P1_and_P7.interior_contains([2,1])
+    sage: P3.interior_contains([2, 1])
     False
-    sage: P1_and_P7.contains([2,1])
+    sage: P3.contains([2, 1])
     True
 
-    sage: P3_QQ.relative_interior_contains([1/4, 1/4])
+    sage: P4 = Polyhedron(vertices = [[1/2, 0], [0, 1/2]])
+    sage: P4.relative_interior_contains([1/4, 1/4])
     True
-    sage: P3_QQ.interior_contains([1/4, 1/4])
+    sage: P4.interior_contains([1/4, 1/4])
     False
 
 .. end of output
@@ -205,7 +209,6 @@ The Ehrhart polynomial can be computed using the :code:`latte_int` package.
 
 ::
 
-    sage: Cube = polytopes.cube()
     sage: Cube.ehrhart_polynomial()  # optional - latte_int
     8*t^3 + 12*t^2 + 6*t + 1
 
@@ -221,7 +224,7 @@ data of the polyhedron.
 
     sage: FaceFan(Cube)
     Rational polyhedral fan in 3-d lattice M
-    sage: NormalFan(P1_and_P7)
+    sage: NormalFan(P3)
     Rational polyhedral fan in 2-d lattice N
 
 .. end of output
@@ -270,6 +273,7 @@ in a console.
 
 ::
     
+    sage: Square = Polyhedron(vertices = [[1, -1, -1], [1, -1, 1], [1, 1, -1], [1, 1, 1]])
     sage: Square.integral_points()
     ((1, -1, -1),
      (1, -1, 0),
@@ -298,9 +302,9 @@ are ignored.
     sage: P1.radius_square()
     1/2
 
-    sage: P6.radius()  # optional - normaliz
+    sage: P2.radius()
     3/8*sqrt(29)
-    sage: P6.radius_square()  # optional - normaliz
+    sage: P2.radius_square()
     261/64
 
 .. end of output
@@ -316,13 +320,11 @@ the :code:`to_linear_program` method to obtain the corresponding linear program 
     sage: P1.to_linear_program()
     Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
     sage: P2.to_linear_program()
-    Mixed Integer Program  ( maximization, 3 variables, 3 constraints )
+    Mixed Integer Program  ( maximization, 2 variables, 4 constraints )
     sage: P3.to_linear_program()
-    Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
+    Mixed Integer Program  ( maximization, 2 variables, 4 constraints )
     sage: P4.to_linear_program()
     Mixed Integer Program  ( maximization, 2 variables, 3 constraints )
-    sage: P6.to_linear_program()  # optional - normaliz
-    Mixed Integer Program  ( maximization, 2 variables, 4 constraints )
     sage: CP.to_linear_program()
     Mixed Integer Program  ( maximization, 5 variables, 30 constraints )
 
@@ -396,8 +398,8 @@ reducing the dimension of the ambient space.
 
 ::
 
-    sage: P3.volume()
-    0.0
+    sage: P4.volume()
+    0
     sage: CP.volume()
     1216512
     sage: Square.volume()
@@ -422,6 +424,7 @@ that records faces ordered by inclusion.
 
 ::
 
+    sage: S = polytopes.simplex(3)
     sage: FL = S.face_lattice()
     sage: BL = posets.BooleanLattice(4)
     sage: FL.is_isomorphic(BL)
@@ -505,15 +508,13 @@ contains the affine transformations that preserve the :math:`V`-representation.
 
 ::
 
-    sage: P2 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1], [0, 1]])
-    sage: P2.combinatorial_automorphism_group()
+    sage: P5 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1], [0, 1]])
+    sage: P5.combinatorial_automorphism_group()
     Permutation Group with generators [(2,3)]
-    sage: P2.restricted_automorphism_group()
+    sage: P5.restricted_automorphism_group()
     Permutation Group with generators [()]
 
 .. end of output
-
-??
 
 Incidence matrix
 --------------------------------------------------------------

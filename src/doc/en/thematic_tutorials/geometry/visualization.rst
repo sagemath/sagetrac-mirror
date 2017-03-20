@@ -21,6 +21,7 @@ parameter.
 
 ::
 
+    sage: Cube = polytopes.cube()
     sage: Cube.render_solid(opacity=0.7)
     Launched jmol viewer for Graphics3d Object
 
@@ -34,8 +35,6 @@ This plots the graph (with unbounded edges) of the polyhedron
 ::
 
     sage: Cube.render_wireframe()
-    Launched jmol viewer for Graphics3d Object
-    sage: P2.render_wireframe()
     Launched jmol viewer for Graphics3d Object
 
 .. end of output
