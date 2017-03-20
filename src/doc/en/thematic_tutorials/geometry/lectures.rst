@@ -606,7 +606,8 @@ The :code:`field` backend
 
 As it turns out, the rational numbers do not suffice to represent all combinatorial 
 types of polytopes. For example, Perles constructed a `8`-dimensional polytope with
-`12` vertices which does not have a realization with rational coordinates.
+`12` vertices which does not have a realization with rational coordinates, see
+Example 6.21 p. 172 of [Zie2007]_.
 Furthermore, if one wants a realization to have
 specific geometric property, such as symmetry, one also sometimes need
 irrational coordinates.
