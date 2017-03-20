@@ -198,6 +198,19 @@ Testing if a polyhedron contains a point is done as follows.
 
 .. end of output
 
+Ehrhart polynomial
+--------------------------------------------------------------
+
+The Ehrhart polynomial can be computed using the :code:`latte_int` package.
+
+::
+
+    sage: Cube = polytopes.cube()
+    sage: Cube.ehrhart_polynomial()  # optional - latte_int
+    8*t^3 + 12*t^2 + 6*t + 1
+
+.. end of output
+
 Face and Normal fans
 --------------------------------------------------------------
 

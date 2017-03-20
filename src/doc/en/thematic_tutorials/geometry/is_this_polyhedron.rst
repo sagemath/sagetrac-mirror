@@ -87,7 +87,7 @@ Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_neighb
 This functions checks if the polar of a lattice polytope is also a lattice
 polytope.
 
-Reference manual: :meth:`sage.geometry.polyhedron.base.Polyhedron_base_ZZ.is_reflexive`
+Reference manual: :meth:`sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.is_reflexive`
 
 ... simple? (Aren't they all?)
 ==============================================================
