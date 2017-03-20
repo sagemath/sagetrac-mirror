@@ -119,6 +119,44 @@ several methods:
 ... geometric objects and properties
 ==============================================================
 
+Base ring
+--------------------------------------------------------------
+
+The first important object related to a polyhedron is its base ring.
+
+::
+
+    sage: P1.base_ring()
+    Integer Ring
+
+.. end of output
+
+Bounded edges
+--------------------------------------------------------------
+
+The bounded edges are edges between two vertices of the polyhedron. This
+function returns an iterator.
+
+::
+
+    sage: list(P1.bounded_edges())
+    [(A vertex at (0, 1), A vertex at (1, 0))]
+
+.. end of output
+
+Bounding box
+--------------------------------------------------------------
+
+The bounding box returns the two corners (the ones with minimal and maximal 
+coordinates) of a box with integer coordinates that contains the polyhedron.
+
+::
+
+    sage: Cube.bounding_box()
+    ((-1, -1, -1), (1, 1, 1))
+
+.. end of output
+
 Center and Representative point
 --------------------------------------------------------------
 
@@ -433,6 +471,36 @@ There are two ways to get it.
 
 .. end of output
 
+Automorphic groups
+--------------------------------------------------------------
+
+The first one gives the automorphism group of the vertex graph of the polyhedron.
+
+::
+
+    sage: S.combinatorial_automorphism_group()
+    Permutation Group with generators [(3,4), (2,3), (1,2)]
+
+    sage: Octa = polytopes.octahedron()
+    sage: Octa.combinatorial_automorphism_group()
+    Permutation Group with generators [(3,4), (2,3)(4,5), (1,2)(5,6)]
+
+.. end of output
+
+The second automorphism group is the restricted automorphism group which
+contains the affine transformations that preserve the :math:`V`-representation.
+
+::
+
+    sage: P2 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1], [0, 1]])
+    sage: P2.combinatorial_automorphism_group()
+    Permutation Group with generators [(2,3)]
+    sage: P2.restricted_automorphism_group()
+    Permutation Group with generators [()]
+
+.. end of output
+
+??
 
 Incidence matrix
 --------------------------------------------------------------

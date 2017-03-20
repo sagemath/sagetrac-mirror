@@ -19,5 +19,6 @@ So far, the tutorials cover mostly things related to polyhedral computations.
    geometry/new_from_old
    geometry/related_objects
    geometry/is_this_polyhedron
+   geometry/tips
    geometry/visualization
    geometry/polytope_tikz
