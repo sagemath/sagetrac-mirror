@@ -33,7 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-import six
+from six import iteritems
 from six.moves import range
 
 from .graph import Graph
@@ -1286,7 +1286,7 @@ class BipartiteGraph(Graph):
 
     def matching(self, value_only=False, algorithm="Hopcroft-Karp",
             use_edge_labels=False, solver=None, verbose=0):
-        r'''
+        r"""
         Return a maximum matching of the graph represented by the list of its
         edges.
 
@@ -1296,7 +1296,7 @@ class BipartiteGraph(Graph):
         with each other.
 
         For more information, see the `Wikipedia article on matchings
-        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+        :wikipedia:'Matching_(graph_theory)'
 
         INPUT:
 
@@ -1361,7 +1361,7 @@ class BipartiteGraph(Graph):
             ...
             ValueError: algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"
 
-        '''
+        """
         self._scream_if_not_simple()
 
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
@@ -1379,7 +1379,7 @@ class BipartiteGraph(Graph):
                 return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
-                        for u, v in six.iteritems(d) if u < v]
+                        for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only, algorithm=algorithm,
             use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
