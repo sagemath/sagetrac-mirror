@@ -22,7 +22,7 @@ import os
 import re
 import shutil
 from tempfile import mkdtemp
-from sage.env import SAGE_DOC_SRC
+from sage.env import SAGE_SRC
 from sphinx.application import Sphinx
 
 
@@ -78,7 +78,7 @@ def sphinxify(docstring, format='html'):
 
     # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
     # buildername, confoverrides, status, warning, freshenv).
-    confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
+    confdir = os.path.join(SAGE_SRC, 'sage', 'docs', 'introspect')
 
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
