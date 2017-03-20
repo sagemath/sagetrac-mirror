@@ -61,6 +61,31 @@ ex g_function_eval3(unsigned serial, const ex& arg1, const ex& arg2,
     return function(serial, arg1, arg2, arg3);
 }
 
+ex g_function_eval4(unsigned serial, const ex& arg1, const ex& arg2,
+        const ex& arg3, const ex& arg4, bool hold)
+{
+    if (hold)
+        return function(serial, arg1, arg2, arg3, arg4).hold();
+    return function(serial, arg1, arg2, arg3, arg4);
+}
+
+ex g_function_eval5(unsigned serial, const ex& arg1, const ex& arg2,
+        const ex& arg3, const ex& arg4, const ex& arg5, bool hold)
+{
+    if (hold)
+        return function(serial, arg1, arg2, arg3, arg4, arg5).hold();
+    return function(serial, arg1, arg2, arg3, arg4, arg5);
+}
+
+ex g_function_eval6(unsigned serial, const ex& arg1, const ex& arg2,
+        const ex& arg3, const ex& arg4, const ex& arg5,
+        const ex& arg6, bool hold)
+{
+    if (hold)
+        return function(serial, arg1, arg2, arg3, arg4, arg5, arg6).hold();
+    return function(serial, arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 bool g_is_a_terminating_series(const ex& e) {
     if (is_a<pseries>(e)) {
         return (ex_to<pseries>(e)).is_terminating();

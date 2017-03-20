@@ -480,7 +480,7 @@ cdef class Function(SageObject):
 
         cdef GEx res
         cdef GExVector vec
-        if self._nargs == 0 or self._nargs > 3:
+        if self._nargs == 0 or self._nargs > 6:
             for i from 0 <= i < len(args):
                 vec.push_back((<Expression>args[i])._gobj)
             res = g_function_evalv(self._serial, vec, hold)
@@ -494,6 +494,22 @@ cdef class Function(SageObject):
             res = g_function_eval3(self._serial,
                     (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
                     (<Expression>args[2])._gobj, hold)
+        elif self._nargs == 4:
+            res = g_function_eval4(self._serial,
+                    (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
+                    (<Expression>args[2])._gobj,
+                    (<Expression>args[3])._gobj, hold)
+        elif self._nargs == 5:
+            res = g_function_eval5(self._serial,
+                    (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
+                    (<Expression>args[2])._gobj, (<Expression>args[3])._gobj,
+                    (<Expression>args[4])._gobj, hold)
+        elif self._nargs == 6:
+            res = g_function_eval6(self._serial,
+                    (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
+                    (<Expression>args[2])._gobj, (<Expression>args[3])._gobj,
+                    (<Expression>args[4])._gobj,
+                    (<Expression>args[5])._gobj, hold)
 
         if not symbolic_input and is_a_numeric(res):
             return py_object_from_numeric(res)

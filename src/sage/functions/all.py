@@ -83,4 +83,5 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei, exp_integral_ei)
 
-from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
+from .hypergeometric import (hypergeometric, hypergeometric_M,
+        hypergeometric_U, appell_F1)

@@ -171,7 +171,7 @@ from sage.functions.hyperbolic import cosh, sinh
 from sage.functions.other import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.ring import SR
 from sage.structure.element import get_coercion_model
 from sage.misc.latex import latex
@@ -1121,3 +1121,47 @@ class Hypergeometric_U(BuiltinFunction):
             return z ** (-a) * hypergeometric([a, a - b + 1], [], -z ** (-1))
 
 hypergeometric_U = Hypergeometric_U()
+
+
+class AppellF1(GinacFunction):
+    r"""
+    The Appell `F_1` function is a generalization of the `{}_2F_1`
+    hypergeometric function and defined for example by
+
+    .. MATH::
+
+        F_1(a,b_1,b_2;c;x,y) = \sum_{m,n=0}^\infty
+        \frac{(a)_{m+n} (b_1)_m (b_2)_n} {(c)_{m+n} \,m! \,n!} \,x^m y^n 
+
+
+    EXAMPLES::
+
+        sage: _ = var('a b c d y')
+        sage: appell_F1(a, b, c, d, x, y)
+        appell_F1(a, b, c, d, x, y)
+        sage: appell_F1(a, b, c, d, x, y).diff(x)
+        a*b*appell_F1(a + 1, b + 1, c, d + 1, x, y)/d
+        sage: appell_F1(a, b, c, d, x, y).diff(y)
+        a*c*appell_F1(a + 1, b, c + 1, d + 1, x, y)/d
+
+        sage: appell_F1(a,b,c,d, x,0)
+        hypergeometric((a, b), (d,), x)
+        sage: appell_F1(a,b,c,d, 0,y)
+        hypergeometric((a, c), (d,), y)
+        sage: appell_F1(a,b,c,d, x,x)
+        hypergeometric((a, b + c), (d,), x)
+        sage: appell_F1(a,b,c,b+c,x,y)
+        (-y + 1)^(-a)*hypergeometric((a, b), (b + c,), -(x - y)/(y - 1))
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: loads(dumps(appell_F1))
+            appell_F1
+        """
+        GinacFunction.__init__(self, 'appell_F1', nargs=6,
+                                 conversions={'mathematica':'AppellF1'},
+                                 latex_name='F_1')
+
+appell_F1 = AppellF1()

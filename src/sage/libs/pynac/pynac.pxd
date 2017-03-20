@@ -381,6 +381,9 @@ cdef extern from "sage/libs/pynac/wrap.h":
     GEx g_function_eval1(unsigned int serial, GEx, bint) except +
     GEx g_function_eval2(unsigned int serial, GEx, GEx, bint) except +
     GEx g_function_eval3(unsigned int serial, GEx, GEx, GEx, bint) except +
+    GEx g_function_eval4(unsigned int serial, GEx, GEx, GEx, GEx, bint) except +
+    GEx g_function_eval5(unsigned int serial, GEx, GEx, GEx, GEx, GEx, bint) except +
+    GEx g_function_eval6(unsigned int serial, GEx, GEx, GEx, GEx, GEx, GEx, bint) except +
 
     cdef cppclass GFunctionOpt "function_options":
         GFunctionOpt operator=(GFunctionOpt)
