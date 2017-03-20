@@ -1296,7 +1296,7 @@ class BipartiteGraph(Graph):
         with each other.
 
         For more information, see the `Wikipedia article on matchings
-        :wikipedia:'Matching_(graph_theory)'
+        :wikipedia:`Matching_(graph_theory)`
 
         INPUT:
 
