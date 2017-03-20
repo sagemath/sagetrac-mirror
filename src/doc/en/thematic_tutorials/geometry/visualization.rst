@@ -13,6 +13,19 @@ Visualization of polyhedron objects in Sage
 
 There are different ways to visualize polyhedron object of dimension at most 4.
 
+:code:`render_solid`
+==================================================
+
+This plots the polyhedron as a solid. You can also adjust the :code:`opacity`
+parameter.
+
+::
+
+    sage: Cube.render_solid(opacity=0.7)
+    Launched jmol viewer for Graphics3d Object
+
+.. end of output
+
 :code:`render_wireframe`
 ==================================================
 
@@ -23,19 +36,6 @@ This plots the graph (with unbounded edges) of the polyhedron
     sage: Cube.render_wireframe()
     Launched jmol viewer for Graphics3d Object
     sage: P2.render_wireframe()
-    Launched jmol viewer for Graphics3d Object
-
-.. end of output
-
-:code:`render_solid`
-==================================================
-
-This plots the polyhedron as a solid. You can also adjust the :code:`opacity`
-parameter.
-
-::
-
-    sage: Cube.render_solid(opacity=0.7)
     Launched jmol viewer for Graphics3d Object
 
 .. end of output
