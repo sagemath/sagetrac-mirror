@@ -71,6 +71,22 @@ vertices and 3 edges.
 
 .. end of output
 
+Neighborliness
+--------------------------------------------------------------
+
+The *neighborliness* is the highest cardinality :math:`k` for which all
+:math:`k`-subsets of the vertices are faces of the polyhedron.
+
+::
+
+    sage: Cube.neighborliness()
+    1
+    sage: CP = polytopes.cyclic_polytope(5,9)
+    sage: CP.neighborliness()
+    2
+
+.. end of output
+
 Number of representation objects
 --------------------------------------------------------------
 
@@ -136,6 +152,11 @@ Testing if a polyhedron contains a point is done as follows.
     False
     sage: P1_and_P7.contains([2,1])
     True
+
+    sage: P3_QQ.relative_interior_contains([1/4, 1/4])
+    True
+    sage: P3_QQ.interior_contains([1/4, 1/4])
+    False
 
 .. end of output
 
@@ -256,6 +277,25 @@ the :code:`to_linear_program` method to obtain the corresponding linear program 
 
 .. end of output
 
+Spaces
+--------------------------------------------------------------
+
+There are several spaces related to a polyhedron.
+
+::
+
+    sage: P1.ambient_space()
+    Ambient free module of rank 2 over the principal ideal domain Integer Ring
+    sage: P1.Hrepresentation_space()
+    Ambient free module of rank 3 over the principal ideal domain Integer Ring
+    sage: P1.Vrepresentation_space()
+    Ambient free module of rank 2 over the principal ideal domain Integer Ring
+
+.. end of output
+
+Notice that the dimension of the :math:`H`-representation space is one more
+than the ambient space.
+
 Triangulation
 --------------------------------------------------------------
 
@@ -341,7 +381,7 @@ that records faces ordered by inclusion.
 .. note ::
 
     If one is interested in checking the combinatorial isomorphism of two
-    polyhedron objects, one should look at the `Combinatorial Isomorphism`_. 
+    polyhedron objects, one should look at the :meth:`sage.geometry.polyhedron.base.Polyhedron_base.is_combinatorially_isomorphic`. 
 
 Facet and Vertex adjacency matrices
 --------------------------------------------------------------
@@ -368,6 +408,8 @@ common face, one can looks at adjacency matrices.
     [0 1 0 0 1 0 0 1]
     [0 0 1 0 1 0 0 1]
     [0 0 0 1 0 1 1 0]
+    sage: Cube.vertex_adjacency_matrix() == Cube.adjacency_matrix()
+    True
 
 .. end of output
 

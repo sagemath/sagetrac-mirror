@@ -346,7 +346,6 @@ second group of four rows.
 Of course, this is a toy example, but it is generally worth to preprocess 
 the data before defining the polyhedron if possible.
 
-
 Lecture 1: Representation objects
 ===================================
 
@@ -385,6 +384,23 @@ inequalities and equalities as objects.
 
 .. end of output
 
+It is possible to obtain the different objects of the :math:`H`-representation
+as follows.
+
+::
+
+    sage: P3_QQ.equations()
+    (An equation (2, 2) x - 1 == 0,)
+    sage: P3_QQ.inequalities()
+    (An inequality (0, -2) x + 1 >= 0, An inequality (0, 1) x + 0 >= 0)
+
+.. end of output
+
+.. NOTE ::
+
+    It is recommended to use :code:`equations` or :code:`equation_generator` 
+    (and similarly for inequalities) if one wants to iterate over them instead
+    of :code:`equations_list`.
 
 `V`-representation
 ------------------
@@ -416,6 +432,31 @@ Similarly, you can access to vertices, rays and lines of the polyhedron.
     (0, 1/2, 0)
 
 .. end of output
+
+It is possible to obtain the different objects of the :math:`V`-representation
+as follows.
+
+::
+
+    sage: P2.vertices()
+    (A vertex at (0, 1/2, 0), A vertex at (1/2, 0, 0))
+    sage: P2.rays()
+    (A ray in the direction (1, 1, 0),)
+    sage: P2.lines()
+    (A line in the direction (0, 0, 1),)
+
+    sage: P2.vertices_matrix()
+    [  0 1/2]
+    [1/2   0]
+    [  0   0]
+
+.. end of output
+
+.. NOTE ::
+
+    It is recommended to use :code:`vertices` or :code:`vertex_generator` 
+    (and similarly for rays and lines) if one wants to iterate over them instead
+    of :code:`vertices_list`.
 
 Lecture 2: Backends for polyhedral computations
 ===============================================

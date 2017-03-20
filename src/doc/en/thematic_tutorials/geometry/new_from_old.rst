@@ -123,6 +123,24 @@ of the two objects.
 
 .. end of output
 
+Making it full-dimensional
+=========================================================
+
+Sometimes you deal with a low-dimensional polytope is a high-dimensional space.
+There is a function to make an affine transformation and give an affinely
+equivalent polyhedron which is full-dimensional.
+
+::
+
+    sage: Hexagon = Polyhedron(vertices = Permutations([1,2,3])); Hexagon
+    A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+    sage: Hex_aff = Hexagon.affine_hull(); Hex_aff
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices
+
+..
+
+Visualize :code:`Hex_aff` and you will see that it is not a regular hexagon.
+
 Taking a face
 =========================================================
 
@@ -301,5 +319,20 @@ One can translate a polyhedron by a vector.
     Traceback (most recent call last):
     ...
     ValueError: polyhedron is not a translation of self
+
+.. end of output
+
+Truncation
+=========================================================
+
+The truncation of a polyhedron is obtained by *chopping* all vertices
+simultaneously.
+
+::
+
+    sage: TCube = Cube.truncation()
+    sage: TCube2 = polytopes.truncated_cube()
+    sage: TCube.is_combinatorially_isomorphic(TCube2)
+    True
 
 .. end of output
