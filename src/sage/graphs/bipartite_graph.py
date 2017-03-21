@@ -1367,7 +1367,7 @@ class BipartiteGraph(Graph):
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
             if use_edge_labels:
                 raise ValueError("use_edge_labels can not be used with
-	                         Hopcroft-Karp or Eppstein")
+                                 Hopcroft-Karp or Eppstein")
             import networkx
             g = networkx.Graph()
             for u, v in self.edge_iterator(labels=False):
@@ -1383,9 +1383,9 @@ class BipartiteGraph(Graph):
                         for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only,
-	                          algorithm=algorithm,
+                                  algorithm=algorithm,
                                   use_edge_labels=use_edge_labels,
                                   solver=solver, verbose=verbose)
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp",
-	                     "Eppstein", "Edmonds" or "LP"')
+                             "Eppstein", "Edmonds" or "LP"')
