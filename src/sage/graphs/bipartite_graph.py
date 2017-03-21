@@ -1285,7 +1285,7 @@ class BipartiteGraph(Graph):
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
 
     def matching(self, value_only=False, algorithm="Hopcroft-Karp",
-            use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=False, solver=None, verbose=0):
         r"""
         Return a maximum matching of the graph represented by the list of its
         edges.
@@ -1366,7 +1366,8 @@ class BipartiteGraph(Graph):
 
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
             if use_edge_labels:
-                raise ValueError("use_edge_labels can not be used with Hopcroft-Karp or Eppstein")
+                raise ValueError("use_edge_labels can not be used with
+	                         Hopcroft-Karp or Eppstein")
             import networkx
             g = networkx.Graph()
             for u, v in self.edge_iterator(labels=False):
@@ -1381,7 +1382,10 @@ class BipartiteGraph(Graph):
                 return [(u, v, self.edge_label(u, v))
                         for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
-            return Graph.matching(self, value_only=value_only, algorithm=algorithm,
-            use_edge_labels=use_edge_labels, solver=solver, verbose=verbose)
+            return Graph.matching(self, value_only=value_only,
+	                          algorithm=algorithm,
+                                  use_edge_labels=use_edge_labels,
+                                  solver=solver, verbose=verbose)
         else:
-            raise ValueError('algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"')
+            raise ValueError('algorithm must be "Hopcroft-Karp",
+	                     "Eppstein", "Edmonds" or "LP"')
