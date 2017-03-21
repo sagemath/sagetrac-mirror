@@ -1,13 +1,12 @@
-Fix mmap usage on Cygwin; see https://trac.sagemath.org/ticket/22633
 diff --git a/src/language/init.c b/src/language/init.c
-index c2bd218..70543ba 100644
+index c2bd218..46ff613 100644
 --- a/src/language/init.c
 +++ b/src/language/init.c
 @@ -594,14 +594,18 @@ pari_add_defaults_module(entree *ep)
  
  #ifdef HAS_MMAP
  #define PARI_STACK_ALIGN (sysconf(_SC_PAGE_SIZE))
-+#ifdef __CYGWIN__
++#ifdef MAP_NORESERVE
 +#define PARI_MMAP_FLAGS MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE
 +#else
 +#define PARI_MMAP_FLAGS MAP_PRIVATE | MAP_ANONYMOUS
