@@ -1563,6 +1563,18 @@ def plot(funcs, *args, **kwds):
         g = graphics_array([[p1, p2], [p3, p4]])
         sphinx_plot(g) # Needs to accept options 'frame', 'axes', ...
 
+    We can also add plots together in the same image using lists or
+    tuples::
+
+        sage: L = [p1, p2, p3, p4]; L
+        [Graphics object consisting of 3 graphics primitives,
+         Graphics object consisting of 4 graphics primitives,
+         Graphics object consisting of 4 graphics primitives,
+         Graphics object consisting of 4 graphics primitives]
+        sage: plot(L)
+        Graphics object consisting of 15 graphics primitives
+        sage: plot((p2, sin(x)))
+        Graphics object consisting of 5 graphics primitives
 
     A example about the growth of prime numbers::
 
@@ -2092,6 +2104,11 @@ def _plot(funcs, xrange, parametric=False,
 
         G = Graphics()
         for i, h in enumerate(funcs):
+            # If h is already a plot, just add it to G
+            if isinstance(h, Graphics):
+                G += h
+                continue
+
             options_temp = options.copy()
             color_temp = options_temp.pop('rgbcolor', 'automatic')
             fill_temp = options_temp.pop('fill', fill)
