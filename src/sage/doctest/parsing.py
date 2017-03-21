@@ -564,8 +564,10 @@ class SageDocTestParser(doctest.DocTestParser):
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
+                            item.longtime = True
                         else:
                             continue
+
                     if not self.optional_tags is True:
                         extra = optional_tags - self.optional_tags # set difference
                         if len(extra) > 0:

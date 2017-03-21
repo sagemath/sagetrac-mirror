@@ -538,8 +538,14 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             # Report the outcome.
             if outcome is SUCCESS:
-                if self.options.warn_long and example.walltime > self.options.warn_long:
-                    self.report_overtime(out, test, example, got)
+
+                if self.options.warn_long:
+                    if (not hasattr(example, 'longtime') and
+                        example.walltime > self.options.warn_long):
+                        self.report_overtime(out, test, example, got)
+                    if (hasattr(example, 'longtime') and
+                        example.walltime > 10*self.options.warn_long):
+                        self.report_overtime(out, test, example, got)
                 elif not quiet:
                     self.report_success(out, test, example, got)
             elif outcome is FAILURE:
