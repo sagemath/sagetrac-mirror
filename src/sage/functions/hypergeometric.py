@@ -1184,7 +1184,6 @@ class AppellF1(GinacFunction):
 
             sage: appell_F1(1, 0, 0.5, 1, 0.5, 0.25)
             1.15470053837925
-            sage: CF=ComplexDoubleField
             sage: CF=ComplexField(prec=200)
             sage: appell_F1(1, 0, 0.5, 1, CF(1/2), CF(1/4))
             1.15470053837925
