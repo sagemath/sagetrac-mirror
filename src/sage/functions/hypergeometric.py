@@ -1143,15 +1143,6 @@ class AppellF1(GinacFunction):
         a*b*appell_F1(a + 1, b + 1, c, d + 1, x, y)/d
         sage: appell_F1(a, b, c, d, x, y).diff(y)
         a*c*appell_F1(a + 1, b, c + 1, d + 1, x, y)/d
-
-        sage: appell_F1(a,b,c,d, x,0)
-        hypergeometric((a, b), (d,), x)
-        sage: appell_F1(a,b,c,d, 0,y)
-        hypergeometric((a, c), (d,), y)
-        sage: appell_F1(a,b,c,d, x,x)
-        hypergeometric((a, b + c), (d,), x)
-        sage: appell_F1(a,b,c,b+c,x,y)
-        (-y + 1)^(-a)*hypergeometric((a, b), (b + c,), -(x - y)/(y - 1))
     """
     def __init__(self):
         """
@@ -1163,5 +1154,54 @@ class AppellF1(GinacFunction):
         GinacFunction.__init__(self, 'appell_F1', nargs=6,
                                  conversions={'mathematica':'AppellF1'},
                                  latex_name='F_1')
+
+    def _eval_(self, a, b1, b2, c, x, y, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+        sage: _ = var('a b c d y')
+        sage: appell_F1(a,b,c,d, x,0)
+        hypergeometric((a, b), (d,), x)
+        sage: appell_F1(a,b,c,d, 0,y)
+        hypergeometric((a, c), (d,), y)
+        sage: appell_F1(a,b,c,d, x,x)
+        hypergeometric((a, b + c), (d,), x)
+        sage: appell_F1(a,b,c,b+c,x,y)
+        (-y + 1)^(-a)*hypergeometric((a, b), (b + c,), -(x - y)/(y - 1))
+        """
+        if SR(x).is_trivial_zero():
+            return hypergeometric((a, b2), (c,), y)
+        if SR(y).is_trivial_zero():
+            return hypergeometric((a, b1), (c,), x)
+        if SR(x-y).is_trivial_zero():
+            return hypergeometric((a, b1+b2), (c,), x)
+        if SR(c-b1-b2).is_trivial_zero():
+            return (-y+1)**(-a) * hypergeometric((a, b1), (b1+b2,), (x-y)/(-y+1))
+
+    def _evalf_(self, a, b1, b2, c, x, y, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: appell_F1(1, 0, 0.5, 1, 0.5, 0.25)
+            1.15470053837925
+            sage: CF=ComplexDoubleField
+            sage: CF=ComplexField(prec=200)
+            sage: appell_F1(1, 0, 0.5, 1, CF(1/2), CF(1/4))
+            1.15470053837925
+            sage: appell_F1(1, 0, 1/2, 1, CF(1/2), CF(1/4))
+            1.15470053837925152901829756100391491129520350254...
+            sage: appell_F1(1, 0, 1/2, 1, 1/2, 1/4)
+            appell_F1(1, 0, 1/2, 1, 1/2, 1/4)
+            sage: _.n(200)
+            1.15470053837925152901829756100391491129520350254...
+        """
+        from mpmath import appellf1
+        from sage.libs.mpmath import utils as mpmath_utils
+        from sage.structure.element import get_coercion_model
+        P = get_coercion_model().common_parent(x, y)
+        if parent:
+            R = get_coercion_model().common_parent(P.an_element(),
+                                               parent.an_element())
+        return mpmath_utils.call(appellf1, a, b1, b2, c, x, y, parent=R)
 
 appell_F1 = AppellF1()
