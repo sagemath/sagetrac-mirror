@@ -6646,9 +6646,9 @@ cdef class Expression(CommutativeRingElement):
         INPUT:
 
             - a symbolic expression that may contain rational functions,
-            powers, factorials, gamma function terms, binomial
-            coefficients, and Pochhammer symbols that are rational-linear
-            in their arguments.
+              powers, factorials, gamma function terms, binomial
+              coefficients, and Pochhammer symbols that are rational-linear
+              in their arguments
 
             - the main variable and, optionally, summation limits
 
@@ -6756,20 +6756,18 @@ cdef class Expression(CommutativeRingElement):
         Return the Wilf-Zeilberger certificate for this hypergeometric
         summand in ``n``, ``k``.
 
-        To prove the identity `\sum_k F(n,k)=\textrm{const}` it suffices
+        To prove the identity `\sum_k F(n,k)=` ``const`` it suffices
         to show that `F(n+1,k)-F(n,k)=G(n,k+1)-G(n,k),` with `G=RF` and
         `R` the WZ certificate.
 
         EXAMPLES:
 
-        To show that `\sum_k \binomial(n,k) = 2^n` do::
+        To show that `\sum_k {n \choose k} = 2^n` do::
 
             sage: _ = var('k n')
             sage: F(n,k) = binomial(n,k) / 2^n
             sage: c = F(n,k).WZ_certificate(n,k); c
             1/2*k/(k - n - 1)
-            sage: G = c * F(n,k); G
-            1/2*k*binomial(n, k)/(2^n*(k - n - 1))
             sage: G(n,k) = c * F(n,k); G
             (n, k) |--> 1/2*k*binomial(n, k)/(2^n*(k - n - 1))
             sage: (F(n+1,k) - F(n,k) - G(n,k+1) + G(n,k)).simplify_full()
