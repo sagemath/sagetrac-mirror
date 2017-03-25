@@ -6645,12 +6645,12 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-            - a symbolic expression that may contain rational functions,
-              powers, factorials, gamma function terms, binomial
-              coefficients, and Pochhammer symbols that are rational-linear
-              in their arguments
+        - a symbolic expression that may contain rational functions,
+          powers, factorials, gamma function terms, binomial
+          coefficients, and Pochhammer symbols that are rational-linear
+          in their arguments
 
-            - the main variable and, optionally, summation limits
+        - the main variable and, optionally, summation limits
 
         EXAMPLES::
 
@@ -6752,17 +6752,17 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent, x)
 
     def WZ_certificate(self, n, k):
-        """
+        r"""
         Return the Wilf-Zeilberger certificate for this hypergeometric
         summand in ``n``, ``k``.
 
-        To prove the identity `\sum_k F(n,k)=` ``const`` it suffices
+        To prove the identity `\sum_k F(n,k)=\textrm{const}` it suffices
         to show that `F(n+1,k)-F(n,k)=G(n,k+1)-G(n,k),` with `G=RF` and
         `R` the WZ certificate.
 
         EXAMPLES:
 
-        To show that `\sum_k {n \choose k} = 2^n` do::
+        To show that `\sum_k \binom{n}{k} = 2^n` do::
 
             sage: _ = var('k n')
             sage: F(n,k) = binomial(n,k) / 2^n
