@@ -331,7 +331,7 @@ class R(ExtraTabCompletion, Expect):
                   prompt = '> ', #default, later comes the change
 
                   # This is the command that starts up your program
-                  command = "R --vanilla --quiet",
+                  command = "R --no-save --no-restore --quiet",
 
                   server=server,
                   server_tmpdir=server_tmpdir,
@@ -393,9 +393,8 @@ class R(ExtraTabCompletion, Expect):
 
         # width is line width, what's a good value? maximum is 10000!
         # pager needed to replace help view from less to printout
-        # option device= is for plotting, is set to x11, NULL would be better?
         self._change_prompt(PROMPT)
-        self.eval('options(prompt=\"%s\",continue=\"%s\", width=100,pager="cat",device="png")'%(PROMPT, PROMPT))
+        self.eval('options(prompt="{0}", continue="{0}", width=100, pager="cat")'.format(PROMPT))
         self.expect().expect(PROMPT)
         self.eval('options(repos="%s")'%RRepositoryURL)
         self.eval('options(CRAN="%s")'%RRepositoryURL)
