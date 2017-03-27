@@ -11,6 +11,13 @@ if [ "$UNAME" != "FreeBSD" ]; then
     exit 0
 fi
 
+
+if [ `freebsd-version | sed 's/\..*$//'` -ge 10 ]; then
+    echo "We only install the cephes library on FreeBSD"
+    echo "version 9 or earlier."
+    exit 0
+fi
+
 cd src
 
 echo "Building Cephes..."
