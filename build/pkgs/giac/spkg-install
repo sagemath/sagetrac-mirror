@@ -18,7 +18,8 @@ fi
 #   but if they are not empty, the -g -O2 is not added
 CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-
+CFLAGS="-I/usr/local/include $CFLAGS"
+LDFLAGS="$LDFLAGS -L/usr/local/lib -lintl"
 cd src
 
 #############################################################
