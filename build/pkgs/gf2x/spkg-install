@@ -8,6 +8,8 @@ fi
 
 cd src
 
+SAGE_FAT_BINARY=yes
+
 # Use newer version of config.guess and config.sub (see Trac #19727)
 cp "$SAGE_ROOT"/config/config.* config
 
