@@ -115,6 +115,11 @@ if [ "$UNAME" = "CYGWIN" ]; then
     mv patches/cygwin/*.patch patches/
 fi
 
+CURL_CPPFLAGS="-I/$SAGE_LOCAL/include"
+CURL_LIBS="-L/$SAGE_LOCAL/lib -lcurl"
+export CURL_CPPFLAGS
+export CURL_LIBS
+
 config()
 {
     ./configure \
