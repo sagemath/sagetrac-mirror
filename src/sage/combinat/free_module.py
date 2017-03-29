@@ -1013,6 +1013,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: e[(1,2)] - 3 * e[(3,4)]
         (1, 2) - 3*(3, 4)
 
+    By :trac:`22707`, containment test uses Sage's default implementation::
+
+        sage: R.<x,y,z> = FreeAlgebra(Integers(2))
+        sage: 1 in R
+        True
+
     TESTS:
 
     Before :trac:`14054`, combinatorial free modules violated the unique
@@ -1035,6 +1041,22 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: g = 2*G.monomial(3) +     G.monomial(4)
         sage: tensor([f, g])
         2*x[1] # y[3] + x[1] # y[4] + 4*x[2] # y[3] + 2*x[2] # y[4]
+
+    Assert that containment test still works after :trac:`22707`::
+
+        sage: F = CombinatorialFreeModule(QQ,["a", "b"])
+        sage: G = CombinatorialFreeModule(ZZ,["a", "b"])
+        sage: F.monomial("a") in F
+        True
+        sage: G.monomial("a") in F
+        False
+        sage: "a" in F
+        False
+
+    Apparently the following is, by some, considered desirable behaviour::
+
+        sage: 5/3 in F
+        False
     """
 
     @staticmethod
@@ -1269,29 +1291,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         except Exception:
             pass
         return x
-
-    # What semantic do we want for containment?
-    # Accepting anything that can be coerced is not reasonable, especially
-    # if we allow coercion from the enumerated set.
-    # Accepting anything that can be converted is an option, but that would
-    # be expensive. So far, x in self if x.parent() == self
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: F = CombinatorialFreeModule(QQ,["a", "b"])
-            sage: G = CombinatorialFreeModule(ZZ,["a", "b"])
-            sage: F.monomial("a") in F
-            True
-            sage: G.monomial("a") in F
-            False
-            sage: "a" in F
-            False
-            sage: 5/3 in F
-            False
-        """
-        return sage.structure.element.parent(x) == self # is self?
 
     def _element_constructor_(self, x):
         """
