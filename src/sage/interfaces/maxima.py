@@ -472,7 +472,7 @@ import pexpect
 
 from random import randrange
 
-from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.env import DOT_SAGE, SAGE_SCRIPTS_DIR
 
 from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled)
@@ -523,7 +523,7 @@ class Maxima(MaximaAbstract, Expect):
         # setting inchar and outchar..
         eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        STARTUP = os.path.join(SAGE_LOCAL,'bin','sage-maxima.lisp')
+        STARTUP = os.path.join(SAGE_SCRIPTS_DIR,'sage-maxima.lisp')
 
         # We set maxima's configuration directory to $DOT_SAGE/maxima
         # This avoids that sage's maxima inadvertently loads

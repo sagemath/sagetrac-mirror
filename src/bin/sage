@@ -452,13 +452,13 @@ fi
 #####################################################################
 
 if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
+        . "$SAGE_SCRIPTS_DIR"/sage-version.sh
         echo ${SAGE_VERSION}
         exit 0
 fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
+        . "$SAGE_SCRIPTS_DIR"/sage-version.sh
         echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
         exit 0
 fi
@@ -968,14 +968,14 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
     if [ "$SAGE_DEBUG" = "no" ]; then
-        gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+        gdb -x "$SAGE_SCRIPTS_DIR/sage-gdb-commands" \
+            -args python "$SAGE_SCRIPTS_DIR/sage-ipython" "$@" -i
     else
         # Location of cython_debug directory
         cygdb_dir="$SAGE_SRC/build/cythonized"
         cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
-            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+            -- -x "$SAGE_SCRIPTS_DIR/sage-gdb-commands" \
+            -args python "$SAGE_SCRIPTS_DIR/sage-ipython" "$@" -i
     fi
     exit $?
 fi
