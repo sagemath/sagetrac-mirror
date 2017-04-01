@@ -63,7 +63,14 @@ fi
 # Store the current value of V, but do all logging of child processes
 # with V=1 to ensure that no information is lost.
 currentV=$V
-export V=1
+if [[ $use_prefix = true ]]; then
+    # Not the top-level logger.
+    export V=1
+    if [[ -n "$MAKEFLAGS" ]]; then
+       # Make sure that overriding V also works when "make V=0" was used.
+       export MAKEFLAGS="$MAKEFLAGS V=1"
+    fi
+fi
 
 mkdir -p "$logdir"
 
