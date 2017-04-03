@@ -126,6 +126,9 @@ REFERENCES:
 
 **B**
 
+.. [Bal1993]  Vijay Balasubramanian, *Equivalence and Reduction of Hidden Markov Models*.
+              M.I.T. A.I. Technical Report No. 1370 January, 1993.
+
 .. [Ba1994] Kaushik Basu. *The Traveler's Dilemma: Paradoxes of
             Rationality in Game Theory*. The American Economic Review
             (1994): 391-395.
@@ -1552,6 +1555,10 @@ REFERENCES:
 
 .. [UNITTEST] unittest -- Unit testing framework --
               http://docs.python.org/library/unittest.html
+
+.. [Upp1997] Daniel Ray Upper, *Theory and Algorithms for
+             Hidden Markov Models and Generalized Hidden Markov Models*
+             Ph. D. dissertation, University of California at Berkeley, 1997.
 
 .. _ref-V:
 
