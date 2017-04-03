@@ -120,13 +120,15 @@ from .parking_functions import ParkingFunctions, ParkingFunction
 from .ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 
-from .mary_tree import (MAryTree, MAryTrees, 
-                        LabelledMAryTree, LabelledMAryTrees)
+lazy_import('sage.combinat.mary_tree', ['MAryTree', 'MAryTrees',
+                                        'LabelledMAryTree',
+                                        'LabelledMAryTrees'])
 
 from .binary_tree import (BinaryTree, BinaryTrees,
                           LabelledBinaryTree, LabelledBinaryTrees)
 
-lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
+lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset',
+                                              'TamariIntervalPosets'])
 from .rooted_tree import (RootedTree, RootedTrees,
                          LabelledRootedTree, LabelledRootedTrees)
 
