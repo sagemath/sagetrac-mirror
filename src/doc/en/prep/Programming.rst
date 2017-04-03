@@ -102,14 +102,17 @@ Then we do the row\-reduced echelon form.
 It is very important to keep in the parentheses.
 
 .. note::
-   Things that would be legal without them would be called 'attributes',
-   but Sage prefers stylistically to hide them, since math is made of functions
-   and not elements of sets. Or so a category\-theorist would say.
 
-   ::
+    Things that would be legal without them would be called 'attributes',
+    but Sage prefers stylistically to hide them, since math is made of
+    functions and not elements of sets.
+    Or so a category-theorist would say.
 
-       sage: A.det # Won't work
-       <built-in method det of sage.matrix.matrix_integer_dense.Matrix_integer_dense object at ...>
+    ::
+
+        sage: A.det  # Won't work
+        <bound method Matrix_integer_dense.det of [1 2]
+        [3 4]>
 
 This is so useful because we can use the 'tab' key, remember!
 

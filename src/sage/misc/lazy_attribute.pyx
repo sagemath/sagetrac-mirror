@@ -72,7 +72,7 @@ cdef class _lazy_attribute(object):
             sage: Parent.element_class.__name__
             'element_class'
             sage: Parent.element_class.__module__
-            'sage.misc.lazy_attribute'
+            'sage.structure.parent'
         """
         raise NotImplementedError("Only instantiate wrapper python class")
 

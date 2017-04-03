@@ -913,12 +913,10 @@ Where do all the operations on ``S`` and its elements come from?
     sage: x = S('a')
 
 ``_repr_`` is a technical method which comes with the data structure
-(:class:`ElementWrapper`); since it's implemented in Cython, we need
-to use Sage's introspection tools to recover where it's implemented::
+(:class:`ElementWrapper`)::
 
     sage: x._repr_.__module__
-    sage: sage.misc.sageinspect.sage_getfile(x._repr_)
-    '.../sage/structure/element_wrapper.pyx'
+    'sage.structure.element_wrapper'
 
 ``_pow_int`` is a generic method for all finite semigroups::
 

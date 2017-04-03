@@ -598,7 +598,7 @@ cdef class CategoryObject(SageObject):
             sage: F.base_ring()
             Integer Ring
             sage: F.__class__.base_ring
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <unbound method FreeModule_ambient_pid_with_category.base_ring>
 
         Note that the coordinates of the elements of a module can lie
         in a bigger ring, the ``coordinate_ring``::
@@ -618,7 +618,7 @@ cdef class CategoryObject(SageObject):
             sage: F.base_ring()
             Rational Field
             sage: F.__class__.base_ring
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <unbound method FreeAlgebra_generic_with_category.base_ring>
 
             sage: E = CombinatorialFreeModule(ZZ, [1,2,3])
             sage: F = CombinatorialFreeModule(ZZ, [2,3,4])
@@ -626,7 +626,7 @@ cdef class CategoryObject(SageObject):
             sage: H.base_ring()
             Integer Ring
             sage: H.__class__.base_ring
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <unbound method Homset_with_category_with_equality_by_id.base_ring>
 
         .. TODO::
 

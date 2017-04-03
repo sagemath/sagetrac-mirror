@@ -35,10 +35,16 @@ def isfunction(obj):
         sage: from sage.categories.coercion_methods import _mul_parent
         sage: isfunction(_mul_parent)
         True
+        sage: from sage.structure.richcmp import rich_to_bool
+        sage: isfunction(rich_to_bool)
+        True
         sage: isfunction(Integer.digits)     # unbound method
         False
         sage: isfunction(Integer(1).digits)  # bound method
         False
+        sage: from sage.geometry.point_collection import PointCollection
+        sage: isfunction(PointCollection.output_format)  # static method
+        True
 
     Verify that ipywidgets can correctly determine signatures of Cython
     functions::

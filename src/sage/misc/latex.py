@@ -557,7 +557,7 @@ def has_latex_attr(x):
         sage: T._latex_()
         Traceback (most recent call last):
         ...
-        TypeError: descriptor '_latex_' of 'sage.matrix.matrix0.Matrix' object needs an argument
+        TypeError: unbound method cython_function_or_method object must be called with Matrix_integer_dense instance as first argument (got nothing instead)
         sage: has_latex_attr(T)
         False
     """
