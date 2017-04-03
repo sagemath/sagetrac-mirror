@@ -119,8 +119,12 @@ from .parking_functions import ParkingFunctions, ParkingFunction
 # Trees and Tamari interval posets
 from .ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
+
+from .mary_tree import (MAryTree, MAryTrees, 
+                        LabelledMAryTree, LabelledMAryTrees)
+
 from .binary_tree import (BinaryTree, BinaryTrees,
-                         LabelledBinaryTree, LabelledBinaryTrees)
+                          LabelledBinaryTree, LabelledBinaryTrees)
 
 lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
 from .rooted_tree import (RootedTree, RootedTrees,
