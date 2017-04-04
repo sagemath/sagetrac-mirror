@@ -275,14 +275,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
 
-# Cache the contents of star imports.
-sage.misc.lazy_import.save_cache_file()
-
-
-### Debugging for Singular, see trac #10903
-# from sage.libs.singular.ring import poison_currRing
-# sys.settrace(poison_currRing)
-
 
 # Write a file indicating that Sage was started up successfully.
 # This is called by the sage-starts script.

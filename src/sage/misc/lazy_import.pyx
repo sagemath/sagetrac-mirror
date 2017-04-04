@@ -57,11 +57,13 @@ AUTHOR:
 from __future__ import absolute_import
 
 cimport cython
+from cpython.module cimport PyImport_ImportModuleLevel
 from cpython.object cimport PyObject_RichCompare
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
 
 import os
-from six.moves import cPickle as pickle
+import sys
+from six.moves import builtins, cPickle as pickle
 import inspect
 from . import sageinspect
 
@@ -166,8 +168,9 @@ cdef class LazyImport(object):
     cdef _namespace
     cdef bint _at_startup
     cdef _deprecation
+    cdef int _level
 
-    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None, deprecation=None):
+    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None, deprecation=None, level=0):
         """
         EXAMPLES::
 
@@ -185,6 +188,7 @@ cdef class LazyImport(object):
         self._namespace = namespace
         self._at_startup = at_startup
         self._deprecation = deprecation
+        self._level = level
 
     cpdef _get_object(self):
         """
@@ -216,8 +220,23 @@ cdef class LazyImport(object):
             raise RuntimeError(f"resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
             print('Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name))
-        self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
+        globals = {} if self._namespace is None else self._namespace
+        module = PyImport_ImportModuleLevel(self._module, globals, {},
+                (self._name,), self._level)
+        self._object = getattr(module, self._name)
+
         name = self._as_name
+        # Special case: if name is NotImplemented, search for it in the namespace
+        if name is NotImplemented:
+            name = self._name  # Try this first
+            if self._namespace is not None and self._namespace.get(name) is not self:
+                # We have a namespace but we didn't find the lazy
+                # import under "name": search the namespace.
+                for alias, ob in self._namespace.iteritems():
+                    if ob is self:
+                        name = alias
+                        break
+
         if self._deprecation is not None:
             from sage.misc.superseded import deprecation
             try:
@@ -1111,10 +1130,11 @@ def save_cache_file():
     with atomic_write(cache_file) as f:
         pickle.dump(star_imports, f)
 
+
 def get_star_imports(module_name):
     """
-    Lookup the list of names in a module that would be imported with "import \\*"
-    either via a cache or actually importing.
+    Lookup the list of names in a module that would be imported with
+    ``import *`` either via a cache or by actually importing.
 
     EXAMPLES::
 
@@ -1138,6 +1158,7 @@ def get_star_imports(module_name):
         doctest:...: UserWarning: star_imports cache is corrupted
         [...]
         sage: os.remove(cache_file)
+        sage: lazy.get_cache_file = sage.misc.lazy_import_cache.get_cache_file
     """
     global star_imports
     if star_imports is None:
@@ -1153,15 +1174,219 @@ def get_star_imports(module_name):
     try:
         return star_imports[module_name]
     except KeyError:
-        module = __import__(module_name, {}, {}, ["*"])
-        if hasattr(module, "__all__"):
+        module = PyImport_ImportModuleLevel(module_name, {}, {}, ("*",), 0)
+        try:
             all = module.__all__
-        else:
+        except AttributeError:
             all = [key for key in dir(module) if key[0] != "_"]
         star_imports[module_name] = all
+        save_cache_file()
         return all
 
 
 # Add support for _instancedoc_
 from sage.docs.instancedoc import instancedoc
 instancedoc(LazyImport)
+
+
+cdef class LazyModule:
+    """
+    A lazy imported module.
+
+    All attributes of this module become lazy imports.
+
+    INPUT:
+
+    - ``module`` -- the name of the module
+
+    - ``**kwds`` -- additional arguments to pass to :class:`LazyImport`
+
+    EXAMPLES::
+
+        sage: from sage.misc.lazy_import import LazyModule
+        sage: mod = LazyModule("sage.all")
+        sage: mod
+        <lazy imported module 'sage.all'>
+        sage: type(mod.ZZ)
+        <type 'sage.misc.lazy_import.LazyImport'>
+
+    ::
+
+        sage: deprecated_mod = LazyModule("sage.all", deprecation=14974)
+        sage: deprecated_mod.ZZ
+        doctest:...: DeprecationWarning:
+        Importing ZZ from here is deprecated. If you need to use it, please import it directly from sage.all
+        See http://trac.sagemath.org/14974 for details.
+        Integer Ring
+
+    An indirect example using :class:`LazyImportContext`::
+
+        sage: from sage.misc.lazy_import import lazyimport
+        sage: with lazyimport as lazy:
+        ....:     mod = lazy.__import__("sage.all", {}, {}, ["ZZ"])
+        sage: mod
+        <lazy imported module 'sage.all'>
+    """
+    cdef module
+    cdef kwds
+
+    def __init__(self, module, **kwds):
+        self.module = module
+        self.kwds = kwds
+
+    def __repr__(self):
+        return f"<lazy imported module {self.module!r}>"
+
+    def __getattribute__(self, attr):
+        if attr == "__all__":
+            return get_star_imports(self.module)
+        return LazyImport(self.module, name=attr, as_name=NotImplemented, **self.kwds)
+
+
+class LazyImportContext(object):
+    """
+    Context in which all imports become lazy imports.
+
+    .. WARNING::
+
+        You should use this only for module-level imports, not for
+        imports inside a function. This is because the namespace where
+        this import ends up is assumed to be the globals.
+
+    EXAMPLES::
+
+        sage: from sage.misc.lazy_import import lazyimport
+        sage: with lazyimport:
+        ....:     from sage.all import ZZ
+        sage: type(ZZ)
+        <type 'sage.misc.lazy_import.LazyImport'>
+        sage: ZZ("0x2a")
+        42
+        sage: type(ZZ)
+        <type 'sage.rings.integer_ring.IntegerRing_class'>
+
+    You can pass additional keywords to :class:`LazyImport`::
+
+        sage: with lazyimport(deprecation=14974):
+        ....:     from sage.all import QQ
+        sage: QQ
+        doctest:...: DeprecationWarning:
+        Importing QQ from here is deprecated. If you need to use it, please
+        import it directly from sage.all
+        See http://trac.sagemath.org/14974 for details.
+        Rational Field
+
+    Star imports work::
+
+        sage: with lazyimport:
+        ....:     from sage.structure.parent import *
+        sage: type(Parent)
+        <type 'sage.misc.lazy_import.LazyImport'>
+
+    This works also with ``import ... as ...`` in Python and in Cython::
+
+        sage: with lazyimport:
+        ....:     from sage.all import ZZ as my_ZZ
+        sage: type(my_ZZ)
+        <type 'sage.misc.lazy_import.LazyImport'>
+        sage: my_ZZ("0x2a")
+        42
+        sage: type(my_ZZ)
+        <type 'sage.rings.integer_ring.IntegerRing_class'>
+
+        sage: cython('''
+        ....: from sage.misc.lazy_import import lazyimport
+        ....: with lazyimport:
+        ....:     from sage.all import ZZ as my_ZZ
+        ....: print(type(my_ZZ))
+        ....: fortytwo = my_ZZ("0x2a")
+        ....: print(type(my_ZZ))
+        ....: ''')
+        <type 'sage.misc.lazy_import.LazyImport'>
+        <type 'sage.rings.integer_ring.IntegerRing_class'>
+    """
+    def __init__(self, kwds={}):
+        """
+        TESTS::
+
+            sage: from sage.misc.lazy_import import LazyImportContext
+            sage: ctx = LazyImportContext({"foo":"bar"}); ctx
+            <sage.misc.lazy_import.LazyImportContext object at ...>
+            sage: ctx.kwds
+            {'foo': 'bar'}
+        """
+        self.kwds = kwds
+
+    def __enter__(self):
+        """
+        Change the builtin ``__import__`` function to ``self.__import__``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_import import lazyimport
+            sage: with lazyimport:
+            ....:     print(__import__)
+            <bound method LazyImportContext.__import__ of <sage.misc.lazy_import.LazyImportContext object at ...>>
+        """
+        self.old_import = builtins.__import__
+        builtins.__import__ = self.__import__
+        return self
+
+    def __exit__(self, *args):
+        """
+        Change the builtin ``__import__`` function back to what it was
+        before.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_import import lazyimport
+            sage: with lazyimport:
+            ....:     pass
+            sage: print(__import__)
+            <built-in function __import__>
+            sage: with lazyimport:
+            ....:     raise Exception
+            Traceback (most recent call last):
+            ...
+            Exception
+            sage: print(__import__)
+            <built-in function __import__>
+        """
+        builtins.__import__ = self.old_import
+
+    def __call__(self, **kwds):
+        """
+        Return a new :class:`LazyImportContext` which will apply
+        ``kwds`` when creating a lazy import.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_import import lazyimport
+            sage: lazyimport(foo="bar")(hello="yo")(foo="foo")().kwds
+            {'foo': 'foo', 'hello': 'yo'}
+        """
+        newkwds = dict(self.kwds)
+        newkwds.update(kwds)
+        return type(self)(newkwds)
+
+    def __import__(self, module, globals=None, locals=None, fromlist=(), level=0):
+        """
+        Replacement function for ``builtins.__import__``.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_import import lazyimport
+            sage: lazyimport.__import__("sage.all", {}, {}, ["ZZ"])
+            <lazy imported module 'sage.all'>
+            sage: with lazyimport:
+            ....:     import sage.all
+            Traceback (most recent call last):
+            ...
+            RuntimeError: lazy import only works with 'from ... import ...' imports, not with 'import ...'
+        """
+        if not fromlist:
+            raise RuntimeError("lazy import only works with 'from ... import ...' imports, not with 'import ...'")
+        return LazyModule(module, namespace=globals, level=level, **self.kwds)
+
+
+lazyimport = LazyImportContext()

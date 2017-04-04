@@ -77,13 +77,6 @@ cimport sage.rings.rational as rational
 
 from . import ring
 
-arith = None
-cdef void late_import():
-    # A hack to avoid circular imports.
-    global arith
-    if arith is None:
-        import sage.arith.all
-        arith = sage.arith.all
 
 cdef int number_of_integer_rings = 0
 

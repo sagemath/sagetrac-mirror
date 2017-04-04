@@ -1,0 +1,30 @@
+commit 652f2195dd22b38f0cb0f49a8319466f358ccd14
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Wed Apr 5 14:29:58 2017 +0200
+
+    Add declaration for PyImport_ImportModuleLevel
+
+diff --git a/Cython/Includes/cpython/module.pxd b/Cython/Includes/cpython/module.pxd
+index f36b989..8434084 100644
+--- a/Cython/Includes/cpython/module.pxd
++++ b/Cython/Includes/cpython/module.pxd
+@@ -35,6 +35,19 @@ cdef extern from "Python.h":
+     # unless a non-empty fromlist was given. Changed in version 2.4:
+     # failing imports remove incomplete module objects.
+ 
++    object PyImport_ImportModuleLevel(char *name, object globals, object locals, object fromlist, int level)
++    # Return value: New reference.
++
++    # Import a module. This is best described by referring to the
++    # built-in Python function __import__(), as the standard
++    # __import__() function calls this function directly.
++
++    # The return value is a new reference to the imported module or
++    # top-level package, or NULL with an exception set on failure. Like
++    # for __import__(), the return value when a submodule of a package
++    # was requested is normally the top-level package, unless a
++    # non-empty fromlist was given.
++
+     object PyImport_Import(object name)
+     # Return value: New reference.
+     # This is a higher-level interface that calls the current ``import

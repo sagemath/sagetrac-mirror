@@ -78,39 +78,15 @@ from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.sage_object cimport rich_to_bool, richcmp
 
-NumberFieldElement_quadratic = None
-AlgebraicNumber_base = None
-AlgebraicNumber = None
-AlgebraicReal = None
-AA = None
-QQbar = None
-CDF = CLF = RLF = None
+from sage.misc.lazy_import import lazyimport
+with lazyimport:
+    from sage.rings.number_field.number_field_element_quadratic import (
+            NumberFieldElement_quadratic)
+    from sage.rings.qqbar import (AlgebraicNumber_base, AlgebraicNumber,
+            AlgebraicReal, AA, QQbar)
+    from .real_lazy import CLF, RLF
+    from .complex_double import CDF
 
-def late_import():
-    """
-    Import the objects/modules after build (when needed).
-
-    TESTS::
-
-        sage: sage.rings.complex_mpc.late_import()
-    """
-    global NumberFieldElement_quadratic
-    global AlgebraicNumber_base
-    global AlgebraicNumber
-    global AlgebraicReal
-    global AA, QQbar
-    global CLF, RLF, CDF
-    if NumberFieldElement_quadratic is None:
-        import sage.rings.number_field.number_field_element_quadratic as nfeq
-        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
-        import sage.rings.qqbar
-        AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
-        AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
-        AlgebraicReal = sage.rings.qqbar.AlgebraicReal
-        AA = sage.rings.qqbar.AA
-        QQbar = sage.rings.qqbar.QQbar
-        from .real_lazy import CLF, RLF
-        from .complex_double import CDF
 
 _mpfr_rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
@@ -469,7 +445,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         if isinstance(S, ComplexField_class) and S.prec() >= self.__prec:
             return CCtoMPC(S, self)
 
-        late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
             return self._generic_convert_map(S)
 
