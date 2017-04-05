@@ -119,8 +119,9 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             if not isinstance(upper_closed, bool):
                 raise ValueError('upper_closed must be boolean')
             # comparison of infinity with RLF is broken
-            if not(lower is minus_infinity or upper is infinity) and lower > upper:
-                raise ValueError('lower/upper bounds are not sorted')
+            if not(lower is minus_infinity or upper is infinity) and lower > upper:                
+                msg = 'lower/upper bounds ({}/{}) are not sorted'
+                raise ValueError(msg.format(lower, upper))
             if (lower_closed and lower == minus_infinity):
                 raise ValueError('interval cannot be closed at -oo')
             if (upper_closed and upper == infinity):
