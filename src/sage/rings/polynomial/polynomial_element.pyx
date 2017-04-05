@@ -157,31 +157,11 @@ from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from .polydict import ETuple
 
-cdef object is_AlgebraicRealField
-cdef object is_AlgebraicField
-cdef object is_AlgebraicField_common
-cdef object NumberField_quadratic
-cdef object is_ComplexIntervalField
-
-cdef void late_import():
-    # A hack to avoid circular imports.
-    global is_AlgebraicRealField
-    global is_AlgebraicField
-    global is_AlgebraicField_common
-    global NumberField_quadratic
-    global is_ComplexIntervalField
-
-    if is_AlgebraicRealField is not None:
-        return
-
-    import sage.rings.qqbar
-    is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
-    is_AlgebraicField = sage.rings.qqbar.is_AlgebraicField
-    is_AlgebraicField_common = sage.rings.qqbar.is_AlgebraicField_common
-    import sage.rings.number_field.number_field
-    NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
-    import sage.rings.complex_interval_field
-    is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
+from sage.misc.lazy_import cimport lazy_import
+global is_AlgebraicRealField, is_AlgebraicField, is_AlgebraicField_common, NumberField_quadratic, is_ComplexIntervalField
+lazy_import('sage.rings.qqbar', ['is_AlgebraicRealField', 'is_AlgebraicField', 'is_AlgebraicField_common'], None, at_startup=True)
+lazy_import('sage.rings.number_field.number_field', ['NumberField_quadratic'], None, at_startup=True)
+lazy_import('sage.rings.complex_interval_field', ['is_ComplexIntervalField'], None, at_startup=True)
 
 
 cdef class Polynomial(CommutativeAlgebraElement):
@@ -7106,8 +7086,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError("roots() got unexpected keyword argument(s): {}".format(kwds.keys()))
 
         L = K if ring is None else ring
-
-        late_import()
 
         input_fp = (is_RealField(K)
                     or is_ComplexField(K)

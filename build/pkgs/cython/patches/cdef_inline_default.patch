@@ -1,0 +1,62 @@
+commit 9cb2af378b2f6b4ff1abde3e6469111a8f750409
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Tue Apr 4 14:07:54 2017 +0200
+
+    Allow "cdef inline" with default values in .pxd
+
+diff --git a/Cython/Compiler/Parsing.py b/Cython/Compiler/Parsing.py
+index 564b958..df0090d 100644
+--- a/Cython/Compiler/Parsing.py
++++ b/Cython/Compiler/Parsing.py
+@@ -2952,7 +2952,7 @@ def p_c_arg_decl(s, ctx, in_pyfunc, cmethod_flag = 0, nonempty = 0,
+         annotation = p_test(s)
+     if s.sy == '=':
+         s.next()
+-        if 'pxd' in ctx.level:
++        if 'pxd' in ctx.level and 'inline' not in ctx.modifiers:
+             if s.sy not in ['*', '?']:
+                 error(pos, "default values cannot be specified in pxd files, use ? or *")
+             default = ExprNodes.BoolNode(1)
+@@ -3192,7 +3192,7 @@ def p_c_func_or_var_declaration(s, pos, ctx):
+     cmethod_flag = ctx.level in ('c_class', 'c_class_pxd')
+     modifiers = p_c_modifiers(s)
+     base_type = p_c_base_type(s, nonempty = 1, templates = ctx.templates)
+-    declarator = p_c_declarator(s, ctx, cmethod_flag = cmethod_flag,
++    declarator = p_c_declarator(s, ctx(modifiers=modifiers), cmethod_flag = cmethod_flag,
+                                 assignable = 1, nonempty = 1)
+     declarator.overridable = ctx.overridable
+     if s.sy == 'IDENT' and s.systring == 'const' and ctx.level == 'cpp_class':
+diff --git a/tests/run/inlinepxd.pyx b/tests/run/inlinepxd.pyx
+index 5c932f4..3d724f7 100644
+--- a/tests/run/inlinepxd.pyx
++++ b/tests/run/inlinepxd.pyx
+@@ -5,6 +5,10 @@ __doc__ = u"""
+ 6
+ >>> h()
+ 6
++>>> i()
++6
++>>> j()
++6
+ """
+ 
+ cimport inlinepxd_support
+@@ -18,3 +22,9 @@ def g():
+ 
+ def h():
+     return my_add3(1, 2, 3)
++
++def i():
++    return my_add3(5)
++
++def j():
++    return my_add3(2, 4)
+diff --git a/tests/run/inlinepxd_support.pxd b/tests/run/inlinepxd_support.pxd
+index e7b745d..c2941e2 100644
+--- a/tests/run/inlinepxd_support.pxd
++++ b/tests/run/inlinepxd_support.pxd
+@@ -1,3 +1,3 @@
+ 
+-cdef inline int my_add(int a, int b, int c):
++cdef inline int my_add(int a, int b=1, int c=0):
+     return a + b + c

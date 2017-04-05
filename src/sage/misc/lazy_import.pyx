@@ -972,7 +972,32 @@ cdef class LazyImport(object):
         return issubclass(x, self._get_object())
 
 
-def lazy_import(module, names, as_=None, *,
+cdef int lazy_import_impl(module, names, as_, at_startup, namespace, deprecation) except -1:
+    """
+    Low-level function actually implementing lazy imports.
+
+    INPUT: the same as ``_lazy_import``, except that ``namespace`` must
+    not be ``None``.
+    """
+    if as_ is None:
+        as_ = names
+    if isinstance(names, basestring):
+        names = [names]
+        as_ = [as_]
+    else:
+        names = list(names)
+        as_ = list(as_)
+    if "*" in names:
+        ix = names.index("*")
+        all = get_star_imports(module)
+        names[ix:ix+1] = all
+        as_[ix:ix+1] = all
+    for name, alias in zip(names, as_):
+        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation)
+
+
+# Lazy import function for *Python* (not Cython)
+def _lazy_import(module, names, as_=None, *,
     at_startup=False, namespace=None, overwrite=None, deprecation=None):
     """
     Create a lazy import object and inject it into the caller's global
@@ -1065,26 +1090,14 @@ def lazy_import(module, names, as_=None, *,
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
     """
-    if overwrite is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(22755, "lazy_import(overwrite=False) is no longer supported")
-    if as_ is None:
-        as_ = names
-    if isinstance(names, basestring):
-        names = [names]
-        as_ = [as_]
-    else:
-        names = list(names)
-        as_ = list(as_)
     if namespace is None:
         namespace = inspect.currentframe().f_locals
-    if "*" in names:
-        ix = names.index("*")
-        all = get_star_imports(module)
-        names[ix:ix+1] = all
-        as_[ix:ix+1] = all
-    for name, alias in zip(names, as_):
-        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation)
+    if overwrite is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(22751, "lazy_import(overwrite=False) is no longer supported")
+    lazy_import_impl(module, names, as_, at_startup, namespace, deprecation)
+
+globals()["lazy_import"] = _lazy_import
 
 
 star_imports = None
