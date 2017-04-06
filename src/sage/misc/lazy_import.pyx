@@ -148,6 +148,24 @@ cpdef test_fake_startup():
     startup_guard = True
 
 
+cdef find_dict_value_by_id(D, value, guess, default):
+    """
+    Return the key of the dict ``D`` such that ``D[key] is value``.
+    Try ``guess`` first as key.
+
+    Return ``default`` is there is no such key.
+    """
+    try:
+        if D[guess] is value:
+            return guess
+    except KeyError:
+        pass
+    for key in D:
+        if D[key] is value:
+            return key
+    return default
+
+
 @cython.final
 cdef class LazyImport(object):
     """
@@ -173,7 +191,8 @@ cdef class LazyImport(object):
     cdef _deprecation
     cdef int _level
 
-    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None, deprecation=None, level=0):
+    def __init__(self, module, name, as_name=NotImplemented,
+        at_startup=False, namespace=None, deprecation=None, level=0):
         """
         EXAMPLES::
 
@@ -231,14 +250,9 @@ cdef class LazyImport(object):
         name = self._as_name
         # Special case: if name is NotImplemented, search for it in the namespace
         if name is NotImplemented:
-            name = self._name  # Try this first
-            if self._namespace is not None and self._namespace.get(name) is not self:
-                # We have a namespace but we didn't find the lazy
-                # import under "name": search the namespace.
-                for alias, ob in self._namespace.iteritems():
-                    if ob is self:
-                        name = alias
-                        break
+            name = self._name  # Reasonable default
+            if self._namespace is not None:
+                name = find_dict_value_by_id(self._namespace, self, name, name)
 
         if self._deprecation is not None:
             from sage.misc.superseded import deprecation
@@ -522,14 +536,53 @@ cdef class LazyImport(object):
 
                sage: type(Foo.__dict__['plot'])
                <... 'function'>
+
+        TESTS:
+
+        Check that :trac:`15648` is fixed::
+
+            sage: class A:
+            ....:     Associative = LazyImport('sage.categories.magmas', 'Magmas')
+            sage: type(A.Associative)
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            sage: type(A.__dict__["Associative"])
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+
+            sage: class B(object):
+            ....:     Associative = LazyImport('sage.categories.magmas', 'Magmas')
+            sage: type(B.Associative)
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            sage: type(B.__dict__["Associative"])
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+
+            sage: class C:
+            ....:     Associative = LazyImport('sage.categories.magmas', 'Magmas', 'Associative')
+            sage: type(C.Associative)
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            sage: type(C.__dict__["Associative"])
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+
+            sage: class D:
+            ....:     Associative = LazyImport('sage.categories.magmas', 'Magmas', 'WRONG')
+            sage: type(D.Associative)
+            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            sage: type(D.__dict__["Associative"])
+            <type 'sage.misc.lazy_import.LazyImport'>
         """
         # Don't use the namespace of the class definition
         self._namespace = None
         obj = self._get_object()
 
-        name = self._as_name
+        as_name = self._as_name
+        name = None
         for cls in inspect.getmro(owner):
-            if cls.__dict__.get(name) is self:
+            if as_name is NotImplemented:
+                name = find_dict_value_by_id(cls.__dict__, self, as_name, None)
+            elif cls.__dict__.get(as_name) is self:
+                name = as_name
+            else:
+                continue
+            if name is not None:
                 setattr(cls, name, obj)
                 break
 
