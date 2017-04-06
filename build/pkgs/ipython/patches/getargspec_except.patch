@@ -1,0 +1,19 @@
+commit f89fa25579c9ea645df0e18427e804368dad1911
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Thu Apr 6 15:21:40 2017 +0200
+
+    Ignore all exceptions in getargspec()
+
+diff --git a/IPython/core/oinspect.py b/IPython/core/oinspect.py
+index 0b14027..ce419fc 100644
+--- a/IPython/core/oinspect.py
++++ b/IPython/core/oinspect.py
+@@ -907,7 +907,7 @@ def _info(self, obj, oname='', info=None, detail_level=0):
+         if callable_obj is not None:
+             try:
+                 argspec = getargspec(callable_obj)
+-            except (TypeError, AttributeError):
++            except Exception:
+                 # For extensions/builtins we can't retrieve the argspec
+                 pass
+             else:
