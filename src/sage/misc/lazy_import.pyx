@@ -60,13 +60,17 @@ cimport cython
 from cpython.module cimport PyImport_ImportModuleLevel
 from cpython.object cimport PyObject_RichCompare
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
+from cpython.pystate cimport PyThreadState, PyThreadState_Get
+cdef extern from *:
+    ctypedef PyThreadState volatile_PyThreadState "volatile PyThreadState"
 
 import os
 import sys
 from six.moves import builtins, cPickle as pickle
 import inspect
-from . import sageinspect
+from time import sleep
 
+from . import sageinspect
 from .lazy_import_cache import get_cache_file
 
 
@@ -1243,6 +1247,11 @@ cdef class LazyModule:
         return LazyImport(self.module, name=attr, as_name=NotImplemented, **self.kwds)
 
 
+# Unique thread which is inside a LazyImportContext(). To avoid
+# threading issues, at most one thread can do this. Due to the Python
+# GIL, there are no race conditions in accessing this global pointer.
+cdef volatile_PyThreadState* lazyimport_thread = NULL
+
 class LazyImportContext(object):
     """
     Context in which all imports become lazy imports.
@@ -1327,7 +1336,26 @@ class LazyImportContext(object):
             sage: with lazyimport:
             ....:     print(__import__)
             <bound method LazyImportContext.__import__ of <sage.misc.lazy_import.LazyImportContext object at ...>>
+
+        Nesting is illegal::
+
+            sage: with lazyimport:
+            ....:     with lazyimport:
+            ....:         pass
+            Traceback (most recent call last):
+            ...
+            RuntimeError: nesting "with lazyimport" contexts is not allowed
         """
+        global lazyimport_thread
+        while lazyimport_thread is not NULL:
+            if lazyimport_thread is PyThreadState_Get():
+                # Current thread is already doing lazy imports.
+                raise RuntimeError('nesting "with lazyimport" contexts is not allowed')
+            # A different thread is doing lazy imports, yield the GIL
+            # for 20ms.
+            sleep(0.020)
+
+        lazyimport_thread = PyThreadState_Get()
         self.old_import = builtins.__import__
         builtins.__import__ = self.__import__
         return self
@@ -1351,8 +1379,21 @@ class LazyImportContext(object):
             Exception
             sage: print(__import__)
             <built-in function __import__>
+
+        We get a message if ``__import__`` was changed inside the
+        context::
+
+            sage: from six.moves import builtins
+            sage: with lazyimport:
+            ....:     builtins.__import__ = None
+            WARNING: __import__ was changed inside a "with lazyimport" context to None (possibly by a different thread)
         """
+        global lazyimport_thread
+        if builtins.__import__ != self.__import__:
+            print(f'WARNING: __import__ was changed inside a "with lazyimport" context to {builtins.__import__} (possibly by a different thread)')
         builtins.__import__ = self.old_import
+        del self.old_import
+        lazyimport_thread = NULL
 
     def __call__(self, **kwds):
         """
@@ -1373,17 +1414,62 @@ class LazyImportContext(object):
         """
         Replacement function for ``builtins.__import__``.
 
+        It is not allowed to call this outside of a ``with lazyimport``
+        context. If one thread does ``with lazyimport``, then other
+        threads doing imports will fall back to the previous (non-lazy)
+        ``__import__`` function.
+
         TESTS::
 
             sage: from sage.misc.lazy_import import lazyimport
-            sage: lazyimport.__import__("sage.all", {}, {}, ["ZZ"])
+            sage: with lazyimport as lazy:
+            ....:     print(lazy.__import__("sage.all", {}, {}, ["ZZ"]))
             <lazy imported module 'sage.all'>
+            sage: lazyimport.__import__("sage.all", {}, {}, ["ZZ"])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: __import__ called outside "with lazyimport" context
             sage: with lazyimport:
             ....:     import sage.all
             Traceback (most recent call last):
             ...
             RuntimeError: lazy import only works with 'from ... import ...' imports, not with 'import ...'
+
+        We test 100 threads each doing an import, half of them lazy and
+        half of them a real import. Note that this will not cause a
+        lot of CPU activity due to the Python GIL. ::
+
+            sage: from sage.misc.lazy_import import LazyImport, lazyimport
+            sage: from threading import Thread
+            sage: from time import sleep
+            sage: def do_import():
+            ....:     sleep(0.001)  # Yield the GIL
+            ....:     from sage.structure.sage_object import SageObject
+            ....:     t = type(SageObject)
+            ....:     if t is not type:
+            ....:         print("SageObject should be type, got {!r}".format(t))
+            sage: def do_lazy_import():
+            ....:     with lazyimport:
+            ....:         sleep(0.001)  # Yield the GIL
+            ....:         from sage.structure.sage_object import SageObject
+            ....:     t = type(SageObject)
+            ....:     if t is not LazyImport:
+            ....:         print("SageObject should be LazyImport, got {!r}".format(t))
+            sage: threads = [Thread(target=do_import if i%2 else do_lazy_import) for i in range(100)]
+            sage: for T in threads:
+            ....:     T.start()
+            sage: for T in threads:
+            ....:     T.join()
         """
+        # If __import__ was called from a different thread, call
+        # old_import() instead.
+        if PyThreadState_Get() is not lazyimport_thread:
+            try:
+                old = self.old_import
+            except AttributeError:
+                raise RuntimeError('__import__ called outside "with lazyimport" context')
+            return old(module, globals, locals, fromlist, level)
+
         if not fromlist:
             raise RuntimeError("lazy import only works with 'from ... import ...' imports, not with 'import ...'")
         return LazyModule(module, namespace=globals, level=level, **self.kwds)
