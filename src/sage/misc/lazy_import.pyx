@@ -319,7 +319,7 @@ cdef class LazyImport(object):
 
         Check that :trac:`19475` is fixed::
 
-            sage: 'A subset of the real line' in RealSet.__doc__
+            sage: RealSet.__doc__ is None
             True
 
         Check that :trac:`20626` is fixed::
@@ -333,7 +333,7 @@ cdef class LazyImport(object):
             Docstring:
             Introduction to combinatorics in Sage...
         """
-        return sageinspect.sage_getdoc_original(self._get_object())
+        return self._get_object().__doc__
 
     def _sage_src_(self):
         """
