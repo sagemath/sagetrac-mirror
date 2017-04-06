@@ -43,5 +43,9 @@ Related topics
 - :ref:`sage.graphs`
 
 """
-from . import quickref
-from . import tutorial
+
+from sage.misc.lazy_import import _lazyimport_
+
+with _lazyimport_:
+    from . import quickref
+    from . import tutorial

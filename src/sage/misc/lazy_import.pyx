@@ -321,6 +321,17 @@ cdef class LazyImport(object):
 
             sage: 'A subset of the real line' in RealSet.__doc__
             True
+
+        Check that :trac:`20626` is fixed::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell("sage.combinat.tutorial?")
+            Type:            LazyImport
+            String form:     <module 'sage.combinat.tutorial' from '/usr/local/src/sage-git/local/lib/python2.7/site-packages/sage/combinat/tutorial.pyc'>
+            File:            /usr/local/src/sage-git/src/sage/misc/lazy_import.pyx
+            Docstring:
+            Introduction to combinatorics in Sage...
         """
         return sageinspect.sage_getdoc_original(self._get_object())
 
