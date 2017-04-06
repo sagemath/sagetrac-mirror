@@ -9,8 +9,9 @@ use.
 
 EXAMPLES::
 
-    sage: from sage.misc.lazy_import import lazy_import
-    sage: lazy_import('sage.rings.all', 'ZZ')
+    sage: from sage.misc.lazy_import import lazyimport
+    sage: with lazyimport:
+    ....:     from sage.rings.all import ZZ
     sage: type(ZZ)
     <type 'sage.misc.lazy_import.LazyImport'>
     sage: ZZ(4.0)
@@ -21,7 +22,8 @@ during Sage's startup. In case a lazy import's sole purpose is to
 break a circular reference and it is known to be resolved at startup
 time, one can use the ``at_startup`` option::
 
-    sage: lazy_import('sage.rings.all', 'ZZ', at_startup=True)
+    sage: with lazyimport(at_startup=True):
+    ....:     from sage.rings.all import ZZ
 
 This option can also be used as an intermediate step toward not
 importing by default a module that is used in several places, some of
@@ -35,15 +37,12 @@ that (s)he can remove the flag::
     Option ``at_startup=True`` for lazy import ZZ not needed anymore
     Integer Ring
 
-.. SEEALSO:: :func:`lazy_import`, :class:`LazyImport`
-
-AUTHOR:
-
- - Robert Bradshaw
+.. SEEALSO:: :class:`LazyImportContext`, :class:`LazyImport, :func:`lazy_import`
 """
 
 #*****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2017 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1303,7 +1302,8 @@ class LazyImportContext(object):
         sage: type(my_ZZ)
         <type 'sage.rings.integer_ring.IntegerRing_class'>
 
-        sage: cython('''
+        sage: cython(  # long time
+        ....: '''
         ....: from sage.misc.lazy_import import lazyimport
         ....: with lazyimport:
         ....:     from sage.all import ZZ as my_ZZ
