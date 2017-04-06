@@ -242,10 +242,6 @@ cdef class LazyImport(object):
             raise RuntimeError(f"resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
             print('Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name))
-        globals = {} if self._namespace is None else self._namespace
-        module = PyImport_ImportModuleLevel(self._module, globals, {},
-                (self._name,), self._level)
-        self._object = getattr(module, self._name)
 
         name = self._as_name
         # Special case: if name is NotImplemented, search for it in the namespace
@@ -253,6 +249,20 @@ cdef class LazyImport(object):
             name = self._name  # Reasonable default
             if self._namespace is not None:
                 name = find_dict_value_by_id(self._namespace, self, name, name)
+
+        cdef bint do_replace = 0
+        if self._namespace is not None:
+            do_replace = (self._namespace.get(name) is self)
+            if do_replace:
+                # Delete the name from the namespace, otherwise we
+                # potentially break the real import below.
+                del self._namespace[name]
+
+        # Do a real import of the object
+        globals = {} if self._namespace is None else self._namespace
+        module = PyImport_ImportModuleLevel(self._module, globals, {},
+                (self._name,), self._level)
+        self._object = getattr(module, self._name)
 
         if self._deprecation is not None:
             from sage.misc.superseded import deprecation
@@ -265,9 +275,8 @@ cdef class LazyImport(object):
                     ' {module_name}').format(name=name, module_name=self._module)
             deprecation(trac_number, message)
         # Replace the lazy import in the namespace by the actual object
-        if self._namespace is not None:
-            if self._namespace.get(name) is self:
-                self._namespace[name] = self._object
+        if do_replace:
+            self._namespace[name] = self._object
         return self._object
 
     def _get_deprecation_ticket(self):
