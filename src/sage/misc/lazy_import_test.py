@@ -16,7 +16,7 @@ TESTS::
 
 from __future__ import absolute_import
 
-from .lazy_import import lazyimport
-with lazyimport:
+from .lazy_import import _lazyimport_
+with _lazyimport_:
     from . import temporary_file
     from .all import version

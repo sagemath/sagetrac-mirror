@@ -9,8 +9,8 @@ use.
 
 EXAMPLES::
 
-    sage: from sage.misc.lazy_import import lazyimport
-    sage: with lazyimport:
+    sage: from sage.misc.lazy_import import _lazyimport_
+    sage: with _lazyimport_:
     ....:     from sage.rings.all import ZZ
     sage: type(ZZ)
     <type 'sage.misc.lazy_import.LazyImport'>
@@ -22,7 +22,7 @@ during Sage's startup. In case a lazy import's sole purpose is to
 break a circular reference and it is known to be resolved at startup
 time, one can use the ``at_startup`` option::
 
-    sage: with lazyimport(at_startup=True):
+    sage: with _lazyimport_(at_startup=True):
     ....:     from sage.rings.all import ZZ
 
 This option can also be used as an intermediate step toward not
@@ -1224,8 +1224,8 @@ cdef class LazyModule:
 
     An indirect example using :class:`LazyImportContext`::
 
-        sage: from sage.misc.lazy_import import lazyimport
-        sage: with lazyimport as lazy:
+        sage: from sage.misc.lazy_import import _lazyimport_
+        sage: with _lazyimport_ as lazy:
         ....:     mod = lazy.__import__("sage.all", {}, {}, ["ZZ"])
         sage: mod
         <lazy imported module 'sage.all'>
@@ -1263,8 +1263,8 @@ class LazyImportContext(object):
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_import import lazyimport
-        sage: with lazyimport:
+        sage: from sage.misc.lazy_import import _lazyimport_
+        sage: with _lazyimport_:
         ....:     from sage.all import ZZ
         sage: type(ZZ)
         <type 'sage.misc.lazy_import.LazyImport'>
@@ -1275,7 +1275,7 @@ class LazyImportContext(object):
 
     You can pass additional keywords to :class:`LazyImport`::
 
-        sage: with lazyimport(deprecation=14974):
+        sage: with _lazyimport_(deprecation=14974):
         ....:     from sage.all import QQ
         sage: QQ
         doctest:...: DeprecationWarning:
@@ -1286,14 +1286,14 @@ class LazyImportContext(object):
 
     Star imports work::
 
-        sage: with lazyimport:
+        sage: with _lazyimport_:
         ....:     from sage.structure.parent import *
         sage: type(Parent)
         <type 'sage.misc.lazy_import.LazyImport'>
 
     This works also with ``import ... as ...`` in Python and in Cython::
 
-        sage: with lazyimport:
+        sage: with _lazyimport_:
         ....:     from sage.all import ZZ as my_ZZ
         sage: type(my_ZZ)
         <type 'sage.misc.lazy_import.LazyImport'>
@@ -1304,8 +1304,8 @@ class LazyImportContext(object):
 
         sage: cython(  # long time
         ....: '''
-        ....: from sage.misc.lazy_import import lazyimport
-        ....: with lazyimport:
+        ....: from sage.misc.lazy_import import _lazyimport_
+        ....: with _lazyimport_:
         ....:     from sage.all import ZZ as my_ZZ
         ....: print(type(my_ZZ))
         ....: fortytwo = my_ZZ("0x2a")
@@ -1332,25 +1332,25 @@ class LazyImportContext(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_import import lazyimport
-            sage: with lazyimport:
+            sage: from sage.misc.lazy_import import _lazyimport_
+            sage: with _lazyimport_:
             ....:     print(__import__)
             <bound method LazyImportContext.__import__ of <sage.misc.lazy_import.LazyImportContext object at ...>>
 
         Nesting is illegal::
 
-            sage: with lazyimport:
-            ....:     with lazyimport:
+            sage: with _lazyimport_:
+            ....:     with _lazyimport_:
             ....:         pass
             Traceback (most recent call last):
             ...
-            RuntimeError: nesting "with lazyimport" contexts is not allowed
+            RuntimeError: nesting "with _lazyimport_" contexts is not allowed
         """
         global lazyimport_thread
         while lazyimport_thread is not NULL:
             if lazyimport_thread is PyThreadState_Get():
                 # Current thread is already doing lazy imports.
-                raise RuntimeError('nesting "with lazyimport" contexts is not allowed')
+                raise RuntimeError('nesting "with _lazyimport_" contexts is not allowed')
             # A different thread is doing lazy imports, yield the GIL
             # for 20ms.
             sleep(0.020)
@@ -1367,12 +1367,12 @@ class LazyImportContext(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_import import lazyimport
-            sage: with lazyimport:
+            sage: from sage.misc.lazy_import import _lazyimport_
+            sage: with _lazyimport_:
             ....:     pass
             sage: print(__import__)
             <built-in function __import__>
-            sage: with lazyimport:
+            sage: with _lazyimport_:
             ....:     raise Exception
             Traceback (most recent call last):
             ...
@@ -1384,13 +1384,13 @@ class LazyImportContext(object):
         context::
 
             sage: from six.moves import builtins
-            sage: with lazyimport:
+            sage: with _lazyimport_:
             ....:     builtins.__import__ = None
-            WARNING: __import__ was changed inside a "with lazyimport" context to None (possibly by a different thread)
+            WARNING: __import__ was changed inside a "with _lazyimport_" context to None (possibly by a different thread)
         """
         global lazyimport_thread
         if builtins.__import__ != self.__import__:
-            print(f'WARNING: __import__ was changed inside a "with lazyimport" context to {builtins.__import__} (possibly by a different thread)')
+            print(f'WARNING: __import__ was changed inside a "with _lazyimport_" context to {builtins.__import__} (possibly by a different thread)')
         builtins.__import__ = self.old_import
         del self.old_import
         lazyimport_thread = NULL
@@ -1402,8 +1402,8 @@ class LazyImportContext(object):
 
         EXAMPLES::
 
-            sage: from sage.misc.lazy_import import lazyimport
-            sage: lazyimport(foo="bar")(hello="yo")(foo="foo")().kwds
+            sage: from sage.misc.lazy_import import _lazyimport_
+            sage: _lazyimport_(foo="bar")(hello="yo")(foo="foo")().kwds
             {'foo': 'foo', 'hello': 'yo'}
         """
         newkwds = dict(self.kwds)
@@ -1414,22 +1414,22 @@ class LazyImportContext(object):
         """
         Replacement function for ``builtins.__import__``.
 
-        It is not allowed to call this outside of a ``with lazyimport``
-        context. If one thread does ``with lazyimport``, then other
+        It is not allowed to call this outside of a ``with _lazyimport_``
+        context. If one thread does ``with _lazyimport_``, then other
         threads doing imports will fall back to the previous (non-lazy)
         ``__import__`` function.
 
         TESTS::
 
-            sage: from sage.misc.lazy_import import lazyimport
-            sage: with lazyimport as lazy:
+            sage: from sage.misc.lazy_import import _lazyimport_
+            sage: with _lazyimport_ as lazy:
             ....:     print(lazy.__import__("sage.all", {}, {}, ["ZZ"]))
             <lazy imported module 'sage.all'>
-            sage: lazyimport.__import__("sage.all", {}, {}, ["ZZ"])
+            sage: _lazyimport_.__import__("sage.all", {}, {}, ["ZZ"])
             Traceback (most recent call last):
             ...
-            RuntimeError: __import__ called outside "with lazyimport" context
-            sage: with lazyimport:
+            RuntimeError: __import__ called outside "with _lazyimport_" context
+            sage: with _lazyimport_:
             ....:     import sage.all
             Traceback (most recent call last):
             ...
@@ -1439,7 +1439,7 @@ class LazyImportContext(object):
         half of them a real import. Note that this will not cause a
         lot of CPU activity due to the Python GIL. ::
 
-            sage: from sage.misc.lazy_import import LazyImport, lazyimport
+            sage: from sage.misc.lazy_import import LazyImport, _lazyimport_
             sage: from threading import Thread
             sage: from time import sleep
             sage: def do_import():
@@ -1449,7 +1449,7 @@ class LazyImportContext(object):
             ....:     if t is not type:
             ....:         print("SageObject should be type, got {!r}".format(t))
             sage: def do_lazy_import():
-            ....:     with lazyimport:
+            ....:     with _lazyimport_:
             ....:         sleep(0.001)  # Yield the GIL
             ....:         from sage.structure.sage_object import SageObject
             ....:     t = type(SageObject)
@@ -1467,7 +1467,7 @@ class LazyImportContext(object):
             try:
                 old = self.old_import
             except AttributeError:
-                raise RuntimeError('__import__ called outside "with lazyimport" context')
+                raise RuntimeError('__import__ called outside "with _lazyimport_" context')
             return old(module, globals, locals, fromlist, level)
 
         if not fromlist:
@@ -1475,4 +1475,4 @@ class LazyImportContext(object):
         return LazyModule(module, namespace=globals, level=level, **self.kwds)
 
 
-lazyimport = LazyImportContext()
+_lazyimport_ = LazyImportContext()

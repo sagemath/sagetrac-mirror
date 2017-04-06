@@ -78,8 +78,8 @@ from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.sage_object cimport rich_to_bool, richcmp
 
-from sage.misc.lazy_import import lazyimport
-with lazyimport:
+from sage.misc.lazy_import import _lazyimport_
+with _lazyimport_:
     from sage.rings.number_field.number_field_element_quadratic import (
             NumberFieldElement_quadratic)
     from sage.rings.qqbar import (AlgebraicNumber_base, AlgebraicNumber,

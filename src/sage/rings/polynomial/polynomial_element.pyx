@@ -157,8 +157,8 @@ from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from .polydict import ETuple
 
-from sage.misc.lazy_import import lazyimport
-with lazyimport(at_startup=True):
+from sage.misc.lazy_import import _lazyimport_
+with _lazyimport_(at_startup=True):
     from sage.rings.qqbar import is_AlgebraicRealField, is_AlgebraicField, is_AlgebraicField_common
     from sage.rings.number_field.number_field import NumberField_quadratic
     from sage.rings.complex_interval_field import is_ComplexIntervalField
