@@ -670,6 +670,20 @@ cdef class SymbolicRing(CommutativeRing):
             My Symbolic Ring
             sage: MySR.an_element().parent()
             My Symbolic Ring
+
+        Check that ``maxima_lib`` knows about variable changes
+        (:trac:`22763`)::
+
+            sage: forget()
+            sage: _ = var('m')
+            sage: ret = exp(m*x^x).integral(x)
+            sage: _= var('m', domain='integer')
+            sage: ret = exp(m*x^x).integral(x); ret
+            integrate(e^(m*x^x), x)
+            sage: ret.operands()[0].operands()[0] / x^x
+            m
+            sage: _.is_integer()
+            True
         """
         cdef GSymbol symb
         cdef Expression e
@@ -684,12 +698,16 @@ cdef class SymbolicRing(CommutativeRing):
                     return e
 
             # get symbol
+            from sage.calculus.calculus import maxima
+            from sage.interfaces.maxima_lib import max_sym_dict
+            global max_sym_dict
             symb = ex_to_symbol(e._gobj)
             if latex_name is not None:
                 symb.set_texname(latex_name)
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
+            max_sym_dict[maxima(e).ecl()] = e
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
