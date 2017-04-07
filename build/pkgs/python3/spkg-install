@@ -76,7 +76,7 @@ build()
     fi
 
     # Remove old libraries
-    rm -f "$SAGE_LOCAL"/lib/libpython3*
+    rm -f "$SAGE_LOCAL"/{bin,lib}/libpython3*
 
     # Running 'make install' in parallel is a bad idea, so we use
     # only 1 job.
