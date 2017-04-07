@@ -1625,7 +1625,8 @@ def __GCD_sequence(v, **kwargs):
     return g
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'lcm', deprecation=22630)
+lazy_import('sage.arith.functions', 'lcm', deprecation=(22630,
+    'Importing lcm from here is deprecated. If you need to use it, please import it from sage.arith.all'))
 lazy_import('sage.arith.functions', 'lcm', '__LCM_sequence', deprecation=22630)
 lazy_import('sage.arith.functions', 'lcm', 'LCM', deprecation=22630)
 
