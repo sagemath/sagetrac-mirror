@@ -75,8 +75,16 @@ build()
         exit 1
     fi
 
-    $MAKE
-    if [ $? -ne 0 ]; then
+    # We scan the output for "Failed to build these modules" as there's no way
+    # to make the build fail if an extension module that should have been built
+    # fails to build.
+    $MAKE | (failed=0; while IFS= read -r line; do
+        echo $line
+        if [ "$line" = "Failed to build these modules:" ]; then
+            failed=1
+        fi
+    done; exit $failed)
+    if [ $((${PIPESTATUS[0]} + ${PIPESTATUS[1]})) -ne 0 ]; then
         echo >&2 "Error building Python."
         exit 1
     fi
