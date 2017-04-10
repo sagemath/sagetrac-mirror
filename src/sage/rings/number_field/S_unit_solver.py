@@ -73,7 +73,6 @@ from sage.arith.all import gcd, factor, lcm, CRT
 from sage.arith.all import factorial
 from copy import copy
 
-
 def set_R(prec = None):
     r"""
     Return a real field of precision ``prec``
@@ -1953,17 +1952,17 @@ def p_adic_LLL_bound(SUK,A, prec = None):
     if prec == None:
         prec = 106
     S = SUK.primes()
-    K0_by_finite_place = [K0_func(SUK, A, prec)]
+    K0_old = K0_func(SUK, A, prec)
     LLL_K0_by_finite_place = []
     for i,v in enumerate(S):
-        Kv_old = K0_by_finite_place[i]
+        #Kv_old = K0_by_finite_place[0]
         Mus0 = possible_mu0s(SUK, v)
         Mus = mus(SUK,v)
         Log_p_Mus = log_p_of_a_list(Mus, v, prec)
         local_prec = prec
         val = 0
         for m0 in Mus0:
-            m0_Kv_old = Kv_old
+            m0_Kv_old = K0_old
             m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
             while increase_precision:
                 local_prec *= 2
@@ -1983,7 +1982,6 @@ def p_adic_LLL_bound(SUK,A, prec = None):
 
         LLL_K0_by_finite_place.append(val)
     return max(LLL_K0_by_finite_place)
-
 
 def completely_split_primes(K, Bound = 200):
     r"""
