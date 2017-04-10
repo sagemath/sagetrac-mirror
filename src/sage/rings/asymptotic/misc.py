@@ -75,7 +75,7 @@ def repr_short_to_parent(s):
 
     from sage.misc.lazy_import import LazyImport
     if type(P) is LazyImport:
-        P = P._get_object()
+        P = P.__wrapped__
 
     from sage.structure.parent import is_Parent
     if not is_Parent(P):

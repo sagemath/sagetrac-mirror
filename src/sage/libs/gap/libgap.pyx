@@ -619,8 +619,8 @@ class Gap(Parent):
         EXAMPLES::
 
             sage: type(libgap)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: type(libgap._get_object())
+            <class 'sage.misc.lazy_import.LazyImport'>
+            sage: type(libgap.__wrapped__)
             <class 'sage.libs.gap.libgap.Gap'>
         """
         initialize()

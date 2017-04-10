@@ -42,7 +42,7 @@ Check that the Sage Notebook is not imported at startup (see
 Check lazy import of ``interacts``::
 
     sage: type(interacts)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """

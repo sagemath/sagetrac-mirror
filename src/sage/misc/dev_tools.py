@@ -532,11 +532,10 @@ def import_statements(*objects, **kwds):
                 if isinstance(obj[i], LazyImport):
                     tmp = obj.pop(i)
                     # Ignore deprecated lazy imports
-                    tmp_deprecation = tmp._get_deprecation_ticket()
-                    if tmp_deprecation:
-                        deprecation = tmp_deprecation
+                    if tmp.__deprecation_ticket__:
+                        deprecation = tmp.__deprecation_ticket__
                     else:
-                        tmp = tmp._get_object()
+                        tmp = tmp.__wrapped__
                         if all(u is not tmp for u in obj):
                             obj.append(tmp)
                 else:
@@ -562,7 +561,7 @@ def import_statements(*objects, **kwds):
 
         # 1'. if obj is a LazyImport we recover the real object
         if isinstance(obj, LazyImport):
-            obj = obj._get_object()
+            obj = obj.__wrapped__
 
         # 2. Find out in which modules obj lives
         # and update answer with a couple of strings "(name,alias)" where "name" is

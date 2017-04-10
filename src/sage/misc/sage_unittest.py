@@ -151,6 +151,11 @@ class TestSuite(object):
             Test suite for Integer Ring
         """
         from sage.structure.sage_object import SageObject
+        from sage.misc.lazy_import import LazyImport
+
+        if isinstance(instance, LazyImport):
+            instance = instance.__wrapped__
+
         if not isinstance(instance, (SageObject,PythonObjectWithTests)):
             instance = PythonObjectWithTests(instance)
         self._instance = instance

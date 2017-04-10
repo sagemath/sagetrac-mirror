@@ -334,7 +334,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         It also forces the resolution of lazy imports (see :trac:`15648`)::
 
             sage: type(Algebras.__dict__["Graded"])
-            <type 'sage.misc.lazy_import.LazyImport'>
+            <class 'sage.misc.lazy_import.LazyImport'>
             sage: Algebras.Graded
             <class 'sage.categories.graded_algebras.GradedAlgebras'>
             sage: type(Algebras.__dict__["Graded"])
