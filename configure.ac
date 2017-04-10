@@ -363,6 +363,12 @@ fi
 AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
+#Figuring out if we are using clang instead of gcc.
+AX_COMPILER_VENDOR()
+IS_CLANG=no
+if test "x$ax_cv_c_compiler_vendor" = xclang ; then 
+    IS_CLANG=yes
+fi
 
 AC_LANG(C++)
 AC_PROG_CXX()
@@ -450,19 +456,22 @@ elif test x$GFC != xyes; then
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
-    # We also know that all compilers are GCC.
+    # We also know that all compilers are GCC-like.
 
     # Find out the compiler versions:
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    # Add the .0 because Debian/Ubuntu gives version numbers like
-    # 4.6 instead of 4.6.4 (Trac #18885)
-    case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-    esac
+    if test $IS_CLANG = no ; then
+        # For gcc we know we want relatively recent version
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GXX_VERSION.0" in
+            [[0-3]].*|4.[[0-7]].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.8.
+                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        esac
+    fi
 
     # The following tests check that the version of the compilers
     # are all the same.
@@ -470,43 +479,7 @@ else
         SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
     fi
 
-    # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
-    # compiler, though it might be called something else.
-
-    # It's not easily possible to determine the Fortran version, as
-    # gfortran -dumpversion did not until GCC 4.5 return just the
-    # the version number, but the same as gfortran --version
-    # for example:
-
-    # drkirkby@hawk:~$ gcc -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ g++ -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ gfortran -dumpversion
-    # GNU Fortran (GCC) 4.3.4
-    # Copyright (C) 2008 Free Software Foundation, Inc.
-    # GNU Fortran comes with NO WARRANTY, to the extent permitted by law.
-    # You may redistribute copies of GNU Fortran
-    # under the terms of the GNU General Public License.
-    # For more information about these matters, see the file named COPYING
-
-    # This behaviour is fixed in the gcc 4.5 branch. Since we need to
-    # support older versions of the compiler, we can't change this.
-
-    # But I would expect that the version will be on the output
-    # of the compiler followed by -dumpversion (e.g. fortran -dumpversion)
-
-    # So we grep for the known gcc version on the output of gfortran -dumpversion.
-    # and hope we find the same string. If so, they are almost certainly
-    # the same version.
-    fortran_version_string="`$FC -dumpversion | grep $GCC_VERSION 2>&1`"
-
-    if test "x$fortran_version_string" = x
-    then
-        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
-    fi
+    # Assuming gfortran does work.
 fi
 
 
