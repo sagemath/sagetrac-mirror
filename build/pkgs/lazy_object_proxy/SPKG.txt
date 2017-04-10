@@ -1,0 +1,14 @@
+= lazy_object_proxy =
+
+== Description ==
+
+psutil is a cross-platform library for retrieving information onrunning
+processes and system utilization (CPU, memory, disks, network) in Python.
+
+== License ==
+
+2-clause BSD license
+
+== Upstream Contact ==
+
+https://github.com/ionelmc/python-lazy-object-proxy
