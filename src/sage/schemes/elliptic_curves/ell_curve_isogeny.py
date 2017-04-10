@@ -1000,6 +1000,7 @@ class EllipticCurveIsogeny(Morphism):
         post_isom = None
 
         self.__check = check
+        self.__degree = degree
 
         if (kernel is None) and (codomain is not None):
 
@@ -1870,9 +1871,14 @@ class EllipticCurveIsogeny(Morphism):
         kernel_set = Set([self.__E1(0)])
         from sage.misc.all import flatten
         from sage.groups.generic import multiples
-        for P in kernel_gens:
-            kernel_set += Set(flatten([list(multiples(P,P.order(),Q))
-                                       for Q in kernel_set]))
+        if self.__degree is None:
+            for P in kernel_gens:
+                kernel_set += Set(flatten([list(multiples(P, P.order(), Q))
+                    for Q in kernel_set]))
+        else:
+            for P in kernel_gens:
+                kernel_set += Set(flatten([list(multiples(P, self.__degree, Q))
+                    for Q in kernel_set]))
 
         self.__kernel_list = kernel_set.list()
         self.__kernel_2tor = {}
