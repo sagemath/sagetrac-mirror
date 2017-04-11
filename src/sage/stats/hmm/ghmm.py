@@ -18,7 +18,8 @@ from sage.graphs.digraph import DiGraph
 from copy import copy
 
 def _initials_equivalent(Ts, init1, init2):
-    '''Return ``True`` if the two initial distributions on states 
+    """
+    Return ``True`` if the two initial distributions on states 
     give the same process.
 
     INPUT:
@@ -30,7 +31,7 @@ def _initials_equivalent(Ts, init1, init2):
     - ``init2`` -- a list or vector of probabilities, with as many elements as ``Ts``.
 
     ALGORITHM: Adapted from [Bal1993]_.
-    '''
+    """
     n = len(init1)
     V = [matrix(ZZ, 0, n, [])] # array so it can be updated by a subroutine; ugly Python trick
     rows = []
@@ -53,7 +54,8 @@ def _initials_equivalent(Ts, init1, init2):
     return new_vec(vector(init2) - vector(init1))
 
 def _hmm_to_ghmm_data(discrete_hmm):
-    '''Return the transition matrices and initial distribution for
+    """
+    Return the transition matrices and initial distribution for
     a GeneralizedHiddenMarkovModel equivalent to the given
     DiscreteHiddenMarkovModel, in the sense that every output sequence
     is an equally likely output of both.  This is an internal function
@@ -82,7 +84,7 @@ def _hmm_to_ghmm_data(discrete_hmm):
         Generalized Hidden Markov Model with 4 states and 2 output symbols
         sage: G.canonical_form()
         Generalized Hidden Markov Model with 3 states and 2 output symbols
-    '''
+    """
     if not isinstance(discrete_hmm, hmm.DiscreteHiddenMarkovModel):
         raise TypeError
     pi = vector(discrete_hmm.initial_probabilities())
@@ -94,22 +96,22 @@ def _hmm_to_ghmm_data(discrete_hmm):
 
 
 def _digraph_to_ghmm_data(g):
-    r'''
+    r"""
     Return a list of transition matrices for a GHMM corresponding to digraph g.
 
     ``g``'s vertices are states, and there must be some integer ``m`` so that
     each edges is labelled by a list of ``m`` numbers, giving the pseudo-probability
     of emitting outputs 0, 1, ..., ``m-1`` when traversing that edge.
 
-    INPUTS:
+    INPUT:
 
-      - ``g`` -- a DiGraph
+    - ``g`` -- a DiGraph
 
-    OUTPUTS:
+    OUTPUT:
 
-       A list ``L`` of transition matrices, and a dictionary mapping the graph vertices to
-       ``range(0, len(L))`` (which can be used to transform data associated with the graph
-       into information about the states of the GHMM associated with ``L``).
+    A list ``L`` of transition matrices, and a dictionary mapping the graph vertices to
+    ``range(0, len(L))`` (which can be used to transform data associated with the graph
+    into information about the states of the GHMM associated with ``L``).
 
     EXAMPLES::
 
@@ -126,31 +128,31 @@ def _digraph_to_ghmm_data(g):
         sage: hmm.GeneralizedHiddenMarkovModel(DiGraph()) # indirect doctest
         Traceback (most recent call last):
         ...
-        ValueError: Must have at least one state
+        ValueError: must have at least one state
         sage: D = DiGraph([('a', 'b', [1]), ('c', 'd', [0,1])])
         sage: hmm.GeneralizedHiddenMarkovModel(D)
         Traceback (most recent call last):
         ...
-        ValueError: All labels must have the same length
+        ValueError: all labels must have the same length
         sage: D = DiGraph(); D.add_vertex(0)
         sage: hmm.GeneralizedHiddenMarkovModel(D)
         Traceback (most recent call last):
         ...
-        ValueError: No edges, cannot derive a GHMM
-    '''
+        ValueError: no edges, cannot derive a GHMM
+    """
     G = copy(g)
     f = G.relabel(return_map=True)
     n = G.num_verts()
     if n == 0:
-        raise ValueError('Must have at least one state')
+        raise ValueError('must have at least one state')
     k = -1
     for (i,j,lab) in G.edge_iterator():
         if k == -1:
             k = len(lab)
         elif k != len(lab):
-            raise ValueError('All labels must have the same length')
+            raise ValueError('all labels must have the same length')
     if k == -1:
-        raise ValueError('No edges, cannot derive a GHMM')
+        raise ValueError('no edges, cannot derive a GHMM')
     Ts = [ [[0]*n for _ in range(n) ] for _ in range(k)]
     for (i,j,lab) in G.edge_iterator():
         for o,p in enumerate(lab):
@@ -158,7 +160,7 @@ def _digraph_to_ghmm_data(g):
     return [matrix(m) for m in Ts], f
 
 class GeneralizedHiddenMarkovModel:
-    r'''
+    r"""
     A GeneralizedHiddenMarkovModel (GHMM) represents a Generalized
     Hidden Markov Model of the output-from-transition type. 
     If there are `n` states and `k` outputs, such a model is characterized by
@@ -227,19 +229,20 @@ class GeneralizedHiddenMarkovModel:
         0.03503412
         sage: G.likelihood([0,1,0,1])
         0.03503412
-    '''
+    """
     def __init__(self, data, initial_distribution = None):
-        r'''Create a Generalized Hidden Markov Model of the output-from-transition type.
+        r"""
+        Create a Generalized Hidden Markov Model of the output-from-transition type.
 
         INPUT:
 
-            - ``data`` -- Data defining the states and transition matricies of the GHMM.
-               This can be a list of transition matrices, a DiscreteHiddenMarkovModel,
-               a GeneralizedHiddenMarkovModel, or a DiGraph of the sort produced by
-               :meth:`graph`.
+        - ``data`` -- Data defining the states and transition matricies of the GHMM.
+           This can be a list of transition matrices, a DiscreteHiddenMarkovModel,
+           a GeneralizedHiddenMarkovModel, or a DiGraph of the sort produced by
+           :meth:`graph`.
 
-            - ``initial_distribution`` -- None (the default), or a list or vector of
-              preudo-probabilities.
+        - ``initial_distribution`` -- None (the default), or a list or vector of
+          preudo-probabilities.
 
         EXAMPLES::
 
@@ -302,10 +305,10 @@ class GeneralizedHiddenMarkovModel:
             sage: D = DiGraph([(0, 0, [1/2, 1/3, 1/6])], loops=True)
             sage: hmm.GeneralizedHiddenMarkovModel(D)
             Generalized Hidden Markov Model with 1 state and 3 output symbols
-        '''
+        """
         if isinstance(data, hmm.DiscreteHiddenMarkovModel):
             if initial_distribution is not None:
-                raise ValueError
+                raise ValueError('must not provide an initial distribution when giving a DiscreteHiddenMarkovModel')
             # Convert a state-output HMM into an edge-output GHMM
             T_matrices, initial_distribution = _hmm_to_ghmm_data(data)
         elif isinstance(data, GeneralizedHiddenMarkovModel):
@@ -331,26 +334,26 @@ class GeneralizedHiddenMarkovModel:
         self.Ts = T_matrices
         for T in T_matrices:
             if T.dimensions() != (self.n_states, self.n_states):
-                raise ValueError, 'T matrices must all be square and of the same size'
+                raise ValueError('T matrices must all be square and of the same size')
         T = sum(T_matrices) # overall transition matrix
         self._transition_matrix = T
         if T.base_ring().is_exact():
             v = vector([1] * self.n_states)
             if T * v != v:
-                raise ValueError, 'Transition matrix must be stochastic'
+                raise ValueError('transition matrix must be stochastic')
         if initial_distribution:
             self._initial_distribution = vector(initial_distribution)
             if self._initial_distribution.base_ring().is_exact() and \
                sum(initial_distribution) != 1:
-                raise ValueError, 'initial distribution must be stochastic'
+                raise ValueError('initial distribution must be stochastic')
         else:
             # left eigenvector for 1
             def steady_state_probs(transition_matrix):
                 M = (transition_matrix - 1).left_kernel().basis_matrix()
                 if M.nrows() < 1:
-                    raise ValueError, 'Not a stochastic matrix'
+                    raise ValueError('not a stochastic matrix')
                 if M.nrows() > 1:
-                    raise ValueError, 'Disconnected transition matrix, no unique initial probability distribution'
+                    raise ValueError('disconnected transition matrix, no unique initial probability distribution')
                 r = M.row(0)
                 return r / sum(r) # normalize to sum 1
             self._initial_distribution = steady_state_probs(T)
@@ -387,7 +390,8 @@ class GeneralizedHiddenMarkovModel:
         return unpickle_ghmm_v0, (self.Ts, self._initial_distribution)
 
     def __eq__(self, other):
-        '''Return `True` if `self` equals `other`.
+        """
+        Return `True` if `self` equals `other`.
 
         EXAMPLES::
 
@@ -401,13 +405,14 @@ class GeneralizedHiddenMarkovModel:
            False
            sage: G0 == G1 # indirect doctest
            False
-        '''
+        """
         return isinstance(other, GeneralizedHiddenMarkovModel) \
             and self.Ts == other.Ts \
             and self._initial_distribution == other._initial_distribution
 
     def __ne__(self, other):
-        '''Return `True` if `self` equals `other`.
+        """
+        Return `True` if `self` equals `other`.
 
         EXAMPLES::
 
@@ -421,11 +426,12 @@ class GeneralizedHiddenMarkovModel:
            True
            sage: G0.__ne__(G1)
            True
-        '''
-        return not self.__eq__(other)
+        """
+        return not (self == other)
 
     def transition_matrix(self):
-        '''Return the transition matrix of this GHMM.
+        """
+        Return the transition matrix of this GHMM.
 
         EXAMPLES::
 
@@ -436,11 +442,12 @@ class GeneralizedHiddenMarkovModel:
             sage: G.transition_matrix()
             [1/2 1/2]
             [5/8 3/8]
-        '''
+        """
         return matrix(self._transition_matrix.rows()) # make a copy
 
     def initial_probabilities(self):
-        '''Return the initial probability distribution on the states of this GHMM.
+        """
+        Return the initial probability distribution on the states of this GHMM.
 
         EXAMPLES::
 
@@ -451,11 +458,11 @@ class GeneralizedHiddenMarkovModel:
             (5/9, 4/9)
             sage: G.initial_probabilities() == G.initial_probabilities() * G.transition_matrix()
             True
-        '''
+        """
         return self._initial_distribution
 
     def T(self, word):
-        r'''
+        r"""
         Return an `n \times n` matrix `T`, where `T[j,k]` is the
         pseudo-probability of transitioning from state `j` to state
         `k` in ``len(word)`` steps, and emitting symbols ``word[0]``,
@@ -473,11 +480,11 @@ class GeneralizedHiddenMarkovModel:
             sage: G.T([0,1])
             [1/16 3/16]
             [ 1/4    0]
-        '''
+        """
         return prod([self.Ts[i] for i in word], self._identity_matrix)
 
     def likelihood(self, word, after=None):
-        r'''
+        r"""
         Return the probability of this GHMM emitting the given word.  If ``after`` is
         supplied, return the conditional probability of emitting the word immediately
         following the emission of ``after``; this is the same as
@@ -485,12 +492,14 @@ class GeneralizedHiddenMarkovModel:
             self.likelihood(after+word) / self.likelihood(after)
 
         INPUT:
-          - ``word`` -- a sequence of outputs.
-          - ``after`` -- None (the default) or a sequence of outputs.
+
+        - ``word`` -- a sequence of outputs.
+        - ``after`` -- None (the default) or a sequence of outputs.
 
         OUTPUT:
-          - a probability.  Note that these "probabilities" add to 1 over all outputs
-            of a given length, not over all outputs
+
+        A probability.  Note that these "probabilities" add to 1 over all outputs
+        of a given length, not over all outputs
 
         EXAMPLES::
 
@@ -508,7 +517,7 @@ class GeneralizedHiddenMarkovModel:
             3/4
             sage: G.likelihood([1], after=[0,0])
             1/4
-        '''
+        """
         v = self._initial_distribution
         d = 1
         if after is not None:
@@ -520,17 +529,19 @@ class GeneralizedHiddenMarkovModel:
         return sum(v) / d
 
     def initials_equivalent(self, init1, init2 = None):
-        '''
+        """
         Return True if the two initial distributions on states give the same process.
 
         INPUT:
 
-           - ``init1`` -- a list of probabilities
-           - ``init2`` -- a second list of probabilities.  If ``init2`` is
-             omitted or is None, then ``self``'s initial probability distribution
-             is used.
+        - ``init1`` -- a list of probabilities
+        - ``init2`` -- a second list of probabilities.  If ``init2`` is
+          omitted or is None, then ``self``'s initial probability distribution
+          is used.
 
-        OUTPUT: A Boolean.
+        OUTPUT:
+
+        A Boolean.
 
         EXAMPLES::
 
@@ -551,20 +562,20 @@ class GeneralizedHiddenMarkovModel:
             False
 
         ALGORITHM: Adapted from [Bal1993]_.
-        '''
+        """
         if init2 is None:
             init2 = self._initial_distribution
         return _initials_equivalent(self.Ts, init1, init2)
 
     def is_same_process_as(self, other):
-        '''
+        """
         Return ``True`` is ``other`` defines the same process as ``self``.
         This is true if and only if ``self.likelihood(w) == other.likelihood(w)``
         for all possible output words ``w``.
 
-        INPUTS:
+        INPUT:
 
-          - ``other`` -- An instance of GeneralizedHiddenMarkovModel
+        - ``other`` -- An instance of GeneralizedHiddenMarkovModel
 
         EXAMPLES::
 
@@ -586,7 +597,7 @@ class GeneralizedHiddenMarkovModel:
 
         Adapted from the algorithm in [Bal1993]_: construct the disjoint sum GHMM,
         then see whether two different initial probabilities are equivalent.
-        '''
+        """
         n1 = self.n_states
         n2 = other.n_states
         Ts1 = self.Ts
@@ -603,7 +614,24 @@ class GeneralizedHiddenMarkovModel:
     # explanation of the algorithm.
 
     def _future_distribution(self, word):
-        '''Return ``self.initial_distribution * self.T(word)``.'''
+        """
+        Return ``self.initial_distribution * self.T(word)``, scaled to sum to 1.
+
+        This is the vector of pseudo-probabilities of lying in each state after the GHMM
+        emits ``word``.
+
+        INPUT:
+
+        - ``w`` -- an iterable (e.g., list) of outputs.
+
+        EXAMPLES:
+
+            sage: G = hmm.GeneralizedHiddenMarkovModel([matrix.circulant([1/2,1/4,1/4])], [1,0,0])
+            sage: G._future_distribution([0])
+            (1/2, 1/4, 1/4)
+            sage: G._future_distribution([0,0])
+            (3/8, 5/16, 5/16)
+        """
         d = self._initial_distribution
         for i in word:
             d = d * self.Ts[i]
@@ -613,9 +641,37 @@ class GeneralizedHiddenMarkovModel:
 
         
     def _history_sufficient_wordlist(self):
+        """
+        Return a "sufficient wordlist" for ``self`` together with a (row) basis matrix
+        for the set of "mixed states" these words span.
+
+        This basis spans the space of reachable mixed states, that is, the set of vectors
+        ``self._future_distribution(w)`` as ``w`` ranges over all possible outputs.
+
+        EXAMPLES:
+
+            sage: T0 = Matrix(3,3,[4,4,0,0,6,0,2,5,0])/12
+            sage: T1 = Matrix(3,3,[0,0,4,6,0,0,3,0,2])/12
+            sage: H = hmm.GeneralizedHiddenMarkovModel([T0, T1], [0,1,0])
+            sage: H._history_sufficient_wordlist()
+            (
+                               [0 1 0]
+                               [1 0 0]
+            [[], [1], [1, 1]], [0 0 1]
+            )
+            sage: H2 = hmm.GeneralizedHiddenMarkovModel([T0, T1], [1,0,0])
+            sage: H2._history_sufficient_wordlist()
+            (
+                            [  1   0   0]
+                            [1/2 1/2   0]
+            [[], [0], [1]], [  0   0   1]
+            )
+        """
         words = [[]]
         Q = [[i] for i in range(self.n_outputs)]
-        distributions = matrix([self.initial_probabilities()])
+        # find a suitable ring, holds initial distribution plus transitions...
+        R = self._transition_matrix.stack(self._initial_distribution).base_ring()
+        distributions = matrix(R, [self.initial_probabilities()])
         while len(Q) > 0:
             w = Q.pop(0)
             v = self._future_distribution(w)
@@ -626,7 +682,26 @@ class GeneralizedHiddenMarkovModel:
         return words, distributions
 
     def _past_distribution(self, word):
-        '''Return ``self.T(word) * vector([1,1...])``.'''
+        """
+        Return ``self.T(word) * vector([1,1...])``, scaled to sum to 1.
+
+        This is a sort of backwards-looking version of ``self._future_distribution(word)``.
+
+        INPUT:
+
+        - ``w`` -- an iterable (e.g., list) of outputs.
+
+        EXAMPLES:
+
+            sage: T0 = Matrix([[1/3, 0], [0, 2/3]]); T1 = Matrix([[0, 2/3], [1/3, 0]])
+            sage: G = hmm.GeneralizedHiddenMarkovModel([T0, T1], [1/4,3/4])
+            sage: G._past_distribution([])
+            (1/2, 1/2)
+            sage: G._past_distribution([1])
+            (2/3, 1/3)
+            sage: G._past_distribution([0,0])
+            (1/5, 4/5)
+        """
         d = vector([1]*self.n_states)
         for i in reversed(word):
             d = self.Ts[i] * d
@@ -635,9 +710,29 @@ class GeneralizedHiddenMarkovModel:
         return d
 
     def _future_sufficient_wordlist(self):
+        """
+        Return a "future sufficient wordlist" for ``self`` together with a row
+        basis matrix for the space the future distributions of these words span.
+
+        This basis spans the set of vectors ``self._future_distribution(w)``
+        as ``w`` ranges over all possible outputs.
+
+        EXAMPLES:
+
+            sage: T0 = Matrix(3,3,[4,4,0,0,6,0,2,5,0])/12
+            sage: T1 = Matrix(3,3,[0,0,4,6,0,0,3,0,2])/12
+            sage: H = hmm.GeneralizedHiddenMarkovModel([T0, T1], [0,1,0])
+            sage: H._future_sufficient_wordlist()
+            (
+                       [ 1/3  1/3  1/3]
+            [[], [0]], [8/21  2/7  1/3]
+            )
+
+        """
         words = [[]]
         Q = [[i] for i in range(self.n_outputs)]
-        distributions = matrix([1]*self.n_states)
+        R = self._transition_matrix.base_ring()
+        distributions = matrix(R, [1]*self.n_states)/self.n_states
         while len(Q) > 0:
             w = Q.pop(0)
             v = self._past_distribution(w)
@@ -649,7 +744,7 @@ class GeneralizedHiddenMarkovModel:
 
 
     def canonical_form(self):
-        '''Return Upper's canonical form for this GHMM, as defined in [Upp1997]_.
+        """Return Upper's canonical form for this GHMM, as defined in [Upp1997]_.
 
         This canonical form is a GHMM that has the smallest number of
         states possible for any GHMM that is equivalent to ``self``.
@@ -670,9 +765,16 @@ class GeneralizedHiddenMarkovModel:
             Generalized Hidden Markov Model with 1 state and 3 output symbols
             sage: G.canonical_form().Ts
             [[1/2], [1/3], [1/6]]
+            sage: Ts = [Matrix([[1/2,0],[0,1/3]]), Matrix([[1/2, 0], [0, 2/3]])]
+            sage: hmm.GeneralizedHiddenMarkovModel(Ts, [1,0]).canonical_form().Ts
+            [[1/2], [1/2]]
+            sage: hmm.GeneralizedHiddenMarkovModel(Ts, [0,1]).canonical_form().Ts
+            [[1/3], [2/3]]
+            sage: hmm.GeneralizedHiddenMarkovModel(Ts, [1/2,1/2]).canonical_form()
+            Generalized Hidden Markov Model with 2 states and 2 output symbols
 
         ALGORITHM: From [Upp1997]_.
-        '''
+        """
         # Compute the H and F matrices
         _, H1 = self._history_sufficient_wordlist()
         _, F1 = self._future_sufficient_wordlist()
@@ -692,7 +794,7 @@ class GeneralizedHiddenMarkovModel:
         return GeneralizedHiddenMarkovModel(Ts, init)
 
     def sample(self, n_samples):
-        r'''
+        r"""
         Generate ``n_samples`` outputs from the process represented by ``self``.
 
         The outputs are yielded one by one.  If ``w = list(self.samples(n)``,
@@ -731,7 +833,7 @@ class GeneralizedHiddenMarkovModel:
             sage: set_random_seed(7)
             sage: list(GMP.sample(20))
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1]
-        '''
+        """
         # Method: We know Prob(w) = i * T(w) * one, with i the initial distribution
         # So after emitting w, the prob of output o is
         # Prob(o|w) = Prob(w+[o])/Prob(w) = (i*T(w)*T(a)*one) / (i*T(w)*one)
@@ -741,8 +843,6 @@ class GeneralizedHiddenMarkovModel:
         # Note we cannot do the same as for HMMs, just evolving a single state,
         # because of the possibility of negative "probabilities" in the transition
         # matrices.
-
-        # TODO: make base_ring a method of this class?
         one = vector(self.Ts[0].base_ring(), [1] * self.n_states)
         v = self._initial_distribution # v maintains i * T(w)
         Va = [Ta * one for Ta in self.Ts]
@@ -760,8 +860,8 @@ class GeneralizedHiddenMarkovModel:
                 raise Error('should not happen')
 
     def graph(self):
-        r'''
-        Create a labelled directed graph from the GHMM.
+        r"""
+        Create a labelled directed graph from the Generalized Hidden Markov Model.
 
         Each vertex corresponds to a state, and each edge is labelled
         with a list giving the pseudo-probability of each output when
@@ -779,7 +879,7 @@ class GeneralizedHiddenMarkovModel:
 
             sage: hmm.GeneralizedHiddenMarkovModel(g).Ts == [T0, T1]
             True
-        '''
+        """
         G = DiGraph(loops=True)
         for i in range(self.n_states):
             for j in range(self.n_states):
