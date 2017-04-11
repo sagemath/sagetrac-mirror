@@ -518,28 +518,14 @@ if [ -z "$FC" ]; then
 fi
 
 # Override CC, CPP, CXX, FC if the GCC spkg was installed,
-# except on OS X where we will assume there were only 
-# installed to provide gfortran
 if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
-    if [ "$UNAME" = "Darwin" ]; then
-        CC=clang
-    else
-        CC=gcc
-    fi
+    CC=gcc
 fi
 if [ -x "$SAGE_LOCAL/bin/cpp" ]; then
-    if [ "$UNAME" = "Darwin" ]; then
-        CPP=/usr/bin/CPP
-    else
-        CPP=cpp
-    fi
+    CPP=cpp
 fi
 if [ -x "$SAGE_LOCAL/bin/g++" ]; then
-    if [ "$UNAME" = "Darwin" ]; then
-        CXX=clang++
-    else
-        CXX=g++
-    fi
+    CXX=g++
 fi
 if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
     FC=gfortran

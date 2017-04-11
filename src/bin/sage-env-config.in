@@ -18,3 +18,7 @@
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
+
+# Whether or not gcc is in fact clang
+# This is only used by the gcc spkg so far
+export IS_CLANG=@IS_CLANG@

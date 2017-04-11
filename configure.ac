@@ -369,6 +369,7 @@ IS_CLANG=no
 if test "x$ax_cv_c_compiler_vendor" = xclang ; then 
     IS_CLANG=yes
 fi
+AC_SUBST(IS_CLANG)
 
 AC_LANG(C++)
 AC_PROG_CXX()
