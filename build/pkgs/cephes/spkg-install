@@ -11,6 +11,14 @@ if [ "$UNAME" != "FreeBSD" ]; then
     exit 0
 fi
 
+# unfortunately, FreeBSD 11.0 still misses cpow() and clog()
+# thus we cannot do the following yet:
+#if [ `freebsd-version | sed 's/\..*$//'` -ge ??? ]; then
+#    echo "We only install the cephes library on FreeBSD"
+#    echo "version ??? or earlier."
+#    exit 0
+#fi
+
 cd src
 
 echo "Building Cephes..."

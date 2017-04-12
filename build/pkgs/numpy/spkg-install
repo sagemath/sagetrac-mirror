@@ -19,6 +19,12 @@ if [ "x$SAGE64" = xyes ] ; then
    export CC
 fi
 
+if [ "$UNAME" = "FreeBSD" ]; then
+   echo "Make sure we do not include conflicting complex.h"
+   CC="$CC -D__CEPHES_COMPLEX_H"
+   export CC
+fi
+
 cd src
 
 set -e
