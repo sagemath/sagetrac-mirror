@@ -26,36 +26,36 @@ This works as expected for more than two entries::
    min(x, 3)
 
 There is a fundamental difference between the min_symbolic()  and max_symbolic()
-from the built-in python functions min() and max() function.The Python built-in
+from the built-in python functions min() and max() function. The Python built-in
 max() and min() functions don’t work as expected when symbolic expressions are
 given as arguments. This function delays evaluation until all symbolic arguments
-are substituted with values.However,when the built-in functions are used to plot
+are substituted with values. However, when the built-in functions are used to plot
 the minimum and maximum of functions in a domain, the first parameter inside the
-min() or max() function gets plotted irrespective of the actual values.Let's
-consider the following example::
+min() or max() function gets plotted irrespective of the actual values. In this example,
+`f1(x)` is displayed, although it is not the local minimum for every `x`::
+
 
    sage: f1(x) = sin(x)
    sage: f2(x) = cos(x)
    sage: f3(x) = x
    sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   sage: p += plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red') # f1(x) is plotted through out the domain even though its not min at every point in the x-axis.
-   sage: p += plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green') # f2(x) is plotted through out the domain even though its not max at every point in the x-axis.
+   sage: p += plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green')
    sage: p.show()
 
-Considering some polynomial functions::
+In this example always the first parameter in the `min()` function gets plotted::
 
    sage: f1(x) = x*x + 4*x + 2
    sage: f2(x) = x^2
    sage: f3(x) = x
    sage: p= plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
-   sage: p += plot(min(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')  # always the first parameter in the min function gets plotted.
-   sage: p += plot(max(f2(x),f3(x),f2(x)),(x,0,2*pi),color='green') # always the first parameter in the max function gets plotted.
-   sage: p.show()
+   sage: p += plot(min(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max(f2(x),f3(x),f2(x)),(x,0,2*pi),color='green')
 
-However, min_symbolic() and max_symbolic() are able to deal with variables as
+However, `min_symbolic()` and `max_symbolic()` are able to deal with variables as
 well as can be plotted with more than 2 parameters (functions) efficiently.
-Below are the examples of the same functions that were plotted by built-in min()
-and max() earlier::
+Below are the examples of the same functions that were plotted by built-in `min()`
+and `max()` earlier::
 
    sage: f1(x) = sin(x)
    sage: f2(x) = cos(x)
