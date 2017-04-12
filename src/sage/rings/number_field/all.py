@@ -12,4 +12,4 @@ from .totallyreal_rel import enumerate_totallyreal_fields_all, enumerate_totally
 
 from .unit_group import UnitGroup
 
-from .S_unit_solver import *
+from .S_unit_solver import solve_S_unit_equation
