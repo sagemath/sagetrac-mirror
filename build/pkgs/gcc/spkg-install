@@ -45,9 +45,11 @@ if [ -n "$LD" -a "$LD" != "ld" ]; then
     CONFIGURE_LD="--with-ld=$LD"
 fi
 
-# If the CC/CXX compiler is actually clang only build gfortran
+# If the CC/CXX compiler is actually clang only build gfortran.
+# Otherwise also build c and c++
 if [ "$IS_CLANG" = yes ]; then
     GCC_CONFIGURE="$GCC_CONFIGURE --enable-languages=fortran --disable-bootstrap"
+    # Note that c is automatically added as some part of the c runtime are needed.
 else
     GCC_CONFIGURE="$GCC_CONFIGURE --enable-languages=c,c++,fortran"
 fi
@@ -67,11 +69,11 @@ $MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 $MAKE install
 
 # If CC/CXX is clang we only want gfortran to be available
-# But we also don't need gmp/mpir/mpfr/mpc to be rebuilt
 if [ "$IS_CLANG" = yes ]; then
     rm -f "$SAGE_LOCAL"/bin/gcc "$SAGE_LOCAL"/bin/cpp
 fi
 # Force re-installation of gmp, mpir, mpfr and mpc with the GCC we just built.
+# Still need to be done with clang until the toolcahin installation is overhauled.
 cd "$SAGE_SPKG_INST"
 rm -f gmp-* mpir-* mpfr-* mpc-*
 
