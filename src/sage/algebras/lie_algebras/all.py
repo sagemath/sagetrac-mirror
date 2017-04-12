@@ -1,9 +1,9 @@
 """
-Base class for ring elements
+Lie Algebras
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -17,7 +17,7 @@ Base class for ring elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.superseded import deprecation
-deprecation(19167, "the module sage.rings.ring_element is deprecated, import from sage.structure.element instead")
+from lie_algebra import LieAlgebra
+#from kac_moody import KacMoodyAlgebra
+import examples as lie_algebras
 
-from sage.structure.element import RingElement, is_RingElement
