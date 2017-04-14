@@ -574,9 +574,9 @@ class MatrixFactory(object):
 
         sage: @cached_function
         ....: def L(n,k):
-        ....:         if n==k: return 1
-        ....:         if k<0 or k>n: return 0
-        ....:         return L(n-1,k-1)+(n+k-1)*L(n-1,k)
+        ....:     if n==k: return 1
+        ....:     if k<0 or k>n: return 0
+        ....:     return L(n-1,k-1)+(n+k-1)*L(n-1,k)
         ....:
         sage: m = matrix(ZZ, 8, L)
         sage: m[7][4]
@@ -642,8 +642,8 @@ class MatrixFactory(object):
             arg = args[0]
             try:
                 if is_numpy_type(type(arg)):
-                    import numpy
-                    if isinstance(arg, numpy.ndarray):
+                    from numpy import ndarray
+                    if isinstance(arg, ndarray):
                         raise TypeError
                 nrows = pyobject_to_long(arg)
             except TypeError:
@@ -656,8 +656,8 @@ class MatrixFactory(object):
             arg = args[0]
             try:
                 if is_numpy_type(type(arg)):
-                    import numpy
-                    if isinstance(arg, numpy.ndarray):
+                    from numpy import ndarray
+                    if isinstance(arg, ndarray):
                         raise TypeError
                 ncols = pyobject_to_long(arg)
             except TypeError:
@@ -675,19 +675,14 @@ class MatrixFactory(object):
             # If no entries are specified, pass back a zero matrix
             entries = 0
         elif len(args) == 1:
-            of_other_type = False
             arg = args[0]
             try:
                 _ = iter(arg)
             except TypeError:
-            # not iterable
-                from sage.symbolic.expression import Expression
-                from sage.symbolic.function import Function
-                if (callable(arg)
-                and not (isinstance(arg, Expression)
-                        and not isinstance(arg, Function))):
+                # not iterable
+                if (callable(arg)):
                     if ncols is None and nrows is None:
-                        raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
+                        raise ValueError("when passing in a callable, the dimensions of the matrix must be specified")
                     if ncols is None:
                         ncols = nrows
                     elif nrows is None:
@@ -696,10 +691,9 @@ class MatrixFactory(object):
                     irange = srange(nrows)
                     jrange = srange(ncols)
                     arg = [[arg(i,j) for j in jrange] for i in irange]
-                else:
-                    of_other_type = True
 
-            if not of_other_type:
+            entries = None
+            if not callable(arg):
                 if isinstance(arg, xrange):
                     arg = list(arg)
                 if isinstance(arg, (list, tuple)):
@@ -757,18 +751,14 @@ class MatrixFactory(object):
                             ncols = ncols_from_dict(entries)
                         # note that ncols can still be None if nrows is set --
                         # it will be assigned nrows down below.
-                else:
-                    of_other_type = True
-                    # See the construction after the numpy case below.
 
-            if of_other_type:
-                import numpy
+            if callable(arg) or entries is None:
                 if is_numpy_type(type(arg)):
-                    import numpy
-                    if isinstance(arg, numpy.ndarray):
+                    from numpy import ndarray, array
+                    if isinstance(arg, ndarray):
                         # Convert to a numpy array if it was a matrix.
-                        if type(arg) is not numpy.ndarray:
-                            arg = numpy.array(arg)
+                        if not (type(arg) is ndarray):
+                            arg = array(arg)
 
                         str_dtype = str(arg.dtype)
 
