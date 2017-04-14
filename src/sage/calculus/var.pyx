@@ -133,6 +133,14 @@ def var(*args, **kwds):
     """
     if len(args)==1:
         name = args[0]
+    elif len(args)==2:
+        name = args[0]
+        if isinstance(args[1], str):
+            name = args
+        else:
+            num_vars = args[1]
+            if num_vars > 1:
+                name = [name + str(i) for i in range(num_vars)]
     else:
         name = args
     G = globals()  # this is the reason the code must be in Cython.
