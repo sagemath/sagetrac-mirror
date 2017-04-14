@@ -1,6 +1,8 @@
---- a/Makefile.orig	2012-07-11 11:50:44.733022911 +1200
-+++ b/Makefile	2012-07-11 12:20:02.644997882 +1200
-@@ -75,18 +75,10 @@
+diff --git a/Makefile b/Makefile
+index 0892969..60f536f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -75,18 +75,10 @@ ADDITIONALINCLUDEOPTIONS = $(CDD_INCLUDEOPTIONS) $(GMP_INCLUDEOPTIONS) $(SOPLEX_
  MKDIR=mkdir -p
  
  
@@ -21,16 +23,16 @@
  
  CATSOBJECTS =	$(GCATSPATH)lp_cdd.o \
  		$(SOPLEX_OBJECTS) \
-@@ -317,7 +309,7 @@
+@@ -317,7 +309,7 @@ $(PREFIX):
  default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
  
  $(MAIN): $(OBJECTS)
 -	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
-+	$(CXX) $(CXXFLAGS) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN) $(LDFLAGS)
++	$(CXX) $(CXXFLAGS) -o $(MAIN) $(LDFLAGS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) $(OBJECTS)
  
  release:
  	rm -f -r $(RELEASEDIR)/*
-@@ -431,11 +423,11 @@
+@@ -431,11 +423,11 @@ library:
  	cp gfanlib_* gfanlib/
  	tar zcf -  gfanlib > gfanlib.tar.gz
  .c.o:
