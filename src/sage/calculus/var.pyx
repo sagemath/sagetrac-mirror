@@ -116,6 +116,11 @@ def var(*args, **kwds):
         sage: parent(theta)
         Symbolic Ring
 
+    Automatic indexing is available by passing a second parameter::
+
+        sage: var('x', 4)
+        (x0, x1, x2, x3)
+
     TESTS::
 
         sage: var('q',ns=False)
