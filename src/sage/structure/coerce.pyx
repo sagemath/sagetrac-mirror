@@ -1881,7 +1881,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return res
 
         # If types are not equal: compare types
-        cdef int c = cmp(type(x), type(y))
+        cdef int c = -1  # cmp(type(x), type(y))
         if c:
             return rich_to_bool(op, c)
 

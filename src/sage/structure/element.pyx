@@ -1054,7 +1054,7 @@ cdef class Element(SageObject):
 
             if not isinstance(left, Element):
                 assert type(left) is type(right)
-                return cmp(left, right)
+                return -1  # cmp(left, right)
 
         # Now we have two Sage Elements with the same parent
         try:

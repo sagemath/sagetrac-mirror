@@ -362,7 +362,7 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, Py_hash_t ha
             return
         ep = &(entries[ix])
 
-    ensure_allows_deletes(mp)
+    ensure_allows_deletions(mp)
     T=PyList_New(2)
     PyList_SetItem(T, 0, ep.me_key)
     PyList_SetItem(T, 1, ep.me_value)
