@@ -160,7 +160,6 @@ from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.libs.pynac.pynac cimport *
 
-
 cpdef bint is_Expression(x):
     """
     Return True if *x* is a symbolic Expression.
@@ -6167,10 +6166,21 @@ cdef class Expression(CommutativeRingElement):
             y
             sage: (2*x + 4*sin(y)).content(sin(y))
             2
+            sage: (2*x + 4*sin(y)).content(y)
+            2*x + 4*sin(y)
+            sage: (2*x + sqrt(x)).content(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: content() expects a polynomial in x
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
-
+        if len(self.variables()) == 1:
+            try:
+                return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
+            except RuntimeError:
+                raise ValueError("content() expects a polynomial in {}".format(s))
+        else:
+            return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
     def primitive_part(self, s):
         """
         Return the primitive polynomial of this expression when
@@ -10347,17 +10357,92 @@ cdef class Expression(CommutativeRingElement):
             sage: g.factor(dontfactor=[x])
             1/36*(x^2 + 2*x + 1)*(y - 1)/(y + 1)
             sage: g.factor_list(dontfactor=[x])
-            [(x^2 + 2*x + 1, 1), (y + 1, -1), (y - 1, 1), (1/36, 1)]
+            [(x^2 + 2*x + 1, 1), (y + 1, -1), (y - 1, 1), (2, -2), (3, -2)]
 
         This example also illustrates that the exponents do not have to be
-        integers::
+        integers. This relies on the behaviour of Maxima's ``factor()``::
 
             sage: f = x^(2*sin(x)) * (x-1)^(sqrt(2)*x); f
             (x - 1)^(sqrt(2)*x)*x^(2*sin(x))
             sage: f.factor_list()
             [(x - 1, sqrt(2)*x), (x, 2*sin(x))]
+
+        Check that we do factor integers/rationals (:trac:`21067`)::
+
+            sage: SR(50).factor_list()
+            [(2, 1), (5, 2)]
+            sage: SR(100/49).factor_list()
+            [(2, 2), (5, 2), (7, -2)]
+            sage: (5/3*x/(x+1)).factor_list()
+            [(3, -1), (5, 1), (x + 1, -1), (x, 1)]
         """
-        return self.factor(dontfactor=dontfactor)._factor_list()
+        try:
+            return self._factorization_from_pyobject()
+        except ValueError:
+            pass
+        vars = self.variables()
+        l = []
+        arg = self
+        if len(vars) == 1:
+            c = 1
+            try:
+                v = self.variables()[0]
+                c = arg.content(v)
+            except ValueError:
+                pass
+            else:
+                if c != arg.unit(v):
+                    try:
+                        for p,e in c._factorization_from_pyobject():
+                            l.append((p,e))
+                    except ValueError:
+                        pass
+                arg = arg / c
+        r = arg.factor(dontfactor=dontfactor)._factor_list()
+        for p,e in r:
+            try:
+                # assume that _factor_list does not factor rationals
+                l += p._factorization_from_pyobject()
+            except ValueError:
+                l.append((p,e))
+        return l
+
+    def _factorization_from_pyobject(self):
+        r"""
+        If self is a PyObject, give back a list of (prime,
+        power) pairs of its factorisation.
+
+        This is used, e.g., internally by the :meth:`factor_list`
+        command.
+
+        EXAMPLES::
+
+            sage: SR(50)._factorization_from_pyobject()
+            [(2, 1), (5, 2)]
+            sage: SR(100/49)._factorization_from_pyobject()
+            [(2, 2), (5, 2), (7, -2)]
+            sage: (x*(x+1))._factorization_from_pyobject()
+            Traceback (most recent call last):
+            ...
+            ValueError...
+        """
+        try:
+            a = self.pyobject()
+        except TypeError:
+            raise ValueError
+
+        try:
+            f = a.factor()
+        except (AttributeError, NotImplementedError):
+            raise ValueError
+
+        # from here I assume that a is a Sage object which might not be the case...
+        P = self.parent()
+        facs = [(P(p), P(e)) for p,e in f]
+        if f.unit().is_one():
+            return facs
+        else:
+            return [(P(f.unit()), P(1))] + facs
 
     def _factor_list(self):
         r"""
