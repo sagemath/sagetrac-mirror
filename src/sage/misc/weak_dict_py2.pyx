@@ -1,12 +1,10 @@
-#to build:
-#python3 setup.py build_ext --inplace
 """
 Fast and safe weak value dictionary
 
 AUTHORS:
 
 - Simon King (2013-10)
-- Nils Bruin (2013-10, 2017-04)
+- Nils Bruin (2013-10)
 - Julian Rueth (2014-03-16): improved handling of unhashable objects
 
 Python's :mod:`weakref` module provides
@@ -129,18 +127,17 @@ from cpython.list cimport PyList_New
 from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
 
-from libc.stdint cimport int8_t,int16_t,int32_t,int64_t
-
 cdef extern from "Python.h":
     ctypedef struct PyDictEntry:
         Py_ssize_t me_hash
         PyObject* me_key
         PyObject* me_value
     ctypedef struct PyDictObject:
+        Py_ssize_t ma_fill
         Py_ssize_t ma_used
-        PyDictKeysObject * ma_keys
-        PyObject ** ma_values
-        
+        Py_ssize_t ma_mask
+        PyDictEntry* ma_table
+        PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash) except NULL
 
     PyObject* Py_None
     #we need this redefinition because we want to be able to call
@@ -148,142 +145,45 @@ cdef extern from "Python.h":
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
     int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
-    PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL
-    int PyWeakref_Check(PyObject * ob)
 
-    ctypedef struct PyDictKeysObject
-####
-#definitions replicated from CPython's Objects/dict-common.h
-#(this file is not exported fron CPython, so we need to be
-#careful the definitions are in step with what happens there.
-ctypedef union IndexBlock:
-    int8_t as_1[8]
-    int16_t as_2[4]
-    int32_t as_4[2]
-    int64_t as_8[1]
-
-ctypedef struct MyPyDictKeysObject:
-    Py_ssize_t dk_refcnt
-    Py_ssize_t dk_size
-    Py_ssize_t (*dk_lookup)(PyDictObject *mp, PyObject *key, Py_hash_t hash, PyObject ** value_addr, Py_ssize_t *hashpos)
-    Py_ssize_t dk_usable
-    Py_ssize_t dk_nentries
-    IndexBlock dk_indices
-
-ctypedef struct PyDictKeyEntry:
-    Py_hash_t me_hash
-    PyObject * me_key
-    PyObject * me_value
-
-cdef Py_ssize_t DKIX_EMPTY = -1
-cdef Py_ssize_t DKIX_DUMMY = -2
-cdef Py_ssize_t DKIX_ERROR = -3
-
-#####
-#These routines are copied from CPython's Object/dictobject.c
-#in order to access PyDictKeysObject fields
-
-cdef inline int DK_IXSIZE(MyPyDictKeysObject *keys):
-    cdef Py_ssize_t s = keys.dk_size
-    cdef int i
-    if s <= 0xff:
-        i = 1
-    elif s <= 0xffff:
-        i = 2
-    elif s <= 0xffffffff:
-        i = 4
+cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
+    cdef PyDictEntry* ep
+    cdef PyDictObject* mp = <PyDictObject*><void *>op
+    ep = mp.ma_lookup(mp, <PyObject*><void*>key, PyObject_Hash(key))
+    if ep:
+        return ep.me_value
     else:
-        i = 8
-    return i
-    
-cdef inline PyDictKeyEntry * DK_ENTRIES(MyPyDictKeysObject *keys):
-    return <PyDictKeyEntry*> &(keys.dk_indices.as_1[keys.dk_size * DK_IXSIZE(keys)])
+        return NULL
 
-cdef inline Py_ssize_t dk_get_index(MyPyDictKeysObject *keys, Py_ssize_t i):
-    cdef Py_ssize_t s = keys.dk_size
-    cdef Py_ssize_t ix
-    if s <= 0xff:
-        ix = keys.dk_indices.as_1[i]
-    elif s <= 0xffff:
-        ix = keys.dk_indices.as_2[i]
-    elif s <= 0xffffffff:
-        ix = keys.dk_indices.as_4[i]
-    else:
-        ix = keys.dk_indices.as_8[i]
-    return ix
+#this routine extracts the "dummy" sentinel value that is used in dicts to mark
+#"freed" slots. We need that to delete things ourselves.
 
-cdef inline dk_set_index(MyPyDictKeysObject *keys, Py_ssize_t i, Py_ssize_t ix):
-    cdef Py_ssize_t s = keys.dk_size
-    if s <= 0xff:
-        keys.dk_indices.as_1[i] = ix
-    elif s <= 0xffff:
-        keys.dk_indices.as_2[i] = ix
-    elif s <= 0xffffffff:
-        keys.dk_indices.as_4[i] = ix
-    else:
-        keys.dk_indices.as_8[i] = ix
-    return ix
-####
+cdef PyObject* init_dummy() except NULL:
+    cdef dict D = dict()
+    cdef PyDictObject* mp = <PyDictObject *><void *>D
+    cdef size_t mask
+    cdef PyDictEntry* ep0 = mp.ma_table
+    cdef PyDictEntry* ep
+    cdef size_t i
+    global dummy
 
-class NullClass(object):
-    def __repr__(self):
-        return "NULL"
-PyNULL=NullClass()
+    D[0]=0; del D[0] #ensure that there is a "deleted" entry in the dict
+    mask = mp.ma_mask
+    #since our entry had hash 0, we should really succeed on the first iteration
+    for i in range(mask+1):
+        ep = &(ep0[i])
+        if ep.me_key != NULL:
+            return ep.me_key
+    raise RuntimeError("Problem initializing dummy")
 
-cdef void * lookdict
+#note that dummy here is a borrowed reference. That's not a problem because
+#we're never giving it up and dictobject.c is also holding a permanent reference
+#to this object
+cdef PyObject* dummy = init_dummy()
 
-cdef void * DK_LOOKUP(PyDictObject *mp):
-    return <void *>((<MyPyDictKeysObject *>(mp.ma_keys)).dk_lookup)
-
-def init_lookdict():
-    global lookdict
-    cdef dict D={}
-    #this should trigger the initialization of the general
-    #lookup function on the dict.
-    PyDict_GetItemWithError(D,None)
-    #which we store in a global variable
-    lookdict=DK_LOOKUP(<PyDictObject *>D)
-    
-init_lookdict()
-
-cpdef debug_dict(O):
-    cdef dO = O
-    cdef PyDictObject *mp = <PyDictObject *><void *>dO
-    cdef MyPyDictKeysObject *keys = <MyPyDictKeysObject*>mp.ma_keys
-    cdef PyDictKeyEntry* entries = DK_ENTRIES(keys)
-    indices=[dk_get_index(keys,i) for i in range(keys.dk_size)]
-    L=[]
-    for i in range(keys.dk_nentries):
-        if entries[i].me_key == NULL:
-            kk = PyNULL
-        else:
-            kk = <object>entries[i].me_key
-        if entries[i].me_value == NULL:
-            vv = PyNULL
-        else:
-            vv = <object>entries[i].me_value
-        L.append( (kk,vv))
-    if mp.ma_values == NULL:
-        V = PyNULL
-    else:
-        V=[]
-        for i in range(keys.dk_nentries):
-            if mp.ma_values[i] == NULL:
-                V.append(PyNULL)
-            else:
-                V.append(<object>mp.ma_values[i])
-    return [mp.ma_used,[keys.dk_refcnt,keys.dk_size,<Py_ssize_t>(keys.dk_lookup),keys.dk_usable,keys.dk_nentries,indices,L],V]
-
-cdef ensure_allows_deletions(PyDictObject *mp):
-    if DK_LOOKUP(mp) != lookdict:
-        #on normal dictionaries (non-split table), looking up a key
-        #that is not a unicode object triggers installation of the
-        #general lookup function (which can deal with DKIX_DUMMY)
-        PyDict_GetItemWithError(<dict>mp,None)
-        #this can actually fail if mp is a dictionary with split table
-        assert DK_LOOKUP(mp) == lookdict
-            
-cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, Py_hash_t hash):
+#this routine looks for the first entry in dict D with given hash of the
+#key and given (identical!) value and deletes that entry.
+cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
     """
     This is used in callbacks for the weak values of :class:`WeakValueDictionary`.
 
@@ -291,7 +191,7 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, Py_hash_t ha
 
     - ``PyDictObject *mp`` -- pointer to a dict
     - ``PyObject *value``  -- pointer to a value of the dictionary
-    - ``Py_hash_t hash``        -- hash of the key by which the value is stored in the dict
+    - ``long hash``        -- hash of the key by which the value is stored in the dict
 
     The hash bucket determined by the given hash is searched for the item
     containing the given value. If this item cannot be found, the function is
@@ -334,42 +234,35 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, Py_hash_t ha
 
     """
     cdef size_t i
-    cdef MyPyDictKeysObject * keys = <MyPyDictKeysObject *>(mp.ma_keys)
     cdef size_t perturb
-    cdef size_t mask = <size_t> keys.dk_size-1
-    cdef PyDictKeyEntry *entries, *ep
-    entries = DK_ENTRIES(keys)
-    
-    if mp.ma_values != NULL:
-        print ("del_dictitem_by_exact_value cannot be applied to a shared key dict")
-        return
-    
-    i = <size_t>hash & mask
-    ix = dk_get_index(keys, i)
+    cdef size_t mask = <size_t> mp.ma_mask
+    cdef PyDictEntry* ep0 = mp.ma_table
+    cdef PyDictEntry* ep
+    i = hash & mask
+    ep = &(ep0[i])
 
-    if ix == DKIX_EMPTY:
+    if ep.me_key == NULL:
         # key not found
         return
 
-    ep = &(entries[ix])
     perturb = hash
-    while (ep.me_value != value or ep.me_hash != hash):
-        perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
-        i = ((i << 2) + i + perturb +1) & mask
-        ix = dk_get_index(keys, i)
-        if ix == DKIX_EMPTY:
+    while (<PyObject *>(ep.me_value) != value or ep.me_hash != hash):
+        i = (i << 2) + i + perturb +1
+        ep = &ep0[i & mask]
+        if ep.me_key == NULL:
             # key not found
             return
-        ep = &(entries[ix])
+        perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
 
-    ensure_allows_deletes(mp)
     T=PyList_New(2)
     PyList_SetItem(T, 0, ep.me_key)
+    if dummy == NULL:
+        raise RuntimeError("dummy needs to be initialized")
+    Py_XINCREF(dummy)
+    ep.me_key = dummy
     PyList_SetItem(T, 1, ep.me_value)
-    ep.me_key = NULL
     ep.me_value = NULL
     mp.ma_used -= 1
-    dk_set_index(keys, i, DKIX_DUMMY)
     #We have transferred the to-be-deleted references to the list T
     #we now delete the list so that the actual decref happens through a
     #deallocation routine that uses the Python Trashcan macros to
@@ -1031,10 +924,13 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject * value = PyDict_GetItemWithError(self, k)
-        if value == NULL:
-            return False
-        return PyWeakref_GetObject(value) != Py_None
+        cdef PyDictObject* mp=<PyDictObject*><void*>self
+        cdef PyDictEntry* ep=mp.ma_lookup(mp,<PyObject*><void*>k, PyObject_Hash(k))
+        return (ep.me_value != NULL) and (PyWeakref_GetObject(ep.me_value) != Py_None)
+
+    #def __len__(self):
+    #since GC is not deterministic, neither is the length of a WeakValueDictionary,
+    #so we might as well just return the normal dictionary length.
 
     def __iter__(self):
         """
