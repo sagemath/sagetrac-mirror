@@ -869,18 +869,14 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: RC(f, RC(g, h)) + RC(g, RC(h, f)) + RC(h, RC(f, g)) == 0
             True
 
-        In fact the combination of both structures gives a Poisson algebra:
-
-        ::
+        In fact the combination of both structures gives a Poisson algebra::
 
             sage: RC(RC(f,g,m=0),h) + RC(RC(g,h,m=0),f) + RC(RC(h,f,m=0),g) == 0
             True
             sage: RC(RC(f,g,m=0),h) == RC(RC(g,h),f,m=0) - RC(RC(h,f),g,m=0)
             True
 
-        More generally the Rankin Cohen bracket is defined for quasi modular forms:
-
-        ::
+        More generally the Rankin Cohen bracket is defined for quasi modular forms::
 
             sage: MF = ModularForms(n=3)
             sage: E2 = MF.E2()
@@ -905,11 +901,11 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from sage.functions.other import binomial
-        from analytic_type import AnalyticType
+        from .analytic_type import AnalyticType
 
         m = ZZ(m)
         if m < 0:
-            raise TypeError("m={} is not a nonnegative integer.".format(m))
+            raise TypeError("m={} is not a nonnegative integer".format(m))
 
         if not (f is None or g is None):
             one_element = self.one()
