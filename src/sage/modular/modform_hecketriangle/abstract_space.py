@@ -33,6 +33,72 @@ from sage.misc.cachefunc import cached_method
 from .abstract_ring import FormsRing_abstract
 
 
+def as_power_or_laurent_series(series, try_hard=True):
+    r"""
+    Return the argument interpreted as a Power or Laurent series in one generator if possible.
+    Otherwise raise a ValueError. If ``try_hard`` is ``True`` (default) then also non-obvious
+    interpretations (e.g. from fraction field elements) are used.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.abstract_space import as_power_or_laurent_series
+        sage: q = PolynomialRing(ZZ, 'q').gen()
+        sage: power_series = as_power_or_laurent_series(q^3+1.1)
+        sage: power_series.parent()
+        Power Series Ring in q over Real Field with 53 bits of precision
+
+        sage: q = PolynomialRing(RealField(10), 'q').gen()
+        sage: as_power_or_laurent_series((q^3+1.1)/(1+q^2), try_hard=false)
+        Traceback (most recent call last):
+        ...
+        ValueError: The argument could not be interpreted as a Power or Laurent series!
+
+        sage: laurent_series = as_power_or_laurent_series((q^3+1.1)/(1+q^2))
+        sage: laurent_series
+        1.1 + 0.00*q - 1.1*q^2 + 1.0*q^3 + 1.1*q^4 - 1.0*q^5 - 1.1*q^6 + 1.0*q^7 + 1.1*q^8 - 1.0*q^9 - 1.1*q^10 + 1.0*q^11 + 1.1*q^12 - 1.0*q^13 - 1.1*q^14 + 1.0*q^15 + 1.1*q^16 - 1.0*q^17 - 1.1*q^18 + 1.0*q^19 + O(q^20)
+        sage: laurent_series.parent()
+        Laurent Series Ring in q over Real Field with 10 bits of precision
+
+        sage: q = PowerSeriesRing(ZZ, 'q').gen()
+        sage: laurent_series = as_power_or_laurent_series(q^(-1)+q)
+        sage: as_power_or_laurent_series(laurent_series).parent()
+        Laurent Series Ring in q over Integer Ring
+
+        sage: q = PowerSeriesRing(ZZ, 'q').gen()
+        sage: laurent_series = as_power_or_laurent_series((q+O(q^5)) / (1+q+O(q^5)))
+        sage: laurent_series
+        q - q^2 + q^3 - q^4 + O(q^5)
+        sage: as_power_or_laurent_series(laurent_series).parent()
+        Power Series Ring in q over Integer Ring
+    """
+
+    from sage.rings.laurent_series_ring import is_LaurentSeriesRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.fraction_field import is_FractionField
+
+    laurent_series = series
+    series_parent = series.parent()
+
+    if is_PolynomialRing(series_parent) and len(series_parent.gens()) == 1:
+        series_parent = laurent_series.add_bigoh(ZZ(0)).parent()
+        laurent_series = series_parent(laurent_series)
+    if is_FractionField(series_parent) and try_hard == True:
+        numerator_parent = laurent_series.numerator().parent()
+        try:
+            new_gen = laurent_series.numerator().add_bigoh(ZZ(0)).parent().gen()
+            new_parent = (ZZ(1)/new_gen).parent()
+            laurent_series = new_parent(laurent_series)
+            series_parent = new_parent
+        except:
+            pass
+
+    if (is_LaurentSeriesRing(series_parent) or is_PowerSeriesRing(series_parent)) and len(series_parent.gens()) == 1:
+        return laurent_series
+    else:
+        raise ValueError("The argument could not be interpreted as a Power or Laurent series!")
+
+
 class FormsSpace_abstract(FormsRing_abstract):
     r"""
     Abstract (Hecke) forms space.
@@ -1967,7 +2033,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        if rationalize:
+            try_hard = True
+        else:
+            try_hard = False
+        laurent_series = as_power_or_laurent_series(laurent_series, try_hard=try_hard)
         base_ring = laurent_series.base_ring()
+
         if is_PolynomialRing(base_ring.base()):
             if not (self.coeff_ring().has_coerce_map_from(base_ring)):
                 raise ValueError("The Laurent coefficients don't coerce into the coefficient ring of self!")
@@ -2263,7 +2335,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        if rationalize:
+            try_hard = True
+        else:
+            try_hard = False
+        laurent_series = as_power_or_laurent_series(laurent_series, try_hard=try_hard)
         base_ring = laurent_series.base_ring()
+
         if is_PolynomialRing(base_ring.base()):
             if not (self.coeff_ring().has_coerce_map_from(base_ring)):
                 raise ValueError("The Laurent coefficients don't coerce into the coefficient ring of self!")
@@ -2521,12 +2599,20 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: QF(qexp_int) == el
             True
+
+            sage: q = LaurentSeriesRing(RR,'q').gen()
+            sage: qexp_int = QF.rationalize_series(O(q^(-1)))
+            sage: qexp_int.parent()
+            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: qexp_int.prec()
+            -1
         """
 
         from sage.rings.all import prime_range
         from sage.misc.all import prod
         from warnings import warn
 
+        laurent_series = as_power_or_laurent_series(laurent_series, try_hard=True)
         denom_factor = ZZ(denom_factor)
         base_ring = laurent_series.base_ring()
         series_prec = laurent_series.prec()
@@ -2548,7 +2634,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             prec = self.default_num_prec()
             dvalue = self.group().dvalue()
         else:
-            prec = laurent_series.base_ring().prec()
+            prec = base_ring.prec()
             dvalue = self.group().dvalue().n(prec)
 
         # This messes up doctests! :-(
@@ -2556,6 +2642,12 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         d = self.get_d()
         q = self.get_q()
+
+        if len(laurent_series.exponents()) == 0:
+            if (series_prec < 0):
+                return (0*(1/q)).add_bigoh(series_prec)
+            else:
+                return (0*q).add_bigoh(series_prec)
 
         if (not base_ring.is_exact() and coeff_bound):
             coeff_bound = base_ring(coeff_bound)
@@ -2567,10 +2659,10 @@ class FormsSpace_abstract(FormsRing_abstract):
         d_power = (first_coeff.abs().n(prec).log()/dvalue.n(prec).log()).round()
 
         if (first_coeff < 0):
-            return -self.rationalize_series(-laurent_series, coeff_bound=coeff_bound)
-        elif (first_exp + d_power != 0):
+            return -self.rationalize_series(-laurent_series, coeff_bound=coeff_bound, denom_factor=denom_factor)
+        elif (d_power != -first_exp):
             cor_factor = dvalue**(-(first_exp + d_power))
-            return d**(first_exp + d_power) * self.rationalize_series(cor_factor * laurent_series, coeff_bound=coeff_bound)
+            return d**(first_exp + d_power) * self.rationalize_series(cor_factor * laurent_series, coeff_bound=coeff_bound, denom_factor=denom_factor)
         else:
             if (base_ring.is_exact() and self.group().is_arithmetic()):
                 tolerance = 0
