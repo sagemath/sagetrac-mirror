@@ -1606,7 +1606,7 @@ class FormsRingElement(six.with_metaclass(
                     w = self.group().get_FD(tau)[1]
                     return self.order_at(w)
             else:
-                raise ValueError("tau={} does not lie in the extended upper half plane!").format(tau)
+                raise ValueError("tau={} does not lie in the extended upper half plane!".format(tau))
 
             order_f = 0
             # There seems to be a bug in Singular, for now this "try, except" is a workaround

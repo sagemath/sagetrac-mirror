@@ -177,9 +177,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: subspace.module()
             Vector space of degree 4 and dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            Basis matrix:
-            [            1             0             0             0]
+            User basis matrix:
             [            0             1     13/(18*d) 103/(432*d^2)]
+            [            1             0             0             0]
             sage: subspace.ambient_module()
             Vector space of dimension 4 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: subspace.ambient_module() == MF.module()
@@ -215,7 +215,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         self._basis = [v for v in basis]
         # self(v) instead would somehow mess up the coercion model
         self._gens = [self._element_constructor_(v) for v in basis]
-        self._module = ambient_space._module.submodule([ambient_space.coordinate_vector(v) for v in basis])
+        self._module = ambient_space._module.submodule_with_basis([ambient_space.coordinate_vector(v) for v in basis])
         # TODO: get the analytic type from the basis
         #self._analytic_type=self.AT(["quasi", "mero"])
         self._analytic_type = ambient_space._analytic_type
@@ -401,7 +401,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms, QuasiModularForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2).parent()
@@ -423,6 +423,16 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             (7, 0, -3)
             sage: subspace.ambient_coordinate_vector(el)
             (7, 21/(8*d), 0, -3)
+
+            sage: MF = QuasiModularForms(n=3, k=8)
+            sage: E2 = MF.E2()
+            sage: ss_basis = [E2*E2.derivative(2), E2.derivative()^2]
+            sage: subspace = MF.subspace(ss_basis)
+            sage: vec = subspace(E2.derivative(3)).coordinate_vector()
+            sage: vec
+            (1, -3/2)
+            sage: E2.derivative(3) == subspace.sum([ss_basis[k]*vec[k] for k in range(0,len(ss_basis))])
+            True
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))

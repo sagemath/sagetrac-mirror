@@ -163,7 +163,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
         elif method in ["default", "basic", "block", "conj"]:
             self._element_repr_method=method
         else:
-            raise ValueError("The specified method {} is not supported!").format(method)
+            raise ValueError("The specified method {} is not supported!".format(method))
 
     def one(self):
         r"""

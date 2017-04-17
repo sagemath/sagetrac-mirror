@@ -1098,6 +1098,19 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: el.coordinate_vector()    # long time
       (0, 0, 0, 1, 29/(196*d), 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
 
+  Here is an example how subspaces can be used to recover the differential equation for ``E2``:
+
+  ::
+
+      sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+      sage: MF = QuasiModularForms(n=3, k=8)
+      sage: E2 = MF.E2()
+      sage: ss_basis = [E2*E2.derivative(2), E2.derivative()^2]
+      sage: subspace = MF.subspace(ss_basis)
+      sage: subspace(E2.derivative(3)).coordinate_vector()
+      (1, -3/2)
+      sage: E2.derivative(3) == 1*ss_basis[0] -3/2*ss_basis[1]
+      True
 
 - **Subspaces:**
   It is possible to construct subspaces of (quasi) holomorphic modular forms
@@ -1113,8 +1126,11 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: subspace
       Subspace of dimension 2 of ModularForms(n=7, k=12, ep=1) over Integer Ring
       sage: el = subspace(MF.E6()^2)
-      sage: el.coordinate_vector()
-      (1, -61/(196*d))
+      sage: vec = el.coordinate_vector()
+      sage: vec
+      (1, -1/d)
+      sage: el == vec[0]*subspace.gen(0) + vec[1]*subspace.gen(1)
+      True
       sage: el.ambient_coordinate_vector()
       (1, -61/(196*d), -51187/(614656*d^2))
 

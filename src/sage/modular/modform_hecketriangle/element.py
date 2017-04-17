@@ -171,7 +171,7 @@ class FormsElement(FormsRingElement):
             sage: subspace = MF.subspace([MF.gen(0), MF.gen(2)])
             sage: subspace.gen(0).ambient_coordinate_vector().parent()
             Vector space of degree 3 and dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            Basis matrix:
+            User basis matrix:
             [1 0 0]
             [0 0 1]
             sage: subspace.gen(0).ambient_coordinate_vector()

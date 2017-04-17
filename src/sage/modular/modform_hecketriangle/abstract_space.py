@@ -228,7 +228,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             (0, 1)
             sage: ambvec.parent()
             Vector space of degree 2 and dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            Basis matrix:
+            User basis matrix:
             [0 1]
             sage: subspace(ambvec) == subspace(vec) and subspace(ambvec).parent() == subspace(vec).parent()
             True
@@ -412,7 +412,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: subspace = MF.subspace([MF.gen(0)])
             sage: subspace.module()
             Vector space of degree 2 and dimension 1 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            Basis matrix:
+            User basis matrix:
             [1 0]
         """
 
@@ -2747,7 +2747,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: subspace = MF.subspace([MF.gen(0), MF.gen(2)])
             sage: subspace.ambient_coordinate_vector(subspace.gen(0)).parent()
             Vector space of degree 3 and dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            Basis matrix:
+            User basis matrix:
             [1 0 0]
             [0 0 1]
             sage: subspace.ambient_coordinate_vector(subspace.gen(0))
