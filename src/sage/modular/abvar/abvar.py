@@ -545,7 +545,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         OUTPUT:
 
-        - an array of newforms
+        - a list of newforms
 
         EXAMPLES::
 
