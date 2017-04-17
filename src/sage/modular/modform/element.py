@@ -29,6 +29,7 @@ from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import coercion_model, ModuleElement
+from sage.all import QQbar
 
 
 def is_ModularFormElement(x):
@@ -1370,6 +1371,130 @@ class Newform(ModularForm_abstract):
             ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
         """
         return self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
+
+    def inner_and_CM_twists(self):
+        """
+        Return a tuple consisting of the array of inner twists and the array of
+        CM twists.
+
+        OUTPUT:
+
+            - A tuple (inner, CM) where inner is the array of inner twists and
+              CM is the array of outer twists.
+
+        EXAMPLES::
+
+            sage: f = Newforms(Gamma1(13), names='a')[0]; f
+            q + a0*q^2 + (-2*a0 - 4)*q^3 + (-a0 - 1)*q^4 + (2*a0 + 3)*q^5 + O(q^6)
+            sage: f.inner_and_CM_twists()
+            ([Dirichlet character modulo 13 of conductor 1 mapping 2 |--> 1,
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a0 + 2],
+            [])
+            
+            sage: f = Newforms(15)[0]; f
+            q - q^2 - q^3 - q^4 + q^5 + O(q^6)
+            sage: f.inner_and_CM_twists()
+            ([Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1],
+            [])
+
+            sage: f = Newforms(32)[0]; f
+            q - 2*q^5 + O(q^6)
+            sage: T = f.inner_and_CM_twists(); T
+            ([Dirichlet character modulo 32 of conductor 1 mapping 31 |--> 1, 5 |--> 1,
+              Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1],
+             [Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1])
+            sage: f.qexp(26)
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+            sage: f.twist(T[1][0]).qexp(26)     
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+        """
+        eps = self.character()
+        N = self.level()
+        G = eps.parent()
+
+        inners = []
+        CMs = []
+
+        if eps.is_one() and N.is_squarefree():
+            return [G.one()], []
+
+        bound = self.modular_symbols().sturm_bound()
+        # check primes up to the strum bound
+        # ignore primes dividing N since the character there is zero
+        ps = [p for p in prime_range(bound+1) if N % p != 0]
+        quadratic_characters = [g for g in G if g.order() <= 2]
+
+        K = self.base_ring()
+        aps = [self.coefficient(p) for p in ps]
+
+        embs = K.embeddings(QQbar)
+        s = eps.order()
+        for gamma in [x for x in range(1, s+1) if s.gcd(x) == 1]:
+            for psi in quadratic_characters:
+                chi = psi * eps ** int((gamma-1)*(s+1)/2)
+                if chi in inners or chi in CMs:
+                    continue
+                for emb in embs:
+                    is_inner = True
+                    is_CM = True
+                    # check if inner twist
+                    for i in range(len(ps)):
+                        if embs[0](chi(ps[i])*aps[i]) != emb(aps[i]):
+                            is_inner = False
+                            is_CM = False
+                            break
+                    if emb != embs[0] or chi.is_one():
+                        is_CM = False
+
+                    if is_inner:
+                        inners.append(chi)
+                    if is_CM:
+                        CMs.append(chi)
+        return inners, CMs
+
+    def inner_twists(self):
+        """
+        Return an array of inner twists of self.
+
+        OUTPUT:
+
+            - An array of inner twists of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(11)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f.inner_twists()
+            [Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1]
+
+            sage: f = Newforms(Gamma1(17), names='a')[1]; f
+            q + a1*q^2 + (-1/3*a1^3 - 5/3*a1^2 - 13/3*a1 - 11/3)*q^3 + (4/3*a1^3 + 17/3*a1^2 + 28/3*a1 + 8/3)*q^4 + (-4/3*a1^3 - 14/3*a1^2 - 25/3*a1 - 5/3)*q^5 + O(q^6)
+            sage: f.inner_twists()                         
+            [Dirichlet character modulo 17 of conductor 1 mapping 3 |--> 1,
+             Dirichlet character modulo 17 of conductor 17 mapping 3 |--> -2/3*a1^3 - 7/3*a1^2 - 11/3*a1 - 1/3]
+        """
+        return self.inner_and_CM_twists()[0]
+
+    def CM_twists(self):
+        """
+        Return an array of CM twists of self.
+
+        OUTPUT: 
+            
+            - An array of CM twists of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(32)[0]; f
+            q - 2*q^5 + O(q^6)
+            sage: T = f.CM_twists(); T
+            [Dirichlet character modulo 32 of conductor 4 mapping 31 |--> -1, 5 |--> 1]
+            sage: f.qexp(26)
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+            sage: f.twist(T[0]).qexp(26)     
+            q - 2*q^5 - 3*q^9 + 6*q^13 + 2*q^17 - q^25 + O(q^26)
+        """
+        return self.inner_and_CM_twists()[1]
 
     def twist(self, chi, level=None, check=True):
         r"""
