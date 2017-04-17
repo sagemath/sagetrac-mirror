@@ -1374,13 +1374,14 @@ class Newform(ModularForm_abstract):
 
     def inner_and_CM_twists(self):
         """
-        Return a tuple consisting of the array of inner twists and the array of
-        CM twists.
+        Return the list of inner twists and the list of CM twists of ``self``.
 
         OUTPUT:
 
-            - A tuple (inner, CM) where inner is the array of inner twists and
-              CM is the array of outer twists.
+        A tuple (inner, CM) where inner is the list of inner twists and
+        CM is the list of outer twists.
+
+        The twists are returned as Dirichlet characters.
 
         EXAMPLES::
 
@@ -1419,9 +1420,9 @@ class Newform(ModularForm_abstract):
             return [G.one()], []
 
         bound = self.modular_symbols().sturm_bound()
-        # check primes up to the strum bound
+        # check primes up to the sturm bound
         # ignore primes dividing N since the character there is zero
-        ps = [p for p in prime_range(bound+1) if N % p != 0]
+        ps = [p for p in prime_range(bound + 1) if N % p]
         quadratic_characters = [g for g in G if g.order() <= 2]
 
         K = self.base_ring()
@@ -1429,9 +1430,9 @@ class Newform(ModularForm_abstract):
 
         embs = K.embeddings(QQbar)
         s = eps.order()
-        for gamma in [x for x in range(1, s+1) if s.gcd(x) == 1]:
+        for gamma in [x for x in range(1, s + 1) if s.gcd(x) == 1]:
             for psi in quadratic_characters:
-                chi = psi * eps ** int((gamma-1)*(s+1)/2)
+                chi = psi * eps ** int((gamma-1) * (s+1)/2)
                 if chi in inners or chi in CMs:
                     continue
                 for emb in embs:
@@ -1439,7 +1440,7 @@ class Newform(ModularForm_abstract):
                     is_CM = True
                     # check if inner twist
                     for i in range(len(ps)):
-                        if embs[0](chi(ps[i])*aps[i]) != emb(aps[i]):
+                        if embs[0](chi(ps[i]) * aps[i]) != emb(aps[i]):
                             is_inner = False
                             is_CM = False
                             break
@@ -1454,11 +1455,7 @@ class Newform(ModularForm_abstract):
 
     def inner_twists(self):
         """
-        Return an array of inner twists of self.
-
-        OUTPUT:
-
-            - An array of inner twists of self.
+        Return the list of inner twists of ``self``.
 
         EXAMPLES::
 
@@ -1477,11 +1474,7 @@ class Newform(ModularForm_abstract):
 
     def CM_twists(self):
         """
-        Return an array of CM twists of self.
-
-        OUTPUT: 
-            
-            - An array of CM twists of self.
+        Return the list of CM twists of ``self``.
 
         EXAMPLES::
 
