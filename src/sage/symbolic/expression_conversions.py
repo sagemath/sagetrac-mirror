@@ -752,9 +752,9 @@ class SympyConverter(Converter):
             sin(2)
             sage: type(_)
             sin
-            sage: f = arcsin(2)
+            sage: f = arcsin(1/7)
             sage: s.composition(f, f.operator())
-            asin(2)
+            asin(1/7)
         """
         f = operator._sympy_init_()
         g = ex.operands()
