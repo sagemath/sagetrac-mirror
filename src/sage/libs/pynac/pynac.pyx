@@ -1487,9 +1487,8 @@ cdef py_step(n):
     """
     if n < 0:
         return ZERO
-    elif n > 0:
+    else:
         return ONE
-    return ONE_HALF
 
 cdef py_bernoulli(x):
     return bernoulli(x)

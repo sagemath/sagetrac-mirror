@@ -51,8 +51,9 @@ Kronecker delta function::
 #
 ##############################################################################
 
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.rings.all import ComplexIntervalField, ZZ
+from sage.symbolic.ring import SR
 
 class FunctionDiracDelta(BuiltinFunction):
     r"""
@@ -389,7 +390,10 @@ class FunctionUnitStep(BuiltinFunction):
             1
         """
         try:
-            return self._evalf_(x)
+            #return self._evalf_(x)   # 82us for unit_step(1)
+            return SR(x).step()    # 22us for unit_step(1)
+            # still SR(1).step() is 6us
+            #return new_Expression_from_GEx(self._parent, g_hold_wrapper(g_step, self._gobj, hold))
         except (TypeError,ValueError):      # x is symbolic
             pass
         return None

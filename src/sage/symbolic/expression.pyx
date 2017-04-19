@@ -7026,7 +7026,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.5).step()
             1
             sage: SR(0).step()
-            1/2
+            1
             sage: SR(-1/2).step()
             0
             sage: SR(float(-1)).step()
