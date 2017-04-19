@@ -15,8 +15,8 @@ geschrieben wurden in Sage lädt. Erstellen Sie eine Datei, welche Sie
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 ``load``-Befehl verwenden.
@@ -25,7 +25,7 @@ Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 
 ::
 
-    sage: load "beispiel.sage"
+    sage: load("beispiel.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ indem Sie den ``attach``-Befehl verwenden:
 
 ::
 
-    sage: attach "beispiel.sage"
+    sage: attach("beispiel.sage")
     Hello World
     8
 
@@ -60,8 +60,8 @@ enthält den folgenden Code:
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 Integer-Literale wurden mit Integer() versehen und das ``^`` wurde
 durch ein ``**`` ersetzt.
@@ -153,7 +153,7 @@ Dann funktioniert das Folgende:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11
@@ -174,17 +174,17 @@ Polynome, usw.:
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 Um dieses Skript benutzen zu können muss ``SAGE_ROOT`` in ihrer
 PATH-Umgebungsvariable enthalten sein. Falls das das obige Skript
@@ -209,17 +209,17 @@ Gleitkommazahlen, wie hier zu sehen ist:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # Sie können einfache oder doppelte Anführungszeichen verwenden
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Hierzu fügt Sage noch viele weitere hinzu. Zum Beispiel Vektorräume:
 
@@ -303,7 +303,7 @@ Computer-Algebra-Systemen), die Elemente der Liste werden bei
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -339,7 +339,7 @@ konstruieren:
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -361,7 +361,7 @@ wird wenn man mit dem :math:`m^{ten}` Element beginnt und bei dem
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -377,7 +377,7 @@ können.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -420,7 +420,7 @@ Listen benutzt werden können.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Ein weiteres Beispiel von unveränderbaren Folgen sind Basen von
 Vektorräumen. Es ist wichtig, dass sie nicht verändert werden können.
@@ -456,7 +456,7 @@ beliebigen Objekten.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -476,7 +476,7 @@ Daten umwandeln:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Eine häufig vorkommende Ausdrucksweise ist über einem Paar in einem
@@ -485,7 +485,7 @@ Dictionary zu iterieren:
 ::
 
     sage: d = {2:4, 4:16, 3:9}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Ein Dictionary ist ungeordnet, wie die letzte Ausgabe verdeutlicht.
@@ -500,16 +500,18 @@ ob ein Element zu der Menge gehört oder nicht, sehr schnell geht.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage besitzt auch einen eigenen Mengen-Datentyp, welcher (manchmal)
 mit Hilfe des standardmäßigen Python-Mengen-Datentyps implementiert
@@ -520,13 +522,15 @@ verwenden. Zum Beispiel,
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -543,11 +547,11 @@ nichtnegativen ganzen Zahlen bis :math:`10000000`.
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 Nun erzeugen wir einen Iterator über den Primzahlen der Form :math:`4p+1`
@@ -558,11 +562,11 @@ wobei auch :math:`p` prim ist und schauen uns die ersten Werte an.
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # in the next line, 0xb0853d6c is a random 0x number
     <generator object at 0xb0853d6c>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 Bestimmte Ringe, z. B. endliche Körper und die ganzen Zahlen, haben
@@ -574,11 +578,11 @@ zugehörige Iteratoren:
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 Schleifen, Funktionen, Kontrollstrukturen und Vergleiche
@@ -624,8 +628,8 @@ Das Symbol ``==`` wird verwendet um Gleichheit zu testen:
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
     1
     2
     4
@@ -642,11 +646,11 @@ wird:
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1
@@ -670,18 +674,6 @@ gleichen Typ konvertieren, falls dies möglich ist:
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Fast immer können zwei beliebige Objekte verglichen werden. Es gibt
-keine Voraussetzung die besagt, dass die Objekte mit einer totalen Ordnung
-versehen sein müssen.
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
     True
 
 Nutzen Sie bool für symbolische Ungleichungen:

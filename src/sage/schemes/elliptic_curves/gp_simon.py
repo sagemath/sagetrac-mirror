@@ -1,6 +1,7 @@
 """
 Denis Simon's PARI scripts
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -23,7 +24,7 @@ from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
 from sage.rings.all import QQ, ZZ
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 
 gp = None
 def init():
@@ -32,14 +33,18 @@ def init():
     """
     global gp
     if gp is None:
-        gp = Gp(script_subdirectory='simon')
-        gp.read("ell.gp")
+        import os
+        from sage.env import DOT_SAGE
+        logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
+        gp = Gp(script_subdirectory='simon', logfile=logfile)
         gp.read("ellQ.gp")
+        gp.read("ell.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 
 
-def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=20, limbigprime=30):
+def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
+                      maxprob=20, limbigprime=30, known_points=[]):
     """
     Interface to Simon's gp script for two-descent.
 
@@ -52,7 +57,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
+        (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
 
     TESTS::
 
@@ -76,7 +81,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
         (1, 1, ...)
 
-    An example that checks that :trac:`9322` is fixed (it should take less than a second to run)
+    An example that checks that :trac:`9322` is fixed (it should take less than a second to run)::
 
         sage: K.<w> = NumberField(x^2-x-232)
         sage: E = EllipticCurve([2-w,18+3*w,209+9*w,2581+175*w,852-55*w])
@@ -89,7 +94,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
 
     K = E.base_ring()
     K_orig = K
-    # The following is to correct the bug at \#5204: the gp script
+    # The following is to correct the bug at #5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     # It also deals with relative number fields.
     E_orig = E
@@ -97,24 +102,23 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         K = K_orig.absolute_field('a')
         from_K,to_K = K.structure()
         E = E_orig.change_ring(to_K)
-    else:
-        from_K = lambda x:x
-        to_K = lambda x:x
-
-    if K != QQ:
+        known_points = [P.change_ring(to_K) for P in known_points]
         # Simon's program requires that this name be y.
         with localvars(K.polynomial().parent(), 'y'):
             gp.eval("K = bnfinit(%s);" % K.polynomial())
             if verbose >= 2:
-                print "K = bnfinit(%s);" % K.polynomial()
+                print("K = bnfinit(%s);" % K.polynomial())
         gp.eval("%s = Mod(y,K.pol);" % K.gen())
         if verbose >= 2:
-            print "%s = Mod(y,K.pol);" % K.gen()
+            print("%s = Mod(y,K.pol);" % K.gen())
+    else:
+        from_K = lambda x: x
+        to_K = lambda x: x
 
     # The block below mimicks the defaults in Simon's scripts, and needs to be changed
     # when these are updated.
-    if K == QQ:
-        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % E.ainvs()
+    if K is QQ:
+        cmd = 'ellrank(%s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
         if lim1 is None:
             lim1 = 5
         if lim3 is None:
@@ -122,7 +126,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         if limtriv is None:
             limtriv = 3
     else:
-        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % E.ainvs()
+        cmd = 'bnfellrank(K, %s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
         if lim1 is None:
             lim1 = 2
         if lim3 is None:
@@ -134,12 +138,12 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
        verbose, lim1, lim3, limtriv, maxprob, limbigprime))
 
     if verbose >= 2:
-        print cmd
+        print(cmd)
     s = gp.eval('ans=%s;'%cmd)
     if s.find(" *** ") != -1:
         raise RuntimeError("\n%s\nAn error occurred while running Simon's 2-descent program"%s)
     if verbose > 0:
-        print s
+        print(s)
     v = gp.eval('ans')
     if v=='ans': # then the call to ellrank() or bnfellrank() failed
         raise RuntimeError("An error occurred while running Simon's 2-descent program")

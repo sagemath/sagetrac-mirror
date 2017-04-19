@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series.
+Multivariate Power Series
 
 Construct and manipulate multivariate power series (in finitely many
 variables) over a given commutative ring. Multivariate power series
@@ -155,16 +155,16 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
-from sage.rings.power_series_ring_element import PowerSeries
+from sage.structure.sage_object import richcmp
 
-from sage.rings.polynomial.all import is_PolynomialRing
-from sage.rings.power_series_ring import is_PowerSeriesRing
-
-from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-
 from sage.rings.infinity import infinity, is_Infinite
+from sage.rings.integer import Integer
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.power_series_ring import is_PowerSeriesRing
+from sage.rings.power_series_ring_element import PowerSeries
 
 
 def is_MPowerSeries(f):
@@ -186,9 +186,7 @@ def is_MPowerSeries(f):
         sage: is_PowerSeries(1 - v + v^2 +O(v^3))
         True
     """
-
     return isinstance(f, MPowerSeries)
-
 
 
 class MPowerSeries(PowerSeries):
@@ -208,7 +206,7 @@ class MPowerSeries(PowerSeries):
     #
     # change_ring : works just fine
     #
-    # _cmp_c_impl : don't understand this
+    # _cmp_ : don't understand this
     #
     # __copy__ : works just fine
     #
@@ -220,7 +218,7 @@ class MPowerSeries(PowerSeries):
     #
     # _mul_prec : works just fine
     #
-    # __nonzero__ : works just fine
+    # __bool__ : works just fine
     #
     """
     Multivariate power series; these are the elements of Multivariate Power
@@ -432,12 +430,19 @@ class MPowerSeries(PowerSeries):
 
             sage: f.truncate()(t,2)
             2*t + 3*t^2 + 7*t^3 + 3*t^4
+
+        Checking that :trac:`15059` is fixed::
+
+            sage: M.<u,v> = PowerSeriesRing(GF(5))
+            sage: s = M.hom([u, u+v])
+            sage: s(M.one())
+            1
         """
         if len(x) != self.parent().ngens():
             raise ValueError("Number of arguments does not match number of variables in parent.")
 
         sub_dict = {}
-        valn_list =[]
+        valn_list = []
         for i in range(len(x)):
             try:
                  xi = self.parent(x[i])
@@ -456,7 +461,7 @@ class MPowerSeries(PowerSeries):
             newprec = infinity
         else:
             newprec = self.prec()*min(valn_list)
-        return self._value().subs(sub_dict).add_bigoh(newprec)
+        return self.parent()(self._value().subs(sub_dict)).add_bigoh(newprec)
 
     def _subs_formal(self, *x, **kwds):
         """
@@ -515,7 +520,7 @@ class MPowerSeries(PowerSeries):
             return self
 
         y = 0
-        for (m,c) in self.dict().iteritems():
+        for m, c in iteritems(self.dict()):
                 y += c*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
         if self.prec() == infinity:
             return y
@@ -647,12 +652,12 @@ class MPowerSeries(PowerSeries):
             - 2*a^2*c - 5*a*b^2 - 4*a*b*c - b^3 - 2*b^2*c + O(a, b, c)^4
         """
         if self.valuation() == 0:
-            return self.parent(self._bg_value.__invert__())
+            return self.parent(~self._bg_value)
         else:
             raise NotImplementedError("Multiplicative inverse of multivariate power series currently implemented only if constant coefficient is a unit.")
 
     ## comparisons
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 
@@ -684,8 +689,7 @@ class MPowerSeries(PowerSeries):
             sage: f < 2*f
             True
         """
-        return cmp(self._bg_value,other._bg_value)
-
+        return richcmp(self._bg_value, other._bg_value, op)
 
     ## arithmetic
     def _add_(left, right):
@@ -752,10 +756,6 @@ class MPowerSeries(PowerSeries):
         """
         f = left._bg_value * right._bg_value
         return MPowerSeries(left.parent(), f, prec=f.prec())
-
-#    def _rmul_(self, c):
-#        # multivariate power series rings are assumed to be commutative
-#        return self._lmul_(c)
 
     def _lmul_(self, c):
         """
@@ -1017,7 +1017,7 @@ class MPowerSeries(PowerSeries):
             True
         """
         if denom_r.is_unit(): # faster if denom_r is a unit
-            return self.parent(self._bg_value * denom_r._bg_value.__invert__())
+            return self.parent(self._bg_value * ~denom_r._bg_value)
         quo, rem = self.quo_rem(denom_r)
         if rem:
             raise ValueError("not divisible")
@@ -1101,7 +1101,10 @@ class MPowerSeries(PowerSeries):
             sage: m2 = 1/2*t0^12*t1^29*t2^46*t3^6 - 1/4*t0^39*t1^5*t2^23*t3^30 + M.O(100)
             sage: s = m + m2
             sage: s.dict()
-            {(1, 15, 0, 48): 2/3, (15, 21, 28, 5): -1, (12, 29, 46, 6): 1/2, (39, 5, 23, 30): -1/4}
+            {(1, 15, 0, 48): 2/3,
+             (12, 29, 46, 6): 1/2,
+             (15, 21, 28, 5): -1,
+             (39, 5, 23, 30): -1/4}
         """
         out_dict = {}
         for j in self._bg_value.coefficients():
@@ -1192,14 +1195,14 @@ class MPowerSeries(PowerSeries):
             Multivariate Power Series Ring in s, t over Integer Ring
             sage: f = 1 + t + s + s*t + R.O(3)
             sage: f.coefficients()
-            {s*t: 1, 1: 1, s: 1, t: 1}
+            {s*t: 1, t: 1, s: 1, 1: 1}
             sage: (f^2).coefficients()
-            {t^2: 1, 1: 1, t: 2, s*t: 4, s^2: 1, s: 2}
+            {t^2: 1, s*t: 4, s^2: 1, t: 2, s: 2, 1: 1}
 
             sage: g = f^2 + f - 2; g
             3*s + 3*t + s^2 + 5*s*t + t^2 + O(s, t)^3
             sage: cd = g.coefficients()
-            sage: g2 = sum(k*v for (k,v) in cd.iteritems()); g2
+            sage: g2 = sum(k*v for (k,v) in cd.items()); g2
             3*s + 3*t + s^2 + 5*s*t + t^2
             sage: g2 == g.truncate()
             True
@@ -1275,7 +1278,7 @@ class MPowerSeries(PowerSeries):
             -x^3*y^12*z^21 - 1/4*y^3*z^36 + 1/2*x^21*y^15*z^6 + 2/3*y^18*z^24 + O(x, y, z)^45
         """
         cd = self.coefficients()
-        Vs = sum(v*k**n for (k,v) in cd.iteritems())
+        Vs = sum(v * k**n for k, v in iteritems(cd))
         return Vs.add_bigoh(self.prec()*n)
 
     def prec(self):
@@ -1684,9 +1687,9 @@ class MPowerSeries(PowerSeries):
             sage: aa.is_gen()
             False
             sage: aa.integral(aa)
-            -2*a^2
+            3*a^2
             sage: aa.integral(a)
-            -2*a^2
+            3*a^2
         """
         P = self.parent()
         R = P.base_ring()
@@ -1701,7 +1704,7 @@ class MPowerSeries(PowerSeries):
         xxe = xx.exponents()[0]
         pos = [i for i, c in enumerate(xxe) if c != 0][0]  # get the position of the variable
         res = {mon.eadd(xxe): R(co / (mon[pos]+1))
-               for mon, co in self.dict().iteritems()}
+               for mon, co in iteritems(self.dict())}
         return P( res ).add_bigoh(self.prec()+1)
 
     def ogf(self):
@@ -1734,7 +1737,7 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("egf")
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Method from univariate power series not yet implemented
 
@@ -1742,12 +1745,12 @@ class MPowerSeries(PowerSeries):
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
             sage: f = a + b + a*b + T.O(5)
-            sage: f._pari_()
+            sage: f.__pari__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: _pari_
+            NotImplementedError: __pari__
         """
-        raise NotImplementedError("_pari_")
+        raise NotImplementedError("__pari__")
 
 
 
@@ -1902,7 +1905,7 @@ class MPowerSeries(PowerSeries):
             sage: exp(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Symbolic Ring' and
+            TypeError: unsupported operand parent(s) for *: 'Symbolic Ring' and
             'Power Series Ring in Tbg over Multivariate Polynomial Ring in a, b
             over Rational Field'
 
@@ -1947,7 +1950,7 @@ class MPowerSeries(PowerSeries):
         n_inv_factorial = R.base_ring().one()
         x_pow_n = Rbg.one()
         exp_x = Rbg.one().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             n_inv_factorial /= n
             exp_x += x_pow_n * n_inv_factorial
@@ -1991,7 +1994,7 @@ class MPowerSeries(PowerSeries):
             sage: log(g)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '-': 'Symbolic Ring' and 'Power
+            TypeError: unsupported operand parent(s) for -: 'Symbolic Ring' and 'Power
             Series Ring in Tbg over Multivariate Polynomial Ring in a, b over Rational Field'
 
         Another workaround for this limitation is to change base ring
@@ -2039,7 +2042,7 @@ class MPowerSeries(PowerSeries):
             prec = R.default_prec()
         x_pow_n = Rbg.one()
         log_x = Rbg.zero().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             log_x += x_pow_n / n
         result_bg = log_c - log_x

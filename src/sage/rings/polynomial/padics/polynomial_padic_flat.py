@@ -8,6 +8,8 @@ p-adic Flat Polynomials
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import six
+from six.moves import range
 
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense, Polynomial
 from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
@@ -18,7 +20,15 @@ import sage.rings.padics.misc
 class Polynomial_padic_flat(Polynomial_generic_dense, Polynomial_padic):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False, absprec=None):
         """
-        Initialization function for the class Polynomial_padic_flat.
+        TESTS:
+
+        Check that :trac:`13620` has been fixed::
+
+            sage: K = ZpFM(3)
+            sage: R.<t> = K[]
+            sage: R(R.zero())
+            0
+
         """
         if x is None:
             Polynomial_generic_dense.__init__(self, parent, x, check, is_gen, construct)
@@ -26,7 +36,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense, Polynomial_padic):
         R = parent.base_ring()
         if sage.rings.fraction_field_element.is_FractionFieldElement(x):
             if x.denominator() != 1:
-                raise TypeError, "denominator must be 1"
+                raise TypeError("denominator must be 1")
             else:
                 x = x.numerator()
         if isinstance(x, Polynomial):
@@ -41,9 +51,9 @@ class Polynomial_padic_flat(Polynomial_generic_dense, Polynomial_padic):
             if check:
                 m = infinity
                 zero = R(0)
-                n = max(x.keys())
-                v = [zero for _ in xrange(n+1)]
-                for i, z in x.iteritems():
+                n = max(x.keys()) if x else 0
+                v = [zero] * (n + 1)
+                for i, z in six.iteritems(x):
                     v[i] = R(z)
                     m = min(m, v[i].precision_absolute())
                 x = v

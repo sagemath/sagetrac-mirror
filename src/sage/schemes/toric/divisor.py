@@ -45,31 +45,31 @@ Now we create a more complicated variety to demonstrate divisors of different
 types::
 
     sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-    ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+    ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
     sage: X = ToricVariety(F)
     sage: QQ_Cartier = X.divisor([2,2,1,1,1])
     sage: Cartier = 2 * QQ_Cartier
     sage: Weil = X.divisor([1,1,1,0,0])
     sage: QQ_Weil = 1/2 * Weil
     sage: [QQ_Weil.is_QQ_Weil(),
-    ...    QQ_Weil.is_Weil(),
-    ...    QQ_Weil.is_QQ_Cartier(),
-    ...    QQ_Weil.is_Cartier()]
+    ....:  QQ_Weil.is_Weil(),
+    ....:  QQ_Weil.is_QQ_Cartier(),
+    ....:  QQ_Weil.is_Cartier()]
     [True, False, False, False]
     sage: [Weil.is_QQ_Weil(),
-    ...    Weil.is_Weil(),
-    ...    Weil.is_QQ_Cartier(),
-    ...    Weil.is_Cartier()]
+    ....:  Weil.is_Weil(),
+    ....:  Weil.is_QQ_Cartier(),
+    ....:  Weil.is_Cartier()]
     [True, True, False, False]
     sage: [QQ_Cartier.is_QQ_Weil(),
-    ...    QQ_Cartier.is_Weil(),
-    ...    QQ_Cartier.is_QQ_Cartier(),
-    ...    QQ_Cartier.is_Cartier()]
+    ....:  QQ_Cartier.is_Weil(),
+    ....:  QQ_Cartier.is_QQ_Cartier(),
+    ....:  QQ_Cartier.is_Cartier()]
     [True, True, True, False]
     sage: [Cartier.is_QQ_Weil(),
-    ...    Cartier.is_Weil(),
-    ...    Cartier.is_QQ_Cartier(),
-    ...    Cartier.is_Cartier()]
+    ....:  Cartier.is_Weil(),
+    ....:  Cartier.is_QQ_Cartier(),
+    ....:  Cartier.is_Cartier()]
     [True, True, True, True]
 
 The toric (`\QQ`-Weil) divisors on a toric variety `X` modulo linear
@@ -165,7 +165,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import zip
 
 from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
@@ -173,7 +173,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
-from sage.misc.all import latex, flatten, prod
+from sage.misc.all import cached_method, flatten, latex, prod
 from sage.modules.all import vector
 from sage.modules.free_module import (FreeModule_ambient_field,
                                       FreeModule_ambient_pid)
@@ -185,6 +185,12 @@ from sage.schemes.toric.variety import CohomologyRing, is_ToricVariety
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 
+import six
+
+
+# forward declaration
+class ToricDivisor_generic(Divisor_generic):
+    pass
 
 #********************************************************
 class ToricDivisorGroup(DivisorGroup_generic):
@@ -247,8 +253,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
 
         TESTS::
 
-            sage: toric_varieties.P2().toric_divisor_group()._latex_()
-            '\\mathrm{Div_T}\\left(\\mathbb{P}_{\\Delta^{2}}, \\Bold{Z}\\right)'
+            sage: print(toric_varieties.P2().toric_divisor_group()._latex_())
+            \mathrm{Div_T}\left(\mathbb{P}_{\Delta^{2}_{15}}, \Bold{Z}\right)
         """
         return (r"\mathrm{Div_T}\left(%s, %s\right)"
                 % (latex(self.scheme()), latex(self.base_ring())))
@@ -294,6 +300,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
         """
         return self.scheme().fan().nrays()
 
+    @cached_method
     def gens(self):
         r"""
         Return the generators of the divisor group.
@@ -305,12 +312,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: TDiv.gens()
             (V(x), V(y), V(z))
         """
-        # Note: self._gens is originally incorrectly set by the parent class
-        if self._gens is None:
-            one = self.base_ring().one()
-            self._gens = tuple(ToricDivisor_generic([(one, c)], self)
-                               for c in self.scheme().gens())
-        return self._gens
+        one = self.base_ring().one()
+        return tuple(ToricDivisor_generic([(one, c)], self)
+                     for c in self.scheme().gens())
 
     def gen(self,i):
         r"""
@@ -393,7 +397,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
         """
         # This check prevents extension to cohomology rings via coercion
         if isinstance(R,CohomologyRing):
-            raise TypeError, 'Coefficient ring cannot be a cohomology ring.'
+            raise TypeError('Coefficient ring cannot be a cohomology ring.')
         if self.base_ring().has_coerce_map_from(R):
             return self
         elif R.has_coerce_map_from(self.base_ring()):
@@ -401,6 +405,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
         else:
             raise ValueError("the base of %s cannot be extended to %s!"
                              % ( self, R))
+
+    Element = ToricDivisor_generic
+
 
 #********************************************************
 def is_ToricDivisor(x):
@@ -563,11 +570,11 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         assert len(arg)==n_rays, \
             'Argument list {0} is not of the required length {1}!' \
             .format(arg, n_rays)
-        arg = zip(arg, toric_variety.gens())
+        arg = list(zip(arg, toric_variety.gens()))
         reduce = False
 
     ##### Now we must have a list of multiplicity-coordinate pairs
-    assert all(len(item)==2 for item in arg)
+    assert all(len(item) == 2 for item in arg)
     if ring is None:
         # if the coefficient ring was not given, try to use the most common ones.
         try:
@@ -790,7 +797,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
             sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
@@ -996,7 +1003,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
             sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
@@ -1131,7 +1138,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a QQ-Cartier divisor, some positive integral
-              multiple is Cartier. We return wheher this associtated
+              multiple is Cartier. We return whether this associated
               divisor is ample, i.e. corresponds to an ample line bundle.
 
             * In the orbifold case, the ample cone is an open
@@ -1164,16 +1171,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
@@ -1216,7 +1223,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a `\QQ`-Cartier divisor, some positive integral multiple is
-              Cartier. We return wheher this associtated divisor is nef.
+              Cartier. We return whether this associated divisor is nef.
 
             * The nef cone is the closure of the ample cone.
 
@@ -1242,16 +1249,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
         """
@@ -1296,7 +1303,7 @@ class ToricDivisor_generic(Divisor_generic):
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: D = F2.divisor(3)
             sage: D.polyhedron().Vrepresentation()
@@ -1421,15 +1428,14 @@ class ToricDivisor_generic(Divisor_generic):
 
         From [CoxTutorial]_ page 38::
 
-            sage: from sage.geometry.lattice_polytope import LatticePolytope
-            sage: lp = LatticePolytope(matrix([[1,1,0,-1,0], [0,1,1,0,-1]]))
+            sage: lp = LatticePolytope([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
             sage: lp
-            A lattice polytope: 2-dimensional, 5 vertices.
+            2-d reflexive polytope #5 in 2-d lattice M
             sage: dP7 = ToricVariety( FaceFan(lp), 'x1, x2, x3, x4, x5')
             sage: AK = -dP7.K()
             sage: AK.sections()
-            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 0),
-             M(0, 1), M(1, -1), M(1, 0), M(1, 1))
+            (N(-1, 0), N(-1, 1), N(0, -1), N(0, 0),
+             N(0, 1), N(1, -1), N(1, 0), N(1, 1))
             sage: AK.sections_monomials()
             (x3*x4^2*x5, x2*x3^2*x4^2, x1*x4*x5^2, x1*x2*x3*x4*x5,
              x1*x2^2*x3^2*x4, x1^2*x2*x5^2, x1^2*x2^2*x3*x5, x1^2*x2^3*x3^2)
@@ -1553,8 +1559,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - :class:`simplicial complex
-        <sage.homology.simplicial_complex.SimplicialComplex>`.
+        - :class:`simplicial complex <sage.homology.simplicial_complex.SimplicialComplex>`.
 
         EXAMPLES::
 
@@ -1570,11 +1575,13 @@ class ToricDivisor_generic(Divisor_generic):
         fan = self.parent().scheme().fan()
         ray_is_negative = [ m*ray + self.coefficient(i) < 0
                             for i, ray in enumerate(fan.rays()) ]
+
         def cone_is_negative(cone): # and non-trivial
             if cone.is_trivial():
                 return False
             return all(ray_is_negative[i] for i in cone.ambient_ray_indices())
-        negative_cones = filter(cone_is_negative, flatten(fan.cones()))
+
+        negative_cones = [cone for cone in flatten(fan.cones()) if cone_is_negative(cone)]
         return SimplicialComplex([c.ambient_ray_indices() for c in negative_cones])
 
     def _sheaf_cohomology(self, cplx):
@@ -1601,13 +1608,13 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D._sheaf_cohomology( SimplicialComplex([[1,2],[2,3],[3,1]]) )
             (0, 0, 1)
 
-        A more complicated example to test that trac #10731 is fixed::
+        A more complicated example to test that :trac:`10731` is fixed::
 
             sage: cell24 = Polyhedron(vertices=[
-            ...    (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...    (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...    (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...    (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1)])
+            ....:  (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....:  (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....:  (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....:  (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1)])
             sage: X = ToricVariety(FaceFan(cell24.lattice_polytope()))  # long time
             sage: D = -X.divisor(0)       # long time
             sage: D.cohomology(dim=True)  # long time
@@ -1619,7 +1626,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         HH = cplx.homology(base_ring=QQ, cohomology=True)
         HH_list = [0]*(d+1)
-        for h in HH.iteritems():
+        for h in six.iteritems(HH):
             degree = h[0]+1
             cohomology_dim = h[1].dimension()
             if degree>d or degree<0:
@@ -1641,10 +1648,10 @@ class ToricDivisor_generic(Divisor_generic):
 
         ALGORITHM:
 
-        See :meth:`cohomology` and note that every `d`-tuple
-        (`d`=dimension of the variety) of rays determines one vertex
-        in the chamber decomposition if none of the hyperplanes are
-        parallel.
+        See :meth:`cohomology` and note that every `d`-tuple (where
+        `d` is the dimension of the variety) of rays determines one
+        vertex in the chamber decomposition if none of the hyperplanes
+        are parallel.
 
         EXAMPLES::
 
@@ -1717,7 +1724,7 @@ class ToricDivisor_generic(Divisor_generic):
         cohomology. For toric divisors, the local sections can be
         chosen to be monomials (instead of general homogeneous
         polynomials), this is the reason for the extra grading by
-        `m\in M`. General refrences would be [Fulton]_, [CLS]_. Here
+        `m\in M`. General refrences would be [Fu1993]_, [CLS]_. Here
         are some salient features of our implementation:
 
         * First, a finite set of `M`-lattice points is identified that
@@ -1759,7 +1766,7 @@ class ToricDivisor_generic(Divisor_generic):
         Example 9.1.7 of Cox, Little, Schenck: "Toric Varieties" [CLS]_::
 
             sage: F = Fan(cones=[(0,1), (1,2), (2,3), (3,4), (4,5), (5,0)],
-            ...           rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
+            ....:         rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
             sage: dP6 = ToricVariety(F)
             sage: D3 = dP6.divisor(2)
             sage: D5 = dP6.divisor(4)
@@ -1865,7 +1872,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1), (1,2), (2,3), (3,4), (4,5), (5,0)],
-            ...           rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
+            ....:         rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
             sage: dP6 = ToricVariety(F)
             sage: D3 = dP6.divisor(2)
             sage: D5 = dP6.divisor(4)
@@ -2015,8 +2022,8 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
 
             sage: P2 = toric_varieties.P2()
             sage: from sage.schemes.toric.divisor import ToricRationalDivisorClassGroup
-            sage: ToricRationalDivisorClassGroup(P2)._latex_()
-            '\\mathop{Cl}_{\\QQ}\\left(\\mathbb{P}_{\\Delta^{2}}\\right)'
+            sage: print(ToricRationalDivisorClassGroup(P2)._latex_())
+            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{15}}\right)
         """
         return '\\mathop{Cl}_{\\QQ}\\left('+self._variety._latex_()+'\\right)'
 
@@ -2049,10 +2056,9 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
             x = self._projection_matrix * vector(x)
         if is_Vector(x):
             x = list(x)
-        return ToricRationalDivisorClass(self, x)
+        return self.element_class(self, x)
 
-    # parent does not conform to the new-style coercion model
-    __call__ = _element_constructor_
+    Element = ToricRationalDivisorClass
 
 
 class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
@@ -2098,7 +2104,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
         self._variety = group._variety
         self._lift_matrix = group._lift_matrix
         super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
-            ZZ, group.dimension())
+            ZZ, group.dimension(), coordinate_ring=QQ)
 
     def _repr_(self):
         r"""
@@ -2112,7 +2118,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: L = P1xP1.Kaehler_cone().lattice()
-            sage: print L._repr_()
+            sage: print(L._repr_())
             Basis lattice of The toric rational divisor class group of a
             2-d CPR-Fano toric variety covered by 4 affine patches
         """
@@ -2130,10 +2136,10 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: L = P1xP1.Kaehler_cone().lattice()
-            sage: print L._latex_()
+            sage: print(L._latex_())
             \text{Basis lattice of }
-            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}}\right)
+            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{14}}\right)
         """
         return r"\text{{Basis lattice of }} {}".format(latex(self._group))
 
-    _element_class = ToricRationalDivisorClass
+    Element = ToricRationalDivisorClass

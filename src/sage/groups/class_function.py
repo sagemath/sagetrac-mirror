@@ -251,8 +251,9 @@ class ClassFunction_gap(SageObject):
 
     def __call__(self, g):
         """
-        Evaluate the character on the group element g. Returns an error if
-        g is not in G.
+        Evaluate the character on the group element `g`.
+
+        Return an error if `g` is not in `G`.
 
         EXAMPLES::
 
@@ -402,8 +403,7 @@ class ClassFunction_gap(SageObject):
             sage: (4 * chi).values()
             [12, 4, -4, 0, -4]
         """
-        return self.__mul__(other)
-
+        return self * other
 
     def __pos__(self):
         r"""
@@ -580,7 +580,7 @@ class ClassFunction_gap(SageObject):
             sage: irr = chi.irreducible_constituents(); irr
             (Character of Symmetric group of order 5! as a permutation group,
              Character of Symmetric group of order 5! as a permutation group)
-            sage: map(list, irr)
+            sage: list(map(list, irr))
             [[4, -2, 0, 1, 1, 0, -1], [5, -1, 1, -1, -1, 1, 0]]
             sage: G = GL(2,3)
             sage: chi = ClassFunction(G, [-1, -1, -1, -1, -1, -1, -1, -1])
@@ -596,7 +596,7 @@ class ClassFunction_gap(SageObject):
             sage: ic = chi.irreducible_constituents(); ic
             (Character of General Linear Group of degree 2 over Finite Field of size 3,
              Character of General Linear Group of degree 2 over Finite Field of size 3)
-            sage: map(list, ic)
+            sage: list(map(list, ic))
             [[2, -1, 2, -1, 2, 0, 0, 0], [3, 0, 3, 0, -1, 1, 1, -1]]
         """
         L = self._gap_classfunction.ConstituentsOfCharacter()
@@ -770,7 +770,7 @@ class ClassFunction_gap(SageObject):
 
 class ClassFunction_libgap(SageObject):
     """
-    A wrapper of GAP's ClassFunction function.
+    A wrapper of GAP's ``ClassFunction`` function.
 
     .. NOTE::
 
@@ -933,8 +933,9 @@ class ClassFunction_libgap(SageObject):
 
     def __call__(self, g):
         """
-        Evaluate the character on the group element ``g``. Returns an error if
-        ``g`` is not in ``G`.
+        Evaluate the character on the group element `g`.
+
+        Return an error if `g` is not in `G`.
 
         EXAMPLES::
 
@@ -1264,7 +1265,7 @@ class ClassFunction_libgap(SageObject):
             sage: irr = chi.irreducible_constituents(); irr
             (Character of Symmetric group of order 5! as a permutation group,
              Character of Symmetric group of order 5! as a permutation group)
-            sage: map(list, irr)
+            sage: list(map(list, irr))
             [[4, -2, 0, 1, 1, 0, -1], [5, -1, 1, -1, -1, 1, 0]]
 
             sage: G = GL(2,3)
@@ -1281,7 +1282,7 @@ class ClassFunction_libgap(SageObject):
             sage: ic = chi.irreducible_constituents(); ic
             (Character of General Linear Group of degree 2 over Finite Field of size 3,
              Character of General Linear Group of degree 2 over Finite Field of size 3)
-            sage: map(list, ic)
+            sage: list(map(list, ic))
             [[2, -1, 2, -1, 2, 0, 0, 0], [3, 0, 3, 0, -1, 1, 1, -1]]
         """
         L = self._gap_classfunction.ConstituentsOfCharacter()

@@ -1,6 +1,7 @@
 """
 Schur symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -16,9 +17,13 @@ Schur symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import classical
+from six.moves import zip
+
+from . import classical
 import sage.libs.symmetrica.all as symmetrica
+import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
+
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -76,7 +81,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         - ``self`` -- a Schur symmetric function basis
         - ``left``, ``right`` -- partitions
 
-        OUPUT:
+        OUTPUT:
 
         - an element of the Schur basis, the product of ``left`` and ``right``
 
@@ -111,7 +116,6 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: 0*s([2,1])
             0
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         return lrcalc.mult(left,right)
 
     def coproduct_on_basis(self, mu):
@@ -138,9 +142,28 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s.coproduct_on_basis([2])
             s[] # s[2] + s[1] # s[1] + s[2] # s[]
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         T = self.tensor_square()
         return T._from_dict( lrcalc.coprod(mu, all=1) )
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([[2,1],[1]])
+            s[1, 1] + s[2]
+            sage: s([[],[]])
+            s[]
+        """
+        ###################
+        # Skew Partitions #
+        ###################
+        try:
+            return self.skew_schur(x)
+        except ValueError:
+            return super(SymmetricFunctionAlgebra_schur, self)._element_constructor_(x)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def __pow__(self, n):
@@ -160,7 +183,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             EXAMPLES::
 
-                sage: s = SymmetricFunctions(QQ[x]).s()
+                sage: s = SymmetricFunctions(QQ['x']).s()
                 sage: len(s([2,1])^8) # long time (~ 4 s)
                 1485
                 sage: len(s([2,1])^9) # long time (~10 s)
@@ -180,10 +203,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             With polynomial coefficients, this is actually much *slower*
             (although this should be profiled further; there seems to
             be an unreasonable number of polynomial multiplication involved,
-            besides the fact that 1 * QQ[x].one() currently involves a
+            besides the fact that 1 * QQ['x'].one() currently involves a
             polynomial multiplication)
 
-            #    sage: sage: s = SymmetricFunctions(QQ[x]).s()
+            #    sage: sage: s = SymmetricFunctions(QQ['x']).s()
             #    sage: y = s([2,1])
             #    sage: %timeit y**7
             #    10 loops, best of 3: 18.9 s per loop
@@ -250,7 +273,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         def scalar(self, x, zee=None):
             """
-            Returns the standard scalar product between ``self`` and `x`.
+            Return the standard scalar product between ``self`` and `x`.
 
             Note that the Schur functions are self-dual with respect to this
             scalar product. They are also lower-triangularly related to the
@@ -258,10 +281,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             INPUT:
 
-            - ``x`` -- an element of the symmetric functions
-            - ``zee`` -- an optional function that specifies the scalar product
-              between two power sum symmetric functions indexed by the same
-              partition.  If ``zee`` is not specified.
+            - ``x`` -- element of the ring of symmetric functions over the
+              same base ring as ``self``
+
+            - ``zee`` -- an optional function on partitions giving
+              the value for the scalar product between the power-sum
+              symmetric function `p_{\mu}` and itself
+              (the default value is the standard
+              :meth:`~sage.combinat.sf.sfa.zee` function)
 
             OUTPUT:
 
@@ -306,7 +333,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             if zee is None:
                 s = self.parent()
                 R = s.base_ring()
-                one = R(1)
+                one = R.one()
                 f = lambda p1, p2: one
                 x = s(x)
                 return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
@@ -444,15 +471,16 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             for (lam, coeff) in s_coords_of_self:
                 if len(lam.core(n)) == 0:
                     quotient = lam.quotient(n)
-                    quotient_prod = parent.prod([parent(part) for part in quotient])
+                    quotient_prod = parent.prod(parent(part)
+                                                for part in quotient)
                     # Now, compute the sign of quotient_prod in the
                     # n-th Verschiebung of lam.
                     len_lam = len(lam)
                     ns = len_lam + ((- len_lam) % n)
                     s = ns // n   # This is actually ns / n, as we have n | ns.
                     beta_list = lam.beta_numbers(ns)
-                    zipped_beta_list = zip(beta_list, range(1, ns + 1))
-                    zipped_beta_list.sort(key = lambda a: (- 1 - a[0]) % n)
+                    zipped_beta_list = sorted(zip(beta_list, range(1, ns + 1)),
+                                              key=lambda a: (-1 - a[0]) % n)
                     # We are using the fact that sort is a stable sort.
                     perm_list = [a[1] for a in zipped_beta_list]
                     if Permutation(perm_list).sign() == 1:
@@ -469,15 +497,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the Schur symmetric function basis
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -497,6 +529,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 0
                 sage: (s([]) + 2*s([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: s([1]).expand(0)
+                0
+                sage: (3*s([])).expand(0)
+                3
             """
             condition = lambda part: len(part) > n
             return self._expand(condition, n, alphabet)

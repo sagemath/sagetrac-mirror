@@ -7,17 +7,17 @@ Root lattices and root spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
+import functools
 
-# TODO: inheriting from ClearCacheOnPickle is a technical detail unrelated to root spaces
-# could we abstract this somewhere higher?
-
-class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
+class RootSpace(CombinatorialFreeModule):
     r"""
     The root space of a root system over a given base ring
 
@@ -32,7 +32,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
     This class is also used for coroot spaces (or lattices).
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`RootSystem`
         - :meth:`RootSystem.root_lattice` and :meth:`RootSystem.root_space`
@@ -43,8 +43,8 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     TESTS::
 
         sage: for ct in CartanType.samples(crystallographic=True)+[CartanType(["A",2],["C",5,1])]:
-        ...       TestSuite(ct.root_system().root_lattice()).run()
-        ...       TestSuite(ct.root_system().root_space()).run()
+        ....:     TestSuite(ct.root_system().root_lattice()).run()
+        ....:     TestSuite(ct.root_system().root_space()).run()
         sage: r = RootSystem(['A',4]).root_lattice()
         sage: r.simple_root(1)
         alpha[1]
@@ -187,7 +187,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         try:
             return self.root_system.root_lattice().sum_of_terms( (i, ZZ(c)) for (i,c) in x)
         except TypeError:
-            raise ValueError, "%s does not have integral coefficients"%x
+            raise ValueError("%s does not have integral coefficients"%x)
 
     @cached_method
     def _to_classical_on_basis(self, i):
@@ -209,6 +209,29 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         else:
             return self.classical().simple_root(i)
 
+    @cached_method
+    def to_ambient_space_morphism(self):
+        r"""
+        The morphism from ``self`` to its associated ambient space.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',2]).root_system().root_lattice().to_ambient_space_morphism()
+            Generic morphism:
+            From: Root lattice of the Root system of type ['A', 2]
+            To:   Ambient space of the Root system of type ['A', 2]
+
+        """
+        if self.root_system.dual_side:
+            L = self.cartan_type().dual().root_system().ambient_space()
+            basis = L.simple_coroots()
+        else:
+            L = self.cartan_type().root_system().ambient_space()
+            basis = L.simple_roots()
+        def basis_value(basis, i):
+            return basis[i]
+        return self.module_morphism(on_basis = functools.partial(basis_value, basis) , codomain=L)
+
 class RootSpaceElement(CombinatorialFreeModuleElement):
     def scalar(self, lambdacheck):
         """
@@ -229,8 +252,8 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
         the Cartan matrix::
 
             sage: matrix([ [ alpha[i].scalar(alphacheck[j])
-            ...              for i in L.index_set() ]
-            ...            for j in L.index_set() ])
+            ....:            for i in L.index_set() ]
+            ....:          for j in L.index_set() ])
             [ 2 -1  0  0]
             [-1  2 -1  0]
             [ 0 -1  2 -1]
@@ -244,7 +267,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
         """
         # Find some better test
         if not (lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()):
-            raise TypeError, "%s is not in a coroot lattice/space"%(lambdacheck)
+            raise TypeError("%s is not in a coroot lattice/space"%(lambdacheck))
         zero = self.parent().base_ring().zero()
         cartan_matrix = self.parent().dynkin_diagram()
         return sum( (sum( (lambdacheck[i]*s for i,s in cartan_matrix.column(j)), zero) * c for j,c in self), zero)
@@ -318,15 +341,21 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
 
             This implementation only handles finite Cartan types and assumes that ``self`` is a root.
 
+        .. TODO:: Rename to is_quantum_root
+
         EXAMPLES::
 
             sage: Q = RootSystem(['C',2]).root_lattice()
-            sage: [[x, x.quantum_root()] for x in Q.positive_roots_by_height()]
-            [[alpha[1], True], [alpha[2], True], [alpha[1] + alpha[2], False], [2*alpha[1] + alpha[2], True]]
-
+            sage: positive_roots = Q.positive_roots()
+            sage: for x in positive_roots:
+            ....:     print("{} {}".format(x, x.quantum_root()))
+            alpha[1] True
+            alpha[2] True
+            2*alpha[1] + alpha[2] True
+            alpha[1] + alpha[2] False
         """
 
-        return len(self.associated_reflection()) == -1 + (self.parent().positive_roots_nonparabolic_sum(())).scalar(self.associated_coroot())
+        return len(self.associated_reflection()) == -1 + (self.parent().nonparabolic_positive_root_sum(())).scalar(self.associated_coroot())
 
     def max_coroot_le(self):
         r"""
@@ -371,9 +400,9 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             NotImplementedError: Only implemented for finite Cartan type
         """
         if not self.parent().cartan_type().is_finite():
-            raise NotImplementedError, "Only implemented for finite Cartan type"
+            raise NotImplementedError("Only implemented for finite Cartan type")
         if not self.is_positive_root():
-            raise ValueError, "%s is not in the positive cone of roots"%(self)
+            raise ValueError("%s is not in the positive cone of roots"%(self))
         coroots = self.parent().coroot_lattice().positive_roots_by_height(increasing=False)
         for beta in coroots:
             if beta.quantum_root():
@@ -415,5 +444,23 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             self = self - beta.associated_coroot()
         W = self.parent().weyl_group()
         return (W.demazure_product(word)).reduced_word()
+
+    def to_ambient(self):
+        r"""
+        Map ``self`` to the ambient space.
+
+        EXAMPLES::
+
+            sage: alpha = CartanType(['B',2]).root_system().root_lattice().an_element(); alpha
+            2*alpha[1] + 2*alpha[2]
+            sage: alpha.to_ambient()
+            (2, 0)
+            sage: alphavee = CartanType(['B',2]).root_system().coroot_lattice().an_element(); alphavee
+            2*alphacheck[1] + 2*alphacheck[2]
+            sage: alphavee.to_ambient()
+            (2, 2)
+
+        """
+        return self.parent().to_ambient_space_morphism()(self)
 
 RootSpace.Element = RootSpaceElement

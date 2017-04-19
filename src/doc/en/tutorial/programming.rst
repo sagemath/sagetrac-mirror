@@ -15,8 +15,8 @@ content:
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 You can read in and execute ``example.sage`` file using the ``load``
 command.
@@ -25,7 +25,7 @@ command.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ You can also attach a Sage file to a running session using the
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 
@@ -59,8 +59,8 @@ code:
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 Integer literals are wrapped and the ``^`` is replaced by a ``**``.
 (In Python ``^`` means "exclusive or" and ``**`` means
@@ -145,7 +145,7 @@ Then the following works:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11
@@ -165,17 +165,17 @@ etc:
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 In order to use this script, your ``SAGE_ROOT`` must be in your PATH.
 If the above script is called ``factor``, here is an example usage:
@@ -198,17 +198,17 @@ ints and floats, as illustrated:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # you can use either single or double quotes
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 To this, Sage adds many other types. E.g., vector spaces:
 
@@ -288,7 +288,7 @@ elements of the list are indexed starting from :math:`0`:
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -323,7 +323,7 @@ This is useful when using list comprehensions to construct lists:
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -345,7 +345,7 @@ starting at the :math:`m^{th}` element and stopping at the
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -361,7 +361,7 @@ they can't be changed.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -404,7 +404,7 @@ used:
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 As another example, basis for vector spaces are immutable
 sequences, since it's important that you don't change them.
@@ -440,7 +440,7 @@ arbitrary objects.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -459,7 +459,7 @@ You can turn the above dictionary into a list with the same data:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 A common idiom is to iterate through the pairs in a dictionary:
@@ -467,7 +467,7 @@ A common idiom is to iterate through the pairs in a dictionary:
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 A dictionary is unordered, as the last output illustrates.
@@ -482,16 +482,18 @@ or not, along with standard set-theoretic operations.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage also has its own set type that is (in some cases) implemented using
 the built-in Python set type, but has a little bit of extra Sage-related
@@ -501,13 +503,15 @@ example,
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -523,11 +527,11 @@ nonnegative integers up to :math:`10000000`.
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 We create an iterate over the primes of the form :math:`4p+1`
@@ -538,11 +542,11 @@ with :math:`p` also prime, and look at the first few values.
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # in the next line, 0xb0853d6c is a random 0x number
     <generator object at 0xb0853d6c>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 Certain rings, e.g., finite fields and the integers have iterators
@@ -553,11 +557,11 @@ associated to them:
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 Loops, Functions, Control Statements, and Comparisons
@@ -619,11 +623,11 @@ Keep in mind how indentation determines the block structure for
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1
@@ -649,16 +653,6 @@ convert both numbers into the same type if possible:
     True
     True
 
-Almost any two objects may be compared; there is no assumption that
-the objects are equipped with a total ordering.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
-    True
-
 Use bool for symbolic inequalities:
 
 ::
@@ -680,7 +674,7 @@ the Python int ``1`` is unique, but the Sage Integer ``1`` is not:
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)
+    sage: int(1) is int(2)/int(2)   # optional - python2
     True
     sage: 1 is 1
     False
@@ -776,7 +770,7 @@ closer examination:
 
 .. skip
 
-::
+:: 
 
     sage: %prun -r A*A
     sage: stats = _

@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Alphabet
 
@@ -31,6 +31,8 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
 from sage.categories.sets_cat import Sets
 
 from sage.sets.totally_ordered_finite_set import TotallyOrderedFiniteSet
@@ -105,7 +107,7 @@ def build_alphabet(data=None, names=None, name=None):
         {0, 1, 2}
         sage: F = build_alphabet('abc'); F
         {'a', 'b', 'c'}
-        sage: print type(F).__name__
+        sage: print(type(F).__name__)
         TotallyOrderedFiniteSet_with_category
 
     If an integer and a set is given, then it constructs a
@@ -222,7 +224,7 @@ def build_alphabet(data=None, names=None, name=None):
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))
         if isinstance(names, str):
-            return TotallyOrderedFiniteSet([names + '%d'%i for i in xrange(data)])
+            return TotallyOrderedFiniteSet([names + '%d'%i for i in range(data)])
         if len(names) == data:
             return TotallyOrderedFiniteSet(names)
         raise ValueError("invalid value for names")
@@ -231,7 +233,7 @@ def build_alphabet(data=None, names=None, name=None):
         data = NonNegativeIntegers()
 
     # data is an iterable
-    if isinstance(data, (tuple,list,str)) or data in Sets():
+    if isinstance(data, (tuple, list, str, range)) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
                 raise TypeError("names must be a string when data is a set")
@@ -285,7 +287,7 @@ class OrderedAlphabet(object):
 
         sage: from sage.combinat.words.alphabet import OrderedAlphabet
         sage: A = OrderedAlphabet('ab'); A
-        doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+        doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
         See http://trac.sagemath.org/8920 for details.
         {'a', 'b'}
         sage: type(A)
@@ -297,7 +299,7 @@ class OrderedAlphabet(object):
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet('ab'); A # indirect doctest
-            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
             See http://trac.sagemath.org/8920 for details.
             {'a', 'b'}
         """
@@ -330,7 +332,7 @@ class OrderedAlphabet_backward_compatibility(TotallyOrderedFiniteSet):
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: O = OrderedAlphabet()
-            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
             See http://trac.sagemath.org/8920 for details.
             sage: O._alphabet = ['a', 'b']
             sage: O._elements

@@ -8,6 +8,8 @@ doctests to use a different random seed; but we also want to be able
 to reproduce the problems when debugging.  This module provides a
 decorator to help write random testers that meet these goals.
 """
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from functools import wraps
 
@@ -53,7 +55,7 @@ def random_testing(fn):
     fails (raises an exception).
 
     If you want a very long-running test using this setup, you should do
-    something like::
+    something like (in Python 2)::
 
         for _ in xrange(10^10): test_foo(100)
 
@@ -87,11 +89,11 @@ def random_testing(fn):
 
         sage: from sage.misc.random_testing import random_testing
         sage: def foo(verbose=False):
-        ...       'oh look, a docstring'
-        ...       n = ZZ.random_element(2^50)
-        ...       if verbose:
-        ...           print "Random value: %s" % n
-        ...       assert(n == 49681376900427)
+        ....:     'oh look, a docstring'
+        ....:     n = ZZ.random_element(2^50)
+        ....:     if verbose:
+        ....:         print("Random value: %s" % n)
+        ....:     assert(n == 49681376900427)
         sage: foo = random_testing(foo)
         sage: foo(seed=0, verbose=True)
         Random value: 49681376900427
@@ -131,7 +133,7 @@ def random_testing(fn):
             used_seed = initial_seed()
             if 'print_seed' in kwargs:
                 if kwargs['print_seed']:
-                    print "Random seed: %d" % used_seed
+                    print("Random seed: {}".format(used_seed))
                     del kwargs['print_seed']
                 # I don't know if this line is necessary, but it can't
                 # hurt; and it would be a real pity to lose the
@@ -148,12 +150,12 @@ def random_testing(fn):
                 # -- so the text we print here would be lost.)  Note
                 # that KeyboardInterrupt is not an Exception, so
                 # pressing Control-C doesn't print this message.
-                print "Random testing has revealed a problem in " + fn.__name__
-                print "Please report this bug!  You may be the first"
-                print "person in the world to have seen this problem."
-                print "Please include this random seed in your bug report:"
-                print "Random seed: %d" % used_seed
-                print repr(e)
+                print("Random testing has revealed a problem in " + fn.__name__)
+                print("Please report this bug!  You may be the first")
+                print("person in the world to have seen this problem.")
+                print("Please include this random seed in your bug report:")
+                print("Random seed: {}".format(used_seed))
+                print(repr(e))
     return wrapped_fun
 
 @random_testing
@@ -176,14 +178,14 @@ def test_add_commutes(trials, verbose=False):
         sage: test_add_commutes(1000) # long time
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
-            print "a == %s, b == %s ..." % (a, b)
+            print("a == {}, b == {} ...".format(a, b))
         assert(a+b == b+a)
         if verbose:
-            print "Passes!"
+            print("Passes!")
 
 @random_testing
 def test_add_is_mul(trials, verbose=False):
@@ -249,12 +251,12 @@ def test_add_is_mul(trials, verbose=False):
         AssertionError()
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
-            print "a == %s, b == %s ..." % (a, b)
+            print("a == {}, b == {} ...".format(a, b))
         assert(a+b == a*b)
         if verbose:
-            print "Passes!"
+            print("Passes!")
 

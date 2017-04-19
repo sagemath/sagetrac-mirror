@@ -15,9 +15,9 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
     sage: pts = [E(4,-7,1), E(7/4, -11/8, 1), E(3, -2, 1)]
     sage: M = AdditiveAbelianGroupWrapper(pts[0].parent(), pts, [3, 2, 2])
     sage: M
-    Additive abelian group isomorphic to Z/2 + Z/6 embedded in Abelian group of
-    points on Elliptic Curve defined by y^2 + x*y + y = x^3 - 19*x + 26 over
-    Rational Field
+    Additive abelian group isomorphic to Z/3 + Z/2 + Z/2 embedded in Abelian
+    group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 - 19*x + 26
+    over Rational Field
     sage: M.gens()
     ((4 : -7 : 1), (7/4 : -11/8 : 1), (3 : -2 : 1))
     sage: 3*M.0
@@ -46,11 +46,13 @@ TODO:
   implementation -- some fiddly adjustments will be needed in order to be able
   to pass extra arguments to the subquotient's init method.
 """
+from __future__ import absolute_import
 
-import additive_abelian_group as addgp
+from . import additive_abelian_group as addgp
 from sage.rings.all import ZZ
 from sage.misc.misc import verbose
 from sage.categories.morphism import Morphism
+from sage.structure.element import parent
 
 class UnwrappingMorphism(Morphism):
     r"""
@@ -58,7 +60,7 @@ class UnwrappingMorphism(Morphism):
     """
     def __init__(self, domain):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
             sage: F = QQbar.coerce_map_from(G); F
@@ -99,7 +101,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
 
     def __init__(self, parent, vector, element=None, check=False):
         r"""
-        EXAMPLE:
+        EXAMPLES:
 
             sage: from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
@@ -115,7 +117,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
         r"""
         Return the underlying object that this element wraps.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
             sage: T; type(T)
@@ -133,7 +135,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
             sage: repr(T) # indirect doctest
@@ -151,7 +153,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
     def __init__(self, universe, gens, invariants):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0]) # indirect doctest
             Additive abelian group isomorphic to Z + Z embedded in Algebraic Field
@@ -168,7 +170,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         r"""
         The ambient group in which this abelian group lives.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
             sage: G.universe()
@@ -184,7 +186,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         ``self.invariants()``, which returns the orders of a minimal set of
         generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = Zmod(6)**2
             sage: G = AdditiveAbelianGroupWrapper(V, [2*V.0, 3*V.1], [3, 2])
@@ -197,7 +199,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
     def _repr_(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
             sage: repr(G) # indirect doctest
@@ -211,7 +213,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         generators of this group, compute the element of the ambient group with
         those exponents in terms of the generators of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), -1], [0, 0])
             sage: v = G._discrete_exp([3, 5]); v
@@ -219,17 +221,18 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: v.parent() is QQbar
             True
         """
+        from six.moves import range
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!
-        return sum([self._gen_elements[i] * ZZ(v[i]) for i in xrange(len(v))], self.universe()(0))
+        return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
 
     def _discrete_log(self,x):
         r"""
         Given an element of the ambient group, attempt to express it in terms of the
         generators of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
             sage: G._discrete_log(V([6, 2]))
@@ -247,9 +250,9 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         # EVEN DUMBER IMPLEMENTATION!
         from sage.rings.infinity import Infinity
         if self.order() == Infinity:
-            raise NotImplementedError, "No black-box discrete log for infinite abelian groups"
+            raise NotImplementedError("No black-box discrete log for infinite abelian groups")
         u = [y for y in self.list() if y.element() == x]
-        if len(u) == 0: raise TypeError, "Not in group"
+        if len(u) == 0: raise TypeError("Not in group")
         if len(u) > 1: raise NotImplementedError
         return u[0].vector()
 
@@ -265,12 +268,15 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: G(V([6,2]))
             (6, 2)
             sage: G([1,1])
+            doctest:...: DeprecationWarning: The default behaviour changed!
+             If you *really* want a linear combination of smith generators,
+             use .linear_combination_of_smith_form_gens.
+            See http://trac.sagemath.org/16261 for details.
             (6, 2)
             sage: G(G([1,1]))
             (6, 2)
         """
-        if hasattr(x,"parent"):
-            if x.parent() is self.universe():
-                return self.element_class(self, self._discrete_log(x), element = x)
+        if parent(x) is self.universe():
+            return self.element_class(self, self._discrete_log(x), element = x)
         return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
 

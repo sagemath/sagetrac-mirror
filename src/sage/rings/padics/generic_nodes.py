@@ -257,7 +257,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Zp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L
@@ -304,7 +304,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
             else:
                 return self(ZZ.random_element(self.prime_pow.pow_Integer_Integer(self.precision_cap())))
         else:
-            raise NotImplementedError, "Don't know %s algorithm"%algorithm
+            raise NotImplementedError("Don't know %s algorithm"%algorithm)
 
     #def unit_group(self):
     #    raise NotImplementedError
@@ -339,7 +339,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         #should be overridden for extension fields
         if (subfield1 is self) and (subfield2 is self):
             return self
-        raise ValueError, "Arguments must be subfields of self."
+        raise ValueError("Arguments must be subfields of self.")
 
     def subfields_of_degree(self, n):
         r"""
@@ -384,8 +384,8 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             True
         """
         for x in list:
-            if not self.__contains__(x):
-                raise TypeError, "Members of the list of generators must be elements of self."
+            if x not in self:
+                raise TypeError("Members of the list of generators must be elements of self.")
         return self
 
     def construction(self):
@@ -396,7 +396,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Qp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L

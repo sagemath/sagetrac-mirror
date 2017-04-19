@@ -59,10 +59,8 @@ trivial::
     ....:     w0 = W.long_element()
     ....:     sr = W.domain().simple_roots()
     ....:     return all(a == -w0.action(a) for a in sr)
-    ....:
-    sage: for ct in [CartanType(['D',r]) for r in [2..8]]:
-    ....:    print ct,roots_not_permuted(ct)
-    ....:
+    sage: for ct in [CartanType(['D', r]) for r in [2..8]]:
+    ....:     print("{} {}".format(ct, roots_not_permuted(ct)))
     ['D', 2] True
     ['D', 3] False
     ['D', 4] True
@@ -76,43 +74,52 @@ hyperplane that is orthogonal to `\alpha`. We reserve the notation `s_\alpha`
 for the simple reflections, that is, the case where `\alpha` is a simple
 root. The reflections are just the conjugates of the simple reflections.
 
-The reflections are the keys in a finite family, which is a wrapper
-around a python dictionary. The values are the positive roots, so
-given a reflection, you can look up the corresponding root. If you
-want a list of all reflections, use the method ``keys`` for the
-family of reflections::
+The reflections are the values in a finite family, which is a wrapper
+around a python dictionary. The keys are the positive roots, so
+given a positive root, you can look up the corresponding reflection.
+If you want a list of all reflections, you can use the usual methods to
+construct a list (e.g., using the ``list`` function) or use the method
+``values`` for the family of reflections::
 
     sage: W = WeylGroup("B3",prefix="s")
-    sage: [s1,s2,s3] = W.simple_reflections()
     sage: ref = W.reflections(); ref
-    Finite family {s1*s2*s1: (1, 0, -1), s2: (0, 1, -1), s3*s2*s3: (0, 1, 1),
-    s3*s1*s2*s3*s1: (1, 0, 1), s1: (1, -1, 0), s2*s3*s1*s2*s3*s1*s2: (1, 1, 0),
-    s1*s2*s3*s2*s1: (1, 0, 0), s2*s3*s2: (0, 1, 0), s3: (0, 0, 1)}
-    sage: ref[s3*s2*s3]
-    (0, 1, 1)
-    sage: ref.keys()
-    [s1*s2*s1, s2, s3*s2*s3, s2*s3*s1*s2*s3*s1*s2, s1, s3*s1*s2*s3*s1, s1*s2*s3*s2*s1, s2*s3*s2, s3]
-
-If instead you want a dictionary whose keys are the roots and whose
-values are the reflections, you may use the inverse family::
-
-    sage: W = WeylGroup("B3",prefix="s")
-    sage: [s1,s2,s3] = W.simple_reflections()
-    sage: altref = W.reflections().inverse_family(); altref
-    Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2,
-    (0, 1, -1): s2, (1, 0, -1): s1*s2*s1, (0, 1, 1): s3*s2*s3, (1, 1, 0): s2*s3*s1*s2*s3*s1*s2,
-    (0, 0, 1): s3, (1, -1, 0): s1}
+    Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (0, 1, 1): s3*s2*s3,
+                   (0, 1, -1): s2, (0, 0, 1): s3, (1, -1, 0): s1,
+                   (1, 1, 0): s2*s3*s1*s2*s3*s1*s2, (1, 0, -1): s1*s2*s1,
+                   (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2}
     sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)
-    sage: altref[a1+a2+a3]
+    sage: ref[a1+a2+a3]
     s1*s2*s3*s2*s1
+    sage: list(ref)
+    [s1, s2, s3, s3*s2*s3, s2*s3*s2, s1*s2*s1, s3*s1*s2*s3*s1,
+     s1*s2*s3*s2*s1, s2*s3*s1*s2*s3*s1*s2]
+
+If instead you want a family whose keys are the reflections
+and whose values are the roots, you may use the inverse family::
+
+    sage: from pprint import pprint
+    sage: W = WeylGroup("B3",prefix="s")
+    sage: [s1,s2,s3] = W.simple_reflections()
+    sage: altref = W.reflections().inverse_family()
+    sage: pprint(altref)
+    Finite family {s1*s2*s1: (1, 0, -1), s2: (0, 1, -1), s3*s2*s3: (0, 1, 1),
+                   s3*s1*s2*s3*s1: (1, 0, 1), s1: (1, -1, 0),
+                   s1*s2*s3*s2*s1: (1, 0, 0), s2*s3*s1*s2*s3*s1*s2: (1, 1, 0),
+                   s2*s3*s2: (0, 1, 0), s3: (0, 0, 1)}
+    sage: altref[s3*s2*s3]
+    (0, 1, 1)
+
+.. NOTE::
+
+    The behaviour of this function was changed in :trac:`20027`.
 
 The Weyl group is implemented as a GAP matrix group. You therefore can
 display its character table. The character table is returned as a
 string, which you can print::
 
-    sage: print WeylGroup("D4").character_table()
+    sage: print(WeylGroup("D4").character_table())
     CT1
     <BLANKLINE>
           2  6  4  5  1  3  5  5  4  3  3  1  4  6
@@ -163,9 +170,8 @@ Although ``W1`` in this example is isomorphic to ``WeylGroup("A2")`` it
 has a different matrix realization::
 
     sage: for s in WeylGroup(['A',2,1]).classical().simple_reflections():
-    ....:    print s
-    ....:    print
-    ...
+    ....:     print(s)
+    ....:     print("")
     [ 1  0  0]
     [ 1 -1  1]
     [ 0  0  1]
@@ -175,9 +181,8 @@ has a different matrix realization::
     [ 1  1 -1]
 
     sage: for s in WeylGroup(['A',2]).simple_reflections():
-    ....:    print s
-    ....:    print
-    ...
+    ....:     print(s)
+    ....:     print("")
     [0 1 0]
     [1 0 0]
     [0 0 1]
@@ -200,10 +205,10 @@ that represents `u`, then `u \le v`.
 The Bruhat order is implemented in Sage as a method of Coxeter groups,
 and so it is available for Weyl groups, classical or affine.
 
-If `u`, `v \in W` then ``u.bruhat_le(v)`` returns true of
+If `u`, `v \in W` then ``u.bruhat_le(v)`` returns ``True`` if
 `u \le v` in the Bruhat order.
 
-If `u \le v` then The *Bruhat interval* `[u,v]` is defined to be the
+If `u \le v` then the *Bruhat interval* `[u,v]` is defined to be the
 set of all `t` such that `u \le t \le v`. One might try to implement
 this as follows::
 
@@ -239,10 +244,10 @@ References:
 
 - [BumpNakasuji2010]_
 
-The *Bruhat Graph* is a structure on the Bruhat interval. Suppose that
+The *Bruhat graph* is a structure on the Bruhat interval. Suppose that
 `u \le v`. The vertices of the graph are `x` with `u \le x \le v`.
-There is a vertex connecting `x,y \in [x,y]` if `x = y.r` where `r` is
-a reflection. If this is true then either `x < y` or `y < x`.
+There is a vertex connecting `x,y \in [x,y]` if `x = y \cdot r` where
+`r` is a reflection. If this is true then either `x < y` or `y < x`.
 
 If `W` is a classical Weyl group the Bruhat graph is implemented in Sage::
 
@@ -256,12 +261,12 @@ The Bruhat graph has interesting regularity properties that were
 investigated by Carrell and Peterson. It is a regular graph if both
 the Kazhdan Lusztig polynomials `P_{u,v}` and `P_{w_0v,w_0u}` are 1,
 where `w_0` is the long Weyl group element. It is closely related to
-the *Deodhar conjecture* which was proved by Deodhar, Carrell and
+the *Deodhar conjecture*, which was proved by Deodhar, Carrell and
 Peterson, Dyer and Polo.
 
 Deodhar proved that if `u < v` then the Bruhat interval `[u,v]`
 contains as many elements of odd length as it does of even length. We
-observe that often this can be strengthened: if there exists a
+observe that often this can be strengthened: If there exists a
 reflection `r` such that left (or right) multiplication by `r` takes
 the Bruhat interval `[u,v]` to itself, then this gives an explicit
 bijection between the elements of odd and even length in `[u,v]`.
@@ -284,7 +289,7 @@ file and load the file::
     for v in W:
         for u in W.bruhat_interval(1,v):
             if u != v:
-                print u,v,find_reflection(u,v)
+                print((u,v,find_reflection(u,v)))
 
 This shows that the Bruhat interval is stabilized by a reflection for
 all pairs `(u,v)` with `u < v` except the following two:
@@ -292,5 +297,5 @@ all pairs `(u,v)` with `u < v` except the following two:
 precisely the pairs such that `u\prec v` in the notation of Kazhdan
 and Lusztig, and `l(v)-l(u) > 1`. One should not rashly suppose that
 this is a general characterization of the pairs `(u,v)` such that no
-reflection stabilizes the Bruhat interval, for this is not true, but
+reflection stabilizes the Bruhat interval, for this is not true. However
 it does suggest that the question is worthy of further investigation.

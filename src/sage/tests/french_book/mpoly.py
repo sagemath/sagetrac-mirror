@@ -15,16 +15,16 @@ Sage example in ./mpoly.tex, line 40::
 Sage example in ./mpoly.tex, line 44::
 
   sage: x = R.gens()
-  sage: sum(x[i] for i in xrange(5))
+  sage: sum(x[i] for i in range(5))
   x0 + x1 + x2 + x3 + x4
 
 Sage example in ./mpoly.tex, line 52::
 
   sage: def test_poly(ring, deg=3):
-  ...       monomials = Subsets(
-  ...           flatten([(x,)*deg for x in (1,) + ring.gens()]),
-  ...           deg, submultiset=True)
-  ...       return add(mul(m) for m in monomials)
+  ....:     monomials = Subsets(
+  ....:         flatten([(x,)*deg for x in (1,) + ring.gens()]),
+  ....:         deg, submultiset=True)
+  ....:     return add(mul(m) for m in monomials)
 
 Sage example in ./mpoly.tex, line 59::
 
@@ -69,15 +69,15 @@ Sage example in ./mpoly.tex, line 202::
 
 Sage example in ./mpoly.tex, line 209::
 
-  sage: print "total={d}    (en x)={dx}    partiels={ds}"\
-  ...     .format(d=p.degree(), dx=p.degree(x), ds=p.degrees())
+  sage: print("total={d}    (en x)={dx}    partiels={ds}"
+  ....:       .format(d=p.degree(), dx=p.degree(x), ds=p.degrees()))
   total=4    (en x)=3    partiels=(3, 2, 1)
 
 Sage example in ./mpoly.tex, line 255::
 
   sage: R.<x,y> = QQ[]; p = x^2 + y^2; q = x + y
   sage: print("({quo})*({q}) + ({rem}) == {p}".format( \
-  ...           quo=p//q, q=q, rem=p%q, p=p//q*q+p%q))
+  ....:         quo=p//q, q=q, rem=p%q, p=p//q*q+p%q))
   (-x + y)*(x + y) + (2*x^2) == x^2 + y^2
   sage: p.mod(q)  # n'est PAS équivalent à p%q
   2*y^2
@@ -92,8 +92,8 @@ Sage example in ./mpoly.tex, line 325::
 
   sage: R.<x,y,z> = QQ[]
   sage: J = R.ideal(x^2 * y * z - 18,
-  ...               x * y^3 * z - 24,
-  ...               x * y * z^4 - 6);
+  ....:             x * y^3 * z - 24,
+  ....:             x * y * z^4 - 6);
 
 Sage example in ./mpoly.tex, line 333::
 
@@ -144,17 +144,16 @@ Sage example in ./mpoly.tex, line 387::
 Sage example in ./mpoly.tex, line 401::
 
   sage: set(pt[zz].minpoly() for pt in V[:-1])
-  set([x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 +
-  x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1])
+    {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
 
 Sage example in ./mpoly.tex, line 413::
 
   sage: def polar_form(z):
-  ...       rho = z.abs(); rho.simplify()
-  ...       theta = 2 * pi * z.rational_argument()
-  ...       return (SR(rho) * exp(I*theta))
+  ....:     rho = z.abs(); rho.simplify()
+  ....:     theta = 2 * pi * z.rational_argument()
+  ....:     return (SR(rho) * exp(I*theta))
   sage: [tuple(polar_form(pt[i]) for i in [xx,yy,zz])
-  ...    for pt in V[-3:]]
+  ....:  for pt in V[-3:]]
   [(3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
   (3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)), (3, 2, 1)]
 
@@ -164,7 +163,7 @@ Sage example in ./mpoly.tex, line 432::
   [Ideal (z^17 - 1, y - 2*z^10, x - 3*z^3) of Multivariate
   Polynomial Ring in x, y, z over Rational Field]
   sage: J.transformed_basis()
-  [z^17 - 1, -2*z^10 + y, -3*z^3 + x]
+  [z^17 - 1, -2*z^10 + y, -3/4*y^2 + x]
 
 Sage example in ./mpoly.tex, line 534::
 
@@ -283,6 +282,7 @@ Sage example in ./mpoly.tex, line 900::
 Sage example in ./mpoly.tex, line 906::
 
   sage: env.change_ring(QQ[x,y]).plot()
+  Graphics object consisting of 1 graphics primitive
 
 Sage example in ./mpoly.tex, line 933::
 
@@ -361,11 +361,10 @@ Sage example in ./mpoly.tex, line 1109::
 
 Sage example in ./mpoly.tex, line 1119 (edited manually)::
 
-  sage: ys = CDF['y'](Jy.0).roots(); ys
-  [(-0.8, 1), (0.0, 1), (0.8, 1)]
-  sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()]
-  [[(-0.6 - 1.3...e-16*I, 1), (0.6 + 1.3...e-16*I, 1)],
-  [(0.6 - 3.1...e-16*I, 1), (2.6 + 3.1...e-16*I, 1)]]
+  sage: ys = CDF['y'](Jy.0).roots(); ys  # abs tol 3e-16
+  [(-0.8000000000000002, 1), (0.0, 1), (0.8, 1)]
+  sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()]  # abs tol 1e-14
+  [[(-0.5999999999999999 - 1.306289919090511e-16*I, 1), (0.6000000000000001 + 1.3062899190905113e-16*I, 1)], [(0.6000000000000001 - 3.135095805817224e-16*I, 1), (2.600000000000001 + 3.1350958058172237e-16*I, 1)]]
 
 Sage example in ./mpoly.tex, line 1135::
 

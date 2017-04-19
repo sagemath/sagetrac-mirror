@@ -28,6 +28,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import GradedHopfAlgebras
@@ -95,7 +97,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             sage: Q = Sym.kBoundedQuotient(3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert t to a rational
+            TypeError: unable to convert 't' to a rational
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
             sage: Q = Sym.kBoundedQuotient(3)
             sage: km = Q.km()
@@ -483,7 +485,9 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             sage: Q = Sym.kBoundedQuotient(3,t=1)
             sage: KQB = KBoundedQuotientBases(Q)
             sage: KQB.super_categories()
-            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1, Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups]
+            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1,
+             Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and
+                     Category of quotients of algebras over Univariate Polynomial Ring in t over Rational Field]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R)
@@ -551,8 +555,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def ambient(self):
@@ -648,6 +652,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             The set of `k`-bounded partitions of all non-negative integers.
 
             EXAMPLES::
+
                 sage: km = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).km()
                 sage: km.indices()
                 3-Bounded Partitions
@@ -912,9 +917,9 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.__func__
+    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
 class kMonomial(KBoundedQuotientBasis):
@@ -1123,7 +1128,8 @@ class kbounded_HallLittlewoodP(KBoundedQuotientBasis):
         else:
             HLP = self._kBoundedRing._quotient_basis
             m = self._kBoundedRing._sym.m()
-            elt = dict({ x for x in dict(HLP(m(la))).iteritems() if x[0] in self._kbounded_partitions })
+            elt = dict(x for x in iteritems(dict(HLP(m(la))))
+                       if x[0] in self._kbounded_partitions)
             return self._from_dict(elt)
 
     def _HLP_to_mk_on_basis(self, la):
@@ -1239,7 +1245,7 @@ class DualkSchurFunctions(KBoundedQuotientBasis):
 
     REFERENCES:
 
-    .. [LLMSSZ] T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
+    .. [LLMSSZ] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
         k-Schur functions and affine Schubert calculus.
     """
 
@@ -1361,7 +1367,7 @@ class AffineSchurFunctions(KBoundedQuotientBasis):
 
     REFERENCES:
 
-    .. [Lam2006] T. Lam, Schubert polynomials for the affine Grassmannian, J. Amer.
+    .. [Lam2006] \T. Lam, Schubert polynomials for the affine Grassmannian, J. Amer.
         Math. Soc., 21 (2008), 259-281.
     """
 

@@ -9,7 +9,7 @@ A vector space morphism is a homomorphism between vector spaces, better known
 as a linear transformation.  These are a specialization of Sage's free module
 homomorphisms.  (A free module is like a vector space, but with scalars from a
 ring that may not be a field.)  So references to free modules in the
-documentation or error messages should be understood as simply reflectng a
+documentation or error messages should be understood as simply reflecting a
 more general situation.
 
 Creation
@@ -308,6 +308,7 @@ TESTS::
     sage: loads(dumps(f)) == f
     True
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2011 Rob Beezer <beezer@ups.edu>
@@ -327,7 +328,7 @@ TESTS::
 
 import sage.modules.matrix_morphism as matrix_morphism
 import sage.modules.free_module_morphism as free_module_morphism
-import vector_space_homspace
+from . import vector_space_homspace
 from sage.matrix.matrix import is_Matrix
 
 def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
@@ -384,7 +385,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
       ``images`` is a list, or tuple, of codomain elements, equal in number
       to the size of the basis of the domain.  Each basis element of the domain
       is mapped to the corresponding element of the ``images`` list, and the
-      linear transformation returned is the unique linear transfromation that
+      linear transformation returned is the unique linear transformation that
       extends this mapping.
 
     OUTPUT:
@@ -477,8 +478,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     function (via ``def`` or ``lambda``) or a Sage symbolic function.  ::
 
         sage: def g(x):
-        ...     return vector(QQ, [2*x[0]+x[2], 5*x[1]])
-        ...
+        ....:     return vector(QQ, [2*x[0]+x[2], 5*x[1]])
         sage: phi = linear_transformation(QQ^3, QQ^2, g)
         sage: phi
         Vector space morphism represented by the matrix:
@@ -634,7 +634,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some proposed image is not in the codomain, because
-        element (= [1, 2]) is not in free module
+        element [1, 2] is not in free module
 
 
     Functions may not apply properly to domain elements,
@@ -645,7 +645,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ValueError: function cannot be applied properly to some basis element because
-        index out of range
+        vector index out of range
 
         sage: f = lambda x: vector(QQ, [x[0], x[1]])
         sage: C = (QQ^2).span([vector(QQ, [1, 1])])
@@ -653,7 +653,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
 
     A Sage symbolic function can come in a variety of forms that are
     not representative of a linear transformation. ::
@@ -685,13 +685,13 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         Traceback (most recent call last):
         ...
         ArithmeticError: some image of the function is not in the codomain, because
-        element (= [1, 0]) is not in free module
+        element [1, 0] is not in free module
     """
     from sage.matrix.constructor import matrix
     from sage.modules.module import is_VectorSpace
     from sage.modules.free_module import VectorSpace
     from sage.categories.homset import Hom
-    from sage.symbolic.ring import SymbolicRing
+    from sage.symbolic.ring import SR
     from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
     from inspect import isfunction
 
@@ -741,14 +741,14 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         pass
     elif isinstance(arg2, Vector_callable_symbolic_dense):
         args = arg2.parent().base_ring()._arguments
-        exprs = arg2.change_ring(SymbolicRing())
+        exprs = arg2.change_ring(SR)
         m = len(args)
         n = len(exprs)
         if m != D.degree():
             raise ValueError('symbolic function has the wrong number of inputs for domain')
         if n != C.degree():
             raise ValueError('symbolic function has the wrong number of outputs for codomain')
-        arg2 = [[e.coeff(a) for e in exprs] for a in args]
+        arg2 = [[e.coefficient(a) for e in exprs] for a in args]
         try:
             arg2 = matrix(D.base_ring(), m, n, arg2)
         except TypeError as e:
@@ -849,7 +849,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             <class 'sage.modules.vector_space_morphism.VectorSpaceMorphism'>
         """
         if not vector_space_homspace.is_VectorSpaceHomspace(homspace):
-            raise TypeError, 'homspace must be a vector space hom space, not {0}'.format(homspace)
+            raise TypeError('homspace must be a vector space hom space, not {0}'.format(homspace))
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         if not is_Matrix(A):
@@ -900,8 +900,8 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
 
             sage: F.<a> = GF(11^2)
             sage: A = matrix(F, [[6*a + 3,   8*a +  2, 10*a + 3],
-            ...                  [2*a + 7,   4*a +  3,  2*a + 3],
-            ...                  [9*a + 2,  10*a + 10,  3*a + 3]])
+            ....:                [2*a + 7,   4*a +  3,  2*a + 3],
+            ....:                [9*a + 2,  10*a + 10,  3*a + 3]])
             sage: A.nullity()
             1
             sage: E = End(F^3)
@@ -920,7 +920,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A LaTeX representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -941,7 +941,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A text representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))

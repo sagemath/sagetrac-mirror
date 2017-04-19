@@ -1,6 +1,7 @@
 """
 Root system data for type H
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
@@ -8,7 +9,7 @@ Root system data for type H
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_finite, CartanType_simple
+from .cartan_type import CartanType_standard_finite, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simple):
     def __init__(self, n):
         """
@@ -74,3 +75,19 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             g.add_edge(i, i+1, 3)
         g.set_edge_label(n-1, n, 5)
         return g
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['H',3]).coxeter_number()
+            10
+            sage: CartanType(['H',4]).coxeter_number()
+            30
+        """
+        if self.n == 3:
+            return 10
+        return 30
+

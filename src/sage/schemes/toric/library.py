@@ -31,18 +31,20 @@ or immediately during assignment like this::
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
 from sage.matrix.all import matrix, identity_matrix
-from sage.geometry.fan import Fan
-from sage.geometry.toric_lattice import ToricLattice
-from sage.geometry.lattice_polytope import LatticePolytope
-from sage.rings.all import ZZ, QQ, gcd
+from sage.geometry.all import Fan, LatticePolytope, ToricLattice
+from sage.rings.all import ZZ, QQ
+from sage.arith.all import gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
@@ -261,8 +263,8 @@ class ToricVarietyFactory(SageObject):
                                                DEFAULT_PREFIX)
             dict_key = (name, base_ring) + tuple(coordinate_names)
         if dict_key not in self.__dict__:
-            polytope = LatticePolytope( matrix(rays).transpose() )
-            points = map(tuple, polytope.points().columns())
+            polytope = LatticePolytope(rays, lattice=ToricLattice(len(rays[0])))
+            points = [tuple(_) for _ in polytope.points()]
             ray2point = [points.index(r) for r in rays]
             charts = [ [ray2point[i] for i in c] for c in cones ]
             self.__dict__[dict_key] = \
@@ -574,10 +576,12 @@ class ToricVarietyFactory(SageObject):
             raise ValueError("only projective spaces of positive dimension "
                              "can be constructed!\nGot: %s" % n)
         m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
-        charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
-        return CPRFanoToricVariety(Delta_polar=LatticePolytope(m),
-                                   charts=charts, check=self._check,
-                                   coordinate_names=names, base_ring=base_ring)
+        charts = [list(range(i)) + list(range(i + 1, n + 1))
+                  for i in range(n + 1)]
+        return CPRFanoToricVariety(
+            Delta_polar=LatticePolytope(m.columns(), lattice=ToricLattice(n)),
+            charts=charts, check=self._check, coordinate_names=names,
+            base_ring=base_ring)
 
     def A1(self, names='z', base_ring=QQ):
         r"""
@@ -689,7 +693,7 @@ class ToricVarietyFactory(SageObject):
             raise ValueError("only affine spaces of positive dimension can "
                              "be constructed!\nGot: %s" % n)
         rays = identity_matrix(n).columns()
-        cones = [ range(0,n) ]
+        cones = [list(range(n))]
         fan = Fan(cones, rays, check=self._check)
         return ToricVariety(fan, coordinate_names=names)
 
@@ -729,7 +733,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xA1(self, names='s t z', base_ring=QQ):
         r"""
-        Construct the cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
+        Construct the Cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
         a toric variety.
 
         INPUT:
@@ -1057,7 +1061,7 @@ class ToricVarietyFactory(SageObject):
     def BCdlOG(self, names='v1 v2 c1 c2 v4 v5 b e1 e2 e3 f g v6', base_ring=QQ):
         r"""
         Construct the 5-dimensional toric variety studied in
-        [BCdlOG]_, [HLY]_
+        [BCdlOG]_, [HLY2002]_
 
         INPUT:
 
@@ -1105,10 +1109,7 @@ class ToricVarietyFactory(SageObject):
             Between N=1 Theories and Divisors that Contribute to the
             Superpotential", http://arxiv.org/abs/hep-th/0001208
 
-        ..  [HLY]
-            Yi Hu, Chien-Hao Liu, Shing-Tung Yau, "Toric morphisms and
-            fibrations of toric Calabi-Yau hypersurfaces",
-            http://arxiv.org/abs/math/0010082
+        - [HLY2002]_
         """
         return self._make_CPRFanoToricVariety('BCdlOG', names, base_ring)
 
@@ -1453,7 +1454,7 @@ class ToricVarietyFactory(SageObject):
         Q = L/L_sub
         rays = []
         cones = []
-        w = range(m)
+        w = list(range(m))
         L_basis = L.basis()
         for i in w:
             b = L_basis[i]

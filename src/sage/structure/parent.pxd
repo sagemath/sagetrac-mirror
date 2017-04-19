@@ -1,24 +1,27 @@
-###############################################################################
-#   SAGE: System for Algebra and Geometry Experimentation
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 cdef class Parent(category_object.CategoryObject):
-
     cdef public _element_constructor
     cdef public _convert_method_name
     cdef public bint _element_init_pass_parent
-    cdef public dict __cached_methods
     cdef public _initial_coerce_list
     cdef public _initial_action_list
     cdef public _initial_convert_list
     cdef readonly bint _coercions_used
+
+    # Flags, see below
+    cdef int flags
+    cdef inline bint get_flag(self, int flag):
+        return self.flags & flag
 
     cpdef bint is_coercion_cached(self, domain)
     cpdef bint is_conversion_cached(self, domain)
@@ -27,7 +30,7 @@ cdef class Parent(category_object.CategoryObject):
     cpdef register_conversion(self, mor)
     cpdef register_embedding(self, embedding)
 
-    cpdef bint _richcmp_helper(left, right, int op) except -2
+    cpdef int _cmp_(left, right) except -2
     cpdef bint is_exact(self) except -2
 
     # Called from the __init__ method to set up coercion.
@@ -38,10 +41,12 @@ cdef class Parent(category_object.CategoryObject):
 
     # returns a Morphism from S to self, or None
     cpdef coerce_map_from(self, S)
+    cpdef _internal_coerce_map_from(self, S)
     cpdef _coerce_map_from_(self, S)
 
     # returns a Map from S to self, or None
     cpdef convert_map_from(self, S)
+    cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
 
     # returns the Action by/on self on/by S
@@ -53,8 +58,7 @@ cdef class Parent(category_object.CategoryObject):
     cpdef coerce(self, x)
 
     cpdef an_element(self)
-    cdef public object __an_element
-
+    cdef public object _cache_an_element
 
     # For internal use
     cpdef _generic_convert_map(self, S)
@@ -67,6 +71,11 @@ cdef class Parent(category_object.CategoryObject):
     # results in natural coercion.
     # Initialized at ring creation.
     cdef list _coerce_from_list
+    # List of the domains of the registered coercions, to make
+    # sure that the maps in _coerce_from_list remain valid.
+    # This is important, since they are fundamental for discovering
+    # new coercions by backtracking.
+    cdef list _registered_domains
     # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef MonoDict _coerce_from_hash
 
@@ -87,5 +96,11 @@ cdef class Parent(category_object.CategoryObject):
     cdef MonoDict _convert_from_hash
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
+
+# Flags for Parent.flags
+cdef enum:
+    # If this flag is set, call __richcmp__ on elements without
+    # coercion. This allows a completely custom comparison function.
+    Parent_richcmp_element_without_coercion = 1
 
 cpdef Parent Set_PythonType(theType)

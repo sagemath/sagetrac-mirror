@@ -27,7 +27,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: S = Sets().Facades().example(); S
+        sage: S = Sets().Facade().example(); S
         An example of facade set: the monoid of positive integers
 
     TESTS::
@@ -35,11 +35,13 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -49,6 +51,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -75,7 +78,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Sets().Facades().example()   # indirect doctest
+            sage: S = Sets().Facade().example()   # indirect doctest
 
         """
         return "An example of facade set: the monoid of positive integers"
@@ -91,7 +94,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Sets().Facades().example(); S
+            sage: S = Sets().Facade().example(); S
             An example of facade set: the monoid of positive integers
             sage: S(1)
             1
@@ -114,7 +117,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
         if object > ZZ(0):
             return object
         else:
-            raise ValueError, "%s should be positive"
+            raise ValueError("%s should be positive")
 
 class IntegersCompletion(UniqueRepresentation, Parent):
     r"""
@@ -126,18 +129,20 @@ class IntegersCompletion(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: S = Sets().Facades().example("union"); S
+        sage: S = Sets().Facade().example("union"); S
         An example of a facade set: the integers completed by +-infinity
 
     TESTS::
 
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -147,6 +152,7 @@ class IntegersCompletion(UniqueRepresentation, Parent):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -174,7 +180,7 @@ class IntegersCompletion(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: S = Sets().Facades().example()   # indirect doctest
+            sage: S = Sets().Facade().example()   # indirect doctest
 
         """
         return "An example of a facade set: the integers completed by +-infinity"

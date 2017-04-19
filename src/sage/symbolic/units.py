@@ -22,7 +22,7 @@ This unit acts exactly like a symbolic variable::
 Units have additional information in their docstring::
 
     sage: # You would type: units.force.dyne?
-    sage: print units.force.dyne._sage_doc_()
+    sage: print(units.force.dyne.__doc__)
     CGS unit for force defined to be gram*centimeter/second^2.
     Equal to 10^-5 newtons.
 
@@ -65,7 +65,7 @@ Trying to multiply temperatures by another unit then converting raises a ValueEr
 
 TESTS:
 
-Check that Trac 12373 if fixed::
+Check that :trac:`12373` is fixed::
 
     sage: b = units.amount_of_substance.mole
     sage: b.convert(units.amount_of_substance.elementary_entity)
@@ -73,8 +73,8 @@ Check that Trac 12373 if fixed::
 
 AUTHORS:
 
-    - David Ackerman
-    - William Stein
+- David Ackerman
+- William Stein
 """
 
 ###############################################################################
@@ -85,13 +85,19 @@ AUTHORS:
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
+from __future__ import absolute_import
+from six import iteritems
 
 # standard Python libraries
 import re
+import six
 
 # Sage library
-from ring import SR
-from expression import Expression
+from .ring import SR
+from .expression import Expression
+from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -496,8 +502,8 @@ def evalunitdict():
         sage: sage.symbolic.units.evalunitdict()
     """
     from sage.misc.all import sage_eval
-    for key, value in unitdict.iteritems():
-        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
+    for key, value in six.iteritems(unitdict):
+        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in six.iteritems(value)])
 
     # FEATURE IDEA: create a function that would allow users to add
     # new entries to the table without having to know anything about
@@ -506,13 +512,13 @@ def evalunitdict():
     #
     # Format the table for easier use.
     #
-    for k, v in unitdict.iteritems():
+    for k, v in six.iteritems(unitdict):
         for a in v: unit_to_type[a] = k
 
-    for w in unitdict.iterkeys():
-        for j in unitdict[w].iterkeys():
-            if type(unitdict[w][j]) == tuple: unitdict[w][j] = unitdict[w][j][0]
-        value_to_unit[w] = dict(zip(unitdict[w].itervalues(), unitdict[w].iterkeys()))
+    for w in unitdict:
+        for j in unitdict[w]:
+            if isinstance(unitdict[w][j], tuple): unitdict[w][j] = unitdict[w][j][0]
+        value_to_unit[w] = {b: a for a, b in iteritems(unitdict[w])}
 
 
 ###############################################################################
@@ -929,11 +935,11 @@ def vars_in_str(s):
 
     INPUT:
 
-        - `s` -- string
+    - ``s`` -- a string
 
     OUTPUT:
 
-        - list of strings (unit names)
+    - a list of strings (unit names)
 
     EXAMPLES::
 
@@ -950,11 +956,11 @@ def unit_derivations_expr(v):
 
     INPUT:
 
-        - `v` -- string, name of a unit type such as 'area', 'volume', etc.
+    - ``v`` -- a string, name of a unit type such as 'area', 'volume', etc.
 
     OUTPUT:
 
-        - symbolic expression
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -979,6 +985,8 @@ def unit_derivations_expr(v):
         unit_derivations[v] = Z
     return Z
 
+
+@instancedoc
 class UnitExpression(Expression):
     """
     A symbolic unit.
@@ -996,13 +1004,13 @@ class UnitExpression(Expression):
         sage: type(loads(dumps(acre)))
         <class 'sage.symbolic.units.UnitExpression'>
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return docstring for this unit.
 
         EXAMPLES::
 
-            sage: print units.area.acre._sage_doc_()
+            sage: print(units.area.acre.__doc__)
             Defined to be 10 square chains or 4840 square yards.
             Approximately equal to 4046.856 square meters.
         """
@@ -1016,11 +1024,11 @@ def str_to_unit(name):
 
     INPUT:
 
-        - ``name`` -- string
+    - ``name`` -- a string
 
     OUTPUT:
 
-        - UnitExpression
+    - a :class:`UnitExpression`
 
 
     EXAMPLES::
@@ -1032,9 +1040,9 @@ def str_to_unit(name):
     """
     return UnitExpression(SR, SR.var(name))
 
-class Units:
+class Units(ExtraTabCompletion):
     """
-    A collection of units of a some type.
+    A collection of units of some type.
 
         EXAMPLES::
 
@@ -1059,9 +1067,9 @@ class Units:
         EXAMPLES::
 
             sage: type(units.__getstate__()[0])
-            <type 'str'>
+            <... 'str'>
             sage: type(units.__getstate__()[1])
-            <type 'dict'>
+            <... 'dict'>
             sage: loads(dumps(units)) == units
             True
             sage: loads(dumps(units.area)) == units.area
@@ -1101,18 +1109,32 @@ class Units:
             return cmp(type(self), type(other))
         return cmp((self.__name, self.__data), (other.__name, other.__data))
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
-        Return completions of this unit objects.  This is used by the
-        Sage command line and notebook to create the list of method
-        names.
+        Return tab completions.
+
+        This complements the usual content of :func:`dir`, with the
+        list of the names of the unit collections (resp. units) for
+        :obj:`units` (resp. its subcollections), in particular for tab
+        completion purposes.
+
+        .. SEEALSO:: :class:`ExtraTabCompletion`
 
         EXAMPLES::
 
-            sage: units.area.trait_names()
+            sage: units.area._tab_completion()
             ['acre', 'are', 'barn', 'hectare', 'rood', 'section', 'square_chain', 'square_meter', 'township']
+            sage: units._tab_completion()
+            ['acceleration', ..., 'volume']
+            sage: units.force._tab_completion()
+            ['dyne', ..., 'ton_force']
+
+            sage: dir(units)
+            ['_Units__data', ..., 'acceleration', ..., 'volume']
+            sage: dir(units.force)
+            ['_Units__data', ..., 'dyne', ..., 'ton_force']
         """
-        return sorted([x for x in self.__data.keys() if '/' not in x])
+        return sorted([x for x in self.__data if '/' not in x])
 
     def __getattr__(self, name):
         """
@@ -1168,11 +1190,11 @@ def unitdocs(unit):
 
     INPUT:
 
-        - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-        - ``string``
+    - a string
 
     EXAMPLES::
 
@@ -1191,7 +1213,7 @@ def unitdocs(unit):
     if is_unit(unit):
         return unit_docs[unit_to_type[str(unit)]+"_docs"][str(unit)]
     else:
-        raise ValueError, "No documentation exists for the unit %s."%unit
+        raise ValueError("No documentation exists for the unit %s."%unit)
 
 def is_unit(s):
     """
@@ -1199,11 +1221,11 @@ def is_unit(s):
 
     INPUT:
 
-        - `s` -- an object
+    - ``s`` -- an object
 
     OUTPUT:
 
-        - ``bool``
+    - a boolean
 
     EXAMPLES::
 
@@ -1231,13 +1253,13 @@ def convert(expr, target):
 
     INPUT:
 
-        - `expr` -- the symbolic expression converting from
+    - ``expr`` -- the symbolic expression converting from
 
-        - `target` -- (default None) the symbolic expression converting to
+    - ``target`` -- (default None) the symbolic expression converting to
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1313,7 +1335,7 @@ def convert(expr, target):
 
         for variable in coeff.variables():
             if is_unit(str(variable)):
-                raise ValueError, "Incompatible units"
+                raise ValueError("Incompatible units")
 
         return coeff.mul(target, hold=True)
 
@@ -1323,11 +1345,11 @@ def base_units(unit):
 
     INPUT:
 
-            - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-            - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1373,12 +1395,12 @@ def convert_temperature(expr, target):
 
     INPUT:
 
-        - `expr` -- a unit of temperature
-        - `target` -- a units of temperature
+    - ``expr`` -- a unit of temperature
+    - ``target`` -- a units of temperature
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1413,15 +1435,15 @@ def convert_temperature(expr, target):
         98.6000000000000
     """
     if len(expr.variables()) != 1:
-        raise ValueError, "Cannot convert"
-    elif target == None or unit_to_type[str(target)] == 'temperature':
+        raise ValueError("Cannot convert")
+    elif target is None or unit_to_type[str(target)] == 'temperature':
         from sage.misc.all import sage_eval
         expr_temp = expr.variables()[0]
         coeff = expr/expr_temp
-        if target != None:
+        if target is not None:
             target_temp = target.variables()[0]
         a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
-        if  target == None or target_temp == units.temperature.kelvin:
+        if  target is None or target_temp == units.temperature.kelvin:
             return a[0]*units.temperature.kelvin
         elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:
             return a[1]*target_temp
@@ -1430,4 +1452,4 @@ def convert_temperature(expr, target):
         elif target_temp == units.temperature.rankine:
             return a[3]*target_temp
     else:
-        raise ValueError, "Cannot convert"
+        raise ValueError("Cannot convert")

@@ -14,6 +14,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
+from six.moves import range
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -25,22 +27,17 @@ def BullGraph():
     Returns a bull graph with 5 nodes.
 
     A bull graph is named for its shape. It's a triangle with horns.
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labeling. For more information, see this
+    For more information, see this
     :wikipedia:`Wikipedia article on the bull graph <Bull_graph>`.
 
     PLOTTING:
 
-    Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the bull graph
-    is drawn as a triangle with the first node (0) on the bottom. The
-    second and third nodes (1 and 2) complete the triangle. Node 3 is
-    the horn connected to 1 and node 4 is the horn connected to node
-    2.
+    Upon construction, the position dictionary is filled to override the
+    spring-layout algorithm. By convention, the bull graph is drawn as a
+    triangle with the first node (0) on the bottom. The second and third nodes
+    (1 and 2) complete the triangle. Node 3 is the horn connected to 1 and node
+    4 is the horn connected to node 2.
 
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
 
     EXAMPLES:
 
@@ -88,10 +85,9 @@ def BullGraph():
         sage: bool(expand(x * (x^2 - x - 3) * (x^2 + x - 1)) == charpoly)
         True
     """
+    edge_list = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)]
     pos_dict = {0:(0,0), 1:(-1,1), 2:(1,1), 3:(-2,2), 4:(2,2)}
-    import networkx
-    G = networkx.bull_graph()
-    return graph.Graph(G, pos=pos_dict, name="Bull graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Bull graph")
 
 def ButterflyGraph():
     r"""
@@ -103,7 +99,7 @@ def ButterflyGraph():
     For more information, see this
     `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.FriendshipGraph`
 
@@ -160,8 +156,6 @@ def CircularLadderGraph(n):
     can be described as two parallel cycle graphs connected at each
     corresponding node pair.
 
-    This constructor depends on NetworkX numeric labels.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the circular
     ladder graph is displayed as an inner and outer cycle pair, with
@@ -203,9 +197,14 @@ def CircularLadderGraph(n):
         x = float(2*(cos((pi/2) + ((2*pi)/n)*(i-n))))
         y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.circular_ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Circular Ladder graph")
+
+    G = Graph(pos=pos_dict, name="Circular Ladder graph")
+    G.add_vertices(range(2 * n))
+    G.add_cycle(list(range(n)))
+    G.add_cycle(list(range(n, 2 * n)))
+    G.add_edges( (i,i+n) for i in range(n) )
+    return G
+
 
 def ClawGraph():
     """
@@ -230,10 +229,9 @@ def ClawGraph():
         sage: G
         Claw graph: Graph on 4 vertices
     """
+    edge_list = [(0, 1), (0, 2), (0, 3)]
     pos_dict = {0:(0,1),1:(-1,0),2:(0,0),3:(1,0)}
-    import networkx
-    G = networkx.complete_bipartite_graph(1,3)
-    return graph.Graph(G, pos=pos_dict, name="Claw graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Claw graph")
 
 def CycleGraph(n):
     r"""
@@ -241,9 +239,6 @@ def CycleGraph(n):
 
     A cycle graph is a basic structure which is also typically called
     an n-gon.
-
-    This constructor is dependent on vertices numbered 0 through n-1 in
-    NetworkX ``cycle_graph()``
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each cycle
@@ -305,10 +300,10 @@ def CycleGraph(n):
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.cycle_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Cycle graph")
+        pos_dict[i] = (x, y)
+    G = graph.Graph(n, pos=pos_dict, name="Cycle graph")
+    G.add_cycle(list(range(n)))
+    return G
 
 def CompleteGraph(n):
     """
@@ -316,9 +311,6 @@ def CompleteGraph(n):
 
     A Complete Graph is a graph in which all nodes are connected to all
     other nodes.
-
-    This constructor is dependent on vertices numbered 0 through n-1 in
-    NetworkX complete_graph()
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each complete
@@ -396,9 +388,9 @@ def CompleteGraph(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Complete graph")
+    G = graph.Graph(n,pos=pos_dict, name="Complete graph")
+    G.add_edges(((i,j) for i in range(n) for j in range(i+1,n)))
+    return G
 
 def CompleteBipartiteGraph(n1, n2):
     """
@@ -488,11 +480,27 @@ def CompleteBipartiteGraph(n1, n2):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
+
+    TESTS:
+
+    Prevent negative dimensions (:trac:`18530`)::
+
+        sage: graphs.CompleteBipartiteGraph(-1,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The arguments n1(=-1) and n2(=1) must be positive integers.
+        sage: graphs.CompleteBipartiteGraph(1,-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The arguments n1(=1) and n2(=-1) must be positive integers.
     """
+    if n1<0 or n2<0:
+        raise ValueError('The arguments n1(={}) and n2(={}) must be positive integers.'.format(n1,n2))
+
     pos_dict = {}
     c1 = 1 # scaling factor for top row
     c2 = 1 # scaling factor for bottom row
@@ -511,14 +519,15 @@ def CompleteBipartiteGraph(n1, n2):
     for i in range(n1):
         x = c1*i + c3
         y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
+        pos_dict[i] = (x, y)
+    for i in range(n1,n1+n2):
         x = c2*(i-n1) + c4
         y = 0
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_bipartite_graph(n1,n2)
-    return Graph(G, pos=pos_dict, name="Complete bipartite graph")
+        pos_dict[i] = (x, y)
+
+    G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
+    G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
+    return G
 
 def CompleteMultipartiteGraph(l):
     r"""
@@ -529,7 +538,7 @@ def CompleteMultipartiteGraph(l):
     - ``l`` -- a list of integers : the respective sizes
       of the components.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A complete tripartite graph with sets of sizes
     `5, 6, 8`::
@@ -542,12 +551,50 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
+    
+    n = sum(l) #getting the number of vertices
+    r = len(l) #getting the number of partitions
+    positions = {}
+
+    if r > 2: #position code gives bad results on bipartite or isolated graphs
+
+        '''
+        Produce a layout of the vertices so that vertices in the same
+        vertex set are adjacent and clearly separated from vertices in other
+        vertex sets.
+
+        This is done by calculating the vertices of an r-gon then
+        calculating the slope between adjacent vertices. We then 'walk'
+        around the r-gon placing graph vertices in regular intervals between 
+        adjacent vertices of the r-gon.
+
+        Makes a nicely organized graph like in this picture: 
+        https://commons.wikimedia.org/wiki/File:Turan_13-4.svg
+        '''
+
+        points = [[cos(2*pi*i/r),sin(2*pi*i/r)] for i in range(r)]
+        slopes = [[(points[(i+1)%r][0]-points[i%r][0]),
+                   (points[(i+1)%r][1]-points[i%r][1])] for i in range(r)]
+
+        counter = 0
+
+        for i in range(len(l)):
+            vertex_set_size = l[i]+1
+            for j in range(1,vertex_set_size):
+                x = points[i][0]+slopes[i][0]*j/(vertex_set_size)
+                y = points[i][1]+slopes[i][1]*j/(vertex_set_size)
+                positions[counter] = (x,y)
+                counter += 1
+
     g = Graph()
     for i in l:
         g = g + CompleteGraph(i)
 
     g = g.complement()
+    g.set_pos(positions)
     g.name("Multipartite Graph with set sizes "+str(l))
+
+
 
     return g
 
@@ -557,8 +604,6 @@ def DiamondGraph():
 
     A diamond graph is a square with one pair of diagonal nodes
     connected.
-
-    This constructor depends on NetworkX numeric labeling.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the diamond
@@ -574,9 +619,8 @@ def DiamondGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1)}
-    import networkx
-    G = networkx.diamond_graph()
-    return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
+    edges = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)]
+    return graph.Graph(edges, pos=pos_dict, name="Diamond Graph")
 
 def EmptyGraph():
     """
@@ -608,7 +652,7 @@ def EmptyGraph():
         4
         sage: for i in range(3):
         ....:     empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
-        sage: for i in range(4)[1:]:
+        sage: for i in range(1, 4):
         ....:     empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
         sage: empty2.show() # long time
     """
@@ -623,13 +667,13 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid graph with identical parameters to which are added
     the edges `((i,0),(i,n_2-1))` and `((0,i),(n_1-1,i))`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 2-dimensional grid is a regular graph, while the usual
     2-dimensional grid is not ::
 
         sage: tgrid = graphs.ToroidalGrid2dGraph(8,9)
-        sage: print tgrid
+        sage: print(tgrid)
         Toroidal 2D Grid Graph with parameters 8,9
         sage: grid = graphs.Grid2dGraph(8,9)
         sage: grid.is_regular()
@@ -638,7 +682,7 @@ def ToroidalGrid2dGraph(n1, n2):
         True
     """
 
-    g = Grid2dGraph(n1,n2)
+    g = Grid2dGraph(n1,n2, set_positions=False)
 
     g.add_edges([((i,0),(i,n2-1)) for i in range(n1)] + [((0,i),(n1-1,i)) for i in range(n2)])
 
@@ -672,7 +716,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
 
     - ``n1, n2`` (integers) -- see above.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 6-regular grid on `25` elements::
 
@@ -712,7 +756,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
     g.name("Toroidal Hexagonal Grid graph on "+str(n1)+"x"+str(n2)+" elements")
     return g
 
-def Grid2dGraph(n1, n2):
+def Grid2dGraph(n1, n2, set_positions=True):
     r"""
     Returns a `2`-dimensional grid graph with `n_1n_2` nodes (`n_1` rows and
     `n_2` columns).
@@ -722,8 +766,13 @@ def Grid2dGraph(n1, n2):
     connected to their `3` neighbors. Corner nodes are connected to their
     2 neighbors.
 
-    This constructor depends on NetworkX numeric labels.
+    INPUT:
 
+    - ``n1`` and ``n2`` -- two positive integers
+
+    - ``set_positions`` -- (default: ``True``) boolean use to prevent setting
+      the position of the nodes.
+    
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, nodes are
     labelled in (row, column) pairs with `(0, 0)` in the top left corner.
@@ -761,14 +810,18 @@ def Grid2dGraph(n1, n2):
         raise ValueError("Parameters n1 and n2 must be positive integers !")
 
     pos_dict = {}
-    for i in range(n1):
-        y = -i
-        for j in range(n2):
-            x = j
-            pos_dict[i, j] = (x, y)
-    import networkx
-    G = networkx.grid_2d_graph(n1, n2)
-    return graph.Graph(G, pos=pos_dict, name="2D Grid Graph for "+str([n1, n2]))
+    if set_positions:
+        for i in range(n1):
+            y = -i
+            for j in range(n2):
+                x = j
+                pos_dict[i, j] = (x, y)
+
+    G = graph.Graph(pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
+    G.add_vertices( (i,j) for i in range(n1) for j in range(n2) )
+    G.add_edges( ((i,j),(i+1,j)) for i in range(n1-1) for j in range(n2) )
+    G.add_edges( ((i,j),(i,j+1)) for i in range(n1) for j in range(n2-1) )
+    return G
 
 def GridGraph(dim_list):
     """
@@ -811,6 +864,42 @@ def GridGraph(dim_list):
         sage: g.name()
         'Grid Graph for [2, 4, 3]'
 
+    One dimensional grids (i.e., path) have simple vertex labels::
+
+        sage: g = graphs.GridGraph([5])
+        sage: g.vertices()
+        [0, 1, 2, 3, 4]
+
+    The graph is correct::
+
+        sage: dim = [randint(1,4) for i in range(4)]
+        sage: g = graphs.GridGraph(dim)
+        sage: import networkx
+        sage: h = Graph( networkx.grid_graph(list(dim)) )
+        sage: g.is_isomorphic(h)
+        True
+
+    Trivial cases::
+
+        sage: g = graphs.GridGraph([]); g; g.vertices()
+        Grid Graph for []: Graph on 0 vertices
+        []
+        sage: g = graphs.GridGraph([1]); g; g.vertices()
+        Grid Graph for [1]: Graph on 1 vertex
+        [0]
+        sage: g = graphs.GridGraph([2]); g; g.vertices()
+        Grid Graph for [2]: Graph on 2 vertices
+        [0, 1]
+        sage: g = graphs.GridGraph([1,1]); g; g.vertices()
+        Grid Graph for [1, 1]: Graph on 1 vertex
+        [(0, 0)]
+        sage: g = graphs.GridGraph([1, 1, 1]); g; g.vertices()
+        Grid Graph for [1, 1, 1]: Graph on 1 vertex
+        [(0, 0, 0)]
+        sage: g = graphs.GridGraph([1,1,2]); g; g.vertices()
+        Grid Graph for [1, 1, 2]: Graph on 2 vertices
+        [(0, 0, 0), (0, 0, 1)]
+
     All dimensions must be positive integers::
 
         sage: g = graphs.GridGraph([2,-1,3])
@@ -818,13 +907,33 @@ def GridGraph(dim_list):
         ...
         ValueError: All dimensions must be positive integers !
     """
-    import networkx
     dim = [int(a) for a in dim_list]
     if any(a <= 0 for a in dim):
         raise ValueError("All dimensions must be positive integers !")
-    # We give a copy of dim to networkx because it modifies the list
-    G = networkx.grid_graph(list(dim))
-    return graph.Graph(G, name="Grid Graph for " + str(dim))
+
+    g = Graph()
+    n_dim = len(dim)
+    if n_dim==1:
+        # Vertices are labeled from 0 to dim[0]-1
+        g = PathGraph(dim[0])
+    elif n_dim==2:
+        # We use the Grid2dGraph generator to also get the positions
+        g = Grid2dGraph(*dim)
+    elif n_dim>2:
+        # Vertices are tuples of dimension n_dim, and the graph contains at
+        # least vertex (0, 0, ..., 0)
+        g.add_vertex(tuple([0]*n_dim))
+        import itertools
+        for u in itertools.product(*[range(d) for d in dim]):
+            for i in range(n_dim):
+                if u[i]+1<dim[i]:
+                    v = list(u)
+                    v[i] = u[i]+1
+                    g.add_edge(u, tuple(v))
+
+    g.name("Grid Graph for {}".format(dim))
+    return g
+
 
 def HouseGraph():
     """
@@ -832,8 +941,6 @@ def HouseGraph():
 
     A house graph is named for its shape. It is a triangle (roof) over a
     square (walls).
-
-    This constructor depends on NetworkX numeric labeling.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house
@@ -852,9 +959,8 @@ def HouseGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(-1,0),1:(1,0),2:(-1,1),3:(1,1),4:(0,2)}
-    import networkx
-    G = networkx.house_graph()
-    return graph.Graph(G, pos=pos_dict, name="House Graph")
+    edges = [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
 def HouseXGraph():
     """
@@ -863,8 +969,6 @@ def HouseXGraph():
     A house X graph is a house graph with two additional edges. The
     upper-right corner is connected to the lower-left. And the
     upper-left corner is connected to the lower-right.
-
-    This constructor depends on NetworkX numeric labeling.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house X
@@ -883,9 +987,8 @@ def HouseXGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(-1,0),1:(1,0),2:(-1,1),3:(1,1),4:(0,2)}
-    import networkx
-    G = networkx.house_x_graph()
-    return graph.Graph(G, pos=pos_dict, name="House Graph")
+    edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
 def LadderGraph(n):
     """
@@ -894,8 +997,6 @@ def LadderGraph(n):
     A ladder graph is a basic structure that is typically displayed as
     a ladder, i.e.: two parallel path graphs connected at each
     corresponding node pair.
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each ladder
@@ -932,65 +1033,13 @@ def LadderGraph(n):
     for i in range(n,2*n):
         x = i - n
         pos_dict[i] = (x,0)
-    import networkx
-    G = networkx.ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Ladder graph")
+    G = Graph(pos=pos_dict, name="Ladder graph")
+    G.add_vertices( range(2*n) )
+    G.add_path(list(range(n)))
+    G.add_path(list(range(n, 2 * n)))
+    G.add_edges( (i,i+n) for i in range(n) )
+    return G
 
-def LollipopGraph(n1, n2):
-    """
-    Returns a lollipop graph with n1+n2 nodes.
-
-    A lollipop graph is a path graph (order n2) connected to a complete
-    graph (order n1). (A barbell graph minus one of the bells).
-
-    This constructor depends on NetworkX numeric labels.
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the complete
-    graph will be drawn in the lower-left corner with the (n1)th node
-    at a 45 degree angle above the right horizontal center of the
-    complete graph, leading directly into the path graph.
-
-    EXAMPLES: Construct and show a lollipop graph Candy = 13, Stick =
-    4
-
-    ::
-
-        sage: g = graphs.LollipopGraph(13,4)
-        sage: g.show() # long time
-
-    Create several lollipop graphs in a Sage graphics array
-
-    ::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.LollipopGraph(i+3,4)
-        ....:     g.append(k)
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-    """
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        j = n1-1-i
-        pos_dict[j] = (x,y)
-    for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
-        pos_dict[i] = (x,y)
-
-    import networkx
-    G = networkx.lollipop_graph(n1,n2)
-    return graph.Graph(G, pos=pos_dict, name="Lollipop Graph")
 
 def PathGraph(n, pos=None):
     """
@@ -1002,8 +1051,6 @@ def PathGraph(n, pos=None):
     their two neighbors and the two end-nodes are connected to their
     one inner neighbors. (i.e.: a cycle graph without the first and
     last node connected).
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the graph may
@@ -1043,6 +1090,8 @@ def PathGraph(n, pos=None):
         sage: s = graphs.PathGraph(5,'circle')
         sage: s.show() # long time
     """
+    G = graph.Graph(n, name="Path graph")
+
     pos_dict = {}
 
     # Choose appropriate drawing pattern
@@ -1085,9 +1134,9 @@ def PathGraph(n, pos=None):
             pos_dict[counter] = (x,y)
             counter += 1
 
-    import networkx
-    G = networkx.path_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Path Graph")
+    G.add_edges( (i,i+1) for i in range(n-1) )
+    G.set_pos(pos_dict)
+    return G
 
 def StarGraph(n):
     """
@@ -1095,8 +1144,6 @@ def StarGraph(n):
 
     A Star graph is a basic structure where one node is connected to
     all other nodes.
-
-    This constructor is dependent on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each star
@@ -1161,12 +1208,10 @@ def StarGraph(n):
         sage: G.show() # long time
     """
     pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n+1):
+    pos_dict[0] = (0, 0)
+    for i in range(1, n+1):
         x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
         y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.star_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Star graph")
-
+        pos_dict[i] = (x, y)
+    return graph.Graph({0: list(range(1, n + 1))},
+                       pos=pos_dict, name="Star graph")

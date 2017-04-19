@@ -14,7 +14,7 @@ It also computes the exit status in the ``error_status`` attribute of
 - 32: TAB character found
 - 64: Internal error in the doctesting framework
 - 128: Testing interrupted, not all tests run
-
+- 256: Doctest contains explicit source line number
 
 AUTHORS:
 
@@ -32,9 +32,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-import sys, signal
+import sys
+import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
@@ -131,13 +132,13 @@ class DocTestReporter(SageObject):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD, [filename])
             sage: DTR = DocTestReporter(DC)
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t .../sage/doctest/reporting.py
 
         The same with various options::
 
             sage: DD.long = True
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"
@@ -263,7 +264,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.00 s]
+                [... tests, ... s]
             sage: DTR.stats
             {'sage.doctest.reporting': {'walltime': ...}}
 
@@ -273,7 +274,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.00 s]
+                [... tests, 1 failure, ... s]
 
         If the user has requested that we report on skipped doctests,
         we do so::
@@ -291,7 +292,7 @@ class DocTestReporter(SageObject):
                 4 long tests not run
                 5 magma tests not run
                 2 other tests skipped
-                [... tests, 0.00 s]
+                [... tests, ... s]
 
         Test an internal error in the reporter::
 
@@ -375,6 +376,10 @@ class DocTestReporter(SageObject):
                     log("    Error: TAB character found at line%s"%(tabs))
                     postscript['lines'].append(cmd + "  # Tab character found")
                     self.error_status |= 32
+                elif result_dict.err == 'line_number':
+                    log("    Error: Source line number found")
+                    postscript['lines'].append(cmd + "  # Source line number found")
+                    self.error_status |= 256
                 elif result_dict.err is not None:
                     # This case should not occur
                     if result_dict.err is True:
@@ -447,7 +452,7 @@ class DocTestReporter(SageObject):
 
     def finalize(self):
         """
-        Print out the postcript that summarizes the doctests that were run.
+        Print out the postscript that summarizes the doctests that were run.
 
         EXAMPLES:
 
@@ -490,12 +495,12 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.00 s]
+                [... tests, ... s]
             sage: runner.failures = 1
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.00 s]
+                [... tests, 1 failure, ... s]
 
         Now we can show the output of finalize::
 

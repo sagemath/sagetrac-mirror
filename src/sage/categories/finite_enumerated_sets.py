@@ -7,16 +7,20 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
+import itertools
 
-from category_types import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.sets_cat import Sets
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
-from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import sage_wraps
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.rings.integer", "Integer")
 
-class FiniteEnumeratedSets(Category):
+class FiniteEnumeratedSets(CategoryWithAxiom):
     """
     The category of finite enumerated sets
 
@@ -25,10 +29,11 @@ class FiniteEnumeratedSets(Category):
         sage: FiniteEnumeratedSets()
         Category of finite enumerated sets
         sage: FiniteEnumeratedSets().super_categories()
-        [Category of enumerated sets]
+        [Category of enumerated sets, Category of finite sets]
         sage: FiniteEnumeratedSets().all_super_categories()
         [Category of finite enumerated sets,
          Category of enumerated sets,
+         Category of finite sets,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]
@@ -37,25 +42,17 @@ class FiniteEnumeratedSets(Category):
 
         sage: C = FiniteEnumeratedSets()
         sage: TestSuite(C).run()
+        sage: sorted(C.Algebras(QQ).super_categories(), key=str)
+        [Category of finite dimensional modules with basis over Rational Field,
+         Category of set algebras over Rational Field]
 
-    TODO:
+    .. TODO::
 
-    :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
-    not inherit from this class. If that is solved, then
-    :class:`FiniteEnumeratedSets` shall be turned into a subclass of
-    :class:`~sage.categories.category_singleton.Category_singleton`.
+        :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
+        not inherit from this class. If that is solved, then
+        :class:`FiniteEnumeratedSets` shall be turned into a subclass of
+        :class:`~sage.categories.category_singleton.Category_singleton`.
     """
-
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: FiniteEnumeratedSets().super_categories()
-            [Category of enumerated sets]
-        """
-        return [EnumeratedSets()]
-
 
     def _call_(self, X):
         """
@@ -65,8 +62,8 @@ class FiniteEnumeratedSets(Category):
 
             sage: FiniteEnumeratedSets()(GF(3))
             Finite Field of size 3
-            sage: FiniteEnumeratedSets()(Partitions(3)) # todo: not implemented: Partitions(3) is not yet in FiniteEnumeratedSets()
-            Partitions of 3
+            sage: Partitions(3)
+            Partitions of the integer 3
 
         For now, lists, tuples, sets, Sets are coerced into finite
         enumerated sets::
@@ -84,23 +81,22 @@ class FiniteEnumeratedSets(Category):
 
     class ParentMethods:
 
-        def is_finite(self):
+        def __len__(self):
             """
-            Returns ``True`` since self is finite.
+            Return the number of elements of ``self``.
 
             EXAMPLES::
 
-                sage: C = FiniteEnumeratedSets().example()
-                sage: C.is_finite()
-                True
+                sage: len(GF(5))
+                5
+                sage: len(MatrixSpace(GF(2), 3, 3))
+                512
             """
-            return True
+            return int(self.cardinality())
 
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
-            The cardinality of ``self``.
-
-            OUTPUT: an ``Integer``
+            Return the cardinality of ``self``.
 
             This brute force implementation of :meth:`cardinality`
             iterates through the elements of ``self`` to count them.
@@ -112,6 +108,8 @@ class FiniteEnumeratedSets(Category):
                 sage: C._cardinality_from_iterator()
                 3
 
+            TESTS:
+
             This is the default implementation of :meth:`cardinality`
             from the category ``FiniteEnumeratedSet()``. To test this,
             we need a fresh example::
@@ -121,8 +119,6 @@ class FiniteEnumeratedSets(Category):
                 sage: C = FreshExample(); C.rename("FreshExample")
                 sage: C.cardinality
                 <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
-
-            TESTS:
 
             This method shall return an ``Integer``; we test this
             here, because :meth:`_test_enumerated_set_iter_cardinality`
@@ -142,13 +138,13 @@ class FiniteEnumeratedSets(Category):
             Here is a more complete example::
 
                 sage: class TestParent(Parent):
-                ...     def __init__(self):
-                ...         Parent.__init__(self, category=FiniteEnumeratedSets())
-                ...     def __iter__(self):
-                ...         yield 1
-                ...         return
-                ...     def cardinality(self, dummy_arg):
-                ...         return 1 # we don't want to change the semantics of cardinality()
+                ....:   def __init__(self):
+                ....:       Parent.__init__(self, category=FiniteEnumeratedSets())
+                ....:   def __iter__(self):
+                ....:       yield 1
+                ....:       return
+                ....:   def cardinality(self, dummy_arg):
+                ....:       return 1 # we don't want to change the semantics of cardinality()
                 sage: P = TestParent()
                 sage: P.cardinality(-1)
                 1
@@ -156,35 +152,18 @@ class FiniteEnumeratedSets(Category):
                 [1]
                 sage: P.cardinality()
                 1
-                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
                 1
-                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
                 1
             """
             c = 0
             for _ in self:
                 c += 1
             return Integer(c)
+
         #Set cardinality to the default implementation
         cardinality = _cardinality_from_iterator
-
-        def _list_from_iterator(self):
-            """
-            The list of the elements of ``self``.
-
-            This implementation computes this list from the iterator
-            of ``self``. This is used by the default implementation of
-            :meth:`list`.
-
-            EXAMPLES::
-
-                sage: C = FiniteEnumeratedSets().example()
-                sage: C._list_from_iterator()
-                [1, 2, 3]
-                sage: C.list() # indirect doctest
-                [1, 2, 3]
-            """
-            return [x for x in self]
 
         def _cardinality_from_list(self, *ignored_args, **ignored_kwds):
             """
@@ -248,24 +227,18 @@ class FiniteEnumeratedSets(Category):
             try:
                 return lst[r]
             except IndexError:
-                raise ValueError, "the value must be between %s and %s inclusive"%(0,len(lst)-1)
-
+                raise ValueError("the value must be between %s and %s inclusive"%(0,len(lst)-1))
 
         def list(self):
-            """
-            The list of the elements of ``self``.
+            r"""
+            Return a list of the elements of ``self``.
 
-            This default implementation from the category
-            ``FiniteEnumeratedSet()`` computes the list of the
-            elements of ``self`` from the iterator of ``self`` and
-            caches the result. It moreover overrides the following
-            methods to use this cache:
+            The elements of set ``x`` is created and cashed on the fist call
+            of ``x.list()``. Then each call of ``x.list()`` returns a new list
+            from the cashed result. Thus in looping, it may be better to do
+            ``for e in x:``, not ``for e in x.list():``.
 
-            - ``self.cardinality()``
-            - ``self.__iter__()``    (but see below)
-            - ``self.unrank()``
-
-            .. seealso:: :meth:`_list_from_iterator`, :meth:`_cardinality_from_list`,
+            .. SEEALSO:: :meth:`_list_from_iterator`, :meth:`_cardinality_from_list`,
                 :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
             EXAMPLES::
@@ -273,6 +246,27 @@ class FiniteEnumeratedSets(Category):
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C.list()
                 [1, 2, 3]
+            """
+            try: # shortcut
+                if self._list is not None:
+                    return list(self._list)
+            except AttributeError:
+                pass
+            return self._list_from_iterator()
+        _list_default  = list # needed by the check system.
+
+        def _list_from_iterator(self):
+            r"""
+            Return a list of the elements of ``self`` after cached.
+
+            It moreover overrides the following methods to use this cache:
+
+            - ``self.__iter__()``
+            - ``self.cardinality()``
+            - ``self.unrank()``
+
+            .. seealso:: :meth:`_cardinality_from_list`,
+                :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
             .. warning::
 
@@ -287,11 +281,11 @@ class FiniteEnumeratedSets(Category):
                 Let's take an example::
 
                     sage: class Example(Parent):
-                    ...       def __init__(self):
-                    ...           Parent.__init__(self, category = FiniteEnumeratedSets())
-                    ...       def __iter__(self):
-                    ...           print "hello!"
-                    ...           for x in [1,2,3]: yield x
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
                     hello!
@@ -299,13 +293,17 @@ class FiniteEnumeratedSets(Category):
                     [1, 2, 3]
                     sage: list(C)
                     hello!
+                    hello!
                     [1, 2, 3]
 
                 Note that ``hello!`` actually gets printed twice in
-                the first call to ``list(C)``. That's because of the
-                current (dubious) implementation of
-                :meth:`Parent.__len__`. Let's call :meth:`list`::
+                the calls to ``list(C)``. That's because of the
+                implicit calls to :meth:`__len__`, which also relies
+                on :meth:`__iter__`. Let's call :meth:`list`::
 
+                    sage: C.list()
+                    hello!
+                    [1, 2, 3]
                     sage: C.list()
                     [1, 2, 3]
 
@@ -315,7 +313,6 @@ class FiniteEnumeratedSets(Category):
                     sage: list(C)
                     hello!
                     [1, 2, 3]
-
 
             TESTS:
 
@@ -332,7 +329,6 @@ class FiniteEnumeratedSets(Category):
                 <bound method FreshExample_with_category._unrank_from_iterator of FreshExample>
                 sage: C.cardinality
                 <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
-
                 sage: l1 = C.list(); l1
                 [1, 2, 3]
                 sage: C.list
@@ -356,15 +352,119 @@ class FiniteEnumeratedSets(Category):
                 sage: TestSuite(C).run()
             """
             try:
-                return self._list[:]
+                if self._list is not None:
+                    return list(self._list)
             except AttributeError:
-                self._list = self._list_from_iterator()
-                self.cardinality = self._cardinality_from_list
+                pass
+            result = list(self.__iter__())
+            try:
+                self._list = result
                 self.__iter__ = self._iterator_from_list
+                self.cardinality = self._cardinality_from_list
                 self.unrank = self._unrank_from_list
-            return self._list[:]
+            except AttributeError:
+                pass
+            return list(result)
 
-        _list_default  = list # needed by the check system.
+        def unrank_range(self, start=None, stop=None, step=None):
+            r"""
+            Return the range of elements of ``self`` starting at ``start``,
+            ending at ``stop``, and stepping by ``step``.
+
+            See also ``unrank()``.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F.unrank_range(1)
+                [2, 3]
+                sage: F.unrank_range(stop=2)
+                [1, 2]
+                sage: F.unrank_range(stop=2, step=2)
+                [1]
+                sage: F.unrank_range(start=1, step=2)
+                [2]
+                sage: F.unrank_range(stop=-1)
+                [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: F.unrank_range(stop=10)
+                [1, 2, 3, 4]
+            """
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                pass
+            card = self.cardinality() # This may set the list
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                pass
+            if start is None and stop is not None and stop >= 0 and step is None:
+                if stop < card:
+                    it = self.__iter__()
+                    return [next(it) for j in range(stop)]
+                return self.list()
+            return self.list()[start:stop:step]
+
+        def iterator_range(self, start=None, stop=None, step=None):
+            r"""
+            Iterate over the range of elements of ``self`` starting
+            at ``start``, ending at ``stop``, and stepping by ``step``.
+
+            .. SEEALSO::
+
+                ``unrank()``, ``unrank_range()``
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: list(F.iterator_range(1))
+                [2, 3]
+                sage: list(F.iterator_range(stop=2))
+                [1, 2]
+                sage: list(F.iterator_range(stop=2, step=2))
+                [1]
+                sage: list(F.iterator_range(start=1, step=2))
+                [2]
+                sage: list(F.iterator_range(start=1, stop=2))
+                [2]
+                sage: list(F.iterator_range(start=0, stop=1))
+                [1]
+                sage: list(F.iterator_range(start=0, stop=3, step=2))
+                [1, 3]
+                sage: list(F.iterator_range(stop=-1))
+                [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: list(F.iterator_range(start=1, stop=3))
+                [2, 3]
+                sage: list(F.iterator_range(stop=10))
+                [1, 2, 3, 4]
+            """
+            L = None
+            try:
+                L = self._list
+            except AttributeError:
+                pass
+            card = self.cardinality() # This may set the list
+            try:
+                L = self._list
+            except AttributeError:
+                pass
+            if L is None and start is None and stop is not None and stop >= 0 and step is None:
+                if stop < card:
+                    it = self.__iter__()
+                    for j in range(stop):
+                        yield next(it)
+                    return
+                for x in self:
+                    yield x
+                return
+            if L is None:
+                L = self.list()
+            for x in L[start:stop:step]:
+                yield x
 
         def _random_element_from_unrank(self):
             """
@@ -447,7 +547,7 @@ class FiniteEnumeratedSets(Category):
             :meth:`._cardinality_from_iterator`, or if ``self`` is too
             big.
 
-            .. seealso:: :class:`TestSuite`.
+            .. SEEALSO:: :class:`TestSuite`.
 
             EXAMPLES::
 
@@ -458,30 +558,182 @@ class FiniteEnumeratedSets(Category):
 
                 sage: from sage.categories.examples.finite_enumerated_sets import Example
                 sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return 4
+                ....:     def cardinality(self):
+                ....:         return 4
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_iter_cardinality()
                 Traceback (most recent call last):
                 ...
                 AssertionError: 4 != 3
-                sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return int(3)
-                sage: CC = CCls()
-                sage: CC._test_enumerated_set_iter_cardinality()
-                Traceback (most recent call last):
-                ...
-                AssertionError: False is not true
             """
+            # isinstance with LazyImported classes is not robust
+            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
-                tester.assert_(type(card) is Integer)
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
 
+    class CartesianProducts(CartesianProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            A Cartesian product of finite enumerated sets is a finite
+            enumerated set.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of finite enumerated sets]
+            """
+            return [FiniteEnumeratedSets()]
+
+        class ParentMethods:
+            r"""
+            TESTS:
+
+            Ideally, these tests should be just after the declaration of the
+            associated attributes. But doing this way, Sage will not consider
+            them as a doctest.
+
+            We check that Cartesian products of finite enumerated sets
+            inherit various methods from `Sets.CartesianProducts`
+            and not from :class:`EnumeratedSets.Finite`::
+
+                sage: C = cartesian_product([Partitions(10), Permutations(20)])
+                sage: C in EnumeratedSets().Finite()
+                True
+
+                sage: C.random_element.__module__
+                'sage.categories.sets_cat'
+
+                sage: C.cardinality.__module__
+                'sage.categories.sets_cat'
+
+                sage: C.__iter__.__module__
+                'sage.categories.sets_cat'
+            """
+
+            # Ambiguity resolution between methods inherited from
+            # Sets.CartesianProducts and from EnumeratedSets.Finite.
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
+            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+
+            def last(self):
+                r"""
+                Return the last element
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([Zmod(42), Partitions(10), IntegerRange(5)])
+                    sage: C.last()
+                    (41, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 4)
+                """
+                return self._cartesian_product_of_elements(
+                        tuple(c.last() for c in self.cartesian_factors()))
+
+            def rank(self, x):
+                r"""
+                Return the rank of an element of this Cartesian product.
+
+                The *rank* of ``x`` is its position in the
+                enumeration. It is an integer between ``0`` and
+                ``n-1`` where ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.rank`
+                    - :meth:`unrank`
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(2), GF(11), GF(7)])
+                    sage: C.rank(C((1,2,5)))
+                    96
+                    sage: C.rank(C((0,0,0)))
+                    0
+
+                    sage: for c in C: print(C.rank(c))
+                    0
+                    1
+                    2
+                    3
+                    4
+                    5
+                    ...
+                    150
+                    151
+                    152
+                    153
+
+                    sage: F1 = FiniteEnumeratedSet('abcdefgh')
+                    sage: F2 = IntegerRange(250)
+                    sage: F3 = Partitions(20)
+                    sage: C = cartesian_product([F1, F2, F3])
+                    sage: c = C(('a', 86, [7,5,4,4]))
+                    sage: C.rank(c)
+                    54213
+                    sage: C.unrank(54213)
+                    ('a', 86, [7, 5, 4, 4])
+                """
+                from builtins import zip
+                from sage.rings.integer_ring import ZZ
+                x = self(x)
+                b = ZZ.one()
+                rank = ZZ.zero()
+                for f, c in zip(reversed(x.cartesian_factors()),
+                                reversed(self.cartesian_factors())):
+                    rank += b * c.rank(f)
+                    b *= c.cardinality()
+                return rank
+
+            def unrank(self, i):
+                r"""
+                Return the ``i``-th element of this Cartesian product.
+
+                INPUT:
+
+                - ``i`` -- integer between ``0`` and ``n-1`` where
+                  ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.unrank`
+                    - :meth:`rank`
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), GF(11), GF(7), GF(5)])
+                    sage: c = C.unrank(123); c
+                    (0, 3, 3, 3)
+                    sage: C.rank(c)
+                    123
+
+                    sage: c = C.unrank(857); c
+                    (2, 2, 3, 2)
+                    sage: C.rank(c)
+                    857
+
+                    sage: C.unrank(2500)
+                    Traceback (most recent call last):
+                    ...
+                    IndexError: index i (=2) is greater than the cardinality
+                """
+                from sage.rings.integer_ring import ZZ
+                i = ZZ(i)
+                if i < 0:
+                    raise IndexError("i (={}) must be a non-negative integer")
+                elt = []
+                for c in reversed(self.cartesian_factors()):
+                    card = c.cardinality()
+                    elt.insert(0, c.unrank(i % card))
+                    i //= card
+                if i:
+                    raise IndexError("index i (={}) is greater than the cardinality".format(i))
+                return self._cartesian_product_of_elements(elt)
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
 

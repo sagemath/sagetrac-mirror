@@ -5,6 +5,7 @@ Thematic tutorial document tree
 .. toctree::
    :maxdepth: 2
 
+<<<<<<< HEAD
    2010-03-29-SLC64
    2010-05-06-SageDays20.5
    2010-06-11-Sage-demo-LAGA
@@ -52,15 +53,28 @@ Thematic tutorial document tree
    demo-symmetric-functions
    demo-tsetlin
    functional_programming
+=======
+   algebraic_combinatorics
+   tutorial-notebook-and-help-long
+   sandpile
+>>>>>>> develop
    group_theory
    index
    index-sage-combinat
    lie
    linear_programming
    numtheory_rsa
+<<<<<<< HEAD
    sandpile
    talks
    toctree
+=======
+   coding_theory
+   structures_in_coding_theory
+   polytutorial
+   polytope_tikz
+   tutorial-programming-python
+>>>>>>> develop
    tutorial-comprehensions
    tutorial-editing-sage-sources
    tutorial-first-exercises
@@ -68,6 +82,7 @@ Thematic tutorial document tree
    tutorial-notebook-and-help
    tutorial-notebook-and-help-long
    tutorial-objects-and-classes
+<<<<<<< HEAD
    tutorial-parallel
    tutorial-programming-python
    siena_tutorials/siena_tutorials.rst
@@ -81,3 +96,13 @@ Thematic tutorial document tree
    siena_tutorials/Worksheet08-DictionariesAndGraphTheory.rst
    siena_tutorials/Worksheet09-CombinatoricsIteratorsGenerators.rst
    siena_tutorials/Worksheet10-IntroductionToCython.rst
+=======
+   functional_programming
+   coercion_and_categories
+   tutorial-implementing-algebraic-structures
+   cython_interface
+   numerical_sage/index
+   explicit_methods_in_number_theory/index
+   sws2rst
+   profiling
+>>>>>>> develop

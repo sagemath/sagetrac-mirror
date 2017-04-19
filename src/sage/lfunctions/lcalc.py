@@ -26,11 +26,14 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import, print_function
 
 import os
+
 from sage.structure.sage_object import SageObject
 from sage.misc.all import pager
 import sage.rings.all
+import sage.schemes.elliptic_curves.ell_generic
 
 prec = 32
 
@@ -71,11 +74,11 @@ class LCalc(SageObject):
                 return '--tau'
             return L
         import sage.schemes.all
-        if sage.schemes.all.is_EllipticCurve(L):
+        if sage.schemes.elliptic_curves.ell_generic.is_EllipticCurve(L):
             if L.base_ring() == sage.rings.all.RationalField():
                 L = L.minimal_model()
                 return '-e --a1 %s --a2 %s --a3 %s --a4 %s --a6 %s'%tuple(L.a_invariants())
-        raise TypeError, "$L$-function of %s not known"%L
+        raise TypeError("$L$-function of %s not known"%L)
 
     def help(self):
         try:
@@ -246,7 +249,7 @@ class LCalc(SageObject):
                 x0,y0,x1,y1 = a.split()
                 w.append((CC(x0,y0), CC(x1,y1)))
             except ValueError:
-                print 'lcalc: ', a
+                print('lcalc: {}'.format(a))
         return w
 
     def twist_values(self, s, dmin, dmax, L=''):

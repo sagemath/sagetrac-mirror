@@ -80,6 +80,7 @@ AUTHORS:
 - Chris Wuthrich: more documentation 2010-01
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -100,13 +101,15 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
 
-from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_NumberFieldElement, is_NumberFieldFractionalIdeal
+from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
+from sage.rings.number_field.number_field_element import is_NumberFieldElement
+from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
 
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.ideal import is_Ideal
 
-from constructor import EllipticCurve
-from kodaira_symbol import KodairaSymbol
+from .constructor import EllipticCurve
+from .kodaira_symbol import KodairaSymbol
 
 class EllipticCurveLocalData(SageObject):
     r"""
@@ -255,7 +258,7 @@ class EllipticCurveLocalData(SageObject):
         K = E.base_field()
         p = check_prime(K,P) # error handling done in that function
         if algorithm != "pari" and algorithm != "generic":
-            raise ValueError, "algorithm must be one of 'pari', 'generic'"
+            raise ValueError("algorithm must be one of 'pari', 'generic'")
 
         self._reduction_type = None
         if K is QQ:
@@ -266,9 +269,9 @@ class EllipticCurveLocalData(SageObject):
         if algorithm=="pari" and K is QQ:
             Eint = E.integral_model()
             data = Eint.pari_curve().elllocalred(p)
-            self._fp = data[0].python()
-            self._KS = KodairaSymbol(data[1].python())
-            self._cp = data[3].python()
+            self._fp = data[0].sage()
+            self._KS = KodairaSymbol(data[1].sage())
+            self._cp = data[3].sage()
             # We use a global minimal model since we can:
             self._Emin_reduced = Eint.minimal_model()
             self._val_disc = self._Emin_reduced.discriminant().valuation(p)
@@ -372,7 +375,7 @@ class EllipticCurveLocalData(SageObject):
             try:
                 return self._Emin
             except AttributeError:
-                raise ValueError, "the argument reduce must not be False if algorithm=pari is used"
+                raise ValueError("the argument reduce must not be False if algorithm=pari is used")
 
     def prime(self):
         """
@@ -403,6 +406,21 @@ class EllipticCurveLocalData(SageObject):
             2
         """
         return self._fp
+
+    def discriminant_valuation(self):
+        """
+        Return the valuation of the minimal discriminant from this local reduction data.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
+            sage: E = EllipticCurve([0,0,0,0,64]); E
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
+            sage: data = EllipticCurveLocalData(E,2)
+            sage: data.discriminant_valuation()
+            4
+        """
+        return self._val_disc
 
     def kodaira_symbol(self):
         r"""
@@ -469,8 +487,8 @@ class EllipticCurveLocalData(SageObject):
             return cp
         ks = self._KS
         if ks._roman==1 and ks._n%2==0 and ks._starred:
-            return 2
-        return 4
+            return ZZ(2)
+        return ZZ(4)
 
     def bad_reduction_type(self):
         r"""
@@ -688,7 +706,7 @@ class EllipticCurveLocalData(SageObject):
             sage: E.tamagawa_number(K.ideal(2))
             4
 
-        This is to show that the bug :trac: `11630` is fixed. (The computation of the class group would produce a warning)::
+        This is to show that the bug :trac:`11630` is fixed. (The computation of the class group would produce a warning)::
         
             sage: K.<t> = NumberField(x^7-2*x+177)
             sage: E = EllipticCurve([0,1,0,t,t])
@@ -838,14 +856,14 @@ class EllipticCurveLocalData(SageObject):
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()
             if min([pval(a) for a in (a1, a2, a3, a4, a6) if a != 0]) < 0:
-                raise RuntimeError, "Non-integral model after first transform!"
+                raise RuntimeError("Non-integral model after first transform!")
             verbose("After first transform %s\n, [a1,a2,a3,a4,a6] = %s\n, valuations = %s"%([r, 0, t], [a1, a2, a3, a4, a6], [pval(a1), pval(a2), pval(a3), pval(a4), pval(a6)]), t, 2)
             if pval(a3) == 0:
-                raise RuntimeError, "p does not divide a3 after first transform!"
+                raise RuntimeError("p does not divide a3 after first transform!")
             if pval(a4) == 0:
-                raise RuntimeError, "p does not divide a4 after first transform!"
+                raise RuntimeError("p does not divide a4 after first transform!")
             if pval(a6) == 0:
-                raise RuntimeError, "p does not divide a6 after first transform!"
+                raise RuntimeError("p does not divide a6 after first transform!")
 
             # Now we test for Types In, II, III, IV
             # NB the c invariants never change.
@@ -904,17 +922,17 @@ class EllipticCurveLocalData(SageObject):
             (b2, b4, b6, b8) = C.b_invariants()
             verbose("After second transform %s\n[a1, a2, a3, a4, a6] = %s\nValuations: %s"%([0, s, t], [a1,a2,a3,a4,a6],[pval(a1),pval(a2),pval(a3),pval(a4),pval(a6)]), t, 2)
             if pval(a1) == 0:
-                raise RuntimeError, "p does not divide a1 after second transform!"
+                raise RuntimeError("p does not divide a1 after second transform!")
             if pval(a2) == 0:
-                raise RuntimeError, "p does not divide a2 after second transform!"
+                raise RuntimeError("p does not divide a2 after second transform!")
             if pval(a3) < 2:
-                raise RuntimeError, "p^2 does not divide a3 after second transform!"
+                raise RuntimeError("p^2 does not divide a3 after second transform!")
             if pval(a4) < 2:
-                raise RuntimeError, "p^2 does not divide a4 after second transform!"
+                raise RuntimeError("p^2 does not divide a4 after second transform!")
             if pval(a6) < 3:
-                raise RuntimeError, "p^3 does not divide a6 after second transform!"
+                raise RuntimeError("p^3 does not divide a6 after second transform!")
             if min(pval(a1), pval(a2), pval(a3), pval(a4), pval(a6)) < 0:
-                raise RuntimeError, "Non-integral model after second transform!"
+                raise RuntimeError("Non-integral model after second transform!")
 
             # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0 mod P, where
             # b = a2/p, c = a4/p^2, d = a6/p^3
@@ -1018,9 +1036,9 @@ class EllipticCurveLocalData(SageObject):
                 (b2, b4, b6, b8) = C.b_invariants()
                 verbose("After third transform %s\n[a1,a2,a3,a4,a6] = %s\nValuations: %s"%([r,0,0],[a1,a2,a3,a4,a6],[pval(ai) for ai in [a1,a2,a3,a4,a6]]), t, 2)
                 if min(pval(ai) for ai in [a1,a2,a3,a4,a6]) < 0:
-                    raise RuntimeError, "Non-integral model after third transform!"
+                    raise RuntimeError("Non-integral model after third transform!")
                 if pval(a2) < 2 or pval(a4) < 3 or pval(a6) < 4:
-                    raise RuntimeError, "Cubic after transform does not have a triple root at 0"
+                    raise RuntimeError("Cubic after transform does not have a triple root at 0")
                 a3t = preduce(a3/pi2)
                 a6t = preduce(a6/pi4)
                 # We test for Type IV*
@@ -1109,29 +1127,29 @@ def check_prime(K,P):
             if P.is_prime():
                 return P
             else:
-                raise TypeError, "%s is not prime"%P
+                raise TypeError("%s is not prime"%P)
         else:
             if is_Ideal(P) and P.base_ring() is ZZ and P.is_prime():
                 return P.gen()
-        raise TypeError, "%s is not a prime ideal of %s"%(P,ZZ)
+        raise TypeError("%s is not a prime ideal of %s"%(P,ZZ))
 
     if not is_NumberField(K):
-        raise TypeError, "%s is not a number field"%K
+        raise TypeError("%s is not a number field"%K)
 
     if is_NumberFieldFractionalIdeal(P):
         if P.is_prime():
             return P
         else:
-            raise TypeError, "%s is not a prime ideal of %s"%(P,K)
+            raise TypeError("%s is not a prime ideal of %s"%(P,K))
 
     if is_NumberFieldElement(P):
         if P in K:
             P = K.ideal(P)
         else:
-            raise TypeError, "%s is not an element of %s"%(P,K)
+            raise TypeError("%s is not an element of %s"%(P,K))
         if P.is_prime():
             return P
         else:
-            raise TypeError, "%s is not a prime ideal of %s"%(P,K)
+            raise TypeError("%s is not a prime ideal of %s"%(P,K))
 
-    raise TypeError, "%s is not a valid prime of %s"%(P,K)
+    raise TypeError("%s is not a valid prime of %s"%(P,K))

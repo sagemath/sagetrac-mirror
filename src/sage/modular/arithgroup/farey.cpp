@@ -30,12 +30,13 @@
 
 #include "farey.hpp"
 
+// The following functions are defined in farey_symbols.h, but direct inclusion
+// of this file breaks compilation on cygwin, see trac #13336.
 extern "C" long convert_to_long(PyObject *);
 extern "C" PyObject *convert_to_Integer(mpz_class);
 extern "C" PyObject *convert_to_rational(mpq_class);
 extern "C" PyObject *convert_to_cusp(mpq_class);
 extern "C" PyObject *convert_to_SL2Z(SL2Z);
-
 
 using namespace std;
 
@@ -301,9 +302,9 @@ FareySymbol::FareySymbol(istream& is) {
 // User defined group and restoring from pickle
 
 FareySymbol::FareySymbol(PyObject* o) {
-  if( PyString_Check(o) ) {
+  if( PyBytes_Check(o) ) {
     // restoration from data
-    istringstream is(PyString_AsString(o));
+    istringstream is(PyBytes_AsString(o));
     is >> (*this);
   } else {
     // init with user defined group
@@ -708,7 +709,7 @@ vector<mpq_class> FareySymbol::init_cusps() const {
       }
     }
   }
-  // in earlier version: shift negative cusps to positve ones
+  // in earlier version: shift negative cusps to positive ones
   sort(c.begin(), c.end());
   return c;
 }
@@ -850,32 +851,32 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
       }
       if ( C == 0 and B/D <=m) {
         beta = pairing_matrix_in_group(k).inverse()*beta;
-        p.push_back(-(int)k);
+        p.push_back(-(int)k - 1);
       } else if( C == 0 and B/D >= m) {
-        beta = pairing_matrix_in_group(k)*beta;
-        p.push_back((int)k);
+        beta = pairing_matrix_in_group(k) * beta;
+        p.push_back((int)k + 1);
       } else if( D == 0 and A/C <= m) {
         beta = pairing_matrix_in_group(k).inverse()*beta;
-        p.push_back(-(int)k);
+        p.push_back(-(int)k - 1);
       } else if( D == 0 and A/C >=m) {
         beta = pairing_matrix_in_group(k)*beta;
-        p.push_back((int)k);
+        p.push_back((int)k + 1);
       } else if(A/C <= m and B/D <= m) {
         beta = pairing_matrix_in_group(k).inverse()*beta;
-        p.push_back(-(int)k);
+        p.push_back(-(int)k - 1);
       } else if(A/C >= m and B/D >= m) {
         beta = pairing_matrix_in_group(k)*beta;
-        p.push_back((int)k);
+        p.push_back((int)k + 1);
       } else {
         //Based on Lemma 4 of the article by Kurth/Long, 
         //this case can not occure.
-        throw string("Mathematical compilcations in ") + 
+        throw string("Mathematical complications in ") + 
               __FUNCTION__;
 	return;
       }
     } else { // case of EVEN or FREE pairing
       beta = pairing_matrix_in_group(k)*beta;
-      p.push_back((int)k);
+      p.push_back((int)k+1);
     }
   }
 }
@@ -1005,6 +1006,23 @@ PyObject* FareySymbol::is_element(const mpz_t a, const mpz_t b,
   }
 }
 
+PyObject* FareySymbol::word_problem(const mpz_t a, const mpz_t b, 
+				    const mpz_t c, const mpz_t d, SL2Z *beta) const {
+  const SL2Z M = SL2Z(mpz_class(a), mpz_class(b), mpz_class(c), mpz_class(d));
+  vector<int> p;
+  PyObject* wd;
+  SL2Z beta1 = SL2Z::E;
+  size_t i;
+  LLT_algorithm(M, p, beta1);
+  wd = PyList_New(p.size());
+  for(i=0; i<p.size(); i++) {
+    PyList_SetItem(wd, i, PyInt_FromLong(p[i]));
+  }
+  *beta = beta1;
+  return wd;
+}
+
+
 PyObject* FareySymbol::get_coset() const {
   PyObject* coset_list = PyList_New(coset.size());
   for(size_t i=0; i<coset.size(); i++) {
@@ -1114,7 +1132,7 @@ PyObject* FareySymbol::get_pairing_matrices() const {
 PyObject* FareySymbol::dumps() const {
   std::ostringstream os(ostringstream::out|ostringstream::binary);
   os << (*this);
-  PyObject* d = PyString_FromString(os.str().c_str());
+  PyObject* d = PyBytes_FromString(os.str().c_str());
   return d;
 }
 

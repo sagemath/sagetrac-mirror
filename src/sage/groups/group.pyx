@@ -68,6 +68,13 @@ cdef class Group(Parent):
                                        "_test_pickling",\
                                        "_test_prod",\
                                        "_test_some_elements"])
+
+    Generic groups have very little functionality::
+
+        sage: 4 in G
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
     """
     def __init__(self, base=None, gens=None, category=None):
         """
@@ -89,7 +96,7 @@ cdef class Group(Parent):
             sage: G._repr_option('element_is_atomic')
             False
 
-        Check for #8119::
+        Check for :trac:`8119`::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)
@@ -97,6 +104,9 @@ cdef class Group(Parent):
             sage: h == hash(G)
             True
         """
+        if gens is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.groups import Groups
         if category is None:
             category = Groups()
@@ -105,34 +115,7 @@ cdef class Group(Parent):
                 category = (category,)
             if not any(cat.is_subcategory(Groups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
-
-    def __contains__(self, x):
-        r"""
-        Test whether `x` defines a group element.
-
-        INPUT:
-
-        - ``x`` -- anything.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: 4 in G               #indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        try:
-            self(x)
-        except TypeError:
-            return False
-        return True
+        Parent.__init__(self, base=base, category=category)
 
     def is_abelian(self):
         """
@@ -159,7 +142,7 @@ cdef class Group(Parent):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False
@@ -227,23 +210,8 @@ cdef class Group(Parent):
             sage: G.an_element()
             f0*f1*f2*f3
         """
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         return prod(self.gens())
-
-    def random_element(self, bound=None):
-        """
-        Return a random element of this group.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.random_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def quotient(self, H):
         """
@@ -294,6 +262,9 @@ cdef class FiniteGroup(Group):
             sage: G.category()
             Category of finite groups
         """
+        if gens is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.finite_groups import FiniteGroups
         if category is None:
             category = FiniteGroups()
@@ -302,7 +273,7 @@ cdef class FiniteGroup(Group):
                 category = (category,)
             if not any(cat.is_subcategory(FiniteGroups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, FiniteGroups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+        Parent.__init__(self, base=base, category=category)
 
     def is_finite(self):
         """
@@ -316,63 +287,3 @@ cdef class FiniteGroup(Group):
             True
         """
         return True
-
-    def cayley_graph(self, connecting_set=None):
-        """
-        Return the Cayley graph for this finite group.
-
-        INPUT:
-
-        - ``connecting_set`` -- (optional) list of elements to use for
-          edges, default is the stored generators
-
-        OUTPUT:
-
-        The Cayley graph as a Sage DiGraph object. To plot the graph
-        with with different colors
-
-        EXAMPLES::
-
-            sage: D4 = DihedralGroup(4); D4
-            Dihedral group of order 8 as a permutation group
-            sage: G = D4.cayley_graph()
-            sage: show(G, color_by_label=True, edge_labels=True)
-            sage: A5 = AlternatingGroup(5); A5
-            Alternating group of order 5!/2 as a permutation group
-            sage: G = A5.cayley_graph()
-            sage: G.show3d(color_by_label=True, edge_size=0.01, edge_size2=0.02, vertex_size=0.03)
-            sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time (less than a minute)
-            sage: G.num_edges()
-            120
-            sage: G = A5.cayley_graph(connecting_set=[A5.gens()[0]])
-            sage: G.num_edges()
-            60
-            sage: g=PermutationGroup([(i+1,j+1) for i in range(5) for j in range(5) if j!=i])
-            sage: g.cayley_graph(connecting_set=[(1,2),(2,3)])
-            Digraph on 120 vertices
-
-            sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
-            [()]
-
-        AUTHORS:
-
-        - Bobby Moretti (2007-08-10)
-        - Robert Miller (2008-05-01): editing
-        """
-        if connecting_set is None:
-            connecting_set = self.gens()
-        else:
-            if any(g not in self for g in connecting_set):
-                raise ValueError("Each element of the connecting set must be in the group!")
-            connecting_set = [self(g) for g in connecting_set]
-        from sage.graphs.all import DiGraph
-        arrows = {}
-        for x in self:
-            arrows[x] = {}
-            for g in connecting_set:
-                xg = x*g # cache the multiplication
-                if not xg == x:
-                    arrows[x][xg] = g
-
-        return DiGraph(arrows, implementation='networkx')
-

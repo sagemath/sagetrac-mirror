@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -19,13 +20,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
 from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
 from sage.rings.padics.padic_fixed_mod_element import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):
+    _implementation = 'GMP'
     def __init__(self, p, prec, print_mode, names, element_class):
         """
         Initialization
@@ -34,7 +36,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
+        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._prec_type())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
             coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
@@ -137,7 +139,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             5 + O(5^21)
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self(self.prime())
 
     def absolute_discriminant(self):
@@ -174,7 +176,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         if (K is None or K is self):
             return 1
         else:
-            raise ValueError, "Ground Ring must be a subring of self"
+            raise ValueError("Ground Ring must be a subring of self")
 
     def is_abelian(self):
         """
@@ -308,9 +310,9 @@ class pAdicBaseGeneric(pAdicGeneric):
             if n == 1:
                 return self(1)
             else:
-                raise ValueError, "No, %sth root of unity in self"%n
+                raise ValueError("No, %sth root of unity in self"%n)
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return self.teichmuller(GF(self.prime()).zeta(n).lift())
 
     def zeta_order(self):
@@ -331,9 +333,11 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def plot(self, max_points=2500, **args):
         r"""
-        Creates a visualization of this `p`-adic ring as a fractal
-        similar as a generalization of the the Sierpi\'nski
-        triangle. The resulting image attempts to capture the
+        Create a visualization of this `p`-adic ring as a fractal
+        similar to a generalization of the Sierpi\'nski
+        triangle.
+
+        The resulting image attempts to capture the
         algebraic and topological characteristics of `\mathbb{Z}_p`.
 
         INPUT:
@@ -353,8 +357,11 @@ class pAdicBaseGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: Zp(3).plot()
+            Graphics object consisting of 1 graphics primitive
             sage: Zp(5).plot(max_points=625)
+            Graphics object consisting of 1 graphics primitive
             sage: Zp(23).plot(rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         if 'pointsize' not in args:
             args['pointsize'] = 1

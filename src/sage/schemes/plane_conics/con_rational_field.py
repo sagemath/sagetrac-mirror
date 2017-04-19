@@ -8,6 +8,7 @@ AUTHORS:
 - Nick Alexander (2008-01-08)
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Nick Alexander <ncalexander@gmail.com>
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
@@ -35,11 +36,11 @@ from sage.matrix.constructor import Matrix
 
 from sage.quadratic_forms.qfsolve import qfsolve, qfparam
 
-from con_number_field import ProjectiveConic_number_field
+from .con_number_field import ProjectiveConic_number_field
 
 from sage.structure.element import is_InfinityElement
 
-from sage.rings.arith import (lcm, hilbert_symbol)
+from sage.arith.all import lcm, hilbert_symbol
 
 class ProjectiveConic_rational_field(ProjectiveConic_number_field):
     r"""
@@ -96,8 +97,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         The parameter ``algorithm``
         specifies the algorithm to be used:
 
-         - ``'qfsolve'`` -- Use Denis Simon's GP script ``qfsolve``
-           (see ``sage.quadratic_forms.qfsolve.qfsolve``)
+         - ``'qfsolve'`` -- Use PARI/GP function ``qfsolve``
 
          - ``'rnfisnorm'`` -- Use PARI's function rnfisnorm
            (cannot be combined with ``obstruction = True``)
@@ -176,7 +176,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             M *= lcm([ t.denominator() for t in M.list() ])
             pt = qfsolve(M)
             if pt in ZZ:
-                if self._local_obstruction == None:
+                if self._local_obstruction is None:
                     self._local_obstruction = pt
                 if point or obstruction:
                     return False, pt
@@ -232,10 +232,10 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             if p.domain() is QQ and is_RealField(p.codomain()):
                 p = -1
             else:
-                raise TypeError, "p (=%s) needs to be a prime of base field " \
-                                 "B ( =`QQ`) in is_locally_solvable" % p
+                raise TypeError("p (=%s) needs to be a prime of base field " \
+                                 "B ( =`QQ`) in is_locally_solvable" % p)
         if hilbert_symbol(a, b, p) == -1:
-            if self._local_obstruction == None:
+            if self._local_obstruction is None:
                 self._local_obstruction = p
             return False
         return True
@@ -269,14 +269,14 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         obs0 = []
         obs1 = []
         if infinite:
-            if read_cache and self._infinite_obstructions != None:
+            if read_cache and self._infinite_obstructions is not None:
                 obs0 = self._infinite_obstructions
             else:
                 if not self.is_locally_solvable(-1):
                     obs0 = [-1]
                 self._infinite_obstructions = obs0
         if finite:
-            if read_cache and self._finite_obstructions != None:
+            if read_cache and self._finite_obstructions is not None:
                 obs1 = self._finite_obstructions
             else:
                 candidates = []
@@ -314,8 +314,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
 
         ALGORITHM:
 
-        Uses Denis Simon's GP script ``qfparam``.
-        See ``sage.quadratic_forms.qfsolve.qfparam``.
+        Uses the PARI/GP function ``qfparam``.
 
         EXAMPLES ::
 
@@ -325,19 +324,19 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x*y : -x^2 + y^2 : x^2 + y^2),
+                    (2*x*y : x^2 - y^2 : x^2 + y^2),
              Scheme morphism:
               From: Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
               To:   Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (1/2*x : 1/2*y + 1/2*z))
+                    (1/2*x : -1/2*y + 1/2*z))
 
         An example with ``morphism = False`` ::
 
             sage: R.<x,y,z> = QQ[]
             sage: C = Curve(7*x^2 + 2*y*z + z^2)
             sage: (p, i) = C.parametrization(morphism = False); (p, i)
-            ([-2*x*y, 7*x^2 + y^2, -2*y^2], [-1/2*x, -1/2*z])
+            ([-2*x*y, x^2 + 7*y^2, -2*x^2], [-1/2*x, 1/7*y + 1/14*z])
             sage: C.defining_polynomial()(p)
             0
             sage: i[0](p) / i[1](p)
@@ -363,8 +362,8 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             par = self._parametrization
         else:
             if not self.is_smooth():
-                raise ValueError, "The conic self (=%s) is not smooth, hence does not have a parametrization." % self
-            if point == None:
+                raise ValueError("The conic self (=%s) is not smooth, hence does not have a parametrization." % self)
+            if point is None:
                 point = self.rational_point()
             point = Sequence(point)
             Q = PolynomialRing(QQ, 'x,y')

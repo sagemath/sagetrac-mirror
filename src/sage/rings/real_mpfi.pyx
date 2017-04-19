@@ -124,9 +124,12 @@ COMPARISONS:
 
 Comparison operations (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``)
 return ``True`` if every value in the first interval has the given relation
-to every value in the second interval. The ``cmp(a, b)`` function works
+to every value in the second interval.
+
+The ``cmp(a, b)`` function works
 differently; it compares two intervals lexicographically. (However, the
 behavior is not specified if given a non-interval and an interval.)
+Note that ``cmp`` will disappear in Python3.
 
 This convention for comparison operators has good and bad points.  The
 good:
@@ -181,53 +184,90 @@ EXAMPLES::
     -1
     sage: cmp(RIF(0, 1), RIF(0, 1))
     0
+
+Comparison with infinity is defined through coercion to the infinity
+ring where semi-infinite intervals are sent to their central value
+(plus or minus infinity); This implements the above convention for
+inequalities::
+
+    sage: InfinityRing.has_coerce_map_from(RIF)
+    True
+    sage: -oo < RIF(-1,1) < oo
+    True
+    sage: -oo < RIF(0,oo) <= oo
+    True
+    sage: -oo <= RIF(-oo,-1) < oo
+    True
+
+Comparison by equality shows what the semi-infinite intervals actually
+coerce to::
+
+    sage: RIF(1,oo) == oo
+    True
+    sage: RIF(-oo,-1) == -oo
+    True
+
+For lack of a better value in the infinity ring, the doubly infinite
+interval coerces to plus infinity::
+
+    sage: RIF(-oo,oo) == oo
+    True
+
+TESTS:
+
+Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
+
+    sage: import numpy
+    sage: RIF(0,1) < numpy.float('2')
+    True
+    sage: RIF(0,1) <= numpy.float('1')
+    True
+    sage: RIF(0,1) <= numpy.float('0.5')
+    False
+    sage: RIF(2) == numpy.int8('2')
+    True
+    sage: numpy.int8('2') == RIF(2)
+    True
 """
 
-############################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import math # for log
 import sys
-
-include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-from cpython.mem cimport *
-from cpython.string cimport *
-
-cimport sage.rings.ring
-import  sage.rings.ring
-
-cimport sage.structure.element
-from sage.structure.element cimport RingElement, Element, ModuleElement
-import  sage.structure.element
-
-cimport real_mpfr
-from real_mpfr cimport RealField_class, RealNumber
-from real_mpfr import RealField
-import real_mpfr
-
 import operator
 
-from integer import Integer
-from integer cimport Integer
+include "cysignals/signals.pxi"
+include "sage/ext/cdefs.pxi"
+from cpython.mem cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 
-from real_double import RealDoubleElement
-from real_double cimport RealDoubleElement
+cimport sage.rings.ring
+cimport sage.structure.element
+from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.sage_object cimport richcmp
+
+cimport sage.rings.real_mpfr as real_mpfr
+from .real_mpfr cimport RealField_class, RealNumber, RealField
+from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
+
+from .integer cimport Integer
+from .real_double cimport RealDoubleElement
 
 import sage.rings.complex_field
-
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
 
-cdef class RealIntervalFieldElement(sage.structure.element.RingElement)
 
 #*****************************************************************************
 #
@@ -249,7 +289,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 # The real field is in Cython, so mpfi elements will have access to
 # their parent via direct C calls, which will be faster.
 
-cdef public dict RealIntervalField_cache = {}
+cdef dict RealIntervalField_cache = {}
 
 cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     r"""
@@ -391,7 +431,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     ::
 
         sage: def check(x):
-        ...       return (x, x.lower() == x.upper())
+        ....:     return (x, x.lower() == x.upper())
         sage: check(RIF(pi))
         (3.141592653589794?, False)
         sage: check(RIF(RR(pi)))
@@ -456,8 +496,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             Real Interval Field with 200 bits of precision
         """
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
-            raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
-                prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
+            raise ValueError("prec (=%s) must be >= %s and <= %s." % (
+                prec, MPFR_PREC_MIN, MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
         self.__lower_field = RealField(prec, sci_not, "RNDD")
@@ -528,18 +568,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         elif rnd == "RNDU":
             return self._upper_field()
         else:
-            return RealField(self.__prec, self.sci_not, "RNDZ")
-
-    cdef RealIntervalFieldElement _new(self):
-        """
-        Return a new real number with parent ``self``.
-        """
-        cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
-        x._parent = self
-        mpfi_init2(x.value, self.__prec)
-        x.init = 1
-        return x
+            return RealField(self.__prec, self.sci_not, rnd)
 
     def _repr_(self):
         """
@@ -633,7 +662,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert number to real interval.
+            TypeError: unable to convert '2' to real interval
             sage: a = R('1.1001', base=2); a
             1.5625000?
             sage: a.str(2)
@@ -644,6 +673,22 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         if not y is None:
             x = (x,y)
         return RealIntervalFieldElement(self, x, base)
+
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of this interval field, i.e., the
+        complex interval field with the same precision.
+
+        EXAMPLES::
+
+            sage: RIF.algebraic_closure()
+            Complex Interval Field with 53 bits of precision
+            sage: RIF.algebraic_closure() is CIF
+            True
+            sage: RealIntervalField(100).algebraic_closure()
+            Complex Interval Field with 100 bits of precision
+        """
+        return self.complex_field()
 
     def construction(self):
         r"""
@@ -695,13 +740,13 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             if (<RealField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, RealIntervalFieldElement):
             P = x.parent()
             if (<RealIntervalField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, (Integer, Rational)):
             return self(x)
         cdef RealNumber lower, upper
@@ -710,9 +755,9 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
         except TypeError as msg:
-            raise TypeError, "no canonical coercion of element into self"
+            raise TypeError("no canonical coercion of element into self")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -728,12 +773,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             False
         """
         if not isinstance(other, RealIntervalField_class):
-            return -1
-        cdef RealIntervalField_class _other
-        _other = other  # to access C structure
-        if self.__prec == _other.__prec:
-            return 0
-        return 1
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        cdef RealIntervalField_class left
+        cdef RealIntervalField_class right
+        left = self
+        right = other  # to access C structure
+        return richcmp(left.__prec, right.__prec, op)
 
     def __reduce__(self):
         """
@@ -816,7 +864,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RIF.gens()
             [1]
@@ -1021,18 +1069,6 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         mpfi_const_log2(x.value)
         return x
 
-# MPFI does not have factorial
-#     def factorial(self, int n):
-#         """
-#         Return the factorial of the integer n as a real number.
-#         """
-#         cdef RealIntervalFieldElement x
-#         if n < 0:
-#             raise ArithmeticError, "n must be nonnegative"
-#         x = self._new()
-#         mpfr_fac_ui(x.value, n, self.rnd)
-#         return x
-
     def scientific_notation(self, status=None):
         """
         Set or return the scientific notation printing flag.
@@ -1081,36 +1117,45 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
-R = RealIntervalField()
 
 #*****************************************************************************
 #
 #     RealIntervalFieldElement -- element of Real Field
 #
-#
-#
 #*****************************************************************************
-cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
+cdef class RealIntervalFieldElement(RingElement):
     """
     A real number interval.
     """
-    cdef RealIntervalFieldElement _new(self):
+    def __cinit__(self, parent, x=None, base=None):
         """
-        Return a new real interval with same parent as ``self``.
-        """
-        cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
-        x._parent = self._parent
-        mpfi_init2(x.value, (<RealIntervalField_class>self._parent).__prec)
-        x.init = 1
-        return x
+        Initialize the parent of this element and allocate memory
 
-    def __init__(self, RealIntervalField_class parent, x=0, int base=10):
+        TESTS::
+
+            sage: from sage.rings.real_mpfi import RealIntervalFieldElement
+            sage: RealIntervalFieldElement.__new__(RealIntervalFieldElement, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert NoneType to sage.rings.real_mpfi.RealIntervalField_class
+            sage: RealIntervalFieldElement.__new__(RealIntervalFieldElement, ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert sage.rings.integer_ring.IntegerRing_class to sage.rings.real_mpfi.RealIntervalField_class
+            sage: RealIntervalFieldElement.__new__(RealIntervalFieldElement, RIF)
+            [.. NaN ..]
         """
-        Create a real interval element. Should be called by first creating
-        a :class:`RealIntervalField`, as illustrated in the examples.
+        cdef RealIntervalField_class p = <RealIntervalField_class?>parent
+        mpfi_init2(self.value, p.__prec)
+        self._parent = p
+
+    def __init__(self, parent, x=0, int base=10):
+        """
+        Initialize a real interval element. Should be called by first
+        creating a :class:`RealIntervalField`, as illustrated in the
+        examples.
 
         EXAMPLES::
 
@@ -1121,7 +1166,17 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: R('1.2456').str(style='brackets')
             '[1.0 .. 1.3]'
 
-        EXAMPLES:
+        ::
+
+            sage: RIF = RealIntervalField(53)
+            sage: RIF(RR.pi())
+            3.1415926535897932?
+            sage: RIF(RDF.pi())
+            3.1415926535897932?
+            sage: RIF(math.pi)
+            3.1415926535897932?
+            sage: RIF.pi()
+            3.141592653589794?
 
         Rounding::
 
@@ -1138,94 +1193,60 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         Type: ``RealIntervalField?`` for many more examples.
         """
-        import sage.rings.qqbar
+        if x is None:
+            return
 
-        self.init = 0
-        if parent is None:
-            raise TypeError
-        self._parent = parent
-        mpfi_init2(self.value, parent.__prec)
-        self.init = 1
-        if x is None: return
-        cdef RealIntervalFieldElement _x, n, d
-        cdef RealNumber rn, rn1
-        cdef Rational rat, rat1
-        cdef Integer integ, integ1
-        cdef RealDoubleElement dx, dx1
-        cdef int ix, ix1
-        if PY_TYPE_CHECK(x, RealIntervalFieldElement):
-            _x = x  # so we can get at x.value
-            mpfi_set(self.value, _x.value)
-        elif PY_TYPE_CHECK(x, RealNumber):
-            rn = x
-            mpfi_set_fr(self.value, rn.value)
-        elif PY_TYPE_CHECK(x, Rational):
-            rat = x
-            mpfi_set_q(self.value, rat.value)
-        elif PY_TYPE_CHECK(x, Integer):
-            integ = x
-            mpfi_set_z(self.value, integ.value)
-        elif PY_TYPE_CHECK(x, int):
-            ix = x
-            mpfi_set_si(self.value, ix)
+        cdef RealNumber ra, rb
+        cdef RealIntervalFieldElement d
+
+        if isinstance(x, RealIntervalFieldElement):
+            mpfi_set(self.value, (<RealIntervalFieldElement>x).value)
+        elif isinstance(x, RealNumber):
+            mpfi_set_fr(self.value, (<RealNumber>x).value)
+        elif isinstance(x, Rational):
+            mpfi_set_q(self.value, (<Rational>x).value)
+        elif isinstance(x, Integer):
+            mpfi_set_z(self.value, (<Integer>x).value)
+        elif isinstance(x, RealDoubleElement):
+            mpfi_set_d(self.value, (<RealDoubleElement>x)._value)
+        elif isinstance(x, int):
+            mpfi_set_si(self.value, <long>x)
+        elif isinstance(x, float):
+            mpfi_set_d(self.value, <double>x)
+        elif hasattr(x, '_real_mpfi_'):
+            d = x._real_mpfi_(self._parent)
+            mpfi_set(self.value, d.value)
         elif isinstance(x, tuple):
             try:
                 a, b = x
             except ValueError:
                 raise TypeError("tuple defining an interval must have length 2")
-            if PY_TYPE_CHECK(a, RealNumber) and PY_TYPE_CHECK(b, RealNumber):
-                rn = a
-                rn1 = b
-                mpfi_interv_fr(self.value, rn.value, rn1.value)
-            elif PY_TYPE_CHECK(a, RealDoubleElement) and PY_TYPE_CHECK(b, RealDoubleElement):
-                dx = a
-                dx1 = b
-                mpfi_interv_d(self.value, dx._value, dx1._value)
-            elif PY_TYPE_CHECK(a, Rational) and PY_TYPE_CHECK(b, Rational):
-                rat = a
-                rat1 = b
-                mpfi_interv_q(self.value, rat.value, rat1.value)
-            elif PY_TYPE_CHECK(a, Integer) and PY_TYPE_CHECK(b, Integer):
-                integ = a
-                integ1 = b
-                mpfi_interv_z(self.value, integ.value, integ1.value)
-            elif PY_TYPE_CHECK(a, int) and PY_TYPE_CHECK(b, int):
-                ix = a
-                ix1 = b
-                mpfi_interv_si(self.value, ix, ix1)
+            if isinstance(a, RealNumber) and isinstance(b, RealNumber):
+                mpfi_interv_fr(self.value, (<RealNumber>a).value, (<RealNumber>b).value)
+            elif isinstance(a, RealDoubleElement) and isinstance(b, RealDoubleElement):
+                mpfi_interv_d(self.value, (<RealDoubleElement>a)._value, (<RealDoubleElement>b)._value)
+            elif isinstance(a, Rational) and isinstance(b, Rational):
+                mpfi_interv_q(self.value, (<Rational>a).value, (<Rational>b).value)
+            elif isinstance(a, Integer) and isinstance(b, Integer):
+                mpfi_interv_z(self.value, (<Integer>a).value, (<Integer>b).value)
+            elif isinstance(a, int) and isinstance(b, int):
+                mpfi_interv_si(self.value, <long>a, <long>b)
             else:  # generic fallback
-                rn  = self._parent(a).lower()
-                rn1 = self._parent(b).upper()
-                mpfi_interv_fr(self.value, rn.value, rn1.value)
-
-        elif isinstance(x, sage.rings.qqbar.AlgebraicReal):
-            d = x.interval(self._parent)
-            mpfi_set(self.value, d.value)
-
-        elif hasattr(x, '_real_mpfi_'):
-            d = x._real_mpfi_(self._parent)
-            mpfi_set(self.value, d.value)
-
+                ra = self._parent(a).lower()
+                rb = self._parent(b).upper()
+                mpfi_interv_fr(self.value, ra.value, rb.value)
+        elif isinstance(x, basestring):
+            s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
+            if mpfi_set_str(self.value, s, base):
+                raise TypeError("unable to convert {!r} to real interval".format(x))
         else:
-            from sage.symbolic.expression import Expression
-
-            if isinstance(x, Expression):
-                d = x._real_mpfi_(self._parent)
-                mpfi_set(self.value, d.value)
-
-            elif isinstance(x, str):
-                # string
-                s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
-                if mpfi_set_str(self.value, s, base):
-                    raise TypeError("Unable to convert number to real interval.")
-            else:
-                # try coercing to real
-                try:
-                    rn = self._parent._lower_field()(x)
-                    rn1 = self._parent._upper_field()(x)
-                except TypeError:
-                    raise TypeError("Unable to convert number to real interval.")
-                mpfi_interv_fr(self.value, rn.value, rn1.value)
+            # try coercing to real
+            try:
+                ra = self._parent._lower_field()(x)
+                rb = self._parent._upper_field()(x)
+            except TypeError:
+                raise TypeError("unable to convert {!r} to real interval".format(x))
+            mpfi_interv_fr(self.value, ra.value, rb.value)
 
     def __reduce__(self):
         """
@@ -1273,7 +1294,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: R = RealIntervalField()
             sage: del R # indirect doctest
         """
-        if self.init:
+        if self._parent is not None:
             mpfi_clear(self.value)
 
     def __repr__(self):
@@ -1290,7 +1311,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def _latex_(self):
         """
-        Return a latex represention of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1414,9 +1435,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def real(self):
         """
-        Return the real part of ``self``.
+        Return the real part of this real interval.
 
-        (Since ``self`` is a real number, this simply returns ``self``.)
+        (Since this interval is real, this simply returns itself.)
+
+        .. SEEALSO::
+
+            :meth:`imag`
 
         EXAMPLES::
 
@@ -1425,18 +1450,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return self
 
-    def parent(self):
-        """
-        Return the parent of ``self``.
+    def imag(self):
+        r"""
+        Return the imaginary part of this real interval.
+
+        (Since this is interval is real, this simply returns the zero interval.)
+
+        .. SEEALSO::
+
+            :meth:`real`
 
         EXAMPLES::
 
-            sage: R = RealIntervalField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Interval Field with 53 bits of precision
+            sage: RIF(2,3).imag()
+            0
         """
-        return self._parent
+        return self._parent.zero()
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
@@ -1625,7 +1654,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0.025000000000000002?
         """
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
 
         # If self is a NaN, always use brackets style.
         if mpfi_nan_p(self.value):
@@ -1664,7 +1693,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return self._str_question_style(base, error_digits, e, prefer_sci)
 
         else:
-            raise ValueError, 'Illegal interval printing style %s'%printing_style
+            raise ValueError('Illegal interval printing style %s' % printing_style)
 
     cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
         r"""
@@ -1672,7 +1701,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         with the given base and error_digits. See the documentation for
         the str method for the definition of the question style.
 
-        INPUTS:
+        INPUT:
 
           - ``base`` - base for output
 
@@ -1728,9 +1757,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             ...
             ValueError: _str_question_style on NaN or infinity
             sage: for i in range(1, 9):
-            ...       print RIF(-10^i, 12345).str(style='brackets')
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False)
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False)
+            ....:     print(RIF(-10^i, 12345).str(style='brackets'))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False))
             [-10.000000000000000 .. 12345.000000000000]
             0.?e5
             6.17?618e3
@@ -1770,8 +1799,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF(-85, 85)._str_question_style(10, 0, 'e', False)
             '0.?e2'
             sage: for i in range(-6, 7):
-            ...       v = RIF(2).sqrt() * 10^i
-            ...       print v._str_question_style(10, 0, 'e', False)
+            ....:     v = RIF(2).sqrt() * 10^i
+            ....:     print(v._str_question_style(10, 0, 'e', False))
             1.414213562373095?e-6
             0.00001414213562373095?
             0.0001414213562373095?
@@ -1823,9 +1852,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
-            raise ValueError, "_str_question_style on NaN or infinity"
+            raise ValueError("_str_question_style on NaN or infinity")
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
         if error_digits < 0 or error_digits > 1000:
             # The restriction to 1000 is not essential.  The reason to have
             # a restriction is that this code is not efficient for
@@ -1836,7 +1865,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             # purpose of question_style is to be human-readable, and
             # the human-readability will go way down after about 6
             # error digits; 1000 error digits is just silly.
-            raise ValueError, "error_digits (=%s) must be between 0 and 1000"%error_digits
+            raise ValueError("error_digits (=%s) must be between 0 and 1000" % error_digits)
 
         cdef mp_exp_t self_exp
         cdef mpz_t self_zz
@@ -1863,16 +1892,16 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             self_exp = mpfr_get_exp(&self.value.left)
             if mpfr_zero_p(&self.value.left) or self_exp <= prec or self_exp <= 20:
                 mpz_init(self_zz)
-                mpfr_get_z(self_zz, &self.value.left, GMP_RNDN)
+                mpfr_get_z(self_zz, &self.value.left, MPFR_RNDN)
                 zz_str_maxlen = mpz_sizeinbase(self_zz, base) + 2
                 zz_str = <char *>PyMem_Malloc(zz_str_maxlen)
                 if zz_str == NULL:
                     mpz_clear(self_zz)
-                    raise MemoryError, "Unable to allocate memory for integer representation of interval"
+                    raise MemoryError("Unable to allocate memory for integer representation of interval")
                 sig_on()
                 mpz_get_str(zz_str, base, self_zz)
                 sig_off()
-                v = PyString_FromString(zz_str)
+                v = str(zz_str)
                 PyMem_Free(zz_str)
                 return v
 
@@ -1896,15 +1925,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         sig_on()
         lower_s = mpfr_get_str(<char*>0, &lower_expo, base, 0,
-                                &self.value.left, GMP_RNDD)
+                                &self.value.left, MPFR_RNDD)
         upper_s = mpfr_get_str(<char*>0, &upper_expo, base, 0,
-                                &self.value.right, GMP_RNDU)
+                                &self.value.right, MPFR_RNDU)
         sig_off()
 
         if lower_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval lower bound to a string"
+            raise RuntimeError("unable to convert interval lower bound to a string")
         if upper_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval upper bound to a string"
+            raise RuntimeError("unable to convert interval upper bound to a string")
 
         # MPFR returns an exponent assuming that the implicit radix point
         # is to the left of the first mantissa digit.  We'll be doing
@@ -2091,10 +2120,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = <object> PyString_FromString(tmp_cstr+1)
+            mant_string = str(tmp_cstr+1)
             sign_string = '-'
         else:
-            mant_string = <object> PyString_FromString(tmp_cstr)
+            mant_string = str(tmp_cstr)
             sign_string = ''
         PyMem_Free(tmp_cstr)
 
@@ -2105,7 +2134,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             if tmp_cstr == NULL:
                 raise MemoryError("Unable to allocate memory for the error of an interval")
             mpz_get_str(tmp_cstr, 10, cur_error)
-            error_string = <object> PyString_FromString(tmp_cstr)
+            error_string = str(tmp_cstr)
             PyMem_Free(tmp_cstr)
 
         mpz_clear(lower_mpz)
@@ -2164,12 +2193,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``rnd`` -- (string) the rounding mode
-
-          - ``'RNDN'`` -- round to nearest
-          - ``'RNDD'`` -- (default) round towards minus infinity
-          - ``'RNDZ'`` -- round towards zero
-          - ``'RNDU'`` -- round towards plus infinity
+        - ``rnd`` -- the rounding mode (default: towards minus infinity,
+          see :class:`sage.rings.real_mpfr.RealField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
@@ -2194,10 +2219,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.20
             sage: x.lower('RNDZ')
             1.19
+            sage: x.lower('RNDA')
+            1.20
             sage: x.lower().parent()
             Real Field with 13 bits of precision and rounding RNDD
             sage: x.lower('RNDU').parent()
             Real Field with 13 bits of precision and rounding RNDU
+            sage: x.lower('RNDA').parent()
+            Real Field with 13 bits of precision and rounding RNDA
             sage: x.lower() == x.lower('RNDU')
             True
         """
@@ -2215,12 +2244,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``rnd`` -- (string) the rounding mode
-
-          - ``'RNDN'`` -- round to nearest
-          - ``'RNDD'`` -- (default) round towards minus infinity
-          - ``'RNDZ'`` -- round towards zero
-          - ``'RNDU'`` -- round towards plus infinity
+        - ``rnd`` -- the rounding mode (default: towards plus infinity,
+          see :class:`sage.rings.real_mpfr.RealField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
@@ -2248,6 +2273,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.30
             sage: x.upper('RNDZ')
             1.30
+            sage: x.upper('RNDA')
+            1.31
             sage: x.upper().parent()
             Real Field with 13 bits of precision and rounding RNDU
             sage: x.upper('RNDD').parent()
@@ -2265,7 +2292,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def endpoints(self, rnd=None):
         """
-        Return the lower and upper endpoints of ``self``.
+        Return the lower and upper endpoints of this interval.
+
+        OUTPUT: a 2-tuple of real numbers
+        (lower endpoint, upper endpoint)
+
+        .. SEEALSO::
+
+            :meth:`edges` which returns the endpoints as exact
+            intervals instead of real numbers.
 
         EXAMPLES::
 
@@ -2283,6 +2318,38 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             Real Field with 53 bits of precision and rounding RNDD
         """
         return self.lower(rnd), self.upper(rnd)
+
+    def edges(self):
+        """
+        Return the lower and upper endpoints of this interval as
+        intervals.
+
+        OUTPUT: a 2-tuple of real intervals
+        (lower endpoint, upper endpoint)
+        each containing just one point.
+
+        .. SEEALSO::
+
+            :meth:`endpoints` which returns the endpoints as real
+            numbers instead of intervals.
+
+        EXAMPLES::
+
+            sage: RIF(1,2).edges()
+            (1, 2)
+            sage: RIF(pi).edges()
+            (3.1415926535897932?, 3.1415926535897936?)
+        """
+        cdef RealIntervalFieldElement left = self._new()
+        cdef RealIntervalFieldElement right = self._new()
+        cdef mpfr_t x
+        mpfr_init2(x, self.prec())
+        mpfi_get_left(x, self.value)
+        mpfi_set_fr(left.value, x)
+        mpfi_get_right(x, self.value)
+        mpfi_set_fr(right.value, x)
+        mpfr_clear(x)
+        return (left, right)
 
     def absolute_diameter(self):
         """
@@ -2406,21 +2473,27 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         The largest absolute value of the elements of the interval.
 
+        OUTPUT: a real number with rounding mode ``RNDU``
+
         EXAMPLES::
 
             sage: RIF(-2, 1).magnitude()
             2.00000000000000
             sage: RIF(-1, 2).magnitude()
             2.00000000000000
+            sage: parent(RIF(1).magnitude())
+            Real Field with 53 bits of precision and rounding RNDU
         """
         cdef RealNumber x
-        x = (<RealIntervalField_class>self._parent).__middle_field._new()
+        x = (<RealIntervalField_class>self._parent).__upper_field._new()
         mpfi_mag(x.value, self.value)
         return x
 
     def mignitude(self):
         """
         The smallest absolute value of the elements of the interval.
+
+        OUTPUT: a real number with rounding mode ``RNDD``
 
         EXAMPLES::
 
@@ -2430,9 +2503,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.00000000000000
             sage: RIF(3, 4).mignitude()
             3.00000000000000
+            sage: parent(RIF(1).mignitude())
+            Real Field with 53 bits of precision and rounding RNDD
         """
         cdef RealNumber x
-        x = (<RealIntervalField_class>self._parent).__middle_field._new()
+        x = (<RealIntervalField_class>self._parent).__lower_field._new()
         mpfi_mig(x.value, self.value)
         return x
 
@@ -2472,7 +2547,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement left = self._new()
         cdef RealIntervalFieldElement right = self._new()
-        mpfr_set(&left.value.left, &self.value.left, GMP_RNDN)
+        mpfr_set(&left.value.left, &self.value.left, MPFR_RNDN)
         mpfi_mid(&left.value.right, self.value)
         mpfi_interv_fr(right.value, &left.value.right, &self.value.right)
         return left, right
@@ -2491,27 +2566,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_alea(x.value, self.value)
         return x
 
-#     def integer_part(self):
-#         """
-#         If in decimal this number is written n.defg, returns n.
-
-#         OUTPUT:
-#             -- a Sage Integer
-
-#         EXAMPLE:
-#             sage: a = 119.41212
-#             sage: a.integer_part()
-#             119
-#         """
-#         s = self.str(base=32, no_sci=True)
-#         i = s.find(".")
-#         return Integer(s[:i], base=32)
-
     ########################
     #   Basic Arithmetic
     ########################
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real intervals with the same parent.
 
@@ -2557,7 +2616,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_inv(x.value, self.value)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real intervals with the same parent.
 
@@ -2576,7 +2635,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_sub(x.value, self.value, (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real intervals with the same parent.
 
@@ -2614,7 +2673,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         return x
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``, where both are real intervals with the
         same parent.
@@ -2642,7 +2701,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                  (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the additive "inverse" of this interval. (Technically,
         non-precise intervals don't have additive inverses.)
@@ -2739,7 +2798,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         if n > sys.maxsize:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -2812,9 +2871,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return 2
         return sage.rings.infinity.infinity
 
-#     def sign(self):
-#         return mpfr_sgn(self.value)
-
     def precision(self):
         """
         Returns the precision of ``self``.
@@ -2834,50 +2890,20 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     # Rounding etc
     ###################
 
-    # Not implemented on intervals (for good reason!)
-#     def round(self):
-#         """
-#         Rounds self to the nearest real number. There are 4
-#         rounding modes. They are
-
-#         EXAMPLES:
-#             RNDN -- round to nearest:
-
-#             sage: R = RealIntervalField(20,False,'RNDN')
-#             sage: R(22.454)
-#             22.454
-#             sage: R(22.491)
-#             22.490
-
-#             RNDZ -- round towards zero:
-#             sage: R = RealIntervalField(20,False,'RNDZ')
-#             sage: R(22.454)
-#             22.453
-#             sage: R(22.491)
-#             22.490
-
-#             RNDU -- round towards plus infinity:
-#             sage: R = RealIntervalField(20,False,'RNDU')
-#             sage: R(22.454)
-#             22.454
-#             sage: R(22.491)
-#             22.491
-
-#             RNDU -- round towards minus infinity:
-#             sage: R = RealIntervalField(20,False,'RNDD')
-#             sage: R(22.454)
-#             22.453
-#             sage: R(22.491)
-#             22.490
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_round(x.value, self.value)
-#         return x
-
     def floor(self):
         """
-        Return the floor of ``self``.
+        Return the floor of this interval as an interval
+
+        The floor of a real number `x` is the largest integer smaller than or
+        equal to `x`.
+
+        .. SEEALSO::
+
+            - :meth:`unique_floor` -- method which returns the floor as an integer
+              if it is unique or raises a ``ValueError`` otherwise.
+            - :meth:`ceil` -- truncation towards plus infinity
+            - :meth:`round` -- rounding
+            - :meth:`trunc` -- truncation towards zero
 
         EXAMPLES::
 
@@ -2904,11 +2930,18 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def ceil(self):
         """
-        Return the ceiling of ``self``.
+        Return the celing of this interval as an interval
 
-        OUTPUT:
+        The ceiling of a real number `x` is the smallest integer larger than or
+        equal to `x`.
 
-        integer
+        .. SEEALSO::
+
+            - :meth:`unique_ceil` -- return the ceil as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards minus infinity
+            - :meth:`trunc` -- truncation towards zero
+            - :meth:`round` -- rounding
 
         EXAMPLES::
 
@@ -2932,74 +2965,280 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     ceiling = ceil
 
-#     def trunc(self):
-#         """
-#         Truncates this number
+    def round(self):
+        r"""
+        Return the nearest integer of this interval as an interval
 
-#         EXAMPLES:
-#             sage: (2.99).trunc()
-#             2.00000000000000
-#             sage: (-0.00).trunc()
-#             -0.000000000000000
-#             sage: (0.00).trunc()
-#             0.000000000000000
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_trunc(x.value, self.value)
-#         return x
+        .. SEEALSO::
 
-#     def frac(self):
-#         """
-#         frac returns a real number > -1 and < 1. it satisfies the
-#         relation:
-#             x = x.trunc() + x.frac()
+            - :meth:`unique_round` -- return the round as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards `-\infty`
+            - :meth:`ceil` -- truncation towards `+\infty`
+            - :meth:`trunc` -- truncation towards `0`
 
-#         EXAMPLES:
-#             sage: (2.99).frac()
-#             0.990000000000000
-#             sage: (2.50).frac()
-#             0.500000000000000
-#             sage: (-2.79).frac()
-#             -0.790000000000000
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_frac(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         return x
+        EXAMPLES::
+
+            sage: RIF(7.2, 7.3).round()
+            7
+            sage: RIF(-3.2, -3.1).round()
+            -3
+
+        Be careful that the answer is not an integer but an interval::
+
+            sage: RIF(2.2, 2.3).round().parent()
+            Real Interval Field with 53 bits of precision
+
+        And in some cases, the lower and upper bounds of this interval do not
+        agree::
+
+            sage: r = RIF(2.5, 3.5).round()
+            sage: r
+            4.?
+            sage: r.lower()
+            3.00000000000000
+            sage: r.upper()
+            4.00000000000000
+        """
+        return self.parent()(self.lower().round(), self.upper().round())
+
+    def trunc(self):
+        r"""
+        Return the truncation of this interval as an interval
+
+        The truncation of `x` is the floor of `x` if `x` is non-negative or the
+        ceil of `x` if `x` is negative.
+
+        .. SEEALSO::
+
+            - :meth:`unique_trunc` -- return the trunc as an integer if it is
+              unique and raises a ``ValueError`` otherwise
+            - :meth:`floor` -- truncation towards `-\infty`
+            - :meth:`ceil` -- truncation towards `+\infty`
+            - :meth:`round` -- rounding
+
+        EXAMPLES::
+
+            sage: RIF(2.3, 2.7).trunc()
+            2
+            sage: parent(_)
+            Real Interval Field with 53 bits of precision
+
+            sage: RIF(-0.9, 0.9).trunc()
+            0
+            sage: RIF(-7.5, -7.3).trunc()
+            -7
+
+        In the above example, the obtained interval contains only one element.
+        But on the following it is not the case anymore::
+
+            sage: r = RIF(2.99, 3.01).trunc()
+            sage: r.upper()
+            3.00000000000000
+            sage: r.lower()
+            2.00000000000000
+        """
+        return self.parent()(self.lower().trunc(), self.upper().trunc())
+
+    def frac(self):
+        r"""
+        Return the fractional part of this interval as an interval.
+
+        The fractional part `y` of a real number `x` is the unique element in the
+        interval `(-1,1)` that has the same sign as `x` and such that `x-y` is
+        an integer. The integer `x-y` can be obtained through the method
+        :meth:`trunc`.
+
+        The output of this function is the smallest interval that contains all
+        possible values of `frac(x)` for `x` in this interval. Note that if it
+        contains an integer then the answer might not be very meaningful. More
+        precisely, if the endpoints are `a` and `b` then:
+
+        - if `floor(b) > \max(a,0)` then the interval obtained contains `[0,1]`,
+        - if `ceil(a) < \min(b,0)` then the interval obtained contains `[-1,0]`.
+
+        .. SEEALSO::
+
+            :meth:`trunc` -- return the integer part complement to this
+            fractional part
+
+        EXAMPLES::
+
+            sage: RIF(2.37123, 2.372).frac()
+            0.372?
+            sage: RIF(-23.12, -23.13).frac()
+            -0.13?
+
+            sage: RIF(.5, 1).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(1, 1.5).frac().endpoints()
+            (0.000000000000000, 0.500000000000000)
+
+            sage: r = RIF(-22.47, -22.468)
+            sage: r in (r.frac() + r.trunc())
+            True
+
+            sage: r = RIF(18.222, 18.223)
+            sage: r in (r.frac() + r.trunc())
+            True
+
+            sage: RIF(1.99, 2.025).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(1.99, 2.00).frac().endpoints()
+            (0.000000000000000, 1.00000000000000)
+            sage: RIF(2.00, 2.025).frac().endpoints()
+            (0.000000000000000, 0.0250000000000000)
+
+            sage: RIF(-2.1,-0.9).frac().endpoints()
+            (-1.00000000000000, -0.000000000000000)
+            sage: RIF(-0.5,0.5).frac().endpoints()
+            (-0.500000000000000, 0.500000000000000)
+        """
+        a = self.lower()
+        b = self.upper()
+        P = self.parent()
+        r = P(a.frac(), b.frac())
+        if b.floor() > max(a,0):
+            r = r.union(P(0, 1))
+        if a.ceil() < min(b,0):
+            r = r.union(P(-1, 0))
+        return r
 
     ###########################################
     # Conversions
     ###########################################
 
-#     def __float__(self):
-#         return mpfr_get_d(self.value, (<RealIntervalField>self._parent).rnd)
+    def _mpfr_(self, RealField_class field):
+        """
+        Convert to a real field, honoring the rounding mode of the
+        real field.
 
-#     def __int__(self):
-#         """
-#         Returns integer truncation of this real number.
-#         """
-#         s = self.str(32)
-#         i = s.find('.')
-#         return int(s[:i], 32)
+        EXAMPLES::
 
-#     def __long__(self):
-#         """
-#         Returns long integer truncation of this real number.
-#         """
-#         s = self.str(32)
-#         i = s.find('.')
-#         return long(s[:i], 32)
+            sage: a = RealIntervalField(30)("1.2")
+            sage: RR(a)
+            1.20000000018626
+            sage: b = RIF(-1, 3)
+            sage: RR(b)
+            1.00000000000000
 
-#     def __complex__(self):
-#         return complex(float(self))
+        With different rounding modes::
 
-#     def _complex_number_(self):
-#         return sage.rings.complex_field.ComplexField(self.prec())(self)
+            sage: RealField(53, rnd="RNDU")(a)
+            1.20000000111759
+            sage: RealField(53, rnd="RNDD")(a)
+            1.19999999925494
+            sage: RealField(53, rnd="RNDZ")(a)
+            1.19999999925494
+            sage: RealField(53, rnd="RNDU")(b)
+            3.00000000000000
+            sage: RealField(53, rnd="RNDD")(b)
+            -1.00000000000000
+            sage: RealField(53, rnd="RNDZ")(b)
+            0.000000000000000
+        """
+        cdef RealNumber x = field._new()
+        if field.rnd == MPFR_RNDN:
+            mpfi_mid(x.value, self.value)
+        elif field.rnd == MPFR_RNDD:
+            mpfi_get_left(x.value, self.value)
+        elif field.rnd == MPFR_RNDU:
+            mpfi_get_right(x.value, self.value)
+        elif field.rnd == MPFR_RNDZ:
+            if mpfi_is_strictly_pos(self.value):    # interval is > 0
+                mpfi_get_left(x.value, self.value)
+            elif mpfi_is_strictly_neg(self.value):  # interval is < 0
+                mpfi_get_right(x.value, self.value)
+            else:
+                mpfr_set_zero(x.value, 1)                   # interval contains 0
+        elif field.rnd == MPFR_RNDA:
+            # return the endpoint which is furthest from 0
+            lo, hi = self.endpoints()
+            if hi.abs() >= lo.abs():
+                mpfi_get_right(x.value, self.value)
+            else:
+                mpfi_get_left(x.value, self.value)
+        else:
+            raise AssertionError("%s has unknown rounding mode"%field)
+        return x
 
-#     def _pari_(self):
-#         return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealIntervalField>self._parent).__prec)
+    def unique_sign(self):
+        r"""
+        Return the sign of this element if it is well defined.
 
+        This method returns `+1` if all elements in this interval are positive,
+        `-1` if all of them are negative and `0` if it contains only zero.
+        Otherwise it raises a ``ValueError``.
+
+        EXAMPLES::
+
+            sage: RIF(1.2,5.7).unique_sign()
+            1
+            sage: RIF(-3,-2).unique_sign()
+            -1
+            sage: RIF(0).unique_sign()
+            0
+            sage: RIF(0,1).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+            sage: RIF(-1,0).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+            sage: RIF(-0.1, 0.1).unique_sign()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique sign
+        """
+        if mpfi_is_zero(self.value):
+            return 0
+        elif mpfi_is_strictly_pos(self.value):
+            return 1
+        elif mpfi_is_strictly_neg(self.value):
+            return -1
+        else:
+            raise ValueError("interval does not have a unique sign")
+
+    def argument(self):
+        r"""
+        The argument of this interval, if it is well-defined, in the
+        complex sense. Otherwise raises a ``ValueError``.
+        
+        OUTPUT:
+        
+        - an element of the parent of this interval (0 or pi)
+        
+        EXAMPLES::
+        
+            sage: RIF(1).argument()
+            0
+            sage: RIF(-1).argument()
+            3.141592653589794?
+            sage: RIF(0,1).argument()
+            0
+            sage: RIF(-1,0).argument()
+            3.141592653589794?
+            sage: RIF(0).argument()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't take the argument of an exact zero
+            sage: RIF(-1,1).argument()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't take the argument of interval strictly containing zero
+
+        """
+        k=self.parent()
+        if mpfi_is_zero(self.value):
+            raise ValueError("Can't take the argument of an exact zero")
+        if mpfi_is_nonneg(self.value):
+            return k.zero()
+        elif mpfi_is_nonpos(self.value):
+            return k.pi()
+        else:
+            raise ValueError("Can't take the argument of interval strictly containing zero")
+ 
     def unique_floor(self):
         """
         Returns the unique floor of this interval, if it is well defined,
@@ -3008,6 +3247,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         OUTPUT:
 
         - an integer.
+
+        .. SEEALSO::
+
+            :meth:`floor` -- return the floor as an interval (and never raise
+            error)
 
         EXAMPLES::
 
@@ -3035,6 +3279,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         - an integer.
 
+        .. SEEALSO::
+
+            :meth:`ceil` -- return the ceil as an interval (and never raise
+            error)
+
         EXAMPLES::
 
             sage: RIF(pi).unique_ceil()
@@ -3060,6 +3309,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         OUTPUT:
 
         - an integer.
+
+        .. SEEALSO::
+
+            :meth:`round` -- return the round as an interval (and never raise
+            error)
 
         EXAMPLES::
 
@@ -3111,6 +3365,38 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         else:
             raise ValueError("interval does not have a unique round (nearest integer)")
 
+    def unique_trunc(self):
+        r"""
+        Return the nearest integer toward zero if it is unique, otherwise raise
+        a ``ValueError``.
+
+        .. SEEALSO::
+
+            :meth:`trunc` -- return the truncation as an interval (and never
+            raise error)
+
+        EXAMPLES::
+
+            sage: RIF(1.3,1.4).unique_trunc()
+            1
+            sage: RIF(-3.3, -3.2).unique_trunc()
+            -3
+            sage: RIF(2.9,3.2).unique_trunc()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique trunc (nearest integer toward zero)
+            sage: RIF(-3.1,-2.9).unique_trunc()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique trunc (nearest integer toward zero)
+        """
+        a = self.lower().trunc()
+        b = self.upper().trunc()
+        if a == b:
+            return a
+        else:
+            raise ValueError("interval does not have a unique trunc (nearest integer toward zero)")
+
     def unique_integer(self):
         """
         Return the unique integer in this interval, if there is exactly one,
@@ -3135,9 +3421,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if a == b:
             return a
         elif a < b:
-            raise ValueError, "interval contains more than one integer"
+            raise ValueError("interval contains more than one integer")
         else:
-            raise ValueError, "interval contains no integer"
+            raise ValueError("interval contains no integer")
 
     def simplest_rational(self, low_open=False, high_open=False):
         """
@@ -3180,7 +3466,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         if mpfr_equal_p(&self.value.left, &self.value.right):
             if low_open or high_open:
-                raise ValueError, 'simplest_rational() on open, empty interval'
+                raise ValueError('simplest_rational() on open, empty interval')
             return self.lower().exact_rational()
 
         if mpfi_has_zero(self.value):
@@ -3259,11 +3545,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return mpfi_nan_p(self.value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
-        Rich comparison between ``left`` and ``right``.
+        Implements comparisons between intervals.
 
-        For more information, see :mod:`sage.rings.real_mpfi`.
+        (See the file header
+        comment for more information on interval comparison.)
 
         EXAMPLES::
 
@@ -3283,13 +3570,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             False
             sage: RIF(0, 2) > RIF(2, 3)
             False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef _richcmp_c_impl(left, Element right, int op):
-        """
-        Implements comparisons between intervals. (See the file header
-        comment for more information on interval comparison.)
 
         EXAMPLES::
 
@@ -3443,22 +3723,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         lt = left
         rt = right
 
-        if op == 0: #<
+        if op == Py_LT:  # <
             return mpfr_less_p(&lt.value.right, &rt.value.left)
-        elif op == 2: #==
-            # a == b iff a<=b and b <= a
+        elif op == Py_EQ:  # ==
+            # a == b iff a <= b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left) \
                 and mpfr_lessequal_p(&rt.value.right, &lt.value.left)
-        elif op == 4: #>
+        elif op == Py_GT:  # >
             return mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 1: #<=
+        elif op == Py_LE:  # <=
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left)
-        elif op == 3: #!=
+        elif op == Py_NE:  # !=
             return mpfr_less_p(&lt.value.right, &rt.value.left) \
                 or mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 5: #>=
+        elif op == Py_GE:  # >=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
     def __nonzero__(self):
@@ -3467,20 +3747,20 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RIF(0).__nonzero__()
+            sage: bool(RIF(0))
             False
-            sage: RIF(1).__nonzero__()
+            sage: bool(RIF(1))
             True
-            sage: RIF(1, 2).__nonzero__()
+            sage: bool(RIF(1, 2))
             True
-            sage: RIF(0, 1).__nonzero__()
+            sage: bool(RIF(0, 1))
             True
-            sage: RIF(-1, 1).__nonzero__()
+            sage: bool(RIF(-1, 1))
             True
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two intervals lexicographically.
 
@@ -3507,12 +3787,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: cmp(RIF(0, 1), RIF(0, 1/2))
             1
-        """
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        Implements the lexicographic total order on intervals.
         """
         cdef RealIntervalFieldElement lt, rt
 
@@ -3556,10 +3830,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         cdef RealIntervalFieldElement other_intv
         cdef RealNumber other_rn
-        if PY_TYPE_CHECK(other, RealIntervalFieldElement):
+        if isinstance(other, RealIntervalFieldElement):
             other_intv = other
             return mpfi_is_inside(other_intv.value, self.value)
-        elif PY_TYPE_CHECK(other, RealNumber):
+        elif isinstance(other, RealNumber):
             other_rn = other
             return mpfi_is_inside_fr(other_rn.value, self.value)
         try:
@@ -3628,7 +3902,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         cdef RealIntervalFieldElement x
         x = self._new()
         cdef RealIntervalFieldElement other_intv
-        if PY_TYPE_CHECK(other, RealIntervalFieldElement):
+        if isinstance(other, RealIntervalFieldElement):
             other_intv = other
         else:
             # Let type errors from _coerce_ propagate...
@@ -3636,7 +3910,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         mpfi_intersect(x.value, self.value, other_intv.value)
         if mpfr_less_p(&x.value.right, &x.value.left):
-            raise ValueError, "intersection of non-overlapping intervals"
+            raise ValueError("intersection of non-overlapping intervals")
         return x
 
     def union(self, other):
@@ -3660,10 +3934,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         x = self._new()
         cdef RealIntervalFieldElement other_intv
         cdef RealNumber other_rn
-        if PY_TYPE_CHECK(other, RealIntervalFieldElement):
+        if isinstance(other, RealIntervalFieldElement):
             other_intv = other
             mpfi_union(x.value, self.value, other_intv.value)
-        elif PY_TYPE_CHECK(other, RealNumber):
+        elif isinstance(other, RealNumber):
             other_rn = other
             mpfi_set(x.value, self.value)
             mpfi_put_fr(x.value, other_rn.value)
@@ -3673,13 +3947,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_union(x.value, self.value, other_intv.value)
         return x
 
-    def min(self, _other):
+    def min(self, *_others):
         """
-        Return an interval containing the minimum of ``self`` and ``other``.
+        Return an interval containing the minimum of ``self`` and the
+        arguments.
 
         EXAMPLES::
 
-            sage: a=RIF(-1, 1).min(0).endpoints()
+            sage: a = RIF(-1, 1).min(0).endpoints()
             sage: a[0] == -1.0 and a[1].abs() == 0.0 # in MPFI, the sign of 0.0 is not specified
             True
             sage: RIF(-1, 1).min(pi).endpoints()
@@ -3688,6 +3963,30 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             (-100.000000000000, 1.00000000000000)
             sage: RIF(-1, 1).min(RIF(-100, 0)).endpoints()
             (-100.000000000000, 0.000000000000000)
+            sage: RIF(-1, 1).min(RIF(-100, 2), RIF(-200, -3)).endpoints()
+            (-200.000000000000, -3.00000000000000)
+
+        Note that if the minimum is one of the given elements,
+        that element will be returned. ::
+
+            sage: a = RIF(-1, 1)
+            sage: b = RIF(2, 3)
+            sage: c = RIF(3, 4)
+            sage: c.min(a, b) is a
+            True
+            sage: b.min(a, c) is a
+            True
+            sage: a.min(b, c) is a
+            True
+
+        It might also be convenient to call the method as a function::
+
+            sage: from sage.rings.real_mpfi import RealIntervalFieldElement
+            sage: RealIntervalFieldElement.min(a, b, c) is a
+            True
+            sage: elements = [a, b, c]
+            sage: RealIntervalFieldElement.min(*elements) is a
+            True
 
         The generic min does not always do the right thing::
 
@@ -3695,24 +3994,70 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: min(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
-        """
-        cdef RealIntervalFieldElement other
-        if isinstance(_other, RealIntervalFieldElement):
-            other = <RealIntervalFieldElement>_other
-        else:
-            other = self._parent(_other)
-        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
-            return self
-        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
-            return other
-        cdef RealIntervalFieldElement x = self._new()
-        mpfr_min(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
-        mpfr_min(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
-        return x
 
-    def max(self, _other):
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RIF('nan').min(2, 1)
+            1
+            sage: RIF(-1/3).min(RIF('nan'))
+            -0.3333333333333334?
+            sage: RIF('nan').min(RIF('nan'))
+            [.. NaN ..]
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.max`
+
+        TESTS::
+
+            sage: a.min('x')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'x' to real interval
         """
-        Return an interval containing the maximum of ``self`` and ``other``.
+        cdef RealIntervalFieldElement constructed
+        cdef RealIntervalFieldElement result
+        cdef RealIntervalFieldElement other
+        cdef bint initialized
+
+        initialized = False
+        result = self
+
+        for _other in _others:
+            if isinstance(_other, RealIntervalFieldElement):
+                other = <RealIntervalFieldElement>_other
+            else:
+                other = self._parent(_other)
+
+            if result.is_NaN():
+                result = other
+            elif other.is_NaN():
+                pass
+            elif mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+                pass
+            elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
+                result = other
+            else:
+                if not initialized:
+                    constructed = self._new()
+                    initialized = True
+                mpfr_min(&constructed.value.left,
+                         &result.value.left,
+                         &other.value.left,
+                         MPFR_RNDD)
+                mpfr_min(&constructed.value.right,
+                         &result.value.right,
+                         &other.value.right,
+                         MPFR_RNDU)
+                result = constructed
+
+        return result
+
+    def max(self, *_others):
+        """
+        Return an interval containing the maximum of ``self`` and the
+        arguments.
 
         EXAMPLES::
 
@@ -3722,6 +4067,30 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             (2.00000000000000, 3.00000000000000)
             sage: RIF(-1, 1).max(RIF(-100, 100)).endpoints()
             (-1.00000000000000, 100.000000000000)
+            sage: RIF(-1, 1).max(RIF(-100, 100), RIF(5, 10)).endpoints()
+            (5.00000000000000, 100.000000000000)
+
+        Note that if the maximum is one of the given elements,
+        that element will be returned. ::
+
+            sage: a = RIF(-1, 1)
+            sage: b = RIF(2, 3)
+            sage: c = RIF(3, 4)
+            sage: c.max(a, b) is c
+            True
+            sage: b.max(a, c) is c
+            True
+            sage: a.max(b, c) is c
+            True
+
+        It might also be convenient to call the method as a function::
+
+            sage: from sage.rings.real_mpfi import RealIntervalFieldElement
+            sage: RealIntervalFieldElement.max(a, b, c) is c
+            True
+            sage: elements = [a, b, c]
+            sage: RealIntervalFieldElement.max(*elements) is c
+            True
 
         The generic max does not always do the right thing::
 
@@ -3729,20 +4098,66 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: max(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
+
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RIF('nan').max(1, 2)
+            2
+            sage: RIF(-1/3).max(RIF('nan'))
+            -0.3333333333333334?
+            sage: RIF('nan').max(RIF('nan'))
+            [.. NaN ..]
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.min`
+
+        TESTS::
+
+            sage: a.max('x')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'x' to real interval
         """
+        cdef RealIntervalFieldElement constructed
+        cdef RealIntervalFieldElement result
         cdef RealIntervalFieldElement other
-        if isinstance(_other, RealIntervalFieldElement):
-            other = <RealIntervalFieldElement>_other
-        else:
-            other = self._parent(_other)
-        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
-            return other
-        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
-            return self
-        cdef RealIntervalFieldElement x = self._new()
-        mpfr_max(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
-        mpfr_max(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
-        return x
+        cdef bint initialized
+
+        initialized = False
+        result = self
+
+        for _other in _others:
+            if isinstance(_other, RealIntervalFieldElement):
+                other = <RealIntervalFieldElement>_other
+            else:
+                other = self._parent(_other)
+
+            if result.is_NaN():
+                result = other
+            elif other.is_NaN():
+                pass
+            elif mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+                result = other
+            elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
+                pass
+            else:
+                if not initialized:
+                    constructed = self._new()
+                    initialized = True
+
+                mpfr_max(&constructed.value.left,
+                         &result.value.left,
+                         &other.value.left,
+                         MPFR_RNDD)
+                mpfr_max(&constructed.value.right,
+                         &result.value.right,
+                         &other.value.right,
+                         MPFR_RNDU)
+                result = constructed
+
+        return result
 
     ############################
     # Special Functions
@@ -3796,7 +4211,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 ValueError: self (=0.?e1) is not >= 0
             """
         if self.lower() < 0:
-            raise ValueError, "self (=%s) is not >= 0"%self
+            raise ValueError("self (=%s) is not >= 0" % self)
         return self.square_root()
 
 
@@ -3822,66 +4237,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         sig_off()
         return x
 
-# MPFI does not have cbrt.
-#     def cube_root(self):
-#         """
-#         Return the cubic root (defined over the real numbers) of self.
-
-#         EXAMPLES:
-#             sage: r = 125.0; r.cube_root()
-#             5.00000000000000
-#             sage: r = -119.0
-#             sage: r.cube_root()^3 - r       # illustrates precision loss
-#             -0.0000000000000142108547152020
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_cbrt(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         return x
-
-# MPFI does not have pow.
-#     def __pow(self, RealIntervalFieldElement exponent):
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfr_pow(x.value, self.value, exponent.value, (<RealIntervalField>self._parent).rnd)
-#         sig_off()
-#         if mpfr_nan_p(x.value):
-#             return self._complex_number_()**exponent._complex_number_()
-#         return x
-
-#     def __pow__(self, exponent, modulus):
-#         """
-#         Compute self raised to the power of exponent, rounded in
-#         the direction specified by the parent of self.
-
-#         If the result is not a real number, self and the exponent are
-#         both coerced to complex numbers (with sufficient precision),
-#         then the exponentiation is computed in the complex numbers.
-#         Thus this function can return either a real or complex number.
-
-#         EXAMPLES:
-#             sage: R = RealIntervalField(30)
-#             sage: a = R('1.23456')
-#             sage: a^20
-#             67.646297
-#             sage: a^a
-#             1.2971114
-#             sage: b = R(-1)
-#             sage: b^(1/2)
-#             1.0000000*I                   # 32-bit
-#             -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
-#         """
-#         cdef RealIntervalFieldElement x
-#         if not PY_TYPE_CHECK(self, RealIntervalFieldElement):
-#             return self.__pow__(float(exponent))
-#         if not PY_TYPE_CHECK(exponent, RealIntervalFieldElement):
-#             x = self
-#             exponent = x._parent(exponent)
-#         return self.__pow(exponent)
-
     def __pow__(self, exponent, modulus):
         """
         Raise ``self`` to ``exponent``.
@@ -3900,10 +4255,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
             if r == 0: # x^(2q) = (x^q)^2
-               xq = sage.rings.ring_element.RingElement.__pow__(self, q)
+               xq = RingElement.__pow__(self, q)
                return xq.abs().square()
             else:
-               return sage.rings.ring_element.RingElement.__pow__(self, exponent)
+               return RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
 
@@ -4521,7 +4876,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         return (~self).arctanh()
 
     def algdep(self, n):
-        """
+        r"""
         Returns a polynomial of degree at most `n` which is
         approximately satisfied by ``self``.
 
@@ -4578,7 +4933,32 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         known_bits = -self.relative_diameter().log2()
 
-        return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        return sage.arith.all.algdep(self.center(), n, known_bits=known_bits)
+
+    def factorial(self):
+        """
+        Return the factorial evaluated on ``self``.
+
+        EXAMPLES::
+
+            sage: RIF(5).factorial()
+            120
+            sage: RIF(2.3,5.7).factorial()
+            1.?e3
+            sage: RIF(2.3).factorial()
+            2.683437381955768?
+
+        Recover the factorial as integer::
+
+            sage: f = RealIntervalField(200)(50).factorial()
+            sage: f
+            3.0414093201713378043612608166064768844377641568960512000000000?e64
+            sage: f.unique_integer()
+            30414093201713378043612608166064768844377641568960512000000000000
+            sage: 50.factorial()
+            30414093201713378043612608166064768844377641568960512000000000000
+        """
+        return (self+1).gamma()
 
     def gamma(self):
         """
@@ -4629,8 +5009,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         cdef RealIntervalFieldElement x = self._new()
         if self > 1.462:
             # increasing
-            mpfr_gamma(&x.value.left, &self.value.left, GMP_RNDD)
-            mpfr_gamma(&x.value.right, &self.value.right, GMP_RNDU)
+            mpfr_gamma(&x.value.left, &self.value.left, MPFR_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.right, MPFR_RNDU)
             return x
         elif self < 0:
             # Gamma(s) Gamma(1-s) = pi/sin(pi s)
@@ -4641,12 +5021,35 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return ~self
         elif self < 1.461:
             # 0 < self as well, so decreasing
-            mpfr_gamma(&x.value.left, &self.value.right, GMP_RNDD)
-            mpfr_gamma(&x.value.right, &self.value.left, GMP_RNDU)
+            mpfr_gamma(&x.value.left, &self.value.right, MPFR_RNDD)
+            mpfr_gamma(&x.value.right, &self.value.left, MPFR_RNDU)
             return x
         else:
             # Worst case, this will recurse twice, as self is positive.
             return (1+self).gamma() / self
+
+    def psi(self):
+        """
+        Return the digamma function evaluated on self.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A :class:`RealIntervalFieldElement`.
+
+        EXAMPLES::
+
+            sage: psi_1 = RIF(1).psi()
+            sage: psi_1
+            -0.577215664901533?
+            sage: psi_1.overlaps(-RIF.euler_constant())
+            True
+        """
+        from sage.rings.real_arb import RealBallField
+        return RealBallField(self.precision())(self).psi()._real_mpfi_(self._parent)
 
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):
@@ -4707,49 +5110,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         sig_off()
 #         return x
 
-#     def zeta(self):
-#         r"""
-#         Return the Riemann zeta function evaluated at this real number.
+    def zeta(self, a=None):
+        """
+        Return the image of this interval by the Hurwitz zeta function.
 
-#         \note{PARI is vastly more efficient at computing the Riemann zeta
-#         function.   See the example below for how to use it.}
+        For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
 
-#         EXAMPLES::
-#
-#             sage: R = RealIntervalField()
-#             sage: R(2).zeta()
-#             1.64493406684822
-#             sage: R.pi()^2/6
-#             1.64493406684822
-#             sage: R(-2).zeta()
-#             0.000000000000000
-#             sage: R(1).zeta()
-#             +infinity
+        EXAMPLES::
 
-#         Computing zeta using PARI is much more efficient in difficult cases.
-#         Here's how to compute zeta with at least a given precision:
-
-#              sage: z = pari.new_with_bits_prec(2, 53).zeta(); z
-#              1.644934066848226436472415167              # 32-bit
-#              1.6449340668482264364724151666460251892    # 64-bit
-
-#         Note that the number of bits of precision in the constructor only
-#         affects the internal precision of the pari number, not the number
-#         of digits that gets displayed.  To increase that you must
-#         use \code{pari.set_real_precision}.
-
-#              sage: type(z)
-#              <type 'sage.libs.pari.gen.gen'>
-#              sage: R(z)
-#              1.64493406684822
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         sig_on()
-#         mpfi_zeta(x.value, self.value)
-#         sig_off()
-#         return x
-
+            sage: zeta(RIF(3))
+            1.202056903159594?
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+            sage: RIF(3).zeta(1/2)
+            8.41439832211716?
+        """
+        from sage.rings.real_arb import RealBallField
+        return RealBallField(self.precision())(self).zeta(a).\
+            _real_mpfi_(self._parent)
 
 def _simplest_rational_test_helper(low, high, low_open=False, high_open=False):
     """
@@ -4877,11 +5255,11 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
 
         sage: ks = 5*10**5, 10**6
         sage: for k in ks:
-        ...      try:
-        ...          z = RealInterval("1." + "1"*k)
-        ...          assert len(str(z))-4 >= k
-        ...      except TypeError:
-        ...          pass
+        ....:    try:
+        ....:        z = RealInterval("1." + "1"*k)
+        ....:        assert len(str(z))-4 >= k
+        ....:    except TypeError:
+        ....:        pass
 
     """
     if not isinstance(s, str):
@@ -4908,7 +5286,7 @@ def is_RealIntervalField(x):
         sage: sage.rings.real_mpfi.is_RealIntervalField(RealIntervalField(200))
         True
     """
-    return PY_TYPE_CHECK(x, RealIntervalField_class)
+    return isinstance(x, RealIntervalField_class)
 
 def is_RealIntervalFieldElement(x):
     """
@@ -4921,7 +5299,7 @@ def is_RealIntervalFieldElement(x):
         sage: sage.rings.real_mpfi.is_RealIntervalFieldElement(RealIntervalField(200)(2.2))
         True
     """
-    return PY_TYPE_CHECK(x, RealIntervalFieldElement)
+    return isinstance(x, RealIntervalFieldElement)
 
 
 #### pickle functions

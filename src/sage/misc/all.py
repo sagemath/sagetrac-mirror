@@ -1,97 +1,87 @@
-from lazy_attribute import lazy_attribute, lazy_class_attribute
-from lazy_import import lazy_import
+from __future__ import absolute_import
+from .lazy_attribute import lazy_attribute, lazy_class_attribute
+from .lazy_import import lazy_import
 
-from misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
+from .misc import (BackslashOperator, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
-                  version, banner, add, union, uniq, powerset, subsets,
+                  union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
-                  random_sublist, mul, walltime, generic_cmp,
+                  random_sublist, walltime, generic_cmp,
                   repr_lincomb,
                   pad_zeros, attrcall,
                   SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, newton_method_sizes, compose,
+                  newton_method_sizes, compose,
                   self_compose, nest)
 
-from temporary_file import tmp_dir, tmp_filename
+from .banner import version, banner
 
-from misc_c import prod, running_total, balanced_sum
+from .temporary_file import tmp_dir, tmp_filename
 
-from dev_tools import runsnake, import_statements
+from .misc_c import prod, running_total, balanced_sum
+mul = prod
+add = sum
 
-from html import html
+from .dev_tools import runsnake, import_statements
 
-from table import table
+from .html import html
 
-from sage_timeit_class import timeit
+from .table import table
 
-from edit_module import edit, set_edit_template
+from .sage_timeit_class import timeit
 
-from flatten import flatten
+from .edit_module import edit, set_edit_template
 
-from map_threaded import map_threaded
+from .flatten import flatten
 
-from session import load_session, save_session, show_identifiers
+from .map_threaded import map_threaded
 
-from remote_file import get_remote_file
+from .session import load_session, save_session, show_identifiers
 
-from profiler import Profiler
+from .remote_file import get_remote_file
 
-from mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product_iterator
+from .profiler import Profiler
 
-from fpickle import pickle_function, unpickle_function
+from .mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product_iterator
 
-# deprecated
-#from bug import bug
+from .fpickle import pickle_function, unpickle_function
 
-from dist import install_scripts
+from .dist import install_scripts
 
-from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
+from .package import (installed_packages, is_package_installed,
+        standard_packages, optional_packages, experimental_packages,
+        package_versions)
 
-from pager import pager
+from .pager import pager
 
-from sagedoc import (search_src, search_def, search_doc, browse_sage_doc,
-                     tutorial, reference, manual, developer, constructions,
-                     python_help, help)
+lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
+        'search_src', 'search_def', 'search_doc',
+        'tutorial', 'reference', 'manual', 'developer',
+        'constructions', 'python_help', 'help'])
 
-from classgraph import class_graph
+from .classgraph import class_graph
 
-from reset import reset, restore
+from .reset import reset, restore
 
-from getusage import top, get_memory_usage
+from .getusage import top, get_memory_usage
 
-from log import log_html, log_dvi, log_text
+from .mathml import mathml
 
-from mathml import mathml
+from .defaults import (set_default_variable_name,
+                        series_precision, set_series_precision)
 
-from defaults import set_default_variable_name
+from .sage_eval import sage_eval, sageobj
 
-from preparser import preparse, implicit_multiplication, BackslashOperator
+from .sage_input import sage_input
 
-lazy_import('sage.misc.attached_files', [
-        'attach', 'detach', 'attached_files', 'load_attach_path',
-        'reset_load_attach_path', 'load_attach_mode'])
+lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"]) 
+lazy_import("sage.misc.cython_c", "cython_compile", "cython")
 
-from interpreter import preparser
+from .persist import save, load, dumps, loads, db, db_save
 
-from sage_eval import sage_eval, sageobj
+from .func_persist import func_persist
 
-from sage_input import sage_input
-
-from cython import cython_lambda, cython_create_local_so
-from cython_c import cython
-pyrex = cython # synonym -- for now
-sagex = cython # synonym -- for now
-
-from prun import prun
-
-from persist import save, load, dumps, loads, db, db_save
-
-from func_persist import func_persist
-
-from functional import (additive_order,
-                        sqrt as numerical_sqrt,
+from .functional import (additive_order,
                         base_ring,
                         base_field,
                         basis,
@@ -108,13 +98,10 @@ from functional import (additive_order,
                         discriminant,
                         disc,
                         eta,
-                        exp,
-                        factor,
                         fcp,
                         gen,
                         gens,
                         hecke_operator,
-                        ideal,
                         image,
                         integral, integrate,
                         integral_closure,
@@ -128,6 +115,7 @@ from functional import (additive_order,
                         kernel,
                         krull_dimension,
                         lift,
+                        log as log_b,
                         minimal_polynomial,
                         minpoly,
                         multiplicative_order,
@@ -138,46 +126,42 @@ from functional import (additive_order,
                         n, N,
                         objgens,
                         objgen,
-                        one,
                         order,
                         rank,
                         regulator,
                         round,
                         quotient,
                         quo,
-                        show,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
                         transpose,
-                        zero,
-                        log as log_b,
-                        parent)
+                        )
 
 
-from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
+from .latex import LatexExpr, latex, view, pretty_print_default
 
-from trace import trace
+from .trace import trace
 
-from constant_function import ConstantFunction
+from .constant_function import ConstantFunction
 
-from cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method, disk_cached_function
+from .cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method, disk_cached_function
 
-from abstract_method import abstract_method
+from .abstract_method import abstract_method
 
-from randstate import seed, set_random_seed, initial_seed, current_randstate
+from .randstate import seed, set_random_seed, initial_seed, current_randstate
 
-from prandom import *
+from .prandom import *
 
-from sage_unittest import TestSuite
+from .sage_unittest import TestSuite
 
-from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
+from .explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
 
-from bitset import FrozenBitset, Bitset
+from .decorators import specialize, sage_wraps, infix_operator
 
-from decorators import specialize, sage_wraps, infix_operator
+from .unknown import Unknown
 
-from unknown import Unknown
+lazy_import('sage.misc.inline_fortran', 'fortran')
 
 ##########################################################################
 def benchmark(n=-1):
@@ -208,8 +192,3 @@ class logstr(str):
         elif not '~' in self:
          delim = '~'
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
-
-
-import messaging
-
-from ascii_art import ascii_art

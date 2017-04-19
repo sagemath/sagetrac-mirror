@@ -18,7 +18,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from six import iteritems
 
 from sage.misc.misc import walltime, cputime
 
@@ -79,7 +80,7 @@ def dict_difference(self, other):
         {'foobar': 'hello', 'timeout': 100}
     """
     D = dict()
-    for (k,v) in self.iteritems():
+    for k, v in iteritems(self):
         try:
             if other[k] == v:
                 continue
@@ -103,6 +104,8 @@ class Timer:
     def start(self):
         """
         Start the timer.
+
+        Can be called multiple times to reset the timer.
 
         EXAMPLES::
 
@@ -204,20 +207,20 @@ class RecordingDict(dict):
         sage: from sage.doctest.util import RecordingDict
         sage: D = RecordingDict(test=17)
         sage: D.got
-        set([])
+        set()
         sage: D['test']
         17
         sage: D.got
-        set(['test'])
+        {'test'}
         sage: D.set
-        set([])
+        set()
         sage: D['a'] = 1
         sage: D['a']
         1
         sage: D.set
-        set(['a'])
+        {'a'}
         sage: D.got
-        set(['test'])
+        {'test'}
 
     TESTS::
 
@@ -232,7 +235,7 @@ class RecordingDict(dict):
             sage: from sage.doctest.util import RecordingDict
             sage: D = RecordingDict(d = 42)
             sage: D.got
-            set([])
+            set()
         """
         dict.__init__(self, *args, **kwds)
         self.start()
@@ -247,12 +250,12 @@ class RecordingDict(dict):
             sage: from sage.doctest.util import RecordingDict
             sage: D = RecordingDict(d = 42)
             sage: D.set
-            set([])
+            set()
             sage: D['a'] = 4
             sage: D.set
-            set(['a'])
+            {'a'}
             sage: D.start(); D.set
-            set([])
+            set()
         """
         self.set = set([])
         self.got = set([])
@@ -265,15 +268,15 @@ class RecordingDict(dict):
             sage: D = RecordingDict(d = 42)
             sage: D['a'] = 4
             sage: D.got
-            set([])
+            set()
             sage: D['a'] # indirect doctest
             4
             sage: D.got
-            set([])
+            set()
             sage: D['d']
             42
             sage: D.got
-            set(['d'])
+            {'d'}
         """
         if name not in self.set:
             self.got.add(name)
@@ -287,7 +290,7 @@ class RecordingDict(dict):
             sage: D = RecordingDict(d = 42)
             sage: D['a'] = 4 # indirect doctest
             sage: D.set
-            set(['a'])
+            {'a'}
         """
         self.set.add(name)
         dict.__setitem__(self, name, value)
@@ -300,7 +303,7 @@ class RecordingDict(dict):
             sage: D = RecordingDict(d = 42)
             sage: del D['d'] # indirect doctest
             sage: D.set
-            set(['d'])
+            {'d'}
         """
         self.set.add(name)
         dict.__delitem__(self, name)
@@ -314,7 +317,7 @@ class RecordingDict(dict):
             sage: D.get('d')
             42
             sage: D.got
-            set(['d'])
+            {'d'}
             sage: D.get('not_here')
             sage: sorted(list(D.got))
             ['d', 'not_here']
@@ -333,10 +336,10 @@ class RecordingDict(dict):
             sage: D = RecordingDict(d = 42)
             sage: D['a'] = 4
             sage: D.set
-            set(['a'])
+            {'a'}
             sage: E = D.copy()
             sage: E.set
-            set([])
+            set()
             sage: sorted(E.keys())
             ['a', 'd']
         """
@@ -354,7 +357,7 @@ class RecordingDict(dict):
             sage: D.get('not_here')
             sage: E = loads(dumps(D))
             sage: E.got
-            set(['not_here'])
+            {'not_here'}
         """
         return make_recording_dict, (dict(self), self.set, self.got)
 
@@ -369,7 +372,7 @@ def make_recording_dict(D, st, gt):
         sage: sorted(D.items())
         [('a', 4), ('d', 42)]
         sage: D.got
-        set(['not_here'])
+        {'not_here'}
     """
     ans = RecordingDict(D)
     ans.set = st
@@ -449,7 +452,7 @@ class NestedName:
             sage: str(qname) # indirect doctest
             'sage.categories.algebras.Algebras.at_the_end_of_the_universe'
         """
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(self):
         """
@@ -461,7 +464,7 @@ class NestedName:
             sage: qname = NestedName('sage.categories.algebras')
             sage: qname[1] = 'Algebras'
             sage: qname[44] = 'at_the_end_of_the_universe'
-            sage: print qname # indirect doctest
+            sage: print(qname) # indirect doctest
             sage.categories.algebras.Algebras.at_the_end_of_the_universe
         """
         return '.'.join(a for a in self.all if a is not None)

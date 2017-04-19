@@ -27,15 +27,20 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import Rational, Integer, ZZ, QQ
+from sage.rings.infinity import is_Infinite, Infinity
 
-from sage.rings.infinity import is_Infinite
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
+from sage.structure.sage_object import richcmp
+
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
+
 
 class Cusps_class(ParentWithBase):
     """
@@ -123,7 +128,7 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
         """
         return Cusp(x, parent=self)
 
@@ -152,7 +157,7 @@ class Cusps_class(ParentWithBase):
             return self._coerce_try(x, QQ)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -161,13 +166,15 @@ class Cusps_class(ParentWithBase):
         The existence of this method is assumed by some
         parts of Sage's coercion model.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: Cusps.zero_element()
+            sage: Cusps.zero()
             0
 
         """
         return Cusp(0, parent=self)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
 Cusps = Cusps_class()
 
@@ -188,7 +195,6 @@ class Cusp(Element):
         sage: a.parent() is b.parent()
         True
     """
-
     def __init__(self, a, b=None, parent=None, check=True):
         r"""
         Create the cusp a/b in `\mathbb{P}^1(\QQ)`, where if b=0
@@ -227,7 +233,7 @@ class Cusp(Element):
             sage: Cusp(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
 
         ::
 
@@ -262,105 +268,106 @@ class Cusp(Element):
             sage: Cusp(0,0)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (0, 0) to a Cusp
+            TypeError: unable to convert (0, 0) to a cusp
 
         ::
 
             sage: Cusp(oo,oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (+Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (+Infinity, +Infinity) to a cusp
 
         ::
 
             sage: Cusp(Cusp(oo),oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (Infinity, +Infinity) to a cusp
         """
         if parent is None:
             parent = Cusps
         Element.__init__(self, parent)
 
         if not check:
-            self.__a = a; self.__b = b
+            self.__a = a
+            self.__b = b
             return
 
         if b is None:
             if isinstance(a, Integer):
                 self.__a = a
-                self.__b = ZZ(1)
+                self.__b = ZZ.one()
             elif isinstance(a, Rational):
                 self.__a = a.numer()
                 self.__b = a.denom()
             elif is_InfinityElement(a):
-                self.__a = ZZ(1)
-                self.__b = ZZ(0)
+                self.__a = ZZ.one()
+                self.__b = ZZ.zero()
             elif isinstance(a, Cusp):
                 self.__a = a.__a
                 self.__b = a.__b
             elif isinstance(a, (int, long)):
                 self.__a = ZZ(a)
-                self.__b = ZZ(1)
+                self.__b = ZZ.one()
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("unable to convert %r to a cusp" % a)
                 if ZZ(a[1]) == 0:
-                    self.__a = ZZ(1)
-                    self.__b = ZZ(0)
+                    self.__a = ZZ.one()
+                    self.__b = ZZ.zero()
                     return
                 try:
                     r = QQ((a[0], a[1]))
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("unable to convert %r to a cusp" % a)
             else:
                 try:
                     r = QQ(a)
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("unable to convert %r to a cusp" % a)
             return
 
         if is_InfinityElement(b):
             if is_InfinityElement(a) or (isinstance(a, Cusp) and a.is_infinity()):
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
-            self.__a = ZZ(0)
-            self.__b = ZZ(1)
+                raise TypeError("unable to convert (%r, %r) to a cusp" % (a, b))
+            self.__a = ZZ.zero()
+            self.__b = ZZ.one()
             return
         elif not b:
             if not a:
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
-            self.__a = ZZ(1)
-            self.__b = ZZ(0)
+                raise TypeError("unable to convert (%r, %r) to a cusp" % (a, b))
+            self.__a = ZZ.one()
+            self.__b = ZZ.zero()
             return
 
         if isinstance(a, Integer) or isinstance(a, Rational):
             r = a / ZZ(b)
         elif is_InfinityElement(a):
-            self.__a = ZZ(1)
-            self.__b = ZZ(0)
+            self.__a = ZZ.one()
+            self.__b = ZZ.zero()
             return
         elif isinstance(a, Cusp):
             if a.__b:
                 r = a.__a / (a.__b * b)
             else:
-                self.__a = ZZ(1)
-                self.__b = ZZ(0)
+                self.__a = ZZ.one()
+                self.__b = ZZ.zero()
                 return
         elif isinstance(a, (int, long)):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("unable to convert (%r, %r) to a cusp" % (a, b))
             r = ZZ(a[0]) / (ZZ(a[1]) * b)
         else:
             try:
                 r = QQ(a) / b
             except (ValueError, TypeError):
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("unable to convert (%r, %r) to a cusp" % (a, b))
 
         self.__a = r.numer()
         self.__b = r.denom()
@@ -378,11 +385,12 @@ class Cusp(Element):
         """
         return hash((self.__a, self.__b))
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
-        Compare the cusps self and right. Comparison is as for rational
-        numbers, except with the cusp oo greater than everything but
-        itself.
+        Compare the cusps ``self`` and ``right``.
+
+        Comparison is as for rational numbers, except with the cusp oo
+        greater than everything but itself.
 
         The ordering in comparison is only really meaningful for infinity
         or elements that coerce to the rationals.
@@ -392,73 +400,48 @@ class Cusp(Element):
             sage: Cusp(2/3) == Cusp(oo)
             False
 
-        ::
-
             sage: Cusp(2/3) < Cusp(oo)
             True
-
-        ::
 
             sage: Cusp(2/3)> Cusp(oo)
             False
 
-        ::
-
             sage: Cusp(2/3) > Cusp(5/2)
             False
-
-        ::
 
             sage: Cusp(2/3) < Cusp(5/2)
             True
 
-        ::
-
             sage: Cusp(2/3) == Cusp(5/2)
             False
-
-        ::
 
             sage: Cusp(oo) == Cusp(oo)
             True
 
-        ::
-
             sage: 19/3 < Cusp(oo)
             True
-
-        ::
 
             sage: Cusp(oo) < 19/3
             False
 
-        ::
-
             sage: Cusp(2/3) < Cusp(11/7)
             True
 
-        ::
-
             sage: Cusp(11/7) < Cusp(2/3)
             False
-
-        ::
 
             sage: 2 < Cusp(3)
             True
         """
         if not self.__b:
-            # self is oo, which is bigger than everything but oo.
-            if not right.__b:
-                return 0
-            else:
-                return 1
-        elif not right.__b:
-            if not self.__b:
-                return 0
-            else:
-                return -1
-        return cmp(self._rational_(), right._rational_())
+            s = Infinity
+        else:
+            s = self._rational_()
+        if not right.__b:
+            o = Infinity
+        else:
+            o = right._rational_()
+        return richcmp(s, o, op)
 
     def is_infinity(self):
         """
@@ -530,7 +513,7 @@ class Cusp(Element):
             pass
 
         if not self.__b:
-            raise TypeError, "cusp %s is not a rational number"%self
+            raise TypeError("cusp %s is not a rational number"%self)
         self.__rational = self.__a / self.__b
         return self.__rational
 
@@ -557,7 +540,7 @@ class Cusp(Element):
             TypeError: cusp -3/7 is not an integer
         """
         if self.__b != 1:
-            raise TypeError, "cusp %s is not an integer"%self
+            raise TypeError("cusp %s is not an integer"%self)
         return self.__a
 
     def _repr_(self):
@@ -576,7 +559,7 @@ class Cusp(Element):
         if self.__b.is_zero():
             return "Infinity"
         if self.__b != 1:
-            return "%s/%s"%(self.__a,self.__b)
+            return "%s/%s" % (self.__a,self.__b)
         else:
             return str(self.__a)
 
@@ -596,7 +579,7 @@ class Cusp(Element):
         if self.__b.is_zero():
             return "\\infty"
         if self.__b != 1:
-            return "\\frac{%s}{%s}"%(self.__a,self.__b)
+            return "\\frac{%s}{%s}" % (self.__a,self.__b)
         else:
             return str(self.__a)
 
@@ -668,7 +651,7 @@ class Cusp(Element):
         Modular Elliptic Curves', or Prop 2.27 of Stein's Ph.D. thesis.
         """
         if transformation not in [False,True,"matrix",None,"corner"]:
-            raise ValueError, "Value %s of the optional argument transformation is not valid."
+            raise ValueError("Value %s of the optional argument transformation is not valid.")
 
         if not isinstance(other, Cusp):
             other = Cusp(other)
@@ -678,8 +661,8 @@ class Cusp(Element):
         u2 = other.__a
         v2 = other.__b
 
-        zero = ZZ.zero_element()
-        one = ZZ.one_element()
+        zero = ZZ.zero()
+        one = ZZ.one()
 
         if transformation == "matrix":
             from sage.matrix.constructor import matrix
@@ -763,7 +746,7 @@ class Cusp(Element):
         x = -x0 * ZZ(a/g)
         # now  x*v1*v2 + a = 0 (mod N)
 
-        # the rest is all added in trac 10926
+        # the rest is all added in trac #10926
         s1p = s1+x*v1
         M = N//g
 
@@ -851,9 +834,9 @@ class Cusp(Element):
         u2 = other.__a
         v2 = other.__b
         g = v1.gcd(N)
-        if ((v2 - v1) % N == 0 and (u2 - u1)%g== 0):
+        if ((v2 - v1) % N == 0 and (u2 - u1) % g== 0):
             return True, 1
-        elif ((v2 + v1) % N == 0 and (u2 + u1)%g== 0):
+        elif ((v2 + v1) % N == 0 and (u2 + u1) % g== 0):
             return True, -1
         return False, 0
 
@@ -928,7 +911,7 @@ class Cusp(Element):
         if not isinstance(other, Cusp):
             other = Cusp(other)
         if not is_GammaH(G):
-            raise TypeError, "G must be a group GammaH(N)."
+            raise TypeError("G must be a group GammaH(N).")
 
         H = G._list_of_elements_in_H()
         N = ZZ(G.level())
@@ -939,11 +922,11 @@ class Cusp(Element):
         g = v1.gcd(N)
 
         for h in H:
-            v_tmp = (h*v1)%N
-            u_tmp = (h*u2)%N
-            if (v_tmp - v2)%N == 0 and (u_tmp - u1)%g == 0:
+            v_tmp = (h*v1) % N
+            u_tmp = (h*u2) % N
+            if (v_tmp - v2) % N == 0 and (u_tmp - u1) % g == 0:
                 return True, 1
-            if (v_tmp + v2)%N == 0 and (u_tmp + u1)%g == 0:
+            if (v_tmp + v2) % N == 0 and (u_tmp + u1) % g == 0:
                 return True, -1
         return False, 0
 
@@ -961,7 +944,7 @@ class Cusp(Element):
             sage: Cusp(2,5) * g
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
+            TypeError: unsupported operand parent(s) for *: 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
             sage: h = matrix(ZZ, 2, [12,3,-100,7])
             sage: h * Cusp(2,5)
             -13/55
@@ -1063,12 +1046,19 @@ class Cusp(Element):
 
             sage: N = 50; t=3; G = Gamma0(N); C = G.cusps()
             sage: cl = lambda z: exists(C, lambda y:y.is_gamma0_equiv(z, N))[1]
-            sage: for i in range(5): print i, t^i, [cl(alpha.galois_action(t^i,N)) for alpha in C]
-            0 1 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
-            1 3 [0, 1/25, 7/10, 2/5, 1/10, 4/5, 1/2, 1/5, 9/10, 3/5, 3/10, Infinity]
-            2 9 [0, 1/25, 9/10, 4/5, 7/10, 3/5, 1/2, 2/5, 3/10, 1/5, 1/10, Infinity]
-            3 27 [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
-            4 81 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+            sage: for i in range(5):
+            ....:     print((i, t^i))
+            ....:     print([cl(alpha.galois_action(t^i,N)) for alpha in C])
+            (0, 1)
+            [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+            (1, 3)
+            [0, 1/25, 7/10, 2/5, 1/10, 4/5, 1/2, 1/5, 9/10, 3/5, 3/10, Infinity]
+            (2, 9)
+            [0, 1/25, 9/10, 4/5, 7/10, 3/5, 1/2, 2/5, 3/10, 1/5, 1/10, Infinity]
+            (3, 27)
+            [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
+            (4, 81)
+            [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
 
         TESTS:
 
@@ -1078,8 +1068,8 @@ class Cusp(Element):
             sage: G=Gamma1(48)
             sage: C=G.cusps()
             sage: for i in Integers(48).unit_gens():
-            ...     C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
-            ...     assert len(set(C_permuted))==len(C)
+            ....:   C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
+            ....:   assert len(set(C_permuted))==len(C)
 
         We test that Gamma1(19) has 9 rational cusps and check that :trac:`8998`
         is fixed. ::

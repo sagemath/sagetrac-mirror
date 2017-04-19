@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2, 1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_A2_even import KRTToRCBijectionTypeA2Even
     sage: bijection = KRTToRCBijectionTypeA2Even(KRT(pathlist=[[-1,2]]))
     sage: TestSuite(bijection).run()
@@ -54,7 +54,7 @@ class KRTToRCBijectionTypeA2Even(KRTToRCBijectionTypeC):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 2], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_even import KRTToRCBijectionTypeA2Even
             sage: bijection = KRTToRCBijectionTypeA2Even(KRT(pathlist=[[-1,-2]]))
             sage: bijection.cur_path.insert(0, [])
@@ -134,9 +134,10 @@ class RCToKRTBijectionTypeA2Even(RCToKRTBijectionTypeC):
             sage: RC = RiggedConfigurations(['A', 4, 2], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_even import RCToKRTBijectionTypeA2Even
             sage: bijection = RCToKRTBijectionTypeA2Even(RC(partition_list=[[2],[2,2]]))
-            sage: bijection.next_state(1)
+            sage: bijection.next_state(2)
             -1
         """
+        height -= 1 # indexing
         n = self.n
         ell = [None] * (2*n)
         case_S = [False] * n

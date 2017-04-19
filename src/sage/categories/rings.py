@@ -5,22 +5,21 @@ Rings
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import re
-from sage.categories.rngs import Rngs
-from sage.categories.semirings import Semirings
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from category import HomCategory
 from sage.misc.cachefunc import cached_method
-import sage
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.rngs import Rngs
+from sage.structure.element import Element
+from functools import reduce
+from sage.misc.cachefunc import cached_method
 
-class Rings(Category_singleton):
+class Rings(CategoryWithAxiom):
     """
     The category of rings
 
@@ -28,31 +27,197 @@ class Rings(Category_singleton):
 
     EXAMPLES::
 
-      sage: Rings()
-      Category of rings
-      sage: Rings().super_categories()
-      [Category of rngs, Category of semirings]
+        sage: Rings()
+        Category of rings
+        sage: sorted(Rings().super_categories(), key=str)
+        [Category of rngs, Category of semirings]
+
+        sage: sorted(Rings().axioms())
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+         'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+        sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+        True
+        sage: Rings() is Rngs().Unital()
+        True
+        sage: Rings() is Semirings().AdditiveInverse()
+        True
 
     TESTS::
 
         sage: TestSuite(Rings()).run()
 
-    TODO (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
+    .. TODO::
 
-     - Make Rings() into a subcategory or alias of Algebras(ZZ);
+        (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
 
-     - A parent P in the category ``Rings()`` should automatically be
-       in the category ``Algebras(P)``.
+        - Make Rings() into a subcategory or alias of Algebras(ZZ);
+
+        - A parent P in the category ``Rings()`` should automatically be
+          in the category ``Algebras(P)``.
     """
 
-    def super_categories(self):
-        """
-        EXAMPLES::
+    _base_category_class_and_axiom = (Rngs, "Unital")
 
-            sage: Rings().super_categories()
-            [Category of rngs, Category of semirings]
-        """
-        return [Rngs(), Semirings()]
+    class MorphismMethods:
+        @cached_method
+        def is_injective(self):
+            """
+            Return whether or not this morphism is injective.
+
+            EXAMPLES:
+
+            This often raises a ``NotImplementedError`` as many homomorphisms do
+            not implement this method::
+
+                sage: R.<x> = QQ[]
+                sage: f = R.hom([x + 1]); f
+                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+                  Defn: x |--> x + 1
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            If the domain is a field, the homomorphism is injective::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: L.<y> = FunctionField(QQ)
+                sage: f = K.hom([y]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Rational function field in y over Rational Field
+                  Defn: x |--> y
+                sage: f.is_injective()
+                True
+
+            Unless the codomain is the zero ring::
+
+                sage: codomain = Integers(1)
+                sage: f = K.hom([codomain(1)]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Ring of integers modulo 1
+                  Defn: x |--> 0
+                sage: f.is_injective()
+                False
+
+            Homomorphism from rings of characteristic zero to rings of positive
+            characteristic can not be injective::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([GF(3)(1)]); f
+                Ring morphism:
+                  From: Univariate Polynomial Ring in x over Integer Ring
+                  To:   Finite Field of size 3
+                  Defn: x |--> 1
+                sage: f.is_injective()
+                False
+
+            A morphism whose domain is an order in a number field is injective if
+            the codomain has characteristic zero::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: f = ZZ.hom(K); f
+                Ring Coercion morphism:
+                  From: Integer Ring
+                  To:   Rational function field in x over Rational Field
+                sage: f.is_injective()
+                True
+
+            """
+            if self.domain().is_zero():
+                return True
+            if self.codomain().is_zero():
+                # the only map to the zero ring that is injective is the map from itself
+                return False
+
+            from sage.categories.fields import Fields
+            if self.domain() in Fields():
+                # A ring homomorphism from a field to a ring is injective
+                # (unless the codomain is the zero ring.) Note that ring
+                # homomorphism must send the 1 element to the 1 element
+                return True
+
+            if self.domain().characteristic() == 0:
+                if self.codomain().characteristic() != 0:
+                    return False
+                else:
+                    from sage.categories.integral_domains import IntegralDomains
+                    if self.domain() in IntegralDomains():
+                        # if all elements of the domain are algebraic over ZZ,
+                        # then the homomorphism must be injective (in
+                        # particular if the domain is ZZ)
+                        from sage.categories.number_fields import NumberFields
+                        if self.domain().fraction_field() in NumberFields():
+                            return True
+
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+
+            raise NotImplementedError
+
+    class SubcategoryMethods:
+
+        def NoZeroDivisors(self):
+            """
+            Return the full subcategory of the objects of ``self`` having
+            no nonzero zero divisors.
+
+            A *zero divisor* in a ring `R` is an element `x \in R` such
+            that there exists a nonzero element `y \in R` such that
+            `x \cdot y = 0` or `y \cdot x = 0`
+            (see :wikipedia:`Zero_divisor`).
+
+            EXAMPLES::
+
+                sage: Rings().NoZeroDivisors()
+                Category of domains
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            TESTS::
+
+                sage: TestSuite(Rings().NoZeroDivisors()).run()
+                sage: Algebras(QQ).NoZeroDivisors.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('NoZeroDivisors')
+
+        def Division(self):
+            """
+            Return the full subcategory of the division objects of ``self``.
+
+            A ring satisfies the *division axiom* if all non-zero
+            elements have multiplicative inverses.
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            EXAMPLES::
+
+                sage: Rings().Division()
+                Category of division rings
+                sage: Rings().Commutative().Division()
+                Category of fields
+
+            TESTS::
+
+                sage: TestSuite(Rings().Division()).run()
+                sage: Algebras(QQ).Division.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('Division')
+
+
+    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
+    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
+    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
 
     class ParentMethods:
         def is_ring(self):
@@ -88,7 +253,7 @@ class Rings(Category_singleton):
                 sage: R.quo(x^2+1).is_zero()
                 False
             """
-            return self.one_element() == self.zero_element()
+            return self.one() == self.zero()
 
         def bracket(self, x, y):
             """
@@ -120,7 +285,7 @@ class Rings(Category_singleton):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- a ring
             - ``category`` -- a subcategory of :class:`Rings`() or None
@@ -152,9 +317,9 @@ class Rings(Category_singleton):
 
             """
             if category is not None and not category.is_subcategory(Rings()):
-                raise TypeError, "%s is not a subcategory of Rings()"%category
+                raise TypeError("%s is not a subcategory of Rings()"%category)
             if Y not in Rings():
-                raise TypeError, "%s is not a ring"%Y
+                raise TypeError("%s is not a ring"%Y)
             from sage.rings.homset import RingHomset
             return RingHomset(self, Y, category = category)
 
@@ -183,7 +348,7 @@ class Rings(Category_singleton):
               the product is ``self*x``; if ``True``, the
               product is ``x*self``.
 
-            EXAMPLE:
+            EXAMPLES:
 
             As we mentioned above, this method is called
             when a ring is involved that does not inherit
@@ -244,7 +409,7 @@ class Rings(Category_singleton):
                 elif side=='right':
                     return self.ideal(x,side='twosided')
             # duck typing failed
-            raise TypeError, "Don't know how to transform %s into an ideal of %s"%(x,self)
+            raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
         @cached_method
         def ideal_monoid(self):
@@ -258,7 +423,7 @@ class Rings(Category_singleton):
             from that class, such as matrix algebras.  See
             :trac:`7797`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -321,7 +486,8 @@ class Rings(Category_singleton):
                 return
 
             # test that #12988 is fixed
-            tester.assertEqual(type(characteristic),sage.rings.integer.Integer)
+            from sage.rings.integer import Integer
+            tester.assertIsInstance(characteristic, Integer)
 
         def ideal(self, *args, **kwds):
             """
@@ -345,7 +511,7 @@ class Rings(Category_singleton):
               whether the resulting ideal is twosided, a left
               ideal or a right ideal.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -404,10 +570,10 @@ class Rings(Category_singleton):
                         try:
                             if self.has_coerce_map_from(first):
                                 gens = first.gens() # we have a ring as argument
-                            elif hasattr(first,'parent'):
+                            elif isinstance(first, Element):
                                 gens = [first]
                             else:
-                                raise ArithmeticError, "There is no coercion from %s to %s"%(first,self)
+                                raise ArithmeticError("There is no coercion from %s to %s"%(first,self))
                         except TypeError: # first may be a ring element
                             pass
                         break
@@ -513,17 +679,17 @@ class Rings(Category_singleton):
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
                 sage: from sage.rings.noncommutative_ideals import Ideal_nc
+                sage: from itertools import product
                 sage: class PowerIdeal(Ideal_nc):
-                ...    def __init__(self, R, n):
-                ...        self._power = n
-                ...        self._power = n
-                ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
-                ...    def reduce(self,x):
-                ...        R = self.ring()
-                ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
-                ...
+                ....:  def __init__(self, R, n):
+                ....:      self._power = n
+                ....:      Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+                ....:  def reduce(self, x):
+                ....:      R = self.ring()
+                ....:      return add([c*R(m) for m,c in x if len(m) < self._power], R(0))
+                ....:
                 sage: I = PowerIdeal(F,3)
-                sage: Q = Rings().parent_class.quotient(F,I); Q
+                sage: Q = Rings().parent_class.quotient(F, I); Q
                 Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
                 sage: Q.0
                 xbar
@@ -535,29 +701,28 @@ class Rings(Category_singleton):
                 xbar*ybar
                 sage: Q.0*Q.1*Q.0
                 0
-
             """
             from sage.rings.quotient_ring import QuotientRing
             return QuotientRing(self, I, names=names)
+
         def quo(self, I, names=None):
             """
             Quotient of a ring by a two-sided ideal.
 
             NOTE:
 
-            This is a synonyme for :meth:`quotient`.
+            This is a synonym for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
-                sage: MS.full_category_initialisation()
                 sage: I = MS*MS.gens()*MS
 
             ``MS`` is not an instance of :class:`~sage.rings.ring.Ring`.
-            But since its category was fully initalised (which is not
-            by default, by :trac:`11900`), it is an instance of
-            the parent class of the category of rings. The quotient
-            method is inherited from there::
+
+            However it is an instance of the parent class of the
+            category of rings. The quotient method is inherited from
+            there::
 
                 sage: isinstance(MS,sage.rings.ring.Ring)
                 False
@@ -590,7 +755,7 @@ class Rings(Category_singleton):
 
             This is a synonyme for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -622,13 +787,13 @@ class Rings(Category_singleton):
             """
             return self.quotient(I,names=names)
 
-        def __div__(self, I):
+        def __truediv__(self, I):
             """
             Since assigning generator names would not work properly,
             the construction of a quotient ring using division syntax
             is not supported.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -637,7 +802,7 @@ class Rings(Category_singleton):
                 ...
                 TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
             """
-            raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
+            raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
         def __getitem__(self, arg):
             """
@@ -670,6 +835,13 @@ class Rings(Category_singleton):
                 Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
+
+            We can create skew polynomial rings::
+
+                sage: k.<t> = GF(5^3)
+                sage: Frob = k.frobenius_endomorphism()
+                sage: k['x',Frob]
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             We can also create power series rings by using double brackets::
 
@@ -736,11 +908,11 @@ class Rings(Category_singleton):
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
                 sage: QQ[['a,b','c']]
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
 
                 sage: QQ[[['x']]]
                 Traceback (most recent call last):
@@ -782,6 +954,12 @@ class Rings(Category_singleton):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
+
+            if isinstance(arg, tuple):
+                from sage.categories.morphism import Morphism
+                if len(arg) == 2 and isinstance(arg[1], Morphism):
+                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension
@@ -829,21 +1007,13 @@ class Rings(Category_singleton):
                 sage: MS.zero().is_unit()
                 False
                 sage: MS([1,2,3,4]).is_unit()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
+                False
             """
-            if self == 1 or self == -1:
+            if self.is_one() or (-self).is_one():
                 return True
-            if self == 0: # now 0 != 1
+            if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
-
-    class HomCategory(HomCategory):
-        pass
-
-from sage.structure.parent_gens import _certify_names
 
 def _gen_names(elts):
     r"""
@@ -860,17 +1030,18 @@ def _gen_names(elts):
         sage: list(_gen_names((1..27)))[-1]
         'aa'
     """
-    from sage.symbolic.ring import is_SymbolicVariable
+    import re
+    from sage.structure.category_object import certify_names
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
-    it.next() # skip empty word
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
+    next(it) # skip empty word
     for x in elts:
         name = str(x)
         m = re.match('^sqrt\((\d+)\)$', name)
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:
-            _certify_names([name])
-        except ValueError as msg:
-            name = it.next().string_rep()
+            certify_names([name])
+        except ValueError:
+            name = next(it).string_rep()
         yield name
