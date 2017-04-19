@@ -307,7 +307,7 @@ class FunctionHeaviside(BuiltinFunction):
 
 heaviside = FunctionHeaviside()
 
-class FunctionUnitStep(BuiltinFunction):
+class FunctionUnitStep(GinacFunction):
     r"""
     The unit step function, `\mathrm{u}(x)` (``unit_step(x)``).
 
@@ -360,62 +360,8 @@ class FunctionUnitStep(BuiltinFunction):
             sage: t.subs(x=0)
             2
         """
-        BuiltinFunction.__init__(self, "unit_step", latex_name=r"\mathrm{u}",
+        GinacFunction.__init__(self, "step", latex_name=r"\mathrm{u}",
                                    conversions=dict(mathematica='UnitStep'))
-
-    def _eval_(self, x):
-        """
-        INPUT:
-
-        -  ``x`` - a real number or a symbolic expression
-
-        EXAMPLES::
-
-            sage: unit_step(-1)
-            0
-            sage: unit_step(1)
-            1
-            sage: unit_step(0)
-            1
-            sage: unit_step(x)
-            unit_step(x)
-            sage: unit_step(-exp(-10000000000000000000))
-            0
-
-        Evaluation test::
-
-            sage: unit_step(x).subs(x=1)
-            1
-            sage: unit_step(x).subs(x=0)
-            1
-        """
-        try:
-            #return self._evalf_(x)   # 82us for unit_step(1)
-            return SR(x).step()    # 22us for unit_step(1)
-            # still SR(1).step() is 6us
-            #return new_Expression_from_GEx(self._parent, g_hold_wrapper(g_step, self._gobj, hold))
-        except (TypeError,ValueError):      # x is symbolic
-            pass
-        return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = unit_step(x)
-            sage: h(pi).numerical_approx()
-            1.00000000000000
-        """
-        approx_x = ComplexIntervalField()(x)
-        if bool(approx_x.imag() == 0):      # x is real
-            if bool(approx_x.real() == 0):  # x is zero
-                return 1
-            # Now we have a non-zero real
-            if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                return 1
-            else:
-                return 0
-        raise ValueError("Numeric evaluation of symbolic expression")
 
     def _derivative_(self, x, diff_param=None):
         """
