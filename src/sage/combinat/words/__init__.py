@@ -4,6 +4,7 @@ Combinatorics on Words
 
 **Main modules and their methods:**
 
+- :mod:`sage.combinat.words.demo`
 - :ref:`sage.combinat.words.abstract_word`
 - :ref:`sage.combinat.words.finite_word`
 - :ref:`sage.combinat.words.infinite_word`
@@ -21,6 +22,7 @@ Main classes and functions meant to be used by the user:
     :class:`~sage.combinat.words.words.InfiniteWords`,
     :func:`~sage.combinat.words.words.Words`,
     :func:`~sage.combinat.words.alphabet.Alphabet`,
+    :class:`sage.combinat.words.shuffle_product.ShuffleProduct`
     :class:`~sage.combinat.words.morphism.WordMorphism`,
     :class:`~sage.combinat.words.paths.WordPaths`.
 
@@ -40,4 +42,5 @@ the :ref:`words catalog <sage.combinat.words.word_generators>`.
 
 See :func:`~sage.combinat.words.word_options.WordOptions`.
 """
-import demo
+from __future__ import absolute_import
+from . import demo

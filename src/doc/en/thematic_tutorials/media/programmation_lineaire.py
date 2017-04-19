@@ -11,7 +11,7 @@ def matrice_systeme(systeme, variables):
     """
     Renvoie une matrice par block représentant un programme linéaire sous forme standard.
 
-    INPUT::
+    INPUT:
 
     - ``systeme`` -- Un programme linéaire sous forme standard
     - ``variables`` -- La liste des variables du système
@@ -48,7 +48,7 @@ def pivot(m, i, j):
     """
     Renvoie une copie de `m` après échange des colonnes `i` et `j` et remise sous forme échelon.
 
-    INPUT::
+    INPUT:
 
     - ``m`` -- une matrice dont la première ligne contient les noms des variables
     - ``i,j`` -- des entiers

@@ -181,7 +181,7 @@ Let `\\sigma_0 : \\begin{array}{l}e\\mapsto gh\\\\f\\mapsto hg\\end{array}`,
     cd \& \\xleftarrow{\\sigma_2} \&
     a\\end{array}`
 
-Let's define three morphisms and compute the first nested succesive 
+Let us define three morphisms and compute the first nested succesive 
 prefixes of the s-adic word::
 
     sage: sigma0 = WordMorphism('e->gh,f->hg')
@@ -232,7 +232,7 @@ fibo : \\begin{array}{l}a\\mapsto ab\\\\b\\mapsto a\\end{array} \\right\\}`.
     a 
     \\end{array}`
 
-Let's define the Thue-Morse and the Fibonacci morphism
+Let us define the Thue-Morse and the Fibonacci morphism
 and let's import the ``repeat`` tool from the ``itertools``::
 
     sage: tm = WordMorphism('a->ab,b->ba')
@@ -246,7 +246,7 @@ Fixed point are trivial examples of infinite s-adic words::
     sage: tm.fixed_point('a')
     word: abbabaabbaababbabaababbaabbabaabbaababba...
 
-Let's alternate the application of the substitutions `tm` and `fibo` according
+Let us alternate the application of the substitutions `tm` and `fibo` according
 to the Thue-Morse word::
 
     sage: tmwordTF = words.ThueMorseWord('TF')
@@ -257,7 +257,7 @@ Random infinite s-adic words::
 
     sage: from sage.misc.prandom import randint
     sage: def it():
-    ...     while True: yield randint(0,1)
+    ....:   while True: yield randint(0,1)
     sage: words.s_adic(it(), repeat('a'), [tm,fib])
     word: abbaabababbaababbaabbaababbaabababbaabba...
     sage: words.s_adic(it(), repeat('a'), [tm,fib])
@@ -272,4 +272,3 @@ Language
 Soon in Sage...
 
 """
-

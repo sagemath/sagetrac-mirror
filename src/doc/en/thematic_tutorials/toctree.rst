@@ -5,7 +5,7 @@ Thematic tutorial document tree
 .. toctree::
    :maxdepth: 2
 
-<<<<<<< HEAD
+   index-sage-combinat
    2010-03-29-SLC64
    2010-05-06-SageDays20.5
    2010-06-11-Sage-demo-LAGA
@@ -15,25 +15,28 @@ Thematic tutorial document tree
    2010-09-01-LACIM
    2010-12-11-Nikolaus
    2011-01-17-SageDays28
+   2011-01-27-how-to-contribute
    2011-05-02-SageDays30
    2011-05-23-SMAI
    2011-12-13-ScienceWorkshop
    2012-02-16-Sage-Paris
    2012-04-28-JIL
-   2012-10-29-CIMPA-Bobo/combinatoire-des-mots.rst
-   2012-10-29-CIMPA-Bobo/dynamique.rst
-   2012-10-29-CIMPA-Bobo/index.rst
-   2012-10-29-CIMPA-Bobo/introduction.rst
-   agregation-option-calcul-formel/algebre_lineaire.rst
-   agregation-option-calcul-formel/algebre_lineaire_rapide.rst
-   agregation-option-calcul-formel/bibliotheque_tsetlin.rst
-   agregation-option-calcul-formel/codes_correcteurs.rst
-   agregation-option-calcul-formel/groupe_symmetrique.rst
-   agregation-option-calcul-formel/index.rst
-   agregation-option-calcul-formel/introduction.rst
-   agregation-option-calcul-formel/multiplications_rapides.rst
-   agregation-option-calcul-formel/programmation_lineaire.rst
-   agregation-option-calcul-formel/tris_et_complexite.rst
+   2012-10-29-CIMPA-Bobo/combinatoire-des-mots
+   2012-10-29-CIMPA-Bobo/dynamique
+   2012-10-29-CIMPA-Bobo/index
+   2012-10-29-CIMPA-Bobo/introduction
+   2016-03-09-ALEA
+   algebraic_combinatorics
+   agregation-option-calcul-formel/algebre_lineaire
+   agregation-option-calcul-formel/algebre_lineaire_rapide
+   agregation-option-calcul-formel/bibliotheque_tsetlin
+   agregation-option-calcul-formel/codes_correcteurs
+   agregation-option-calcul-formel/groupe_symetrique
+   agregation-option-calcul-formel/index
+   agregation-option-calcul-formel/introduction
+   agregation-option-calcul-formel/multiplications_rapides
+   agregation-option-calcul-formel/programmation_lineaire
+   agregation-option-calcul-formel/tris_et_complexite
    coercion_and_categories
    demo-GAP3-Semigroupe
    demo-basics
@@ -53,56 +56,45 @@ Thematic tutorial document tree
    demo-symmetric-functions
    demo-tsetlin
    functional_programming
-=======
-   algebraic_combinatorics
-   tutorial-notebook-and-help-long
-   sandpile
->>>>>>> develop
    group_theory
-   index
-   index-sage-combinat
    lie
    linear_programming
    numtheory_rsa
-<<<<<<< HEAD
-   sandpile
-   talks
-   toctree
-=======
    coding_theory
    structures_in_coding_theory
    polytutorial
+   sandpile
    polytope_tikz
    tutorial-programming-python
->>>>>>> develop
    tutorial-comprehensions
-   tutorial-editing-sage-sources
-   tutorial-first-exercises
-   tutorial-implementing-algebraic-structures
-   tutorial-notebook-and-help
-   tutorial-notebook-and-help-long
    tutorial-objects-and-classes
-<<<<<<< HEAD
-   tutorial-parallel
-   tutorial-programming-python
-   siena_tutorials/siena_tutorials.rst
-   siena_tutorials/Worksheet01-GettingHelp.rst
-   siena_tutorials/Worksheet02-Lists.rst
-   siena_tutorials/Worksheet03-FirstStepsTowardsProgramming.rst
-   siena_tutorials/Worksheet04-CalculusPlottingInteract.rst
-   siena_tutorials/Worksheet05-CollatzConjecture.rst
-   siena_tutorials/Worksheet06-LinearAlgebra.rst
-   siena_tutorials/Worksheet07-StringsAndTheBWT.rst
-   siena_tutorials/Worksheet08-DictionariesAndGraphTheory.rst
-   siena_tutorials/Worksheet09-CombinatoricsIteratorsGenerators.rst
-   siena_tutorials/Worksheet10-IntroductionToCython.rst
-=======
    functional_programming
    coercion_and_categories
-   tutorial-implementing-algebraic-structures
    cython_interface
    numerical_sage/index
    explicit_methods_in_number_theory/index
    sws2rst
    profiling
->>>>>>> develop
+
+   talks
+   tutorial-comprehensions
+   tutorial-editing-sage-sources
+   tutorial-first-exercises
+   tutorial-how-to-contribute
+   tutorial-implementing-algebraic-structures
+   tutorial-notebook-and-help
+   tutorial-notebook-and-help-long
+   tutorial-objects-and-classes
+   tutorial-parallel
+   tutorial-programming-python
+   siena_tutorials/siena_tutorials
+   siena_tutorials/Worksheet01-GettingHelp
+   siena_tutorials/Worksheet02-Lists
+   siena_tutorials/Worksheet03-FirstStepsTowardsProgramming
+   siena_tutorials/Worksheet04-CalculusPlottingInteract
+   siena_tutorials/Worksheet05-CollatzConjecture
+   siena_tutorials/Worksheet06-LinearAlgebra
+   siena_tutorials/Worksheet07-StringsAndTheBWT
+   siena_tutorials/Worksheet08-DictionariesAndGraphTheory
+   siena_tutorials/Worksheet09-CombinatoricsIteratorsGenerators
+   siena_tutorials/Worksheet10-IntroductionToCython

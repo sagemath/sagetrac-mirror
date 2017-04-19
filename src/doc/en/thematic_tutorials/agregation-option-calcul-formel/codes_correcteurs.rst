@@ -93,18 +93,28 @@ Premiers concepts
 
 Est-ce raisonnable?
 
-.. TODO:: donner les défs précises
-
 .. TOPIC:: Définitions
 
-    - *Capacité de détection*: nombre maximal d'erreurs que l'on est
-       sûr de détecter
+    - *Capacité de détection*: `D(c)` nombre maximal d'erreurs que l'on est sûr de détecter
 
-    - *Capacité de correction*: `e(C)` nombre maximal d'erreurs que
-       l'on est sûr de corriger
+    - *Capacité de correction*: `e(C)` nombre maximal d'erreurs que l'on est sûr de corriger
 
-    - *Distance* `d(C)` du code: distance minimale entre deux points
-       distincts du code
+    - *Distance* `d(C)` du code: distance minimale entre deux points distincts du code
+
+
+    Formellement:
+
+       .. MATH::
+
+          D(C) := \max_{k\in \NN} \quad \forall x\in C \quad \forall y \quad d(x,y)\leq k \Longrightarrow y\not\in C
+
+       .. MATH::
+
+          e(C) := \max_{k\in \NN} \quad \forall x\in C \quad \forall y \quad d(x,y)\leq k \Longrightarrow d(z,y)>k, \forall z\in C, z\ne x
+
+       .. MATH::
+
+	  d(C) := \min_{x\ne y\in C} d(x,y)
 
 
 .. TOPIC:: Exercice: En petite dimension:
@@ -124,11 +134,9 @@ Est-ce raisonnable?
 
 .. TOPIC:: Proposition
 
-    Capacité de détection: `d(C) -1`
+    Capacité de détection: `D(C) = d(C) -1`
 
-    .. TODO:: partie entière
-
-    Capacité de correction: `e(C) = (d(C)-1)/2`
+    Capacité de correction: `e(C) = \llcorner\frac{d(C)-1}2\lrcorner`
 
 Borne de Hamming, codes parfaits
 ================================
@@ -156,7 +164,9 @@ Borne de Hamming, codes parfaits
 
     .. math:: |C| \sum_{k=0}^e \binom n k (q-1)^k = q^n
 
-.. Codage? Décodage?
+.. TOPIC: Problème
+
+   Codage? Décodage?
 
 ***************
 Codes linéaires
@@ -177,8 +187,8 @@ efficaces.
         sage: A = GF(2); A
         Finite Field of size 2
         sage: H = matrix(A, [[0,1,1,1, 1,0,0],
-        ...                  [1,0,1,1, 0,1,0],
-        ...                  [1,1,0,1, 0,0,1]]); H
+        ....:                [1,0,1,1, 0,1,0],
+        ....:                [1,1,0,1, 0,0,1]]); H
 
     Calculer le noyau de `H`.
 
@@ -218,8 +228,8 @@ efficaces.
     *Matrice de contrôle*::
 
         sage: H = matrix(A, [[0,1,1,1, 1,0,0],
-        ...                  [1,0,1,1, 0,1,0],
-        ...                  [1,1,0,1, 0,0,1]])
+        ....:                [1,0,1,1, 0,1,0],
+        ....:                [1,1,0,1, 0,0,1]])
 
     Test d’appartenance au code::
 
@@ -374,15 +384,17 @@ Un petit tour de magie::
     sage: %hide
     sage: @interact
     sage: def magie(step=slider([1..5])):
-    ...     return matrix(4,4,[i for i in srange(0,32) if i.digits(base=2,padto=6)[5-step]])
+    ....:     return matrix(4,4,[i for i in srange(0,32) if i.digits(base=2,padto=6)[5-step]])
 
 Lire le texte `Codes Correcteurs d'Erreurs, Agreg 2005 <http://nicolas.thiery.name/Enseignement/Agregation/Textes/527-CodesCorrecteursShannon.pdf>`_ qui
 explique comment rendre le tour de magie immune à un mensonge.
 
-Mettre au point des démonstrations sur ordinateur pour illustrer des
-développements sur le codage. On pourra par exemple implanter le tour
-de prestidigitation, ou faire du codage, décodage, calcul de distance,
-tests de perfection, pour des codes:
+Réfléchir au plan d'une leçon sur ce thème.
+
+En particulier, mettre au point une démonstration sur ordinateur pour
+illustrer des développements sur le codage. On pourra par exemple
+implanter le tour de prestidigitation, ou faire du codage, décodage,
+calcul de distance, tests de perfection, pour des codes:
 
 #. décrits par un ensemble de mots
 

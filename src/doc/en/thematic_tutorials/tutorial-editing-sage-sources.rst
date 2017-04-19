@@ -141,7 +141,7 @@ documentation of inverse:
 We are now hitting a little annoyance in the Sage workflow which
 should disappear at some point. The file we modified is in fact *not*
 the original source file. To do things properly, we need to modify
-instead ``/opt/sage/devel/sage/sage/combinat/permutation.py``::
+instead ``/opt/sage/src/sage/combinat/permutation.py``::
 
     > gedit /opt/sage/local/lib/python2.6/site-packages/sage/combinat/permutation.py
 
@@ -167,7 +167,7 @@ Are you sure your modifications are correct? Really sure?
 
 **Make sure that all the examples in the source code still work**.
 
-    > cd /opt/sage/devel/sage/
+    > cd /opt/sage/src/
     > sage -t sage/combinat/permutation.py
 
 If some tests failed, edit the file again.
@@ -181,11 +181,13 @@ If some tests failed, edit the file again.
 
 **Open the html version of the documentation in your browser and make sure it looks OK**::
 
-    > open /opt/sage/devel/sage/doc/output/html/en/reference/sage/combinat/permutation.html
+    > open /opt/sage/src/doc/output/html/en/reference/sage/combinat/permutation.html
 
 
 7. Oops, what did I modify?
 ===========================
+
+.. WARNING:: Everything below needs to be updated to git
 
 Do not worry about editing the Sage sources. Sage uses the version
 control system ``Mercurial`` ( **hg** or **sage -hg** ) to manage all
@@ -193,7 +195,7 @@ of its source code. ``Mercurial`` stores the evolution of every single
 file of ``Sage`` *since the beginning*. At any point, you can track
 your modifications to the original sources::
 
-    > **cd /opt/sage/devel/sage/**
+    > **cd /opt/sage/src/**
     > **sage -hg status**
     M sage/combinat/permutation.py
     > **sage -hg diff**

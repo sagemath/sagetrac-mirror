@@ -172,8 +172,8 @@ Demonstration: Symmetric functions
 ::
 
     sage: def remove_last_part(mu):
-    ...       r""" Remove the last part from a partition """
-    ...       return Partition(mu[:-1])
+    ....:     r""" Remove the last part from a partition """
+    ....:     return Partition(mu[:-1])
 
 
 ::
@@ -335,5 +335,3 @@ Demonstration: Symmetric functions
 
     sage: # Warning: Not well supported yet!
     sage: LLT
-
-

@@ -17,7 +17,7 @@ To define a function in Sage, use the ``def`` command and a colon after the
 variable names. For example::
 
     sage: def is_even(n):
-    ...       return n % 2 == 0
+    ....:     return n % 2 == 0
 
 Notice that *body* of the function (the line:  ``return n % 2 == 0`` ) is
 indented. The indentation defines the body of the function.
@@ -34,9 +34,9 @@ If statement
 Below is an example of an  ``if`` statement::
 
     sage: if n % 2 == 0:
-    ...       return True
-    ...   else:
-    ...       return False
+    ....:     return True
+    ....: else:
+    ....:     return False
 
 Notice again how the commands in the first block and the second block of the
 statement are indented.
@@ -45,12 +45,12 @@ The following example defines the  ``factorial_function`` , which takes a
 number :math:`n` and returns the product :math:`n(n-1)(n-2)\cdots1`::
 
     sage: def factorial_function(n):
-    ...       if n == 0:
-    ...           return 1
-    ...       elif n == 1:
-    ...           return 1
-    ...       else:
-    ...           return n*factorial_function(n-1)
+    ....:     if n == 0:
+    ....:         return 1
+    ....:     elif n == 1:
+    ....:         return 1
+    ....:     else:
+    ....:         return n*factorial_function(n-1)
 
 **Exercises:**
 
@@ -66,8 +66,8 @@ between 1 and 1000 that are multiples of 3 and 5::
 
     sage: nums = []
     sage: for i in range(1,1001):
-    ...       if i % 3 == 0 and i % 5 == 0:
-    ...           nums.append(i)
+    ....:     if i % 3 == 0 and i % 5 == 0:
+    ....:         nums.append(i)
     sage: print nums
     [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390, 405, 420, 435, 450, 465, 480, 495, 510, 525, 540, 555, 570, 585, 600, 615, 630, 645, 660, 675, 690, 705, 720, 735, 750, 765, 780, 795, 810, 825, 840, 855, 870, 885, 900, 915, 930, 945, 960, 975, 990]
 

@@ -30,10 +30,14 @@ Et leurs propriétés::
     sage: ZZ.category()
     Category of euclidean domains
 
+    sage: sorted( ZZ.category().axioms() )
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital',
+     'Associative', 'Commutative',
+     'Distributive', 'NoZeroDivisors', 'Unital']
+
     sage: G = ZZ.category().category_graph()
     sage: G.set_latex_options(format="dot2tex")
-    sage: view(G,pdflatex=True, tightpage=True)
-
+    sage: view(G, viewer="pdf", tightpage=True)           # not tested
 
 Cette modélisation permet tout d'abord de travailler naturellement et
 efficacement dans des constructions algébriques avancées::
@@ -64,15 +68,36 @@ efficacement dans des constructions algébriques avancées::
     sage: m.det().parent()
     Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
 
-Cette modélisation permet par ailleurs d'y traiter rigoureusement, par
+
+    sage: Z2.coerce_map_from(ZZ)
+    Natural morphism:
+      From: Integer Ring
+      To:   Finite Field of size 2
+
+    sage: P.coerce_map_from(Z2)
+    Polynomial base injection morphism:
+      From: Finite Field of size 2
+      To:   Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+    sage: M.coerce_map_from(P)
+    Call morphism:
+      From: Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+      To:   Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+    sage: M.coerce_map_from(QQ)
+
+Example: factorisation dans les anneaux de polynômes
+====================================================
+
+Cette modélisation permet aussi de traiter rigoureusement, par
 exemple, les questions de factorisation::
 
     sage: p = 54*x^4+36*x^3-102*x^2-72*x-12
     sage: p.factor()
-    6*(3*x + 1)^2*(x^2 - 2)
+    6*(x^2 - 2)*(3*x + 1)^2
 
-    sage: for A in [ZZ, QQ, ComplexField(16), QQ[sqrt(2)], GF(5)]:
-    ...       print A, ":"; print A['x'](p).factor()
+    sage: for K in [ZZ, QQ, ComplexField(16), QQ[sqrt(2)], GF(5)]:
+    ....:     print K, ":"; print K['x'](p).factor()
     Integer Ring :
     2 * 3 * (3*x + 1)^2 * (x^2 - 2)
     Rational Field :
@@ -84,8 +109,8 @@ exemple, les questions de factorisation::
     Finite Field of size 5 :
     (4) * (x + 2)^2 * (x^2 + 3)
 
-Algèbre linéaire
-================
+Exemples en Algèbre linéaire
+============================
 
 Dans les exemples ci-dessous, nous ferons de l'algèbre linéaire sur le
 corps fini `\ZZ/7\ZZ`::
@@ -104,10 +129,11 @@ au passage que, même en calcul exact, il est possible de manipuler de
 relativement grosses matrices::
 
     sage: M = random_matrix(K, 10000, sparse=True, density=3/10000)
-    sage: M.rank()                                                     # random
+    sage: M.rank()                                        # random
     9278
 
-.. .. todo:: demonstration de M.visualize_structure()
+    sage: M.visualize_structure('/tmp/structure.png')      # not tested
+    sage: os.system(sage.misc.viewer.png_viewer()+' '+'/tmp/structure.png') # not tested
 
 Définissons donc une matrice à coefficients dans `\ZZ/7\ZZ`::
 
@@ -221,7 +247,7 @@ Voire faire des calculs avec::
 On veut maintenant manipuler `A` comme un morphisme sur `V`::
 
     sage: phi = End(V)(A); phi
-    Free module morphism defined by the matrix
+    Vector space morphism represented by the matrix:
     [5 5 4 3]
     [0 3 3 4]
     [0 1 5 4]
@@ -239,12 +265,12 @@ On veut maintenant manipuler `A` comme un morphisme sur `V`::
     sage: (phi^-1)(v)
     (1, 2, 3, 4)
 
-..    sage: P(phi)                        # todo: not implemented
+    sage: P(phi)                        # todo: not implemented
 
 ::
 
     sage: phi^4 + 5*phi^3 + 6*phi + 2
-    Free module morphism defined by the matrix
+    Vector space morphism represented by the matrix:
     [0 0 0 0]
     [0 0 0 0]
     [0 0 0 0]
@@ -263,11 +289,17 @@ On veut maintenant manipuler `A` comme un morphisme sur `V`::
     True
 
     sage: phi.restrict(E[2])
-    Free module morphism defined by the matrix
+    Vector space morphism represented by the matrix:
     [2 0]
     [0 2]
-    Domain: Vector space of degree 4 and dimension 2 over Finite Field of ...
-    Codomain: Vector space of degree 4 and dimension 2 over Finite Field of ...
+    Domain: Vector space of degree 4 and dimension 2 over Finite Field of size 7
+    User basis matrix:
+    [1 0 2 3]
+    [0 1 6 0]
+    Codomain: Vector space of degree 4 and dimension 2 over Finite Field of size 7
+    User basis matrix:
+    [1 0 2 3]
+    [0 1 6 0]
 
 
 En résumé
@@ -281,8 +313,8 @@ En résumé
   que l'utilisateur ou le programmeur puisse s'exprimer dans le
   langage adapté au problème considéré.
 
-Combinatoire
-============
+Exemples en combinatoire
+========================
 
 Selon le même principe, lorsque l'on demande toutes les partitions de
 l'entier 5, le résultat est un objet qui modélise cet ensemble::
@@ -317,3 +349,8 @@ et là on manipule un mot infini défini comme point fixe d'un morphisme::
     sage: m = WordMorphism('a->acabb,b->bcacacbb,c->baba')
     sage: m.fixed_point('a')
     word: acabbbabaacabbbcacacbbbcacacbbbcacacbbac...
+
+Further reading
+===============
+
+- :ref:`sage.categories.primer`

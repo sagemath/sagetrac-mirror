@@ -75,7 +75,7 @@ obtient pour `n=3`:
 
 .. figure:: ../media/tsetlin-library.png
    :align: center
-   :alt: Le graphe de transition de la bibliothèque de Tsetlin avec trois livres `\{1,2,3\}`
+   :alt: Le graphe de transition de la bibliothèque de Tsetlin avec trois livres {1,2,3}
 
 .. TOPIC:: Exercice: étude du graphe/automate de transition
 

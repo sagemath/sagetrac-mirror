@@ -56,7 +56,7 @@ GAP at work
 
 ::
 
-    sage: print W.character_table()  # Thanks GAP!
+    sage: print(W.character_table())  # Thanks GAP!
     CT1
 
 	  2  4  4  3  3  4  3  1  1  3  4
@@ -95,7 +95,7 @@ Coxeter3 at work
 
     sage: W3 = CoxeterGroup(W, implementation="coxeter3")
     sage: KL = matrix([ [ W3.kazhdan_lusztig_polynomial(u,v) if u.bruhat_le(v) else 0 for u in W3 ] 
-    ...               for v in W3])
+    ....:             for v in W3])
     sage: show(KL)
 
     sage: W = WeylGroup(["C", 3, 1])

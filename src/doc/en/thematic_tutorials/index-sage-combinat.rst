@@ -90,10 +90,12 @@ Monoids, representation Theory
 Combinatorics
 =============
 
-* :ref:`sage.combinat`
+- :ref:`sage.combinat.designs`
+
 * :ref:`sage.combinat.demo_short`
 * :ref:`sage.combinat.demo`
 * :ref:`sage.combinat.tutorial`
+* :ref:`sage.combinat.tutorial_enumerated_sets`
 
 Algebraic Combinatorics
 -----------------------
@@ -143,6 +145,7 @@ Design and Categories
 * :ref:`demo-modelling-mathematics`
 * :ref:`demo-constructions-categories-short`
 * :ref:`tutorial-implementing-algebraic-structures`
+* :ref:`coercion_and_categories`
 * :ref:`sage.categories.primer`
 * :ref:`sage.categories.tutorial`
 
