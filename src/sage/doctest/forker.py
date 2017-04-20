@@ -47,6 +47,8 @@ from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
 
+from cysignals.pselect import PSelecter
+
 
 def init_sage():
     """
@@ -1498,231 +1500,8 @@ class DocTestDispatcher(SageObject):
                 [1 test, 1 failure, ... s]
             Killing test .../test1.py
         """
-        opt = self.controller.options
-        source_iter = iter(self.controller.sources)
 
-        # If timeout was 0, simply set a very long time
-        if opt.timeout <= 0:
-            opt.timeout = 2**60
-        # Timeout we give a process to die (after it received a SIGHUP
-        # signal). If it doesn't exit by itself in this many seconds, we
-        # SIGKILL it. This is 5% of doctest timeout, with a maximum of
-        # 10 minutes and a minimum of 20 seconds.
-        die_timeout = opt.timeout * 0.05
-        if die_timeout > 600:
-            die_timeout = 600
-        elif die_timeout < 20:
-            die_timeout = 20
-
-        # List of alive DocTestWorkers (child processes). Workers which
-        # are done but whose messages have not been read are also
-        # considered alive.
-        workers = []
-
-        # List of DocTestWorkers which have finished running but
-        # whose results have not been reported yet.
-        finished = []
-
-        # If exitfirst is set and we got a failure.
-        abort_now = False
-
-        # One particular worker that we are "following": we report the
-        # messages while it's running. For other workers, we report the
-        # messages if there is no followed worker.
-        follow = None
-
-        # Install signal handler for SIGCHLD
-        signal.signal(signal.SIGCHLD, dummy_handler)
-
-        # Logger
-        log = self.controller.log
-
-        from cysignals.pselect import PSelecter
-        try:
-            # Block SIGCHLD and SIGINT except during the pselect() call
-            with PSelecter([signal.SIGCHLD, signal.SIGINT]) as sel:
-                # Function to execute in the child process which exits
-                # this "with" statement (which restores the signal mask)
-                # and resets to SIGCHLD handler to default.
-                # Since multiprocessing.Process is implemented using
-                # fork(), signals would otherwise remain blocked in the
-                # child process.
-                def sel_exit():
-                    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
-                    sel.__exit__(None, None, None)
-
-                while True:
-                    # To avoid calling time.time() all the time while
-                    # checking for timeouts, we call it here, once per
-                    # loop. It's not a problem if this isn't very
-                    # precise, doctest timeouts don't need millisecond
-                    # precision.
-                    now = time.time()
-
-                    # If there were any substantial changes in the state
-                    # (new worker started or finished worker reported),
-                    # restart this while loop instead of calling pselect().
-                    # This ensures internal consistency and a reasonably
-                    # accurate value for "now".
-                    restart = False
-
-                    # Process all workers. Check for timeouts on active
-                    # workers and move finished/crashed workers to the
-                    # "finished" list.
-                    # Create a new list "new_workers" containing the active
-                    # workers (to avoid updating "workers" in place).
-                    new_workers = []
-                    for w in workers:
-                        if w.rmessages is not None or w.is_alive():
-                            if now >= w.deadline:
-                                # Timeout => (try to) kill the process
-                                # group (which normally includes
-                                # grandchildren) and close the message
-                                # pipe.
-                                # We don't report the timeout yet, we wait
-                                # until the process has actually died.
-                                w.kill()
-                                w.deadline = now + die_timeout
-                            if not w.is_alive():
-                                # Worker is done but we haven't read all
-                                # messages (possibly a grandchild still
-                                # has the messages pipe open).
-                                # Adjust deadline to read all messages:
-                                newdeadline = now + die_timeout
-                                if w.deadline > newdeadline:
-                                    w.deadline = newdeadline
-                            new_workers.append(w)
-                        else:
-                            # Save the result and output of the worker
-                            # and close the associated file descriptors.
-                            # It is important to do this now. If we
-                            # would leave them open until we call
-                            # report(), parallel testing can easily fail
-                            # with a "Too many open files" error.
-                            w.save_result_output()
-                            finished.append(w)
-                    workers = new_workers
-
-                    # Similarly, process finished workers.
-                    new_finished = []
-                    for w in finished:
-                        if opt.exitfirst and w.result[1].failures:
-                            abort_now = True
-                        elif follow is not None and follow is not w:
-                            # We are following a different worker, so
-                            # we cannot report now.
-                            new_finished.append(w)
-                            continue
-
-                        # Report the completion of this worker
-                        log(w.messages, end="")
-                        self.controller.reporter.report(
-                            w.source,
-                            w.killed,
-                            w.exitcode,
-                            w.result,
-                            w.output,
-                            pid=w.pid)
-
-                        restart = True
-                        follow = None
-
-                    finished = new_finished
-
-                    if abort_now:
-                        break
-
-                    # Start new workers if possible
-                    while source_iter is not None and len(workers) < opt.nthreads:
-                        try:
-                            source = next(source_iter)
-                        except StopIteration:
-                            source_iter = None
-                        else:
-                            # Start a new worker.
-                            w = DocTestWorker(source, options=opt, funclist=[sel_exit])
-                            heading = self.controller.reporter.report_head(w.source)
-                            w.messages = heading + "\n"
-                            # Store length of heading to detect if the
-                            # worker has something interesting to report.
-                            w.heading_len = len(w.messages)
-                            w.start()  # This might take some time
-                            w.deadline = time.time() + opt.timeout
-                            workers.append(w)
-                            restart = True
-
-                    # Recompute state if needed
-                    if restart:
-                        continue
-
-                    # We are finished if there are no DocTestWorkers left
-                    if len(workers) == 0:
-                        # If there are no active workers, we should have
-                        # reported all finished workers.
-                        assert len(finished) == 0
-                        break
-
-                    # The master pselect() call
-                    rlist = [w.rmessages for w in workers if w.rmessages is not None]
-                    tmout = min(w.deadline for w in workers) - now
-                    if tmout > 5:  # Wait at most 5 seconds
-                        tmout = 5
-                    rlist, _, _, _ = sel.pselect(rlist, timeout=tmout)
-
-                    # Read messages
-                    for w in workers:
-                        if w.rmessages is not None and w.rmessages in rlist:
-                            w.read_messages()
-
-                    # Find a worker to follow: if there is only one worker,
-                    # always follow it. Otherwise, take the worker with
-                    # the earliest deadline of all workers whose
-                    # messages are more than just the heading.
-                    if follow is None:
-                        if len(workers) == 1:
-                            follow = workers[0]
-                        else:
-                            for w in workers:
-                                if len(w.messages) > w.heading_len:
-                                    if follow is None or w.deadline < follow.deadline:
-                                        follow = w
-
-                    # Write messages of followed worker
-                    if follow is not None:
-                        log(follow.messages, end="")
-                        follow.messages = ""
-        finally:
-            # Restore SIGCHLD handler (which is to ignore the signal)
-            signal.signal(signal.SIGCHLD, signal.SIG_DFL)
-
-            # Kill all remaining workers (in case we got interrupted)
-            for w in workers:
-                try:
-                    w.kill()
-                except Exception:
-                    pass
-                else:
-                    log("Killing test %s"%w.source.printpath)
-            # Fork a child process with the specific purpose of
-            # killing the remaining workers.
-            if len(workers) > 0 and os.fork() == 0:
-                # Block these signals
-                with PSelecter([signal.SIGHUP, signal.SIGINT]):
-                    try:
-                        from time import sleep
-                        sleep(die_timeout)
-                        for w in workers:
-                            try:
-                                w.kill()
-                            except Exception:
-                                pass
-                    finally:
-                        os._exit(0)
-
-            # Hack to ensure multiprocessing leaves these processes
-            # alone (in particular, it doesn't wait for them when we
-            # exit).
-            multiprocessing.current_process()._children = set()
+        DocTestParallelDispatcher(self.controller).run()
 
     def dispatch(self):
         """
@@ -1757,6 +1536,285 @@ class DocTestDispatcher(SageObject):
             self.serial_dispatch()
         else:
             self.parallel_dispatch()
+
+
+class DocTestParallelDispatcher(object):
+    """
+    """
+
+    def __init__(self, controller):
+        """
+        INPUT:
+
+        - ``controller`` -- a :class:`sage.doctest.control.DocTestController`
+          instance
+        """
+
+        self.options = controller.options
+        self.reporter = controller.reporter
+        self.sources = controller.sources
+
+        self.timeout = self.options.timeout
+        # If timeout was 0, simply set a very long time
+        if self.timeout <= 0:
+            self.timeout = 2**60
+        # Timeout we give a process to die (after it received a SIGHUP signal).
+        # If it doesn't exit by itself in this many seconds, we SIGKILL it.
+        # This is 5% of doctest timeout, with a maximum of 10 minutes and a
+        # minimum of 20 seconds.
+        die_timeout = self.timeout * 0.05
+        if die_timeout > 600:
+            die_timeout = 600
+        elif die_timeout < 20:
+            die_timeout = 20
+
+        self.die_timeout = die_timeout
+
+        # Logger
+        self.log = controller.log
+
+    def run(self):
+        self._setup()
+        try:
+            # Block SIGCHLD and SIGINT except during the pselect() call in the
+            # main loop
+            with PSelecter([signal.SIGCHLD, signal.SIGINT]) as sel:
+                # Function to execute in the child process which exits this
+                # "with" statement (which restores the signal mask) and resets
+                # to SIGCHLD handler to default.  Since multiprocessing.Process
+                # is implemented using fork(), signals would otherwise remain
+                # blocked in the child process.
+                def pselecter_exit():
+                    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+                    sel.__exit__(None, None, None)
+
+                self.pselecter = sel
+                self.pselecter_exit = pselecter_exit
+
+                self._mainloop()
+        finally:
+            self._teardown()
+
+    def _setup(self):
+        """Setup the initial context for the parallel dispatch run."""
+
+        # List of alive DocTestWorkers (child processes). Workers which are
+        # done but whose messages have not been read are also considered alive.
+        self.workers = []
+
+        # List of DocTestWorkers which have finished running but whose results
+        # have not been reported yet.
+        self.finished = []
+
+        # One particular worker that we are "following": we report the messages
+        # while it's running. For other workers, we report the messages if
+        # there is no followed worker.
+        self.follow = None
+
+        # If True immediately exit the main loop
+        self.abort_now = False
+
+        self.source_iter = iter(self.sources)
+
+        # Install signal handler for SIGCHLD
+        signal.signal(signal.SIGCHLD, dummy_handler)
+
+    def _mainloop(self):
+        while True:
+            # To avoid calling time.time() all the time while checking for
+            # timeouts, we call it here, once per loop. It's not a problem if
+            # this isn't very precise, doctest timeouts don't need millisecond
+            # precision.
+            self.now = time.time()
+            self.new_worker = False
+            self.follow_reported = False
+
+            self._process_workers()
+            self._process_finished()
+
+            if self.abort_now:
+                break
+
+            self._start_workers()
+
+            if self.new_worker or self.follow_reported:
+                continue
+
+            if not self.workers:
+                # If there are no active workers, we should have reported all
+                # finished workers.
+                assert not self.finished
+                break
+
+            self._check_messages()
+            self._follow_worker()
+            self._process_follow()
+
+    def _process_workers(self):
+        """
+        Process all workers. Check for timeouts on active workers and move
+        finished/crashed workers to the "finished" list.
+        """
+
+        new_workers = []
+        for w in self.workers:
+            if w.rmessages is not None or w.is_alive():
+                if self.now >= w.deadline:
+                    # Timeout => (try to) kill the process group (which
+                    # normally includes grandchildren) and close the message
+                    # pipe.
+                    # We don't report the timeout yet, we wait until the
+                    # process has actually died.
+                    w.kill()
+                    w.deadline = self.now + self.die_timeout
+                if not w.is_alive():
+                    # Worker is done but we haven't read all messages (possibly
+                    # a grandchild still has the messages pipe open).
+                    # Adjust deadline to read all messages:
+                    newdeadline = self.now + self.die_timeout
+                    if w.deadline > newdeadline:
+                        w.deadline = newdeadline
+                new_workers.append(w)
+            else:
+                # Save the result and output of the worker and close the
+                # associated file descriptors.
+                # It is important to do this now. If we would leave them open
+                # until we call report(), parallel testing can easily fail with
+                # a "Too many open files" error.
+                w.save_result_output()
+                self.finished.append(w)
+
+        self.workers = new_workers
+
+    def _process_finished(self):
+        """Similarly, process finished workers."""
+
+        new_finished = []
+        for w in self.finished:
+            if self.options.exitfirst and w.result[1].failures:
+                self.abort_now = True
+            elif self.follow is not None and self.follow is not w:
+                # We are following a different worker, so we cannot report now
+                # (unless we have fail_once enabled, in which case we report
+                # the failure immediately even if we were not following this
+                # worker)
+                new_finished.append(w)
+                continue
+
+            # Report the completion of this worker
+            self.log(w.messages, end="")
+            self.reporter.report(
+                w.source,
+                w.killed,
+                w.exitcode,
+                w.result,
+                w.output,
+                pid=w.pid)
+
+            self.follow = None
+            self.follow_reported = True
+
+        self.finished = new_finished
+
+    def _start_workers(self):
+        """Start new workers if possible and needed."""
+
+        while (self.source_iter is not None and
+                len(self.workers) < self.options.nthreads):
+            try:
+                source = next(self.source_iter)
+            except StopIteration:
+                self.source_iter = None
+            else:
+                # Start a new worker.
+                w = DocTestWorker(source, options=self.options,
+                                  funclist=[self.pselecter_exit])
+                heading = self.reporter.report_head(w.source)
+                w.messages = heading + "\n"
+                # Store length of heading to detect if the
+                # worker has something interesting to report.
+                w.heading_len = len(w.messages)
+                w.start()  # This might take some time
+                w.deadline = time.time() + self.timeout
+                self.workers.append(w)
+                self.new_worker = True
+
+    def _check_messages(self):
+        """
+        The master pselect() call; checks all active workers for new messages.
+        """
+
+        rlist = [w.rmessages for w in self.workers if w.rmessages is not None]
+        tmout = min(w.deadline for w in self.workers) - self.now
+        if tmout > 5:  # Wait at most 5 seconds
+            tmout = 5
+        rlist, _, _, _ = self.pselecter.pselect(rlist, timeout=tmout)
+
+        # Read messages
+        for w in self.workers:
+            if w.rmessages is not None and w.rmessages in rlist:
+                w.read_messages()
+
+    def _follow_worker(self):
+        """
+        Find a worker to follow: if there is only one worker, always follow it.
+        Otherwise, take the worker with the earliest deadline of all workers
+        whose messages are more than just the heading.
+        """
+
+        follow = self.follow
+
+        if follow is None:
+            if len(self.workers) == 1:
+                follow = self.workers[0]
+            else:
+                for w in self.workers:
+                    if len(w.messages) > w.heading_len:
+                        if follow is None or w.deadline < follow.deadline:
+                            follow = w
+
+            self.follow = follow
+
+    def _process_follow(self):
+        """Write messages of followed worker."""
+
+        if self.follow is not None:
+            self.log(self.follow.messages, end="")
+            self.follow.messages = ""
+
+    def _teardown(self):
+        # Restore SIGCHLD handler (which is to ignore the signal)
+        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+
+        # Kill all remaining workers (in case we got interrupted)
+        for w in self.workers:
+            try:
+                w.kill()
+            except Exception:
+                pass
+            else:
+                self.log("Killing test %s" % w.source.printpath)
+
+        # Fork a child process with the specific purpose of killing the
+        # remaining workers.
+        if self.workers and os.fork() == 0:
+            # Block these signals
+            with PSelecter([signal.SIGHUP, signal.SIGINT]):
+                try:
+                    from time import sleep
+                    sleep(self.die_timeout)
+                    for w in self.workers:
+                        try:
+                            w.kill()
+                        except Exception:
+                            pass
+                finally:
+                    os._exit(0)
+
+        # Hack to ensure multiprocessing leaves these processes
+        # alone (in particular, it doesn't wait for them when we
+        # exit).
+        multiprocessing.current_process()._children = set()
 
 
 class DocTestWorker(multiprocessing.Process):
