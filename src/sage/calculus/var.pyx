@@ -136,18 +136,23 @@ def var(*args, **kwds):
         See http://trac.sagemath.org/6559 for details.
         q
     """
+    import operator
+
     got_number = False
     if len(args)==1:
         name = args[0]
     elif len(args)==2:
-        name = args[0]
-        if isinstance(args[1], str):
-            name = args
-        else:
+        try:
+            num_vars = operator.index(args[1])
             got_number = True
-            num_vars = args[1]
-            if num_vars > 1:
-                name = [name + str(i) for i in range(num_vars)]
+            if num_vars == 1:
+                name = (args[0] + '0')
+            elif num_vars > 1:
+                name = [args[0] + str(i) for i in range(num_vars)]
+            else:
+                raise ValueError("The number number of variables should be at least 1")
+        except TypeError:
+            name = args
     else:
         name = args
     G = globals()  # this is the reason the code must be in Cython.
@@ -159,12 +164,15 @@ def var(*args, **kwds):
             raise NotImplementedError("The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer.")
         kwds.pop('ns')
     v = SR.var(name, **kwds)
-    if isinstance(v, tuple):
-        if got_number:
-            G[repr(v)] = v
+    if isinstance(v, tuple) and not got_number:
+        for x in v:
+            G[repr(x)] = x
+    elif got_number:
+        if isinstance(v, tuple):
+            G[args[0]] = v
         else:
-            for x in v:
-                G[repr(x)] = x
+            v = tuple([v])
+            G[args[0]] = v
     else:
         G[repr(v)] = v
     return v
