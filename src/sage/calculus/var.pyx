@@ -136,6 +136,7 @@ def var(*args, **kwds):
         See http://trac.sagemath.org/6559 for details.
         q
     """
+    got_number = False
     if len(args)==1:
         name = args[0]
     elif len(args)==2:
@@ -143,6 +144,7 @@ def var(*args, **kwds):
         if isinstance(args[1], str):
             name = args
         else:
+            got_number = True
             num_vars = args[1]
             if num_vars > 1:
                 name = [name + str(i) for i in range(num_vars)]
@@ -158,8 +160,11 @@ def var(*args, **kwds):
         kwds.pop('ns')
     v = SR.var(name, **kwds)
     if isinstance(v, tuple):
-        for x in v:
-            G[repr(x)] = x
+        if got_number:
+            G[repr(v)] = v
+        else:
+            for x in v:
+                G[repr(x)] = x
     else:
         G[repr(v)] = v
     return v
