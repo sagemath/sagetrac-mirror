@@ -48,6 +48,7 @@ from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
 
 from cysignals.pselect import PSelecter
+from cysignals.pysignals import changesignal
 
 
 def init_sage():
@@ -1578,15 +1579,16 @@ class DocTestParallelDispatcher(object):
         try:
             # Block SIGCHLD and SIGINT except during the pselect() call in the
             # main loop
-            with PSelecter([signal.SIGCHLD, signal.SIGINT]) as sel:
+            with PSelecter([signal.SIGCHLD, signal.SIGINT]) as sel, \
+                    changesignal(signal.SIGCHLD, dummy_handler) as chgsig:
                 # Function to execute in the child process which exits this
                 # "with" statement (which restores the signal mask) and resets
                 # to SIGCHLD handler to default.  Since multiprocessing.Process
                 # is implemented using fork(), signals would otherwise remain
                 # blocked in the child process.
                 def pselecter_exit():
-                    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
                     sel.__exit__(None, None, None)
+                    chsig.__exit__(None, None, None)
 
                 self.pselecter = sel
                 self.pselecter_exit = pselecter_exit
@@ -1615,9 +1617,6 @@ class DocTestParallelDispatcher(object):
         self.abort_now = False
 
         self.source_iter = iter(self.sources)
-
-        # Install signal handler for SIGCHLD
-        signal.signal(signal.SIGCHLD, dummy_handler)
 
     def _mainloop(self):
         while True:
@@ -1783,9 +1782,6 @@ class DocTestParallelDispatcher(object):
             self.follow.messages = ""
 
     def _teardown(self):
-        # Restore SIGCHLD handler (which is to ignore the signal)
-        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
-
         # Kill all remaining workers (in case we got interrupted)
         for w in self.workers:
             try:
