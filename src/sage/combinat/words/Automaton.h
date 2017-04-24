@@ -31,7 +31,7 @@ typedef struct Automate Automaton;
 
 struct Arete
 {
-	int l; //label
+	int l; //label (-1 : epsilon-transition)
 	int e; //état d'arrivée
 };
 typedef struct Arete Arete;

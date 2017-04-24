@@ -603,7 +603,12 @@ void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, doubl
 		for (j=0;j<a.e[i].n;j++)
 		{
 			if (a.e[i].a[j].e != -1)
-				fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].a[j].e, labels[a.e[i].a[j].l]);
+			{
+				if (a.e[i].a[j].l != -1)
+					fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].a[j].e, labels[a.e[i].a[j].l]);
+				else
+					fprintf(f, "	%d -> %d [label=\"Ɛ\"]\n", i, a.e[i].a[j].e);
+			}
 		}
 	}
 	fprintf(f, "}\n");
@@ -1409,7 +1414,7 @@ void addEtat (Etats2 *e, uint64 i)
 	e->e[i/64] |= ((uint64)1<<(i%64));
 }
 
-ListEtats2 NewListEtats2(int n, int na)
+ListEtats2 NewListEtats2 (int n, int na)
 {
 	ListEtats2 r;
 	r.n = n;
@@ -1964,6 +1969,25 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	return r;
 }
 
+/*
+Automaton Union (Automaton a, Automaton b)
+{
+	Dict d;
+	d = NewDict(a.na*b.na);
+	int i, j;
+	for (i=0;i<a.na;i++)
+	{
+		d[contract(i, i, a.na)] = i;
+	}
+	Automaton r = Product(a, b, d);
+	//met les états finaux
+	for (i=0;i<r.n;i++)
+	{
+		r.e[i].final = a.e[geti1(i, a.n)].final || b.e[geti2(i, a.n)].final;
+	}
+}
+*/
+/*
 NAutomaton Concat (Automaton a, Automaton b, bool verb)
 {
 	int i, j, f;
@@ -2007,6 +2031,91 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 					nv++;
 				}
 			}
+		}
+		if (rnv != nv)
+		{
+			printf("Erreur : nv n'a pas la bonne valeur !!!\n");
+			exit(1);
+		}
+		r.e[i].final = false; //a.e[i].final;
+		r.e[i].initial = (a.i == i);
+	}
+	//copie b
+	for (i=0;i<b.n;i++)
+	{
+		//compte le nombre d'arêtes
+		int nv = 0;
+		for (j=0;j<b.na;j++)
+		{
+			if (b.e[i].f[j] != -1)
+				nv++;
+		}
+		//alloue les nouvelles arêtes
+		r.e[a.n+i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[a.n+i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<b.na;j++)
+		{
+			if (b.e[i].f[j] != -1)
+			{
+				r.e[a.n+i].a[nv].l = j;
+				r.e[a.n+i].a[nv].e = a.n + b.e[i].f[j];
+				nv++;
+			}
+		}
+		r.e[a.n+i].final = b.e[i].final;
+		r.e[a.n+i].initial = false; //(a.i == i);
+	}
+	if (a.e[a.i].final) //si a reconnait le mot vide
+	{
+		return Union(r, b);
+	}else
+		return r;
+}
+*/
+
+NAutomaton Concat (Automaton a, Automaton b, bool verb)
+{
+	int i, j, f;
+	// !!! devrait tenir compte des alphabets différents !!!
+	// On suppose pour l'instant que a et b ont mêmes alphabets
+	NAutomaton r = NewNAutomaton(a.n+b.n, a.na);
+	//copie a
+	for (i=0;i<a.n;i++)
+	{
+		//compte le nombre d'arêtes
+		int nv = 0, rnv;
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+				nv++;
+		}
+		if (a.e[i].final)
+			nv++; //ajoute une arete vers l'autre automate
+		rnv = nv;
+		//alloue les nouvelles arêtes
+		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].n = nv;
+		//copies les arêtes
+		nv = 0;
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+			{
+				r.e[i].a[nv].l = j;
+				r.e[i].a[nv].e = f;
+				nv++;
+			}
+		}
+		if (a.e[i].final)
+		{
+			//ajoute une epsilon-transition vers l'état initial de l'autre automate
+			r.e[i].a[nv].l = -1;
+			r.e[i].a[nv].e = a.n+b.i;
+			nv++;
 		}
 		if (rnv != nv)
 		{
@@ -2122,6 +2231,37 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 	return r;
 }
 
+//Ajoute à e tous les états atteint par epsilon-transition depuis i
+void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
+{
+	if (!hasEtats2(e, i))
+	{
+		addEtat(&e, i);
+		uint j;
+		for (j=0;j<a.e[i].n;j++)
+		{
+			if (a.e[i].a[j].l == -1) //c'est une epsilon-transition
+			{
+				EpsilonParcours(a, a.e[i].a[j].e, e);
+			}
+		}
+	}
+}
+
+//calcule l'epsilon-cloture de e (resultat dans ec)
+void EpsilonCloture (NAutomaton a, Etats2 e, Etats2 ec)
+{
+	int j;
+	initEtats2(ec);
+	for (j=0;j<a.n;j++)
+	{
+		if (hasEtats2(e, j))
+		{
+			EpsilonParcours(a, j, ec);
+		}
+	}
+}
+
 //déterminise un automate non-déterministe
 Automaton DeterminiseN (NAutomaton a, bool puits)
 {
@@ -2149,6 +2289,8 @@ Automaton DeterminiseN (NAutomaton a, bool puits)
 	{
 		e[i] = NewEtats2(a.n);
 	}
+	
+	Etats2 ec = NewEtats2(a.n);
 	
 	if (verb >= 20)
 		printf("alloue le premier état...\n");
@@ -2183,15 +2325,19 @@ Automaton DeterminiseN (NAutomaton a, bool puits)
 		{
 			initEtats2(e[j]);
 		}
+		//calcule la cloture par epsilon-transition de l.e[i]
+		EpsilonCloture(a, l.e[i], ec);
+		//parcours toutes les arêtes sortantes des états de ec
 		for (j=0;j<a.n;j++)
 		{ //parcours les états de a qui sont dans l'état courant
-			if (hasEtats2(l.e[i], j))
+			if (hasEtats2(ec, j))
 			{
 				r.e[i].final = r.e[i].final || a.e[j].final;
 				//printf("(%d)", j);
 				for (u=0;u<a.e[j].n;u++)
 				{ //parcours les aretes sortantes de l'état j de a
-					addEtat(&e[a.e[j].a[u].l], a.e[j].a[u].e);
+					if (a.e[j].a[u].l >= 0)
+						addEtat(&e[a.e[j].a[u].l], a.e[j].a[u].e);
 				}
 			}
 		}
@@ -2206,11 +2352,12 @@ Automaton DeterminiseN (NAutomaton a, bool puits)
 			}
 			if (puits || !isNullEtats2(e[j]))
 			{
+				EpsilonCloture(a, e[j], ec);
 				//détermine si l'état est nouveau ou pas
-				if (addEtats2(&l, e[j], &k))
+				if (addEtats2(&l, ec, &k))
 				{
 					ReallocListEtats2(&l, l.n+1, true);
-					l.e[k] = copyEtats2(e[j]);
+					l.e[k] = copyEtats2(ec);
 					//ajoute un état à l'automate
 					if (l.n > r.n)
 					{ //alloue de la mémoire si nécessaire
