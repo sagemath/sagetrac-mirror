@@ -2262,13 +2262,14 @@ class DocTestTask(object):
 
             # multiprocessing.Process instances don't run exit
             # functions, so we run the functions added by doctests
-            # now manually and restore the old exit functions.
             atexit._run_exitfuncs()
-            atexit._exithandlers = saved_exithandlers
         except BaseException:
             exc_info = sys.exc_info()
             tb = "".join(traceback.format_exception(*exc_info))
             result = (0, DictAsObject(dict(err=exc_info[0], tb=tb)))
+        finally:
+            # now manually and restore the old exit functions.
+            atexit._exithandlers = saved_exithandlers
 
         if result_queue is not None:
             result_queue.put(result, False)
