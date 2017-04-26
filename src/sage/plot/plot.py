@@ -316,6 +316,29 @@ the first few zeros::
     g = p1 + p2
     sphinx_plot(g)
 
+We can use ``min_symbolic`` and ``max_symbolic`` as well::
+
+    sage: f1(p) = 2*p + 1
+    sage: f2(p) = -p + 3
+    sage: f3(p) = 4*p - 1
+    sage: f4(p) = 3/2*p
+    sage: P = plot([f1,f2,f3,f4], (p,0,2), linestyle='--')
+    sage: P += plot(max_symbolic(f1(p), f2(p), f3(p), f4(p)), (p,0,2), color='red')
+    sage: P += plot(min_symbolic(f1(p), f2(p), f3(p), f4(p)), (p,0,2), color='green')
+    sage: P
+    Graphics object consisting of 6 graphics primitives
+
+.. PLOT::
+
+    def f1(x): return 2*x + 1
+    def f2(x): return -x + 3
+    def f3(x): return 4*x + 1
+    def f4(x): return 3/2*x
+    P = plot([f1, f2, f3, f4], (x,0,2), linestyle='--')
+    Pmax = plot(max_symbolic(f1(x), f2(x), f3(x), f4(x)), (x,0,2), color='red')
+    Pmin = plot(min_symbolic(f1(x), f2(x), f3(x), f4(x)), (x,0,2), color='green')
+    sphinx_plot(P+Pmax+Pmin)
+
 .. NOTE::
 
     Not all functions in Sage are symbolic. When plotting non-symbolic functions
