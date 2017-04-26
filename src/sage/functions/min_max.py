@@ -2,8 +2,27 @@ r"""
 Symbolic Minimum and Maximum
 
 Sage provides a symbolic maximum and minimum due to the fact that the Python
-builtin max and min are not able to deal with variables as users might expect.
-These functions wait to evaluate if there are variables.
+built-in max and min are not able to deal with variables as users might expect.
+
+The following functions are supported:
+
+-  :func:`max_symbolic()<sage.functions.min_max.MaxSymbolic>` --  symbolic `\max` function
+
+-  :func:`min_symbolic()<sage.functions.min_max.MinSymbolic>` -- symbolic `\min` function
+
+These functions delay evaluation until all symbolic arguments are substituted
+with values.
+
+.. NOTE::
+
+    There is a fundamental difference with Python's built-in max and min
+    functions and their symbolic counterparts. The former can lead to unexpected
+    results plotting the minimum (or maximum) of symbolic functions in a domain,
+    because the first parameter inside the min (or max) function is plotted,
+    irrespective of the actual values. This can be explained from the specified
+    behaviour of ``bool``, since False is also used for "cannot decide".
+
+EXAMPLES:
 
 Here you can see some differences::
 
@@ -25,6 +44,52 @@ This works as expected for more than two entries::
    sage: min_symbolic(3,5,x)
    min(x, 3)
 
+In the following example, `f_1(x)` is displayed, although it is not the local
+minimum for every `x`::
+
+   sage: f1(x) = sin(x)
+   sage: f2(x) = cos(x)
+   sage: f3(x) = x
+   sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green')
+   sage: p
+   Graphics object consisting of 5 graphics primitives
+
+Another example using Python's built-in max and min, with polynomials::
+
+   sage: f1(x) = x^2 + 4*x + 2
+   sage: f2(x) = x^2
+   sage: f3(x) = x
+   sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max(f2(x),f3(x),f2(x)),(x,0,2*pi),color='green')
+   sage: p
+   Graphics object consisting of 5 graphics primitives
+
+However, ``min_symbolic`` and ``max_symbolic`` are able to deal with variables as
+well as can be plotted with more than two functions. Below are the
+examples of the same functions that were plotted by built-in ``min``
+and ``max`` earlier::
+
+   sage: f1(x) = sin(x)
+   sage: f2(x) = cos(x)
+   sage: f3(x) = x
+   sage: p += plot(min_symbolic(f1(x),f2(x),f3(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max_symbolic(f2(x),f1(x),f3(x)),(x,0,2*pi),color='green')
+   sage: p
+   Graphics object consisting of 7 graphics primitives
+
+Example with polynomials, using ``max_symbolic`` and ``min_symbolic``::
+
+   sage: f1(x) = x*x + 4*x + 2
+   sage: f2(x) = x^2
+   sage: f3(x) = x
+   sage: p = plot([f1,f2,f3],(x,0,2*pi),linestyle='--')
+   sage: p += plot(min_symbolic(f3(x),f1(x),f2(x)),(x,0,2*pi),color='red')
+   sage: p += plot(max_symbolic(f2(x),f3(x),f1(x)),(x,0,2*pi),color='green')
+   sage: p
+   Graphics object consisting of 5 graphics primitives
 """
 ###############################################################################
 #   Sage: Open Source Mathematical Software
