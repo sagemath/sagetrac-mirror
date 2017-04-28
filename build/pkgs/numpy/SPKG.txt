@@ -15,7 +15,7 @@ capabilities to python.
  * Python
  * Lapack
  * Blas
- * Atlas
+ * Atlas | Openblas
  * Fortran
 
 == Special Update/Build Instructions ==
