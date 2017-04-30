@@ -4408,12 +4408,33 @@ cdef class Expression(CommutativeRingElement):
                 raise ValueError("side must be 'left', 'right', or None")
 
         cdef GEx x
+        ## Post-processing : the symbolic sum of a sum is distributed
+        ## over its terms : sum(A+B,j,1,p) ==> sum(A,j,1,p) + sum(B,j,1 p)
+        def treat_term(term,loopargs):
+            l=sage.all.copy(loopargs)
+            l.insert(0,term)
+            return(apply(sage.functions.other.symbolic_sum,l))
+        def ES(ex):
+            if ex.parent() is not sage.all.SR:return ex
+            op=ex.operator()
+            if op is None: return ex
+            if op is sage.functions.other.symbolic_sum:
+                sa=ex.operands()[0]
+                op1=sa.operator()
+                if op1 is sage.symbolic.operators.add_vararg:
+                    la=ex.operands()[1:]
+                    aa=sa.operands()
+                    return sum(map(lambda t:treat_term(ES(t),la), aa))
+            return apply(op, map(ES, ex.operands()))
+        ### return ES(self)
         sig_on()
         try:
             x = self._gobj.expand(0)
         finally:
             sig_off()
-        return new_Expression_from_GEx(self._parent, x)
+        ## return new_Expression_from_GEx(self._parent, x)
+        res = new_Expression_from_GEx(self._parent, x)
+        return ES(res)
 
     expand_rational = rational_expand = expand
 
