@@ -171,10 +171,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import print_function, absolute_import
+from six import itervalues, iteritems, string_types
 
-from six import itervalues, iteritems
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -536,7 +535,7 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
-        if isinstance(x, (str, unicode)):
+        if isinstance(x, string_types):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):

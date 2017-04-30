@@ -15,6 +15,7 @@ from __future__ import print_function
 from six.moves import range
 
 import logging, optparse, os, shutil, subprocess, sys, re
+import six
 
 import sphinx.cmdline
 import sphinx.util.console
@@ -1208,6 +1209,7 @@ def get_builder(name):
         print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
+
 def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns
@@ -1223,13 +1225,14 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     if cols is None:
         import math
         cols = math.trunc((width - indent) / size)
-    s = " " * indent
+    s = u" " * indent
     for i in range(len(lst)):
         if i != 0 and i % cols == 0:
-            s += "\n" + " " * indent
-        s += "{0:{1}{2}}".format(lst[i], align, size)
-    s += "\n"
-    return unicode(s)
+            s += u"\n" + u" " * indent
+        s += u"{0:{1}{2}}".format(lst[i], align, size)
+    s += u"\n"
+    return s
+
 
 def help_usage(s=u"", compact=False):
     """
@@ -1237,10 +1240,11 @@ def help_usage(s=u"", compact=False):
     documentation builder.  If 'compact' is False, the function adds a
     final newline character.
     """
-    s += "sage --docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)"
+    s += u"sage --docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)"
     if not compact:
-        s += "\n"
+        s += u"\n"
     return s
+
 
 def help_description(s=u"", compact=False):
     """
@@ -1248,31 +1252,33 @@ def help_description(s=u"", compact=False):
     builder.  If 'compact' is False, the function adds a final newline
     character.
     """
-    s += "Build or return information about Sage documentation.\n\n"
-    s += "    DOCUMENT    name of the document to build\n"
-    s += "    FORMAT      document output format\n"
-    s += "    COMMAND     document-specific command\n\n"
-    s += "Note that DOCUMENT may have the form 'file=/path/to/FILE',\n"
-    s += "which builds the documentation for the specified file.\n\n"
-    s += "A DOCUMENT and either a FORMAT or a COMMAND are required,\n"
-    s += "unless a list of one or more of these is requested."
+    s += u"Build or return information about Sage documentation.\n\n"
+    s += u"    DOCUMENT    name of the document to build\n"
+    s += u"    FORMAT      document output format\n"
+    s += u"    COMMAND     document-specific command\n\n"
+    s += u"Note that DOCUMENT may have the form 'file=/path/to/FILE',\n"
+    s += u"which builds the documentation for the specified file.\n\n"
+    s += u"A DOCUMENT and either a FORMAT or a COMMAND are required,\n"
+    s += u"unless a list of one or more of these is requested."
     if not compact:
-        s += "\n"
+        s += u"\n"
     return s
+
 
 def help_examples(s=u""):
     """
     Appends and returns some usage examples for the Sage documentation
     builder.
     """
-    s += "Examples:\n"
-    s += "    sage --docbuild -FDC all\n"
-    s += "    sage --docbuild constructions pdf\n"
-    s += "    sage --docbuild reference html -jv3\n"
-    s += "    sage --docbuild --mathjax tutorial html\n"
-    s += "    sage --docbuild reference print_unincluded_modules\n"
-    s += "    sage --docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
+    s += u"Examples:\n"
+    s += u"    sage --docbuild -FDC all\n"
+    s += u"    sage --docbuild constructions pdf\n"
+    s += u"    sage --docbuild reference html -jv3\n"
+    s += u"    sage --docbuild --mathjax tutorial html\n"
+    s += u"    sage --docbuild reference print_unincluded_modules\n"
+    s += u"    sage --docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
     return s
+
 
 def get_documents():
     """
@@ -1284,6 +1290,7 @@ def get_documents():
     docs = [(d[3:] if d[0:3] == 'en/' else d) for d in docs]
     return docs
 
+
 def help_documents(s=u""):
     """
     Appends and returns a tabular list of documents, including a
@@ -1291,16 +1298,17 @@ def help_documents(s=u""):
     documentation builder.
     """
     docs = get_documents()
-    s += "DOCUMENTs:\n"
-    s += format_columns(docs + ['all  (!)'])
-    s += "(!) Builds everything.\n\n"
+    s += u"DOCUMENTs:\n"
+    s += format_columns(docs + [u'all  (!)'])
+    s += u"(!) Builds everything.\n\n"
     if 'reference' in docs:
-        s+= "Other valid document names take the form 'reference/DIR', where\n"
-        s+= "DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"
-        s+= "This builds just the specified part of the reference manual.\n"
-    s += "DOCUMENT may also have the form 'file=/path/to/FILE', which builds\n"
-    s += "the documentation for the specified file.\n"
+        s += u"Other valid document names take the form 'reference/DIR', where\n"
+        s += u"DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"
+        s += u"This builds just the specified part of the reference manual.\n"
+    s += u"DOCUMENT may also have the form 'file=/path/to/FILE', which builds\n"
+    s += u"the documentation for the specified file.\n"
     return s
+
 
 def get_formats():
     """
@@ -1312,14 +1320,16 @@ def get_formats():
     formats.remove('html')
     return ['html', 'pdf'] + formats
 
+
 def help_formats(s=u""):
     """
     Appends and returns a tabular list of output formats available to
     the Sage documentation builder.
     """
-    s += "FORMATs:\n"
+    s += u"FORMATs:\n"
     s += format_columns(get_formats())
     return s
+
 
 def help_commands(name='all', s=u""):
     """
@@ -1335,10 +1345,11 @@ def help_commands(name='all', s=u""):
         ] }
     for doc in command_dict:
         if name == 'all' or doc == name:
-            s += "COMMANDs for the DOCUMENT '" + doc + "':\n"
+            s += u"COMMANDs for the DOCUMENT '" + doc + "':\n"
             s += format_columns(command_dict[doc])
-            s += "(*) Since the last build.\n"
+            s += u"(*) Since the last build.\n"
     return s
+
 
 def help_message_long(option, opt_str, value, parser):
     """
