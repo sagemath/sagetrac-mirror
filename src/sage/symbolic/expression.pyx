@@ -4306,7 +4306,9 @@ cdef class Expression(CommutativeRingElement):
         Expand this symbolic expression. Products of sums and exponentiated
         sums are multiplied out, numerators of rational expressions which
         are sums are split into their respective terms, and multiplications
-        are distributed over addition at all levels.
+        are distributed over addition at all levels. Furthermore, the
+        symbolic sums whos first argument is a sumn are distributed
+        over the terms of this sum.
 
         EXAMPLES:
 
@@ -4396,6 +4398,15 @@ cdef class Expression(CommutativeRingElement):
             1/(x^2 + 2*x + 1)
             sage: (((x-1)/(x+1))^2).expand()
             x^2/(x^2 + 2*x + 1) - 2*x/(x^2 + 2*x + 1) + 1/(x^2 + 2*x + 1)
+
+        Check that :trac:`22915` is implemented::
+            sage: var("j,p", domain="integer")
+            (j, p)
+            sage: X,Y=function("X,Y")
+            sage: sum(X(j)+Y(j),j,1,p)
+            sum(X(j) + Y(j), j, 1, p)
+            sage: sum(X(j)+Y(j),j,1,p).expand()
+            sum(X(j), j, 1, p) + sum(Y(j), j, 1, p)
         """
         if side is not None:
             if not is_a_relational(self._gobj):
@@ -4426,7 +4437,6 @@ cdef class Expression(CommutativeRingElement):
                     aa=sa.operands()
                     return sum(map(lambda t:treat_term(ES(t),la), aa))
             return apply(op, map(ES, ex.operands()))
-        ### return ES(self)
         sig_on()
         try:
             x = self._gobj.expand(0)
