@@ -2,7 +2,7 @@
 Finitely Presented Groups
 
 Finitely presented groups are constructed as quotients of
-:mod:`~sage.groups.free_group`::
+:mod:`~sage.groups.free_groups.free_group`::
 
     sage: F.<a,b,c> = FreeGroup()
     sage: G = F / [a^2, b^2, c^2, a*b*c*a*b*c]
@@ -139,7 +139,7 @@ from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
-from sage.groups.free_group import FreeGroupElement
+from sage.groups.free_groups.free_group import FreeGroupElement
 
 from sage.structure.element import Element, MultiplicativeGroupElement
 from sage.interfaces.gap import gap
@@ -418,7 +418,7 @@ def wrap_FpGroup(libgap_fpgroup):
     """
     assert libgap_fpgroup.IsFpGroup()
     libgap_fpgroup._set_compare_by_id()
-    from sage.groups.free_group import wrap_FreeGroup
+    from sage.groups.free_groups.free_group import wrap_FreeGroup
     free_group = wrap_FreeGroup(libgap_fpgroup.FreeGroupOfFpGroup())
     relations = tuple( free_group(rel.UnderlyingElement())
                        for rel in libgap_fpgroup.RelatorsOfFpGroup() )
@@ -565,6 +565,8 @@ class RewritingSystem(object):
                 x2*x0    --->    x1
                 x2*x1    --->    x0
                 x2^2    --->    1
+
+
             sage: k.finitely_presented_group()
             Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
         """
@@ -638,9 +640,18 @@ class RewritingSystem(object):
             {a^3: 1, b^2*a^2: 1}
             sage: k.make_confluent()
             sage: sorted(k.rules().items())
-            [(a^-2, a), (a^-1*b^-1, a*b), (a^-1*b, b^-1), (a^2, a^-1),
-             (a*b^-1, b), (b^-1*a^-1, a*b), (b^-1*a, b), (b^-2, a^-1),
-             (b*a^-1, b^-1), (b*a, a*b), (b^2, a)]
+            [(a^-2, a),
+             (a^-1*b^-1, a*b),
+             (a^-1*b, b^-1),
+             (a^2, a^-1),
+             (a*b^-1, b),
+             (b^-1*a^-1, a*b),
+             (b^-1*a, b),
+             (b^-2, a^-1),
+             (b*a^-1, b^-1),
+             (b*a, a*b),
+             (b^2, a)]
+
         """
         dic = {}
         grules = self.gap().Rules()
@@ -697,6 +708,8 @@ class RewritingSystem(object):
                 x2*x0    --->    x1
                 x2*x1    --->    x0*x2
                 x2^2    --->    x2^-1
+
+
         """
         return self._gap.IsConfluent().sage()
 
@@ -731,7 +744,6 @@ class RewritingSystem(object):
                 b^3    --->    1
                 (b*a)^2    --->    1
                 a*b^3*a^-1    --->    1
-
             sage: k.make_confluent()
             sage: k
             Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
@@ -742,6 +754,7 @@ class RewritingSystem(object):
                 b^-2    --->    b
                 b*a    --->    a*b^-1
                 b^2    --->    b^-1
+
         """
         try:
             self._gap.MakeConfluent()
@@ -756,7 +769,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     .. WARNING::
 
         You should use
-        :meth:`~sage.groups.free_group.FreeGroup_class.quotient` to
+        :meth:`~sage.groups.free_groups.free_group.FreeGroup_class.quotient` to
         construct finitely presented groups as quotients of free
         groups.
 
@@ -808,7 +821,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: TestSuite(H).run()
             sage: TestSuite(J).run()
         """
-        from sage.groups.free_group import is_FreeGroup
+        from sage.groups.free_groups.free_group import is_FreeGroup
         assert is_FreeGroup(free_group)
         assert isinstance(relations, tuple)
         self._free_group = free_group
@@ -875,7 +888,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         OUTPUT:
 
-        A :func:`~sage.groups.free_group.FreeGroup`.
+        A :func:`~sage.groups.free_groups.free_group.FreeGroup`.
 
         EXAMPLES::
 
@@ -1109,7 +1122,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         - Davis Shurbert (2013-07-20): initial version
         """
-        from sage.groups.free_group import FreeGroup, _lexi_gen
+        from sage.groups.free_groups.free_group import FreeGroup, _lexi_gen
 
         if not isinstance(H, FinitelyPresentedGroup):
             raise TypeError("input must be a finitely presented group")
@@ -1265,7 +1278,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             ...
             ValueError: libGAP: Error, <gens> and <imgs> must be lists of same length
         """
-        from sage.groups.free_group import FreeGroup, _lexi_gen
+        from sage.groups.free_groups.free_group import FreeGroup, _lexi_gen
 
         if not isinstance(H, FinitelyPresentedGroup):
             raise TypeError("input must be a finitely presented group")
@@ -1559,11 +1572,10 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: k
             Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
             with rules:
-                a^2    --->    1
-                b^3    --->    1
-                (b*a)^2    --->    1
-                a*b^3*a^-1    --->    1
-
+                 a^2    --->    1
+                 b^3    --->    1
+                 (b*a)^2    --->    1
+                 a*b^3*a^-1    --->    1
             sage: G([1,1,2,2,2])
             a^2*b^3
             sage: k.reduce(G([1,1,2,2,2]))

@@ -63,9 +63,9 @@ class Groups(CategoryWithAxiom):
         - ``names`` -- a string or list/tuple/iterable of strings
           (default: ``'x'``); the generator names or name prefix
 
-        When the index set is an integer or only variable names are given,
-        this returns :class:`~sage.groups.free_group.FreeGroup_class`, which
-        currently has more features due to the interface with GAP than
+        When the index set is an integer or only variable names are given, this
+        returns :class:`~sage.groups.free_groups.free_group.FreeGroup_class`,
+        which currently has more features due to the interface with GAP than
         :class:`~sage.groups.indexed_free_group.IndexedFreeGroup`.
 
         EXAMPLES::
@@ -81,7 +81,7 @@ class Groups(CategoryWithAxiom):
         """
         from sage.rings.all import ZZ
         if index_set in ZZ or (index_set is None and names is not None):
-            from sage.groups.free_group import FreeGroup
+            from sage.groups.free_groups.free_group import FreeGroup
             if names is None:
                 return FreeGroup(index_set, **kwds)
             return FreeGroup(index_set, names, **kwds)
