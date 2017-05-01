@@ -5448,7 +5448,7 @@ class SemistandardTableaux(Tableaux):
                 tabs.append(t)
             count+=1
 
-        # this is to cope with empty slices endpoints like [:6] or [:}
+        # this is to cope with empty slices endpoints like [:6] or [:]
         if count==stop or stop is None:
             return tabs
         raise IndexError('value out of range')
