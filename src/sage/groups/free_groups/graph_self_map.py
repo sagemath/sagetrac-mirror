@@ -21,12 +21,14 @@ EXAMPLES::
     Edge map: a->a, b->b, c->c, d->eCEAd, e->eCEAdbDaecEae
 
 """
+
 # *****************************************************************************
 #       Copyright (C) 2013 Thierry Coulbois <thierry.coulbois@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
+
 from __future__ import print_function, absolute_import
 from .graph_map import GraphMap
 from sage.combinat.words.morphism import WordMorphism

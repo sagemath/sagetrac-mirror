@@ -800,7 +800,7 @@ class GraphMap():
         Pullback of the graph maps ``self`` and ``other``.
         The codomain of ``self`` and ``other`` must be the same graph.
 
-        The pullback is a graph map f:G3 -> G that makes the diagram commute:
+        The pullback is a graph map `f : G_3 \to G` that makes the diagram commute::
 
             G3 -----> G1
             |  \      |
@@ -816,11 +816,12 @@ class GraphMap():
 
         INPUT:
 
-        - ``other`` -- a graph map G2->G with ``self``: a graph map G1->G,
+        - ``other`` -- a graph map `G_2 \to G` with ``self`` (a
+          graph map `G_1 \to G`)
 
         OUTPUT:
 
-        A ``GraphMap`` f
+        A ``GraphMap``.
 
         EXAMPLES::
 
@@ -841,7 +842,7 @@ class GraphMap():
 
         AUTHORS:
 
-            - Radhika GUPTA
+        - Radhika GUPTA
         """
         import itertools
         # First convert self and f2 into immersions
@@ -865,8 +866,7 @@ class GraphMap():
                             and self.domain().terminal_vertex(e1) == w[0]:
                         for e2 in other.domain().alphabet().positive_letters():
                             if other.domain().initial_vertex(e2) == v[1] \
-                                    and other.domain().terminal_vertex(e2) == w[
-                                        1]:
+                                    and other.domain().terminal_vertex(e2) == w[1]:
                                 if self.image(e1) == other.image(e2):
                                     e = A.add_new_letter()
                                     G3.add_edge(v, w, e)
@@ -909,3 +909,4 @@ class GraphMap():
             graph, graph,
             automorphism.to_word_morphism(
                 use_str=True, upper_case_as_inverse=True))
+

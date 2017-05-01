@@ -266,7 +266,7 @@ class FreeGroupElement(ElementLibGAP):
         return hash(self.Tietze())
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation
 
         OUTPUT:
@@ -321,7 +321,7 @@ class FreeGroupElement(ElementLibGAP):
 
     def __len__(self):
         """
-        Reduced word length of self.
+        Reduced word length of ``self``.
 
         OUTPUT:
 
@@ -335,7 +335,6 @@ class FreeGroupElement(ElementLibGAP):
             4
             sage: len(F(['x0','X1','x1','x2']))
             2
-
         """
         return len(self.Tietze())
 
@@ -370,7 +369,6 @@ class FreeGroupElement(ElementLibGAP):
         else:
             return self.parent([self.Tietze()[item]])
 
-
     @cached_method
     def Tietze(self):
         """
@@ -397,7 +395,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """
@@ -464,9 +462,7 @@ class FreeGroupElement(ElementLibGAP):
         If ``im_gens`` are provided, the result lives in the
         algebra where ``im_gens`` live.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: G = FreeGroup(5)
             sage: G.inject_variables()
@@ -563,7 +559,7 @@ class FreeGroupElement(ElementLibGAP):
     @cached_method
     def syllables(self):
         r"""
-        Return the syllables of the word.
+        Return the syllables of ``self``.
 
         Consider a free group element `g = x_1^{n_1} x_2^{n_2} \cdots
         x_k^{n_k}`. The uniquely-determined subwords `x_i^{e_i}`
@@ -605,7 +601,7 @@ class FreeGroupElement(ElementLibGAP):
 
         - ``*values`` -- a sequence of values, or a
           list/tuple/iterable of the same length as the number of
-          generators of the free group.
+          generators of the free group
 
         OUTPUT:
 
@@ -647,14 +643,14 @@ class FreeGroupElement(ElementLibGAP):
 
     def to_word(self, use_str=True, upper_case_as_inverse=True):
         """
-        Convert ``self`` to a Word.
+        Convert ``self`` to a word.
 
         A free group element is a reduced words in the generators and their
         inverses. This is naturally a finite word. Some choices have to be
         done:
 
-        1. ``use_str==True``: the letters of the words are strings (
-           possibly a single character, but not necessarily).
+        1. ``use_str==True``: the letters of the words are strings
+           (possibly a single character, but not necessarily).
 
            ``use_str==False``: the letters of the word are the generators
            and their inverses themselves, that is to say the letters are
@@ -667,14 +663,14 @@ class FreeGroupElement(ElementLibGAP):
 
         INPUT:
 
-            - ``use_str`` -- (default: True) use strings rather than
-              FreeGroupElement as letters.
-            - ``upper_case_as_inverse`` -- (default: True) use upper case
-              letters as inverses.
+        - ``use_str`` -- (default: ``True``) use strings rather than
+          :class:`FreeGroupElement` as letters
+        - ``upper_case_as_inverse`` -- (default: ``True``) use upper case
+          letters as inverses
 
         OUTPUT:
 
-        A finite Word.
+        A finite :class:`~sage.combinat.words.finite_word.FiniteWord_class`.
 
         EXAMPLES::
 
@@ -683,12 +679,11 @@ class FreeGroupElement(ElementLibGAP):
             sage: w.to_word()
             word: x0,X1,x0,x2,X0
             sage: type(w.to_word()[1])
-            <type 'str'>
+            <... 'str'>
             sage: w.to_word(use_str=False)
             word: x0,x1^-1,x0,x2,x0^-1
             sage: w.to_word(use_str=False)[1] == w[1]
             True
-
         """
         from sage.combinat.words.word import Word
 

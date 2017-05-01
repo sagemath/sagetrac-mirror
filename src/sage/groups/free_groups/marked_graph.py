@@ -10,6 +10,7 @@ AUTHORS:
   AMU University <dominique.benielli@univ-amu.fr>, Integration in SageMath
 
 EXAMPLES::
+
     sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
     sage: from sage.groups.free_groups.marked_graph import MarkedGraph
     sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
@@ -17,12 +18,14 @@ EXAMPLES::
     Marked graph: a: 0->0, c: 1->0, b: 0->1
     Marking: a->a, b->bc
 """
+
 # *****************************************************************************
 #       Copyright (C) 2013 Thierry Coulbois <thierry.coulbois@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
+
 from __future__ import print_function, absolute_import
 from .inverse_graph import GraphWithInverses, MetricGraph
 from .graph_map import GraphMap
@@ -193,7 +196,8 @@ class MarkedGraph(GraphWithInverses):
         return self._marking
 
     def precompose(self, automorphism):
-        """Precompose the marking by ``automorphism``.
+        """
+        Precompose the marking by ``automorphism``.
 
         INPUT:
 
@@ -226,7 +230,7 @@ class MarkedGraph(GraphWithInverses):
 
         INPUT:
 
-        - ``other``: a MarkedGraph
+        - ``other`` -- a MarkedGraph
 
         OUTPUT:
 
@@ -255,15 +259,15 @@ class MarkedGraph(GraphWithInverses):
 
         INPUT:
 
-        - ``edge_list`` -- edge list.
+        - ``edge_list`` -- edge list
 
         OUTPUT:
 
-        subdivide  map from subdivide GraphWithInverses.
+        Subdivide map from subdivide GraphWithInverses.
 
         .. WARNING:
 
-            each edge in ``edge_list`` must appear only once.
+            Each edge in ``edge_list`` must appear only once.
 
         EXAMPLES::
 
@@ -336,7 +340,7 @@ class MarkedGraph(GraphWithInverses):
             Marked graph: a: 1->0, b: 0->1, c: 1->1
             Marking: a->ba, b->bcB
 
-        .. SEE ALSO:
+        .. SEEALSO::
 
             :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.fold()``
         """
@@ -371,7 +375,7 @@ class MarkedGraph(GraphWithInverses):
             sage: G.contract_forest([['b']])
             {'A': word: A, 'B': word: , 'a': word: a, 'b': word: }
 
-        .. SEE ALSO:
+        .. SEEALSO::
 
             :meth:`sage.groups.free_groups.inverse_graph.GraphWithInverses.contract_forest()``
         """
@@ -418,7 +422,7 @@ class MarkedGraph(GraphWithInverses):
 
         INPUT:
 
-        - ``alphabet`` a alphabet
+        - ``alphabet`` -- an alphabet
 
         OUTPUT:
 
@@ -439,7 +443,8 @@ class MarkedGraph(GraphWithInverses):
 
 
 class MarkedMetricGraph(MarkedGraph, MetricGraph):
-    """A ``MarkedGraph`` together with a length function on edges.
+    """
+    A ``MarkedGraph`` together with a length function on edges.
 
     This is intended to represent point un outer space. Moreover,
     length may be set to 0 to represent simplicial trees in the
@@ -461,6 +466,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
     def __init__(self, graph=None, marking=None, length=None, alphabet=None,
                  marking_alphabet=None):
         """
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -497,7 +503,8 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
         A string representation of ``self``
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
             sage: from sage.groups.free_groups.marked_graph import MarkedGraph, MarkedMetricGraph
             sage: G = GraphWithInverses({'a':(0,0),'b':(0,1),'c':(1,0)})
@@ -519,7 +526,7 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
         INPUT:
 
-        - ``a`` letter of alphabet
+        - ``a`` -- a letter of the alphabet
 
         OUTPUT:
 
@@ -539,12 +546,12 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
     def set_length(self, a, l):
         """
-        Sets the length of the edge ``a`` to ``l``.
+        Set the length of the edge ``a`` to ``l``.
 
         INPUT:
 
-        - ``a`` label of edge
-        - ``l`` length associated
+        - ``a`` -- label of edge
+        - ``l`` -- length associated
 
         EXAMPLES::
 
@@ -571,17 +578,16 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
         the first vertex while letters in A[:i] are attached to the
         second vertex.
 
-        All loops have length 0, the splitting edge ``e`` has length
-        1.
+        All loops have length 0, the splitting edge ``e`` has length 1.
 
         INPUT:
 
-        - ``i`` integer correspond to the splitting index
-        - ``A`` alphabet
+        - ``i`` -- integer correspond to the splitting index
+        - ``A`` -- an alphabet
 
         OUTPUT:
 
-        The ``MarkedMetricGraph`` corresponding to splitting
+        The ``MarkedMetricGraph`` corresponding to splitting.
 
         EXAMPLES::
 
@@ -629,11 +635,11 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
 
         INPUT:
 
-        - ``A`` alphabet
+        - ``A`` -- an alphabet
 
         OUTPUT:
 
-        The marked metric graph corresponding to the HNN splitting
+        The marked metric graph corresponding to the HNN splitting.
 
         EXAMPLES::
 
@@ -645,12 +651,12 @@ class MarkedMetricGraph(MarkedGraph, MetricGraph):
             Length: a:1, b:0, c:0, d:0
         """
 
-        length = dict((a, 0) for a in A.positive_letters())
+        length = {a: 0 for a in A.positive_letters()}
         length[A[0]] = 1
 
         RA = GraphWithInverses.rose_graph(A)
         RAA = GraphWithInverses.rose_graph(A)
-        marking = GraphMap(RA, RAA, dict(
-                               (a, Word([a])) for a in A.positive_letters()))
+        marking = GraphMap(RA, RAA, {a: Word([a]) for a in A.positive_letters()})
 
         return MarkedMetricGraph(marking=marking, length=length)
+

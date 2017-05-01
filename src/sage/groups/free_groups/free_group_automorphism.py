@@ -24,6 +24,7 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
+
 from __future__ import print_function, absolute_import
 from sage.combinat.words.morphism import WordMorphism
 from .free_group import FreeGroup, FreeGroupElement
@@ -278,10 +279,10 @@ class FreeGroupMorphism(object):
 
         """
         if isinstance(other, WordMorphism):
-            morph = dict((a, self(other(a))) for a in other._domain.alphabet())
+            morph = {a: self(other(a)) for a in other._domain.alphabet()}
             dom =  FreeGroup(other._domain.alphabet())
         if isinstance(other, FreeGroupMorphism):
-            morph = dict((a, self(other(a))) for a in other.domain().gens())
+            morph = {a: self(other(a)) for a in other.domain().gens()}
             dom = other._domain
         return FreeGroupMorphism(morph, domain=dom, codomain=self._codomain)
 
@@ -360,9 +361,7 @@ class FreeGroupMorphism(object):
             a->a*b,b->a^-1
 
         """
-        result = "Morphism from %s to %s: " %(str(self._domain),str(self._codomain))
-        result = result + "%s" % str(self)
-        return result
+        return "Morphism from {} to {}: {}".format(self._domain, self._codomain, str(self))
 
     def __cmp__(self, other):
         """
@@ -451,13 +450,13 @@ class FreeGroupMorphism(object):
 
         INPUT:
 
-        - ``use_str`` -- (default: False) use ``str`` as letters (not FreeGroupElement).
-
-        - ``upper_case_as_inverse`` -- (default: False) inverse of generators are translated to upper case ``str``
+        - ``use_str`` -- (default: False) use ``str`` as letters (not FreeGroupElement)
+        - ``upper_case_as_inverse`` -- (default: False) inverse of
+          generators are translated to upper case ``str``
 
         OUTPUT:
 
-        a WordMorphism
+        A WordMorphism.
 
         .. NOTE::
 
@@ -1175,12 +1174,12 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         INPUT:
 
-        - ``F`` -- a FreeGroup
+        - ``F`` -- a free group
 
         OUTPUT:
 
-        the FreeGroupAutomorphism  of the free group ``F`` with random
-        permutation of its generators
+        The FreeGroupAutomorphism of the free group ``F`` with random
+        permutation of its generators.
 
         EXAMPLES::
 
@@ -1213,9 +1212,8 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         INPUT:
 
-        - ``F`` -- a FreeGroup
-        - ``lenght`` -- (default = 1) length of the random letters
-
+        - ``F`` -- a :class:`FreeGroup`
+        - ``lenght`` -- (default: 1) length of the random letters
 
         OUTPUT:
 
@@ -1272,26 +1270,24 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
     @staticmethod
     def _surface_dehn_twist_e(F, i):
         """
-
         TESTS::
+
             sage: F = FreeGroup(4)
             sage: FreeGroupAutomorphism._surface_dehn_twist_e(F, i=0)
             Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x1*x0,x1->x1,x2->x2,x3->x3
-
         """
         return FreeGroupAutomorphism.Nielsen_automorphism(F, F.gen(2 * i), F.gen(2 * i + 1), True)
 
     @staticmethod
     def _surface_dehn_twist_c(F, i):
         """
-
         TESTS::
+
             sage: F = FreeGroup(4)
             sage: FreeGroupAutomorphism._surface_dehn_twist_c(F, i=0)
             Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x0,x1->x2*x0^-1*x1,x2->x2,x3->x3*x0*x2^-1
-
         """
-        result = dict((a, a) for a in F.gens())
+        result = {a: a for a in F.gens()}
         result[F.gen(2 * i + 1)] = F.gen(2 * i + 2) * (F.gen(2 * i)**-1) * F.gen(2 * i + 1)
         result[F.gen(2 * i + 3)] = F.gen(2 * i + 3) * F.gen(2 * i) * (F.gen(2 * i + 2)**-1)
 
@@ -1300,15 +1296,14 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
     @staticmethod
     def _surface_dehn_twist_m(F, i):
         """
-
         TESTS::
+
             sage: F = FreeGroup(4)
             sage: FreeGroupAutomorphism._surface_dehn_twist_m(F, i=0)
             Automorphism of the Free Group on generators {x0, x1, x2, x3}: x0->x0,x1->x0*x1,x2->x0*x2*x0^-1,x3->x0*x3*x0^-1
-
         """
 
-        result = dict((F.gen(j),F.gen(j)) for j in range(2 * i +1))
+        result = {F.gen(j): F.gen(j) for j in range(2 * i +1)}
 
         a = F.gen(2 * i)
         aa = a**-1
@@ -1322,28 +1317,29 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
     @staticmethod
     def surface_dehn_twist(F, k):
-        """
+        r"""
         Dehn twist of the surface (with one boundary component) with
         fundamental group the free group ``F``.
 
         The surface is assumed to have genus g and 1 boundary
-        component. The fundamental group has rank 2g, thus ``F`` is
+        component. The fundamental group has rank `2g`, thus ``F`` is
         assumed to be of even rank.
 
-        ``k`` is an integer 0<=k<3g-1.
+        ``k`` is an integer `0 \leq k < 3g-1`.
 
         MCG(S_{g,1}) is generated by the Dehn twist along
         the curves:
 
-        - g equators e_i,
-        - g meridian m_i
-        - g-1 circles c_i around two consecutive 'holes'.
+        - `g` equators `e_i`,
+        - `g` meridian `m_i`
+        - `g-1` circles `c_i` around two consecutive 'holes'.
 
-        for 0<=k<g returns the Dehn twist along e_i with i=k
+        for `0 \leq k < g` returns the Dehn twist along `e_i` with `i = k`
 
-        for g<=k<2g returns the Dehn twist along m_i with i=k-g
+        for `g \leq k < 2g` returns the Dehn twist along `m_i` with `i = k-g`
 
-        for 2g<=k<3g-1 returns the Dehn twist along c_i with i=k-2g
+        for `2g \leq k < 3g-1` returns the Dehn twist along `c_i`
+        with `i = k-2g`
 
         The fundamental group has 2g generators. We fix the base point
         on the boundary. The generators are:
@@ -1363,14 +1359,12 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         INPUT:
 
         - ``F`` -- a FreeGroup
-        - ``k`` is an integer 0<=k<3g-1.
-
+        - ``k`` -- an integer `0 \leq k < 3g-1`
 
         OUTPUT:
 
-        the FreeGroupAutomorphism
-        Dehn twist of the surface (with one boundary component) with
-        fundamental group the free group ``F``
+        The FreeGroupAutomorphism Dehn twist of the surface (with one
+        boundary component) with fundamental group the free group ``F``.
 
         EXAMPLES::
 
@@ -1381,7 +1375,6 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         .. WARNING::
 
             ``F`` is assumed to be of even rank.
-
         """
         assert F.rank() % 2 == 0
 
@@ -1405,13 +1398,13 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         INPUT:
 
         - ``F`` -- a FreeGroup
-        - ``lenght`` -- (default = 1) length of the random letters
-        - ``verbose`` -- ``True`` if ``self`` for the verbose option.
+        - ``lenght`` -- (default: 1) length of the random letters
+        - ``verbose`` -- set to ``True`` for the verbose option
 
         OUTPUT:
 
         Automorphism of the free group ``F``
-        that is a random mapping class
+        that is a random mapping class.
 
         EXAMPLES::
 
@@ -1425,8 +1418,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         .. SEEALSO::
 
-           :meth:`sage.groups.free_groups.free_group_automorphism.FreeGroupAutomorphism.surface_dehn_twist()`
-
+           :meth:`surface_dehn_twist()`
         """
         from sage.misc.prandom import randint
 
@@ -1468,24 +1460,29 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
     @staticmethod
     def braid_automorphism(F, i, inverse=False):
-        """
-        Automorphism of the free group ``F`` which corresponds to the generator
-        sigma_i of the braid group.
+        r"""
+        Automorphism of the free group ``F`` which corresponds to the
+        generator `\sigma_i` of the braid group.
 
-        sigma_i: a_i -> a_i a_{i+1} a_i^{-1}
-                 a_j -> a_j, for j!=i
+        Let `F` be a free group. Then the braid group generator acts by
 
-        We assume 0<i<n, where n is the rank of ``F``.
+        .. MATH::
+
+            \begin{aligned}
+            \sigma_i: a_i & \mapsto a_i a_{i+1} a_i^{-1}
+                   \\ a_j & \mapsto a_j \qquad (j \neq i).
+            \end{aligned}
+
+        We assume `0 < i < n`, where `n` is the rank of `F`.
 
         If ``inverse`` is True returns the inverse of sigma_i.
 
-
         INPUT:
 
-        - ``F`` -- a FreeGroup
-        - ``i`` -- 0<i<n, where n is the rank of ``F``.
-        - ``inverse`` -- default ``False`` If ``inverse`` is True returns
-          the inverse of sigma_i.
+        - ``F`` -- a :class:`FreeGroup`
+        - ``i`` -- `0 < i < n`, where `n` is the rank of ``F``
+        - ``inverse`` -- (default: ``False``) if ``inverse`` is ``True``,
+          then return the inverse of `\sigma_i`
 
         OUTPUT:
 
@@ -1497,7 +1494,6 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
             sage: F = FreeGroup('a,b,c,d')
             sage: FreeGroupAutomorphism.braid_automorphism(F, 2)
             Automorphism of the Free Group on generators {a, b, c, d}: a->a,b->b*c*b^-1,c->b,d->d
-
         """
         result = dict((a, a) for a in F.gens())
         if not inverse:
@@ -1513,7 +1509,8 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
     @staticmethod
     def random_braid(F, length=1):
-        """A random braid automorphism of the free group ``F``.
+        """
+        A random braid automorphism of the free group ``F``.
 
         This is obtained by a uniform random walk with generators
         given by ``braid_automorphism()`` without backtrack of length
@@ -1521,8 +1518,8 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         INPUT:
 
-        - ``F`` -- a FreeGroup
-        - ``lenght`` -- (default = 1) length of the random letters
+        - ``F`` -- a :class:`FreeGroup`
+        - ``lenght`` -- (default: 1) length of the random letters
 
         OUTPUT:
 
@@ -1572,14 +1569,11 @@ class free_group_automorphisms:
     .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
         fixed subgroup of a free group automorphism, Inventiones
         Math. 96, 613-638, 1989.
-
     """
-
     @staticmethod
     def tribonacci():
         """
         Tribonacci automorphism.
-
 
         OUTPUT:
 
@@ -1596,21 +1590,20 @@ class free_group_automorphisms:
     @staticmethod
     def Handel_Mosher_inverse_with_same_lambda():
         """
-        Example given in the introduction of [HM-parageometric].
+        Example given in the introduction of [HM-parageometric]_.
 
         This is an iwip automorphisms that has the same expansion factor as its
         inverse: 3.199. It is not geometric and not parageometric.
 
         OUTPUT:
 
-        an iwip automorphisms that has the same expansion factor as its
+        An iwip automorphisms that has the same expansion factor as its
         inverse: 3.199. It is not geometric and not parageometric.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Handel_Mosher_inverse_with_same_lambda()
             Automorphism of the Free Group on generators {a, b, c}: a->b^-1*a*(c*a^-1)^2*b*c^-1*a*(b^-1*a*c)^2*a^-1*c*a^-1*b,b->b^-1*a*(c*a^-1)^2*b*c^-1*a*b^-1*a*c,c->b^-1*a*(c*a^-1)^2*b*c^-1*a
-
         """
         theta = pow(FreeGroupAutomorphism("a->b,b->c,c->Ba"), 4)
         psi = FreeGroupAutomorphism("a->b,b->a,c->c")
@@ -1619,7 +1612,7 @@ class free_group_automorphisms:
     @staticmethod
     def Bestvina_Handel_train_track_1_1():
         """
-        Automorphism given as Example 1.1 in [BH-train-track].
+        Automorphism given as Example 1.1 in [BH-train-track]_.
 
         This automorphism is iwip and not geometric nor
         parageometric. Its representative on the rose is
@@ -1627,29 +1620,28 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an iwip automorphisms and not geometric nor
-        parageometric.Its representative on the rose is
+        An iwip automorphisms and not geometric nor
+        parageometric. Its representative on the rose is
         train-track. Its inverse is also train-track on the rose.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_1_1()
             Automorphism of the Free Group on generators {a, b, c, d}: a->b,b->c,c->d,d->a^-1*d^-1*b^-1*c^-1
-
         """
         return FreeGroupAutomorphism("a->b,b->c,c->d,d->ADBC")
 
     @staticmethod
     def Bestvina_Handel_train_track_1_9():
         """
-        Automorphism given as Example 1.9 in [BH-train-track]
+        Automorphism given as Example 1.9 in [BH-train-track]_.
 
         This automorphism cannot be represented by an absolute train-track. But
         the representation on the rose is a relative train-track.
 
         OUTPUT:
 
-        an automorphisms given as Example 1.9 in [BH-train-track]
+        An automorphisms given as Example 1.9 in [BH-train-track]_.
         This automorphism cannot be represented by an absolute train-track.
         But the representation on the rose is a relative train-track.
 
@@ -1657,7 +1649,6 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_1_9()
             Automorphism of the Free Group on generators {a, b, c}: a->b*a,b->b^2*a,c->c*a^-1*b*a*b^-1
-
         """
         return FreeGroupAutomorphism("a->ba,b->bba,c->cAbaB")
 
@@ -1671,7 +1662,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an automorphisms given as Example 3.6 in [BH-train-track]
+        An automorphisms given as Example 3.6 in [BH-train-track]_.
         This automorphism is train-track on the rose and has an indivisble
         Nielsen path in A.b which is essential
 
@@ -1679,21 +1670,20 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_3_6()
             Automorphism of the Free Group on generators {a, b}: a->b*a,b->b^2*a
-
         """
         return FreeGroupAutomorphism("a->ba,b->bba")
 
     @staticmethod
     def Bestvina_Handel_train_track_5_16():
         """
-        Automorphism given as Example 5.16 in [BH-train-track].
+        Automorphism given as Example 5.16 in [BH-train-track]_.
 
         This automorphism occurs as a pseudo-Anosov homeomorphism of
         the four-times punctured phere. Thus it is reducible.
 
         OUTPUT:
 
-        an automorphisms given as Example 3.6 in [BH-train-track]
+        An automorphisms given as Example 3.6 in [BH-train-track]_.
         This automorphism occurs as a pseudo-Anosov homeomorphism of
         the four-times punctured phere. Thus it is reducible.
 
@@ -1701,14 +1691,13 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Bestvina_Handel_train_track_5_16()
             Automorphism of the Free Group on generators {a, b, c}: a->a,b->c^-1*a^-1*b*a*c,c->c^-1*a^-1*b*(a*c)^2*a^-1*c^-1*a^-1*b^-1*a*c
-
         """
         return FreeGroupAutomorphism("a->a,b->CAbac,c->CAbacacACABac")
 
     @staticmethod
     def Handel_Mosher_axes_3_4():
         """
-        Automorphism given in Section 3.4 of [HM-axes]
+        Automorphism given in Section 3.4 of [HM-axes]_.
 
         This automorphism is iwip, not geometric and is train-track on
         the rose. It has expansion factor 4.0795. Its inverse is not
@@ -1717,7 +1706,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an automorphisms given in Section 3.4 of [HM-axes]
+        An automorphisms given in Section 3.4 of [HM-axes]_.
         This automorphism is iwip, not geometric and is train-track on
         the rose. It has expansion factor 4.0795. Its inverse is not
         train-track on the rose and has expansion factor 2.46557. It
@@ -1727,14 +1716,13 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Handel_Mosher_axes_3_4()
             Automorphism of the Free Group on generators {a, f, g}: a->a*(f*g)^2*f,f->f*g*f,g->g*f*a*f*g
-
         """
         return FreeGroupAutomorphism("a->afgfgf,f->fgf,g->gfafg")
 
     @staticmethod
     def Handel_Mosher_axes_5_5():
         """
-        Automorphism given in Section 5.5 of [HM-axes]
+        Automorphism given in Section 5.5 of [HM-axes]_.
 
         This automorphism phi is iwip and not geometric. Both phi and
         phi.inverse() are train-track on the rose. phi has expansion
@@ -1743,7 +1731,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an automorphisms given in Section 5.5 of [HM-axes]
+        An automorphisms given in Section 5.5 of [HM-axes]_.
         This automorphism phi is iwip and not geometric. Both phi and
         phi.inverse() are train-track on the rose. phi has expansion
         factor 6.0329 while phi.inverse() has expansion factor 4.49086.
@@ -1752,25 +1740,24 @@ class free_group_automorphisms:
 
             sage: free_group_automorphisms.Handel_Mosher_axes_5_5()
             Automorphism of the Free Group on generators {a, b, c}: a->b*(a*c*a)^2,b->b*a*c*a,c->c*a^2*c*a
-
         """
         return FreeGroupAutomorphism("a->bacaaca,b->baca,c->caaca")
 
     @staticmethod
     def Hilion_parabolic(k=1):
         """
-        Automorphism given in Section 2 of [Hilion].
+        Automorphism given in Section 2 of [Hilion]_.
 
-        This automorphism has a parabolic orbit inside F_4.
+        This automorphism has a parabolic orbit inside `F_4`.
 
         INPUT:
 
-        - ``k``  default value = 1
+        - ``k`` -- (default: 1) the parameter `k`
 
         OUTPUT:
 
-        an automorphisms given in Section 2 of [Hilion].
-        This automorphism has a parabolic orbit inside F_4.
+        An automorphisms given in Section 2 of [Hilion].
+        This automorphism has a parabolic orbit inside `F_4`.
 
         EXAMPLES::
 
@@ -1783,9 +1770,7 @@ class free_group_automorphisms:
 
         .. [Hilion] A. Hilion, Dynamique des automorphismes des groupes
            libres, Thesis (Toulouse, 2004).
-
         """
-
         phi = FreeGroupAutomorphism("a->a,b->ba,c->caa,d->dc")
         F = phi.domain()
         if k > 1:
@@ -1795,7 +1780,7 @@ class free_group_automorphisms:
     @staticmethod
     def Handel_Mosher_parageometric_1():
         """
-        Automorphism given in the introduction of [HM-parageometric].
+        Automorphism given in the introduction of [HM-parageometric]_.
 
         This automorphism phi is iwip, not geometric and
         parageometric. Both phi and phi.inverse() are train-track on
@@ -1805,7 +1790,7 @@ class free_group_automorphisms:
         OUTPUT:
 
         an automorphisms given in the introduction of
-        [HM-parageometric].
+        [HM-parageometric]_.
         This automorphism phi is iwip, not geometric and
         parageometric. Both phi and phi.inverse() are train-track on
         the rose. phi has expansion factor 1.46557 while phi.inverse()
@@ -1822,22 +1807,19 @@ class free_group_automorphisms:
     @staticmethod
     def Cohen_Lustig_1_6():
         """
-
-        Automorphism given as example 1.6 in [CL-dynamics].
+        Automorphism given as example 1.6 in [CL-dynamics]_.
 
         It is reducible.
 
-
         OUTPUT:
 
-        an Automorphism given as example 1.6 in [CL-dynamics].
+        An automorphism given as example 1.6 in [CL-dynamics]_.
         It is reducible.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Cohen_Lustig_1_6()
             Automorphism of the Free Group on generators {a, b, c}: a->c^3*a*c^-3,b->c^-1*a*c^2*a^-1*b*c^-1,c->a*c^2*a^-1*b*c^2*a*c^-2*b^-1*a*c^-2*a^-1*c^4*a^-1*c^-3
-
         """
         return FreeGroupAutomorphism("a->cccaCCC,b->CaccAbC,"
                                      "c->accAbccaCCBaCCAccccACCC")
@@ -1852,42 +1834,39 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism given as example 7.2 in [CL-dynamics]..
-        this is an atoroidal iwip.
+        An automorphism given as example 7.2 in [CL-dynamics]_.
+        This is an atoroidal iwip.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Cohen_Lustig_7_2()
             Automorphism of the Free Group on generators {a, b, c}: a->a^2*b*c,b->a*b*c,c->a*b*c^2
-
         """
         return FreeGroupAutomorphism("a->aabc,b->abc,c->abcc")
 
     @staticmethod
     def Cohen_Lustig_7_3():
         """
-
-        Automorphism given as example 7.3 in [CL-dynamics].
+        Automorphism given as example 7.3 in [CL-dynamics]_.
 
         This is an atoroidal parageometric iwip.
 
         OUTPUT:
 
-        an Automorphism given as example 7.3 in [CL-dynamics].
+        An automorphism given as example 7.3 in [CL-dynamics]_.
         This is an atoroidal parageometric iwip.
 
         EXAMPLES::
 
             sage: free_group_automorphisms.Cohen_Lustig_7_3()
             Automorphism of the Free Group on generators {a, b, c}: a->c*a*b*a^2,b->b*a^2,c->c*a*b*a
-
         """
         return FreeGroupAutomorphism("a->cabaa,b->baa,c->caba")
 
     @staticmethod
     def Turner_Stallings():
         """
-        Automorphism of F_4 given in [Turner].
+        Automorphism of `F_4` given in [Turner]_.
 
         This automorphism comes from an idea of Stallings and although
         it is very short, it has a very long fixed word.
@@ -1896,7 +1875,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_4 given in [Turner].
+        An automorphism of `F_4` given in [Turner]_.
         This automorphism comes from an idea of Stallings and although
         it is very short, it has a very long fixed word.
         It is a reducible automorphism.
@@ -1912,14 +1891,13 @@ class free_group_automorphisms:
            train tracks map, Proc. of a work- shop held at Heriot-Watt Univ.,
            Edinburg, 1993 (Lond. Math. Soc. Lect. Note Ser., 204), Cambridge,
            Cambridge Univ. Press., 1995, 300-313.
-
         """
         return FreeGroupAutomorphism("a->dac,b->CADac,c->CABac,d->CAbc")
 
     @staticmethod
     def Bestvina_Handel_surface_homeo():
         """
-        Automorphism of F_4 given in [BH] see also [Kapovich].
+        Automorphism of `F_4` given in [BH]_ see also [Kapovich]_.
 
         This is a pseudo-Anosov mapping class of the 5-punctured
         sphere. Thus this is not an iwip. However, its representative
@@ -1927,7 +1905,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_4 given in [BH] see also [Kapovich].
+        An automorphism of F_4 given in [BH]_ see also [Kapovich]_.
         This is a pseudo-Anosov mapping class of the 5-punctured
         sphere. Thus this is not an iwip. However, its representative
         on the rose in train-track.
@@ -1941,22 +1919,20 @@ class free_group_automorphisms:
 
         .. [Kapovich] Ilya Kapovich, Algorithmic detectability of iwip
            automorphisms, arXiv:1209.3732
-
         """
-
         return FreeGroupAutomorphism("a->b,b->c,c->dA,d->DC")
 
     @staticmethod
     def Levitt_Lustig_periodic():
         """
-        Automorphism of F_3 given in Section 2 of [LL-periodic].
+        Automorphism of `F_3` given in Section 2 of [LL-periodic]_.
 
         This is an atoroidal iwip. It is positive and thus train-track
         on the rose.
 
         OUTPUT:
 
-        an Automorphism of F_3 given in Section 2 of [LL-periodic].
+        An automorphism of `F_3` given in Section 2 of [LL-periodic]_.
         This is an atoroidal iwip. It is positive and thus train-track
         on the rose.
 
@@ -2011,8 +1987,8 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_4 suggested by
-        X. Bressaud [personal communication]
+        An Automorphism of `F_4` suggested by
+        X. Bressaud [personal communication].
         This is a parageometrix iwip.
 
         EXAMPLES::
@@ -2023,7 +1999,6 @@ class free_group_automorphisms:
         REFERENCES:
 
         .. [Thurston] reference needed
-
         """
         return FreeGroupAutomorphism("a->ab,b->c,c->d,d->e,e->a")
 
@@ -2039,7 +2014,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_3 attributed to Shigeki Akiyama
+        An automorphism of `F_3` attributed to Shigeki Akiyama
         by X. Bressaud.
         This is a non-geometric, non-parageometric atoroidal iwip. It
         is positive thus train-track on the rose.
@@ -2053,15 +2028,13 @@ class free_group_automorphisms:
         REFERENCES:
 
         .. [Akiyama] reference needed
-
         """
-
         return FreeGroupAutomorphism("a->b,b->ac,c->a")
 
     @staticmethod
     def Bressaud():
-        """
-        Automorphism of F_4 suggested by Xavier Bressaud
+        r"""
+        Automorphism of `F_4r suggested by Xavier Bressaud
         [personal communication]
 
         It is positive thus train-track on the rose. This is a
@@ -2069,8 +2042,8 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_4 suggested by Xavier Bressaud
-        [personal communication]
+        An automorphism of `F_4` suggested by Xavier Bressaud
+        [personal communication].
         It is positive thus train-track on the rose. This is a
         non-iwip automorphism.
 
@@ -2082,15 +2055,14 @@ class free_group_automorphisms:
         REFERENCES:
 
         reference needed
-
         """
-
         return FreeGroupAutomorphism("a->db,b->dc,c->d,d->a")
 
     @staticmethod
     def Jolivet():
-        """Automorphism of F_4 suggested by Timo Jolivet [personal
-        communication]
+        """
+        Automorphism of `F_4` suggested by Timo Jolivet [personal
+        communication].
 
         This is positive thus train-track on the rose. However it is
         not iwip as the ideal Whitehead graph at the sole vertex is
@@ -2102,8 +2074,8 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_4 suggested by Timo Jolivet [personal
-        communication]
+        An automorphism of `F_4` suggested by Timo Jolivet [personal
+        communication].
 
         EXAMPLES::
 
@@ -2113,15 +2085,13 @@ class free_group_automorphisms:
         REFERENCES:
 
         reference needed
-
         """
-
         return FreeGroupAutomorphism("a->db,b->dc,c->d,d->a")
 
     @staticmethod
     def Boshernitzan_Kornfeld():
         r"""
-        Automorphism of F_3 given by M. Boshernitzan and M. Kornfeld [BK]
+        Automorphism of `F_3` given by M. Boshernitzan and M. Kornfeld [BK]_
 
         It is the induction of an interval translation mapping.
 
@@ -2129,8 +2099,8 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        an Automorphism of F_3 given by M. Boshernitzan
-        and M. Kornfeld [BK]
+        an Automorphism of `F_3` given by M. Boshernitzan
+        and M. Kornfeld [BK]_
         It is the induction of an interval translation mapping.
         This is the inverse of a parageometric iwip.
 
@@ -2142,6 +2112,6 @@ class free_group_automorphisms:
         REFERENCES:
 
         .. [BK] M. Boshernitzan and M. Kornfeld, TODO
-
         """
         return FreeGroupAutomorphism("a->b,b->caaa,c->caa")
+

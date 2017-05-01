@@ -1,35 +1,33 @@
-r""" test_train_track.py testing module for train_track
-to run with long option.
+r"""
+Test Train Tracks
 
-./sage -t --long src/sage/combinat/words/test_train_track.py
+Testing for :mod:`~sage.groups.free_groups.train_track_map`
+to run with long option::
+
+    ./sage -t --long src/sage/combinat/words/test_train_track.py
 
 AUTHORS:
 
-- Thierry COULBOIS (2013-01-01): initial version
-- Dominique BENIELLI (2016-02_15):
+- Thierry Coulbois (2013-01-01): initial version
+- Dominique Benielli (2016-02_15):
   AMU University <dominique.benielli@univ-amu.fr>, Integration in SageMath
-
-
 """
+
 #*****************************************************************************
 #       Copyright (C) 2013 Thierry Coulbois <thierry.coulbois@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 from .free_group import FreeGroup
 from .free_group_automorphism import FreeGroupAutomorphism
 from sage.misc.misc import cputime
 
-
 def test(rang, longueur, nombre):
     """
-    AUTHORS:
-
-    - Thierry Coulbois (2013-05-16): beta.0 version
-
-    TESTS:
+    TESTS::
 
         sage: from sage.groups.free_groups.test_train_track import *
         sage: test(3, 1, 1) # long time (80s on sage.math, 2016) # random
@@ -42,8 +40,10 @@ def test(rang, longueur, nombre):
         -------------------------
         rang:  3 longueur:  1  time:  0.024  train-tracks: 0.0
 
-    """
+    AUTHORS:
 
+    - Thierry Coulbois
+    """
     F = FreeGroup(rang)
 
     stat = 0
@@ -64,7 +64,7 @@ def test(rang, longueur, nombre):
 
 def test_stat(rangs, longueurs, puissance):
     """
-    TESTS:
+    TESTS::
 
         sage: from sage.groups.free_groups.test_train_track import *
         sage: test_stat([2,3], [3,2], 1) # long time (80s ) # random
@@ -73,11 +73,9 @@ def test_stat(rangs, longueurs, puissance):
         rang:  3 longueur:  3  time:  0.012  train-tracks: 0.0
         rang:  3 longueur:  2  time:  0.00800000000004  train-tracks: 0.0
 
-
     AUTHORS:
 
-    - Thierry Coulbois(2013 - 05 - 16): beta .0 version
-
+    - Thierry Coulbois
     """
     for n in rangs:
         F = FreeGroup(n)
@@ -97,27 +95,24 @@ def test_stat(rangs, longueurs, puissance):
                    cputime(t) / puissance,
                    " train-tracks: %.1f" % (stat / puissance * 100))
 
-
 def bugs():
     """
-    Returns a list of free group automorphisms, that created bugs at
+    Return a list of free group automorphisms, that created bugs at
     some previous stage of developpment of this program while
     computing stable relative train-tracks.
 
-    This is a good list to test futur corrections.
+    This is a good list to test future corrections.
 
-    AUTHORS:
-
-    - Thierry Coulbois(2013 - 05 - 16): beta .0 version
-
-    TESTS:
+    TESTS::
 
         sage: from sage.groups.free_groups.test_train_track import *
         sage: bugs() # long time (80s ) # random
         0 : a->BafD,b->bcdFAbfbFBafDCB,c->dFAbbcdFAbfb,d->dFAbfeFdBBFBafDCB,e->eF,f->bcdFAbfbdFAbfb
 
-    """
+    AUTHORS:
 
+    - Thierry Coulbois (2013-05-16): initial version
+    """
     result = []
 
     # Problems while computing INPs of the RTT
@@ -217,19 +212,18 @@ def bugs():
 
 def bug_test():
     """
+    TESTS::
+
+        sage: from sage.groups.free_groups.test_train_track import *
+        sage: bug_test()  # long time (50 second) # random
+
     AUTHORS:
 
-    - Thierry
-    Coulbois(2013 - 05 - 16): beta.0 version
-
-    TESTS:
-
-    sage: from sage.groups.free_groups.test_train_track import *
-    sage: bug_test()  # long time (50 second) # random
-
+    - Thierry Coulbois
     """
     bugs_list = bugs()
     for i, phi in enumerate(bugs_list):
         print("\n\n------------------------------------")
         print(i, ":", phi)
         f = phi.train_track(stable=True, relative=True, verbose=True)
+
