@@ -332,9 +332,9 @@ Comprehensive Module list
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau
-    sage/combinat/tableau_tuple
-    sage/combinat/tableau_shifted
     sage/combinat/tableau_residues
+    sage/combinat/tableau_shifted
+    sage/combinat/tableau_tuple
     sage/combinat/tamari_lattices
     sage/combinat/tiling
     sage/combinat/tools

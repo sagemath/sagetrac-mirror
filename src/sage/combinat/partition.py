@@ -7339,8 +7339,8 @@ class StrictPartitions(Partitions):
     r"""
     The class of **strict partitions**.
 
-    A strict partition of an integer `n` is a :class:`Partition` with distinct
-    parts.
+    A strict partition of an integer `n` is a :class:`Partition` with
+    distinct parts.
 
     INPUT:
 
@@ -7369,7 +7369,7 @@ class StrictPartitions(Partitions):
         Return ``True`` if ``x`` is contained in ``self`` and ``False``
         otherwise.
 
-        Examples::
+        EXAMPLES::
 
             sage: from sage.combinat.partition import StrictPartitions
             sage: [5,2] in StrictPartitions()
@@ -7393,24 +7393,19 @@ class StrictPartitions(Partitions):
             return False
         return len(x) == 0 or (x[-1] in NN and all(x[i]>x[i+1] for i in range(len(x)-1) if x[i]>0))
 
-class StrictPartitions_all(StrictPartitions,DisjointUnionEnumeratedSets):
+class StrictPartitions_all(StrictPartitions, DisjointUnionEnumeratedSets):
     """
     Class of all strict partitions.
 
-    TESTS::
+    EXAMPLES::
 
-        sage: TestSuite( sage.combinat.partition.StrictPartitions_all() ).run()
+        sage: from sage.combinat.partition import StrictPartitions
+        sage: StrictPartitions()
+        Strict Partitions
     """
-
     def __init__(self):
         """
         Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions()
-            Strict Partitions
 
         TESTS::
 
@@ -7420,7 +7415,7 @@ class StrictPartitions_all(StrictPartitions,DisjointUnionEnumeratedSets):
         # I'd rather use super() here but Partitions() complains
         DisjointUnionEnumeratedSets.__init__(self,
                 family=Family(NonNegativeIntegers(), StrictPartitions_size),
-                facade=True, keepkey = False
+                facade=True, keepkey=False
         )
         Partitions.__init__(self, is_infinite=True)
 
@@ -7463,7 +7458,7 @@ class StrictPartitions_size(StrictPartitions):
         """
         Partitions.__init__(self, is_infinite=False)
         self.n = n # would be better to call this size, but for consistency...
-        self.size=n
+        self.size = n
 
     def _repr_(self):
         """
@@ -7585,7 +7580,7 @@ class StrictPartitions_size(StrictPartitions):
             sage: StrictPartitions(7).cardinality()
             5
         """
-        return ZZ(len(list(self)))
+        return ZZ(len( [1 for p in self._fast_iterator(self.n, self.n+1)] ))
 
     def random_element(self, measure = 'uniform'):
         r"""
