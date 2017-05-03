@@ -812,6 +812,11 @@ REFERENCES:
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
 
+.. [HH92] \P. N. Hoffman and J. F. Humphreys,
+          *Projective Representations of the Symmetric Groups*,
+          Oxford Science Publications.
+          The Clarendon Press, Oxford University Press, New York, 1992.
+
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation", 
              Society for Industrial and Applied Mathematics (2008). 
 
@@ -1450,6 +1455,11 @@ REFERENCES:
 .. _ref-S:
 
 **S**
+
+
+.. [Sag1980] Bruce Sagan.
+             *On selecting a random shifted Young tableau*.
+             \J. Algorithms **1** (1980), 213-234.
 
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
