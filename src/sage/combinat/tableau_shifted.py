@@ -74,6 +74,8 @@ Parent classes:
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
+from six import add_metaclass
+from six.moves import range, zip, map
 
 from .partition import Partition, StrictPartitions
 from .permutation import Permutation
@@ -94,6 +96,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class ShiftedTableau(ClonableArray):
     """
     A shifted tableau.
@@ -108,8 +111,6 @@ class ShiftedTableau(ClonableArray):
         sage: T([[1,2,4,5],[3,6]])
         [[1, 2, 4, 5], [3, 6]]
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, t):
         """
@@ -188,7 +189,7 @@ class ShiftedTableau(ClonableArray):
         if [len(_) for _ in self] not in StrictPartitions():
             raise ValueError('shape must be a strict partition')
         entries = sorted(sum((list(_) for _ in self), []))
-        if entries != range(1, len(entries)+1):
+        if entries != list(range(1, len(entries)+1)):
             raise ValueError('must contain the numbers 1,2,...,<size>')
         for i,row in enumerate(self):
             if i > 0:
@@ -551,9 +552,9 @@ class ShiftedTableau(ClonableArray):
             ...
             ValueError: 22 is not in shifted tableau
         """
-        for i in range(len(self)):
-            if value in self[i]:
-                return (i,self[i].index(value))
+        for i,row in enumerate(self):
+            if value in row:
+                return (i, row.index(value))
         raise ValueError("{} is not in shifted tableau".format(value))
 
 
@@ -689,7 +690,7 @@ class ShiftedTableaux(UniqueRepresentation, Parent):
 
         # have a list, so check if it is shifted standard
         entries = sorted(sum((list(_) for _ in x), []))
-        if entries != range(1, len(entries)+1):
+        if entries != list(range(1, len(entries)+1)):
             return False  # must contain 1,2...,n
 
         if [len(_) for _ in x] not in StrictPartitions():
@@ -1084,7 +1085,7 @@ class ShiftedTableaux_shape(ShiftedTableaux):
             sage: ShiftedTableaux([4,2]).strict_partition_poset().cover_relations()
             [[1, 2], [2, 3], [2, 5], [3, 4], [3, 6], [5, 6]]
         """
-        elts = range(1, sum(self._shape)+1)
+        elts = list(range(1, sum(self._shape)+1))
         rels = [(i, i+1) for i in range(1, self._shape[0])]
         tot = self._shape[0]
         prev = self._shape[0]
