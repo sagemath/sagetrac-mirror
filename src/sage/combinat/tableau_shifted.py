@@ -63,6 +63,8 @@ Parent classes:
 #*****************************************************************************
 #       Copyright (C) 2016 Zachary Hamaker <zachary.hamaker at gmail.com>
 #                          Tobias Johnson <tobias.johnson at nyu.edu>
+#                          Travis Scrimshaw <tcscrims at gmail.com>
+#                          Andrew Mathas <andrew.mathas atsydney.edu.au>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -185,8 +187,8 @@ class ShiftedTableau(ClonableArray):
         """
         if [len(_) for _ in self] not in StrictPartitions():
             raise ValueError('shape must be a strict partition')
-        entries = sorted(sum((list(_) for _ in self),[]))
-        if entries != range(1,len(entries)+1):
+        entries = sorted(sum((list(_) for _ in self), []))
+        if entries != range(1, len(entries)+1):
             raise ValueError('must contain the numbers 1,2,...,<size>')
         for i,row in enumerate(self):
             if i > 0:
@@ -213,7 +215,7 @@ class ShiftedTableau(ClonableArray):
             1,2,3/4,5
             sage: ShiftedTableaux.options._reset()
         """
-        return self.parent().options._dispatch(self,'_repr_','display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_list(self):
         """
@@ -323,9 +325,9 @@ class ShiftedTableau(ClonableArray):
             \end{array}$}
             }
         """
-        return self.parent().options._dispatch(self,'_latex_', 'latex')
+        return self.parent().options._dispatch(self, '_latex_', 'latex')
 
-    _latex_list=_repr_list
+    _latex_list = _repr_list
 
     def _latex_diagram(self):
         r"""
@@ -379,7 +381,7 @@ class ShiftedTableau(ClonableArray):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError("the cell (%d,%d) is not contained in %s"%(i,j,repr(self)))
+            raise IndexError("the cell (%d,%d) is not contained in %s"%(i, j, repr(self)))
 
     def __eq__(self, other):
         r"""
@@ -535,7 +537,7 @@ class ShiftedTableau(ClonableArray):
 
     def position(self, value):
         """
-        Return the coordinates of the cell of ``self`` labelled value.
+        Return the coordinates of the cell of ``self`` labeled value.
 
         EXAMPLES::
 
