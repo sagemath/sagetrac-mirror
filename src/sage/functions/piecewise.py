@@ -290,7 +290,25 @@ class PiecewiseFunction(BuiltinFunction):
 
     class EvaluationMethods(object):
 
-        def expression_at(self, parameters, variable, point):
+        def __pow__(cls, self, parameters, variable, n):
+            """
+            Return the `n`-th power of the piecewise function by applying the
+            operation to each piece.
+
+            INPUT:
+
+            - ``n`` -- number or symbolic expression
+
+            EXAMPLES::
+
+                sage: f1(x) = -abs(x) + 1; f2(x) = abs(x - 2) - 1
+                sage: f = piecewise([ [(-1,1), f1], [(1,3), f2]])
+                sage: (f^2).integral(definite=True)
+                4/3
+            """
+            return piecewise(zip(self.domains(), [ex**n for ex in self.expressions()]))
+
+        def expression_at(cls, self, parameters, variable, point):
             """
             Return the expression defining the piecewise function at
             ``value``
