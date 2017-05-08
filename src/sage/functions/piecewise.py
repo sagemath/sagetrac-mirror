@@ -306,7 +306,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: (f^2).integral(definite=True)
                 4/3
             """
-            return piecewise(zip(self.domains(), [ex**n for ex in self.expressions()]))
+            return piecewise(zip(self.domains(), [ex**n for ex in self.expressions()]), var=variable)
 
         def expression_at(cls, self, parameters, variable, point):
             """
