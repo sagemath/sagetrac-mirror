@@ -289,7 +289,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     INPUT:
 
-    - ``data`` -- different input are accepted by this constructor:
+    - ``data`` -- different input are accepted by this constructor, see
+      examples below
 
       1. A two-element list or tuple ``(E, R)``, where ``E`` is a
          collection of elements of the poset and ``R`` is a collection
@@ -366,55 +367,56 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     EXAMPLES:
 
-    1. Elements and cover relations::
+    We use the poset of divisibily on numbers 1..5 as an example.
+    For demonstration we construct the same poset in several ways.
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: Poset((elms, rels), cover_relations = True, facade = False)
-          Finite poset containing 7 elements
+    **Explicit list of elements and covers**
 
-       Elements and non-cover relations::
+    From dictionary, elements as keys and list of upper covers as values::
 
-          sage: elms = [1,2,3,4]
-          sage: rels = [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]
-          sage: P = Poset( [elms,rels] ,cover_relations=False); P
-          Finite poset containing 4 elements
-          sage: P.cover_relations()
-          [[1, 2], [2, 3], [3, 4]]
+        sage: P1 = Poset({1: [2, 3, 5], 2: [4], 3: [], 4: [], 5: []}); P1
+        Finite poset containing 5 elements
 
-    2. Elements and function: the standard permutations of [1, 2, 3, 4]
-       with the Bruhat order::
+    From pair, where first element is the list of elements and second
+    element is the list of cover relations::
 
-          sage: elms = Permutations(4)
-          sage: fcn = lambda p,q : p.bruhat_lequal(q)
-          sage: Poset((elms, fcn))
-          Finite poset containing 24 elements
+        sage: elms = [1, 2, 3, 4, 5]
+        sage: rels = [[1, 2], [1, 3], [1, 5], [2, 4]]
+        sage: P2 = Poset( (elms, rels) ); P1 == P2
+        True
 
-       With a function that identifies the cover relations: the set
-       partitions of `\{1, 2, 3\}` ordered by refinement::
+    There are two shortcuts. First, in dictionary empty list of upper covers can be skipped.
+    Second, in the list of elements only those without any upper or lower cover needs to
+    be specified; in our example even empty list of elements will do::
 
-          sage: elms = SetPartitions(3)
-          sage: def fcn(A, B):
-          ....:     if len(A) != len(B)+1:
-          ....:         return False
-          ....:     for a in A:
-          ....:         if not any(set(a).issubset(b) for b in B):
-          ....:             return False
-          ....:     return True
-          sage: Poset((elms, fcn), cover_relations=True)
-          Finite poset containing 5 elements
+        sage: P3 = Poset({1: [2, 3, 5], 2: [4]}); P1 == P3
+        True
+        sage: P4 = Poset( ([], rels) ); P1 == P4
+        True
 
-    3. A dictionary of upper covers::
+    And last one can define poset by list of upper covers of elements
+    `0, 1, \ldots`. This can be used only when elements are consecutive
+    integers starting from zero::
 
-          sage: Poset({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]})
-          Finite poset containing 4 elements
+        sage: P5 = Poset([[1,2,3], [4], [], [], []])
+        sage: P5.is_isomorphic(P1)
+        True
 
-       A list of upper covers::
+    **Function defining the partial order**
 
-          sage: Poset([[1,2],[4],[3],[4],[]])
-          Finite poset containing 5 elements
+    The partial order can be given as a function, a lambda function or as an
+    ``attrcall``. In all cases the list of poset elements are given
+    as first element of pair::
 
-       A list of upper covers and a dictionary of labels::
+        sage: def f(a, b): return a % b == 0
+        sage: P6 = Poset( (elms, f) ); P1 == P6
+        True
+        sage: P7 = Poset( (elms, lambda a, b: b % a == 0) ); P1 == P7
+        True
+        sage: P8 = Poset( (elms, attrcall("divides")) ); P1 == P8
+        True
+
+   A list of upper covers and a dictionary of labels::
 
           sage: elm_labs = {0:"a",1:"b",2:"c",3:"d",4:"e"}
           sage: P = Poset([[1,2],[4],[3],[4],[]], elm_labs, facade = False)
