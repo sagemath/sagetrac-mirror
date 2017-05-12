@@ -1369,9 +1369,8 @@ class BipartiteGraph(Graph):
                 raise ValueError("use_edge_labels can not be used with " +
                                  "Hopcroft-Karp or Eppstein")
             import networkx
-            g = networkx.Graph()
-            for u, v in self.edge_iterator(labels=False):
-                g.add_edge(u, v)
+            #this is necessary to call the methods for bipartite matchings
+            g = self.networkx_graph()
             if algorithm == "Hopcroft-Karp":
                 d = networkx.bipartite.hopcroft_karp_matching(g)
             else:
