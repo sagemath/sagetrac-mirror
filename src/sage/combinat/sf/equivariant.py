@@ -28,6 +28,11 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
     - ``Sym`` -- A symmetric function algebra
     - ``equivariant_parameter`` -- a function from the integers to the base ring `R` of `Sym`
     - `shift_auto` -- a function of two variables `(r,z)` where `r` is an integer and `z` an element of `R`
+    - ``positive`` -- (default: True) Use the positive integers to index the variables in symmetric functions.
+    If False, use nonpositive indices.
+    - ``positive_roots`` -- (default: True) In Schubert class localizations, use the convention
+    for which Graham positivity means a nonnegative integer polynomial in the simple roots.
+    If False, the same holds but for negatives of simple roots.
 
     The function value ``equivariant_parameter(i)`` supplies an element `a_i` of `R` for every integer `i`.
     The function ``shift_auto`` should compute the image of `z` under the automorphism of `R` that
@@ -35,14 +40,14 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
     :class:`FunctionFieldIntegerGenerators` which implements a polynomial ring in variables indexed
     by integers.
 
-    All usual bases of symmetric functions such as power sums, are interpreted as being in the variables
-    ``x_i - a_i`` for positive integers `i` where the `x_i` are the usual symmetric
-    function variables.
+    All usual bases of symmetric functions such as power sums, are interpreted as being in the difference of
+    variables ``x_i - a_i`` for positive integers `i` where the `x_i` are the usual symmetric
+    function variables, where `i` runs over positive or nonpositive integers depending on the parameter ``positive``.
 
     EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
@@ -53,7 +58,7 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             sage: es[2,1]
             EQs[2, 1]
             sage: s = Sym.s()
-            sage: s(es[2])
+            sage: ans = s(es[2]); ans
             (-b_0)*s[1] + s[2]
             sage: s(es[2,1])
             (-a_1*b_0)*s[1] + (-b_0)*s[1, 1] + a_1*s[2] + s[2, 1]
@@ -63,20 +68,15 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
     Elements of this ring can be localized at torus-fixed points, which are bijective
     with partitions.
     """
-    def __init__(self, Sym, equivariant_parameter, shift):
+    def __init__(self, Sym, equivariant_parameter, shift, positive=True, positive_roots=True):
         r"""
         Initialize ``self``.
-
-        INPUT:
-
-        - `Sym` -- an instance of `:class:SymmetricFunctions`
-        - `equivariant_parameter` -- a function from the integers to the base ring of `Sym`.
-        - `shift` -- a function of two inputs `(r,z)` which applies the `r`-shift automorphism to the base ring
-        element `z`.
         """
         self._sym = Sym
         self._equivariant_parameter = equivariant_parameter
         self._shift = shift
+        self._positive=positive
+        self._positive_roots=positive_roots
         self._s = Sym.s()
         self._p = Sym.p()
 
@@ -86,11 +86,11 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
-            Equivariant Symmetric Functions over Function Field over Rational Field with generators indexed by the integers
+            Equivariant Symmetric Functions over Polynomial Ring over Rational Field with variables indexed by integers
         """
         return "Equivariant Symmetric Functions over {}".format(self.base_ring())
 
@@ -163,13 +163,6 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
         """
         return self._shift(r, z)
 
-    def fix_symmetric_function(self, f):
-        r"""
-        Workaround due to the fact that the fraction field class we are using,
-        doesn't simplify expressions like `(4*a2+4*a3)/4`.
-        """
-        return f.map_coefficients(lambda y: y.fix())
-
     def do_plethysm(self, f, func, codomain):
         r"""
         Replace power sums in `f` by values of ``func``.
@@ -182,13 +175,13 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
             sage: func = lambda i: Eq._p[i] + F.igen(1)**i
-            sage: Eq._s(Eq.fix_symmetric_function(Eq.do_plethysm(Eq.equivariant_schur_function([2]), func , F)))
+            sage: Eq._s(Eq.do_plethysm(Eq.equivariant_schur_function([2]), func , F))
             (a_1^2-a_1*b_0)*s[] + (a_1-b_0)*s[1] + s[2]
         """
         f = self._p(f)
@@ -214,8 +207,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
@@ -228,14 +221,28 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             (-b_0)*s[1] + s[2]
             sage: Eq.localize_symmetric_function(Eq.equivariant_schur_function([2]),w).factor()
             (-b_1 + b_0) * (a_1 - b_1)
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
+            sage: from sage.combinat.sf.sf import SymmetricFunctions
+            sage: Sym = SymmetricFunctions(F)
+            sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element, False)
+            sage: Eq.localize_symmetric_function(Eq.equivariant_schur_function([1]),PermutationOfIntegers(0,1,[1,0]))
+            a_1 - b_0
+            sage: Eq.localize_symmetric_function(Eq.equivariant_schur_function([2]),PermutationOfIntegers(0,2,[2,0,1])).factor()
+            (-a_2 + b_0) * (-a_2 + a_1)
         """
         par = f.parent()
         F = self.base_ring()
         f = self._p(f)
-        pos = [self.equivariant_parameter(1-w.value(i)) for i in w.nonpos_to_pos_set()]
-        neg = [self.equivariant_parameter(1-w.value(i)) for i in w.pos_to_nonpos_set()]
+        if self._positive:
+            pos = [self.equivariant_parameter(1-w.value(i)) for i in w.nonpos_to_pos_set()]
+            neg = [self.equivariant_parameter(1-w.value(i)) for i in w.pos_to_nonpos_set()]
+        else:
+            pos = [self.equivariant_parameter(w.value(i)) for i in w.nonpos_to_pos_set()]
+            neg = [self.equivariant_parameter(w.value(i)) for i in w.pos_to_nonpos_set()]
         func = lambda i: F.sum([v**i for v in pos])-F.sum([v**i for v in neg])
-        return self.do_plethysm(f, func, F).fix()
+        return self.do_plethysm(f, func, F)
 
     def shift_symmetric_function(self, r, f):
         r"""
@@ -248,8 +255,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
@@ -258,6 +265,12 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             (b_2*b_1+b_2*b_0+b_1*b_0)*s[] + (-b_2-b_1-b_0)*s[1] + s[2]
             sage: Eq.shift_symmetric_function(2, Eq.equivariant_parameter(4)**2*s[2])
             (a_6^2*a_2^2+a_6^2*a_2*a_1+a_6^2*a_1^2)*s[] + (a_6^2*a_2+a_6^2*a_1)*s[1] + a_6^2*s[2]
+            sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element,positive=False)
+            sage: s = Sym.s()
+            sage: Eq.shift_symmetric_function(-3, s[2])
+            (b_2^2+b_2*b_1+b_1^2+b_2*b_0+b_1*b_0+b_0^2)*s[] + (b_2+b_1+b_0)*s[1] + s[2]
+            sage: Eq.shift_symmetric_function(2, Eq.equivariant_parameter(4)**2*s[2])
+            a_6^2*a_2*a_1*s[] + (-a_6^2*a_2-a_6^2*a_1)*s[1] + a_6^2*s[2]
         """
         if r == 0:
             return f
@@ -272,8 +285,10 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
         else:
             sign = -1
             include_vars = [self.equivariant_parameter(-i) for i in range(0,-r)]
+        if not self._positive:
+            sign = - sign
         func = lambda i: self._p[i] + sign * self._p.one() * sum([v**i for v in include_vars])
-        return self.fix_symmetric_function(self.do_plethysm(f, func, par))
+        return self.do_plethysm(f, func, par)
 
     def equivariant_schur_function(self, part):
         r"""
@@ -281,14 +296,19 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq.equivariant_schur_function([2])
             (-b_0)*s[1] + s[2]
             sage: Eq.equivariant_schur_function([2,1])
             (-a_1*b_0)*s[1] + (-b_0)*s[1, 1] + a_1*s[2] + s[2, 1]
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element,positive=False)
+            sage: Eq.equivariant_schur_function([2])
+            (-a_1)*s[1] + s[2]
+            sage: Eq.equivariant_schur_function([2,1])
+            (-a_1*b_0)*s[1] + (-a_1)*s[1, 1] + b_0*s[2] + s[2, 1]
         """
         return self._esf(Partition(part))
 
@@ -304,11 +324,14 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             Indices are zero-based.
             """
             v = p-i+j
-            if v< 0:
+            if v < 0:
                 return self._s.zero()
             if v == 0:
                 return self._s.one()
-            return self.shift_symmetric_function(1+i-p, self._s[v])
+            sh = 1 + i - p
+            if not self._positive:
+                sh = - sh
+            return self.shift_symmetric_function(sh, self._s[v])
         m = [[entry(i,j,part[i]) for j in range(k)] for i in range(k)]
         return MatrixSpace(self._s, k, k)(m).det()
 
@@ -329,8 +352,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
@@ -354,12 +377,15 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq.equivariant_q_function([2,1])
             (a_2-b_0)*EQs[1, 1] - EQs[1, 1, 1] + (-a_1+b_1)*EQs[2] + EQs[3]
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element,positive=False)
+            sage: Eq.equivariant_q_function([2,1])
+            (-a_1+b_1)*EQs[1, 1] - EQs[1, 1, 1] + (a_2-b_0)*EQs[2] + EQs[3]
         """
         return self._eqq(Partition(part))
 
@@ -370,8 +396,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: [Eq._eqq_single_part(i) for i in range(4)]
@@ -392,8 +418,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
         r"""
         Basis of product of the above `q_i`, expanded into equivariant Schurs.
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: [[part, Eq._eqq(part)] for part in Partitions(3)]
@@ -410,11 +436,11 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element).es()
-            Symmetric Functions over Function Field over Rational Field with generators indexed by the integers in the Equivariant s basis
+            Symmetric Functions over Polynomial Ring over Rational Field with variables indexed by integers in the Equivariant s basis
         """
         return Equivariant_s(self)
 
@@ -426,11 +452,11 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element).eq()
-            Symmetric Functions over Function Field over Rational Field with generators indexed by the integers in the Equivariant q basis
+            Symmetric Functions over Polynomial Ring over Rational Field with variables indexed by integers in the Equivariant q basis
         """
         return Equivariant_q(self)
 
@@ -440,29 +466,29 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq.rees_ring()
-            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in d, t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in d over Rational Field
         """
         from sage.combinat.sf.sf import SymmetricFunctions
-        return SymmetricFunctions(PolynomialRing(self.base_ring().base_ring(), ['d','t']).fraction_field())
+        return SymmetricFunctions(PolynomialRing(self.base_ring().base_ring(), ['d']).fraction_field())
 
-    def rees_gens(self):
+    def rees_gen(self):
         r"""
-        Associated rees ring.
+        Associated rees ring generator.
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
-            sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element).rees_gens()
-            (d, t)
+            sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element).rees_gen()
+            d
         """
-        return self.rees_ring().base_ring().gens()
+        return self.rees_ring().base_ring().gen()
 
     @cached_method
     def _to_rees_on_basis(self, part):
@@ -472,8 +498,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq._to_rees_on_basis(Partition([2]))
@@ -482,10 +508,13 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
             -1/d^2*s[1, 1, 1, 1, 1] - 1/d^2*s[2, 1, 1, 1] - 1/d^2*s[2, 2, 1]
         """
         rees = self.rees_ring()
-        d,t = self.rees_gens()
-        e = rees.e()
+        d = self.rees_gen()
         s = rees.s()
-        return s(e.prod([(-1)**(i+1)*(1/d)*e[i+1] for i in part]))
+        if self._positive:
+            e = rees.e()
+            return s(e.prod([(-1)**(i+1)*(1/d)*e[i+1] for i in part]))
+        else:
+            return s.prod([(1/d)*s[i+1] for i in part])
 
     def to_rees(self, f):
         r"""
@@ -493,8 +522,8 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: Eq.to_rees(Eq.eq()[2])
@@ -505,16 +534,114 @@ class EquivariantSymmetricFunctions(UniqueRepresentation):
         eq = self.eq()
         f = eq(f)
         rees = self.rees_ring()
-        d,t = self.rees_gens()
+        d = self.rees_gen()
         s = rees.s()
         Q = self.base_ring()
         ans = s.zero()
         for part in f.support():
-            cf = Q(f[part]).forget_to_loop_rotation(d,t)
+            cf = Q.forget_to_loop_rotation(d,Q(f[part]))
             ans = ans + cf * self._to_rees_on_basis(part)
         p = rees.p()
         ans = p(ans)
         return p.sum([ans[part]*p[part] for part in ans.support() if part.length()==0 or part[part.length()-1]>1])
+
+    @cached_method
+    def _single_power_to_rees(self, k):
+        r"""
+        Image of power sum in Rees ring.
+
+        MATH::
+
+            \tilde{p}_k = \sum_{j=1}^{k-1} \binomial{k}{j} (-\delta)^{k-j} p_j
+
+        where `\tilde{p}` is the power sum polynomial in the Rees ring and p is the usual power sum.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
+            sage: from sage.combinat.sf.sf import SymmetricFunctions
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element, positive=False)
+            sage: Eq._single_power_to_rees(1)
+            -1/(2*d)*p[2]
+            sage: Eq._single_power_to_rees(2)
+            -1/2*p[2] - 1/(3*d)*p[3]
+            sage: Eq._single_power_to_rees(3)
+            -1/4*d*p[2] - 1/2*p[3] - 1/(4*d)*p[4]
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
+            sage: Eq._single_power_to_rees(1)
+            1/(2*d)*p[2]
+            sage: Eq._single_power_to_rees(2)
+            -1/2*p[2] + 1/(3*d)*p[3]
+        """
+        from sage.arith.misc import binomial
+        rees = self.rees_ring()
+        d = self.rees_gen()
+        p = rees.p()
+        ans = p[k+1]
+        for j in range(1,k):
+            ans = ans - (-d)**(k+1-j) * binomial(k+1,j) * self._single_power_to_rees(j)
+        ans = ans/((k+1)*d)
+        if self._positive:
+            return ans
+        return -ans
+
+    @cached_method
+    def _to_rees_on_basis_powers(self, ptn):
+        r"""
+        The image of the power sum indexed by the partition ``ptn``
+        in the rees ring.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
+            sage: from sage.combinat.sf.sf import SymmetricFunctions
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element, positive=False)
+            sage: Eq._to_rees_on_basis_powers(Partition([2]))
+            -1/2*p[2] - 1/(3*d)*p[3]
+            sage: Eq._to_rees_on_basis_powers(Partition([2,1]))
+            1/2/(2*d)*p[2, 2] + 1/(6*d^2)*p[3, 2]
+        """
+        rees = self.rees_ring()
+        d = self.rees_gen()
+        p = rees.p()
+        return p.prod([self._single_power_to_rees(i) for i in ptn])
+
+    def to_rees_by_powers(self, f):
+        r"""
+        Image of equivariant symmetric function `f` in the rees ring.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
+            sage: from sage.combinat.sf.sf import SymmetricFunctions
+            sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element, positive=False)
+            sage: rees = Eq.rees_ring()
+            sage: p = rees.p()
+            sage: s = rees.s()
+            sage: d = Eq.rees_gen()
+            sage: d*Eq.to_rees_by_powers(Eq.eq()[2])
+            -1/3*p[3]
+            sage: p(s[1,1,1])
+            1/6*p[1, 1, 1] - 1/2*p[2, 1] + 1/3*p[3]
+            sage: d*Eq.to_rees_by_powers(Eq.eq()[3])
+            1/8*p[2, 2] - 1/4*p[4]
+            sage: p(s[1,1,1,1])
+            1/24*p[1, 1, 1, 1] - 1/4*p[2, 1, 1] + 1/8*p[2, 2] + 1/3*p[3, 1] - 1/4*p[4]            
+        """
+        rees = self.rees_ring()
+        d = self.rees_gen()
+        p = rees.p()
+        Q = self.base_ring()
+        ans = p.zero()
+        peq = self._p
+        f = peq(f)
+        for part in f.support():
+            cf = Q.forget_to_loop_rotation(d,Q(f[part]),positive=self._positive)
+            ans = ans + cf * self._to_rees_on_basis_powers(part)
+        return ans
 
 class EquivariantSymmetricFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
     r"""
@@ -527,11 +654,11 @@ class EquivariantSymmetricFunctions_generic(sfa.SymmetricFunctionAlgebra_generic
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-        sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+        sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+        sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
         sage: from sage.combinat.sf.sf import SymmetricFunctions
         sage: SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element).es()
-        Symmetric Functions over Function Field over Rational Field with generators indexed by the integers in the Equivariant s basis
+        Symmetric Functions over Polynomial Ring over Rational Field with variables indexed by integers in the Equivariant s basis
     """
     def __init__(self, equivariant):
         name = self.__class__.__name__[len("Equivariant_"):] # note the naming convention being used
@@ -553,8 +680,8 @@ class EquivariantSymmetricFunctions_generic(sfa.SymmetricFunctionAlgebra_generic
 
             EXAMPLES::
 
-                sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-                sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+                sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+                sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
                 sage: from sage.combinat.sf.sf import SymmetricFunctions
                 sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
                 sage: es = Eq.es()
@@ -582,8 +709,8 @@ class Equivariant_s(EquivariantSymmetricFunctions_generic):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-        sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+        sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+        sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
         sage: from sage.combinat.sf.sf import SymmetricFunctions
         sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
         sage: es = Eq.es()
@@ -612,8 +739,8 @@ class Equivariant_s(EquivariantSymmetricFunctions_generic):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
             sage: es = Eq.es()
@@ -639,8 +766,8 @@ class Equivariant_q(EquivariantSymmetricFunctions_generic):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-        sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+        sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+        sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
         sage: from sage.combinat.sf.sf import SymmetricFunctions
         sage: Eq = SymmetricFunctions(F).equivariant(F.igen, F.shift_auto_on_element)
         sage: eq = Eq.eq()
@@ -671,8 +798,8 @@ class Equivariant_q(EquivariantSymmetricFunctions_generic):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)
@@ -688,11 +815,13 @@ class Equivariant_q(EquivariantSymmetricFunctions_generic):
         nptns = len(ptns)
         q_to_es = Family(ptns, lambda ptn: self._equivariant.equivariant_q_function(ptn))
         F = self._equivariant.base_ring()
-        topdeg = MatrixSpace(F, len(ptns), len(ptns))([[q_to_es[a][b] for b in ptns] for a in ptns])
+        Mat = MatrixSpace(F, len(ptns), len(ptns))
+        topdeg = Mat([[q_to_es[a][b] for b in ptns] for a in ptns])
         topdeginv = topdeg.inverse()
+        topdeginv = Mat(topdeginv)
         dc = dict()
         for i in range(nptns):
-            dc[ptns[i]] = self._equivariant.fix_symmetric_function(self.sum_of_terms([(ptns[j], topdeginv[i][j]) for j in range(nptns)], distinct=True) + self(self._es[ptns[i]] - self._es.sum([topdeginv[i][j]*q_to_es[ptns[j]]  for j in range(nptns)])))
+            dc[ptns[i]] = self.sum_of_terms([(ptns[j], topdeginv[i][j]) for j in range(nptns)], distinct=True) + self(self._es[ptns[i]] - self._es.sum([topdeginv[i][j]*q_to_es[ptns[j]]  for j in range(nptns)]))
         return Family(dc)
 
     @cached_method
@@ -706,8 +835,8 @@ class Equivariant_q(EquivariantSymmetricFunctions_generic):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
-            sage: F = FunctionFieldIntegerGenerators(QQ,('a','b'))
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: F = PolynomialRingIntegerGenerators(QQ,('a','b'))
             sage: from sage.combinat.sf.sf import SymmetricFunctions
             sage: Sym = SymmetricFunctions(F)
             sage: Eq = Sym.equivariant(F.igen, F.shift_auto_on_element)

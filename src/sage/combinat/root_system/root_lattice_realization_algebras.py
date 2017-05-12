@@ -1120,6 +1120,74 @@ class Algebras(AlgebrasCategory):
                                               q1, q2,
                                               side = "left")
 
+        def schubert_class_localization(self, v, w):
+            r"""
+            Return the element of ``self`` giving the localization of a Schubert class at a torus fixed point.
+
+            INPUT:
+
+            - `v`, `w` -- Elements of the Weyl group of the lattice of ``self`` or reduced words.
+
+            The Weyl group must be the Weyl group of the root lattice realization.
+            The values are in the image of the symmetric algebra of the lattice of ``self``,
+            as embedded into the group algebra ``self``.
+
+            Only works right now when ``self`` is a root lattice.
+
+            EXAMPLES::
+
+                sage: X = RootSystem(['A',2]).root_lattice()
+                sage: W = X.weyl_group(prefix="s")
+                sage: r = W.from_reduced_word
+                sage: XA = X.algebra(ZZ)
+                sage: [(w, XA.schubert_class_localization(w,w)) for w in W]
+                [(1, B[0]), (s1*s2*s1, B[alpha[1] + 2*alpha[2]] + B[2*alpha[1] + alpha[2]]), (s1*s2, B[alpha[1] + alpha[2]] + B[2*alpha[1]]), (s1, B[alpha[1]]), (s2*s1, B[alpha[1] + alpha[2]] + B[2*alpha[2]]), (s2, B[alpha[2]])]
+                sage: XA.schubert_class_localization(r([1]),r([1,2]))
+                B[alpha[1]]
+                sage: XA.schubert_class_localization(r([2]),r([1,2]))
+                B[alpha[1]] + B[alpha[2]]
+                sage: XA.schubert_class_localization(r([1]),r([1,2,1]))
+                B[alpha[1]] + B[alpha[2]]
+                sage: X = RootSystem(['A',2,1]).root_lattice()
+                sage: W = X.weyl_group(prefix="s")
+                sage: r = W.from_reduced_word
+                sage: XA = X.algebra(ZZ)
+                sage: XA.schubert_class_localization(r([1,0]),r([1,2,1,0]))
+                B[alpha[0] + alpha[1]] + B[alpha[0] + alpha[2]] + 4*B[alpha[1] + alpha[2]] + 2*B[2*alpha[1]] + 2*B[2*alpha[2]]
+                sage: X = RootSystem(['A',2]).ambient_lattice()
+                sage: W = X.weyl_group(prefix="s")
+                sage: r = W.from_reduced_word
+                sage: XA = X.algebra(ZZ)
+                sage: [(w, XA.schubert_class_localization(w,w)) for w in W]
+            """
+            X = self.basis().keys()
+            W = X.weyl_group(prefix="s")
+            if isinstance(v, (list,tuple)):
+                v = W.from_reduced_word(v)
+                w = W.from_reduced_word(w)
+            elif v not in W or w not in W:
+                raise TypeError("Not elements of the Weyl group of the lattice realization")
+            return self._schubert_class_localization(v,w)
+
+        @cached_method
+        def _schubert_class_localization(self, v, w):
+            r"""
+            """
+            W = w.parent()
+            if w == W.one():
+                if v == w:
+                    return self.one()
+                return self.zero()
+            i = w.first_descent(side='right')
+            wsi = w.apply_simple_reflection(i, side='right')
+            loc_v_wsi = self._schubert_class_localization(v, wsi)
+            if not v.has_descent(i, side='right'):
+                return loc_v_wsi
+            Q = self.basis().keys()
+            wsiali = Q.simple_root(i).weyl_action(wsi)
+            lin_poly = self.sum([wsiali[j]*self.monomial(Q.simple_root(j)) for j in W.index_set()])
+            return loc_v_wsi + lin_poly * self._schubert_class_localization(v.apply_simple_reflection(i,side='right'),wsi)
+
     class ElementMethods:
 
         def acted_upon(self, w):

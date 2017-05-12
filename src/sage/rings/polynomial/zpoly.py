@@ -33,6 +33,7 @@ class PolynomialRingIntegerGenerators(InfinitePolynomialRing_sparse):
         sage: [R.igen(i) for i in range(-2,3)]
         [b_2, b_1, b_0, a_1, a_2]
     """
+
     def __init__(self, base_ring, prefix=None, order=None):
         r"""
         Initialize ``self``.
@@ -49,7 +50,8 @@ class PolynomialRingIntegerGenerators(InfinitePolynomialRing_sparse):
             prefix = ['a','b']
         if not order:
             order = 'degrevlex'
-        InfinitePolynomialRing_sparse.__init__(self, base_ring, prefix, order)
+        super(PolynomialRingIntegerGenerators, self).__init__(base_ring, prefix, order)
+        #InfinitePolynomialRing_sparse.__init__(self, base_ring, prefix, order)
         self._positive_prefix = prefix[0]
         self._nonpositive_prefix = prefix[1]
 
@@ -182,27 +184,52 @@ class PolynomialRingIntegerGenerators(InfinitePolynomialRing_sparse):
         """
         return self.map_induced_by_func(self.shift_func(r))
 
-    def forget_to_loop_rotation(self, d, t, f):
+    def shift_auto_on_element(self, r, elt):
         r"""
-        Apply to `f` the forgetful map to the polynomial ring with two generators.
+        Compute the automorphism of shifting `elt` by `r` times.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: P = PolynomialRingIntegerGenerators(QQ, ('a','b'))
+            sage: P.shift_auto_on_element(-3, P.igen(2)**2*P.igen(-3)+P.igen(0))
+            b_6*b_1^2 + b_3
+        """
+        return self.shift_auto(r)(elt)
+
+    def forget_to_loop_rotation(self, d, f, positive=True):
+        r"""
+        Apply to `f` the forgetful map to the polynomial ring with one generator.
 
         INPUT:
 
-        - `f` -- A polynomial in ``self``
-        - `t` -- The nonpositive equivariant parameter
-        - `d` -- The difference between the positive and nonpositive equivariant parameters
+        - `f` -- a polynomial in ``self``
+        - `d` -- a parameter
+        - ``positive`` -- optional (default: True) If True, send positive variables to `-d` and others to 0.
+          If False, send positive variables to 0 and others to `d`.
 
         sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
         sage: R = PolynomialRingIntegerGenerators(QQ,['a','b'])
-        sage: S = PolynomialRing(QQ, ['d', 't'])
-        sage: R.forget_to_loop_rotation(S.gen(0), S.gen(1), (R.igen(2)-R.igen(-1))**2)
+        sage: S = PolynomialRing(QQ, ['d'])
+        sage: f = (R.igen(2)-R.igen(-1))**2; f
+        a_2^2 - 2*a_2*b_1 + b_1^2
+        sage: R.forget_to_loop_rotation(S.gen(0), f)
+        d^2
+        sage: R.forget_to_loop_rotation(S.gen(0), f, positive=False)
         d^2
         """
         vars = f.variables()
         f = f.polynomial()
         if len(vars) == 0:
             return f
-        return f(tuple([t if self.variable_index(self(v)) <= 0 else t+d for v in f.parent().gens()]))
+        zed = d.parent().zero()
+        if positive:
+            pos_image = -d
+            nonpos_image = zed
+        else:
+            pos_image = zed
+            nonpos_image = d
+        return f(tuple([nonpos_image if self.variable_index(self(v)) <= 0 else pos_image for v in f.parent().gens()]))
 
 class FunctionFieldIntegerGeneratorsElement(FractionFieldElement):
     def act_by_func(self, func):
@@ -219,7 +246,7 @@ class FunctionFieldIntegerGeneratorsElement(FractionFieldElement):
             sage: c.act_by_func(sh)
             a_5/(a_1^2 + 1)
         """
-        return self.parent().act_by_map_induced_by_func(func, self)
+        return self.parent().apply_map_induced_by_func(func, self)
 
     def fix(self):
         denom = self.denominator()
@@ -227,25 +254,28 @@ class FunctionFieldIntegerGeneratorsElement(FractionFieldElement):
             return (1/denom)*self.numerator()
         return self
 
-    def forget_to_loop_rotation(self, d, t):
+    def forget_to_loop_rotation(self, d, positive=True):
         r"""
-        Apply to `f` the forgetful map to the polynomial ring with two generators.
+        Apply to `f` the forgetful map to the polynomial ring with one generator.
 
         INPUT:
 
-        - `t` -- The nonpositive equivariant parameter
-        - `d` -- The difference between the positive and nonpositive equivariant parameters
+        - `d` -- a parameter
+        - ``positive`` -- optional (default: True) If True, send positive variables to `-d` and others to 0.
+          If False, send positive variables to 0 and others to `d`.
 
         EXAMPLES::
 
             sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
             sage: Q = FunctionFieldIntegerGenerators(QQ,('a','b'))
-            sage: S = PolynomialRing(QQ, ['d', 't'])
-            sage: ((Q.igen(4)-Q.igen(-3))/Q.igen(2)).forget_to_loop_rotation(S.gen(0), S.gen(1))
-            d/(d + t)
+            sage: S = PolynomialRing(QQ, ['d'])
+            sage: ((Q.igen(4)**2-Q.igen(-3))/(2+Q.igen(2))).forget_to_loop_rotation(S.gen(0))
+            d^2/(-d + 2)
+            sage: ((Q.igen(4)-Q.igen(-3))/(2+Q.igen(2))).forget_to_loop_rotation(S.gen(0), positive=False)
+            -1/2*d
         """
         P = self.parent().polynomial_ring()
-        return P.forget_to_loop_rotation(d, t, P(self.numerator()))/P.forget_to_loop_rotation(d, t, P(self.denominator()))
+        return P.forget_to_loop_rotation(d, P(self.numerator()), positive=positive)/P.forget_to_loop_rotation(d, P(self.denominator()), positive=positive)
 
 class FunctionFieldIntegerGenerators(FractionField_generic):
     r"""
@@ -330,7 +360,7 @@ class FunctionFieldIntegerGenerators(FractionField_generic):
         """
         return self.polynomial_ring().variable_index(v)
 
-    def act_by_map_induced_by_func(self, func, f):
+    def apply_map_induced_by_func(self, func, f):
         r"""
         Act by the endomorphism of ``self`` induced by the function ``func`` from integers to integers.
 
@@ -339,7 +369,7 @@ class FunctionFieldIntegerGenerators(FractionField_generic):
             sage: from sage.rings.polynomial.zpoly import FunctionFieldIntegerGenerators
             sage: Q = FunctionFieldIntegerGenerators(QQ, ('a','b'))
             sage: c = Q.igen(2)/(Q.igen(-2)**2+1)
-            sage: Q.act_by_map_induced_by_func(Q.polynomial_ring().shift_func(3), c)
+            sage: Q.apply_map_induced_by_func(Q.polynomial_ring().shift_func(3), c)
             a_5/(a_1^2 + 1)
         """
         R = self.polynomial_ring()
@@ -350,7 +380,7 @@ class FunctionFieldIntegerGenerators(FractionField_generic):
         r"""
         The endomorphism of ``self`` induced by the function ``func`` from integers to integers.
         """
-        return partial(self.act_by_map_induced_by_func, func)
+        return partial(self.apply_map_induced_by_func, func)
 
     def shift_auto_on_element(self, r, elt):
         r"""
@@ -364,4 +394,4 @@ class FunctionFieldIntegerGenerators(FractionField_generic):
             b_1/b_8
         """
         rshift = lambda i: i+r
-        return self.act_by_map_induced_by_func(rshift, elt)
+        return self.apply_map_induced_by_func(rshift, elt)

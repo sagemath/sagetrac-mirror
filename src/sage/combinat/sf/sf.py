@@ -1298,7 +1298,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         return llt.LLT_class( self, k, t=t )
 
-    def equivariant(self, equivariant_parameters, shift):
+    def equivariant(self, equivariant_parameters, shift, positive=True, positive_roots=True):
         """
         Returns the entry point for the various bases of equivariant symmetric functions.
 
@@ -1323,7 +1323,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         The class ``FunctionFieldIntegerGenerators`` implements the field of fractions of a polynomial
         ring whose generators are indexed by integers.
         """
-        return equivariant.EquivariantSymmetricFunctions(self, equivariant_parameters, shift)
+        return equivariant.EquivariantSymmetricFunctions(self, equivariant_parameters, shift, positive=positive, positive_roots=positive_roots)
 
     def from_polynomial(self, f):
         """
