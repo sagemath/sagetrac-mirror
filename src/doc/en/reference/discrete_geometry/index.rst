@@ -41,11 +41,13 @@ Lattice polyhedra
    :maxdepth: 1
 
    sage/geometry/lattice_polytope
+   sage/geometry/lattice_polytopes
+   sage/geometry/lattice_polytopes_backend
    sage/geometry/polyhedron/lattice_euclidean_group_element
    sage/geometry/polyhedron/palp_database
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
-
+   
 Toric geometry
 ~~~~~~~~~~~~~~
 

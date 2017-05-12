@@ -20,7 +20,6 @@ from .toric_lattice import ToricLattice
 
 from . import toric_plotter
 
-
 from .hyperbolic_space.all import *
 
 from .voronoi_diagram import *
