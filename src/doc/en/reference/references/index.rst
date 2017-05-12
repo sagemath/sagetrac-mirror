@@ -1018,8 +1018,9 @@ REFERENCES:
 
 **F**
 
-.. [Fag83] Fagin, Ronald. "Degrees of acyclicity for hypergraphs and relational
-           database schemes." Journal of the ACM (JACM) 30.3 (1983): 514-550.
+.. [Fag1983] Fagin, Ronald. "Degrees of acyclicity for hypergraphs and
+             relational database schemes." Journal of the ACM (JACM) 30.3
+             (1983): 514-550.
 
 .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
                 higher-level canonical bases*. J. Pure Appl. Algebra
@@ -1112,9 +1113,9 @@ REFERENCES:
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
             2012 (8): 1768-1804.
 
-.. [FT14] Füredi, Zoltán, and Tao Jiang. "Hypergraph Turán numbers of linear
-          cycles." Journal of Combinatorial Theory, Series A 123.1 (2014):
-          252-270.
+.. [FT2014] Füredi, Zoltán, and Tao Jiang. "Hypergraph Turán numbers of linear
+            cycles." Journal of Combinatorial Theory, Series A 123.1 (2014):
+            252-270.
 
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
