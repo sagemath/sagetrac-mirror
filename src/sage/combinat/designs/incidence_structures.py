@@ -1059,26 +1059,26 @@ class IncidenceStructure(object):
         B = self._blocks
         return all(B[i] != B[i+1] for i in range(len(B)-1))
 
-    def is_berge_acyclic(self):
+    def is_berge_cyclic(self):
         r"""
-        Test whether the hypergraph does not contain a Berge cycle.
+        Test whether the hypergraph contains a Berge cycle.
 
-        A `k`-uniform Berge cycle (named after Claude Berge) of length `\ell`
-        is a cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`,
-        and distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each
-        `1\le i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} =
-        v_1`).
+        A `k`-uniform Berge cycle (named after Claude Berge) of length is a
+        cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
+        distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
+        i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
 
-        A hypergraph is Berge-acyclic if its incidence graph is acyclic.
+        A hypergraph is Berge-cyclic if its incidence graph is cyclic.  It is
+        called "Berge-acyclic" otherwise.
 
         EXAMPLES::
 
             sage: h = Hypergraph(5, [[1, 2, 3], [2, 3 ,4]])
-            sage: h.is_berge_acyclic()
-            False
-            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
-            sage: h.is_berge_acyclic()
+            sage: h.is_berge_cyclic()
             True
+            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
+            sage: h.is_berge_cyclic()
+            False
 
         REFERENCES:
 
@@ -1091,36 +1091,7 @@ class IncidenceStructure(object):
             raise TypeError(
                 "Berge cycles are defined for uniform hypergraphs only")
 
-        return self.incidence_graph().is_forest()
-
-    def is_berge_cyclic(self):
-        r"""
-        Test whether the hypergraph contains a Berge cycle.
-
-        A `k`-uniform Berge cycle (named after Claude Berge) of length is a
-        cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
-        distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
-        i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
-
-        A hypergraph is Berge-cyclic if its incidence graph is cyclic.
-
-        EXAMPLES::
-
-            sage: h = Hypergraph(5, [[1, 2, 3], [2, 3 ,4]])
-            sage: h.is_berge_cyclic()
-            True
-            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
-            sage: h.is_berge_cyclic()
-            False
-
-        REFERENCES:
-
-            [Fag1983]_
-
-            [FT2014]_
-
-        """
-        return not self.is_berge_acyclic()
+        return not self.incidence_graph().is_forest()
 
     def _gap_(self):
         """
