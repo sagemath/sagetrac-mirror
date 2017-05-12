@@ -1081,9 +1081,9 @@ class IncidenceStructure(object):
 
         REFERENCES:
 
-            [Fag83]_
+            [Fag1983]_
 
-            [FT14]_
+            [FT2014]_
 
         """
         if not self.is_uniform():
@@ -1114,9 +1114,9 @@ class IncidenceStructure(object):
 
         REFERENCES:
 
-            [Fag83]_
+            [Fag1983]_
 
-            [FT14]_
+            [FT2014]_
 
         """
         return not self.is_berge_acyclic()
