@@ -1061,24 +1061,26 @@ class IncidenceStructure(object):
 
     def is_berge_cyclic(self):
         r"""
-        Test whether the hypergraph contains a Berge cycle.
+        Test whether the (uniform) hypergraph contains a Berge cycle.
 
         A `k`-uniform Berge cycle (named after Claude Berge) of length is a
         cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
         distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
         i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
 
-        A hypergraph is Berge-cyclic if its incidence graph is cyclic.  It is
-        called "Berge-acyclic" otherwise.
+        A uniform hypergraph is Berge-cyclic if its incidence graph is cyclic.
+        It is called "Berge-acyclic" otherwise.
 
         EXAMPLES::
 
-            sage: h = Hypergraph(5, [[1, 2, 3], [2, 3 ,4]])
-            sage: h.is_berge_cyclic()
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3 ,4]]).is_berge_cyclic()
             True
-            sage: h = Hypergraph(6, [[1, 2, 3], [3 ,4, 5]])
-            sage: h.is_berge_cyclic()
+            sage: Hypergraph(6, [[1, 2, 3], [3 ,4, 5]]).is_berge_cyclic()
             False
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3]]).is_berge_cyclic()
+            Traceback (most recent call last):
+            ...
+            TypeError: Berge cycles are defined for uniform hypergraphs only
 
         REFERENCES:
 
