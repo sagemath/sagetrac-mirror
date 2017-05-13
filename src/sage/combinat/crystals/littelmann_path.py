@@ -274,7 +274,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             WLR = self.weight_lattice_realization()
             L = [[wt[i] for i in WLR.basis().keys()] for wt in x]
             x = LittelmannPath(L)
-        return self.element_class(self, x)
+        return self.element_class(self, x, compress=True)
 
     @cached_method
     def _simple_root_as_list(self, i):

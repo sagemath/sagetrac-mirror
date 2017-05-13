@@ -12,8 +12,8 @@ cdef class LittelmannPath(object):
     cpdef LittelmannPath dualize(self)
     cpdef int epsilon(self, int i)
     cpdef int phi(self, int i)
-    cpdef e(self, int i, list root, int power=*, to_string_end=*)
-    cpdef f(self, int i, list root, int power=*, to_string_end=*)
+    cpdef e(self, int i, list root, int power=*, bint to_string_end=*)
+    cpdef f(self, int i, list root, int power=*, bint to_string_end=*)
     cpdef LittelmannPath s(self, int i, list root)
 
 cdef class InfinityLittelmannPath(LittelmannPath):
@@ -24,5 +24,5 @@ cdef inplace_axpy(a, list x, list y)
 cdef bint positively_parallel_weights(list v, list w)
 
 cdef class LSPathElement(ElementWrapper):
-    pass
+    cdef long int _hash
 

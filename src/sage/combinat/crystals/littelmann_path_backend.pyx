@@ -81,7 +81,7 @@ cdef class LittelmannPath(object):
         """
         if not self.value:
             return None
-        ret = [0]*len(self.value[0])
+        ret = [0]*len(<list> (self.value[0]))
         for v in self.value:
             add_inplace_lists(ret, v)
         return ret
@@ -96,19 +96,17 @@ cdef class LittelmannPath(object):
         EXAMPLES::
 
             sage: C = crystals.LSPaths(['A',2],[1,1])
-            sage: Lambda = C.R.weight_space().fundamental_weights(); Lambda
-            Finite family {1: Lambda[1], 2: Lambda[2]}
-            sage: c = C(tuple([1/2*Lambda[1]+1/2*Lambda[2], 1/2*Lambda[1]+1/2*Lambda[2]]))
-            sage: c.compress()
+            sage: Lambda = C.R.weight_space().fundamental_weights()
+            sage: C([1/2*Lambda[1]+1/2*Lambda[2], 1/2*Lambda[1]+1/2*Lambda[2]])
             (Lambda[1] + Lambda[2],)
         """
         if not self.value:
             return self
-        cdef list curr = self.value[0]
+        cdef list curr = <list> (self.value[0])
         cdef int pos = 0
         cdef list v
         while pos < len(self.value) - 1:
-            v = self.value[pos+1]
+            v = <list> (self.value[pos+1])
             if positively_parallel_weights(curr, v):
                 add_inplace_lists(curr, v)
                 self.value.pop(pos+1)
@@ -131,9 +129,13 @@ cdef class LittelmannPath(object):
             sage: C = crystals.LSPaths(['A',2],[1,1])
             sage: b = C.module_generators[0]
             sage: b.split_step(0, 1/3)
+            doctest:warning
+            ...
+            DeprecationWarning: split_step is deprecated.
+            See http://trac.sagemath.org/20165 for details.
             (1/3*Lambda[1] + 1/3*Lambda[2], 2/3*Lambda[1] + 2/3*Lambda[2])
         """
-        cdef list v = self.value[which_step]
+        cdef list v = <list> (self.value[which_step])
         cdef list s1,s2
         s1 = [r*a for a in v]
         r = r.parent().one() - r
@@ -157,8 +159,9 @@ cdef class LittelmannPath(object):
             sage: b.reflect_step(0,2)
             (2*Lambda[1] - Lambda[2],)
         """
-        c = -self.value[which_step][i]
-        inplace_axpy(c, root, self.value[which_step])
+        cdef L = <list> (self.value[which_step])
+        c = -L[i]
+        inplace_axpy(c, root, L)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -188,7 +191,7 @@ cdef class LittelmannPath(object):
         psmin = 0
         for ix in range(len(self.value)):
             # Compute the i-height of the step
-            step = self.value[ix][i]
+            step = (<list> self.value[ix])[i]
             ps += step
             if ps < psmin:
                 minima_pos.append((ix, ps, step))
@@ -205,7 +208,7 @@ cdef class LittelmannPath(object):
 
             sage: C = crystals.LSPaths(['A',2],[1,1])
             sage: for c in C:
-            ....:   print c, c.dualize()
+            ....:     print c, c.dualize()
             (Lambda[1] + Lambda[2],) (-Lambda[1] - Lambda[2],)
             (-Lambda[1] + 2*Lambda[2],) (Lambda[1] - 2*Lambda[2],)
             (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]) (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])
@@ -218,11 +221,11 @@ cdef class LittelmannPath(object):
         if not self.value:
             return self
         self.value.reverse()
-        cdef int n = len(self.value[0])
+        cdef int n = len(<list> (self.value[0]))
         cdef int i, j
         cdef list row
         for i in range(len(self.value)):
-            row = self.value[i]
+            row = <list> (self.value[i])
             for j in range(n):
                 row[j] = -row[j]
         return self
@@ -287,7 +290,7 @@ cdef class LittelmannPath(object):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef e(self, int i, list root, int power=1, to_string_end=False):
+    cpdef e(self, int i, list root, int power=1, bint to_string_end=False):
         r"""
         Return the `i`-th crystal raising operator on ``self``.
 
@@ -333,28 +336,34 @@ cdef class LittelmannPath(object):
             p = power
         if p > max_raisings:
             return None
+        if not data: # Special case when applying 0 operators
+            return self
 
         cdef int ix = len(data) - 1
         cdef int j
-        while ix >= 0 and data[ix][1] < M + p:
+        cdef tuple str_data = <tuple> (data[ix])
+        while str_data[1] < M + p:
         # get the index of the current step to be processed
-            j = data[ix][0]
+            j = str_data[0]
             # find the i-height where the current step might need to be split
             if ix == 0:
                 prev_ht = M + p
             else:
                 prev_ht = min(data[ix-1][1], M+p)
             # if necessary split the step, then reflect the wet part
-            if data[ix][1] - data[ix][2] > prev_ht:
-                self.split_step(j, 1 - (prev_ht - data[ix][1]) / -data[ix][2])
+            if str_data[1] - str_data[2] > prev_ht:
+                self.split_step(j, 1 - (prev_ht - str_data[1]) / -str_data[2])
                 self.reflect_step(j + 1, i, root)
             else:
                 self.reflect_step(j, i, root)
             ix = ix - 1
+            if ix < 0:
+                break
+            str_data = <tuple> (data[ix])
         self.compress()
         return self
 
-    cpdef f(self, int i, list root, int power=1, to_string_end=False):
+    cpdef f(self, int i, list root, int power=1, bint to_string_end=False):
         r"""
         Return the `i`-th crystal lowering operator on ``self``.
 
@@ -441,7 +450,7 @@ cdef class InfinityLittelmannPath(LittelmannPath):
         """
         return InfinityLittelmannPath([list(v) for v in self.value], self.rho)
 
-    def e(self, int i, list root, int power=1, to_string_end=False):
+    def e(self, int i, list root, int power=1, bint to_string_end=False):
         r"""
         Return the `i`-th crystal raising operator on ``self``.
 
@@ -517,7 +526,7 @@ cdef class InfinityLittelmannPath(LittelmannPath):
             self.value.pop()
         return self
 
-    def f(self, int i, list root, int power=1, to_string_end=False):
+    def f(self, int i, list root, int power=1, bint to_string_end=False):
         r"""
         Return the `i`-th crystal lowering operator on ``self``.
 
@@ -621,42 +630,77 @@ cdef bint positively_parallel_weights(list v, list w):
 
 cdef class LSPathElement(ElementWrapper):
     """
-    TESTS::
-
-        sage: C = crystals.LSPaths(['E',6],[1,0,0,0,0,0])
-        sage: c = C.an_element()
-        sage: TestSuite(c).run()
+    An LSPath as an element in
+    :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths`.
     """
+    def __init__(self, parent, value, compress=False):
+        """
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``value`` -- the value
+        - ``compress`` -- (default: ``False``) compress the path
+          when initialized
+
+        TESTS::
+
+            sage: C = crystals.LSPaths(['E',6],[1,0,0,0,0,0])
+            sage: c = C.an_element()
+            sage: TestSuite(c).run()
+        """
+        self._hash = 0
+        if compress:
+            (<LittelmannPath> value).compress()
+        ElementWrapper.__init__(self, parent, value)
+
     def __hash__(self):
-        return hash(tuple([tuple(v) for v in self.value.value]))
+        if self._hash == 0:
+            self._hash = hash(tuple([tuple(v) for v in self.value.value]))
+        return self._hash
 
     def __iter__(self):
+        """
+        Iterate through ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.LSPaths(['A',2],[1,1])
+            sage: c = C.module_generators[0].f_string([1,2])
+            sage: list(c)
+            [1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]]
+        """
         WLR = self._parent.weight_lattice_realization()
         I = WLR.basis().keys()
         for v in self.value.value:
             yield WLR._from_dict({I[i]: c for i,c in enumerate(v)})
 
-    def endpoint(self):
+    def weight(self):
         r"""
-        Computes the endpoint of the path.
+        Compute the weight of the path, which is the endpoint.
 
         EXAMPLES::
 
             sage: C = crystals.LSPaths(['A',2],[1,1])
             sage: b = C.module_generators[0]
-            sage: b.endpoint()
+            sage: b.weight()
             Lambda[1] + Lambda[2]
             sage: b.f_string([1,2,2,1])
             (-Lambda[1] - Lambda[2],)
-            sage: b.f_string([1,2,2,1]).endpoint()
+            sage: b.f_string([1,2,2,1]).weight()
             -Lambda[1] - Lambda[2]
             sage: b.f_string([1,2])
             (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])
-            sage: b.f_string([1,2]).endpoint()
+            sage: b.f_string([1,2]).weight()
             0
             sage: b = C([])
-            sage: b.endpoint()
+            sage: b.weight()
             0
+
+            sage: B = crystals.LSPaths(['A',1,1],[1,0])
+            sage: b = B.highest_weight_vector()
+            sage: b.f(0).weight()
+            -Lambda[0] + 2*Lambda[1] - delta
         """
         WLR = self._parent.weight_lattice_realization()
         if not self.value.endpoint():
@@ -664,9 +708,16 @@ cdef class LSPathElement(ElementWrapper):
         I = WLR.basis().keys()
         return WLR._from_dict({I[i]: c for i,c in enumerate(self.value.endpoint())})
 
+    endpoint = weight
+
     def compress(self):
         r"""
-        Merges consecutive positively parallel steps present in the path.
+        Merge consecutive positively parallel steps present in the path.
+
+        .. NOTE::
+
+            Deprecated in :trac:`20165`. Elements are compressed
+            when constructed.
 
         EXAMPLES::
 
@@ -675,14 +726,26 @@ cdef class LSPathElement(ElementWrapper):
             Finite family {1: Lambda[1], 2: Lambda[2]}
             sage: c = C(tuple([1/2*Lambda[1]+1/2*Lambda[2], 1/2*Lambda[1]+1/2*Lambda[2]]))
             sage: c.compress()
+            doctest:warning
+            ...
+            DeprecationWarning: compress is deprecated.
+            See http://trac.sagemath.org/20165 for details.
             (Lambda[1] + Lambda[2],)
         """
-        # TODO: Deprecate
-        return self
+        from sage.misc.superseded import deprecation
+        deprecation(20165, 'compress is deprecated.')
+        cdef LittelmannPath L = (<LittelmannPath> self.value).copy()
+        L.compress()
+        return self._parent.element_class(self._parent, L)
 
     def split_step(self, which_step, r):
         r"""
-        Splits indicated step into two parallel steps of relative lengths `r` and `1-r`.
+        Split indicated step into two parallel steps of relative
+        lengths `r` and `1-r`.
+
+        .. NOTE::
+
+            Deprecated in :trac:`20165`. Internal use only.
 
         INPUT:
 
@@ -694,13 +757,16 @@ cdef class LSPathElement(ElementWrapper):
             sage: C = crystals.LSPaths(['A',2],[1,1])
             sage: b = C.module_generators[0]
             sage: b.split_step(0, 1/3)
+            doctest:warning
+            ...
+            DeprecationWarning: split_step is deprecated.
+            See http://trac.sagemath.org/20165 for details.
             (1/3*Lambda[1] + 1/3*Lambda[2], 2/3*Lambda[1] + 2/3*Lambda[2])
         """
-        # TODO: Deprecate
-        assert 0 <= which_step and which_step <= len(self.value)
-        v = self.value.value[which_step]
-        data = self.value.value[:which_step] + [r*v,(1-r)*v] + self.value.value[which_step+1:]
-        cdef LittelmannPath L = LittelmannPath(data)
+        from sage.misc.superseded import deprecation
+        deprecation(20165, 'split_step is deprecated.')
+        cdef LittelmannPath L = (<LittelmannPath> self.value).copy()
+        L.split_step(which_step, r)
         return self._parent.element_class(self._parent, L)
 
     def reflect_step(self, which_step, i):
@@ -716,19 +782,18 @@ cdef class LSPathElement(ElementWrapper):
             sage: b.reflect_step(0, 2)
             (2*Lambda[1] - Lambda[2],)
         """
-        assert 0 <= which_step and which_step <= len(self.value)
-        i = self._parent._inverse_index_map[i]
         root = self._parent._simple_root_as_list(i)
+        i = self._parent._inverse_index_map[i]
         cdef LittelmannPath data = self.value.copy()
         data.reflect_step(which_step, i, root)
         return self._parent.element_class(self._parent, data)
 
     def epsilon(self, i):
         r"""
-        Returns the distance to the beginning of the `i`-string.
+        Return the distance to the beginning of the `i`-string.
 
-        This method overrides the generic implementation in the category of crystals
-        since this computation is more efficient.
+        This method overrides the generic implementation in the category
+        of crystals since this computation is more efficient.
 
         EXAMPLES::
 
@@ -743,10 +808,10 @@ cdef class LSPathElement(ElementWrapper):
 
     def phi(self, i):
         r"""
-        Returns the distance to the end of the `i`-string.
+        Return the distance to the end of the `i`-string.
 
-        This method overrides the generic implementation in the category of crystals
-        since this computation is more efficient.
+        This method overrides the generic implementation in the category
+        of crystals since this computation is more efficient.
 
         EXAMPLES::
 
@@ -761,17 +826,18 @@ cdef class LSPathElement(ElementWrapper):
 
     def e(self, i, power=1, to_string_end=False, length_only=False):
         r"""
-        Returns the `i`-th crystal raising operator on ``self``.
+        Return the `i`-th crystal raising operator on ``self``.
 
         INPUT:
 
         - ``i`` -- element of the index set of the underlying root system
-        - ``power`` -- positive integer; specifies the power of the raising operator
-          to be applied (default: 1)
-        - ``to_string_end`` -- boolean; if set to True, returns the dominant end of the
-          `i`-string of ``self``. (default: False)
-        - ``length_only`` -- boolean; if set to True, returns the distance to the dominant
-          end of the `i`-string of ``self``.
+        - ``power`` -- positive integer (default: 1); specifies the power
+          of the raising operator to be applied
+        - ``to_string_end`` -- boolean (default: ``False``); if ``True``,
+          returns the dominant end of the `i`-string of ``self``
+        - ``length_only`` -- boolean (default: ``False``); if ``True``,
+          returns the distance to the dominant end of the `i`-string
+          of ``self``
 
         EXAMPLES::
 
@@ -799,7 +865,7 @@ cdef class LSPathElement(ElementWrapper):
 
     def dualize(self):
         r"""
-        Returns dualized path.
+        Return the dualized path.
 
         EXAMPLES::
 
@@ -823,17 +889,17 @@ cdef class LSPathElement(ElementWrapper):
 
     def f(self, i, power=1, to_string_end=False, length_only=False):
         r"""
-        Returns the `i`-th crystal lowering operator on ``self``.
+        Return the `i`-th crystal lowering operator on ``self``.
 
         INPUT:
 
-        - ``i`` -- element of the index set of the underlying root system
-        - ``power`` -- positive integer; specifies the power of the lowering operator
-          to be applied (default: 1)
-        - ``to_string_end`` -- boolean; if set to True, returns the anti-dominant end of the
-          `i`-string of ``self``. (default: False)
-        - ``length_only`` -- boolean; if set to True, returns the distance to the anti-dominant
-          end of the `i`-string of ``self``.
+        - ``power`` -- positive integer (default: 1); specifies the power
+          of the lowering operator to be applied
+        - ``to_string_end`` -- boolean (default: ``False``); if ``True``,
+          returns the anti-dominant end of the `i`-string of ``self``
+        - ``length_only`` -- boolean (default: ``False``); if ``True``,
+          returns the distance to the anti-dominant end of the `i`-string
+          of ``self``
 
         EXAMPLES::
 
@@ -865,10 +931,10 @@ cdef class LSPathElement(ElementWrapper):
 
     def s(self, i):
         r"""
-        Computes the reflection of ``self`` along the `i`-string.
+        Compute the reflection of ``self`` along the `i`-string.
 
-        This method is more efficient than the generic implementation since it uses
-        powers of `e` and `f` in the Littelmann model directly.
+        This method is more efficient than the generic implementation since
+        it uses powers of `e` and `f` in the Littelmann model directly.
 
         EXAMPLES::
 
@@ -893,27 +959,21 @@ cdef class LSPathElement(ElementWrapper):
         i = self._parent._inverse_index_map[i]
         return self._parent.element_class(self._parent, self.value.copy().s(i, root))
 
-    def weight(self):
-        """
-        Return the weight of ``self``.
-
-        EXAMPLES::
-
-            sage: B = crystals.LSPaths(['A',1,1],[1,0])
-            sage: b = B.highest_weight_vector()
-            sage: b.f(0).weight()
-            -Lambda[0] + 2*Lambda[1] - delta
-        """
-        return self.endpoint()
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.LSPaths(['A',2],[1,1])
+            sage: c = C.module_generators[0]; c
+            (Lambda[1] + Lambda[2],)
+            sage: c.f_string([1,2])
+            (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])
         """
         WLR = self._parent.weight_lattice_realization()
         I = WLR.basis().keys()
-        return repr(tuple([WLR._from_dict({I[i]: c for i,c in enumerate(v)})
-                           for v in self.value.value]))
+        return repr(tuple(self))
 
     def _latex_(self):
         r"""
@@ -929,6 +989,5 @@ cdef class LSPathElement(ElementWrapper):
         WLR = self._parent.weight_lattice_realization()
         I = WLR.basis().keys()
         from sage.misc.latex import latex
-        return latex([WLR._from_dict({I[i]: c for i,c in enumerate(v)})
-                      for v in self.value.value])
+        return latex(list(self))
 
