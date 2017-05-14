@@ -1110,7 +1110,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None, algorithm='pari'):
+    def _evalf_(self, x, y, parent=None, algorithm='arb'):
         """
         EXAMPLES::
 
@@ -1167,15 +1167,30 @@ class Function_gamma_inc(BuiltinFunction):
             except AttributeError:
                 C = R
 
-        if algorithm == 'pari':
+        if algorithm == 'arb':
+            from sage.rings.complex_arb import ComplexBallField
+            v = ComplexBallField(prec)(x).gamma(y);
+        elif algorithm == 'pari':
             v = ComplexField(prec)(x).gamma_inc(y)
         else:
             import mpmath
             v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, y, parent=R))
-        if v.is_real():
-            return R(v)
-        else:
-            return C(v)
+        try:
+            isreal = v.is_real()
+            if isreal:
+                return R(v)
+            else:
+                return C(v)
+        except AttributeError:
+            try:
+                isreal = v.imag().is_zero()
+                if isreal:
+                    return R(v)
+                else:
+                    return C(v)
+            except AttributeError:
+                pass
+        return C(v)
 
 # synonym.
 gamma_inc = Function_gamma_inc()
