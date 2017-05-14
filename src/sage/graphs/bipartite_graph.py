@@ -1331,11 +1331,8 @@ class BipartiteGraph(Graph):
 
         .. SEEALSO::
 
-            For more information on LP solvers and which default solver is
-            used, see the method :meth:`solve
-            <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-            :class:`MixedIntegerLinearProgram
-            <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - :wikipedia:`Matching_(graph_theory)`
+        - :meth:`~Graph.matching`
 
         EXAMPLES:
 
