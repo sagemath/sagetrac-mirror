@@ -1318,8 +1318,8 @@ class BipartiteGraph(Graph):
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - when set to ``True``, computes a weighted matching where each
-          edge is weighted by its label (if an edge has no label, `1` is
-          assumed); only if ``algorithm`` is ``"Edmonds"``, ``"LP"``
+            edge is weighted by its label (if an edge has no label, `1` is
+            assumed); only if ``algorithm`` is ``"Edmonds"``, ``"LP"``
 
           - when set to ``False``, each edge has weight `1`
 
