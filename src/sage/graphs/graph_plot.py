@@ -664,7 +664,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                edge_is_drawn=(edge[0],edge[1],edge[2]) in edges_drawn
+                if not self._graph.is_directed():  
+                    edge_is_drawn|=((edge[1],edge[0],edge[2])  in edges_drawn)
+                if  not edge_is_drawn:
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
