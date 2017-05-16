@@ -1295,8 +1295,6 @@ class BipartiteGraph(Graph):
         maximum weight such that no two edges of `S` are incident
         with each other.
 
-        For more information, see the `Wikipedia article on matchings
-        :wikipedia:`Matching_(graph_theory)`
 
         INPUT:
 
@@ -1331,8 +1329,8 @@ class BipartiteGraph(Graph):
 
         .. SEEALSO::
 
-        - :wikipedia:`Matching_(graph_theory)`
-        - :meth:`~Graph.matching`
+            - :wikipedia:`Matching_(graph_theory)`
+            - :meth:`~Graph.matching`
 
         EXAMPLES:
 
