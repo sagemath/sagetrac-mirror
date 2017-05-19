@@ -11,6 +11,9 @@ import types
 
 from functools import partial, update_wrapper
 
+# Note: import sage.all is needed to prevent ImportErrors due to circular
+# imports
+import sage.all
 from sage.env import SAGE_DOC, SAGE_DOC_SRC
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
