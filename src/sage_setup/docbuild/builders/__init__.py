@@ -16,6 +16,17 @@ from .. import build_options as opts
 logger = logging.getLogger('docbuild')
 
 
+def _build_other_doc(args):
+    """Target for parallel doc builds."""
+
+    document = args[0]
+    name = args[1]
+    kwds = args[2]
+    args = args[3:]
+    logger.warning("\nBuilding %s.\n" % document)
+    getattr(get_builder(document), name)(*args, **kwds)
+
+
 class Builder(object):
     """
     Base class for all documentation builders (including the 'meta builder'
@@ -84,18 +95,6 @@ class AllBuilder(Builder):
         if name == 'all':
             return cls()
 
-
-    @staticmethod
-    def _build_other_doc(args):
-        """Target for parallel doc builds."""
-
-        document = args[0]
-        name = args[1]
-        kwds = args[2]
-        args = args[3:]
-        logger.warning("\nBuilding %s.\n" % document)
-        getattr(get_builder(document), name)(*args, **kwds)
-
     def _wrapper(self, name, *args, **kwds):
         """
         This is the function which goes through all of the documents
@@ -120,7 +119,7 @@ class AllBuilder(Builder):
 
         # build the other documents in parallel
         L = [(doc, name, kwds) + args for doc in others]
-        build_many(self._build_other_doc, L)
+        build_many(_build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 

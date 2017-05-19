@@ -31,6 +31,21 @@ __all__ = ['ReferenceBuilder', 'ReferenceSubBuilder']
 logger = logging.getLogger('docbuild')
 
 
+def _build_ref_doc(args):
+    """Target for parallel reference doc builds."""
+
+    doc = args[0]
+    lang = args[1]
+    format = args[2]
+    kwds = args[3]
+    args = args[4:]
+    if format == 'inventory':
+        # you must not use the inventory to build the inventory
+        kwds['use_multidoc_inventory'] = False
+    getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
+
+
+
 class ReferenceBuilder(AllBuilder):
     """
     This class builds the reference manual.  It uses DocBuilder to
@@ -77,20 +92,6 @@ class ReferenceBuilder(AllBuilder):
         sage_makedirs(d)
         return d
 
-    @staticmethod
-    def _build_ref_doc(args):
-        """Target for parallel reference doc builds."""
-
-        doc = args[0]
-        lang = args[1]
-        format = args[2]
-        kwds = args[3]
-        args = args[4:]
-        if format == 'inventory':
-            # you must not use the inventory to build the inventory
-            kwds['use_multidoc_inventory'] = False
-        getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
-
     def _wrapper(self, format, *args, **kwds):
         """
         Builds reference manuals.  For each language, it builds the
@@ -102,7 +103,7 @@ class ReferenceBuilder(AllBuilder):
                 continue
             output_dir = self._output_dir(format, lang)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            build_many(self._build_ref_doc, L)
+            build_many(_build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
