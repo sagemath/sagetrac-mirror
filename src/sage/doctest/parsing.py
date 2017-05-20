@@ -1,4 +1,4 @@
-## -*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 """
 Parsing docstrings
 
@@ -62,6 +62,61 @@ RIFtol = RealIntervalField(64)
 # should use the correct pattern including \x9b. For now, we use this
 # form without \x9b:
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
+
+
+def remove_unicode_u(string):
+    """
+    Given a string, try to remove all its **internal** unicode u markers.
+
+    This will help to keep the same doctest results in Python2 and Python3.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import remove_unicode_u as remu
+        sage: remu("u'you'")
+        "'you'"
+        sage: remu('u')
+        'u'
+        sage: remu("[u'am', 'stram', u'gram']")
+        "['am', 'stram', 'gram']"
+        sage: remu('[u"am", "stram", u"gram"]')
+        '["am", "stram", "gram"]'
+
+    TESTS:
+
+    This fails to work as expected on more complicated cases::
+
+        sage: bad = '''[u"Singular's stuff", u'good']'''
+        sage: remu(bad)
+        '["Singular\'s stuff", u\'good\']'
+    """
+    # first for u'
+    initial = string.split("u'")
+    parity = 0
+    final = []
+    for part in initial:
+        parity += part.count("'")
+        final.append(part)
+        if parity % 2:
+            final.append("u'")
+        else:
+            final.append("'")
+        parity += 1
+    string1 = u''.join(final[:-1])
+
+    # same for u"
+    initial = string1.split('u"')
+    parity = 0
+    final = []
+    for part in initial:
+        parity += part.count('"')
+        final.append(part)
+        if parity % 2:
+            final.append('u"')
+        else:
+            final.append('"')
+        parity += 1
+    return u''.join(final[:-1])
 
 
 def parse_optional_tags(string):
@@ -797,6 +852,15 @@ class SageOutputChecker(doctest.OutputChecker):
 
             sage: print("[ - 1, 2]")  # abs tol 1e-10
             [-1,2]
+
+        Tolerance for string results with unicode prefix::
+
+            sage: a = u'Cyrano'; a
+            'Cyrano'
+            sage: b = [u'Fermat', u'Euler']; b
+            ['Fermat',  'Euler']
+            sage: c = u'you'; c
+            'you'
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -821,7 +885,13 @@ class SageOutputChecker(doctest.OutputChecker):
                 # intervals have a non-empty intersection
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        return ok
+        if ok or not 'u' in got:
+            return ok
+
+        # accept the same answer where strings have unicode prefix u
+        # for smoother transition to python3
+        got = remove_unicode_u(got)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def output_difference(self, example, got, optionflags):
         r"""
