@@ -3127,7 +3127,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     #     cdef MPolynomial_libsingular r = new_MP(self._parent, p_NSet(n_Invers(p_GetCoeff(self._p
     #     sig_off()
     #     return r
-        
+
     def is_homogeneous(self):
         """
         Return ``True`` if this polynomial is homogeneous.

@@ -9544,9 +9544,9 @@ cpdef _inverse_of_unit_polynomial(p):
         sage: _inverse_of_unit_polynomial(2+4*x)
         Traceback (most recent call last):
         ...
-        ArithmeticError: is not a unit    
+        ArithmeticError: is not a unit
     """
-    
+
     if not p.is_unit():
         raise ArithmeticError("is not a unit")
     u = p.constant_coefficient()

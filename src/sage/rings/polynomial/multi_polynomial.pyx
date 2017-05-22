@@ -2349,7 +2349,6 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
 
-
     def inverse_of_unit(self):
         r"""
         Return the multiplicative inverse of ``self``, if it exists.
@@ -2389,7 +2388,6 @@ cdef class MPolynomial(CommutativeRingElement):
             ArithmeticError: is not a unit
         """
         return _inverse_of_unit_polynomial(self)
-    
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)
