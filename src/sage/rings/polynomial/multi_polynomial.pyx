@@ -297,14 +297,14 @@ cdef class MPolynomial(CommutativeRingElement):
         my_vars = self.parent().variable_names()
         vars = list(vars)
         if len(vars) == 0:
-            indices = range(len(my_vars))
+            indices = list(xrange(len(my_vars)))
         else:
             indices = [vars.index(v) for v in my_vars]
         x = [fast_float_arg(i) for i in indices]
 
         n = len(x)
         expr = fast_float_constant(0)
-        for (m,c) in self.dict().iteritems():
+        for m, c in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
@@ -539,8 +539,8 @@ cdef class MPolynomial(CommutativeRingElement):
             D = {}
             m = min([vars.index(z) for z in my_vars])
             prev_vars = vars[:m]
-            var_range = range(len(my_vars))
-            if len(prev_vars) > 0:
+            var_range = list(xrange(len(my_vars)))
+            if prev_vars:
                 mapping = [vars.index(v) - len(prev_vars) for v in my_vars]
                 tmp = [0] * (len(vars) - len(prev_vars))
                 try:
@@ -1523,9 +1523,7 @@ cdef class MPolynomial(CommutativeRingElement):
             1.00000000000000
 
         Check that the denominator is an element over the base whenever the base
-        has no denominator function. This closes #9063
-
-        ::
+        has no denominator function. This closes :trac:`9063`::
 
             sage: R.<a,b,c> = GF(5)[]
             sage: x = R(0)
@@ -1623,7 +1621,7 @@ cdef class MPolynomial(CommutativeRingElement):
         given an ideal ``I = (f_1,...,f_r)`` and some ``g (== self)`` in ``I``,
         find ``s_1,...,s_r`` such that ``g = s_1 f_1 + ... + s_r f_r``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = PolynomialRing(CC,2,order='degrevlex')
             sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
@@ -2314,7 +2312,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if not self.constant_coefficient().is_unit():
             return False
         cdef dict d = self.dict()
-        cdef ETuple zero_key = ETuple([0]*self.parent().ngens())
+        cdef ETuple zero_key = ETuple({}, int(self.parent().ngens()))
         d.pop(zero_key, None)
         return all(d[k].is_nilpotent() for k in d)
 

@@ -41,7 +41,7 @@ from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singu
 from sage.libs.pari.all import pari_gen
 from sage.structure.element import coerce_binop
 
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, Infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.factorization import Factorization
@@ -291,8 +291,7 @@ class Polynomial_generic_sparse(Polynomial):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
+        from sage.structure.element import coercion_model as cm
         import operator
         try:
             Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
@@ -499,12 +498,6 @@ class Polynomial_generic_sparse(Polynomial):
         for n, x in six.iteritems(self.__coeffs):
             v[n] = x
         return v
-
-    #def _pari_(self, variable=None):
-    #    if variable is None:
-    #        return self.__pari
-    #    else:
-    #        return self.__pari.subst('x',variable)
 
     def degree(self, gen=None):
         """
@@ -1117,6 +1110,16 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             PrecisionError: The coefficient of t^4 has not enough precision
 
+        TESTS:
+
+        Check that :trac:`22936` is fixed::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p.newton_polygon()
+            Finite Newton polygon with 3 vertices: (0, 2), (1, 0), (2, 1)
+
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
@@ -1127,14 +1130,15 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         polygon_prec = NewtonPolygon([ (x, self[x].precision_absolute()) for x in range(d+1) ])
         vertices = polygon.vertices(copy=False)
         vertices_prec = polygon_prec.vertices(copy=False)
-        if vertices[0][0] > vertices_prec[0][0]:
-            raise PrecisionError("first term with non-infinite valuation must have determined valuation")
-        elif vertices[-1][0] < vertices_prec[-1][0]:
-            raise PrecisionError("last term with non-infinite valuation must have determined valuation")
-        else:
-            for (x, y) in vertices:
-                if polygon_prec(x) <= y:
-                    raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
+        if len(vertices_prec) > 0:
+            if vertices[0][0] > vertices_prec[0][0]:
+                raise PrecisionError("first term with non-infinite valuation must have determined valuation")
+            elif vertices[-1][0] < vertices_prec[-1][0]:
+                raise PrecisionError("last term with non-infinite valuation must have determined valuation")
+            else:
+                for (x, y) in vertices:
+                    if polygon_prec(x) <= y:
+                         raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
         return polygon
 
     def hensel_lift(self, a):
@@ -1211,6 +1215,14 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             KeyboardInterrupt:
 
+        TESTS::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p._factor_of_degree(1)
+            (1 + O(x^20))*y + x^2 + x^5 + 2*x^8 + 4*x^14 + 2*x^17 + 2*x^20 + O(x^22)
+
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
@@ -1220,8 +1232,15 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
-        a = self.truncate(deg + 1)
-        b = v = self.parent()(1)
+        a = coeffs[:deg+1]
+        # The leading coefficient need to be known at finite precision
+        # in order to ensure that the while loop below terminates
+        if a[deg].precision_absolute() is Infinity:
+            a[deg] = a[deg].add_bigoh(self.base_ring().default_prec())
+
+        parent = self.parent()
+        a = parent(a)
+        b = v = parent(1)
         x = self % a
         while(not x.is_zero()):
             a += (v * x) % a
@@ -1331,6 +1350,14 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             [-1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
             [0, 0, 0]
             [1]
+
+        TESTS::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p.slope_factorization()
+            (x) * ((x + O(x^22))*y + 1 + 4*x^3 + 4*x^6 + 3*x^9 + x^15 + 3*x^18 + O(x^21)) * ((x^-1 + O(x^20))*y + x + x^4 + 2*x^7 + 4*x^13 + 2*x^16 + 2*x^19 + O(x^22))
 
         AUTHOR:
 

@@ -1082,7 +1082,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         k = self.base_ring()
         p = k.characteristic()
         if k.degree()==1:
-            return ZZ(p + 1 - int(self._pari_().ellap(p)))
+            return ZZ(p + 1 - int(self.__pari__().ellap(p)))
         else:
             raise ValueError("cardinality_pari() only works over prime fields.")
 
@@ -1280,7 +1280,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the n'th point in self's __points list. This enables users
         to iterate over the curve's point set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()
@@ -1717,7 +1717,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of False is
           certain but a return value of True may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::
@@ -1752,7 +1752,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of True is
           certain but a return value of False may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::
