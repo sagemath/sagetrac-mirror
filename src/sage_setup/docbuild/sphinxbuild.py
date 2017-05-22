@@ -4,7 +4,14 @@ This is Sage's version of the sphinx-build script
 We redirect stdout to our own logger, and remove some unwanted chatter.
 """
 
-import os, sys, re, sphinx
+from __future__ import absolute_import
+
+import os
+import re
+import sys
+
+import sphinx.cmdline
+import sphinx.util.console
 
 # override the fancy multi-line formatting
 def term_width_line(text):

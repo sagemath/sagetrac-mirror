@@ -1,3 +1,24 @@
+"""Miscellaneous utilities for the documentation builder."""
+
+from __future__ import absolute_import
+from __future__ import print_function
+
+import logging
+import math
+import optparse
+import os
+import sys
+
+from six.moves import range
+
+from . import get_documents, get_formats
+
+
+logger = logging.getLogger('docbuild')
+
+
+# File utilities
+
 def delete_empty_directories(root_dir):
     """
     Delete all empty directories found under ``root_dir``
@@ -11,6 +32,8 @@ def delete_empty_directories(root_dir):
             logger.warning('Deleting empty directory {0}'.format(dirpath))
             os.rmdir(dirpath)
 
+
+# Help formatting utilities for the docbuild main script
 
 class IndentedHelpFormatter2(optparse.IndentedHelpFormatter, object):
     """
@@ -77,7 +100,7 @@ def help_documents(s=u""):
     shortcut 'all' for all documents, available to the Sage
     documentation builder.
     """
-    docs = get_documents()
+    docs = get_documents(default_lang='en')
     s += "DOCUMENTs:\n"
     s += format_columns(docs + ['all  (!)'])
     s += "(!) Builds everything.\n\n"
@@ -194,7 +217,6 @@ def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     # and generators?
     size = max(map(len, lst)) + pad
     if cols is None:
-        import math
         cols = math.trunc((width - indent) / size)
     s = u" " * indent
     for i in range(len(lst)):
@@ -205,14 +227,15 @@ def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     return s
 
 
+# Monkey-patches into Sphinx
 
-
-class IntersphinxCache:
+class IntersphinxCache(object):
     """
     Replace sphinx.ext.intersphinx.fetch_inventory by an in-memory
     cached version.
     """
     def __init__(self):
+        import sphinx.ext.intersphinx
         self.inventories = {}
         self.real_fetch_inventory = sphinx.ext.intersphinx.fetch_inventory
         sphinx.ext.intersphinx.fetch_inventory = self.fetch_inventory

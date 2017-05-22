@@ -1,18 +1,52 @@
+from __future__ import absolute_import
+from __future__ import print_function
+
+import importlib
+import logging
+import os
+import re
+import shutil
+import time
+import types
+
+from functools import partial, update_wrapper
+
+# Note: import sage.all is needed to prevent ImportErrors due to circular
+# imports
 import sage.all
+from sage.env import SAGE_DOC, SAGE_DOC_SRC
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+
+from six.moves import cPickle
+
+from sphinx.environment import BuildEnvironment
+
+from . import AllBuilder, build_many
+from .docbuilder import DocBuilder
+from .. import get_builder
+from .. import build_options as opts
 
 
-def build_ref_doc(args):
+__all__ = ['ReferenceBuilder', 'ReferenceSubBuilder']
+
+
+logger = logging.getLogger('docbuild')
+
+
+def _build_ref_doc(args):
+    """Target for parallel reference doc builds."""
+
     doc = args[0]
     lang = args[1]
     format = args[2]
     kwds = args[3]
     args = args[4:]
-    if format == 'inventory':  # you must not use the inventory to build the inventory
+    if format == 'inventory':
+        # you must not use the inventory to build the inventory
         kwds['use_multidoc_inventory'] = False
     getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
+
 
 
 class ReferenceBuilder(AllBuilder):
@@ -21,20 +55,28 @@ class ReferenceBuilder(AllBuilder):
     build the top-level page and ReferenceSubBuilder for each
     sub-component.
     """
+
+    priority = 90
+
     def __init__(self, name, lang='en'):
         """
         Records the reference manual's name, in case it's not
         identical to 'reference'.
         """
-        AllBuilder.__init__(self)
+        super(ReferenceBuilder, self).__init__()
         doc = name.split(os.path.sep)
 
-        if doc[0] in LANGUAGES:
+        if doc[0] in opts.LANGUAGES:
             lang = doc[0]
             doc.pop(0)
 
         self.name = doc[0]
         self.lang = lang
+
+    @classmethod
+    def match(cls, name):
+        if name.endswith('reference'):
+            return cls(name)
 
     def _output_dir(self, type, lang='en'):
         """
@@ -44,7 +86,7 @@ class ReferenceBuilder(AllBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
             '.../html/en/reference'
@@ -58,13 +100,13 @@ class ReferenceBuilder(AllBuilder):
         Builds reference manuals.  For each language, it builds the
         top-level document and its components.
         """
-        for lang in LANGUAGES:
+        for lang in opts.LANGUAGES:
             refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            build_many(build_ref_doc, L)
+            build_many(_build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -92,7 +134,7 @@ class ReferenceBuilder(AllBuilder):
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
                          'sage.css', 'sageicon.png',
-                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg'
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -188,7 +230,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
@@ -223,12 +265,20 @@ class ReferenceSubBuilder(DocBuilder):
     2. The actual module gets updated and possibly contains a new
        title.
     """
-    def __init__(self, *args, **kwds):
-        DocBuilder.__init__(self, *args, **kwds)
-        self._wrap_builder_helpers()
 
-    def _wrap_builder_helpers(self):
-        from functools import partial, update_wrapper
+    priority = 80
+
+    def __init__(self, *args, **kwds):
+        super(ReferenceSubBuilder, self).__init__(*args, **kwds)
+        self._wrap_output_formatters()
+
+    @classmethod
+    def match(cls, name):
+        if ('reference' in name and
+                os.path.exists(os.path.join(SAGE_DOC_SRC, 'en', name))):
+            return cls(name)
+
+    def _wrap_output_formatters(self):
         for attr in dir(self):
             if hasattr(getattr(self, attr), 'is_output_format'):
                 f = partial(self._wrapper, attr)
@@ -238,23 +288,22 @@ class ReferenceSubBuilder(DocBuilder):
 
     def _wrapper(self, build_type, *args, **kwds):
         """
-        This is the wrapper around the builder_helper methods that
+        This is the wrapper around the output_formatter methods that
         goes through and makes sure things are up to date.
         """
         # Delete the auto-generated .rst files, if the inherited
         # and/or underscored members options have changed.
-        global options
         inherit_prev = self.get_cache().get('option_inherited')
         underscore_prev = self.get_cache().get('option_underscore')
-        if (inherit_prev is None or inherit_prev != options.inherited or
-            underscore_prev is None or underscore_prev != options.underscore):
+        if (inherit_prev is None or inherit_prev != opts.INHERITED or
+            underscore_prev is None or underscore_prev != opts.UNDERSCORE):
             logger.info("Detected change(s) in inherited and/or underscored members option(s).")
             self.clean_auto()
             self.get_cache.clear_cache()
 
         # After "sage -clone", refresh the .rst file mtimes in
         # environment.pickle.
-        if options.update_mtimes:
+        if opts.UPDATE_MTIMES:
             logger.info("Checking for .rst file mtimes to update...")
             self.update_mtimes()
 
@@ -293,7 +342,6 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-        from six.moves import cPickle
         file = open(self.cache_filename(), 'rb')
         try:
             cache = cPickle.load(file)
@@ -312,11 +360,9 @@ class ReferenceSubBuilder(DocBuilder):
         """
         cache = self.get_cache()
 
-        global options
-        cache['option_inherited'] = options.inherited
-        cache['option_underscore'] = options.underscore
+        cache['option_inherited'] = opts.INHERITED
+        cache['option_underscore'] = opts.UNDERSCORE
 
-        from six.moves import cPickle
         file = open(self.cache_filename(), 'wb')
         cPickle.dump(cache, file)
         file.close()
@@ -326,7 +372,6 @@ class ReferenceSubBuilder(DocBuilder):
         """
         Returns the Sphinx environment for this project.
         """
-        from sphinx.environment import BuildEnvironment
         class Foo(object):
             pass
         config = Foo()
@@ -348,7 +393,6 @@ class ReferenceSubBuilder(DocBuilder):
         """
         env = self.get_sphinx_environment()
         if env is not None:
-            import time
             for doc in env.all_docs:
                 env.all_docs[doc] = time.time()
             logger.info("Updated %d .rst file mtimes", len(env.all_docs))
@@ -364,8 +408,6 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            from six.moves import cPickle
-            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -486,11 +528,10 @@ class ReferenceSubBuilder(DocBuilder):
         """
         #Try to import the module
         try:
-            __import__(module_name)
+            module = importlib.import_module(module_name)
         except ImportError as err:
             logger.error("Warning: Could not import %s %s", module_name, err)
             return "UNABLE TO IMPORT MODULE"
-        module = sys.modules[module_name]
 
         #Get the docstring
         doc = module.__doc__
@@ -510,7 +551,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceSubBuilder
+            sage: from sage_setup.docbuild.builders.reference import ReferenceSubBuilder
             sage: ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../doc/en/reference/sage/combinat/partition.rst'
         """
@@ -541,8 +582,7 @@ class ReferenceSubBuilder(DocBuilder):
         outfile.write('='*len(title) + "\n\n")
         outfile.write('.. This file has been autogenerated.\n\n')
 
-        global options
-        inherited = ':inherited-members:' if options.inherited else ''
+        inherited = ':inherited-members:' if opts.INHERITED else ''
 
         automodule = '''
 .. automodule:: %s
@@ -565,7 +605,6 @@ class ReferenceSubBuilder(DocBuilder):
             os.unlink(self.cache_filename())
             logger.debug("Deleted .rst cache file: %s", self.cache_filename())
 
-        import shutil
         try:
             shutil.rmtree(os.path.join(self.dir, 'sage'))
             logger.debug("Deleted auto-generated .rst files in: %s",
@@ -619,4 +658,3 @@ class ReferenceSubBuilder(DocBuilder):
         """
         for module_name in self.get_all_included_modules():
             print(module_name)
-

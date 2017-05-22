@@ -1,11 +1,32 @@
+from __future__ import absolute_import
+
+import os
+import shutil
+
+from . import output_formatter
+from .docbuilder import DocBuilder
+from .reference import ReferenceBuilder
+
+
+__all__ = ['WebsiteBuilder']
+
+
 class WebsiteBuilder(DocBuilder):
+    priority = 70
+
+    @classmethod
+    def match(cls, name):
+        if name.endswith('website'):
+            return cls(name)
+
+    @output_formatter
     def html(self):
         """
         After we've finished building the website index page, we copy
         everything one directory up.  Then we call
         :meth:`create_html_redirects`.
         """
-        DocBuilder.html(self)
+        super(WebsiteBuilder, self).html()
         html_output_dir = self._output_dir('html')
         for f in os.listdir(html_output_dir):
             src = os.path.join(html_output_dir, f)
@@ -97,5 +118,4 @@ class WebsiteBuilder(DocBuilder):
             else:
                 os.unlink(parent_filename)
 
-        DocBuilder.clean(self)
-
+        super(WebsiteBuilder, self).clean()

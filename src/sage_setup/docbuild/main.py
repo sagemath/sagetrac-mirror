@@ -1,21 +1,41 @@
 """
 The documentation builder
 
-It is the starting point for building documentation, and is
-responsible to figure out what to build and with which options. The
-actual documentation build for each individual document is then done
-in a subprocess call to sphinx, see :func:`builder_helper`.
+It is the main entry point for building the documentation, and is responsible
+for figuring out what to build and with which options. The actual documentation
+build for each individual document is then done in a subprocess call to sphinx,
+see :func:`output_formatter`.
 
 * The builder can be configured in build_options.py
 * The sphinx subprocesses are configured in conf.py
 """
+
+from __future__ import absolute_import
+
+import logging
+import optparse
+import os
+import sys
+
+from six.moves import range
+
+from sage.env import SAGE_DOC_SRC
+
+from . import build_options, get_builder
+from .utils import (help_usage, IndentedHelpFormatter2, help_description,
+                    help_message_short, help_message_long, help_wrapper,
+                    IntersphinxCache, delete_empty_directories)
+
+
+logger = logging.getLogger('docbuild')
+
 
 def excepthook(*exc_info):
     """
     Print docbuild error and hint how to solve it
     """
     logger.error('Error building the documentation.', exc_info=exc_info)
-    if INCREMENTAL_BUILD:
+    if build_options.INCREMENTAL_BUILD:
         logger.error('''
 Note: incremental documentation builds sometimes cause spurious
 error messages. To be certain that these are real errors, run
@@ -51,46 +71,60 @@ def setup_parser():
     standard.add_option("-C", "--commands", dest="commands",
                         type="string", metavar="DOC",
                         action="callback", callback=help_wrapper,
-                        help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
+                        help="list all COMMANDs for DOCUMENT DOC; use 'all' "
+                             "to list all")
 
     standard.add_option("-i", "--inherited", dest="inherited",
                         default=False, action="store_true",
-                        help="include inherited members in reference manual; may be slow, may fail for PDF output")
+                        help="include inherited members in reference manual; "
+                             "may be slow, may fail for PDF output")
     standard.add_option("-u", "--underscore", dest="underscore",
                         default=False, action="store_true",
-                        help="include variables prefixed with '_' in reference manual; may be slow, may fail for PDF output")
+                        help="include variables prefixed with '_' in "
+                             "reference manual; may be slow, may fail for "
+                             "PDF output")
 
     standard.add_option("-j", "--mathjax", "--jsmath", dest="mathjax",
                         action="store_true",
-                        help="render math using MathJax; FORMATs: html, json, pickle, web")
+                        help="render math using MathJax; FORMATs: html, "
+                             "json, pickle, web")
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
-                        help="do not include graphics auto-generated using the '.. plot' markup")
+                        help="do not include graphics auto-generated using "
+                             "the '.. plot' markup")
     standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
                         action="store_false",
                         help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
-                        help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
+                        help="do not include PDF links in DOCUMENT "
+                             "'website'; FORMATs: html, json, pickle, web")
     standard.add_option("--warn-links", dest="warn_links",
                         default=False, action="store_true",
-                        help="issue a warning whenever a link is not properly resolved; equivalent to '--sphinx-opts -n' (sphinx option: nitpicky)")
+                        help="issue a warning whenever a link is not "
+                             "properly resolved; equivalent to "
+                             "'--sphinx-opts -n' (sphinx option: nitpicky)")
     standard.add_option("--check-nested", dest="check_nested",
                         action="store_true",
-                        help="check picklability of nested classes in DOCUMENT 'reference'")
+                        help="check picklability of nested classes in "
+                             "DOCUMENT 'reference'")
     standard.add_option("-N", "--no-colors", dest="color", default=True,
                         action="store_false",
-                        help="do not color output; does not affect children")
+                        help="do not color output; does not affect "
+                             "children")
     standard.add_option("-q", "--quiet", dest="verbose",
                         action="store_const", const=0,
                         help="work quietly; same as --verbose=0")
     standard.add_option("-v", "--verbose", dest="verbose",
                         type="int", default=1, metavar="LEVEL",
                         action="store",
-                        help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
+                        help="report progress at LEVEL=0 (quiet), 1 (normal), "
+                             "2 (info), or 3 (debug); does not "
+                             "affect children")
     standard.add_option("-o", "--output", dest="output_dir", default=None,
                         metavar="DIR", action="store",
-                        help="if DOCUMENT is a single file ('file=...'), write output to this directory")
+                        help="if DOCUMENT is a single file ('file=...'), "
+                             "write output to this directory")
     parser.add_option_group(standard)
 
     # Advanced options.
@@ -102,21 +136,26 @@ def setup_parser():
                         help="pass comma-separated OPTS to sphinx-build")
     advanced.add_option("-U", "--update-mtimes", dest="update_mtimes",
                         default=False, action="store_true",
-                        help="before building reference manual, update modification times for auto-generated ReST files")
+                        help="before building reference manual, update "
+                             "modification times for auto-generated ReST "
+                             "files")
     advanced.add_option("-k", "--keep-going", dest="keep_going",
                         default=False, action="store_true",
-                        help="Do not abort on errors but continue as much as possible after an error")
+                        help="Do not abort on errors but continue as "
+                             "much as possible after an error")
     parser.add_option_group(advanced)
 
     return parser
 
 
-def setup_logger(verbose=1, color=True):
+def setup_logger(name='docbuild', verbose=1, color=True):
     """
-    Sets up and returns a Python Logger instance for the Sage
-    documentation builder.  The optional argument sets logger's level
-    and message format.
+    Sets up the docbuild logger for use by the command-line application.
+    The optional arguments set the logger's level and message formats.
     """
+
+    logger = logging.getLogger(name)
+
     # Set up colors. Adapted from sphinx.cmdline.
     import sphinx.util.console as c
     if not color or not sys.stdout.isatty() or not c.color_terminal():
@@ -137,12 +176,10 @@ def setup_logger(verbose=1, color=True):
     styles = ['reset', 'reset', 'reset', 'reset']
     format_debug = ""
     for i in range(len(fields)):
-        format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
+        format_debug += c.colorize(styles[i], c.colorize(colors[i],
+                                                         fields[i]))
         if i != len(fields):
             format_debug += " "
-
-    # Documentation:  http://docs.python.org/library/logging.html
-    logger = logging.getLogger('docbuild')
 
     # Note: There's also Handler.setLevel().  The argument is the
     # lowest severity message that the respective logger or handler
@@ -163,13 +200,11 @@ def setup_logger(verbose=1, color=True):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    return logger
 
 
 def main():
     # Parse the command-line.
     parser = setup_parser()
-    global options
     options, args = parser.parse_args()
 
     # Get the name and type (target format) of the document we are
@@ -181,8 +216,7 @@ def main():
         sys.exit(1)
 
     # Set up module-wide logging.
-    global logger
-    logger = setup_logger(options.verbose, options.color)
+    setup_logger('docbuild', options.verbose, options.color)
 
     sys.excepthook = excepthook
 
@@ -198,22 +232,31 @@ def main():
     if options.check_nested:
         os.environ['SAGE_CHECK_NESTED'] = 'True'
 
+    if options.inherited:
+        build_options.INHERITED = True
+
     if options.underscore:
         os.environ['SAGE_DOC_UNDERSCORE'] = "True"
+        build_options.UNDERSCORE = True
 
-    global ALLSPHINXOPTS, WEBSITESPHINXOPTS, ABORT_ON_ERROR
+    if options.update_mtimes:
+        build_options.UPDATE_MTIMES = True
+
     if options.sphinx_opts:
-        ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
+        build_options.ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
     if options.no_pdf_links:
-        WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
+        build_options.WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
     if options.warn_links:
-        ALLSPHINXOPTS += "-n "
+        build_options.ALLSPHINXOPTS += "-n "
     if options.no_plot:
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
     if options.skip_tests:
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
-    ABORT_ON_ERROR = not options.keep_going
+    if options.output_dir:
+        build_options.OUTPUT_DIR = options.output_dir
+
+    build_options.ABORT_ON_ERROR = not options.keep_going
 
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty

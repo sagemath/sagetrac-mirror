@@ -1,3 +1,21 @@
+from __future__ import absolute_import
+
+import logging
+import os
+import re
+import shutil
+
+from sage.misc.misc import sage_makedirs
+
+from .docbuilder import DocBuilder
+from .. import build_options as opts
+
+
+__all__ = ['SingleFileBuilder']
+
+
+logger = logging.getLogger('docbuild')
+
 
 class SingleFileBuilder(DocBuilder):
     """
@@ -7,6 +25,9 @@ class SingleFileBuilder(DocBuilder):
     command line option "-o DIR", or in ``DOT_SAGE/docbuild/foo/``
     otherwise.
     """
+
+    priority = 60
+
     def __init__(self, path):
         """
         INPUT:
@@ -14,7 +35,6 @@ class SingleFileBuilder(DocBuilder):
         - ``path`` - the path to the file for which documentation
           should be built
         """
-        global options
 
         self.lang = 'en'
         self.name = 'single_file'
@@ -27,8 +47,8 @@ class SingleFileBuilder(DocBuilder):
         module_name = os.path.splitext(os.path.basename(path))[0]
         latex_name = module_name.replace('_', r'\_')
 
-        if options.output_dir:
-            base_dir = os.path.join(options.output_dir, module_name)
+        if opts.OUTPUT_DIR:
+            base_dir = os.path.join(opts.OUTPUT_DIR, module_name)
             if os.path.exists(base_dir):
                 logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
         else:
@@ -97,6 +117,17 @@ def setup(app):
         except OSError:
             pass
 
+    @classmethod
+    def match(cls, name):
+        if name.startswith('file='):
+            path = name[5:]
+            if path.endswith('.sage') or path.endswith('.pyx'):
+                raise NotImplementedError(
+                    'Building documentation for a single file only works for '
+                    'Python files.')
+
+            return cls(path)
+
     def _output_dir(self, type):
         """
         Returns the directory where the output of type type is stored.
@@ -115,4 +146,3 @@ def setup(app):
         created.
         """
         return self._output_dir('doctrees')
-

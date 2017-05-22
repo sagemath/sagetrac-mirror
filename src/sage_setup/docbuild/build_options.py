@@ -1,6 +1,6 @@
-###############################################
-# Options for building the Sage documentation #
-###############################################
+######################################################
+# Global Options for building the Sage documentation #
+######################################################
 
 import os, re
 
@@ -24,10 +24,18 @@ WEBSITESPHINXOPTS = ""
 NUM_THREADS = int(os.environ.get('SAGE_NUM_THREADS', 1))
 
 # Minimize GAP/libGAP RAM usage in the builder, docbuild already uses too much
-from sage.interfaces.gap import set_gap_memory_pool_size
-set_gap_memory_pool_size(80 * 1024 * 1024)
+try:
+    from sage.interfaces.gap import set_gap_memory_pool_size
+    set_gap_memory_pool_size(80 * 1024 * 1024)
+except ImportError:
+    pass
 
 INCREMENTAL_BUILD = os.path.isdir(SAGE_DOC)
 
 # Error out on errors
 ABORT_ON_ERROR = True
+
+UNDERSCORE = False
+INHERITED = False
+UPDATE_MTIMES = False
+OUTPUT_DIR = None
