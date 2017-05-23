@@ -66,9 +66,12 @@ ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
 
 def remove_unicode_u(string):
     """
-    Given a string, try to remove all its **internal** unicode u markers.
+    Given a string, try to remove all unicode u prefixes inside.
 
     This will help to keep the same doctest results in Python2 and Python3.
+    The input string is typically the documentation of a method or function.
+    This string may contain some letters u that are unicode python2 prefixes.
+    The aim is to remove all of these u and only them.
 
     EXAMPLES::
 
