@@ -24,6 +24,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import binary_type
 
 import re, sys
 import doctest
@@ -92,7 +93,16 @@ def remove_unicode_u(string):
         sage: bad = '''[u"Singular's stuff", u'good']'''
         sage: remu(bad)
         '["Singular\'s stuff", u\'good\']'
+
+    This supports python2 str type as input::
+
+        sage: euro = "'€'"
+        sage: print(remu(euro))
+        '€'
     """
+    if isinstance(string, binary_type):
+        string = string.decode('utf-8')
+
     # first for u'
     initial = string.split("u'")
     parity = 0
