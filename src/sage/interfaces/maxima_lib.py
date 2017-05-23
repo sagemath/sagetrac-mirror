@@ -58,13 +58,13 @@ For some infinite sums, a closed expression can be found. By default, "maxima" i
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
     -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
 
-Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
+Maxima has some flags that affect how the result gets simplified (By default, besselexpand is false in Maxima; however in 5.39 this test does not show any difference, as, apparently, another expansion path is used)::
 
     sage: maxima_calculus("besselexpand:false")
     false
     sage: x,n,k = var("x","n","k")
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
-    bessel_J(3/2, 2*sqrt(x))/x^(3/4)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
     sage: maxima_calculus("besselexpand:true")
     true
 
@@ -92,8 +92,10 @@ from sage.symbolic.ring import SR
 from sage.libs.ecl import EclObject, ecl_eval
 
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
-  MaximaAbstractElement, MaximaAbstractFunctionElement,
-  MaximaAbstractElementFunction)
+    MaximaAbstractElement, MaximaAbstractFunctionElement,
+    MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
@@ -230,6 +232,8 @@ cadadr=EclObject("CADADR")
 max_integrate=EclObject("$INTEGRATE")
 max_sum=EclObject("$SUM")
 max_simplify_sum=EclObject("$SIMPLIFY_SUM")
+max_prod=EclObject("$PRODUCT")
+max_simplify_prod=EclObject("$SIMPLIFY_PRODUCT")
 max_ratsimp=EclObject("$RATSIMP")
 max_limit=EclObject("$LIMIT")
 max_tlimit=EclObject("$TLIMIT")
@@ -615,7 +619,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaLibFunction
 
@@ -647,7 +651,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_element_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaLibFunctionElement
 
@@ -719,9 +723,10 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(sgn(x) - sgn(1-x), x)
             abs(x - 1) + abs(x)
 
-        ::
+        This is a known bug in Sage symbolic limits code, see
+        :trac:`17892` and https://sourceforge.net/p/maxima/bugs/3237/ ::
 
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug
             log(11) + log(2)
 
         ::
@@ -895,6 +900,22 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
+    def sr_prod(self,*args):
+        """
+        Helper function to wrap calculus use of Maxima's product.
+        """
+        try:
+            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
+        except RuntimeError as error:
+            s = str(error)
+            if "divergent" in s:
+                raise ValueError("Product is divergent.")
+            elif "Is" in s: # Maxima asked for a condition
+                self._missing_assumption(s)
+            else:
+                raise
+
+
     def sr_limit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's limits.
@@ -1031,6 +1052,8 @@ def is_MaximaLibElement(x):
     """
     return isinstance(x, MaximaLibElement)
 
+
+@instancedoc
 class MaximaLibElement(MaximaAbstractElement):
     r"""
     Element of Maxima through library interface.
@@ -1087,7 +1110,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi*z54]]
+            [[x == pi*z...]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),
@@ -1133,14 +1156,10 @@ class MaximaLibElement(MaximaAbstractElement):
             return s
 
 
-class MaximaLibFunctionElement(MaximaAbstractFunctionElement):
-    pass
+MaximaLibFunctionElement = MaximaAbstractFunctionElement
+MaximaLibFunction = MaximaAbstractFunction
 
-
-class MaximaLibFunction(MaximaAbstractFunction):
-    pass
-
-
+@instancedoc
 class MaximaLibElementFunction(MaximaLibElement, MaximaAbstractElementFunction):
     pass
 
@@ -1207,7 +1226,7 @@ sage_op_dict = {
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
-    sage.functions.other.erf : "%ERF",
+    sage.functions.error.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary

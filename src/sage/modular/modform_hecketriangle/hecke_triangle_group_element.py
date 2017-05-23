@@ -3078,12 +3078,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        There is a 1-1 correspondence between hyperbolic
-        fixed points and the corresponding primitive element
-        in the stabilizer. The action in the two cases above
-        is compatible with this correspondence.
+            There is a 1-1 correspondence between hyperbolic
+            fixed points and the corresponding primitive element
+            in the stabilizer. The action in the two cases above
+            is compatible with this correspondence.
 
         INPUT:
 
@@ -3308,9 +3308,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [lam^2 - 1       lam]
             [lam^2 - 1 lam^2 - 1]
             sage: el.as_hyperbolic_plane_isometry().parent()
-            Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model model to Hyperbolic plane in the Upper Half Plane Model model in Category of hyperbolic models of Hyperbolic plane
+            Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model to Hyperbolic plane in the Upper Half Plane Model in Category of hyperbolic models of Hyperbolic plane
             sage: el.as_hyperbolic_plane_isometry("KM").parent()
-            Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
+            Set of Morphisms from Hyperbolic plane in the Klein Disk Model to Hyperbolic plane in the Klein Disk Model in Category of hyperbolic models of Hyperbolic plane
         """
-
         return HyperbolicPlane().UHP().get_isometry(self._matrix).to_model(model)
