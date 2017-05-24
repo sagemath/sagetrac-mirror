@@ -712,17 +712,6 @@ The same picture for `A_3` gives a nice 3D permutohedron::
     sage: p
     Graphics3d Object
 
-.. PLOT::
-    :width: 300 px
-
-    L = RootSystem(["A",3]).ambient_space()
-    rho = L.rho()
-    plot_options = L.plot_parse_options()
-    W = L.weyl_group()
-    g = W.cayley_graph(side="right")
-    positions = {w: plot_options.projection(w.action(rho)) for w in W}
-    sphinx_plot(L.plot_roots() + g.plot3d(pos3d=positions, color_by_label=plot_options.color))
-
 .. TOPIC:: Exercises
 
     #. Locate the identity element of `W` in the previous picture
