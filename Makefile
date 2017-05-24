@@ -86,7 +86,7 @@ micro_release: bdist-clean sagelib-clean
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 
 TESTALL = ./sage -t --all
-PTESTALL = ./sage -t -p --all
+PTESTALL = ./sage -t -p $(SAGE_NUM_THREADS) --all
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
