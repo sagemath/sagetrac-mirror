@@ -130,6 +130,6 @@ def u(x):
     """
     if isinstance(x, text_type):  # py2 unicode and py3 str
         return x
-    if isinstance(x, binary_type):  # py2 str and py3 bytes
+    if isinstance(x, bytes):
         return x.decode("utf-8")
     raise TypeError('input has no conversion to unicode')
