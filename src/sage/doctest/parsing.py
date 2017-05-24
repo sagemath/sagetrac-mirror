@@ -103,33 +103,24 @@ def remove_unicode_u(string):
     if isinstance(string, binary_type):
         string = string.decode('utf-8')
 
-    # first for u'
-    initial = string.split("u'")
-    parity = 0
-    final = []
-    for part in initial:
-        parity += part.count("'")
-        final.append(part)
-        if parity % 2:
-            final.append("u'")
-        else:
-            final.append("'")
-        parity += 1
-    string1 = u''.join(final[:-1])
+    def strip_u_prefix(s, q):
+        prefix = 'u' + q
+        initial = s.split(prefix)
+        parity = False
+        final = []
+        for part in initial:
+            if part.count(q) % 2:
+                parity = not parity
+            final.append(part)
+            if parity:
+                final.append(prefix)
+            else:
+                final.append(q)
+            parity = not parity
+        return u''.join(final[:-1])
 
-    # same for u"
-    initial = string1.split('u"')
-    parity = 0
-    final = []
-    for part in initial:
-        parity += part.count('"')
-        final.append(part)
-        if parity % 2:
-            final.append('u"')
-        else:
-            final.append('"')
-        parity += 1
-    return u''.join(final[:-1])
+    string = strip_u_prefix(string, '"')
+    return strip_u_prefix(string, "'")
 
 
 def parse_optional_tags(string):
@@ -897,12 +888,12 @@ class SageOutputChecker(doctest.OutputChecker):
                 # The doctest is successful if the "want" and "got"
                 # intervals have a non-empty intersection
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
-        ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        if ok or not 'u' in got:
-            return ok
 
         # accept the same answer where strings have unicode prefix u
-        # for smoother transition to python3
+        # for smoother transition to python3.
+        # beware that 'remove_unicode_u' sometimes fails !
+        if 'u' not in got:
+            return doctest.OutputChecker.check_output(self, want, got, optionflags)
         got = remove_unicode_u(got)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
