@@ -220,7 +220,6 @@ from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
 
 # base ring imports
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
@@ -3098,35 +3097,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             p = pNext(p)
         return pl
-
-    # This code fails for base rings like ZMod(9) that have nontrivial
-    # nilpotents.  The generic code in multi_polynomial.py is used instead.
-    #
-    # def inverse_of_unit(self):
-    #     """
-    #     Return the inverse of this polynomial if it is a unit.
-
-    #     EXAMPLES::
-
-    #         sage: R.<x,y> = QQ[]
-    #         sage: x.inverse_of_unit()
-    #         Traceback (most recent call last):
-    #         ...
-    #         ArithmeticError: Element is not a unit.
-
-    #         sage: R(1/2).inverse_of_unit()
-    #         2
-    #     """
-    #     cdef ring *_ring = self._parent_ring
-    #     if(_ring != currRing): rChangeCurrRing(_ring)
-
-    #     if not p_IsUnit(self._poly, _ring):
-    #         raise ArithmeticError("Element is not a unit.")
-
-    #     sig_on()
-    #     cdef MPolynomial_libsingular r = new_MP(self._parent, p_NSet(n_Invers(p_GetCoeff(self._p
-    #     sig_off()
-    #     return r
 
     def is_homogeneous(self):
         """

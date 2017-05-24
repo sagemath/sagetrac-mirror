@@ -1324,12 +1324,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
             sage: q.parent()
             Univariate Polynomial Ring in x over Ring of integers modulo 32
+
+        ALGORITHM:
+
+        If the degree of the polynomial is 1 or more, calls
+        :func:`inverse_of_unit_polynomial`; see the algorithm description there.
         """
         if self.degree() > 0:
             if not self.is_unit():
                 raise ValueError("self is not a unit.")
             else:
-                return _inverse_of_unit_polynomial(self)
+                return inverse_of_unit_polynomial(self)
         return self.parent()(~(self[0]))
 
     def inverse_mod(a, m):
@@ -9498,7 +9503,7 @@ cdef list do_karatsuba(list left, list right, Py_ssize_t K_threshold,Py_ssize_t 
 #  that do not inherit from ZPolynomial, so is defined here outside a class.
 #  See multi_polynomial.py and infinite_polynomial_element.py
 
-cpdef _inverse_of_unit_polynomial(p):
+cpdef inverse_of_unit_polynomial(p):
     r"""
     Return the multiplicative inverse of polynomial ``p``, if it exists.
 
@@ -9509,22 +9514,22 @@ cpdef _inverse_of_unit_polynomial(p):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
+        sage: from sage.rings.polynomial.polynomial_element import inverse_of_unit_polynomial
         sage: R.<x> = Zmod(32)[]
-        sage: _inverse_of_unit_polynomial(1+4*x)
+        sage: inverse_of_unit_polynomial(1+4*x)
         16*x^2 + 28*x + 1
-        sage: _inverse_of_unit_polynomial(11+4*x)
+        sage: inverse_of_unit_polynomial(11+4*x)
         16*x^2 + 28*x + 3
-        sage: _inverse_of_unit_polynomial(R(3))
+        sage: inverse_of_unit_polynomial(R(3))
         11
         sage: S.<y> = R[]
-        sage: _inverse_of_unit_polynomial(1+4*x + 8*y)
+        sage: inverse_of_unit_polynomial(1+4*x + 8*y)
         24*y + 16*x^2 + 28*x + 1
         sage: _.<x,y> = Zmod(5^4)[]
-        sage: _inverse_of_unit_polynomial(99 + 100*x - 15*y^2)
+        sage: inverse_of_unit_polynomial(99 + 100*x - 15*y^2)
         250*y^6 + 400*y^4 + 500*x*y^2 + 515*y^2 + 525*x + 524
         sage: _.<x> = InfinitePolynomialRing(Zmod(36))
-        sage: _inverse_of_unit_polynomial(19 - 6*x[0]*x[1]^2 + 12*x[0] + 18*x[1])
+        sage: inverse_of_unit_polynomial(19 - 6*x[0]*x[1]^2 + 12*x[0] + 18*x[1])
         6*x_1^2*x_0 + 18*x_1 + 24*x_0 + 19
 
     ALGORITHM:
@@ -9541,7 +9546,7 @@ cpdef _inverse_of_unit_polynomial(p):
     TESTS::
 
         sage: R.<x> = Zmod(32)[]
-        sage: _inverse_of_unit_polynomial(2+4*x)
+        sage: inverse_of_unit_polynomial(2+4*x)
         Traceback (most recent call last):
         ...
         ArithmeticError: is not a unit

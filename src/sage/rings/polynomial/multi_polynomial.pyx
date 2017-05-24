@@ -32,7 +32,7 @@ from sage.rings.rational_field import QQ
 from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
-from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
+from sage.rings.polynomial.polynomial_element import inverse_of_unit_polynomial
 
 from polydict cimport ETuple
 
@@ -2374,6 +2374,11 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: p*q
             1
 
+        ALGORITHM:
+
+        Calls :func:`~sage.rings.polynomial.polynomial_element.inverse_of_unit_polynomial`;
+        see the algorithm description there.
+
         TESTS::
 
             sage: R.<x,y> = Zmod(32)[]
@@ -2387,7 +2392,7 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ArithmeticError: is not a unit
         """
-        return _inverse_of_unit_polynomial(self)
+        return inverse_of_unit_polynomial(self)
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

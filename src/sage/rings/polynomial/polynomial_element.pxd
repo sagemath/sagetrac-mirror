@@ -43,4 +43,4 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
 cpdef is_Polynomial(f)
 cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec)
 cpdef list _dict_to_list(dict x, zero)
-cpdef _inverse_of_unit_polynomial(p)
+cpdef inverse_of_unit_polynomial(p)

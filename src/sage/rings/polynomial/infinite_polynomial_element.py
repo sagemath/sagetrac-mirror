@@ -95,7 +95,7 @@ from sage.rings.integer import Integer
 from sage.structure.element import RingElement
 from sage.misc.cachefunc import cached_method
 import copy
-from sage.rings.polynomial.polynomial_element import _inverse_of_unit_polynomial
+from sage.rings.polynomial.polynomial_element import inverse_of_unit_polynomial
 
 def InfinitePolynomial(A, p):
     """
@@ -508,8 +508,13 @@ class InfinitePolynomial_sparse(RingElement):
             Traceback (most recent call last):
             ...
             AttributeError: <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_sparse'> has no attribute constant_coefficient
+
+        ALGORITHM:
+
+        Calls :func:`~sage.rings.polynomial.polynomial_element.inverse_of_unit_polynomial`;
+        see the algorithm description there.
         """
-        return _inverse_of_unit_polynomial(self)
+        return inverse_of_unit_polynomial(self)
 
 
     @cached_method
