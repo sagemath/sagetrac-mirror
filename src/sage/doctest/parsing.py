@@ -24,7 +24,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six import binary_type
+from sage.misc.six import u
 
 import re, sys
 import doctest
@@ -74,6 +74,13 @@ def remove_unicode_u(string):
     This string may contain some letters u that are unicode python2 prefixes.
     The aim is to remove all of these u and only them.
 
+    INPUT:
+
+    - ``string`` -- either ``unicode`` or ``bytes`` (if ``bytes``, it
+      will be converted to ``unicode`` assuming UTF-8)
+
+    OUTPUT: ``unicode`` string
+
     EXAMPLES::
 
         sage: from sage.doctest.parsing import remove_unicode_u as remu
@@ -86,13 +93,13 @@ def remove_unicode_u(string):
         sage: remu('[u"am", "stram", u"gram"]')
         '["am", "stram", "gram"]'
 
+    This deals correctly with nested quotes::
+
+        sage: str = '''[u"Singular's stuff", u'good']'''
+        sage: print(remu(str))
+        ["Singular's stuff", 'good']
+
     TESTS:
-
-    This fails to work as expected on more complicated cases::
-
-        sage: bad = '''[u"Singular's stuff", u'good']'''
-        sage: remu(bad)
-        '["Singular\'s stuff", u\'good\']'
 
     This supports python2 str type as input::
 
@@ -100,27 +107,12 @@ def remove_unicode_u(string):
         sage: print(remu(euro))
         '€'
     """
-    if isinstance(string, binary_type):
-        string = string.decode('utf-8')
-
-    def strip_u_prefix(s, q):
-        prefix = 'u' + q
-        initial = s.split(prefix)
-        parity = False
-        final = []
-        for part in initial:
-            if part.count(q) % 2:
-                parity = not parity
-            final.append(part)
-            if parity:
-                final.append(prefix)
-            else:
-                final.append(q)
-            parity = not parity
-        return u''.join(final[:-1])
-
-    string = strip_u_prefix(string, '"')
-    return strip_u_prefix(string, "'")
+    from Cython.Build.Dependencies import strip_string_literals
+    stripped, replacements = strip_string_literals(u(string), "__remove_unicode_u")
+    string = stripped.replace('u"', '"').replace("u'", "'")
+    for magic, literal in replacements.items():
+        string = string.replace(magic, literal)
+    return string
 
 
 def parse_optional_tags(string):
