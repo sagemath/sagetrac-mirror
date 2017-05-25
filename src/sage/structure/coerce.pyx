@@ -83,7 +83,9 @@ from libc.string cimport strncmp
 cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
 import operator
 cdef dict operator_dict = operator.__dict__
-from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
+from operator import add, sub, mul, truediv, iadd, isub, imul
+from operator import truediv as div
+from operator import itruediv as idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
