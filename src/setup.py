@@ -851,7 +851,7 @@ class sage_install(install):
         self.install_kernel_spec()
         log.info('Cleaning up stale installed files....')
         t = time.time()
-        self.clean_stale_files()
+        # self.clean_stale_files()
         log.info('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
     def install_kernel_spec(self):
