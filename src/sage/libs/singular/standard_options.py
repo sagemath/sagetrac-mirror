@@ -118,12 +118,10 @@ def libsingular_gb_standard_options(func):
         sage: I = P*[x,y]
         sage: sage_getargspec(I.interreduced_basis)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
-        sage: sage_getsourcelines(I.interreduced_basis)
-        (['    @singular_gb_standard_options\n',
-          '    @libsingular_gb_standard_options\n',
-          '    def interreduced_basis(self):\n',
-          ...
-          '        return self.basis.reduced()\n'], ...)
+        sage: sage_getsourcelines(I.interreduced_basis)[0][:3]
+        ['    @singular_gb_standard_options\n',
+         '    @libsingular_gb_standard_options\n',
+         '    def interreduced_basis(self):\n']
 
     .. note::
 

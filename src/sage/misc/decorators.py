@@ -102,12 +102,10 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         sage: I = P*[x,y]
         sage: sage_getfile(I.interreduced_basis)
         '.../sage/interfaces/singular.py'
-        sage: sage_getsourcelines(I.interreduced_basis)
-        (['    @singular_gb_standard_options\n',
-          '    @libsingular_gb_standard_options\n',
-          '    def interreduced_basis(self):\n',
-          ...
-          '        return self.basis.reduced()\n'], ...)
+        sage: sage_getsourcelines(I.interreduced_basis)[0][:3]
+        ['    @singular_gb_standard_options\n',
+         '    @libsingular_gb_standard_options\n',
+         '    def interreduced_basis(self):\n']
 
     The ``f`` attribute of the decorated function refers to the
     original function::
