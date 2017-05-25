@@ -895,11 +895,12 @@ class SageOutputChecker(doctest.OutputChecker):
                 # intervals have a non-empty intersection
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
 
+        ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
+        if ok or 'u' not in got:
+            return ok
+
         # accept the same answer where strings have unicode prefix u
-        # for smoother transition to python3.
-        # beware that 'remove_unicode_u' sometimes fails !
-        if 'u' not in got:
-            return doctest.OutputChecker.check_output(self, want, got, optionflags)
+        # for smoother transition to python3
         got = remove_unicode_u(got)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
