@@ -2002,7 +2002,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_free_str(s)
         return t
 
-    hex = __hex__
+    def hex(self):
+        return self.__hex__()
 
     def __copy__(self):
         """

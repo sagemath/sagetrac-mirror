@@ -774,13 +774,13 @@ cdef init_libsingular():
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))
 
-    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)   
+    handle = dlopen(lib.encode("utf-8"), RTLD_GLOBAL|RTLD_LAZY)   
     if not handle:
         err = dlerror()
         raise ImportError("cannot load Singular library ({})".format(err))
 
     # load SINGULAR
-    siInit(lib)
+    siInit(lib.encode("utf-8"))
 
     dlclose(handle)
 

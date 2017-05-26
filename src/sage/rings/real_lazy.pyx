@@ -24,7 +24,8 @@ specified in the forward direction).
 import math
 
 cdef add, sub, mul, div, pow, neg, inv
-from operator import add, sub, mul, div, pow, neg, inv
+from operator import add, sub, mul, pow, neg, inv
+from operator import truediv as div
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion

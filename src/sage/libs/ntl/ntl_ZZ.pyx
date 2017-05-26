@@ -97,7 +97,7 @@ cdef class ntl_ZZ(object):
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
                raise ValueError("invalid integer: %s" % v)
             sig_on()
-            ZZ_from_str(&self.x, v)
+            ZZ_from_str(&self.x, v.encode("utf-8"))
             sig_off()
 
     def __repr__(self):
