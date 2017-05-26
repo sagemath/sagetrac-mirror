@@ -190,9 +190,9 @@ cdef class SageObject:
             return str(type(self))
         else:
             result = repr_func()
-            if isinstance(result, unicode):
+            if isinstance(result, bytes):
                 # Py3 compatibility: allow _repr_ to return unicode
-                return result.encode('utf-8')
+                return result.decode('utf-8')
             else:
                 return result
 
