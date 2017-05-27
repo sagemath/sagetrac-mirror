@@ -272,7 +272,9 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
        - ``'cg'`` -- (conjugate-gradient) requires gradient
 
-       - ``'ncg'`` -- (newton-conjugate gradient) requires gradient and hessian
+       - ``'ncg'`` -- (newton-conjugate gradient) requires gradient and
+         optionally the hessian (if it is not provided, it is approximated using
+         finite differences on the gradient)
 
     - ``verbose`` -- (optional, default: False) print convergence message
 
@@ -298,7 +300,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: minimize(f, [.1, .3, .4], algorithm="ncg")
         (0.9999999..., 0.999999..., 0.999999...)
 
-    We get additional convergence information with the `verbose` option::
+    We get additional convergence information with the ``verbose`` option::
 
         sage: minimize(f, [.1, .3, .4], algorithm="ncg", verbose=True)
         Optimization terminated successfully.
@@ -330,6 +332,16 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    return der
         sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
         (1.00...,  1.00..., 1.00...)
+
+    Try the ``'ncg'`` method with a Python function, without providing the hessian::
+
+        sage: f = lambda x : 100*(x[1]-x[0]^2)^2+(1-x[0])^2+100*(x[2]-x[1]^2)^2+(1-x[1])^2
+        sage: gradient = lambda x : scipy.array([400*(x[0]**2 - x[1])*x[0] + 2*x[0] - 2, \
+                                            -200*x[0]**2 + 400*(x[1]**2 - x[2])*x[1] + 202*x[1] - 2, \
+                                             -200*x[1]**2 + 200*x[2]])
+        sage: x0 = [.1,.3,.4]
+        sage: minimize(f, x0, gradient, algorithm="ncg")
+        (0.999...,  0.999...,  0.999...)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
@@ -365,9 +377,14 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
-                min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
-                      fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
+                # if both hessian and hessian_p are passed, the latter is ignored
+                #hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
+            else:
+                if gradient is None:
+                    raise TypeError("the ncg method requires the gradient")
+            min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
+                          fhess=hessian, disp=verbose, **args)
+
     return vector(RDF, min)
 
 def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):
