@@ -340,6 +340,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            language_level=sys.version_info[0],
             profile=self.profile,
         )
 
