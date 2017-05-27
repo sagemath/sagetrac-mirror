@@ -333,7 +333,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
         (1.00...,  1.00..., 1.00...)
 
-    Try the ``'ncg'`` method with a Python function, without providing the hessian::
+    Try the ``'ncg'`` method with a Python function::
 
         sage: f = lambda x : 100*(x[1]-x[0]^2)^2+(1-x[0])^2+100*(x[2]-x[1]^2)^2+(1-x[1])^2
         sage: gradient = lambda x : scipy.array([400*(x[0]**2 - x[1])*x[0] + 2*x[0] - 2, \
@@ -342,6 +342,14 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: x0 = [.1,.3,.4]
         sage: minimize(f, x0, gradient, algorithm="ncg")
         (0.999...,  0.999...,  0.999...)
+
+    The hessian can be passed as list-of-lists valued Python function::
+
+        sage: hessian = lambda x : [[1200*x[0]^2 - 400*x[1] + 2, -400*x[0], 0], \
+                        [-400*x[0], 1200*x[1]^2 - 400*x[2] + 202, -400*x[1]], \
+                        [0, -400*x[1], 200]]
+        sage: minimize(f, x0, gradient, hessian, algorithm="ncg")
+        (1.00...,  1.00...,  1.00...)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
