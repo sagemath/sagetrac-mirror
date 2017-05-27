@@ -344,7 +344,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: minimize(f, x0, gradient, algorithm="ncg")
         (0.999...,  0.999...,  0.999...)
 
-    The hessian can be passed as list-of-lists-valued Python function::
+    The hessian can be passed as a list-of-lists-valued Python function::
 
         sage: hessian = lambda x : [[1200*x[0]^2 - 400*x[1] + 2, -400*x[0], 0], \
                         [-400*x[0], 1200*x[1]^2 - 400*x[2] + 202, -400*x[1]], \
