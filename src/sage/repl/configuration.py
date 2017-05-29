@@ -9,10 +9,11 @@ the IPython simple prompt is being used::
     sage: cmd = 'print([sys.stdin.isatty(), sys.stdout.isatty()])'
     sage: import pexpect
     sage: output = pexpect.run(
-    ....:     'bash -c \'echo "{0}" | sage\''.format(cmd),
+    ....:     'bash -c \'export SAGE_BANNER=no; echo "{0}" | sage\''.format(cmd),
     ....: )
-    sage: 'In [1]: [False, True]' in output
-    True
+    sage: print(output)
+    In [1]: [False, True]
+    In [2]: Exiting Sage ...
 """
 
 #*****************************************************************************
