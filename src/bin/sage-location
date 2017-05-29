@@ -198,13 +198,14 @@ def make_scripts_relative():
                     continue
                 # Is the first line "#!.../python"?
                 if L.startswith("#!") and L.find("/python") >= 0:
+                    i=L.rfind("/python")
                     # Read the rest of the file
                     script = f.read()
 
                     # Write the file again with a proper interpreter line
                     f.seek(0)
                     f.truncate()
-                    f.write("#!/usr/bin/env python\n" + script)
+                    f.write("#!/usr/bin/env "+L[i+1:] + script)
         except IOError:
             pass
 
