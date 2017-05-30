@@ -66,7 +66,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Now installing the new readline headers and libraries..."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error installing readline."
     exit 1
@@ -93,10 +93,11 @@ esac
 
 # Make sure that the install worked, despite whatever the
 # exit code of 'make' or 'make install' was:
-if [[ -f "$SAGE_LOCAL/lib/$DYLIB_NAME" ]]; then
+PREFIX="$SAGE_INST_TEMP$SAGE_LOCAL"
+if [[ -f "$PREFIX/lib/$DYLIB_NAME" ]]; then
     echo "Fixing permissions of libraries..."
-    chmod 755 "$SAGE_LOCAL"/lib/libreadline.*
-    chmod 755 "$SAGE_LOCAL"/lib/libhistory.*
+    chmod 755 "$PREFIX"/lib/libreadline.*
+    chmod 755 "$PREFIX"/lib/libhistory.*
 else
     # One or both of the readline libraries are missing, i.e.
     # haven't been installed.

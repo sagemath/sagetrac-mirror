@@ -63,7 +63,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Now installing fplll..."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo "Error installing fplll"
     exit 1

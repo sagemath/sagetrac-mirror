@@ -42,7 +42,7 @@ rm -f "$SAGE_LOCAL"/include/mpc.h
 # rm -f "$SAGE_LOCAL"/lib/libmpc.*
 
 # Installing
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPC."
     exit 1

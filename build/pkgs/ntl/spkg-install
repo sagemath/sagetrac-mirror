@@ -147,7 +147,7 @@ ntl_install()
 
     cd "$SRC"
 
-    $MAKE install
+    $MAKE install DESTDIR="$SAGE_INST_TEMP"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing NTL."
@@ -157,7 +157,7 @@ ntl_install()
     # Touch all includes such that dependency checking works properly:
     # the timestamp of the includes should be *now*, not the time when
     # the NTL package was created.
-    touch "$SAGE_LOCAL"/include/NTL/*
+    touch "$SAGE_INST_TEMP$SAGE_LOCAL"/include/NTL/*
 }
 
 ntl_configure

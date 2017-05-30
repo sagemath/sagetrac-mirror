@@ -13,19 +13,20 @@ export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 $MAKE || die "building ccache failed"
 
-$MAKE install || die "installing ccache failed"
+$MAKE install DESTDIR="$SAGE_INST_TEMP" || die "installing ccache failed"
 
 
 set -e
 
-mkdir -p "$SAGE_LOCAL/libexec/ccache"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/cc"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/c++"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/gcc"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/g++"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/clang"
-ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/clang++"
+PREFIX="$SAGE_INST_TEMP$SAGE_LOCAL"
+mkdir -p "$PREFIX/libexec/ccache"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/cc"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/c++"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/gcc"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/g++"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/clang"
+ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/clang++"
 
 # Copy a reasonable default configuration for Sage
 # (cache size of 4G and compression enabled)
-cp -p ../ccache.conf "$SAGE_LOCAL/etc"
+cp -p ../ccache.conf "$PREFIX/etc"

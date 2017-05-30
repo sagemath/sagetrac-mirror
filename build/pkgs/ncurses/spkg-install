@@ -74,7 +74,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing ncurses (narrow)..."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing ncurses (narrow)."
     exit 1
@@ -114,7 +114,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing ncurses (wide)..."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing ncurses (wide)."
     exit 1

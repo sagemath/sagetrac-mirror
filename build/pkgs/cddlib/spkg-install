@@ -41,5 +41,5 @@ cp "$SAGE_ROOT"/config/config.* .
 $MAKE ||
   die "Error building cddlib"
 
-$MAKE install ||
+$MAKE install DESTDIR="$SAGE_INST_TEMP" ||
   die "Error installing cddlib"
