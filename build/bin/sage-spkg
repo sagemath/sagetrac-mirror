@@ -850,8 +850,15 @@ fi
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_INST_TEMP installation was not used
 if [ -d "$SAGE_INST_TEMP" ]; then
-    # Generate installed filed list
     PREFIX="${SAGE_INST_TEMP}${SAGE_LOCAL%/}/"
+
+    rm -f "$PREFIX"lib/*.la
+    if [ $? -ne 0 ]; then
+        error_msg "Error deleting unnecessary libtool archive files"
+        exit 1
+    fi
+
+    # Generate installed filed list
     FILE_LIST=""
     FIRST=1
     for filename in $(find "$PREFIX" -type f | sort); do
@@ -862,17 +869,12 @@ if [ -d "$SAGE_INST_TEMP" ]; then
         else
             FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
         fi
+        # Copy file from the temp install path into $SAGE_LOCAL
+        if [ -d "$SAGE_LOCAL/$(dirname $filename)" ]; then
+            mkdir -p "$SAGE_LOCAL/$(dirname $filename)"
+        fi
+        cp -vupP "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
     done
-
-    # Copy files from the temp install path into $SAGE_LOCAL
-    echo "Copying $PKG_NAME into $SAGE_LOCAL"
-    cp -r -v -u -p -P "$PREFIX"* "$SAGE_LOCAL"
-fi
-
-rm -f "$SAGE_LOCAL"/lib/*.la
-if [ $? -ne 0 ]; then
-    error_msg "Error deleting unnecessary libtool archive files"
-    exit 1
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
