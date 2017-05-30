@@ -20,6 +20,9 @@
 #
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
+#      SAGE_ETC       -- $SAGE_LOCAL/etc
+#      SAGE_SHARE     -- $SAGE_LOCAL/share
+#      SAGE_EXTCODE   -- $SAGE_SHARE/sage/ext
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
 #      SAGE_INST_TEMP -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
