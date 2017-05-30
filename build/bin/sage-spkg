@@ -25,6 +25,7 @@
 #      SAGE_EXTCODE   -- $SAGE_SHARE/sage/ext
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
 #      SAGE_INST_TEMP -- temporary root the package will be installed to
+#      PIP_INSTALL    -- command to run pip to install a Python package
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
 #      PKG_VER        -- the version number of the package
 #      PKG_NAME       -- $PKG_BASE-$PKG_VER
@@ -812,6 +813,7 @@ export rsync_proxy=$http_proxy
 # script (the script itself could set this, but better to standardize
 # this in one place)
 export SAGE_INST_TEMP="$(pwd)/inst"
+export PIP_INSTALL="$PIP_INSTALL --root=$SAGE_INST_TEMP"
 
 
 if [ -f spkg-build ]; then
