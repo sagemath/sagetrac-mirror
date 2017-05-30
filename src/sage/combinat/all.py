@@ -112,6 +112,9 @@ from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatri
 #Plane Partitions
 from .plane_partition import PlanePartition, PlanePartitions
 
+#Descending plane partitions
+from .descending_plane_partition import DescendingPlanePartition, DescendingPlanePartitions
+
 # Parking Functions
 from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from .parking_functions import ParkingFunctions, ParkingFunction

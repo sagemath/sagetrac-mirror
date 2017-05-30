@@ -83,6 +83,7 @@ Comprehensive Module list
     sage/combinat/degree_sequences
     sage/combinat/derangements
     sage/combinat/descent_algebra
+    sage/combinat/descending_plane_partition
     sage/combinat/designs/__init__
     sage/combinat/designs/all
     sage/combinat/designs/bibd
