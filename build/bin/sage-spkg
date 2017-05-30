@@ -854,7 +854,7 @@ if [ -d "$SAGE_INST_TEMP" ]; then
     PREFIX="${SAGE_INST_TEMP}${SAGE_LOCAL%/}/"
     FILE_LIST=""
     FIRST=1
-    for filename in $(find "$PREFIX" -type f); do
+    for filename in $(find "$PREFIX" -type f | sort); do
         filename="${filename#$PREFIX}"
         if [ $FIRST -eq 1 ]; then
             FILE_LIST="\"$filename\""
