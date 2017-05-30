@@ -21,6 +21,7 @@
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
+#      SAGE_INST_TEMP -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
 #      PKG_VER        -- the version number of the package
 #      PKG_NAME       -- $PKG_BASE-$PKG_VER
@@ -804,6 +805,11 @@ export rsync_proxy=$http_proxy
 # Actually install
 ##################################################################
 
+# Set the $SAGE_INST_TEMP variable to be passed to the spkg-install
+# script (the script itself could set this, but better to standardize
+# this in one place)
+export SAGE_INST_TEMP="$(pwd)/inst"
+
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
@@ -826,15 +832,6 @@ else
     fi
 fi
 
-if [ "$UNAME" = "CYGWIN" ]; then
-    # Rebase after installing each package--in case any packages load this
-    # package at build time we need to ensure during the build that no binaries
-    # have conflicting address spaces
-    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
-fi
-
-echo "Successfully installed $PKG_NAME"
-
 if [ "$SAGE_CHECK" = "yes" ]; then
     if [ -f spkg-check ]; then
         echo "Running the test suite for $PKG_NAME..."
@@ -850,10 +847,39 @@ if [ "$SAGE_CHECK" = "yes" ]; then
     fi
 fi
 
+# All spkgs should eventually support this, but fall back on old behavior in
+# case DESTDIR=$SAGE_INST_TEMP installation was not used
+if [ -d "$SAGE_INST_TEMP" ]; then
+    # Generate installed filed list
+    PREFIX="${SAGE_INST_TEMP}${SAGE_LOCAL%/}/"
+    FILE_LIST=""
+    FIRST=1
+    for filename in $(find "$PREFIX" -type f); do
+        filename="${filename#$PREFIX}"
+        if [ $FIRST -eq 1 ]; then
+            FILE_LIST="\"$filename\""
+            FIRST=0
+        else
+            FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
+        fi
+    done
+
+    # Copy files from the temp install path into $SAGE_LOCAL
+    echo "Copying $PKG_NAME into $SAGE_LOCAL"
+    cp -r -v -u -p -P "$PREFIX"* "$SAGE_LOCAL"
+fi
+
 rm -f "$SAGE_LOCAL"/lib/*.la
 if [ $? -ne 0 ]; then
     error_msg "Error deleting unnecessary libtool archive files"
     exit 1
+fi
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    # Rebase after installing each package--in case any packages load this
+    # package at build time we need to ensure during the build that no binaries
+    # have conflicting address spaces
+    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
 # Mark that the new package has been installed (and tested, if
@@ -866,9 +892,15 @@ cat > "$PKG_NAME_INSTALLED" << __EOF__
     "install_date": "$(date)",
     "system_uname": "$(uname -a)",
     "sage_version": "$(cat "${SAGE_ROOT}/VERSION.txt")",
-    "test_result": "$TEST_SUITE_RESULT"
+    "test_result": "$TEST_SUITE_RESULT",
+    "files": [
+        $FILE_LIST
+    ]
 }
 __EOF__
+
+
+echo "Successfully installed $PKG_NAME"
 
 
 ##################################################################
