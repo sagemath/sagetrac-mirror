@@ -173,14 +173,14 @@ install()
     echo "Installing PARI/GP..."
 
     # install non-parallel (-j1) because of race conditions
-    $MAKE -j1 install install-lib-sta
+    $MAKE -j1 install install-lib-sta DESTDIR="$SAGE_INST_TEMP"
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing PARI"
         exit 1
     fi
 
     # Copy anal.h
-    cp -f "src/language/anal.h" "$SAGE_LOCAL/include/pari/anal.h"
+    cp -f "src/language/anal.h" "$SAGE_INST_TEMP$SAGE_LOCAL/include/pari/anal.h"
     if [ $? -ne 0 ]; then
         echo >&2 "Error copying anal.h"
         exit 1
@@ -222,7 +222,7 @@ elif [ "$UNAME" = "CYGWIN" ]; then
 else
     pari_shlib="libpari.so"
 fi
-if [ ! -f "$SAGE_LOCAL/lib/$pari_shlib" ]; then
+if [ ! -f "$SAGE_INST_TEMP$SAGE_LOCAL/lib/$pari_shlib" ]; then
     echo "Error: PARI's shared library '$pari_shlib' has not been installed!"
     exit 1
 fi

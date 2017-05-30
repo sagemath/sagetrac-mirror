@@ -28,10 +28,10 @@ fi
 cd src
 sdh_configure
 sdh_make
-sdh_make_install
+sdh_make_install DESTDIR="$SAGE_INST_TEMP"
 
 if [ "$UNAME" = "CYGWIN" ] ; then
-    cp ../patch.exe.manifest "$SAGE_LOCAL/bin/"
+    cp ../patch.exe.manifest "$SAGE_INST_TEMP$SAGE_LOCAL/bin/"
 fi
 
 # Sanity check that we have the correct version of patch

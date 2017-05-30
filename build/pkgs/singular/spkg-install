@@ -127,7 +127,7 @@ build_singular()
         exit 1
     fi
 
-    $MAKE install
+    $MAKE install DESTDIR="$SAGE_INST_TEMP"
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing Singular."
         exit 1

@@ -67,7 +67,7 @@ check_error "Failed to build Maxima."
 
 echo
 echo "Now installing Maxima..."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 check_error "Failed to install Maxima."
 
 
@@ -80,9 +80,11 @@ fi
 
 
 # Install Maxima into ECL's library directory:
-ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+ECLLIB="$SAGE_INST_TEMP"`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+ECLLIB="${ECLLIB%/}"
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
+mkdir -p "$ECLLIB"
 cp -f "$CUR/src/src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas"
 check_error "Failed to install '$CUR/src/src/binary-ecl/maxima.fas' as '$ECLLIB/maxima.fas'."
 
@@ -93,7 +95,7 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
 
     # The Maxima HTML docs are already built, we just need to copy
     # them to the sage installation.
-    MAXIMA_DOCS=$SAGE_SHARE/doc/maxima
+    MAXIMA_DOCS="$SAGE_INST_TEMP"/$SAGE_SHARE/doc/maxima
     MAXIMA_FIGURES=$MAXIMA_DOCS/figures
 
     mkdir -p $MAXIMA_FIGURES

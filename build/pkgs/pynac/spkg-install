@@ -41,7 +41,7 @@ install_pynac()
     rm -rf ${SAGE_LOCAL}/include/ginac
     rm -rf ${SAGE_LOCAL}/include/pynac
     cd ${PYNACDIR}
-    $MAKE install
+    $MAKE install DESTDIR="$SAGE_INST_TEMP"
     if [ $? -ne 0 ]; then
         echo "Error installing pynac."
         exit 1

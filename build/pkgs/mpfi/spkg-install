@@ -29,9 +29,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Building and installing MPFI"
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 
-if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfi.h ]; then
+if ! [ $? -eq 0 -a -f "$SAGE_INST_TEMP$SAGE_LOCAL/include/mpfi.h" ]; then
     echo "An error occurred while building MPFI."
     exit 1
 fi

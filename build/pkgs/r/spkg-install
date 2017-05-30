@@ -174,7 +174,7 @@ rm -rf "$SAGE_LOCAL"/lib/R.old
 rm -rf "$SAGE_LOCAL"/lib/libRblas.* "$SAGE_LOCAL"/lib/libRlapack.* "$SAGE_LOCAL"/lib/libR.*
 
 # Install new version
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing R."
     exit 1

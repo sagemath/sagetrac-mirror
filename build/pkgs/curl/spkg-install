@@ -33,7 +33,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing curl."
     exit 1

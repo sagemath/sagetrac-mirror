@@ -49,7 +49,7 @@ rm -f $SAGE_LOCAL/lib/libflint*
 rm -rf $SAGE_LOCAL/include/flint
 
 echo "Installing new FLINT files."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to install FLINT."
     exit 1

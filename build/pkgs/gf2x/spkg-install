@@ -79,7 +79,7 @@ case "$SAGE_TUNE_GF2X" in
 esac
 
 echo "Installing gf2x."
-$MAKE install
+$MAKE install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to install gf2x."
     exit 1

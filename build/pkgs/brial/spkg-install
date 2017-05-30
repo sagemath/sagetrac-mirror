@@ -32,7 +32,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install -j1
+$MAKE -j1 install DESTDIR="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo "Error installing BRiAl"
     exit 1
