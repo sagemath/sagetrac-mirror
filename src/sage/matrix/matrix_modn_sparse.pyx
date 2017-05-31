@@ -193,6 +193,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if entries is None:
             return
 
+        from collections import Iterator, Sequence
         if isinstance(entries, dict):
             # Sparse input format.
             R = self._base_ring
@@ -203,7 +204,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     set_entry(&self.rows[i], j, z)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
@@ -657,7 +660,11 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            from collections import Iterator, Sequence
+            if isinstance(rows, (Iterator, Sequence)):
+                rows = list(rows)
+            else:
+                raise TypeError("rows must be a list of integers")
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -696,7 +703,11 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            from collections import Iterator, Sequence
+            if isinstance(cols, (Iterator, Sequence)):
+                cols = list(cols)
+            else:
+                raise TypeError("cols must be a list of integers")
 
         A = self.new_matrix(ncols = len(cols))
 
