@@ -7,13 +7,15 @@ cd src
 #
 # Install pip3 first so pip2 overwrites local/bin/pip
 
-python3 -m pip install --verbose --no-index --ignore-installed --isolated .
+python3 -m pip install --verbose --no-index --ignore-installed --isolated \
+    --root="$SAGE_INST_TEMP" .
 if [ $? -ne 0 ]; then
     echo "Error building / installing pip3"
     exit 1
 fi
 
-python2 -m pip install --verbose --no-index --ignore-installed --isolated .
+python2 -m pip install --verbose --no-index --ignore-installed --isolated \
+    --root="$SAGE_INST_TEMP" .
 if [ $? -ne 0 ]; then
     echo "Error building / installing pip2"
     exit 1
