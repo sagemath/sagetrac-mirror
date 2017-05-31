@@ -16816,6 +16816,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
         """
+        vertices = list(vertices)
         if vertices:
             self.add_path(vertices)
             self.add_edge(vertices[-1], vertices[0])
