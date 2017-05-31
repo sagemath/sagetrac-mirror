@@ -131,6 +131,9 @@ fi
 echo
 echo "Now building and installing zn_poly's shared library..."
 
+SAGE_LIB="$SAGE_INST_TEMP$SAGE_LOCAL/lib"
+mkdir -p "$SAGE_LIB"
+
 if [ "$UNAME" != Darwin ]; then
     # Linux, SunOS/Solaris, Cygwin etc.:
     $MAKE libzn_poly.so # CC="$CC" CXX="$CXX"
@@ -138,14 +141,14 @@ if [ "$UNAME" != Darwin ]; then
         echo >&2 "Error building zn_poly's shared library."
         exit 1
     fi
-    cp -f libzn_poly-"$zn_poly_version".so "$SAGE_LOCAL"/lib/ &&
-    (cd "$SAGE_LOCAL"/lib/ && ln -sf libzn_poly-"$zn_poly_version".so libzn_poly.so)
+    cp -f libzn_poly-"$zn_poly_version".so "$SAGE_LIB/" &&
+    (cd "$SAGE_LIB" && ln -sf libzn_poly-"$zn_poly_version".so libzn_poly.so)
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing zn_poly's shared library."
         exit 1
     fi
     if [ "$UNAME" = CYGWIN ]; then
-        (cd "$SAGE_LOCAL"/lib/ && ln -sf libzn_poly.so libzn_poly.dll)
+        (cd "$SAGE_LIB" && ln -sf libzn_poly.so libzn_poly.dll)
         if [ $? -ne 0 ]; then
             echo >&2 "Error creating symbolic link from libzn_poly.dll to libzn_poly.so."
             exit 1
@@ -169,12 +172,12 @@ else
         echo >&2 "Error building zn_poly's dylib (shared library)."
         exit 1
     fi
-    cp -f libzn_poly.dylib "$SAGE_LOCAL"/lib/
+    cp -f libzn_poly.dylib "$SAGE_LIB/"
     if [ $? -ne 0 ]; then
         echo >&2 "Error copying 'libzn_poly.dylib'."
         exit 1
     fi
-    install_name_tool -id ${SAGE_LOCAL}/lib/libzn_poly.dylib "${SAGE_LOCAL}"/lib/libzn_poly.dylib
+    install_name_tool -id ${SAGE_LOCAL}/lib/libzn_poly.dylib "${SAGE_INST_TEMP}${SAGE_LOCAL}"/lib/libzn_poly.dylib
 fi
 
 ###############################################################################
@@ -184,8 +187,8 @@ fi
 echo
 echo "Now installing zn_poly's header files..."
 
-mkdir -p "$SAGE_LOCAL"/include/zn_poly/ &&
-cp -f include/{zn_poly,wide_arith}.h "$SAGE_LOCAL"/include/zn_poly/
+mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL"/include/zn_poly/ &&
+cp -f include/{zn_poly,wide_arith}.h "$SAGE_INST_TEMP$SAGE_LOCAL"/include/zn_poly/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing zn_poly's header files."
     exit 1
