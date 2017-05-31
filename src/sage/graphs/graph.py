@@ -4374,7 +4374,7 @@ class Graph(GenericGraph):
            ...
            ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
-        self._scream_if_not_simple(allow_loops=True)
+        #self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
         def weight(x):
             if x in RR:
@@ -4382,24 +4382,38 @@ class Graph(GenericGraph):
             else:
                 return 1
 
+        def reorder(u, v):
+            if u < v:
+                return u, v
+            else:
+                return v, u
+
+        W = dict()
+        for u,v,l in self.edge_iterator():
+            u, v = reorder(u, v)
+            if use_edge_labels:
+                l = weight(l)
+            if not (u, v) in W or ( (u, v) in W and use_edge_labels and W[u, v] < l ):
+                W[u, v] = l
+
         if algorithm == "Edmonds":
             import networkx
             g = networkx.Graph()
             if use_edge_labels:
-                for u, v, l in self.edge_iterator():
-                    g.add_edge(u, v, attr_dict={"weight": weight(l)})
+                for u, v in W:
+                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
             else:
-                for u, v in self.edge_iterator(labels=False):
+                for u, v in W:
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(weight(self.edge_label(u, v))
+                    return sum(W[reorder((u, v))]
                                for u, v in six.iteritems(d)) / Integer(2)
                 else:
                     return Integer(len(d) // 2)
             else:
-                return [(u, v, self.edge_label(u, v))
+                return [(u, v, W[u, v])
                         for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
@@ -4410,18 +4424,14 @@ class Graph(GenericGraph):
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary=True)
             if use_edge_labels:
-                p.set_objective(
-                    p.sum(weight(w) * b[min(u, v), max(u, v)]
-                          for u, v, w in g.edge_iterator()))
+                p.set_objective( p.sum( W[u, v] * b[u, v] for u, v in W ) )
             else:
-                p.set_objective(
-                    p.sum(b[min(u, v), max(u, v)]
-                          for u, v in g.edge_iterator(labels=False)))
+                p.set_objective( p.sum( b[u, v] for u, v in W ) )
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum(b[min(u, v),max(u, v)]
+                    p.sum(b[reorder(u, v)]
                           for u in g.neighbors(v)), max=1)
             if value_only:
                 if use_edge_labels:
@@ -4431,8 +4441,8 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbose)
                 b = p.get_values(b)
-                return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v), max(u, v)] == 1]
+                return [(u, v, W[u, v]) for u, v in W
+                        if b[u, v] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
