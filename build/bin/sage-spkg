@@ -854,6 +854,7 @@ fi
 
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_INST_TEMP installation was not used
+echo "Copying package files from temporary location $SAGE_INST_TEMP to $SAGE_LOCAL"
 if [ -d "$SAGE_INST_TEMP" ]; then
     PREFIX="${SAGE_INST_TEMP}${SAGE_LOCAL%/}/"
 
@@ -878,7 +879,7 @@ if [ -d "$SAGE_INST_TEMP" ]; then
         if [ ! -d "$SAGE_LOCAL/$(dirname $filename)" ]; then
             mkdir -p "$SAGE_LOCAL/$(dirname $filename)"
         fi
-        cp -vupP "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        cp -upP "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
     done
 fi
 
