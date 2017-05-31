@@ -248,6 +248,7 @@ if conf['Solaris?'] and conf['linker_GNU?']:
 
 conf['SPKG_DIR'] = os.getcwd()
 conf['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
+conf['SAGE_INST_TEMP'] = os.environ['SAGE_INST_TEMP']
 
 
 ######################################################################
