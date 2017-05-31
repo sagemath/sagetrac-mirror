@@ -46,7 +46,7 @@ def matrix_method(func=None, name=None):
     EXAMPLES::
 
         sage: from sage.matrix.constructor import matrix_method
-        sage: def foo_matrix(n): return matrix.diagonal(range(n))
+        sage: def foo_matrix(n): return matrix.diagonal(list(range(n)))
         sage: matrix_method(foo_matrix)
         <function foo_matrix at ...>
         sage: matrix.foo(5)
