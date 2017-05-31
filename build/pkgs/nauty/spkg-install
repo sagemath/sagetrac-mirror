@@ -20,13 +20,15 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+mkdir -p "$BIN"
 # No install target so we resort to manual copy
 echo >&2 "Copying nauty..."
 for program in addedgeg amtog biplabg catg complg converseg copyg countg cubhamg deledgeg delptg directg dreadnaut dretodot dretog \
   genbg genbgL geng genquarticg genrang genspecialg gentourng gentreeg hamheuristic labelg linegraphg listg multig newedgeg \
   pickg planarg ranlabg shortg showg subdivideg twohamg vcolg watercluster2 NRswitchg;
 do
-  cp -p $program "$SAGE_LOCAL"/bin/$program
+  cp -p $program "$BIN"/$program
   if [ $? -ne 0 ]; then
    echo >&2 "Error installing nauty."
    exit 1

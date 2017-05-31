@@ -1,2 +1,2 @@
-mkdir -p "$SAGE_SHARE/pari"
-cd src && cp -R * "$SAGE_SHARE/pari"
+mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE/pari"
+cd src && cp -R * "$SAGE_INST_TEMP$SAGE_SHARE/pari"

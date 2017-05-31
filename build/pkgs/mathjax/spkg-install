@@ -8,5 +8,6 @@ fi
 # Move mathjax to its final destination.
 TARGET="${SAGE_SHARE}/mathjax"
 rm -rf "${TARGET}"
-cp -r 'src' "${TARGET}"
+mkdir -p "${SAGE_INST_TEMP}${TARGET}"
+cp -r 'src' "${SAGE_INST_TEMP}${TARGET}"
 

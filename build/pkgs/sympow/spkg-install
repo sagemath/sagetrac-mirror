@@ -139,10 +139,10 @@ fi
 #######################################################################
 # Install
 #######################################################################
-TARGET="$SAGE_LOCAL/lib/sympow"
+TARGET="$SAGE_INST_TEMP$SAGE_LOCAL/lib/sympow"
 
-rm -rf "$TARGET"
-mkdir "$TARGET"
+rm -rf "$SAGE_LOCAL/lib/sympow"
+mkdir -p "$TARGET"
 
 cp sympow *.gp new_data "$TARGET/"
 if [ $? -ne 0 ]; then
@@ -158,6 +158,10 @@ if [ ! -d "$TARGET/datafiles" ]; then
 fi
 
 # Create binary versions of datafiles
+# Note: This should probably be a post-install step since it requires calling
+# the compiled sympow binary; however in this case it happens to work fine
+# since it does not have any external dependencies and can run from the temp
+# install dir
 cd "$TARGET/datafiles"
 for file in *.txt; do
     NUM=`grep -c AT $file`
@@ -169,7 +173,9 @@ for file in *.txt; do
 done
 
 # Create sympow script in $SAGE_LOCAL/bin
-SCRIPT="$SAGE_LOCAL/bin/sympow"
+BIN="$SAGE_INST_TEMP$SAGE_LOCAL"/bin
+mkdir -p "$BIN"
+SCRIPT="$BIN/sympow"
 
 cat >"$SCRIPT" <<'EOF'
 cd "$SAGE_LOCAL/lib/sympow"
