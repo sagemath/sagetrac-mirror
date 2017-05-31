@@ -550,7 +550,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         # scalar?
         from collections import Iterator, Sequence
-        if not isinstance(entries, (Iterator, Sequence))::
+        if not isinstance(entries, (Iterator, Sequence)):
             sig_on()
             for i in range(self._nrows*self._ncols):
                 self._entries[i] = 0
