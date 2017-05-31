@@ -100,6 +100,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``coerce`` -- ignored
         """
+        from collections import Iterator, Sequence
         cdef Py_ssize_t i, j, k
         cdef Integer z
         cdef PyObject** X
@@ -116,7 +117,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
                         raise IndexError("invalid entries list")
                     mpz_vector_set_entry(&self._matrix[i], j, z.value)
 
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
 
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
