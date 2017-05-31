@@ -22,15 +22,17 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from sage.misc.six import u
 
-import re, sys
+import re
+import sys
 import doctest
 import collections
 from sage.repl.preparse import preparse, strip_string_literals
+from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
+
 
 from .external import available_software
 
@@ -107,8 +109,8 @@ def remove_unicode_u(string):
         sage: print(remu(euro))
         '€'
     """
-    from Cython.Build.Dependencies import strip_string_literals
-    stripped, replacements = strip_string_literals(u(string), "__remove_unicode_u")
+    stripped, replacements = cython_strip_string_literals(u(string),
+                                                          "__remove_unicode_u")
     string = stripped.replace('u"', '"').replace("u'", "'")
     for magic, literal in replacements.items():
         string = string.replace(magic, literal)
