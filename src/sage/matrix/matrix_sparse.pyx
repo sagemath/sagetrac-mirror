@@ -856,15 +856,17 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if isinstance(rows, xrange):
-            rows = list(rows)
-        elif not isinstance(rows, list):
-            raise TypeError("rows must be a list of integers")
+        from collections import Iterator, Sequence
 
-        if isinstance(columns, xrange):
-            columns = list(columns)
-        elif not isinstance(columns, list):
+        if not isinstance(rows, (Iterator, Sequence)):
+            raise TypeError("rows must be a list of integers")
+        if not isinstance(rows, (list, tuple)):
+            rows = list(rows)
+
+        if not isinstance(columns, (Iterator, Sequence)):
             raise TypeError("columns must be a list of integers")
+        if not isinstance(columns, (list, tuple)):
+            columns = list(columns)
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j
 
