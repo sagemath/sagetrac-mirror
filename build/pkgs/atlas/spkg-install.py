@@ -35,7 +35,8 @@ os.environ['MAKE'] += ' -j1'
 MAKE = os.environ['MAKE']
 
 # SAGE_LOCAL
-SAGE_LOCAL = os.environ['SAGE_LOCAL']
+SAGE_LOCAL = conf['SAGE_LOCAL']
+SAGE_INST_TEMP = conf['SAGE_INST_TEMP']
 
 ######################################################################
 ### Some auxiliary functions to facilitate IO and error checking
@@ -69,7 +70,8 @@ def assert_success(rc, good=None, bad=None):
 ######################################################################
 
 def write_pc_file(libs,target):
-    pkgconfigdir=os.path.join(SAGE_LOCAL, 'lib', 'pkgconfig')
+    pkgconfigdir = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'),
+                                'lib', 'pkgconfig')
     if not os.path.isdir(pkgconfigdir):
         os.makedirs(pkgconfigdir)
     libflags='-l%s'%(' -l'.join(libs))
@@ -82,7 +84,9 @@ Version: 1.0
 Description: %s for sage, set up by the ATLAS spkg.
 Libs: -L${libdir} %s
 """%(SAGE_LOCAL, target, target, libflags)
-    open(os.path.join(SAGE_LOCAL, 'lib/pkgconfig/%s.pc'%target), 'w').write(pcfile)
+
+    with open(os.path.join(pkgconfigdir, '%s.pc' % target), 'w') as f:
+        f.write(pcfile)
 
 
 ######################################################################
@@ -188,13 +192,13 @@ if 'SAGE_ATLAS_LIB' in os.environ:
             print("to a fortran compiler compatible with this library.\n")
             sys.exit(2)
 
-    SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')
     def symlinkOSlibrary(library_basename):
         filenames = [ fname for fname in os.listdir(path)
                       if fname.startswith(library_basename) ]
         for fname in filenames:
             source = os.path.join(ATLAS_LIB, fname)
-            destination = os.path.join(SAGE_LOCAL_LIB, fname)
+            destination = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'),
+                                       'lib', fname)
             print('Symlinking '+destination+' -> '+source)
             try:
                 os.remove(destination)
@@ -667,7 +671,9 @@ if not INSTALL_STATIC_LIBRARIES:
         .replace('.*/libatlas.a.*', '') \
         .close()
 
-rc = make_atlas('install')
+# The DESTDIR handling in ATLAS doesn't handle PREFIX properly
+DESTDIR = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'))
+rc = make_atlas('install DESTDIR="%s"' % DESTDIR)
 assert_success(rc, bad='Failed to install ATLAS headers',
                good='Installed ATLAS headers')
 
@@ -675,6 +681,6 @@ assert_success(rc, bad='Failed to install ATLAS headers',
 ######################################################################
 ### install script to tune and build ATLAS
 ######################################################################
-
-cp(os.path.join(PATCH_DIR, 'atlas-config'),
-    os.path.join(conf['SAGE_LOCAL'], 'bin'))
+BIN_DIR = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'), 'bin')
+os.mkdir(BIN_DIR)
+cp(os.path.join(PATCH_DIR, 'atlas-config'), BIN_DIR)
