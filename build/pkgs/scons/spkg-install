@@ -9,7 +9,7 @@ cd src/
 rm -rf $SAGE_LOCAL/lib/scons-*
 
 # scons does not work with pip
-sage-python23 setup.py --no-user-cfg install
+sage-python23 setup.py --no-user-cfg install --root="$SAGE_INST_TEMP"
 
 if [ $? -ne 0 ]; then
     echo "Error installing scons"

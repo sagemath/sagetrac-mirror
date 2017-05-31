@@ -19,7 +19,7 @@ sage-python23 setup.py \
        --disable-jpeg \
        install \
        --single-version-externally-managed \
-       --record /dev/null
+       --root "$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo "Error building / installing Pillow"
     exit 1

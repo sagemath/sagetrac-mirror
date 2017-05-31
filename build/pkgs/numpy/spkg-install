@@ -50,13 +50,17 @@ sage-python23 setup.py \
         --no-user-cfg \
        install \
        --single-version-externally-managed \
-       --record /dev/null \
+       --root "$SAGE_INST_TEMP" \
        ${NUMPY_FCONFIG}
 
 # Touch all includes such that dependency checking works properly:
 # the timestamp of the includes should be *now*, not the time when
 # the numpy package was created.
-sage-python23 <<EOF
+# Note: Setting PYTHONPATH here is something of a hack to support
+# installation into $SAGE_INST_TEMP.  This might be better handled
+# as a post-install step
+SITE_PACKAGES="$(sage-python23 -c 'import site; print(site.getsitepackages()[0])')"
+PYTHONPATH="$SAGE_INST_TEMP$SITE_PACKAGES" sage-python23 <<EOF
 import os
 os.chdir(os.environ["SAGE_ROOT"])  # Import numpy from safe location
 import numpy
