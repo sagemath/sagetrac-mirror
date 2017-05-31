@@ -324,18 +324,15 @@ unique "correct" crystal `\mathcal{B}_\lambda` and discuss how these
 are constructed in Sage.
 
 
-Installing dot2tex
-------------------
+Prerequisites for drawing crystal graphs
+----------------------------------------
 
-Before giving examples of crystals, we digress to help you install
-``dot2tex``, which you will need in order to make latex images of
-crystals.
-
-``dot2tex`` is an optional package of sage and the latest version
-can be installed via::
-
-    sage -i dot2tex
-
+In the sequel we will use extensively the crystal graph drawing
+features, with latex rendering. These features require additional
+software, namely graphviz, dot2tex, and a latex/tikz installation.
+Please see
+:meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz` for
+details.
 
 Crystals of tableaux in Sage
 ----------------------------
