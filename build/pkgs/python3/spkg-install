@@ -21,7 +21,7 @@ rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
 # only 1 job.
 # The "-i" option to ignore errors is crucial, especially in the
 # case of upgrades.
-$MAKE -i -j1 install
+$MAKE -i -j1 DESTDIR="$SAGE_INST_TEMP" install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing Python."
     exit 1
@@ -34,7 +34,7 @@ else
     SUPP_FILENAME="${PKG_BASE}.supp"
 fi
 mkdir -p "$SAGE_EXTCODE/valgrind"
-cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/$SUPP_FILENAME"
+cp Misc/valgrind-python.supp "${SAGE_INST_TEMP}${SAGE_EXTCODE}/valgrind/${SUPP_FILENAME}"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing valgrind suppression file."
     exit 1
@@ -73,5 +73,5 @@ if [ "$UNAME" = "Darwin" ] && \
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
     ln -sf "python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.dll.a" \
-        "$SAGE_LOCAL/lib/libpython${PYTHON_LDVERSION}.dll.a"
+        "${SAGE_INST_TEMP}${SAGE_LOCAL}/lib/libpython${PYTHON_LDVERSION}.dll.a"
 fi
