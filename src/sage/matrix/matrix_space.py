@@ -1486,6 +1486,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             return self(x.matrix(), copy=False)
         if isinstance(x, (types.GeneratorType,)):
             x = list(x)
+        from collections import Iterator, Sequence
+        if isinstance(x, (Iterator, Sequence)) and not isinstance(x, (list, tuple)):
+            x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)
             coerce = True
