@@ -4,9 +4,9 @@ if [ -z "$SAGE_SHARE" ]; then
     exit 1
 fi
 
-TARGET="${SAGE_SHARE}/thebe"
+TARGET="${SAGE_INST_TEMP}${SAGE_SHARE}/thebe"
 if [ ! -d "${TARGET}" ]; then
-   mkdir "${TARGET}"
+   mkdir -p "${TARGET}"
 fi
 
 cp 'src/static/main-built.js' "${TARGET}/thebe.js"

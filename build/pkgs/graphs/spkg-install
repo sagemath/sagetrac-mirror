@@ -1,2 +1,2 @@
-mkdir -p "$SAGE_SHARE"/graphs
-cp src/* "$SAGE_SHARE"/graphs/
+mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE"/graphs
+cp src/* "$SAGE_INST_TEMP$SAGE_SHARE"/graphs/

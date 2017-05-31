@@ -45,17 +45,19 @@ echo "Removing old version of gfan (if any)..."
 rm -f "$SAGE_LOCAL"/bin/gfan*
 
 
-cp -pf gfan "$SAGE_LOCAL/bin/"
+BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+mkdir -p "$BIN"
+cp -pf gfan "$BIN/"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying gfan executable."
     exit 1
 fi
 
-cd "$SAGE_LOCAL/bin/"
+cd "$BIN"
 echo "Now running gfan to install links in '$SAGE_LOCAL/bin/'..."
 ./gfan installlinks
 # XXX How about [just] checking $? here?
-if [[ ! -f "$SAGE_LOCAL/bin/gfan_buchberger" ]]; then
+if [[ ! -f "$BIN/gfan_buchberger" ]]; then
     echo >&2 "Error: gfan links not created correctly."
     exit 1
 fi
