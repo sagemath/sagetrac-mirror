@@ -16,13 +16,15 @@ export PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
 cd src
 
 # Prevent setuptools from installing itself with easy_install
-python2 setup.py --no-user-cfg install --single-version-externally-managed --record=/dev/null
+python2 setup.py --no-user-cfg install --single-version-externally-managed \
+    --root="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo "Error Python 2 building / installing setuptools"
     exit 1
 fi
 
-python3 setup.py --no-user-cfg install --single-version-externally-managed --record=/dev/null
+python3 setup.py --no-user-cfg install --single-version-externally-managed \
+    --root="$SAGE_INST_TEMP"
 if [ $? -ne 0 ]; then
     echo "Error Python 3 building / installing setuptools"
     exit 1
