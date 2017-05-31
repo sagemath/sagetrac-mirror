@@ -256,6 +256,7 @@ usage_advanced() {
     exit 0
 }
 
+executable=`basename $0`
 
 #####################################################################
 # Special options to be processed without sage-env
@@ -326,7 +327,7 @@ if [ "$1" = '-i' ]; then
 
     # First of all, make sure that the toolchain is up-to-date
     # (which is a dependency of every package)
-    ./sage --location
+    ./$executable --location
     $MAKE all-toolchain
     echo
 
@@ -335,7 +336,7 @@ if [ "$1" = '-i' ]; then
     do
         case "$PKG" in
             -info|--info)
-                echo >&2 "Error: 'sage -i $PKG <package>' is no longer supported, use 'sage --info <package>' instead."
+                echo >&2 "Error: '$executable -i $PKG <package>' is no longer supported, use '$executable --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
             -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG";;
@@ -346,7 +347,7 @@ if [ "$1" = '-i' ]; then
                     echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
                     echo >&2
                     sleep 5
-                    ./sage -p $INSTALL_OPTIONS "$PKG"
+                    ./$executable -p $INSTALL_OPTIONS "$PKG"
                 else
                     if [ x$FORCE_INSTALL = xyes ]; then
                         $MAKE "$PKG-clean"
@@ -360,13 +361,12 @@ fi
 
 
 #####################################################################
-# Source sage-env ($0 is the name of this "sage" script, so we can just
-# append -env to that). We redirect stdout to stderr, which is safer
+# Source sage-env. We redirect stdout to stderr, which is safer
 # for scripts.
 #####################################################################
-. "$0-env" >&2
+. "`dirname $0`/sage-env" >&2
 if [ $? -ne 0 ]; then
-    echo >&2 "Error setting environment variables by sourcing '$0-env';"
+    echo >&2 "Error setting environment variables by sourcing 'sage-env';"
     echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
     exit 1
 fi
@@ -384,7 +384,7 @@ fi
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
-    if [ ! -x "$SAGE_LOCAL/bin/sage" ]; then
+    if [ ! -x "$SAGE_LOCAL/bin/$executable" ]; then
         echo >&2 '************************************************************************'
         echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
         echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'
@@ -427,7 +427,7 @@ maybe_sage_location()
 # Start an interactive Sage session, this function never returns.
 interactive_sage() {
     sage_setup
-    exec sage-ipython "$@" -i
+    exec $executable-ipython "$@" -i
 }
 
 if [ "$1" = '-min' -o "$1" = '--min' ]; then
@@ -700,7 +700,7 @@ EOF
         echo >&2 "Starting subshell with Sage environment variables set.  Don't forget"
         echo >&2 "to exit when you are done.  Beware:"
         echo >&2 " * Do not do anything with other copies of Sage on your system."
-        echo >&2 " * Do not use this for installing Sage packages using \"sage -i\" or for"
+        echo >&2 " * Do not use this for installing Sage packages using \"$executable -i\" or for"
         echo >&2 "   running \"make\" at Sage's root directory.  These should be done"
         echo >&2 "   outside the Sage shell."
         echo >&2
@@ -980,13 +980,13 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     sage_setup
     if [ "$SAGE_DEBUG" = "no" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+            -args python "$SAGE_LOCAL/bin/$executable-ipython" "$@" -i
     else
         # Location of cython_debug directory
         cygdb_dir="$SAGE_SRC/build/cythonized"
         cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+            -args python "$SAGE_LOCAL/bin/$executable-ipython" "$@" -i
     fi
     exit $?
 fi

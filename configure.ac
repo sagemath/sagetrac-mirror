@@ -669,7 +669,7 @@ EOF
 
 # Python version
 if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
+    echo >&7 'PYTHON = $(inst_python2) $(inst_python3)'
 else
     echo >&7 'PYTHON = $(inst_python2)'
 fi

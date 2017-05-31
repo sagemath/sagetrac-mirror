@@ -27,6 +27,15 @@ echo
 
 cd "$CUR"
 echo "Creating grammar pickle..."
-sage-python23 create_grammar_pickle.py
-success 'Error creating the grammar pickle'
-echo
+if [ "$SAGE_PYTHON3" = "yes" ]; then
+    versions="2 3"
+else
+    versions="2"
+fi
+
+for ver in $versions
+do
+    python$ver create_grammar_pickle.py
+    success "Error creating the grammar pickle, Python $ver"
+    echo
+done

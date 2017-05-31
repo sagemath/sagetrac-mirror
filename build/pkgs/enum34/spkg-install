@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_PYTHON3" = "yes" ]; then
-    echo "Not installing enum34: it is only needed for Python version 3.3 or older."
-    exit 0
-fi
+echo "Only installing enum34 for Python 2: it is only needed for Python version 3.3 or older."
 
-cd src && $PIP_INSTALL .
+cd src && $PIP_INSTALL -2 .

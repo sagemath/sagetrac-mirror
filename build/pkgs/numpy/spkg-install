@@ -36,7 +36,7 @@ else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 
-sage-python23 ../lapack_conf.py
+python ../lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
@@ -48,20 +48,30 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 rm -rf "$SAGE_LOCAL/lib/python*/site-packages/numpy"
 
-sage-python23 setup.py \
-        --no-user-cfg \
-       install \
-       --single-version-externally-managed \
-       --record /dev/null \
-       ${NUMPY_FCONFIG}
+if [ "$SAGE_PYTHON3" = "yes" ]; then
+    versions="2 3"
+else
+    versions="2"
+fi
 
-# Touch all includes such that dependency checking works properly:
-# the timestamp of the includes should be *now*, not the time when
-# the numpy package was created.
-sage-python23 <<EOF
+for ver in $versions
+do
+    python$ver setup.py \
+             --no-user-cfg \
+             install \
+             --single-version-externally-managed \
+             --record /dev/null \
+             ${NUMPY_FCONFIG}
+
+    # Touch all includes such that dependency checking works properly:
+    # the timestamp of the includes should be *now*, not the time when
+    # the numpy package was created.
+    python$ver <<EOF
 import os
 os.chdir(os.environ["SAGE_ROOT"])  # Import numpy from safe location
 import numpy
 os.chdir(numpy.get_include())
 os.system("touch numpy/*")
 EOF
+
+done

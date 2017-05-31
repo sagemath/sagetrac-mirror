@@ -17,25 +17,33 @@ cd src
 # C++11 workaround https://trac.sagemath.org/ticket/20926
 export CXXFLAGS="$CXXFLAGS -std=c++98"
 
-export PYTHON=sage-python23
-
-./configure \
-    --prefix="$SAGE_LOCAL" \
-    --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --disable-static
-if [ $? -ne 0 ]; then
-    echo "Error configuring BRiAl"
-    exit 1
+if [ "$SAGE_PYTHON3" = "yes" ]; then
+    versions="2 3"
+else
+    versions="2"
 fi
 
-$MAKE
-if [ $? -ne 0 ]; then
-    echo "Error building BRiAl"
-    exit 1
-fi
+for ver in $versions
+do
+    export PYTHON=python$ver
+    ./configure \
+        --prefix="$SAGE_LOCAL" \
+        --libdir="$SAGE_LOCAL/lib" \
+        --enable-shared --disable-static
+    if [ $? -ne 0 ]; then
+        echo "Error configuring BRiAl"
+        exit 1
+    fi
 
-$MAKE install -j1
-if [ $? -ne 0 ]; then
-    echo "Error installing BRiAl"
-    exit 1
-fi
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo "Error building BRiAl"
+        exit 1
+    fi
+
+    $MAKE install -j1
+    if [ $? -ne 0 ]; then
+        echo "Error installing BRiAl"
+        exit 1
+    fi
+done

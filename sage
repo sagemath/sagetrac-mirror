@@ -101,6 +101,8 @@ resolvelinks() {
     echo "$out"
 }
 
+executable=`basename $0`
+
 # If SAGE_ROOT is not given, find it out from $0
 if [ -z "$SAGE_ROOT" ];  then
     # Get the path to $0 (this shell script) with all symbolic links
@@ -128,11 +130,11 @@ if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
 fi
 
 # Run the actual Sage script
-if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
-    exec "$SAGE_ROOT/src/bin/sage" "$@"
-elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a stripped binary
+if [ -x "$SAGE_ROOT/src/bin/$executable" ]; then
+    exec "$SAGE_ROOT/src/bin/$executable" "$@"
+elif [ -x "$SAGE_ROOT/local/bin/$executable" ]; then # if in a stripped binary
     # Note in this case we assume that SAGE_LOCAL is the "local" subdirectory
-    exec "$SAGE_ROOT/local/bin/sage" "$@"
+    exec "$SAGE_ROOT/local/bin/$executable" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1

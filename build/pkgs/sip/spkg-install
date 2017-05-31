@@ -8,23 +8,32 @@ fi
 
 cd src/
 
-sage-python23 configure.py
-if [ $? -ne 0 ]
-then
-    echo "Configuration of sip failed"
-    exit 1
+if [ "$SAGE_PYTHON3" = "yes" ]; then
+    versions="2 3"
+else
+    versions="2"
 fi
 
-${MAKE}
-if [ $? -ne 0 ]
-then
-    echo "Build of sip failed"
-exit 1
-fi
+for ver in $versions
+do
+    python$ver configure.py
+    if [ $? -ne 0 ]
+    then
+        echo "Configuration of sip failed"
+        exit 1
+    fi
 
-${MAKE} install
-if [ $? -ne 0 ]
-then
-    echo "Installation of sip failed"
-    exit 1
-fi
+    ${MAKE}
+    if [ $? -ne 0 ]
+    then
+        echo "Build of sip failed"
+        exit 1
+    fi
+
+    ${MAKE} install
+    if [ $? -ne 0 ]
+    then
+        echo "Installation of sip failed"
+        exit 1
+    fi
+done
