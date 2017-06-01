@@ -8,9 +8,26 @@ fi
 
 cd src
 
-$PIP_INSTALL .
+if [ "$SAGE_PYTHON3" = "yes" ]; then
+    $PIP_INSTALL -3 .
+
+    if [ $? -ne 0 ]; then
+        echo "Error installing Cython, Python 3"
+        exit 1
+    fi
+
+    mv "$SAGE_LOCAL"/bin/cython "$SAGE_LOCAL"/bin/cython3
+    mv "$SAGE_LOCAL"/bin/cythonize "$SAGE_LOCAL"/bin/cythonize3
+    mv "$SAGE_LOCAL"/bin/cygdb "$SAGE_LOCAL"/bin/cygdb3
+fi
+
+$PIP_INSTALL -2 .
 
 if [ $? -ne 0 ]; then
     echo "Error installing Cython"
     exit 1
 fi
+
+cp "$SAGE_LOCAL"/bin/cython "$SAGE_LOCAL"/bin/cython2
+cp "$SAGE_LOCAL"/bin/cythonize "$SAGE_LOCAL"/bin/cythonize2
+cp "$SAGE_LOCAL"/bin/cygdb "$SAGE_LOCAL"/bin/cygdb2
