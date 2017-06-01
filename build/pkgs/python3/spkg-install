@@ -69,7 +69,7 @@ fi
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL/lib/python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.a"
+    rm -f "${SAGE_INST_TEMP}${SAGE_LOCAL}/lib/python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.a"
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
     ln -sf "python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.dll.a" \
