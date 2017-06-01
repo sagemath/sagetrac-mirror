@@ -1511,7 +1511,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             (x,)
             sage: A.charpoly('y').variables()
             (y,)
-            sage: A._cache['charpoly_linbox'].variables()
+            sage: A._get_cache()['charpoly_linbox'].variables()
             (x,)
 
         """

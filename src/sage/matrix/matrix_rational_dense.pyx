@@ -1040,7 +1040,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             x^2 - 3*x - 2
             sage: A.charpoly('y')
             y^2 - 3*y - 2
-            sage: A._cache['charpoly']
+            sage: A._get_cache()['charpoly']
             x^2 - 3*x - 2
 
         Check consistency::
@@ -1581,7 +1581,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             ....:      _ = a.det()          # fills the cache
             ....:      _ = a._clear_denom() # fills the cache
             ....:      a.echelonize(algorithm=algo)
-            ....:      assert sorted(a._cache.keys()) == ['echelon_form', 'in_echelon_form', 'pivots', 'rank'], (algo, a._cache.keys())
+            ....:      assert sorted(a._get_cache().keys()) == ['echelon_form', 'in_echelon_form', 'pivots', 'rank'], (algo, a._get_cache().keys())
         """
 
         if self.fetch('in_echelon_form'): return  # already known to be in echelon form

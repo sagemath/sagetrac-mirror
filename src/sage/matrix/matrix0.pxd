@@ -15,7 +15,7 @@ cimport sage.structure.mutability
 
 cdef class Matrix(sage.structure.element.Matrix):
     # Properties of any matrix  (plus _parent, inherited from base class)
-    cdef public object _cache
+    cdef dict _cache
     cdef public object _subdivisions
     cdef public object _base_ring
     cdef bint _is_immutable
@@ -30,18 +30,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef long _hash(self) except -1
 
-    # Pivots.
-    cdef _set_pivots(self, X)
-
     # Cache
-    cdef clear_cache(self)
+    cdef void clear_cache(self)
     cdef fetch(self, key)
-    cdef cache(self, key, x)
+    cdef void cache(self, key, x)
 
     # Mutability and bounds checking
-    cdef check_bounds(self, Py_ssize_t i, Py_ssize_t j)
-    cdef check_mutability(self)
-    cdef check_bounds_and_mutability(self, Py_ssize_t i, Py_ssize_t j)
+    cdef int check_bounds(self, Py_ssize_t i, Py_ssize_t j) except -1
+    cdef int check_mutability(self) except -1
+    cdef int check_bounds_and_mutability(self, Py_ssize_t i, Py_ssize_t j) except -1
 
     # Unsafe entry access
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x)

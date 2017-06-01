@@ -296,19 +296,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     # Cache
     ###########################################################
-    def _clear_cache(self):
-        """
-        Clear anything cached about this matrix.
-
-        EXAMPLES::
-
-            sage: m=Matrix(QQ,2,range(0,4))
-            sage: m._clear_cache()
-
-        """
-        self.clear_cache()
-
-    cdef clear_cache(self):
+    cdef void clear_cache(self):
         """
         Clear the properties cache.
         """
@@ -321,18 +309,27 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if self._cache is None:
             return None
-        try:
-            return self._cache[key]
-        except KeyError:
-            return None
+        return self._cache.get(key)
 
-    cdef cache(self, key, x):
+    cdef void cache(self, key, x):
         """
         Record x in the cache with given key.
         """
         if self._cache is None:
             self._cache = {}
         self._cache[key] = x
+
+    def _clear_cache(self):
+        """
+        Clear anything cached about this matrix.
+
+        EXAMPLES::
+
+            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m._clear_cache()
+
+        """
+        self.clear_cache()
 
     def _get_cache(self):
         """
@@ -353,16 +350,17 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Mutability and bounds checking
     ###########################################################
 
-    cdef check_bounds(self, Py_ssize_t i, Py_ssize_t j):
+    cdef int check_bounds(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         This function gets called when you're about to access the i,j entry
         of this matrix. If i, j are out of range, an IndexError is
         raised.
         """
-        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError("matrix index out of range")
+        return 0
 
-    cdef check_mutability(self):
+    cdef int check_mutability(self) except -1:
         """
         This function gets called when you're about to change this matrix.
 
@@ -375,8 +373,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = None
+        return 0
 
-    cdef check_bounds_and_mutability(self, Py_ssize_t i, Py_ssize_t j):
+    cdef int check_bounds_and_mutability(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         This function gets called when you're about to set the i,j entry of
         this matrix. If i or j is out of range, an IndexError exception is
@@ -392,8 +391,10 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             self._cache = None
 
-        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError("matrix index out of range")
+
+        return 0
 
     def set_immutable(self):
         r"""
@@ -483,7 +484,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_mutable()
             False
         """
-        return not(self._is_immutable)
+        return not self._is_immutable
 
     ###########################################################
     # Entry access
@@ -4278,9 +4279,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         r = len(self.pivots())
         self.cache('rank', r)
         return r
-
-    cdef _set_pivots(self, X):
-        self.cache('pivots', X)
 
     def nonpivots(self):
         """

@@ -409,7 +409,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             x^2 - 3*x - 2
             sage: A.charpoly('y')
             y^2 - 3*y - 2
-            sage: A._cache['charpoly']
+            sage: A._get_cache()['charpoly']
             x^2 - 3*x - 2
 
         Ensure the variable name of the polynomial does not conflict

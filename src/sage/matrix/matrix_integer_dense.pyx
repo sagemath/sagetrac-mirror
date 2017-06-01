@@ -1209,7 +1209,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             x^2 - 3*x - 2
             sage: A.charpoly('y')
             y^2 - 3*y - 2
-            sage: A._cache['charpoly_linbox']
+            sage: A._get_cache()['charpoly_linbox']
             x^2 - 3*x - 2
 
         Test corner cases::

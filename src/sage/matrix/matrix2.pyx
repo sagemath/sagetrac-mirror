@@ -2313,7 +2313,7 @@ cdef class Matrix(matrix1.Matrix):
             x^2 - 3.00000000000000*x - 2.00000000000000
             sage: A.charpoly('y')
             y^2 - 3.00000000000000*y - 2.00000000000000
-            sage: A._cache['charpoly']
+            sage: A._get_cache()['charpoly']
             x^2 - 3.00000000000000*x - 2.00000000000000
 
         AUTHORS:
@@ -7587,7 +7587,7 @@ cdef class Matrix(matrix1.Matrix):
 
         from . import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
-        self._set_pivots(pivots)
+        self.cache('pivots', pivots)
         verbose('done with strassen', tm)
 
     cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
