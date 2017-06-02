@@ -41,10 +41,6 @@ if [[ ! -f gfan ]]; then
     exit 1
 fi
 
-echo "Removing old version of gfan (if any)..."
-rm -f "$SAGE_LOCAL"/bin/gfan*
-
-
 BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 mkdir -p "$BIN"
 cp -pf gfan "$BIN/"

@@ -38,10 +38,6 @@ if [ "$SAGE64" = yes ]; then
     export CC="$CC -m64"
 fi
 
-# Remove old symbolic link: it is not needed and its presence can
-# interfere with the Python build.
-rm -f "$SAGE_LOCAL/lib/python"
-
 # Make sure -L. is placed before -L$SAGE_LOCAL/lib so that python and extension
 # modules are linked with the right libpython
 export LDFLAGS="-L. $LDFLAGS"

@@ -1,0 +1,11 @@
+# Read gap-version, which was written by spkg-src
+VERSION=`cat src/gap-version`
+GAP_DIR="gap-$VERSION"
+INSTALL_DIR="$SAGE_GAP/$GAP_DIR"
+
+# Wipe the installation directory.
+# This fixes https://trac.sagemath.org/ticket/22272
+echo "Removing previous installation of GAP..."
+rm -rf "$INSTALL_DIR"
+rm -f "$SAGE_LOCAL/gap/latest"
+rm -f "$SAGE_LOCAL/bin/gap"

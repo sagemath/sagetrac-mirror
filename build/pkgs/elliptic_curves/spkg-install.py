@@ -26,8 +26,6 @@ def install_cremona():
     target = os.path.join(cremona_root, 'cremona_mini.db')
 
     print("Creating database {0}".format(target))
-    if os.path.exists(target):
-        os.remove(target)
 
     con = connect(target)
 
@@ -59,15 +57,6 @@ def install_cremona():
 
 def install_ellcurves():
     ellcurves_root = os.path.join(SAGE_DESTDIR, SAGE_SHARE, 'ellcurves')
-
-    # Remove previous installs (possibly with bad permissions, see
-    # https://trac.sagemath.org/ticket/21641)
-    import shutil
-    try:
-        shutil.rmtree(ellcurves_root)
-    except OSError:
-        pass
-
     safe_makedirs(ellcurves_root)
 
     # Open all source files from the "ellcurves" directory containing

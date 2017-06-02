@@ -1,0 +1,1 @@
+rm -f "$SAGE_LOCAL/bin/pkg-config"   # delete old version

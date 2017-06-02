@@ -65,11 +65,6 @@ if [[ ! -f bin/gap.sh ]]; then
     exit 1
 fi
 
-# Wipe the installation directory.
-# This fixes https://trac.sagemath.org/ticket/22272
-echo "Removing previous installation of GAP..."
-rm -rf "$INSTALL_DIR"
-
 echo "Installing (copying) files..."
 # gap has no notion of installing itself (similar to sage), copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout
@@ -80,7 +75,6 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Creating symlink to new GAP installation..."
-rm -f "$SAGE_LOCAL/gap/latest"
 ln -s "$GAP_DIR" "$SAGE_DESTDIR$SAGE_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."

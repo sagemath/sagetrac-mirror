@@ -1,0 +1,4 @@
+# otherwise we might run into problems with old headers
+if [ -d "$SAGE_LOCAL/include/m4rie" ]; then
+    rm -rf "$SAGE_LOCAL/include/m4rie"
+fi

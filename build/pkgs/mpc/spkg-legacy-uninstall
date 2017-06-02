@@ -1,0 +1,7 @@
+# Cleaning
+echo "Deleting old headers"
+rm -f "$SAGE_LOCAL"/include/mpc.h
+# Do not delete old libraries as this causes gcc to break during
+# parallel builds.
+# echo "Deleting old libraries"
+# rm -f "$SAGE_LOCAL"/lib/libmpc.*

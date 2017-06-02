@@ -141,7 +141,6 @@ fi
 #######################################################################
 TARGET="$SAGE_DESTDIR$SAGE_LOCAL/lib/sympow"
 
-rm -rf "$SAGE_LOCAL/lib/sympow"
 mkdir -p "$TARGET"
 
 cp sympow *.gp new_data "$TARGET/"

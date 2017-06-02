@@ -16,13 +16,6 @@ fi
 cd "$SPKGDIR/src"
 
 # pure javascript for web and java applet in separate /share/jsmol directory.
-# Removing old jsmol files if they exist
-if [ -d "$SAGE_SHARE"/jsmol ]; then
-    echo "Deleting all files from "$SAGE_SHARE"/jsmol/..."
-    rm -rf "$SAGE_SHARE"/jsmol/*
-    echo "Replacing jsmol directory and contents..."
-fi
-
 mkdir -p "$SAGE_DESTDIR$SAGE_SHARE/jsmol"
 echo "Installing the JSmol files..."
 cp -r jsmol/* "$SAGE_DESTDIR$SAGE_SHARE/jsmol"
@@ -32,13 +25,6 @@ if [ $? -ne 0 ]; then
 fi
 
 # "install" the Jmol files...
-# Remove old Jmol files if they exist
-if [ -d "$SAGE_SHARE"/jmol ]; then
-    echo "Deleting all files from "$SAGE_SHARE"/jmol/..."
-    rm -rf "$SAGE_SHARE"/jmol/*
-    echo "Replacing jmol directory and contents..."
-fi
-
 mkdir -p "$SAGE_DESTDIR$SAGE_SHARE/jmol"
 # Jsmol is stuck inside the jmol directory, remove
 rm -r "jsmol"

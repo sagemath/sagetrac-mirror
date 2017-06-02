@@ -28,8 +28,4 @@ sdh_configure -- \
               $FLINT_CONFIGURE
 sdh_make verbose
 
-echo "Deleting old FLINT files."
-rm -f $SAGE_LOCAL/lib/libflint*
-rm -rf $SAGE_LOCAL/include/flint
-
 sdh_make_install

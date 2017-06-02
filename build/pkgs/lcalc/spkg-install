@@ -13,9 +13,6 @@ success() {
     fi
 }
 
-echo "Now installing lcalc binary, library and header files..."
-rm -fr "$SAGE_LOCAL"/include/libLfunction
-
 cd src   # Now we are in src/src.
 
 if [ "$UNAME" = "Darwin" ]; then

@@ -145,12 +145,6 @@ sdh_make R
 # needed for help system
 sdh_make vignettes
 
-# Remove old install
-rm -rf "$SAGE_LOCAL"/lib/r
-rm -rf "$SAGE_LOCAL"/lib/R
-rm -rf "$SAGE_LOCAL"/lib/R.old
-rm -rf "$SAGE_LOCAL"/lib/libRblas.* "$SAGE_LOCAL"/lib/libRlapack.* "$SAGE_LOCAL"/lib/libR.*
-
 trap - ERR
 
 # Install new version

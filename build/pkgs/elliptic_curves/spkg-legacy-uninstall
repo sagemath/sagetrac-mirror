@@ -1,0 +1,2 @@
+rm -f "$SAGE_SHARE/cremona/cremona_mini.db"
+rm -rf "$SAGE_SHARE/ellcurves"

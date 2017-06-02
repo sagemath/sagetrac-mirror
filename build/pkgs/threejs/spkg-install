@@ -7,6 +7,5 @@ fi
 
 # Copy files
 TARGET="${SAGE_SHARE}/threejs"
-rm -rf "${TARGET}"
 mkdir -p "${SAGE_DESTDIR}${TARGET}"
 cp -r 'src' "${SAGE_DESTDIR}${TARGET}"

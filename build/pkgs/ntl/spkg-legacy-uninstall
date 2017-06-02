@@ -1,0 +1,3 @@
+echo "Removing old NTL files."
+rm -rf "$SAGE_LOCAL"/lib/libntl*
+rm -rf "$SAGE_LOCAL"/include/NTL

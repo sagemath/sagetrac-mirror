@@ -16,14 +16,6 @@ fi
 sdh_configure --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" $EXTRA
 sdh_make
 
-# Cleaning
-echo "Deleting old headers"
-rm -f "$SAGE_LOCAL"/include/mpc.h
-# Do not delete old libraries as this causes gcc to break during
-# parallel builds.
-# echo "Deleting old libraries"
-# rm -f "$SAGE_LOCAL"/lib/libmpc.*
-
 # Installing
 sdh_make_install
 sdh_clean_info

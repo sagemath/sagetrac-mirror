@@ -26,10 +26,6 @@ build_pynac()
 
 install_pynac()
 {
-    rm ${SAGE_LOCAL}/lib/*ginac*
-    rm ${SAGE_LOCAL}/lib/*pynac*
-    rm -rf ${SAGE_LOCAL}/include/ginac
-    rm -rf ${SAGE_LOCAL}/include/pynac
     cd ${PYNACDIR}
     sdh_make_install
     cd ${WORKDIR}
