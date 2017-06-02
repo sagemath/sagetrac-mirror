@@ -970,6 +970,12 @@ class Partition(CombinatorialElement):
         r"""
         Return the Ferrers diagram of ``self``.
 
+        The *Ferrers diagram* of a partition is a graphical
+        representation made of a ragged-left array of boxes whose rows
+        are of length given by the parts of ``self``.  The rows are of
+        decreasing length when going down in the English convention,
+        and when going up in the French convention.
+
         EXAMPLES::
 
             sage: mu=Partition([5,5,2,1])
