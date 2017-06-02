@@ -1,0 +1,108 @@
+See https://github.com/cython/cython/pull/1724
+
+commit 99e40cd2a75c74ea5ccabcedc9c5e794a84be487
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Fri Jun 2 15:23:17 2017 +0200
+
+    Do not apply decorators twice
+    
+    This fixes https://github.com/cython/cython/issues/1679
+
+diff --git a/Cython/Compiler/Nodes.py b/Cython/Compiler/Nodes.py
+index 8ee21ba..df120f8 100644
+--- a/Cython/Compiler/Nodes.py
++++ b/Cython/Compiler/Nodes.py
+@@ -2646,6 +2646,9 @@ class DefNode(FuncDefNode):
+ 
+     child_attrs = ["args", "star_arg", "starstar_arg", "body", "decorators", "return_type_annotation"]
+ 
++    is_staticmethod = False
++    is_classmethod = False
++
+     lambda_name = None
+     reqd_kw_flags_cname = "0"
+     is_wrapper = 0
+@@ -2758,7 +2761,6 @@ class DefNode(FuncDefNode):
+         return True
+ 
+     def analyse_declarations(self, env):
+-        self.is_classmethod = self.is_staticmethod = False
+         if self.decorators:
+             for decorator in self.decorators:
+                 func = decorator.decorator
+diff --git a/Cython/Compiler/ParseTreeTransforms.py b/Cython/Compiler/ParseTreeTransforms.py
+index d515923..4fc0d98 100644
+--- a/Cython/Compiler/ParseTreeTransforms.py
++++ b/Cython/Compiler/ParseTreeTransforms.py
+@@ -1336,8 +1336,18 @@ class DecoratorTransform(ScopeTrackingTransform, SkipDeclarations):
+                         return self._reject_decorated_property(node, decorator_node)
+                     return self._add_to_property(properties, node, handler_name, decorator_node)
+ 
++        # we clear node.decorators, so we need to set the
++        # is_staticmethod/is_classmethod attributes now
++        for decorator in node.decorators:
++            func = decorator.decorator
++            if func.is_name:
++                node.is_classmethod |= func.name == 'classmethod'
++                node.is_staticmethod |= func.name == 'staticmethod'
++
+         # transform normal decorators
+-        return self.chain_decorators(node, node.decorators, node.name)
++        decs = node.decorators
++        node.decorators = None
++        return self.chain_decorators(node, decs, node.name)
+ 
+     @staticmethod
+     def _reject_decorated_property(node, decorator_node):
+diff --git a/tests/run/cyfunction.pyx b/tests/run/cyfunction.pyx
+index b650a4b..2389a5a 100644
+--- a/tests/run/cyfunction.pyx
++++ b/tests/run/cyfunction.pyx
+@@ -304,3 +304,47 @@ def test_annotations(a: "test", b: "other" = 2, c: 123 = 4) -> "ret":
+     def inner(x: "banana", y: b()) -> c():
+         return x,y
+     return inner
++
++
++def add_one(func):
++    "Decorator to add 1 to the last argument of the function call"
++    def inner(*args):
++        args = args[:-1] + (args[-1] + 1,)
++        return func(*args)
++    return inner
++
++@add_one
++def test_decorated(x):
++    """
++    >>> test_decorated(0)
++    1
++    """
++    return x
++
++@add_one
++@add_one
++def test_decorated2(x):
++    """
++    >>> test_decorated2(0)
++    2
++    """
++    return x
++
++
++cdef class TestDecoratedMethods:
++    @add_one
++    def test(self, x):
++        """
++        >>> TestDecoratedMethods().test(0)
++        1
++        """
++        return x
++
++    @add_one
++    @add_one
++    def test2(self, x):
++        """
++        >>> TestDecoratedMethods().test2(0)
++        2
++        """
++        return x
