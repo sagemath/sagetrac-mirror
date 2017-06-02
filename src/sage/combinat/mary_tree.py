@@ -392,7 +392,7 @@ class MAryTrees(UniqueRepresentation, Parent):
             sage: MAryTrees(3).leaf()
             .
 
-        TEST::
+        TESTS::
 
             sage: from sage.combinat.mary_tree import MAryTrees_all
             sage: MAryTrees(3).leaf() is MAryTrees_all(3).leaf()
@@ -464,7 +464,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: MA3 = MAryTrees(3); MA3 # indirect doctest
             3-ary trees
