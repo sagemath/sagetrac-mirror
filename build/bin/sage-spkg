@@ -867,7 +867,8 @@ if [ -d "$SAGE_INST_TEMP" ]; then
     # Generate installed filed list
     FILE_LIST=""
     FIRST=1
-    for filename in $(find "$PREFIX" -type f -o -type l| sort); do
+    IFS=$'\n'
+    for filename in $(find "$PREFIX" -type f -o -type l | sort); do
         filename="${filename#$PREFIX}"
         if [ $FIRST -eq 1 ]; then
             FILE_LIST="\"$filename\""
@@ -876,8 +877,8 @@ if [ -d "$SAGE_INST_TEMP" ]; then
             FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
         fi
         # Copy file from the temp install path into $SAGE_LOCAL
-        if [ ! -d "$SAGE_LOCAL/$(dirname $filename)" ]; then
-            mkdir -p "$SAGE_LOCAL/$(dirname $filename)"
+        if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
+            mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
         fi
         cp -upP "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
     done
