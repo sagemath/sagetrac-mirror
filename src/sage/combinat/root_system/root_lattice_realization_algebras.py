@@ -1337,16 +1337,16 @@ class Algebras(AlgebrasCategory):
             INPUT:
 
             - ``self`` -- Must be the algebra of a weight space of unmixed affine type (either untwisted affine or the
-            dual of untwisted affine)
+              dual of untwisted affine)
             - `q` -- An invertible element of the base ring associated with the null root of the affine algebra.
             - `q1, q2` -- The eigenvalues of the Hecke algebra generators `T_i`. If `q1, q2` are single ring elements
-            then the equal-parameter case is assumed. If `q2` is None then it is assumed that the second eigenvalue
-            is always the negative reciprocal of the first. `q1` and `q2` can also be Families with key set equal to the
-            affine Dynkin node set, whose values are the eigenvalues (ring elements).
+              then the equal-parameter case is assumed. If `q2` is None then it is assumed that the second eigenvalue
+              is always the negative reciprocal of the first. `q1` and `q2` can also be Families with key set equal to the
+              affine Dynkin node set, whose values are the eigenvalues (ring elements).
             - ``convention`` -- either (default: "antidominant") or "dominant"
             - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of
-            doubled nodes `i` in a nonreduced affine root system, and whose values are associated with
-            the doubled simple roots.
+              doubled nodes `i` in a nonreduced affine root system, and whose values are associated with
+              the doubled simple roots.
             - ``side`` -- (default: "right") Define a left or right action
             - ``domain`` -- (default: None) optional domain of action
 
