@@ -25,19 +25,20 @@ AUTHORS:
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
+from six.moves import range
 
 from sage.matrix.matrix_dense import Matrix_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.monoids.string_monoid import BinaryStrings
 from sage.monoids.string_monoid_element import StringMonoidElement
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 
 class MiniAES(SageObject):
     r"""
     This class implements the Mini Advanced Encryption Standard (Mini-AES)
-    described in [P02]_. Note that Phan's Mini-AES is for educational purposes
+    described in [Pha2002]_. Note that Phan's Mini-AES is for educational purposes
     only and is not secure for practical purposes. Mini-AES is a version of
     the AES with all parameters significantly reduced, but at the same time
     preserving the structure of AES. The goal of Mini-AES is to allow a
@@ -101,7 +102,7 @@ class MiniAES(SageObject):
 
         sage: from sage.crypto.block_cipher.miniaes import MiniAES
         sage: maes = MiniAES()
-        sage: P = [n for n in xrange(16)]; P
+        sage: P = [n for n in range(16)]; P
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         sage: key = [2, 3, 11, 0]; key
         [2, 3, 11, 0]
@@ -128,11 +129,6 @@ class MiniAES(SageObject):
         sage: plaintxt = maes.decrypt(C, key)
         sage: plaintxt == P
         True
-
-    REFERENCES:
-
-    .. [P02] R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
-      testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
     """
 
     def __init__(self):
@@ -354,21 +350,21 @@ class MiniAES(SageObject):
         """
         from sage.rings.finite_rings.integer_mod import Mod
         if not isinstance(B, StringMonoidElement):
-            raise TypeError, "input B must be a non-empty binary string with number of bits a multiple of 16"
+            raise TypeError("input B must be a non-empty binary string with number of bits a multiple of 16")
         if (len(B) == 0) or (Mod(len(B), self._key_size).lift() != 0):
-            raise ValueError, "the number of bits in the binary string B must be positive and a multiple of 16"
+            raise ValueError("the number of bits in the binary string B must be positive and a multiple of 16")
         if not isinstance(key, StringMonoidElement):
-            raise TypeError, "secret key must be a 16-bit binary string"
+            raise TypeError("secret key must be a 16-bit binary string")
         if len(key) != self._key_size:
-            raise ValueError, "secret key must be a 16-bit binary string"
+            raise ValueError("secret key must be a 16-bit binary string")
 
-        N = len(B) / self._key_size  # the number of 16-bit blocks
+        N = len(B) // self._key_size  # the number of 16-bit blocks
         MS = MatrixSpace(FiniteField(self._key_size, "x"), 2, 2)
         bin = BinaryStrings()
         S = ""
         if algorithm == "encrypt":
             # encrypt each 16-bit block in succession
-            for i in xrange(N):
+            for i in range(N):
                 # here 16 is the number of bits per encryption block
                 block = B[i*16 : (i+1)*16]
                 matB = MS(self.binary_to_GF(block))
@@ -379,7 +375,7 @@ class MiniAES(SageObject):
             return bin(S)
         elif algorithm == "decrypt":
             # decrypt each 16-bit block in succession
-            for i in xrange(N):
+            for i in range(N):
                 # here 16 is the number of bits per encryption block
                 block = B[i*16 : (i+1)*16]
                 matB = MS(self.binary_to_GF(block))
@@ -389,7 +385,7 @@ class MiniAES(SageObject):
                 S = "".join([S, str(e)])
             return bin(S)
         else:
-            raise ValueError, "algorithm must be either 'encrypt' or 'decrypt'"
+            raise ValueError("algorithm must be either 'encrypt' or 'decrypt'")
 
     def __eq__(self, other):
         r"""
@@ -538,15 +534,15 @@ class MiniAES(SageObject):
         """
         if not isinstance(block, Matrix_dense) or \
                 not (block.base_ring().order() == 16 and block.base_ring().is_field()):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
         if not (block.nrows() == block.ncols() == 2):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
 
         if not isinstance(rkey, Matrix_dense) or \
                 not (rkey.base_ring().order() == 16 and rkey.base_ring().is_field()):
-            raise TypeError, "round key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("round key must be a 2 x 2 matrix over GF(16)")
         if not (rkey.nrows() == rkey.ncols() == 2):
-            raise TypeError, "round key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("round key must be a 2 x 2 matrix over GF(16)")
 
         return block + rkey
 
@@ -710,14 +706,14 @@ class MiniAES(SageObject):
         """
         if not isinstance(C, Matrix_dense) or \
                 not (C.base_ring().order() == 16 and C.base_ring().is_field()):
-            raise TypeError, "ciphertext block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("ciphertext block must be a 2 x 2 matrix over GF(16)")
         if not (C.nrows() == C.ncols() == 2):
-            raise TypeError, "ciphertext block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("ciphertext block must be a 2 x 2 matrix over GF(16)")
         if not isinstance(key, Matrix_dense) or \
                 not (key.base_ring().order() == 16 and key.base_ring().is_field()):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
         if not (key.nrows() == key.ncols() == 2):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
 
         # pre-compute the round keys
         rkey0 = self.round_key(key, 0)
@@ -871,14 +867,14 @@ class MiniAES(SageObject):
         """
         if not isinstance(P, Matrix_dense) or \
                 not (P.base_ring().order() == 16 and P.base_ring().is_field()):
-            raise TypeError, "plaintext block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("plaintext block must be a 2 x 2 matrix over GF(16)")
         if not (P.nrows() == P.ncols() == 2):
-            raise TypeError, "plaintext block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("plaintext block must be a 2 x 2 matrix over GF(16)")
         if not isinstance(key, Matrix_dense) or \
                 not (key.base_ring().order() == 16 and key.base_ring().is_field()):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
         if not (key.nrows() == key.ncols() == 2):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
 
         # pre-compute the round keys
         rkey0 = self.round_key(key, 0)
@@ -1025,9 +1021,9 @@ class MiniAES(SageObject):
         """
         if not isinstance(block, Matrix_dense) or \
                 not (block.base_ring().order() == 16 and block.base_ring().is_field()):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
         if not (block.nrows() == block.ncols() == 2):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
 
         K = FiniteField(self._key_size, "x")
         MS = MatrixSpace(K, 2, 2)
@@ -1216,14 +1212,14 @@ class MiniAES(SageObject):
         """
         if not isinstance(block, Matrix_dense) or \
                 not (block.base_ring().order() == 16 and block.base_ring().is_field()):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
         if not (block.nrows() == block.ncols() == 2):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
 
         MS = MatrixSpace(FiniteField(self._key_size, "x"), 2, 2)
         # get the integer representation of each GF(2^4) element
         # in the input matrix block
-        lst = [self._GF_to_int[block[i][j]] for i in xrange(block.nrows()) for j in xrange(block.ncols())]
+        lst = [self._GF_to_int[block[i][j]] for i in range(block.nrows()) for j in range(block.ncols())]
         if algorithm == "encrypt":
             # Now run each resulting integer through the S-box for
             # encryption. Then convert the result output by the S-box
@@ -1235,7 +1231,7 @@ class MiniAES(SageObject):
             # to an element of GF(2^4).
             return MS([self._int_to_GF[self._sboxD[e]] for e in lst])
         else:
-            raise ValueError, "the algorithm for nibble-sub must be either 'encrypt' or 'decrypt'"
+            raise ValueError("the algorithm for nibble-sub must be either 'encrypt' or 'decrypt'")
 
     def random_key(self):
         r"""
@@ -1259,7 +1255,7 @@ class MiniAES(SageObject):
             sage: from sage.crypto.block_cipher.miniaes import MiniAES
             sage: maes = MiniAES()
             sage: key = maes.random_key()
-            sage: [key[i][j] in K for i in xrange(key.nrows()) for j in xrange(key.ncols())]
+            sage: [key[i][j] in K for i in range(key.nrows()) for j in range(key.ncols())]
             [True, True, True, True]
 
         Generate a random key, then perform encryption and decryption using
@@ -1360,9 +1356,9 @@ class MiniAES(SageObject):
         """
         if not isinstance(key, Matrix_dense) or \
                 not (key.base_ring().order() == 16 and key.base_ring().is_field()):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
         if not (key.nrows() == key.ncols() == 2):
-            raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("secret key must be a 2 x 2 matrix over GF(16)")
 
         K = FiniteField(self._key_size, "x")
         MS = MatrixSpace(K, 2, 2)
@@ -1388,7 +1384,7 @@ class MiniAES(SageObject):
             return MS([ [w8, w10], [w9, w11] ])
         # unsupported round number
         if (n < 0) or (n > 2):
-            raise ValueError, "Mini-AES only defines two rounds"
+            raise ValueError("Mini-AES only defines two rounds")
 
     def sbox(self):
         r"""
@@ -1510,9 +1506,9 @@ class MiniAES(SageObject):
         """
         if not isinstance(block, Matrix_dense) or \
                 not (block.base_ring().order() == 16 and block.base_ring().is_field()):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
         if not (block.nrows() == block.ncols() == 2):
-            raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
+            raise TypeError("input block must be a 2 x 2 matrix over GF(16)")
 
         MS = MatrixSpace(FiniteField(self._key_size, "x"), 2, 2)
         mat = MS([ [block[0][0], block[0][1]],
@@ -1569,7 +1565,7 @@ class MiniAES(SageObject):
             sage: K = FiniteField(16, "x")
             sage: S = Set(K); len(S)  # GF(2^4) has this many elements
             16
-            sage: [maes.GF_to_binary(S[i]) for i in xrange(len(S))]
+            sage: [maes.GF_to_binary(S[i]) for i in range(len(S))]
             <BLANKLINE>
             [0000,
             0001,
@@ -1637,7 +1633,7 @@ class MiniAES(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)
-            sage: G = [K.random_element() for i in xrange(5)]
+            sage: G = [K.random_element() for i in range(5)]
             sage: maes.GF_to_binary(G)
             Traceback (most recent call last):
             ...
@@ -1659,18 +1655,18 @@ class MiniAES(SageObject):
         # G is a list of elements over GF(16)
         elif isinstance(G, list):
             if len(G) == 0:
-                raise ValueError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
+                raise ValueError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
             S = "".join([str(self._GF_to_bin[g]) for g in G])
             return B(S)
         # G is a matrix over GF(16)
         elif isinstance(G, Matrix_dense):
             if not (G.base_ring() is K):
-                raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
-            S = "".join([str(self._GF_to_bin[G[i][j]]) for i in xrange(G.nrows()) for j in xrange(G.ncols())])
+                raise TypeError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
+            S = "".join([str(self._GF_to_bin[G[i][j]]) for i in range(G.nrows()) for j in range(G.ncols())])
             return B(S)
         # the type of G doesn't match the supported types
         else:
-            raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
+            raise TypeError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
 
     def GF_to_integer(self, G):
         r"""
@@ -1718,7 +1714,7 @@ class MiniAES(SageObject):
             sage: K = FiniteField(16, "x")
             sage: S = Set(K); len(S)  # GF(2^4) has this many elements
             16
-            sage: [maes.GF_to_integer(S[i]) for i in xrange(len(S))]
+            sage: [maes.GF_to_integer(S[i]) for i in range(len(S))]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
         The integer representation of a list of elements belonging to
@@ -1770,7 +1766,7 @@ class MiniAES(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)
-            sage: G = [K.random_element() for i in xrange(5)]
+            sage: G = [K.random_element() for i in range(5)]
             sage: maes.GF_to_integer(G)
             Traceback (most recent call last):
             ...
@@ -1791,16 +1787,16 @@ class MiniAES(SageObject):
         # G is a list of elements over GF(16)
         elif isinstance(G, list):
             if len(G) == 0:
-                raise ValueError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
+                raise ValueError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
             return [self._GF_to_int[g] for g in G]
         # G is a matrix over GF(16)
         elif isinstance(G, Matrix_dense):
             if not (G.base_ring() is K):
-                raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
-            return [self._GF_to_int[G[i][j]] for i in xrange(G.nrows()) for j in xrange(G.ncols())]
+                raise TypeError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
+            return [self._GF_to_int[G[i][j]] for i in range(G.nrows()) for j in range(G.ncols())]
         # the type of G doesn't match the supported types
         else:
-            raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
+            raise TypeError("input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)")
 
     def binary_to_GF(self, B):
         r"""
@@ -1882,13 +1878,13 @@ class MiniAES(SageObject):
         b = bin(B)
         # an empty string
         if len(b) == 0:
-            raise ValueError, "the number of bits in the binary string B must be positive and a multiple of 4"
+            raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
         # a string with number of bits that is a multiple of 4
         if Mod(len(b), 4).lift() == 0:
-            M = len(b) / 4  # the number of nibbles
-            return [self._bin_to_GF[b[i*4 : (i+1)*4]] for i in xrange(M)]
+            M = len(b) // 4  # the number of nibbles
+            return [self._bin_to_GF[b[i*4 : (i+1)*4]] for i in range(M)]
         else:
-            raise ValueError, "the number of bits in the binary string B must be positive and a multiple of 4"
+            raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
 
     def binary_to_integer(self, B):
         r"""
@@ -1952,13 +1948,13 @@ class MiniAES(SageObject):
         b = bin(B)
         # an empty string
         if len(b) == 0:
-            raise ValueError, "the number of bits in the binary string B must be positive and a multiple of 4"
+            raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
         # a string with number of bits that is a multiple of 4
         if Mod(len(b), 4).lift() == 0:
-            M = len(b) / 4  # the number of nibbles
-            return [self._bin_to_int[b[i*4 : (i+1)*4]] for i in xrange(M)]
+            M = len(b) // 4  # the number of nibbles
+            return [self._bin_to_int[b[i*4 : (i+1)*4]] for i in range(M)]
         else:
-            raise ValueError, "the number of bits in the binary string B must be positive and a multiple of 4"
+            raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
 
     def integer_to_binary(self, N):
         r"""
@@ -2001,7 +1997,7 @@ class MiniAES(SageObject):
 
             sage: from sage.crypto.block_cipher.miniaes import MiniAES
             sage: maes = MiniAES()
-            sage: lst = [n for n in xrange(16)]; lst
+            sage: lst = [n for n in range(16)]; lst
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: maes.integer_to_binary(lst)
             0000000100100011010001010110011110001001101010111100110111101111
@@ -2058,7 +2054,7 @@ class MiniAES(SageObject):
         """
         if isinstance(N, list):
             if len(N) == 0:
-                raise ValueError, "N must be an integer 0 <= N <= 15 or a list of such integers"
+                raise ValueError("N must be an integer 0 <= N <= 15 or a list of such integers")
             bin = BinaryStrings()
             # Here, we assume that each element of the list is an integer n
             # such that 0 <= n <= 15. An error will be raised if otherwise.
@@ -2069,7 +2065,7 @@ class MiniAES(SageObject):
             # An error will be raised if otherwise.
             return self._int_to_bin[N]
         else:
-            raise TypeError, "N must be an integer 0 <= N <= 15 or a list of such integers"
+            raise TypeError("N must be an integer 0 <= N <= 15 or a list of such integers")
 
     def integer_to_GF(self, N):
         r"""
@@ -2124,7 +2120,7 @@ class MiniAES(SageObject):
 
             sage: from sage.crypto.block_cipher.miniaes import MiniAES
             sage: maes = MiniAES()
-            sage: lst = [n for n in xrange(16)]; lst
+            sage: lst = [n for n in range(16)]; lst
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: maes.integer_to_GF(lst)
             <BLANKLINE>
@@ -2187,7 +2183,7 @@ class MiniAES(SageObject):
         """
         if isinstance(N, list):
             if len(N) == 0:
-                raise ValueError, "N must be an integer 0 <= N <= 15 or a list of such integers"
+                raise ValueError("N must be an integer 0 <= N <= 15 or a list of such integers")
             # Here, we assume that each element of the list is an integer n
             # such that 0 <= n <= 15. An error will be raised if otherwise.
             return [self._int_to_GF[n] for n in N]
@@ -2196,4 +2192,4 @@ class MiniAES(SageObject):
             # An error will be raised if otherwise.
             return self._int_to_GF[N]
         else:
-            raise TypeError, "N must be an integer 0 <= N <= 15 or a list of such integers"
+            raise TypeError("N must be an integer 0 <= N <= 15 or a list of such integers")

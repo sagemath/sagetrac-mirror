@@ -25,7 +25,7 @@ class EllipticCurveFormalGroup(SageObject):
     """
     def __init__(self, E):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: F = E.formal_group(); F
@@ -53,7 +53,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('43a')
             sage: F = E.formal_group()
@@ -89,7 +89,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal power series
 
-        .. math::
+        .. MATH::
 
                                 w(t) = t^3 + a_1 t^4 + (a_2 + a_1^2) t^5 + \cdots
 
@@ -231,7 +231,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal series
 
-        .. math::
+        .. MATH::
 
                                 x(t) = t^{-2} - a_1 t^{-1} - a_2 - a_3 t - \cdots
 
@@ -269,7 +269,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal series
 
-        .. math::
+        .. MATH::
 
                                 y(t) = - t^{-3} + a_1 t^{-2} + a_2 t + a_3 + \cdots
 
@@ -321,7 +321,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal series
 
-        .. math::
+        .. MATH::
 
                                 f(t) = 1 + a_1 t + ({a_1}^2 + a_2) t^2 + \cdots
 
@@ -406,7 +406,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal power series
 
-        .. math::
+        .. MATH::
 
                                 i(t) = - t + a_1 t^2 + \cdots
 
@@ -463,7 +463,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal power series
 
-        .. math::
+        .. MATH::
 
            F(t_1, t_2) = t_1 + t_2 - a_1 t_1 t_2 - \cdots
 
@@ -530,7 +530,7 @@ class EllipticCurveFormalGroup(SageObject):
         """
         prec = max(prec,0)
         if prec <= 0:
-            raise ValueError, "The precision must be positive."
+            raise ValueError("The precision must be positive.")
 
         R = rings.PowerSeriesRing(self.curve().base_ring(), 2, 't1,t2')
         t1, t2 = R.gens()
@@ -579,7 +579,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         DETAILS: Return the formal power series
 
-        .. math::
+        .. MATH::
 
                                 [n](t) = n t + \cdots
 
@@ -720,7 +720,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def sigma(self, prec=10):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('14a')
             sage: F = E.formal_group()
@@ -732,7 +732,7 @@ class EllipticCurveFormalGroup(SageObject):
         k = self.curve().base_ring()
         fl = self.log(prec)
         R = rings.PolynomialRing(k,'c'); c = R.gen()
-        F = fl.reversion()
+        F = fl.reverse()
 
         S = rings.LaurentSeriesRing(R,'z')
         c = S(c)

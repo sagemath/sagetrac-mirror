@@ -26,16 +26,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
-from ntl_GF2 cimport ntl_GF2
+from cpython.object cimport Py_EQ, Py_NE
+from .ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef class ntl_mat_GF2:
+cdef class ntl_mat_GF2(object):
     r"""
     The \class{mat_GF2} class implements arithmetic with matrices over $F_2$.
     """
@@ -86,7 +87,6 @@ cdef class ntl_mat_GF2:
         if is_Matrix(nrows):
             _nrows = nrows.nrows()
             _ncols = nrows.ncols()
-            GF2_construct(&_elem)
             v = nrows
             self.x.SetDims(_nrows, _ncols)
             sig_on()
@@ -95,39 +95,32 @@ cdef class ntl_mat_GF2:
                     GF2_conv_long(_elem, int(v[i,j])%2)
                     mat_GF2_setitem(&self.x, i, j, &_elem)
             sig_off()
-            GF2_destruct(&_elem)
             return
 
         _nrows = nrows
         _ncols = ncols
         self.x.SetDims(_nrows, _ncols)
 
-        if v != None:
+        if v is not None:
             sig_on()
             for i from 0 <= i < _nrows:
                 for j from 0 <= j < _ncols:
                     elem = v[i*_ncols+j]
-                    if not PY_TYPE_CHECK(elem, ntl_GF2):
+                    if not isinstance(elem, ntl_GF2):
                         elem = ntl_GF2(elem)
                     mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>elem).x)
             sig_off()
 
-    def __cinit__(self):
-        mat_GF2_construct(&self.x)
-
     cdef ntl_GF2 _new_element(self):
         cdef ntl_GF2 r
-        r = PY_NEW(ntl_GF2)
+        r = ntl_GF2.__new__(ntl_GF2)
         return r
 
     cdef ntl_mat_GF2 _new(self):
         cdef ntl_mat_GF2 r
-        r = PY_NEW(ntl_mat_GF2)
+        r = ntl_mat_GF2.__new__(ntl_mat_GF2)
         r.x.SetDims(self.x.NumRows(),self.x.NumCols())
         return r
-
-    def __dealloc__(self):
-        mat_GF2_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -142,7 +135,7 @@ cdef class ntl_mat_GF2:
         """
         Return the string representation of this matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),4,4)
             sage: B = ntl.mat_GF2(A); B # indirect doctest
@@ -174,7 +167,7 @@ cdef class ntl_mat_GF2:
             [1 1 0 0]
         """
         cdef ntl_mat_GF2 r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2):
+        if not isinstance(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other)
         sig_on()
         mat_GF2_mul(r.x, self.x, (<ntl_mat_GF2>other).x)
@@ -201,7 +194,7 @@ cdef class ntl_mat_GF2:
             [0 1 1 1]
         """
         cdef ntl_mat_GF2 r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2):
+        if not isinstance(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other,)
         sig_on()
         mat_GF2_sub(r.x, self.x, (<ntl_mat_GF2>other).x)
@@ -229,7 +222,7 @@ cdef class ntl_mat_GF2:
 
         """
         cdef ntl_mat_GF2 r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2):
+        if not isinstance(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other)
         sig_on()
         mat_GF2_add(r.x, self.x, (<ntl_mat_GF2>other).x)
@@ -297,8 +290,10 @@ cdef class ntl_mat_GF2:
         sig_off()
         return r
 
-    def __richcmp__(ntl_mat_GF2 self, other, op):
+    def __richcmp__(ntl_mat_GF2 self, other, int op):
         """
+        Compare self to other.
+
         EXAMPLES::
 
             sage: A = random_matrix(GF(2),4,4)
@@ -309,19 +304,19 @@ cdef class ntl_mat_GF2:
             sage: A1[0,0] += 1
             sage: A1 == A2
             False
+            sage: A1 == "x"
+            False
         """
-        if not PY_TYPE_CHECK(other, ntl_mat_GF2):
-            other = ntl_mat_GF2(other)
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("matrices over GF(2) are not ordered")
 
-        if op != 2 and op != 3:
-            raise TypeError, "Elements in GF2 are not ordered."
+        cdef ntl_mat_GF2 b
+        try:
+            b = <ntl_mat_GF2?>other
+        except TypeError:
+            return NotImplemented
 
-        cdef int t
-        t = mat_GF2_equal(self.x, (<ntl_mat_GF2>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def NumRows(self):
         """
@@ -363,28 +358,28 @@ cdef class ntl_mat_GF2:
             ]
         """
         cdef int i, j
-        if not PY_TYPE_CHECK(x, ntl_GF2):
+        if not isinstance(x, ntl_GF2):
             x = ntl_GF2(x)
 
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
-        elif self.x.NumCols()==1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumCols()==1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = ij
             j = 0
-        elif self.x.NumRows()==1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumRows()==1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>x).x)
 
     def __getitem__(self, ij):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = ntl.mat_GF2(3,3,range(9))
             sage: A[0,0]
@@ -395,17 +390,17 @@ cdef class ntl_mat_GF2:
         cdef int i, j
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
-        elif self.x.NumCols() == 1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumCols() == 1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = ij
             j = 0
-        elif self.x.NumRows() == 1 and (PY_TYPE_CHECK(ij, Integer) or PY_TYPE_CHECK(ij,int)):
+        elif self.x.NumRows() == 1 and (isinstance(ij, Integer) or isinstance(ij, int)):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         cdef ntl_GF2 e = self._new_element()
         e.x = self.x.get( i+1, j+1 )
@@ -545,7 +540,7 @@ cdef class ntl_mat_GF2:
             [0 0 0 1 1 1]
             [0 0 1 1 1 1]
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.matrix.constructor import Matrix
         m =  Matrix(FiniteField(2),self.x.NumRows(),self.x.NumCols())
 
@@ -656,7 +651,7 @@ cdef class ntl_mat_GF2:
         then, the rows of X are computed as basis of A's row space.  X
         is in row echelon form.
 
-        EXAMPLE::
+        EXAMPLES::
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.image()
@@ -694,7 +689,7 @@ cdef class ntl_mat_GF2:
         Computes a basis for the kernel of the map x -> x*A. where x
         is a row vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)

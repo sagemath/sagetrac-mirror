@@ -2,14 +2,19 @@
 Parallel iterator built using the ``fork()`` system call
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of (any version of) the GNU
-#  General Public License (GPL). The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
+from __future__ import absolute_import, print_function
+from six import iteritems
+
+from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 
 class p_iter_fork:
     """
@@ -55,7 +60,7 @@ class p_iter_fork:
         """
         self.ncpus = int(ncpus)
         if self.ncpus != ncpus:  # check that there wasn't a roundoff
-            raise TypeError, "ncpus must be an integer"
+            raise TypeError("ncpus must be an integer")
         self.timeout = float(timeout)  # require a float
         self.verbose = verbose
         self.reset_interfaces = reset_interfaces
@@ -138,20 +143,17 @@ class p_iter_fork:
                     # Now wait for one subprocess to finish and report the result.
                     # However, wait at most the time since the oldest process started.
                     if timeout:
-                        def mysig(a,b):
-                            raise RuntimeError, "SIGALRM"
                         oldest = min([X[1] for X in workers.values()])
-                        signal.signal(signal.SIGALRM, mysig)
-                        signal.alarm(max(int(timeout - (walltime()-oldest)), 1))
+                        alarm(max(timeout - (walltime()-oldest), 0.1))
 
                     try:
                         pid = os.wait()[0]
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        cancel_alarm()
                         w = workers.pop(pid)
-                    except RuntimeError:
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    except AlarmInterrupt:
+                        cancel_alarm()
                         # Kill workers that are too old
-                        for pid, X in workers.iteritems():
+                        for pid, X in iteritems(workers):
                             if walltime() - X[1] > timeout:
                                 if self.verbose:
                                     print(
@@ -178,12 +180,12 @@ class p_iter_fork:
                             os.unlink(out)
 
                         if output.strip():
-                            print output,
+                            print(output, end="")
 
                         yield (w[0], X)
 
         except Exception as msg:
-            print msg
+            print(msg)
 
         finally:
             # Clean up all temporary files.
@@ -193,20 +195,20 @@ class p_iter_fork:
                 os.rmdir(dir)
             except OSError as msg:
                 if self.verbose:
-                    print msg
+                    print(msg)
 
             # Send "kill -9" signal to workers that are left.
             if len(workers) > 0:
                 if self.verbose:
-                    print "Killing any remaining workers..."
+                    print("Killing any remaining workers...")
                 sys.stdout.flush()
-                for pid in workers.keys():
+                for pid in workers:
                     try:
                         os.kill(pid, signal.SIGKILL)
                         os.waitpid(pid, 0)
                     except OSError as msg:
                         if self.verbose:
-                            print msg
+                            print(msg)
 
     def _subprocess(self, f, dir, x):
         """
@@ -228,7 +230,7 @@ class p_iter_fork:
             sage: sorted(list( F( (lambda x: x^2), [([10],{}), ([20],{})])))
             [(([10], {}), 100), (([20], {}), 400)]
         """
-        import os, sys
+        import imp, os, sys
         from sage.structure.sage_object import save
 
         try:
@@ -241,7 +243,7 @@ class p_iter_fork:
             # pid has changed (forcing a reload of
             # misc).
             import sage.misc.misc
-            reload(sage.misc.misc)
+            imp.reload(sage.misc.misc)
 
             # The pexpect interfaces (and objects defined in them) are
             # not valid.
@@ -255,9 +257,9 @@ class p_iter_fork:
             sobj = os.path.join(dir, '%s.sobj'%os.getpid())
             save(value, sobj, compress=False)
 
-        except Exception, msg:
+        except Exception as msg:
             # Important to print this, so it is seen by the caller.
-            print msg
+            print(msg)
         finally:
             sys.stdout.flush()
             os._exit(0)

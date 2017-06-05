@@ -12,6 +12,10 @@ hypersurface equation in the short Weierstrass form `y^2 = x^3 + f x +
 g`. This works over any base ring as long as its characteristic `\not=
 2,3`.
 
+For an analogous treatment of elliptic curves defined as complete
+intersection in higher dimensional toric varieties, see
+the module :mod:`~sage.schemes.toric.weierstrass_higher`.
+
 Technically, this module computes the Weierstrass form of the Jacobian
 of the elliptic curve. This is why you will never have to specify the
 origin (or zero section) in the following.
@@ -23,7 +27,7 @@ following three cases. In inhomogeneous coordinates, they are
 
   * Cubic in `\mathbb{P}^2`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -36,7 +40,7 @@ following three cases. In inhomogeneous coordinates, they are
 
   * Biquadric in `\mathbb{P}^1\times \mathbb{P}^1`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -50,7 +54,7 @@ following three cases. In inhomogeneous coordinates, they are
   * Anticanonical hypersurface in weighted projective space
     `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -91,7 +95,7 @@ matters. For example::
     (0, -27/4)
 
 This allows you to work with either homogeneous or inhomogeneous
-variables. For exmple, here is the del Pezzo surface of degree 8::
+variables. For example, here is the del Pezzo surface of degree 8::
 
     sage: dP8 = toric_varieties.dP8()
     sage: dP8.inject_variables()
@@ -150,12 +154,16 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.misc.all import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.all import invariant_theory
+
+import six
+
 
 ######################################################################
 #
@@ -171,7 +179,7 @@ def Discriminant(polynomial, variables=None):
     INPUT:
 
     See :func:`WeierstrassForm` for how to specify the input
-    polynomial and variables.
+    polynomial(s) and variables.
 
     OUTPUT:
 
@@ -185,6 +193,11 @@ def Discriminant(polynomial, variables=None):
         19683/16
         sage: Discriminant(x*y*z)
         0
+        sage: R.<w,x,y,z> = QQ[]
+        sage: quadratic1 = w^2+x^2+y^2
+        sage: quadratic2 = z^2 + w*x
+        sage: Discriminant([quadratic1, quadratic2])
+        -1/16
     """
     (f, g) = WeierstrassForm(polynomial, variables)
     return 4*f**3+27*g**2
@@ -198,7 +211,7 @@ def j_invariant(polynomial, variables=None):
     INPUT:
 
     See :func:`WeierstrassForm` for how to specify the input
-    polynomial and variables.
+    polynomial(s) and variables.
 
     OUTPUT:
 
@@ -266,9 +279,16 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
         sage: p = (a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
         ....:      a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3)
         sage: p_data = Newton_polytope_vars_coeffs(p, [x,y,z]);  p_data
-        {(2, 1, 0): a21, (0, 3, 0): a03, (1, 0, 2): a10, (0, 2, 1): a02,
-         (0, 1, 2): a01, (3, 0, 0): a30, (2, 0, 1): a20, (1, 2, 0): a12,
-         (1, 1, 1): a11, (0, 0, 3): a00}
+        {(0, 0, 3): a00,
+         (0, 1, 2): a01,
+         (0, 2, 1): a02,
+         (0, 3, 0): a03,
+         (1, 0, 2): a10,
+         (1, 1, 1): a11,
+         (1, 2, 0): a12,
+         (2, 0, 1): a20,
+         (2, 1, 0): a21,
+         (3, 0, 0): a30}
 
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
         sage: polytope = LatticePolytope_PPL(p_data.keys());  polytope
@@ -304,7 +324,7 @@ def Newton_polygon_embedded(polynomial, variables):
 
     INPUT:
 
-    Same as :func:`WeierstrassForm`.
+    Same as :func:`WeierstrassForm` with only a single polynomial passed.
 
     OUTPUT:
 
@@ -345,7 +365,7 @@ def Newton_polygon_embedded(polynomial, variables):
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in p_dict.iteritems():
+    for e, c in six.iteritems(p_dict):
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)
@@ -354,14 +374,19 @@ def Newton_polygon_embedded(polynomial, variables):
 ######################################################################
 def WeierstrassForm(polynomial, variables=None, transformation=False):
     r"""
-    Return the Weierstrass form of an anticanonical hypersurface equation.
+    Return the Weierstrass form of an elliptic curve inside either
+    inside a toric surface or $\mathbb{P}^3$.
 
     INPUT:
 
-    - ``polynomial`` -- a polynomial. The toric hypersurface
-      equation. Can be either a cubic, a biquadric, or the
-      hypersurface in `\mathbb{P}^2[1,1,2]`. The equation need not be
-      in any standard form, only its Newton polyhedron is used.
+    - ``polynomial`` -- either a polynomial or a list of polynomials
+      defining the elliptic curve.
+      A single polynomial can be either a cubic, a biquadric, or the
+      hypersurface in `\mathbb{P}^2[1,1,2]`. In this case the
+      equation need not be in any standard form, only its Newton
+      polyhedron is used.
+      If two polynomials are passed, they must both be quadratics in
+      `\mathbb{P}^3`.
 
     - ``variables`` -- a list of variables of the parent polynomial
       ring or ``None`` (default). In the latter case, all variables
@@ -380,15 +405,16 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
     x^3 + f x + g` of the hypersurface equation.
 
     If ``transformation=True``, a triple `(X,Y,Z)` of polynomials
-    defining a rational map of the toric hypersurface to its
-    Weierstrass form in `\mathbb{P}^2[2,3,1]` is returned. That is,
-    the triple satisfies
+    defining a rational map of the toric hypersurface or complete
+    intersection in `\mathbb{P}^3` to its Weierstrass form in 
+    `\mathbb{P}^2[2,3,1]` is returned.
+    That is, the triple satisfies
 
-    .. math::
+    .. MATH::
 
         Y^2 = X^3 + f X Z^4 + g Z^6
 
-    when restricted to the toric hypersurface.
+    when restricted to the toric hypersurface or complete intersection.
 
     EXAMPLES::
 
@@ -456,7 +482,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
         sage: for P in ReflexivePolytopes(2):
         ....:     S = ToricVariety(FaceFan(P))
         ....:     p = sum((-S.K()).sections_monomials())
-        ....:     print WeierstrassForm(p)
+        ....:     print(WeierstrassForm(p))
         (-25/48, -1475/864)
         (-97/48, 17/864)
         (-25/48, -611/864)
@@ -474,6 +500,9 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
         (-241/48, 3689/864)
         (215/48, -5291/864)
     """
+    if isinstance(polynomial, (list, tuple)):
+        from sage.schemes.toric.weierstrass_higher import WeierstrassForm2
+        return WeierstrassForm2(polynomial, variables=variables, transformation=transformation)
     if transformation:
         from sage.schemes.toric.weierstrass_covering import WeierstrassMap
         return WeierstrassMap(polynomial, variables=variables)
@@ -662,7 +691,7 @@ def WeierstrassForm_P2(polynomial, variables=None):
     Input/output is the same as :func:`WeierstrassForm`, except that
     the input polynomial must be a standard cubic in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -778,7 +807,7 @@ def _check_polynomial_P1xP1(biquadric, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P1xP1
         sage: R.<x0,x1,y0,y1> = QQ[]
@@ -862,7 +891,7 @@ def WeierstrassForm_P1xP1(biquadric, variables=None):
     Input/output is the same as :func:`WeierstrassForm`, except that
     the input polynomial must be a standard biquadric in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -1001,7 +1030,7 @@ def WeierstrassForm_P2_112(polynomial, variables=None):
     the input polynomial must be a standard anticanonical hypersurface
     in weighted projective space `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;

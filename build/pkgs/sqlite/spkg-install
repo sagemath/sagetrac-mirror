@@ -6,18 +6,13 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+rm -f "$SAGE_LOCAL/bin/sqlite3"
+
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+# Use newer version of config.guess and config.sub (see Trac #19711)
+cp "$SAGE_ROOT"/config/config.* .
+
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ] ; then
@@ -33,7 +28,6 @@ else
 fi
 
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CFLAGS
 
 # Old OS X systems need -DSQLITE_WITHOUT_ZONEMALLOC

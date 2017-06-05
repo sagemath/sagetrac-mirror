@@ -1,6 +1,7 @@
 r"""
 SetsWithPartialMaps
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 David Kohel <kohel@maths.usyd.edu> and
 #                     William Stein <wstein@math.ucsd.edu>
@@ -10,10 +11,8 @@ SetsWithPartialMaps
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category, HomCategory
 from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
-from objects import Objects
+from .objects import Objects
 
 class SetsWithPartialMaps(Category_singleton):
     """
@@ -50,6 +49,3 @@ class SetsWithPartialMaps(Category_singleton):
             [Category of objects]
         """
         return [Objects()]
-
-    class HomCategory(HomCategory):
-        pass

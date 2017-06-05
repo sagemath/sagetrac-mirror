@@ -17,7 +17,7 @@ AUTHOR:
 """
 
 
-class SageTimeitResult():
+class SageTimeitResult(object):
     r"""
     Represent the statistics of a timeit() command.
 
@@ -55,9 +55,7 @@ class SageTimeitResult():
     If the third argument is not a Python integer, a ``TypeError`` is raised::
 
         sage: SageTimeitResult( (1, 2, 3, 4, 's') )
-        Traceback (most recent call last):
-        ...
-        TypeError: * wants int
+        <repr(<sage.misc.sage_timeit.SageTimeitResult at 0x...>) failed: TypeError: * wants int>
 
     """
     def __init__(self, stats, series=None):
@@ -93,7 +91,7 @@ class SageTimeitResult():
         return "%d loops, best of %d: %.*g %s per loop" % self.stats
 
 def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, precision=3, seconds=False):
-    """
+    """nodetex
     Accurately measure the wall time required to execute ``stmt``.
 
     INPUT:
@@ -152,6 +150,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         2.9258728027343752e-07
         sage: t = stats.TimeSeries(s.series)
         sage: t.scale(10^6).plot_histogram(bins=20,figsize=[12,6], ymax=2)
+        Graphics object consisting of 20 graphics primitives
 
 
     The input expression can contain newlines (but doctests cannot, so
@@ -161,7 +160,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: from os import linesep as CR
         sage: # sage_timeit(r'a = 2\\nb=131\\nfactor(a^b-1)')
         sage: sage_timeit('a = 2' + CR + 'b=131' + CR + 'factor(a^b-1)',
-        ...               globals(), number=10)
+        ....:             globals(), number=10)
         10 loops, best of 3: ... per loop
 
     Test to make sure that ``timeit`` behaves well with output::
@@ -193,12 +192,17 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: gc.isenabled()
         True
     """
-    import timeit as timeit_, time, math, preparser, interpreter
+    import time, math
+    import timeit as timeit_
+
+    import sage.repl.interpreter as interpreter
+    import sage.repl.preparse as preparser
+
     number=int(number)
     repeat=int(repeat)
     precision=int(precision)
     if preparse is None:
-        preparse = interpreter.do_preparse
+        preparse = interpreter._do_preparse
     if preparse:
         stmt = preparser.preparse(stmt)
     if stmt == "":
@@ -214,12 +218,12 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     # to the shell namespace?
 
     src = timeit_.template % {'stmt': timeit_.reindent(stmt, 8),
-                             'setup': "pass"}
+                             'setup': "pass", 'init' : ''}
     code = compile(src, "<magic-timeit>", "exec")
     ns = {}
     if not globals_dict:
         globals_dict = globals()
-    exec code in globals_dict, ns
+    exec(code, globals_dict, ns)
     timer.inner = ns["inner"]
 
 

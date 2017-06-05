@@ -1,7 +1,7 @@
 """
 Configuration for CryptoMiniSat.
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a new configuration object::
 
@@ -41,8 +41,8 @@ AUTHORS:
 ###
 
 from libc.stdint cimport uint32_t, uint64_t
+from cpython.object cimport Py_EQ, Py_NE
 
-include "sage/ext/stdsage.pxi"
 
 cdef class SolverConf(object):
     """
@@ -61,7 +61,7 @@ cdef class SolverConf(object):
         - ``kwds`` - see string representation of any instance of this
                      class for a list of options.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -81,10 +81,10 @@ cdef class SolverConf(object):
         """
         TESTS::
 
-        sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
-        sage: for i in range(100):                                  # optional - cryptominisat
-        ...      s = SolverConf()
-        ...      del s
+            sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
+            sage: for i in range(100):                                  # optional - cryptominisat
+            ....:    s = SolverConf()
+            ....:    del s
 
         """
         del self._conf
@@ -93,7 +93,7 @@ cdef class SolverConf(object):
         """
         Set options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -136,7 +136,7 @@ cdef class SolverConf(object):
         """
         Set options using attributes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -157,7 +157,7 @@ cdef class SolverConf(object):
         """
         Read options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -198,7 +198,7 @@ cdef class SolverConf(object):
         """
         Read options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -219,7 +219,7 @@ cdef class SolverConf(object):
         """
         Print the current configuration.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf(); s                                   # optional - cryptominisat
@@ -255,7 +255,7 @@ cdef class SolverConf(object):
         """
         Return list of all option names.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -289,19 +289,19 @@ cdef class SolverConf(object):
             ...
             TypeError: Configurations are not ordered.
         """
-        if op not in (2,3):
+        if op not in (Py_EQ, Py_NE):
             raise TypeError("Configurations are not ordered.")
         res = all(self[name] == other[name] for name in self.trait_names())
-        if op == 2: # ==
+        if op == Py_EQ:
             return res
-        if op == 3: # !=
+        if op == Py_NE:
             return not res
 
     def __copy__(self):
         """
         Return a copy.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -312,7 +312,7 @@ cdef class SolverConf(object):
             sage: s.verbosity                                           # optional - cryptominisat
             0
         """
-        cdef SolverConf other = PY_NEW(SolverConf)
+        cdef SolverConf other = SolverConf.__new__(SolverConf)
         other._conf = new SolverConfC()
         other._nopts = setup_map(other._map, other._conf[0], 100)
         for name in self.trait_names():

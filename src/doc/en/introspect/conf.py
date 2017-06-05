@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Sage introspection build configuration file.
-# See sage.server.notebook.cell.set_introspect_html() for details.
+# See sagenb.notebook.cell.Cell.set_introspect_html() for details.
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC'])
+sys.path.append(os.environ['SAGE_DOC_SRC'])
 from common.conf import *
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'sphinx.ext.todo',

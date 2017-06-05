@@ -1,9 +1,13 @@
 r"""
 Strata of quadratic differentials on Riemann surfaces
 """
+from __future__ import print_function
+from six import iteritems
+
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
+
 
 class QuadraticStratum(SageObject):
     r"""
@@ -25,7 +29,7 @@ class QuadraticStratum(SageObject):
             if not l[0]:
                 raise ValueError("the list must be non empty !")
             self._zeroes = []
-            for (i, j) in l.iteritems():
+            for (i, j) in iteritems(l):
                 i = Integer(i)
                 j = Integer(j)
                 self._zeroes += [i]*j
@@ -43,7 +47,7 @@ class QuadraticStratum(SageObject):
         TESTS::
 
             sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
+            sage: print(a)
             Q(-1, -1, -1, -1)
         """
         return "Q(" + str(self._zeroes)[1:-1] + ")"
@@ -53,7 +57,7 @@ class QuadraticStratum(SageObject):
         TESTS::
 
             sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
+            sage: print(a)
             Q(-1, -1, -1, -1)
         """
         return "Q(" + str(self._zeroes)[1:-1] + ")"
@@ -67,7 +71,7 @@ class QuadraticStratum(SageObject):
             sage: QuadraticStratum(4) == QuadraticStratum(0)
             False
         """
-        return type(self) == type(other) and self._zeroes == other._zeroes
+        return type(self) is type(other) and self._zeroes == other._zeroes
 
     def __ne__(self, other):
         r"""
@@ -78,7 +82,7 @@ class QuadraticStratum(SageObject):
             sage: QuadraticStratum(4) != QuadraticStratum(0)
             True
         """
-        return type(self) != type(other) or self._zeroes != other._zeroes
+        return type(self) is not type(other) or self._zeroes != other._zeroes
 
     def genus(self):
         r"""

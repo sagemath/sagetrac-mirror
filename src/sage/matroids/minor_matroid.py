@@ -63,6 +63,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -74,9 +75,8 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid import Matroid
-from utilities import sanitize_contractions_deletions, setprint_s
-import sage.matroids.unpickling
+from .matroid import Matroid
+from .utilities import sanitize_contractions_deletions, setprint_s
 
 
 class MinorMatroid(Matroid):
@@ -458,7 +458,7 @@ class MinorMatroid(Matroid):
             sage: M1 != M3
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # Copying, loading, saving:
 
@@ -527,6 +527,7 @@ class MinorMatroid(Matroid):
                  {'c', 'd', 'e', 'f'}},
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
+        import sage.matroids.unpickling
         data = (self._matroid, self._contractions, self._deletions, getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_minor_matroid, (version, data)

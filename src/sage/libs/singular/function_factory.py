@@ -1,5 +1,5 @@
 """
-libSingular: Function Factory.
+libSingular: Function Factory
 
 AUTHORS:
 
@@ -21,13 +21,15 @@ class SingularFunctionFactory(object):
     """
     def __getattr__(self, name):
         """
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: groebner = sage.libs.singular.ff.groebner
+            sage: import sage.libs.singular.function_factory
+            sage: groebner = sage.libs.singular.function_factory.ff.groebner
             sage: groebner
             groebner (singular function)
 
-            sage: primdecSY = sage.libs.singular.ff.primdec__lib.primdecSY
+            sage: import sage.libs.singular.function_factory
+            sage: primdecSY = sage.libs.singular.function_factory.ff.primdec__lib.primdecSY
             sage: primdecSY
             primdecSY (singular function)
         """
@@ -46,9 +48,13 @@ class SingularFunctionFactory(object):
 
     def trait_names(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
-             sage: "groebner" in sage.libs.singular.ff.trait_names()
-             True
+            sage: import sage.libs.singular.function_factory
+            sage: "groebner" in sage.libs.singular.function_factory.ff.trait_names()
+            True
+            
         """
         return list_of_functions()
+
+ff = SingularFunctionFactory()

@@ -32,6 +32,7 @@ The disk cache files are stored by default in the subdirectory
 ``func_persist`` of the current working directory,
 with one file for each evaluation of the function.
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -43,7 +44,7 @@ with one file for each evaluation of the function.
 
 import inspect, os
 
-import persist
+from . import persist
 
 class func_persist:
     r"""
@@ -56,14 +57,14 @@ class func_persist:
         self.__dir  = dir
         sage_makedirs(dir)
         self.__doc__ = '%s%s%s'%(\
-            f.func_name,
-            inspect.formatargspec(*inspect.getargs(f.func_code)),
+            f.__name__,
+            inspect.formatargspec(*inspect.getargs(f.__code__)),
             f.__doc__)
 
     def __call__(self, *args, **kwds):
         key = (tuple(args), tuple(kwds.items()))
         h = hash(key)
-        name = '%s/%s_%s.sobj'%(self.__dir, self.__func.func_name, h)
+        name = '%s/%s_%s.sobj'%(self.__dir, self.__func.__name__, h)
 
         if os.path.exists(name):
             key2, val = persist.load(name)

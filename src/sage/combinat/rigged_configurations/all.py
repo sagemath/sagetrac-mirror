@@ -1,6 +1,7 @@
-from rigged_configurations import HighestWeightRiggedConfigurations
-from rigged_configurations import RiggedConfigurations
-from tensor_product_kr_tableaux import HighestWeightTensorProductOfKirillovReshetikhinTableaux
-from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
-from kr_tableaux import KirillovReshetikhinTableaux
-from kleber_tree import KleberTree
+r"""
+Features that are imported by default in the interpreter namespace
+"""
+from __future__ import absolute_import
+
+from .rigged_configurations import RiggedConfigurations
+

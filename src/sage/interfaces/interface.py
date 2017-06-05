@@ -19,6 +19,8 @@ AUTHORS:
   which is important for forking.
 
 - Jean-Pierre Flori (2010,2011): Split non Pexpect stuff into a parent class.
+
+- Simon King (2015): Improve pickling for InterfaceElement
 """
 
 #*****************************************************************************
@@ -35,14 +37,18 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six import iteritems, integer_types, string_types
 
 import operator
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement
+from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
+from sage.misc.fast_methods import WithEqualityById
+from sage.docs.instancedoc import instancedoc
 
 
 class AsciiArtString(str):
@@ -50,15 +56,38 @@ class AsciiArtString(str):
         return str(self)
 
 
-class Interface(ParentWithBase):
+class Interface(WithEqualityById, ParentWithBase):
     """
     Interface interface object.
+
+    .. NOTE::
+
+        Two interfaces compare equal if and only if they are identical
+        objects (this is a critical constraint so that caching of
+        representations of objects in interfaces works
+        correctly). Otherwise they are never equal.
     """
     def __init__(self, name):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Maxima() == maxima
+            False
+            sage: maxima == maxima
+            True
+
+            sage: Maxima() != maxima
+            True
+            sage: maxima != maxima
+            False
+        """
         self.__name = name
         self.__coerce_name = '_' + name.lower() + '_'
         self.__seq = -1
         self._available_vars = []
+        self._seed = None
         ParentWithBase.__init__(self, self)
 
     def _repr_(self):
@@ -66,6 +95,75 @@ class Interface(ParentWithBase):
 
     def name(self, new_name=None):
         return self.__name
+
+    def get_seed(self):
+        """
+        Returns the seed used to set the random
+        number generator in this interface.
+        The seed is initialized as None
+        but should be set when the interface starts.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(107)
+            107
+            sage: s.get_seed()
+            107
+        """
+        return self._seed
+
+    def rand_seed(self):
+        """
+        Returns a random seed that can be
+        put into set_seed function for
+        any interpreter.
+        This should be overridden if
+        the particular interface needs something
+        other than a small positive integer.
+
+        EXAMPLES::
+
+            from sage.misc.random_testing import random_testing
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.rand_seed() # random
+            318491487L
+
+            sage: s = Singular()
+            sage: s.rand_seed() # random
+            365260051L
+        """
+        from sage.misc.randstate import randstate
+        return long(randstate().seed()&0x1FFFFFFF)
+
+    def set_seed(self,seed = None):
+        """
+        Sets the random seed for the interpreter
+        and returns the new value of the seed.
+        This is dependent on which interpreter
+        so must be implemented in each
+        separately. For examples see
+        gap.py or singular.py.
+        If seed is None then should generate
+        a random seed.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(1)
+            1
+            sage: [s.random(1,10) for i in range(5)]
+            [8, 10, 4, 9, 1]
+
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.set_seed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This interpreter did not implement a set_seed function
+        """
+        raise NotImplementedError("This interpreter did not implement a set_seed function")
 
     def interact(self):
         r"""
@@ -82,7 +180,7 @@ class Interface(ParentWithBase):
            Sage. Use sage(xxx) or interpretername(xxx) to pull objects
            in from sage to the interpreter.
         """
-        from sage.misc.interpreter import interface_shell_embed
+        from sage.repl.interpreter import interface_shell_embed
         shell = interface_shell_embed(self)
         try:
             ipython = get_ipython()
@@ -97,9 +195,6 @@ class Interface(ParentWithBase):
     def _post_interact(self):
         pass
 
-    def __del__(self):
-        pass
-
     def cputime(self):
         """
         CPU time since this process started running.
@@ -112,10 +207,10 @@ class Interface(ParentWithBase):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
-            sage: octave.get('x')        #optional
+            sage: octave.get('x')        # optional - octave
             ' 2'
             sage: import os
             sage: os.unlink(filename)
@@ -125,34 +220,22 @@ class Interface(ParentWithBase):
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
-    def eval(self, code, locals=None, **kwds):
+    def eval(self, code, **kwds):
         """
-        INPUT:
+        Evaluate code in an interface.
 
+        This method needs to be implemented in sub-classes.
 
-        -  ``code`` - text to evaluate
+        Note that it is not always to be expected that
+        it returns a non-empty string. In contrast,
+        :meth:`get` is supposed to return the result of applying
+        a print command to the object so that the output is easier
+        to parse.
 
-        - ``locals`` - None (ignored); this is used for compatibility with the
-          Sage notebook's generic system interface.
-
-        -  ``**kwds`` - All other arguments are passed onto
-           the _eval_line method. An often useful example is
-           reformat=False.
+        Likewise, the method :meth:`_eval_line` for evaluation of a single
+        line, often makes sense to be overridden.
         """
-
-        if not isinstance(code, basestring):
-            raise TypeError, 'input code must be a string.'
-
-        #Remove extra whitespace
-        code = code.strip()
-
-        try:
-            pass
-        # DO NOT CATCH KeyboardInterrupt, as it is being caught
-        # by _eval_line
-        # In particular, do NOT call self._keyboard_interrupt()
-        except TypeError, s:
-            raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
+        raise NotImplementedError
 
     _eval_line = eval
 
@@ -195,21 +278,21 @@ class Interface(ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, basestring):
+        if isinstance(x, string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
         except TypeError:
             raise
-        except AttributeError, msg:
+        except AttributeError:
             pass
         try:
             return self._coerce_impl(x, use_special=False)
-        except TypeError, msg:
+        except TypeError as msg:
             try:
                 return cls(self, str(x), name=name)
-            except TypeError, msg2:
-                raise TypeError, msg
+            except TypeError:
+                raise TypeError(msg)
 
     def _coerce_from_special_method(self, x):
         """
@@ -229,7 +312,7 @@ class Interface(ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, (int, long)):
+        if isinstance(x, integer_types):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):
@@ -238,7 +321,7 @@ class Interface(ParentWithBase):
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
-            except AttributeError, msg:
+            except AttributeError:
                 pass
 
         if isinstance(x, (list, tuple)):
@@ -258,7 +341,7 @@ class Interface(ParentWithBase):
             r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
             return r
 
-        raise TypeError, "unable to coerce element into %s"%self.name()
+        raise TypeError("unable to coerce element into %s"%self.name())
 
     def new(self, code):
         return self(code)
@@ -291,13 +374,15 @@ class Interface(ParentWithBase):
         try:
             return self.__true_symbol
         except AttributeError:
-            self.__true_symbol = self.eval('1 %s 1'%self._equality_symbol())
+            self.__true_symbol = self.get('1 %s 1'%self._equality_symbol())
+            return self.__true_symbol
 
     def _false_symbol(self):
         try:
             return self.__false_symbol
         except AttributeError:
-            self.__false_symbol = self.eval('1 %s 2'%self._equality_symbol())
+            self.__false_symbol = self.get('1 %s 2'%self._equality_symbol())
+            return self.__false_symbol
 
     def _lessthan_symbol(self):
         return '<'
@@ -353,6 +438,10 @@ class Interface(ParentWithBase):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        Note that this needs to be overridden in some interfaces,
+        namely when getting the string representation of an object
+        requires an explicit print command.
         """
         return self.eval(var)
 
@@ -431,7 +520,7 @@ class Interface(ParentWithBase):
             sage: args, kwds = gap._convert_args_kwds(args, kwds)
             sage: args
             [5]
-            sage: map(type, args)
+            sage: list(map(type, args))
             [<class 'sage.interfaces.gap.GapElement'>]
             sage: type(kwds['x'])
             <class 'sage.interfaces.gap.GapElement'>
@@ -443,7 +532,7 @@ class Interface(ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in kwds.iteritems():
+        for key, value in iteritems(kwds):
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 
@@ -468,7 +557,7 @@ class Interface(ParentWithBase):
             AttributeError
         """
         if function == '':
-            raise ValueError, "function name must be nonempty"
+            raise ValueError("function name must be nonempty")
         if function[:2] == "__":
             raise AttributeError
 
@@ -477,9 +566,9 @@ class Interface(ParentWithBase):
         EXAMPLES::
 
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,5.5511151231257...e-15,21,0]
+            [0.5,0.55511151231257...e-14,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,5.5511151231257...e-15,21,0]
+            [0.5,0.55511151231257...e-14,21,0]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -510,7 +599,7 @@ class Interface(ParentWithBase):
         TESTS::
 
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
-            <built-in method _coerce_map_from_ of Singular object at ...>
+            <bound method Singular._coerce_map_from_ of Singular>
         """
         try:
             return ParentWithBase.__getattribute__(self, attrname)
@@ -519,28 +608,6 @@ class Interface(ParentWithBase):
                 raise
             return self._function_class()(self, attrname)
 
-    def __cmp__(self, other):
-        """
-        Compare two pseudo-tty interfaces. Two interfaces compare
-        equal if and only if they are identical objects (this is a
-        critical constraint so that caching of representations of
-        objects in interfaces works correctly). Otherwise they are
-        never equal.
-
-        EXAMPLES::
-
-            sage: Maxima() == maxima
-            False
-            sage: maxima == maxima
-            True
-        """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
-
     def console(self):
         raise NotImplementedError
 
@@ -548,6 +615,7 @@ class Interface(ParentWithBase):
         return AsciiArtString('No help on %s available'%s)
 
 
+@instancedoc
 class InterfaceFunction(SageObject):
     """
     Interface function.
@@ -556,23 +624,24 @@ class InterfaceFunction(SageObject):
         self._parent = parent
         self._name = name
 
-    def __repr__(self):
+    def _repr_(self):
         return "%s"%self._name
 
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp.gcd._sage_doc_()
+            sage: gp.gcd.__doc__
             'gcd(x,{y}): greatest common divisor of x and y.'
         """
         M = self._parent
         return M.help(self._name)
 
 
+@instancedoc
 class InterfaceFunctionElement(SageObject):
     """
     Interface function element.
@@ -581,20 +650,20 @@ class InterfaceFunctionElement(SageObject):
         self._obj = obj
         self._name = name
 
-    def __repr__(self):
-        return "%s"%self._name
+    def _repr_(self):
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
-        print self._sage_doc_()
+        print(self.__doc__)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp(2).gcd._sage_doc_()
+            sage: gp(2).gcd.__doc__
             'gcd(x,{y}): greatest common divisor of x and y.'
         """
         M = self._obj.parent()
@@ -605,12 +674,14 @@ class InterfaceFunctionElement(SageObject):
 def is_InterfaceElement(x):
     return isinstance(x, InterfaceElement)
 
-class InterfaceElement(RingElement):
+
+@instancedoc
+class InterfaceElement(Element):
     """
     Interface element.
     """
     def __init__(self, parent, value, is_name=False, name=None):
-        RingElement.__init__(self, parent)
+        Element.__init__(self, parent)
         self._create = value
         if parent is None: return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
@@ -622,8 +693,8 @@ class InterfaceElement(RingElement):
         else:
             try:
                 self._name = parent._create(value, name=name)
-            except (TypeError, RuntimeError, ValueError), x:
-                raise TypeError, x
+            except (TypeError, RuntimeError, ValueError) as x:
+                raise TypeError(x)
 
     def _latex_(self):
 #        return "\\begin{verbatim}%s\\end{verbatim}"%self
@@ -662,10 +733,99 @@ class InterfaceElement(RingElement):
         return len(self.sage())
 
     def __reduce__(self):
-        return reduce_load, (self.parent(), self._reduce())
+        """
+        The default linearisation is to return self's parent,
+        which will then get the items returned by :meth:`_reduce`
+        as arguments to reconstruct the element.
+
+        EXAMPLES::
+
+            sage: G = gap.SymmetricGroup(6)
+            sage: loads(dumps(G)) == G     # indirect doctest
+            True
+            sage: y = gap(34)
+            sage: loads(dumps(y))
+            34
+            sage: type(_)
+            <class 'sage.interfaces.gap.GapElement'>
+            sage: y = singular(34)
+            sage: loads(dumps(y))
+            34
+            sage: type(_)
+            <class 'sage.interfaces.singular.SingularElement'>
+            sage: G = gap.PolynomialRing(QQ, ['x'])
+            sage: loads(dumps(G))
+            PolynomialRing( Rationals, ["x"] )
+            sage: S = singular.ring(0, ('x'))
+            sage: loads(dumps(S))
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+        Here are further examples of pickling of interface elements::
+
+            sage: loads(dumps(gp('"abc"')))
+            abc
+            sage: loads(dumps(gp([1,2,3])))
+            [1, 2, 3]
+            sage: loads(dumps(pari('"abc"')))
+            "abc"
+            sage: loads(dumps(pari([1,2,3])))
+            [1, 2, 3]
+            sage: loads(dumps(r('"abc"')))
+            [1] "abc"
+            sage: loads(dumps(r([1,2,3])))
+            [1] 1 2 3
+            sage: loads(dumps(maxima([1,2,3])))
+            [1,2,3]
+
+        Unfortunately, strings in maxima can't be pickled yet::
+
+            sage: loads(dumps(maxima('"abc"')))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to make sense of Maxima expression '"abc"' in Sage
+
+        """
+        return self.parent(), (self._reduce(),)
 
     def _reduce(self):
-        return repr(self)
+        """
+        Helper for pickling.
+
+        By default, if self is a string, then the representation of
+        that string is returned (not the string itself). Otherwise,
+        it is attempted to return the corresponding Sage object.
+        If this fails with a NotImplementedError, the string
+        representation of self is returned instead.
+
+        EXAMPLES::
+
+            sage: S = singular.ring(0, ('x'))
+            sage: S._reduce()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: G = gap.PolynomialRing(QQ, ['x'])
+            sage: G._reduce()
+            'PolynomialRing( Rationals, ["x"] )'
+            sage: G.sage()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unable to parse output: PolynomialRing( Rationals, ["x"] )
+            sage: singular('"abc"')._reduce()
+            "'abc'"
+            sage: singular('1')._reduce()
+            1
+
+        """
+        if self.is_string():
+            return repr(self.sage())
+        try:
+            return self.sage()
+        except NotImplementedError:
+            return repr(self)
 
     def __call__(self, *args):
         self._check_valid()
@@ -678,12 +838,11 @@ class InterfaceElement(RingElement):
             x = P.new(x)
         return P._contains(x.name(), self.name())
 
-
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp(2)._sage_doc_()
+            sage: gp(2).__doc__
             '2'
         """
         return str(self)
@@ -697,11 +856,20 @@ class InterfaceElement(RingElement):
 
     def __cmp__(self, other):
         """
-        Comparison is done by GAP.
+        Comparison of interface elements.
 
-        GAP may raise an error when comparing objects. We catch these
-        errors. Moreover, GAP does not recognise certain objects as
+        NOTE:
+
+        GAP has a special role here. It may in some cases raise an error
+        when comparing objects, which is unwanted in Python. We catch
+        these errors. Moreover, GAP does not recognise certain objects as
         equal even if there definitions are identical.
+
+        NOTE:
+
+        This methods need to be overridden if the subprocess would
+        not return a string representation of a boolean value unless
+        an explicit print command is used.
 
         TESTS:
 
@@ -716,14 +884,14 @@ class InterfaceElement(RingElement):
 
         Here, GAP fails to compare, and so ``False`` is returned.
         In previous Sage versions, this example actually resulted
-        in an error; compare #5962.
+        in an error; compare :trac:`5962`.
         ::
 
             sage: gap('DihedralGroup(8)')==gap('DihedralGroup(8)')
             False
 
         """
-        P = self.parent()
+        P = self._check_valid()
         try:
             if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
                                      other.name())) == P._true_symbol():
@@ -738,7 +906,7 @@ class InterfaceElement(RingElement):
         try:
             if P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
                 return 1
-        except StandardError:
+        except Exception:
             pass
 
         # everything is supposed to be comparable in Python, so we define
@@ -747,6 +915,14 @@ class InterfaceElement(RingElement):
             return -1
         else:
             return 1
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        By default, the answer is negative.
+        """
+        return False
 
     def _matrix_(self, R):
         raise NotImplementedError
@@ -764,9 +940,9 @@ class InterfaceElement(RingElement):
         try:
             P = self.parent()
             if P is None:
-                raise ValueError, "The %s session in which this object was defined is no longer running."%P.name()
+                raise ValueError("The %s session in which this object was defined is no longer running."%P.name())
         except AttributeError:
-            raise ValueError, "The session in which this object was defined is no longer running."
+            raise ValueError("The session in which this object was defined is no longer running.")
         return P
 
     def __del__(self):
@@ -851,13 +1027,16 @@ class InterfaceElement(RingElement):
         string = self._sage_repr()
         try:
             return sage.misc.sage_eval.sage_eval(string)
-        except StandardError:
-            raise NotImplementedError, "Unable to parse output: %s" % string
+        except Exception:
+            raise NotImplementedError("Unable to parse output: %s" % string)
 
 
-    def sage(self):
+    def sage(self, *args, **kwds):
         """
         Attempt to return a Sage version of this object.
+
+        This method does nothing more than calling :meth:`_sage_`,
+        simply forwarding any additional arguments.
 
         EXAMPLES::
 
@@ -865,20 +1044,119 @@ class InterfaceElement(RingElement):
             1/2
             sage: _.parent()
             Rational Field
+            sage: singular.lib("matrix")
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: singular.matrix(2,2).sage()
+            [0 0]
+            [0 0]
         """
-        return self._sage_()
+        return self._sage_(*args, **kwds)
 
     def __repr__(self):
-        self._check_valid()
+        """
+        To obtain the string representation, it is first checked whether
+        the element is still valid. Then, if ``self._cached_repr`` is
+        a string then it is returned. Otherwise, ``self._repr_()``
+        is called (and the result is cached, if ``self._cached_repr``
+        evaluates to ``True``).
+
+        If the string obtained so far contains ``self._name``, then it
+        is replaced by ``self``'s custom name, if available.
+
+        To implement a custom string representation, override the method
+        ``_repr_``, but do not override this double underscore method.
+
+        EXAMPLE:
+
+        Here is one example showing that the string representation will
+        be cached when requested::
+
+            sage: from sage.interfaces.maxima_lib import maxima_lib
+            sage: M = maxima_lib('sqrt(2) + 1/3')
+            sage: M._cached_repr
+            True
+            sage: repr(M) is repr(M)   # indirect doctest
+            True
+            sage: M._cached_repr
+            'sqrt(2)+1/3'
+            sage: M
+            sqrt(2)+1/3
+
+        If the interface breaks then it is reflected in the string representation::
+
+            sage: s = singular('2')
+            sage: s
+            2
+            sage: singular.quit()
+            sage: s
+            (invalid Singular object -- The singular session in which this object was defined is no longer running.)
+
+        """
+        try:
+            P = self._check_valid()
+        except ValueError as msg:
+            return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
+        cr = getattr(self, '_cached_repr', None)
+        if isinstance(cr, string_types):
+            s = cr
+        else:
+            s = self._repr_()
+        if self._name in s:
+            try:
+                s = s.replace(self._name, getattr(self, '__custom_name'))
+            except AttributeError:
+                pass
+        if cr:
+            self._cached_repr = s
+        return s
+
+    def _repr_(self):
+        """
+        Default implementation of a helper method for string representation.
+
+        It is supposed that immediately before calling this method,
+        the validity of ``self``'s parent was confirmed. So, when you
+        override this method, you can assume that the parent is valid.
+
+        TESTS:
+
+        In :trac:`22501`, several string representation methods have been
+        removed in favour of using the default implementation. The corresponding
+        tests have been moved here::
+
+            sage: gap(SymmetricGroup(8))    # indirect doctest
+            SymmetricGroup( [ 1 .. 8 ] )
+            sage: gap(2)
+            2
+            sage: x = var('x')
+            sage: giac(x)
+            x
+            sage: giac(5)
+            5
+            sage: M = matrix(QQ,2,range(4))
+            sage: giac(M)
+            [[0,1],[2,3]]
+            sage: x = var('x')                  # optional - maple
+            sage: maple(x)                      # optional - maple
+            x
+            sage: maple(5)                      # optional - maple
+            5
+            sage: M = matrix(QQ,2,range(4))     # optional - maple
+            sage: maple(M)                      # optional - maple
+            Matrix(2, 2, [[0,1],[2,3]])
+            sage: maxima('sqrt(2) + 1/3')
+            sqrt(2)+1/3
+            sage: mupad.package('"MuPAD-Combinat"')  # optional - mupad-Combinat
+            sage: S = mupad.examples.SymmetricFunctions(); S # optional - mupad-Combinat
+            examples::SymmetricFunctions(Dom::ExpressionField())
+
+        """
+        P = self.parent()
         try:
             if self._get_using_file:
-                s = self.parent().get_using_file(self._name)
+                return P.get_using_file(self._name).strip()
         except AttributeError:
-            s = self.parent().get(self._name)
-        if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
-        return s
+            return self.parent().get(self._name).strip()
 
     def __getattr__(self, attrname):
         P = self._check_valid()
@@ -899,8 +1177,8 @@ class InterfaceElement(RingElement):
         """
         try:
             self._check_valid()
-        except ValueError:
-            return '(invalid object -- defined in terms of closed session)'
+        except ValueError as msg:
+            return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         return self.parent().get_using_file(self._name)
 
     def hasattr(self, attrname):
@@ -916,7 +1194,7 @@ class InterfaceElement(RingElement):
             sage: m.hasattr('gcd')
             False
         """
-        return not isinstance(getattr(self, attrname), InterfaceFunctionElement)
+        return not isinstance(getattr(self, attrname), (InterfaceFunctionElement, InterfaceElement))
 
     def attribute(self, attrname):
         """
@@ -955,17 +1233,34 @@ class InterfaceElement(RingElement):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 
     def bool(self):
-        P = self.parent()
+        """
+        Return whether this element is equal to ``True``.
+
+        NOTE:
+
+        This method needs to be overridden if the subprocess would
+        not return a string representation of a boolean value unless
+        an explicit print command is used.
+
+        EXAMPLES::
+
+            sage: singular(0).bool()
+            False
+            sage: singular(1).bool()
+            True
+
+        """
+        P = self._check_valid()
         t = P._true_symbol()
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -975,6 +1270,8 @@ class InterfaceElement(RingElement):
             True
         """
         return self.bool()
+
+    __nonzero__ = __bool__
 
     def __long__(self):
         """
@@ -1056,8 +1353,8 @@ class InterfaceElement(RingElement):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, str):
-                raise TypeError, "new_name must be a string"
+            if not isinstance(new_name, string_types):
+                raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)
             return p._object_class()(p, new_name, is_name=True)
@@ -1068,12 +1365,48 @@ class InterfaceElement(RingElement):
         P = self._check_valid()
         return P.new('%s.%s'%(self._name, int(n)))
 
-    def _operation(self, operation, right):
+    def _operation(self, operation, other=None):
+        r"""
+        Return the result of applying the binary operation
+        ``operation`` on the arguments ``self`` and ``other``, or the
+        unary operation on ``self`` if ``other`` is not given.
+
+        This is a utility function which factors out much of the
+        commonality used in the arithmetic operations for interface
+        elements.
+
+        INPUT:
+
+        - ``operation`` -- a string representing the operation
+          being performed. For example, '*', or '1/'.
+
+        - ``other`` -- the other operand. If ``other`` is ``None``,
+          then the operation is assumed to be unary rather than binary.
+
+        OUTPUT: an interface element
+
+        EXAMPLES::
+
+            sage: a = gp('23')
+            sage: b = gp('5')
+            sage: a._operation('%', b)
+            3
+            sage: a._operation('19+')
+            42
+            sage: a._operation('!@#$%')
+            Traceback (most recent call last):
+            ...
+            TypeError: Error executing code in GP:...
+        """
         P = self._check_valid()
+        if other is None:
+            cmd = '%s %s'%(operation, self._name)
+        else:
+            cmd = '%s %s %s'%(self._name, operation, other._name)
         try:
-            return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
-            raise TypeError, msg
+            return P.new(cmd)
+        except Exception as msg:
+            raise TypeError(msg)
 
     def _add_(self, right):
         """
@@ -1082,11 +1415,36 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f + g
-            sin(x)+cos(x)
+            sin(_SAGE_VAR_x)+cos(_SAGE_VAR_x)
             sage: f + 2
-            cos(x)+2
+            cos(_SAGE_VAR_x)+2
             sage: 2 + f
-            cos(x)+2
+            cos(_SAGE_VAR_x)+2
+
+        ::
+
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima.function('x','-cos(x)')
+            sage: f+g
+            sin(x)-cos(x)
+            sage: f+3
+            sin(x)+3
+
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
+
+            sage: (f+maxima.cos(x))
+            sin(x)+cos(_SAGE_VAR_x)
+            sage: (f+maxima.cos(y))
+            sin(x)+cos(_SAGE_VAR_y)
+
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+
+            sage: (f+maxima.cos(x))(2)
+            cos(_SAGE_VAR_x)+sin(2)
+            sage: (f+maxima.cos(y))(2)
+            cos(_SAGE_VAR_y)+sin(2)
         """
         return self._operation("+", right)
 
@@ -1097,13 +1455,46 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f - g
-            cos(x)-sin(x)
+            cos(_SAGE_VAR_x)-sin(_SAGE_VAR_x)
             sage: f - 2
-            cos(x)-2
+            cos(_SAGE_VAR_x)-2
             sage: 2 - f
-            2-cos(x)
+            2-cos(_SAGE_VAR_x)
+
+        ::
+
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
+
+            sage: (f-maxima.cos(x))
+            sin(x)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))
+            sin(x)-cos(_SAGE_VAR_y)
+
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+
+            sage: (f-maxima.cos(x))(2)
+            sin(2)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))(2)
+            sin(2)-cos(_SAGE_VAR_y)
         """
         return self._operation('-', right)
+
+    def _neg_(self):
+        """
+        EXAMPLES::
+
+            sage: f = maxima('sin(x)')
+            sage: -f
+            -sin(x)
+            sage: f = maxima.function('x','sin(x)')
+            sage: -f
+            -sin(x)
+        """
+        return self._operation('-')
 
     def _mul_(self, right):
         """
@@ -1112,9 +1503,29 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f*g
-            cos(x)*sin(x)
+            cos(_SAGE_VAR_x)*sin(_SAGE_VAR_x)
             sage: 2*f
-            2*cos(x)
+            2*cos(_SAGE_VAR_x)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)') # not a function!
+            sage: f*g
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: g*f
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+            sage: 2*f
+            2*sin(x)
         """
         return self._operation('*', right)
 
@@ -1125,11 +1536,55 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f/g
-            cos(x)/sin(x)
+            cos(_SAGE_VAR_x)/sin(_SAGE_VAR_x)
             sage: f/2
-            cos(x)/2
+            cos(_SAGE_VAR_x)/2
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: f/g
+            -sin(x)/cos(x)
+            sage: _(2)
+            -sin(2)/cos(2)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: g/f
+            -cos(x)/sin(x)
+            sage: _(2)
+            -cos(2)/sin(2)
+            sage: 2/f
+            2/sin(x)
         """
         return self._operation("/", right)
+
+    def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: f = maxima('sin(x)')
+            sage: ~f
+            1/sin(x)
+            sage: f = maxima.function('x','sin(x)')
+            sage: ~f
+            1/sin(x)
+        """
+        return self._operation('1/')
+
+    def _mod_(self, right):
+        """
+        EXAMPLES::
+
+            sage: f = gp("x^3 + x")
+            sage: g = gp("2*x + 1")
+            sage: f % g
+            -5/8
+        """
+        return self._operation("%", right)
 
     def __pow__(self, n):
         """
@@ -1138,11 +1593,22 @@ class InterfaceElement(RingElement):
             sage: a = maxima('2')
             sage: a^(3/4)
             2^(3/4)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: f^g
+            1/sin(x)^cos(x)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)') # not a function
+            sage: g^f
+            (-cos(x))^sin(x)
         """
         P = self._check_valid()
-        if not hasattr(n, 'parent') or P is not n.parent():
+        if parent(n) is not P:
             n = P(n)
         return self._operation("^", n)
-
-def reduce_load(parent, x):
-    return parent(x)

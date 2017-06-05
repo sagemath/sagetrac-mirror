@@ -1,6 +1,7 @@
 """
 Monomial symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2010 Anne Schilling <anne at math.ucdavis.edu> (addition)
@@ -18,7 +19,7 @@ Monomial symmetric functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import classical
+from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
@@ -112,8 +113,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         #    return symmetrica.mult_monomial_monomial(left, right)
 
         z_elt = {}
-        for (left_m, left_c) in left._monomial_coefficients.iteritems():
-            for (right_m, right_c) in right._monomial_coefficients.iteritems():
+        for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
+            for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
 
                 #Hack due to symmetrica crashing when both of the
                 #partitions are the empty partition
@@ -171,10 +172,10 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         assert self.base_ring() == f.base_ring()
         out = self.sum_of_terms((Partition(e), c)
-                                for (e,c) in f.dict().iteritems()
+                                for (e,c) in six.iteritems(f.dict())
                                 if tuple(sorted(e)) == tuple(reversed(e)))
-        if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
-            raise ValueError, "%s is not a symmetric polynomial"%f
+        if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
+            raise ValueError("%s is not a symmetric polynomial"%f)
         return out
 
     def from_polynomial_exp(self, p):
@@ -218,11 +219,13 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m.from_polynomial_exp(f)
             3*m[4] + 2*m[5, 5, 5, 3, 1, 1]
 
-        ..SEEALSO:: :func:`Partition`, :meth:`Partition.to_exp`
+        .. SEEALSO::
+
+            :func:`Partition`, :meth:`Partition.to_exp`
         """
         assert self.base_ring() == p.parent().base_ring()
         return self.sum_of_terms((Partition(exp=monomial), coeff)
-                                 for (monomial, coeff) in p.dict().iteritems())
+                                 for (monomial, coeff) in six.iteritems(p.dict()))
 
     def antipode_by_coercion(self, element):
         r"""
@@ -266,15 +269,19 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the monomial symmetric function basis
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -287,10 +294,18 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 z0^2*z1 + z0*z1^2 + z0^2*z2 + z1^2*z2 + z0*z2^2 + z1*z2^2
                 sage: m([2,1]).expand(3,alphabet='x,y,z')
                 x^2*y + x*y^2 + x^2*z + y^2*z + x*z^2 + y*z^2
+                sage: m([1]).expand(0)
+                0
+                sage: (3*m([])).expand(0)
+                3
             """
             condition = lambda part: len(part) > n
             return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override
+
+import six
+
+
 register_unpickle_override('sage.combinat.sf.monomial', 'SymmetricFunctionAlgebraElement_monomial',  SymmetricFunctionAlgebra_monomial.Element)

@@ -429,9 +429,13 @@ unlike for the other interfaces.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 import os
+
 
 class Kash(Expect):
     r"""
@@ -443,7 +447,7 @@ class Kash(Expect):
     """
     def __init__(self,
                  max_workspace_size=None,
-                 maxread=100000,
+                 maxread=None,
                  script_subdirectory=None,
                  restart_on_ctrlc = True,
                  logfile=None,
@@ -461,13 +465,12 @@ class Kash(Expect):
 
 
         cmd = "kash3 -b -c -d  "
-        if max_workspace_size != None:
-            cmd += " -a %s"%int(max_workspace)
+        if max_workspace_size is not None:
+            cmd += " -a %s" % int(max_workspace_size)
         Expect.__init__(self,
                         name = 'kash',
                         prompt = 'kash% ',
                         command = cmd,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -517,7 +520,7 @@ class Kash(Expect):
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError, "You must install the optional Kash package to use Kash from Sage."
+            raise RuntimeError("You must install the optional Kash package to use Kash from Sage.")
         # Turn off the annoying timer.
         self.eval('Time(false);')
 
@@ -582,7 +585,7 @@ class Kash(Expect):
             sage: X = kash.help('IntegerRing')   # optional -- kash
 
         There is one entry in X for each item found in the documentation
-        for this function: If you type ``print X[0]`` you will
+        for this function: If you type ``print(X[0])`` you will
         get help on about the first one, printed nicely to the screen.
 
         AUTHORS:
@@ -590,15 +593,15 @@ class Kash(Expect):
         - Sebastion Pauli (2006-02-04): during Sage coding sprint
         """
         if name is None:
-            print '\nTo use KASH help enter kash.help(s). '
-            print 'The syntax of the string s is given below.\n'
-            print self.eval('?')
+            print('\nTo use KASH help enter kash.help(s). ')
+            print('The syntax of the string s is given below.\n')
+            print(self.eval('?'))
             return
         name = str(name)
         if name[0] == '?':
-            print self.eval(name)
+            print(self.eval(name))
         else:
-            print self.eval('?%s'%name)
+            print(self.eval('?%s' % name))
 
     def _doc(self, V):
         if V.lstrip()[:11] == 'No matches.':
@@ -629,7 +632,7 @@ class Kash(Expect):
         #out = self.eval(cmd)
         out = self._eval_line(cmd, allow_use_file=True)
         if out.lower().find('error') != -1:
-            raise TypeError, "Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -664,6 +667,8 @@ class Kash(Expect):
     def version(self):
         return kash_version()
 
+
+@instancedoc
 class KashElement(ExpectElement):
     def __mod__(self, other):
         self._check_valid()
@@ -696,9 +701,13 @@ kash = Kash()
 def reduce_load_Kash():
     return kash
 
-import os
+
 def kash_console():
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%kash magics instead.')
     os.system("kash3 ")
+
 
 def kash_version():
     return kash.eval('VERSION')

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The Chow group of a toric variety
 
@@ -42,13 +43,13 @@ AUTHORS:
 REFERENCES:
 
 ..  [wp:ChowRing]
-    http://en.wikipedia.org/wiki/Chow_ring
+    :wikipedia:`Chow_ring`
 
 ..  [FMSS1]
     Fulton, MacPherson, Sottile, Sturmfels:
     *Intersection theory on spherical varieties*,
     J. of Alg. Geometry 4 (1995), 181-193.
-    http://www.math.tamu.edu/~frank.sottile/ps/spherical.ps.gz
+    http://www.math.tamu.edu/~frank.sottile/research/ps/spherical.ps.gz
 
 ..  [FultonChow]
     Chapter 5.1 "Chow Groups" of Fulton, William:
@@ -264,7 +265,7 @@ class ChowCycle(FGP_Element):
         for i, cone in enumerate(self.parent()._cones):
             if self.lift()[i]!=0:
                 if cone_dim not in [None,cone.dim()]:
-                    raise ValueError, 'Chow cycle is not of definite degree.'
+                    raise ValueError('Chow cycle is not of definite degree.')
                 cone_dim = cone.dim()
         self._dim = ambient_dim - cone_dim
         return self._dim
@@ -322,7 +323,7 @@ class ChowCycle(FGP_Element):
             5
 
         In the case of a smooth complete toric variety, the Chow
-        (homology) groups are Poincare dual to the integral cohomology
+        (homology) groups are Poincaré dual to the integral cohomology
         groups. Here is such a smooth example::
 
             sage: D = P2.divisor(1)
@@ -454,7 +455,7 @@ class ChowCycle(FGP_Element):
 
     def cohomology_class(self):
         r"""
-        Return the (Poincare-dual) cohomology class.
+        Return the (Poincaré-dual) cohomology class.
 
         Consider a simplicial cone of the fan, that is, a
         `d`-dimensional cone spanned by `d` rays. Take the product of
@@ -462,13 +463,13 @@ class ChowCycle(FGP_Element):
         represents a cohomology classes of the toric variety `X`, see
         :meth:`~sage.schemes.toric.variety.ToricVariety_field.cohomology_ring`.
         Its cohomological degree is `2d`, which is the same degree as
-        the Poincare-dual of the (real) `\dim(X)-2d`-dimensional torus
+        the Poincaré-dual of the (real) `\dim(X)-2d`-dimensional torus
         orbit associated to the simplicial cone. By linearity, we can
         associate a cohomology class to each Chow cycle of a
         simplicial toric variety.
 
         If the toric variety is compact and smooth, the associated
-        cohomology class actually is the Poincare dual (over the
+        cohomology class actually is the Poincaré dual (over the
         integers) of the Chow cycle. In particular, integrals of dual
         cohomology classes perform intersection computations.
 
@@ -532,7 +533,7 @@ class ChowCycle(FGP_Element):
         """
         toric_variety = self.parent().scheme()
         if not toric_variety.is_orbifold():
-            raise(ValueError, 'The toric variety may have at most orbifold singularities!')
+            raise ValueError
         HH = toric_variety.cohomology_ring()
         coeff = self.lift()
         return sum([ HH(cone) * coeff[i] for i,cone in enumerate(self.parent()._cones) ])
@@ -565,10 +566,10 @@ class ChowGroupFactory(UniqueFactory):
             True
         """
         if not is_ToricVariety(toric_variety):
-            raise ValueError, 'First argument must be a toric variety.'
+            raise ValueError('First argument must be a toric variety.')
 
         if not base_ring in [ZZ,QQ]:
-            raise ValueError, 'Base ring must be either ZZ or QQ.'
+            raise ValueError('Base ring must be either ZZ or QQ.')
 
         key = tuple([toric_variety, base_ring])
         extra = {'check':check}
@@ -640,7 +641,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: 1/2 * A_ZZ.an_element() * 1/3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Rational Field'
+            TypeError: unsupported operand parent(s) for *: 'Rational Field'
             and 'Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches'
             sage: A_ZZ.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Chow group of 2-d
@@ -786,7 +787,7 @@ class ChowGroup_class(FGP_Module_class):
         return V.span(relations)
 
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of the Chow group by a subgroup.
 
@@ -803,7 +804,7 @@ class ChowGroup_class(FGP_Module_class):
             ...
             NotImplementedError: Quotients of the Chow group are not implemented.
         """
-        raise NotImplementedError, 'Quotients of the Chow group are not implemented.'
+        raise NotImplementedError('Quotients of the Chow group are not implemented.')
 
 
     def _repr_(self):
@@ -824,7 +825,7 @@ class ChowGroup_class(FGP_Module_class):
         elif self.base_ring() == ZZ:
             return "Chow group of " + str(self._variety)
         else:
-            raise(ValueError, 'Base ring must be QQ or ZZ.')
+            raise ValueError
 
 
     def __eq__(self, other):
@@ -858,7 +859,7 @@ class ChowGroup_class(FGP_Module_class):
 
         - ``cone`` -- a :class:`sage.geometry.cone.ConvexRationalPolyhedralCone`.
 
-        OUPUT:
+        OUTPUT:
 
         The corresponding element of ``self.V()``.
 
@@ -896,7 +897,7 @@ class ChowGroup_class(FGP_Module_class):
         .. NOTE::
 
             * For a smooth toric variety, this is the same as the
-              Poincare-dual cohomology group
+              Poincaré-dual cohomology group
               `H^{d-2k}(X,\ZZ)`.
 
             * For a simplicial toric variety ("orbifold"),
@@ -908,7 +909,7 @@ class ChowGroup_class(FGP_Module_class):
         with `A_1(X)=\ZZ\oplus\ZZ/3\ZZ`::
 
             sage: X = ToricVariety(Fan(cones=[[0,1],[1,2],[2,0]],
-            ...                        rays=[[2,-1],[-1,2],[-1,-1]]))
+            ....:                      rays=[[2,-1],[-1,2],[-1,-1]]))
             sage: A = X.Chow_group()
             sage: A.degree(1)
             C3 x Z
@@ -916,7 +917,7 @@ class ChowGroup_class(FGP_Module_class):
         Second, an example with `A_2(X)=\ZZ^2`::
 
             sage: points = [[1,0,0],[0,1,0],[0,0,1],[1,-1,1],[-1,0,-1]]
-            sage: l = LatticePolytope(matrix(points).transpose())
+            sage: l = LatticePolytope(points)
             sage: l.show3d()
             sage: X = ToricVariety(FaceFan(l))
             sage: A = X.Chow_group()
@@ -926,8 +927,8 @@ class ChowGroup_class(FGP_Module_class):
         Third, an example with `A_2(X)=\ZZ^5`::
 
             sage: cube = [[ 1,0,0],[0, 1,0],[0,0, 1],[-1, 1, 1],
-            ...           [-1,0,0],[0,-1,0],[0,0,-1],[ 1,-1,-1]]
-            sage: lat_cube = LatticePolytope(matrix(cube).transpose())
+            ....:         [-1,0,0],[0,-1,0],[0,0,-1],[ 1,-1,-1]]
+            sage: lat_cube = LatticePolytope(cube)
             sage: X = ToricVariety(FaceFan((LatticePolytope(lat_cube))))
             sage: X.Chow_group().degree(2)
             Z^5
@@ -940,9 +941,9 @@ class ChowGroup_class(FGP_Module_class):
         torsion, `A_2(X)=\ZZ^5 \oplus \ZZ/2`::
 
             sage: rays = [[ 1, 2, 3],[ 1,-1, 1],[-1, 1, 1],[-1,-1, 1],
-            ...           [-1,-1,-1],[-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]]
+            ....:         [-1,-1,-1],[-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]]
             sage: cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],
-            ...            [4,5,3,2],[0,2,5,7],[4,6,1,3]]
+            ....:          [4,5,3,2],[0,2,5,7],[4,6,1,3]]
             sage: X = ToricVariety(Fan(cones, rays))
             sage: X.Chow_group().degree(2)  # long time (2s on sage.math, 2011)
             C2 x Z^5
@@ -950,12 +951,12 @@ class ChowGroup_class(FGP_Module_class):
         Finally, Example 1.3 of [FS]_::
 
             sage: points_mod = lambda k: matrix([[ 1, 1, 2*k+1],[ 1,-1, 1],
-            ...                              [-1, 1, 1],[-1,-1, 1],[-1,-1,-1],
-            ...                              [-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]])
+            ....:                            [-1, 1, 1],[-1,-1, 1],[-1,-1,-1],
+            ....:                            [-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]])
             sage: rays = lambda k: matrix([[1,1,1],[1,-1,1],[-1,1,1]]
-            ...                              ).solve_left(points_mod(k)).rows()
+            ....:                            ).solve_left(points_mod(k)).rows()
             sage: cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],
-            ...            [4,5,3,2],[0,2,5,7],[4,6,1,3]]
+            ....:          [4,5,3,2],[0,2,5,7],[4,6,1,3]]
             sage: X_Delta = lambda k: ToricVariety(Fan(cones=cones, rays=rays(k)))
             sage: X_Delta(0).Chow_group().degree()  # long time (3s on sage.math, 2011)
             (Z, Z, Z^5, Z)
@@ -966,7 +967,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: X_Delta(2).Chow_group(base_ring=QQ).degree()  # long time (4s on sage.math, 2011)
             (Q, 0, Q^5, Q)
         """
-        if k!=None:
+        if k is not None:
             return self.degree()[k]
 
         try:
@@ -994,7 +995,7 @@ class ChowGroup_class(FGP_Module_class):
 
         OUTPUT:
 
-        * If ``degree==None`` (default), the coordinate vector
+        * If ``degree is None`` (default), the coordinate vector
           relative to the basis ``self.gens()`` is returned.
 
         * If some integer ``degree=d`` is specified, the chow cycle is
@@ -1010,7 +1011,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: A.coordinate_vector(a, degree=1)
             (2)
         """
-        if degree==None:
+        if degree is None:
             return super(ChowGroup_class, self).coordinate_vector(chow_cycle, reduce=reduce)
 
         a = chow_cycle.project_to_degree(degree)
@@ -1042,7 +1043,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: A.gens(degree=1)
             (( 0 | 1 | 0 ),)
         """
-        if degree==None:
+        if degree is None:
             return super(ChowGroup_class, self).gens()
         else:
             return self.degree(degree).gens()
@@ -1053,7 +1054,7 @@ class ChowGroup_class(FGP_Module_class):
         Return the Chow cycles equivalent to zero.
 
         For each `d-k-1`-dimensional cone `\rho \in \Sigma^{(d-k-1)}`,
-        the relations in `A_k(X)`, that is the cycles equvalent to
+        the relations in `A_k(X)`, that is the cycles equivalent to
         zero, are generated by
 
         .. MATH::
@@ -1180,15 +1181,15 @@ class ChowGroup_degree_class(SageObject):
         if len(invariants)==0:
             return '0'
 
-        free = filter(lambda x:x==0, invariants)
-        tors = filter(lambda x:x> 0, invariants)
+        free = [x for x in invariants if x==0]
+        tors = [x for x in invariants if x> 0]
 
         if self._Chow_group.base_ring()==ZZ:
             ring = 'Z'
         elif self._Chow_group.base_ring()==QQ:
             ring = 'Q'
         else:
-            raise NotImplementedError, 'Base ring must be ZZ or QQ.'
+            raise NotImplementedError('Base ring must be ZZ or QQ.')
 
         s = ['C' + str(x) for x in tors]
         if len(free)==1:

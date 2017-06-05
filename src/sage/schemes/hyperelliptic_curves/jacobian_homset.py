@@ -40,18 +40,22 @@ EXAMPLES::
     sage: D1+D2
     (x^2 + 2*x + 2, y + 2*x + 1)
 """
-
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
-from sage.rings.all import is_Polynomial, PolynomialRing, Integer, is_Integer, ZZ
+from sage.rings.all import PolynomialRing, Integer, ZZ
+
+from sage.rings.integer import is_Integer
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.schemes.generic.morphism import is_SchemeMorphism
-from sage.schemes.generic.spec import Spec, is_Spec
-from jacobian_morphism import JacobianMorphism_divisor_class_field
+from .jacobian_morphism import JacobianMorphism_divisor_class_field
 
 class JacobianHomset_divisor_classes(SchemeHomset_points):
     def __init__(self, Y, X, **kwds):
@@ -114,7 +118,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
             (x^2 + 2*x + 2, y + 2*x + 1)
 
         """
-        if isinstance(P,(int,long,Integer)) and P == 0:
+        if isinstance(P, integer_types + (Integer,)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
             return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
         elif isinstance(P,(list,tuple)):
@@ -141,14 +145,14 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
                     return JacobianMorphism_divisor_class_field(self, tuple(P))
                 if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
                     return self(P1) - self(P2)
-            raise TypeError, "Argument P (= %s) must have length 2."%P
+            raise TypeError("Argument P (= %s) must have length 2."%P)
         elif isinstance(P,JacobianMorphism_divisor_class_field) and self == P.parent():
             return P
         elif is_SchemeMorphism(P):
             x0 = P[0]; y0 = P[1]
             R, x = PolynomialRing(self.value_ring(), 'x').objgen()
             return self((x-x0,R(y0)))
-        raise TypeError, "Argument P (= %s) does not determine a divisor class"%P
+        raise TypeError("Argument P (= %s) does not determine a divisor class"%P)
 
     def _cmp_(self,other):
         if self.curve() == other.curve():
@@ -166,13 +170,14 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
         """
         Returns S for a homset X(T) where T = Spec(S).
         """
+        from sage.schemes.generic.scheme import is_AffineScheme
         T = self.domain()
-        if is_Spec(T):
+        if is_AffineScheme(T):
             return T.coordinate_ring()
         else:
-            raise TypeError, "Domain of argument must be of the form Spec(S)."
+            raise TypeError("Domain of argument must be of the form Spec(S).")
 
     def base_extend(self, R):
         if R != ZZ:
-            raise NotImplementedError, "Jacobian point sets viewed as modules over rings other than ZZ not implemented"
+            raise NotImplementedError("Jacobian point sets viewed as modules over rings other than ZZ not implemented")
         return self

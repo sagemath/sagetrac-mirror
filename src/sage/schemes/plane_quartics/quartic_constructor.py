@@ -1,6 +1,7 @@
 """
 Quartic curve constructor
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -8,10 +9,10 @@ Quartic curve constructor
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.schemes.projective.all import is_ProjectiveSpace, ProjectiveSpace
-from sage.rings.all import is_MPolynomial
+from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 
-from quartic_generic import QuarticCurve_generic
+from .quartic_generic import QuarticCurve_generic
 
 def QuarticCurve(F, PP=None, check=False):
     """

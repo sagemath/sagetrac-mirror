@@ -4,28 +4,39 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. _sec-installation-from-sources:
+
 Install from Source Code
 ========================
 
+.. contents:: Table of contents
+   :depth: 2
+
 More familiarity with computers may be required to build Sage from
 the `source code <http://en.wikipedia.org/wiki/Source_code>`_.
-If you do have all the pre-requisite tools, the process should be completely
+If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
+the process should be completely
 painless, basically consisting in extracting the source tarball and typing
-``make``.
-It can take your computer a while to build Sage from the source code,
+``make``.  It can take your computer a while to build Sage from the source code,
 although the procedure is fully automated and should need no human
 intervention.
+
 Building Sage from the source code has the major advantage that your install
-will be optimised for your particular computer and should therefore offer
+will be optimized for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
 Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <http://www.sagemath.org/download-source.html>`_.
-If you changed your mind, you can also download a
+`Download the Sage source code <http://www.sagemath.org/download-source.html>`_
+or get it from the `git repository <https://github.com/sagemath/sage>`_.
+Note: if you  are installing Sage for development, you should rather follow
+the instructions in
+`The Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
+
+It is also possible to download a
 `binary distribution <http://www.sagemath.org/download.html>`_
-for some operating systems.
+for some operating systems, rather than compiling from source.
 
 Supported platforms
 -------------------
@@ -48,59 +59,104 @@ you can find details about
 `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
 to other operating systems or processors which may be taking place.
 
+.. _section-prereqs:
+
 Prerequisites
 -------------
 
 General requirements
 ~~~~~~~~~~~~~~~~~~~~
 
-Your computer comes with at least 5 GB of free disk space running one of the
+This section details the technical prerequisites needed on all platforms. See
+also the `System-specific requirements`_ below.
+
+Disk space and memory
+^^^^^^^^^^^^^^^^^^^^^
+
+Your computer comes with at least 6 GB of free disk space running one of the
 supported versions of an operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 
+Command-line tools
+^^^^^^^^^^^^^^^^^^
+
 In addition to standard `POSIX <http://en.wikipedia.org/wiki/POSIX>`_ utilities
-and a `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_-compatible shell,
+and the `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C compiler**: Since Sage builds its own GCC if needed,
-  a wide variety of C compilers is supported.
+- A **C/C++ compiler**: Since Sage builds its own GCC if needed,
+  a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
+  Clang also works.
   On Solaris systems, the Sun compiler should also work.
-  Clang currently does not work.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
+- **python**: Python >= 2.6.
 
-Sage also needs a C++ compiler and a Fortran compiler.
+
+Libraries
+^^^^^^^^^
+
+Some Sage components (and among them, most notably, Python) *"use the
+OpenSSL library for added performance if made available by the
+operating system"* (literal quote from the Python license). Testing
+has proved that :
+
+   * Sage can be successfully built against other SSL libraries (at
+     least GnuTLS).
+
+   * Sage's ``-pip`` facility (used to install some Sage packages) is
+     disabled when Sage is compiled against those libraries.
+
+Furthermore, the Sage license mention that the ``hashlib`` library
+(used in Sage) uses OpenSSL.
+
+Therefore, the OpenSSL library is recommended. However, Sage's license
+seems to clash with OpenSSL license, which makes the distribution of
+OpenSSL along with Sage sources dubious. However, there is no problem
+for Sage using a systemwide-installed OpenSSL library.
+
+In any case, you must install systemwide your chosen library and its
+development files.
+
+
+Fortran and compiler suites
+###########################
+
+Sage also needs a Fortran compiler.
 The only configuration currently supported is matching versions of the
 C, C++ and Fortran compilers from the
 `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
+
 Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
 e.g., non-GCC compilers, or
 versions of the GCC compilers known to miscompile some components of Sage,
-or simply a missing C++ or Fortran compiler.
-Whatsoever, you always need at least a C compiler to build the GCC package and
-its prerequisites before the compilers it provides can be used.
+or simply a missing Fortran compiler.
+In any case, you always need at least a C/C++ compiler to build the GCC
+package and its prerequisites before the compilers it provides can be used.
+
 Note that you can always override this behavior through the environment
 variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
 :ref:`section_envvar`.
 
-Although some of Sage is written in `Python <http://www.python.org/>`_, you do
-not need Python pre-installed on your computer, since the Sage installation
-includes virtually everything you need.
+Other notes
+^^^^^^^^^^^
 
-After extracting the Sage tarball, the subdirectory :file:`spkg` contains the
-source distributions for everything on which Sage depends.
+After extracting the Sage tarball, the subdirectory :file:`upstream`
+contains the source distributions for everything on which Sage depends.
+If cloned from a git repository, the upstream tarballs will be downloaded,
+verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.
@@ -112,11 +168,16 @@ and inform you of any that are missing, or have unsuitable versions.
 System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
+On Mac OS X, there are various developer tools needed which may require
+some registration on Apple's developer site; see
+:ref:`section_macprereqs`.
+
+On Redhat-derived systems not all perl components are installed by
+default and you might have to install the **perl-ExtUtils-MakeMaker**
+package.
 
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
-provide ATLAS support as the ATLAS spkg is not built by default.
+provide ATLAS support as the Sage package for ATLAS is not built by default.
 
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,6 +195,9 @@ on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
+Linux prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <http://www.gnu.org/software/binutils/>`_ package.
 The other programs are usually located in packages with their respective names.
@@ -147,31 +211,72 @@ distribution, but on a `Debian <http://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <http://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     sudo apt-get install binutils gcc make m4 perl tar
+     # debian
+     sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
 
-to install all general requirements (this was tested on Ubuntu 12.04.2).
+     # redhat
+     sudo yum install binutils gcc make m4 perl tar git \
+     perl-ExtUtils-MakeMaker openssl openssl-devel
+     
+to install all general requirements, or, if you don't want Sage to build its
+own GCC::
+
+     # debian
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
+     git openssl libssl-dev
+
+     # redhat
+     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
+     tar git perl-ExtUtils-MakeMaker openssl openssl-devel
+     
+(These examples suppose that you choose to use a systemwide OpenSSL
+library. This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
 or other package managers.
 
+.. _section_macprereqs:
+
+Mac OS X prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 On OS X systems, you need a recent version of
-`Command Line Tools <http://developer.apple.com/opensource/>`_.
+`Command Line Tools <http://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
-You can download it for free at
-http://developer.apple.com/downloads/index.action?=command%20line%20tools
-provided you registered for a free Apple Developer account at
-http://developer.apple.com/register/.
-Alternatively, if you have already installed
-`Xcode <http://developer.apple.com/xcode/>`_
+
+If you have already installed `Xcode <http://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through http://developer.apple.com/downloads/ provided you registered for an
-Apple Developer account),
-you can open Xcode's "Downloads" preference pane and install the command line
-tools from there.
-On pre-Lion OS X systems, the command line tools are not available as a
-separate download and you have to install the full-blown Xcode supporting your
-system version.
+Apple Developer account), you can install the command line tools from
+there as well.
+
+- With OS X Mavericks or Yosemite, run the command
+  ``xcode-select --install`` from a Terminal window and click "Install"
+  in the pop-up dialog box.
+
+- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
+  preference pane and install the command line tools from there.
+
+- On pre-Lion OS X systems, the command line tools are not available as a
+  separate download and you have to install the full-blown Xcode supporting your
+  system version.
+
+If you have not installed `Xcode <http://developer.apple.com/xcode/>`_
+you can get these tools as a relatively small download, but it does require
+a registration.
+
+- First, you will need to register as an Apple Developer at
+  http://developer.apple.com/register/.
+
+- Having done so, you should be able to download it for free at
+  http://developer.apple.com/downloads/index.action?=command%20line%20tools
+
+- Alternately, https://developer.apple.com/opensource/ should have a link
+  to Command Line Tools.
+
+Other platforms
+^^^^^^^^^^^^^^^
 
 On Solaris, you would use ``pkgadd`` and on OpenSolaris ``ipf`` to install
 the necessary software.
@@ -217,17 +322,18 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, Sage build process should succeed with any reasonable C compiler.
+Nonetheless, the Sage build process should succeed with any reasonable C/C++ compiler.
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
+Make sure you have C, C++, and Fortran compilers installed!
 
-Clang is currently not supported, see :trac:`12426`.
+Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
-If you are interested in working on support for commerical compilers from
+If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
 `IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
 `Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
@@ -244,26 +350,28 @@ Recommended programs
 
 The following programs are recommended.
 They are not strictly required at build time or at run time,
-but provide additional capablities:
+but provide additional capabilities:
 
 - **dvipng**.
 - **ffmpeg**.
 - **ImageMagick**.
-- **latex**: highly recommended.
+- **LaTeX**: highly recommended.
 
 It is highly recommended that you have
-`Latex <http://en.wikipedia.org/wiki/LaTeX>`_
+`LaTeX <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
+The most popular packaging is `TeX Live <http://www.tug.org/texlive/>`_,
+which can be installed following the directions on their web site.
+On Linux systems you can alternatively install your distribution's
+texlive packages::
 
-On Linux systems, it is usually provided by packages derived from
-`TeX Live <www.tug.org/texlive/>`_  and can be installed using::
+    sudo apt-get install texlive       # debian
+    sudo yum install texlive           # redhat
 
-    sudo apt-get install texlive
-
-or similar commands.
-
-On other systems it might be necessary to install TeX Live from source code,
-which is quite easy, though a rather time-consuming process.
+or similar commands. In addition to the base TeX Live install, you may
+need some optional TeX Live packages, for example
+country-specific babel packages for the localized Sage
+documentation.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -284,19 +392,15 @@ or to use `OpenID <http://en.wikipedia.org/wiki/OpenID>`_ authentication,
 you need to follow specific installation steps described in
 :ref:`section_notebook_ssl`.
 
-Although all necessary components are provided through Sage optional packages,
-i.e. you can install a local version of `OpenSSL <http://www.openssl.org>`_
-by using Sage's **openssl** spkg and running ``sage -i openssl`` as suggested
-in :ref:`section_notebook_ssl` (this requires an Internet connection),
-you might prefer to install OpenSSL and the OpenSSL development headers
-globally on your system.
-
-On Linux systems, those are usually provided by the **libssl** and
-**libssl-dev** packages and can be installed using::
-
-    sudo apt-get install libssl libssl-dev
-
-or similar commands.
+Although all necessary components are provided through Sage optional
+packages, i.e., even if you choose not to install a systemwide version
+of OpenSSL, you can install a local (Sage_specific) version of
+`OpenSSL <http://www.openssl.org>`_ by using Sage's **openssl**
+package and running ``sage -i openssl`` as suggested in
+:ref:`section_notebook_ssl` (this requires an Internet
+connection). Alternatively, you might prefer to install OpenSSL and
+the OpenSSL development headers globally on your system, as described
+above.
 
 Finally, if you intend to distribute the notebook load onto several Sage
 servers, you will surely want to setup an
@@ -327,12 +431,11 @@ On Linux systems, these are usually provided by the **tk** and **tk-dev**
 
 or similar commands.
 
-If you installed Sage first, all is not lost.
-You just need to rebuild Sage's Python, , and ideally any part of Sage relying
-on it::
+If you installed Sage first, all is not lost. You just need to rebuild
+Sage's Python and any part of Sage relying on it::
 
-    sage -f python  # rebuild Python
-    SAGE_UPGRADING=yes make # rebuild components of Sage depending on Python
+    sage -f python2  # rebuild Python
+    make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -347,6 +450,7 @@ If
 
 does not raise an ``ImportError``, then it worked.
 
+.. _build-from-source-step-by-step:
 
 Step-by-step installation procedure
 -----------------------------------
@@ -363,7 +467,7 @@ several of Sage's components will not build if there are spaces in the path.
 Running Sage from a directory with spaces in its name will also fail.
 
 #. Go to http://www.sagemath.org/download-source.html, select a mirror,
-   and download the file :file:`sage-x.y.z.tar`.
+   and download the file :file:`sage-x.y.tar`.
 
    This tarfile contains the source code for Sage and the source for all
    programs on which Sage depends.
@@ -374,27 +478,26 @@ Running Sage from a directory with spaces in its name will also fail.
    fast filesystem, avoiding
    `NFS <http://en.wikipedia.org/wiki/Network_File_System>`_ and the like.
    On personal computers, any subdirectory of your :envvar:`HOME` directory
-   should do.
-   The directory where you built Sage is **NOT** hardcoded.
-   You should be able to safely move or rename that directory.
-   (It's a bug if this is not the case.)
+   should do. Note that once you have built Sage (by running ``make``,
+   as described below), you will not be able to move or rename its
+   directory without likely breaking Sage.
 
 #. Extract the tarfile::
 
-       tar xvf sage-x.y.z.tar
+       tar xvf sage-x.y.tar
 
-   This creates a directory :file:`sage-x.y.z`.
+   This creates a directory :file:`sage-x.y`.
 
 #. Change into that directory::
 
-       cd sage-x.y.z
+       cd sage-x.y
 
    This is Sage's home directory.
    It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
    directory.
 
 #. Optional, but highly recommended:
-   Read the :file:`README.txt` file there.
+   Read the :file:`README.md` file there.
 
 #. On OSX 10.4, OS 10.5, Solaris 10 and OpenSolaris, if you wish to build a
    64-bit version of Sage, assuming your computer and operating system are
@@ -408,21 +511,46 @@ Running Sage from a directory with spaces in its name will also fail.
    This will then create stable 32-bit versions of Sage.
    See http://wiki.sagemath.org/solaris for the latest information.
 
+#. Optional:  Set various other environment variables that influence the
+   build process; see :ref:`section_envvar`.
+
+#. Optional:  Run the configure script to set some options that
+   influence the build process.
+
+   - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
+     The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
+
+       ./configure --prefix=SAGE_LOCAL
+
+     Note that in Sage's build process, ``make`` builds **and**
+     installs (``make install`` is a no-op).  Therefore the
+     installation hierarchy must be writable by the user.
+
+   - Other options are available; see::
+
+       ./configure --help
+
 #. Start the build process::
 
        make
 
-   or if your system is multithreaded and you want to use several threads to
-   build Sage::
+   or if your system supports multiprocessing and you want to use several
+   processes to build Sage::
 
        MAKE='make -jNUM' make
 
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
-   Sage.
-   This compiles Sage and all its dependencies.
+   Sage. This compiles Sage and all its dependencies.
+
+   .. NOTE::
+
+      Mac OS X allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for OS X. Ignoring exact
+      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+      errors for dependencies requiring exact capitalization in path names.
 
    Note that you do not need to be logged in as root, since no files are
-   changed outside of the :file:`sage-x.y.z` directory.
+   changed outside of the :file:`sage-x.y` directory.
    In fact, **it is inadvisable to build Sage as root**, as the root account
    should only be used when absolutely necessary and mistyped commands can have
    serious consequences if you are logged in as root.
@@ -453,7 +581,7 @@ Running Sage from a directory with spaces in its name will also fail.
    we appreciate everything.)
 
    See :ref:`section_make` for some targets for the ``make`` command,
-   :ref:`section_envvar` for additional informatio on useful environment
+   :ref:`section_envvar` for additional information on useful environment
    variables used by Sage,
    and :ref:`section_notebook_ssl` for additional instruction on how to build
    the notebook with SSL support.
@@ -536,7 +664,7 @@ Running Sage from a directory with spaces in its name will also fail.
    - Make a symbolic link from :file:`/usr/local/bin/sage` (or another
      directory in your :envvar:`PATH`) to :file:`$SAGE_ROOT/sage`::
 
-         ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+         ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
      Now simply typing ``sage`` from any directory should be sufficient to run
      Sage.
@@ -558,7 +686,7 @@ Running Sage from a directory with spaces in its name will also fail.
      ``sage`` containing the lines
      (note that you have to change ``<SAGE_ROOT>`` below!)::
 
-         #!/bin/bash
+         #!/usr/bin/env bash
 
          konsole -T "sage" -e <SAGE_ROOT>/sage
 
@@ -634,8 +762,8 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     ./sage -i openssl
-    ./sage -f python
-    SAGE_UPGRADING=yes make ssl
+    ./sage -f python2
+    make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
 this can take a while.
@@ -706,16 +834,24 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
-- ``make build-serial`` builds the components of Sage serially, rather
-  than in parallel (parallel building is the default).
-  Running ``make build-serial`` is equivalent to setting the environment
-  variable :envvar:`SAGE_PARALLEL_SPKG_BUILD` to "no" -- see below for
-  information about this variable.
+- ``make doc-html-no-plot`` builds Sage's documentation in html format
+  but skips the inclusion of graphics auto-generated using the
+  ``.. PLOT`` markup and the ``sphinx_plot`` function. This is
+  primarily intended for use when producing certain binary
+  distributions of Sage, to lower the size of the distribution. As of
+  this writing (December 2014, Sage 6.5), there are only a few such
+  plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
+  In the future, this may grow, of course. Note: after using this, if you
+  want to build the documentation and include the pictures, you should
+  run ``make doc-clean``, because the presence, or lack, of pictures
+  is cached in the documentation output.
+  You can benefit from this no-plot feature with other make targets by doing
+  ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
 
 - ``make ptest`` and ``make ptestlong``: these run Sage's test suite.
-  The first version skips tests that needs more than a few seconds to complete
-  and those which depends on optional packages or additional software.
-  The second version includes them the former, and so it takes longer.
+  The first version skips tests that need more than a few seconds to complete
+  and those which depend on optional packages or additional software.
+  The second version includes the former, and so it takes longer.
   The "p" in ``ptest`` stands for "parallel": tests are run in parallel.
   If you want to run tests serially, you can use ``make test`` or
   ``make testlong`` instead.
@@ -723,9 +859,13 @@ how it is built:
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
 
+- ``make doc-clean`` removes several directories which are produced
+  when building the documentation.
+
 - ``make distclean`` restores the Sage directory to its state before doing any
-  building: it is equivalent to deleting the entire Sage's home directory and
-  unpacking the source tarfile again.
+  building: it is almost equivalent to deleting Sage's entire home directory and
+  unpacking the source tarfile again, the only difference being that the
+  :file:`.git` directory is preserved, so git branches are not deleted.
 
 .. _section_envvar:
 
@@ -739,6 +879,31 @@ platforms.
 speed up the process.)
 Building Sage involves building about 100 packages, each of which has its own
 compilation instructions.
+
+The Sage source tarball already includes the sources for all standard
+packages, that is, it allows you to build Sage without internet
+connection. The git repository, however, does not contain the source
+code for third-party packages. Instead, it will be downloaded as
+needed (Note: you can run ``make download`` to force downloading
+packages before building). Package downloads use the Sage mirror
+network, the nearest mirror will be determined automatically for
+you. This is influenced by the following environment variable:
+
+- :envvar:`SAGE_SERVER` - Try the specified mirror first, before
+  falling back to the official Sage mirror list. Note that Sage will
+  search the directory
+
+  - ``SAGE_SERVER/spkg/upstream``
+
+  for clean upstream tarballs, and it searches the directories
+
+  - ``SAGE_SERVER/spkg/standard/``,
+  - ``SAGE_SERVER/spkg/optional/``,
+  - ``SAGE_SERVER/spkg/experimental/``,
+  - ``SAGE_SERVER/spkg/archive/``
+
+  for old-style Sage packages.
+
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -772,16 +937,17 @@ Here are some of the more commonly used variables affecting the build process:
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
 
-- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if set to ``no``, then build spkgs
-  serially rather than in parallel.
-  If this is set to ``no``, then each spkg may still take advantage of the setting
-  of :envvar:`MAKE` to build using multiple jobs, but the spkgs will be built
-  one at a time.
-  Alternatively, run ``make build-serial`` which sets this environment
-  variable for you.
+- :envvar:`V` - if set to ``0``, silence the build.  Instead of
+  showing a detailed compilation log, only one line of output is shown
+  at the beginning and at the end of the installation of each Sage
+  package.  To see even less output, use::
+
+    make -s V=0
+
+  (Note that the above uses the syntax of setting a Makefile variable.)
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
-  and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
+  or when installing packages manually,
   run the test suite for each package which has one.
   See also :envvar:`SAGE_CHECK_PACKAGES`.
 
@@ -822,7 +988,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
   whether to install the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
-  package or not (depending on whether C, C++ and Fortran compilers are present
+  package or not (depending on whether C, C++, and Fortran compilers are present
   and the versions of those compilers).
   Setting ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
   Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing GCC.
@@ -856,14 +1022,10 @@ Here are some of the more commonly used variables affecting the build process:
     These will be notably slower but, for example, make it much easier to
     pinpoint memory allocation problems.
 
-- :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
-  extraction of tar files, i.e. Sage's spkg files.
-  Since some spkgs contain such a huge number of files that the log files
-  get very large and harder to search (and listing the contained files is
-  usually less valuable), we decided to turn this off by default.
-  This variable affects builds of Sage with ``make`` (and ``sage --upgrade``)
-  as well as the manual installation of individual spkgs with e.g. ``sage -i``
-  or ``sage -f``.
+- :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
+  to ``yes``, profiling support is enabled where possible. Note that
+  Python-level profiling is always available; This option enables
+  profiling in Cython modules.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
   package-specific documentation to
@@ -881,10 +1043,20 @@ Here are some of the more commonly used variables affecting the build process:
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
 
+- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
+  argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
+  you run ``make``, ``make doc``, or ``make doc-pdf``.
+  For example, you can add ``--no-plot`` to this variable to avoid building
+  the graphics coming from the ``.. PLOT`` directive within the documentation,
+  or you can add ``--include-tests-blocks`` to include all "TESTS" blocks in the
+  reference manual. Run ``sage --docbuild help`` to see the full list
+  of options.
+
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
-  subdirectory of :file:`$SAGE_ROOT/spkg/build/`; for example, build
-  :file:`atlas-3.8.3.p12.spkg` in the directory
-  :file:`$SAGE_ROOT/spkg/build/atlas-3.8.3.p12/`.
+  subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
+  example, build version 3.8.3.p12 of
+  :file:`atlas` in the directory
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build/atlas-3.8.3.p12/`.
   If this variable is set, then build in
   :file:`$SAGE_BUILD_DIR/atlas-3.8.3.p12/` instead.
   If the directory :file:`$SAGE_BUILD_DIR` does not exist, it is created.
@@ -905,7 +1077,8 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_KEEP_BUILT_SPKGS` - the default behavior is to delete each
   build directory -- the appropriate subdirectory of
-  :file:`$SAGE_ROOT/spkg/build` or :file:`$SAGE_BUILD_DIR` -- after each spkg
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build` or
+  :file:`$SAGE_BUILD_DIR` -- after each spkg
   is successfully built, and to keep it if there were errors installing the
   spkg.
   Set this variable to ``yes`` to keep the subdirectory regardless.
@@ -913,7 +1086,8 @@ Here are some of the more commonly used variables affecting the build process:
   corresponding subdirectory, for example left over from a previous build,
   then the default behavior is to delete that old subdirectory.
   If this variable is set to ``yes``, then the old subdirectory is moved to
-  :file:`$SAGE_ROOT/spkg/build/old/` (or :file:`$SAGE_BUILD_DIR/old`),
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build/old/` (or
+  :file:`$SAGE_BUILD_DIR/old`),
   overwriting any already existing file or directory with the same name.
 
   .. note::
@@ -936,13 +1110,38 @@ Here are some of the more commonly used variables affecting the build process:
       So you can set this variable to ``yes`` instead of using the ``-s`` flag
       for ``sage -i`` and ``sage -f``.
 
-- :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that will run
-  on the widest range of target machines, set this variable to ``yes`` before
-  building Sage::
+- :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
+  widest range of target CPUs set this variable to ``yes`` before
+  building Sage. This does not make the binaries relocatable, it only
+  avoids newer CPU instruction set extensions. For relocatable (=can
+  be moved to a different directory) binaries, you must use
+  https://github.com/sagemath/binary-pkg
 
-      export SAGE_FAT_BINARY="yes"
-      make
-      ./sage --bdist x.y.z-fat
+- :envvar:`SAGE_SUDO` - set this to ``sudo -E`` or to any other
+  command prefix that is necessary to write into a installation
+  hierarchy (:envvar:`SAGE_LOCAL`) owned by root or another user.
+  Note that this command needs to preserve environment variable
+  settings (plain ``sudo`` does not).
+
+  Not all Sage packages currently support :envvar:`SAGE_SUDO`.
+
+  Therefore this environment variable is most useful when a system
+  administrator wishes to install an additional Sage package that
+  supports :envvar:`SAGE_SUDO`, into a root-owned installation
+  hierarchy (:envvar:`SAGE_LOCAL`).
+
+- :envvar:`SAGE_PYTHON3` - set this to ``yes`` to build Sage using
+  Python 3 rather than Python 2.
+
+  .. WARNING::
+
+     This will probably break your Sage installation!
+
+  .. WARNING::
+
+     This environment variable may not be supported in future versions
+     of Sage; it may be replaced by (for example) ``configure``
+     options.
 
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
@@ -966,14 +1165,12 @@ an unsupported machine or an unusual compiler:
   directions: set :envvar:`SAGE_PORT` to something non-empty (and expect to
   run into problems).
 
-- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires GCC with a
-  version number of at least 4.0.1.
-  If the most recent version of GCC on your system is the older 3.4.x series
-  and you want to build with ``SAGE_INSTALL_GCC=no``, then set
-  :envvar:`SAGE_USE_OLD_GCC` to something non-empty.
-  Expect the build to fail in this case.
-
 Environment variables dealing with specific Sage packages:
+
+- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
+  for multiprecision integer arithmetic. Supported values are
+
+    ``MPIR`` (default choice), ``GMP``.
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
@@ -1030,44 +1227,29 @@ Environment variables dealing with specific Sage packages:
   own version of ATLAS, set this variable to be the directory containing your
   ATLAS installation.
   It should contain the files :file:`libatlas`, :file:`liblapack`,
-  :file:`libcblas`, :file:`libptcblas`, :file:`libf77blas`, and
-  :file:`libptf77blas`, with extensions ``.a``, ``.so``, or ``.dylib``.
-  For backward compatibility, the libraries may also be in the subdirectory
-  :file:`SAGE_ATLAS_LIB/lib/`.
+  :file:`libcblas`, :file:`libf77blas` (and optionally :file:`libptcblas` and
+  :file:`libptf77blas` for multi-threaded computations), with extensions ``.a``,
+  ``.so``, or ``.dylib``.  For backward compatibility, the libraries may also be
+  in the subdirectory :file:`SAGE_ATLAS_LIB/lib/`.
 
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
   matplotlib package.
 
-- :envvar:`INCLUDE_MPFR_PATCH` - this is used to add a patch to MPFR to bypass
-  a bug in the memset function affecting sun4v machines with versions of
-  Solaris earlier than Solaris 10 update 8 (10/09).
-  Earlier versions of Solaris 10 can be patched by applying Sun patch
-  142542-01.
-  Recognized values are:
+- :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
+  PARI's ``Configure`` script, for example to specify graphics
+  support (which is disabled by default). See the file
+  :file:`build/pkgs/pari/spkg-install` for more information.
 
-  - ``INCLUDE_MPFR_PATCH=0`` - never include the patch - useful if you know all
-    sun4v machines Sage will be used are running Solaris 10 update 8 or later,
-    or have been patched with Sun patch 142542-01.
+- :envvar:`SAGE_TUNE_PARI`: If yes, enable PARI self-tuning. Note that
+  this can be time-consuming. If you set this variable to "yes", you
+  will also see this: ``WARNING: Tuning PARI/GP is unreliable. You may
+  find your build of PARI fails, or PARI/GP does not work properly
+  once built. We recommend to build this package with
+  SAGE_CHECK="yes".``
 
-  - ``INCLUDE_MPFR_PATCH=1`` - always include the patch, so the binary will
-    work on a sun4v machine, even if created on an older sun4u machine.
-
-  - If this variable is unset, include the patch on sun4v machines only.
-
-- :envvar:`SAGE_BINARY_BUILD` - used by the pil package.
-  If set to ``yes``, then force Sage to use the versions of libjpeg, libtiff
-  and libpng from :file:`$SAGE_ROOT/local/lib`.
-  Otherwise, allow the use of the system's versions of these libraries.
-
-- :envvar:`SAGE_PIL_NOTK` - used by the pil package.
-  If set to ``yes``, then disable building TK.
-  If this is not set, then this should be dealt with automatically: Sage tries
-  to build the pil package with TK support enabled, but if it runs into
-  problems, it tries building again with TK disabled.
-  So only use this variable to force TK to be disabled.
-  (Building the pil package is pretty fast -- less than a minute on many
-  systems -- so allowing it to build twice is not a serious issue.)
+- :envvar:`PARI_MAKEFLAGS`: The value of this variable is passed as an
+  argument to the ``$MAKE`` command when compiling PARI.
 
 Some standard environment variables which are used by Sage:
 
@@ -1097,19 +1279,13 @@ Some standard environment variables which are used by Sage:
 - :envvar:`CFLAGS`, :envvar:`CXXFLAGS` and :envvar:`FCFLAGS` - the flags for
   the C compiler, the C++ compiler and the Fortran compiler, respectively.
   The same comments apply to these: setting them may cause problems, because
-  they are not universally respected among the Sage packages.
+  they are not universally respected among the Sage packages. Note
+  also that ``export CFLAGS=""`` does not have the same effect as
+  ``unset CFLAGS``. The latter is preferable.
 
-The following Fortran-related environment variables are **deprecated** since
-Sage 5.3 and support for these will likely be removed.
-They are still recognized, but should not be used for new setups.
-
-- :envvar:`SAGE_FORTRAN` - the path to the Fortran compiler.
-  Deprecated, use :envvar:`FC` instead.
-
-- :envvar:`SAGE_FORTRAN_LIB` - the path to the Fortran runtime library.
-  Normally, you don't need to set this.
-  If you really need to, you can add the directory containing the library to
-  :envvar:`LIBRARY_PATH` and/or :envvar:`LD_LIBRARY_PATH`.
+- Similar comments apply to other compiler and linker flags like
+  :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
+  :envvar:`LDFLAG64`, and :envvar:`LD`.
 
 Sage uses the following environment variables when it runs:
 
@@ -1121,47 +1297,18 @@ Sage uses the following environment variables when it runs:
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
 
-- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
-  ``sage -i <package-name>``, Sage downloads the file from the web, using the
-  address ``http://www.sagemath.org/`` by default, or the address given by
-  :envvar:`SAGE_SERVER` if it is set.
-  If you wish to set up your own server, then note that Sage will search the
-  directories:
-
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - and ``SAGE_SERVER/packages/archive/``
-
-  for packages.
-  See the script :file:`$SAGE_ROOT/spkg/bin/sage-spkg` for the implementation.
-
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
-- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
-
-- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` - set this to something non-empty to
-  force Sage to set the :envvar:`LD_LIBRARY_PATH` variable before executing
-  system commands.
-
-- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used on OS X to
-  set the :envvar:`DYLD_LIBRARY_PATH` variable.
-
-- :envvar:`SAGE_CBLAS` - used in the file
-  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.
-  Set this to the base name of the BLAS library file on your system if you want
-  to override the default setting.
-  That is, if the relevant file is called :file:`libcblas_new.so` or
-  :file:`libcblas_new.dylib`, then set this to ``cblas_new``.
 
 Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
   matplotlib config directory.
-  Due to incompatibilies in the contents of this directory among different
+  Due to incompatibilities in the contents of this directory among different
   versions of matplotlib, Sage overrides the user's setting, defining it
   instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
   current matplotlib version number.
@@ -1170,22 +1317,43 @@ Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
   to allow a doctest before timing it out.
-  If this isn't set, the default is 360 seconds (6 minutes).
+  If this isn't set, the default is 300 seconds (5 minutes).
 
 - :envvar:`SAGE_TIMEOUT_LONG` - used for Sage's doctesting: the number of
   seconds to allow a doctest before timing it out, if tests are run using
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
 
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the the standard pickle
+- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
   jar, set this to something non-empty and run the doctest suite.
   See the documentation for the functions :func:`picklejar` and
   :func:`unpickle_all` in
-  :file:`$SAGE_ROOT/devel/sage/sage/structure/sage_object.pyx`, online
+  :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
   `here (picklejar)
-  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
+  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
   and `here (unpickle_all)
-  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+
+- :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
+  be used instead of passing the flags ``--global-iterations`` and
+  ``--file-iterations``, respectively, to ``sage -t``. Indeed, these
+  variables are only used if the flags are unset. Run ``sage -t -h``
+  for more information on the effects of these flags (and therefore
+  these variables).
+
+Sage sets some other environment variables. The most accurate way to
+see what Sage does is to first run ``env`` from a shell prompt to see
+what environment variables you have set. Then run ``sage --sh -c
+env`` to see the list after Sage sets its variables. (This runs a
+separate shell, executes the shell command ``env``, and then exits
+that shell, so after running this, your settings will be restored.)
+Alternatively, you can peruse the shell script
+:file:`src/bin/sage-env`.
+
+Sage also has some environment-like settings. Some of these correspond
+to actual environment variables while others have names like
+environment variables but are only available while Sage is running. To
+see a list, execute ``sage.env.[TAB]`` while running Sage.
 
 .. comment:
     ***************************************************************************
@@ -1216,20 +1384,30 @@ a single copy of Sage in a multi-user computer network.
 System-wide install
 ~~~~~~~~~~~~~~~~~~~
 
-#. After building Sage, you may optionally copy or move the entire build tree
-   to :file:`/usr/local` or another location.
-   If you do this, then you must run ``./sage`` once so that various hardcoded
-   locations get updated.
-   For this reason, it might be easier to simply build Sage in its final
-   location.
+In the instructions below, we assume that ``/path/to/sage-x.y`` is
+the directory where you want to install Sage.
+
+#. First of all, extract the Sage source tarball in ``/path/to``
+   (this will create the directory ``/path/to/sage-x.y``).
+   After extracting, you can change the directory name if you do not
+   like ``sage-x.y``.
+
+#. Change the ownership of the ``/path/to/sage-x.y`` directory tree
+   to your normal user account (as opposed to ``root``). This is because
+   Sage will refuse to compile as ``root``. ::
+
+       chown -R user:group /path/to/sage-x.y
+
+#. Using your normal user account, build Sage.
+   See the :ref:`build-from-source-step-by-step` above.
 
 #. Make a symbolic link to the ``sage`` script in :file:`/usr/local/bin`::
 
-       ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+       ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
    Alternatively, copy the Sage script::
 
-       cp /path/to/sage-x.y.z/sage /usr/local/bin/sage
+       cp /path/to/sage-x.y/sage /usr/local/bin/sage
 
    If you do this, make sure you edit the line::
 
@@ -1244,11 +1422,6 @@ System-wide install
    It is recommended not to edit the original ``sage`` script, only the copy at
    :file:`/usr/local/bin/sage`.
 
-#. Make sure that all files in the Sage tree are readable by all
-   (note that you have to change ``<SAGE_ROOT>`` below!)::
-
-       chmod a+rX -R <SAGE_ROOT>
-
 #. Optionally, you can test Sage by running::
 
        make testlong
@@ -1257,56 +1430,7 @@ System-wide install
    processes.
    You can also omit ``long`` to skip tests which take a long time.
 
-Sagetex
-~~~~~~~
-
-To make SageTeX available to your users, see the instructions for
-:ref:`installation in a multiuser environment <sagetex_installation_multiuser>`
-.
-
-
-Some common problems
---------------------
-
-ATLAS
-~~~~~
-
-Usually Sage will build ATLAS with architectural defaults that are not tuned
-to your particular CPU.
-In particular, if your CPU has powersaving enabled then no accurate timings
-can be made to tune the ATLAS build for your hardware.
-If BLAS performance is critical for you, you must recompile ATLAS after
-installing Sage either with architecture settings that match your hardware,
-or run through ATLAS' automatic tuning process where timings of different
-implementations are compared and the best choice used to build a custom ATLAS
-library.
-To do so, you have to
-
-- Leave the computer idle while you are reinstalling ATLAS.
-  Most of ATLAS will intentionally only compile/run on a single core.
-  Accurate timings of cache edges require that the CPU is otherwise idle.
-
-- Make sure that CPU powersaving mode (that is, anything but the
-  ``performance`` CPU scaling governor in Linux) is turned off when building
-  ATLAS.
-  This requires administrator privileges.
-
-- If your architecture is listed in :envvar:`SAGE_ATLAS_ARCH`, you should set
-  it as it can help ATLAS in narrowing down the timing search.
-
-To help you disable CPU power saving, Sage includes an ``atlas-config`` script
-that will turn off CPU powersave and rebuild ATLAS.
-The script will call ``sudo`` to gain the necessary rights, which may prompt
-you for your password. For example::
-
-    atlas-config
-
-will run through the full automated tuning, and::
-
-    SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1 atlas-config
-
-would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in June 2013 (Sage 5.10).**
+**This page was last updated in February 2017 (Sage 7.6).**

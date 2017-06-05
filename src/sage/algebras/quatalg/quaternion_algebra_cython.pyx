@@ -7,26 +7,20 @@ example, there are functions for quickly constructing an n x 4 matrix
 from a list of n rational quaternions.
 
 AUTHORS:
-    - William Stein
+
+- William Stein
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
-
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -35,10 +29,14 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
-from quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
+from .quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
 
 from sage.libs.gmp.mpz cimport mpz_t, mpz_lcm, mpz_init, mpz_set, mpz_clear, mpz_init_set, mpz_mul, mpz_fdiv_q, mpz_cmp_si
 from sage.libs.gmp.mpq cimport mpq_set_num, mpq_set_den, mpq_canonicalize
+
+from sage.libs.flint.fmpz cimport fmpz_set_mpz
+from sage.libs.flint.fmpq cimport fmpq_canonicalise
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num, fmpq_mat_entry_den, fmpq_mat_entry
 
 def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     r"""
@@ -88,21 +86,32 @@ def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     # Now fill in each row x of A, multiplying it by q = d/denom(x)
     cdef mpz_t q
     cdef mpz_t* row
+    cdef mpz_t tmp
     mpz_init(q)
+    mpz_init(tmp)
     for i in range(n):
         x = v[i]
         mpz_fdiv_q(q, d.value, x.d)
         if reverse:
-            mpz_mul(A._matrix[n-i-1][3], q, x.x)
-            mpz_mul(A._matrix[n-i-1][2], q, x.y)
-            mpz_mul(A._matrix[n-i-1][1], q, x.z)
-            mpz_mul(A._matrix[n-i-1][0], q, x.w)
+            mpz_mul(tmp, q, x.x)
+            A.set_unsafe_mpz(n-i-1,3,tmp)
+            mpz_mul(tmp, q, x.y)
+            A.set_unsafe_mpz(n-i-1,2,tmp)
+            mpz_mul(tmp, q, x.z)
+            A.set_unsafe_mpz(n-i-1,1,tmp)
+            mpz_mul(tmp, q, x.w)
+            A.set_unsafe_mpz(n-i-1,0,tmp)
         else:
-            mpz_mul(A._matrix[i][0], q, x.x)
-            mpz_mul(A._matrix[i][1], q, x.y)
-            mpz_mul(A._matrix[i][2], q, x.z)
-            mpz_mul(A._matrix[i][3], q, x.w)
+            mpz_mul(tmp, q, x.x)
+            A.set_unsafe_mpz(i,0,tmp)
+            mpz_mul(tmp, q, x.y)
+            A.set_unsafe_mpz(i,1,tmp)
+            mpz_mul(tmp, q, x.z)
+            A.set_unsafe_mpz(i,2,tmp)
+            mpz_mul(tmp, q, x.w)
+            A.set_unsafe_mpz(i,3,tmp)
     mpz_clear(q)
+    mpz_clear(tmp)
     return A, d
 
 def rational_matrix_from_rational_quaternions(v, reverse=False):
@@ -137,27 +146,28 @@ def rational_matrix_from_rational_quaternions(v, reverse=False):
     if reverse:
         for i in range(n):
             x = v[i]
-            mpq_set_num(A._matrix[n-i-1][3], x.x)
-            mpq_set_num(A._matrix[n-i-1][2], x.y)
-            mpq_set_num(A._matrix[n-i-1][1], x.z)
-            mpq_set_num(A._matrix[n-i-1][0], x.w)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 3), x.x)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 2), x.y)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 1), x.z)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 0), x.w)
 
             if mpz_cmp_si(x.d,1):
                 for j in range(4):
-                    mpq_set_den(A._matrix[n-i-1][j], x.d)
-                    mpq_canonicalize(A._matrix[n-i-1][j])
+                    fmpz_set_mpz(fmpq_mat_entry_den(A._matrix, n-i-1, j), x.d)
+                    fmpq_canonicalise(fmpq_mat_entry(A._matrix, n-i-1, j))
     else:
         for i in range(n):
             x = v[i]
-            mpq_set_num(A._matrix[i][0], x.x)
-            mpq_set_num(A._matrix[i][1], x.y)
-            mpq_set_num(A._matrix[i][2], x.z)
-            mpq_set_num(A._matrix[i][3], x.w)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 0), x.x)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 1), x.y)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 2), x.z)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 3), x.w)
 
             if mpz_cmp_si(x.d,1):
                 for j in range(4):
-                    mpq_set_den(A._matrix[i][j], x.d)
-                    mpq_canonicalize(A._matrix[i][j])
+                    fmpz_set_mpz(fmpq_mat_entry_den(A._matrix, i, j), x.d)
+                    fmpq_canonicalise(fmpq_mat_entry(A._matrix, i, j))
+
     return A
 
 def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense H, Integer d, reverse=False):
@@ -195,31 +205,42 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     a = Integer(A.invariants()[0])
     b = Integer(A.invariants()[1])
     cdef Py_ssize_t i, j
+    cdef mpz_t tmp
+    mpz_init(tmp)
 
     if reverse:
-        rng = range(H.nrows()-1,-1,-1)
+        rng = xrange(H.nrows()-1, -1, -1)
     else:
-        rng = range(H.nrows())
+        rng = xrange(H.nrows())
 
     for i in rng:
-        x = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        x = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         x._parent = A
         mpz_set(x.a, a.value)
         mpz_set(x.b, b.value)
         if reverse:
-            mpz_init_set(x.x, H._matrix[i][3])
-            mpz_init_set(x.y, H._matrix[i][2])
-            mpz_init_set(x.z, H._matrix[i][1])
-            mpz_init_set(x.w, H._matrix[i][0])
+            H.get_unsafe_mpz(i,3,tmp)
+            mpz_init_set(x.x, tmp)
+            H.get_unsafe_mpz(i,2,tmp)
+            mpz_init_set(x.y, tmp)
+            H.get_unsafe_mpz(i,1,tmp)
+            mpz_init_set(x.z, tmp)
+            H.get_unsafe_mpz(i,0,tmp)
+            mpz_init_set(x.w, tmp)
         else:
-            mpz_init_set(x.x, H._matrix[i][0])
-            mpz_init_set(x.y, H._matrix[i][1])
-            mpz_init_set(x.z, H._matrix[i][2])
-            mpz_init_set(x.w, H._matrix[i][3])
+            H.get_unsafe_mpz(i,0,tmp)
+            mpz_init_set(x.x, tmp)
+            H.get_unsafe_mpz(i,1,tmp)
+            mpz_init_set(x.y, tmp)
+            H.get_unsafe_mpz(i,2,tmp)
+            mpz_init_set(x.z, tmp)
+            H.get_unsafe_mpz(i,3,tmp)
+            mpz_init_set(x.w, tmp)
         mpz_init_set(x.d, d.value)
         # WARNING -- we do *not* canonicalize the entries in the quaternion.  This is
         # I think _not_ needed for quaternion_element.pyx
         v.append(x)
+    mpz_clear(tmp)
     return v
 
 

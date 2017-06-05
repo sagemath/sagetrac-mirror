@@ -12,22 +12,29 @@ AUTHORS:
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import, division, print_function
 
 import random, os, sys, time, json, re, types
+import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.misc.temporary_file import tmp_dir
+from cysignals.signals import AlarmInterrupt, init_cysignals
 
-from sources import FileDocTestSource, DictAsObject
-from forker import DocTestDispatcher
-from reporting import DocTestReporter
-from util import NestedName, Timer, count_noun, dict_difference
+from .sources import FileDocTestSource, DictAsObject
+from .forker import DocTestDispatcher
+from .reporting import DocTestReporter
+from .util import Timer, count_noun, dict_difference
+from .external import external_software, available_software
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -65,7 +72,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            set(['sage'])
+            {'sage'}
         """
         self.nthreads = 1
         self.serial = False
@@ -75,11 +82,12 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(["sage"])
+        self.optional = set(['sage'])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
         self.initial = False
+        self.exitfirst = False
         self.force_lib = False
         self.abspath = True         # sage-runtests default is False
         self.verbose = False
@@ -115,7 +123,7 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison by __dict__.
 
@@ -127,9 +135,23 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__,other.__dict__)
+        if not isinstance(other, DocTestDefaults):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: DD1 = DocTestDefaults(long=True)
+            sage: DD2 = DocTestDefaults(long=True)
+            sage: DD1 != DD2
+            False
+        """
+        return not (self == other)
 
 
 def skipdir(dirname):
@@ -142,7 +164,7 @@ def skipdir(dirname):
         sage: from sage.doctest.control import skipdir
         sage: skipdir(sage.env.SAGE_SRC)
         False
-        sage: skipdir(os.path.join(SAGE_ROOT, "devel", "sagenb", "sagenb", "data"))
+        sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
     if os.path.exists(os.path.join(dirname, "nodoctest.py")):
@@ -162,12 +184,12 @@ def skipfile(filename):
         sage: f = tmp_filename(ext=".pyx")
         sage: skipfile(f)
         False
-        sage: open(f, "w").write("# nodoctest")
+        sage: _ = open(f, "w").write("# nodoctest")
         sage: skipfile(f)
         True
     """
     base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
         return True
     with open(filename) as F:
         line_count = 0
@@ -178,6 +200,59 @@ def skipfile(filename):
             if line_count >= 10:
                 break
     return False
+
+
+class Logger(object):
+    r"""
+    File-like object which implements writing to multiple files at
+    once.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.control import Logger
+        sage: t = open(tmp_filename(), "w+")
+        sage: L = Logger(sys.stdout, t)
+        sage: _ = L.write("hello world\n")
+        hello world
+        sage: t.seek(0)
+        sage: t.read()
+        'hello world\n'
+    """
+    def __init__(self, *files):
+        """
+        Initialize the logger for writing to all files in ``files``.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger().write("hello world\n")  # no-op
+        """
+        self.files = list(files)
+
+    def write(self, x):
+        r"""
+        Write ``x`` to all files.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger(sys.stdout).write("hello world\n")
+            hello world
+        """
+        for f in self.files:
+            f.write(x)
+
+    def flush(self):
+        """
+        Flush all files.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger(sys.stdout).flush()
+        """
+        for f in self.files:
+            f.flush()
 
 
 class DocTestController(SageObject):
@@ -226,24 +301,43 @@ class DocTestController(SageObject):
             options.global_iterations = int(os.environ.get('SAGE_TEST_GLOBAL_ITER', 1))
         if options.file_iterations == 0:
             options.file_iterations = int(os.environ.get('SAGE_TEST_ITER', 1))
-        if options.debug and options.nthreads > 1:
-            print("Debugging requires single-threaded operation, setting number of threads to 1.")
-            options.nthreads = 1
+        if options.debug:
+            if options.nthreads > 1:
+                print("Debugging requires single-threaded operation, setting number of threads to 1.")
+            if options.logfile:
+                print("Debugging is not compatible with logging, disabling logfile.")
+            options.serial = True
+            options.logfile = None
         if options.serial:
             options.nthreads = 1
         if options.verbose:
             options.show_skipped = True
 
-        if isinstance(options.optional, basestring):
+        if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
-            if s in ['all', 'true']:
+            if s == 'true':
+                sage.misc.superseded.deprecation(18558, "Use --optional=all instead of --optional=true")
+                s = "all"
+            options.optional = set(s.split(','))
+            if "all" in options.optional:
+                # Special case to run all optional tests
                 options.optional = True
             else:
-                options.optional = set(s.split(','))
+                # We replace the 'optional' tag by all optional
+                # packages for which the installed version matches the
+                # latest available version (this implies in particular
+                # that the package is actually installed).
+                if 'optional' in options.optional:
+                    options.optional.discard('optional')
+                    from sage.misc.package import list_packages
+                    for pkg in list_packages('optional', local=True).values():
+                        if pkg['installed_version'] == pkg['remote_version']:
+                            options.optional.add(pkg['name'])
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
-                        raise ValueError('invalid optional tag %s'%repr(o))
+                        raise ValueError('invalid optional tag {!r}'.format(o))
 
         self.options = options
         self.files = args
@@ -251,12 +345,100 @@ class DocTestController(SageObject):
             try:
                 self.logfile = open(options.logfile, 'a')
             except IOError:
-                print "Unable to open logfile at %s\nProceeding without logging."%(options.logfile)
+                print("Unable to open logfile {!r}\nProceeding without logging.".format(options.logfile))
                 self.logfile = None
         else:
             self.logfile = None
+
+        # Flush any diagnostic messages we just printed
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        # In serial mode, we run just one process. Then the doctests
+        # will interfere with the output logging (both use stdout).
+        # To solve this, we create real_stdout which will always
+        # write to the actual standard output, regardless of
+        # redirections.
+        if options.serial:
+            real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
+        else:
+            # Parallel mode: no special tricks needed
+            real_stdout = sys.stdout
+
+        if self.logfile is None:
+            self.logger = real_stdout
+        else:
+            self.logger = Logger(real_stdout, self.logfile)
+
         self.stats = {}
         self.load_stats(options.stats_path)
+        self._init_warn_long()
+
+    def _init_warn_long(self):
+        """
+        Pick a suitable default for the ``--warn-long`` option if not specified.
+
+        It is desirable to have all tests (even ``# long`` ones)
+        finish in less than about 5 seconds. Longer tests typically
+        don't add coverage, they just make testing slow.
+
+        The default used here is 60 seconds on a modern computer. It
+        should eventually be lowered to 5 seconds, but its best to
+        boil the frog slowly.
+
+        The stored timings are used to adjust this limit according to
+        the machine running the tests.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC.options.warn_long = 5.0
+            sage: DC._init_warn_long()
+            sage: DC.options.warn_long    # existing command-line options are not changed
+            5.00000000000000
+        """
+        if self.options.warn_long is not None:     # Specified on the command line
+            return
+        try:
+            self.options.warn_long = 60.0 * self.second_on_modern_computer()
+        except RuntimeError as err:
+            if not sage.doctest.DOCTEST_MODE:
+                print(err)   # No usable timing information
+
+    def second_on_modern_computer(self):
+        """
+        Return the wall time equivalent of a second on a modern computer.
+
+        OUTPUT:
+
+        Float. The wall time on your computer that would be equivalent
+        to one second on a modern computer. Unless you have kick-ass
+        hardware this should always be >= 1.0. Raises a
+        ``RuntimeError`` if there are no stored timings to use as
+        benchmark.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC.second_on_modern_computer()   # not tested
+        """
+        if len(self.stats) == 0:
+            raise RuntimeError('no stored timings available')
+        success = []
+        failed = []
+        for mod in self.stats.values():
+            if mod.get('failed', False):
+                failed.append(mod['walltime'])
+            else:
+                success.append(mod['walltime'])
+        if len(success) < 2500:
+            raise RuntimeError('too few successful tests, not using stored timings')
+        if len(failed) > 20:
+            raise RuntimeError('too many failed tests, not using stored timings')
+        expected = 12800.0       # Core i7 Quad-Core 2014
+        return sum(success) / expected
 
     def _repr_(self):
         """
@@ -286,7 +468,7 @@ class DocTestController(SageObject):
             sage: import json
             sage: filename = tmp_filename()
             sage: with open(filename, 'w') as stats_file:
-            ...       json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
+            ....:     json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
             {u'walltime': 1.0}
@@ -308,7 +490,7 @@ class DocTestController(SageObject):
         try:
             with open(filename) as stats_file:
                 self.stats.update(json.load(stats_file))
-        except StandardError:
+        except Exception:
             self.log("Error loading stats from %s"%filename)
 
     def save_stats(self, filename):
@@ -333,11 +515,10 @@ class DocTestController(SageObject):
         with atomic_write(filename) as stats_file:
             json.dump(self.stats, stats_file)
 
-
     def log(self, s, end="\n"):
         """
-        Logs the string ``s + end`` (where ``end`` is a newline by default)
-        to the logfile and prints it to the standard output.
+        Log the string ``s + end`` (where ``end`` is a newline by default)
+        to the logfile and print it to the standard output.
 
         EXAMPLES::
 
@@ -347,14 +528,40 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: with open(DD.logfile) as logger: print logger.read()
+            sage: print(open(DD.logfile).read())
+            hello world
+
+        In serial mode, check that logging works even if ``stdout`` is
+        redirected::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename(), serial=True)
+            sage: DC = DocTestController(DD, [])
+            sage: from sage.doctest.forker import SageSpoofInOut
+            sage: S = SageSpoofInOut(open(os.devnull, "w"))
+            sage: S.start_spoofing()
+            sage: DC.log("hello world")
+            hello world
+            sage: S.stop_spoofing()
+            sage: DC.logfile.close()
+            sage: print(open(DD.logfile).read())
+            hello world
+
+        Check that no duplicate logs appear, even when forking (:trac:`15244`)::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename())
+            sage: DC = DocTestController(DD, [])
+            sage: DC.log("hello world")
+            hello world
+            sage: if os.fork() == 0:
+            ....:     DC.logfile.close()
+            ....:     os._exit(0)
+            sage: DC.logfile.close()
+            sage: print(open(DD.logfile).read())
             hello world
 
         """
-        s += end
-        if self.logfile is not None:
-            self.logfile.write(s)
-        sys.stdout.write(s)
+        self.logger.write(s + end)
+        self.logger.flush()
 
     def test_safe_directory(self, dir=None):
         """
@@ -402,7 +609,6 @@ class DocTestController(SageObject):
             Running doctests with ID ...
         """
         self.run_id = time.strftime('%Y-%m-%d-%H-%M-%S-') + "%08x" % random.getrandbits(32)
-        from sage.version import version
         self.log("Running doctests with ID %s."%self.run_id)
 
     def add_files(self):
@@ -429,7 +635,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting files ...
+            Doctesting ...
 
         ::
 
@@ -441,37 +647,39 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC
-        if self.options.all:
-            self.log("Doctesting entire Sage library.")
-            from glob import glob
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
+        DOT_GIT= opj(SAGE_ROOT, '.git')
+        have_git = os.path.exists(DOT_GIT)
+        def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))
-            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
-            self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
+            # Don't run these tests when not in the git repository; they are
+            # of interest for building sage, but not for runtime behavior and
+            # don't make sense to run outside a build environment
+            if have_git:
+                self.files.append(opj(SAGE_SRC, 'sage_setup'))
+            self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
-        elif self.options.new:
-            # Get all files changed in the working repo, as well as all
-            # files in the top Mercurial queue patch.
-            from sage.misc.hg import hg_sage
-            out, err = hg_sage('status --rev qtip^', interactive=False, debug=False)
-            if not err:
-                qtop = hg_sage('qtop', interactive=False, debug=False)[0].strip()
-                self.log("Doctesting files in mq patch " + repr(qtop))
-            else:  # Probably mq isn't used
-                out, err = hg_sage('status', interactive=False, debug=False)
-                if not err:
-                    self.log("Doctesting files changed since last hg commit")
-                else:
-                    raise RuntimeError("failed to run hg status:\n" + err)
-
-            for X in out.split('\n'):
-                tup = X.split()
-                if len(tup) != 2: continue
-                c, filename = tup
-                if c in ['M','A']:
-                    filename = opj(SAGE_SRC, filename)
-                    if not skipfile(filename):
-                        self.files.append(filename)
+        if self.options.all or (self.options.new and not have_git):
+            self.log("Doctesting entire Sage library.")
+            all_files()
+        elif self.options.new and have_git:
+            # Get all files changed in the working repo.
+            self.log("Doctesting files changed since last git commit")
+            import subprocess
+            change = subprocess.check_output(["git",
+                                              "--git-dir=" + DOT_GIT,
+                                              "--work-tree=" + SAGE_ROOT,
+                                              "status",
+                                              "--porcelain"])
+            for line in change.split("\n"):
+                if not line:
+                    continue
+                data = line.strip().split(' ')
+                status, filename = data[0], data[-1]
+                if (set(status).issubset("MARCU")
+                    and filename.startswith("src/sage")
+                    and (filename.endswith(".py") or filename.endswith(".pyx"))):
+                    self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
@@ -496,7 +704,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            9
+            11
             sage: DC.sources[0].options.optional
             True
 
@@ -513,7 +721,7 @@ class DocTestController(SageObject):
             sage: dirname = tmp_dir()
             sage: filename = os.path.join(dirname, 'not_tested.py')
             sage: with open(filename, 'w') as F:
-            ....:     F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            ....:     _ = F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: DC.sources
@@ -556,7 +764,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: for i, source in enumerate(DC.sources):
-            ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
+            ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.stats['sage.doctest.control'] = {'failed':True,'walltime':1.0}
             sage: DC.filter_sources()
             Only doctesting files that failed last test.
@@ -569,7 +777,7 @@ class DocTestController(SageObject):
             def is_failure(source):
                 basename = source.basename
                 return basename not in self.stats or self.stats[basename].get('failed')
-            self.sources = filter(is_failure, self.sources)
+            self.sources = [x for x in self.sources if is_failure(x)]
 
     def sort_sources(self):
         r"""
@@ -586,16 +794,18 @@ class DocTestController(SageObject):
             sage: DC.expand_files_into_sources()
             sage: DC.sources.sort(key=lambda s:s.basename)
             sage: for i, source in enumerate(DC.sources):
-            ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
+            ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.sort_sources()
             Sorting sources by runtime so that slower doctests are run first....
-            sage: print "\n".join([source.basename for source in DC.sources])
+            sage: print("\n".join([source.basename for source in DC.sources]))
             sage.doctest.util
             sage.doctest.test
             sage.doctest.sources
             sage.doctest.reporting
             sage.doctest.parsing
             sage.doctest.forker
+            sage.doctest.fixtures
+            sage.doctest.external
             sage.doctest.control
             sage.doctest.all
             sage.doctest
@@ -719,6 +929,37 @@ class DocTestController(SageObject):
             self.logfile.close()
             self.logfile = None
 
+    def _optional_tags_string(self):
+        """
+        Return a string describing the optional tags used.
+
+        OUTPUT: a string with comma-separated tags (without spaces, so
+        it can be used to build a command-line)
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC._optional_tags_string()
+            'sage'
+            sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
+            sage: DC._optional_tags_string()
+            'all'
+            sage: DC = DocTestController(DocTestDefaults(optional="true"), [])
+            doctest:...: DeprecationWarning: Use --optional=all instead of --optional=true
+            See http://trac.sagemath.org/18558 for details.
+            sage: DC._optional_tags_string()
+            'all'
+            sage: DC = DocTestController(DocTestDefaults(optional="sage,openssl"), [])
+            sage: DC._optional_tags_string()
+            'openssl,sage'
+        """
+        tags = self.options.optional
+        if tags is True:
+            return "all"
+        else:
+            return ",".join(sorted(tags))
+
     def _assemble_cmd(self):
         """
         Assembles a shell command used in running tests under gdb or valgrind.
@@ -727,7 +968,7 @@ class DocTestController(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
-            sage: print DC._assemble_cmd()
+            sage: print(DC._assemble_cmd())
             python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
         """
         cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))
@@ -738,9 +979,11 @@ class DocTestController(SageObject):
         for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "optional", "randorder", "stats_path"):
+        for o in ("timeout", "randorder", "stats_path"):
             if o in opt:
                 cmd += "--%s=%s "%(o, opt[o])
+        if "optional" in opt:
+            cmd += "--optional={} ".format(self._optional_tags_string())
         return cmd + " ".join(self.files)
 
     def run_val_gdb(self, testing=False):
@@ -769,7 +1012,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=True hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -817,32 +1060,32 @@ class DocTestController(SageObject):
                 flags %= toolname + ".%p" # replace %s with toolname
         cmd += flags + sage_cmd
 
-        self.log(cmd)
         sys.stdout.flush()
         sys.stderr.flush()
-        if self.logfile is not None:
-            self.logfile.flush()
+        self.log(cmd)
 
         if testing:
             return
 
+        # Setup signal handlers.
+        # Save crash logs in temporary directory.
+        os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
+        init_cysignals()
+
         import signal, subprocess
-        def handle_alrm(sig, frame):
-            raise RuntimeError
-        signal.signal(signal.SIGALRM, handle_alrm)
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:
             return p.wait()
-        except RuntimeError:
-            self.log("    Time out")
+        except AlarmInterrupt:
+            self.log("    Timed out")
             return 4
         except KeyboardInterrupt:
             self.log("    Interrupted")
             return 128
         finally:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.alarm(0)
             if p.returncode is None:
                 p.terminate()
 
@@ -881,18 +1124,40 @@ class DocTestController(SageObject):
         else:
             self.test_safe_directory()
             self.create_run_id()
+            from sage.env import SAGE_ROOT
+            DOT_GIT= os.path.join(SAGE_ROOT, '.git')
+            if os.path.isdir(DOT_GIT):
+                import subprocess
+                try:
+                    branch = subprocess.check_output(["git",
+                                                      "--git-dir=" + DOT_GIT,
+                                                      "rev-parse",
+                                                      "--abbrev-ref",
+                                                      "HEAD"])
+                    self.log("Git branch: " + branch, end="")
+                except subprocess.CalledProcessError:
+                    pass
+
+            self.log("Using --optional=" + self._optional_tags_string())
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software to be detected: " + ','.join(external_software))
+
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
             self.sort_sources()
             self.run_doctests()
+
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software detected for doctesting: "
+                         + ','.join(available_software.seen()))
             return self.reporter.error_status
 
 def run_doctests(module, options=None):
     """
     Runs the doctests in a given file.
 
-    INPUTS:
+    INPUT:
 
     - ``module`` -- a Sage module, a string, or a list of such.
 
@@ -930,7 +1195,7 @@ def run_doctests(module, options=None):
                 return [base]
             else:
                 return [os.path.join(base, file) + ext]
-        elif isinstance(x, basestring):
+        elif isinstance(x, six.string_types):
             return [os.path.abspath(x)]
     F = stringify(module)
     if options is None:

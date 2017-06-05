@@ -1,5 +1,5 @@
 r"""
-Cliquer: routines for finding cliques in graphs
+Interface with Cliquer (clique-related problems)
 
 This module defines functions based on Cliquer, an exact
 branch-and-bound algorithm developed by Patric R. J. Ostergard and
@@ -9,9 +9,9 @@ AUTHORS:
 
 - Nathann Cohen (2009-08-14): Initial version
 
-- Jeroen Demeyer (2011-05-06): Make cliquer interruptible (#11252)
+- Jeroen Demeyer (2011-05-06): Make cliquer interruptible (:trac:`11252`)
 
-- Nico Van Cleemput (2013-05-27): Handle the empty graph (#14525)
+- Nico Van Cleemput (2013-05-27): Handle the empty graph (:trac:`14525`)
 
 REFERENCE:
 
@@ -35,8 +35,15 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
+
+
+cdef extern from "sage/graphs/cliquer/cl.c":
+     cdef int sage_clique_max(graph_t *g, int ** list)
+     cdef int sage_all_clique_max(graph_t *g, int ** list)
+     cdef int sage_clique_number(graph_t *g)
+
 
 def max_clique(graph):
     """
@@ -51,7 +58,7 @@ def max_clique(graph):
           sage: max_clique(C)
           [7, 9]
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.clique_maximum()
@@ -81,7 +88,7 @@ def max_clique(graph):
     for i in range(size):
         b.append(list[i])
 
-    sage_free(list)
+    sig_free(list)
     graph_free(g)
     return list_composition(b,d_inv)
 
@@ -123,7 +130,7 @@ def all_max_clique(graph):
         sage: C.cliques_maximum()
         [[1, 2, 3, 4]]
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.cliques_maximum()
@@ -159,7 +166,7 @@ def all_max_clique(graph):
             b.append(list_composition(c,d_inv))
             c=[]
 
-    sage_free(list)
+    sig_free(list)
     graph_free(g)
 
     return sorted(b)
@@ -185,7 +192,7 @@ def clique_number(graph):
         sage: clique_number(G)
         3
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.clique_number()

@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-intro-tutorial:
+
 Introductory Sage Tutorial
 ==========================
 
@@ -330,6 +332,7 @@ We can also plot functions easily.
 ::
 
     sage: plot(f, (x,-3,3))
+    Graphics object consisting of 1 graphics primitive
 
 In another tutorial, we will go more in depth with plotting.  Here, note
 that the preferred syntax has the variable and endpoints for the

@@ -8,11 +8,15 @@ Functions
    sage/functions/trig
    sage/functions/hyperbolic
    sage/functions/transcendental
+   sage/functions/error
    sage/functions/piecewise
    sage/functions/spike_function
    sage/functions/orthogonal_polys
    sage/functions/other
    sage/functions/special
+   sage/functions/hypergeometric
+   sage/functions/jacobi
+   sage/functions/airy
    sage/functions/bessel
    sage/functions/exp_integral
    sage/functions/wigner

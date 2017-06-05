@@ -43,6 +43,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -55,8 +56,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from matroid import Matroid
-import sage.matroids.unpickling
+from .matroid import Matroid
 
 
 class DualMatroid(Matroid):
@@ -490,7 +490,7 @@ class DualMatroid(Matroid):
             sage: M3 != M4
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # COPYING, LOADING, SAVING
 
@@ -562,6 +562,7 @@ class DualMatroid(Matroid):
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}'
 
         """
+        import sage.matroids.unpickling
         data = (self._matroid, getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_dual_matroid, (version, data)
