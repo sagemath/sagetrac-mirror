@@ -37,7 +37,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
     :meth:`~DiGraph.dig6_string` | Returns the dig6 representation of the digraph as an ASCII string.
 
-**Paths and cycles:**
+**Paths, cycles and arborescences:**
 
 .. csv-table::
     :class: contentstable
@@ -48,6 +48,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.all_simple_paths` | Returns a list of all the simple paths of self starting
     :meth:`~DiGraph.all_cycles_iterator` | Returns an iterator over all the cycles of self starting
     :meth:`~DiGraph.all_simple_cycles` | Returns a list of all simple cycles of self.
+    :meth:`~DiGraph.arborescences` | Return an iterator over the arborescences of this digraph.
 
 **Representation theory:**
 
@@ -1941,7 +1942,7 @@ class DiGraph(GenericGraph):
         if not inplace:
             return tempG
 
-    ### Paths and cycles iterators
+    ### Paths, cycles and arborescences iterators
 
     def _all_paths_iterator(self, vertex, ending_vertices=None,
                             simple=False, max_length=None, trivial=False):
@@ -2698,6 +2699,161 @@ class DiGraph(GenericGraph):
         """
         from sage.quivers.path_semigroup import PathSemigroup
         return PathSemigroup(self)
+
+    def arborescences(self, root, direction="out"):
+        r"""
+        Return an iterator over the arborescences of this digraph.
+
+        An ``out-arborescence`` is a directed graph in which there is exactly
+        one directed path from a vertex called the ``root`` to any other vertex
+        in the digraph. An ``out-arborescence`` is also called ``directed rooted
+        tree``, ``out-tree``, or ``out-branching``.
+
+        Similarly, an ``in-arborescence`` is a directed graph in which there is
+        exactly one directed path from any vertex in the digraph to the
+        ``root``. An ``in-arborescence`` is also called ``in-tree`` or
+        ``in-branching``.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Arborescence_(graph_theory)`
+            - :meth:`~sage.graphs.graph.Graph.spanning_trees`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+        INPUT:
+
+        - ``root`` -- vertex used as the root for all arborescences.
+
+        - ``direction`` -- string (default: ``"out"``); one of the following
+          values:
+
+          - ``"out"`` to compute ``out-arborescences``.
+
+          - ``"in"`` to compute ``in-arborescences``.
+
+        EXAMPLES:
+
+        With a house graph turned to a directed graph::
+
+            sage: G = graphs.HouseGraph().to_directed()
+            sage: len(list(G.arborescences(0)))
+            11
+            sage: G.spanning_trees_count(0)
+            11
+
+        With a directed graph with multiple edges::
+
+            sage: G = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2, 0), (1, 2, 1)], multiedges=True)
+            sage: for T in G.arborescences(0, direction="out"):
+            ....:     print T.edges()
+            [(0, 1, 'b'), (1, 2, 1)]
+            [(0, 1, 'b'), (1, 2, 0)]
+            [(0, 1, 'a'), (1, 2, 1)]
+            [(0, 1, 'a'), (1, 2, 0)]
+            sage: for T in G.arborescences(2, direction="in"):
+            ....:     print T.edges()
+            [(0, 1, 'b'), (1, 2, 1)]
+            [(0, 1, 'b'), (1, 2, 0)]
+            [(0, 1, 'a'), (1, 2, 1)]
+            [(0, 1, 'a'), (1, 2, 0)]
+            sage: G.arborescences(2, direction="out")
+            sage: G.arborescences(0, direction="in")
+
+        TESTS:
+
+        Giving a root that is not a vertex of the DiGraph::
+
+            sage: DiGraph().arborescences(0)
+            Traceback (most recent call last):
+            ...
+            LookupError: root vertex (0) is not a vertex of the digraph
+
+        Asking for a direction different from ``"out"`` or ``"in"``::
+
+            sage: DiGraph(1).arborescences(0, direction="left")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown direction 'left'
+        """
+        from copy import deepcopy
+        from itertools import product
+
+        def _arborescence_rec(D, arborescence, V):
+            """
+            Yield all the arborescences.
+            """
+            if arborescence.size() == self.order() - 1:
+                # We have the shape of the arborescence. We iterate over the
+                # combinations of labels of the multiple edges (if any).
+                if multiple_edges:
+                    L = [multiple_edges[u,v] for u,v in arborescence.edges(labels=0)]
+                    for edges in product(*L):
+                        yield DiGraph(deepcopy(edges), format='list_of_edges')
+                else:
+                    yield DiGraph(deepcopy(arborescence.edges()), format='list_of_edges')
+
+            else:
+                # 1) Pick an edge e in the out boundary of the current arborescence
+                if forward:
+                    e = D.edge_boundary(arborescence.vertices(), vertices2=V, labels=False, sort=False)[0]
+                    x = e[1]
+                else:
+                    e = D.edge_boundary(V, vertices2=arborescence.vertices(), labels=False, sort=False)[0]
+                    x = e[0]
+
+                # 2) Find all arborescences that do not contain e
+                D.delete_edge(e)
+                if (forward and len(list(D.depth_first_search(arborescence.vertices()))) == D.order()) \
+                  or (not forward and len(list(D.depth_first_search(list(V)))) == D.order()):
+                    for tree in _arborescence_rec(D, arborescence, V):
+                        yield tree
+                D.add_edge(e)
+
+                # 3) Find all arborescences that do contain e
+                arborescence.add_edge(e)
+                V.discard(x)
+                for tree in _arborescence_rec(D, arborescence, V):
+                    yield tree
+                # We remove edge e and its target
+                arborescence.delete_vertex(x)
+                V.add(x)
+
+
+        if not self.has_vertex(root):
+            raise LookupError("root vertex ({}) is not a vertex of the digraph".format(root))
+
+        # We build a digraph without loops nor multiple edges
+        D = self.to_simple(to_undirected=False)
+
+        # Test if the root can access to every other vertex
+        if direction == "out":
+            if len(list(D.depth_first_search(root))) < D.order():
+                return
+            forward = True
+            D.delete_edges(D.incoming_edges(root))
+
+        elif direction == "in":
+            if len(list(D.reverse().depth_first_search(root))) < D.order():
+                return
+            forward = False
+            D.delete_edges(D.outgoing_edges(root))
+
+        else:
+            raise ValueError("unknown direction '{}'".format(direction))
+
+        # We store the labels of multiple edges.
+        multiple_edges = {}
+        if self.has_multiple_edges():
+            for u,v in D.edge_iterator(labels=0):
+                multiple_edges[u,v] = self.edge_boundary([u], vertices2=[v], sort=False)
+
+        # We initialize the arborescence
+        arborescence = DiGraph()
+        arborescence.add_vertex(root)
+        V = set(self.vertices()).difference([root])
+
+        return _arborescence_rec(D, arborescence, V)
 
     ### Directed Acyclic Graphs (DAGs)
 
