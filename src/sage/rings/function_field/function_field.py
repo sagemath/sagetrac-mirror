@@ -558,6 +558,8 @@ class FunctionField_polymod(FunctionField):
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
             raise TypeError("polynomial must be univariate a polynomial")
+        if gcd(polynomial,polynomial.derivative()) != 1:
+            raise TypeError("polynomial must be separable")
         if names is None:
             names = (polynomial.variable_name(), )
         elif names != polynomial.variable_name():
