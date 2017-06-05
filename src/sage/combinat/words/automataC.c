@@ -973,6 +973,101 @@ bool findWord (Automaton a, Dict *w, bool verb)
 	return res;
 }
 
+//rend un mot le plus court du language
+bool shortestWord (Automaton a, Dict *w, bool verb)
+{
+	if (a.i == -1)
+		return false;
+	//algorithme de Dijkstra
+	int *d = malloc(sizeof(int)*a.n); //tableau des distances depuis l'état initial
+	int *prec = malloc(sizeof(int)*a.n); //tableau des prédécesseurs
+	int *vu = malloc(sizeof(int)*a.n);
+	int i, j, imin, f;
+	//initialisation
+	for (i=0;i<a.n;i++)
+	{
+		d[i] = a.n;
+		prec[i] = -1;
+		vu[i] = 0;
+	}
+	d[a.i] = 0;
+	//Dijkstra (pas très optimisé)
+	for (i=0;i<a.n;i++)
+	{
+		//cherche l'état le plus proche non encore vu (pourrait être optimisé)
+		imin = 0;
+		for (j=0;j<a.n;j++)
+		{
+			if (d[j] < d[imin] && !vu[j])
+			{
+				imin = j;
+			}
+		}
+		vu[imin] = 1;
+		//parcours les voisins
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[imin].f[j];
+			if (f != -1)
+			{
+				if (d[f] > d[imin]+1)
+				{
+					d[f] = d[imin]+1;
+					prec[f] = imin;
+				}
+			}
+		}
+	}
+	free(vu);
+	//Détermine l'état final le plus proche
+	f = -1;
+	for (i=0;i<a.n;i++)
+	{
+		if (a.e[i].final)
+		{
+			if (f == -1)
+				f = i;
+			else if (d[i] < d[f])
+			{
+				f = i;
+			}
+		}
+	}
+	free(d);
+	if (f == -1)
+	{
+		free(prec);
+		return false;
+	}
+	//trouve le chemin le plus court vers cet état
+	i = 0;
+	imin = f;
+	while(prec[f] != -1)
+	{
+		i++;
+		f = prec[f];
+	}
+	//alloue le mot
+	*w = NewDict(i);
+	f = imin;
+	while(prec[f] != -1)
+	{
+		i--;
+		//trouve la lettre qui fait passer d'un état à l'autre
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[prec[f]].f[j] == f)
+			{
+				w->e[i] = j;
+				break;
+			}
+		}
+		f = prec[f];
+	}
+	free(prec);
+	return true;
+}
+
 int contract (int i1, int i2, int n1)
 {
 	return i1+n1*i2;

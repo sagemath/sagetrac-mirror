@@ -90,6 +90,7 @@ cdef extern from "automataC.h":
 	bool CompleteAutomaton (Automaton *a)
 	Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
 	bool findWord (Automaton a, Dict *w, bool verb)
+	bool shortestWord (Automaton a, Dict *w, bool verb)
 	void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -1273,6 +1274,19 @@ cdef class FastAutomaton:
 		sig_on()
 		cdef Dict w
 		res = findWord (self.a[0], &w, verb)
+		sig_off()
+		if not res:
+			return None
+		r = []
+		for i in range(w.n):
+			r.append(self.A[w.e[i]])
+		FreeDict(&w)
+		return r
+	
+	def find_shortest_word (self, bool verb=False):
+		sig_on()
+		cdef Dict w
+		res = shortestWord (self.a[0], &w, verb)
 		sig_off()
 		if not res:
 			return None
