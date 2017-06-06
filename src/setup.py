@@ -281,6 +281,7 @@ class sage_build_cython(Command):
         self.cython_directives = dict(
             auto_pickle=False,
             autotestdict=False,
+            binding=True,
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
