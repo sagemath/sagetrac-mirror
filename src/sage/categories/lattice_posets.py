@@ -10,6 +10,7 @@ Lattice posets
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.categories.posets import Posets
 
@@ -29,7 +30,7 @@ class LatticePosets(Category):
         sage: LatticePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :class:`FiniteLatticePosets`, :func:`LatticePoset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :class:`FiniteLatticePosets`, :func:`LatticePoset`
 
     TESTS::
 
@@ -49,6 +50,8 @@ class LatticePosets(Category):
             [Category of posets]
         """
         return [Posets()]
+
+    Finite = LazyImport('sage.categories.finite_lattice_posets', 'FiniteLatticePosets')
 
     class ParentMethods:
 

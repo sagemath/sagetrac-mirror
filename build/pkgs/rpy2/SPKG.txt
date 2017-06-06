@@ -11,39 +11,22 @@ Website: http://rpy.sourceforge.net/rpy2.html
  * GPL 2+
  * Note that we have deleted references to Mozilla PL as an option, which we are allowed to do by the full rpy2 license in order to remain GPL-compatible
 
-== SPKG Maintainers ==
-
 == Upstream Contact ==
  * http://rpy.sourceforge.net/maillist.html
 
 == Dependencies ==
 
 == Special Update/Build Instructions ==
- * setup.py change takes care of a few parsing issues and location issues
- * does this need to be reported upstream, or is it Sage-specific?
+
+=== Patches ===
+ * setup.patch: takes care of a few parsing issues.
+ * cygwin.patch: let rpy2 build on Cygwin.
 
 == Changelog ==
 
-=== rpy2-2.0.8.p0 (Jeroen Demeyer, 4 September 2012) ===
- * Trac #9906: use standard template for spkg-install
-
-=== rpy2-2.0.8 (Karl-Dieter Crisman, December 23, 2009) ===
- * upgrade
- * improve SPKG.txt
- * clarify license situation
-
-=== rpy2-2.0.6 (William Stein and Jason Grout, Sept 20, 2009) ===
- * upgrade to rpy2
-
-=== rpy-1.0.1.p2 (Michael Abshoff, May 28th, 2008) ===
- * Set RHOME so that Sage's R is used (Francois Bissey, #3328)
- * add basic SPKG.txt
-
-=== rpy-1.0.1.p1 ===
- * FIXME
-
-=== rpy-1.0.1.p0 ===
- * FIXME
-
-=== rpy-1.0.1 (Craig Citro) ===
- * initial release
+=== rpy2-2.7.4 (Emmanuel Charpentier, December 1st, 2015) ===
+ * Trac #19638 : upgrade to allow interaction with Jupyter notebook
+ * Updated cygwin.patch to add "|| #defined(__CyGWIN__)" to ALL occurences
+   of "#defined(Win32) || #defined(Win64)". This should be reviewed by
+   someone who knows what (he|she)'s doing with Cygwin (I don't).
+ * Removed setup.patch, which as no target now.

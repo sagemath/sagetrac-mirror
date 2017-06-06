@@ -86,7 +86,7 @@ LaTeX representation and then wraps it in HTML that invokes the CSS
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
     sage: mj(QQ)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
-    sage: mj(ZZ[x])
+    sage: mj(ZZ['x'])
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
     sage: mj(integrate(z^4, z))
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
@@ -122,16 +122,6 @@ instead, and the subsequent output converted to a graphic image
 for display in the worksheet.  Affecting and controlling this
 process is discussed below in the section
 :ref:`sec-custom-generation`.
-
-The internal ``pretty_print()`` command illustrates the
-conversion of Sage objects to HTML code that employs MathJax in
-the notebook.  ::
-
-    sage: from sage.misc.latex import pretty_print
-    sage: pretty_print(x^12)
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
-    sage: pretty_print(integrate(sin(x), x))
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 The notebook has two other features for employing TeX.
 The first is the "Typeset" button just above the first cell of a
@@ -241,12 +231,12 @@ double-backslashes in the Python strings.  ::
     sage: latex.extra_macros('')
     sage: latex.extra_preamble('')
     sage: from sage.misc.latex import latex_extra_preamble
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
     sage: latex.add_macro("\\newcommand{\\foo}{bar}")
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \newcommand{\ZZ}{\Bold{Z}}
     ...
     \newcommand{\Bold}[1]{\mathbf{#1}}
@@ -274,7 +264,7 @@ for the double-backslashes in the Python strings.  ::
     sage: latex.add_to_preamble('\\geometry{letterpaper,total={8in,10in}}')
     sage: latex.extra_preamble()
     '\\usepackage{geometry}\\geometry{letterpaper,total={8in,10in}}'
-    sage: print latex_extra_preamble()
+    sage: print(latex_extra_preamble())
     \usepackage{geometry}\geometry{letterpaper,total={8in,10in}}
     \newcommand{\ZZ}{\Bold{Z}}
     ...
@@ -451,7 +441,7 @@ graphs processed by LaTeX in the notebook. ::
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()
-    ['tikzpicture']
+    ['tikz', 'tikzpicture']
 
 At this point, a command like ``view(graphs.CompleteGraph(4))``
 should produce a graphic version of the graph pasted into the

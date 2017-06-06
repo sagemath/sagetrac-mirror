@@ -154,6 +154,8 @@ old pickles to work).
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import absolute_import
+from six import iteritems
 
 from pickletools import genops
 
@@ -177,7 +179,7 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     of ``explain_pickle`` to ``sage_eval`` should be totally equivalent to loading
     the ``pickle`` with ``cPickle``.
 
-    INPUTS:
+    INPUT:
 
      - ``pickle``   -- the pickle to explain, as a string (default: None)
      - ``file``     -- a filename of a pickle (default: None)
@@ -237,15 +239,15 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     elif file is not None:
         p = open(file).read()
     else:
-        raise ValueError, "Either pickle or file must be specified"
+        raise ValueError("Either pickle or file must be specified")
 
     if compress:
         try:
             p = comp.decompress(p)
-        except Exception, msg1:
+        except Exception as msg1:
             try:
                 p = comp_other.decompress(p)
-            except Exception, msg2:
+            except Exception as msg2:
                 # Maybe data is uncompressed?
                 pass
 
@@ -278,10 +280,10 @@ def explain_pickle_string(pickle, in_current_sage=False,
 
     if eval:
         if default_assumptions:
-            raise ValueError, "Not safe to evaluate code generated with default_assumptions"
+            raise ValueError("Not safe to evaluate code generated with default_assumptions")
         from sage.misc.sage_eval import sage_eval
         result = sage_eval(ans, preparse=preparse)
-        print ans
+        print(ans)
         return result
     else:
         return ans
@@ -430,7 +432,7 @@ class PickleExplainer(object):
         self.stack = []
         self.memo = {}
         if in_current_sage and default_assumptions:
-            raise ValueError, "in_current_sage and default_assumptions must not both be true"
+            raise ValueError("in_current_sage and default_assumptions must not both be true")
 
         self.new_instance = self.sib.import_name('types', 'InstanceType')
 
@@ -455,7 +457,7 @@ class PickleExplainer(object):
             try:
                 handler = getattr(self, op.name)
             except AttributeError:
-                raise NotImplementedError, 'PickleExplainer does not yet handle opcode %s' % op.name
+                raise NotImplementedError('PickleExplainer does not yet handle opcode %s' % op.name)
             if arg is None:
                 handler()
             else:
@@ -1196,7 +1198,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1223,7 +1225,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 31415)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1250,7 +1252,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 27182818)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1825,7 +1827,7 @@ class PickleExplainer(object):
             result: 0
         """
         if not 0 <= proto <= 2:
-            raise ValueError, "unsupported pickle protocol: %d" % proto
+            raise ValueError("unsupported pickle protocol: {}".format(proto))
 
     def PUT(self, n):
         r"""
@@ -2411,8 +2413,8 @@ def unpickle_newobj(klass, args):
 
     pers_load = lambda id: pers[int(id)]
 
-    from cStringIO import StringIO
-    import cPickle
+    from six.moves import cStringIO as StringIO
+    from six.moves import cPickle
     unp = cPickle.Unpickler(StringIO(pickle))
     unp.persistent_load = pers_load
     return unp.load()
@@ -2442,12 +2444,12 @@ def unpickle_build(obj, state):
     if state is not None:
         assert(isinstance(state, dict))
         d = obj.__dict__
-        for k,v in state.iteritems():
+        for k, v in iteritems(state):
             d[k] = v
 
     if slots is not None:
         assert(isinstance(slots, dict))
-        for k,v in slots.iteritems():
+        for k, v in iteritems(slots):
             setattr(obj, k, v)
 
 def unpickle_instantiate(fn, args):
@@ -2489,13 +2491,13 @@ def unpickle_extension(code):
 
     EXAMPLES::
 
-        sage: from copy_reg import *
+        sage: from six.moves.copyreg import *
         sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
         <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
         sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
     """
-    from copy_reg import _inverted_registry, _extension_cache
+    from six.moves.copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
     nil = []
     obj = _extension_cache.get(code, nil)
@@ -2588,33 +2590,36 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     generic = explain_pickle(p, compress=False, pedantic=pedantic, preparse=False)
 
     if current == generic:
-        print "explain_pickle in_current_sage=True/False:"
-        print current
+        print("explain_pickle in_current_sage=True/False:")
+        print(current)
     else:
-        print "explain_pickle in_current_sage=True:"
-        print current
-        print "explain_pickle in_current_sage=False:"
-        print generic
+        print("explain_pickle in_current_sage=True:")
+        print(current)
+        print("explain_pickle in_current_sage=False:")
+        print(generic)
 
     pers_load = lambda s: args[int(s)]
 
     global unpickle_persistent_loader
     unpickle_persistent_loader = pers_load
 
-    if verbose_eval: print "evaluating explain_pickle in_current_sage=True:"
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=True:")
     current_res = sage_eval(current, preparse=False)
-    if verbose_eval: print "evaluating explain_pickle in_current_sage=False:"
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=False:")
     generic_res = sage_eval(generic, preparse=False)
-    if verbose_eval: print "loading pickle with cPickle:"
-    from cStringIO import StringIO
-    import cPickle
+    if verbose_eval:
+        print("loading pickle with cPickle:")
+    from six.moves import cStringIO as StringIO
+    from six.moves import cPickle
     unp = cPickle.Unpickler(StringIO(p))
     unp.persistent_load = pers_load
     unp.find_global = unpickle_global
     try:
         cpickle_res = unp.load()
         cpickle_ok = True
-    except StandardError:
+    except Exception:
         cpickle_ok = False
 
     current_repr = repr(current_res)
@@ -2625,10 +2630,10 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
 
         assert(current_repr == generic_repr == cpickle_repr)
 
-        print "result: " + current_repr
+        print("result: " + current_repr)
     else:
         assert(current_repr == generic_repr)
-        print "result: " + current_repr + " (cPickle raised an exception!)"
+        print("result: " + current_repr + " (cPickle raised an exception!)")
 
 class EmptyOldstyleClass:
     r"""
@@ -2704,7 +2709,7 @@ class TestReduceGetinitargs:
             Running __init__ for TestReduceGetinitargs
             TestReduceGetinitargs
         """
-        print "Running __init__ for TestReduceGetinitargs"
+        print("Running __init__ for TestReduceGetinitargs")
 
     def __getinitargs__(self):
         r"""
@@ -2755,7 +2760,7 @@ class TestReduceNoGetinitargs:
             Running __init__ for TestReduceNoGetinitargs
             TestReduceNoGetinitargs
         """
-        print "Running __init__ for TestReduceNoGetinitargs"
+        print("Running __init__ for TestReduceNoGetinitargs")
 
     def __repr__(self):
         r"""
@@ -2860,7 +2865,7 @@ class TestAppendNonlist(object):
             [1, 2, 3, 4]
         """
         if a == 'append':
-            print "Fetching append attribute"
+            print("Fetching append attribute")
             return self.list.append
 
         raise AttributeError
@@ -2956,7 +2961,7 @@ class TestBuildSetstate(TestBuild):
             setting state from ({'x': 3}, {'y': 4})
             TestBuild: x=4; y=3
         """
-        print "setting state from %r" % (state,)
+        print("setting state from {}".format(state))
         # Swap x and y, just for fun
         self.x = state[1]['y']
         self.y = state[0]['x']
@@ -3023,7 +3028,7 @@ class TestGlobalFunnyName(object):
         r"""
         Print a TestGlobalFunnyName.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.explain_pickle import *
             sage: v = TestGlobalFunnyName()

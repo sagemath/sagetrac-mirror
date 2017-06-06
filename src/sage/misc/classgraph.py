@@ -36,9 +36,24 @@ def class_graph(top, depth=5, name_filter=None, classes=None, as_graph = True):
         sage: G = class_graph(sage.rings.polynomial.padics); G
         Digraph on 8 vertices
         sage: G.vertices()
-        ['Polynomial_generic_dense', 'Polynomial_generic_dense_field', 'Polynomial_generic_domain', 'Polynomial_padic', 'Polynomial_padic_capped_relative_dense', 'Polynomial_padic_flat', 'Polynomial_padic_generic_field', 'Polynomial_padic_generic_ring']
+        ['Polynomial_generic_cdv',
+         'Polynomial_generic_dense',
+         'Polynomial_generic_dense_field',
+         'Polynomial_generic_domain',
+         'Polynomial_padic',
+         'Polynomial_padic_capped_relative_dense',
+         'Polynomial_padic_flat',
+         'Polynomial_padic_generic_field',
+         'Polynomial_padic_generic_ring']
         sage: G.edges(labels=False)
-        [('Polynomial_padic', 'Polynomial_generic_domain'), ('Polynomial_padic_capped_relative_dense', 'Polynomial_padic'), ('Polynomial_padic_flat', 'Polynomial_padic_generic_ring'), ('Polynomial_padic_generic_field', 'Polynomial_generic_dense_field'), ('Polynomial_padic_generic_field', 'Polynomial_padic'), ('Polynomial_padic_generic_ring', 'Polynomial_generic_dense'), ('Polynomial_padic_generic_ring', 'Polynomial_generic_domain'), ('Polynomial_padic_generic_ring', 'Polynomial_padic')]
+        [('Polynomial_padic', 'Polynomial_generic_domain'),
+         ('Polynomial_padic_capped_relative_dense', 'Polynomial_generic_cdv'),
+         ('Polynomial_padic_capped_relative_dense', 'Polynomial_padic'),
+         ('Polynomial_padic_flat', 'Polynomial_padic_generic_ring'),
+         ('Polynomial_padic_generic_field', 'Polynomial_generic_dense_field'),
+         ('Polynomial_padic_generic_field', 'Polynomial_padic'),
+         ('Polynomial_padic_generic_ring', 'Polynomial_generic_dense'),
+         ('Polynomial_padic_generic_ring', 'Polynomial_padic')]
 
     We construct the inheritance graph of a given class::
 
@@ -55,11 +70,18 @@ def class_graph(top, depth=5, name_filter=None, classes=None, as_graph = True):
        can be emulated by setting the option ``as_graph`` to ``False``::
 
         sage: class_graph(sage.rings.polynomial.padics, depth=2, as_graph=False)
+<<<<<<< HEAD
         {'Polynomial_padic_generic_field': ['Polynomial_padic', 'Polynomial_generic_dense_field'],
          'Polynomial_padic_generic_ring': ['Polynomial_padic', 'Polynomial_generic_domain', 'Polynomial_generic_dense'],
          'Polynomial_padic': ['Polynomial_generic_domain'],
          'Polynomial_padic_capped_relative_dense': ['Polynomial_padic'],
          'Polynomial_padic_flat': ['Polynomial_padic_generic_ring']}
+=======
+        {'Polynomial_padic': ['Polynomial'],
+         'Polynomial_padic_capped_relative_dense': ['Polynomial_generic_cdv',
+          'Polynomial_padic'],
+         'Polynomial_padic_flat': ['Polynomial_generic_dense', 'Polynomial_padic']}
+>>>>>>> develop
 
     .. note:: the ``classes`` and ``as_graph`` options are mostly
        intended for internal recursive use.

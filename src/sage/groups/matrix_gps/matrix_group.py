@@ -36,6 +36,7 @@ AUTHORS:
 - Simon King (2010-05): Improve invariant_generators by using GAP
   for the construction of the Reynolds operator in Singular.
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
@@ -47,10 +48,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import types
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
@@ -59,6 +61,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
+from sage.groups.generic import structure_description
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
@@ -167,46 +170,6 @@ class MatrixGroup_base(Group):
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
         return MatrixGroup(self.gens())
 
-    def field_of_definition(self, **kwds):
-        """
-        Return a field that contains all the matrices in this matrix
-        group.
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_ring()
-            Finite Field in a of size 5^2
-            sage: G.field_of_definition()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-            sage: G = GO(4,GF(7),1)
-            sage: G.field_of_definition()
-            Finite Field of size 7
-            sage: G.base_ring()
-            Finite Field of size 7
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
-    def base_field(self):
-        """
-        Deprecated alias of :meth:`base_ring`
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_field()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
     def _repr_(self):
         """
         Return a string representation.
@@ -230,7 +193,7 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_list
+            from sage.repl.display.util import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
                 self.base_ring(), self.ngens(), format_list(self.gens()))
 
@@ -438,9 +401,9 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         INPUT:
 
-        - ``G`` -- group. The codomain.
+        - ``G`` -- group; the codomain
 
-        - ``cat`` -- a category. Must be unset.
+        - ``cat`` -- category; must be unset
 
         OUTPUT:
 
@@ -458,13 +421,22 @@ class MatrixGroup_generic(MatrixGroup_base):
             [1 0]  [1 2]
             [0 1], [3 4]
             )
+
+        TESTS:
+
+        Check that :trac:`19407` is fixed::
+
+            sage: G = GL(2, GF(2))
+            sage: H = GL(3, ZZ)
+            sage: Hom(G, H)
+            Set of Homomorphisms from General Linear Group of degree 2
+             over Finite Field of size 2 to General Linear Group of degree 3
+             over Integer Ring
         """
-        if not (cat is None or (cat is G.category() and cat is self.category())):
-            raise TypeError
         if not is_MatrixGroup(G):
-            raise TypeError, "G (=%s) must be a matrix group."%G
-        import homset
-        return homset.MatrixGroupHomset(self, G)
+            raise TypeError("G (=%s) must be a matrix group."%G)
+        from . import homset
+        return homset.MatrixGroupHomset(self, G, cat)
 
     def hom(self, x):
         """
@@ -494,7 +466,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         v = Sequence(x)
         U = v.universe()
         if not is_MatrixGroup(U):
-            raise TypeError, "u (=%s) must have universe a matrix group."%U
+            raise TypeError("u (=%s) must have universe a matrix group."%U)
         return self.Hom(U)(x)
 
 
@@ -526,7 +498,9 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
           ``None`` (default). The ambient class if ``libgap_group``
           has been defined as a subgroup.
 
-        TESTS::
+        TESTS:
+
+        ::
 
             sage: from sage.groups.matrix_gps.matrix_group import MatrixGroup_gap
             sage: MatrixGroup_gap(2, ZZ, libgap.eval('GL(2, Integers)'))
@@ -534,9 +508,133 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             [0 1]  [-1  0]  [1 1]
             [1 0], [ 0  1], [0 1]
             )
+
+        Check that the slowness of GAP iterators and enumerators for matrix groups
+        (cf. http://tracker.gap-system.org/issues/369) has been fixed::
+
+            sage: i = iter(GL(6,5))
+            sage: [ next(i) for j in range(8) ]
+            [
+            [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
+            [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
+            [0 0 1 0 0 0]  [0 4 0 0 0 0]  [0 0 0 4 0 0]  [0 0 0 4 0 0]
+            [0 0 0 1 0 0]  [0 0 4 0 0 0]  [0 0 0 0 4 0]  [0 0 0 0 4 0]
+            [0 0 0 0 1 0]  [0 0 0 4 0 0]  [0 0 0 0 0 4]  [0 0 0 0 0 4]
+            [0 0 0 0 0 1], [0 0 0 0 4 0], [1 4 0 0 0 0], [2 4 0 0 0 0],
+            [3 0 0 0 0 1]  [4 0 0 1 3 3]  [0 0 0 2 0 0]  [1 0 0 0 4 4]
+            [3 0 0 0 0 0]  [4 0 0 0 3 3]  [0 0 0 0 4 0]  [1 0 0 0 0 4]
+            [0 4 0 0 0 0]  [3 0 0 0 0 1]  [2 2 0 0 0 2]  [1 0 0 0 0 0]
+            [0 0 4 0 0 0]  [3 0 0 0 0 0]  [1 4 0 0 0 0]  [0 1 0 0 0 0]
+            [0 0 0 4 0 0]  [0 4 0 0 0 0]  [0 2 4 0 0 0]  [0 0 1 0 0 0]
+            [4 0 0 0 2 3], [2 0 3 4 4 4], [0 0 1 4 0 0], [0 0 0 1 0 0]
+            ]
+
+        And the same for listing the group elements, as well as few other issues::
+
+            sage: F = GF(3)
+            sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: G.cardinality()
+            24
+            sage: v = G.list()
+            sage: len(v)
+            24
+            sage: v[:5]
+            (
+            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
+            [2 0], [2 1], [2 2], [1 0], [1 1]
+            )
+            sage: all(g in G for g in G.list())
+            True
+
+        An example over a ring (see :trac:`5241`)::
+
+            sage: M1 = matrix(ZZ,2,[[-1,0],[0,1]])
+            sage: M2 = matrix(ZZ,2,[[1,0],[0,-1]])
+            sage: M3 = matrix(ZZ,2,[[-1,0],[0,-1]])
+            sage: MG = MatrixGroup([M1, M2, M3])
+            sage: MG.list()
+            (
+            [-1  0]  [-1  0]  [ 1  0]  [1 0]
+            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
+            )
+            sage: MG.list()[1]
+            [-1  0]
+            [ 0  1]
+            sage: MG.list()[1].parent()
+            Matrix group over Integer Ring with 3 generators (
+            [-1  0]  [ 1  0]  [-1  0]
+            [ 0  1], [ 0 -1], [ 0 -1]
+            )
+
+        An example over a field (see :trac:`10515`)::
+
+            sage: gens = [matrix(QQ,2,[1,0,0,1])]
+            sage: MatrixGroup(gens).list()
+            (
+            [1 0]
+            [0 1]
+            )
+
+        Another example over a ring (see :trac:`9437`)::
+
+            sage: len(SL(2, Zmod(4)).list())
+            48
+
+        An error is raised if the group is not finite::
+
+            sage: GL(2,ZZ).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: group must be finite
+
         """
         ParentLibGAP.__init__(self, libgap_group, ambient=ambient)
         MatrixGroup_generic.__init__(self, degree, base_ring, category=category)
+
+    def __iter__(self):
+        """
+        Iterate over the elements of the group.
+
+        This method overrides the matrix group enumerator in GAP which
+        does not (and often just cannot) work for infinite groups.
+
+        TESTS:
+
+        infinite groups can be dealt with::
+
+            sage: import itertools
+            sage: W = WeylGroup(["A",3,1])
+            sage: list(itertools.islice(W, 4))
+            [
+            [1 0 0 0]  [-1  1  0  1]  [ 1  0  0  0]  [ 1  0  0  0]
+            [0 1 0 0]  [ 0  1  0  0]  [ 1 -1  1  0]  [ 0  1  0  0]
+            [0 0 1 0]  [ 0  0  1  0]  [ 0  0  1  0]  [ 0  1 -1  1]
+            [0 0 0 1], [ 0  0  0  1], [ 0  0  0  1], [ 0  0  0  1]
+            ]
+
+        and finite groups, too::
+
+            sage: G=GL(6,5)
+            sage: list(itertools.islice(G,4))
+            [
+            [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
+            [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
+            [0 0 1 0 0 0]  [0 4 0 0 0 0]  [0 0 0 4 0 0]  [0 0 0 4 0 0]
+            [0 0 0 1 0 0]  [0 0 4 0 0 0]  [0 0 0 0 4 0]  [0 0 0 0 4 0]
+            [0 0 0 0 1 0]  [0 0 0 4 0 0]  [0 0 0 0 0 4]  [0 0 0 0 0 4]
+            [0 0 0 0 0 1], [0 0 0 0 4 0], [1 4 0 0 0 0], [2 4 0 0 0 0]
+            ]
+        """
+        if not self.is_finite():
+            # use implementation from category framework
+            for g in super(Group, self).__iter__():
+                yield g
+            return
+        # Use the standard GAP iterator for finite groups
+        for g in super(MatrixGroup_gap, self).__iter__():
+            yield g
+        return
 
     def _check_matrix(self, x_sage, x_gap):
         """
@@ -601,133 +699,4 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         return FinitelyGeneratedMatrixGroup_gap(self.degree(), self.base_ring(),
                                                 libgap_subgroup, ambient=self)
 
-    def __iter__(self):
-        """
-        Iterate over the elements of the group.
-
-        This method overrides the matrix group enumerator in GAP which
-        is very slow, see http://tracker.gap-system.org/issues/369.
-
-        EXAMPLES::
-
-            sage: i = iter(GL(6,5))
-            sage: [ i.next() for j in range(8) ]
-            [
-            [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
-            [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
-            [0 0 1 0 0 0]  [0 4 0 0 0 0]  [0 0 0 4 0 0]  [0 0 0 4 0 0]
-            [0 0 0 1 0 0]  [0 0 4 0 0 0]  [0 0 0 0 4 0]  [0 0 0 0 4 0]
-            [0 0 0 0 1 0]  [0 0 0 4 0 0]  [0 0 0 0 0 4]  [0 0 0 0 0 4]
-            [0 0 0 0 0 1], [0 0 0 0 4 0], [1 4 0 0 0 0], [2 4 0 0 0 0],
-            <BLANKLINE>
-            [3 0 0 0 0 1]  [4 0 0 1 3 3]  [0 0 0 2 0 0]  [1 0 0 0 4 4]
-            [3 0 0 0 0 0]  [4 0 0 0 3 3]  [0 0 0 0 4 0]  [1 0 0 0 0 4]
-            [0 4 0 0 0 0]  [3 0 0 0 0 1]  [2 2 0 0 0 2]  [1 0 0 0 0 0]
-            [0 0 4 0 0 0]  [3 0 0 0 0 0]  [1 4 0 0 0 0]  [0 1 0 0 0 0]
-            [0 0 0 4 0 0]  [0 4 0 0 0 0]  [0 2 4 0 0 0]  [0 0 1 0 0 0]
-            [4 0 0 0 2 3], [2 0 3 4 4 4], [0 0 1 4 0 0], [0 0 0 1 0 0]
-            ]
-
-        This is the direct computation in GAP, which will just run
-        (almost) forever. If you find that this works then the
-        ``MatrixGroup_gap.__iter__`` and ``MatrixGroup_gap.list``
-        methods can be removed::
-
-            sage: G = GL(6,5).gap()
-            sage: G.Enumerator()   # not tested
-            sage: G.Iterator()     # not tested
-        """
-        if not self.is_finite():
-            # use implementation from category framework
-            for g in super(Group, self).__iter__():
-                yield g
-            return
-        # Use the standard GAP iterator for small groups
-        if self.cardinality() < 1000:
-            for g in super(MatrixGroup_gap, self).__iter__():
-                yield g
-            return
-        # Override for large but finite groups
-        iso = self.gap().IsomorphismPermGroup()
-        P = iso.Image()
-        iterator = P.Iterator()
-        while not iterator.IsDoneIterator().sage():
-            p = iterator.NextIterator()
-            g = iso.PreImageElm(p)
-            yield self(g, check=False)
-
-    @cached_method
-    def list(self):
-        """
-        List all elements of this group.
-
-        This method overrides the matrix group enumerator in GAP which
-        is very slow, see http://tracker.gap-system.org/issues/369.
-
-        OUTPUT:
-
-        A tuple containing all group elements in a random but fixed
-        order.
-
-        EXAMPLES::
-
-            sage: F = GF(3)
-            sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
-            sage: G = MatrixGroup(gens)
-            sage: G.cardinality()
-            24
-            sage: v = G.list()
-            sage: len(v)
-            24
-            sage: v[:5]
-            (
-            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
-            [2 0], [2 1], [2 2], [1 0], [1 1]
-            )
-            sage: all(g in G for g in G.list())
-            True
-
-        An example over a ring (see trac 5241)::
-
-            sage: M1 = matrix(ZZ,2,[[-1,0],[0,1]])
-            sage: M2 = matrix(ZZ,2,[[1,0],[0,-1]])
-            sage: M3 = matrix(ZZ,2,[[-1,0],[0,-1]])
-            sage: MG = MatrixGroup([M1, M2, M3])
-            sage: MG.list()
-            (
-            [-1  0]  [-1  0]  [ 1  0]  [1 0]
-            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
-            )
-            sage: MG.list()[1]
-            [-1  0]
-            [ 0  1]
-            sage: MG.list()[1].parent()
-            Matrix group over Integer Ring with 3 generators (
-            [-1  0]  [ 1  0]  [-1  0]
-            [ 0  1], [ 0 -1], [ 0 -1]
-            )
-
-        An example over a field (see trac 10515)::
-
-            sage: gens = [matrix(QQ,2,[1,0,0,1])]
-            sage: MatrixGroup(gens).list()
-            (
-            [1 0]
-            [0 1]
-            )
-
-        Another example over a ring (see trac 9437)::
-
-            sage: len(SL(2, Zmod(4)).list())
-            48
-
-        An error is raised if the group is not finite::
-
-            sage: GL(2,ZZ).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: group must be finite
-        """
-        if not self.is_finite():
-            raise NotImplementedError('group must be finite')
-        return tuple(iter(self))
+MatrixGroup_gap.structure_description = types.MethodType(structure_description, None, MatrixGroup_gap)

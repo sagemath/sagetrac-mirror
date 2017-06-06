@@ -1,21 +1,30 @@
-from cone import Cone
+from __future__ import absolute_import
 
-from fan import Fan, FaceFan, NormalFan, Fan2d
+from sage.misc.lazy_import import lazy_import
 
-from fan_morphism import FanMorphism
 
-from polytope import polymake
+from .cone import Cone, random_cone
 
-from polyhedron.all import *
+from .fan import Fan, FaceFan, NormalFan, Fan2d
 
-from lattice_polytope import (LatticePolytope, NefPartition, ReflexivePolytope,
+from .fan_morphism import FanMorphism
+
+from .polyhedron.all import *
+
+from .lattice_polytope import (LatticePolytope, NefPartition, ReflexivePolytope,
                               ReflexivePolytopes)
 
-import lattice_polytope
+from . import lattice_polytope
 
-from toric_lattice import ToricLattice
+from .toric_lattice import ToricLattice
 
-import sage.geometry.pseudolines
+from . import toric_plotter
 
 
-import toric_plotter
+from .hyperbolic_space.all import *
+
+from .voronoi_diagram import *
+
+lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph')
+lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
+lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')

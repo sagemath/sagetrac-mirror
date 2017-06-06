@@ -1,6 +1,7 @@
 """
 Submodules of Hecke modules
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -19,14 +20,14 @@ Submodules of Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
 
 import sage.modules.all
 
-import module
-import ambient_module
+from . import module
+
 
 
 def is_HeckeSubmodule(x):
@@ -77,26 +78,27 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S == loads(dumps(S))
             True
         """
+        from . import ambient_module
         if not isinstance(ambient, ambient_module.AmbientHeckeModule):
-            raise TypeError, "ambient must be an ambient Hecke module"
-        if not sage.modules.all.is_FreeModule(submodule):
-            raise TypeError, "submodule must be a free module"
+            raise TypeError("ambient must be an ambient Hecke module")
+        if not sage.modules.free_module.is_FreeModule(submodule):
+            raise TypeError("submodule must be a free module")
         if not submodule.is_submodule(ambient.free_module()):
-            raise ValueError, "submodule must be a submodule of the ambient free module"
+            raise ValueError("submodule must be a submodule of the ambient free module")
 
         if check:
             if not ambient._is_hecke_equivariant_free_module(submodule):
-                raise ValueError, "The submodule must be invariant under all Hecke operators."
+                raise ValueError("The submodule must be invariant under all Hecke operators.")
 
         self.__ambient = ambient
         self.__submodule = submodule
         module.HeckeModule_free_module.__init__(self,
                                   ambient.base_ring(), ambient.level(), ambient.weight())
         if not (dual_free_module is None):
-            if not sage.modules.all.is_FreeModule(dual_free_module):
-                raise TypeError, "dual_free_module must be a free module"
+            if not sage.modules.free_module.is_FreeModule(dual_free_module):
+                raise TypeError("dual_free_module must be a free module")
             if dual_free_module.rank () != submodule.rank():
-                raise ArithmeticError, "dual_free_module must have the same rank as submodule"
+                raise ArithmeticError("dual_free_module must have the same rank as submodule")
             self.dual_free_module.set_cache(dual_free_module)
 
 
@@ -128,16 +130,16 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             Modular Forms subspace of dimension 6 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
         """
         if not isinstance(other, module.HeckeModule_free_module):
-            raise TypeError, "other (=%s) must be a Hecke module."%other
+            raise TypeError("other (=%s) must be a Hecke module."%other)
         if self.ambient() != other.ambient():
-            raise ArithmeticError, "Sum only defined for submodules of a common ambient space."
+            raise ArithmeticError("Sum only defined for submodules of a common ambient space.")
         if other.is_ambient():
             return other
         # Neither is ambient
         M = self.free_module() + other.free_module()
         return self.ambient().submodule(M, check=False)
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
         Coerce x into the ambient module and checks that x is in this
         submodule.
@@ -155,11 +157,10 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S([-1/23,0])
             (1,23)
         """
-        z = self.ambient_hecke_module()(x)
-        if check:
-            if not z.element() in self.__submodule:
-                raise TypeError, "x does not coerce to an element of this Hecke module"
-        return z
+        z = self.ambient_hecke_module()(x).element()
+        if check and not z in self.__submodule:
+            raise TypeError("x does not coerce to an element of this Hecke module")
+        return self.element_class(self, z)
 
     def __cmp__(self, other):
         """
@@ -167,6 +168,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         other, and -1 otherwise.
 
         EXAMPLES::
+
             sage: M = ModularSymbols(12,6)
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.cuspidal_submodule().free_module())
             sage: T = sage.modular.hecke.submodule.HeckeSubmodule(M, M.new_submodule().free_module())
@@ -240,7 +242,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def _compute_diamond_matrix(self, d):
         r"""
-        EXAMPLE:
+        EXAMPLES:
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
@@ -288,9 +290,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S._set_dual_free_module(S)
         """
         if V.degree() != self.ambient_hecke_module().rank():
-            raise ArithmeticError, "The degree of V must equal the rank of the ambient space."
+            raise ArithmeticError("The degree of V must equal the rank of the ambient space.")
         if V.rank() != self.rank():
-            raise ArithmeticError, "The rank of V must equal the rank of self."
+            raise ArithmeticError("The rank of V must equal the rank of self.")
         self.dual_free_module.set_cache(V)
 
 
@@ -372,7 +374,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if V.rank() + self.rank() <= A.rank():
                 break
             p = arith.next_prime(p)
-            if p > bound:  # to avoid computing hecke bound unless necessary
+            if p > bound:  # to avoid computing Hecke bound unless necessary
                 break
 
         if V.rank() + self.rank() == A.rank():
@@ -393,7 +395,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             return C
 
         # failed miserably
-        raise RuntimeError, "Computation of complementary space failed (cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), A.rank()-self.rank())
+        raise RuntimeError("Computation of complementary space failed (cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), A.rank()-self.rank()))
 
 
     def degeneracy_map(self, level, t=1):
@@ -504,7 +506,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.dual_free_module().dimension() == S.dimension()
             True
 
-        We test that #5080 is fixed::
+        We test that :trac:`5080` is fixed::
 
             sage: EllipticCurve('128a').congruence_number()
             32
@@ -587,8 +589,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if V2.rank() == self.rank():
                 return V2
             else:
-                raise RuntimeError, "Computation of embedded dual vector space failed " + \
-                  "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
+                raise RuntimeError("Computation of embedded dual vector space failed " + \
+                  "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank()))
 
 
     def free_module(self):
@@ -645,8 +647,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             1
         """
         if self.ambient_hecke_module() != other.ambient_hecke_module():
-            raise ArithmeticError, "Intersection only defined for subspaces of"\
-                  + " a common ambient modular symbols space."
+            raise ArithmeticError("Intersection only defined for subspaces of"\
+                  + " a common ambient modular symbols space.")
         if other.is_ambient():
             return self
         if self.is_ambient():
@@ -753,20 +755,34 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def linear_combination_of_basis(self, v):
         """
-        Return the linear combination of the basis of self given by the
-        entries of v.
+        Return the linear combination of the basis of ``self`` given
+        by the entries of `v`.
+
+        The result can be of different types, and is printed
+        accordingly, depending on the type of submodule.
 
         EXAMPLES::
 
             sage: M = ModularForms(Gamma0(2),12)
+
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.cuspidal_submodule().free_module())
             sage: S.basis()
-            (q + 252*q^3 - 2048*q^4 + 4830*q^5 + O(q^6), q^2 - 24*q^4 + O(q^6))
-            sage: S.linear_combination_of_basis([3,10])
+            ((1, 0, 0, 0), (0, 1, 0, 0))
+            sage: S.linear_combination_of_basis([3, 10])
+            (3, 10, 0, 0)
+
+            sage: S = M.cuspidal_submodule()
+            sage: S.basis()
+            [
+            q + 252*q^3 - 2048*q^4 + 4830*q^5 + O(q^6),
+            q^2 - 24*q^4 + O(q^6)
+            ]
+            sage: S.linear_combination_of_basis([3, 10])
             3*q + 10*q^2 + 756*q^3 - 6384*q^4 + 14490*q^5 + O(q^6)
+
         """
         x = self.free_module().linear_combination_of_basis(v)
-        return self.__ambient(x)
+        return self(x)
 
     def new_submodule(self, p=None):
         """
@@ -873,7 +889,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         r"""
         Return the rank of self as a free module over the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(6, 4).cuspidal_subspace().rank()
             2
@@ -896,7 +912,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.submodule(S[0].free_module())
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 18 for Gamma_0(18) of weight 4 with sign 0 over Rational Field
         """
-        if not sage.modules.all.is_FreeModule(M):
+        from . import ambient_module
+        if not sage.modules.free_module.is_FreeModule(M):
             V = self.ambient_module().free_module()
             if isinstance(M, (list,tuple)):
                 M = V.span([V(x.element()) for x in M])
@@ -905,7 +922,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         if check:
             if not M.is_submodule(self.free_module()):
-                raise TypeError, "M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module())
+                raise TypeError("M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module()))
 
         return self.ambient().submodule(M, Mdual, check=check)
 

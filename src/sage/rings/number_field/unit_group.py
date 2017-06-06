@@ -15,12 +15,12 @@ The first generator is a primitive root of unity in the field::
     sage: UK.gens_values()  # random
     [-1/12*a^3 + 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: UK.gen(0).value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
 
     sage: UK.gen(0)
     u0
     sage: UK.gen(0) + K.one()   # coerce abstract generator into number field
-    -1/12*a^3 + 1/6*a + 1
+    1/12*a^3 - 1/6*a + 1
 
     sage: [u.multiplicative_order() for u in UK.gens()]
     [4, +Infinity]
@@ -37,18 +37,18 @@ as elements of an abstract multiplicative group::
     sage: UK(-1)
     u0^2
     sage: [UK(u) for u in (x^4-1).roots(K,multiplicities=False)]
-    [1, u0^2, u0^3, u0]
+    [1, u0^2, u0, u0^3]
 
     sage: UK.fundamental_units() # random
     [1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: torsion_gen = UK.torsion_generator();  torsion_gen
     u0
     sage: torsion_gen.value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
     sage: UK.zeta_order()
     4
     sage: UK.roots_of_unity()
-    [-1/12*a^3 + 1/6*a, -1, 1/12*a^3 - 1/6*a, 1]
+    [1/12*a^3 - 1/6*a, -1, -1/12*a^3 + 1/6*a, 1]
 
 Exp and log functions provide maps between units as field elements and exponent
 vectors with respect to the generators::
@@ -100,7 +100,30 @@ A relative number field example::
     sage: UL.zeta_order()
     24
     sage: UL.roots_of_unity()
-    [b*a, -b^2*a - b^2, b^3, -a, b*a + b, -b^2, -b^3*a, -a - 1, b, b^2*a, -b^3*a - b^3, -1, -b*a, b^2*a + b^2, -b^3, a, -b*a - b, b^2, b^3*a, a + 1, -b, -b^2*a, b^3*a + b^3, 1]
+    [-b*a,
+     -b^2*a - b^2,
+     -b^3,
+     -a,
+     -b*a - b,
+     -b^2,
+     b^3*a,
+     -a - 1,
+     -b,
+     b^2*a,
+     b^3*a + b^3,
+     -1,
+     b*a,
+     b^2*a + b^2,
+     b^3,
+     a,
+     b*a + b,
+     b^2,
+     -b^3*a,
+     a + 1,
+     b,
+     -b^2*a,
+     -b^3*a - b^3,
+     1]
 
 A relative extension example, which worked thanks to the code review by F.W.Clarke::
 
@@ -141,7 +164,7 @@ from sage.groups.abelian_gps.values import AbelianGroupWithValues_class
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.libs.pari.all import pari
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.integer_ring import ZZ
 
 class UnitGroup(AbelianGroupWithValues_class):
@@ -173,29 +196,21 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: UK = K.unit_group()
         sage: UK.ngens()
         6
-        sage: UK.gen(0) # random
-        -z^11
-        sage: UK.gen(1) # random
-        z^5 + z^3
-        sage: UK.gen(2) # random
-        z^6 + z^5
-        sage: UK.gen(3) # random
-        z^9 + z^7 + z^5
-        sage: UK.gen(4) # random
-        z^9 + z^5 + z^4 + 1
-        sage: UK.gen(5) # random
-        z^5 + z
+        sage: UK.gen(5)
+        u5
+        sage: UK.gen(5).value()
+        z^7 + z
 
     An S-unit group::
 
         sage: SUK = UnitGroup(K,S=21); SUK
-        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
+        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
         sage: SUK.rank()
         10
         sage: SUK.zeta_order()
         26
         sage: SUK.log(21*z)
-        (6, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+        (12, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
     """
     # This structure is not a parent in the usual sense. The
     # "elements" are NumberFieldElement_absolute. Instead, they should
@@ -237,7 +252,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: UK.gens()
             (u,)
             sage: UK.gens_values()
-            [-1/2*a + 1/2]
+            [1/2*a + 1/2]
 
             sage: K.<z> = CyclotomicField(13)
             sage: UK = K.unit_group(); UK
@@ -249,7 +264,17 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: SUK = UnitGroup(K,S=2); SUK
             S-unit group with structure C26 x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (2),)
 
-            """
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
+            sage: K.unit_group()
+            Unit group with structure C2 x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+            sage: UnitGroup(K, S=tuple(K.primes_above(7)))
+            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123 with S = (Fractional ideal (7/225*a^2 - 7/75*a - 42/25),)
+        """
         proof = get_flag(proof, "number_field")
         K = number_field
         pK = K.pari_bnf(proof)
@@ -260,9 +285,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         if not S:
             S = self.__S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(K.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -278,13 +303,13 @@ class UnitGroup(AbelianGroupWithValues_class):
             self.__pS = pS = [P.pari_prime() for P in S]
 
         # compute the fundamental units via pari:
-        fu = [K(u) for u in pK.bnfunit()]
+        fu = [K(u, check=False) for u in pK.bnfunit()]
         self.__nfu = len(fu)
 
         # compute the additional S-unit generators:
         if S:
             self.__S_unit_data = pK.bnfsunit(pS)
-            su = [K(u) for u in self.__S_unit_data[0]]
+            su = [K(u, check=False) for u in self.__S_unit_data[0]]
         else:
             su = []
         self.__nsu = len(su)
@@ -294,7 +319,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         n, z = pK.nfrootsof1()
         n = ZZ(n)
         self.__ntu = n
-        z = K(z)
+        z = K(z, check=False)
 
         # If we replaced z by another torsion generator we would need
         # to allow for this in the dlog function!  So we do not.
@@ -346,18 +371,18 @@ class UnitGroup(AbelianGroupWithValues_class):
         try:
             u = K(u)
         except TypeError:
-            raise ValueError, "%s is not an element of %s"%(u,K)
+            raise ValueError("%s is not an element of %s"%(u,K))
         if self.__S:
             m = pK.bnfissunit(self.__S_unit_data, pari(u)).mattranspose()
             if m.ncols()==0:
-                raise ValueError, "%s is not an S-unit"%u
+                raise ValueError("%s is not an S-unit"%u)
         else:
             if not u.is_integral() or u.norm().abs() != 1:
-                raise ValueError, "%s is not a unit"%u
+                raise ValueError("%s is not a unit"%u)
             m = pK.bnfisunit(pari(u)).mattranspose()
 
         # convert column matrix to a list:
-        m = [ZZ(m[0,i].python()) for i in range(m.ncols())]
+        m = [ZZ(m[0,i].sage()) for i in range(m.ncols())]
 
         # NB pari puts the torsion after the fundamental units, before
         # the extra S-units but we have the torsion first:
@@ -427,7 +452,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: zs = U.roots_of_unity(); zs
-            [-b, -1, b, 1]
+            [b, -1, -b, 1]
             sage: [ z**U.zeta_order() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -493,9 +518,9 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: U.zeta(4)
-            -b
+            b
             sage: U.zeta(4,all=True)
-            [-b, b]
+            [b, -b]
             sage: U.zeta(3)
             Traceback (most recent call last):
             ...
@@ -508,7 +533,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         K = self.number_field()
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n (=%s) must be positive"%n
+            raise ValueError("n (=%s) must be positive"%n)
         if n == 1:
             if all:
                 return [K(1)]
@@ -529,7 +554,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             if all:
                 return []
             else:
-                raise ValueError, "n (=%s) does not divide order of generator"%n
+                raise ValueError("n (=%s) does not divide order of generator"%n)
 
     def number_field(self):
         """
@@ -599,7 +624,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -997204*z^11 - 2419728*z^10 - 413812*z^9 - 413812*z^8 - 2419728*z^7 - 997204*z^6 - 2129888*z^4 - 1616524*z^3 + 149364*z^2 - 1616524*z - 2129888
+           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
@@ -645,12 +670,12 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -997204*z^11 - 2419728*z^10 - 413812*z^9 - 413812*z^8 - 2419728*z^7 - 997204*z^6 - 2129888*z^4 - 1616524*z^3 + 149364*z^2 - 1616524*z - 2129888
+           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
            True
         """
-        return prod([u**e for u,e in zip(self.gens_values(),exponents)], self.number_field().one_element())
+        return prod((u**e for u,e in zip(self.gens_values(),exponents)), self.number_field().one())
 
 

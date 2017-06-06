@@ -1,6 +1,7 @@
 """
 Scheme obtained by gluing two other schemes
 """
+from __future__ import absolute_import
 
 #*******************************************************************************
 #  Copyright (C) 2006 William Stein
@@ -8,8 +9,8 @@ Scheme obtained by gluing two other schemes
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-import morphism
-import scheme
+from . import morphism
+from . import scheme
 
 class GluedScheme(scheme.Scheme):
     r"""
@@ -33,11 +34,11 @@ class GluedScheme(scheme.Scheme):
     def __init__(self, f, g, check=True):
         if check:
             if not morphism.is_SchemeMorphism(f):
-                raise TypeError, "f (=%s) must be a scheme morphism"%f
+                raise TypeError("f (=%s) must be a scheme morphism"%f)
             if not morphism.is_SchemeMorphism(g):
-                raise TypeError, "g (=%s) must be a scheme morphism"%g
+                raise TypeError("g (=%s) must be a scheme morphism"%g)
             if f.domain() != g.domain():
-                raise ValueError, "f (=%s) and g (=%s) must have the same domain"%(f,g)
+                raise ValueError("f (=%s) and g (=%s) must have the same domain"%(f,g))
         self.__f = f
         self.__g = g
 

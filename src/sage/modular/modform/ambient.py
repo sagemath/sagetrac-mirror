@@ -57,35 +57,35 @@ TESTS::
     sage: m == loads(dumps(m))
     True
 """
+from __future__ import absolute_import
 
-#########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
-# system packages
-
-# Sage packages
-import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.rings.all as rings
+from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
 
 
-import cuspidal_submodule
-import defaults
-import eisenstein_submodule
-import eis_series
-import space
-import submodule
+
+from . import defaults
+from . import eisenstein_submodule
+from . import eis_series
+from . import space
+from . import submodule
 
 
 class ModularFormsAmbient(space.ModularFormsSpace,
@@ -105,7 +105,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             True
         """
         if not arithgroup.is_CongruenceSubgroup(group):
-            raise TypeError, 'group (=%s) must be a congruence subgroup'%group
+            raise TypeError('group (=%s) must be a congruence subgroup'%group)
         weight = rings.Integer(weight)
 
         if character is None and arithgroup.is_Gamma0(group):
@@ -182,12 +182,12 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M3 = M.change_ring(GF(3))
             sage: M3.basis()
             [
-            1 + q^3 + q^4 + 2*q^5 + O(q^6),
             q + q^3 + q^4 + O(q^6),
-            q^2 + 2*q^3 + q^4 + q^5 + O(q^6)
+            q^2 + 2*q^3 + q^4 + q^5 + O(q^6),
+            1 + q^3 + q^4 + 2*q^5 + O(q^6)
             ]
         """
-        import constructor
+        from . import constructor
         M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
         return M
 
@@ -227,8 +227,8 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ValueError: N (=9) must be a divisor or a multiple of the level of self (=4)
         """
         if not (N % self.level() == 0 or self.level() % N == 0):
-            raise ValueError, "N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level())
-        import constructor
+            raise ValueError("N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level()))
+        from . import constructor
         return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
 
     def _degeneracy_raising_matrix(self, M, t):
@@ -237,7 +237,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         to `f(q) \mapsto f(q^t)`. Here the level of M should be a multiple of
         the level of self, and t should divide the quotient.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(22, 2)._degeneracy_raising_matrix(ModularForms(44, 2), 1)
             [  1   0  -1  -2   0   0   0   0   0]
@@ -369,9 +369,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M.module()
             Vector space of dimension 36 over Rational Field
             sage: M.basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+            <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         """
         if hasattr(self, "__module"): return self.__module
         try:
@@ -471,7 +469,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ]
         """
         if n < 0:
-            raise ValueError, "n (=%s) must be >= 0"%n
+            raise ValueError("n (=%s) must be >= 0"%n)
         self.__prec = rings.Integer(n)
 
     ####################################################################
@@ -487,10 +485,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for
             Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         """
+        from .cuspidal_submodule import CuspidalSubmodule
         try:
             return self.__cuspidal_submodule
         except AttributeError:
-            self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule(self)
+            self.__cuspidal_submodule = CuspidalSubmodule(self)
         return self.__cuspidal_submodule
 
     def eisenstein_submodule(self):
@@ -568,7 +567,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         if not p is None:
             p = rings.Integer(p)
             if not p.is_prime():
-               raise ValueError, "p (=%s) must be a prime or None."%p
+               raise ValueError("p (=%s) must be a prime or None."%p)
         M = self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
         self.__new_submodule[p] = M
         return M
@@ -694,7 +693,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__the_dim_new_eisenstein
         except AttributeError:
             if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
-                if rings.is_prime(self.level()):
+                if is_prime(self.level()):
                     d = 1
                 else:
                     d = 0
@@ -727,7 +726,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__eisenstein_params
         except AttributeError:
             eps = self.character()
-            if eps == None:
+            if eps is None:
                 if arithgroup.is_Gamma1(self.group()):
                     eps = self.level()
                 else:

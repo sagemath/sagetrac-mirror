@@ -1,6 +1,7 @@
 """
 Classical symmetric functions.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -19,21 +20,22 @@ Classical symmetric functions.
 
 from sage.rings.integer import Integer
 
-import sage.combinat.skew_partition
 import sage.libs.symmetrica.all as symmetrica # used in eval()
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
+from sage.combinat.partition import _Partitions
 
 
+from . import hall_littlewood
+from . import sfa
+from . import llt
+from . import macdonald
+from . import jack
+from . import orthotriang
 
-import hall_littlewood
-import sfa
-import llt
-import macdonald
-import jack
-import orthotriang
-import kschur
+import six
+
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -94,11 +96,10 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
 
     def _element_constructor_(self, x):
         """
-        Convert ``x`` into ``self``, if coercion failed
+        Convert ``x`` into ``self``, if coercion failed.
 
         INPUT:
 
-        - ``self`` -- a basis of the symmetric functions
         - ``x`` -- an element of the symmetric functions
 
         EXAMPLES::
@@ -109,15 +110,21 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             sage: s([2,1]) # indirect doctest
             s[2, 1]
 
-            sage: s([[2,1],[1]])
-            s[1, 1] + s[2]
-            sage: s([[],[]])
-            s[]
-
-            sage: McdJ = SymmetricFunctions(QQ['q','t'].base_ring())
+            sage: McdJ = SymmetricFunctions(QQ['q','t'].fraction_field()).macdonald().J()
             sage: s = SymmetricFunctions(McdJ.base_ring()).s()
             sage: s._element_constructor_(McdJ(s[2,1]))
             s[2, 1]
+
+        TESTS:
+
+        Check that non-Schur bases raise an error when given skew partitions
+        (:trac:`19218`)::
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: e([[2,1],[1]])
+            Traceback (most recent call last):
+            ...
+            TypeError: do not know how to make x (= [[2, 1], [1]]) an element of self
         """
         R = self.base_ring()
 
@@ -129,8 +136,8 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ##############
         # Partitions #
         ##############
-        if x in sage.combinat.partition.Partitions():
-            return eclass(self, {sage.combinat.partition.Partition(filter(lambda x: x!=0, x)): R.one()})
+        if x in _Partitions:
+            return eclass(self, {_Partitions(x): R.one()})
 
         # Todo: discard all of this which is taken care by Sage's coercion
         # (up to changes of base ring)
@@ -181,7 +188,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             try:
                 t = conversion_functions[(xP.basis_name(),self.basis_name())]
             except AttributeError:
-                raise TypeError, "do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name())
+                raise TypeError("do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name()))
 
             if R == QQ and xP.base_ring() == QQ:
                 if xm:
@@ -227,10 +234,10 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             zero = BR.zero()
             PBR = P.base_ring()
             if not BR.has_coerce_map_from(PBR):
-                raise TypeError, "no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring())
+                raise TypeError("no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring()))
 
             z_elt = {}
-            for m, c in x._monomial_coefficients.iteritems():
+            for m, c in six.iteritems(x._monomial_coefficients):
                 n = sum(m)
                 P._m_cache(n)
                 for part in P._self_to_m_cache[n][m]:
@@ -254,7 +261,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 return self(sx)
             elif isinstance(x, (macdonald.MacdonaldPolynomials_h.Element,macdonald.MacdonaldPolynomials_ht.Element)):
                 H = x.parent()
-                sx = H._s._from_cache(x, H._s_cache, H._self_to_s_cache, q=H.q, t=H.t)
+                sx = H._self_to_s(x)
                 return self(sx)
             elif isinstance(x, macdonald.MacdonaldPolynomials_s.Element):
                 S = x.parent()
@@ -276,17 +283,6 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             else:
                 raise TypeError
 
-        #####################
-        # k-Schur Functions #
-        #####################
-        if isinstance(x, kschur.kSchurFunctions_generic.Element):
-            if isinstance(x, kschur.kSchurFunctions_t.Element):
-                P = x.parent()
-                sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
-                return self(sx)
-            else:
-                raise TypeError
-
         ####################################################
         # Bases defined by orthogonality and triangularity #
         ####################################################
@@ -298,35 +294,14 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             else:
                 return self( xp._sf_base(x) )
 
-        ###################
-        # Skew Partitions #
-        ###################
-        elif x in sage.combinat.skew_partition.SkewPartitions():
-            import sage.libs.lrcalc.lrcalc as lrcalc
-            skewschur = lrcalc.skew(x[0], x[1])
-            return self._from_dict(skewschur)
-
-
-        #############################
-        # Elements of the base ring #
-        #############################
-        elif x.parent() is R:
-            return eclass(self, {sage.combinat.partition.Partition([]):x})
-
-        ###########################################
-        # Elements that coerce into the base ring #
-        ###########################################
-        elif R.has_coerce_map_from(x.parent()):
-            return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
-
         #################################
         # Last shot -- try calling R(x) #
         #################################
         else:
             try:
-                return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
-            except StandardError:
-                raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
+                return eclass(self, {_Partitions([]): R(x)})
+            except Exception:
+                raise TypeError("do not know how to make x (= {}) an element of self".format(x))
 
     # This subclass is currently needed for the test above:
     #    isinstance(x, SymmetricFunctionAlgebra_classical.Element):

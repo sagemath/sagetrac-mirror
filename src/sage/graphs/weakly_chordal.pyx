@@ -39,7 +39,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 cdef inline int has_edge(bitset_t bs, int u, int v, int n):
     return bitset_in(bs, u*n+v)
@@ -106,8 +106,19 @@ def is_long_hole_free(g, certificate=False):
         Subgraph of (): Graph on 5 vertices
         sage: hole.is_isomorphic(graphs.CycleGraph(hole.order()))
         True
+
+        sage: graphs.EmptyGraph().is_long_hole_free()
+        True
     """
+    g._scream_if_not_simple()
+
+    if g.order() == 0:
+        return (True, []) if certificate else True
+
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
@@ -165,12 +176,13 @@ def is_long_hole_free(g, certificate=False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, None
 
-                elif not VisitedP3.has_key((b,c,d)):
+                elif (b,c,d) not in VisitedP3:
                     # search for another P_4
                     res, hole_vertices = process(b,c,d,i+1)
                     if not res:
@@ -186,7 +198,7 @@ def is_long_hole_free(g, certificate=False):
         InPath[u] = 0   # u is the first vertex at position 0
         for vv,ww in g.edge_iterator(labels = False):
             for v,w in [(vv,ww),(ww,vv)]:
-                if has_edge(dense_graph,u,v,n) and u!=w and not has_edge(dense_graph,u,w,n) and not VisitedP3.has_key((u,v,w)):
+                if has_edge(dense_graph,u,v,n) and u!=w and not has_edge(dense_graph,u,w,n) and (u,v,w) not in VisitedP3:
                     InPath[v] = 1   # v is the second vertex at position 1
                     res,hole = process(u, v, w, 2)
                     if not res:
@@ -274,8 +286,19 @@ def is_long_antihole_free(g, certificate = False):
         False
         sage: a.complement().is_isomorphic( graphs.CycleGraph(9) )
         True
+
+        sage: graphs.EmptyGraph().is_long_hole_free()
+        True
     """
+    g._scream_if_not_simple()
+
+    if g.order() == 0:
+        return (True, []) if certificate else True
+
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
@@ -300,7 +323,7 @@ def is_long_antihole_free(g, certificate = False):
         VisitedP3[c,a,b] = True
         for d in g.neighbor_iterator(b):
             if has_edge(dense_graph,d,a,n) and not has_edge(dense_graph,d,c,n):
-                if InPath.has_key(d):
+                if d in InPath:
                     if certificate:  #calculation of induced cycle in complement
                         j = InPath[d]
 
@@ -330,12 +353,13 @@ def is_long_antihole_free(g, certificate = False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, []
 
-                elif not VisitedP3.has_key((b,d,c)):
+                elif (b,d,c) not in VisitedP3:
                     r,antihole = process(b,c,d,k+1)
                     if not r:
                         return False, antihole
@@ -349,7 +373,7 @@ def is_long_antihole_free(g, certificate = False):
     for u in g:
         InPath[u] = 1
         for v,w in g.edge_iterator(labels = False):
-            if not has_edge(dense_graph,u,v,n) and not has_edge(dense_graph,u,w,n) and not VisitedP3.has_key((v,w,u)):
+            if not has_edge(dense_graph,u,v,n) and not has_edge(dense_graph,u,w,n) and (v,w,u) not in VisitedP3:
                 InPath[v] = 0
                 r,antihole = process(v, u, w, 2)
                 if not r:
@@ -410,7 +434,15 @@ def is_weakly_chordal(g, certificate = False):
         sage: l = len(s.vertices())
         sage: s.is_isomorphic( graphs.CycleGraph(l) )
         True
+
+    TESTS::
+
+        sage: graphs.EmptyGraph().is_weakly_chordal()
+        True
+
     """
+    if g.order() == 0:
+        return (True, []) if certificate else True
 
     if certificate:
         r,forbid_subgr = g.is_long_hole_free(certificate=True)

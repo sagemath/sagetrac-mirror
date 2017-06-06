@@ -24,30 +24,30 @@ TESTS::
 
     sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
     sage: KT = KleberTree(['A', 3, 1], [[3,2], [2,1], [1,1], [1,1]])
-    sage: for x in set(KT.list()): x
-    Kleber tree node with weight [1, 0, 3] and upwards edge root [1, 1, 0]
-    Kleber tree node with weight [0, 2, 2] and upwards edge root [1, 0, 0]
-    Kleber tree node with weight [2, 1, 2] and upwards edge root [0, 0, 0]
-    Kleber tree node with weight [2, 0, 0] and upwards edge root [0, 1, 1]
-    Kleber tree node with weight [0, 0, 2] and upwards edge root [1, 1, 0]
-    Kleber tree node with weight [0, 1, 0] and upwards edge root [0, 0, 1]
-    Kleber tree node with weight [3, 0, 1] and upwards edge root [0, 1, 1]
-    Kleber tree node with weight [0, 1, 0] and upwards edge root [1, 1, 1]
-    Kleber tree node with weight [1, 1, 1] and upwards edge root [1, 1, 1]
-    Kleber tree node with weight [0, 0, 2] and upwards edge root [2, 2, 1]
+    sage: sorted((x.weight.to_vector(), x.up_root.to_vector()) for x in KT.list())
+    [((0, 0, 2), (1, 1, 0)),
+     ((0, 0, 2), (2, 2, 1)),
+     ((0, 1, 0), (0, 0, 1)),
+     ((0, 1, 0), (1, 1, 1)),
+     ((0, 2, 2), (1, 0, 0)),
+     ((1, 0, 3), (1, 1, 0)),
+     ((1, 1, 1), (1, 1, 1)),
+     ((2, 0, 0), (0, 1, 1)),
+     ((2, 1, 2), (0, 0, 0)),
+     ((3, 0, 1), (0, 1, 1))]
 
     sage: KT = KleberTree(['A', 7, 1], [[3,2], [2,1], [1,1]])
     sage: KT
     Kleber tree of Cartan type ['A', 7, 1] and B = ((3, 2), (2, 1), (1, 1))
-    sage: for x in set(KT.list()): x
-    Kleber tree node with weight [1, 0, 1, 0, 1, 0, 0] and upwards edge root [1, 2, 2, 1, 0, 0, 0]
-    Kleber tree node with weight [0, 0, 1, 0, 0, 1, 0] and upwards edge root [2, 3, 3, 2, 1, 0, 0]
-    Kleber tree node with weight [1, 1, 2, 0, 0, 0, 0] and upwards edge root [0, 0, 0, 0, 0, 0, 0]
-    Kleber tree node with weight [2, 0, 1, 1, 0, 0, 0] and upwards edge root [0, 1, 1, 0, 0, 0, 0]
-    Kleber tree node with weight [1, 0, 0, 2, 0, 0, 0] and upwards edge root [0, 1, 1, 0, 0, 0, 0]
-    Kleber tree node with weight [0, 0, 3, 0, 0, 0, 0] and upwards edge root [1, 1, 0, 0, 0, 0, 0]
-    Kleber tree node with weight [0, 0, 0, 1, 1, 0, 0] and upwards edge root [1, 1, 1, 0, 0, 0, 0]
-    Kleber tree node with weight [0, 1, 1, 1, 0, 0, 0] and upwards edge root [1, 1, 1, 0, 0, 0, 0]
+    sage: sorted((x.weight.to_vector(), x.up_root.to_vector()) for x in KT.list())
+    [((0, 0, 0, 1, 1, 0, 0), (1, 1, 1, 0, 0, 0, 0)),
+     ((0, 0, 1, 0, 0, 1, 0), (2, 3, 3, 2, 1, 0, 0)),
+     ((0, 0, 3, 0, 0, 0, 0), (1, 1, 0, 0, 0, 0, 0)),
+     ((0, 1, 1, 1, 0, 0, 0), (1, 1, 1, 0, 0, 0, 0)),
+     ((1, 0, 0, 2, 0, 0, 0), (0, 1, 1, 0, 0, 0, 0)),
+     ((1, 0, 1, 0, 1, 0, 0), (1, 2, 2, 1, 0, 0, 0)),
+     ((1, 1, 2, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)),
+     ((2, 0, 1, 1, 0, 0, 0), (0, 1, 1, 0, 0, 0, 0))]
 """
 
 #*****************************************************************************
@@ -65,19 +65,24 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from six.moves import range
+import itertools
+
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer import Integer
+from sage.rings.all import ZZ
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp_not_equal, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.modules.free_module import FreeModule
 
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 
 from sage.graphs.digraph import DiGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
@@ -113,11 +118,11 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
         \end{tikzpicture}
     """
     draw_point = lambda point: '(%.3f, %.3f)'%(point[0],point[1])
-    if len(tree_node.children) == 0:
+    if not tree_node.children:
         r = ''
         node_name = node_prefix + str(node_id)
         r = "\\node (%s) at %s"%(node_name, draw_point(start))
-        if(node_label):
+        if node_label:
             r += "{$%s$};\n"%tree_node._latex_()
         else:
             r += "{};\n"
@@ -137,14 +142,14 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
         node_place_str = ".center"
 
     nb_children = len(tree_node.children)
-    half = int(nb_children/2)
+    half = nb_children // 2
     children_str = ''
     pos = [start[0],start[1]]
     start[1] += vspace
     lines_str = ''
 
     # Getting children string
-    for i in xrange(nb_children):
+    for i in range(nb_children):
         if i == half and nb_children % 2 == 0:
             pos[0] = start[0]
             start[0] += hspace
@@ -175,7 +180,7 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
     rpos[1] = pos[1]
     point_str = ''
     node_str = "\\node%s (%s) at %s"%(style_node, node_name, draw_point(pos))
-    if(node_label):
+    if node_label:
         node_str += "{$%s$};\n"%tree_node._latex_()
     else:
         node_str += "{};\n"
@@ -218,8 +223,8 @@ class KleberTreeNode(Element):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 2])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: parent = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
             sage: parent
@@ -247,8 +252,8 @@ class KleberTreeNode(Element):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 2])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: n = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
             sage: n.depth
@@ -275,7 +280,7 @@ class KleberTreeNode(Element):
 
         .. MATH::
 
-            \prod_{a \in \overline{I}} \prod_{i > 0}
+            \prod_{i > 0} \prod_{a \in \overline{I}}
             \binom{p_i^{(a)} + m_i^{(a)}}{p_i^{(a)}}
 
         Recall that
@@ -283,10 +288,10 @@ class KleberTreeNode(Element):
         .. MATH::
 
             m_i^{(a)} = \left( \lambda^{(i-1)} - 2 \lambda^{(i)} +
-            \lambda^{(i+1)} \mid \overline{\Lambda}_a \right)
+            \lambda^{(i+1)} \mid \overline{\Lambda}_a \right),
 
-            p_i^{(a)} = -\sum_{j > i} L_j^{(a)} + \left( \alpha_a \mid
-            \lambda^{(i)} \right)
+            p_i^{(a)} = \left( \alpha_a \mid \lambda^{(i)} \right)
+            - \sum_{j > i} (j - i) L_j^{(a)},
 
         where `\lambda^{(i)}` is the weight node at depth `i` in the path
         to `x` from the root and we set `\lambda^{(j)} = \lambda` for all
@@ -300,50 +305,69 @@ class KleberTreeNode(Element):
             sage: KT = KleberTree(['A',3,1], [[3,2],[2,1],[1,1],[1,1]])
             sage: for x in KT: x, x.multiplicity()
             (Kleber tree node with weight [2, 1, 2] and upwards edge root [0, 0, 0], 1)
+            (Kleber tree node with weight [3, 0, 1] and upwards edge root [0, 1, 1], 1)
             (Kleber tree node with weight [0, 2, 2] and upwards edge root [1, 0, 0], 1)
             (Kleber tree node with weight [1, 0, 3] and upwards edge root [1, 1, 0], 2)
             (Kleber tree node with weight [1, 1, 1] and upwards edge root [1, 1, 1], 4)
             (Kleber tree node with weight [0, 0, 2] and upwards edge root [2, 2, 1], 2)
-            (Kleber tree node with weight [3, 0, 1] and upwards edge root [0, 1, 1], 1)
             (Kleber tree node with weight [2, 0, 0] and upwards edge root [0, 1, 1], 2)
             (Kleber tree node with weight [0, 0, 2] and upwards edge root [1, 1, 0], 1)
             (Kleber tree node with weight [0, 1, 0] and upwards edge root [1, 1, 1], 2)
             (Kleber tree node with weight [0, 1, 0] and upwards edge root [0, 0, 1], 1)
+
+        TESTS:
+
+        We check that :trac:`16057` is fixed::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[1,3],[3,3],[4,3]])
+            sage: sum(x.multiplicity() for x in RC.kleber_tree()) == len(RC.module_generators)
+            True
         """
         # The multiplicity corresponding to the root is always 1
         if self.parent_node is None:
             return Integer(1)
 
         mult = Integer(1)
-        for a, m in enumerate(self.up_root.to_vector()):
-            if m == 0:
-                continue
-            p = self.weight[a+1] #+1 for indexing
-            old_p = p
-            for dim in self.parent().B:
-                if dim[0] == a + 1 and dim[1] > self.depth:
-                    p -= 1 #min(dim[1], self.depth)
+        I = self.parent()._classical_ct.index_set()
+        for a,m in self.up_root:
+            p = self.weight[a]
+            for r,s in self.parent().B:
+                if r == a and s > self.depth:
+                    p -= s - self.depth
             mult *= binomial(m + p, m)
 
         prev_up_root = self.up_root
         cur = self.parent_node
         while cur.parent_node is not None:
-            root_diff = (cur.up_root - prev_up_root).to_vector()
-            for a, m in enumerate(root_diff):
-                if m == 0:
-                    continue
-                p = cur.weight[a+1] #+1 for indexing
-                old_p = p
-                for dim in self.parent().B:
-                    if dim[0] == a + 1 and dim[1] > cur.depth:
-                        p -= 1
+            root_diff = cur.up_root - prev_up_root
+            for a,m in root_diff:
+                p = cur.weight[a]
+                for r,s in self.parent().B:
+                    if r == a and s > cur.depth:
+                        p -= s - cur.depth
                 mult *= binomial(m + p, m)
             prev_up_root = cur.up_root
             cur = cur.parent_node
 
         return mult
 
-    def __cmp__(self, rhs):
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
+            sage: RS = RootSystem(['A', 2])
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
+            sage: KT = KleberTree(['A', 2, 1], [[1,1]])
+            sage: n = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
+            sage: hash(n)
+            -603608031356818252 # 64-bit
+            -1956156236         # 32-bit
+        """
+        return hash(self.depth) ^ hash(self.weight)
+
+    def _richcmp_(self, rhs, op):
         r"""
         Check whether two nodes are equal.
 
@@ -351,29 +375,31 @@ class KleberTreeNode(Element):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 2])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: n = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
             sage: n2 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n)
-            1
+            sage: n2 > n
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            0
+            sage: n2 == n3
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,3)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            -1
+            sage: n2 < n3
+            True
         """
-        if isinstance(rhs, KleberTreeNode):
-            if self.depth < rhs.depth:
-                return -1
-            elif self.depth > rhs.depth:
-                return 1
-            elif self.parent_node is not rhs.parent_node:
-                return cmp(self.parent_node, rhs.parent_node)
-            return cmp(self.weight, rhs.weight)
-        return cmp(type(self), type(rhs))
+        lx = self.depth
+        rx = rhs.depth
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.parent_node
+        rx = rhs.parent_node
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.weight, rhs.weight, op)
 
     def _repr_(self):
         r"""
@@ -383,8 +409,8 @@ class KleberTreeNode(Element):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 3])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: node = KT(WS.sum_of_terms([(1,2), (2,1), (3,1)]), R.sum_of_terms([(1,3), (3,3)])); node
             Kleber tree node with weight [2, 1, 1] and upwards edge root [3, 0, 3]
@@ -407,8 +433,8 @@ class KleberTreeNode(Element):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 3])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 3, 1], [[3,2], [1,1]])
             sage: node = KT(WS.sum_of_terms([(1,4), (3,1)]), R.zero())
             sage: latex(node)
@@ -465,7 +491,7 @@ class KleberTreeNode(Element):
 # Kleber tree classes #
 #######################
 
-class KleberTree(Parent, UniqueRepresentation):
+class KleberTree(UniqueRepresentation, Parent):
     r"""
     The tree that is generated by Kleber's algorithm.
 
@@ -533,6 +559,18 @@ class KleberTree(Parent, UniqueRepresentation):
         sage: KT = KleberTree(['E', 6, 1], [[4, 2]])  # long time (9s on sage.math, 2012)
         sage: KT.cardinality()  # long time
         12
+
+    We check that relabelled types work (:trac:`16876`)::
+
+        sage: ct = CartanType(['A',3,1]).relabel(lambda x: x+2)
+        sage: kt = KleberTree(ct, [[3,1],[5,1]])
+        sage: list(kt)
+        [Kleber tree node with weight [1, 0, 1] and upwards edge root [0, 0, 0],
+         Kleber tree node with weight [0, 0, 0] and upwards edge root [1, 1, 1]]
+        sage: kt = KleberTree(['A',3,1], [[1,1],[3,1]])
+        sage: list(kt)
+        [Kleber tree node with weight [1, 0, 1] and upwards edge root [0, 0, 0],
+         Kleber tree node with weight [0, 0, 0] and upwards edge root [1, 1, 1]]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B, classical=None):
@@ -556,7 +594,7 @@ class KleberTree(Parent, UniqueRepresentation):
             raise ValueError("use VirtualKleberTree for non-simply-laced types")
 
         # Standardize B input into a tuple of tuples
-        B = tuple(map(tuple, B))
+        B = tuple([tuple(rs) for rs in B])
 
         if classical is None:
             classical = cartan_type.classical()
@@ -583,7 +621,7 @@ class KleberTree(Parent, UniqueRepresentation):
         self._cartan_type = cartan_type
         self.B = B
         self._classical_ct = classical_ct
-        self._build_tree(B)
+        self._build_tree()
         self._latex_options = dict(edge_labels=True, use_vector_notation=False,
                                   hspace=2.5, vspace=min(-2.5, -0.75*self._classical_ct.rank()))
 
@@ -611,7 +649,7 @@ class KleberTree(Parent, UniqueRepresentation):
             sage: sorted(KT.latex_options().items())
             [('edge_labels', True), ('hspace', 2.5), ('use_vector_notation', True), ('vspace', -4)]
         """
-        if len(options) == 0:
+        if not options:
             from copy import copy
             return copy(self._latex_options)
         for k in options:
@@ -639,7 +677,7 @@ class KleberTree(Parent, UniqueRepresentation):
                _draw_tree(self.root, **self._latex_options) \
                + "\\end{tikzpicture}"
 
-    def _build_tree(self, B):
+    def _build_tree(self):
         """
         Build the Kleber tree.
 
@@ -650,30 +688,32 @@ class KleberTree(Parent, UniqueRepresentation):
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['A',3,1], [[2,2]]) # indirect doctest
         """
+        P = self._classical_ct.root_system().weight_lattice()
         # Create an empty node at first step
-        self.root = KleberTreeNode(self, self._classical_ct.root_system().weight_space().zero(),
-                                   self._classical_ct.root_system().root_space().zero())
+        self.root = KleberTreeNode(self, P.zero(),
+                                   self._classical_ct.root_system().root_lattice().zero())
         full_list = [self.root] # The list of tree nodes
 
         n = self._classical_ct.rank()
 
         # Convert the B values into an L matrix
         L = []
-        for i in range(0, n):
+        I = self._classical_ct.index_set()
+        for i in range(n):
             L.append([0])
 
-        for dim in B:
-            while len(L[0]) < dim[1]: # Add more columns if needed
+        for r,s in self.B:
+            while len(L[0]) < s: # Add more columns if needed
                 for row in L:
                     row.append(0)
-            L[dim[0] - 1][dim[1] - 1] += 1 # The -1 is b/c of indexing
+            L[I.index(r)][s - 1] += 1 # The -1 is for indexing
 
         # Perform a special case of the algorithm for the root node
-        weight_basis = self._classical_ct.root_system().weight_space().basis()
+        weight_basis = P.basis()
         for a in range(n):
-            self.root.weight += sum(L[a]) * weight_basis[a+1] # Add 1 for indexing
+            self.root.weight += sum(L[a]) * weight_basis[I[a]]
         new_children = []
-        for new_child in self._children_root_iter():
+        for new_child in self._children_iter(self.root):
             if not self._prune(new_child, 1):
                 new_children.append(new_child)
                 self.root.children.append(new_child)
@@ -681,6 +721,12 @@ class KleberTree(Parent, UniqueRepresentation):
 
         depth = 1
         growth = True
+
+        # self._has_normaliz is set by _children_iter
+        if self._classical_ct.rank() >= 7 or self._has_normaliz:
+            child_itr = self._children_iter
+        else:
+            child_itr = self._children_iter_vector
 
         while growth:
             growth = False
@@ -693,20 +739,20 @@ class KleberTree(Parent, UniqueRepresentation):
                     growth = True
                     for a in range(n):
                         for i in range(depth - 1, len(L[a])): # Subtract 1 for indexing
-                            x.weight += L[a][i] * weight_basis[a+1] # Add 1 for indexing
+                            x.weight += L[a][i] * weight_basis[I[a]]
 
                     if x in leaves:
-                        for new_child in self._children_iter(x):
+                        for new_child in child_itr(x):
                             if not self._prune(new_child, depth):
                                 new_children.append(new_child)
             else:
                 for x in leaves:
-                    for new_child in self._children_iter(x):
+                    for new_child in child_itr(x):
                         if not self._prune(new_child, depth):
                             new_children.append(new_child)
 
             # Connect the new children into the tree
-            if len(new_children) > 0:
+            if new_children:
                 growth = True
                 for new_child in new_children:
                     new_child.parent_node.children.append(new_child)
@@ -714,16 +760,23 @@ class KleberTree(Parent, UniqueRepresentation):
 
         self._set = full_list
 
-    def _children_root_iter(self):
-        """
-        Iterate over the children of the root node.
+    def _children_iter(self, node):
+        r"""
+        Iterate over the children of ``node``.
 
         Helper iterator to iterate over all children, by generating and/or
-        computing them, of the Kleber tree root.
+        computing them, of the Kleber tree node.
 
-        Right now we are just assuming that if a linear combination of positive
-        roots keeps us in the Weyl chamber, then a shorter linear combination
-        does as well.
+        We compute the children by computing integral points (expressed as
+        simple roots) in the polytope given by the intersection of the
+        negative root cone and shifted positive weight cone. More precisely,
+        we rewrite the condition `\lambda - \mu \in Q^+`, for `\mu \in  P^+`,
+        as `\lambda - Q^+ = \mu \in P^+`.
+
+        INPUT:
+
+        - ``node`` -- the current node in the tree whose children we want
+          to generate
 
         TESTS::
 
@@ -733,70 +786,7 @@ class KleberTree(Parent, UniqueRepresentation):
             Kleber tree node with weight [2, 0, 0] and upwards edge root [0, 0, 0]
             Kleber tree node with weight [0, 1, 1] and upwards edge root [1, 0, 0]
             Kleber tree node with weight [0, 0, 0] and upwards edge root [2, 1, 1]
-        """
-        pos_roots = list(self._classical_ct.root_system().root_space().positive_roots())
-        WS = self._classical_ct.root_system().weight_space()
-        num_pos_roots = len(pos_roots)
-        roots_visited = []
 
-        for root in pos_roots:
-            # If we've already tried this root
-            if root in roots_visited:
-                continue
-
-            # If not, then try it
-
-            roots_visited.append(root)
-
-            new_weight = self.root.weight - WS(root)
-
-            if new_weight.is_dominant():
-                yield KleberTreeNode(self, new_weight, root, self.root)
-                root_stack = [root]
-                index_stack = [0]
-
-                # Now try all of its children
-                while len(root_stack) > 0:
-                    # If we've tried all of the roots, then back up
-                    if index_stack[-1] == num_pos_roots:
-                        root_stack.pop()
-                        index_stack.pop()
-                        continue
-
-                    new_root = root_stack[-1] + pos_roots[index_stack[-1]]
-                    index_stack[-1] += 1
-
-                    # If we've already tried this root, move on to the next one
-                    if new_root in roots_visited:
-                        continue
-
-                    roots_visited.append(new_root)
-
-                    new_weight = self.root.weight - WS(new_root)
-
-                    if new_weight.is_dominant():
-                        yield KleberTreeNode(self, new_weight, new_root, self.root)
-                        root_stack.append(new_root)
-                        index_stack.append(0)
-
-    def _children_iter(self, node):
-        """
-        Iterate over all children nodes.
-
-        This is a helper iterator to iterate over all children, by generating
-        and/or computing them, of a given Kleber tree node this isn't the root.
-
-        We perform the dominance iteration by using the condition that that
-        new root must be smaller than the previous root.
-
-        INPUT:
-
-        - ``node`` -- The current node in the tree whose children we want
-          to generate
-
-        TESTS::
-
-            sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2,2]])
             sage: KT[1]
             Kleber tree node with weight [0, 1, 0, 0] and upwards edge root [1, 2, 1, 1]
@@ -807,18 +797,92 @@ class KleberTree(Parent, UniqueRepresentation):
             sage: for x in KT._children_iter(KT[1]): x
             Kleber tree node with weight [0, 0, 0, 0] and upwards edge root [1, 2, 1, 1]
         """
-        RS = self._classical_ct.root_system().root_space()
-        WS = self._classical_ct.root_system().weight_space()
+        n = self._classical_ct.rank()
+        I = self._classical_ct.index_set()
+        Q = self._classical_ct.root_system().root_lattice()
+        P = self._classical_ct.root_system().weight_lattice()
+
+        # Construct the polytope by inequalities
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        # Construct the shifted weight cone
+        root_weight = node.weight.to_vector()
+        ieqs = [[root_weight[i]] + list(col)
+                for i,col in enumerate(self._classical_ct.cartan_matrix())]
+        # Construct the negative weight cone
+        for i in range(n):
+            v = [0] * (n+1)
+            v[i+1] = -1
+            ieqs.append(v)
+        ieqs.append([-1]*(n+1)) # For avoiding the origin
+        # Construct the bounds for the non-root nodes
+        if node != self.root:
+            for i,c in enumerate(node.up_root.to_vector()):
+                v = [0] * (n+1)
+                v[0] = c
+                v[i+1] = 1
+                ieqs.append(v)
+
+        try:
+            poly = Polyhedron(ieqs=ieqs, backend='normaliz')
+            self._has_normaliz = True
+        except ImportError:
+            poly = Polyhedron(ieqs=ieqs)
+            self._has_normaliz = False
+
+        # Build the nodes from the polytope
+        # Sort for a consistent ordering (it is typically a small list)
+        for pt in sorted(poly.integral_points(), reverse=True):
+            up_root = Q._from_dict({I[i]: -val for i,val in enumerate(pt) if val != 0},
+                                   remove_zeros=False)
+            wt = node.weight + sum(val * P.simple_root(I[i]) for i,val in enumerate(pt))
+            yield KleberTreeNode(self, wt, up_root, node)
+
+    def _children_iter_vector(self, node):
+        r"""
+        Iterate over the children of ``node``.
+
+        Helper iterator to iterate over all children, by generating and/or
+        computing them, of the Kleber tree node. This implementation
+        iterates over all possible uproot vectors.
+
+        .. SEEALSO::
+
+            :meth:`_children_iter`
+
+        INPUT:
+
+        - ``node`` -- the current node in the tree whose children we want
+          to generate
+
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
+            sage: KT = KleberTree(['D', 4, 1], [[2,2]])
+            sage: KT[1]
+            Kleber tree node with weight [0, 1, 0, 0] and upwards edge root [1, 2, 1, 1]
+            sage: for x in KT._children_iter(KT[1]): x
+            Kleber tree node with weight [0, 0, 0, 0] and upwards edge root [1, 2, 1, 1]
+        """
+        Q = self._classical_ct.root_system().root_lattice()
+        P = self._classical_ct.root_system().weight_lattice()
+        I = self._classical_ct.index_set()
+        wt = node.weight.to_vector()
+        # Everything is dense at this point; moreover, ranks are relatively small
+        CM = self._classical_ct.cartan_matrix().dense_matrix()
+        F = FreeModule(ZZ, self._classical_ct.rank())
 
         L = [range(val + 1) for val in node.up_root.to_vector()]
 
-        for root in CartesianProduct(*L).list()[1:]: # First element is the zero element
-            # Convert the list to an honest root in the root space
-            converted_root = RS.sum_of_terms([[i+1, val] for i, val in enumerate(root)])
+        it = itertools.product(*L)
+        next(it)  # First element is the zero element
+        for root in it:
+            # Convert the list to the weight lattice
+            converted_root = CM * F(root)
 
-            new_weight = node.weight - WS(converted_root)
-            if new_weight.is_dominant():
-                yield KleberTreeNode(self, new_weight, converted_root, node)
+            if all(wt[i] >= val for i,val in enumerate(converted_root)):
+                wd = {I[i]: wt[i] - val for i, val in enumerate(converted_root)}
+                rd = {I[i]: val for i, val in enumerate(root)}
+                yield KleberTreeNode(self, P._from_dict(wd), Q._from_dict(rd), node)
 
     def _prune(self, new_child, depth):
         r"""
@@ -939,7 +1003,7 @@ class KleberTree(Parent, UniqueRepresentation):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: KT.digraph() # optional - dot2tex, graphviz
+            sage: KT.digraph()  # optional - dot2tex graphviz
             Digraph on 3 vertices
         """
         d = {}
@@ -952,7 +1016,6 @@ class KleberTree(Parent, UniqueRepresentation):
 
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels=True)
-                                # edge_options = lambda (u,v,label): ({"backward":label ==0}))
         return G
 
     def plot(self, **options):
@@ -963,7 +1026,7 @@ class KleberTree(Parent, UniqueRepresentation):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: print(KT.plot()) # optional - dot2tex, graphviz
+            sage: print(KT.plot())  # optional - dot2tex graphviz
             Graphics object consisting of 8 graphics primitives
         """
         return self.digraph().plot(edge_labels=True, vertex_size=0, **options)
@@ -976,8 +1039,8 @@ class KleberTree(Parent, UniqueRepresentation):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: RS = RootSystem(['A', 2])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: root = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero()); root # indirect doctest
             Kleber tree node with weight [5, 2] and upwards edge root [0, 0]
@@ -1133,8 +1196,8 @@ class VirtualKleberTree(KleberTree):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import VirtualKleberTree
             sage: RS = RootSystem(['A', 3])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = VirtualKleberTree(['C',2,1], [[1,2],[1,1],[2,1]])
             sage: x = KT(WS.sum_of_terms([(1,1), (2,1), (3,3)]), R.sum_of_terms([(1,2),(2,2),(3,1)]), KT.root)
             sage: KT._prune(x, 1)
@@ -1329,8 +1392,8 @@ class KleberTreeTypeA2Even(VirtualKleberTree):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import VirtualKleberTree
             sage: RS = RootSystem(['A', 5])
-            sage: WS = RS.weight_space()
-            sage: R = RS.root_space()
+            sage: WS = RS.weight_lattice()
+            sage: R = RS.root_lattice()
             sage: KT = VirtualKleberTree(['A',6,2], [[2,2]])
             sage: x = KT(WS.sum_of_terms([(2,1), (4,1)]), R.sum_of_terms([(1,1),(2,2),(3,2),(4,2),(5,1)]), KT.root)
             sage: KT._prune(x, 1)

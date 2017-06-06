@@ -1,7 +1,8 @@
 r"""
 Multivariate Power Series Rings
 
-Construct a multivariate power series ring over a given (commutative) base ring.
+Construct a multivariate power series ring (in finitely many variables)
+over a given (commutative) base ring.
 
 EXAMPLES:
 
@@ -164,7 +165,7 @@ Coercion from symbolic ring::
     sage: type(x)
     <type 'sage.symbolic.expression.Expression'>
     sage: type(S(x))
-    <class 'sage.rings.multi_power_series_ring_element.MPowerSeriesRing_generic_with_category.element_class'>
+    <class 'sage.rings.multi_power_series_ring.MPowerSeriesRing_generic_with_category.element_class'>
 
     sage: f = S(2/7 -100*x^2 + 1/3*x*y + y^2).O(3); f
     5 - x^2 + 4*x*y + y^2 + O(x, y)^3
@@ -173,6 +174,17 @@ Coercion from symbolic ring::
     sage: f.parent() == S
     True
 
+The implementation of the multivariate power series ring uses a combination
+of multivariate polynomials and univariate power series. Namely, in order
+to construct the multivariate power series ring `R[[x_1, x_2, \cdots, x_n]]`,
+we consider the univariate power series ring `S[[T]]` over the multivariate
+polynomial ring `S := R[x_1, x_2, \cdots, x_n]`, and in it we take the
+subring formed by all power series whose `i`-th coefficient has degree `i`
+for all `i \geq 0`. This subring is isomorphic to
+`R[[x_1, x_2, \cdots, x_n]]`. This is how `R[[x_1, x_2, \cdots, x_n]]` is
+implemented in this class. The ring `S` is called the foreground polynomial
+ring, and the ring `S[[T]]` is called the background univariate power
+series ring.
 
 AUTHORS:
 
@@ -181,17 +193,22 @@ AUTHORS:
 
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 
-from sage.rings.commutative_ring import is_CommutativeRing, CommutativeRing
-from sage.rings.polynomial.all import PolynomialRing, is_MPolynomialRing, is_PolynomialRing
+from sage.rings.ring import CommutativeRing
+from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic, is_PowerSeriesRing
 
@@ -666,7 +683,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             except NotImplementedError:
                 B = all(v.valuation() > 0 for v in im_gens)
             return B
-        if is_CommutativeRing(codomain):
+        if isinstance(codomain, CommutativeRing):
             return all(v.is_nilpotent() for v in im_gens)
 
 
@@ -811,10 +828,9 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         if c: return c
         return 0
 
-
     def laurent_series_ring(self):
         """
-        Laruent series not yet implemented for multivariate power series rings
+        Laurent series not yet implemented for multivariate power series rings
 
         TESTS::
 
@@ -969,7 +985,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: T.O(10)
             0 + O(a, b)^10
         """
-        return self(0).O(prec)
+        return self.zero().O(prec)
 
     def O(self,prec):
         """

@@ -18,7 +18,7 @@ the weighted projective space `\mathbb{P}^2[2,3,1]` with homogeneous
 coordinates `[X:Y:Z] = [\lambda^2 X, \lambda^3 Y, \lambda Z]`. The
 homogenized Weierstrass equation is
 
-.. math::
+.. MATH::
 
     Y^2 = X^3 + f X Z^4 + g Z^6
 
@@ -107,6 +107,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from six import iteritems
 
 from sage.rings.all import ZZ
 from sage.modules.all import vector
@@ -150,7 +151,7 @@ def WeierstrassMap(polynomial, variables=None):
     toric hypersurface to its Weierstrass form in
     `\mathbb{P}^2[2,3,1]`. That is, the triple satisfies
 
-    .. math::
+    .. MATH::
 
         Y^2 = X^3 + f X Z^4 + g Z^6
 
@@ -224,23 +225,7 @@ def WeierstrassMap(polynomial, variables=None):
         ....:     p = sum( (-S.K()).sections_monomials() )
         ....:     f, g = WeierstrassForm(p)
         ....:     X,Y,Z = WeierstrassForm(p, transformation=True)
-        ....:     print P, p.divides(-Y^2 + X^3 + f*X*Z^4 + g*Z^6)
-        Reflexive polytope    0: 2-dimensional, 3 vertices. True
-        Reflexive polytope    1: 2-dimensional, 3 vertices. True
-        Reflexive polytope    2: 2-dimensional, 4 vertices. True
-        Reflexive polytope    3: 2-dimensional, 4 vertices. True
-        Reflexive polytope    4: 2-dimensional, 4 vertices. True
-        Reflexive polytope    5: 2-dimensional, 5 vertices. True
-        Reflexive polytope    6: 2-dimensional, 3 vertices. True
-        Reflexive polytope    7: 2-dimensional, 4 vertices. True
-        Reflexive polytope    8: 2-dimensional, 5 vertices. True
-        Reflexive polytope    9: 2-dimensional, 6 vertices. True
-        Reflexive polytope   10: 2-dimensional, 4 vertices. True
-        Reflexive polytope   11: 2-dimensional, 5 vertices. True
-        Reflexive polytope   12: 2-dimensional, 3 vertices. True
-        Reflexive polytope   13: 2-dimensional, 4 vertices. True
-        Reflexive polytope   14: 2-dimensional, 4 vertices. True
-        Reflexive polytope   15: 2-dimensional, 3 vertices. True
+        ....:     assert p.divides(-Y^2 + X^3 + f*X*Z^4 + g*Z^6)
     """
     if variables is None:
         variables = polynomial.variables()
@@ -273,9 +258,9 @@ def WeierstrassMap(polynomial, variables=None):
         result = vector(ZZ, result)
         result.set_immutable()
         return result
-    X_dict = dict( (homogenize(e,2), v) for e,v in X.dict().iteritems() )
-    Y_dict = dict( (homogenize(e,3), v) for e,v in Y.dict().iteritems() )
-    Z_dict = dict( (homogenize(e,1), v) for e,v in Z.dict().iteritems() )
+    X_dict = dict((homogenize(e,2), v) for e, v in iteritems(X.dict()))
+    Y_dict = dict((homogenize(e,3), v) for e, v in iteritems(Y.dict()))
+    Z_dict = dict((homogenize(e,1), v) for e, v in iteritems(Z.dict()))
     # shift to non-negative exponents if necessary
     min_deg = [0]*R.ngens()
     for var in variables:
@@ -285,9 +270,9 @@ def WeierstrassMap(polynomial, variables=None):
         min_Z = min([ e[i] for e in Z_dict ]) if len(Z_dict)>0 else 0
         min_deg[i] = min( min_X/2, min_Y/3, min_Z )
     min_deg = vector(min_deg)
-    X_dict = dict( (tuple(e-2*min_deg), v) for e,v in X_dict.iteritems() )
-    Y_dict = dict( (tuple(e-3*min_deg), v) for e,v in Y_dict.iteritems() )
-    Z_dict = dict( (tuple(e-1*min_deg), v) for e,v in Z_dict.iteritems() )
+    X_dict = dict((tuple(e-2*min_deg), v) for e, v in iteritems(X_dict))
+    Y_dict = dict((tuple(e-3*min_deg), v) for e, v in iteritems(Y_dict))
+    Z_dict = dict((tuple(e-1*min_deg), v) for e, v in iteritems(Z_dict))
     return (R(X_dict), R(Y_dict), R(Z_dict))
 
 
@@ -304,7 +289,7 @@ def WeierstrassMap_P2(polynomial, variables=None):
     Input/output is the same as :func:`WeierstrassMap`, except that
     the input polynomial must be a cubic in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -417,7 +402,7 @@ def WeierstrassMap_P2_112(polynomial, variables=None):
     the input polynomial must be a standard anticanonical hypersurface
     in weighted projective space `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;

@@ -21,13 +21,16 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 from sage.symbolic.ring import SR
-from sage.rings.ring_element import RingElement
-from sage.algebras.algebra_element import AlgebraElement
+from sage.structure.element import RingElement, AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
+
+
+import six
 
 
 def sort_subscript(subscript):
@@ -44,7 +47,7 @@ def sort_subscript(subscript):
     INPUT:
 
     - ``subscript`` -- a subscript, i.e. a range of not necessarily
-        distinct integers
+      distinct integers
 
 
     OUTPUT:
@@ -70,13 +73,12 @@ def sort_subscript(subscript):
     if len(subscript) == 0:
         return 1, ()
 
-    sub_list = list(subscript)
-    sub_list.sort()
+    sub_list = sorted(subscript)
     offsets = [subscript.index(x)+1 for x in sub_list]
 
     # Check that offsets is a true permutation of 1..n
     n = len(offsets)
-    if sum(offsets) != n*(n+1)/2:
+    if sum(offsets) != n*(n+1)//2:
         sign = 0
     else:
         sign = Permutation(offsets).signature()
@@ -159,7 +161,7 @@ class DifferentialFormFormatter:
         """
 
         str = "/\\".join( \
-            [('d%s' % self._space.coordinate(c).__repr__()) for c in comp])
+            [('d%r' % self._space.coordinate(c)) for c in comp])
 
         if fun == 1 and len(comp) > 0:
             # We have a non-trivial form whose component function is 1,
@@ -313,9 +315,9 @@ class DifferentialForm(AlgebraElement):
         sage: form2
         1/log(y)*dz + dx + e^cos(x)*dy
         sage: d(form2)
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: form2.diff()
-        -(1/y)/log(y)^2*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
         sage: d(form1) == form1.diff()
         True
 
@@ -387,7 +389,7 @@ class DifferentialForm(AlgebraElement):
 
         from sage.tensor.differential_forms import DifferentialForms
         if not isinstance(parent, DifferentialForms):
-            raise TypeError, "Parent not an algebra of differential forms."
+            raise TypeError("Parent not an algebra of differential forms.")
 
         RingElement.__init__(self, parent)
 
@@ -395,8 +397,7 @@ class DifferentialForm(AlgebraElement):
         self._components = {}
 
         if degree == 0 and fun is not None:
-            self.__setitem__([], fun)
-
+            self[[]] = fun
 
     def __getitem__(self, subscript):
         r"""
@@ -404,9 +405,8 @@ class DifferentialForm(AlgebraElement):
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer
-        or a list of integers.
-
+        - ``subscript`` -- subscript of the component.  Must be an integer
+          or a list of integers.
 
         EXAMPLES::
 
@@ -427,7 +427,6 @@ class DifferentialForm(AlgebraElement):
             sage: df[2]
             0
         """
-
         if isinstance(subscript, (Integer, int)):
             subscript = (subscript, )
         else:
@@ -435,11 +434,11 @@ class DifferentialForm(AlgebraElement):
 
         dim = self.parent().base_space().dim()
         if any([s >= dim for s in subscript]):
-            raise ValueError, "Index out of bounds."
+            raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError, "%s is not a subscript of degree %s" %\
-                (subscript, self._degree)
+            raise TypeError("%s is not a subscript of degree %s" %\
+                (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
 
@@ -448,14 +447,14 @@ class DifferentialForm(AlgebraElement):
         else:
             return 0
 
-
     def __setitem__(self, subscript, fun):
         r"""
         Modify a given component of the differential form.
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer or a list of integers.
+        - ``subscript`` -- subscript of the component.  Must be an integer
+          or a list of integers.
 
         EXAMPLES::
 
@@ -473,11 +472,11 @@ class DifferentialForm(AlgebraElement):
 
         dim = self.parent().base_space().dim()
         if any([s >= dim for s in subscript]):
-            raise ValueError, "Index out of bounds."
+            raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError, "%s is not a subscript of degree %s" %\
-                (subscript, self._degree)
+            raise TypeError("%s is not a subscript of degree %s" %\
+                (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
         self._components[subscript] = sign*SR(fun)
@@ -553,7 +552,7 @@ class DifferentialForm(AlgebraElement):
             sage: f.diff() == g
             True
         """
-        if type(other) == type(self):
+        if type(other) is type(self):
             if self._degree != other._degree:
                 return False
             else:
@@ -573,8 +572,8 @@ class DifferentialForm(AlgebraElement):
                 # pairs as we go along.
 
                 for (key1, val1), (key2, val2) in \
-                        zip(self._components.iteritems(), \
-                            other._components.iteritems()):
+                        zip(six.iteritems(self._components), \
+                            six.iteritems(other._components)):
                     if key1 != key2 or str(val1) != str(val2):
                         return False
                 return True
@@ -599,10 +598,7 @@ class DifferentialForm(AlgebraElement):
             sage: f != g
             True
         """
-
-
-        return not self.__eq__(other)
-
+        return not self == other
 
     def _neg_(self):
         r"""
@@ -658,32 +654,7 @@ class DifferentialForm(AlgebraElement):
             ...
             TypeError: Cannot add forms of degree 1 and 2
 
-        """
-
-        if self.is_zero():
-            return other
-        if other.is_zero():
-            return self
-
-        if self._degree != other._degree:
-            raise TypeError, \
-                "Cannot add forms of degree %s and %s" % \
-                    (self._degree, other._degree)
-
-        sumform = DifferentialForm(self.parent(), self._degree)
-        sumform._components = self._components.copy()
-        for comp, fun in other._components.items():
-            sumform[comp] += fun
-
-        sumform._cleanup()
-        return sumform
-
-
-    def _sub_(self, other):
-        r"""
-        Subtract other from self.
-
-        EXAMPLES::
+        Subtraction is implemented by adding the negative::
 
             sage: x, y, z = var('x, y, z')
             sage: F = DifferentialForms()
@@ -707,10 +678,24 @@ class DifferentialForm(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot add forms of degree 1 and 2
-
         """
-        return self._add_(-other)
 
+        if self.is_zero():
+            return other
+        if other.is_zero():
+            return self
+
+        if self._degree != other._degree:
+            raise TypeError("Cannot add forms of degree %s and %s" % \
+                    (self._degree, other._degree))
+
+        sumform = DifferentialForm(self.parent(), self._degree)
+        sumform._components = self._components.copy()
+        for comp, fun in other._components.items():
+            sumform[comp] += fun
+
+        sumform._cleanup()
+        return sumform
 
     def _cleanup(self):
         r"""
@@ -764,7 +749,7 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print self._components
+        print(self._components)
 
 
     def diff(self):
@@ -876,7 +861,7 @@ class DifferentialForm(AlgebraElement):
         """
 
         if len(args) > 0 or len(kwargs) > 0:
-            raise ValueError, "Differentiation of a form does not take any arguments."
+            raise ValueError("Differentiation of a form does not take any arguments.")
         return self.diff()
 
 
@@ -931,8 +916,8 @@ class DifferentialForm(AlgebraElement):
         """
 
         if self.parent() != other.parent():
-            raise TypeError, "unsupported operand parents for wedge: " +\
-                "\'%s\' and  \'%s\'" % (self.parent(), other.parent())
+            raise TypeError("unsupported operand parents for wedge: " +\
+                "\'%s\' and  \'%s\'" % (self.parent(), other.parent()))
 
         output = DifferentialForm(self.parent(), self._degree + other._degree)
         if self._degree + other._degree > self.parent().ngens():
@@ -1013,7 +998,7 @@ class DifferentialForm(AlgebraElement):
             sage: f = DifferentialForm(F, 1)
             sage: f[1] = exp(z); f
             e^z*dy
-            sage: print f
+            sage: print(f)
             e^z*dy
             sage: f._repr_()
             'e^z*dy'
@@ -1044,10 +1029,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: Absolute value not defined for differential forms.
 
         """
-        raise NotImplementedError, "Absolute value not defined for differential forms."
+        raise NotImplementedError("Absolute value not defined for differential forms.")
 
 
-    def leading_coefficient(self, cmp=None):
+    def leading_coefficient(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1061,10 +1046,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_coefficient not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_coefficient not defined for differential forms."
+        raise NotImplementedError("leading_coefficient not defined for differential forms.")
 
 
-    def leading_item(self, cmp=None):
+    def leading_item(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1078,10 +1063,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_item not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_item not defined for differential forms."
+        raise NotImplementedError("leading_item not defined for differential forms.")
 
 
-    def leading_monomial(self, cmp=None):
+    def leading_monomial(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1095,10 +1080,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_monomial not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_monomial not defined for differential forms."
+        raise NotImplementedError("leading_monomial not defined for differential forms.")
 
 
-    def leading_support(self, cmp=None):
+    def leading_support(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1112,10 +1097,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_support not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_support not defined for differential forms."
+        raise NotImplementedError("leading_support not defined for differential forms.")
 
 
-    def leading_term(self, cmp=None):
+    def leading_term(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1129,10 +1114,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_term not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_term not defined for differential forms."
+        raise NotImplementedError("leading_term not defined for differential forms.")
 
 
-    def trailing_coefficient(self, cmp=None):
+    def trailing_coefficient(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1146,10 +1131,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: trailing_coefficient not defined for differential forms.
 
         """
-        raise NotImplementedError, "trailing_coefficient not defined for differential forms."
+        raise NotImplementedError("trailing_coefficient not defined for differential forms.")
 
 
-    def trailing_item(self, cmp=None):
+    def trailing_item(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1163,10 +1148,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: leading_coefficient not defined for differential forms.
 
         """
-        raise NotImplementedError, "leading_coefficient not defined for differential forms."
+        raise NotImplementedError("leading_coefficient not defined for differential forms.")
 
 
-    def trailing_monomial(self, cmp=None):
+    def trailing_monomial(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1180,10 +1165,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: trailing_monomial not defined for differential forms.
 
         """
-        raise NotImplementedError, "trailing_monomial not defined for differential forms."
+        raise NotImplementedError("trailing_monomial not defined for differential forms.")
 
 
-    def trailing_support(self, cmp=None):
+    def trailing_support(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1197,10 +1182,10 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: trailing_support not defined for differential forms.
 
         """
-        raise NotImplementedError, "trailing_support not defined for differential forms."
+        raise NotImplementedError("trailing_support not defined for differential forms.")
 
 
-    def trailing_term(self, cmp=None):
+    def trailing_term(self, key=None):
         """
         Method not defined for differential forms.
 
@@ -1214,7 +1199,7 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: trailing_term not defined for differential forms.
 
         """
-        raise NotImplementedError, "trailing_term not defined for differential forms."
+        raise NotImplementedError("trailing_term not defined for differential forms.")
 
 
     def map_coefficients(self, f):
@@ -1231,7 +1216,7 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: map_coefficients not defined for differential forms.
 
         """
-        raise NotImplementedError, "map_coefficients not defined for differential forms."
+        raise NotImplementedError("map_coefficients not defined for differential forms.")
 
 
     def map_item(self, f):
@@ -1248,7 +1233,7 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: map_item not defined for differential forms.
 
         """
-        raise NotImplementedError, "map_item not defined for differential forms."
+        raise NotImplementedError("map_item not defined for differential forms.")
 
 
     def map_support(self, f):
@@ -1265,7 +1250,7 @@ class DifferentialForm(AlgebraElement):
             NotImplementedError: map_support not defined for differential forms.
 
         """
-        raise NotImplementedError, "map_support not defined for differential forms."
+        raise NotImplementedError("map_support not defined for differential forms.")
 
 
 

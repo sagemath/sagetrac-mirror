@@ -1,6 +1,7 @@
 """
 Generic dual bases symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -20,8 +21,8 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
-from sage.combinat.dict_addition import dict_linear_combination
-import classical
+import sage.data_structures.blas_dict as blas
+from . import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
@@ -262,7 +263,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         Representation of ``self``.
 
-        OUPUT
+        OUTPUT:
 
         - a string description of ``self``
 
@@ -608,7 +609,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
                 # Create the monomial coefficient dictionary from the
                 # the monomial coefficient dictionary of dual
-                dictionary = dict_linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
+                dictionary = blas.linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
 
             # Initialize self
             self._dual = dual
@@ -640,14 +641,37 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             r"""
             Return the image of ``self`` under the omega automorphism.
 
-            The omega automorphism is defined to be the unique algebra
+            The *omega automorphism* is defined to be the unique algebra
             endomorphism `\omega` of the ring of symmetric functions that
             satisfies `\omega(e_k) = h_k` for all positive integers `k`
             (where `e_k` stands for the `k`-th elementary symmetric
             function, and `h_k` stands for the `k`-th complete homogeneous
             symmetric function). It furthermore is a Hopf algebra
-            endomorphism, and sends the power-sum symmetric function `p_k`
-            to `(-1)^{k-1} p_k` for every positive integer `k`.
+            endomorphism and an involution, and it is also known as the
+            *omega involution*. It sends the power-sum symmetric function
+            `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
+
+            The images of some bases under the omega automorphism are given by
+
+            .. MATH::
+
+                \omega(e_{\lambda}) = h_{\lambda}, \qquad
+                \omega(h_{\lambda}) = e_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
+                \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+            where `\lambda` is any partition, where `\ell(\lambda)` denotes
+            the length (:meth:`~sage.combinat.partition.Partition.length`)
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
+            conjugate partition
+            (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+            `\lambda`, and where the usual notations for bases are used
+            (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+            `s` = Schur).
+
+            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            method.
 
             OUTPUT:
 
@@ -666,6 +690,8 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             """
             eclass = self.__class__
             return eclass(self.parent(), dual=self._dual.omega() )
+
+        omega_involution = omega
 
         def scalar(self, x):
             """
@@ -833,16 +859,18 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         def expand(self, n, alphabet='x'):
             """
             Expand the symmetric function ``self`` as a symmetric polynomial
-            in `n` variables.
+            in ``n`` variables.
 
             INPUT:
 
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
+
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
 
             OUTPUT:
 
-            - a monomial expansion of an instance of ``self`` in `n` variables
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -858,6 +886,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 2*y0^3 + 3*y0^2*y1 + 3*y0*y1^2 + 2*y1^3
                 sage: a.expand(2,alphabet='x,y')
                 2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
+                sage: h([1]).expand(0)
+                0
+                sage: (3*h([])).expand(0)
+                3
             """
             return self._dual.expand(n, alphabet)
 

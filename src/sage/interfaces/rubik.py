@@ -1,6 +1,5 @@
 r"""
-
-Interface to two Rubik's cube solvers.
+Interface to several Rubik's cube solvers.
 
 The first is by Michael Reid, and tries to find an optimal solution given
 the cube's state, and may take a long time.
@@ -33,11 +32,14 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
-import pexpect, time
-import cleaner
+import pexpect
+import time
+from . import cleaner
 
-from sage.groups.perm_gps.cubegroup import *
+from sage.groups.perm_gps.cubegroup import index2singmaster
 
 
 
@@ -64,7 +66,7 @@ class SingNot:
     This class is to resolve difference between various Singmaster notation.
     Case is ignored, and the second and third letters may be swapped.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.interfaces.rubik import SingNot
         sage: SingNot("acb") == SingNot("ACB")
         True
@@ -94,9 +96,9 @@ class OptimalSolver:
         self.verbose = verbose
         self.start()
         if wait:
-            print "Initializing tables..."
+            print("Initializing tables...")
             self.ready()
-            print "Done."
+            print("Done.")
 
     def start(self):
         child = pexpect.spawn(self.__cmd)
@@ -106,9 +108,9 @@ class OptimalSolver:
         self._ready = False
 
     def stop(self):
-        if child:
-            self.child.sendline(chr(3)) # send ctrl-c
-            self.child.sendline(chr(4)) # send ctrl-d
+        if self.child:
+            self.child.sendline(chr(3))  # send ctrl-c
+            self.child.sendline(chr(4))  # send ctrl-d
             self.child.close(True)
             self.child = None
 
@@ -212,7 +214,7 @@ class CubexSolver:
             s = child.after
             while child.expect(['^5\d+', pexpect.EOF]) == 0:
                 s += child.after
-            raise ValueError, s
+            raise ValueError(s)
 
     def format_cube(self, facets):
         colors = sum([[i]*8 for i in range(1,7)], [])
@@ -281,10 +283,10 @@ class DikSolver:
         elif ix == 1:
             # invalid format
             child.close(True)
-            raise ValueError, child.before
+            raise ValueError(child.before)
         else:
             child.close(True)
-            raise RuntimeError, "timeout"
+            raise RuntimeError("timeout")
 
     def format_cube(self, facets):
         colors = sum([[i]*8 for i in range(1,7)], [])

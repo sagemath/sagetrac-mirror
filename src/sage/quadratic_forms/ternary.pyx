@@ -1,41 +1,39 @@
+"""
+Helper code for ternary quadratic forms
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2012 Gustavo Rama
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix
 from sage.modules.free_module_element import vector
-from sage.rings.arith import inverse_mod
+from sage.arith.all import inverse_mod, xgcd, gcd
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
-from sage.rings.arith import xgcd,gcd
 from sage.functions.other import ceil, floor
-from __builtin__ import max
-
 
 
 def red_mfact(a,b):
     """
-    Auxiliar function for reduction that finds the reduction factor of a, b integers.
+    Auxiliary function for reduction that finds the reduction factor of a, b integers.
 
     INPUT:
+
         - a, b integers
 
     OUTPUT:
+
         Integer
 
     EXAMPLES::
@@ -56,7 +54,7 @@ def red_mfact(a,b):
 def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
-    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
+    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the transformation matrix.
     See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::
@@ -122,19 +120,19 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
         a23+=a12*m
 
         # order 12
-        if ((a1>a2) or ((a1==a2) & (abs(a23)>abs(a13)))):
+        if a1 > a2 or (a1 == a2 and abs(a23) > abs(a13)):
             M*=matrix(ZZ,3,[0,-1,0,-1,0,0,0,0,-1])
             [a1,a2]=[a2,a1]
             [a13,a23]=[a23,a13]
 
         # order 23
-        if ((a2>a3) or ((a2==a3) & (abs(a13)>abs(a12)))):
+        if a2 > a3 or (a2 == a3 and abs(a13) > abs(a12)):
             M*=matrix(ZZ,3,[-1,0,0,0,0,-1,0,-1,0])
             [a2,a3]=[a3,a2]
             [a13,a12]=[a12,a13]
 
         # order 12
-        if ((a1>a2) or ((a1==a2) & (abs(a23)>abs(a13)))):
+        if a1 > a2 or (a1 == a2 and abs(a23) > abs(a13)):
             M*=matrix(ZZ,3,[0,-1,0,-1,0,0,0,0,-1])
             [a1,a2]=[a2,a1]
             [a13,a23]=[a23,a13]
@@ -176,7 +174,7 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
                   M*=diagonal_matrix([1,1,-1])
                   a12=-a12
 
-        loop=(not ((abs(a23)<=a2) & (abs(a13)<=a1) & (abs(a12)<=a1) & (a1+a2+a23+a13+a12>=0)))
+        loop = not (abs(a23) <= a2 and abs(a13) <= a1 and abs(a12) <= a1 and a1+a2+a23+a13+a12>=0)
 
 
 ################
@@ -185,14 +183,14 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
 
 
     # adj 3
-    if ((a1+a2+a23+a13+a12==0) & (2*a1+2*a13+a12>0)):
+    if a1+a2+a23+a13+a12 == 0 and 2*a1+2*a13+a12 > 0:
         M*=matrix(ZZ,3,[-1,0,1,0,-1,1,0,0,1])
         # a3 += a1+a2+a23+a13+a12
         a23=-2*a2-a23-a12
         a13=-2*a1-a13-a12
 
     # adj 5.12
-    if ((a1==-a12) & (a13!=0)):
+    if a1 == -a12 and a13 != 0:
         M*=matrix(ZZ,3,[-1,-1,0,0,-1,0,0,0,1])
         #a2 += a1+a12
         a23=-a23-a13
@@ -200,7 +198,7 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
         a12=-a12  # = 2*a1+a12
 
     # adj 5.13
-    if ((a1==-a13) & (a12!=0)):
+    if a1 == -a13 and a12 != 0:
         M*=matrix(ZZ,3,[-1,0,-1,0,1,0,0,0,-1])
         # a3 += a1+a13
         a23=-a23-a12
@@ -208,7 +206,7 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
         a12=-a12
 
     # adj 5.23
-    if ((a2==-a23) & (a12!=0)):
+    if a2 == -a23 and a12 != 0:
         M*=matrix(ZZ,3,[1,0,0,0,-1,-1,0,0,-1])
         # a3 += a2+a23
         a23=-a23  # = 2*a2+a23
@@ -216,39 +214,39 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
         a12=-a12
 
     # adj 4.12
-    if ((a1==a12) & (a13>2*a23)):
+    if a1 == a12 and a13 > 2*a23:
         M*=matrix(ZZ,3,[-1,-1,0,0,1,0,0,0,-1])
         # a 2 += a1-a12
         a23 = -a23 + a13
         # a12 = 2*a1 - a12
 
     # adj 4.13
-    if ((a1==a13) & (a12>2*a23)):
+    if a1 == a13 and a12 > 2*a23:
         M*=matrix(ZZ,3,[-1,0,-1,0,-1,0,0,0,1])
         # a3 += a1-a13
         a23 = -a23 + a12
         # a13 = 2*a1 - a13
 
     # adj 4.23
-    if ((a2==a23) & (a12>2*a13)):
+    if a2 == a23 and a12 > 2*a13:
         M*=matrix(ZZ,3,[-1,0,0,0,-1,-1,0,0,1])
         # a3 += a2-a23
         # a23 = 2*a2 - a23
         a13 = -a13 + a12
 
     # order 12
-    if (a1==a2) & (abs(a23)>abs(a13)):
+    if a1 == a2 and abs(a23) > abs(a13):
         M*=matrix(ZZ,3,[0,-1,0,-1,0,0,0,0,-1])
         [a1,a2]=[a2,a1]
         [a13,a23]=[a23,a13]
 
     # order 23
-    if (a2==a3) & (abs(a13)>abs(a12)):
+    if a2 == a3 and abs(a13) > abs(a12):
         M*=matrix(ZZ,3,[-1,0,0,0,0,-1,0,-1,0])
         [a13,a12]=[a12,a13]
 
     # order 12
-    if (a1==a2) & (abs(a23)>abs(a13)):
+    if a1 == a2 and abs(a23) > abs(a13):
         M*=matrix(ZZ,3,[0,-1,0,-1,0,0,0,0,-1])
         [a13,a23]=[a23,a13]
 
@@ -309,22 +307,22 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
         a23+=a12*m
 
         # order 12
-        if ((a1>a2) or ((a1==a2) & (abs(a23)>abs(a13)))):
+        if a1 > a2 or (a1 == a2 and abs(a23) > abs(a13)):
             [a1,a2]=[a2,a1]
             [a13,a23]=[a23,a13]
 
         # order 23
-        if ((a2>a3) or ((a2==a3) & (abs(a13)>abs(a12)))):
+        if a2 > a3 or (a2 == a3 and abs(a13) > abs(a12)):
             [a2,a3]=[a3,a2]
             [a13,a12]=[a12,a13]
 
         # order 12
-        if ((a1>a2) or ((a1==a2) & (abs(a23)>abs(a13)))):
+        if a1 > a2 or (a1 == a2 and abs(a23) > abs(a13)):
             [a1,a2]=[a2,a1]
             [a13,a23]=[a23,a13]
 
         # signs
-        if (a23*a13*a12>0):
+        if a23*a13*a12 > 0:
             # a23, a13, a12 positive
 
             if (a23<0):
@@ -354,7 +352,7 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
             if s3:
                   a12=-a12
 
-        loop=(not ((abs(a23)<=a2) & (abs(a13)<=a1) & (abs(a12)<=a1) & (a1+a2+a23+a13+a12>=0)))
+        loop = not (abs(a23) <= a2 and abs(a13) <= a1 and abs(a12) <= a1 and a1+a2+a23+a13+a12 >= 0)
 
 
 ################
@@ -363,61 +361,61 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
 
 
     # adj 3
-    if ((a1+a2+a23+a13+a12==0) & (2*a1+2*a13+a12>0)):
+    if a1+a2+a23+a13+a12 == 0 and 2*a1+2*a13+a12 > 0:
         # a3 += a1+a2+a23+a13+a12
         a23=-2*a2-a23-a12
         a13=-2*a1-a13-a12
 
     # adj 5.12
-    if ((a1==-a12) & (a13!=0)):
+    if a1 == -a12 and a13 != 0:
         #a2 += a1+a12
         a23=-a23-a13
         a13=-a13
         a12=-a12  # = 2*a1+a12
 
     # adj 5.13
-    if ((a1==-a13) & (a12!=0)):
+    if a1 == -a13 and a12 != 0:
         # a3 += a1+a13
         a23=-a23-a12
         a13=-a13  # = 2*a1+a13
         a12=-a12
 
     # adj 5.23
-    if ((a2==-a23) & (a12!=0)):
+    if a2 == -a23 and a12 != 0:
         # a3 += a2+a23
         a23=-a23  # = 2*a2+a23
         a13=-a13-a12
         a12=-a12
 
     # adj 4.12
-    if ((a1==a12) & (a13>2*a23)):
+    if a1 == a12 and a13 > 2*a23:
         # a 2 += a1-a12
         a23 = -a23 + a13
         # a12 = 2*a1 - a12
 
     # adj 4.13
-    if ((a1==a13) & (a12>2*a23)):
+    if a1 == a13 and a12 > 2*a23:
         # a3 += a1-a13
         a23 = -a23 + a12
         # a13 = 2*a1 - a13
 
     # adj 4.23
-    if ((a2==a23) & (a12>2*a13)):
+    if a2 == a23 and a12 > 2*a13:
         # a3 += a2-a23
         # a23 = 2*a2 - a23
         a13 = -a13 + a12
 
     # order 12
-    if (a1==a2) & (abs(a23)>abs(a13)):
+    if a1 == a2 and abs(a23) > abs(a13):
         [a1,a2]=[a2,a1]
         [a13,a23]=[a23,a13]
 
     # order 23
-    if (a2==a3) & (abs(a13)>abs(a12)):
+    if a2 == a3 and abs(a13) > abs(a12):
         [a13,a12]=[a12,a13]
 
     # order 12
-    if (a1==a2) & (abs(a23)>abs(a13)):
+    if a1 == a2 and abs(a23) > abs(a13):
         [a13,a23]=[a23,a13]
 
     return((a1,a2,a3,a23,a13,a12))
@@ -536,7 +534,8 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
     """
     Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by its coefficients and a given zero of the form v.
-    The prime p doesn't divides the discriminant of the form.
+
+    The prime p does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -605,8 +604,10 @@ def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, lo
 
 def _find_zeros_mod_p(a, b, c, r, s, t, p):
     """
-    Finds the zeros mod p of the ternary quadratic form given by the coefficients (a, b, c, r, s, t), where p is
-    a prime that doesn't divides the discriminant of the form.
+    Find the zeros mod `p` of the ternary quadratic form.
+
+    The quadratic form is given by the coefficients (a, b, c, r, s, t),
+    and `p` is a prime that does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -687,12 +688,12 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     l=[]
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -727,44 +728,44 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
                         if (d-r*s*t+a*r*r+b*s*s)%(4*a*b-t**2)==0:
 
                             c=(d-r*s*t+a*r*r+b*s*s)//(4*a*b-t**2)
-                            if r<=0:
-                                is_reduced=True
-                                if r<-b:
-                                    is_reduced=False
-                                elif not ((b<=c) & (0<=a+b+r-s-t)):
-                                    is_reduced=False
-                                elif ((a==b) & (abs(r) > abs(s))):
-                                    is_reduced=False
-                                elif ((b==c) & (abs(s) > abs(t))):
-                                    is_reduced=False
-                                elif ((a+b+r-s-t==0) & (2*a-2*s-t>0)):
-                                    is_reduced=False
-                                elif ((a==t) & (s<>0)):
-                                    is_reduced=False
-                                elif ((a==s) & (t<>0)):
-                                    is_reduced=False
-                                elif ((b==-r) & (t<>0)):
-                                    is_reduced=False
+                            if r <= 0:
+                                is_reduced = True
+                                if r < -b:
+                                    is_reduced = False
+                                elif not (b <= c and 0 <= a+b+r-s-t):
+                                    is_reduced = False
+                                elif a == b and abs(r) > abs(s):
+                                    is_reduced = False
+                                elif b == c and abs(s) > abs(t):
+                                    is_reduced = False
+                                elif a+b+r-s-t == 0 and 2*a-2*s-t > 0:
+                                    is_reduced = False
+                                elif a == t and s != 0:
+                                    is_reduced = False
+                                elif a == s and t != 0:
+                                    is_reduced = False
+                                elif b == -r and t != 0:
+                                    is_reduced = False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, -2*r*t+4*b*s, -2*r*s+4*c*t))
                                     if m_q==m:
                                         l.append((ZZ(a), ZZ(b), ZZ(c), ZZ(r), ZZ(-s), ZZ(-t)))
                             else:
                                 is_reduced=True
-                                if not ((b<=c) & (0<=a+b+r+s+t)):
-                                    is_reduced=False
-                                elif ((a==b) & (abs(r) > abs(s))):
-                                    is_reduced=False
-                                elif ((b==c) & (abs(s) > abs(t))):
-                                    is_reduced=False
-                                elif ((a+b+r+s+t==0) & (2*a+2*s+t>0)):
-                                    is_reduced=False
-                                elif ((a==t) & (s>2*r)):
-                                    is_reduced=False
-                                elif ((a==s) & (t>2*r)):
-                                    is_reduced=False
-                                elif ((b==r) & (t>2*s)):
-                                    is_reduced=False
+                                if not (b <= c and 0 <= a+b+r+s+t):
+                                    is_reduced = False
+                                elif a == b and abs(r) > abs(s):
+                                    is_reduced = False
+                                elif b == c and abs(s) > abs(t):
+                                    is_reduced = False
+                                elif a+b+r+s+t == 0 and 2*a+2*s+t > 0:
+                                    is_reduced = False
+                                elif a == t and s > 2*r:
+                                    is_reduced = False
+                                elif a == s and t > 2*r:
+                                    is_reduced = False
+                                elif b == r and t > 2*s:
+                                    is_reduced = False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, 2*r*t-4*b*s, 2*r*s-4*c*t))
                                     if m_q==m:
@@ -828,12 +829,12 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
 
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -868,44 +869,44 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
                         if (d-r*s*t+a*r*r+b*s*s)%(4*a*b-t**2)==0:
 
                             c=(d-r*s*t+a*r*r+b*s*s)//(4*a*b-t**2)
-                            if r<=0:
-                                is_reduced=True
-                                if r<-b:
-                                    is_reduced=False
-                                elif not ((b<=c) & (0<=a+b+r-s-t)):
-                                    is_reduced=False
-                                elif ((a==b) & (abs(r) > abs(s))):
-                                    is_reduced=False
-                                elif ((b==c) & (abs(s) > abs(t))):
-                                    is_reduced=False
-                                elif ((a+b+r-s-t==0) & (2*a-2*s-t>0)):
-                                    is_reduced=False
-                                elif ((a==t) & (s<>0)):
-                                    is_reduced=False
-                                elif ((a==s) & (t<>0)):
-                                    is_reduced=False
-                                elif ((b==-r) & (t<>0)):
-                                    is_reduced=False
+                            if r <= 0:
+                                is_reduced = True
+                                if r < -b:
+                                    is_reduced = False
+                                elif not (b <= c and 0 <= a+b+r-s-t):
+                                    is_reduced = False
+                                elif a == b and abs(r) > abs(s):
+                                    is_reduced = False
+                                elif b == c and abs(s) > abs(t):
+                                    is_reduced = False
+                                elif a+b+r-s-t == 0 and 2*a-2*s-t > 0:
+                                    is_reduced = False
+                                elif a == t and s != 0:
+                                    is_reduced = False
+                                elif a == s and t != 0:
+                                    is_reduced = False
+                                elif b == -r and t != 0:
+                                    is_reduced = False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, -2*r*t+4*b*s, -2*r*s+4*c*t))
                                     if m_q==m:
                                         return ZZ(a), ZZ(b), ZZ(c), ZZ(r), ZZ(-s), ZZ(-t)
                             else:
-                                is_reduced=True
-                                if not ((b<=c) & (0<=a+b+r+s+t)):
-                                    is_reduced=False
-                                elif ((a==b) & (abs(r) > abs(s))):
-                                    is_reduced=False
-                                elif ((b==c) & (abs(s) > abs(t))):
-                                    is_reduced=False
-                                elif ((a+b+r+s+t==0) & (2*a+2*s+t>0)):
-                                    is_reduced=False
-                                elif ((a==t) & (s>2*r)):
-                                    is_reduced=False
-                                elif ((a==s) & (t>2*r)):
-                                    is_reduced=False
-                                elif ((b==r) & (t>2*s)):
-                                    is_reduced=False
+                                is_reduced = True
+                                if not (b <= c and 0 <= a+b+r+s+t):
+                                    is_reduced = False
+                                elif a == b and abs(r) > abs(s):
+                                    is_reduced = False
+                                elif b == c and abs(s) > abs(t):
+                                    is_reduced = False
+                                elif a+b+r+s+t == 0 and 2*a+2*s+t > 0:
+                                    is_reduced = False
+                                elif a==t and s > 2*r:
+                                    is_reduced = False
+                                elif a == s and t>2*r:
+                                    is_reduced = False
+                                elif b == r and t > 2*s:
+                                    is_reduced = False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, 2*r*t-4*b*s, 2*r*s-4*c*t))
                                     if m_q==m:
@@ -1096,7 +1097,7 @@ def _basic_lemma_vec(a, b, c, r, s, t, n):
     elif t%n != 0:
         return 1, 1, 0
 
-    raise ValueError, "not primitive form"
+    raise ValueError("not primitive form")
 
 def _basic_lemma(a, b, c, r, s, t, n):
     """
@@ -1129,5 +1130,4 @@ def _basic_lemma(a, b, c, r, s, t, n):
     elif t%n != 0:
         return a + b + t
 
-    raise ValueError, "not primitive form"
-
+    raise ValueError("not primitive form")

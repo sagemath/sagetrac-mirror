@@ -5,13 +5,14 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-10-17): Initial version
 """
-
 #*****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
@@ -22,6 +23,8 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.hall_polynomial import hall_polynomial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
+from functools import cmp_to_key, reduce
+
 
 def transpose_cmp(x, y):
     r"""
@@ -61,6 +64,7 @@ def transpose_cmp(x, y):
     xexp = x.to_exp()
     yexp = y.to_exp()
     n = min(len(xexp), len(yexp))
+
     def check(m, l):
         s1 = 0
         s2 = 0
@@ -74,7 +78,10 @@ def transpose_cmp(x, y):
         return 1
     if check(yexp, xexp):
         return -1
-    return cmp(x, y)
+    if x < y:
+        return -1
+    return 1
+
 
 class HallAlgebra(CombinatorialFreeModule):
     r"""
@@ -110,26 +117,8 @@ class HallAlgebra(CombinatorialFreeModule):
     the `\lambda`-th Hall-Littlewood `P`-function, and where
     `n(\lambda) = \sum_i (i - 1) \lambda_i`.
 
-    See section 2.3 in [Schiffmann]_, and sections II.2 and III.3
+    See section 2.3 in [Sch2006]_, and sections II.2 and III.3
     in [Macdonald1995]_ (where our `I_{\lambda}` is called `u_{\lambda}`).
-
-    .. WARNING::
-
-        We could work in a Laurent polynomial ring, but currently Laurent
-        polynomials do not simplify if possible. Instead we typically must
-        use the fraction field of `\ZZ[q]`. See :trac:`11726`. ::
-
-            sage: R.<q> = LaurentPolynomialRing(ZZ)
-            sage: H = HallAlgebra(R, q)
-            sage: I = H.monomial_basis()
-            sage: H(I[2,1])
-            H[2, 1] + ((-q^3+1)/(-q+1))*H[1, 1, 1]
-            sage: H[2]*H[2]
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '-':
-             'Hall algebra with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring'
-             and '<type 'NoneType'>'
 
     EXAMPLES::
 
@@ -202,10 +191,26 @@ class HallAlgebra(CombinatorialFreeModule):
         sage: H[2,1] * H[2,1]
         H[4, 2] + H[3, 3] + H[4, 1, 1] - H[3, 2, 1] - H[3, 1, 1, 1]
 
-    REFERENCES:
+    TESTS:
 
-    .. [Schiffmann] Oliver Schiffmann. *Lectures on Hall algebras*.
-       :arxiv:`0611617v2`.
+    The coefficients are actually Laurent polynomials in general, so we don't
+    have to work over the fraction field of `\ZZ[q]`. This didn't work before
+    :trac:`15345`::
+
+        sage: R.<q> = LaurentPolynomialRing(ZZ)
+        sage: H = HallAlgebra(R, q)
+        sage: I = H.monomial_basis()
+        sage: hi = H(I[2,1]); hi
+        H[2, 1] + (1+q+q^2)*H[1, 1, 1]
+        sage: hi.parent() is H
+        True
+        sage: h22 = H[2]*H[2]; h22
+        H[4] - (1-q)*H[3, 1] + (q+q^2)*H[2, 2]
+        sage: h22.parent() is H
+        True
+        sage: e = SymmetricFunctions(R).e()
+        sage: e(H[1,1,1])
+        (q^-3)*e[3]
     """
     def __init__(self, base_ring, q, prefix='H'):
         """
@@ -219,7 +224,10 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: R = PolynomialRing(ZZ, 'q').fraction_field()
             sage: q = R.gen()
             sage: H = HallAlgebra(R, q)
-            sage: TestSuite(H).run()
+            sage: TestSuite(H).run() # long time
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = HallAlgebra(R, q)
+            sage: TestSuite(H).run() # long time
         """
         self._q = q
         try:
@@ -228,7 +236,7 @@ class HallAlgebra(CombinatorialFreeModule):
                 hopf_structure = False
             else:
                 hopf_structure = True
-        except StandardError:
+        except Exception:
             hopf_structure = False
         if hopf_structure:
             category = HopfAlgebrasWithBasis(base_ring)
@@ -236,14 +244,15 @@ class HallAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(base_ring)
         CombinatorialFreeModule.__init__(self, base_ring, Partitions(),
                                          prefix=prefix, bracket=False,
-                                         monomial_cmp=transpose_cmp,
+                                         sorting_key=cmp_to_key(transpose_cmp),
                                          category=category)
 
         # Coercions
         I = self.monomial_basis()
         M = I.module_morphism(I._to_natural_on_basis, codomain=self,
                               triangular='upper', unitriangular=True,
-                              inverse_on_support=lambda x: x.conjugate())
+                              inverse_on_support=lambda x: x.conjugate(),
+                              invertible=True)
         M.register_as_coercion()
         (~M).register_as_coercion()
 
@@ -329,6 +338,14 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: H.coproduct_on_basis(Partition([2,1]))
             H[] # H[2, 1] + ((q^2-1)/q^2)*H[1] # H[1, 1] + 1/q*H[1] # H[2]
              + ((q^2-1)/q^2)*H[1, 1] # H[1] + 1/q*H[2] # H[1] + H[2, 1] # H[]
+
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = HallAlgebra(R, q)
+            sage: H.coproduct_on_basis(Partition([2]))
+            H[] # H[2] - (q^-1-1)*H[1] # H[1] + H[2] # H[]
+            sage: H.coproduct_on_basis(Partition([2,1]))
+            H[] # H[2, 1] - (q^-2-1)*H[1] # H[1, 1] + (q^-1)*H[1] # H[2]
+             - (q^-2-1)*H[1, 1] # H[1] + (q^-1)*H[2] # H[1] + H[2, 1] # H[]
         """
         S = self.tensor_square()
         if all(x == 1 for x in la):
@@ -353,10 +370,17 @@ class HallAlgebra(CombinatorialFreeModule):
             1/q*H[2] + 1/q*H[1, 1]
             sage: H.antipode_on_basis(Partition([2]))
             -1/q*H[2] + ((q^2-1)/q)*H[1, 1]
+
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = HallAlgebra(R, q)
+            sage: H.antipode_on_basis(Partition([1,1]))
+            (q^-1)*H[2] + (q^-1)*H[1, 1]
+            sage: H.antipode_on_basis(Partition([2]))
+            -(q^-1)*H[2] - (q^-1-q)*H[1, 1]
         """
         if all(x == 1 for x in la):
             r = len(la)
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1) ** r * self._q ** (-(r * (r - 1)) // 2)
             return self._from_dict({p: q for p in Partitions(r)})
 
         I = HallAlgebraMonomials(self.base_ring(), self._q)
@@ -440,7 +464,7 @@ class HallAlgebra(CombinatorialFreeModule):
 
             Note that `a_{\lambda}` can be interpreted as the number
             of automorphisms of a certain object in a category
-            corresponding to `\lambda`. See Lemma 2.8 in [Schiffmann]_
+            corresponding to `\lambda`. See Lemma 2.8 in [Sch2006]_
             for details.
 
             EXAMPLES::
@@ -482,8 +506,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
 
     EXAMPLES:
 
-    We could work in a Laurent polynomial ring, but pending :trac:`11726`,
-    we use the fraction field of `\ZZ[q]` instead.
+    We use the fraction field of `\ZZ[q]` for our initial example::
 
         sage: R = PolynomialRing(ZZ, 'q').fraction_field()
         sage: q = R.gen()
@@ -497,6 +520,17 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         sage: all(I(H(I[p])) == I[p] for i in range(7) for p in Partitions(i))
         True
 
+    Since Laurent polynomials are sufficient, we run the same check with
+    the Laurent polynomial ring `\ZZ[q, q^{-1}]`::
+
+        sage: R.<q> = LaurentPolynomialRing(ZZ)
+        sage: H = HallAlgebra(R, q)
+        sage: I = H.monomial_basis()
+        sage: all(H(I(H[p])) == H[p] for i in range(6) for p in Partitions(i)) # long time
+        True
+        sage: all(I(H(I[p])) == I[p] for i in range(6) for p in Partitions(i)) # long time
+        True
+
     We can also convert to the symmetric functions. The natural basis
     corresponds to the Hall-Littlewood basis (up to a renormalization and
     an inversion of the `q` parameter), and this basis corresponds
@@ -505,14 +539,14 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         sage: Sym = SymmetricFunctions(R)
         sage: e = Sym.e()
         sage: e(I[2,1])
-        1/q*e[2, 1]
+        (q^-1)*e[2, 1]
         sage: e(I[4,2,2,1])
-        1/q^8*e[4, 2, 2, 1]
+        (q^-8)*e[4, 2, 2, 1]
         sage: HLP = Sym.hall_littlewood(q).P()
         sage: H(I[2,1])
-        H[2, 1] + (q^2+q+1)*H[1, 1, 1]
+        H[2, 1] + (1+q+q^2)*H[1, 1, 1]
         sage: HLP(e[2,1])
-        (q^2+q+1)*HLP[1, 1, 1] + HLP[2, 1]
+        (1+q+q^2)*HLP[1, 1, 1] + HLP[2, 1]
         sage: all( e(H[lam]) == q**-sum([i * x for i, x in enumerate(lam)])
         ....:          * e(HLP[lam]).map_coefficients(lambda p: p(q**(-1)))
         ....:      for lam in Partitions(4) )
@@ -522,9 +556,9 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
 
         sage: H = HallAlgebra(ZZ, 3)
         sage: I = H.monomial_basis()
-        sage: I[2,1]*I[1,1]
+        sage: i_elt = I[2,1]*I[1,1]; i_elt
         I[2, 1, 1, 1]
-        sage: H(_)
+        sage: H(i_elt)
         H[4, 1] + 7*H[3, 2] + 37*H[3, 1, 1] + 136*H[2, 2, 1]
          + 1495*H[2, 1, 1, 1] + 62920*H[1, 1, 1, 1, 1]
     """
@@ -541,6 +575,9 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
             sage: q = R.gen()
             sage: I = HallAlgebra(R, q).monomial_basis()
             sage: TestSuite(I).run()
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: I = HallAlgebra(R, q).monomial_basis()
+            sage: TestSuite(I).run()
         """
         self._q = q
         try:
@@ -549,7 +586,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
                 hopf_structure = False
             else:
                 hopf_structure = True
-        except StandardError:
+        except Exception:
             hopf_structure = False
         if hopf_structure:
             category = HopfAlgebrasWithBasis(base_ring)
@@ -562,7 +599,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         # Coercions
         if hopf_structure:
             e = SymmetricFunctions(base_ring).e()
-            f = lambda la: q**sum(-(r*(r-1)/2) for r in la)
+            f = lambda la: q ** sum(-((r * (r - 1)) // 2) for r in la)
             M = self.module_morphism(diagonal=f, codomain=e)
             M.register_as_coercion()
             (~M).register_as_coercion()
@@ -642,6 +679,12 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
             sage: I.coproduct_on_basis(Partition([2,1]))
             I[] # I[2, 1] + 1/q*I[1] # I[1, 1] + I[1] # I[2]
              + 1/q*I[1, 1] # I[1] + I[2] # I[1] + I[2, 1] # I[]
+
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: I = HallAlgebra(R, q).monomial_basis()
+            sage: I.coproduct_on_basis(Partition([2,1]))
+            I[] # I[2, 1] + (q^-1)*I[1] # I[1, 1] + I[1] # I[2]
+             + (q^-1)*I[1, 1] # I[1] + I[2] # I[1] + I[2, 1] # I[]
         """
         S = self.tensor_square()
         return S.prod(S.sum_of_terms([( (Partition([r]), Partition([n-r]) ), self._q**(-r*(n-r)) )
@@ -662,11 +705,16 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
             1/q*I[1, 1] - I[2]
             sage: I.antipode_on_basis(Partition([2,1]))
             -1/q*I[1, 1, 1] + I[2, 1]
+
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: I = HallAlgebra(R, q).monomial_basis()
+            sage: I.antipode_on_basis(Partition([2,1]))
+            -(q^-1)*I[1, 1, 1] + I[2, 1]
         """
         H = HallAlgebra(self.base_ring(), self._q)
         cur = self.one()
         for r in a:
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1) ** r * self._q ** (-(r * (r - 1)) // 2)
             cur *= self(H._from_dict({p: q for p in Partitions(r)}))
         return cur
 

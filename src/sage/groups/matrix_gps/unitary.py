@@ -41,7 +41,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*********************************************************************************
 
-from sage.rings.all import ZZ, is_FiniteField, GF
+from sage.rings.all import ZZ, GF
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.misc.latex import latex
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
@@ -68,8 +69,8 @@ def finite_field_sqrt(ring):
     if not is_FiniteField(ring):
         raise ValueError('not a finite field')
     q, rem = ring.cardinality().sqrtrem()
-    if rem != 0:
-        raise ValueError('cardinatity not a square')
+    if rem:
+        raise ValueError('cardinality not a square')
     return q
 
 
@@ -82,7 +83,7 @@ def GU(n, R, var='a'):
     Return the general unitary group.
 
     The general unitary group `GU( d, R )` consists of all `d \times
-    d` matrices that preserve a nondegenerate sequilinear form over
+    d` matrices that preserve a nondegenerate sesquilinear form over
     the ring `R`.
 
     .. note::
@@ -159,7 +160,7 @@ def GU(n, R, var='a'):
 def SU(n, R, var='a'):
     """
     The special unitary group `SU( d, R )` consists of all `d \times d`
-    matrices that preserve a nondegenerate sequilinear form over the
+    matrices that preserve a nondegenerate sesquilinear form over the
     ring `R` and have determinant one.
 
     .. note::

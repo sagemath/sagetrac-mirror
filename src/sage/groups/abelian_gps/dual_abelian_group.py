@@ -62,8 +62,10 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 from sage.rings.infinity import infinity
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.abelian_gps.dual_abelian_group_element import (
     DualAbelianGroupElement, is_DualAbelianGroupElement )
@@ -123,7 +125,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
        """
         self._base_ring = base_ring
         self._group = G
-        names = self.normalize_names(G.ngens(), names)
+        names = normalize_names(G.ngens(), names)
         self._assign_names(names)
         AbelianGroupBase.__init__(self) # TODO: category=CommutativeGroups()
 
@@ -161,7 +163,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: F = AbelianGroup(3,[5,64,729], names=list("abc"))
             sage: Fd = F.dual_group(base_ring=CC)
-            sage: print Fd
+            sage: print(Fd)
             DualAbelianGroup( AbelianGroup ( 3, (5, 64, 729) ) )
         """
         s = "DualAbelianGroup( AbelianGroup ( %s, %s ) )"%(self.ngens(), self.gens_orders())
@@ -255,7 +257,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         n = self.group().ngens()
         if i < 0 or i >= n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         x = [0]*n
         if self.gens_orders()[i] != 1:
             x[i] = 1
@@ -381,7 +383,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             (1, B, B^2, A, A*B, A*B^2)
         """
         if not(self.is_finite()):
-           raise NotImplementedError, "Group must be finite"
+           raise NotImplementedError("Group must be finite")
         invs = self.gens_orders()
         T = mrange(invs)
         n = self.order()

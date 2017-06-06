@@ -1,5 +1,5 @@
 """
-Relational (sqlite) Databases Module.
+Relational (sqlite) Databases Module
 
 INFO:
 
@@ -8,22 +8,18 @@ INFO:
     that wrap the basic functionality of sqlite.
 
     Databases are constructed via a triple indexed dictionary called a
-    skeleton. A skeleton should be constructed to fit the following format:
+    skeleton. A skeleton should be constructed to fit the following format::
 
-    - skeleton -- a triple-indexed dictionary
-
-        - outer key -- table name
-
-            - inner key -- column name
-
-                - inner inner key -- one of the following:
-
-                    - primary_key -- boolean, whether column has been set as
-                      primary key
-                    - index -- boolean, whether column has been set as index
-                    - unique -- boolean, whether column has been set as unique
-                    - sql -- one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or
-                      other user defined type
+        | - skeleton -- a triple-indexed dictionary
+        |     - outer key -- table name
+        |         - inner key -- column name
+        |             - inner inner key -- one of the following:
+        |                 - ``primary_key`` -- boolean, whether column has been set as
+                            primary key
+        |                 - ``index`` -- boolean, whether column has been set as index
+        |                 - ``unique`` -- boolean, whether column has been set as unique
+        |                 - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                            ``'REAL'``, or other user defined type
 
     An example skeleton of a database with one table, that table with one
     column::
@@ -48,16 +44,15 @@ INFO:
     interface.
 
 AUTHORS:
-    -- R. Andrew Ohana (2011-07-16):  refactored and rewrote most of the code;
-                                      merged the Generic classes into the
-                                      non-Generic versions; changed the
-                                      skeleton format to include a boolean
-                                      indicating whether the column stores
-                                      unique keys; changed the index names so
-                                      as to avoid potential ambiguity
-    -- Emily A. Kirkman (2008-09-20): added functionality to generate plots and
-                                      reformat output in show
-    -- Emily A. Kirkman and Robert L. Miller (2007-06-17): initial version
+
+- R. Andrew Ohana (2011-07-16):  refactored and rewrote most of the code;
+  merged the Generic classes into the non-Generic versions; changed the
+  skeleton format to include a boolean indicating whether the column stores
+  unique keys; changed the index names so as to avoid potential ambiguity
+- Emily A. Kirkman (2008-09-20): added functionality to generate plots and
+  reformat output in show
+- Emily A. Kirkman and Robert L. Miller (2007-06-17): initial version
+
 """
 # FUTURE TODOs (Ignore for now):
 #    - order by clause in query strings
@@ -77,6 +72,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import sqlite3 as sqlite
 import os
 import re
@@ -109,8 +106,7 @@ def regexp(expr, item):
 
     REFERENCES:
 
-    .. [GH2005] Gerhard Haring. [Online] Available:
-        http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
+    - [Ha2005]_
 
     EXAMPLES::
 
@@ -159,12 +155,10 @@ def verify_column(col_dict):
         sage: from sage.databases.sql_db import verify_column
         sage: col = {'sql':'BOOLEAN'}
         sage: verify_column(col)
-        {'index': False, 'unique': False, 'primary_key': False,
-            'sql': 'BOOLEAN'}
+        {'index': False, 'primary_key': False, 'sql': 'BOOLEAN', 'unique': False}
         sage: col = {'primary_key':True, 'sql':'INTEGER'}
         sage: verify_column(col)
-        {'index': True, 'unique': True, 'primary_key': True,
-            'sql': 'INTEGER'}
+        {'index': True, 'primary_key': True, 'sql': 'INTEGER', 'unique': True}
         sage: verify_column({})
         Traceback (most recent call last):
         ...
@@ -219,24 +213,18 @@ def verify_operator(operator):
 def construct_skeleton(database):
     """
     Constructs a database skeleton from the sql data.  The skeleton data
-    structure is a triple indexed dictionary of the following format:
+    structure is a triple indexed dictionary of the following format::
 
-    - skeleton -- a triple-indexed dictionary
-
-        - outer key -- table name
-
-            - inner key -- column name
-
-                - inner inner key -- one of the following:
-
-                    - ``primary_key`` -- boolean, whether column has been set
-                      as primary key
-                    - ``index`` -- boolean, whether column has been set as
-                      index
-                    - ``unique`` -- boolean, whether column has been set as
-                      unique
-                    - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                      ``'INTEGER'``, ``'REAL'``, or other user defined type
+        | - skeleton -- a triple-indexed dictionary
+        |   - outer key -- table name
+        |     - inner key -- column name
+        |       - inner inner key -- one of the following:
+        |         - ``primary_key`` -- boolean, whether column has been set as
+                    primary key
+        |         - ``index`` -- boolean, whether column has been set as index
+        |         - ``unique`` -- boolean, whether column has been set as unique
+        |         - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                    ``'REAL'``, or other user defined type
 
     An example skeleton of a database with one table, that table with one
     column::
@@ -253,7 +241,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.misc.misc import SAGE_SHARE
+    from sage.env import GRAPHS_DATA_DIR
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -268,7 +256,7 @@ def construct_skeleton(database):
         for col in exe2.fetchall():
             if col[1].find('sqlite') == -1:
                 if database.__dblocation__ == \
-                        os.path.join(SAGE_SHARE,'graphs','graphs.db'):
+                        os.path.join(GRAPHS_DATA_DIR,'graphs.db'):
                     name = col[1]
                 else:
                     name = col[1][len(table[0])+3:]
@@ -563,12 +551,12 @@ class SQLQuery(SageObject):
             sage: param = (5,)
             sage: Q = SQLQuery(G,q,param)
             sage: it = Q.__iter__()
-            sage: it.next()
+            sage: next(it)
             (18, u'D??')
-            sage: it.next()
+            sage: next(it)
             (19, u'D?C')
-            sage: skip = [it.next() for _ in range(15)]
-            sage: it.next()
+            sage: skip = [next(it) for _ in range(15)]
+            sage: next(it)
             (35, u'DBk')
         """
         try:
@@ -641,7 +629,7 @@ class SQLQuery(SageObject):
             sage: from sage.graphs.graph_database import valid_kwds, data_to_degseq
             sage: relabel = {}
             sage: for col in valid_kwds:
-            ...       relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
+            ....:     relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
             sage: q = GraphQuery(display_cols=['graph6','degree_sequence'], num_vertices=4)
             sage: SQLQuery.show(q, format_cols={'degree_sequence':(lambda x,y: data_to_degseq(x,y))}, relabel_cols=relabel, id_col='graph6')
             Graph6               Degree Sequence
@@ -663,7 +651,7 @@ class SQLQuery(SageObject):
         try:
             cur = self.__database__.__connection__.cursor()
             cur.execute(self.__query_string__, self.__param_tuple__)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to fetch query.')
 
         print(_create_print_table(cur, [des[0] for des in cur.description], \
@@ -881,22 +869,19 @@ class SQLDatabase(SageObject):
         INPUT:
 
         - ``filename`` -- a string
-        - ``skeleton`` -- a triple-indexed dictionary
+        - ``skeleton`` -- a triple-indexed dictionary::
 
-            - outer key -- table name
-
-                - inner key -- column name
-
-                    - inner inner key -- one of the following:
-
-                        - ``primary_key`` -- boolean, whether column has been
-                          set as primary key
-                        - ``index`` -- boolean, whether column has been set as
-                          index
-                        - ``unique`` -- boolean, whether column has been set as
-                          unique
-                        - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                          ``'INTEGER'``, ``'REAL'``, or other user defined type
+            | - outer key -- table name
+            |   - inner key -- column name
+            |     - inner inner key -- one of the following:
+            |       - ``primary_key`` -- boolean, whether column has been set
+                      as primary key
+            |       - ``index`` -- boolean, whether column has been set as
+                      index
+            |       - ``unique`` -- boolean, whether column has been set as
+                      unique
+            |       - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
+                      ``'INTEGER'``, ``'REAL'``, or other user defined type
 
         TUTORIAL:
 
@@ -924,10 +909,10 @@ class SQLDatabase(SageObject):
         is the name of a column::
 
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
 
         Then we create the table::
 
@@ -961,13 +946,13 @@ class SQLDatabase(SageObject):
 
             sage: labels = {}
             sage: for i in range(2, 5):
-            ...       labels[i] = []
-            ...       for g in all_labeled_graphs(i):
-            ...           g = g.canonical_label()
-            ...           if g not in labels[i]:
-            ...               labels[i].append(g)
-            ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
-            sage: D.show('simon')
+            ....:     labels[i] = []
+            ....:     for g in all_labeled_graphs(i):
+            ....:         g = g.canonical_label()
+            ....:         if g not in labels[i]:
+            ....:             labels[i].append(g)
+            ....:             D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
+            sage: D.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0
@@ -997,7 +982,9 @@ class SQLDatabase(SageObject):
             sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
             sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
             sage: Q = Q.intersect(Q2)
-            sage: Q.query_results()
+            sage: len(Q.query_results())
+            3
+            sage: Q.query_results() # random
             [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
 
         NOTE: The values of ``display_cols`` are always concatenated in
@@ -1013,7 +1000,7 @@ class SQLDatabase(SageObject):
         instance. We can load the file as an immutable database::
 
             sage: E = SQLDatabase(replace_with_your_own_filepath + 'simon.db')
-            sage: E.show('simon')
+            sage: E.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0
@@ -1091,7 +1078,7 @@ class SQLDatabase(SageObject):
             sage: replace_with_filepath = tmp_dir() + 'test.db'
             sage: SD = SQLDatabase(replace_with_filepath, False)
             sage: SD.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
-            sage: print SD
+            sage: print(SD)
             table simon:
                 column n: index: True; unique: False; primary_key: False;
                     sql: INTEGER;
@@ -1188,24 +1175,18 @@ class SQLDatabase(SageObject):
     def get_skeleton(self, check=False):
         """
         Returns a dictionary representing the hierarchical structure of the
-        database, in the following format.
+        database, in the following format::
 
-        - skeleton -- a triple-indexed dictionary
-
-            - outer key -- table name
-
-                - inner key -- column name
-
-                    - inner inner key -- one of the following:
-
-                        - ``primary_key`` -- boolean, whether column has been
-                          set as primary key
-                        - ``index`` -- boolean, whether column has been set as
-                          index
-                        - ``unique`` -- boolean, whether column has been set as
-                          unique
-                        - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                          ``'INTEGER'``, ``'REAL'``, or other user defined type
+            | - skeleton -- a triple-indexed dictionary
+            |   - outer key -- table name
+            |     - inner key -- column name
+            |       - inner inner key -- one of the following:
+            |         - ``primary_key`` -- boolean, whether column has been set as
+                        primary key
+            |         - ``index`` -- boolean, whether column has been set as index
+            |         - ``unique`` -- boolean, whether column has been set as unique
+            |         - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                        ``'REAL'``, or other user defined type
 
         For example::
 
@@ -1281,7 +1262,7 @@ class SQLDatabase(SageObject):
         try:
             cur = self.__connection__.cursor()
             cur.execute('SELECT * FROM ' + table_name)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to fetch data.')
         print(_create_print_table(cur, [des[0] for des in cur.description], \
                 **kwds))
@@ -1335,7 +1316,7 @@ class SQLDatabase(SageObject):
             sage: con = D.get_connection()
             sage: t = con.execute('CREATE TABLE simon(n INTEGER, n2 INTEGER)')
             sage: for n in range(10):
-            ...     t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
+            ....:   t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
             sage: D.show('simon')
             n                    n2
             ----------------------------------------
@@ -1397,10 +1378,10 @@ class SQLDatabase(SageObject):
 
             sage: D = SQLDatabase()
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
             edges                graph6               vertices
@@ -1787,9 +1768,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_index('n2','simon')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': True, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1823,9 +1809,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.drop_index('simon', 'n')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': False,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1858,9 +1849,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_unique('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': True}}}
 
         """
         if self.__read_only__:
@@ -1892,9 +1888,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.make_unique('simon', 'n2')
             sage: MonicPolys.drop_unique('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': False,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1930,9 +1931,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}, 'n2':{'sql':'INTEGER'}})
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': True, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': True,
+               'sql': 'INTEGER',
+               'unique': True}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -1969,9 +1975,14 @@ class SQLDatabase(SageObject):
             sage: MonicPolys.make_primary_key('simon', 'n2')
             sage: MonicPolys.drop_primary_key('simon', 'n2')
             sage: MonicPolys.get_skeleton()
-            {'simon': {'n2': {'index': False, 'unique': True,
-             'primary_key': False, 'sql': 'INTEGER'}, 'n': {'index': True,
-             'unique': False, 'primary_key': False, 'sql': 'INTEGER'}}}
+            {'simon': {'n': {'index': True,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': False},
+              'n2': {'index': False,
+               'primary_key': False,
+               'sql': 'INTEGER',
+               'unique': True}}}
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
@@ -2069,7 +2080,7 @@ class SQLDatabase(SageObject):
         try:
             cur = self.get_cursor()
             cur.execute(delete_statement, query.__param_tuple__)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to complete delete. Check your data.')
 
     def add_rows(self, table_name, rows, entry_order=None):

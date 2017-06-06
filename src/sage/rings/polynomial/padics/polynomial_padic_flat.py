@@ -21,7 +21,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import sage.rings.padics.misc
-from sage.rings.integer import Integer
+import six
+from six.moves import range
+
+from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense, Polynomial
+from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
 from sage.rings.infinity import infinity
 from sage.libs.all import pari_gen
 from sage.structure.factorization import Factorization
@@ -66,6 +70,12 @@ class Polynomial_padic_flat(Polynomial_padic_generic_ring):
             sage: type(x)
             <class 'sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat'>
 
+        Check that :trac:`13620` has been fixed::
+
+            sage: K = ZpFM(3)
+            sage: R.<t> = K[]
+            sage: R(R.zero())
+            0
         """
         if x is None:
             Polynomial_padic_generic_ring.__init__(self, parent, x = None, is_gen = is_gen)
@@ -73,7 +83,7 @@ class Polynomial_padic_flat(Polynomial_padic_generic_ring):
         R = parent.base_ring()
         if sage.rings.fraction_field_element.is_FractionFieldElement(x):
             if x.denominator() != 1:
-                raise TypeError, "denominator must be 1"
+                raise TypeError("denominator must be 1")
             else:
                 x = x.numerator()
         from sage.rings.polynomial.polynomial_element import Polynomial
@@ -89,9 +99,9 @@ class Polynomial_padic_flat(Polynomial_padic_generic_ring):
             if check:
                 m = infinity
                 zero = R(0)
-                n = max(x.keys())
-                v = [zero for _ in xrange(n+1)]
-                for i, z in x.iteritems():
+                n = max(x.keys()) if x else 0
+                v = [zero] * (n + 1)
+                for i, z in six.iteritems(x):
                     v[i] = R(z)
                     m = min(m, v[i].precision_absolute())
                 x = v

@@ -11,7 +11,6 @@ for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -34,7 +33,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "padic_template_element.pxi"
 from cpython.int cimport *
 
@@ -83,7 +81,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if isinstance(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -94,7 +95,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef FMElement ans = PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -155,23 +157,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return unpickle_fme_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow))
 
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpFM(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
-
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the additive inverse of this element.
 
@@ -186,7 +172,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         r"""
         Return the sum of this element and ``_right``.
 
@@ -206,7 +192,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         r"""
         Return the difference of this element and ``_right``.
 
@@ -251,7 +237,7 @@ cdef class FMElement(pAdicTemplateElement):
         cinvert(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -269,7 +255,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         r"""
         Return the quotient of this element and ``right``. ``right`` must have
         valuation zero.
@@ -311,9 +297,21 @@ cdef class FMElement(pAdicTemplateElement):
             True
             sage: R(3)^1000 #indirect doctest
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+
+        TESTS:
+
+        We check that :trac:`15640` is resolved::
+
+            sage: R(11)^-1
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
         """
         cdef FMElement ans = self._new_c()
         cdef Integer right = Integer(_right)
+        if right < 0:
+            self = ~self
+            mpz_neg(right.value, right.value)
         cpow(ans.value, self.value, right.value, self.prime_pow.prec_cap, self.prime_pow)
         return ans
 
@@ -416,10 +414,10 @@ cdef class FMElement(pAdicTemplateElement):
             1 + O(7^4)
         """
         cdef long aprec, newprec
-        if PY_TYPE_CHECK(absprec, int):
+        if isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.prime_pow.prec_cap:
@@ -475,7 +473,7 @@ cdef class FMElement(pAdicTemplateElement):
         cdef bint iszero = ciszero(self.value, self.prime_pow)
         if absprec is None:
             return iszero
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return iszero
@@ -531,7 +529,7 @@ cdef class FMElement(pAdicTemplateElement):
             # The default absolute precision is given by the precision cap
             aprec = self.prime_pow.prec_cap
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             # If absprec is not positive, then self and right are always
             # equal.
@@ -550,7 +548,7 @@ cdef class FMElement(pAdicTemplateElement):
                     aprec < right.prime_pow.prec_cap,
                     self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -722,7 +720,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_absolute()
             4
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap)
         return ans
 
@@ -737,7 +735,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a = R(0); a.precision_relative()
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap - self.valuation_c())
         return ans
 
@@ -814,7 +812,7 @@ cdef class FMElement(pAdicTemplateElement):
             (5, O(5^5))
         """
         cdef FMElement unit = self._new_c()
-        cdef Integer valuation = PY_NEW(Integer)
+        cdef Integer valuation = Integer.__new__(Integer)
         mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.prec_cap, self.prime_pow))
         return valuation, unit
 
@@ -853,6 +851,44 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_FM_ZZ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -926,7 +962,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
 
 cdef class pAdicConvert_FM_ZZ(RingMap):
     """
-    The map from a fixed modulus ring back to ZZ that returns the the smallest
+    The map from a fixed modulus ring back to ZZ that returns the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
     If the input is not in the closure of the image of ZZ, raises a ValueError.
@@ -947,7 +983,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f = ZpFM(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicConvert_FM_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -966,7 +1002,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f(ZpFM(5)(0))
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef FMElement x = _x
         cconv_mpz_t_out(ans.value, x.value, 0, x.prime_pow.prec_cap, x.prime_pow)
         return ans
@@ -994,6 +1030,42 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self._zero = R._element_constructor(R, 0)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1065,9 +1137,9 @@ def unpickle_fme_v2(cls, parent, value):
         sage: a.parent() is R
         True
     """
-    cdef FMElement ans = PY_NEW(cls)
+    cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

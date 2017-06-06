@@ -99,53 +99,44 @@ Authors
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/libs/pari/decl.pxi'
+from __future__ import absolute_import, print_function
 
-import math, sys, bisect
+from cysignals.memory cimport check_calloc, sig_free
 
-from sage.libs.pari.pari_instance cimport PariInstance
-from sage.libs.pari.gen cimport gen as pari_gen
+import math
+import sys
 
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.gmp.mpz cimport *
+from sage.libs.pari.all import pari
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.convert cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.misc.misc import cputime
 
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 from sage.rings.number_field.totallyreal_data cimport tr_data
 
-#ZZx = PolynomialRing(IntegerRing(), 'x')
-
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
 
 cpdef double odlyzko_bound_totallyreal(int n):
     r"""
     This function returns the unconditional Odlyzko bound for the root
     discriminant of a totally real number field of degree n.
 
-    NOTE:
-    The bounds for n > 50 are not necessarily optimal.
+    .. NOTE::
+
+        The bounds for n > 50 are not necessarily optimal.
 
     INPUT:
 
@@ -184,7 +175,8 @@ cpdef double odlyzko_bound_totallyreal(int n):
 
 def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False,
                                       phc=False, keep_fields=False, t_2=False,
-                                      just_print=False):
+                                      just_print=False,
+                                      return_pari_objects=True):
     r"""
     This function enumerates primitive totally real fields of degree
     `n>1` with discriminant `d \leq B`; optionally one can specify the
@@ -196,31 +188,36 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     where ``length(a) = d+1``, so in particular always ``a[d] = 1``.
 
-    .. note::
+    .. NOTE::
 
         This is guaranteed to give all primitive such fields, and
         seems in practice to give many imprimitive ones.
 
     INPUT:
 
-    - ``n`` (integer): the degree
-    - ``B`` (integer): the discriminant bound
-    - ``a`` (list, default: []): the coefficient list to begin with
-    - ``verbose`` (integer or string, default: 0): if ``verbose == 1``
+    - ``n`` -- (integer) the degree
+    - ``B`` -- (integer) the discriminant bound
+    - ``a`` -- (list, default: []) the coefficient list to begin with
+    - ``verbose`` -- (integer or string, default: 0) if ``verbose == 1``
       (or ``2``), then print to the screen (really) verbosely; if verbose is
       a string, then print verbosely to the file specified by verbose.
-    - ``return_seqs`` (boolean, default False)If ``return_seqs``, then return
+    - ``return_seqs`` -- (boolean, default False) If ``True``, then return
       the polynomials as sequences (for easier exporting to a file).
     - ``phc`` -- boolean or integer (default: False)
-    - ``keep_fields`` (boolean or integer, default: False) If ``keep_fields`` is True,
-      then keep fields up to ``B*log(B)``; if ``keep_fields`` is an integer, then
-      keep fields up to that integer.
-    - ``t_2`` (boolean or integer, default: False) If ``t_2 = T``, then keep
-      only polynomials with t_2 norm >= T.
-    - ``just_print`` (boolean, default: False): if ``just_print`` is not False,
-      instead of creating a sorted list of totally real number fields, we simply
-      write each totally real field we find to the file whose filename is given by
-      ``just_print``. In this case, we don't return anything.
+    - ``keep_fields`` -- (boolean or integer, default: False) If
+      ``keep_fields`` is True, then keep fields up to ``B*log(B)``; if
+      ``keep_fields`` is an integer, then keep fields up to that integer.
+    - ``t_2`` -- (boolean or integer, default: False) If ``t_2 = T``, then
+      keep only polynomials with t_2 norm >= T.
+    - ``just_print`` -- (boolean, default: False): if ``just_print`` is not
+      False, instead of creating a sorted list of totally real number
+      fields, we simply write each totally real field we find to the file
+      whose filename is given by ``just_print``. In this case, we don't
+      return anything.
+    - ``return_pari_objects`` -- (boolean, default: True) if
+      both ``return_seqs`` and ``return_pari_objects`` are ``False`` then
+      it returns the elements as Sage objects; otherwise it returns pari
+      objects.
 
     OUTPUT:
 
@@ -248,6 +245,21 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         2720
         sage: len(enumerate_totallyreal_fields_prim(5,5**8)) # long time
         103
+
+    Each of the outputs must be elements of Sage if ``return_pari_objects``
+    is set to ``False``::
+
+        sage: enumerate_totallyreal_fields_prim(2, 10)
+        [[5, x^2 - x - 1], [8, x^2 - 2]]
+        sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
+        <type 'cypari2.gen.Gen'>
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
+        Integer Ring
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()
+        Univariate Polynomial Ring in x over Rational Field
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_seqs=True)[1][0][1][0].parent()
+        Rational Field
+
     """
 
     cdef pari_gen B_pari, d, d_poly, keepB, nf, t2val, ngt2, ng
@@ -255,7 +267,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     cdef int counts[4]
     cdef int i, n_int, j, skip_jp
     cdef bint found, use_t2, phc_flag, verb_int, temp_bint
-    cdef Py_ssize_t k0, ind, lenS
+    cdef Py_ssize_t k0, lenS
     cdef tr_data T
     cdef Integer dB
     cdef double db_odlyzko
@@ -264,14 +276,13 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "cannot coerce n (= %s) to an integer"%n
+            raise TypeError("cannot coerce n (= %s) to an integer" % n)
     if (n < 1):
-        raise ValueError, "n must be at least 1."
+        raise ValueError("n must be at least 1.")
 
     # Initialize
     n_int = int(n)
-    T = tr_data(n_int,B,a)
-    S = []
+    S = set()        # set of pairs (d, f)
     lenS = 0
 
     # This is just to quiet valgrind down
@@ -285,7 +296,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     ng = B_pari
     pari_tmp1 = B_pari
 
-    dB = PY_NEW(Integer)
+    dB = Integer.__new__(Integer)
     dB_odlyzko = odlyzko_bound_totallyreal(n_int)
     mpz_set_d(dB.value, dB_odlyzko)
     dB = 40000*((dB+1)**n_int)
@@ -293,10 +304,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         counts[i] = 0
 
     B_pari = pari(B)
-    f_out = <int *>sage_malloc((n_int+1)*sizeof(int))
-    if f_out == NULL: raise MemoryError
-    for i from 0 <= i < n_int:
-        f_out[i] = 0
+    f_out = <int *>check_calloc(n_int + 1, sizeof(int))
     f_out[n_int] = 1
 
     if keep_fields:
@@ -312,7 +320,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     if t_2:
         k0 = len(a)
-        if PY_TYPE_CHECK(t_2, Integer):
+        if isinstance(t_2, Integer):
             t2val = pari(t_2)
         else:
             t2val = pari(a[k0-2]**2-2*a[k0-3])
@@ -333,11 +341,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Trivial case
     if n == 1:
-        sage_free(f_out)
+        sig_free(f_out)
         if return_seqs:
             return [[0,0,0,0],[[1,[-1,1]]]]
-        else:
+        elif return_pari_objects:
             return [[1,pari('x-1')]]
+        else:
+            Px = PolynomialRing(QQ, 'x')
+            return [[ZZ(1), Px.gen()-1]]
 
     if verbose:
         verb_int = 1
@@ -349,22 +360,22 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     else:
         verb_int = 0
 
+    T = tr_data(n_int,B,a)
     if verb_int == 2:
         T.incr(f_out,verb_int,0,phc_flag)
     else:
         T.incr(f_out,0,0,phc_flag)
 
     while f_out[n]:
-        nf = pari.new_t_POL_from_int_star(f_out, n_int+1, 0)
+        nf = new_t_POL_from_int_star(f_out, n_int+1, 0)
         if verb_int:
-            print "==>", nf, "["
+            print("==>", nf, "[")
             for j from 0 <= j < n-1:
-                print "%s "%f_out[j]
-            print "%s]"%f_out[n-1]
-
+                print("%s " % f_out[j])
+            print("%s]" % f_out[n - 1])
         d_poly = nf.poldisc()
         counts[0] += 1
-        if d_poly > 0 and nf.polsturm_full() == n:
+        if d_poly > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d_poly))
             if d_poly > dB or d_poly <= B*da:
                 counts[1] += 1
@@ -374,35 +385,27 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     if d <= keepB:
                         if verb_int:
-                            print "has discriminant", d,
+                            print("has discriminant", d, end='')
 
                         # Find a minimal lattice element
                         counts[3] += 1
                         ng = <pari_gen>((<pari_gen>(pari([nf,zk]))).polredabs())
 
-                        dng = [d, ng]
+                        dng = (d, ng)
 
                         if skip_jp:
                             # Check if K is contained in the list.
-                            found = 0
-                            ind = bisect.bisect_left(S, dng)
-                            while ind < lenS:
-                                if S[ind][0] != d:
-                                    break
-                                if S[ind][1] == ng:
-                                    if verb_int:
-                                        print "but is not new"
-                                    found = 1
-                                    break
-                                ind += 1
+                            found = dng in S
+                            if found and verb_int:
+                                print("but is not new")
 
                             ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
                             if not found:
                                 temp_bint = ngt2 >= t2val
                                 if ((not use_t2) or temp_bint):
                                     if verb_int:
-                                        print "and is new!"
-                                    S.insert(ind, dng)
+                                        print("and is new!")
+                                    S.add(dng)
                                     lenS += 1
                         else:
                             if ((not use_t2) or ngt2 >= t2val):
@@ -410,19 +413,19 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     else:
                         if verb_int:
-                            print "has discriminant", abs(d), "> B"
+                            print("has discriminant", abs(d), "> B")
                 else:
                     if verb_int:
-                        print "is not irreducible"
+                        print("is not irreducible")
             else:
                 if verb_int:
-                    print "has discriminant", abs(d), "with no large enough square divisor"
+                    print("has discriminant", abs(d), "with no large enough square divisor")
         else:
             if verb_int:
                 if d == 0:
-                    print "is not squarefree"
+                    print("is not squarefree")
                 else:
-                    print "is not totally real"
+                    print("is not totally real")
 
         if verb_int == 2:
             T.incr(f_out,verb_int,0,phc_flag)
@@ -437,21 +440,25 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
             jp_file.write(str([3,[1,-2,-1,1]]) + "\n")
         jp_file.close()
-        sage_free(f_out)
+        sig_free(f_out)
         return
 
+    # Convert S to a sorted list of pairs [d, f]
+    # we sort only according to d
+    # because we cannot compare t_POL objects (PARI polynomials)
+    S = sorted([list(s) for s in S], key=lambda x: x[0])
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities
     # which we must now throw back in.
     if n_int == 2 and B >= 5 and ((not use_t2) or t2val <= 5):
-        S = [[5,pari('x^2-x-1')]] + S
+        S = [[5, pari('x^2-x-1')]] + S
         lenS += 1
         if B >= 8 and B < 32:
-            S.insert(1, [8,  pari('x^2-2')])
+            S.insert(1, [8, pari('x^2-2')])
             lenS += 1
     elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
-        S = [[49,pari('x^3-x^2-2*x+1')]] + S
+        S = [[49, pari('x^3-x^2-2*x+1')]] + S
         lenS += 1
     # The polynomials with n = 4 define imprimitive number fields.
 
@@ -460,23 +467,28 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Output.
     if verb_int:
-        print "="*80
-        print "Polynomials tested:", counts[0]
-        print "Polynomials with sssd poldisc:", counts[1]
-        print "Irreducible polynomials:", counts[2]
-        print "Polynomials with nfdisc <= B:", counts[3]
+        print("=" * 80)
+        print("Polynomials tested:", counts[0])
+        print("Polynomials with sssd poldisc:", counts[1])
+        print("Irreducible polynomials:", counts[2])
+        print("Polynomials with nfdisc <= B:", counts[3])
         for i from 0 <= i < lenS:
-            print S[i]
+            print(S[i])
         if type(verbose) == str:
             fsock.close()
         sys.stdout = saveout
 
-    sage_free(f_out)
+    sig_free(f_out)
+    # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [[ counts[i] for i in range(4) ],
-                [[s[0],s[1].reverse().Vec()] for s in S]]
-    else:
+        return [[ZZ(counts[i]) for i in range(4)],
+                [[ZZ(s[0]), map(QQ, s[1].polrecip().Vec())] for s in S]]
+    elif return_pari_objects:
         return S
+    else:
+        Px = PolynomialRing(QQ, 'x')
+        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+                for s in S]
 
 def weed_fields(S, Py_ssize_t lenS=0):
     r"""
@@ -554,6 +566,6 @@ def timestr(m):
         outstr += str(t)[:len(str(t))-2] + 'm '
         n -= t*60
     n += p
-    outstr += '%.1f'%n + 's'
+    outstr += '%.1f' % n + 's'
 
     return outstr

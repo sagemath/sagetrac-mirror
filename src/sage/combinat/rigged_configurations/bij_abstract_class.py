@@ -9,8 +9,8 @@ it makes the code easier to read in the \*_element.py files.
 
 These classes are not meant to be used by the user and are only supposed to be
 used internally to perform the bijections between
-:class:`TensorProductOfKirillovReshetikhinTableaux` and
-:class:`RiggedConfigurations`.
+:class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+and :class:`RiggedConfigurations`.
 
 AUTHORS:
 
@@ -54,7 +54,7 @@ class KRTToRCBijectionAbstract:
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[3,1]]))
             sage: TestSuite(bijection).run()
@@ -81,7 +81,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
             sage: bijection2 = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
@@ -104,7 +104,7 @@ class KRTToRCBijectionAbstract:
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: KRTToRCBijectionTypeA(KRT(pathlist=[[5,2]])).run()
             <BLANKLINE>
@@ -122,6 +122,7 @@ class KRTToRCBijectionAbstract:
               import TensorProductOfKirillovReshetikhinTableauxElement
 
         for cur_crystal in reversed(self.tp_krt):
+            target = cur_crystal.parent()._r
             # Iterate through the columns
             for col_number, cur_column in enumerate(reversed(cur_crystal.to_array(False))):
                 self.cur_path.insert(0, []) # Prepend an empty list
@@ -129,7 +130,7 @@ class KRTToRCBijectionAbstract:
                 self.cur_dims.insert(0, [0, 1])
 
                 for letter in reversed(cur_column):
-                    self.cur_dims[0][0] += 1
+                    self.cur_dims[0][0] = self._next_index(self.cur_dims[0][0], target)
                     val = letter.value # Convert from a CrystalOfLetter to an Integer
 
                     if verbose:
@@ -178,7 +179,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
             sage: bijection.cur_path.insert(0, [])
@@ -211,27 +212,28 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
             sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[3,2]]))  
             sage: bijection._update_vacancy_nums(2)
         """
         # Check to make sure we have a valid index (currently removed)
         # If the current tableau is empty, there is nothing to do
-        if len(self.ret_rig_con[a]) == 0: # Check to see if we have vacancy numbers
+        if not self.ret_rig_con[a]: # Check to see if we have vacancy numbers
             return
 
         # Setup the first block
         block_len = self.ret_rig_con[a][0]
-        vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                 a, 0, dims=self.cur_dims)
+        nu = self.ret_rig_con.nu()
+        vac_num = self.ret_rig_con.parent()._calc_vacancy_number(nu, a, nu[a][0],
+                                                                 dims=self.cur_dims)
 
         for i, row_len in enumerate(self.ret_rig_con[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if block_len != row_len:
-                vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                         a, i, dims=self.cur_dims)
+                vac_num = self.ret_rig_con.parent()._calc_vacancy_number(nu, a, row_len,
+                                                                         dims=self.cur_dims)
                 block_len = row_len
             self.ret_rig_con[a].vacancy_numbers[i] = vac_num
 
@@ -250,14 +252,14 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
             sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[5,2]]))
             sage: bijection._update_partition_values(2)
         """
         rigged_partition = self.ret_rig_con[a]
         for index, value in enumerate(rigged_partition.rigging):
-            if value == None:
+            if value is None:
                 rigged_partition.rigging[index] = rigged_partition.vacancy_numbers[index]
                 if index > 0 and rigged_partition[index - 1] == rigged_partition[index] \
                   and rigged_partition.rigging[index - 1] < rigged_partition.rigging[index]:
@@ -272,6 +274,21 @@ class KRTToRCBijectionAbstract:
 
                     rigged_partition.rigging.pop(index)
                     rigged_partition.rigging.insert(pos, val)
+
+    def _next_index(self, r, target):
+        """
+        Return the next index after ``r`` when performing a step
+        in the bijection going towards ``target``.
+
+        TESTS::
+
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
+            sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[5,2]]))
+            sage: bijection._next_index(1, 2)
+            2
+        """
+        return r + 1
 
 class RCToKRTBijectionAbstract:
     """
@@ -311,6 +328,11 @@ class RCToKRTBijectionAbstract:
         # TODO: Convert from cur_partitions to rigged_con
         self.cur_partitions = deepcopy(list(self.rigged_con)[:])
 
+        # This is a dummy edge to start the process
+        cp = RC_element.__copy__()
+        cp.set_immutable()
+        self._graph = [ [[], (cp, 0)] ]
+
         # Compute the current L matrix
 #        self.L = {}
 #        for dim in self.rigged_con.parent().dims:
@@ -341,22 +363,30 @@ class RCToKRTBijectionAbstract:
         """
         return isinstance(rhs, RCToKRTBijectionAbstract)
 
-    def run(self, verbose=False):
+    def run(self, verbose=False, build_graph=False):
         """
         Run the bijection from rigged configurations to tensor product of KR
         tableaux.
 
         INPUT:
 
-        - ``verbose`` -- (Default: ``False``) Display each step in the
+        - ``verbose`` -- (default: ``False``) display each step in the
           bijection
+        - ``build_graph`` -- (default: ``False``) build the graph of each
+          step of the bijection
 
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
+            sage: x = RC(partition_list=[[1],[1],[1],[1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
-            sage: RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]])).run()
+            sage: RCToKRTBijectionTypeA(x).run()
             [[2], [5]]
+            sage: bij = RCToKRTBijectionTypeA(x)
+            sage: bij.run(build_graph=True)
+            [[2], [5]]
+            sage: bij._graph
+            Digraph on 3 vertices
         """
         from sage.combinat.crystals.letters import CrystalOfLetters
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
@@ -376,7 +406,7 @@ class RCToKRTBijectionAbstract:
                 if self.cur_dims[0][1] > 1:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -390,30 +420,38 @@ class RCToKRTBijectionAbstract:
                     for a in range(self.n):
                         self._update_vacancy_numbers(a)
 
-                while self.cur_dims[0][0] > 0:
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
+
+                while self.cur_dims[0][0]: # > 0:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
 
-                    self.cur_dims[0][0] -= 1 # This takes care of the indexing
-                    b = self.next_state(self.cur_dims[0][0])
+                    ht = self.cur_dims[0][0]
+                    self.cur_dims[0][0] = self._next_index(ht)
+                    b = self.next_state(ht)
 
                     # Make sure we have a crystal letter
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
+
                 self.cur_dims.pop(0) # Pop off the leading column
 
-        # Basic check to make sure we end with the empty configuration
-        #tot_len = sum([len(rp) for rp in self.cur_partitions])
-        #if tot_len != 0:
-        #    print "Invalid bijection end for:"
-        #    print self.rigged_con
-        #    print "-----------------------"
-        #    print self.cur_partitions
-        #    raise ValueError("Invalid bijection end")
+        if build_graph:
+            self._graph.pop(0) # Remove the dummy at the start
+            from sage.graphs.digraph import DiGraph
+            from sage.graphs.dot2tex_utils import have_dot2tex
+            self._graph = DiGraph(self._graph, format="list_of_edges")
+            if have_dot2tex():
+                self._graph.set_latex_options(format="dot2tex", edge_labels=True)
         return self.KRT(pathlist=ret_crystal_path)
 
     @abstract_method
@@ -426,14 +464,14 @@ class RCToKRTBijectionAbstract:
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
             sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.next_state(0)
+            sage: bijection.next_state(1)
             5
             sage: bijection.cur_partitions
             [(/)
-            , (/)
-            , (/)
-            , (/)
-            ]
+             , (/)
+             , (/)
+             , (/)
+             ]
         """
 
     def _update_vacancy_numbers(self, a):
@@ -453,7 +491,7 @@ class RCToKRTBijectionAbstract:
         """
 
         # Nothing to do if there the rigged partition is empty
-        if len(self.cur_partitions[a]) == 0:
+        if not self.cur_partitions[a]:
             return
 
         partition = self.cur_partitions[a]
@@ -461,14 +499,16 @@ class RCToKRTBijectionAbstract:
         # Setup the first block
         block_len = partition[0]
         vac_num = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                                a, 0, dims=self.cur_dims)
+                                                                a, partition[0],
+                                                                dims=self.cur_dims)
 
         for i, row_len in enumerate(self.cur_partitions[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if block_len != row_len:
                 vac_num = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                                        a, i, dims=self.cur_dims)
+                                                                        a, row_len,
+                                                                        dims=self.cur_dims)
                 block_len = row_len
 
             partition.vacancy_numbers[i] = vac_num
@@ -495,8 +535,23 @@ class RCToKRTBijectionAbstract:
             sage: bijection._find_singular_string(bijection.cur_partitions[2], 0)
             0
         """
-        for i in reversed(range(0, len(partition))):
-            if partition[i] >= last_size and \
-              partition.vacancy_numbers[i] == partition.rigging[i]:
+        for i in reversed(range(len(partition))):
+            if (partition[i] >= last_size
+                    and partition.vacancy_numbers[i] == partition.rigging[i]):
                 return i
+
+    def _next_index(self, r):
+        """
+        Return the next index after ``r`` when performing a step
+        in the bijection.
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
+            sage: from sage.combinat.rigged_configurations.bij_abstract_class import RCToKRTBijectionAbstract
+            sage: bijection = RCToKRTBijectionAbstract(RC(partition_list=[[1],[1],[1],[1]]))
+            sage: bijection._next_index(2)
+            1
+        """
+        return r - 1
 

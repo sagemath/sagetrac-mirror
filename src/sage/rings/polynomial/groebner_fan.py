@@ -58,6 +58,8 @@ REFERENCES:
   available at
   http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import string
 import pexpect
@@ -67,8 +69,8 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
-from multi_polynomial_ideal import is_MPolynomialIdeal
-from polynomial_ring_constructor import PolynomialRing
+from .multi_polynomial_ideal import is_MPolynomialIdeal
+from .polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -619,7 +621,7 @@ class InitialForm(SageObject):
 
 def verts_for_normal(normal, poly):
     """
-    Returns the exponents of the vertices of a newton polytope
+    Returns the exponents of the vertices of a Newton polytope
     that make up the supporting hyperplane for the given outward
     normal.
 
@@ -688,7 +690,7 @@ class TropicalPrevariety(PolyhedralFan):
             sage: PF = GF.tropical_intersection()
             sage: pfi = PF.initial_form_systems()
             sage: for q in pfi:
-            ...     print q.initial_forms()
+            ....:     print(q.initial_forms())
             [y^2 - 1, y^2 - 2, y^2 - 3]
             [x^2 - 1, x^2 - 2, x^2 - 3]
             [x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2]
@@ -749,8 +751,17 @@ def ideal_to_gfan_format(input_ring, polys):
             sage: from sage.rings.polynomial.groebner_fan import ideal_to_gfan_format
             sage: ideal_to_gfan_format(R, polys)
             'Q[x, y, z]{x^2*y-z,y^2*z-x,x*z^2-y}'
+
+        TESTS:
+
+        Test that :trac:`20146` is fixed::
+
+            sage: P = PolynomialRing(QQ,"x11,x12,x13,x14,x15,x21,x22,x23,x24,x25,x31,x32,x33,x34,x35"); x = P.gens(); M = Matrix(3,x)
+            sage: I = P.ideal(M.minors(2))
+            sage: ideal_to_gfan_format(P,I.gens())
+            'Q[x11, x12, x13, x14, x15, x21, x22, x23, x24, x25, x31, x32, x33, x34, x35]{-x12*x21+x11*x22,-x13*x21+x11*x23,-x14*x21+x11*x24,-x15*x21+x11*x25,-x13*x22+x12*x23,-x14*x22+x12*x24,-x15*x22+x12*x25,-x14*x23+x13*x24,-x15*x23+x13*x25,-x15*x24+x14*x25,-x12*x31+x11*x32,-x13*x31+x11*x33,-x14*x31+x11*x34,-x15*x31+x11*x35,-x13*x32+x12*x33,-x14*x32+x12*x34,-x15*x32+x12*x35,-x14*x33+x13*x34,-x15*x33+x13*x35,-x15*x34+x14*x35,-x22*x31+x21*x32,-x23*x31+x21*x33,-x24*x31+x21*x34,-x25*x31+x21*x35,-x23*x32+x22*x33,-x24*x32+x22*x34,-x25*x32+x22*x35,-x24*x33+x23*x34,-x25*x33+x23*x35,-x25*x34+x24*x35}'
     """
-    ideal_gen_str = '{' + (str(polys).replace(' ', '').replace("'",""))[1:-1] + '}'
+    ideal_gen_str = "{" + ",".join(str(poly).replace(" ","").replace("'","") for poly in polys) + "}"
     ring_str = ring_to_gfan_format(input_ring)
     output = ring_str + ideal_gen_str
     return output
@@ -804,23 +815,23 @@ class GroebnerFan(SageObject):
         self.__is_groebner_basis = is_groebner_basis
         self.__symmetry = symmetry
         if symmetry:
-            print "WARNING! Symmetry option not yet implemented!!"
+            print("WARNING! Symmetry option not yet implemented!!")
         self.__verbose = verbose
         if not is_MPolynomialIdeal(I):
-            raise TypeError, "I must be a multivariate polynomial ideal"
+            raise TypeError("I must be a multivariate polynomial ideal")
         if prefix_check([str(R_gen) for R_gen in I.ring().gens()]) != True:
-            raise RuntimeError, "Ring variables cannot contain each other as prefixes"
+            raise RuntimeError("Ring variables cannot contain each other as prefixes")
         S = I.ring()
         R = S.base_ring()
         # todo: add support for ZZ, which only works for bases computation, not tropical intersections
         if not R.is_field():
-            raise NotImplementedError, "Groebner fan computation only implemented over fields"
+            raise NotImplementedError("Groebner fan computation only implemented over fields")
         if not (R is QQ or (R.is_finite() and R.is_prime_field() and R.order() <= 32749)):
             # sage: previous_prime (2^15)
             # 32749
-            raise NotImplementedError, "Groebner fan computation only implemented over Q or GF(p) for p <= 32749."
+            raise NotImplementedError("Groebner fan computation only implemented over Q or GF(p) for p <= 32749.")
         if S.ngens() > 52:
-            raise NotImplementedError, "Groebner fan computation only implemented for rings in at most 52 variables."
+            raise NotImplementedError("Groebner fan computation only implemented for rings in at most 52 variables.")
 
         self.__ideal = I
         self.__ring = S
@@ -851,7 +862,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return type(self) == type(right) and self.ideal() == right.ideal()
+        return type(self) is type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -1050,8 +1061,6 @@ class GroebnerFan(SageObject):
                 G = G.split(']')[1]
             G = G.replace('{{','').replace('}}','').split('},{')
             S = self.__ring
-            #print G
-            #print [([f for f in G[i].split()], G[i]) for i in range(len(G))]
             X = [ReducedGroebnerBasis(self, [S(f) for f in G[i].split(',')], G[i]) for i in range(len(G))]
             self.__reduced_groebner_bases = X
             return X
@@ -1106,7 +1115,7 @@ class GroebnerFan(SageObject):
         cmd += self._gfan_mod()
         s = gfan(I, cmd, verbose=self.__verbose, format=format)
         if s.strip() == '{':
-            raise RuntimeError, "Error running gfan command %s on %s"%(cmd, self)
+            raise RuntimeError("Error running gfan command %s on %s"%(cmd, self))
         return s
 
     def __iter__(self):
@@ -1118,7 +1127,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: a = gf.__iter__()
-            sage: a.next()
+            sage: next(a)
             [y^9 - 3*y^6 + 3*y^3 - y - 1, -y^3 + x + 1]
         """
         for x in self.reduced_groebner_bases():
@@ -1222,8 +1231,8 @@ class GroebnerFan(SageObject):
            (right), c (left), and d (top). The shifting is done modulo the
            number of variables in the polynomial ring. The default is 0.
 
-        -  ``larger`` - bool (default: False); if True, make
-           the triangle larger so that the shape of of the Groebner region
+        -  ``larger`` - bool (default: ``False``); if ``True``, make
+           the triangle larger so that the shape of the Groebner region
            appears. Affects the xfig file but probably not the sage graphics
            (?)
 
@@ -1265,7 +1274,7 @@ class GroebnerFan(SageObject):
         """
         S = self.__ring
         if S.ngens() < 3:
-            print "For 2-D fan rendering the polynomial ring must have 3 variables (or more, which are ignored)."
+            print("For 2-D fan rendering the polynomial ring must have 3 variables (or more, which are ignored).")
             raise NotImplementedError
         cmd = 'render'
         if shift:
@@ -1273,7 +1282,7 @@ class GroebnerFan(SageObject):
         if larger:
             cmd += ' -L'
         s = self.gfan(cmd, I=self._gfan_reduced_groebner_bases().replace(' ',','), format=False)
-        if file != None:
+        if file is not None:
             open(file,'w').write(s)
         sp = s.split('\n')
         sp2 = []
@@ -1296,7 +1305,7 @@ class GroebnerFan(SageObject):
             r_lines = r_lines + line(x, rgbcolor = rgbcolor)
         if polyfill:
             vals = [polyfill(q) for q in self.reduced_groebner_bases()]
-            if type(vals[0]) == list or type(vals[0]) == tuple:
+            if isinstance(vals[0], list) or isinstance(vals[0], tuple):
                 if scale_colors:
                     vmins = [min([q[i] for q in vals]) for i in (0,1,2)]
                     vmaxs = [max([q[i] for q in vals]) for i in (0,1,2)]
@@ -1408,13 +1417,13 @@ class GroebnerFan(SageObject):
                 if j>i:
                     try:
                         edges.append([tpoints[i],tpoints[j]])
-                    except StandardError:
-                        print adj
-                        print 'tpoints: ' + str(tpoints)
-                        print 'fpoints: ' + str(fpoints)
-                        print adjacent_vertex
-                        print polyhedral_data.ieqs()
-                        raise RuntimeError, adj
+                    except Exception:
+                        print(adj)
+                        print('tpoints: ' + str(tpoints))
+                        print('fpoints: ' + str(fpoints))
+                        print(adjacent_vertex)
+                        print(polyhedral_data.ieqs())
+                        raise RuntimeError(adj)
         return edges
 
     def render3d(self, verbose = False):
@@ -1446,7 +1455,7 @@ class GroebnerFan(SageObject):
         """
         S = self.__ring
         if S.ngens() != 4:
-            print "For 3-D fan rendering the polynomial ring must have 4 variables"
+            print("For 3-D fan rendering the polynomial ring must have 4 variables")
             raise NotImplementedError
         g_cones = [q.groebner_cone() for q in self.reduced_groebner_bases()]
         g_cones_facets = [q.facets() for q in g_cones]
@@ -1456,9 +1465,9 @@ class GroebnerFan(SageObject):
         #This is really just for debugging
         if verbose:
             for x in cone_info:
-                print x.inequalities() + ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1])
-                print x.equations()
-                print ""
+                print(x.inequalities() + ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]))
+                print(x.equations())
+                print()
         cone_info = [Polyhedron(ieqs = x.inequalities() +
                                 ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]),
                                 eqns = x.equations()) for x in cone_info]
@@ -1466,8 +1475,8 @@ class GroebnerFan(SageObject):
         for cone_data in cone_info:
             try:
                 cone_lines = self._4d_to_3d(cone_data)
-            except StandardError:
-                print cone_data._rays
+            except Exception:
+                print(cone_data._rays)
                 raise RuntimeError
             for a_line in cone_lines:
                 all_lines.append(a_line)
@@ -1482,7 +1491,13 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
             sage: G._gfan_stats()
-            {'Number of reduced Groebner bases': 3, 'Number of variables': 2, 'Maximal number of terms in Groebner basis': 6, 'Minimal total degree of a Groebner basis': 2, 'Maximal total degree of a Groebner basis': 4, 'Maximal number of polynomials in Groebner basis': 3, 'Dimension of homogeneity space': 0}
+            {'Dimension of homogeneity space': 0,
+             'Maximal number of polynomials in Groebner basis': 3,
+             'Maximal number of terms in Groebner basis': 6,
+             'Maximal total degree of a Groebner basis': 4,
+             'Minimal total degree of a Groebner basis': 2,
+             'Number of reduced Groebner bases': 3,
+             'Number of variables': 2}
         """
         try:
             return self.__stats
@@ -1605,7 +1620,7 @@ class GroebnerFan(SageObject):
             cmd += ' -h'
         if check:
             if I.dimension() != 1 + self.dimension_of_homogeneity_space():
-                raise ValueError, "The ideal does not define a tropical curve."
+                raise ValueError("The ideal does not define a tropical curve.")
 
         B = self.gfan(cmd)
         if B.find(']') != -1:
@@ -1613,7 +1628,7 @@ class GroebnerFan(SageObject):
         S = self.__ring
         B = B.replace('\n','')
         B = B.replace('{','').replace('}','').split(',')
-        if verbose: print S, B
+        if verbose: print(S, B)
         X = [S(f) for f in B]
         self.__tropical_basis = X
         return X
@@ -1625,7 +1640,7 @@ class GroebnerFan(SageObject):
 
         EXAMPLES::
 
-            sage: print "This is not easily doc-testable; please write a good one!"
+            sage: print("This is not easily doc-testable; please write a good one!")
             This is not easily doc-testable; please write a good one!
         """
         self[0].interactive(*args, **kwds)
@@ -1684,7 +1699,7 @@ class GroebnerFan(SageObject):
                 allvars = self.ring().gens()
                 truevars = [q for q in allvars if not q in parameters]
                 base_ring = self.ring().base_ring()
-                new_ring = PolynomialRing(base_ring, len(truevars), string.join([str(q) for q in truevars], sep=','))
+                new_ring = PolynomialRing(base_ring, len(truevars), ",".join(str(q) for q in truevars))
                 old_polys = self.ideal().gens()
                 new_polys = []
                 sub = dict([[v,1] for v in parameters])
@@ -1726,7 +1741,7 @@ class GroebnerFan(SageObject):
             15
         """
         if len(self.ring().variable_names()) != self.ideal().ngens():
-            raise UserWarning, 'not a square system'
+            raise UserWarning('not a square system')
         return Integer(self.gfan(cmd='mixedvolume'))
 
 class ReducedGroebnerBasis(SageObject, list):
@@ -1833,16 +1848,16 @@ class ReducedGroebnerBasis(SageObject, list):
             cmd += ' -W'
         cmd += self.__groebner_fan._gfan_mod()
         E = pexpect.spawn(cmd)
-        print "Initializing gfan interactive mode"
+        print("Initializing gfan interactive mode")
         #E.sendline(self._gfan_ideal())
         E.sendline(self.__gfan_gens)
-        print "*"*45
-        print "*     Press control-C to return to Sage     *"
-        print "*"*45
+        print("*" * 45)
+        print("*     Press control-C to return to Sage     *")
+        print("*" * 45)
         try:
             E.interact()
         except OSError:
-            print "Returning to Sage."
+            print("Returning to Sage.")
 
     def groebner_cone(self, restrict=False):
         """

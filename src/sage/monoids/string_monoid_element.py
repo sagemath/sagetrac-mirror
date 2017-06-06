@@ -12,7 +12,6 @@ These are special classes of free monoid elements with distinct printing.
 The internal representation of elements does not use the exponential
 compression of FreeMonoid elements (a feature), and could be packed into words.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -20,14 +19,15 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
 # import operator
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
-# from sage.structure.element import MonoidElement
-from sage.probability.random_variable import DiscreteProbabilitySpace
-from free_monoid_element import FreeMonoidElement
-import string_monoid
+from .free_monoid_element import FreeMonoidElement
+from sage.structure.sage_object import richcmp
+
 
 def is_StringMonoidElement(x):
     r"""
@@ -37,30 +37,35 @@ def is_StringMonoidElement(x):
 def is_AlphabeticStringMonoidElement(x):
     r"""
     """
+    from .string_monoid import AlphabeticStringMonoid
     return isinstance(x, StringMonoidElement) and \
-           isinstance(x.parent(), string_monoid.AlphabeticStringMonoid)
+           isinstance(x.parent(), AlphabeticStringMonoid)
 
 def is_BinaryStringMonoidElement(x):
     r"""
     """
+    from .string_monoid import BinaryStringMonoid
     return isinstance(x, StringMonoidElement) and \
-           isinstance(x.parent(), string_monoid.BinaryStringMonoid)
+           isinstance(x.parent(), BinaryStringMonoid)
 
 def is_OctalStringMonoidElement(x):
     r"""
     """
+    from .string_monoid import OctalStringMonoid
     return isinstance(x, StringMonoidElement) and \
-           isinstance(x.parent(), string_monoid.OctalStringMonoid)
+           isinstance(x.parent(), OctalStringMonoid)
 
 def is_HexadecimalStringMonoidElement(x):
     r"""
     """
+    from .string_monoid import HexadecimalStringMonoid
     return isinstance(x, StringMonoidElement) and \
-           isinstance(x.parent(), string_monoid.HexadecimalStringMonoid)
+           isinstance(x.parent(), HexadecimalStringMonoid)
 
 def is_Radix64StringMonoidElement(x):
     r"""
     """
+    from .string_monoid import Radix64StringMonoid
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), string_monoid.Radix64StringMonoid)
 
@@ -80,7 +85,7 @@ class StringMonoidElement(FreeMonoidElement):
         if isinstance(x, list):
             if check:
                 for b in x:
-                    if not isinstance(b, (int, long, Integer)):
+                    if not isinstance(b, integer_types + (Integer,)):
                         raise TypeError(
                             "x (= %s) must be a list of integers." % x)
             self._element_list = list(x) # make copy
@@ -97,12 +102,12 @@ class StringMonoidElement(FreeMonoidElement):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
-    def __cmp__(left, right):
+    def _richcmp_(left, right, op):
         """
         Compare two free monoid elements with the same parents.
 
         The ordering is the one on the underlying sorted list of
-        (monomial,coefficients) pairs.
+        (monomial, coefficients) pairs.
 
         EXAMPLES::
 
@@ -113,7 +118,7 @@ class StringMonoidElement(FreeMonoidElement):
             sage: S("01") < S("10")
             True
         """
-        return cmp(left._element_list, right._element_list)
+        return richcmp(left._element_list, right._element_list, op)
 
     def _repr_(self):
         """
@@ -183,7 +188,7 @@ class StringMonoidElement(FreeMonoidElement):
             ...
             IndexError: Argument n (= -1) must be non-negative.
         """
-        if not isinstance(n, (int, long, Integer)):
+        if not isinstance(n, integer_types + (Integer,)):
             raise TypeError("Argument n (= %s) must be an integer." % n)
         if n < 0:
             raise IndexError("Argument n (= %s) must be non-negative." % n)
@@ -220,7 +225,7 @@ class StringMonoidElement(FreeMonoidElement):
         EXAMPLES::
 
             sage: t = AlphabeticStrings()('SHRUBBERY')
-            sage: t.__iter__().next()
+            sage: next(t.__iter__())
             S
             sage: list(t)
             [S, H, R, U, B, B, E, R, Y]
@@ -248,7 +253,7 @@ class StringMonoidElement(FreeMonoidElement):
         """
         try:
             c = self._element_list[n]
-        except StandardError:
+        except Exception:
             raise IndexError("Argument n (= %s) is not a valid index." % n)
         if not isinstance(c, list):
             c = [c]
@@ -285,11 +290,13 @@ class StringMonoidElement(FreeMonoidElement):
             'A..Za..z'
         """
         S = self.parent()
-        from Crypto.Util.number import long_to_bytes
-        if isinstance(S, string_monoid.AlphabeticStringMonoid):
-            return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
-        n = self.__len__()
-        if isinstance(S, string_monoid.HexadecimalStringMonoid):
+        from .string_monoid import (AlphabeticStringMonoid,
+                                    BinaryStringMonoid,
+                                    HexadecimalStringMonoid)
+        if isinstance(S, AlphabeticStringMonoid):
+            return ''.join([ chr(65+i) for i in self._element_list ])
+        n = len(self)
+        if isinstance(S, HexadecimalStringMonoid):
             if not n % 2 == 0:
                 "String %s must have even length to determine a byte character string." % str(self)
             s = []
@@ -297,12 +304,12 @@ class StringMonoidElement(FreeMonoidElement):
             for k in range(n//2):
                 m = 2*k
                 if padic:
-                    c = long_to_bytes(x[m]+16*x[m+1])
+                    c = chr(x[m]+16*x[m+1])
                 else:
-                    c = long_to_bytes(16*x[m]+x[m+1])
+                    c = chr(16*x[m]+x[m+1])
                 s.append(c)
             return ''.join(s)
-        if isinstance(S, string_monoid.BinaryStringMonoid):
+        if isinstance(S, BinaryStringMonoid):
             if not n % 8 == 0:
                 "String %s must have even length 0 mod 8 to determine a byte character string." % str(self)
             pows = [ 2**i for i in range(8) ]
@@ -311,9 +318,9 @@ class StringMonoidElement(FreeMonoidElement):
             for k in range(n//8):
                 m = 8*k
                 if padic:
-                    c = long_to_bytes(sum([ x[m+i]*pows[i] for i in range(8) ]))
+                    c = chr(sum([ x[m+i]*pows[i] for i in range(8) ]))
                 else:
-                    c = long_to_bytes(sum([ x[m+7-i]*pows[i] for i in range(8) ]))
+                    c = chr(sum([ x[m+7-i]*pows[i] for i in range(8) ]))
                 s.append(c)
             return ''.join(s)
         raise TypeError(
@@ -329,9 +336,6 @@ class StringMonoidElement(FreeMonoidElement):
             RR = RealField(prec)
         char_dict = {}
         for i in self._element_list:
-            # if char_dict.has_key(i):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if i in char_dict:
                 char_dict[i] += 1
             else:
@@ -509,13 +513,11 @@ class StringMonoidElement(FreeMonoidElement):
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
-            # if X.has_key(c):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if c in X:
                 X[c] += eps
             else:
                 X[c] = eps
         # Return a dictionary of probability distribution. This should
         # allow for easier parsing of the dictionary.
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(Alph, X, RR)

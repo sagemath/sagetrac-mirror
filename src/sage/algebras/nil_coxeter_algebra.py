@@ -10,7 +10,6 @@ Nil-Coxeter Algebra
 #*****************************************************************************
 from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.combinat.sf.kschur import kSchurFunctions
 from sage.misc.misc_c import prod
 from sage.rings.rational_field import QQ
 from sage.combinat.partition import Partitions
@@ -40,7 +39,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
         sage: u2*u1*u2 == u1*u2*u1
         True
         sage: U.an_element()
-        u[0,1,2,3] + 3*u[0,1] + 2*u[0] + 1
+        u[0,1,2,3] + 2*u[0] + 3*u[1] + 1
     """
 
     def __init__(self, W, base_ring = QQ, prefix='u'):
@@ -144,11 +143,8 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
 
     def k_schur_noncommutative_variables(self, la):
         r"""
-        In type `A^{(1)}` this is the `k`-Schur function in noncommutative variables defined by Thomas Lam.
-
-        REFERENCES:
-
-           .. [Lam2005] T. Lam, Affine Stanley symmetric functions, Amer. J. Math.  128  (2006),  no. 6, 1553--1586.
+        In type `A^{(1)}` this is the `k`-Schur function in noncommutative variables
+        defined by Thomas Lam [Lam2005]_.
 
         This function is currently only defined in type `A^{(1)}`.
 

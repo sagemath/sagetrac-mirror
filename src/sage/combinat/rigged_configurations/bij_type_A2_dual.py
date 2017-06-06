@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2, 1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import KRTToRCBijectionTypeA2Dual
     sage: bijection = KRTToRCBijectionTypeA2Dual(KRT(pathlist=[[2,1]]))
     sage: TestSuite(bijection).run()
@@ -56,7 +56,7 @@ class KRTToRCBijectionTypeA2Dual(KRTToRCBijectionTypeC):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import KRTToRCBijectionTypeA2Dual
             sage: bijection = KRTToRCBijectionTypeA2Dual(KRT(pathlist=[[-1,2]]))
             sage: bijection.cur_path.insert(0, [])
@@ -214,9 +214,10 @@ class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
             sage: RC = RiggedConfigurations(CartanType(['A', 4, 2]).dual(), [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import RCToKRTBijectionTypeA2Dual
             sage: bijection = RCToKRTBijectionTypeA2Dual(RC(partition_list=[[2],[2,2]]))
-            sage: bijection.next_state(1)
+            sage: bijection.next_state(2)
             -1
         """
+        height -= 1 # indexing
         n = self.n
         ell = [None] * (2*n)
         case_S = [False] * n

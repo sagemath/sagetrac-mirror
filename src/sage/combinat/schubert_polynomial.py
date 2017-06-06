@@ -15,12 +15,14 @@ Schubert Polynomials
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.categories.all import GradedAlgebrasWithBasis
-from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
-import permutation
+from sage.rings.all import Integer, PolynomialRing
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from . import permutation
 import sage.libs.symmetrica.all as symmetrica
 
 from sage.combinat.permutation import Permutations
@@ -67,6 +69,7 @@ def is_SchubertPolynomial(x):
     """
     return isinstance(x, SchubertPolynomial_class)
 
+
 class SchubertPolynomial_class(CombinatorialFreeModule.Element):
     def expand(self):
         """
@@ -75,10 +78,12 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             sage: X = SchubertPolynomialRing(ZZ)
             sage: X([2,1,3]).expand()
             x0
-            sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
+            sage: [X(p).expand() for p in Permutations(3)]
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
 
-        TESTS: Calling .expand() should always return an element of an
+        TESTS:
+
+        Calling .expand() should always return an element of an
         MPolynomialRing
 
         ::
@@ -119,7 +124,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         elif i in permutation.Permutations():
             return symmetrica.divdiff_perm_schubert(i, self)
         else:
-            raise TypeError, "i must either be an integer or permutation"
+            raise TypeError("i must either be an integer or permutation")
 
     def scalar_product(self, x):
         """
@@ -146,7 +151,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         if is_SchubertPolynomial(x):
             return symmetrica.scalarproduct_schubert(self, x)
         else:
-            raise TypeError, "x must be a Schubert polynomial"
+            raise TypeError("x must be a Schubert polynomial")
 
     def multiply_variable(self, i):
         """
@@ -169,7 +174,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         if isinstance(i, Integer):
             return symmetrica.mult_schubert_variable(self, i)
         else:
-            raise TypeError, "i must be an integer"
+            raise TypeError("i must be an integer")
 
 # FIXME: inherit from CombinatorialFreeModule once the
 # coercion from ground ring is implemented in the category
@@ -220,12 +225,12 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
         if isinstance(x, list):
             #checking the input to avoid symmetrica crashing Sage, see trac 12924
             if not x in Permutations():
-                raise ValueError, "The input %s is not a valid permutation"%(x)
+                raise ValueError("The input %s is not a valid permutation"%(x))
             perm = permutation.Permutation(x).remove_extra_fixed_points()
             return self._from_dict({ perm: self.base_ring()(1) })
         elif isinstance(x, permutation.Permutation):
             if not list(x) in Permutations():
-                raise ValueError, "The input %s is not a valid permutation"%(x)
+                raise ValueError("The input %s is not a valid permutation"%(x))
             perm = x.remove_extra_fixed_points()
             return self._from_dict({ perm: self.base_ring()(1) })
         elif is_MPolynomial(x):

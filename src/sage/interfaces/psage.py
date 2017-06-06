@@ -39,10 +39,13 @@ finished::
      23^2 * 47 * 89 * 178481 * 4103188409 * 199957736328435366769577 * 44667711762797798403039426178361,
      9623 * 68492481833 * 23579543011798993222850893929565870383844167873851502677311057483194673]
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
-import os, time
+import os
+import time
 
-from sage0 import Sage, SageElement
+from .sage0 import Sage, SageElement
 from pexpect import ExceptionPexpect
 
 number = 0
@@ -50,8 +53,8 @@ number = 0
 
 class PSage(Sage):
     def __init__(self,  **kwds):
-        if kwds.has_key('server'):
-            raise NotImplementedError, "PSage doesn't work on remote server yet."
+        if 'server' in kwds:
+            raise NotImplementedError("PSage doesn't work on remote server yet.")
         Sage.__init__(self, **kwds)
         import sage.misc.misc
         T = sage.misc.temporary_file.tmp_dir('sage_smp')
@@ -64,7 +67,15 @@ class PSage(Sage):
         self._number = number
         number += 1
 
-    def __repr__(self):
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.psage import PSage
+            sage: PSage()                                   # indirect doctest
+            A running non-blocking (parallel) instance of Sage (number ...)
+
+        """
         return 'A running non-blocking (parallel) instance of Sage (number %s)'%(self._number)
 
     def _unlock(self):
@@ -90,13 +101,13 @@ class PSage(Sage):
         return open(self.__tmp).read() == '__locked__'
 
     def __del__(self):
-        print "deleting"
+        print("deleting")
         for x in os.listdir(self.__tmp_dir):
             os.remove('%s/%s'%(self.__tmp_dir, x))
         os.removedirs(self.__tmp_dir)
         if not (self._expect is None):
             cmd = 'kill -9 %s'%self._expect.pid
-            print cmd
+            print(cmd)
             os.system(cmd)
         Sage.__del__(self)
 
@@ -124,7 +135,7 @@ class PSage(Sage):
         Get the value of the variable var.
         """
         try:
-            return self.eval('print %s'%var)
+            return self.eval('print(%s)' % var)
         except ExceptionPexpect:
             return "<<currently executing code>>"
 
@@ -138,7 +149,7 @@ class PSage(Sage):
 
     def _send_nowait(self, x):
         if x.find('\n') != -1:
-            raise ValueError, "x must not have any newlines"
+            raise ValueError("x must not have any newlines")
         # Now we want the client Python process to execute two things.
         # The first is x and the second is c.  The effect of c
         # will be to unlock the lock.

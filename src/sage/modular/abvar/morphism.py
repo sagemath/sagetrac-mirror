@@ -32,6 +32,7 @@ EXAMPLES::
     [ 3  3  0 -3]
     [-3  6  3 -3]
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -41,11 +42,11 @@ EXAMPLES::
 
 from sage.categories.morphism import Morphism as base_Morphism
 from sage.rings.all import ZZ, QQ
-import abvar as abelian_variety
+
 import sage.modules.matrix_morphism
 import sage.matrix.matrix_space as matrix_space
 
-from finite_subgroup import TorsionPoint
+from .finite_subgroup import TorsionPoint
 
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
@@ -103,7 +104,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             [0 0 0 2]
         """
         if not self.is_isogeny():
-            raise ValueError, "self is not an isogeny"
+            raise ValueError("self is not an isogeny")
         M = self.matrix()
         try:
             iM, denom = M._invert_iml()
@@ -229,7 +230,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         D = self.domain()
         V = (A.kernel().basis_matrix() * D.vector_space().basis_matrix()).row_module()
         Lambda = V.intersection(D._ambient_lattice())
-        from abvar import ModularAbelianVariety
+        from .abvar import ModularAbelianVariety
         abvar = ModularAbelianVariety(D.groups(), Lambda, D.base_ring())
 
         if Lambda.rank() == 0:
@@ -313,7 +314,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             # This R is a lattice in the ambient space for B.
             R = Lprime + M
 
-            from abvar import ModularAbelianVariety
+            from .abvar import ModularAbelianVariety
             C = ModularAbelianVariety(Q.groups(), R, Q.base_field())
 
             # We have to change the basis of the representation of A
@@ -443,8 +444,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: t2(C)
             Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
         """
-        from abvar import is_ModularAbelianVariety
-        from finite_subgroup import FiniteSubgroup
+        from .abvar import is_ModularAbelianVariety
+        from .finite_subgroup import FiniteSubgroup
         if isinstance(X, TorsionPoint):
             return self._image_of_element(X)
         elif is_ModularAbelianVariety(X):
@@ -452,7 +453,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         elif isinstance(X, FiniteSubgroup):
             return self._image_of_finite_subgroup(X)
         else:
-            raise TypeError, "X must be an abelian variety or finite subgroup"
+            raise TypeError("X must be an abelian variety or finite subgroup")
 
     def _image_of_element(self, x):
         """
@@ -509,22 +510,20 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
     def _image_of_finite_subgroup(self, G):
         """
-        Return the image of the finite group `G` under this
-        morphism.
+        Return the image of the finite group `G` under ``self``.
 
         INPUT:
 
+        - ``G`` -- a finite subgroup of the domain of ``self``
 
-        -  ``G`` - a finite subgroup of the domain of this
-           morphism
+        OUTPUT:
 
-
-        OUTPUT: a finite subgroup of the codomain
+        A finite subgroup of the codomain.
 
         EXAMPLES::
 
             sage: J = J0(33); A = J[0]; B = J[1]
-            sage: C = A.intersection(B)[0] ; C
+            sage: C = A.intersection(B)[0]; C
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: t = J.hecke_operator(3)
             sage: D = t(C); D
@@ -591,13 +590,14 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: J.projection(B)._image_of_abvar(J)
             Abelian subvariety of dimension 1 of J0(37)
         """
+        from .abvar import ModularAbelianVariety
         D = self.domain()
         C = self.codomain()
         if A is D:
             B = self.matrix()
         else:
             if not A.is_subvariety(D):
-                raise ValueError, "A must be an abelian subvariety of self."
+                raise ValueError("A must be an abelian subvariety of self.")
             # Write the vector space corresponding to A in terms of self's
             # vector space, then take the image under self.
             B = D.vector_space().coordinate_module(A.vector_space()).basis_matrix() * self.matrix()
@@ -606,7 +606,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         lattice = V.intersection(C.lattice())
         base_field = C.base_field()
-        return abelian_variety.ModularAbelianVariety(C.groups(), lattice, base_field)
+        return ModularAbelianVariety(C.groups(), lattice, base_field)
 
 
 class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
@@ -645,7 +645,7 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
             [0 0 0 0]
         """
         if not sub.is_subvariety(self.domain()):
-            raise ValueError, "sub must be a subvariety of self.domain()"
+            raise ValueError("sub must be a subvariety of self.domain()")
 
         if sub == self.domain():
             return self
@@ -739,11 +739,12 @@ class HeckeOperator(Morphism):
             sage: T2.parent()
             Endomorphism ring of Abelian variety J0(37) of dimension 2
         """
+        from .abvar import is_ModularAbelianVariety
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n must be positive"
-        if not abelian_variety.is_ModularAbelianVariety(abvar):
-            raise TypeError, "abvar must be a modular abelian variety"
+            raise ValueError("n must be positive")
+        if not is_ModularAbelianVariety(abvar):
+            raise TypeError("abvar must be a modular abelian variety")
         self.__abvar = abvar
         self.__n = n
         sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar))

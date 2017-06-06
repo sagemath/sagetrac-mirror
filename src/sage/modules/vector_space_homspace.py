@@ -41,7 +41,8 @@ are relative to the bases of the domain and codomain.  ::
     sage: K = Hom(GF(3)^2, GF(3)^2)
     sage: B = K.basis()
     sage: for f in B:
-    ...     print f, "\n"
+    ....:     print(f)
+    ....:     print("\n")
     Vector space morphism represented by the matrix:
     [1 0]
     [0 0]
@@ -189,6 +190,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 ####################################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 import inspect
 import sage.matrix.all as matrix
@@ -355,13 +358,13 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             sage: V = GF(3)^0
             sage: W = GF(3)^1
             sage: H = V.Hom(W)
-            sage: H.zero_element().is_zero()
+            sage: H.zero().is_zero()
             True
 
         Previously the above code resulted in a TypeError because the
         dimensions of the matrix were incorrect.
         """
-        from vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
+        from .vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
         D = self.domain()
         C = self.codomain()
         from sage.matrix.matrix import is_Matrix
@@ -372,12 +375,12 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         elif inspect.isfunction(A):
             try:
                 images = [A(g) for g in D.basis()]
-            except (ValueError, TypeError, IndexError), e:
+            except (ValueError, TypeError, IndexError) as e:
                 msg = 'function cannot be applied properly to some basis element because\n' + e.args[0]
                 raise ValueError(msg)
             try:
                 A = matrix.matrix(D.dimension(), C.dimension(), [C.coordinates(C(a)) for a in images])
-            except (ArithmeticError, TypeError), e:
+            except (ArithmeticError, TypeError) as e:
                 msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
                 raise ArithmeticError(msg)
         elif isinstance(A, (list, tuple)):
@@ -387,7 +390,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             try:
                 v = [C(a) for a in A]
                 A = matrix.matrix(D.dimension(), C.dimension(), [C.coordinates(a) for a in v])
-            except (ArithmeticError, TypeError), e:
+            except (ArithmeticError, TypeError) as e:
                 msg = 'some proposed image is not in the codomain, because\n' + e.args[0]
                 raise ArithmeticError(msg)
         else:
@@ -399,7 +402,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         r"""
         Text representation of a space of vector space morphisms.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^2, QQ^3)
             sage: H._repr_().split(' ')

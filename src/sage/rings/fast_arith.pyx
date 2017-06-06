@@ -1,22 +1,16 @@
 """
-Basic arithmetic with c-integers.
+Basic arithmetic with C integers
 """
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 ###################################################################
 # We define the following functions in this file, both
@@ -41,15 +35,13 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "sage/ext/gmp.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/libs/pari/decl.pxi"
+from libc.math cimport sqrt
+from sage.libs.gmp.mpz cimport mpz_set_ui
 
-cdef extern from "pari/pari.h":
-    cdef long NEXT_PRIME_VIADIFF(long, unsigned char*)
+from sage.ext.stdsage cimport PY_NEW
 
-from sage.rings.integer_ring import ZZ
-from sage.libs.pari.gen cimport gen as pari_gen
+from cypari2.paridecl cimport *
+from cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 
@@ -84,7 +76,8 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         - ``py_ints`` -- boolean (default False), return Python ints rather than Sage Integers (faster)
 
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: prime_range(10)
         [2, 3, 5, 7]
         sage: prime_range(7)
@@ -110,21 +103,31 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         sage: type(prime_range(8,algorithm="pari_isprime")[0])
         <type 'sage.rings.integer.Integer'>
 
-    TESTS:
-        sage: len(prime_range(25000,2500000))
+    TESTS::
+
+        sage: prime_range(-1)
+        []
+        sage: L = prime_range(25000,2500000)
+        sage: len(L)
         180310
-        sage: prime_range(2500000)[-1].is_prime()
-        True
+        sage: L[-10:]
+        [2499923, 2499941, 2499943, 2499947, 2499949, 2499953, 2499967, 2499983, 2499989, 2499997]
+
+    A non-trivial range without primes::
+
+        sage: prime_range(4652360, 4652400)
+        []
 
     AUTHORS:
-      - William Stein (original version)
-      - Craig Citro (rewrote for massive speedup)
-      - Kevin Stueve (added primes iterator option) 2010-10-16
-      - Robert Bradshaw (speedup using Pari prime table, py_ints option)
+
+    - William Stein (original version)
+    - Craig Citro (rewrote for massive speedup)
+    - Kevin Stueve (added primes iterator option) 2010-10-16
+    - Robert Bradshaw (speedup using Pari prime table, py_ints option)
     """
     cdef Integer z
-    cdef long c_start, c_stop, p
-    cdef unsigned char* pari_prime_ptr
+    cdef long c_start, c_stop, p, maxpr
+    cdef byteptr pari_prime_ptr
     if algorithm == "pari_primes":
         if stop is None:
             # In this case, "start" is really stop
@@ -133,13 +136,18 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         else:
             c_start = start
             c_stop = stop
-            if c_stop <= c_start:
-                return []
             if c_start < 1:
                 c_start = 1
+        if c_stop <= c_start:
+            return []
+
         if maxprime() < c_stop:
-            pari.init_primes(c_stop)
-        pari_prime_ptr = <unsigned char*>diffptr
+            # Adding 1500 should be sufficient to guarantee an
+            # additional prime, given that c_stop < 2^63.
+            pari.init_primes(c_stop + 1500)
+            assert maxprime() >= c_stop
+
+        pari_prime_ptr = diffptr
         p = 0
         res = []
         while p < c_start:
@@ -154,24 +162,25 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
 
     elif algorithm == "pari_isprime":
-        from sage.rings.arith import primes
+        from sage.arith.all import primes
         res = list(primes(start, stop))
     else:
         raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")
     return res
 
+
 cdef class arith_int:
-    cdef public int abs_int(self, int x) except -1:
+    cdef int abs_int(self, int x) except -1:
         if x < 0:
             return -x
         return x
 
-    cdef public int sign_int(self, int n) except -2:
+    cdef int sign_int(self, int n) except -2:
         if n < 0:
             return -1
         return 1
 
-    cdef public int c_gcd_int(self, int a, int b) except -1:
+    cdef int c_gcd_int(self, int a, int b) except -1:
         cdef int c
         if a==0:
             return self.abs_int(b)
@@ -185,12 +194,10 @@ cdef class arith_int:
             b = c
         return a
 
-
     def gcd_int(self, int a, int b):
         return self.c_gcd_int(a,b)
 
-
-    cdef public int c_xgcd_int(self, int a, int b, int* ss, int* tt) except -1:
+    cdef int c_xgcd_int(self, int a, int b, int* ss, int* tt) except -1:
         cdef int psign, qsign, p, q, r, s, c, quot, new_r, new_s
 
         if a == 0:
@@ -227,17 +234,16 @@ cdef class arith_int:
         g = self.c_xgcd_int(a,b, &s, &t)
         return (g,s,t)
 
-    cdef public int c_inverse_mod_int(self, int a, int m) except -1:
+    cdef int c_inverse_mod_int(self, int a, int m) except -1:
         if a == 1 or m<=1: return a%m   # common special case
         cdef int g, s, t
         g = self.c_xgcd_int(a,m, &s, &t)
         if g != 1:
-            raise ArithmeticError, "The inverse of %s modulo %s is not defined."%(a,m)
+            raise ArithmeticError("The inverse of %s modulo %s is not defined." % (a, m))
         s = s % m
         if s < 0:
             s = s + m
         return s
-
 
     def inverse_mod_int(self, int a, int m):
         return self.c_inverse_mod_int(a, m)
@@ -247,8 +253,7 @@ cdef class arith_int:
         cdef float bnd
 
         if m>46340:
-            raise OverflowError, "The modulus m(=%s) should be at most 46340"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) should be at most 46340"%m)
 
         a = a % m
 
@@ -298,17 +303,17 @@ cdef class arith_int:
 # The long long versions are next.
 cdef class arith_llong:
 
-    cdef public long long abs_longlong(self, long long x) except -1:
+    cdef long long abs_longlong(self, long long x) except -1:
         if x < 0:
             return -x
         return x
 
-    cdef public long long sign_longlong(self, long long n) except -2:
+    cdef long long sign_longlong(self, long long n) except -2:
         if n < 0:
             return -1
         return 1
 
-    cdef public long long c_gcd_longlong(self, long long a, long long b) except -1:
+    cdef long long c_gcd_longlong(self, long long a, long long b) except -1:
         cdef long long c
         if a==0:
             return self.abs_longlong(b)
@@ -322,16 +327,13 @@ cdef class arith_llong:
             b = c
         return a
 
-
     def gcd_longlong(self, long long a, long long b):
         return self.c_gcd_longlong(a,b)
 
-
-    cdef public long long c_xgcd_longlong(self, long long a, long long b,
-                                          long long *ss,
-                                          long long *tt) except -1:
+    cdef long long c_xgcd_longlong(self, long long a, long long b,
+                                   long long *ss,
+                                   long long *tt) except -1:
         cdef long long psign, qsign, p, q, r, s, c, quot, new_r, new_s
-
 
         if a == 0:
             ss[0] = 0
@@ -360,10 +362,9 @@ cdef class arith_llong:
         ss[0] = p*psign
         tt[0] = q*qsign
 
-
         return a
 
-    cdef public long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
+    cdef long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
         cdef long long g, s, t
         g = self.c_xgcd_longlong(a,m, &s, &t)
         if g != 1:
@@ -382,8 +383,7 @@ cdef class arith_llong:
         cdef float bnd
 
         if m > 2147483647:
-            raise OverflowError, "The modulus m(=%s) must be at most 2147483647"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) must be at most 2147483647"%m)
 
         a = a % m
 
@@ -428,7 +428,3 @@ cdef class arith_llong:
         cdef long long n, d
         self.c_rational_recon_longlong(a, m, &n, &d)
         return (n,d)
-
-
-
-
