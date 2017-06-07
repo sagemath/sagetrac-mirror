@@ -663,10 +663,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[[0,1],:]
+            sage: M[list(range(2)),:]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
-            sage: M[[0,1],4]
+            sage: M[list(range(2)),4]
             [9]
             [2]
             sage: M[list(range(3)),list(range(5))]
@@ -1181,13 +1181,13 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[[0,1],:]=[[1..5], [6..10]]; M
+            sage: M[list(range2)),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[[0,1],4]=0; M
+            sage: M[list(range(2)),4]=0; M
             [ 1  2  3  4  0]
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
