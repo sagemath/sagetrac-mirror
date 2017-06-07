@@ -221,14 +221,14 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: A = Mat(CBF, 2); A
             Full MatrixSpace of 2 by 2 dense matrices over
             Complex ball field with 53 bits precision
-            sage: A([0,1,2,3])
+            sage: A(list(range(4)))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
 
         Actually it is only necessary that the input can be converted to a
         list, so the following also works::
 
-            sage: v = reversed([0,1,2,3]); type(v)
+            sage: v = reversed(range(4)); type(v)
             <... 'listreverseiterator'>
             sage: A(v)
             [3.000000000000000 2.000000000000000]
