@@ -2030,6 +2030,21 @@ cdef class Expression(CommutativeRingElement):
             sage: f.is_positive()
             True
             sage: forget()
+
+        TESTS:
+
+        Check if :trac:`18630` is fixed::
+
+            sage: (log(1/2)).is_negative()
+            True
+            sage: e.is_positive()
+            True
+            sage: (e+1).is_positive()
+            True
+            sage: (2*e).is_positive()
+            True
+            sage: (e^3).is_positive()
+            True
         """
         return self._gobj.info(info_positive)
 
