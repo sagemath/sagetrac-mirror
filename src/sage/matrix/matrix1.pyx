@@ -1697,10 +1697,13 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if isinstance(columns, xrange):
-            columns = list(columns)
-        elif not isinstance(columns, (list, tuple)):
-            raise TypeError("columns (=%s) must be a list of integers" % columns)
+        if not isinstance(columns, (list, tuple)):
+            from collections import Iterator, Sequence
+            if isinstance(columns, (Iterator, Sequence)):
+                columns = list(columns)
+            else:
+                raise TypeError("columns (=%s) must be a list of integers" % columns)
+
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
 
@@ -1799,10 +1802,13 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if isinstance(rows, xrange):
-            rows = list(rows)
-        elif not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+        if not isinstance(rows, (list, tuple)):
+            from collections import Iterator, Sequence
+            if isinstance(rows, (Iterator, Sequence)):
+                rows = list(rows)
+            else:
+                raise TypeError("rows (=%s) must be a list of integers" % rows)
+
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
 
@@ -1924,15 +1930,19 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if isinstance(rows, xrange):
-            rows = list(rows)
-        elif not isinstance(rows, list):
-            raise TypeError("rows must be a list of integers")
+        from collections import Iterator, Sequence
 
-        if isinstance(columns, xrange):
-            columns = list(columns)
-        elif not isinstance(columns, list):
-            raise TypeError("columns must be a list of integers")
+        if not isinstance(rows, (list, tuple)):
+            if isinstance(rows, (Iterator, Sequence)):
+                rows = list(rows)
+            else:
+                raise TypeError("rows must be a list of integers")
+
+        if not isinstance(columns, (list, tuple)):
+            if isinstance(columns, (Iterator, Sequence)):
+                columns = list(columns)
+            else:
+                raise TypeError("columns must be a list of integers")
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j
