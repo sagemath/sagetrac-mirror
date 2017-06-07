@@ -54,7 +54,15 @@ REFERENCES:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-import os, sys
+
+import os
+import sys
+
+# Make sure that the correct zlib library is loaded. This is needed
+# to prevent the system zlib to be loaded instead of the Sage one.
+# See https://trac.sagemath.org/ticket/23122
+import zlib
+
 from optparse import OptionParser
 
 # Set the parser
