@@ -112,10 +112,10 @@ Get the last row of M (negative numbers count from the end)::
 
 More examples::
 
-    sage: M[[0,1],:]
+    sage: M[list(range(2)),:]
     [ 1 -2 -1 -1  9]
     [ 1  8  6  2  2]
-    sage: M[[0,1],4]
+    sage: M[list(range(2)),4]
     [9]
     [2]
     sage: M[list(range(3)),list(range(5))]
