@@ -1799,11 +1799,7 @@ cdef class Matrix(matrix0.Matrix):
             [3 4 5]
         """
         if not isinstance(rows, (list, tuple)):
-            from collections import Iterator, Sequence
-            if isinstance(rows, (Iterator, Sequence)):
-                rows = list(rows)
-            else:
-                raise TypeError("rows (=%s) must be a list of integers" % rows)
+            rows = list(rows)
 
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1926,19 +1922,12 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        from collections import Iterator, Sequence
 
         if not isinstance(rows, (list, tuple)):
-            if isinstance(rows, (Iterator, Sequence)):
-                rows = list(rows)
-            else:
-                raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         if not isinstance(columns, (list, tuple)):
-            if isinstance(columns, (Iterator, Sequence)):
-                columns = list(columns)
-            else:
-                raise TypeError("columns must be a list of integers")
+            columns = list(columns)
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j
