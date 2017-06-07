@@ -1698,11 +1698,7 @@ cdef class Matrix(matrix0.Matrix):
             [0 7]
         """
         if not isinstance(columns, (list, tuple)):
-            from collections import Iterator, Sequence
-            if isinstance(columns, (Iterator, Sequence)):
-                columns = list(columns)
-            else:
-                raise TypeError("columns (=%s) must be a list of integers" % columns)
+            columns = list(columns)
 
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
