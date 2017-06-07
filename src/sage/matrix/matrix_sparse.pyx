@@ -841,11 +841,11 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: A.matrix_from_rows_and_columns(1,[2,3])
             Traceback (most recent call last):
             ...
-            TypeError: rows must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
             sage: A.matrix_from_rows_and_columns([1,2],3)
             Traceback (most recent call last):
             ...
-            TypeError: columns must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
 
         AUTHORS:
@@ -856,15 +856,9 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        from collections import Iterator, Sequence
-
-        if not isinstance(rows, (Iterator, Sequence)):
-            raise TypeError("rows must be a list of integers")
         if not isinstance(rows, (list, tuple)):
             rows = list(rows)
 
-        if not isinstance(columns, (Iterator, Sequence)):
-            raise TypeError("columns must be a list of integers")
         if not isinstance(columns, (list, tuple)):
             columns = list(columns)
 
