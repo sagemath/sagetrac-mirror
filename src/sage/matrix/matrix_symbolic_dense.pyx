@@ -386,6 +386,11 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         """
         Compute the characteristic polynomial of self, using maxima.
 
+        .. NOTE::
+
+            This computes the characteristical polynomial in
+            this way `\det(xI-A)`.
+
         EXAMPLES::
 
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
