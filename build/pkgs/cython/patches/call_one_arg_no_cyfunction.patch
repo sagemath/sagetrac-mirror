@@ -1,0 +1,24 @@
+See https://github.com/cython/cython/pull/1728
+
+commit c20e8c19d6d2342cefc451c49363f69675992bb4
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Wed Jun 7 12:19:29 2017 +0200
+
+    Don't use __Pyx_PyObject_CallMethO on cyfunctions
+
+diff --git a/Cython/Utility/ObjectHandling.c b/Cython/Utility/ObjectHandling.c
+index 35b5f2e..5e6ad51 100644
+--- a/Cython/Utility/ObjectHandling.c
++++ b/Cython/Utility/ObjectHandling.c
+@@ -1686,11 +1686,7 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
+         return __Pyx_PyFunction_FastCall(func, &arg, 1);
+     }
+ #endif
+-#ifdef __Pyx_CyFunction_USED
+-    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+-#else
+     if (likely(PyCFunction_Check(func))) {
+-#endif
+         if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
+             // fast and simple case that we are optimising for
+             return __Pyx_PyObject_CallMethO(func, arg);
