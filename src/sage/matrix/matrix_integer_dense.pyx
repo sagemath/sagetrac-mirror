@@ -318,7 +318,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Actually it is only necessary that the input can be coerced to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
+            sage: v = reversed(list(range(4))); type(v)
             <... 'listreverseiterator'>
             sage: A(v)
             [3 2]

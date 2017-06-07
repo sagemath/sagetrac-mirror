@@ -228,7 +228,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         Actually it is only necessary that the input can be converted to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
+            sage: v = reversed(list(range(4))); type(v)
             <... 'listreverseiterator'>
             sage: A(v)
             [3.000000000000000 2.000000000000000]
