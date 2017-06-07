@@ -1181,7 +1181,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[list(range2)),:]=[[1..5], [6..10]]; M
+            sage: M[list(range(2)),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
