@@ -33,10 +33,3 @@ sdh_make_install DESTDIR="$SAGE_INST_TEMP"
 if [ "$UNAME" = "CYGWIN" ] ; then
     cp ../patch.exe.manifest "$SAGE_INST_TEMP$SAGE_LOCAL/bin/"
 fi
-
-# Sanity check that we have the correct version of patch
-# in our PATH.
-if ! patch --version | grep >/dev/null 'patch 2\.7\.5'; then
-    echo >&2 "Cannot find the patch program we just installed"
-    exit 1
-fi
