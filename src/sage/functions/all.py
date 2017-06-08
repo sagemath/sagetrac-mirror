@@ -85,3 +85,4 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
 
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
+from .riemann_theta import RiemannTheta
