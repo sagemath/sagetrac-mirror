@@ -16,7 +16,6 @@ from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -251,7 +250,7 @@ cdef class ntl_ZZ(object):
             sage: ntl.ZZ(22).__int__()
             22
             sage: type(ntl.ZZ(22).__int__())
-            <type 'int'>
+            <... 'int'>
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
@@ -280,7 +279,7 @@ cdef class ntl_ZZ(object):
         sage: i
          42
         sage: type(i)
-         <type 'int'>
+         <... 'int'>
         """
         return self.get_as_int()
 

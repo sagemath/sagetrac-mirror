@@ -272,7 +272,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
             sage: cot(float(0))
             Infinity
@@ -281,7 +281,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
         Test complex input::
 
@@ -497,6 +497,13 @@ class Function_arcsin(GinacFunction):
             arcsin
             sage: asin(complex(1,1))
             (0.6662394324925152+1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(asin(SR(2.1)) == NaN)
+            True
+            sage: asin(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin', fricas="asin"))
@@ -556,6 +563,13 @@ class Function_arccos(GinacFunction):
             arccos
             sage: acos(complex(1,1))
             (0.9045568943023814-1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(acos(SR(2.1)) == NaN)
+            True
+            sage: acos(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos', fricas='acos'))
@@ -837,7 +851,7 @@ class Function_arctan2(GinacFunction):
         This is consistent with Python and Maxima::
 
             sage: maxima.atan2(1,-1)
-            3*%pi/4
+            (3*%pi)/4
             sage: math.atan2(1,-1)
             2.356194490192345
 
@@ -907,12 +921,12 @@ class Function_arctan2(GinacFunction):
 
             sage: atan2(0,0)
             NaN
+            sage: atan2(0,0).n()
+            NaN
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
             sage: atan2(0,0,hold=True).n()
-            Traceback (most recent call last):
-            ...
-            ValueError: arctan2(0,0) undefined
+            NaN
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::
