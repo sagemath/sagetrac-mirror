@@ -107,7 +107,7 @@ class FiniteField_ntl_gf2e(FiniteField):
         True
     """
 
-    def __init__(self, q, names="a", modulus=None, prefix='z', repr="poly"):
+    def __init__(self, q, names="a", modulus=None, repr="poly"):
         """
         Initialize ``self``.
 
@@ -145,7 +145,7 @@ class FiniteField_ntl_gf2e(FiniteField):
         k = q.exact_log(2)
         if q != 1 << k:
             raise ValueError("q must be a 2-power")
-        FiniteField.__init__(self, GF(2,prefix=prefix), names, normalize=True, prefix=prefix)
+        FiniteField.__init__(self, GF2, names, normalize=True)
 
         self._kwargs = {'repr':repr}
 

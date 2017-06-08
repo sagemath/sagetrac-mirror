@@ -447,39 +447,12 @@ class FiniteFieldFactory(UniqueFactory):
         sage: list(K.polynomial()) == list(L.polynomial())
         True
 
-    The ``prefix`` is inherited by extensions::
-
-        sage: K.extension(2)
-        Finite Field in w20 of size 3^20
-        sage: L.extension(2)
-        Finite Field in z20 of size 3^20
-
-    Be careful: the default ``prefix'' is always ``z`` regardless
-    to the name of the variable::
-
-        sage: A = GF(3^10, name='a10')
-        sage: A.extension(2)
-        Finite Field in z20 of size 3^20
-
     Check that :trac:`16934` has been fixed::
 
         sage: k1.<a> = GF(17^14, impl="pari_ffelt")
         sage: _ = a/2
         sage: k2.<a> = GF(17^14, impl="pari_ffelt")
         sage: k1 is k2
-        True
-
-    Check that :trac:`22082` has been fixed::
-
-        sage: K = GF(5^3)
-        sage: K._factory_data
-        (<class 'sage.rings.finite_rings.finite_field_constructor.FiniteFieldFactory'>,
-         (7, 5, 'beta6'),
-         (125, ('z3',), x^3 + 3*x + 3, 'givaro', "{'prefix': 'z'}", 5, 3, True),
-         {'prefix': 'z'})
-
-        sage: L = GF(5^3, name='z3')
-        sage: K is L
         True
 
     """
@@ -489,19 +462,9 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: GF.create_key_and_extra_args(9, 'a')
-            ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'prefix': 'z'}", 3, 2, True),
-             {'prefix': 'z'})
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
-            ((9,
-              ('a',),
-              x^2 + 2*x + 2,
-              'givaro',
-              "{'prefix': 'z', 'foo': 'value'}",
-              3,
-              2,
-              True),
-             {'foo': 'value', 'prefix': 'z'})
-
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
         """
         import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
@@ -512,7 +475,8 @@ class FiniteFieldFactory(UniqueFactory):
             if order <= 1:
                 raise ValueError("the order of a finite field must be at least 2")
 
-            kwds.setdefault('prefix', 'z')
+            if 'prefix' not in kwds:
+                kwds['prefix'] = 'z'
             if order.is_prime():
                 p = order
                 n = Integer(1)
@@ -652,7 +616,6 @@ class FiniteFieldFactory(UniqueFactory):
         else:
             order, name, modulus, impl, _, p, n, proof = key
 
-        prefix = kwds['prefix']
         if impl == 'modn':
             if n != 1:
                 raise ValueError("the 'modn' implementation requires a prime order")
@@ -660,7 +623,7 @@ class FiniteFieldFactory(UniqueFactory):
             # Using a check option here is probably a worthwhile
             # compromise since this constructor is simple and used a
             # huge amount.
-            K = FiniteField_prime_modn(order, check=False, modulus=modulus, prefix=prefix)
+            K = FiniteField_prime_modn(order, check=False, modulus=modulus)
         else:
             # We have to do this with block so that the finite field
             # constructors below will use the proof flag that was
@@ -672,25 +635,26 @@ class FiniteFieldFactory(UniqueFactory):
                 if impl == 'givaro':
                     repr = kwds.get('repr', 'poly')
                     elem_cache = kwds.get('elem_cache', order < 500)
-                    K = FiniteField_givaro(order, name, modulus, prefix=prefix, repr=repr, cache=elem_cache)
+                    K = FiniteField_givaro(order, name, modulus, repr=repr, cache=elem_cache)
                 elif impl == 'ntl':
                     from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                    K = FiniteField_ntl_gf2e(order, name, modulus, prefix=prefix)
+                    K = FiniteField_ntl_gf2e(order, name, modulus)
                 elif impl == 'pari_ffelt':
                     from .finite_field_pari_ffelt import FiniteField_pari_ffelt
-                    K = FiniteField_pari_ffelt(p, modulus, name, prefix=prefix)
+                    K = FiniteField_pari_ffelt(p, modulus, name)
                 elif (impl == 'pari_mod'
                       or impl == 'pari'):    # for unpickling old pickles
                     # This implementation is deprecated, a warning will
                     # be given when this field is created.
                     # See http://trac.sagemath.org/ticket/17297
                     from .finite_field_ext_pari import FiniteField_ext_pari
-                    K = FiniteField_ext_pari(order, name, modulus, prefix=prefix)
+                    K = FiniteField_ext_pari(order, name, modulus)
                 else:
                     raise ValueError("no such finite field implementation: %r" % impl)
 
-        # Temporary; see create_key_and_extra_args() above.
-        K._prefix = kwds['prefix']
+            # Temporary; see create_key_and_extra_args() above.
+            if 'prefix' in kwds:
+                K._prefix = kwds['prefix']
 
         return K
 

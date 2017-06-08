@@ -50,7 +50,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         sage: FiniteField(next_prime(1000))
         Finite Field of size 1009
     """
-    def __init__(self, p, check=True, modulus=None, prefix='z'):
+    def __init__(self, p, check=True, modulus=None):
         """
         Return a new finite field of order `p` where `p` is prime.
 
@@ -79,8 +79,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         # by the modulus() method.
         if modulus is not None:
             self._modulus = modulus
-
-        self._prefix = prefix
 
     def __reduce__(self):
         """

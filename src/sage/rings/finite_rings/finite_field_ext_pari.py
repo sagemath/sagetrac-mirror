@@ -163,7 +163,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         We do NOT yet define natural consistent inclusion maps
         between different finite fields.
     """
-    def __init__(self, q, name, modulus=None, prefix='z'):
+    def __init__(self, q, name, modulus=None):
         """
         Create finite field of order `q` with variable printed as name.
 
@@ -185,13 +185,13 @@ class FiniteField_ext_pari(FiniteField_generic):
         # proof.arithmetic() is True or False.
         p, n = q.is_prime_power(get_data=True)
         if n > 1:
-            base_ring = GF(p, prefix=prefix)
+            base_ring = GF(p)
         elif n == 0:
             raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
 
-        FiniteField_generic.__init__(self, base_ring, name, normalize=True, prefix=prefix)
+        FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
         self.__char = p

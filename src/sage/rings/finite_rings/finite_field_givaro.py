@@ -115,7 +115,7 @@ class FiniteField_givaro(FiniteField):
         sage: GF(1009, impl='givaro', modulus='conway').modulus()
         x + 998
     """
-    def __init__(self, q, name="a", modulus=None, prefix="z", repr="poly", cache=False):
+    def __init__(self, q, name="a", modulus=None, repr="poly", cache=False):
         """
         Initialize ``self``.
 
@@ -148,7 +148,7 @@ class FiniteField_givaro(FiniteField):
             raise ValueError("q must be < 2^16")
 
         from .finite_field_constructor import GF
-        FiniteField.__init__(self, GF(p,prefix=prefix), name, normalize=False, prefix=prefix)
+        FiniteField.__init__(self, GF(p), name, normalize=False)
 
         self._kwargs['repr'] = repr
         self._kwargs['cache'] = cache

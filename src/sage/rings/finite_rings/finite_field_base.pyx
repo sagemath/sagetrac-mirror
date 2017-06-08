@@ -104,7 +104,7 @@ cdef class FiniteField(Field):
     """
     Abstract base class for finite fields.
     """
-    def __init__(self, base, names, normalize, prefix='z', category=None):
+    def __init__(self, base, names, normalize, category=None):
         """
         Initialize ``self``.
 
@@ -1167,8 +1167,8 @@ cdef class FiniteField(Field):
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
-
-        kwds.setdefault('prefix',self._prefix)
+        if 'prefix' not in kwds:
+            kwds['prefix'] = self._prefix
         if self.degree() == 1:
             if isinstance(modulus, (int, Integer)):
                 E = GF(self.characteristic()**modulus, name=name, **kwds)
