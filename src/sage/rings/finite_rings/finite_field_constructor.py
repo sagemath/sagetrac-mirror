@@ -455,6 +455,18 @@ class FiniteFieldFactory(UniqueFactory):
         sage: k1 is k2
         True
 
+    Check that :trac:`22082` has been fixed::
+
+        sage: K = GF(5^3)
+        sage: K._factory_data
+        (<class 'sage.rings.finite_rings.finite_field_constructor.FiniteFieldFactory'>,
+         (7, 5, 'beta6'),
+         (125, ('z3',), x^3 + 3*x + 3, 'givaro', "{'prefix': 'z'}", 5, 3, True),
+         {'prefix': 'z'})
+
+        sage: L = GF(5^3, name='z3')
+        sage: K is L
+        True
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True, **kwds):
