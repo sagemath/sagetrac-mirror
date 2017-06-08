@@ -1167,8 +1167,6 @@ cdef class FiniteField(Field):
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
-        if 'prefix' not in kwds:
-            kwds['prefix'] = self._prefix
         if self.degree() == 1:
             if isinstance(modulus, (int, Integer)):
                 E = GF(self.characteristic()**modulus, name=name, **kwds)

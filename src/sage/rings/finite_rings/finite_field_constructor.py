@@ -475,8 +475,6 @@ class FiniteFieldFactory(UniqueFactory):
             if order <= 1:
                 raise ValueError("the order of a finite field must be at least 2")
 
-            if 'prefix' not in kwds:
-                kwds['prefix'] = 'z'
             if order.is_prime():
                 p = order
                 n = Integer(1)
@@ -493,6 +491,8 @@ class FiniteFieldFactory(UniqueFactory):
 
                 p, n = order.factor()[0]
                 if name is None:
+                    if 'prefix' not in kwds:
+                        kwds['prefix'] = 'z'
                     name = kwds['prefix'] + str(n)
                     name = normalize_names(1, name)
                     if modulus is not None:
