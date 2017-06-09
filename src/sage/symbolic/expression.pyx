@@ -2959,6 +2959,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators op
+        sig_on()
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -2976,6 +2977,7 @@ cdef class Expression(CommutativeRingElement):
                            relational_operator(_right._gobj))
         else:
             x = left._gobj + _right._gobj
+        sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _sub_(left, right):
@@ -3011,6 +3013,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
+        sig_on()
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -3028,6 +3031,7 @@ cdef class Expression(CommutativeRingElement):
                            relational_operator(_right._gobj))
         else:
             x = left._gobj - _right._gobj
+        sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _mul_(left, right):
@@ -3242,6 +3246,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        sig_on()
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
@@ -3261,6 +3266,7 @@ cdef class Expression(CommutativeRingElement):
                            o)
         else:
             x = left._gobj * _right._gobj
+        sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _div_(left, right):
@@ -3344,6 +3350,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        sig_on()
         try:
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
@@ -3372,6 +3379,7 @@ cdef class Expression(CommutativeRingElement):
                 raise ZeroDivisionError("Symbolic division by zero")
             else:
                 raise
+        sig_off()
 
     def __invert__(self):
         """
