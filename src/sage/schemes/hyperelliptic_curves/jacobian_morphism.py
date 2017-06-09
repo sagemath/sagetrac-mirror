@@ -338,6 +338,248 @@ def cantor_composition(D1,D2,f,h,genus):
     a = a.monic()
     return (a, b)
 
+
+def addition_g2(D1,D2,f,h):
+	
+	if (D1[0].degree() != 2) or (D2[0].degree() != 2) :
+		D = cantor_composition(D1,D2,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+
+		
+	u, v = D1
+	up, vp = D2
+	
+	u1 = u[1]; u0 = u[0]
+	v1 = v[1]; v0 = v[0]
+	up1 = up[1]; up0 = up[0]
+	vp1 = vp[1]; vp0 = vp[0]	
+	
+	f4 = f[4]; f3 = f[3]; f2 = f[2]
+	h2 = h[2]; h1 = h[1]; h0 = h[0]
+	
+	m3 = up1 - u1;
+	m4 = u0 - up0;
+	m1 = m4 + up1*m3;
+	m2 = -up0*m3;
+	r0 = vp0 - v0;
+	r1 = vp1 - v1;
+	
+	sp0 = r0*m1 + r1*m2;
+	sp1 = r0*m3 + r1*m4;
+	dp = m1*m4 - m2*m3;
+	print(dp,sp1)
+	#Test for special case
+	if sp1.is_zero() or dp.is_zero():
+		D = cantor_composition(D1,D2,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+
+	w1 = ~(dp*sp1);
+	w2 = w1*dp;
+	w3 = w2*dp;
+	w4 = w3**2;
+	s1 = w1*(sp1**2);
+	spp0 = sp0*w2;
+
+	t2 = spp0 - m3 - w4 + h2*w3;
+	upp1 = spp0 + t2;
+	upp0 = spp0*(spp0 - 2*m3) + m1 + w3*(h2*(spp0 - up1) + h1 + 2*v1) + w4*(u1 + up1 - f4);
+ 
+	t0 = upp0 - u0;
+	t1 = u1 - upp1;
+	vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
+	vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
+	
+	
+	upp = u.parent()([upp0,upp1,1])
+	vpp = v.parent()([vpp0,vpp1])
+	
+	return (upp, vpp)
+	
+def double_g2(D,f,h):
+	
+	if (D[0].degree() != 2) :
+		D = cantor_composition(D,D,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+	
+	u, v = D
+	
+	u1 = u[1]; u0 = u[0]
+	v1 = v[1]; v0 = v[0]
+	
+	f4 = f[4]; f3 = f[3]; f2 = f[2]
+	h2 = h[2]; h1 = h[1]; h0 = h[0]
+		
+	t0 = u1**2;
+	t1 = f3 + t0 - h2*v1;
+	t2 = 2*u0;
+	t3 = f4*u1;
+	r1 = 2*(t0 - t3) + t1 - t2;
+	r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0 - h1*v1 - h2*v0;
+ 
+	m3 = -(2*v1 + h1 - h2*u1);
+	m4 = 2*v0 + h0 - h2*u0;
+	m1 = m4 + m3*u1;
+	m2 = -m3*u0;
+ 
+	sp0 = r0*m1 + r1*m2;
+	sp1 = r0*m3 + r1*m4;
+	d = m4*m1 - m2*m3;
+	print(d,sp1)
+ 
+	#Test for special case
+	if sp1.is_zero() or d.is_zero():
+		D = cantor_composition(D,D,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+
+	w1 = ~(d*sp1);
+	w2 = w1*d;
+	w3 = w2*d;
+	w4 = w3**2;
+	s1 = w1*(sp1**2);
+	spp0 = sp0*w2;
+ 
+	t2 = spp0 - w4 + h2*w3;
+	upp1 = spp0 + t2;
+	upp0 = spp0**2 + w3*(h2*(spp0 - u1) + 2*v1 + h1) + w4*(2*u1 - f4);
+ 
+	t0 = upp0 - u0;
+	t1 = u1 - upp1;
+	vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
+	vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
+	
+	upp = u.parent()([upp0,upp1,1])
+	vpp = v.parent()([vpp0,vpp1])
+
+	return (upp, vpp)	
+
+def addition_g2_simple(D1,D2,f):
+		
+	if (D1[0].degree() != 2) or (D2[0].degree() != 2) :
+		D = cantor_composition(D1,D2,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+	
+	u, v = D1
+	up, vp = D2
+	
+	
+	u1 = u[1]; u0 = u[0]
+	v1 = v[1]; v0 = v[0]
+	up1 = up[1]; up0 = up[0]
+	vp1 = vp[1]; vp0 = vp[0]	
+	
+	f4 = f[4]; f3 = f[3]; f2 = f[2]
+	
+	m3 = up1 - u1;
+	m4 = u0 - up0;
+	m1 = m4 + up1*m3;
+	m2 = -up0*m3;
+	r0 = vp0 - v0;
+	r1 = vp1 - v1;
+
+	sp0 = r0*m1 + r1*m2;
+	sp1 = r0*m3 + r1*m4;
+	dp = m1*m4 - m2*m3;
+
+	#Test for special case
+	if sp1.is_zero() or dp.is_zero():
+		D = cantor_composition_simple(D1,D2,f,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction_simple(D[0],D[1],f,2)
+		return (D[0],D[1])
+
+	w1 = ~(dp*sp1);
+	w2 = w1*dp;
+	w3 = w2*dp;
+	w4 = w3**2;
+	s1 = w1*(sp1**2);
+	spp0 = sp0*w2;
+
+	t2 = spp0 - m3 - w4;
+	upp1 = spp0 + t2;
+	upp0 = spp0*(spp0 - 2*m3) + m1 + 2*w3*v1 + w4*(u1 + up1 - f4);
+	
+	t0 = upp0 - u0;
+	t1 = u1 - upp1;
+	vpp1 = s1*(t1*t2 + t0) - v1;
+	vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
+		
+	upp = u.parent()([upp0,upp1,1])
+	vpp = v.parent()([vpp0,vpp1])
+
+	return (upp, vpp)
+	
+def double_g2_simple(D,f):
+	
+	if (D[0].degree() != 2) :
+		D = cantor_composition(D,D,f,h,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction(D[0],D[1],f,h,2)
+		return (D[0],D[1])
+
+	u, v = D
+	
+	u1 = u[1]; u0 = u[0]
+	v1 = v[1]; v0 = v[0]
+	
+	f4 = f[4]; f3 = f[3]; f2 = f[2]
+		
+	t0 = u1**2;
+	t1 = f3 + t0;
+	t2 = 2*u0;
+	t3 = f4*u1;
+	r1 = 2*(t0 - t3) + t1 - t2;
+	r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0;
+
+	m3 = -v1 - v1;
+	m4 = v0 + v0;
+	m1 = m4 + m3*u1;
+	m2 = -m3*u0;
+
+	sp0 = r0*m1 + r1*m2;
+	sp1 = r0*m3 + r1*m4;
+	d = m4*m1 - m2*m3;
+
+	#Test for special case
+	if sp1.is_zero() or d.is_zero():
+		D = cantor_composition_simple(D,D,f,2)
+		if D[0].degree() > 2:
+			D = cantor_reduction_simple(D[0],D[1],f,2)
+		return (D[0],D[1])
+
+	w1 = ~(d*sp1);
+	w2 = w1*d;
+	w3 = w2*d;
+	w4 = w3**2;
+	s1 = w1*(sp1**2);
+	spp0 = sp0*w2;
+
+	t2 = spp0 - w4;
+	upp1 = spp0 + t2;
+	upp0 = spp0**2 + 2*w3*v1 + w4*(2*u1 - f4);
+
+	t0 = upp0 - u0;
+	t1 = u1 - upp1;
+	vpp1 = s1*(t1*t2 + t0) - v1;
+	vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
+	
+	upp = u.parent()([upp0,upp1,1])
+	vpp = v.parent()([vpp0,vpp1])
+
+	return (upp, vpp)	
+
+
+    
+    
 class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism):
     r"""
     An element of a Jacobian defined over a field, i.e. in
@@ -748,15 +990,30 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         C = X.curve()
         f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
-        if h == 0:
-            D = cantor_composition_simple(self.__polys, other.__polys, f, genus)
-            if D[0].degree() > genus:
-                D = cantor_reduction_simple(D[0], D[1], f, genus)
+        
+        if (genus == 2) and (f.degree() == 5):
+			if h == 0:
+				if self == other:
+					print('self equal other')
+					D = double_g2_simple(self.__polys,f)
+				else:
+					print('self not equal other')
+					D = addition_g2_simple(self.__polys,other.__polys,f)
+			else:
+				if self == other:
+					D = double_g2(self.__polys,f,h)
+				else:
+					D = addition_g2(self.__polys,other.__polys,f,h)
         else:
-            D = cantor_composition(self.__polys, other.__polys, f, h, genus)
-            if D[0].degree() > genus:
-                D = cantor_reduction(D[0], D[1], f, h, genus)
-        return JacobianMorphism_divisor_class_field(X, D, check=False)
+			if h == 0:
+				D = cantor_composition_simple(self.__polys, other.__polys, f, genus)
+				if D[0].degree() > genus:
+					D = cantor_reduction_simple(D[0], D[1], f, genus)
+			else:
+				D = cantor_composition(self.__polys, other.__polys, f, h, genus)
+				if D[0].degree() > genus:
+					D = cantor_reduction(D[0], D[1], f, h, genus)
+	return JacobianMorphism_divisor_class_field(X, D, check=False)
 
     def _sub_(self, other):
         r"""
