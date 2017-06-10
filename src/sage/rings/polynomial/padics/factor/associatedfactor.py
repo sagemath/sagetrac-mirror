@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.finite_rings.constructor import GF
+#from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.matrix.constructor import Matrix
 from sage.rings.polynomial.padics.factor.frameelt import FrameElt
 from sage.rings.infinity import infinity
