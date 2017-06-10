@@ -167,7 +167,7 @@ fi
 if [ "$UNAME" = Linux ]; then
     as_version=`$AS --version | head -1 | awk 'NF>1{print $NF}'`
     case "$as_version" in
-        1.*|2.1*|2.[0-2]*)
+        1.*|2.1*|2.2[0-2]*)
         echo "Disable use of assembly because of GNU as < 2.23."
         export MPN_PATH=generic
         ;;
