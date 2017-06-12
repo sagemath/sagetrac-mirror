@@ -118,473 +118,99 @@ from sage.misc.all import latex
 from sage.structure.element import AdditiveGroupElement
 from sage.schemes.generic.morphism import SchemeMorphism
 
-def cantor_reduction_simple(a, b, f, genus):
-    r"""
-    Return the unique reduced divisor linearly equivalent to
-    `(a, b)` on the curve `y^2 = f(x).`
-
-    See the docstring of
-    :mod:`sage.schemes.hyperelliptic_curves.jacobian_morphism` for
-    information about divisors, linear equivalence, and reduction.
-
-    EXAMPLES::
-
-        sage: x = QQ['x'].gen()
-        sage: f = x^5 - x
-        sage: H = HyperellipticCurve(f); H
-        Hyperelliptic Curve over Rational Field defined by y^2 = x^5 - x
-        sage: J = H.jacobian()(QQ); J
-        Set of rational points of Jacobian of Hyperelliptic Curve over Rational Field
-        defined by y^2 = x^5 - x
-
-    The following point is 2-torsion::
-
-        sage: P = J(H.lift_x(-1)); P
-        (x + 1, y)
-        sage: 2 * P # indirect doctest
-        (1)
-    """
-    a2 = (f - b**2) // a
-    a2 = a2.monic()
-    b2 = -b % (a2);
-    if a2.degree() == a.degree():
-        # XXX
-        assert a2.degree() == genus+1
-        print("Returning ambiguous form of degree genus+1.")
-        return (a2, b2)
-    elif a2.degree() > genus:
-        return cantor_reduction_simple(a2, b2, f, genus)
-    return (a2, b2)
-
-def cantor_reduction(a, b, f, h, genus):
-    r"""
-    Return the unique reduced divisor linearly equivalent to
-    `(a, b)` on the curve `y^2 + y h(x) = f(x)`.
-
-    See the docstring of
-    :mod:`sage.schemes.hyperelliptic_curves.jacobian_morphism` for
-    information about divisors, linear equivalence, and reduction.
-
-    EXAMPLES::
-
-        sage: x = QQ['x'].gen()
-        sage: f = x^5 - x
-        sage: H = HyperellipticCurve(f, x); H
-        Hyperelliptic Curve over Rational Field defined by y^2 + x*y = x^5 - x
-        sage: J = H.jacobian()(QQ); J
-        Set of rational points of Jacobian of Hyperelliptic Curve over
-        Rational Field defined by y^2 + x*y = x^5 - x
-
-    The following point is 2-torsion::
-
-        sage: Q = J(H.lift_x(0)); Q
-        (x, y)
-        sage: 2*Q # indirect doctest
-        (1)
-
-    The next point is not 2-torsion::
-
-        sage: P = J(H.lift_x(-1)); P
-        (x + 1, y - 1)
-        sage: 2 * J(H.lift_x(-1)) # indirect doctest
-        (x^2 + 2*x + 1, y - 3*x - 4)
-        sage: 3 * J(H.lift_x(-1)) # indirect doctest
-        (x^2 - 487*x - 324, y - 10754*x - 7146)
-    """
-    assert a.degree() < 2*genus+1
-    assert b.degree() < a.degree()
-    k = f - h*b - b**2
-    if 2*a.degree() == k.degree():
-        # must adjust b to include the point at infinity
-        g1 = a.degree()
-        x = a.parent().gen()
-        r = (x**2 + h[g1]*x - f[2*g1]).roots()[0][0]
-        b = b + r*(x**g1 - (x**g1) % (a))
-        k = f - h*b - b**2
-    assert k % (a) == 0
-    a = (k // a).monic()
-    b = -(b+h) % (a)
-    if a.degree() > genus:
-        return cantor_reduction(a, b, f, h, genus)
-    return (a, b)
-
-def cantor_composition_simple(D1,D2,f,genus):
-    r"""
-    Given `D_1` and `D_2` two reduced Mumford
-    divisors on the Jacobian of the curve `y^2 = f(x)`,
-    computes a representative `D_1 + D_2`.
-
-    .. warning::
-
-       The representative computed is NOT reduced! Use
-       :func:`cantor_reduction_simple` to reduce it.
-
-    EXAMPLES::
-
-        sage: x = QQ['x'].gen()
-        sage: f = x^5 + x
-        sage: H = HyperellipticCurve(f); H
-        Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x
-
-    ::
-
-        sage: F.<a> = NumberField(x^2 - 2, 'a')
-        sage: J = H.jacobian()(F); J
-        Set of rational points of Jacobian of Hyperelliptic Curve over
-        Number Field in a with defining polynomial x^2 - 2 defined
-        by y^2 = x^5 + x
-
-    ::
-
-        sage: P = J(H.lift_x(F(1))); P
-        (x - 1, y - a)
-        sage: Q = J(H.lift_x(F(0))); Q
-        (x, y)
-        sage: 2*P + 2*Q # indirect doctest
-        (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
-        sage: 2*(P + Q) # indirect doctest
-        (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
-        sage: 3*P # indirect doctest
-        (x^2 - 25/32*x + 49/32, y - 45/256*a*x - 315/256*a)
-    """
-    a1, b1 = D1
-    a2, b2 = D2
-    if a1 == a2 and b1 == b2:
-        # Duplication law:
-        d, h1, h3 = a1.xgcd(2*b1)
-        a = (a1 // d)**2
-        b = (b1 + h3*((f - b1**2) // d)) % (a)
-    else:
-        d0, _, h2 = a1.xgcd(a2)
-        if d0 == 1:
-            a = a1*a2
-            b = (b2 + h2*a2*(b1-b2)) % (a)
-        else:
-            d, l, h3 = d0.xgcd(b1 + b2)
-            a = (a1*a2) // (d**2)
-            b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)) % (a)
-    a =a.monic()
-    return (a, b)
-
-def cantor_composition(D1,D2,f,h,genus):
-    r"""
-    EXAMPLES::
-
-        sage: F.<a> = GF(7^2, 'a')
-        sage: x = F['x'].gen()
-        sage: f = x^7 + x^2 + a
-        sage: H = HyperellipticCurve(f, 2*x); H
-        Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 + 2*x*y = x^7 + x^2 + a
-        sage: J = H.jacobian()(F); J
-        Set of rational points of Jacobian of Hyperelliptic Curve over
-        Finite Field in a of size 7^2 defined by y^2 + 2*x*y = x^7 + x^2 + a
-
-    ::
-
-        sage: Q = J(H.lift_x(F(1))); Q
-        (x + 6, y + 2*a + 2)
-        sage: 10*Q # indirect doctest
-        (x^3 + (3*a + 1)*x^2 + (2*a + 5)*x + a + 5, y + (4*a + 5)*x^2 + (a + 1)*x + 6*a + 3)
-        sage: 7*8297*Q
-        (1)
-
-    ::
-
-        sage: Q = J(H.lift_x(F(a+1))); Q
-        (x + 6*a + 6, y + 2*a)
-        sage: 7*8297*Q # indirect doctest
-        (1)
-
-        A test over a prime field:
-
-        sage: F = GF(next_prime(10^30))
-        sage: x = F['x'].gen()
-        sage: f = x^7 + x^2 + 1
-        sage: H = HyperellipticCurve(f, 2*x); H
-        Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
-        sage: J = H.jacobian()(F); J
-        verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
-        Set of rational points of Jacobian of Hyperelliptic Curve over
-        Finite Field of size 1000000000000000000000000000057 defined
-        by y^2 + 2*x*y = x^7 + x^2 + 1
-        sage: Q = J(H.lift_x(F(1))); Q
-        (x + 1000000000000000000000000000056, y + 1000000000000000000000000000056)
-        sage: 10*Q # indirect doctest
-        (x^3 + 150296037169838934997145567227*x^2 + 377701248971234560956743242408*x + 509456150352486043408603286615, y + 514451014495791237681619598519*x^2 + 875375621665039398768235387900*x + 861429240012590886251910326876)
-        sage: 7*8297*Q
-        (x^3 + 35410976139548567549919839063*x^2 + 26230404235226464545886889960*x + 681571430588959705539385624700, y + 999722365017286747841221441793*x^2 + 262703715994522725686603955650*x + 626219823403254233972118260890)
-    """
-    a1, b1 = D1
-    a2, b2 = D2
-    if a1 == a2 and b1 == b2:
-        # Duplication law:
-        d, h1, h3 = a1.xgcd(2*b1 + h)
-        a = (a1 // d)**2;
-        b = (b1 + h3*((f-h*b1-b1**2) // d)) % (a)
-    else:
-        d0, _, h2 = a1.xgcd(a2)
-        if d0 == 1:
-            a = a1*a2;
-            b = (b2 + h2*a2*(b1-b2)) % (a)
-        else:
-            e0 = b1+b2+h
-            if e0 == 0:
-                a = (a1*a2) // (d0**2)
-                b = (b2 + h2*(b1-b2)*(a2 // d0)) % (a)
-            else:
-                d, l, h3 = d0.xgcd(e0)
-                a = (a1*a2) // (d**2)
-                b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)) % (a)
-    a = a.monic()
-    return (a, b)
-
-
-def addition_g2(D1,D2,f,h):
-	
-	if (D1[0].degree() != 2) or (D2[0].degree() != 2) :
-		D = cantor_composition(D1,D2,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-
-		
-	u, v = D1
-	up, vp = D2
-	
-	u1 = u[1]; u0 = u[0]
-	v1 = v[1]; v0 = v[0]
-	up1 = up[1]; up0 = up[0]
-	vp1 = vp[1]; vp0 = vp[0]	
-	
-	f4 = f[4]; f3 = f[3]; f2 = f[2]
-	h2 = h[2]; h1 = h[1]; h0 = h[0]
-	
-	m3 = up1 - u1;
-	m4 = u0 - up0;
-	m1 = m4 + up1*m3;
-	m2 = -up0*m3;
-	r0 = vp0 - v0;
-	r1 = vp1 - v1;
-	
-	sp0 = r0*m1 + r1*m2;
-	sp1 = r0*m3 + r1*m4;
-	dp = m1*m4 - m2*m3;
-	print(dp,sp1)
-	#Test for special case
-	if sp1.is_zero() or dp.is_zero():
-		D = cantor_composition(D1,D2,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-
-	w1 = ~(dp*sp1);
-	w2 = w1*dp;
-	w3 = w2*dp;
-	w4 = w3**2;
-	s1 = w1*(sp1**2);
-	spp0 = sp0*w2;
-
-	t2 = spp0 - m3 - w4 + h2*w3;
-	upp1 = spp0 + t2;
-	upp0 = spp0*(spp0 - 2*m3) + m1 + w3*(h2*(spp0 - up1) + h1 + 2*v1) + w4*(u1 + up1 - f4);
- 
-	t0 = upp0 - u0;
-	t1 = u1 - upp1;
-	vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
-	vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
-	
-	
-	upp = u.parent()([upp0,upp1,1])
-	vpp = v.parent()([vpp0,vpp1])
-	
-	return (upp, vpp)
-	
-def double_g2(D,f,h):
-	
-	if (D[0].degree() != 2) :
-		D = cantor_composition(D,D,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-	
-	u, v = D
-	
-	u1 = u[1]; u0 = u[0]
-	v1 = v[1]; v0 = v[0]
-	
-	f4 = f[4]; f3 = f[3]; f2 = f[2]
-	h2 = h[2]; h1 = h[1]; h0 = h[0]
-		
-	t0 = u1**2;
-	t1 = f3 + t0 - h2*v1;
-	t2 = 2*u0;
-	t3 = f4*u1;
-	r1 = 2*(t0 - t3) + t1 - t2;
-	r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0 - h1*v1 - h2*v0;
- 
-	m3 = -(2*v1 + h1 - h2*u1);
-	m4 = 2*v0 + h0 - h2*u0;
-	m1 = m4 + m3*u1;
-	m2 = -m3*u0;
- 
-	sp0 = r0*m1 + r1*m2;
-	sp1 = r0*m3 + r1*m4;
-	d = m4*m1 - m2*m3;
-	print(d,sp1)
- 
-	#Test for special case
-	if sp1.is_zero() or d.is_zero():
-		D = cantor_composition(D,D,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-
-	w1 = ~(d*sp1);
-	w2 = w1*d;
-	w3 = w2*d;
-	w4 = w3**2;
-	s1 = w1*(sp1**2);
-	spp0 = sp0*w2;
- 
-	t2 = spp0 - w4 + h2*w3;
-	upp1 = spp0 + t2;
-	upp0 = spp0**2 + w3*(h2*(spp0 - u1) + 2*v1 + h1) + w4*(2*u1 - f4);
- 
-	t0 = upp0 - u0;
-	t1 = u1 - upp1;
-	vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
-	vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
-	
-	upp = u.parent()([upp0,upp1,1])
-	vpp = v.parent()([vpp0,vpp1])
-
-	return (upp, vpp)	
-
-def addition_g2_simple(D1,D2,f):
-		
-	if (D1[0].degree() != 2) or (D2[0].degree() != 2) :
-		D = cantor_composition(D1,D2,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-	
-	u, v = D1
-	up, vp = D2
-	
-	
-	u1 = u[1]; u0 = u[0]
-	v1 = v[1]; v0 = v[0]
-	up1 = up[1]; up0 = up[0]
-	vp1 = vp[1]; vp0 = vp[0]	
-	
-	f4 = f[4]; f3 = f[3]; f2 = f[2]
-	
-	m3 = up1 - u1;
-	m4 = u0 - up0;
-	m1 = m4 + up1*m3;
-	m2 = -up0*m3;
-	r0 = vp0 - v0;
-	r1 = vp1 - v1;
-
-	sp0 = r0*m1 + r1*m2;
-	sp1 = r0*m3 + r1*m4;
-	dp = m1*m4 - m2*m3;
-
-	#Test for special case
-	if sp1.is_zero() or dp.is_zero():
-		D = cantor_composition_simple(D1,D2,f,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction_simple(D[0],D[1],f,2)
-		return (D[0],D[1])
-
-	w1 = ~(dp*sp1);
-	w2 = w1*dp;
-	w3 = w2*dp;
-	w4 = w3**2;
-	s1 = w1*(sp1**2);
-	spp0 = sp0*w2;
-
-	t2 = spp0 - m3 - w4;
-	upp1 = spp0 + t2;
-	upp0 = spp0*(spp0 - 2*m3) + m1 + 2*w3*v1 + w4*(u1 + up1 - f4);
-	
-	t0 = upp0 - u0;
-	t1 = u1 - upp1;
-	vpp1 = s1*(t1*t2 + t0) - v1;
-	vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
-		
-	upp = u.parent()([upp0,upp1,1])
-	vpp = v.parent()([vpp0,vpp1])
-
-	return (upp, vpp)
-	
-def double_g2_simple(D,f):
-	
-	if (D[0].degree() != 2) :
-		D = cantor_composition(D,D,f,h,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction(D[0],D[1],f,h,2)
-		return (D[0],D[1])
-
-	u, v = D
-	
-	u1 = u[1]; u0 = u[0]
-	v1 = v[1]; v0 = v[0]
-	
-	f4 = f[4]; f3 = f[3]; f2 = f[2]
-		
-	t0 = u1**2;
-	t1 = f3 + t0;
-	t2 = 2*u0;
-	t3 = f4*u1;
-	r1 = 2*(t0 - t3) + t1 - t2;
-	r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0;
-
-	m3 = -v1 - v1;
-	m4 = v0 + v0;
-	m1 = m4 + m3*u1;
-	m2 = -m3*u0;
-
-	sp0 = r0*m1 + r1*m2;
-	sp1 = r0*m3 + r1*m4;
-	d = m4*m1 - m2*m3;
-
-	#Test for special case
-	if sp1.is_zero() or d.is_zero():
-		D = cantor_composition_simple(D,D,f,2)
-		if D[0].degree() > 2:
-			D = cantor_reduction_simple(D[0],D[1],f,2)
-		return (D[0],D[1])
-
-	w1 = ~(d*sp1);
-	w2 = w1*d;
-	w3 = w2*d;
-	w4 = w3**2;
-	s1 = w1*(sp1**2);
-	spp0 = sp0*w2;
-
-	t2 = spp0 - w4;
-	upp1 = spp0 + t2;
-	upp0 = spp0**2 + 2*w3*v1 + w4*(2*u1 - f4);
-
-	t0 = upp0 - u0;
-	t1 = u1 - upp1;
-	vpp1 = s1*(t1*t2 + t0) - v1;
-	vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
-	
-	upp = u.parent()([upp0,upp1,1])
-	vpp = v.parent()([vpp0,vpp1])
-
-	return (upp, vpp)	
-
-
-    
-    
 class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism):
     r"""
     An element of a Jacobian defined over a field, i.e. in
     `J(K) = \mathrm{Pic}^0_K(C)`.
     """
+
+    def _init_cantor_reduction_simple(self, f, genus):
+        r"""
+        Return the unique reduced divisor linearly equivalent to
+        `(a, b)` on the curve `y^2 = f(x).`
+
+        See the docstring of
+        :mod:`sage.schemes.hyperelliptic_curves.jacobian_morphism` for
+        information about divisors, linear equivalence, and reduction.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: f = x^5 - x
+            sage: H = HyperellipticCurve(f); H
+            Hyperelliptic Curve over Rational Field defined by y^2 = x^5 - x
+            sage: J = H.jacobian()(QQ); J
+            Set of rational points of Jacobian of Hyperelliptic Curve over Rational Field
+            defined by y^2 = x^5 - x
+
+        The following point is 2-torsion::
+
+            sage: P = J(H.lift_x(-1)); P
+            (x + 1, y)
+            sage: 2 * P # indirect doctest
+            (1)
+        """
+        a,b = self.__polys
+        a2 = (f - b**2) // a
+        a2 = a2.monic()
+        b2 = -b % (a2);
+        self.__polys = (a2, b2)
+        if a2.degree() == a.degree():
+            # XXX
+            assert a2.degree() == genus+1
+            print("Returning ambiguous form of degree genus+1.")
+
+    def _init_cantor_reduction(self, f, h, genus):
+        r"""
+        Return the unique reduced divisor linearly equivalent to
+        `(a, b)` on the curve `y^2 + y h(x) = f(x)`.
+
+        See the docstring of
+        :mod:`sage.schemes.hyperelliptic_curves.jacobian_morphism` for
+        information about divisors, linear equivalence, and reduction.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: f = x^5 - x
+            sage: H = HyperellipticCurve(f, x); H
+            Hyperelliptic Curve over Rational Field defined by y^2 + x*y = x^5 - x
+            sage: J = H.jacobian()(QQ); J
+            Set of rational points of Jacobian of Hyperelliptic Curve over
+            Rational Field defined by y^2 + x*y = x^5 - x
+
+        The following point is 2-torsion::
+
+            sage: Q = J(H.lift_x(0)); Q
+            (x, y)
+            sage: 2*Q # indirect doctest
+            (1)
+
+        The next point is not 2-torsion::
+
+            sage: P = J(H.lift_x(-1)); P
+            (x + 1, y - 1)
+            sage: 2 * J(H.lift_x(-1)) # indirect doctest
+            (x^2 + 2*x + 1, y - 3*x - 4)
+            sage: 3 * J(H.lift_x(-1)) # indirect doctest
+            (x^2 - 487*x - 324, y - 10754*x - 7146)
+        """
+        a, b = self.__polys
+        assert a.degree() < 2*genus+1
+        assert b.degree() < a.degree()
+        k = f - h*b - b**2
+        if 2*a.degree() == k.degree():
+            # must adjust b to include the point at infinity
+            g1 = a.degree()
+            x = a.parent().gen()
+            r = (x**2 + h[g1]*x - f[2*g1]).roots()[0][0]
+            b = b + r*(x**g1 - (x**g1) % (a))
+            k = f - h*b - b**2
+        assert k % (a) == 0
+        a = (k // a).monic()
+        b = -(b+h) % (a)
+        self.__polys = (a, b)
+
     def __init__(self, parent, polys, check=True):
         r"""
         Create a new Jacobian element in Mumford representation.
@@ -627,9 +253,16 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
                     polys, C))
             genus = C.genus()
-            if a.degree() > genus:
-                polys = cantor_reduction(a, b, f, h, genus)
-        self.__polys = polys
+            self.__polys = polys
+            if h == 0:
+                while self[0].degree() > genus:
+                    self._init_cantor_reduction_simple(f, genus)
+            else:
+                while self[0].degree() > genus:
+                    self._init_cantor_reduction(f,h,genus)
+        else:
+            self.__polys = polys
+
 
     def _printing_polys(self):
         r"""
@@ -740,7 +373,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x
         """
         return self.codomain()
-
 
     def __list__(self):
         r"""
@@ -969,6 +601,348 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             D = (polys[0],-polys[1]-(h+polys[0]) % (polys[0]))
         return JacobianMorphism_divisor_class_field(X, D, check=False)
 
+
+    def _add_cantor_composition_simple(self,other,f):
+        r"""
+        Given `D_1` and `D_2` two reduced Mumford
+        divisors on the Jacobian of the curve `y^2 = f(x)`,
+        computes a representative `D_1 + D_2`.
+
+        .. warning::
+
+           The representative computed is NOT reduced! Use
+           :func:`cantor_reduction_simple` to reduce it.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: f = x^5 + x
+            sage: H = HyperellipticCurve(f); H
+            Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x
+
+        ::
+
+            sage: F.<a> = NumberField(x^2 - 2, 'a')
+            sage: J = H.jacobian()(F); J
+            Set of rational points of Jacobian of Hyperelliptic Curve over
+            Number Field in a with defining polynomial x^2 - 2 defined
+            by y^2 = x^5 + x
+
+        ::
+
+            sage: P = J(H.lift_x(F(1))); P
+            (x - 1, y - a)
+            sage: Q = J(H.lift_x(F(0))); Q
+            (x, y)
+            sage: 2*P + 2*Q # indirect doctest
+            (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
+            sage: 2*(P + Q) # indirect doctest
+            (x^2 - 2*x + 1, y - 3/2*a*x + 1/2*a)
+            sage: 3*P # indirect doctest
+            (x^2 - 25/32*x + 49/32, y - 45/256*a*x - 315/256*a)
+        """
+        a1, b1 = self
+        a2, b2 = other
+        if a1 == a2 and b1 == b2:
+            # Duplication law:
+            d, h1, h3 = a1.xgcd(2*b1)
+            a = (a1 // d)**2
+            b = (b1 + h3*((f - b1**2) // d)) % (a)
+        else:
+            d0, _, h2 = a1.xgcd(a2)
+            if d0 == 1:
+                a = a1*a2
+                b = (b2 + h2*a2*(b1-b2)) % (a)
+            else:
+                d, l, h3 = d0.xgcd(b1 + b2)
+                a = (a1*a2) // (d**2)
+                b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)) % (a)
+        a = a.monic()
+        return (a,b)
+
+    def _add_cantor_composition(self,other,f,h):
+        r"""
+        EXAMPLES::
+
+            sage: F.<a> = GF(7^2, 'a')
+            sage: x = F['x'].gen()
+            sage: f = x^7 + x^2 + a
+            sage: H = HyperellipticCurve(f, 2*x); H
+            Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 + 2*x*y = x^7 + x^2 + a
+            sage: J = H.jacobian()(F); J
+            Set of rational points of Jacobian of Hyperelliptic Curve over
+            Finite Field in a of size 7^2 defined by y^2 + 2*x*y = x^7 + x^2 + a
+
+        ::
+
+            sage: Q = J(H.lift_x(F(1))); Q
+            (x + 6, y + 2*a + 2)
+            sage: 10*Q # indirect doctest
+            (x^3 + (3*a + 1)*x^2 + (2*a + 5)*x + a + 5, y + (4*a + 5)*x^2 + (a + 1)*x + 6*a + 3)
+            sage: 7*8297*Q
+            (1)
+
+        ::
+
+            sage: Q = J(H.lift_x(F(a+1))); Q
+            (x + 6*a + 6, y + 2*a)
+            sage: 7*8297*Q # indirect doctest
+            (1)
+
+            A test over a prime field:
+
+            sage: F = GF(next_prime(10^30))
+            sage: x = F['x'].gen()
+            sage: f = x^7 + x^2 + 1
+            sage: H = HyperellipticCurve(f, 2*x); H
+            Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
+            sage: J = H.jacobian()(F); J
+            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            Set of rational points of Jacobian of Hyperelliptic Curve over
+            Finite Field of size 1000000000000000000000000000057 defined
+            by y^2 + 2*x*y = x^7 + x^2 + 1
+            sage: Q = J(H.lift_x(F(1))); Q
+            (x + 1000000000000000000000000000056, y + 1000000000000000000000000000056)
+            sage: 10*Q # indirect doctest
+            (x^3 + 150296037169838934997145567227*x^2 + 377701248971234560956743242408*x + 509456150352486043408603286615, y + 514451014495791237681619598519*x^2 + 875375621665039398768235387900*x + 861429240012590886251910326876)
+            sage: 7*8297*Q
+            (x^3 + 35410976139548567549919839063*x^2 + 26230404235226464545886889960*x + 681571430588959705539385624700, y + 999722365017286747841221441793*x^2 + 262703715994522725686603955650*x + 626219823403254233972118260890)
+        """
+        a1, b1 = self
+        a2, b2 = other
+        if a1 == a2 and b1 == b2:
+            # Duplication law:
+            d, h1, h3 = a1.xgcd(2*b1 + h)
+            a = (a1 // d)**2;
+            b = (b1 + h3*((f-h*b1-b1**2) // d)) % (a)
+        else:
+            d0, _, h2 = a1.xgcd(a2)
+            if d0 == 1:
+                a = a1*a2;
+                b = (b2 + h2*a2*(b1-b2)) % (a)
+            else:
+                e0 = b1+b2+h
+                if e0 == 0:
+                    a = (a1*a2) // (d0**2)
+                    b = (b2 + h2*(b1-b2)*(a2 // d0)) % (a)
+                else:
+                    d, l, h3 = d0.xgcd(e0)
+                    a = (a1*a2) // (d**2)
+                    b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)) % (a)
+        a = a.monic()
+        return (a,b)
+
+    def _add_addition_g2(self,other,f,h):
+
+        if (self[0].degree() != 2) or (other[0].degree() != 2):
+            return self._add_cantor_composition(other,f,h)
+
+        u, v = self
+        up, vp = other
+
+        u1 = u[1]; u0 = u[0]
+        v1 = v[1]; v0 = v[0]
+        up1 = up[1]; up0 = up[0]
+        vp1 = vp[1]; vp0 = vp[0]
+
+        f4 = f[4]; f3 = f[3]; f2 = f[2]
+        h2 = h[2]; h1 = h[1]; h0 = h[0]
+
+        m3 = up1 - u1;
+        m4 = u0 - up0;
+        m1 = m4 + up1*m3;
+        m2 = -up0*m3;
+        r0 = vp0 - v0;
+        r1 = vp1 - v1;
+
+        sp0 = r0*m1 + r1*m2;
+        sp1 = r0*m3 + r1*m4;
+        dp = m1*m4 - m2*m3;
+        #Test for special case
+        if sp1.is_zero() or dp.is_zero():
+            return self._add_cantor_composition(other,f,h)
+
+        w1 = ~(dp*sp1);
+        w2 = w1*dp;
+        w3 = w2*dp;
+        w4 = w3**2;
+        s1 = w1*(sp1**2);
+        spp0 = sp0*w2;
+
+        t2 = spp0 - m3 - w4 + h2*w3;
+        upp1 = spp0 + t2;
+        upp0 = spp0*(spp0 - 2*m3) + m1 + w3*(h2*(spp0 - up1) + h1 + 2*v1) + w4*(u1 + up1 - f4);
+
+        t0 = upp0 - u0;
+        t1 = u1 - upp1;
+        vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
+        vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
+
+
+        upp = u.parent()([upp0,upp1,1])
+        vpp = v.parent()([vpp0,vpp1])
+
+        return (upp, vpp)
+
+    def _add_double_g2(self,f,h):
+
+        if (self[0].degree() != 2) :
+            return self._add_cantor_composition(self,f,h)
+
+        u, v = self
+
+        u1 = u[1]; u0 = u[0]
+        v1 = v[1]; v0 = v[0]
+
+        f4 = f[4]; f3 = f[3]; f2 = f[2]
+        h2 = h[2]; h1 = h[1]; h0 = h[0]
+
+        t0 = u1**2;
+        t1 = f3 + t0 - h2*v1;
+        t2 = 2*u0;
+        t3 = f4*u1;
+        r1 = 2*(t0 - t3) + t1 - t2;
+        r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0 - h1*v1 - h2*v0;
+
+        m3 = -(2*v1 + h1 - h2*u1);
+        m4 = 2*v0 + h0 - h2*u0;
+        m1 = m4 + m3*u1;
+        m2 = -m3*u0;
+
+        sp0 = r0*m1 + r1*m2;
+        sp1 = r0*m3 + r1*m4;
+        d = m4*m1 - m2*m3;
+
+        #Test for special case
+        if sp1.is_zero() or d.is_zero():
+            return self._add_cantor_composition(self,f,h)
+
+        w1 = ~(d*sp1);
+        w2 = w1*d;
+        w3 = w2*d;
+        w4 = w3**2;
+        s1 = w1*(sp1**2);
+        spp0 = sp0*w2;
+
+        t2 = spp0 - w4 + h2*w3;
+        upp1 = spp0 + t2;
+        upp0 = spp0**2 + w3*(h2*(spp0 - u1) + 2*v1 + h1) + w4*(2*u1 - f4);
+
+        t0 = upp0 - u0;
+        t1 = u1 - upp1;
+        vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
+        vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
+
+        upp = u.parent()([upp0,upp1,1])
+        vpp = v.parent()([vpp0,vpp1])
+
+        return (upp, vpp)
+
+    def _add_addition_g2_simple(self,other,f):
+
+        if (self[0].degree() != 2) or (other[0].degree() != 2) :
+            return self._add_cantor_composition_simple(other,f)
+
+        u, v = self
+        up, vp = other
+
+
+        u1 = u[1]; u0 = u[0]
+        v1 = v[1]; v0 = v[0]
+        up1 = up[1]; up0 = up[0]
+        vp1 = vp[1]; vp0 = vp[0]
+
+        f4 = f[4]; f3 = f[3]; f2 = f[2]
+
+        m3 = up1 - u1;
+        m4 = u0 - up0;
+        m1 = m4 + up1*m3;
+        m2 = -up0*m3;
+        r0 = vp0 - v0;
+        r1 = vp1 - v1;
+
+        sp0 = r0*m1 + r1*m2;
+        sp1 = r0*m3 + r1*m4;
+        dp = m1*m4 - m2*m3;
+
+        #Test for special case
+        if sp1.is_zero() or dp.is_zero():
+            return self._add_cantor_composition_simple(other,f)
+
+        w1 = ~(dp*sp1);
+        w2 = w1*dp;
+        w3 = w2*dp;
+        w4 = w3**2;
+        s1 = w1*(sp1**2);
+        spp0 = sp0*w2;
+
+        t2 = spp0 - m3 - w4;
+        upp1 = spp0 + t2;
+        upp0 = spp0*(spp0 - 2*m3) + m1 + 2*w3*v1 + w4*(u1 + up1 - f4);
+
+        t0 = upp0 - u0;
+        t1 = u1 - upp1;
+        vpp1 = s1*(t1*t2 + t0) - v1;
+        vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
+
+        upp = u.parent()([upp0,upp1,1])
+        vpp = v.parent()([vpp0,vpp1])
+
+        return (upp, vpp)
+
+    def _add_double_g2_simple(self,f):
+
+        if (self[0].degree() != 2) :
+            return self._add_cantor_composition_simple(self,f)
+
+        u, v = self
+
+        u1 = u[1]; u0 = u[0]
+        v1 = v[1]; v0 = v[0]
+
+        f4 = f[4]; f3 = f[3]; f2 = f[2]
+
+        t0 = u1**2;
+        t1 = f3 + t0;
+        t2 = 2*u0;
+        t3 = f4*u1;
+        r1 = 2*(t0 - t3) + t1 - t2;
+        r0 = u1*(2*t2 - t1 + t3) + f2 - v1**2 - 2*f4*u0;
+
+        m3 = -v1 - v1;
+        m4 = v0 + v0;
+        m1 = m4 + m3*u1;
+        m2 = -m3*u0;
+
+        sp0 = r0*m1 + r1*m2;
+        sp1 = r0*m3 + r1*m4;
+        d = m4*m1 - m2*m3;
+
+        #Test for special case
+        if sp1.is_zero() or d.is_zero():
+            return self._add_cantor_composition_simple(self,f)
+
+        w1 = ~(d*sp1);
+        w2 = w1*d;
+        w3 = w2*d;
+        w4 = w3**2;
+        s1 = w1*(sp1**2);
+        spp0 = sp0*w2;
+
+        t2 = spp0 - w4;
+        upp1 = spp0 + t2;
+        upp0 = spp0**2 + 2*w3*v1 + w4*(2*u1 - f4);
+
+        t0 = upp0 - u0;
+        t1 = u1 - upp1;
+        vpp1 = s1*(t1*t2 + t0) - v1;
+        vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
+
+        upp = u.parent()([upp0,upp1,1])
+        vpp = v.parent()([vpp0,vpp1])
+
+        return (upp, vpp)
+
     def _add_(self,other):
         r"""
         Return a Mumford representative of the divisor self + other.
@@ -990,30 +964,24 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         C = X.curve()
         f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
-        
+
         if (genus == 2) and (f.degree() == 5):
-			if h == 0:
-				if self == other:
-					print('self equal other')
-					D = double_g2_simple(self.__polys,f)
-				else:
-					print('self not equal other')
-					D = addition_g2_simple(self.__polys,other.__polys,f)
-			else:
-				if self == other:
-					D = double_g2(self.__polys,f,h)
-				else:
-					D = addition_g2(self.__polys,other.__polys,f,h)
+            if h == 0:
+                if self == other:
+                    polys = self._add_double_g2_simple(f)
+                else:
+                    polys = self._add_addition_g2_simple(other,f)
+            else:
+                if self == other:
+                    polys = self._add_double_g2(f,h)
+                else:
+                    polys = self._add_addition_g2(other,f,h)
         else:
-			if h == 0:
-				D = cantor_composition_simple(self.__polys, other.__polys, f, genus)
-				if D[0].degree() > genus:
-					D = cantor_reduction_simple(D[0], D[1], f, genus)
-			else:
-				D = cantor_composition(self.__polys, other.__polys, f, h, genus)
-				if D[0].degree() > genus:
-					D = cantor_reduction(D[0], D[1], f, h, genus)
-	return JacobianMorphism_divisor_class_field(X, D, check=False)
+            if h == 0:
+                polys = self._add_cantor_composition_simple(other,f)
+            else:
+                polys = self._add_cantor_composition(other,f,h)
+        return JacobianMorphism_divisor_class_field(X, polys, check=True)
 
     def _sub_(self, other):
         r"""
