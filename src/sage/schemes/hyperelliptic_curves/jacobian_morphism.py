@@ -150,15 +150,18 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             sage: 2 * P # indirect doctest
             (1)
         """
-        a,b = self.__polys
-        a2 = (f - b**2) // a
-        a2 = a2.monic()
-        b2 = -b % (a2);
-        self.__polys = (a2, b2)
-        if a2.degree() == a.degree():
-            # XXX
-            assert a2.degree() == genus+1
-            print("Returning ambiguous form of degree genus+1.")
+        while self[0].degree() > genus:
+            a,b = self.__polys
+            a2 = (f - b**2) // a
+            a2 = a2.monic()
+            b2 = -b % (a2);
+            self.__polys = (a2, b2)
+            if a2.degree() == a.degree():
+                # XXX
+                assert a2.degree() == genus+1
+                print("Returning ambiguous form of degree genus+1.")
+        
+            
 
     def _init_cantor_reduction(self, f, h, genus):
         r"""
@@ -195,21 +198,22 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             sage: 3 * J(H.lift_x(-1)) # indirect doctest
             (x^2 - 487*x - 324, y - 10754*x - 7146)
         """
-        a, b = self.__polys
-        assert a.degree() < 2*genus+1
-        assert b.degree() < a.degree()
-        k = f - h*b - b**2
-        if 2*a.degree() == k.degree():
-            # must adjust b to include the point at infinity
-            g1 = a.degree()
-            x = a.parent().gen()
-            r = (x**2 + h[g1]*x - f[2*g1]).roots()[0][0]
-            b = b + r*(x**g1 - (x**g1) % (a))
+        while self[0].degree() > genus:
+            a, b = self.__polys
+            assert a.degree() < 2*genus+1
+            assert b.degree() < a.degree()
             k = f - h*b - b**2
-        assert k % (a) == 0
-        a = (k // a).monic()
-        b = -(b+h) % (a)
-        self.__polys = (a, b)
+            if 2*a.degree() == k.degree():
+                # must adjust b to include the point at infinity
+                g1 = a.degree()
+                x = a.parent().gen()
+                r = (x**2 + h[g1]*x - f[2*g1]).roots()[0][0]
+                b = b + r*(x**g1 - (x**g1) % (a))
+                k = f - h*b - b**2
+            assert k % (a) == 0
+            a = (k // a).monic()
+            b = -(b+h) % (a)
+            self.__polys = (a, b)
 
     def __init__(self, parent, polys, check=True):
         r"""
@@ -245,23 +249,22 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             <class 'sage.schemes.hyperelliptic_curves.jacobian_morphism.JacobianMorphism_divisor_class_field'>
         """
         SchemeMorphism.__init__(self, parent)
+        C = parent.curve()
+        f, h = C.hyperelliptic_polynomials()
+        genus = C.genus()
+        
         if check:
-            C = parent.curve()
-            f, h = C.hyperelliptic_polynomials()
             a, b = polys
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
                     polys, C))
-            genus = C.genus()
-            self.__polys = polys
+                    
+        self.__polys = polys
+        if self[0].degree() > genus:
             if h == 0:
-                while self[0].degree() > genus:
-                    self._init_cantor_reduction_simple(f, genus)
+                self._init_cantor_reduction_simple(f,genus)
             else:
-                while self[0].degree() > genus:
-                    self._init_cantor_reduction(f,h,genus)
-        else:
-            self.__polys = polys
+                self._init_cantor_reduction(f,h,genus)
 
 
     def _printing_polys(self):
@@ -600,7 +603,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             # computing the modulus. See trac #14249
             D = (polys[0],-polys[1]-(h+polys[0]) % (polys[0]))
         return JacobianMorphism_divisor_class_field(X, D, check=False)
-
 
     def _add_cantor_composition_simple(self,other,f):
         r"""
@@ -964,6 +966,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         C = X.curve()
         f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
+        reduction = True
 
         if (genus == 2) and (f.degree() == 5):
             if h == 0:
@@ -981,7 +984,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 polys = self._add_cantor_composition_simple(other,f)
             else:
                 polys = self._add_cantor_composition(other,f,h)
-        return JacobianMorphism_divisor_class_field(X, polys, check=True)
+        return JacobianMorphism_divisor_class_field(X, polys, check=False)
 
     def _sub_(self, other):
         r"""
