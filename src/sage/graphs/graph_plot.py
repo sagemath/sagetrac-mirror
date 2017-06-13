@@ -10,7 +10,7 @@ All graphs have an associated Sage graphics object, which you can display::
     sage: P = G.plot()
     sage: P.show() # long time
 
-.. PLOT::
+.. PLOT:
     
     sphinx_plot(graphs.WheelGraph(15))
 
@@ -664,7 +664,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                edge_is_drawn=(edge[0],edge[1],edge[2]) in edges_drawn
+                if not self._graph.is_directed():  
+                    edge_is_drawn|=((edge[1],edge[0],edge[2])  in edges_drawn)
+                if  not edge_is_drawn:
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
@@ -1053,7 +1056,7 @@ class GraphPlot(SageObject):
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
             Graphics object consisting of 11 graphics primitives
 
-        .. PLOT::
+        .. PLOT:
 
             pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8],
                 3:[0.6, -0.8], 4:[0.8, 0.3]}
@@ -1079,7 +1082,7 @@ class GraphPlot(SageObject):
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
             Graphics object consisting of 14 graphics primitives
 
-        .. PLOT::
+        .. PLOT:
 
             T = list(graphs.trees(7))
             t = T[3]
@@ -1129,7 +1132,7 @@ class GraphPlot(SageObject):
             sage: t = T[3]
             sage: t.graphplot(layout='tree').show()
 
-        .. PLOT::
+        .. PLOT:
 
             T = list(graphs.trees(7))
             t = T[3]
