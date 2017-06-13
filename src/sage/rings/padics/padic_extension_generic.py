@@ -24,6 +24,7 @@ from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
 from sage.structure.richcmp import op_EQ
 from functools import reduce
+from sage.misc.cachefunc import cached_method
 
 
 class pAdicExtensionGeneric(pAdicGeneric):
@@ -243,6 +244,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
+    @cached_method
     def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of this extension, which is just
