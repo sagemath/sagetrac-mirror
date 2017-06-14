@@ -160,8 +160,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 # XXX
                 assert a2.degree() == genus+1
                 print("Returning ambiguous form of degree genus+1.")
-        
-            
 
     def _init_cantor_reduction(self, f, h, genus):
         r"""
@@ -252,20 +250,18 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         C = parent.curve()
         f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
-        
+        self.__polys = polys
         if check:
             a, b = polys
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
                     polys, C))
                     
-        self.__polys = polys
-        if self[0].degree() > genus:
-            if h == 0:
-                self._init_cantor_reduction_simple(f,genus)
-            else:
-                self._init_cantor_reduction(f,h,genus)
-
+            if self[0].degree() > genus:
+                if h == 0:
+                    self._init_cantor_reduction_simple(f,genus)
+                else:
+                    self._init_cantor_reduction(f,h,genus)
 
     def _printing_polys(self):
         r"""
@@ -660,7 +656,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 a = (a1*a2) // (d**2)
                 b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)) % (a)
         a = a.monic()
-        return (a,b)
+        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=True)
 
     def _add_cantor_composition(self,other,f,h):
         r"""
@@ -732,7 +728,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                     a = (a1*a2) // (d**2)
                     b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)) % (a)
         a = a.monic()
-        return (a,b)
+        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=True)
 
     def _add_addition_g2(self,other,f,h):
 
@@ -780,11 +776,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
         vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
 
-
-        upp = u.parent()([upp0,upp1,1])
-        vpp = v.parent()([vpp0,vpp1])
-
-        return (upp, vpp)
+        polys = (u.parent()([upp0,upp1,1]), v.parent()([vpp0,vpp1]))
+        return JacobianMorphism_divisor_class_field(self.parent(), polys, check=False)
 
     def _add_double_g2(self,f,h):
 
@@ -835,10 +828,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         vpp1 = s1*(t1*t2 + t0) - v1 - h1 + h2*upp1;
         vpp0 = s1*(spp0*t0 + upp0*t1) - v0 - h0 + h2*upp0;
 
-        upp = u.parent()([upp0,upp1,1])
-        vpp = v.parent()([vpp0,vpp1])
-
-        return (upp, vpp)
+        polys = (u.parent()([upp0,upp1,1]), v.parent()([vpp0,vpp1]))
+        return JacobianMorphism_divisor_class_field(self.parent(), polys, check=False)
 
     def _add_addition_g2_simple(self,other,f):
 
@@ -847,7 +838,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
 
         u, v = self
         up, vp = other
-
 
         u1 = u[1]; u0 = u[0]
         v1 = v[1]; v0 = v[0]
@@ -887,10 +877,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         vpp1 = s1*(t1*t2 + t0) - v1;
         vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
 
-        upp = u.parent()([upp0,upp1,1])
-        vpp = v.parent()([vpp0,vpp1])
-
-        return (upp, vpp)
+        polys = (u.parent()([upp0,upp1,1]), v.parent()([vpp0,vpp1]))
+        return JacobianMorphism_divisor_class_field(self.parent(), polys, check=False)
 
     def _add_double_g2_simple(self,f):
 
@@ -940,10 +928,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         vpp1 = s1*(t1*t2 + t0) - v1;
         vpp0 = s1*(spp0*t0 + upp0*t1) - v0;
 
-        upp = u.parent()([upp0,upp1,1])
-        vpp = v.parent()([vpp0,vpp1])
-
-        return (upp, vpp)
+        polys = (u.parent()([upp0,upp1,1]), v.parent()([vpp0,vpp1]))
+        return JacobianMorphism_divisor_class_field(self.parent(), polys, check=False)
 
     def _add_(self,other):
         r"""
@@ -971,20 +957,19 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         if (genus == 2) and (f.degree() == 5):
             if h == 0:
                 if self == other:
-                    polys = self._add_double_g2_simple(f)
+                    return self._add_double_g2_simple(f)
                 else:
-                    polys = self._add_addition_g2_simple(other,f)
+                    return self._add_addition_g2_simple(other,f)
             else:
                 if self == other:
-                    polys = self._add_double_g2(f,h)
+                    return self._add_double_g2(f,h)
                 else:
-                    polys = self._add_addition_g2(other,f,h)
+                    return self._add_addition_g2(other,f,h)
         else:
             if h == 0:
-                polys = self._add_cantor_composition_simple(other,f)
+                return self._add_cantor_composition_simple(other,f)
             else:
-                polys = self._add_cantor_composition(other,f,h)
-        return JacobianMorphism_divisor_class_field(X, polys, check=False)
+                return self._add_cantor_composition(other,f,h)
 
     def _sub_(self, other):
         r"""
