@@ -124,7 +124,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
     `J(K) = \mathrm{Pic}^0_K(C)`.
     """
 
-    def _init_cantor_reduction_simple(self, f, genus):
+    def cantor_reduction_simple(self, f, genus):
         r"""
         Return the unique reduced divisor linearly equivalent to
         `(a, b)` on the curve `y^2 = f(x).`
@@ -161,7 +161,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 assert a2.degree() == genus+1
                 print("Returning ambiguous form of degree genus+1.")
 
-    def _init_cantor_reduction(self, f, h, genus):
+    def cantor_reduction(self, f, h, genus):
         r"""
         Return the unique reduced divisor linearly equivalent to
         `(a, b)` on the curve `y^2 + y h(x) = f(x)`.
@@ -247,11 +247,11 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             <class 'sage.schemes.hyperelliptic_curves.jacobian_morphism.JacobianMorphism_divisor_class_field'>
         """
         SchemeMorphism.__init__(self, parent)
-        C = parent.curve()
-        f, h = C.hyperelliptic_polynomials()
-        genus = C.genus()
         self.__polys = polys
         if check:
+            C = parent.curve()
+            f, h = C.hyperelliptic_polynomials()
+            genus = C.genus()
             a, b = polys
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
@@ -259,9 +259,9 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                     
             if self[0].degree() > genus:
                 if h == 0:
-                    self._init_cantor_reduction_simple(f,genus)
+                    self.cantor_reduction_simple(f,genus)
                 else:
-                    self._init_cantor_reduction(f,h,genus)
+                    self.cantor_reduction(f,h,genus)
 
     def _printing_polys(self):
         r"""
@@ -656,7 +656,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                 a = (a1*a2) // (d**2)
                 b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)) % (a)
         a = a.monic()
-        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=True)
+        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=False)
 
     def _add_cantor_composition(self,other,f,h):
         r"""
@@ -728,7 +728,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                     a = (a1*a2) // (d**2)
                     b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)) % (a)
         a = a.monic()
-        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=True)
+        return JacobianMorphism_divisor_class_field(self.parent(), (a, b), check=False)
 
     def _add_addition_g2(self,other,f,h):
 
@@ -952,7 +952,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         C = X.curve()
         f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
-        reduction = True
 
         if (genus == 2) and (f.degree() == 5):
             if h == 0:
@@ -967,9 +966,15 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
                     return self._add_addition_g2(other,f,h)
         else:
             if h == 0:
-                return self._add_cantor_composition_simple(other,f)
+                composed = self._add_cantor_composition_simple(other,f)
+                if composed[0].degree() > genus:
+                    composed.cantor_reduction_simple(f,genus)
+                return composed
             else:
-                return self._add_cantor_composition(other,f,h)
+                composed = self._add_cantor_composition(other,f,h)
+                if composed[0].degree() > genus:
+                    composed.cantor_reduction(f,h,genus)
+                return composed
 
     def _sub_(self, other):
         r"""
