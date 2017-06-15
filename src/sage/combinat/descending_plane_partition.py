@@ -12,7 +12,7 @@ AUTHORS:
 
 - Colton Keller and Jessica Striker (2017): Initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Colton Keller, Jessica Striker <jessicapalencia@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -25,7 +25,7 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from copy import copy
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
@@ -120,7 +120,7 @@ class DescendingPlanePartition():
             sage: DPP._is_columnar_descending(DPP)
             True
         """
-        #len == 2 len dpp[-2]>len dpp[-1]
+        # len == 2 len dpp[-2]>len dpp[-1]
         if len(dpp[-1]) >= len(dpp[-2]):
             return False
         for i in range(len(dpp[-1])):
@@ -139,20 +139,21 @@ class DescendingPlanePartition():
             sage: DPP._increment_row([5,3,3,3])
             [5, 4]
         """
-        if type(dpprow) is type([]):
-            if len(dpprow)< (dpprow[0] - 1):
+        if isinstance(dpprow, list):
+            dpprow = list(dpprow)
+            if len(dpprow) < (dpprow[0] - 1):
                 dpprow.append(1)
                 return dpprow
             else:
                 for i in range(len(dpprow)):
                     if dpprow[i] == 1:
-                        dpprow[i] = dpprow[i]+1
-                        return dpprow[:i+1]
+                        dpprow[i] = dpprow[i] + 1
+                        return dpprow[:i + 1]
                 if dpprow[-1] < dpprow[0]:
                     for i in range(len(dpprow)):
-                        if dpprow[i]==dpprow[-1]:
+                        if dpprow[i] == dpprow[-1]:
                             dpprow[i] = dpprow[i] + 1
-                            return dpprow[:i+1]
+                            return dpprow[:i + 1]
                 return [dpprow[0] + 1]
 
     def getNextDPP(self):
@@ -167,7 +168,7 @@ class DescendingPlanePartition():
         """
         return self._increment_2_rows(self.DPP)
 
-    def _increment_2_rows(self,DPP):
+    def _increment_2_rows(self, DPP):
         """
         Increment the descending plane partition by recursively traversing the
         rows of the descending plane partition.
@@ -341,7 +342,7 @@ class DescendingPlanePartition():
 
     def is_Catalan(self):
         """
-        Return True if this DPP is a Catalan DPP.
+        Return ``True`` if this DPP is a Catalan DPP.
 
         A Catalan DPP is a row `a_{i,1} \dots a_{i,{\lambda}}` of a descending
         plane partition such that each entry satisfies `a_{i,j} \leq a_{i,1} - j + 1`
@@ -357,12 +358,10 @@ class DescendingPlanePartition():
         """
         if len(self.DPP) == 1:
             first = self.DPP[0][0]
-            flag = True
             for i in range(len(self.DPP[0])):
                 if self.DPP[0][i] > first - i:
-                    flag = False
-                    break
-            return flag
+                    return False
+            return True
         else:
             return False
 
@@ -385,12 +384,12 @@ class DescendingPlanePartition():
         if self.is_Catalan():
             dpprow = self.DPP[0]
             path = []
-            for i in range(len(dpprow)-1):
+            for i in range(len(dpprow) - 1):
                 dif = dpprow[i] - dpprow[i + 1]
                 for j in range(dif):
                     path.append(1)
                 path.append(-1)
-            for k in range(dpprow[-1]-1):
+            for k in range(dpprow[-1] - 1):
                 path.append(1)
             return path
 
@@ -426,18 +425,22 @@ class DescendingPlanePartition():
         xaxis = "210"
         yaxis = "-30"
         zaxis = "90"
-        def topside(x,y,z):
+
+        def topside(x, y, z):
             return "\\fill[fill=white, draw=black,shift={(" + xaxis + ":" + str(x) + ")},shift={(" + yaxis + ":" + str(y) + ")},  \nshift={(" + zaxis + ":" + str(z) + ")}] (0,0) -- (30:1) -- (0,1) --(150:1)--(0,0);\n"
-        def leftside(x,y,z):
-            return "\\fill[fill=lightgray, draw=black,shift={("+xaxis+":"+ str(x) + ")},shift={("+yaxis +":"+str(y)+")},  \nshift={("+zaxis+":"+str(z)+")}] (0,0) -- (0,-1) -- (210:1) --(150:1)--(0,0);\n"
-        def rightside(x,y,z):
-            return "\\fill[fill=darkgray, draw=black,shift={("+xaxis+":"+str(x) + ")},shift={("+yaxis+":"+str(y)+")},  \nshift={(" +zaxis+ ":" + str(z) + ")}] (0,0) -- (30:1) -- (-30:1) --(0,-1)--(0,0);\n"
-        def cube(x,y,z):
-            return topside(x,y,z) + leftside(x,y,z) + rightside(x,y,z)
+
+        def leftside(x, y, z):
+            return "\\fill[fill=lightgray, draw=black,shift={(" + xaxis + ":" + str(x) + ")},shift={(" + yaxis + ":" + str(y) + ")},  \nshift={(" + zaxis + ":" + str(z) + ")}] (0,0) -- (0,-1) -- (210:1) --(150:1)--(0,0);\n"
+
+        def rightside(x, y, z):
+            return "\\fill[fill=darkgray, draw=black,shift={(" + xaxis + ":" + str(x) + ")},shift={(" + yaxis + ":" + str(y) + ")},  \nshift={(" + zaxis + ":" + str(z) + ")}] (0,0) -- (30:1) -- (-30:1) --(0,-1)--(0,0);\n"
+
+        def cube(x, y, z):
+            return topside(x, y, z) + leftside(x, y, z) + rightside(x, y, z)
         myC = copy(self.DPP)
         for i in range(len(myC)):
             for j in range(i):
-                myC[i].insert(0,0)
+                myC[i].insert(0, 0)
         x = -1
         latstr = ""
         for row in myC:
@@ -449,7 +452,7 @@ class DescendingPlanePartition():
                 if element != 0:
                     for k in range(element):
                         z += 1
-                        latstr+=cube(x,y,z)
+                        latstr += cube(x, y, z)
         return "\\begin{tikzpicture}\n" + latstr + "\\end{tikzpicture}\n"
 
 
@@ -477,59 +480,57 @@ class DescendingPlanePartitions():
     @staticmethod
     def is_dpp(dpp):
         """
-        Return True if dpp is a valid descending plane partition.
+        Return ``True`` if ``dpp`` is a valid descending plane partition.
 
         EXAMPLES::
 
             sage: DescendingPlanePartitions.is_dpp([[4,4],[2]])
             True
         """
-        if type(dpp) is type([]):
-            #check for acceptable parameter
+        if isinstance(dpp, list):
+            # check for acceptable parameter
             for i in range(len(dpp)):
-                #loop over all sublists (each row in dpp)
-                if type(dpp[i]) is type([]):
-                    #check for acceptable parameter
+                # loop over all sublists (each row in dpp)
+                if isinstance(dpp[i], list):
+                    # check for acceptable parameter
                     for j in range(len(dpp[i])):
-                        #loop over each entry in the sublist (each column in dpp)
+                        # loop over each entry in the sublist (each column in dpp)
                         if j != 0:
-                            #if the row has more than one entry,
-                            #check for descending rows
-                            if dpp[i][j]>dpp[i][j-1]:
+                            # if the row has more than one entry,
+                            # check for descending rows
+                            if dpp[i][j] > dpp[i][j - 1]:
                                 return False
                         else:
-                            #on the first entry of each row, check row length less than first entry
+                            # on the first entry of each row, check row length less than first entry
                             if not len(dpp[i]) < dpp[i][0]:
                                 return False
                             if i != 0:
-                                if len(dpp[i-1]) < dpp[i][0]:
+                                if len(dpp[i - 1]) < dpp[i][0]:
                                     return False
 
                         if i != 0:
-                            #if there are more than one rows
-                            if len(dpp[i-1]) > j+1:
-                                #if there is an entry directly above current entry
-                                if not dpp[i-1][j+1] > dpp[i][j]:
-                                    #strictly descending vertically check
+                            # if there are more than one rows
+                            if len(dpp[i - 1]) > j + 1:
+                                # if there is an entry directly above current entry
+                                if not dpp[i - 1][j + 1] > dpp[i][j]:
+                                    # strictly descending vertically check
                                     return False
                             else:
-                                #no entry directly above, strictly descending vertically fails
+                                # no entry directly above, strictly descending vertically fails
                                 return False
                 else:
-                    #unacceptable parameter
+                    # unacceptable parameter
                     return False
 
         else:
-            if type(dpp) is type(DescendingPlanePartition):
-                return True
-            else:
-                return False
-        return True #no errors found
+            return isinstance(dpp, DescendingPlanePartition)
+
+        return True  # no errors found
 
     @staticmethod
     def is_Catalan_dpp(dpp):
         """
-        Return True if a DPP is a Catalan DPP.
+        Return ``True`` if ``dpp`` is a Catalan DPP.
 
         A Catalan DPP is a row `a_{i,1} \dots a_{i,{\lambda}}` of a descending
         plane partition such that each entry satisfies `a_{i,j} \leq a_{i,1} - j + 1`
@@ -542,16 +543,17 @@ class DescendingPlanePartitions():
             False
         """
         if DescendingPlanePartitions.is_dpp(dpp):
-            DPP = dpp
-            if not isinstance(dpp,DescendingPlanePartition):
+            if not isinstance(dpp, DescendingPlanePartition):
                 DPP = DescendingPlanePartition(dpp)
+            else:
+                DPP = dpp
             return DPP.is_Catalan()
         else:
             return False
 
     def __contains__(self, DPP):
         """
-        Return True if a DPP is a part of this DescendingPlanePartitions object.
+        Return ``True`` if a DPP is a part of this DescendingPlanePartitions object.
 
         EXAMPLES::
 
@@ -564,7 +566,7 @@ class DescendingPlanePartitions():
             if self.n is None or not DPP[0]:
                 return True
             else:
-                return DPP[0][0] <= self.n:
+                return DPP[0][0] <= self.n
         else:
             return False
 
