@@ -418,6 +418,11 @@ if [ -n "$PYTHONHOME" ]; then
 fi
 
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+if [ "$UNAME" = "Linux" ]; then
+    # Make sure that we use RPATH and not RUNPATH, see Trac #23161
+    LDFLAGS="-Wl,--disable-new-dtags $LDFLAGS"
+fi
+
 export LDFLAGS
 
 # Use a matplotlib config directory specific to Sage and specific to
