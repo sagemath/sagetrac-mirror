@@ -38,6 +38,7 @@ from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+pari_stack_warning_regex = re.compile(r'\s*\*\*\*.*(Warning: increasing stack size to )\d+\.')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -875,6 +876,7 @@ class SageOutputChecker(doctest.OutputChecker):
             'you'
         """
         got = self.human_readable_escape_sequences(got)
+        got = pari_stack_warning_regex.sub('', got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True
