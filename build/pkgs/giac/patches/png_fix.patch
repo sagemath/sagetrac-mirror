@@ -1,0 +1,13 @@
+See trac #23262.
+diff -dru src/configure.in new/configure.in
+--- src/configure.in	2017-02-02 08:29:56.000000000 +0100
++++ new/configure.in	2017-06-17 16:34:35.294562347 +0200
+@@ -100,7 +100,7 @@
+ 	[ if test "x$enableval" = "xno"; then CONFIG_PNG="no"; fi], [])
+   
+ if test "x$CONFIG_PNG" = "xyes"; then 
+-   AC_CHECK_HEADERS(png.h, AC_CHECK_LIB(png,main))
++   AC_CHECK_HEADERS(png.h, AC_SEARCH_LIBS(main,[png16,png14,png12,png]))
+ fi
+ 
+   
