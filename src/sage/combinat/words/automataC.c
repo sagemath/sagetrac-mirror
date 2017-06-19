@@ -791,7 +791,11 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	if (verb)
 		printDict(a2toa1);
 	//
-	bool res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+	bool res;
+	if (a1->i == -1 || a2->i == -1)
+		res = (a1->i == a2->i);
+	else
+		res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
 	//remet les états finaux
 	for (i=0;i<a1->n;i++)
 	{
@@ -1066,6 +1070,23 @@ bool shortestWord (Automaton a, Dict *w, bool verb)
 	}
 	free(prec);
 	return true;
+}
+
+//vérifie que le mot w est reconnu par l'automate a
+//non testé !!!
+bool rec_word (Automaton a, Dict d)
+{
+	int i;
+	int e = a.i;
+	for (i=0;i<d.n;i++)
+	{
+		e = a.e[e].f[d.e[i]];
+		if (e == -1)
+		{
+			return false;
+		}
+	}
+	return a.e[e].final;
 }
 
 int contract (int i1, int i2, int n1)

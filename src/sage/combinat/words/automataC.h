@@ -15,6 +15,7 @@ typedef struct Dict Dict;
 
 int hashAutomaton (Automaton a);
 bool findWord (Automaton a, Dict *w, bool verb); //rend un mot dans le langage de a
+bool rec_word (Automaton a, Dict d); //vérifie que le mot w est reconnu par l'automate a
 bool shortestWord (Automaton a, Dict *w, bool verb); //rend un mot le plus court du language de a
 Dict NewDict (int n);
 void FreeDict (Dict *d);

@@ -91,6 +91,7 @@ cdef extern from "automataC.h":
 	Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
 	bool findWord (Automaton a, Dict *w, bool verb)
 	bool shortestWord (Automaton a, Dict *w, bool verb)
+	bool rec_word (Automaton a, Dict d)
 	void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
@@ -952,7 +953,7 @@ cdef class FastAutomaton:
 		sig_off()
 		return r
 	
-	def concat (self, FastAutomaton b, verb=False):
+	def concat (self, FastAutomaton b, det=True, verb=False):
 		sig_on()
 		cdef NAutomaton a
 		r = NFastAutomaton(None)
@@ -960,9 +961,12 @@ cdef class FastAutomaton:
 		r.a[0] = a
 		r.A = self.A
 		sig_off()
-		return r
+		if det:
+			return r.determinise().emonde().minimise()
+		else:
+			return r
 	
-	def proj (self, dict d, verb=False):
+	def proj (self, dict d, det=True, verb=False):
 		sig_on()
 		cdef NAutomaton a
 		cdef Dict dC
@@ -977,7 +981,16 @@ cdef class FastAutomaton:
 		r.a[0] = a
 		r.A = A2
 		sig_off()
-		return r
+		if det:
+			return r.determinise().emonde().minimise()
+		else:
+			return r
+
+	def proji (self, int i, det=True, verb=False):
+		d = {}
+		for l in self.A:
+			d[l] = l[i]
+		return self.proj(d, det=det, verb=verb)
 	
 	def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
 		cdef Automaton a
@@ -1295,6 +1308,20 @@ cdef class FastAutomaton:
 			r.append(self.A[w.e[i]])
 		FreeDict(&w)
 		return r
+	
+	#determine if the word is recognized by the automaton or not
+	def rec_word2 (self, list w):
+		rd = {}
+		for i,a in enumerate(self.A):
+			rd[a] = i
+		sig_on()
+		cdef Dict d = NewDict(len(w))
+		cdef bool res
+		for i,a in enumerate(w):
+			d.e[i] = rd[a];
+		res = rec_word (self.a[0], d)
+		sig_off()
+		return res
 	
 	#determine if the word is recognized by the automaton or not
 	def rec_word (self, list w):
