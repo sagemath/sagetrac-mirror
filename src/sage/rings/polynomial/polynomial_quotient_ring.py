@@ -322,7 +322,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __init__(self, ring, polynomial, name=None, category=None):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S = R.quo(x^2-4)
@@ -606,7 +606,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Represent ``self`` in the Singular interface.
 
-        TEST::
+        TESTS::
 
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
@@ -964,9 +964,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
     @cached_method
     def _S_decomposition(self, S):
         """
-        Compute the decomposition of self into a product of number
-        fields.  This is an internal function used by
-        :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
+        Compute the decomposition of self into a product of number fields.
+
+        This is an internal function used by
+        :meth:`S_class_group`, :meth:`S_units` and :meth:`selmer_group`.
 
         EXAMPLES::
 

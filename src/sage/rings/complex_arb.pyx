@@ -128,9 +128,9 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
 
 import operator
+from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 
@@ -987,6 +987,37 @@ cdef class ComplexBall(RingElement):
             return parent(self.real())
         else:
             raise ValueError("nonzero imaginary part")
+
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(CBF(1))
+            1.0
+            sage: float(CBF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex ball to float
+        """
+        if self.imag() == 0:
+            return float(self.n(prec(self)))
+        else:
+            raise TypeError("can't convert complex ball to float")
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(CBF(1))
+            (1+0j)
+            sage: complex(CBF(1,1))
+            (1+1j)
+        """
+        return complex(self.n(prec(self)))
 
     # Real and imaginary part, midpoint, radius
 
@@ -3105,7 +3136,7 @@ cdef class ComplexBall(RingElement):
 
         The following definitions are used:
 
-        .. math ::
+        .. MATH::
 
             \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
 

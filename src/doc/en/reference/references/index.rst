@@ -252,6 +252,10 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
+            generators for inseparable algebraic extensions. Bulletin of the
+            American Mathematical Society 46, no. 2 (1940): 182-186.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -269,6 +273,8 @@ REFERENCES:
 .. [Bob2013] \J.W. Bober. Conditionally bounding analytic ranks of
              elliptic curves. ANTS
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
+.. [Bo2009] Bosch, S., Algebra, Springer 2009
 
 .. [BP1982] \H. Beker and F. Piper. *Cipher Systems: The Protection of
             Communications*. John Wiley and Sons, 1982.
@@ -993,6 +999,11 @@ REFERENCES:
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
 
+.. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
+             *Positroid Varieties: Juggling and Geometry*
+             Compositio Mathematica, **149** (2013), no. 10.
+             :arXiv:`1111.3660`.
+
 .. [KMM2004] Tomasz Kaczynski, Konstantin Mischaikow, and Marian
              Mrozek, "Computational Homology", Springer-Verlag (2004).
 
@@ -1577,6 +1588,9 @@ REFERENCES:
 .. [Stu1987] \J. Sturm, On the congruence of modular forms, Number
              theory (New York, 1984-1985), Springer, Berlin, 1987,
              pp. 275-280.
+
+.. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
+             1993.
 
 .. [STW2016] C. Stump, H. Thomas, N. Williams. *Cataland II*, in
              preparation, 2016.
