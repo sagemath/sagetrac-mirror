@@ -55,6 +55,8 @@ from .number_field_element import OrderElement_absolute, OrderElement_relative
 
 from .number_field_element_quadratic import OrderElement_quadratic
 
+from .order_quotients import OrderQuotientRing
+
 from sage.rings.monomials import monomials
 
 
@@ -1001,6 +1003,10 @@ class Order(IntegralDomain):
             3
         """
         return self.number_field().absolute_degree()
+        
+    def quotient(self, ideal, names=None):
+        
+        return OrderQuotientRing(self, ideal, names=names)
 
 ##     def absolute_polynomial(self):
 ##         """
