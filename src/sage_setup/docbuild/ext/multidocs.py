@@ -25,6 +25,7 @@ import sys
 import shutil
 import re
 import tempfile
+
 import sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
@@ -139,7 +140,7 @@ def merge_js_index(app):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[unicode(ref)] = newmapping
+                mapping[six.text_type(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
             for (res, title) in six.iteritems(index._titles):

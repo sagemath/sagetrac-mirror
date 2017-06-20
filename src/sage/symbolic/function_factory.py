@@ -12,6 +12,8 @@ Factory for symbolic functions
 from __future__ import print_function
 from six import string_types
 
+import six
+
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
 from sage.misc.decorators import sage_wraps
