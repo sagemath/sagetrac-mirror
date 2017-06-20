@@ -15,7 +15,6 @@ from __future__ import print_function
 from six.moves import range
 
 import logging, optparse, os, shutil, subprocess, sys, re
-import six
 
 import sphinx.cmdline
 import sphinx.util.console

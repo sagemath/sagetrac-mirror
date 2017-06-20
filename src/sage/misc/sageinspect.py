@@ -121,7 +121,6 @@ import ast
 import inspect
 import functools
 import os
-import six
 import tokenize
 import types
 import re

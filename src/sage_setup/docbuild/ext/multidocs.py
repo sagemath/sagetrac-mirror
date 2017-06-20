@@ -18,8 +18,9 @@
     - the javascript index;
     - the citations.
 """
-import six
+from six import text_type, iteritems
 from six.moves import cPickle
+
 import os
 import sys
 import shutil
@@ -28,6 +29,7 @@ import tempfile
 
 import sphinx
 from sphinx.util.console import bold
+
 from sage.env import SAGE_DOC
 from sage.misc.misc import sage_makedirs
 
@@ -87,14 +89,14 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            for ind, (path, tag) in six.iteritems(docenv.domaindata["std"]["citations"]):
+            for ind, (path, tag) in iteritems(docenv.domaindata["std"]["citations"]):
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag)
             env.domaindata["std"]["citations"].update(newcite)
             # merge the py:module indexes
             newmodules = {}
             for ind,(modpath,v1,v2,v3) in (
-                six.iteritems(docenv.domaindata['py']['modules'])):
+                iteritems(docenv.domaindata['py']['modules'])):
                 newmodules[ind] = (fixpath(modpath),v1,v2,v3)
             env.domaindata['py']['modules'].update(newmodules)
             app.info(", %s modules"%(len(newmodules)))
@@ -136,18 +138,18 @@ def merge_js_index(app):
         if index is not None:
             # merge the mappings
             app.info(" %s js index entries"%(len(index._mapping)))
-            for (ref, locs) in six.iteritems(index._mapping):
+            for (ref, locs) in iteritems(index._mapping):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[six.text_type(ref)] = newmapping
+                mapping[text_type(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
-            for (res, title) in six.iteritems(index._titles):
+            for (res, title) in iteritems(index._titles):
                 titles[fixpath(res)] = title
             # merge the filenames
             filenames = app.builder.indexer._filenames
-            for (res, filename) in six.iteritems(index._filenames):
+            for (res, filename) in iteritems(index._filenames):
                 filenames[fixpath(res)] = filename
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
@@ -248,7 +250,7 @@ def fetch_citation(app, env):
         cache = cPickle.load(f)
     app.builder.info("done (%s citations)."%len(cache))
     cite = env.domaindata["std"]["citations"]
-    for ind, (path, tag) in six.iteritems(cache):
+    for ind, (path, tag) in iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind]=(os.path.join("..", path), tag)
 
