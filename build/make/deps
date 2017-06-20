@@ -44,6 +44,7 @@ all-build: all-toolchain
 all-toolchain:
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) $(inst_gfortran)
 	$(MAKE) toolchain-deps
 
 # All targets except for the base packages
