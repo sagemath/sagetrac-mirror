@@ -112,6 +112,10 @@ $MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
 $MAKE install
 
+# The spkg still installs a minimal C compiler that needs to be removed
+# so it doesn't conflict with the configured C compiler.
+rm -f "$SAGE_LOCAL"/bin/gcc "$SAGE_LOCAL"/bin/cpp
+
 # Force re-configuration: the next time that "make" is run, we don't
 # want GFORTRAN to be built again, see Trac #19324
 touch "$SAGE_ROOT/configure"
