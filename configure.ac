@@ -382,11 +382,10 @@ AC_SUBST(FC)
 
 #Figuring out if we are using clang instead of gcc.
 AX_COMPILER_VENDOR()
-IS_CLANG=no
-if test "x$ax_cv_c_compiler_vendor" = xclang ; then 
-    IS_CLANG=yes
+IS_REALLY_GCC=no
+if test "x$ax_cv_c_compiler_vendor" = xgnu ; then 
+    IS_REALLY_GCC=yes
 fi
-AC_SUBST(IS_CLANG)
 
 # On darwin, also set the objective C/C++ compilers
 # Checking on all platforms doesn't hurt and stops
@@ -485,7 +484,7 @@ else
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    if test $IS_CLANG = no ; then
+    if test $IS_REALLY_GCC = yes ; then
         # Add the .0 because Debian/Ubuntu gives version numbers like
         # 4.6 instead of 4.6.4 (Trac #18885)
         case "$GXX_VERSION.0" in
