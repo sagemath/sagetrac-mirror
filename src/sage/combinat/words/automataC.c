@@ -3909,8 +3909,8 @@ Automaton BiggerAlphabet (Automaton a, Dict d, int nna)
 		for (j=0;j<a.na;j++)
 		{
 			r.e[i].f[d.e[j]] = a.e[i].f[j];
-			r.e[i].final = a.e[i].final;
 		}
+		r.e[i].final = a.e[i].final;
 	}
 	r.i = a.i;
 	return r;

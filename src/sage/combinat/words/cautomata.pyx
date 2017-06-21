@@ -954,14 +954,26 @@ cdef class FastAutomaton:
 		return r
 	
 	def concat (self, FastAutomaton b, det=True, verb=False):
+		cdef FastAutomaton a
+		if self.A != b.A:
+			A = list(set(self.A).union(set(b.A)))
+			if verb: print("Changement des alphabets (%s, %s -> %s)..."%(self.A, b.A, A))
+			a = self.bigger_alphabet(A)
+			b = b.bigger_alphabet(A)
+			#raise ValueError("Error : concatenation of automaton having differents alphabets.")
+		else:
+			a = self
+			A = self.A
+		if verb: print("a=%s (A=%s)\nb=%s (A=%s)"%(a, a.A, b, b.A))
 		sig_on()
-		cdef NAutomaton a
+		cdef NAutomaton na
 		r = NFastAutomaton(None)
-		a = Concat (self.a[0], b.a[0], verb)
-		r.a[0] = a
-		r.A = self.A
+		na = Concat (a.a[0], b.a[0], verb)
+		r.a[0] = na
+		r.A = A
 		sig_off()
 		if det:
+			if verb: print("Determinise et simplifie...")
 			return r.determinise().emonde().minimise()
 		else:
 			return r
@@ -1379,8 +1391,13 @@ cdef class FastAutomaton:
 		return a
 			
 	def included (self, FastAutomaton a, bool verb=False, emonded=False):
+		cdef FastAutomaton b
+		if self.A != a.A:
+			b = self.bigger_alphabet(a.A)
+		else:
+			b = self
 		sig_on()
-		res = Included(self.a[0], a.a[0], emonded, verb)
+		res = Included(b.a[0], a.a[0], emonded, verb)
 		sig_off()
 		return Bool(res)
 #		d = {}
