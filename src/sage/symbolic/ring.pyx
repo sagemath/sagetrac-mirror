@@ -687,8 +687,6 @@ cdef class SymbolicRing(CommutativeRing):
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
 
             return e
 
@@ -712,8 +710,6 @@ cdef class SymbolicRing(CommutativeRing):
                 self.symbols[name] = e
 
             e._gobj = GEx(symb)
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
 
         return e
 
