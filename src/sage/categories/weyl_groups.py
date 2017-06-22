@@ -598,12 +598,12 @@ class WeylGroups(Category_singleton):
             from sage.rings.big_oh import O
             S = result.parent().base_ring()[['t']]
             t = S.gen()
-            return (result.numerator() + O(t ** order)) / (result.denominator()+O(t**order))
+            return (result.numerator() + O(t ** order)) / (result.denominator() + O(t**order))
 
         @cached_in_parent_method
         def stable_grothendieck_polynomial_truncated(self, order):
             r"""
-            Return the truncated stable Grothendieck polynomial indexed by ``self``
+            Return the truncated stable Grothendieck polynomial indexed by ``self``.
 
             INPUT:
 
@@ -618,7 +618,7 @@ class WeylGroups(Category_singleton):
             EXAMPLES:
 
             The following examples are taken from
-            http://arxiv.org/pdf/0901.1506v1, p. 36::
+            :arxiv:`0901.1506v1`, p. 36::
 
                 sage: W = WeylGroup(['A', 1, 1])
                 sage: s = SymmetricFunctions(QQ).s()
@@ -635,9 +635,9 @@ class WeylGroups(Category_singleton):
                 s[1, 1] + 2*s[1, 1, 1] + 3*s[1, 1, 1, 1] + 4*s[1, 1, 1, 1, 1] + 5*s[1, 1, 1, 1, 1, 1] + 6*s[1, 1, 1, 1, 1, 1, 1]
 
             """
-            import sage.combinat.sf
-            m = sage.combinat.sf.all.SFAMonomial(QQ)
-            return m.from_polynomial_exp(self.stable_grothendieck_polynomial_as_series(order)(1))
+            from sage.combinat.sf.sf import SymmetricFunctions
+            m = SymmetricFunctions(QQ).m()
+            return m.from_polynomial_exp(self.stable_grothendieck_polynomial_as_series(order).polynomial()(t=1))
 
         @cached_in_parent_method
         def reflection_to_root(self):
