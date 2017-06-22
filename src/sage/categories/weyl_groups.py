@@ -10,6 +10,7 @@ Weyl Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
+from sage.misc.misc_c import prod
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.rings.infinity import infinity
@@ -337,9 +338,8 @@ class WeylGroups(Category_singleton):
                 * :mod:`sage.combinat.root_system.pieri_factors`
 
             INPUT:
-
-                - ``self`` -- an element `w` of a Weyl group `W`
-                - ``max_length`` -- a non negative integer or infinity (default: infinity)
+             - ``self`` -- an element `w` of a Weyl group `W`
+             - ``max_length`` -- a non negative integer or infinity (default: infinity)
 
             Returns the generating series for the Pieri factorizations
             `w = u_1 \cdots u_k`, where `u_i` is a Pieri factor for
@@ -466,6 +466,178 @@ class WeylGroups(Category_singleton):
             import sage.combinat.sf
             m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())
+
+        @cached_in_parent_method
+        def stable_grothendieck_polynomial_as_fraction(self, max_length=infinity):
+            r"""
+            Return the stable Grothendieck polynomial indexed by ``self``, as a fraction
+
+            INPUT:
+
+            - ``self`` -- an element `w` of a Weyl group `W`
+            - ``max_length`` -- a non negative integer or ``infinity`` (default: ``infinity``)
+
+            Return the generating series of length decreasing Pieri
+            factorizations of `w` in the 1-Hecke algebra, as an
+            element of the fraction field of `QQ[x1,\dots,xn][t]`, and
+            where the weight of each factor of length `l` is `xl t^l`.
+
+            Such a factorization can be written uniquely in the form
+            `f_1\cdots f_k f f_{k+1} rest`, where `f_1 \cdots f_k` is
+            a sequence of Pieri factors of decreasing length such that
+            `\pi_{f_i} \pi_w = \pi_w` (i.e. their support is a subset
+            of the left descents of w), `rest` is a pieri
+            factorization of a strict right factor v of w, and `f` is
+            a pieri factor such that `\pi_f \pi_v = \pi_w`.
+
+            .. SEEALSO::
+
+                - :meth:`stable_grothendieck_polynomial_as_series`
+                - :meth:`stable_grothendieck_polynomial_truncated`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A', 3, 1])
+                sage: W.one().stable_grothendieck_polynomial_as_fraction()
+                1
+                sage: W.from_reduced_word([1]).stable_grothendieck_polynomial_as_fraction()
+                x1*t/(-x1*t + 1)
+                sage: u = [2,1]; W.from_reduced_word(u).stable_grothendieck_polynomial_as_fraction()
+                (x1^2*x2*t^4 + (-x1^3 - 2*x1*x2)*t^3 + (x1^2 + x2)*t^2)/(-x1^3*t^3 + 3*x1^2*t^2 - 3*x1*t + 1)
+                sage: u = [1,2]; W.from_reduced_word(u).stable_grothendieck_polynomial_as_fraction()
+                x1^2*t^2/(x1^2*t^2 - 2*x1*t + 1)
+                sage: def view(f):
+                ....:     return (f.numerator(), factor(f.denominator))
+                sage: view(W.from_reduced_word([1,2,1]).stable_grothendieck_polynomial_as_fraction())         # not implemented
+                sage: view(W.from_reduced_word([1,2,1,0]).stable_grothendieck_polynomial_as_fraction())       # not implemented
+                sage: view(W.from_reduced_word([1,2,3,1,2,1,0]).stable_grothendieck_polynomial_as_fraction()) # not implemented
+                sage: view(W.from_reduced_word([3,1,2,0,3,1,0]).stable_grothendieck_polynomial_as_fraction()) # not implemented
+
+
+            .. warning::
+
+                This function assumes that, for any `u,v` in `W`, we can count
+                by length the Pieri factors `f` such that `pi_f pi_u = pi_v`.
+
+            .. warning::
+
+                As discussed with Anne and Jason, there currently is a
+                bug in type `A` affine, because this is calling
+                inappropriately Pieri factors to do this counting.
+            """
+            W = self.parent()
+            PF = W.pieri_factors(max_length = max_length)
+            # HACKY WORKAROUND: we make sure to play with a ring of
+            # multivariate polynomials by throwing in an extra
+            # variable x2 if needed. Otherwise, retrieving the
+            # monomial list as is done in exp_to_poly does not work
+            # currently on the univariate ring QQ[x1].
+            R = QQ[','.join('x%s'%l for l in range(1, max(PF.max_length()+1,3)))]['t'].fraction_field()
+            x = map(R, R.base_ring().gens())
+            t = R.gen()
+            # The weight of a Pieri factor of length l is x_l (-t)^l
+            weight = lambda l: x[l - 1] * (t) ** l
+#            weight = lambda l: x[l - 1] * (-t) ** l
+
+            if self.is_one():
+                return R.one()
+
+            result = R.zero()
+            for (u, v) in self.left_pieri_factorizations(max_length):
+                if u.is_one():
+                    continue
+                # The set of all pieri factors f such that pi_f\pi_w = pi_w
+                fww = PF.nil_hecke_divisors(self, self, side = "left")
+                # The set of all pieri factors f such that pi_f\pi_v = pi_w
+                fvw = PF.nil_hecke_divisors(self, v, side = "left")
+                # We choose the length of f
+                for l in range(fvw.min_length(), fvw.max_length() + 1):
+                    result += (
+                        prod( (1/(1-weight(l1)*fww.subset(length = l1).cardinality()) for l1 in range(l, fww.max_length()+1)), R.one()) *
+                        weight(l) *
+                        fvw.subset(length = l).cardinality() *
+                        v.stable_grothendieck_polynomial_as_fraction(max_length = l))
+            return result
+
+        @cached_in_parent_method
+        def stable_grothendieck_polynomial_as_series(w, order):
+            r"""
+            Return the stable Grothendieck polynomial indexed by ``self``, expanded as a truncated series
+
+            INPUT:
+
+            - ``self`` -- an element of an (affine) Weyl group
+            - ``order`` -- a non negative integer: the expansion order of the series
+
+            .. SEEALSO::
+
+                - :meth:`stable_grothendieck_polynomial_as_fraction`
+                - :meth:`stable_grothendieck_polynomial_truncated`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A', 3, 1])
+                sage: def lowest_term_of_grothendieck(w):
+                ....:     return w.stable_grothendieck_polynomial_as_series(order = w.length()+1)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([1]))
+                x1*t + O(t^2)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([2,1]))
+                (x1^2 + x2)*t^2 + O(t^3)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([1,2]))
+                x1^2*t^2 + O(t^3)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([1,2,1]))
+                (2*x1^3 + x1*x2)*t^3 + O(t^4)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([1,2,1,0]))
+                (3*x1^4 + 2*x1^2*x2 + x2^2 + x1*x3)*t^4 + O(t^5)
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([1,2,3,1,2,1,0])) # long time
+                sage: lowest_term_of_grothendieck(W.from_reduced_word([3,1,2,0,3,1,0])) # long time
+                sage: W.from_reduced_word([1,2,1]).stable_grothendieck_polynomial_as_series(order = 10)
+                (2*x1^3 + x1*x2)*t^3 + (8*x1^4 + x1^2*x2)*t^4 + (22*x1^5 + 3*x1^3*x2 + x1*x2^2)*t^5 + (52*x1^6 + 9*x1^4*x2 + x1^2*x2^2)*t^6 + (114*x1^7 + 23*x1^5*x2 + 3*x1^3*x2^2 + x1*x2^3)*t^7 + (240*x1^8 + 53*x1^6*x2 + 9*x1^4*x2^2 + x1^2*x2^3)*t^8 + (494*x1^9 + 115*x1^7*x2 + 23*x1^5*x2^2 + 3*x1^3*x2^3 + x1*x2^4)*t^9 + O(t^10)
+            """
+            result = w.stable_grothendieck_polynomial_as_fraction()
+            from sage.rings.big_oh import O
+            S = result.parent().base_ring()[['t']]
+            t = S.gen()
+            return (result.numerator() + O(t ** order)) / (result.denominator()+O(t**order))
+
+        @cached_in_parent_method
+        def stable_grothendieck_polynomial_truncated(self, order):
+            r"""
+            Return the truncated stable Grothendieck polynomial indexed by ``self``
+
+            INPUT:
+
+            - ``self`` -- an element of an (affine) weyl group
+            - ``order`` -- a non negative integer
+
+            .. SEEALSO::
+
+                - :meth:`stable_grothendieck_polynomial_as_fraction`
+                - :meth:`stable_grothendieck_polynomial_as_series`
+
+            EXAMPLES:
+
+            The following examples are taken from
+            http://arxiv.org/pdf/0901.1506v1, p. 36::
+
+                sage: W = WeylGroup(['A', 1, 1])
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s(W.from_reduced_word([0]).stable_grothendieck_polynomial_truncated(7))
+                s[1] + s[1, 1] + s[1, 1, 1] + s[1, 1, 1, 1] + s[1, 1, 1, 1, 1] + s[1, 1, 1, 1, 1, 1]
+                sage: s(W.from_reduced_word([0,1]).stable_grothendieck_polynomial_truncated(8))
+                s[1, 1] + 2*s[1, 1, 1] + 3*s[1, 1, 1, 1] + 4*s[1, 1, 1, 1, 1] + 5*s[1, 1, 1, 1, 1, 1] + 6*s[1, 1, 1, 1, 1, 1, 1]
+
+
+                sage: W = WeylGroup(['A', 2, 1])
+                sage: s(W.from_reduced_word([1]).stable_grothendieck_polynomial_truncated(7))
+                s[1] + s[1, 1] + s[1, 1, 1] + s[1, 1, 1, 1] + s[1, 1, 1, 1, 1] + s[1, 1, 1, 1, 1, 1]
+                sage: s(W.from_reduced_word([2,0]).stable_grothendieck_polynomial_truncated(8))
+                s[1, 1] + 2*s[1, 1, 1] + 3*s[1, 1, 1, 1] + 4*s[1, 1, 1, 1, 1] + 5*s[1, 1, 1, 1, 1, 1] + 6*s[1, 1, 1, 1, 1, 1, 1]
+
+            """
+            import sage.combinat.sf
+            m = sage.combinat.sf.all.SFAMonomial(QQ)
+            return m.from_polynomial_exp(self.stable_grothendieck_polynomial_as_series(order)(1))
 
         @cached_in_parent_method
         def reflection_to_root(self):
