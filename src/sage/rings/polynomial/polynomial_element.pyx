@@ -1329,6 +1329,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         If the degree of the polynomial is 1 or more, calls
         :func:`inverse_of_unit_polynomial`; see the algorithm description there.
+
+        TESTS::
+
+        Make sure that the degree 0 case is also handled reasonably:
+
+            sage: R.<x> = ZZ[]
+            sage: R(-1).inverse_of_unit()
+            -1
+            sage: R(-1).inverse_of_unit().parent() is R
+            True
+            sage: R(2).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
         """
         if self.degree() > 0:
             if not self.is_unit():
@@ -9545,11 +9560,38 @@ cpdef inverse_of_unit_polynomial(p):
 
     TESTS::
 
+    It is an error if the given polynomial is not a unit.
+
         sage: R.<x> = Zmod(32)[]
         sage: inverse_of_unit_polynomial(2+4*x)
         Traceback (most recent call last):
         ...
         ArithmeticError: is not a unit
+
+    The inverse lies in the same ring as the given polynomial
+
+        sage: R.<x> = Zmod(32)[]
+        sage: inverse_of_unit_polynomial(1 + 4*x).parent() is R
+        True
+        sage: M=MatrixSpace(QQ, 2, 2); S.<y> = M[]
+        sage: inverse_of_unit_polynomial(S(3)).parent() is S
+        True
+
+    It would be nice to test a more complex case like
+    `inverse_of_unit_polynomial(3+m*y + m/2*y^2)` where m is a nilpotent matrix
+    like `M([0,1,0,0])`, but matrix rings do not implement `is_nilpotent`,
+    so an exception is thrown.
+
+    Matrices of polynomials do not currently implement inverse_of_unit, and
+    their `~` method gives a result in a fraction field.  So we can test the
+    error handling case:
+
+        sage: R.<x> = ZZ[]
+        sage: M=MatrixSpace(R, 2, 2); S.<y> = M[]
+        sage: inverse_of_unit_polynomial(S(1))
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Base ring, Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring, does not implement inverse_of_unit.
     """
 
     if not p.is_unit():
@@ -9560,13 +9602,13 @@ cpdef inverse_of_unit_polynomial(p):
     except AttributeError:
         v =  ~u # many rings don't implement inverse_of_unit
         if v.parent() is not p.base_ring():
-            raise NotImplementedError
+            raise NotImplementedError("Base ring, %s, does not implement inverse_of_unit." % p.base_ring())
     m = v*(u - p)
     i = v*(1+m)
-    while p*i != 1:
+    while not (p*i).is_one():
         # invariant: i = v * prod(1 + m^(2^i) for i in range(k))
         m *= m
-        i *= (1+m)
+        i *= 1+m
     return i
 
 
