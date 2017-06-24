@@ -67,6 +67,18 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
             """
             return "'%s"%self.name()
 
+        def _sympy_(self):
+            """
+            EXAMPLES::
+
+                sage: from sage.symbolic.function_factory import function_factory
+                sage: f = function_factory('f')
+                sage: f._sympy_()
+                f
+            """
+            from sympy import Function
+            return Function(self.name())
+
         def __reduce__(self):
             """
             EXAMPLES::
