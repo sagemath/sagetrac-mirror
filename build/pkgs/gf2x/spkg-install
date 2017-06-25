@@ -39,6 +39,8 @@ if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     echo "Building a generic gf2x library."
     GF2X_CONFIGURE="--disable-hardware-specific-code $GF2X_CONFIGURE"
 fi
+echo "Building a generic gf2x library."
+GF2X_CONFIGURE="--disable-hardware-specific-code $GF2X_CONFIGURE"
 
 echo "Configuring gf2x."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL"/lib \
