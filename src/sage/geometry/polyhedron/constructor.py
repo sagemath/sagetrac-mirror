@@ -480,7 +480,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 if QQ.has_coerce_map_from(common_ring):
                     base_ring = QQ
                     convert = True
-                elif common_ring is RR:   # DWIM: replace with RDF
+                elif common_ring in [RR, RDF, float]:
                     base_ring = RDF
                     convert = True
                 else:
