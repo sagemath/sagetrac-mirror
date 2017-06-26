@@ -1,0 +1,24 @@
+diff --git a/Makefile.in b/Makefile.in
+index c48fe26..c686857 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -101,6 +101,7 @@ $(ARB_LIB): $(LOBJS) $(LIB_SOURCES) $(EXT_SOURCES) $(HEADERS) $(EXT_HEADERS) | b
+ 		$(LDCONFIG) -n "$(CURDIR)"; \
+ 	fi
+ 	ln -sf "$(ARB_LIB)" "$(ARB_LIBNAME)"; \
++	ln -sf "$(ARB_LIB)" "$(ARB_LIBNAME).$(ARB_MAJOR)"; \
+ 
+ libarb.a: $(OBJS) $(LIB_SOURCES) $(EXT_SOURCES) $(HEADERS) $(EXT_HEADERS) | build build/interfaces
+ 	$(AT)$(foreach ext, $(EXTENSIONS), $(foreach dir, $(patsubst $(ext)/%.h, %, $(wildcard $(ext)/*.h)), mkdir -p build/$(dir); BUILD_DIR=$(CURDIR)/build/$(dir); export BUILD_DIR; MOD_DIR=$(dir); export MOD_DIR; $(MAKE) -f $(CURDIR)/Makefile.subdirs -C $(ext)/$(dir) static || exit $$?;))
+diff --git a/configure b/configure
+index c5c8b07..cc7a6d3 100755
+--- a/configure
++++ b/configure
+@@ -646,6 +646,7 @@ echo "" >> Makefile
+ echo "ARB_STATIC=$STATIC" >> Makefile
+ echo "ARB_SHARED=$SHARED" >> Makefile
+ echo "ARB_LIB=$ARB_LIB" >> Makefile
++echo "ARB_MAJOR=$ARB_MAJOR" >> Makefile
+ echo "ARB_LIBNAME=$ARB_LIBNAME" >> Makefile
+ echo "ARB_SOLIB=$ARB_SOLIB" >> Makefile
+ echo "EXEEXT=$EXEEXT" >> Makefile
