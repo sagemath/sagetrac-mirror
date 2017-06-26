@@ -817,7 +817,10 @@ cdef int py_get_parent_char(o) except -1:
     if not isinstance(o, Element):
         return 0
 
-    c = (<Element>o)._parent.characteristic()
+    try:
+        c = (<Element>o)._parent.characteristic()
+    except NotImplementedError:
+        return 0;
 
     # Pynac only differentiates between
     # - characteristic 0
