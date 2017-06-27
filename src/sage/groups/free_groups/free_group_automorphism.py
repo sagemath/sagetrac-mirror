@@ -1897,7 +1897,7 @@ class free_group_automorphisms:
     @staticmethod
     def Bestvina_Handel_surface_homeo():
         """
-        Automorphism of `F_4` given in [BH]_ see also [Kapovich]_.
+        Automorphism of `F_4` given in [BH-train-track]_ see also [Kapovich]_.
 
         This is a pseudo-Anosov mapping class of the 5-punctured
         sphere. Thus this is not an iwip. However, its representative
@@ -1905,7 +1905,7 @@ class free_group_automorphisms:
 
         OUTPUT:
 
-        An automorphism of F_4 given in [BH]_ see also [Kapovich]_.
+        An automorphism of `F_4` given in [BH-train-track]_ see also [Kapovich]_.
         This is a pseudo-Anosov mapping class of the 5-punctured
         sphere. Thus this is not an iwip. However, its representative
         on the rose in train-track.
@@ -1952,14 +1952,14 @@ class free_group_automorphisms:
     @staticmethod
     def Clay_Pettet_twisting_out():
         """
-        Automorphism of F_3 given in Section 2 of [CP-twisting].
+        Automorphism of `F_3` given in Section 2 of [CP-twisting].
 
         This is an atoroidal iwip. It is positive and thus train-track
         on the rose.
 
         OUTPUT:
 
-        an Automorphism of F_3 given in Section 2 of [CP-twisting].
+        an Automorphism of `F_3` given in Section 2 of [CP-twisting].
         This is an atoroidal iwip. It is positive and thus train-track
         on the rose.
 
@@ -1979,7 +1979,7 @@ class free_group_automorphisms:
     @staticmethod
     def Hokkaido():
         """
-        Automorphism of F_4 suggested by X. Bressaud [personal communication]
+        Automorphism of `F_4` suggested by X. Bressaud [personal communication]
 
         Already studied by Thurston [reference needed]?
 
@@ -2034,7 +2034,7 @@ class free_group_automorphisms:
     @staticmethod
     def Bressaud():
         r"""
-        Automorphism of `F_4r suggested by Xavier Bressaud
+        Automorphism of `F_4` suggested by Xavier Bressaud
         [personal communication]
 
         It is positive thus train-track on the rose. This is a
