@@ -91,6 +91,14 @@ def PolynomialRing(base_ring, *args, **kwds):
       implemented with ``'NTL'`` or ``'FLINT'``; default is ``'FLINT'``).
       For many base rings, the ``"singular"`` implementation is available.
 
+    REMARK:
+
+    In earlier versions of Sage, the names have not necessarily been
+    strings. Some users provided a symbolic variable instead of a string,
+    and expected that this symbolic variable is the same as the generator
+    of the resulting polynomial ring, which is of course not the case.
+    This common mistake is now deprecated.
+
     .. NOTE::
 
         The following rules were introduced in :trac:`9944`, in order
@@ -424,13 +432,6 @@ def PolynomialRing(base_ring, *args, **kwds):
 
         sage: R = Integers(1)['x','y']
         sage: R.0 == 0
-        True
-
-    We verify that :trac:`13187` is fixed::
-
-        sage: var('t')
-        t
-        sage: PolynomialRing(ZZ, name=t) == PolynomialRing(ZZ, name='t')
         True
 
     We verify that polynomials with interval coefficients from

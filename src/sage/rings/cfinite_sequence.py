@@ -160,6 +160,8 @@ def CFiniteSequences(base_ring, names = None, category = None):
         names = ['x']
     elif len(names)>1:
         raise NotImplementedError("Multidimensional o.g.f. not implemented.")
+    else:
+        names = [str(names[0])]
     if category is None:
         category = Fields()
     if not(base_ring in (QQ, ZZ)):

@@ -645,16 +645,16 @@ class PolynomialSequence_generic(Sequence_generic):
         """
         R = self.ring()
         K = R.base_ring()
-        Xs = list(R.gens())
+        Xs = R.variable_names()
         r = len(self)
         d = len(Xs)
 
         # Expand R by r new variables.
         T = 'T'
-        while T in [str(x) for x in Xs]:
+        while T in Xs:
             T = T+'T'
         Ts = [T + str(j) for j in range(r)]
-        RR = PolynomialRing(K,d+r,tuple(Xs+Ts))
+        RR = PolynomialRing(K, d+r, Xs+tuple(Ts))
         Vs = list(RR.gens())
         Xs = Vs[0 :d]
         Ts = Vs[d:]
@@ -670,7 +670,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         # Coerce JJ into `K[T_1,\ldots,T_r]`.
         # Choosing the negdeglex order simply because i find it useful in my work.
-        RRR = PolynomialRing(K,r,tuple(Ts),order='negdeglex')
+        RRR = PolynomialRing(K, r, RR.variable_names()[d:], order='negdeglex')
         return RRR.ideal(JJ.gens())
 
     def coefficient_matrix(self, sparse=True):

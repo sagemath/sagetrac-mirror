@@ -1029,7 +1029,7 @@ class PolynomialConverter(Converter):
             self.base_ring = base_ring
         elif base_ring is not None:
             self.base_ring = base_ring
-            vars = self.ex.variables()
+            vars = [str(x) for x in self.ex.variables()]
             if len(vars) == 0:
                 vars = ['x']
             from sage.rings.all import PolynomialRing

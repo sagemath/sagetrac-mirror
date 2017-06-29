@@ -139,6 +139,14 @@ def QuotientRing(R, I, names=None):
     - ``names`` -- (optional) a list of strings to be used as names for
       the variables in the quotient ring `R/I`.
 
+    REMARK:
+
+    In earlier versions of Sage, the names have not necessarily been
+    strings. Some users provided a symbolic variable instead of a string,
+    and expected that this symbolic variable is the same as the generator
+    of the resulting quotient ring, which is of course not the case.
+    This common mistake is now deprecated.
+
     OUTPUT: `R/I` - the quotient ring `R` mod the ideal `I`
 
     ASSUMPTION:

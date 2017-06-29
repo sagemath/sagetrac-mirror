@@ -741,7 +741,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         R = PP.coordinate_ring()
         PS = PP[0] #check for x fibers
         vars = list(PS.gens())
-        R0 = PolynomialRing(K, 3, vars) #for dimension calculation to work,
+        R0 = PolynomialRing(K, 3, PS.variable_names()) #for dimension calculation to work,
             #must be done with Polynomial ring over a field
         #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
         I = R.ideal(self.Gpoly(1, 0), self.Gpoly(1, 1), self.Gpoly(1, 2), self.Hpoly(1, 0, 1),
@@ -752,8 +752,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             return True
 
         PS = PP[1] #check for y fibers
-        vars = list(PS.gens())
-        R0 = PolynomialRing(K,3,vars) #for dimension calculation to work,
+        R0 = PolynomialRing(K, 3, PS.variable_names()) #for dimension calculation to work,
         #must be done with Polynomial ring over a field
         #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
         I = R.ideal(self.Gpoly(0, 0), self.Gpoly(0, 1), self.Gpoly(0, 2), self.Hpoly(0, 0, 1),
@@ -824,15 +823,15 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         PSX = PP[0];
         vars = list(PSX.gens())
         K = FractionField(PSX.base_ring())
-        R0 = PolynomialRing(K, 3, vars)
+        R0 = PolynomialRing(K, 3, PSX.variable_names())
         I = R.ideal(self.Gpoly(1, 0), self.Gpoly(1, 1), self.Gpoly(1, 2), self.Hpoly(1, 0,1 ), \
                     self.Hpoly(1, 0, 2), self.Hpoly(1, 1, 2))
-        phi = R.hom(vars + [0, 0, 0], R0)
+        phi = R.hom(list(PSX.gens()) + [0, 0, 0], R0)
         I = phi(I)
         xFibers = []
         #check affine charts
         for n in range(3):
-            affvars = list(R0.gens())
+            affvars = list(R0.variable_names())
             del affvars[n]
             R1 = PolynomialRing(K, 2, affvars, order = 'lex')
             mapvars = list(R1.gens())
@@ -853,17 +852,16 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                         if MP not in xFibers:
                             xFibers.append(MP)
         PSY = PP[1]
-        vars = list(PSY.gens())
         K = FractionField(PSY.base_ring())
-        R0 = PolynomialRing(K, 3, vars)
+        R0 = PolynomialRing(K, 3, PSY.variable_names())
         I = R.ideal(self.Gpoly(0, 0), self.Gpoly(0, 1), self.Gpoly(0, 2), self.Hpoly(0, 0, 1), \
                     self.Hpoly(0, 0, 2), self.Hpoly(0, 1, 2))
-        phi = PP.coordinate_ring().hom([0, 0, 0] + vars, R0)
+        phi = PP.coordinate_ring().hom([0, 0, 0] + list(PSY.gens()), R0)
         I = phi(I)
         yFibers = []
         #check affine charts
         for n in range(3):
-            affvars = list(R0.gens())
+            affvars = list(R0.variable_names())
             del affvars[n]
             R1 = PolynomialRing(K, 2, affvars, order = 'lex')
             mapvars = list(R1.gens())
@@ -937,7 +935,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         PSX = PP[0]
         vars = list(PSX.gens())
         K = PSX.base_ring()
-        R = PolynomialRing(K, 3, vars)
+        R = PolynomialRing(K, 3, PSX.variable_names())
         I = RR.ideal(self.Gpoly(1, 0), self.Gpoly(1, 1), self.Gpoly(1, 2), self.Hpoly(1, 0, 1),
                      self.Hpoly(1, 0, 2), self.Hpoly(1, 1, 2))
         phi = PP.coordinate_ring().hom(vars + [0, 0, 0], R)
@@ -946,7 +944,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         #move the ideal to the ring of integers
         if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(),R.gens(),R.ngens())
+            S = PolynomialRing(R.base_ring().ring_of_integers(),R.variable_names(),R.ngens())
             I = S.ideal(I.gens())
         GB = I.groebner_basis()
         #get the primes dividing the coefficients of the monomials x_i^k_i
@@ -963,14 +961,14 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         PSY = PP[1]
         vars = list(PSY.gens())
         K = PSY.base_ring()
-        R = PolynomialRing(K, 3, vars)
+        R = PolynomialRing(K, 3, PSY.variable_names())
         I = RR.ideal(self.Gpoly(0, 0), self.Gpoly(0, 1), self.Gpoly(0, 2), self.Hpoly(0, 0, 1),
                      self.Hpoly(0, 0, 2), self.Hpoly(0, 1, 2))
         phi = PP.coordinate_ring().hom([0, 0, 0] + vars, R)
         I = phi(I)
         #move the ideal to the ring of integers
         if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(),R.gens(),R.ngens())
+            S = PolynomialRing(R.base_ring().ring_of_integers(),R.variable_names(),R.ngens())
             I = S.ideal(I.gens())
         GB = I.groebner_basis()
         #get the primes dividing the coefficients of the monomials x_i^k_i

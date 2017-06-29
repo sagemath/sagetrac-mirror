@@ -6734,7 +6734,7 @@ cdef class Expression(CommutativeRingElement):
         nu = ring.SR(self.numerator()).polynomial(base_ring)
         de = ring.SR(self.denominator()).polynomial(base_ring)
         vars = sorted(set(nu.variables() + de.variables()), key=repr)
-        R = FractionField(PolynomialRing(base_ring, vars))
+        R = FractionField(PolynomialRing(base_ring, list(str(v) for v in vars)))
         return R(self.numerator())/R(self.denominator())
 
     def power_series(self, base_ring):

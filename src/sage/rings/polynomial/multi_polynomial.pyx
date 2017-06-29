@@ -457,12 +457,12 @@ cdef class MPolynomial(CommutativeRingElement):
         if R.ngens() <= 1:
             return self.univariate_polynomial()
 
-        other_vars = Z
-        del other_vars[ind]
+        del Z[ind]
+        other_vars = [str(v) for v in Z]
 
         # Make polynomial ring over all variables except var.
         S = R.base_ring()[tuple(other_vars)]
-        ring = S[var]
+        ring = S[str(var)]
         if not self:
             return ring(0)
 

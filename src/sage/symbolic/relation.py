@@ -1007,7 +1007,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
     if modulus < 1:
         raise ValueError("the modulus must be a positive integer")
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort(key=repr)
+    vars.sort(key=str)
 
     if modulus == 1: # degenerate case
         ans = [tuple(Integers(1)(0) for v in vars)]
@@ -1119,7 +1119,7 @@ def _solve_mod_prime_power(eqns, p, m, vars):
     for mi in range(m):
         mrunning *= p
         R = Integers(mrunning)
-        S = PolynomialRing(R, len(vars), vars)
+        S = PolynomialRing(R, len(vars), [str(var) for var in vars])
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
             possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
