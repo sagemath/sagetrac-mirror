@@ -9662,25 +9662,14 @@ cpdef inverse_of_unit_polynomial(p):
         sage: R.<x> = Zmod(32)[]
         sage: inverse_of_unit_polynomial(1 + 4*x).parent() is R
         True
-        sage: M=MatrixSpace(QQ, 2, 2); S.<y> = M[]
-        sage: inverse_of_unit_polynomial(S(3)).parent() is S
+        sage: _ = var('x'); K.<y> = QQ.extension(x^3 + 7); S.<z> = K[]
+        sage: inverse_of_unit_polynomial(S(3+y)).parent() is S
         True
 
-    It would be nice to test a more complex case like
-    `inverse_of_unit_polynomial(3+m*y + m/2*y^2)` where m is a nilpotent matrix
-    like `M([0,1,0,0])`, but matrix rings do not implement `is_nilpotent`,
-    so an exception is thrown.
-
-    Matrices of polynomials do not currently implement inverse_of_unit, and
-    their `~` method gives a result in a fraction field.  So we can test the
-    error handling case:
-
-        sage: R.<x> = ZZ[]
-        sage: M=MatrixSpace(R, 2, 2); S.<y> = M[]
-        sage: inverse_of_unit_polynomial(S(1))
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Base ring, Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring, does not implement inverse_of_unit.
+    There is currently (mid-2017) no commutative ring that (a) does not
+    implement `inverse_of_unit`, and (b) has a `~` method giving a
+    result in a fraction field.  So we cannot test the error handling
+    case that raises NotImplementedError.
     """
 
     if not p.is_unit():
