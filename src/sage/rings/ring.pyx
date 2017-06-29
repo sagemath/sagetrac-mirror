@@ -142,7 +142,7 @@ cdef class Ring(ParentWithGens):
         Join of Category of unique factorization domains
              and Category of commutative algebras over (quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over (algebras over
+        Category of algebras over (finite dimensional algebras with basis over
          (quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
@@ -2252,7 +2252,7 @@ cdef class Field(PrincipalIdealDomain):
         """
         Return the gcd of ``a`` and ``b`` as a monic polynomial.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.
@@ -2308,7 +2308,7 @@ cdef class Field(PrincipalIdealDomain):
         greatest common divisor (monic or zero) of ``a`` and ``b``,
         and ``u``, ``v`` satisfy ``d = u*a + v*b``.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.

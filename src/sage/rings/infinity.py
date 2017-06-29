@@ -994,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         This isn't really a ring, let alone an integral domain.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing.fraction_field()
             Traceback (most recent call last):
@@ -1083,7 +1083,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing._repr_()
             'The Infinity Ring'
@@ -1209,7 +1209,7 @@ class InfinityRing_class(Singleton, Ring):
             sage: cm = get_coercion_model()
             sage: cm.explain(AA(3), oo, operator.lt)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Algebraic Real Field
                   To:   The Infinity Ring
             Arithmetic performed after coercions.
