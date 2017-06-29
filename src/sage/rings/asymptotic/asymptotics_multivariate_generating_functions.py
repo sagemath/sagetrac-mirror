@@ -2744,7 +2744,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: alpha = var('a1, a2')
+            sage: alpha = ('a1', 'a2')
             sage: F.smooth_critical_ideal(alpha)
             Ideal (y^2 + 2*a1/a2*y - 1, x + ((-a2)/a1)*y + (-a1 + a2)/a1) of
              Multivariate Polynomial Ring in x, y over Fraction Field of
@@ -2754,7 +2754,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: alpha = [7/3, var('a')]
+            sage: alpha = [7/3, 'a']
             sage: F.smooth_critical_ideal(alpha)
             Ideal (y^2 + 14/(3*a)*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of
              Multivariate Polynomial Ring in x, y over Fraction Field of
@@ -2770,9 +2770,9 @@ class FractionWithFactoredDenominator(RingElement):
         # Expand K by the variables of alpha if there are any.
         indets = []
         for a in alpha:
-            if a not in K and a in SR:
+            if isinstance(a, str) and a not in K.variable_names():
                 indets.append(a)
-        indets = sorted(set(indets), key=str)   # Delete duplicates in indets.
+        indets = sorted(set(indets))   # Delete duplicates in indets.
         if indets:
             L = PolynomialRing(K, indets).fraction_field()
             S = R.change_ring(L)
