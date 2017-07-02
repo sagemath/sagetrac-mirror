@@ -919,7 +919,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             INPUT:
 
             - ``i`` -- an element of the index set
-            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
+            - ``side`` -- ``"left"`` or ``"right"`` (optional)
 
             This default implementation simply calls
             :meth:`apply_simple_reflection_left` or
@@ -930,18 +930,18 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
-                sage: w.apply_simple_reflection(0, side = "left")
+                sage: w.apply_simple_reflection(0, side="left")
                 (0, 2, 3, 1)
-                sage: w.apply_simple_reflection(1, side = "left")
+                sage: w.apply_simple_reflection(1, side="left")
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(2, side = "left")
+                sage: w.apply_simple_reflection(2, side="left")
                 (1, 3, 2, 0)
 
-                sage: w.apply_simple_reflection(0, side = "right")
+                sage: w.apply_simple_reflection(0, side="right")
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(1, side = "right")
+                sage: w.apply_simple_reflection(1, side="right")
                 (1, 3, 2, 0)
-                sage: w.apply_simple_reflection(2, side = "right")
+                sage: w.apply_simple_reflection(2, side="right")
                 (1, 2, 0, 3)
 
             The ``side`` is the preferred side of the Coxeter group

@@ -170,7 +170,7 @@ class AffinePermutation(ClonableArray):
 
         INPUT:
 
-        - ``i`` -- an integer.
+        - ``i`` -- an integer
         - ``side`` -- whether to apply the reflection on the ``'right'``
           or ``'left'`` (optional)
 
@@ -188,9 +188,9 @@ class AffinePermutation(ClonableArray):
         """
         if side is None:
             side = self.parent()._default_side
-        if side=='right':
+        if side == 'right':
             return self.apply_simple_reflection_right(i)
-        if side=='left':
+        if side == 'left':
             return self.apply_simple_reflection_left(i)
 
     def __call__(self, i):
@@ -210,12 +210,12 @@ class AffinePermutation(ClonableArray):
 
     def is_i_grassmannian(self, i=0, side=None):
         r"""
-        Test whether ``self`` is `i`-grassmannian, ie, either is the identity or has
-        ``i`` as the sole descent.
+        Test whether ``self`` is `i`-grassmannian, i.e., either is the
+        identity or has ``i`` as the sole descent.
 
         INPUT:
 
-        - ``i`` -- An element of the index set.
+        - ``i`` -- an element of the index set
         - ``side`` -- determines the side on which to check the
           descents (optional)
 
@@ -234,9 +234,9 @@ class AffinePermutation(ClonableArray):
             sage: q.is_i_grassmannian(2, side='left')
             True
         """
-        if self==self.parent().one(): return True
-        if self.descents(side)==[i]: return True
-        return False
+        if self == self.parent().one():
+            return True
+        return self.descents(side) == [i]
 
     def index_set(self):
         r"""
@@ -379,20 +379,20 @@ class AffinePermutation(ClonableArray):
         """
         if side is None:
             side = self.parent()._default_side
-        fin=self.parent().one()
-        gr=self
-        D=gr.descents(side=side)
+        fin = self.parent().one()
+        gr = self
+        D = gr.descents(side=side)
         while not (D==[i] or D==[]):
             m=D[0]
             if m==i: m=D[1]
-            if side=='right':
-                fin=fin.apply_simple_reflection(m, side='left')
-                gr =gr.apply_simple_reflection(m, side='right')
+            if side == 'right':
+                fin = fin.apply_simple_reflection(m, side='left')
+                gr = gr.apply_simple_reflection(m, side='right')
             else:
-                fin=fin.apply_simple_reflection(m, side='right')
-                gr =gr.apply_simple_reflection(m, side='left')
-            D=gr.descents(side=side)
-        if side=='right':
+                fin = fin.apply_simple_reflection(m, side='right')
+                gr = gr.apply_simple_reflection(m, side='left')
+            D = gr.descents(side=side)
+        if side == 'right':
             return (gr, fin)
         else:
             return (fin, gr)

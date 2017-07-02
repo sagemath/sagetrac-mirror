@@ -874,12 +874,12 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: w = s[0] * s[1]
             sage: [w.has_descent(i) for i in W.domain().index_set()]
             [False, True, False, False]
-            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
+            sage: [w.has_descent(i, side="left") for i in W.domain().index_set()]
             [True, False, False, False]
             sage: w = s[0] * s[2]
             sage: [w.has_descent(i) for i in W.domain().index_set()]
             [True, False, True, False]
-            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
+            sage: [w.has_descent(i, side="left") for i in W.domain().index_set()]
             [True, False, True, False]
 
             sage: W = WeylGroup(['A',3])
@@ -937,7 +937,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: [(s[3]*s[2]).has_left_descent(i) for i in W.domain().index_set()]
             [False, False, True]
         """
-        return self.has_descent(i, side = "left")
+        return self.has_descent(i, side="left")
 
     def has_right_descent(self, i):
         """
@@ -961,6 +961,14 @@ class WeylGroupElement(MatrixGroupElement_gap):
         return self.has_descent(i, side="right")
 
     def apply_simple_reflection(self, i, side=None):
+        r"""
+        Return ``self`` multiplied by the simple reflection ``s[i]``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+        - ``side`` -- ``"left"`` or ``"right"`` (optional)
+        """
         if side is None:
             side = self.parent()._default_side
         s = self.parent().simple_reflections()

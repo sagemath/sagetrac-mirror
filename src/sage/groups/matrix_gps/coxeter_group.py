@@ -732,6 +732,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                 sage: elt.first_descent(side='left')
                 2
             """
+            if side is None:
+                side = self.parent()._default_side
             M = self.matrix()
             if side is None:
                 side = self.parent()._default_side
@@ -783,7 +785,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             """
             M = self.matrix()
             if side is None:
-                side = self._parent._default_side
+                side = self.parent()._default_side
             if side != 'right':
                 M = ~M
             I = self.parent().index_set()

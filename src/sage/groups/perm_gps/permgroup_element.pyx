@@ -1384,13 +1384,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             False
             sage: s = S.simple_reflections()
             sage: x = s[1]*s[2]
-            sage: x.has_descent(1, side = "right")
+            sage: x.has_descent(1, side="right")
             False
-            sage: x.has_descent(2, side = "right")
+            sage: x.has_descent(2, side="right")
             True
-            sage: x.has_descent(1, side = "left")
+            sage: x.has_descent(1, side="left")
             True
-            sage: x.has_descent(2, side = "left")
+            sage: x.has_descent(2, side="left")
             False
             sage: S._test_has_descent()
 
