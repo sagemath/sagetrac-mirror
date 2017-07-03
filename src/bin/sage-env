@@ -417,8 +417,10 @@ if [ -n "$PYTHONHOME" ]; then
     unset PYTHONHOME
 fi
 
-LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS
+LD_LIBRARY_PATH="$SAGE_LOCAL/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH
 
 # Use a matplotlib config directory specific to Sage and specific to
 # the version number of matplotlib, by setting the environment
