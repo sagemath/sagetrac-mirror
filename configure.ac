@@ -472,9 +472,7 @@ elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
     need_to_install_gfortran=yes
-    AC_MSG_NOTICE([GFORTRAN will be built.])
-    AC_MSG_NOTICE([Your Fortran compiler isn't GCC (GNU Fortran) or])
-    AC_MSG_NOTICE([you don't have one.])
+    AC_MSG_NOTICE([GFORTRAN wasn't found, so it will be built.])
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
