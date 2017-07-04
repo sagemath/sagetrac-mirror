@@ -1,7 +1,7 @@
 r"""
 Solve S-unit equation x + y = 1
 
-Inspired by work of Tzanakis--de Weger, Baker--W\"{u}stholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation x + y = 1.
+Inspired by work of Tzanakis--de Weger, Baker--W{\"{u}}stholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation x + y = 1.
 
 REFERENCES:
 
@@ -83,11 +83,11 @@ def set_R(prec = None):
 
     INPUT:
 
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
 
-    - A real field (either RIF, RDF or RealField(prec))
+    - The real field ``RealField(prec)``, with precision 106 by default
 
     EXAMPLES::
 
@@ -96,7 +96,7 @@ def set_R(prec = None):
         Real Field with 106 bits of precision
 
     ::
-    
+
         sage: set_R(53)
         Real Field with 53 bits of precision
     """
@@ -107,16 +107,16 @@ def set_R(prec = None):
 
 def is_real(v, prec = None):
     r"""
-    Return ``True`` if `v` is real, ``False`` if `v` is complex
+    Return ``True`` if ``v`` is real, ``False`` if ``v`` is complex
 
     INPUT:
 
     - ``v`` -- an infinite place of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
 
-    - ``True`` or ``False``
+    A boolean indicating whether a place is real (``True``) or complex (``False``).
 
     EXAMPLES::
 
@@ -156,18 +156,18 @@ def abs_val(SUK, v, iota, prec = None):
     Return the value `|\iota|_{v}`.
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of SUK.number_field().places(prec))
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``iota`` -- an element of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The absolute value as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import abs_val
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -202,21 +202,21 @@ def abs_val(SUK, v, iota, prec = None):
 
 def column_Log(SUK, iota, U, prec = None):
     r"""
-    Return the "log vector" of iota; i.e., the logs of all the valuations
+    Return the log vector of ``iota``; i.e., the logs of all the valuations
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``iota`` -- an element of ``K``
     - ``U`` -- a list of places (finite or infinite) of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The log vector as a list of real numbers
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import column_Log
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -227,7 +227,7 @@ def column_Log(SUK, iota, U, prec = None):
         [1.464816384890812968648768625966, -2.197224577336219382790490473845]
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 823
     """
     R = set_R(prec)
@@ -239,16 +239,16 @@ def c1_func(SUK, prec = None):
     Return the constant `c_1` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
-    The constant c1, as a real number
+
+    The constant ``c1``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c1_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -257,7 +257,7 @@ def c1_func(SUK, prec = None):
         1.174298947359884381924644003448
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 823
     """
     R = set_R(prec)
@@ -282,16 +282,16 @@ def c3_func(SUK, prec = None):
     Return the constant `c_3` from Smart's 1995 TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c3``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c3_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -300,11 +300,11 @@ def c3_func(SUK, prec = None):
         0.4257859134798034746197327286726
 
     .. NOTE::
-    
+
         The numerator should be as close to 1 as possible, especially as the rank of the `S`-units grows large
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 823
 
     """
@@ -317,18 +317,18 @@ def c4_func(SUK,v, A, prec = None):
     Return the constant `c_4` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of SUK.number_field().places(prec))
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c4``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c4_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -347,7 +347,7 @@ def c4_func(SUK,v, A, prec = None):
         1.000000000000000000000000000000
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
     """
     R = set_R(prec)
@@ -358,17 +358,17 @@ def c5_func(SUK, v, prec = None):
     Return the constant `c_5` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
-    The constant c5, as a real number
+
+    The constant ``c5``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c5_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -378,7 +378,7 @@ def c5_func(SUK, v, prec = None):
         0.1291890135314859378711048471736
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
     """
     R = set_R(prec)
@@ -390,18 +390,18 @@ def c6_func(SUK, v, A, prec = None):
     Return the constant `c_6` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c6``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c6_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -412,7 +412,7 @@ def c6_func(SUK, v, A, prec = None):
         0.0000000000000000000000000000000
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
 
     """
@@ -425,18 +425,18 @@ def c7_func(SUK, v, A, prec = None):
     Return the constant `c_7` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c7``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c7_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -447,7 +447,7 @@ def c7_func(SUK, v, A, prec = None):
         0.0000000000000000000000000000000
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
     """
     R = set_R(prec)
@@ -459,16 +459,16 @@ def beta_ns(SUK,v):
     Return a list of pairs `[\beta,|\beta|_v]`, for `\beta` in the fundamental units of SUK
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
 
     OUTPUT:
-    
-    The list of pairs ``[beta,val_v(beta)]``, for ``beta`` in the fundamental units of SUK (elements of K), val_v(beta) is an integer
+
+    The list of pairs ``[beta,val_v(beta)]``, for ``beta`` in the fundamental units of ``SUK`` (elements of ``K``), ``val_v(beta)`` is an integer
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import beta_ns
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -478,12 +478,12 @@ def beta_ns(SUK,v):
         [[xi^2 - 2, 0], [xi, 1]]
 
     .. NOTE::
-    
-        `\n_0` is the valuation of the coefficient alpha_d of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 0`
+
+        `n_0` is the valuation of the coefficient `\alpha_d` of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 0`
         We have set `n_0 = 0` here since the coefficients are roots of unity
 
     REFERENCE:
-    
+
     - [Sma1995]_ pp. 824-825
     """
     betas = SUK.fundamental_units()
@@ -495,15 +495,15 @@ def beta_k(betas_and_ns):
     Return a pair `[\beta_k,|beta_k|_v]`, where `\beta_k` has the smallest nonzero valuation in absolute value of the list ``betas_and_ns``
 
     INPUT:
-    
-    - ``betas_and_ns`` -- a list of pairs ``[beta,val_v(beta)]`` outputted from the function beta_ns
+
+    - ``betas_and_ns`` -- a list of pairs ``[beta,val_v(beta)]`` outputted from the function ``beta_ns``
 
     OUTPUT:
-    
-    The pair ``[beta_k,v(beta_k)],`` ``beta_k`` is an element of ``K`` and ``val_v(beta_k)`` is a integer
+
+    The pair ``[beta_k,v(beta_k)]``, where ``beta_k`` is an element of ``K`` and ``val_v(beta_k)`` is a integer
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import beta_k, beta_ns
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -514,7 +514,7 @@ def beta_k(betas_and_ns):
         [xi, 1]
 
     REFERENCE:
-    
+
     - [Sma1995]_ pp. 824-825
     """
     for pair in betas_and_ns:
@@ -528,19 +528,19 @@ def beta_k(betas_and_ns):
 
 def mus(SUK,v):
     r"""
-    Return a list `[\mus]`, for `\mus` defined on pp. 824-825 of TCDF, [Sma1995]_
+    Return a list `[\mu]`, for `\mu` defined on pp. 824-825 of TCDF, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
 
     OUTPUT:
-    
-    A list ``[mus]`` where each mu is an element of ``K``
+
+    A list ``[mus]`` where each ``mu`` is an element of ``K``
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import mus
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -550,7 +550,7 @@ def mus(SUK,v):
         [xi^2 - 2]
 
     REFERENCE:
-    
+
     - [Sma1995]_ pp. 824-825
 
     """
@@ -568,16 +568,16 @@ def possible_mu0s(SUK,v):
     Return a list `[\mu_0]` of all possible `\mu_0`s defined on pp. 824-825 of TCDF, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K``
 
     OUTPUT:
-    
+
     A list ``[mu0s]`` where each ``mu0`` is an element of ``K``
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import possible_mu0s
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -587,13 +587,13 @@ def possible_mu0s(SUK,v):
         [-1, 1]
 
     .. NOTE::
-    
-        `n_0` is the valuation of the coefficient alpha_d of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 0`
+
+        `n_0` is the valuation of the coefficient `\alpha_d` of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 0`
         We have set `n_0 = 0` here since the coefficients are roots of unity
         `\alpha_0` is not defined in the paper, we set it to be 1
 
     REFERENCE:
-    
+
     - [Sma1995]_ pp. 824-825, but we modify the definition of ``sigma`` (``sigma_tilde``) to make it easier to code
 
     """
@@ -616,22 +616,22 @@ def possible_mu0s(SUK,v):
 
 def modified_height(SUK,v,D,b, prec = None):
     r"""
-    Return the modified height at the finite place `v`
+    Return the modified height at the finite place ``v``
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- an finite place of ``K``
     - ``D`` -- an auxiliary quantity (an integer)
     - ``b`` -- an element of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The modified height at the place ``v``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import modified_height
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -641,7 +641,7 @@ def modified_height(SUK,v,D,b, prec = None):
         0.7324081924454063363683076204325
 
     REFERENCES:
-    
+
     - [Sma1998]_ p. 226
 
     """
@@ -655,21 +655,21 @@ def modified_height(SUK,v,D,b, prec = None):
 
 def local_c3(SUK,v,D, prec = None):
     r"""
-    Return a factor of the constant `c_3` defined on p. 226 of [Sma1998]
+    Return a factor of the constant `c_3` defined on p. 226 of [Sma1998]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- an finite place of ``K``
     - ``D`` -- an auxiliary quantity (an integer)
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
-    A factor of the constant ``c3,`` as a real number
+
+    A factor of the constant ``c3``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import local_c3
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -679,7 +679,7 @@ def local_c3(SUK,v,D, prec = None):
         0.3081828906869137495462570381080
 
     REFERENCE:
-    
+
     - [Sma1998]_ p. 226
 
     """
@@ -692,18 +692,18 @@ def c8_c9_func(SUK, v, A, prec = None):
     Return the constants `c_8` and `c_9` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
-    - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constants ``c8`` and ``c9``, as real numbers
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c8_c9_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -714,7 +714,7 @@ def c8_c9_func(SUK, v, A, prec = None):
         (4.524941291354698258804956696127e15, 1.621521281297160786545580368612e16)
 
     REFERENCES:
-    
+
     - [Sma1995]_ p. 825
     - [Sma1998]_ p. 226, Theorem A.2 for the local constants
 
@@ -748,21 +748,21 @@ def c8_c9_func(SUK, v, A, prec = None):
 
 def c10_func(SUK, v, A, prec = None):
     r"""
-    Return the constant `c_10` from Smart's TCDF paper, [Sma1995]_
+    Return the constant `c_{10}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
-    - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-   - ``prec`` (default = None) -- the precision of the real field
+    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+   - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
-    The constant ``c10,`` as a real number
+
+    The constant ``c10``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c10_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -773,7 +773,7 @@ def c10_func(SUK, v, A, prec = None):
         9.475576673109275443280257946930e17
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
     """
     R = set_R(prec)
@@ -787,18 +787,18 @@ def c11_func(SUK, v, A, prec = None):
     Return the constant `c_{11}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of SUK.number_field().places(prec))
-    - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
+    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c11``, a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c11_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -813,7 +813,7 @@ def c11_func(SUK, v, A, prec = None):
         6.511696687145792306911230847323
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 825
     """
     R = set_R(prec)
@@ -829,18 +829,18 @@ def c12_func(SUK, v, A, prec = None):
     Return the constant `c_{12}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
+
     - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c12``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c12_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -855,7 +855,7 @@ def c12_func(SUK, v, A, prec = None):
         2.000000000000000000000000000000
 
     REFERENCES:
-    
+
     - [Sma1995]_ p. 825
     """
     R = set_R(prec)
@@ -870,17 +870,17 @@ def c13_func(SUK, v, prec = None):
     Return the constant `c_{13}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c13``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c13_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -894,7 +894,7 @@ def c13_func(SUK, v, prec = None):
         0.2128929567399017373098663643363
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 825
     """
     R = set_R(prec)
@@ -908,23 +908,23 @@ def Baker_C(t,d,prec = None):
     Return `C(t,d)` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``t`` -- the rank of the `S`-unit group (an integer)
-    - ``d`` -- the degree of `K` (an integer)
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``t`` -- the rank of the $S$-unit group (an integer)
+    - ``d`` -- the degree of ``K`` (an integer)
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``C(t,d)`` as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import Baker_C
         sage: Baker_C(3,4)
         3.371389974809293972795830360284e19
 
     REFERENCE:
-    
+
     - [Sma1998]_ p. 225, Theorem A.1
 
     """
@@ -937,18 +937,18 @@ def hprime(SUK, alpha, v, prec = None):
     Return the modified height at the infinite place `v`
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``alpha`` -- an element of ``K``
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The modified height at the place `v`, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import hprime
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -962,7 +962,7 @@ def hprime(SUK, alpha, v, prec = None):
         0.7395879186929970039443560381187
 
     REFERENCES:
-    
+
     - [Sma1998]_ p. 225
 
     """
@@ -975,18 +975,18 @@ def c14_func(SUK,v,A,prec = None):
     Return the constant `c_{14}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c14``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c14_func, set_R, Baker_C, hprime
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1001,7 +1001,7 @@ def c14_func(SUK,v,A,prec = None):
         5.908765797306433904563179346367e14
 
     REFERENCES:
-    
+
     - [Sma1995]_ p. 825
     - [Sma1998]_ p. 225, Theorem A.1
 
@@ -1016,18 +1016,18 @@ def c15_func(SUK, v, A, prec = None):
     Return the constant `c_{15}` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
-    - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
+    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``c15``, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import c15_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1042,7 +1042,7 @@ def c15_func(SUK, v, A, prec = None):
         2.034870098399844430207420286581e17
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 825
 
     """
@@ -1055,18 +1055,18 @@ def K0_func(SUK, A, prec = None):
     Return the constant `K_0` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
+
+    - ``SUK`` -- a group of $S$-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
-    - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``K0``, a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import K0_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1076,7 +1076,7 @@ def K0_func(SUK, A, prec = None):
         9.475576673109275443280257946930e17
 
     REFERENCE:
-    
+
     - [Sma1995]_ p. 824
     """
     R = set_R(prec)
@@ -1087,18 +1087,18 @@ def K1_func(SUK, v, A, prec = None):
     Return the constant `K_1` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
-    
-    - ``SUK`` -- a group of ``S``-units
-    - ``v`` -- an infinite place of ``K`` (element of SUK.number_field().places(prec))
-    - ``A`` -- a list of all products of each potential a, b in the S-unit equation ax + by + 1 = 0 with each root of unity of ``K``
-    - ``prec`` (default = None) -- the precision of the real field
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the S-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
+
     The constant ``K1,`` a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import K1_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1113,7 +1113,7 @@ def K1_func(SUK, v, A, prec = None):
         2.034870098399844430207420286581e17
 
     REFERENCES:
-    
+
     - [Sma1995]_ p. 825
 
     """
@@ -1125,22 +1125,22 @@ def cx_LLL_bound_one_embed(SUK, v, c11_LLL, c12_LLL, c13_LLL, old_K1, gens=None,
     Return a lower value for the constant `K_1`, obtained using LLL at an infinite place of `K`
 
     INPUT:
-    
-    - ``SUK`` -- a group of `S`-units
-    - ``v`` -- an infinite place of `K` (element of SUK.number_field().places(prec))
+
+    - ``SUK`` -- a group of $S$-units
+    - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``c11_LLL`` -- the constant ``c11`` value obtained
     - ``c12_LLL`` -- the constant ``c12`` value obtained
     - ``c13_LLL`` -- the constant ``c13`` value obtained
     - ``old_K1`` -- the constant ``K1`` value obtained, either from ``K1_func`` or from a previous iteration of LLL
-    - ``gens`` (default = None) -- fundamental units of ``SUK``
-    - ``prec`` (default = None) -- the precision of the real field
+    - ``gens`` -- (default: None) fundamental units of ``SUK``
+    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
-    
-    A lower value for `K1`, as a real number
+
+    A lower value for ``K1``, as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import cx_LLL_bound_one_embed, c11_func, c12_func, c13_func, K1_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1152,13 +1152,13 @@ def cx_LLL_bound_one_embed(SUK, v, c11_LLL, c12_LLL, c13_LLL, old_K1, gens=None,
         99.00000000000000000000000000000
 
     .. NOTE::
-    
-        The constant `C_0` used has an element of randomness, which should improve the algorithm. 
+
+        The constant `C_0` used has an element of randomness, which should improve the algorithm.
         For easily replicable results, one may double `C_0` instead
         The new value of `K_1` cannot fall below `c_{11}`, a constant computed earlier.
 
     REFERENCE:
-    
+
     - [MR2016]_
     """
     R = set_R(prec)
@@ -1223,14 +1223,14 @@ def cx_LLL_bound_one_embed(SUK, v, c11_LLL, c12_LLL, c13_LLL, old_K1, gens=None,
 
 def round(a):
     r"""
-    round any real number to the nearest integer, including integres
+    round any real number to the nearest integer, including integers
 
     INPUT:
-    
+
     - ``a`` : a real number
 
     OUTPUT:
-    
+
     The closest integer to ``a``
 
     EXAMPLES::
@@ -1262,28 +1262,36 @@ def minimal_vector(A,y):
     r"""
 
     INPUT:
-    
-        - ``A`` : an square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
-        - ``y`` : a row (1 by n) vector with integer coordinates
+
+    - ``A`` : a square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
+    - ``y`` : a row (1 by n) vector with integer coordinates
 
     OUTPUT:
-    
-        A low bound for the square of `\ell (\mathcal L,\vec y) =\begin{cases}\displaystyle\min_{\vec x\in\mathcal L}\Vert\vec x-\vec y\Vert &, \vec y\not\in\mathcal L. \\ \displaystyle\min_{0\neq\vec x\in\mathcal L}\Vert\vec x\Vert&,\vec y\in\mathcal L.\end{cases}`
+
+    A low bound for the square of
+
+    .. MATH::
+
+        \ell (\mathcal L,\vec y) =
+        \begin{cases}
+        \displaystyle\min_{\vec x\in\mathcal L}\Vert\vec x-\vec y\Vert &, \vec y\not\in\mathcal L. \\
+        \displaystyle\min_{0\neq\vec x\in\mathcal L}\Vert\vec x\Vert &,\vec y\in\mathcal L.
+        \end{cases}`
 
     ALGORITHM:
-    
+
     The algorithm is based on V.9 and V.10 of [Sma1998]_
 
-    EXAMPLEs::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import minimal_vector
         sage: B = matrix(ZZ,2,[1,1,1,0])
         sage: y = vector(ZZ,[2,1])
         sage: minimal_vector(B,y)
-            1/2
+        1/2
 
     ::
-        
+
         sage: B = random_matrix(ZZ,3)
         sage: B #random
             [-2 -1 -1]
@@ -1291,7 +1299,7 @@ def minimal_vector(A,y):
             [ 6  1 -1]
         sage: y = vector([1,2,100])
         sage: minimal_vector(B,y) #random
-            15/28
+        15/28
     """
     if A.is_singular():
         raise ValueError('The matrix A is singular')
@@ -1311,16 +1319,16 @@ def minimal_vector(A,y):
 def higher_precision(place,new_prec):
     r"""
 
-    allow for a higher precision when numbers get large
-    
+    Allow for a higher precision when numbers get large
+
     INPUT:
-    
-        - ``place`` (ring morphism): an infinite place of a number field `K`
-        - ``new_prec`` : the new precision
+
+    - ``place`` -- (ring morphism) an infinite place of a number field `K`
+    - ``new_prec`` -- the new precision
 
     OUTPUT:
-    
-        The ``place`` but with precision equal with ``new_prec``
+
+    The ``place`` but with precision equal with ``new_prec``
 
     EXAMPLES::
 
@@ -1328,30 +1336,30 @@ def higher_precision(place,new_prec):
         sage: K.<a> = NumberField(x^2-2)
         sage: place = K.places()[0]
         sage: place
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 2
-              To:   Real Field with 106 bits of precision
-              Defn: a |--> -1.414213562373095048801688724210
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^2 - 2
+          To:   Real Field with 106 bits of precision
+          Defn: a |--> -1.414213562373095048801688724210
         sage: higher_precision(place,50)
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 2
-              To:   Real Field with 50 bits of precision
-              Defn: a |--> -1.4142135623731
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^2 - 2
+          To:   Real Field with 50 bits of precision
+          Defn: a |--> -1.4142135623731
 
     ::
-    
+
         sage: K.<a> = NumberField(x^4-2)
         sage: place = K.places()[0]
         sage: place
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^4 - 2
-              To:   Real Field with 106 bits of precision
-              Defn: a |--> -1.189207115002721066717492233629
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^4 - 2
+          To:   Real Field with 106 bits of precision
+          Defn: a |--> -1.189207115002721066717492233629
         sage: higher_precision(place,150)
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^4 - 2
-              To:   Real Field with 150 bits of precision
-              Defn: a |--> -1.1892071150027210667174999705604759152929721
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^4 - 2
+          To:   Real Field with 150 bits of precision
+          Defn: a |--> -1.1892071150027210667174999705604759152929721
     """
     K = place.domain()
     old_prec = place.codomain().precision()
@@ -1374,13 +1382,13 @@ def e_s_real(a,place):
     r"""
 
     INPUT:
-    
-        - ``a`` : an element of a number field `K`
-        - ``place`` (ring morphism): an real place of `K`
+
+    - ``a`` -- an element of a number field ``K``
+    - ``place`` -- (ring morphism) an real place of ``K``
 
     OUTPUT:
-    
-        Reurn `a` if `place(a)>=0`, otherwise `-a`
+
+    Return ``a`` if ``place(a)>=0``, otherwise ``-a``
 
     EXAMPLE::
 
@@ -1388,9 +1396,9 @@ def e_s_real(a,place):
         sage: K.<a> = NumberField(x^4-7)
         sage: place = K.places()[0]
         sage: e_s_real(a,place)
-            -a
+        -a
         sage: e_s_real(-a,place)
-            -a
+        -a
         sage: place(a)
         -1.626576561697785743211232345494
     """
@@ -1404,22 +1412,25 @@ def reduction_step_real_case(place,B0,G,c7):
     r"""
 
     INPUT:
-    
-        - ``place`` (ring morphism): an infinite place of a number field `K`
-        - ``B0`` : the initial bound
-        - ``G`` : a set of generators of the free part of the group
-        - ``c7`` : a positive real number
+
+    - ``place`` -- (ring morphism) an infinite place of a number field `K`
+    - ``B0`` -- the initial bound
+    - ``G`` -- a set of generators of the free part of the group
+    - ``c7`` -- a positive real number
 
     OUTPUT:
-    
-        - a new upper bound
-        - ``True`` if we have to increase precision, otherwise ``False``
+
+    A tuple consisting of:
+
+    1. a new upper bound, an integer
+    2. a boolean value, ``True`` if we have to increase precision, otherwise ``False``
 
     .. NOTE::
+
         The constant ``c7`` in the reference page 137
 
     REFERENCE:
-    
+
     - [Sma1998]_
 
     EXAMPLE::
@@ -1483,24 +1494,26 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
     r"""
 
     INPUT:
-    
-        - ``place`` (ring morphism): an infinite place of a number field `K`
-        - ``B0`` : the initial bound
-        - ``G`` : a set of generators of the free part of the group
-        - ``g0`` : an element of the torsion part of the group
-        - ``c7`` : a positive real number
+
+    - ``place`` -- (ring morphism) an infinite place of a number field `K`
+    - ``B0`` -- the initial bound
+    - ``G`` -- a set of generators of the free part of the group
+    - ``g0`` -- an element of the torsion part of the group
+    - ``c7`` -- a positive real number
 
     OUTPUT:
-    
-        - a new upper bound
-        - ``True`` if we have to increase precision, otherwise ``False``
+
+    A tuple consisting of:
+
+    1. a new upper bound, an integer
+    2. a boolean value, ``True`` if we have to increase precision, otherwise ``False``
 
     .. NOTE::
-    
+
         The constant ``c7`` in the reference page 138
 
     REFERENCE:
-    
+
     See [Sma1998]_.
 
     EXAMPLE::
@@ -1642,16 +1655,16 @@ def cx_LLL_bound(SUK,A, prec = None):
     Return the maximum of all of the `K_1`'s as they are LLL-optimized for each infinite place `v`
 
     INPUT:
-    
+
     - ``SUK`` -- a group of `S`-units
-    - ``A`` -- a list of all products of each potential a, b in the S-unit equation ax + by + 1 = 0 with each root of unity of ``K``
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the `S`-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
 
     OUTPUT:
-    
+
     A bound for the exponents at the infinite place, as a real number
 
     EXAMPLES::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import cx_LLL_bound
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -1724,17 +1737,17 @@ def log_p_of_a_list(L,prime,prec):
     r"""
 
     INPUT:
-    
-    - ``L`` : a list of elements of a number field `K`
-    - ``prime`` : a prime ideal of `K`
-    - ``prec`` : a positive natural number, the precision
+
+    - ``L`` -- a list of elements of a number field `K`
+    - ``prime`` -- a prime ideal of `K`
+    - ``prec`` -- a positive natural number, the precision
 
     OUTPUT:
-    
-    A list with the `\mathfrak p-adic` logarithms of ``L``
+
+    A list with the ``prime``-adic logarithms of ``L``
 
     .. NOTE::
-    
+
         `K` has to be an absolute extension
 
     EXAMPLE::
@@ -1742,10 +1755,10 @@ def log_p_of_a_list(L,prime,prec):
         sage: from sage.rings.number_field.S_unit_solver import log_p_of_a_list
         sage: K.<a> = QuadraticField(17)
         sage: p = K.prime_above(13); p
-            Fractional ideal (-a + 2)
+        Fractional ideal (-a + 2)
         sage: log_p_of_a_list([3*a^3+1,2*a^2+a+7],p,20)
-            [90957756839706500805798/13*a + 800239096845092924869910/13,
-             2062304673797573083577432/13*a + 1425114372563713406518529/13]
+        [90957756839706500805798/13*a + 800239096845092924869910/13,
+         2062304673797573083577432/13*a + 1425114372563713406518529/13]
     """
     K = prime.ring()
     if not K.is_absolute():
@@ -1753,21 +1766,21 @@ def log_p_of_a_list(L,prime,prec):
 
     return [log_p(a,prime,prec) for a in L]
 
-def log_p(a,prime,precision):
+def log_p(a,prime,prec):
     r"""
 
     INPUT:
-    
-    - ``a`` : an element of a number field `K`
-    - ``prime`` : a prime ideal of the number field `K`
-    - ``precision`` : a positive integer
+
+    - ``a`` -- an element of a number field `K`
+    - ``prime`` -- a prime ideal of the number field `K`
+    - ``prec`` -- a positive integer
 
     OUPUT:
-    
-    An element of `K` which is congruent to the `\mathfrak p-adic` logarithm of ``a`` with respect to ``prime`` modulo `p^(precision)`, where `p` is the rational prime below ``prime``
+
+    An element of `K` which is congruent to the ``prime``-adic logarithm of ``a`` with respect to ``prime`` modulo ``p^prec``, where ``p`` is the rational prime below ``prime``
 
     .. NOTE::
-    
+
         Here we take into account the other primes in `K` above `p` in order to get coefficients with small values
 
     EXAMPLES::
@@ -1776,19 +1789,19 @@ def log_p(a,prime,precision):
         sage: K.<a> = NumberField(x^2+14)
         sage: p1 = K.primes_above(3)[0]
         sage: p1
-            Fractional ideal (3, a + 1)
+        Fractional ideal (3, a + 1)
         sage: log_p(a+2,p1,20)
-            8255385638/3*a + 15567609440/3
+        8255385638/3*a + 15567609440/3
 
     ::
-    
+
         sage: K.<a> = NumberField(x^4+14)
         sage: p1 = K.primes_above(5)[0]
         sage: p1
-            Fractional ideal (5, a + 1)
+        Fractional ideal (5, a + 1)
         sage: log_p(1/(a^2-4),p1,30)
-            -42392683853751591352946/25*a^3 - 113099841599709611260219/25*a^2 -
-            8496494127064033599196/5*a - 18774052619501226990432/25
+        -42392683853751591352946/25*a^3 - 113099841599709611260219/25*a^2 -
+        8496494127064033599196/5*a - 18774052619501226990432/25
     """
     if a == 0:
         raise ValueError('a is the zero element')
@@ -1815,23 +1828,23 @@ def log_p(a,prime,precision):
         else:
             list.append(pr.gens()[1]**val)
 
-    return log_p_series_part(a * prod(list),prime,precision) - sum([log_p_series_part(b,prime,precision) for b in list])
+    return log_p_series_part(a * prod(list),prime,prec) - sum([log_p_series_part(b,prime,prec) for b in list])
 
-def log_p_series_part(a,prime,precision):
+def log_p_series_part(a,prime,prec):
     r"""
 
     INPUT:
-    
-    - ``a`` : an element of a number field `K`
-    - ``prime`` : a prime ideal of the number field `K`
-    - ``precision`` : a positive integer
+
+    - ``a`` -- an element of a number field `K`
+    - ``prime`` -- a prime ideal of the number field `K`
+    - ``precision`` -- a positive integer
 
     OUPUT:
-    
-    The `\mathfrak p-adic` logarithm of a with respect to ``prime`` and accuracy `p^(precision)`, where `p` is the rational prime below ``prime``
+
+    The ``prime``-adic logarithm of ``a`` and accuracy ``p^prec``, where ``p`` is the rational prime below ``prime``
 
     ALGORITHM:
-    
+
     The algorithm is based on the algorithm on page 30 of [Sma1998]_
 
     EXAMPLES::
@@ -1840,21 +1853,21 @@ def log_p_series_part(a,prime,precision):
         sage: K.<a> = NumberField(x^2-5)
         sage: p1 = K.primes_above(3)[0]
         sage: p1
-            Fractional ideal (3)
+        Fractional ideal (3)
         sage: log_p_series_part(a^2-a+1,p1,30)
-            120042736778562*a + 263389019530092
+        120042736778562*a + 263389019530092
 
     ::
-    
+
         sage: K.<a> = NumberField(x^4+14)
         sage: p1 = K.primes_above(5)[0]
         sage: p1
-            Fractional ideal (5, a + 1)
+        Fractional ideal (5, a + 1)
         sage: log_p_series_part(1/(a^2-4),p1,30)
-               5628940883264585369224688048459896543498793204839654215019548600621221950915106576555819252366183605504671859902129729380543157757424169844382836287443485157589362653561119898762509175000557196963413830027960725069496503331353532893643983455103456070939403472988282153160667807627271637196608813155377280943180966078/1846595723557147156151786152499366687569722744011302407020455809280594038056223852568951718462474153951672335866715654153523843955513167531739386582686114545823305161128297234887329119860255600972561534713008376312342295724191173957260256352612807316114669486939448006523889489471912384033203125*a^2 + 2351432413692022254066438266577100183514828004415905040437326602004946930635942233146528817325416948515797296867947688356616798913401046136899081536181084767344346480810627200495531180794326634382675252631839139904967037478184840941275812058242995052383261849064340050686841429735092777331963400618255005895650200107/1846595723557147156151786152499366687569722744011302407020455809280594038056223852568951718462474153951672335866715654153523843955513167531739386582686114545823305161128297234887329119860255600972561534713008376312342295724191173957260256352612807316114669486939448006523889489471912384033203125
+        5628940883264585369224688048459896543498793204839654215019548600621221950915106576555819252366183605504671859902129729380543157757424169844382836287443485157589362653561119898762509175000557196963413830027960725069496503331353532893643983455103456070939403472988282153160667807627271637196608813155377280943180966078/1846595723557147156151786152499366687569722744011302407020455809280594038056223852568951718462474153951672335866715654153523843955513167531739386582686114545823305161128297234887329119860255600972561534713008376312342295724191173957260256352612807316114669486939448006523889489471912384033203125*a^2 + 2351432413692022254066438266577100183514828004415905040437326602004946930635942233146528817325416948515797296867947688356616798913401046136899081536181084767344346480810627200495531180794326634382675252631839139904967037478184840941275812058242995052383261849064340050686841429735092777331963400618255005895650200107/1846595723557147156151786152499366687569722744011302407020455809280594038056223852568951718462474153951672335866715654153523843955513167531739386582686114545823305161128297234887329119860255600972561534713008376312342295724191173957260256352612807316114669486939448006523889489471912384033203125
     """
-    if precision == None:
-        precision = 106
+    if prec is None:
+        prec = 106
     if a.valuation(prime) != 0:
         raise ValueError('The valuation of a with respect to prime is not zero')
     K = prime.ring()
@@ -1872,16 +1885,16 @@ def log_p_series_part(a,prime,precision):
     while (gamma-1).valuation(prime) <= e:
         t += 1
         gamma = gamma**p
-    precision += t
+    prec += t
     #since later we divide by p^t, we must increase the precision by t at this point.
     m = (gamma - 1).valuation(prime)/e
     n = Integer(1)
-    step = 10 **(RR(log(precision)/log(10))).floor()
-    while n < (log(n)/log(p) + precision)/m:
+    step = 10 **(RR(log(prec)/log(10))).floor()
+    while n < (log(n)/log(p) + prec)/m:
         n += step
     #could use smaller stepsize to get actual smallest integer n, however this seems to run faster.
-    w = RR((log(precision)/log(p))).floor()
-    gamma = sum([ZZ(gi%(p**(precision+w)))* g**i if gi.valuation(p) >= 0 else ZZ((gi * p**(-gi.valuation(p)))%(p**(precision+w-gi.valuation(p)))) * p**(gi.valuation(p)) * g**i for i,gi in enumerate(gamma) if gi != 0])
+    w = RR((log(prec)/log(p))).floor()
+    gamma = sum([ZZ(gi%(p**(prec+w)))* g**i if gi.valuation(p) >= 0 else ZZ((gi * p**(-gi.valuation(p)))%(p**(prec+w-gi.valuation(p)))) * p**(gi.valuation(p)) * g**i for i,gi in enumerate(gamma) if gi != 0])
 
 
     beta = 0
@@ -1889,7 +1902,7 @@ def log_p_series_part(a,prime,precision):
     for i in range(1,n+1):
         beta -= delta/i
         delta *= (1-gamma)
-        delta = sum([ZZ(di%(p**(precision+w)))* g**e if di.valuation(p) >= 0 else ZZ((di * p**(-di.valuation(p)))%(p**(precision+w-di.valuation(p)))) * p**(di.valuation(p)) * g**e for e,di in enumerate(delta) if di != 0],0)
+        delta = sum([ZZ(di%(p**(prec+w)))* g**e if di.valuation(p) >= 0 else ZZ((di * p**(-di.valuation(p)))%(p**(prec+w-di.valuation(p)))) * p**(di.valuation(p)) * g**e for e,di in enumerate(delta) if di != 0],0)
     beta = beta/(order*p**t)
 
     #we try to make the coefficients small
@@ -1899,10 +1912,10 @@ def log_p_series_part(a,prime,precision):
         val = b.valuation(p)
         if val < 0:
             t = b * p**(-val)
-            t = ZZ(mod(t,p**(precision-val)))
+            t = ZZ(mod(t,p**(prec-val)))
             t = t * p**val
         else:
-            t = ZZ(mod(b,p**precision))
+            t = ZZ(mod(b,p**prec))
         logp = logp + t * g**i
 
     return logp
@@ -1911,16 +1924,16 @@ def defining_polynomial_for_Kp(prime,precision):
     r"""
 
     INPUT:
-    
-    - ``prime`` : a prime ideal of a number field `K`
-    - ``precision`` : a positive natural number
+
+    - ``prime`` -- a prime ideal of a number field `K`
+    - ``precision`` -- a positive natural number
 
     OUTPUT:
-    
-    A polynomial with integer coefficients that is equivalent `\mod p^(precision)` to the defining polynomial of the completion of `K` associate to the definig polynomial of `K`
+
+    A polynomial with integer coefficients that is equivalent ``mod p^precision`` to the defining polynomial of the completion of `K` associate to the definig polynomial of `K`
 
     .. NOTE::
-    
+
         `K` has to be an absolute extension
 
     EXAMPLES::
@@ -1928,21 +1941,21 @@ def defining_polynomial_for_Kp(prime,precision):
         sage: from sage.rings.number_field.S_unit_solver import defining_polynomial_for_Kp
         sage: K.<a> = QuadraticField(2)
         sage: p2 = K.prime_above(7); p2
-            Fractional ideal (-2*a + 1)
+        Fractional ideal (-2*a + 1)
         sage: defining_polynomial_for_Kp(p2,10)
-            x + 266983762
+        x + 266983762
 
     ::
-    
+
         sage: K.<a> = QuadraticField(-6)
         sage: p2 = K.prime_above(2); p2
-            Fractional ideal (2, a)
+        Fractional ideal (2, a)
         sage: defining_polynomial_for_Kp(p2,100)
-            x^2 + 6
+        x^2 + 6
         sage: p5 = K.prime_above(5); p5
-            Fractional ideal (5, a + 2)
+        Fractional ideal (5, a + 2)
         sage: defining_polynomial_for_Kp(p5,100)
-            x + 3408332191958133385114942613351834100964285496304040728906961917542037
+        x + 3408332191958133385114942613351834100964285496304040728906961917542037
     """
     if precision == None:
         precision = 106
@@ -1979,17 +1992,17 @@ def embedding_to_Kp(a,prime,precision):
     r"""
 
     INPUT:
-    
-    - ``a`` : an element of a number field `K`
-    - ``prime`` : a prime ideal of `K`
-    - ``precision`` : a positive natural number
+
+    - ``a`` -- an element of a number field `K`
+    - ``prime`` -- a prime ideal of `K`
+    - ``precision`` -- a positive natural number
 
     OUTPUT:
-    
-    An element of K that is equivalent to ``a`` `\mod p^(precision)` and the generator of `K` appears with exponent less than `e\cdot f`, where `p` is the rational prime below ``prime`` and `e,f` are the ramification index and residue degree, respectively.
+
+    An element of `K` that is equivalent to ``a`` modulo ``p^(precision)`` and the generator of `K` appears with exponent less than `e\cdot f`, where ``p`` is the rational prime below ``prime`` and `e,f` are the ramification index and residue degree, respectively.
 
     .. NOTE::
-    
+
         `K` has to be an absolute extension
 
     EXAMPLES::
@@ -1997,17 +2010,17 @@ def embedding_to_Kp(a,prime,precision):
         sage: from sage.rings.number_field.S_unit_solver import embedding_to_Kp
         sage: K.<a> = QuadraticField(17)
         sage: p = K.prime_above(13); p
-            Fractional ideal (-a + 2)
+        Fractional ideal (-a + 2)
         sage: embedding_to_Kp(a-3,p,15)
-            -20542890112375827
+        -20542890112375827
 
     ::
-    
+
         sage: K.<a> = NumberField(x^4-2)
         sage: p = K.prime_above(7); p
-            Fractional ideal (-a^2 + a - 1)
+        Fractional ideal (-a^2 + a - 1)
         sage: embedding_to_Kp(a^3-3,p,15)
-            -1261985118949117459462968282807202378
+        -1261985118949117459462968282807202378
     """
     K = prime.ring()
     if not K.is_absolute():
@@ -2026,23 +2039,25 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision):
     r"""
 
     INPUT:
-    
-    - ``prime`` : a prime ideal of a number field `K`
-    - ``B0`` : the initial bound
-    - ``M`` : a list of elements of `K`, the mu_i's from Lemma IX.3 of [Sma1998]_
-    - ``M_logp`` : the p-adic logarithm of elements in `M`
-    - ``m0`` : an element of `K`, this is mu_0 from Lemma IX.3 of [Sma1998]_
-    - ``c3`` : a positive real constant
-    - ``precision`` : the precision of the calculations
+
+    - ``prime`` -- a prime ideal of a number field `K`
+    - ``B0`` -- the initial bound
+    - ``M`` -- a list of elements of `K`, the `\mu_i`'s from Lemma IX.3 of [Sma1998]_
+    - ``M_logp`` -- the p-adic logarithm of elements in `M`
+    - ``m0`` -- an element of `K`, this is `\mu_0` from Lemma IX.3 of [Sma1998]_
+    - ``c3`` -- a positive real constant
+    - ``precision`` -- the precision of the calculations
 
     OUTPUT:
-    
-    - a new upper bound
-    - ``True`` if we have to increse precision, otherwise ``False``
+
+    A pair consisting of:
+
+    1. a new upper bound, an integer
+    2. a boolean value, ``True`` if we have to increase precision, otherwise ``False``
 
     .. NOTE::
-    
-        The constant `c_5` is the constant `c_5` at the page 89 of [Sma1998]_ which is equal to the constant `c_{10}` at the page 139 of [Sma1995]_.  
+
+        The constant `c_5` is the constant `c_5` at the page 89 of [Sma1998]_ which is equal to the constant `c_{10}` at the page 139 of [Sma1995]_.
         In this function, the `c_i` constants are in line with [Sma1998]_, but generally differ from the constants in [Sma1995]_ and other parts of this code.
 
     EXAMPLES:
@@ -2182,17 +2197,17 @@ def p_adic_LLL_bound(SUK,A, prec = None):
     Return the maximum of all of the `K_0`'s as they are LLL-optimized for each finite place `v`
 
     INPUT:
-    
+
     - ``SUK`` -- a group of `S`-units
-    - ``A`` -- a list of all products of each potential a, b in the S-unit equation ax + by + 1 = 0 with each root of unity of ``K``
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the `S`-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
     - ``prec``-- precision for p-adic LLL calculations
 
     OUTPUT:
-    
-    A bound for the max of exponents in the case that extremal place is finite (see [Smart]) as a real number
+
+    A bound for the max of exponents in the case that extremal place is finite (see [Sma1995]_) as a real number
 
     EXAMPLE::
-    
+
         sage: from sage.rings.number_field.S_unit_solver import p_adic_LLL_bound
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
@@ -2242,11 +2257,11 @@ def completely_split_primes(K, Bound = 200):
     INPUT:
 
     - ``K`` -- a number field
-    - Bound -- a positive integer bound (default 200)
+    - Bound -- a positive integer bound (default: 200)
 
     OUTPUT:
 
-    A list of all primes `p < Bound` which split completely in `K`.
+    A list of all primes ``p < Bound`` which split completely in ``K``.
 
     NOTE:
 
@@ -2273,27 +2288,28 @@ def completely_split_primes(K, Bound = 200):
 
 def split_primes_large_lcm(SUK, Bound):
     r"""
-    Return a list L of rational primes `q` which split completely in `K` and which have desirable properties (see NOTE).
+    Return a list ``L`` of rational primes `q` which split completely in `K` and which have desirable properties (see NOTE).
 
     INPUT:
 
-    - ``SUK`` -- the S-unit group of an absolute number field `K`.
+    - ``SUK`` -- the `S`-unit group of an absolute number field `K`.
     - ``Bound`` -- a positive integer
 
     OUTPUT:
 
     A list `L` of rational primes `q`, with the following properties:
-        - each prime `q` in `L` splits completely in K
-        - if `Q` is a prime in `S` and `q` is the rational
-          prime below `Q`, then `q` is **not** in `L`
-        - the value lcm { `q - 1` : `q` in `L` } is greater than or equal
-           to 2 * Bound + 1.
+
+    - each prime `q` in `L` splits completely in `K`
+    - if `Q` is a prime in `S` and `q` is the rational
+      prime below `Q`, then `q` is **not** in `L`
+    - the value ``lcm { q - 1 : q in L }`` is greater than or equal
+       to ``2 * Bound + 1`.
 
     .. NOTE::
 
-        - A series of compatible exponent vectors for the primes in L will
+        - A series of compatible exponent vectors for the primes in `L` will
           lift to **at most** one integer exponent vector whose entries
-          `a_i` satisfy `|a_i|` is less than or equal to Bound.
+          `a_i` satisfy `|a_i|` is less than or equal to ``Bound``.
 
         - The ordering of this set is not very intelligent for the purposes
           of the later sieving processes.
@@ -2351,24 +2367,22 @@ def sieve_ordering(SUK, q):
 
     INPUT:
 
-    - ``SUK`` -- the S-unit group of a number field K
+    - ``SUK`` -- the `S`-unit group of a number field `K`
     - ``q``   -- a rational prime number which splits completely in `K`
 
     OUTPUT:
 
-    A list of lists, [ideals_over_q, residue_fields, rho_images, product_rho_orders], where
-    
-    1. ideals_over_q is a list of the `d = [K:\mathbb{Q}]` ideals in `K` over `q`
-    2. residue_fields[i] is the residue field of ideals_over_q[i]
-    3. rho_images[i] is a list of the generators in `rho` modulo ideals_over_q[i]
-    4. product_rho_orders[i] is the product of the multiplicative orders of the elements in rho_images[i]
+    A list of lists, ``[ideals_over_q, residue_fields, rho_images, product_rho_orders]``, where
 
-    The list Q_ideal is sorted so that the product of orders is smallest for Q_ideal[0], as this will
-    make the later sieving steps more efficient.
+    1. ``ideals_over_q`` is a list of the `d = [K:\mathbb{Q}]` ideals in `K` over `q`
+    2. ``residue_fields[i]`` is the residue field of ``ideals_over_q[i]``
+    3. ``rho_images[i]`` is a list of the generators in `rho`, ``modulo ideals_over_q[i]``
+    4. ``product_rho_orders[i]`` is the product of the multiplicative orders of the elements in ``rho_images[i]``
 
     .. NOTE::
 
-        The primes of S may not lie over over q.
+        - The list ``Q_ideal`` is sorted so that the product of orders is smallest for ``Q_ideal[0]``, as this will make the later sieving steps more efficient.
+        - The primes of ``S`` may not lie over over ``q``.
 
     EXAMPLES::
 
@@ -2455,17 +2469,17 @@ def sieve_ordering(SUK, q):
 
 def bounded_integer_lifts(r, m, bound):
     r"""
-    Returns all integers up to a given bound which are equivalent to r modulo m.
+    Returns all integers up to a given bound which are equivalent to ``r`` modulo ``m``.
 
     INPUT:
 
-    - ``r`` -- an integer, representing a residue class modulo `m`
+    - ``r`` -- an integer, representing a residue class modulo ``m``
     - ``m`` -- an integer; the modulus under consideration
     - ``bound`` -- a positive integer
 
     OUTPUT:
 
-    A list of integers `x` satisfying both `x \equiv r \mod m` and `abs(x) \leq bound`.
+    A list of integers ``x`` satisfying both ``x = r % m`` and ``abs(x) <= bound``.
 
     EXAMPLES::
 
@@ -2498,21 +2512,21 @@ def bounded_integer_lifts(r, m, bound):
 
 def bounded_vector_lifts( exponent_vector, m, bound ):
     r"""
-    Given an exponent vector modulo m, construct the possible lifts which agree modulo m and with no entry exceeding     in absolute value.
+    Given an exponent vector modulo ``m``, construct the possible lifts which agree modulo ``m`` and with no entry exceeding ``bound`` in absolute value.
 
     INPUT:
 
-    - ``exponent_vector`` -- an exponent vector (to be viewed as an exponent vector modulo `m`)
+    - ``exponent_vector`` -- an exponent vector (to be viewed as an exponent vector modulo ``m``)
     - ``m`` -- a positive integer > 1
     - ``bound`` -- a positive integer, bounding the absolute value of entries in lifts
 
     OUTPUT:
 
     A list of all exponent vectors with integer entries which satisfy the following criteria:
-    
-    1. the 0th entry matches the 0th entry of exponent_vector
-    2. for each $j > 0$, the $j$th entry is congruent to the $j$th entry of exponent_vector modulo $m$
-    3. all entries, except possibly the first, are bounded in absolute value by `bound`.
+
+    1. the 0th entry matches the 0th entry of ``exponent_vector``
+    2. for each ``j > 0``, the ``j``th entry is congruent to the ``j``th entry of ``exponent_vector`` modulo ``m``
+    3. all entries, except possibly the first, are bounded in absolute value by ``bound``.
 
     EXAMPLE::
 
@@ -2553,11 +2567,26 @@ def clean_rfv_dict( rfv_dictionary ):
 
     .. NOTE::
 
-        - The keys of a residue field vector dictionary are exponent vectors modulo (q-1) for some prime q.
+        - The keys of a residue field vector dictionary are exponent vectors modulo ``(q-1)`` for some prime ``q``.
         - The values are residue field vectors. It is known that the entries of a residue field vector
           which comes from a solution to the S-unit equation cannot have 1 in any entry.
 
-    EXAMPLES::
+    EXAMPLE:
+
+    In this example, we use a truncated list generated when solving the `S`-unit equation in the case that `K` is defined by the
+    polynomial `x^2+x+1` and `S` consists of the primes above 3
+
+    ::
+
+        sage: from sage.rings.number_field.S_unit_solver import clean_rfv_dict
+        sage: rfv_dict = {(1, 3): [3, 2], (3, 0): [6, 6], (5, 4): [3, 6], (2, 1): [4, 6], (5, 1): [3, 1], (2, 5): [1, 5], (0, 3): [1, 6]}
+        sage: len(rfv_dict)
+        7
+        sage: clean_rfv_dict(rfv_dict)
+        sage: len(rfv_dict)
+        4
+        sage: rfv_dict
+        {(1, 3): [3, 2], (2, 1): [4, 6], (3, 0): [6, 6], (5, 4): [3, 6]}
     """
 
     garbage = []
@@ -2575,22 +2604,31 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
 
     - ``rfv_dictionary`` -- a dictionary whose keys are exponent vectors and whose values are the associated residue field vectors
     - ``q`` -- a prime (assumed to split completely in the relevant number field)
-    - ``d`` -- the number of primes in `K` above the rational prime `q`
+    - ``d`` -- the number of primes in `K` above the rational prime ``q``
     - ``verbose_flag`` -- a boolean flag to indicate more detailed output is desired
 
     OUTPUT:
 
-    A dictionary `P` whose keys are residue field vectors and whose values are lists of all exponent vectors
+    A dictionary ``P`` whose keys are residue field vectors and whose values are lists of all exponent vectors
     which correspond to the given residue field vector.
 
     .. NOTE::
 
-        - For example, if rfv_dictionary[ e0 ] = r0, then P[ r0 ] is a list which contains e0.
+        - For example, if ``rfv_dictionary[ e0 ] = r0``, then ``P[ r0 ]`` is a list which contains ``e0``.
         - During construction, some residue field vectors can be eliminated as coming from
-          solutions to the S-unit equation. Such vectors are dropped from the keys of the dictionary P.
+          solutions to the `S`-unit equation. Such vectors are dropped from the keys of the dictionary ``P``.
 
-    EXAMPLES::
+    EXAMPLES:
 
+    In this example, we use a truncated list generated when solving the `S`-unit equation in the case that `K` is defined by the
+    polynomial `x^2+x+1` and `S` consists of the primes above 3
+
+    ::
+
+        sage: from sage.rings.number_field.S_unit_solver import construct_rfv_to_ev
+        sage: rfv_dict = {(1, 3): [3, 2], (3, 0): [6, 6], (5, 4): [3, 6], (2, 1): [4, 6], (4, 0): [4, 2], (1, 2): [5, 6]}
+        sage: construct_rfv_to_ev(rfv_dict,7,2,False)
+        {(3, 2): [(1, 3)], (4, 2): [(4, 0)], (4, 6): [(2, 1)], (5, 6): [(1, 2)]}
     """
 
     # Step 0. Initialize P:
@@ -2707,7 +2745,43 @@ def construct_comp_exp_vec( rfv_to_ev_dict, q ):
 
     OUTPUT:
 
-    A dictionary whose typical key is an exponent vector a, and whose associated value is a list of complementary exponent vectors to a.
+    A dictionary whose typical key is an exponent vector ``a``, and whose associated value is a list of complementary exponent vectors to ``a``.
+
+    EXAMPLE:
+
+    In this example, we use the list generated when solving the `S`-unit equation in the case that `K` is defined by the
+    polynomial `x^2+x+1` and `S` consists of the primes above 3
+
+    ::
+
+        sage: from sage.rings.number_field.S_unit_solver import construct_comp_exp_vec
+        sage: rfv_to_ev_dict = {(6, 6): [(3, 0)], (5, 6): [(1, 2)], (5, 4): [(5, 3)], (6, 2): [(5, 5)], (2, 5): [(0, 1)], (5, 5): [(3, 4)], (4, 4): [(0, 2)], (6, 3): [(1, 4)], (3, 6): [(5, 4)], (2, 2): [(0, 4)], (3, 5): [(1, 0)], (6, 4): [(1, 1)], (3, 2): [(1, 3)], (2, 6): [(4, 5)], (4, 5): [(4, 3)], (2, 3): [(2, 3)], (4, 2): [(4, 0)], (6, 5): [(5, 2)], (3, 3): [(3, 2)], (5, 3): [(5, 0)], (4, 6): [(2, 1)], (3, 4): [(3, 5)], (4, 3): [(0, 5)], (5, 2): [(3, 1)], (2, 4): [(2, 0)]}
+        sage: construct_comp_exp_vec( rfv_to_ev_dict, 7 )
+        {(0, 1): [(1, 4)],
+         (0, 2): [(0, 2)],
+         (0, 4): [(3, 0)],
+         (0, 5): [(4, 3)],
+         (1, 0): [(5, 0)],
+         (1, 1): [(2, 0)],
+         (1, 2): [(1, 3)],
+         (1, 3): [(1, 2)],
+         (1, 4): [(0, 1)],
+         (2, 0): [(1, 1)],
+         (2, 1): [(4, 0)],
+         (2, 3): [(5, 2)],
+         (3, 0): [(0, 4)],
+         (3, 1): [(5, 4)],
+         (3, 2): [(3, 4)],
+         (3, 4): [(3, 2)],
+         (3, 5): [(5, 3)],
+         (4, 0): [(2, 1)],
+         (4, 3): [(0, 5)],
+         (4, 5): [(5, 5)],
+         (5, 0): [(1, 0)],
+         (5, 2): [(2, 3)],
+         (5, 3): [(3, 5)],
+         (5, 4): [(3, 1)],
+         (5, 5): [(4, 5)]}
 
     """
 
@@ -2722,29 +2796,38 @@ def construct_comp_exp_vec( rfv_to_ev_dict, q ):
 
 def drop_vector(ev, p, q, complement_ev_dict):
     r"""
-    Determines if ev may be removed from the complement dictionary during construction.
+    Determines if the exponent vector, ``ev``, may be removed from the complement dictionary during construction.
+    This will occur if ``ev`` is not compatible with an exponent vector mod ``q-1``.
 
     INPUT:
 
-    - ev -- an exponent vector modulo `p - 1`
-    - ``p`` -- the prime such that ev is an exponent vector modulo `p-1`
-    - ``q`` -- a prime, distinct from `p`, that is a key in the complement_ev_dict
-    - complement_ev_dict -- a dictionary of dictionaries, whose keys are primes
-      complement_ev_dict[q] is a dictionary whose keys are exponent vectors modulo `q-1`
-      and whose values are lists of complementary exponent vectors modulo `q-1`
+    - ``ev`` -- an exponent vector modulo ``p - 1``
+    - ``p`` -- the prime such that ev is an exponent vector modulo ``p-1``
+    - ``q`` -- a prime, distinct from ``p``, that is a key in the ``complement_ev_dict``
+    - ``complement_ev_dict`` -- a dictionary of dictionaries, whose keys are primes
+      ``complement_ev_dict[q]`` is a dictionary whose keys are exponent vectors modulo ``q-1``
+      and whose values are lists of complementary exponent vectors modulo ``q-1``
 
     OUTPUT:
 
-    Returns True if ev may be dropped from the complement exponent vector dictionary, and False if not.
+    Returns ``True`` if ``ev`` may be dropped from the complement exponent vector dictionary, and ``False`` if not.
 
     .. NOTE::
 
-        - If ev is not compatible with any of the vectors modulo q-1, then it can no longer correspond to a solution
-          of the S-unit equation. It returns True to indicate that it should be removed.
+        - If ``ev`` is not compatible with any of the vectors modulo ``q-1``, then it can no longer correspond to a solution
+          of the `S`-unit equation. It returns ``True`` to indicate that it should be removed.
 
     EXAMPLES::
 
+        sage: from sage.rings.number_field.S_unit_solver import drop_vector
+        sage: drop_vector((1, 2, 5), 7, 11, {11: {(1, 1, 3): [(1, 1, 3),(2, 3, 4)]}})
+        True
 
+    ::
+
+        sage: P={3: {(1, 0, 0): [(1, 0, 0), (0, 1, 0)], (0, 1, 0): [(1, 0, 0), (0, 1, 0)]}, 7: {(0, 3, 4): [(0, 1, 2), (0, 3, 4), (0, 5, 0)], (1, 2, 4): [(1, 0, 4), (1, 4, 2), (1, 2, 0)], (0, 1, 2): [(0, 1, 2), (0, 3, 4), (0, 5, 0)], (0, 5, 4): [(1, 0, 0), (1, 4, 4), (1, 2, 2)], (1, 4, 2): [(1, 2, 4), (1, 4, 0), (1, 0, 2)], (1, 0, 4): [(1, 2, 4), (1, 4, 0), (1, 0, 2)], (0, 3, 2): [(1, 0, 0), (1, 4, 4), (1, 2, 2)], (1, 0, 0): [(0, 5, 4), (0, 3, 2), (0, 1, 0)], (1, 2, 0): [(1, 2, 4), (1, 4, 0), (1, 0, 2)], (0, 1, 0): [(1, 0, 0), (1, 4, 4), (1, 2, 2)], (0, 5, 0): [(0, 1, 2), (0, 3, 4), (0, 5, 0)], (1, 2, 2): [(0, 5, 4), (0, 3, 2), (0, 1, 0)], (1, 4, 0): [(1, 0, 4), (1, 4, 2), (1, 2, 0)], (1, 0, 2): [(1, 0, 4), (1, 4, 2), (1, 2, 0)], (1, 4, 4): [(0, 5, 4), (0, 3, 2), (0, 1, 0)]}}
+        sage: drop_vector((0,1,0),3,7,P)
+        False
     """
     # returns True if it is OK to drop exp_vec given the current comp_exp_vec dictionary associated to some q.
     # returns False otherwise
@@ -2765,25 +2848,25 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
     A function to construct the complement exponent vector dictionaries.
 
     INPUT:
-    
+
     - ``split_primes_list`` -- a list of rational primes which split completely in the number field `K`
-    - ``SUK`` -- the S-unit group for a number field K
-    - ``verbose_flag`` (optional) -- a boolean to provide additional feedback
+    - ``SUK`` -- the `S`-unit group for a number field `K`
+    - ``verbose_flag`` -- (default: False) a boolean to provide additional feedback
 
     OUTPUT:
-    
-    A dictionary of dictionaries. The keys coincide with the primes in split_primes_list
-    For each q, comp_exp_vec[q] is a dictionary whose keys are exponent vectors modulo q-1,
-    and whose values are lists of exponent vectors modulo q-1
 
-    If w is an exponent vector in comp_exp_vec[q][v], then the residue field vectors modulo q for
-    v and w sum to [1,1,...,1]
+    A dictionary of dictionaries. The keys coincide with the primes in ``split_primes_list``
+    For each ``q``, ``comp_exp_vec[q]`` is a dictionary whose keys are exponent vectors modulo ``q-1``,
+    and whose values are lists of exponent vectors modulo ``q-1``
+
+    If ``w`` is an exponent vector in ``comp_exp_vec[q][v]``, then the residue field vectors modulo ``q`` for
+    ``v`` and ``w`` sum to ``[1,1,...,1]``
 
     .. NOTE::
-    
-        - The data of comp_exp_vec will later be lifted to ZZ to look for true S-Unit equation solutions.
+
+        - The data of ``comp_exp_vec`` will later be lifted to `\mathbb{Z}` to look for true `S`-Unit equation solutions.
         - During construction, the various dictionaries are compared to each other several times to
-          eliminate as many mod q solutions as possible.
+          eliminate as many mod `q` solutions as possible.
         - The authors acknowledge a helpful discussion with Norman Danner which helped formulate this code.
 
     EXAMPLE::
@@ -2792,7 +2875,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         sage: f = x^2 + 5
         sage: H = 10
         sage: K.<xi> = NumberField(f)
-        sage: SUK = K.S_unit_group( S = K.primes_above(10) )
+        sage: SUK = K.S_unit_group( S = K.primes_above(H) )
         sage: split_primes_list = [3, 7]
         sage: construct_complement_dictionaries( split_primes_list, SUK )
         {3: {(0, 1, 0): [(1, 0, 0), (0, 1, 0)], (1, 0, 0): [(1, 0, 0), (0, 1, 0)]},
@@ -2998,28 +3081,28 @@ def compatible_classes(a, m0, m1):
     Given a congruence class a modulo `m_0`, returns those `b` modulo `m_1` such that `x = a \mod m_0`, `x = b \mod m_1` has a solution
 
     INPUT:
-    
+
     - ``a`` -- an integer
     - ``m0`` -- a positive integer
     - ``m1`` -- a positive integer
 
     OUTPUT:
 
-    A list of integers b in the range 0..(m1-1) such that the Chinese Remainder Theorem problem
-    
+    A list of integers ``b`` in the range ``0..(m1-1)`` such that the Chinese Remainder Theorem problem
+
     .. MATH::
-    
+
         \begin{aligned}
         x & = a \mod m_0\\
         x & = b \mod m_1
         \end{aligned}
-        
+
     has a solution.
 
     .. NOTE::
 
         - For efficiency, the solutions are not computed.
-        - A necessary and sufficient condition is that a and b are congruent modulo g = gcd(m0, m1)
+        - A necessary and sufficient condition is that ``a`` and ``b`` are congruent modulo ``g = gcd(m0, m1)``
 
     EXAMPLE::
 
@@ -3028,7 +3111,7 @@ def compatible_classes(a, m0, m1):
         [2, 11, 20]
 
     Use CRT to check the output
-    
+
     ::
 
         sage: CRT(2, 2, 18, 27)
@@ -3050,17 +3133,17 @@ def compatible_vectors_check( a0, a1, m0, m1):
 
     INPUT:
 
-    - ``a0`` -- an exponent vector modulo `m0`
-    - ``a1`` -- an exponent vector modulo `m1`
-    - ``m0`` -- a positive integer giving the modulus of `a0`
-    - ``m1`` -- a positive integer giving the modulus of `a1`
+    - ``a0`` -- an exponent vector modulo ``m0``
+    - ``a1`` -- an exponent vector modulo ``m1``
+    - ``m0`` -- a positive integer giving the modulus of ``a0``
+    - ``m1`` -- a positive integer giving the modulus of ``a1``
 
     OUTPUT:
 
     True if there is an integer exponent vector a satisfying
 
     .. MATH::
-    
+
         \begin{aligned}
         a[0] &== a0[0] == a1[0]\\
         a[1:] &== a0[1:] \mod m_0\\
@@ -3111,17 +3194,17 @@ def compatible_vectors_check( a0, a1, m0, m1):
 
 def compatible_vectors(a, m0, m1):
     r"""
-    Given an exponent vector a modulo m0, returns a list of exponent vectors for the modulus m1, such that a lift to the lcm modulus exists.
+    Given an exponent vector ``a`` modulo ``m0``, returns a list of exponent vectors for the modulus ``m1``, such that a lift to the lcm modulus exists.
 
     INPUT:
 
-    - ``a``  -- an exponent vector for the modulus m0
-    - ``m0`` -- a positive integer (specifying the modulus for a)
+    - ``a``  -- an exponent vector for the modulus ``m0``
+    - ``m0`` -- a positive integer (specifying the modulus for ``a``)
     - ``m1`` -- a positive integer (specifying the alternate modulus)
 
     OUTPUT:
 
-    A list of exponent vectors modulo m1 which are compatible with a.
+    A list of exponent vectors modulo ``m1`` which are compatible with ``a``.
 
     .. NOTE::
 
@@ -3142,7 +3225,7 @@ def compatible_vectors(a, m0, m1):
         (3, 7, 8, 7)]
 
     The order of the moduli matters.
-    
+
     ::
 
         sage: len(compatible_vectors(a, 18, 12))
@@ -3174,8 +3257,8 @@ def compatible_systems( split_prime_list, complement_exp_vec_dict ):
 
     INPUT:
 
-    - split_prime_list -- a list of rational primes that split completely in `K`
-    - complement_exp_vec_dict -- a dictionary of dictionaries. The keys are primes from split_prime_list.
+    - ``split_prime_list`` -- a list of rational primes that split completely in `K`
+    - ``complement_exp_vec_dict`` -- a dictionary of dictionaries. The keys are primes from ``split_prime_list``.
 
     OUTPUT:
 
@@ -3183,19 +3266,21 @@ def compatible_systems( split_prime_list, complement_exp_vec_dict ):
 
     .. NOTE::
 
-        - For any `q` in split_prime_list, complement_exp_vec_dict[q] is a dictionary whose keys are exponent vectors modulo `q-1`
-          and whose values are lists of exponent vectors modulo `q-1` which are complementary to the key.
+        - For any ``q`` in ``split_prime_list``, ``complement_exp_vec_dict[q]`` is a dictionary whose keys are exponent vectors modulo ``q-1``
+          and whose values are lists of exponent vectors modulo ``q-1`` which are complementary to the key.
 
-        - an item in system_list has the form [ [v0, w0], [v1, w1], ..., [vk, wk] ], where
-            - qj = split_prime_list[j]
-            - vj and wj are complementary exponent vectors modulo qj - 1
+        - an item in system_list has the form ``[ [v0, w0], [v1, w1], ..., [vk, wk] ]``, where::
+
+            - ``qj = split_prime_list[j]``
+            - ``vj`` and ``wj`` are complementary exponent vectors modulo ``qj - 1``
             - the pairs are all simultaneously compatible.
 
-        - Let H = lcm( qj - 1 : qj in split_primes_list ). Then for any compatible system, there is at most one pair of integer
-          exponent vectors [v, w] such that
-            - every entry of v and w is bounded in absolute value by H
-            - for any qj, v and vj agree modulo (qj - 1)
-            - for any qj, w and wj agree modulo (qj - 1)
+        - Let ``H = lcm( qj - 1 : qj in split_primes_list )``. Then for any compatible system, there is at most one pair of integer
+          exponent vectors ``[v, w]`` such that::
+
+            - every entry of ``v`` and ``w`` is bounded in absolute value by ``H``
+            - for any ``qj``, ``v`` and ``vj`` agree modulo ``(qj - 1)``
+            - for any ``qj``, ``w`` and ``wj`` agree modulo ``(qj - 1)``
 
     EXAMPLES::
 
@@ -3268,20 +3353,20 @@ def compatible_system_lift( compatible_system, split_primes_list ):
 
     INPUT:
 
-    - ``compatible_system`` -- a list of pairs [ [v0, w0], [v1, w1], .., [vk, wk] ]
-      where [vi, wi] is a pair of complementary exponent vectors modulo qi - 1, and all pairs are compatible.
-    - ``split_primes_list`` -- a list of primes [ q0, q1, .., qk ]
+    - ``compatible_system`` -- a list of pairs ``[ [v0, w0], [v1, w1], .., [vk, wk] ]``
+      where [vi, wi] is a pair of complementary exponent vectors modulo ``qi - 1``, and all pairs are compatible.
+    - ``split_primes_list`` -- a list of primes ``[ q0, q1, .., qk ]``
 
     OUTPUT:
 
-    A pair of vectors [v, w] satisfying:
-    
-    1. v[0] == vi[0] for all i
-    2. w[0] == wi[0] for all i
-    3. v[j] == vi[j] modulo qi - 1 for all i and all j > 0
-    4. w[j] == wi[j] modulo qi - 1 for all i and all j > 0
-    5. every entry of v and w is bounded by L/2 in absolute value, where L is the
-      least common multiple of {qi - 1 : qi in split_primes_list }
+    A pair of vectors ``[v, w]`` satisfying:
+
+    1. ``v[0] == vi[0]`` for all ``i``
+    2. ``w[0] == wi[0]`` for all ``i``
+    3. ``v[j] == vi[j]`` modulo ``qi - 1`` for all ``i`` and all ``j > 0``
+    4. ``w[j] == wi[j]`` modulo ``qi - 1`` for all ``i`` and all `j > 0``
+    5. every entry of ``v`` and ``w`` is bounded by ``L/2`` in absolute value, where ``L`` is the
+      least common multiple of ``{qi - 1 : qi in split_primes_list }``
 
     EXAMPLES::
 
@@ -3342,26 +3427,26 @@ def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
 
     INPUT:
 
-    - ``SUK`` -- the group of S-units where we search for solutions
+    - ``SUK`` -- the group of `S`-units where we search for solutions
     - ``bound`` -- a bound for the entries of all entries of all lifts
     - ``cs_list`` -- a list of compatible systems of exponent vectors modulo `q-1` for
                  various primes `q`
-    - ``split_primes_list`` -- a list of primes giving the moduli of the exponent vectors in cs_list
+    - ``split_primes_list`` -- a list of primes giving the moduli of the exponent vectors in ``cs_list``
 
     OUTPUT:
 
     A list of solutions to the S-unit equation. Each solution is a list:
-    
+
     1. an exponent vector over the integers, ``ev``
     2. an exponent vector over the integers, ``cv``
     3. the S-unit corresponding to ``ev``, ``iota_exp``
     4. the S-unit corresponding to ``cv``, ``iota_comp``
-    
+
     .. NOTE::
 
-        - Every entry of ev is less than or equal to bound in absolute value
-        - every entry of cv is less than or equal to bound in absolute value
-        - ``iota_exp`` + ``iota_comp`` == 1
+        - Every entry of ``ev`` is less than or equal to bound in absolute value
+        - every entry of ``cv`` is less than or equal to bound in absolute value
+        - ``iota_exp + iota_comp == 1``
 
     EXAMPLES::
 
@@ -3424,7 +3509,7 @@ def clean_sfs( sfs_list ):
 
     .. NOTE::
 
-        The function looks for cases where x + y = 1 and y + x = 1 appear\
+        The function looks for cases where ``x + y = 1`` and ``y + x = 1`` appear\
         as separate solutions, and removes one.
 
     EXAMPLE::
@@ -3458,13 +3543,13 @@ def clean_sfs( sfs_list ):
 
 def solve_S_unit_equation(K, S, prec = None):
     r"""
-    Return all solutions to the S-unit equation x + y = 1 over K.
+    Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
     INPUT:
 
     - ``K`` -- a number field (an absolute extension of the rationals)
     - ``S`` -- a list of finite primes of ``K``
-    - ``prec`` -- precision used for computations in real field, complex field, and p-adic field.
+    - ``prec`` -- (default: None) precision used for computations in real field, complex field, and p-adic field.
 
     OUTPUT:
 
@@ -3475,7 +3560,7 @@ def solve_S_unit_equation(K, S, prec = None):
     3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(bx_i)``.
 
     EXAMPLE::
-    
+
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: S=SUK.primes()
