@@ -119,13 +119,17 @@ class RelativeFiniteField(PolynomialQuotientRing_generic):
         
         basis, basis_in_GF = self._basis_over_prime_field_()
         assert(len(basis) == self.GF().degree())
-        from sage.matrix.constructor import matrix
-        
-        A = matrix([b._vector_() for b in basis_in_GF])
-        assert(A.is_square())
-        x = A.solve_left(A.column_space().basis()[1])
-        primitive_element = sum(c*b for c,b in zip(x.list(), basis))
-        self._GF_map_inverse = self.GF().hom([primitive_element], self, check=False)
+
+        # Check if self is isomorphic to its prime field.
+        if len(basis) == 1:
+            self._GF_map_inverse = self.GF().hom([1], self)
+        else:
+            from sage.matrix.constructor import matrix
+            A = matrix([b._vector_() for b in basis_in_GF])
+            assert(A.is_square())
+            x = A.solve_left(A.column_space().basis()[1])
+            primitive_element = sum(c*b for c,b in zip(x.list(), basis))
+            self._GF_map_inverse = self.GF().hom([primitive_element], self, check=False)
 
     # Element class    
     Element = RelativeFiniteFieldElement
