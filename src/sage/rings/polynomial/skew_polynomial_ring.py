@@ -301,7 +301,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = SkewPolynomialRing(R, sigma)
-            sage: S.__class__(R, sigma, x)
+            sage: S.__class__(R, sigma, 'x')
             Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
              twisted by t |--> t + 1
         """

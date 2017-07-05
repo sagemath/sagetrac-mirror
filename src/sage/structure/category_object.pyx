@@ -910,6 +910,36 @@ cdef class CategoryObject(SageObject):
         return self / other
 
 
+def _assert_name_string(v):
+    """
+    Check that ``v`` is a string and return ``v``.
+
+    If ``v`` is not a string, convert ``v`` to a string but give a
+    deprecation message.
+
+    INPUT:
+
+    - ``v`` -- a variable name
+
+    OUTPUT: ``v`` as a string
+
+    EXAMPLES::
+
+        sage: from sage.structure.category_object import _assert_name_string
+        sage: _assert_name_string("foo")
+        'foo'
+        sage: _assert_name_string(SR.var("foo"))
+        doctest:...: DeprecationWarning: variable name foo should be a string, not <type 'sage.symbolic.expression.Expression'>
+        See http://trac.sagemath.org/10483 for details.
+        'foo'
+    """
+    if isinstance(v, str):
+        return v
+    from sage.misc.superseded import deprecation
+    deprecation(10483, f"variable name {v!r} should be a string, not {type(v)}")
+    return str(v)
+
+
 cpdef normalize_names(Py_ssize_t ngens, names):
     r"""
     Return a tuple of strings of variable names of length ngens given
@@ -956,14 +986,19 @@ cpdef normalize_names(Py_ssize_t ngens, names):
         sage: nn(4, ['a1', 'a2', 'b1', 'b11'])
         ('a1', 'a2', 'b1', 'b11')
 
-    Arguments are converted to strings::
+    You should always pass arguments as strings. Anything else is
+    converted to a string, but this is deprecated::
 
-        sage: nn(1, u'a')
-        ('a',)
         sage: var('alpha')
         alpha
         sage: nn(2, alpha)
+        doctest:...: DeprecationWarning: variable name alpha should be a string, not <type 'sage.symbolic.expression.Expression'>
+        See http://trac.sagemath.org/10483 for details.
         ('alpha0', 'alpha1')
+        sage: nn(1, u'a')
+        doctest:...:  DeprecationWarning: variable name u'a' should be a string, not <type 'unicode'>
+        See http://trac.sagemath.org/10483 for details.
+        ('a',)
         sage: nn(1, [alpha])
         ('alpha',)
 
@@ -1002,12 +1037,13 @@ cpdef normalize_names(Py_ssize_t ngens, names):
         ValueError: variable name '3/2' is not alphanumeric
     """
     if isinstance(names, (tuple, list)):
-        # Convert names to strings and strip whitespace
-        names = [str(x).strip() for x in names]
+        names = [_assert_name_string(x).strip() for x in names]  # Strip whitespace
+    elif names is None:
+        names = []
     else:
-        # Interpret names as string and convert to tuple of strings
-        names = str(names)
+        names = _assert_name_string(names)
 
+        # Convert names to tuple of strings
         if ',' in names:
             names = [x.strip() for x in names.split(',')]
         elif ngens > 1 and len(names) == ngens:

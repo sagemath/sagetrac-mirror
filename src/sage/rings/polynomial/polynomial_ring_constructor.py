@@ -384,6 +384,20 @@ def PolynomialRing(base_ring, *args, **kwds):
         sage: R is S
         True
 
+    We test that the common misuse of symbolic expressions and other
+    objects as variable names is now deprecated (:trac:`10483`)::
+
+        sage: var('x')
+        x
+        sage: PolynomialRing(ZZ, [x, singular])
+        Multivariate Polynomial Ring in x, Singular over Integer Ring
+        sage: var('t')
+        t
+        sage: A = PolynomialRing(ZZ, name='t')
+        sage: B = PolynomialRing(ZZ, name=t)
+        sage: A is B
+        True
+
     If the requested implementation is not known or not supported for
     the given arguments, then an error results::
 
