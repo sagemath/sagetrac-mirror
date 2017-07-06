@@ -498,16 +498,13 @@ class InfinitePolynomial_sparse(RingElement):
             sage: R.<x> = InfinitePolynomialRing(Zmod(128))
             sage: (1+4*x[0]).inverse_of_unit()
             64*x_0^3 + 16*x_0^2 - 4*x_0 + 1
-            sage: p =71+28*x[0]+96*x[1]
+
+            sage: p = 71+28*x[0]+96*x[1]
             sage: p * p.inverse_of_unit()
             1
 
-        Sadly, :trac:`22514` afflicts this calculation; the following should not be an error::
-
             sage: R(5).inverse_of_unit()
-            Traceback (most recent call last):
-            ...
-            AttributeError: <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_sparse'> has no attribute constant_coefficient
+            77
 
         ALGORITHM:
 
@@ -515,7 +512,6 @@ class InfinitePolynomial_sparse(RingElement):
         see the algorithm description there.
         """
         return inverse_of_unit_polynomial(self)
-
 
     @cached_method
     def variables(self):
@@ -917,6 +913,32 @@ class InfinitePolynomial_sparse(RingElement):
         if hasattr(self._p,'variable_name'): # if it is univariate
             return InfinitePolynomial(self.parent(), self._p.leading_coefficient()*self._p.parent().gen()**max(self._p.exponents()))
         return self # if it is scalar
+
+    def constant_coefficient(self):
+        r"""
+        The constant coefficient of this polynomial
+
+        EXAMPLES::
+
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: (a[0] + a[1] + 2*a[2] + 3).constant_coefficient()
+            3
+            sage: R.one().constant_coefficient()
+            1
+            sage: (a[0] + 1 - a[0]).constant_coefficient()
+            1
+
+            sage: R.<a,b> = InfinitePolynomialRing(QQ)
+            sage: p = (a[0] * b[1] + 1) * (a[2] - b[3] - 2) + 4
+            sage: p.constant_coefficient()
+            2
+            sage: R.one().constant_coefficient()
+            1
+        """
+        if self._p.parent() is self.base_ring():
+            return self._p
+        else:
+            return self._p.constant_coefficient()
 
     def tail(self):
         """
