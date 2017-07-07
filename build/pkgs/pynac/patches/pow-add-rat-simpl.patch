@@ -19,7 +19,7 @@ index a902a34..a32227e 100644
                  return;
          }
 diff --git a/ginac/power.cpp b/ginac/power.cpp
-index a19fd45..1a814cf 100644
+index a19fd45..75e04d0 100644
 --- a/ginac/power.cpp
 +++ b/ginac/power.cpp
 @@ -628,7 +628,7 @@ ex power::eval(int level) const
@@ -78,7 +78,7 @@ index a19fd45..1a814cf 100644
                                          auto  addp = new add(addref);
                                          addp->setflag(status_flags::dynallocated);
                                          addp->clearflag(status_flags::hash_calculated);
-@@ -706,12 +725,9 @@ ex power::eval(int level) const
+@@ -706,12 +725,12 @@ ex power::eval(int level) const
                                          addp->seq_sorted.resize(0);
                                          for (auto & elem : addp->seq)
                                                  elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
@@ -88,6 +88,9 @@ index a19fd45..1a814cf 100644
 -                                                return (new mul(power(*addp, num_exponent), c))->setflag(status_flags::dynallocated);
 -                                        else
 -                                                return power(*addp, num_exponent);
++                                        if (ppower_equals_one)
++                                                return (new power(*addp,
++                                                              num_exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
 +                                        return (new mul(power(*addp,
 +                                                              num_exponent),
 +                                                        ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
