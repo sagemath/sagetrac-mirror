@@ -1083,6 +1083,9 @@ ext_modules = [
     Extension("sage.numerical.backends.cvxopt_sdp_backend",
               ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
 
+    Extension("sage.numerical.backends.mosek_sdp_backend",
+              ["sage/numerical/backends/mosek_sdp_backend.pyx"]),
+
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"]),
 

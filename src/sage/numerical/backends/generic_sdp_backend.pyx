@@ -191,8 +191,7 @@ cdef class GenericSDPBackend:
             sage: [p.objective_coefficient(x) for x in range(5)]  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
 
-        Constants in the objective function are respected::
-
+        Constants in the objective function are respected.
         """
         raise NotImplementedError()
 
@@ -674,21 +673,24 @@ def default_sdp_solver(solver = None):
 
 cpdef GenericSDPBackend get_solver(solver = None):
     """
-    Return a solver according to the given preferences
+    Return a solver according to the given preferences.
 
     INPUT:
 
-    - ``solver`` -- 1 solver should be available through this class:
+    - ``solver`` -- shoud be equal to an available solver backend, or ``None``:
+
+        - ``solver=None`` (default), the default solver is used (see
+          ``default_sdp_solver`` method).
 
         - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
-          <http://cvxopt.org/>`_ web site.
+          <http://cvxopt.org/>`_ website.
 
-        ``solver`` should then be equal to one of ``"CVXOPT"`` or ``None``.
-          If ``solver=None`` (default), the default solver is used (see ``default_sdp_solver`` method.
+        - MOSEK (``solver="MOSEK"``), requires the optional package ``mosek``.
+          See the `MOSEK <http://mosek.com/>`_ website.
 
     .. SEEALSO::
 
-    - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
+        - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
 
     EXAMPLES::
 
@@ -701,10 +703,13 @@ cpdef GenericSDPBackend get_solver(solver = None):
     else:
         solver = solver.capitalize()
 
-
     if solver == "Cvxopt":
         from sage.numerical.backends.cvxopt_sdp_backend import CVXOPTSDPBackend
         return CVXOPTSDPBackend()
 
+    elif solver == "Mosek":
+        from sage.numerical.backends.mosek_sdp_backend import MOSEKSDPBackend
+        return MOSEKSDPBackend()
+
     else:
-        raise ValueError("'solver' should be set to 'CVXOPT' or None (in which case the default one is used).")
+        raise ValueError("'solver' should be set to 'CVXOPT', 'MOSEK', or None (in which case the default one is used).")
