@@ -164,14 +164,15 @@ class AffinePermutation(ClonableArray):
 
     __invert__=inverse
 
-    def apply_simple_reflection(self, i, side='right'):
+    def apply_simple_reflection(self, i, side=None):
         r"""
         Applies a simple reflection.
 
         INPUT:
 
         - ``i`` -- an integer.
-        - ``side`` -- Determines whether to apply the reflection on the 'right' or 'left'.  Default 'right'.
+        - ``side`` -- whether to apply the reflection on the ``'right'``
+          or ``'left'`` (optional)
 
         EXAMPLES::
 
@@ -185,6 +186,8 @@ class AffinePermutation(ClonableArray):
             sage: p.apply_simple_reflection(11, 'left')
             Type A affine permutation with window [4, -1, 0, 6, 5, 3, 10, 9]
         """
+        if side is None:
+            side = self.parent()._default_side
         if side=='right':
             return self.apply_simple_reflection_right(i)
         if side=='left':
@@ -205,7 +208,7 @@ class AffinePermutation(ClonableArray):
         """
         return self.value(i)
 
-    def is_i_grassmannian(self, i=0, side="right"):
+    def is_i_grassmannian(self, i=0, side=None):
         r"""
         Test whether ``self`` is `i`-grassmannian, ie, either is the identity or has
         ``i`` as the sole descent.
@@ -213,7 +216,8 @@ class AffinePermutation(ClonableArray):
         INPUT:
 
         - ``i`` -- An element of the index set.
-        - ``side`` -- determines the side on which to check the descents.
+        - ``side`` -- determines the side on which to check the
+          descents (optional)
 
         EXAMPLES::
 
@@ -246,7 +250,7 @@ class AffinePermutation(ClonableArray):
         """
         return tuple(range(self.k+1))
 
-    def lower_covers(self,side="right"):
+    def lower_covers(self, side=None):
         r"""
         Return lower covers of ``self``.
 
@@ -339,7 +343,7 @@ class AffinePermutation(ClonableArray):
         W=self.parent().weyl_group()
         return W.from_reduced_word(self.reduced_word())
 
-    def grassmannian_quotient(self, i=0, side='right'):
+    def grassmannian_quotient(self, i=0, side=None):
         r"""
         Return Grassmannian quotient.
 
@@ -373,6 +377,8 @@ class AffinePermutation(ClonableArray):
             sage: prod(gqLeft)==p
             True
         """
+        if side is None:
+            side = self.parent()._default_side
         fin=self.parent().one()
         gr=self
         D=gr.descents(side=side)

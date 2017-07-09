@@ -160,7 +160,7 @@ class CoxeterGroups(Category_singleton):
             """
             return iter(self.weak_order_ideal(predicate = ConstantFunction(True)))
 
-        def weak_order_ideal(self, predicate, side ="right", category = None):
+        def weak_order_ideal(self, predicate, side=None, category=None):
             """
             Returns a weak order ideal defined by a predicate
 
@@ -168,7 +168,7 @@ class CoxeterGroups(Category_singleton):
 
             - ``predicate``: a predicate on the elements of ``self`` defining an
               weak order ideal in ``self``
-            - ``side``: "left" or "right" (default: "right")
+            - ``side`` -- ``"left"`` or ``"right"`` (optional)
 
             OUTPUT: an enumerated set
 
@@ -332,14 +332,14 @@ class CoxeterGroups(Category_singleton):
             from sage.combinat.permutation import Permutations
             return set(self.from_reduced_word(w) for w in Permutations(self._index_set))
 
-        def grassmannian_elements(self, side="right"):
+        def grassmannian_elements(self, side=None):
             """
             Return the left or right Grassmannian elements of ``self``
             as an enumerated set.
 
             INPUT:
 
-            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
+            - ``side`` -- ``"left"`` or ``"right"`` (optional)
 
             EXAMPLES::
 
@@ -380,7 +380,7 @@ class CoxeterGroups(Category_singleton):
                 tester.assertEquals(self.from_reduced_word(red), x)
                 tester.assertEquals(self.prod((s[i] for i in red)), x)
 
-        def simple_projection(self, i, side = 'right', length_increasing = True):
+         def simple_projection(self, i, side=None, length_increasing=True):
             r"""
             INPUT:
 
@@ -424,14 +424,14 @@ class CoxeterGroups(Category_singleton):
             return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', length_increasing = True):
+        def simple_projections(self, side=None, length_increasing=True):
             r"""
             Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
 
             INPUT:
 
             - ``self`` - a Coxeter group `W`
-            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - ``length_increasing`` - a boolean (default: True) specifying
               whether the operator increases or decreases length
 
@@ -837,7 +837,7 @@ class CoxeterGroups(Category_singleton):
                 tester.assertNotIn(i, si.descents(positive=True, side='right'))
 
     class ElementMethods:
-        def has_descent(self, i, side = 'right', positive=False):
+        def has_descent(self, i, side=None, positive=False):
             """
             Returns whether i is a (left/right) descent of self.
 
@@ -862,6 +862,8 @@ class CoxeterGroups(Category_singleton):
             """
             if not isinstance(positive, bool):
                 raise TypeError("%s is not a boolean"%(bool))
+            if side is None:
+                side = self.parent()._default_side
             if side == 'right':
                 return self.has_right_descent(i) != positive
             if side != 'left':
@@ -915,7 +917,7 @@ class CoxeterGroups(Category_singleton):
             """
             return (~self).has_right_descent(i)
 
-        def first_descent(self, side = 'right', index_set=None, positive=False):
+        def first_descent(self, side=None, index_set=None, positive=False):
             """
             Returns the first left (resp. right) descent of self, as
             ane element of ``index_set``, or ``None`` if there is none.
@@ -939,17 +941,17 @@ class CoxeterGroups(Category_singleton):
             if index_set is None:
                 index_set = self.parent().index_set()
             for i in index_set:
-                if self.has_descent(i, side = side, positive = positive):
+                if self.has_descent(i, side=side, positive=positive):
                     return i
             return None
 
-        def descents(self, side = 'right', index_set=None, positive=False):
+        def descents(self, side=None, index_set=None, positive=False):
             """
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the nodes of the Dynkin diagram;
               (default: all of them)
-            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - ``positive`` - a boolean (default: ``False``)
 
             Returns the descents of self, as a list of elements of the
@@ -981,14 +983,14 @@ class CoxeterGroups(Category_singleton):
                 TODO: side, index_set, positive
             """
             if index_set is None:
-                index_set=self.parent().index_set()
-            return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
+                index_set = self.parent().index_set()
+            return [i for i in index_set if self.has_descent(i, side=side, positive=positive)]
 
-        def is_grassmannian(self, side = "right"):
+        def is_grassmannian(self, side=None):
             """
             INPUT:
 
-            - ``side`` - "left" or "right" (default: "right")
+            - ``side`` -- ``"left"`` or ``"right"``
 
             Tests whether ``self`` is Grassmannian, i.e. it has at
             most one descent on the right (resp. on the left).
@@ -1414,12 +1416,12 @@ class CoxeterGroups(Category_singleton):
             G = self.parent().canonical_representation()
             return G.prod(G.simple_reflection(i) for i in self.reduced_word()).matrix()
 
-        def coset_representative(self, index_set, side = 'right'):
+        def coset_representative(self, index_set, side=None):
             r"""
             INPUT:
 
             - ``index_set`` - a subset (or iterable) of the nodes of the Dynkin diagram
-            - ``side`` - 'left' or 'right'
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
 
             Returns the unique shortest element of the Coxeter group
             $W$ which is in the same left (resp. right) coset as
@@ -1462,12 +1464,12 @@ class CoxeterGroups(Category_singleton):
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', length_increasing = True):
+        def apply_simple_projection(self, i, side=None, length_increasing=True):
             r"""
             INPUT:
 
             - ``i`` - an element of the index set of the Coxeter group
-            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - ``length_increasing`` - a boolean (default: True) specifying
               the direction of the projection
 
@@ -1670,7 +1672,7 @@ class CoxeterGroups(Category_singleton):
             wi = self.apply_simple_reflection(i)
             return [(u.apply_simple_reflection(i),r.apply_conjugation_by_simple_reflection(i)) for u,r in wi.bruhat_lower_covers_reflections() if not u.has_descent(i)] + [(wi, self.parent().simple_reflection(i))]
 
-        def lower_cover_reflections(self, side = 'right'):
+        def lower_cover_reflections(self, side=None):
             r"""
             Returns the reflections ``t`` such that ``self`` covers ``self`` ``t``.
 
@@ -1686,7 +1688,8 @@ class CoxeterGroups(Category_singleton):
                 [s2*s3*s2, s3, s1]
 
             """
-
+            if side is None:
+                side = self.parent()._default_side
             if side == 'left':
                 self = self.inverse()
             return [x[1] for x in self.bruhat_lower_covers_reflections()]
@@ -1718,7 +1721,7 @@ class CoxeterGroups(Category_singleton):
                     Covers += [(wi,self.parent().simple_reflection(i))]
             return uniq(Covers)
 
-        def cover_reflections(self, side = 'right'):
+        def cover_reflections(self, side=None):
             r"""
             Returns the set of reflections ``t`` such that ``self`` ``t`` covers ``self``.
 
@@ -1734,7 +1737,8 @@ class CoxeterGroups(Category_singleton):
                 [s4, s2, s1*s2*s1, s3*s4*s3]
 
             """
-
+            if side is None:
+                side = self.parent()._default_side
             if side == 'left':
                 self = self.inverse()
             return [x[1] for x in self.bruhat_upper_covers_reflections()]
@@ -1811,14 +1815,14 @@ class CoxeterGroups(Category_singleton):
             else:
                 return self == other
 
-        def weak_le(self, other, side = 'right'):
+        def weak_le(self, other, side=None):
             """
             comparison in weak order
 
             INPUT:
 
             - other - an element of the same Coxeter group
-            - side - 'left' or 'right'  (default: 'right')
+            - ``side`` -- ``"left"`` or ``"right"`` (optional)
 
             OUTPUT: a boolean
 
@@ -1881,13 +1885,13 @@ class CoxeterGroups(Category_singleton):
                 self = self.apply_simple_reflection(desc, side = prefix_side)
                 other = other.apply_simple_reflection(desc, side = prefix_side)
 
-        def weak_covers(self, side = 'right', index_set = None, positive = False):
+        def weak_covers(self, side=None, index_set=None, positive=False):
             """
             Returns all elements that ``self`` covers in weak order.
 
             INPUT:
 
-            - side - 'left' or 'right'  (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - positive - a boolean (default: False)
             - index_set - a list of indices or None
 
@@ -2028,7 +2032,7 @@ class CoxeterGroups(Category_singleton):
                     i = 0
             return True
 
-        def apply_demazure_product(self, element, side = 'right', length_increasing = True):
+        def apply_demazure_product(self, element, side=None, length_increasing=True):
             r"""
             Returns the Demazure or 0-Hecke product of ``self`` with another Coxeter group element.
 
@@ -2041,10 +2045,10 @@ class CoxeterGroups(Category_singleton):
                 reduced word) of elements from the index set of the
                 Coxeter group.
 
-            - ``side`` -- 'left' or 'right' (default: 'right'); the
+            - ``side`` -- ``'left'`` or ``'right'`` (optional); the
                 side of ``self`` on which the element should be
-                applied. If ``side`` is 'left' then the operation is
-                applied on the left.
+                applied; if ``side`` is ``'left'`` then the operation
+                is applied on the left
 
             - ``length_increasing`` -- a boolean (default True)
                 whether to act length increasingly or decreasingly
@@ -2079,6 +2083,8 @@ class CoxeterGroups(Category_singleton):
                 # the copy is so that if we need to reverse the list, the original will not
                 # get reversed
                 the_word = copy(element)
+            if side is None:
+                side = self.parent()._default_side
             if side == 'left':
                 the_word.reverse()
             for i in the_word:
@@ -2287,13 +2293,13 @@ class CoxeterGroups(Category_singleton):
 
             return self.inverse().inversions_as_reflections()
 
-        def lower_covers(self, side = 'right', index_set = None):
+        def lower_covers(self, side=None, index_set=None):
             """
             Returns all elements that ``self`` covers in weak order.
 
             INPUT:
 
-            - side - 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - index_set - a list of indices or None
 
             OUTPUT: a list
@@ -2322,13 +2328,13 @@ class CoxeterGroups(Category_singleton):
             """
             return self.weak_covers(side = side, index_set = index_set, positive = False)
 
-        def upper_covers(self, side = 'right', index_set = None):
+        def upper_covers(self, side=None, index_set=None):
             """
             Returns all elements that cover ``self`` in weak order.
 
             INPUT:
 
-            - side - 'left' or 'right' (default: 'right')
+            - ``side`` -- ``'left'`` or ``'right'`` (optional)
             - index_set - a list of indices or None
 
             OUTPUT: a list

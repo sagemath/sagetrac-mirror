@@ -213,7 +213,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
             return Poset((self, covers), cover_relations=True, facade=facade)
 
-        def shard_poset(self, side='right'):
+        # FIXME: side is not used in this code
+        def shard_poset(self, side=None):
             """
             Return the shard intersection order attached to `W`.
 

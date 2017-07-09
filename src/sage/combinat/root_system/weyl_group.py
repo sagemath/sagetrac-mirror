@@ -840,7 +840,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
     # Descents
     ##########################################################################
 
-    def has_descent(self, i, positive=False, side = "right"):
+    def has_descent(self, i, positive=False, side=None):
         """
         Test if ``self`` has a descent at position ``i``.
 
@@ -893,6 +893,8 @@ class WeylGroupElement(MatrixGroupElement_gap):
 #            return s > 0
 #        else:
 #            return s < 0
+        if side is None:
+            side = self.parent()._default_side
         L = self.domain()
         # Choose the method depending on the side and the availability of rho and is_positive_root
         if not hasattr(L.element_class, "is_positive_root"):
@@ -954,7 +956,9 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return self.has_descent(i, side="right")
 
-    def apply_simple_reflection(self, i, side = "right"):
+    def apply_simple_reflection(self, i, side=None):
+        if side is None:
+            side = self.parent()._default_side
         s = self.parent().simple_reflections()
         if side == "right":
             return self * s[i]
@@ -997,6 +1001,8 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
     """
     A Weyl group given as a permutation group.
     """
+    _default_side = "left"
+
     @staticmethod
     def __classcall__(cls, cartan_type, prefix=None):
         """
