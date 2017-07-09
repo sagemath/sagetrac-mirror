@@ -1029,6 +1029,8 @@ class BetaAdicMonoid(Monoid_class):
 		sig_on()
 		cdef Surface s = NewSurface (sx, sy)
 		cdef BetaAdic b
+		if tss is not None:
+			tss = tss.emonde()
 		b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
 		#if verb:
 		#	printAutomaton(b.a)
@@ -1138,6 +1140,8 @@ class BetaAdicMonoid(Monoid_class):
 			sage: m.plot2(19)								   # long time
 		
 		"""
+		if tss is not None:
+			tss = tss.emonde()
 		cdef Surface s = NewSurface (sx, sy)
 		cdef BetaAdic2 b
 		sig_on()
@@ -1186,6 +1190,8 @@ class BetaAdicMonoid(Monoid_class):
 		FreeSurface(s)
 		if la is None:
 			FreeAutomates(b.a, b.na)
+		else:
+			la[0] = la[0].emonde()
 #		else:
 #			for i,a in enumerate(la):
 #				if not isinstance(a, FastAutomaton):

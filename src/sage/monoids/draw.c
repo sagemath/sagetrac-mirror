@@ -1014,7 +1014,7 @@ void print_word (BetaAdic b, int n, int etat)
 }
 
 //int niter;
-
+double Maj = 1000; //majorant
 Complexe pos;
 
 void Draw_rec2 (BetaAdic b, Surface s, int n, int etat)
@@ -1086,6 +1086,22 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 		set_pix (s, p);
 	}else
 	{
+	    if (n > 5)
+		{
+			//teste si l'on sort de la zone de dessin
+			//sous-arbre inclus dans le disque de centre p et de rayon abs(bn)*M
+			double Mn = Maj*sqrt(cnorm(bn));
+			if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
+			{
+				/*
+				if (Rmaj != NULL)
+				{
+					///////////TODO !!!
+				}
+				*/
+			}else
+				return; //intersection des rectangles vide
+		}
 		int *etat2 = (int *)malloc(sizeof(int)*b.na);
 		int j;
 		for (i=0;i<b.n;i++)
@@ -1102,8 +1118,6 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 		free(etat2);
 	}
 }
-
-double Maj = 1000; //majorant
 
 //compute the (almost) longest word w such that w(w^{-1}L) and L give the same drawing in the zone
 //where L is the language given by b
@@ -1413,6 +1427,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		colors[i] = randCol(255);
 	}
 	*/
+	
 	if (verb)
 	{
 		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
@@ -1570,6 +1585,21 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 			printf("couleur %d : %d %d %d %d\n", i, cl[i].r, cl[i].g, cl[i].b, cl[i].a);
 		}
 	}
+	
+	if (cnorm(b.b) < 1)
+	{
+		//calcul du majorant
+		Maj = 0;
+		double m;
+		for (i=0;i<b.n;i++)
+		{
+			m = cnorm(b.t[i]);
+			if (Maj < m)
+				Maj = m;
+		}
+		Maj = sqrt(Maj)/(1. - sqrt(cnorm(b.b)));
+	}
+	
 	if (verb)
 	{
 		printf("%d translations, %d automates.\n", b.n, b.na);

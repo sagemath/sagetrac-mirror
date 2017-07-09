@@ -90,7 +90,8 @@ cdef extern from "automataC.h":
 	bool CompleteAutomaton (Automaton *a)
 	Automaton BiggerAlphabet (Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
 	bool findWord (Automaton a, Dict *w, bool verb)
-	bool shortestWord (Automaton a, Dict *w, bool verb)
+	bool shortestWord (Automaton a, Dict *w, int i, int f, bool verb)
+	bool shortestWords (Automaton a, Dict *w, int i, bool verb)
 	bool rec_word (Automaton a, Dict d)
 	void Test ()
 
@@ -610,7 +611,7 @@ cdef class FastAutomaton:
 			return []
 		return [j for j in range(self.a.na) if self.a.e[i].f[j] != -1]
 	
-	#suit le chemin étiqueté par l
+	#suit le chemin étiqueté par l et rend l'état atteint
 	def path (self, list l, i=None):
 		if i is None:
 			i = self.a.i
@@ -1008,7 +1009,7 @@ cdef class FastAutomaton:
 		cdef Automaton a
 		cdef Dict dC
 		if noempty and not onlyfinals and not nof:
-			return self.proj(d=d, verb=verb).determinise()
+			return self.proj(d=d, verb=verb)
 		else:
 			sig_on()
 			r = FastAutomaton(None)
@@ -1129,7 +1130,7 @@ cdef class FastAutomaton:
 		sig_off()
 		return r
 	
-	def strongly_connected_components (self):
+	def strongly_connected_components (self, no_trivials=False):
 		sig_on()
 		cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
 		cdef int ncc = StronglyConnectedComponents(self.a[0], l)
@@ -1140,6 +1141,16 @@ cdef class FastAutomaton:
 			if not l2.has_key(l[i]):
 				l2[l[i]] = []
 			l2[l[i]].append(i)
+		if no_trivials:
+			for i in l2.keys():
+				if len(l2[i]) == 1:
+					trivial = True
+					for j in range(len(self.A)):
+						if self.a.e[l2[i][0]].f[j] == l2[i][0]:
+							trivial = False
+							break
+					if trivial:
+						l2.pop(i) #on retire cette composante qui est triviale
 		free(l)
 		sig_off()
 		return l2.values()
@@ -1308,10 +1319,14 @@ cdef class FastAutomaton:
 		FreeDict(&w)
 		return r
 	
-	def find_shortest_word (self, bool verb=False):
+	def shortest_word (self, i=None, f=None, bool verb=False):
 		sig_on()
 		cdef Dict w
-		res = shortestWord (self.a[0], &w, verb)
+		if i is None:
+			i = self.a.i
+		if f is None:
+			f = -1
+		res = shortestWord (self.a[0], &w, i, f, verb)
 		sig_off()
 		if not res:
 			return None
@@ -1320,6 +1335,25 @@ cdef class FastAutomaton:
 			r.append(self.A[w.e[i]])
 		FreeDict(&w)
 		return r
+	
+	def shortest_words (self, i=None, bool verb=False):
+		cdef Dict* w = <Dict*>malloc(sizeof(Dict)*self.a.n)
+		if i is None:
+			i = self.a.i
+		sig_on()
+		res = shortestWords (self.a[0], w, i, verb)
+		sig_off()
+		if not res:
+			return None
+		rt = []
+		for j in range(self.a.n):
+			r = []
+			for i in range(w[j].n):
+				r.append(self.A[w[j].e[i]])
+			rt.append(r)
+			FreeDict(&w[j])
+		free(w)
+		return rt
 	
 	#determine if the word is recognized by the automaton or not
 	def rec_word2 (self, list w):

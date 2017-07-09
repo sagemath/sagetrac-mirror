@@ -978,7 +978,7 @@ bool findWord (Automaton a, Dict *w, bool verb)
 }
 
 //rend un mot le plus court du language
-bool shortestWord (Automaton a, Dict *w, bool verb)
+bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 {
 	if (a.i == -1)
 		return false;
@@ -994,12 +994,14 @@ bool shortestWord (Automaton a, Dict *w, bool verb)
 		prec[i] = -1;
 		vu[i] = 0;
 	}
-	d[a.i] = 0;
+	d[init] = 0;
 	//Dijkstra (pas très optimisé)
 	for (i=0;i<a.n;i++)
 	{
 		//cherche l'état le plus proche non encore vu (pourrait être optimisé)
 		imin = 0;
+		while(vu[imin])
+			imin++;
 		for (j=0;j<a.n;j++)
 		{
 			if (d[j] < d[imin] && !vu[j])
@@ -1023,17 +1025,20 @@ bool shortestWord (Automaton a, Dict *w, bool verb)
 		}
 	}
 	free(vu);
-	//Détermine l'état final le plus proche
-	f = -1;
-	for (i=0;i<a.n;i++)
+	//Détermine l'état final le plus proche (ou prend fin si fin != -1)
+	f = fin;
+	if (f == -1)
 	{
-		if (a.e[i].final)
+		for (i=0;i<a.n;i++)
 		{
-			if (f == -1)
-				f = i;
-			else if (d[i] < d[f])
+			if (a.e[i].final)
 			{
-				f = i;
+				if (f == -1)
+					f = i;
+				else if (d[i] < d[f])
+				{
+					f = i;
+				}
 			}
 		}
 	}
@@ -1057,7 +1062,7 @@ bool shortestWord (Automaton a, Dict *w, bool verb)
 	while(prec[f] != -1)
 	{
 		i--;
-		//trouve la lettre qui fait passer d'un état à l'autre
+		//trouve une lettre qui fait passer d'un état à l'autre
 		for (j=0;j<a.na;j++)
 		{
 			if (a.e[prec[f]].f[j] == f)
@@ -1068,6 +1073,103 @@ bool shortestWord (Automaton a, Dict *w, bool verb)
 		}
 		f = prec[f];
 	}
+	free(prec);
+	return true;
+}
+
+//rend les mots les plus courts jusqu'à chaque sommet
+bool shortestWords (Automaton a, Dict *w, int init, bool verb)
+{
+	if (a.i == -1)
+		return false;
+	//algorithme de Dijkstra
+	int *d = malloc(sizeof(int)*a.n); //tableau des distances depuis l'état initial
+	int *prec = malloc(sizeof(int)*a.n); //tableau des prédécesseurs
+	int *vu = malloc(sizeof(int)*a.n);
+	int i, j, k, imin, f;
+	//initialisation
+	for (i=0;i<a.n;i++)
+	{
+		d[i] = a.n;
+		prec[i] = -1;
+		vu[i] = 0;
+	}
+	d[init] = 0;
+	if (verb)
+		printf("Dijkstra...\n");
+	//Dijkstra (pas très optimisé)
+	for (i=0;i<a.n;i++)
+	{
+		//cherche l'état le plus proche non encore vu (pourrait être optimisé)
+		imin = 0;
+		while(vu[imin])
+			imin++;
+		for (j=0;j<a.n;j++)
+		{
+			if (d[j] < d[imin] && !vu[j])
+			{
+				imin = j;
+			}
+		}
+		vu[imin] = 1;
+		//parcours les voisins
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[imin].f[j];
+			if (f != -1)
+			{
+				if (d[f] > d[imin]+1)
+				{
+					d[f] = d[imin]+1;
+					prec[f] = imin;
+				}
+			}
+		}
+	}
+	free(vu);
+	if (verb)
+	{
+		for (i=0;i<a.n;i++)
+		{
+			printf("prec[%d] = %d, d[%d] = %d\n", i, prec[i], i, d[i]);
+		}
+	}
+	if (verb)
+		printf("Fill the list...\n");
+	//parcours les états
+	for (k=0;k<a.n;k++)
+	{
+		//trouve le chemin le plus court vers cet état
+		//trouve la longueur du chemin
+		i = 0;
+		f = k;
+		while(prec[f] != -1)
+		{
+			i++;
+			f = prec[f];
+		}
+		if (verb)
+			printf("alloc %d (size %d)...\n", k, i);
+		//alloue le mot
+		w[k] = NewDict(i);
+		f = k;
+		while(prec[f] != -1)
+		{
+			i--;
+			//trouve une lettre qui fait passer d'un état à l'autre
+			for (j=0;j<a.na;j++)
+			{
+				if (a.e[prec[f]].f[j] == f)
+				{
+					w[k].e[i] = j;
+					break;
+				}
+			}
+			f = prec[f];
+		}
+	}
+	if (verb)
+		printf("fin...\n");
 	free(prec);
 	return true;
 }
