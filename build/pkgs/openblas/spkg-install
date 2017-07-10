@@ -1,9 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage --sh'?"
-    exit 1
-fi
-
 cd src
 
 # See #22021 for issues with multithreading
@@ -28,19 +22,8 @@ fi
 
 echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
 
-$MAKE libs netlib shared $OPENBLAS_CONFIGURE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building OpenBLAS"
-    exit 1
-fi
-
-$MAKE install DESTDIR="$SAGE_INST_TEMP" PREFIX="$SAGE_LOCAL" NO_STATIC=1 \
-    $OPENBLAS_CONFIGURE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing OpenBLAS"
-    exit 1
-fi
-
+sdh_make libs netlib shared $OPENBLAS_CONFIGURE
+sdh_make_install PREFIX="$SAGE_LOCAL" NO_STATIC=1 $OPENBLAS_CONFIGURE
 
 cd ..
 ./write_pc_file.py

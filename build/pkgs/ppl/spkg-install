@@ -1,9 +1,3 @@
-if [ "x$SAGE_LOCAL" = x ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 if [ "x$CFLAG64" = x ]; then
     CFLAG64=-m64
 fi
@@ -27,23 +21,18 @@ PPL_CONFIGURE="--enable-coefficients=mpz --disable-fpmath $PPL_CONFIGURE"
 # If that fails (for example, because of a broken version of m4),
 # try to configure again with only the C++ interface, which is
 # sufficient for Sage.  See #11391 and #12672.
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --with-gmp-include="$SAGE_LOCAL/include" \
-    --with-gmp-lib="$SAGE_LOCAL/lib" \
-    --enable-interfaces=c,c++ \
-    $PPL_CONFIGURE
+# (run in a sub shell to prevent exiting this shell on error)
+(sdh_configure --with-gmp-include="$SAGE_LOCAL/include" \
+               --with-gmp-lib="$SAGE_LOCAL/lib" \
+               --enable-interfaces=c,c++ \
+               $PPL_CONFIGURE)
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring PPL with both C and C++ interfaces, trying"
     echo >&2 "again with only the C++ interface."
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-        --with-gmp-include="$SAGE_LOCAL/include" \
-        --with-gmp-lib="$SAGE_LOCAL/lib" \
-        $PPL_CONFIGURE \
-        --enable-interfaces=c++
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring the Parma Polyhedra Library."
-        exit 1
-    fi
+    sdh_configure --with-gmp-include="$SAGE_LOCAL/include" \
+                  --with-gmp-lib="$SAGE_LOCAL/lib" \
+                  $PPL_CONFIGURE \
+                  --enable-interfaces=c++
 fi
 
 # Workaround to disable PPL's "watchdog timer", preventing it from clobbering
@@ -53,14 +42,5 @@ if [ "$UNAME" = "CYGWIN" ]; then
     sed -i 's/#define HAVE_DECL_SETITIMER 1/#define HAVE_DECL_SETITIMER 0/' config.h
 fi
 
-$MAKE
-if [ $? -ne 0 ]; then
-   echo >&2 "Error building the Parma Polyhedra Library."
-   exit 1
-fi
-
-$MAKE install DESTDIR="$SAGE_INST_TEMP"
-if [ $? -ne 0 ]; then
-   echo >&2 "Error installing the Parma Polyhedra Library."
-   exit 1
-fi
+sdh_make
+sdh_make_install

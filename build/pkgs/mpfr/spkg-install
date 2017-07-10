@@ -1,10 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
-
 mpfr_get_upstream_selected_cflags() # Get MPFR's choice on empty CC and CFLAGS.
 {
     if [ $# -ne 1 ]; then
@@ -75,7 +68,7 @@ mpfr_configure()
     ###########################################################################
     echo "Checking what CC and CFLAGS MPFR would use if they were empty..."
     if (unset CC CFLAGS CPPFLAGS CXXFLAGS &&
-        ./configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_CONFIGURE) &>/dev/null;
+        sdh_configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_CONFIGURE) &>/dev/null;
     then
         mpfr_config_file=config.status
         if mpfr_get_upstream_selected_cflags "$mpfr_config_file"; then
@@ -157,10 +150,7 @@ mpfr_configure()
         echo "You can set MPFR_CONFIGURE to pass additional parameters."
     fi
 
-    ./configure --prefix="$SAGE_LOCAL" \
-                --libdir="$SAGE_LOCAL/lib" \
-                --with-gmp="$SAGE_LOCAL" \
-                $SAGE_CONF_OPTS $MPFR_CONFIGURE
+    sdh_configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_CONFIGURE
 }
 
 mpfr_build()
@@ -175,13 +165,7 @@ mpfr_build()
         exit 1
     fi
 
-    echo
-    echo "Now building MPFR..."
-    $MAKE
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building MPFR."
-        exit 1
-    fi
+    sdh_make
 
     echo
     echo "Building MPFR succeeded.  Now deleting old headers..."
@@ -190,12 +174,7 @@ mpfr_build()
     # parallel builds.
     # rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 
-    echo "Now installing MPFR..."
-    $MAKE install DESTDIR="$SAGE_INST_TEMP"
-    if [ $? -ne 0 ];  then
-        echo >&2 "Error installing MPFR."
-        exit 1
-    fi
+    sdh_make_install
 }
 
 cd src

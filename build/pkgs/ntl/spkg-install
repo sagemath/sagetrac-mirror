@@ -107,17 +107,14 @@ ntl_configure()
         DISABLE_NATIVE="NATIVE=on"
     fi
 
-    ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
-        CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
-        LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
-        NTL_GMP_LIP=on NTL_GF2X_LIB=on \
-        "$DISABLE_NATIVE" \
-        NTL_THREADS=off
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring NTL."
-        exit 1
-    fi
+    # Note: NTL's configure script is not a standard autoconf script, so we
+    # don't use sdh_configure
+    sdh_configure -- \
+                  DEF_PREFIX="$SAGE_LOCAL" SHARED=on CXX="$CXX" \
+                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
+                  LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
+                  NTL_GMP_LIP=on NTL_GF2X_LIB=on "$DISABLE_NATIVE" \
+                  NTL_THREADS=off
 }
 
 ntl_build()
@@ -127,12 +124,7 @@ ntl_build()
 
     cd "$SRC"
 
-    $MAKE
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building/tuning NTL."
-        exit 1
-    fi
+    sdh_make
 }
 
 ntl_install()
@@ -142,17 +134,9 @@ ntl_install()
     rm -rf "$SAGE_LOCAL"/lib/libntl*
     rm -rf "$SAGE_LOCAL"/include/NTL
 
-    echo
-    echo "Installing NTL."
-
     cd "$SRC"
 
-    $MAKE install DESTDIR="$SAGE_INST_TEMP"
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing NTL."
-        exit 1
-    fi
+    sdh_make_install
 
     # Touch all includes such that dependency checking works properly:
     # the timestamp of the includes should be *now*, not the time when
