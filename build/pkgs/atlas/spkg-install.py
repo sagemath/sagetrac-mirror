@@ -199,15 +199,21 @@ if 'SAGE_ATLAS_LIB' in os.environ:
             source = os.path.join(ATLAS_LIB, fname)
             destination = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'),
                                        'lib', fname)
-            print('Symlinking '+destination+' -> '+source)
+            print('Symlinking %s -> %s' % (destination, source))
             try:
                 os.remove(destination)
             except OSError:
                 pass
             try:
+                destdir = os.path.dirname(destination)
+                if not os.path.isdir(destdir):
+                    os.makedirs(destdir)
                 os.symlink(source, destination)
-            except OSError:
-                pass
+            except OSError as exc:
+                print('Error symlinking %s -> %s: %s' %
+                        (destination, source, exc))
+                sys.exit(1)
+
     for lib in libraries + libraries_optional:
         symlinkOSlibrary(prefix+lib)
 
