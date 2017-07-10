@@ -1,19 +1,9 @@
-die () {
-    echo >&2 "$@"
-    exit 1
-}
-
-[ -n "$SAGE_LOCAL" ] || die "SAGE_LOCAL undefined, maybe run \`sage -sh\`?"
-
 cd src
 
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-./configure --prefix="$SAGE_LOCAL" ||
-    die "configuring ccache failed"
-
-$MAKE || die "building ccache failed"
-
-$MAKE install DESTDIR="$SAGE_INST_TEMP" || die "installing ccache failed"
+sdh_configure
+sdh_make
+sdh_make_install
 
 
 set -e

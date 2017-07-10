@@ -1,9 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 cd src
 
 if [ "$SAGE_DEBUG" = "yes" ]; then
@@ -24,23 +18,6 @@ if [ "$UNAME" = "CYGWIN" ]; then
     CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-threads=posix --enable-handle-fork"
 fi
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $CONFIGURE_FLAGS
-
-if [ $? -ne 0 ]; then
-   echo >&2 "Error configuring BoehmGC."
-   exit 1
-fi
-
-$MAKE
-
-if [ $? -ne 0 ]; then
-   echo >&2 "Error building BoehmGC."
-   exit 1
-fi
-
-$MAKE install DESTDIR="$SAGE_INST_TEMP"
-
-if [ $? -ne 0 ]; then
-   echo >&2 "Error installing BoehmGC."
-   exit 1
-fi
+sdh_configure $CONFIGURE_FLAGS
+sdh_make
+sdh_make_install
