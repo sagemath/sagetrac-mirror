@@ -11,6 +11,8 @@ unset PYTHONPATH
 export HAS_HG=no
 export SVNVERSION=no
 
+CUR="$(pwd)"
+
 cd src
 
 
@@ -22,6 +24,18 @@ rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
 # The "-i" option to ignore errors is crucial, especially in the
 # case of upgrades.
 sdh_make_install -i -j1
+
+# Handle the 2to3 script appropriately; see the spkg-install for python2
+# for more details. This will remove the 2to3 installed by Python 3.  If we
+# are not installing into a temporary location (e.g. $SAGE_INST_TEMP is
+# somehow empty) then restore the symlink from 2to3 to 2to3-2.7 if
+# possible.
+cd "${SAGE_INST_TEMP}${SAGE_LOCAL}/bin"
+rm -f 2to3
+if [ -f 2to3-2.7 ]; then
+    ln -s 2to3-2.7 2to3
+fi
+cd "$CUR/src"
 
 echo "Installing valgrind suppression file..."
 if [ "$PKG_BASE" = "python2" ]; then
