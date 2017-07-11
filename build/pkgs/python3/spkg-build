@@ -80,27 +80,13 @@ else
     # https://trac.sagemath.org/ticket/23398
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-ensurepip"
 fi
-
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared $PYTHON_CONFIGURE
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring Python."
-    exit 1
-fi
-
-$MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building Python."
-    exit 1
-fi
+sdh_configure --enable-shared $PYTHON_CONFIGURE
+sdh_make
 
 # On OS X, test to see if _scproxy built before installing.
 if [ "$UNAME" = "Darwin" ]; then
-    if [ -z `find build -name _scproxy*.so` ]; then
-        echo >&2 "Error: the _scproxy module failed to build."
-        exit 1
-    fi
+    [ -n `find build -name _scproxy*.so` ] || \
+        sdh_die "Error: the _scproxy module failed to build."
 fi
 
 if [ "$UNAME" = "Linux" ]; then
