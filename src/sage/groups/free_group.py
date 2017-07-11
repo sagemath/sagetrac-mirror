@@ -10,5 +10,6 @@ TESTS::
     sage: F
     Free Group on generators {a, b}
 """
+
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.groups.free_groups.free_group', '*', deprecation=20154)

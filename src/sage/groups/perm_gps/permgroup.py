@@ -131,6 +131,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
 from functools import wraps
 
@@ -349,6 +350,8 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
 
 class PermutationGroup_generic(group.FiniteGroup):
     """
+    A generic permutation group.
+
     EXAMPLES::
 
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
@@ -365,8 +368,9 @@ class PermutationGroup_generic(group.FiniteGroup):
     """
     def __init__(self, gens=None, gap_group=None, canonicalize=True, domain=None, category=None):
         r"""
-        INPUT:
+        Initialize ``self``.
 
+        INPUT:
 
         -  ``gens`` - list of generators (default: ``None``)
 
@@ -374,7 +378,6 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         -  ``canonicalize`` - bool (default: ``True``); if ``True``,
            sort generators and remove duplicates
-
 
         OUTPUT:
 
@@ -425,7 +428,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             #Here we need to check if all of the points are integers
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
-            if all(isinstance(p, (Integer, int, long)) for p in domain):
+            if all(isinstance(p, (Integer,) + integer_types) for p in domain):
                 domain = list(range(min([1] + domain), max([1] + domain)+1))
 
         if domain not in FiniteEnumeratedSets():
@@ -444,44 +447,46 @@ class PermutationGroup_generic(group.FiniteGroup):
         self._gens = gens
 
     def construction(self):
-         """
-         EXAMPLES::
+        """
+        Return the construction of ``self``.
 
-             sage: P1 = PermutationGroup([[(1,2)]])
-             sage: P1.construction()
-             (PermutationGroupFunctor[(1,2)], Permutation Group with generators [()])
+        EXAMPLES::
 
-             sage: PermutationGroup([]).construction() is None
-             True
+            sage: P1 = PermutationGroup([[(1,2)]])
+            sage: P1.construction()
+            (PermutationGroupFunctor[(1,2)], Permutation Group with generators [()])
 
-         This allows us to perform computations like the following::
+            sage: PermutationGroup([]).construction() is None
+            True
 
-             sage: P1 = PermutationGroup([[(1,2)]]); p1 = P1.gen()
-             sage: P2 = PermutationGroup([[(1,3)]]); p2 = P2.gen()
-             sage: p = p1*p2; p
-             (1,2,3)
-             sage: p.parent()
-             Permutation Group with generators [(1,2), (1,3)]
-             sage: p.parent().domain()
-             {1, 2, 3}
+        This allows us to perform computations like the following::
 
-         Note that this will merge permutation groups with different
-         domains::
+            sage: P1 = PermutationGroup([[(1,2)]]); p1 = P1.gen()
+            sage: P2 = PermutationGroup([[(1,3)]]); p2 = P2.gen()
+            sage: p = p1*p2; p
+            (1,2,3)
+            sage: p.parent()
+            Permutation Group with generators [(1,2), (1,3)]
+            sage: p.parent().domain()
+            {1, 2, 3}
 
-             sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
-             sage: g2 = PermutationGroup([('a','b')], domain=['a', 'b']).gens()[0]
-             sage: g2
-             ('a','b')
-             sage: p = g1*g2; p
-             (1,2)(3,4,5)('a','b')
-         """
-         gens = self.gens()
-         if len(gens) == 1 and gens[0].is_one():
-              return None
-         else:
-              from sage.categories.pushout import PermutationGroupFunctor
-              return (PermutationGroupFunctor(gens, self.domain()),
-                      PermutationGroup([]))
+        Note that this will merge permutation groups with different
+        domains::
+
+            sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
+            sage: g2 = PermutationGroup([('a','b')], domain=['a', 'b']).gens()[0]
+            sage: g2
+            ('a','b')
+            sage: p = g1*g2; p
+            (1,2)(3,4,5)('a','b')
+        """
+        gens = self.gens()
+        if len(gens) == 1 and gens[0].is_one():
+            return None
+        else:
+            from sage.categories.pushout import PermutationGroupFunctor
+            return (PermutationGroupFunctor(gens, self.domain()),
+                    PermutationGroup([]))
 
     @cached_method
     def _has_natural_domain(self):
@@ -666,7 +671,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         except AttributeError:
             pass
 
-        if isinstance(x, (int, long, Integer)) and x == 1:
+        if isinstance(x, integer_types + (Integer,)) and x == 1:
             return self.identity()
 
         return self._element_class()(x, self, check=check)
@@ -928,6 +933,19 @@ class PermutationGroup_generic(group.FiniteGroup):
                   raise ValueError("You must specify which generator you want")
         else:
              return gens[i]
+
+    def ngens(self):
+        """
+        Return the number of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: A4 = PermutationGroup([[(1,2,3)], [(2,3,4)]]); A4
+            Permutation Group with generators [(2,3,4), (1,2,3)]
+            sage: A4.ngens()
+            2
+        """
+        return len(self.gens())
 
     def identity(self):
         """
