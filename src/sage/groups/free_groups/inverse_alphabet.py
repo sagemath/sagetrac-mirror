@@ -388,7 +388,8 @@ class AlphabetWithInverses(Parent):
     def is_positive_letter(self, letter):
         """
         Test if the letter is a positive letter.
-                INPUT:
+
+        INPUT:
 
         - ``letter`` -- letter to test
 
