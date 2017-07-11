@@ -7,6 +7,8 @@ unset PYTHONPATH
 export HAS_HG=no
 export SVNVERSION=no
 
+CUR="$(pwd)"
+
 cd src
 
 # Remove old libraries
@@ -17,6 +19,18 @@ rm -f "$SAGE_LOCAL"/lib/libpython2*
 # The "-i" option to ignore errors is crucial, especially in the
 # case of upgrades.
 sdh_make_install -i -j1
+
+# Both Python 2 and Python 3 install a script called 2to3 (Python 3
+# suffixes most of the scripts it installs with '3', but not 2to3, though
+# it does install a 2to3-3.6) What's worse, Python 3 will override Python
+# 2's 2to3 script with a symlink to 2to3-3.6.
+# So we move 2to3 to 2to3-2.7, and make 2to3 a symlink to this file.  That
+# way even if the symlink gets overridden the original script won't be
+# deleted.
+cd "${SAGE_INST_TEMP}${SAGE_LOCAL}/bin"
+mv 2to3 2to3-2.7
+ln -s 2to3-2.7 2to3
+cd "$CUR/src"
 
 echo "Installing valgrind suppression file..."
 mkdir -p "${SAGE_INST_TEMP}${SAGE_EXTCODE}/valgrind"
