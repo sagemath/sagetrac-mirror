@@ -76,7 +76,6 @@ sdh_guard() {
 
 
 sdh_configure() {
-    local ret
     local defaults
     echo "Configuring $PKG_NAME"
     if [ "$1" = "--" ]; then
@@ -90,14 +89,12 @@ sdh_configure() {
 
 
 sdh_make() {
-    local ret
     echo "Building $PKG_NAME"
     ${MAKE:-make} "$@" || sdh_die "Error building $PKG_NAME"
 }
 
 
 sdh_make_install() {
-    local ret
     echo "Installing $PKG_NAME"
     $SAGE_SUDO ${MAKE:-make} install DESTDIR="$SAGE_INST_TEMP" "$@" || \
         sdh_die "Error installing $PKG_NAME"
