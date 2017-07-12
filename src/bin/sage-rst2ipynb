@@ -36,9 +36,9 @@ pandoc -v > /dev/null 2>&1 || fail 'rst2ipnb requires pandoc; please install it 
 
 case  "${#}" in
     (1)
-        rst2ipynb --kernel='sagemath' ${1} 2> /dev/null || help ;;
+        rst2ipynb --kernel='sagemath' ${1} || ( echo -e '\n' ; help ) ;;
     (2)
-        rst2ipynb --kernel='sagemath' ${1} -o ${2}  2> /dev/null || help ;;
+        rst2ipynb --kernel='sagemath' ${1} -o ${2} || ( echo -e '\n' ; help ) ;;
     (*)
         help ;;
 esac
