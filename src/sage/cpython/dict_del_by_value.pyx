@@ -15,47 +15,32 @@ AUTHORS:
 
 - Nils Bruin (2017-05)
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2017 Nils Bruin <nbruin@sfu.ca>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
-from __future__ import print_function
+#*****************************************************************************
 
-import weakref
-from weakref import KeyedRef
-from copy import deepcopy
+from __future__ import absolute_import, print_function
+
+from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 
 from cpython.list cimport PyList_New
 from cpython cimport Py_XINCREF, Py_XDECREF
 
-IF PY_VERSION_HEX<=0x02ffffff:
-    cdef extern from "Python.h":
-        ctypedef struct PyDictEntry:
-            Py_ssize_t me_hash
-            PyObject* me_key
-            PyObject* me_value
-        ctypedef struct PyDictObject:
-            Py_ssize_t ma_fill
-            Py_ssize_t ma_used
-            Py_ssize_t ma_mask
-            PyDictEntry* ma_table
-            PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, Py_hash_t hash) except NULL
+cdef extern from *:
+    int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 
-        PyObject* Py_None
-        #we need this redefinition because we want to be able to call
-        #PyWeakref_GetObject with borrowed references. This is the recommended
-        #strategy according to Cython/Includes/cpython/__init__.pxd
-        PyObject* PyWeakref_GetObject(PyObject * wr)
-        int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 
-    from cpython.object cimport PyObject_Hash
+IF PY_VERSION_HEX < 0x03000000:
     cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
-        cdef PyDictEntry* ep
-        cdef PyDictObject* mp = <PyDictObject*><void *>op
-        ep = mp.ma_lookup(mp, <PyObject*><void*>key, PyObject_Hash(key))
+        cdef PyDictObject* mp = <PyDictObject*>op
+        cdef PyDictEntry* ep = mp.ma_lookup(mp, key, hash(key))
         if ep:
             return ep.me_value
         else:
@@ -66,12 +51,11 @@ IF PY_VERSION_HEX<=0x02ffffff:
 
     cdef PyObject* init_dummy() except NULL:
         cdef dict D = dict()
-        cdef PyDictObject* mp = <PyDictObject *><void *>D
+        cdef PyDictObject* mp = <PyDictObject *>D
         cdef size_t mask
         cdef PyDictEntry* ep0 = mp.ma_table
         cdef PyDictEntry* ep
         cdef size_t i
-        global dummy
 
         D[0]=0; del D[0] #ensure that there is a "deleted" entry in the dict
         mask = mp.ma_mask
@@ -160,10 +144,8 @@ IF PY_VERSION_HEX<=0x02ffffff:
                 return
             perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
 
-        T=PyList_New(2)
+        T = PyList_New(2)
         PyList_SetItem(T, 0, ep.me_key)
-        if dummy == NULL:
-            raise RuntimeError("dummy needs to be initialized")
         Py_XINCREF(dummy)
         ep.me_key = dummy
         PyList_SetItem(T, 1, ep.me_value)
@@ -175,25 +157,8 @@ IF PY_VERSION_HEX<=0x02ffffff:
         #avoid stack overflow in deleting deep structures.
         del T
 
-ELIF PY_VERSION_HEX>=0x03060000:
+ELIF PY_VERSION_HEX >= 0x03060000:
 
-    from libc.stdint cimport int8_t,int16_t,int32_t,int64_t
-    cdef extern from "Python.h":
-        ctypedef struct PyDictObject:
-            Py_ssize_t ma_used
-            PyDictKeysObject * ma_keys
-            PyObject ** ma_values
-
-        PyObject* Py_None
-        #we need this redefinition because we want to be able to call
-        #PyWeakref_GetObject with borrowed references. This is the recommended
-        #strategy according to Cython/Includes/cpython/__init__.pxd
-        PyObject* PyWeakref_GetObject(PyObject * wr)
-        int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
-        PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL
-        int PyWeakref_Check(PyObject * ob)
-
-        ctypedef struct PyDictKeysObject
     ####
     #definitions replicated from CPython's Objects/dict-common.h
     #(this file is not exported fron CPython, so we need to be
@@ -373,7 +338,7 @@ ELIF PY_VERSION_HEX>=0x03060000:
             ep = &(entries[ix])
 
         ensure_allows_deletions(mp)
-        T=PyList_New(2)
+        T = PyList_New(2)
         PyList_SetItem(T, 0, ep.me_key)
         PyList_SetItem(T, 1, ep.me_value)
         ep.me_key = NULL
@@ -386,7 +351,6 @@ ELIF PY_VERSION_HEX>=0x03060000:
         #avoid stack overflow in deleting deep structures.
         del T
 
-#END IF PY_VERSION_HEX
 
 def test_del_dictitem_by_exact_value(D, value, h):
     """
