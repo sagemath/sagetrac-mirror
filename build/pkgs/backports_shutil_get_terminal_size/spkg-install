@@ -1,3 +1,10 @@
 cd src
 
-$PIP_INSTALL .
+$PIP_INSTALL . || sdh_die "Error installing $PKG_NAME"
+
+# Remove backports/__init__.py file since this is a namespace package shared
+# also by backports_ssl_match_hostname. It will be added back in, if necessary,
+# by the spkg-postinst script.
+SITE_PACKAGES=$(sage-python23 -c 'import site; print(site.getsitepackages()[0])')
+rm -f "$SAGE_INST_TEMP$SITE_PACKAGES"/backports/__init__.py*
+rm -rf "$SAGE_INST_TEMP$SITE_PACKAGES"/backports/__pycache__
