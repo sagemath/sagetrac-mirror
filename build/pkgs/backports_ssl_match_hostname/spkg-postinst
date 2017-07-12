@@ -1,0 +1,7 @@
+# Restore the backports/__init__.py, if necessary.
+SITE_PACKAGES=$(sage-python23 -c 'import site; print(site.getsitepackages()[0])')
+
+if [ ! -f "$SITE_PACKAGES/backports/__init__.py" ]; then
+    cp src/backports/__init__.py "$SITE_PACKAGES/backports"
+    sage-python23 -m compileall -l "$SITE_PACKAGES/backports"
+fi
