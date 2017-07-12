@@ -718,7 +718,7 @@ __EOF__
 }
 
 
-for script in build install check; do
+for script in build install check postinst; do
     script="spkg-$script"
     if [ -f "$script" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
@@ -882,6 +882,18 @@ if [ -d "$SAGE_INST_TEMP" ]; then
         fi
         cp -upP "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
     done
+fi
+
+# Run the post-install script, if any
+if [ -f spkg-postinst ]; then
+    time ./spkg-postinst
+    if [ $? -ne 0 ]; then
+        # TODO: It would be good if this also rolled back the failed
+        # installation.  This will have to be done once there is an uninstall
+        # script.
+        error_msg "Error running the postinst script for $PKG_BASE."
+        exit 1
+    fi
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
