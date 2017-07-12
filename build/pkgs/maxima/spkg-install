@@ -45,6 +45,7 @@ touch doc/info/maxima.info*
 
 sdh_make
 sdh_make_install
+sdh_clean_info
 
 
 if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then

@@ -47,6 +47,7 @@ fi
 
 echo "Now installing the new readline headers and libraries..."
 sdh_make_install
+sdh_clean_info
 
 case "$UNAME" in
     Darwin)

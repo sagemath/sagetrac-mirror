@@ -18,6 +18,7 @@ cp "$SAGE_ROOT"/config/config.* .
 sdh_configure --with-mpfr="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
 sdh_make
 sdh_make_install
+sdh_clean_info
 
 [ -f "$SAGE_INST_TEMP$SAGE_LOCAL/include/mpfi.h" ] || \
     sdh_die "An error occurred while building MPFI."

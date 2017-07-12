@@ -41,6 +41,21 @@
 #    Runs `$SAGE_SUDO $MAKE install` with DESTDIR correctly set to a temporary
 #    install directory, for staged installations.  Additional arguments to
 #    `make` may be given as arguments.
+#
+# - sdh_clean_info
+#
+#    Call this after building a package that installs an entry in the
+#    share/info/dir file to remove that file from the list of files installed
+#    by that package.  This is necessary to prevent packages that share this
+#    file from clobbering each other.  Such packages should include an
+#    spkg-postinst that calls sdh_install_info.
+#
+# - sdh_install_info
+#
+#    Post-install helper (for use in spkg-postinst) to install one or more
+#    entries in the info-dir file for the package's .info files.  This
+#    directory is used by multiple packages, which is why this must be
+#    performed as a post-installation step.
 
 set -o allexport
 
@@ -100,5 +115,24 @@ sdh_make_install() {
         sdh_die "Error installing $PKG_NAME"
 }
 
+
+sdh_clean_info() {
+    # Test that $SAGE_INST_TEMP is set; since if we are installing directly
+    # into $SAGE_LOCAL we don't want to delete this file.
+    if [ -n "$SAGE_INST_TEMP" ]; then
+        rm "$SAGE_INST_TEMP$SAGE_LOCAL/share/info/dir" || \
+            sdh_die "Error cleaning the share/info/dir file (maybe it doesn't exist?)"
+    fi
+}
+
+
+sdh_install_info() {
+    if [ -n "$SAGE_INST_TEMP" ]; then
+        for filename in "$SAGE_INST_TEMP$SAGE_SHARE/info"/*.info; do
+            install-info --info-dir="$SAGE_SHARE/info" "$filename" || \
+                sdh_die "Error updating info/dir for $PKG_NAME"
+        done
+    fi
+}
 
 set +o allexport

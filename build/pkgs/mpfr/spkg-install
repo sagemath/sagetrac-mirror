@@ -175,6 +175,7 @@ mpfr_build()
     # rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 
     sdh_make_install
+    sdh_clean_info
 }
 
 cd src

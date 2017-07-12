@@ -75,3 +75,4 @@ rm -rf ${SAGE_LOCAL}/include/giac
 #############################################################
 
 sdh_make_install
+sdh_clean_info
