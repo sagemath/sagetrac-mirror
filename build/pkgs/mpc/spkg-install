@@ -26,3 +26,4 @@ rm -f "$SAGE_LOCAL"/include/mpc.h
 
 # Installing
 sdh_make_install
+sdh_clean_info
