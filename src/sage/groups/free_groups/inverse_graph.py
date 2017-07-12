@@ -73,8 +73,9 @@ class GraphWithInverses(DiGraph):
         - ``data`` -- (default None) a list or dictionary
           from a list of edges: ``[initial_vertex,terminal_vertex,letter]``.
           a dictionnary that maps letters of the alphabet to lists
-          ``(initial_vertex,terminal_vertex)``
-        - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses by default
+          ``(initial_vertex,terminal_vertex)``.
+        - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses
+          by default.
 
         EXAMPLES::
 
@@ -423,7 +424,7 @@ class GraphWithInverses(DiGraph):
         INPUT:
 
         - ``n`` -- length of list of integers which are new vertices
-          not already vertices
+          not already vertices.
 
         EXAMPLES::
 
@@ -449,7 +450,7 @@ class GraphWithInverses(DiGraph):
         INPUT:
 
         - ``i`` -- (default: ``None``) new vertex with label ``i`` or
-          the least integer which is not already a vertex
+          the least integer which is not already a vertex.
 
         OUTPUT:
 
@@ -970,7 +971,7 @@ class GraphWithInverses(DiGraph):
         INPUT:
 
         - ``forest`` -- a list of disjoint subtrees each given as
-          lists of edges
+          lists of edges.
 
         OUTPUT:
 
@@ -1248,7 +1249,7 @@ class GraphWithInverses(DiGraph):
         INPUT:
 
         - ``germ_components`` -- a list of classes of germs outgoing
-          from a vertex
+          from a vertex.
 
         OUTPUT:
 
@@ -1472,9 +1473,9 @@ class MetricGraph(GraphWithInverses):
         - ``data`` -- (default None) a list or dictionary
           from a list of edges: ``[initial_vertex,terminal_vertex,letter]``.
           a dictionnary that maps letters of the alphabet to lists
-          ``(initial_vertex,terminal_vertex)``
+          ``(initial_vertex,terminal_vertex)``.
         - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses
-          by default
+          by default.
         - ``lengths`` -- (default None) dictionary of alphabet length
 
         EXAMPLES::

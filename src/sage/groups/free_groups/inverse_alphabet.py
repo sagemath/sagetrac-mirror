@@ -697,7 +697,7 @@ class AlphabetWithInverses(Parent):
         INPUT:
 
         - ``n`` -- (default: 1) the number of pairs of
-          [positve_letter, negative_letter]
+          [positve_letter, negative_letter].
 
 
         OUTPUT:

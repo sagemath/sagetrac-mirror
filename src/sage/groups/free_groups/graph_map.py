@@ -134,7 +134,7 @@ class GraphMap():
 
         GraphMap obtains with other domain as first
         input and ``self`` codomain for second input and vertex_map is
-        construct applying ``self`` to ``other`` edge_map image
+        construct applying ``self`` to ``other`` edge_map image.
 
         EXAMPLES::
 
@@ -242,7 +242,8 @@ class GraphMap():
 
         INPUT:
 
-        - ``edge_map`` -- anything which is accepted by ``WordMorphism(edge_map)``
+        - ``edge_map`` -- anything which is accepted by
+          ``WordMorphism(edge_map)``.
 
         EXAMPLES::
 
@@ -356,7 +357,7 @@ class GraphMap():
         INPUT:
 
         - ``iter`` (default: 1) -- a positive integer
-        - ``letter`` -- a letter of the alphabet of the domain of ``self``.
+        - ``letter`` -- a letter of the alphabet of the domain of ``self``
 
         OUTPUT:
 
@@ -612,7 +613,7 @@ class GraphMap():
 
         INPUT:
 
-        - ``e`` -- and edge of the domain of ``self``.
+        - ``e`` -- and edge of the domain of ``self``
 
         OUTPUT:
 
@@ -817,7 +818,7 @@ class GraphMap():
         INPUT:
 
         - ``other`` -- a graph map `G_2 \to G` with ``self`` (a
-          graph map `G_1 \to G`)
+          graph map `G_1 \to G`).
 
         OUTPUT:
 

@@ -603,7 +603,7 @@ class TrainTrackMap(GraphSelfMap):
 
         - ``end_points`` -- (default: ``False``) set to ``True`` to compute
           a description of the end points of each periodic Nielsen
-          path
+          path.
         - ``verbose`` -- (default: ``False``) for verbose option
 
         OUTPUT:
@@ -917,7 +917,7 @@ class TrainTrackMap(GraphSelfMap):
         INPUT:
 
         - ``inp`` -- a pair ``(word1, word2)``, the invariant points being
-          inside the last letters of the two words
+          inside the last letters of the two words.
         - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:
@@ -1677,7 +1677,7 @@ class TrainTrackMap(GraphSelfMap):
         INPUT:
 
         - ``germ_components`` -- a list of classes of germs outgoing
-          from a vertex
+          from a vertex.
 
         OUTPUT:
 
@@ -1791,7 +1791,7 @@ class TrainTrackMap(GraphSelfMap):
         INPUT:
 
         - ``point`` -- of the form ``(e,period,left,right)`` standing for
-          the periodic point x in the edge ``e`` with the given period
+          the periodic point x in the edge ``e`` with the given period.
         - ``keep_orientation`` -- (default ``False``)
         - ``verbose`` -- (default False) for verbose option
 

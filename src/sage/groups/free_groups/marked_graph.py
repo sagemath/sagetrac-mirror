@@ -64,11 +64,11 @@ class MarkedGraph(GraphWithInverses):
         INPUT:
 
         - ``graph`` -- (default None) GraphWithInverses is expected
-          or will be combute from ''grap''
+          or will be combute from ''grap''.
         - ``marking`` -- (default None) GraphMap is expected
-          or will be compute
+          or will be compute.
         - ``alphabet`` -- (default None) if ``graph`` is GraphWithInverses
-          ``alphabet`` will be use for ``self``
+          ``alphabet`` will be use for ``self``.
         - ``marking_alphabet`` -- (default None) alphabet used in the case of a
           ``MarkedGraph`` is created from a GraphWithInverses`` by
           computing (randomly) a rose equivalent to the graph.

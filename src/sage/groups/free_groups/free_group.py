@@ -601,7 +601,7 @@ class FreeGroupElement(ElementLibGAP):
 
         - ``*values`` -- a sequence of values, or a
           list/tuple/iterable of the same length as the number of
-          generators of the free group
+          generators of the free group.
 
         OUTPUT:
 
@@ -664,9 +664,9 @@ class FreeGroupElement(ElementLibGAP):
         INPUT:
 
         - ``use_str`` -- (default: ``True``) use strings rather than
-          :class:`FreeGroupElement` as letters
+          :class:`FreeGroupElement` as letters.
         - ``upper_case_as_inverse`` -- (default: ``True``) use upper case
-          letters as inverses
+          letters as inverses.
 
         OUTPUT:
 
@@ -712,9 +712,9 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     - ``names`` -- string or list/tuple/iterable of strings (default:
       ``'x'``). The generator names or name prefix.
     - ``index_set`` -- (optional) an index set for the generators; if
-      specified then the optional keyword ``abelian`` can be used
+      specified then the optional keyword ``abelian`` can be used.
     - ``abelian`` -- (default: ``False``) whether to construct a free
-      abelian group or a free group
+      abelian group or a free group.
 
     .. NOTE::
 
@@ -797,7 +797,7 @@ def wrap_FreeGroup(libgap_free_group):
 
     INPUT:
 
-    - ``libgap_free_group`` -- a LibGAP free group.
+    - ``libgap_free_group`` -- a LibGAP free group
 
     OUTPUT:
 

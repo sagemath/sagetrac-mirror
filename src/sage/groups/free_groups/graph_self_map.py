@@ -487,8 +487,8 @@ class GraphSelfMap(GraphMap):
 
         INPUT:
 
-        - ``edge_list`` -- list of edge for subdivide.
-        - ``verbose`` -- (default: False) for verbose option.
+        - ``edge_list`` -- list of edge for subdivide
+        - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:
 
@@ -1577,7 +1577,7 @@ class GraphSelfMap(GraphMap):
 
         INPUT:
 
-        - ``t`` is a couple ``(e,f)`` of edges,
+        - ``t`` is a couple ``(e,f)`` of edges
 
         OUTPUT:
 
@@ -2097,7 +2097,7 @@ class GraphSelfMap(GraphMap):
           stratum = stratum)``.
         - ``stratum`` -- the index of the exponential stratum of ``self``
           that meets these INPs.
-        - ``verbose`` -- (default: False) for verbose option.
+        - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:
 
@@ -2173,7 +2173,7 @@ class GraphSelfMap(GraphMap):
 
         INPUT:
 
-        - ``inp`` a couple ``(word1,word2)`` coding an INP of ``self``.
+        - ``inp`` a couple ``(word1,word2)`` coding an INP of ``self``
         - ``stratum`` index of a stratum of ``self``
         - ``verbose`` -- (default False) for verbose option
 
@@ -2682,7 +2682,7 @@ class GraphSelfMap(GraphMap):
 
         INPUT:
 
-        - ``s``: index of a stratum of ``self``.
+        - ``s``: index of a stratum of ``self``
         - ``verbose`` -- (default: False) for verbose option
 
         OUTPUT:

@@ -1517,7 +1517,7 @@ class ConvexCore():
           from the sole vertex of T0 ordered according to the embedding
           in the surface. A typical value in rank 4, compatible with
           the definition of ``FreeGroup.surface_dehn_twist()`` is :
-          ['A','B','a','C','D','c','d','b']
+          ['A','B','a','C','D','c','d','b'].
         - ``cyclic_order_1``: (default: None) List of edges outgoing
           from the sole vertex of T1 ordered according to the embedding
           in the surface.

@@ -450,9 +450,10 @@ class FreeGroupMorphism(object):
 
         INPUT:
 
-        - ``use_str`` -- (default: False) use ``str`` as letters (not FreeGroupElement)
+        - ``use_str`` -- (default: False) use ``str`` as letters
+          (not FreeGroupElement).
         - ``upper_case_as_inverse`` -- (default: False) inverse of
-          generators are translated to upper case ``str``
+          generators are translated to upper case ``str``.
 
         OUTPUT:
 
@@ -780,8 +781,8 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         the composition self*other.
 
-        a FreeGroupAutomorphism if ``other`` is instance of FreeGroupAutomorphism
-        else a WordMorphism
+        a FreeGroupAutomorphism if ``other`` is instance of
+        FreeGroupAutomorphism else a WordMorphism
 
         EXAMPLES::
 
@@ -929,14 +930,14 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         - ``stable`` -- (default = True). If ``stable=True``, the
           output is either a stable absolute train-track or a stable
-          relative train-track (if relative=False)
+          relative train-track (if relative=False).
         - ``relative``  -- (default = True)
           If ``relative=False``, this topological representative is either
           an absolute train-track or fixes a subgraph (with a non
           contractible connected component).
           If ``relative=True``, the output is either an absolute
-          train-track or a relative train-track
-        - ``verbose`` -- (default = False) ``True`` or a positive number.
+          train-track or a relative train-track.
+        - ``verbose`` -- (default = False) ``True`` or a positive number
 
         OUTPUT:
 
@@ -975,7 +976,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         INPUT:
 
-        - ``verbose``  -- (default = False) ``True`` or a positive number.
+        - ``verbose``  -- (default = False) ``True`` or a positive number
 
         OUTPUT:
 
@@ -1053,7 +1054,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
 
         INPUT:
 
-        - ``verbose``  -- (default = 1False) ``True`` or a positive number.
+        - ``verbose``  -- (default = 1False) ``True`` or a positive number
 
         OUTPUT:
 
@@ -1482,7 +1483,7 @@ class FreeGroupAutomorphism(FreeGroupMorphism):
         - ``F`` -- a :class:`FreeGroup`
         - ``i`` -- `0 < i < n`, where `n` is the rank of ``F``
         - ``inverse`` -- (default: ``False``) if ``inverse`` is ``True``,
-          then return the inverse of `\sigma_i`
+          then return the inverse of `\sigma_i`.
 
         OUTPUT:
 
