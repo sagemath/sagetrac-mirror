@@ -23,9 +23,9 @@ if [ -d "$SAGE_SHARE"/jsmol ]; then
     echo "Replacing jsmol directory and contents..."
 fi
 
-mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE/jsmol"
+mkdir -p "$SAGE_DESTDIR$SAGE_SHARE/jsmol"
 echo "Installing the JSmol files..."
-cp -r jsmol/* "$SAGE_INST_TEMP$SAGE_SHARE/jsmol"
+cp -r jsmol/* "$SAGE_DESTDIR$SAGE_SHARE/jsmol"
 if [ $? -ne 0 ]; then
    echo "Error installing jmol files. Exiting."
    exit 1
@@ -39,7 +39,7 @@ if [ -d "$SAGE_SHARE"/jmol ]; then
     echo "Replacing jmol directory and contents..."
 fi
 
-mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE/jmol"
+mkdir -p "$SAGE_DESTDIR$SAGE_SHARE/jmol"
 # Jsmol is stuck inside the jmol directory, remove
 rm -r "jsmol"
 if [ $? -ne 0 ]; then
@@ -48,14 +48,14 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing the Jmol files..."
-cp -r * "$SAGE_INST_TEMP$SAGE_SHARE"/jmol/
+cp -r * "$SAGE_DESTDIR$SAGE_SHARE"/jmol/
 if [ $? -ne 0 ]; then
    echo "Error installing jmol files. Exiting."
    exit 1
 fi
 
 echo "Install the Jmol launcher to bin/..."
-SAGE_BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+SAGE_BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 mkdir -p "$SAGE_BIN"
 cp -f jmol "$SAGE_BIN"/jmol && chmod ugo+x "$SAGE_BIN"/jmol
 if [ $? -ne 0 ]; then
@@ -64,8 +64,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing applet web directory"
-mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE"/jmol/appletweb
-cp -r "$SPKGDIR"/patches/appletweb/* "$SAGE_INST_TEMP$SAGE_SHARE"/jmol/appletweb/
+mkdir -p "$SAGE_DESTDIR$SAGE_SHARE"/jmol/appletweb
+cp -r "$SPKGDIR"/patches/appletweb/* "$SAGE_DESTDIR$SAGE_SHARE"/jmol/appletweb/
 if [ $? -ne 0 ]; then
    echo "Error installing the applet web directory"
    exit 1

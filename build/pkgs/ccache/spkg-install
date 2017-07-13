@@ -8,7 +8,7 @@ sdh_make_install
 
 set -e
 
-PREFIX="$SAGE_INST_TEMP$SAGE_LOCAL"
+PREFIX="$SAGE_DESTDIR$SAGE_LOCAL"
 mkdir -p "$PREFIX/libexec/ccache"
 ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/cc"
 ln -sf ../../bin/ccache "$PREFIX/libexec/ccache/c++"

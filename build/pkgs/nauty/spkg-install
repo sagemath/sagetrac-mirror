@@ -20,7 +20,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 mkdir -p "$BIN"
 # No install target so we resort to manual copy
 echo >&2 "Copying nauty..."

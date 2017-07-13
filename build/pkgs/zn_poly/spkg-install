@@ -131,7 +131,7 @@ fi
 echo
 echo "Now building and installing zn_poly's shared library..."
 
-SAGE_LIB="$SAGE_INST_TEMP$SAGE_LOCAL/lib"
+SAGE_LIB="$SAGE_DESTDIR$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_LIB"
 
 if [ "$UNAME" != Darwin ]; then
@@ -177,7 +177,7 @@ else
         echo >&2 "Error copying 'libzn_poly.dylib'."
         exit 1
     fi
-    install_name_tool -id ${SAGE_LOCAL}/lib/libzn_poly.dylib "${SAGE_INST_TEMP}${SAGE_LOCAL}"/lib/libzn_poly.dylib
+    install_name_tool -id ${SAGE_LOCAL}/lib/libzn_poly.dylib "${SAGE_DESTDIR}${SAGE_LOCAL}"/lib/libzn_poly.dylib
 fi
 
 ###############################################################################
@@ -187,8 +187,8 @@ fi
 echo
 echo "Now installing zn_poly's header files..."
 
-mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL"/include/zn_poly/ &&
-cp -f include/{zn_poly,wide_arith}.h "$SAGE_INST_TEMP$SAGE_LOCAL"/include/zn_poly/
+mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL"/include/zn_poly/ &&
+cp -f include/{zn_poly,wide_arith}.h "$SAGE_DESTDIR$SAGE_LOCAL"/include/zn_poly/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing zn_poly's header files."
     exit 1

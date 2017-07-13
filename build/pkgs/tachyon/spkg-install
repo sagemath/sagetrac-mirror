@@ -24,7 +24,7 @@ finished()
     fi
     # The '*' is a place-holder for the arch just built (e.g. 'win32' for
     # Cygwin, other directories won't exist):
-    BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+    BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
     mkdir -p "$BIN"
     cp -p -f src/compile/*/"${binary_name}" "$BIN"
     if [ $? -ne 0 ]; then

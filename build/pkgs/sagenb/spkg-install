@@ -21,7 +21,7 @@ fi
 
 # let sagenb use mathjax
 PYTHON_VERSION=$("$SAGE_LOCAL/bin/python2" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
-cd "${SAGE_INST_TEMP}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/site-packages/sagenb/data"
+cd "${SAGE_DESTDIR}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/site-packages/sagenb/data"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Cannot find SageNB data directory."
     exit 1

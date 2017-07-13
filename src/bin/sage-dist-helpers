@@ -111,24 +111,24 @@ sdh_make() {
 
 sdh_make_install() {
     echo "Installing $PKG_NAME"
-    $SAGE_SUDO ${MAKE:-make} install DESTDIR="$SAGE_INST_TEMP" "$@" || \
+    $SAGE_SUDO ${MAKE:-make} install DESTDIR="$SAGE_DESTDIR" "$@" || \
         sdh_die "Error installing $PKG_NAME"
 }
 
 
 sdh_clean_info() {
-    # Test that $SAGE_INST_TEMP is set; since if we are installing directly
+    # Test that $SAGE_DESTDIR is set; since if we are installing directly
     # into $SAGE_LOCAL we don't want to delete this file.
-    if [ -n "$SAGE_INST_TEMP" ]; then
-        rm "$SAGE_INST_TEMP$SAGE_LOCAL/share/info/dir" || \
+    if [ -n "$SAGE_DESTDIR" ]; then
+        rm "$SAGE_DESTDIR$SAGE_LOCAL/share/info/dir" || \
             sdh_die "Error cleaning the share/info/dir file (maybe it doesn't exist?)"
     fi
 }
 
 
 sdh_install_info() {
-    if [ -n "$SAGE_INST_TEMP" ]; then
-        for filename in "$SAGE_INST_TEMP$SAGE_SHARE/info"/*.info; do
+    if [ -n "$SAGE_DESTDIR" ]; then
+        for filename in "$SAGE_DESTDIR$SAGE_SHARE/info"/*.info; do
             install-info --info-dir="$SAGE_SHARE/info" "$filename" || \
                 sdh_die "Error updating info/dir for $PKG_NAME"
         done

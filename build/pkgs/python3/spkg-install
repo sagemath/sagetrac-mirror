@@ -27,10 +27,10 @@ sdh_make_install -i -j1
 
 # Handle the 2to3 script appropriately; see the spkg-install for python2
 # for more details. This will remove the 2to3 installed by Python 3.  If we
-# are not installing into a temporary location (e.g. $SAGE_INST_TEMP is
+# are not installing into a temporary location (e.g. $SAGE_DESTDIR is
 # somehow empty) then restore the symlink from 2to3 to 2to3-2.7 if
 # possible.
-cd "${SAGE_INST_TEMP}${SAGE_LOCAL}/bin"
+cd "${SAGE_DESTDIR}${SAGE_LOCAL}/bin"
 rm -f 2to3
 if [ -f 2to3-2.7 ]; then
     ln -s 2to3-2.7 2to3
@@ -38,8 +38,8 @@ fi
 cd "$CUR/src"
 
 echo "Installing valgrind suppression file..."
-mkdir -p "${SAGE_INST_TEMP}${SAGE_EXTCODE}/valgrind"
-cp Misc/valgrind-python.supp "$SAGE_INST_TEMP/$SAGE_EXTCODE/valgrind/python3.supp" || \
+mkdir -p "${SAGE_DESTDIR}${SAGE_EXTCODE}/valgrind"
+cp Misc/valgrind-python.supp "$SAGE_DESTDIR/$SAGE_EXTCODE/valgrind/python3.supp" || \
     sdh_die "Error installing valgrind suppression file."
 
 if [ "$UNAME" = "Linux" ]; then
@@ -66,9 +66,9 @@ PYTHON_ABIFLAGS=$($PYTHON -c 'import sys; print(sys.abiflags)')
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "${SAGE_INST_TEMP}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
+    rm -f "${SAGE_DESTDIR}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
     ln -sf "python$PYTHON_VERSION/config-${PYTHON_VERSION}${PYTHON_ABIFLAGS}/libpython${PYTHON_VERSION}${PYTHON_ABIFLAGS}.dll.a" \
-        "${SAGE_INST_TEMP}${SAGE_LOCAL}/lib/libpython${PYTHON_VERSION}.dll.a"
+        "${SAGE_DESTDIR}${SAGE_LOCAL}/lib/libpython${PYTHON_VERSION}.dll.a"
 fi

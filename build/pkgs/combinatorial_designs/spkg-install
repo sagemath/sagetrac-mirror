@@ -1,2 +1,2 @@
-mkdir -p "$SAGE_INST_TEMP$SAGE_SHARE"/combinatorial_designs
-mv src/* "$SAGE_INST_TEMP$SAGE_SHARE"/combinatorial_designs
+mkdir -p "$SAGE_DESTDIR$SAGE_SHARE"/combinatorial_designs
+mv src/* "$SAGE_DESTDIR$SAGE_SHARE"/combinatorial_designs

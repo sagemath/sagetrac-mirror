@@ -24,7 +24,7 @@ if [ $? -ne 0 ]; then
     exit 1;
 fi;
 
-${MAKE} install DESTDIR="$SAGE_INST_TEMP"
+${MAKE} install DESTDIR="$SAGE_DESTDIR"
 
 if [ $? -ne 0 ]; then
     exit 1;

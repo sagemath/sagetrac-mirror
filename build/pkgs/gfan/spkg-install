@@ -45,7 +45,7 @@ echo "Removing old version of gfan (if any)..."
 rm -f "$SAGE_LOCAL"/bin/gfan*
 
 
-BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 mkdir -p "$BIN"
 cp -pf gfan "$BIN/"
 if [[ $? -ne 0 ]]; then

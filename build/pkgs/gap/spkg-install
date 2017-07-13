@@ -11,7 +11,7 @@ fi
 # Read gap-version, which was written by spkg-src
 VERSION=`cat src/gap-version`
 GAP_DIR="gap-$VERSION"
-SAGE_GAP="$SAGE_INST_TEMP$SAGE_LOCAL/gap"
+SAGE_GAP="$SAGE_DESTDIR$SAGE_LOCAL/gap"
 INSTALL_DIR="$SAGE_GAP/$GAP_DIR"
 
 echo "spkg-install is using"
@@ -81,12 +81,12 @@ fi
 
 echo "Creating symlink to new GAP installation..."
 rm -f "$SAGE_LOCAL/gap/latest"
-ln -s "$GAP_DIR" "$SAGE_INST_TEMP$SAGE_LOCAL/gap/latest"
+ln -s "$GAP_DIR" "$SAGE_DESTDIR$SAGE_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"
-mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL/bin"
-cp bin/gap.sh "$SAGE_INST_TEMP$SAGE_LOCAL/bin/gap"
+mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL/bin"
+cp bin/gap.sh "$SAGE_DESTDIR$SAGE_LOCAL/bin/gap"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying customized GAP startup script."
     exit 1
@@ -98,8 +98,8 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     # echo "Now building GAP's documentation..."
     # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
     echo "Now copying GAP's (HTML) documentation..."
-    mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL/share/doc/gap" &&
-    cp -R doc/ref doc/tut "$SAGE_INST_TEMP$SAGE_LOCAL/share/doc/gap/"
+    mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL/share/doc/gap" &&
+    cp -R doc/ref doc/tut "$SAGE_DESTDIR$SAGE_LOCAL/share/doc/gap/"
     if [[ $? -ne 0 ]]; then
         echo >&2 "Error copying GAP's HTML documentation."
         exit 1

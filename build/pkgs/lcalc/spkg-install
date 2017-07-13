@@ -21,13 +21,13 @@ cd src   # Now we are in src/src.
 if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
 fi
-mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL"/{bin,include,lib}
-$MAKE install INSTALL_DIR="$SAGE_INST_TEMP$SAGE_LOCAL"
+mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL"/{bin,include,lib}
+$MAKE install INSTALL_DIR="$SAGE_DESTDIR$SAGE_LOCAL"
 success "$MAKE install"
 
 if [ "$UNAME" = "Darwin" ]; then
     install_name_tool -id ${SAGE_LOCAL}/lib/libLfunction.dylib \
-        "${SAGE_INST_TEMP}${SAGE_LOCAL}"/lib/libLfunction.dylib
+        "${SAGE_DESTDIR}${SAGE_LOCAL}"/lib/libLfunction.dylib
     success "install_name_tool"
 fi
 
