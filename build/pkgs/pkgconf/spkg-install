@@ -18,5 +18,5 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error creating the pkg-config script."
     exit 1
 fi
-cp pkg-config.out "$SAGE_INST_TEMP$SAGE_LOCAL/bin/pkg-config"
-chmod 755 "$SAGE_INST_TEMP$SAGE_LOCAL/bin/pkg-config"
+cp pkg-config.out "$SAGE_DESTDIR$SAGE_LOCAL/bin/pkg-config"
+chmod 755 "$SAGE_DESTDIR$SAGE_LOCAL/bin/pkg-config"

@@ -12,8 +12,8 @@ if ! [ $? -eq 0 ]; then
 fi
 
 echo "Copying over new boost headers"
-mkdir -p "${SAGE_INST_TEMP}${SAGE_LOCAL}"/include/
-cp -r src/boost "${SAGE_INST_TEMP}${SAGE_LOCAL}"/include/
+mkdir -p "${SAGE_DESTDIR}${SAGE_LOCAL}"/include/
+cp -r src/boost "${SAGE_DESTDIR}${SAGE_LOCAL}"/include/
 if ! [ $? -eq 0 ]; then
     echo "Failed to install new boost headers."
     exit 1

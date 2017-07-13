@@ -70,7 +70,7 @@ fi
 # The following requires that the Makefile got patched;
 # otherwise one could pass 'INSTALL_DIR=...' on the 'make'
 # command line:
-export INSTALL_DIR="$SAGE_INST_TEMP$SAGE_LOCAL"
+export INSTALL_DIR="$SAGE_DESTDIR$SAGE_LOCAL"
 mkdir -p "$INSTALL_DIR"/{lib,include}
 $MAKE install-lib
 if [[ $? -ne 0 ]]; then

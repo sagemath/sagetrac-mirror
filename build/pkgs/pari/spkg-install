@@ -159,7 +159,7 @@ install()
     sdh_make_install -j1 install-lib-sta
 
     # Copy anal.h
-    cp -f "src/language/anal.h" "$SAGE_INST_TEMP$SAGE_LOCAL/include/pari/anal.h" || \
+    cp -f "src/language/anal.h" "$SAGE_DESTDIR$SAGE_LOCAL/include/pari/anal.h" || \
         sdh_die "Error copying anal.h"
 
     cd "$CUR"
@@ -198,5 +198,5 @@ elif [ "$UNAME" = "CYGWIN" ]; then
 else
     pari_shlib="libpari.so"
 fi
-[ -f "$SAGE_INST_TEMP$SAGE_LOCAL/lib/$pari_shlib" ] || \
+[ -f "$SAGE_DESTDIR$SAGE_LOCAL/lib/$pari_shlib" ] || \
     sdh_die "Error: PARI's shared library '$pari_shlib' has not been installed!"

@@ -27,7 +27,7 @@ BUILD=`pwd`/build
 # find the m4 from SageMath.
 # The following environment variable makes sure we use the m4 from
 # SageMath.  See trac #21047.
-export M4="$SAGE_INST_TEMP$SAGE_LOCAL/bin/m4"
+export M4="$SAGE_DESTDIR$SAGE_LOCAL/bin/m4"
 
 cd "$SRC"
 
@@ -52,7 +52,7 @@ for x in $autoconf_versions; do autoconf_latest=$x ; done
 for x in $automake_versions; do automake_latest=$x ; done
 for x in $libtool_versions; do libtool_latest=$x ; done
 
-BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 
 # We install scripts for autoconf,... based on the generic "autofoo" script
 mkdir -p "$BIN"
@@ -77,7 +77,7 @@ ln -s automake aclocal
 ln -s libtool libtoolize
 
 # Make symlinks for some non-exact version matches
-cd "$SAGE_INST_TEMP$SAGE_LOCAL"
+cd "$SAGE_DESTDIR$SAGE_LOCAL"
 ln -s autoconf-2.13.rc1 autoconf-2.4
 ln -s autoconf-2.13.rc1 autoconf-2.13
 ln -s autoconf-2.60 autoconf-2.59a
@@ -93,7 +93,7 @@ mkdir -p "$BUILD"
 cd "$BUILD"
 (
     echo "SRC = $SRC"
-    echo "SAGE_LOCAL = $SAGE_INST_TEMP$SAGE_LOCAL"
+    echo "SAGE_LOCAL = $SAGE_DESTDIR$SAGE_LOCAL"
     # Force the use of bash as shell (/bin/sh on OpenSolaris has
     # problems with very long command lines used in some make rules).
     echo "SHELL = bash"
@@ -104,13 +104,13 @@ cd "$BUILD"
 export PATH="$BIN:$PATH"
 $MAKE
 
-# Go through all the installed files now and replace $SAGE_INST_TEMP$SAGE_LOCAL
+# Go through all the installed files now and replace $SAGE_DESTDIR$SAGE_LOCAL
 # with just $SAGE_LOCAL
 # First in the remote chance there's a | in either path:
-FROM="$(echo "$SAGE_INST_TEMP$SAGE_LOCAL" | sed 's/|/\\|/g')"
+FROM="$(echo "$SAGE_DESTDIR$SAGE_LOCAL" | sed 's/|/\\|/g')"
 TO="$(echo "$SAGE_LOCAL" | sed 's/|/\\|/g')"
-find "$SAGE_INST_TEMP$SAGE_LOCAL" -type f \
-    -exec grep -I -l "$SAGE_INST_TEMP$SAGE_LOCAL" {} \; \
+find "$SAGE_DESTDIR$SAGE_LOCAL" -type f \
+    -exec grep -I -l "$SAGE_DESTDIR$SAGE_LOCAL" {} \; \
     | xargs sed -i "s|$FROM|$TO|"
 
 # Install symlinks bin/aclocal-AM_API_VERSION and bin/automake-AM_API_VERSION.

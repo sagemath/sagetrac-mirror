@@ -24,7 +24,7 @@
 #      SAGE_SHARE     -- $SAGE_LOCAL/share
 #      SAGE_EXTCODE   -- $SAGE_SHARE/sage/ext
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
-#      SAGE_INST_TEMP -- temporary root the package will be installed to
+#      SAGE_DESTDIR   -- temporary root the package will be installed to
 #      PIP_INSTALL    -- command to run pip to install a Python package
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
 #      PKG_VER        -- the version number of the package
@@ -809,11 +809,11 @@ export rsync_proxy=$http_proxy
 # Actually install
 ##################################################################
 
-# Set the $SAGE_INST_TEMP variable to be passed to the spkg-install
+# Set the $SAGE_DESTDIR variable to be passed to the spkg-install
 # script (the script itself could set this, but better to standardize
 # this in one place)
-export SAGE_INST_TEMP="$(pwd)/inst"
-export PIP_INSTALL="$PIP_INSTALL --root=$SAGE_INST_TEMP"
+export SAGE_DESTDIR="$(pwd)/inst"
+export PIP_INSTALL="$PIP_INSTALL --root=$SAGE_DESTDIR"
 
 
 if [ -f spkg-build ]; then
@@ -853,10 +853,10 @@ if [ "$SAGE_CHECK" = "yes" ]; then
 fi
 
 # All spkgs should eventually support this, but fall back on old behavior in
-# case DESTDIR=$SAGE_INST_TEMP installation was not used
-echo "Copying package files from temporary location $SAGE_INST_TEMP to $SAGE_LOCAL"
-if [ -d "$SAGE_INST_TEMP" ]; then
-    PREFIX="${SAGE_INST_TEMP}${SAGE_LOCAL%/}/"
+# case DESTDIR=$SAGE_DESTDIR installation was not used
+echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
+if [ -d "$SAGE_DESTDIR" ]; then
+    PREFIX="${SAGE_DESTDIR}${SAGE_LOCAL%/}/"
 
     rm -f "$PREFIX"lib/*.la
     if [ $? -ne 0 ]; then

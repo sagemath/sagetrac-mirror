@@ -3,7 +3,7 @@ os.chdir("src")
 
 
 try:
-    SAGE_INST_TEMP = os.environ['SAGE_INST_TEMP']
+    SAGE_DESTDIR = os.environ['SAGE_DESTDIR']
     SAGE_SHARE = os.environ['SAGE_SHARE'].lstrip('/')
 except KeyError as exc:
     raise RuntimeError("%s undefined, maybe run `sage -sh`?" % exc.args[0])
@@ -20,7 +20,7 @@ def safe_makedirs(dir):
 def install_cremona():
     from sqlite3 import connect
 
-    cremona_root = os.path.join(SAGE_INST_TEMP, SAGE_SHARE, 'cremona')
+    cremona_root = os.path.join(SAGE_DESTDIR, SAGE_SHARE, 'cremona')
     safe_makedirs(cremona_root)
 
     target = os.path.join(cremona_root, 'cremona_mini.db')
@@ -58,7 +58,7 @@ def install_cremona():
 
 
 def install_ellcurves():
-    ellcurves_root = os.path.join(SAGE_INST_TEMP, SAGE_SHARE, 'ellcurves')
+    ellcurves_root = os.path.join(SAGE_DESTDIR, SAGE_SHARE, 'ellcurves')
 
     # Remove previous installs (possibly with bad permissions, see
     # https://trac.sagemath.org/ticket/21641)

@@ -139,7 +139,7 @@ fi
 #######################################################################
 # Install
 #######################################################################
-TARGET="$SAGE_INST_TEMP$SAGE_LOCAL/lib/sympow"
+TARGET="$SAGE_DESTDIR$SAGE_LOCAL/lib/sympow"
 
 rm -rf "$SAGE_LOCAL/lib/sympow"
 mkdir -p "$TARGET"
@@ -173,7 +173,7 @@ for file in *.txt; do
 done
 
 # Create sympow script in $SAGE_LOCAL/bin
-BIN="$SAGE_INST_TEMP$SAGE_LOCAL"/bin
+BIN="$SAGE_DESTDIR$SAGE_LOCAL"/bin
 mkdir -p "$BIN"
 SCRIPT="$BIN/sympow"
 

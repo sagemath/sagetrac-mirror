@@ -135,5 +135,5 @@ rm -f $SAGE_LOCAL/bin/cube
 cd src
 
 echo "Building Rubiks cube solvers"
-$MAKE install PREFIX="$SAGE_LOCAL" DESTDIR="$SAGE_INST_TEMP"
+$MAKE install PREFIX="$SAGE_LOCAL" DESTDIR="$SAGE_DESTDIR"
 

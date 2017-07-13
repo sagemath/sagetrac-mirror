@@ -33,16 +33,16 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL"/lib
+mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL"/lib
 
-cp -f libsymmetrica.a "$SAGE_INST_TEMP$SAGE_LOCAL"/lib/
+cp -f libsymmetrica.a "$SAGE_DESTDIR$SAGE_LOCAL"/lib/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing the Symmetrica library."
     exit 1
 fi
 
-mkdir -p "$SAGE_INST_TEMP$SAGE_LOCAL"/include/symmetrica &&
-cp -f *.h "$SAGE_INST_TEMP$SAGE_LOCAL"/include/symmetrica/
+mkdir -p "$SAGE_DESTDIR$SAGE_LOCAL"/include/symmetrica &&
+cp -f *.h "$SAGE_DESTDIR$SAGE_LOCAL"/include/symmetrica/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing Symmetrica's header files."
     exit 1

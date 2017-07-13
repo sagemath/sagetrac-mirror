@@ -19,12 +19,12 @@ import os
 
 try:
     SAGE_LOCAL=os.environ['SAGE_LOCAL']
-    SAGE_INST_TEMP=os.environ['SAGE_INST_TEMP']
+    SAGE_DESTDIR=os.environ['SAGE_DESTDIR']
 except KeyError:
     raise RuntimeError('must be run in a sage shell')
 
 
-pkgconfigdir = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'), 'lib',
+pkgconfigdir = os.path.join(SAGE_DESTDIR, SAGE_LOCAL.lstrip('/'), 'lib',
                             'pkgconfig')
 if not os.path.isdir(pkgconfigdir):
     os.makedirs(pkgconfigdir)

@@ -70,7 +70,7 @@ esac
 
 # Make sure that the install worked, despite whatever the
 # exit code of 'make' or 'make install' was:
-PREFIX="$SAGE_INST_TEMP$SAGE_LOCAL"
+PREFIX="$SAGE_DESTDIR$SAGE_LOCAL"
 if [[ -f "$PREFIX/lib/$DYLIB_NAME" ]]; then
     echo "Fixing permissions of libraries..."
     chmod 755 "$PREFIX"/lib/libreadline.*

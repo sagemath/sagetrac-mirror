@@ -1,9 +1,9 @@
 import os
 from six.moves import cPickle as pickle
 
-SAGE_INST_TEMP = os.getenv('SAGE_INST_TEMP')
+SAGE_DESTDIR = os.getenv('SAGE_DESTDIR')
 SAGE_SHARE = os.getenv('SAGE_SHARE').lstrip('/')
-install_root = os.path.join(SAGE_INST_TEMP, SAGE_SHARE, 'conway_polynomials')
+install_root = os.path.join(SAGE_DESTDIR, SAGE_SHARE, 'conway_polynomials')
 
 def create_db():
     db = {}

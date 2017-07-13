@@ -36,7 +36,7 @@ MAKE = os.environ['MAKE']
 
 # SAGE_LOCAL
 SAGE_LOCAL = conf['SAGE_LOCAL']
-SAGE_INST_TEMP = conf['SAGE_INST_TEMP']
+SAGE_DESTDIR = conf['SAGE_DESTDIR']
 
 ######################################################################
 ### Some auxiliary functions to facilitate IO and error checking
@@ -70,7 +70,7 @@ def assert_success(rc, good=None, bad=None):
 ######################################################################
 
 def write_pc_file(libs,target):
-    pkgconfigdir = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'),
+    pkgconfigdir = os.path.join(SAGE_DESTDIR, SAGE_LOCAL.lstrip('/'),
                                 'lib', 'pkgconfig')
     if not os.path.isdir(pkgconfigdir):
         os.makedirs(pkgconfigdir)
@@ -197,7 +197,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
                       if fname.startswith(library_basename) ]
         for fname in filenames:
             source = os.path.join(ATLAS_LIB, fname)
-            destination = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'),
+            destination = os.path.join(SAGE_DESTDIR, SAGE_LOCAL.lstrip('/'),
                                        'lib', fname)
             print('Symlinking %s -> %s' % (destination, source))
             try:
@@ -678,7 +678,7 @@ if not INSTALL_STATIC_LIBRARIES:
         .close()
 
 # The DESTDIR handling in ATLAS doesn't handle PREFIX properly
-DESTDIR = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'))
+DESTDIR = os.path.join(SAGE_DESTDIR, SAGE_LOCAL.lstrip('/'))
 rc = make_atlas('install DESTDIR="%s"' % DESTDIR)
 assert_success(rc, bad='Failed to install ATLAS headers',
                good='Installed ATLAS headers')
@@ -687,6 +687,6 @@ assert_success(rc, bad='Failed to install ATLAS headers',
 ######################################################################
 ### install script to tune and build ATLAS
 ######################################################################
-BIN_DIR = os.path.join(SAGE_INST_TEMP, SAGE_LOCAL.lstrip('/'), 'bin')
+BIN_DIR = os.path.join(SAGE_DESTDIR, SAGE_LOCAL.lstrip('/'), 'bin')
 os.mkdir(BIN_DIR)
 cp(os.path.join(PATCH_DIR, 'atlas-config'), BIN_DIR)

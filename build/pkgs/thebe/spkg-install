@@ -4,7 +4,7 @@ if [ -z "$SAGE_SHARE" ]; then
     exit 1
 fi
 
-TARGET="${SAGE_INST_TEMP}${SAGE_SHARE}/thebe"
+TARGET="${SAGE_DESTDIR}${SAGE_SHARE}/thebe"
 if [ ! -d "${TARGET}" ]; then
    mkdir -p "${TARGET}"
 fi

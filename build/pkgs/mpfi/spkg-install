@@ -20,5 +20,5 @@ sdh_make
 sdh_make_install
 sdh_clean_info
 
-[ -f "$SAGE_INST_TEMP$SAGE_LOCAL/include/mpfi.h" ] || \
+[ -f "$SAGE_DESTDIR$SAGE_LOCAL/include/mpfi.h" ] || \
     sdh_die "An error occurred while building MPFI."

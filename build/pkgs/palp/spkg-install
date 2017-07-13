@@ -17,7 +17,7 @@ if [ "$UNAME" = "CYGWIN" ] ; then
   CFLAGS="$CFLAGS -Wl,--stack,8000000"
 fi
 
-BIN="$SAGE_INST_TEMP$SAGE_LOCAL/bin"
+BIN="$SAGE_DESTDIR$SAGE_LOCAL/bin"
 mkdir -p "$BIN"
 
 for dim in 4 5 6 11; do
