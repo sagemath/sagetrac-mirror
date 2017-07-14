@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+###############################################################################
+#
+# mppp Sage install script
+#
+###############################################################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+mkdir build
+cd build
+
+echo "Configuring mppp"
+cmake -DMPPP_WITH_MPFR:BOOL=ON \
+      -DCMAKE_INSTALL_PREFIX:STRING=${SAGE_LOCAL} \
+      ../
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to configure mppp."
+    exit 1
+fi
+
+echo "Installing mppp headers"
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to install mppp library."
+    exit 1
+fi

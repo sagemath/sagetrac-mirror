@@ -1,0 +1,22 @@
+= mppp =
+
+== Description ==
+
+mp++ is a small C++11 header-only library for multiprecision arithmetic,
+currently supporting integers and rationals.
+
+Website: https://bluescarni.github.io/mppp/index.html
+
+== License ==
+
+mp++ is released under the MPL2 license.
+
+== Upstream Contact ==
+
+ * https://github.com/bluescarni/mppp 
+
+== Dependencies ==
+
+ * MPIR (or GMP)
+ * MPFR
+ * cmake
