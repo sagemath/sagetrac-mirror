@@ -28,6 +28,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef void _reduce_c_(self)
 
+
     cpdef list _coefficients(self)
 
     cpdef bint is_rational(self)

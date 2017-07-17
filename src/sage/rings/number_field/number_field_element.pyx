@@ -41,8 +41,8 @@ include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
-from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
+from sage.libs.mpfi cimport mpfi_t, mp_prec_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec, mpfi_get_prec
+from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN, mpfr_floor
 from sage.libs.ntl.error import NTLError
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 
@@ -57,7 +57,7 @@ import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
 
-from sage.rings.real_mpfi cimport RealIntervalFieldElement
+from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 
 cimport sage.rings.number_field.number_field_base as number_field_base
 
@@ -89,6 +89,63 @@ CC = ComplexField(53)
 # architectures; you can find this script attached to trac
 # ticket 5213
 TUNE_CHARPOLY_NF = 25
+
+
+# TODO: it is impossible to declare the function below as a method of NumberFieldElement
+#       if we do so, this needs to be declared in the pxd file and cython complains with
+#
+#       Cythonizing sage/rings/number_field/number_field_element.pyx
+#
+#       Error compiling Cython file:
+#       ------------------------------------------------------------
+#       ...
+#           void PyTuple_SET_ITEM(object  p, Py_ssize_t pos, object o)
+#           void PyList_SET_ITEM(object  p, Py_ssize_t pos, object o)
+#
+#
+#       @cname("__Pyx_carray_to_py_____mpfi__struct")
+#       cdef inline list __Pyx_carray_to_py_____mpfi__struct(__mpfi_struct *v, Py_ssize_t length):
+#                                                           ^
+#       ------------------------------------------------------------
+#
+#       carray.to_py:112:53: '__mpfi_struct' is not a type identifier
+#
+#       Error compiling Cython file:
+#       ------------------------------------------------------------
+#       ...
+#               PyList_SET_ITEM(l, i, value)
+#           return l
+#
+#
+#       @cname("__Pyx_carray_to_tuple_____mpfi__struct")
+#       cdef inline tuple __Pyx_carray_to_tuple_____mpfi__struct(__mpfi_struct *v, Py_ssize_t length):
+#                                                               ^
+#       ------------------------------------------------------------
+#
+#       carray.to_py:124:57: '__mpfi_struct' is not a type identifier
+#
+# TODO: we should avoid the mpz allocation/deallocation when dividing by the denominator
+cdef void nf_elem_get_mpfi(mpfi_t x, NumberFieldElement a, mp_prec_t prec):
+    "set ``x`` to an interval field approximation of ``a`` computed at precision ``prec``"
+    cdef number_field_base.NumberField P
+    try:
+        P = <number_field_base.NumberField?> a._parent
+    except TypeError:
+        P = a._parent.number_field()
+
+    cdef mpz_t den
+    cdef int i = 0
+    cdef RealIntervalFieldElement v = <RealIntervalFieldElement> P._get_embedding_approx(0)
+    while mpfi_get_prec(v.value) < prec:
+        i += 1
+        v = <RealIntervalFieldElement> P._get_embedding_approx(i)
+
+    ZZX_evaluation_mpfi(x, a.__numerator, v.value)
+    if not ZZ_IsOne(a.__denominator):
+        mpz_init(den)
+        ZZ_to_mpz(den, &a.__denominator)
+        mpfi_div_z(x, x, den)
+        mpz_clear(den)
 
 def is_NumberFieldElement(x):
     """
@@ -819,46 +876,34 @@ cdef class NumberFieldElement(FieldElement):
 
         # comparisons <, <=, > or >=
         # this should work for number field element and order element
+        cdef int prec = 53               # default precision
+        cdef mpfi_t la, ra               # left and right approximations
         cdef number_field_base.NumberField P
         try:
             P = <number_field_base.NumberField?> left._parent
         except TypeError:
             P = left._parent.number_field()
-        cdef size_t i = 0                # level of the approximation
-        cdef RealIntervalFieldElement v  # approximation of the nf generator
-        cdef mpfi_t la, ra               # left and right approximations
-        cdef mpz_t ld, rd                # left and right denominators
-        if P._embedded_real:
-            mpz_init(ld)
-            mpz_init(rd)
-            ZZ_to_mpz(ld, &left.__denominator)
-            ZZ_to_mpz(rd, &_right.__denominator)
 
-            v = <RealIntervalFieldElement> P._get_embedding_approx(0)
-            mpfi_init2(la, mpfi_get_prec(v.value))
-            mpfi_init2(ra, mpfi_get_prec(v.value))
-            ZZX_evaluation_mpfi(la, left.__numerator, v.value)
-            mpfi_div_z(la, la, ld)
-            ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
-            mpfi_div_z(ra, ra, rd)
+        if P._embedded_real:
+            mpfi_init2(la, prec)
+            mpfi_init2(ra, prec)
+
+            nf_elem_get_mpfi(la, left, prec)
+            nf_elem_get_mpfi(ra, right, prec)
             while mpfr_greaterequal_p(&la.right, &ra.left) \
                   and mpfr_greaterequal_p(&ra.right, &la.left):
-                i += 1
-                v = <RealIntervalFieldElement> P._get_embedding_approx(i)
-                mpfi_set_prec(la, mpfi_get_prec(v.value))
-                mpfi_set_prec(ra, mpfi_get_prec(v.value))
-                ZZX_evaluation_mpfi(la, left.__numerator, v.value)
-                mpfi_div_z(la, la, ld)
-                ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
-                mpfi_div_z(ra, ra, rd)
+                prec <<= 1
+                mpfi_set_prec(la, prec)
+                mpfi_set_prec(ra, prec)
+                nf_elem_get_mpfi(la, left, prec)
+                nf_elem_get_mpfi(ra, right, prec)
+
             if op == Py_LT or op == Py_LE:
                 res = mpfr_less_p(&la.right, &ra.left)
             elif op == Py_GT or op == Py_GE:
                 res = mpfr_greater_p(&la.left, &ra.right)
             mpfi_clear(la)
             mpfi_clear(ra)
-            mpz_clear(ld)
-            mpz_clear(rd)
             return bool(res)
         else:
             return rich_to_bool(op, 1)
@@ -1050,6 +1095,32 @@ cdef class NumberFieldElement(FieldElement):
             a = RealIntervalField(53<<i)(self)
         return a.unique_sign()
 
+    def _real_mpfi_(self, R):
+        r"""
+        EXAMPLES::
+
+            sage: K.<b> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
+            sage: RIF(b)
+            1.259921049894873?
+            sage: RealIntervalField(256)(b)
+            1.2599210498948731647672106072782283505702514647015079800819751121552996765140?
+            sage: RealIntervalField(256)(b)**3
+            2.000000000000000000000000000000000000000000000000000000000000000000000000000?
+
+            sage: O = K.ring_of_integers()
+            sage: RIF(O.gen(0) + O.gen(1) + O.gen(2))
+            3.84732210186308?
+        """
+        if self.is_rational():
+            return R(self._rational_())
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("no real embedding specified")
+
+        cdef RealIntervalFieldElement x = (<RealIntervalField_class> R)._new()
+        nf_elem_get_mpfi(x.value, self, R.prec())
+        return x
+
     def floor(self):
         r"""
         Return the floor of this number field element.
@@ -1093,10 +1164,6 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef Integer ans
         cdef mpz_t num, den
-        cdef mpfi_t a
-        cdef size_t i
-        cdef RealIntervalFieldElement v
-
 
         if ZZX_deg(self.__numerator) <= 0:
             mpz_init(num)
@@ -1116,34 +1183,17 @@ cdef class NumberFieldElement(FieldElement):
         if not (<number_field_base.NumberField> self._parent)._embedded_real:
             raise TypeError("floor not uniquely defined since no real embedding is specified")
 
+        cdef mpfi_t a
+        cdef int prec = 53  # the default precision
+        mpfi_init2(a, prec)
 
-        cdef number_field_base.NumberField P
-        try:
-            P = <number_field_base.NumberField?> self._parent
-        except TypeError:
-            P = self._parent.number_field()
-
-        v = <RealIntervalFieldElement> P._get_embedding_approx(0)
-
-        mpz_init(den)
-        mpfi_init2(a, mpfi_get_prec(v.value))
-
-        ZZ_to_mpz(den, &self.__denominator)
-
-        ZZX_evaluation_mpfi(a, self.__numerator, v.value)
-        mpfi_div_z(a, a, den)
-
+        nf_elem_get_mpfi(a, self, prec)
         mpfr_floor(&a.left, &a.left)
         mpfr_floor(&a.right, &a.right)
-
-        i = 0
         while not mpfr_equal_p(&a.left, &a.right):
-            i += 1
-            v = <RealIntervalFieldElement> P._get_embedding_approx(i)
-
-            mpfi_set_prec(a, mpfi_get_prec(v.value))
-            ZZX_evaluation_mpfi(a, self.__numerator, v.value)
-            mpfi_div_z(a, a, den)
+            prec <<= 1
+            mpfi_set_prec(a, prec)
+            nf_elem_get_mpfi(a, self, prec)
             mpfr_floor(&a.left ,&a.left)
             mpfr_floor(&a.right, &a.right)
 
@@ -1151,7 +1201,6 @@ cdef class NumberFieldElement(FieldElement):
         mpfr_get_z(ans.value, &a.left, MPFR_RNDN)
 
         mpfi_clear(a)
-        mpz_clear(den)
 
         return ans
 
