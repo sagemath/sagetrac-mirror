@@ -95,6 +95,7 @@ if test "$SAGE_LOCAL" = NONE; then
 fi
 SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+SAGE_SPKG_ABSTRACT="$SAGE_LOCAL/var/lib/sage/abstract"
 
 #---------------------------------------------------------
 AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unpriviledged user])], [])
@@ -667,15 +668,25 @@ endif
 # Directory to keep track of which packages are installed
 INST = \$(SAGE_SPKG_INST)
 
+# Directory where selections for abstract packages are maintained
+ABSTRACT = \$(SAGE_SPKG_ABSTRACT)
+
 # Aliases for optional packages selected at configure time
 EOF
 
+# Configure selections for 'abstract' packages
+# Some of these packages already have means of selecting them at configure
+# time, but in a somewhat ad-hoc manner for legacy reasons.  For example, mp
+# and blas have --with-<pkg> arguments for selecting them, but python does not.
+# Python is selected by the SAGE_PYTHON3 environment variable.  mp also has an
+# environment variable (SAGE_MP_LIBRARY) that works differently.
+# It would be good to standardize this, but for now we keep the legacy options.
 
 # Python version
 if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
+    with_python="python3"
 else
-    echo >&7 'PYTHON = $(inst_python2)'
+    with_python="python2"
 fi
 
 # Sage MP library
@@ -686,21 +697,18 @@ AC_ARG_WITH([mp],
 [AS_HELP_STRING([--with-mp=gmp],
     [use GMP as multiprecision library])])
 
+if test -z "$with_mp"; then
+    with_mp="${SAGE_MP_LIBRARY:-mpir}"
+fi
+
 case "$with_mp" in
-    MPIR|mpir) with_mp=MPIR;;
-    GMP|gmp) with_mp=GMP;;
-    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
+    MPIR|mpir) with_mp=mpir;;
+    GMP|gmp) with_mp=gmp;;
     *)
         AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
 esac
 
 AC_MSG_RESULT([$with_mp])
-
-if test $with_mp = MPIR; then
-    echo >&7 'MP_LIBRARY = $(inst_mpir)'
-else
-    echo >&7 'MP_LIBRARY = $(inst_gmp)'
-fi
 
 # BLAS library
 AC_MSG_CHECKING([BLAS library])
@@ -720,7 +728,44 @@ esac
 
 AC_MSG_RESULT([$with_blas])
 
-echo >&7 "BLAS = \$(inst_${with_blas})"
+
+# Now make selections for any other 'abstract' packages and write
+# their selections to files in SAGE_SPKG_ABSTRACT;  these are read
+# by the Makefile to determine what dependency fulfills a given
+# abstract package
+mkdir -p "$SAGE_SPKG_ABSTRACT" || AC_MSG_ERROR([could not create $SAGE_SPKG_ABSTRACT])
+AC_MSG_CHECKING([abstract package selections])
+AC_MSG_RESULT([])
+
+filtered_packages_list abstract | while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
+    withvar="with_${PKG_NAME}"
+    withval=${!withvar}
+    if test -z "$withval"; then
+        DEFAULT_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/default"
+
+        if test -f "$DEFAULT_FILE"; then
+            withval="$(cat "$DEFAULT_FILE")"
+        else
+            AC_MSG_ERROR([no default selection for abstract package $PKG_NAME])
+        fi
+    fi
+
+    # Ensure that the selected package is a valid provider of this abstract
+    # package
+    PROVIDES_FILE="$SAGE_ROOT/build/pkgs/$withval/provides"
+    if test -f "$PROVIDES_FILE"; then
+        PROVIDES="$(cat "$PROVIDES_FILE")"
+    fi
+
+    if test $PKG_NAME != "$PROVIDES"; then
+        AC_MSG_ERROR([$withval is not a provider for abstract package $PKG_NAME])
+    fi
+
+    echo "$withval" > "$SAGE_SPKG_ABSTRACT/$PKG_NAME"
+    AC_MSG_RESULT([    $PKG_NAME -> $withval])
+done
+    
+
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
@@ -855,19 +900,30 @@ while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
         # - the # symbol is treated as comment which is removed
         # - lower-case words "foo" are replaced by "$(inst_foo)"
         DEPS=`sed 's/^ */ /; s/ *#.*//; s/ \([a-z0-9][a-z0-9_]*\)/ $(inst_\1)/g; q' $DEP_FILE`
-    elif [ "$PKG_TYPE" = optional ]; then
-        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-    elif [ "$PKG_TYPE" = script ]; then
-        DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-    elif [ "$PKG_TYPE" = pip ]; then
-        DEPS=' | $(inst_pip)'
     else
-        DEPS=""
+        case "$PKG_TYPE" in
+        abstract)
+            DEPS=' $(inst_$(file < $(ABSTRACT)/'$PKG_NAME'))'
+            ;;
+        optional)
+            DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+            ;;
+        script)
+            DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
+            ;;
+        pip)
+            DEPS=' | $(inst_pip)'
+            ;;
+        *)
+            DEPS=""
+            ;;
+        esac
     fi
 
     # Below we have to obscure A""M_V_at, or autoconf would complain:
     # "error: possibly undefined macro: A""M_V_at"
-    if [ "$PKG_TYPE" = pip ]; then
+    case "$PKG_TYPE" in
+    pip)
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
@@ -877,7 +933,8 @@ while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
         echo >&7
-    elif [ "$PKG_TYPE" = script ]; then
+        ;;
+    script)
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
@@ -891,11 +948,21 @@ while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
-    else
-        # Normal Sage packages
-        echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
-        echo >&7
+        ;;
+    *)
+        if [ "$PKG_TYPE" = abstract ]; then
+            # Abstract packages somewhat like normal packages, but only install a
+            # symlink
+            echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
+            echo >&7 "	+\$(A""M_V_at)ln -sf \$(notdir \$<) \$@"
+            echo >&7 "	+\$(A""M_V_at)touch \$<"
+            echo >&7
+        else
+            # Normal Sage packages
+            echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
+            echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+            echo >&7
+        fi
 
         # Add a target with just the bare package name for "sage -i"
         echo >&7 "$PKG_NAME: \$(INST)/$PKG_VERSION"
@@ -905,7 +972,8 @@ while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	rm -f \$(INST)/$PKG_VERSION"
         echo >&7
-    fi
+        ;;
+    esac
 
     PHONY="$PHONY $PKG_NAME"
 done || exit 1

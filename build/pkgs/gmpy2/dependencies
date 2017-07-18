@@ -1,4 +1,4 @@
-$(PYTHON) $(MP_LIBRARY) mpfr mpc | pip
+python mp mpfr mpc | pip
 
 ----------
 All lines of this file are ignored except the first.

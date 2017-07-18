@@ -1,4 +1,4 @@
-zlib ncurses $(PYTHON)
+zlib ncurses python
 
 ----------
 All lines of this file are ignored except the first.

@@ -1,4 +1,4 @@
-$(PYTHON) $(BLAS) numpy | pip
+python blas numpy | pip
 
 ----------
 All lines of this file are ignored except the first.

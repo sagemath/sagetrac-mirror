@@ -1,4 +1,4 @@
-$(PYTHON) | pip setuptools
+python | pip setuptools
 
 ----------
 All lines of this file are ignored except the first.

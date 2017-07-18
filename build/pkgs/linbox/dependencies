@@ -1,4 +1,4 @@
-$(MP_LIBRARY) ntl givaro mpfr libfplll iml flint fflas_ffpack
+mp ntl givaro mpfr libfplll iml flint fflas_ffpack
 
 ----------
 All lines of this file are ignored except the first.

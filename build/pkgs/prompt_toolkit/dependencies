@@ -1,4 +1,4 @@
-$(PYTHON) six wcwidth | pip
+python six wcwidth | pip
 
 ----------
 All lines of this file are ignored except the first.

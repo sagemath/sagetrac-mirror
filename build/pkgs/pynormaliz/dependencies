@@ -1,4 +1,4 @@
-$(PYTHON) normaliz | pip
+python normaliz | pip
 
 ----------
 All lines of this file are ignored except the first.

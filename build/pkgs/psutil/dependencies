@@ -1,1 +1,1 @@
-$(PYTHON) | pip
+python | pip

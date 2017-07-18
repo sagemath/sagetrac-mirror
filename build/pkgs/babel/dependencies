@@ -1,4 +1,4 @@
-$(PYTHON) | pip pytz
+python | pip pytz
 
 ----------
 All lines of this file are ignored except the first.

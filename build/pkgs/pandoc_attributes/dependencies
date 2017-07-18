@@ -1,4 +1,4 @@
-$(PYTHON) setuptools | pip pandocfilters
+python setuptools | pip pandocfilters
 
 ----------
 All lines of this file are ignored except the first.

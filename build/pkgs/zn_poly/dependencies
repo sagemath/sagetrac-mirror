@@ -1,4 +1,4 @@
-$(MP_LIBRARY) | $(PYTHON)
+mp | python
 
 zn_poly really does depend on Python, despite this is far from obvious.
 The 'configure' script in zn_poly calls Python to make a 'makefile'.

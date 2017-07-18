@@ -1,4 +1,4 @@
-$(PYTHON) | pip flask
+python | pip flask
 
 ----------
 All lines of this file are ignored except the first.

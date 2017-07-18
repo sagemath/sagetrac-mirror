@@ -72,7 +72,7 @@ toolchain: $(TOOLCHAIN)
 # See #14168 and #14232.
 toolchain-deps:
 	$(MAKE) $(inst_zlib)
-	$(MAKE) $(MP_LIBRARY)
+	$(MAKE) $(inst_mp)
 	$(MAKE) $(inst_mpfr)
 	$(MAKE) $(inst_mpc)
 
@@ -114,7 +114,7 @@ base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
 		$(inst_arb) \
-		$(BLAS) \
+		$(inst_blas) \
 		$(inst_brial) \
 		$(inst_cephes) \
 		$(inst_cliquer) \
@@ -139,10 +139,10 @@ sagelib: \
 		$(inst_linbox) \
 		$(inst_m4ri) \
 		$(inst_m4rie) \
+		$(inst_mp) \
 		$(inst_mpc) \
 		$(inst_mpfi) \
 		$(inst_mpfr) \
-		$(MP_LIBRARY) \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
@@ -151,6 +151,7 @@ sagelib: \
 		$(inst_planarity) \
 		$(inst_ppl) \
 		$(inst_pynac) \
+		$(inst_python) \
 		$(inst_python2) \
 		$(inst_python3) \
 		$(inst_ratpoints) \

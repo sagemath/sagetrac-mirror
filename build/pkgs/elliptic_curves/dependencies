@@ -1,4 +1,4 @@
-| sqlite $(PYTHON)
+| sqlite python
 
 ----------
 All lines of this file are ignored except the first.

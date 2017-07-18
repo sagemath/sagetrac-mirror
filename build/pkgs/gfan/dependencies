@@ -1,4 +1,4 @@
-$(MP_LIBRARY) cddlib
+mp cddlib
 
 ----------
 All lines of this file are ignored except the first.
