@@ -1,4 +1,4 @@
-python | cmake sqlite m4ri boost_cropped
+python | cmake sqlite m4ri boost
 
 ----------
 All lines of this file are ignored except the first.
