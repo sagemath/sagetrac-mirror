@@ -63,7 +63,7 @@ class Frame(SageObject):
         sage: f.polygon
         [Segment of length 32 and slope 1/8]
         sage: f.polygon[0].psi.polynomial()
-        2 + O(2^20)
+        (2 + O(2^20))
         sage: f.polygon[0].factors
         [AssociatedFactor of rho z + 1]
 
@@ -187,7 +187,7 @@ class Frame(SageObject):
         First we need an appropriate Frame::
 
             sage: from sage.rings.polynomial.padics.factor.frame import *
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^16+16)
+            sage: Phi = ZpFM(2,20,print_mode='terse')['x'](x^16+16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
             sage: f = f.polygon[0].factors[0].next_frame()
@@ -235,6 +235,12 @@ class Frame(SageObject):
             psielt.terms = [FrameEltTerm(psielt, self.prev_frame().find_psi(val), s)]
         return psielt
 
+    def root(self):
+        if self.is_first():
+            return self
+        else:
+            return self.prev_frame().root()
+
     def _newton_polygon(self,a):
         """
         Compute the newton polygon of higher order of ``Phi`` with respect to
@@ -273,19 +279,28 @@ class Frame(SageObject):
 
         """
         def cross(o, a, b):
+            """
+            2D cross product of the vectors oa and ob.
+            """
             return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
         def find_slope(a,b):
+            """
+            The negative of the slope through the points a and b.
+            """
             # Note that we negate the slope
             return (a[1]-b[1]) / (b[0]-a[0])
 
-        lower = []
+        lower = [(0,a[0])]
         segments = []
-        for i in range(len(a)):
-            p = (Integer(i),a[i])
+        for i in range(1,len(a)):
+            p = (i,a[i])
             # We check cross < 0 since we want to retain points on the boundary.
             while len(lower) >= 2 and cross(lower[-2], lower[-1], p) < 0:
                 lower.pop()
             lower.append(p)
+        if len(lower) <= 1:
+            raise ValueError("Not enough vertices")
+
         # If phi divides Phi then the first segment should have infinite slope.
         if self.phi_divides_Phi():
             for c in xrange(1,len(lower)):
@@ -295,8 +310,9 @@ class Frame(SageObject):
                 raise ValueError("Entire polygon above precision cap")
             segments.append(Segment(self,infinity,[(0,infinity),lower[c]]))
             lower = lower[c:]
-        if len(lower) <= 1:
-            raise ValueError("Not enough vertices")
+            if len(lower) <= 1:
+                return segments
+
         slope = find_slope(lower[0],lower[1])
         verts = [lower[0],lower[1]]
         for c in xrange(1,len(lower)-1):
@@ -386,6 +402,103 @@ class Frame(SageObject):
 
         """
         return self._phi_expansion_as_polynomials[0] == 0
+
+    def single_factor_lift(self):
+        r"""
+        Lift a Frame to a factor of the polynomial it approximates.
+
+        INPUT:
+
+        - ``frame`` -- a Frame that is the leaf of an OM tree.
+
+        OUTPUT:
+
+        A factor of the polynomial referred to by the input frame
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: Kx.<x> = PolynomialRing(ZpFM(3,20,'terse'))
+            sage: f = (x**3+x-1)*(x**2+1)
+            sage: fr = Frame(f)
+            sage: fr.seed(x)
+            sage: fr = fr.polygon[0].factors[0].next_frame()
+            sage: fact = fr.single_factor_lift() ; fact
+            (1 + O(3^20))*x + (904752403 + O(3^20))
+            sage: f % fact
+            0
+
+        REFERENCES:
+
+            J. Guardia, E. Nart, S. Pauli. Single-factor lifting and
+            factorization of polynomials over local fields.
+            J. Symb. Comput. 47(11): 1318-1346 (2012)
+
+        """
+        if self.phi_divides_Phi():
+            return self.phi
+
+        def _reduce(poly,phi,d):
+            """ returns poly mod phi and simplifies the denominator of poly """
+            poly = poly % phi
+            if d != 0:
+                g = min([d] + [p.valuation() for p in poly])
+                if g > 0:
+                    poly = poly.parent( [p >> g for p in poly] )
+                    d = d - g
+            return poly,d
+
+        def _move_elt(a,S):
+            """ move the element a of R to S which is a changed R """
+            return S(a.polynomial().list())
+
+        def _move_poly(f,Sy):
+            """ move the polynomial f over R to a polynomial over S which is a changed R """
+            return Sy([_move_elt(a,Sy.base()) for a in f.coefficients(sparse=False)])
+
+        prec = self.O.precision_cap()
+        LiftRing = self.O.change(prec=2*prec, type="fixed-mod")
+        Lifty = PolynomialRing(LiftRing,names='y')
+        Phi = _move_poly(self.Phi,Lifty)
+        phi = _move_poly(self.phi,Lifty)
+
+        a0,a1 = self._phi_expansion_as_elts[0:2]
+
+        Psi = self.find_psi(-a1.valuation())
+        A0 = Psi * a0
+        A1 = Psi * a1
+
+        Psi,Psiden = Psi.polynomial(True)
+        Psi = _move_poly(Psi,Lifty)
+
+        C1inv = self.polygon[0].factors[0].lift(1/(A1.residue()))
+        C1inv,C1invden = C1inv.polynomial(True)
+        C1inv = _move_poly(C1inv,Lifty)
+        C1inv,C1invden = _reduce(C1inv,phi,C1invden)
+
+        A0,A0den = A0.polynomial(True)
+        A0,A0den = _reduce(_move_poly(A0,Lifty),phi,A0den)
+
+        C,Cden = _reduce(A0*C1inv,phi,A0den+C1invden)
+        phi = (phi + C)
+
+        h = 2
+        oldphi = None
+        while h < prec and phi != oldphi:
+            oldphi = phi
+            C1, C0 = Phi.quo_rem(phi)
+
+            C0,C0den = _reduce((Psi*C0),phi,Psiden)
+            C1,C1den = _reduce((Psi*C1),phi,Psiden)
+
+            x1,x1den = _reduce((LiftRing(2)<<(C1den+C1invden))-C1*C1inv,phi,C1den+C1invden)
+            C1inv,C1invden = _reduce(C1inv*x1,phi,C1invden+x1den)
+
+            C,Cden = _reduce((C0*C1inv),phi,C0den+C1invden)
+
+            phi = (phi + C)
+            h = 2 * h
+        return _move_poly(phi,self.Ox)
 
     def __repr__(self):
         """

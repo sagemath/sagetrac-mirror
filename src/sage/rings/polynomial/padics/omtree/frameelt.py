@@ -22,6 +22,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.rings.padics.padic_printing import pAdicPrinter
 
 class FrameElt(SageObject):
     """
@@ -39,7 +40,7 @@ class FrameElt(SageObject):
       then self is initialized as having a single term in its sum, namely
       ``a`` * ``phi`` ^ ``this_exp``
 
-    EXAMPLES:
+    EXAMPLES::
 
     If the FrameElt comes from the first frame, the term must be a constant::
 
@@ -178,7 +179,7 @@ class FrameElt(SageObject):
 
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.factor.frame import Frame
-            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: k = ZpFM(2,20,print_mode='terse',show_prec=False); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0,6)
             sage: f1 = f0.polygon[0].factors[0].next_frame()
@@ -194,7 +195,10 @@ class FrameElt(SageObject):
             sage: fe1.terms
             [[1*2^0]phi1^0]
         """
-        v = min([a.valuation() for a in self.terms]) if len(self.terms) > 0 else self.frame.O.precision_cap()
+        if len(self.terms) > 0:
+            v = min([a.valuation() for a in self.terms])
+        else:
+            v = self.frame.O.precision_cap()
         if purge:
             self.terms = [a for a in self.terms if a.valuation() == v]
         return v
@@ -205,18 +209,18 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import *
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import *
             sage: k = ZpFM(5,40,'terse'); kx.<x> = k[]
             sage: f = kx([627500,6111375,13000,40,1])
-            sage: t = OM_tree(f)[0]
+            sage: t = OMTree(f).leaves()[0]
             sage: t.prev.gamma_frameelt.residue()
-            4*a0 + 1
+            3*a1^3 + a1^2 + 3*a1 + 4
             sage: e = t.prev.gamma_frameelt ** 2 + t.prev.gamma_frameelt
             sage: e.residue()
-            3*a0
+            3*a1^3 + 4*a1^2 + 3*a1 + 4
             sage: e.residue().parent()
-            Finite Field in a0 of size 5^2
+            Finite Field in a1 of size 5^4
         """
         if not self.is_reduced():
             self = self.reduce()
@@ -224,7 +228,8 @@ class FrameElt(SageObject):
         if self.frame.is_first():
             if self.terms[0]._exponent == 0:
                 # unable to coerce in Zq
-                return self.frame.R(self.terms[0]._unit)
+                #return self.frame.R(self.terms[0]._unit)
+                return self.terms[0]._unit.residue()
             else:
                 return self.frame.R(0)
 
@@ -247,16 +252,15 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
             sage: e = FrameElt(t,f); e
-            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0, [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1, [[3*2^5]phi1^2, [3*2^5]phi1^4]phi2^2, [[3*2^4]phi1^2]phi2^3, [[274877906941*2^2]phi1^5]phi2^4, [[1*2^0]phi1^0]phi2^6]
+            [[[[67108863*2^14]phi1^5]phi2^1]phi3^0, [[[268435455*2^12]phi1^0]phi2^1]phi3^1, [[[3*2^10]phi1^5]phi2^0]phi3^2, [[[3*2^8]phi1^0]phi2^0]phi3^3, [[[68719476733*2^4]phi1^0]phi2^1]phi3^4, [[[1*2^0]phi1^0]phi2^0]phi3^6]
             sage: e.reduce()
-            [[[2147483649*2^9]phi1^1, [4294967295*2^8]phi1^3, [33*2^40]phi1^7]phi2^0,
-             [[8589934591*2^7]phi1^1, [8589934593*2^7]phi1^7]phi2^1]
+            [[[[1025*2^40]phi1^5]phi2^1]phi3^0, [[[134217729*2^13]phi1^0]phi2^1]phi3^1]
         """
         if self.frame.is_first():
             return self
@@ -287,10 +291,10 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
             sage: e = FrameElt(t,f); e.is_reduced()
             False
@@ -363,7 +367,7 @@ class FrameElt(SageObject):
             if min([a._exponent for a in self.terms]) < 0:
                 raise ValueError("Cannot construct polynomial representation of FrameElt over Zp with negative exponents without denominator flag")
             if self.frame.is_first():
-                return self.frame.O.uniformizer()**int(self.terms[0]._exponent)*self.terms[0]._unit
+                return self.frame.Ox(self.frame.O.uniformizer()**int(self.terms[0]._exponent)*self.terms[0]._unit)
             else:
                 return sum([self.frame.prev_frame().phi**int(a._exponent)*a._coefficient.polynomial() for a in self.terms])
 
@@ -554,13 +558,13 @@ class FrameElt(SageObject):
             sage: fe = FrameElt(f,6); fe
             [3*2^1]
             sage: fe.polynomial()
-            6 + O(2^20)
+            (6 + O(2^20))
             sage: fe.__pow__(2)
             [9*2^2]
             sage: fe ** 2
             [9*2^2]
             sage: (fe**2).polynomial()
-            36 + O(2^20)
+            (36 + O(2^20))
 
         Moving to a higher frame and squaring 6x^2 as a FrameElt::
 
@@ -740,8 +744,8 @@ class FrameEltTerm(SageObject):
                     self._unit = a
                 else:
                     self._unit = a.unit_part()
-                if a.valuation() > 0 and a.valuation():
-                    self._exponent += a.valuation()
+                    if a.valuation() > 0:
+                        self._exponent += a.valuation()
             else:
                 self._coefficient = FrameElt(self.frameelt.frame.prev_frame(),a)
         else:
@@ -804,6 +808,8 @@ class FrameEltTerm(SageObject):
             1/8
         """
         if self.frameelt.frame.prev is None:
+            if self._zero_flag:
+                return self.frameelt.frame.O.precision_cap()
             return Rational(self._exponent)
         else:
             return self.frameelt.frame.prev.segment.slope * self._exponent + self._coefficient.valuation()
@@ -815,33 +821,32 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
             sage: e = FrameElt(t,f); e.terms
-            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
-             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1,
-             [[3*2^5]phi1^2, [3*2^5]phi1^4]phi2^2,
-             [[3*2^4]phi1^2]phi2^3,
-             [[274877906941*2^2]phi1^5]phi2^4,
-             [[1*2^0]phi1^0]phi2^6]
+            [[[[67108863*2^14]phi1^5]phi2^1]phi3^0,
+             [[[268435455*2^12]phi1^0]phi2^1]phi3^1,
+             [[[3*2^10]phi1^5]phi2^0]phi3^2,
+             [[[3*2^8]phi1^0]phi2^0]phi3^3,
+             [[[68719476733*2^4]phi1^0]phi2^1]phi3^4,
+             [[[1*2^0]phi1^0]phi2^0]phi3^6]
 
         Note that reducing the terms is not the same as reducing the element::
 
             sage: for a in e.terms: a.reduce()
             sage: e.terms
-            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
-             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1,
-             [[3*2^8]phi1^1, [3*2^7]phi1^7]phi2^0,
-             [[3*2^6]phi1^7]phi2^1,
-             [[274877906941*2^7]phi1^7]phi2^0,
-             [[1*2^7]phi1^7]phi2^0]
+            [[[[67108863*2^14]phi1^5]phi2^1]phi3^0,
+             [[[268435455*2^12]phi1^0]phi2^1]phi3^1,
+             [[[3*2^14]phi1^5]phi2^1]phi3^0,
+             [[[3*2^12]phi1^0]phi2^1]phi3^1,
+             [[[68719476733*2^14]phi1^5]phi2^1]phi3^0,
+             [[[1*2^14]phi1^5]phi2^1]phi3^0]
 
             sage: ee = FrameElt(t, f); ee.reduce()
-            [[[2147483649*2^9]phi1^1, [4294967295*2^8]phi1^3, [33*2^40]phi1^7]phi2^0,
-             [[8589934591*2^7]phi1^1, [8589934593*2^7]phi1^7]phi2^1]
+            [[[[1025*2^40]phi1^5]phi2^1]phi3^0, [[[134217729*2^13]phi1^0]phi2^1]phi3^1]
         """
         if self.frameelt.frame.prev is None:
             return
@@ -862,10 +867,10 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
             sage: e = FrameElt(t,f)
             sage: [a.is_reduced() for a in e.terms]
@@ -929,10 +934,10 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
             sage: e = FrameElt(t,f); e.terms
             [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
@@ -957,10 +962,10 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
             sage: e = FrameElt(t,f)
             sage: et = e.terms[0]; et
@@ -1049,10 +1054,10 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
             sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
-            sage: t = OM_tree(x^32+16)[0]
+            sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
             sage: e = FrameElt(t,f)
             sage: e.terms[0] / e.terms[-1] # indirect doctest
@@ -1120,6 +1125,7 @@ class FrameEltTerm(SageObject):
         if self._zero_flag:
             return "0"
         if self._scalar_flag:
-            return repr(self._unit.lift())+'*'+repr(self.frameelt.frame.O.uniformizer().lift())+'^'+repr(self._exponent)
+            pp = pAdicPrinter(self.frameelt.frame.O,{'mode':'terse','show_prec':False})
+            return pp.repr_gen(self._unit,False)+'*'+pp.repr_gen(self.frameelt.frame.O.uniformizer(),False)+'^'+repr(self._exponent)
         else:
             return repr(self._coefficient)+'phi'+repr(self.frameelt.frame.depth)+'^'+repr(self._exponent)
