@@ -40,7 +40,7 @@ AC_PREFIX_DEFAULT(`pwd -P`/local)
 # The following needs to be run before AM_INIT_AUTOMAKE()
 #---------------------------------------------------------
 # We need to run this configure script with bash
-if test -z "$BASH_VERSION$CONFIG_SHELL"
+if test -z "$BASH_VERSION"
 then
     CONFIG_SHELL=bash
     export CONFIG_SHELL
