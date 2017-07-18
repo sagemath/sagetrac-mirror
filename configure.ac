@@ -639,6 +639,10 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
+
+SAGE_SPKG_UTILS()
+
+
 ###############################################################################
 # Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
 ###############################################################################
@@ -728,101 +732,6 @@ echo >&7
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
 
-# Usage: newest_version $pkg
-# Print version number of latest package $pkg
-newest_version() {
-    PKG=$1
-    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
-        AS_ECHO_N(["$PKG-"])
-        cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
-    else
-        echo "$PKG"
-    fi
-}
-
-# Outputs the list of packages, filtered by 'type', e.g.:
-#
-#     filtered_packages_list base
-#     filtered_packages_list standard
-#     filtered_packages_list optional
-#     filtered_packages_list experimental
-#
-# Or, if you want all packages:
-#
-#     filtered_packages_list all
-#
-# Or, if you want all packages which should appear in the source tarball:
-#
-#     filtered_packages_list sdist
-#
-# The output consists of:
-#
-# PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE
-#
-# where outputting the package type can be useful when listing all packages
-
-changequote(<,>)
-filtered_packages_list() {
-    # for each package in pkgs/
-    for DIR in $SAGE_ROOT/build/pkgs/*; do
-        test -d "$DIR" || continue
-
-        PKG_TYPE_FILE="$DIR/type"
-        if [ -f "$PKG_TYPE_FILE" ]; then
-            PKG_TYPE=`cat $PKG_TYPE_FILE`
-        else
-            # exit won't necessarily exit 'configure', so signal an error this way, too:
-            echo INVALID
-            changequote([,])
-            AC_MSG_ERROR(["$PKG_TYPE_FILE" is missing.])
-            changequote(<,>)
-        fi
-
-        # Check consistency of 'DIR/type' file
-        case "$PKG_TYPE" in
-            base) ;;
-            standard) ;;
-            optional) ;;
-            experimental) ;;
-            script) ;;
-            pip) ;;
-            abstract) ;;
-            *)
-                # exit won't necessarily exit 'configure', so signal an error this way, too:
-                echo INVALID
-                changequote([,])
-                AC_MSG_ERROR([The content of "$PKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script' 'pip', or 'abstract'])
-                changequote(<,>)
-                ;;
-        esac
-
-        PKG_NAME=$(basename $DIR)
-
-        # Filter
-        filter=no
-        if [ "$1" = all ]; then
-            filter=yes
-        elif [ "$1" = "$PKG_TYPE" ]; then
-            filter=yes
-        elif [ "$1" = sdist ]; then
-            # sdist packages are all standard packages, together with
-            # mpir and python2.
-            if [ "$PKG_TYPE" = standard ]; then
-                filter=yes
-            elif [ "$PKG_NAME" = mpir ]; then
-                filter=yes
-            elif [ "$PKG_NAME" = python2 ]; then
-                filter=yes
-            fi
-        fi
-        if [ $filter = yes ]; then
-            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
-            PKG_VERSION=$(newest_version $PKG_NAME)
-            echo "$PKG_NAME $PKG_VERSION $PKG_VAR $PKG_TYPE"
-        fi
-    done
-}
-changequote([,])
 
 echo >&7
 echo >&7 '# Files to track installation of packages'
