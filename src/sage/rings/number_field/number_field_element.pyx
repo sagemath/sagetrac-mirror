@@ -2011,7 +2011,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return t
 
-    def sqrt(self, all=False):
+    def sqrt(self, extend=False, all=False):
         """
         Returns the square root of this number in the given number field.
 
@@ -2050,9 +2050,14 @@ cdef class NumberFieldElement(FieldElement):
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        R = self.number_field()['t']
-        f = R([-self, 0, 1])
-        roots = f.roots()
+        a = self
+        R = a.number_field()['t']
+        f = R([-a, 0, 1])
+        if extend:
+            E = R.extension(f, 'b')
+            roots = [(E.gen(),1), (-E.gen(),1)]
+        else:
+            roots = f.roots()
         if all:
             return [r[0] for r in roots]
         elif len(roots) > 0:
@@ -2061,9 +2066,9 @@ cdef class NumberFieldElement(FieldElement):
             try:
                 # This is what integers, rationals do...
                 from sage.all import SR, sqrt
-                return sqrt(SR(self))
+                return sqrt(SR(a))
             except TypeError:
-                raise ValueError("%s not a square in %s"%(self, self._parent))
+                raise ValueError("%s not a square in %s. Try setting extend = True for getting an element in a relative extension field."%(a, a._parent))
 
     def nth_root(self, n, all=False):
         r"""
