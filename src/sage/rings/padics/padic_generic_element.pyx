@@ -1523,7 +1523,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def _log_generic(self, aprec, mina=0):
+    def _log_generic(self, aprec):
         r"""
         Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
@@ -1534,10 +1534,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``aprec`` -- an integer, the precision to which the result is
           correct. ``aprec`` must not exceed the precision cap of the ring over
           which this element is defined.
-
-        - ``mina`` -- an integer (default: 0), the series will check `n` up to
-          this valuation (and beyond) to see if they can contribute to the
-          series.
 
         ALGORITHM:
 
@@ -1587,6 +1583,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         e=R.ramification_index()
         p=R.prime()
+
+        mina = 0
+        if e != 1:
+            xval = x.valuation()
+            lamb = aprec - xval
+            if lamb > 0 and lamb*(p-1) <= e:
+                # This is the precision region where the absolute
+                # precision of the answer might be less than the
+                # absolute precision of the input
+
+                # kink is the number of times we multiply the relative
+                # precision by p before starting to add e instead.
+                kink = (e // (lamb * (p-1))).exact_log(p) + 1
+
+                # deriv0 is within 1 of the n yielding the minimal
+                # absolute precision
+                deriv0 = (e / (aprec * p.log(prec=53))).floor().exact_log(p)
+
+                # These are the absolute precisions of x^(p^n) at potential minimum points
+                L = [(aprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
+                L.sort()
+                mina = L[0][1]
 
         # we sum all terms of the power series of log into total
         total=R.zero()
@@ -1656,7 +1674,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return total.add_bigoh(aprec)
 
-    def _log_binary_splitting(self, aprec, mina=0):
+    def _log_binary_splitting(self, aprec):
         r"""
         Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
@@ -1719,7 +1737,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             5 + 2*5^2 + 4*5^3 + O(5^4)
 
         """
-        raise NotImplementedError
+        raise NotImplementedError("The binary splitting algorithm is not implemented over the ring: %s" % self.parent())
 
     def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False, algorithm=None):
         r"""
@@ -2097,55 +2115,45 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 pi_branch = (p_branch - R._log_unit_part_p()) / R.e()
             total = self.valuation() * pi_branch
         y = self.unit_part()
-        x = 1 - y
 
-        if x.valuation()>0:
+        if (y-1).valuation() > 0:
             denom=Integer(1)
         else:
             y=y**(q-1) # Is it better to multiply it by Teichmuller element?
             denom=Integer(q-1)
-            x = 1 - y
-
-        minaprec = y.precision_absolute()
-        minn = 0
-        e = R.e()
-        if e != 1:
-            xval = x.valuation()
-            lamb = minaprec - xval
-            if lamb > 0 and lamb*(p-1) <= e:
-                # This is the precision region where the absolute
-                # precision of the answer might be less than the
-                # absolute precision of the input
-
-                # kink is the number of times we multiply the relative
-                # precision by p before starting to add e instead.
-                kink = (e // (lamb * (p-1))).exact_log(p) + 1
-
-                # deriv0 is within 1 of the n yielding the minimal
-                # absolute precision
-                deriv0 = (e / (minaprec * p.log(prec=53))).floor().exact_log(p)
-
-                # These are the absolute precisions of x^(p^n) at potential minimum points
-                L = [(minaprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
-                L.sort()
-                minaprec = L[0][0]
-                minn = L[0][1]
-
-        if aprec is None or aprec > minaprec:
-            aprec=minaprec
 
         if algorithm is None:
-            try:
-                # The binary splitting algorithm is supposed to be faster
-                log_unit = y._log_binary_splitting(aprec, minn)
-            except NotImplementedError:
-                log_unit = y._log_generic(aprec, minn)
+            def _log(y,aprec):
+                try:
+                    # The binary splitting algorithm is supposed to be faster
+                    return y._log_binary_splitting(aprec)
+                except NotImplementedError:
+                    return y._log_generic(aprec)
         elif algorithm == "generic":
-            log_unit = y._log_generic(aprec, minn)
+            _log = self.__class__._log_generic
         elif algorithm == "binary_splitting":
-            log_unit = y._log_binary_splitting(aprec, minn)
+            _log = self.__class__._log_binary_splitting
         else:
             raise ValueError("Algorithm must be either 'generic', 'binary_splitting' or None")
+
+        if R.is_floating_point() and aprec is None:
+            val_guessed = (y-1).valuation()
+            if R.prime() == 2:
+                val_guessed = max(val_guessed, (y+1).valuation())
+            if val_guessed is infinity:
+                log_unit = R(0)
+            else:
+                while True:    # should we have a maximal precision?
+                    aprec = val_guessed + R.precision_cap()
+                    log_unit = _log(y, aprec)
+                    val = min(aprec, log_unit.valuation())
+                    if val == val_guessed: break
+                    val_guessed = val
+        else:
+            minaprec = y.precision_absolute()
+            if aprec is None or aprec > minaprec:
+                aprec = minaprec
+            log_unit = _log(y, aprec)
 
         retval = total + log_unit*R(denom).inverse_of_unit()
         if not change_frac:
