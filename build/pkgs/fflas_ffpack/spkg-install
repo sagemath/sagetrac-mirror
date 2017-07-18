@@ -72,6 +72,7 @@ fi
 
 # We disable openmp because of build failures, see
 # http://trac.sagemath.org/ticket/17635#comment:67
+CONFIG_SHELL=bash \
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
     --with-blas-libs="$LINBOX_BLAS" \
