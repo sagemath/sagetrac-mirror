@@ -755,9 +755,11 @@ newest_version() {
 #
 #     filtered_packages_list sdist
 #
-# The output consists of triples
-# PKG_NAME PKG_VERSION PKG_VAR
+# The output consists of:
 #
+# PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE
+#
+# where outputting the package type can be useful when listing all packages
 
 changequote(<,>)
 filtered_packages_list() {
@@ -777,18 +779,22 @@ filtered_packages_list() {
         fi
 
         # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && \
-           [ "$PKG_TYPE" != "standard" ] && \
-           [ "$PKG_TYPE" != "optional" ] && \
-           [ "$PKG_TYPE" != "experimental" ] && \
-           [ "$PKG_TYPE" != "script" ] && \
-           [ "$PKG_TYPE" != "pip" ]; then
-            # exit won't necessarily exit 'configure', so signal an error this way, too:
-            echo INVALID
-            changequote([,])
-            AC_MSG_ERROR([The content of "$PKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
-            changequote(<,>)
-        fi
+        case "$PKG_TYPE" in
+            base) ;;
+            standard) ;;
+            optional) ;;
+            experimental) ;;
+            script) ;;
+            pip) ;;
+            abstract) ;;
+            *)
+                # exit won't necessarily exit 'configure', so signal an error this way, too:
+                echo INVALID
+                changequote([,])
+                AC_MSG_ERROR([The content of "$PKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script' 'pip', or 'abstract'])
+                changequote(<,>)
+                ;;
+        esac
 
         PKG_NAME=$(basename $DIR)
 
@@ -812,7 +818,7 @@ filtered_packages_list() {
         if [ $filter = yes ]; then
             PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
             PKG_VERSION=$(newest_version $PKG_NAME)
-            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
+            echo "$PKG_NAME $PKG_VERSION $PKG_VAR $PKG_TYPE"
         fi
     done
 }
@@ -820,7 +826,7 @@ changequote([,])
 
 echo >&7
 echo >&7 '# Files to track installation of packages'
-filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     if test "$PKG_NAME" = INVALID; then
         # filtered_packages_list signals an error (already reported there)
         exit 1 # this doesn't leave 'configure' (yet)
@@ -845,7 +851,7 @@ echo >&7
 [
 echo >&7 '# All standard packages'
 echo >&7 'STANDARD_PACKAGES = \'
-filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     if test "$PKG_NAME" = INVALID; then
         # filtered_packages_list signals an error (already reported there)
         exit 1 # this doesn't leave 'configure' (yet)
@@ -857,7 +863,7 @@ echo >&7
 
 echo >&7 '# All optional installed packages (triggers the auto-update)'
 echo >&7 'OPTIONAL_INSTALLED_PACKAGES = \'
-filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     if test "$PKG_NAME" = INVALID; then
         # filtered_packages_list signals an error (already reported there)
         exit 1 # this doesn't leave 'configure' (yet)
@@ -871,7 +877,7 @@ echo >&7
 
 echo >&7 '# All packages which should be downloaded'
 echo >&7 'SDIST_PACKAGES = \'
-filtered_packages_list sdist | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list sdist | while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     if test "$PKG_NAME" = INVALID; then
         # filtered_packages_list signals an error (already reported there)
         exit 1 # this doesn't leave 'configure' (yet)
@@ -928,24 +934,23 @@ EOF
 
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | {
-while read PKG_NAME PKG_VERSION PKG_VAR; do
+while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     if test "$PKG_NAME" = INVALID; then
         # filtered_packages_list signals an error (already reported there)
         exit 1 # this doesn't leave 'configure' (yet)
     fi
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
-    TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
     if [ -f "$DEP_FILE" ]; then
         # DEPS is first line of $DEP_FILE with some modifications:
         # - start with a single space
         # - the # symbol is treated as comment which is removed
         # - lower-case words "foo" are replaced by "$(inst_foo)"
         DEPS=`sed 's/^ */ /; s/ *#.*//; s/ \([a-z0-9][a-z0-9_]*\)/ $(inst_\1)/g; q' $DEP_FILE`
-    elif [ "$TYPE" = optional ]; then
+    elif [ "$PKG_TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-    elif [ "$TYPE" = script ]; then
+    elif [ "$PKG_TYPE" = script ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-    elif [ "$TYPE" = pip ]; then
+    elif [ "$PKG_TYPE" = pip ]; then
         DEPS=' | $(inst_pip)'
     else
         DEPS=""
@@ -953,7 +958,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
 
     # Below we have to obscure A""M_V_at, or autoconf would complain:
     # "error: possibly undefined macro: A""M_V_at"
-    if [ "$TYPE" = pip ]; then
+    if [ "$PKG_TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
@@ -963,7 +968,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         echo >&7 "$PKG_NAME-clean:"
         echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
         echo >&7
-    elif [ "$TYPE" = script ]; then
+    elif [ "$PKG_TYPE" = script ]; then
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
