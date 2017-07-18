@@ -903,7 +903,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR PKG_TYPE; do
     else
         case "$PKG_TYPE" in
         abstract)
-            DEPS=' $(inst_$(file < $(ABSTRACT)/'$PKG_NAME'))'
+            DEPS=' $(inst_$(shell cat $(ABSTRACT)/'$PKG_NAME'))'
             ;;
         optional)
             DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
