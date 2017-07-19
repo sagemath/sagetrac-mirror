@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Hyperelliptic curves over a general ring
 
@@ -22,6 +23,7 @@ EXAMPLES::
     Multivariate Polynomial Ring in x1, x2 over Rational Field
 """
 from __future__ import absolute_import
+from sage.libs.pari import pari
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -607,3 +609,102 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             return self.local_coordinates_at_infinity(prec, name)
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
+
+
+    def padic_frobenius_matrix(self, p, prec):
+        r"""
+        Computes the matrix of the Frobenius endomorphism `\Phi` acting on the `p`-adic de Rham
+        cohomology.
+
+        INPUT:
+
+        - ``p`` -- a prime
+        - ``prec`` -- desired precision of the returned matrix
+
+        OUTPUT:
+
+        The matrix of Frobenius with respect to the basis of the model `Y^2=f(X)` given by
+        `(\omega, x \omega, ..., x^{g-1} \omega)`, with `\omega = dx / (2y)`
+        being the invariant differential. Here `g` is the genus of ``self``.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: f = x^5-23*x^3+18*x^2+40*x
+            sage: H = HyperellipticCurve(f)
+            sage: m = H.padic_frobenius_matrix(11,2); m
+            [    4*11 + O(11^2)     3*11 + O(11^2) 8 + 6*11 + O(11^2) 5 + 2*11 + O(11^2)]
+            [    9*11 + O(11^2)     8*11 + O(11^2)     7*11 + O(11^2)     7*11 + O(11^2)]
+            [    3*11 + O(11^2)     4*11 + O(11^2) 3 + 9*11 + O(11^2) 2 + 2*11 + O(11^2)]
+            [    8*11 + O(11^2)                  0 3 + 3*11 + O(11^2)        4 + O(11^2)]
+
+            sage: mcp = H.padic_frobenius_matrix(11,10).charpoly()
+            sage: gp.hyperellcharpoly(f.change_ring(GF(11))) == gp(mcp)
+            True
+
+            sage: x = QQ['x'].gen()
+            sage: K.<a> = NumberField(x^3-5*x+1)
+            sage: x = K['x'].gen()
+            sage: H = HyperellipticCurve(x^5+x^3-3*a*x^2-2*(a+1)*x-2)
+            sage: P = K.ideal(11).factor()[0][0]
+            sage: m = H.padic_frobenius_matrix(P,5)
+            sage: m.charpoly()
+            (1 + O(11^5))*x^4 + O(11^5)*x^3 + (3 + 11 + O(11^5))*x^2 + O(11^5)*x + 11^2 + O(11^5)
+
+            sage: x = QQ['x'].gen()
+            sage: K.<a> = NumberField(x^3-5*x+1)
+            sage: x = K['x'].gen()
+            sage: H = HyperellipticCurve(x^5+x^3-3*a*x^2-2*(a+1)*x-2)
+            sage: P = K.ideal(13).factor()[0][0]
+            sage: m = H.padic_frobenius_matrix(P,5)
+            sage: m.charpoly()
+            (1 + O(13^5))*x^4 + (5 + 2*13 + O(13^5))*x^3 + (6 + 3*13 + 3*13^2 + O(13^5))*x^2 + (5*13^2 + 2*13^3 + O(13^5))*x + 13^4 + O(13^5)
+
+            sage: x = QQ['x'].gen()
+            sage: H = HyperellipticCurve(x^5+x^3-3*x^2-2*x-2)
+            sage: m1 = H.padic_frobenius_matrix(31,5)
+            sage: m2 = H.change_ring(GF(31)).frobenius_matrix()
+            sage: m1.charpoly() == m2.charpoly()
+            True
+
+            sage: H = HyperellipticCurve(x^7-2.5)
+            sage: H.padic_frobenius_matrix(3,5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        AUTHORS:
+
+        - Marc Masdeu, Gonzalo Tornaría (08/2017)
+        """
+        from sage.schemes.hyperelliptic_curves.pari_hyperellpadic import pari_hyperellpadicfrobenius, pari_nfhyperellpadicfrobenius
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        from sage.rings.rational_field import ZZ
+        from sage.rings.padics.factory import Qp
+        from sage.libs.pari.convert_sage import gen_to_sage
+        from sage.rings.number_field.number_field_base import is_NumberField
+
+        P,Q = self.hyperelliptic_polynomials()
+        base = P.parent().base_ring()
+
+        if not is_NumberField(base):
+            raise NotImplementedError
+        try:
+            residue_field = base.residue_field(p)
+        except AttributeError:
+            residue_field = GF(p)
+        H = (Q**2 + 4*P)
+        pp = residue_field.characteristic()
+        if residue_field.is_prime_field():
+            H = H.change_ring(residue_field)
+            ans = gen_to_sage(pari_hyperellpadicfrobenius(pari(H),pp,prec))
+        else:
+            R = PolynomialRing(ZZ, base.variable_name())
+            H = H.change_ring(residue_field)
+            T = R(residue_field.polynomial().change_ring(ZZ))
+
+            Kp = Qp(pp,prec).extension(T, names=base.variable_name())
+            ldict = {base.variable_name() : R.gen()}
+            ans = gen_to_sage(pari_nfhyperellpadicfrobenius(pari(H),pari(T),pp,prec).lift(),locals=ldict)
+            ans = ans.apply_map(Kp)
+        return ans

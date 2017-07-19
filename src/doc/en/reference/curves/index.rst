@@ -142,6 +142,7 @@ Hyperelliptic curves
 
    sage/schemes/hyperelliptic_curves/constructor
    sage/schemes/hyperelliptic_curves/hyperelliptic_generic
+   sage/schemes/hyperelliptic_curves/pari_hyperellpadic
    sage/schemes/hyperelliptic_curves/hyperelliptic_finite_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_padic_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_rational_field
