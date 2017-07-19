@@ -2055,7 +2055,6 @@ cdef class NumberFieldElement(FieldElement):
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        self
         K = self.parent()
         R = self.number_field()['t']
         f = R([-self, 0, 1])
@@ -2078,7 +2077,7 @@ cdef class NumberFieldElement(FieldElement):
             except TypeError:
                 raise ValueError("%s not a square in %s. Try setting extend=True for creating an extension field."%(self, self._parent))
 
-    def nth_root(self, n, all=False):
+    def nth_root(self, n, extend=False, name=None, name_root_unity=None, all=False):
         r"""
         Return an `n`'th root of ``self`` in its parent `K`.
 
@@ -2092,17 +2091,35 @@ cdef class NumberFieldElement(FieldElement):
 
         ALGORITHM: Use PARI to factor `x^n` - ``self`` in `K`.
         """
+        K = self.parent()
         R = self.number_field()['t']
         if not self:
             return [self] if all else self
         f = (R.gen(0) << (n-1)) - self
-        roots = f.roots()
+        if extend:
+            if name is None:
+                raise TypeError("You must specify a name of the %s-th root of %s."%(n, self))
+            if name_root_unity is None:
+                raise TypeError("You must specify a name of the %s-th root of unity."%(n, self))
+            E1 = K.extension(f, name)
+            phi_n = cyclotomic_polynomial(n, R.gen())
+            E2 = E1.extension(phi_n, name_root_unity)
+            roots = []
+            for i in range(n):
+                roots.append(E1.gen()*(E2.gen())**i)
+        else:
+            roots = f.roots()
         if all:
             return [r[0] for r in roots]
         elif len(roots) > 0:
             return roots[0][0]
         else:
-            raise ValueError("%s not a %s-th root in %s"%(self, n, self._parent))
+            try:
+                # This is what integers, rationals do...
+                from sage.all import SR, sqrt
+                return SR(self)**(1/n)
+            except TypeError:
+                raise ValueError("%s not a %s-th root in %s. Try setting extend=True for creating an extension field."%(self, n, self._parent))
 
     def is_nth_power(self, n):
         r"""
