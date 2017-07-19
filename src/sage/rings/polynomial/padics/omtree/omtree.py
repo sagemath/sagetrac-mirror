@@ -89,6 +89,14 @@ class OMTree(SageObject):
     def Phi(self):
         """
         The polynomial ``Phi`` underlying the OM Tree.
+
+        EXAMPLES::
+
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+        sage: Phi = ZpFM(2,20,'terse')['x'](x^8+2)
+        sage: T = OMTree(Phi)
+        sage: T.Phi()
+        (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (2 + O(2^20))
         """
         return self._Phi
 
@@ -185,6 +193,13 @@ class OMTree(SageObject):
     def roots(self):
         """
         The roots of the trees with the leaves the OMTree.
+
+        As a note, the leaves for a polynomial's OM Tree may have different roots.
+        Becuase optimal OM Trees remove 'improvement frames' (those for which
+        neither ramificaiton or inertia is found), an OM Tree may technically
+        be a forest.
+
+        See :meth: `Frame.root()` which is used to find the root for each leaf.
 
         EXAMPLES::
 

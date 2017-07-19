@@ -236,6 +236,44 @@ class Frame(SageObject):
         return psielt
 
     def root(self):
+        """
+        Returns the root frame reached by traversing up the tree from ``self``.
+
+        As a note, the leaves for a polynomial's OM Tree may have different roots.
+        Becuase optimal OM Trees remove 'improvement frames' (those for which
+        neither ramificaiton or inertia is found), an OM Tree may technically
+        be a forest.
+
+        See :meth: `OMTree.roots()` which returns this for each OM Tree leaf.
+
+        EXAMPLES::
+
+        In this example, the root is the default initial frame::
+
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: T = OMTree(Phi)
+            sage: T.leaves()[0].root()
+            Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
+            sage: Fr = Frame(Phi)
+            sage: Fr.seed(Fr.x)
+            sage: Fr.root() == Fr
+            True
+            sage: T.leaves()[0].root() == Fr
+            True
+
+        This may not be the case, and we may end up with a forest::
+
+            sage: R.<c> = ZqFM(125, prec = 30, print_mode='terse')
+            sage: Rz.<z>=R[]
+            sage: g=(z^3+2)^5+5
+            sage: om=OMTree(g)
+            sage: om.leaves()[0].root()
+            Frame with phi (1 + O(5^30))*z + (931322574615478515623 + O(5^30))
+            sage: om.leaves()[1].root()
+            Frame with phi (1 + O(5^30))*z + (0 + O(5^30))
+        """
         if self.is_first():
             return self
         else:
