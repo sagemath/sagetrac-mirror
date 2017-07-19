@@ -2030,6 +2030,11 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3
+            sage: b = K(1+a).sqrt(extend=True)
+            sage: b^2
+            a+1
+            sage: b.parent()
+            Univariate Quotient Polynomial Ring in b over Univariate Polynomial Ring in t over Number Field in a with defining polynomial x^2 - 3 with modulus b^2 - a - 1
             sage: K(0).sqrt()
             0
             sage: K((7+a)^2).sqrt(all=True)
@@ -2068,7 +2073,7 @@ cdef class NumberFieldElement(FieldElement):
                 from sage.all import SR, sqrt
                 return sqrt(SR(a))
             except TypeError:
-                raise ValueError("%s not a square in %s. Try setting extend = True for getting an element in a relative extension field."%(a, a._parent))
+                raise ValueError("%s not a square in %s."%(a, a._parent))
 
     def nth_root(self, n, all=False):
         r"""
