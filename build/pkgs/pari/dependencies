@@ -1,4 +1,4 @@
-readline mp | pari_galdata pari_seadata_small
+readline mp | pari_galdata pari_seadata
 
 ----------
 All lines of this file are ignored except the first.
