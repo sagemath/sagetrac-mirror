@@ -2011,7 +2011,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return t
 
-    def sqrt(self, extend=False, all=False):
+    def sqrt(self, extend=False, name=None, all=False):
         """
         Returns the square root of this number in the given number field.
 
@@ -2030,11 +2030,11 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3
-            sage: b = K(1+a).sqrt(extend=True)
+            sage: b = K(1+a).sqrt(extend=True, name='b')
             sage: b^2
             a+1
             sage: b.parent()
-            Univariate Quotient Polynomial Ring in b over Univariate Polynomial Ring in t over Number Field in a with defining polynomial x^2 - 3 with modulus b^2 - a - 1
+            Number Field in b with defining polynomial t^2 - a - 1 over its base field
             sage: K(0).sqrt()
             0
             sage: K((7+a)^2).sqrt(all=True)
@@ -2055,11 +2055,14 @@ cdef class NumberFieldElement(FieldElement):
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        a = self
-        R = a.number_field()['t']
-        f = R([-a, 0, 1])
+        self
+        K = self.parent()
+        R = self.number_field()['t']
+        f = R([-self, 0, 1])
         if extend:
-            E = R.extension(f, 'b')
+            if name is None:
+                raise TypeError("You must specify a name of the square root of %s."%(self))
+            E = K.extension(f, name)
             roots = [(E.gen(),1), (-E.gen(),1)]
         else:
             roots = f.roots()
@@ -2071,9 +2074,9 @@ cdef class NumberFieldElement(FieldElement):
             try:
                 # This is what integers, rationals do...
                 from sage.all import SR, sqrt
-                return sqrt(SR(a))
+                return sqrt(SR(self))
             except TypeError:
-                raise ValueError("%s not a square in %s."%(a, a._parent))
+                raise ValueError("%s not a square in %s. Try setting extend=True for creating an extension field."%(self, self._parent))
 
     def nth_root(self, n, all=False):
         r"""
