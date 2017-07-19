@@ -33,11 +33,9 @@ AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 # We need to run this configure script with bash
 if test -z "$BASH_VERSION"
 then
-    CONFIG_SHELL=bash
-    export CONFIG_SHELL
-    if $CONFIG_SHELL -c "exit 0"
+    if bash -c "exit 0"
     then
-        exec $CONFIG_SHELL $0 "$@"
+        exec bash $0 "$@"
     else
         AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
         AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
