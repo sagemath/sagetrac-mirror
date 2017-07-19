@@ -8,8 +8,8 @@ AUTHORS:
 """
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.padics.factor.frameelt import FrameElt, FrameEltTerm
-from sage.rings.polynomial.padics.factor.segment import Segment
+from sage.rings.polynomial.padics.omtree.frameelt import FrameElt, FrameEltTerm
+from sage.rings.polynomial.padics.omtree.segment import Segment
 from sage.rings.infinity import infinity
 from sage.structure.sage_object import SageObject
 
@@ -46,7 +46,7 @@ class Frame(SageObject):
 
     Creating a Frame leaves it unseeded, not having an approximation::
 
-        sage: from sage.rings.polynomial.padics.factor.frame import *
+        sage: from sage.rings.polynomial.padics.omtree.frame import *
         sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
         sage: f = Frame(Phi)
         sage: f
@@ -83,7 +83,7 @@ class Frame(SageObject):
 
         TESTS::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: TestSuite(f).run()
@@ -112,7 +112,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: g = Frame(Phi, iteration_count=4)
@@ -143,7 +143,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi); f
             Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))
@@ -186,7 +186,7 @@ class Frame(SageObject):
 
         First we need an appropriate Frame::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,print_mode='terse')['x'](x^16+16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
@@ -266,7 +266,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x*(x+1)*(x+2))
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
@@ -338,7 +338,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
@@ -367,7 +367,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.is_first()
@@ -389,7 +389,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^3+x)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
@@ -417,7 +417,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: Kx.<x> = PolynomialRing(ZpFM(3,20,'terse'))
             sage: f = (x**3+x-1)*(x**2+1)
             sage: fr = Frame(f)
@@ -506,7 +506,7 @@ class Frame(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.__repr__()

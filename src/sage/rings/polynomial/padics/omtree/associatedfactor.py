@@ -9,7 +9,7 @@ AUTHORS:
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.matrix.constructor import Matrix
-from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
 from sage.rings.infinity import infinity
 
 class AssociatedFactor:
@@ -44,7 +44,7 @@ class AssociatedFactor:
 
         TESTS::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
             sage: TestSuite(t.leaves()[0].prev).run()
@@ -83,7 +83,7 @@ class AssociatedFactor:
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
             sage: t.leaves()[0].prev == t.leaves()[0].polygon[0].factors[0]
@@ -111,7 +111,7 @@ class AssociatedFactor:
 
         First we set up AssociatedFactors building a tower of extensions::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040).leaves()[0].prev_frame()
             sage: t.prev
@@ -162,7 +162,7 @@ class AssociatedFactor:
 
         First we set up AssociatedFactors building a tower of extensions::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040).leaves()[0].prev_frame()
 
@@ -196,7 +196,7 @@ class AssociatedFactor:
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040).leaves()[0].prev_frame()
             sage: t.prev.__repr__()
@@ -213,7 +213,7 @@ class AssociatedFactor:
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040).leaves()[0].prev_frame()
             sage: K.<a0> = t.prev.FF;K
@@ -249,7 +249,7 @@ class AssociatedFactor:
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen());f

@@ -7,7 +7,7 @@ AUTHORS:
 - Brian Sinclair and Sebastian Pauli (2017-07-18): class OMTree
 
 """
-from sage.rings.polynomial.padics.factor.frame import Frame
+from sage.rings.polynomial.padics.omtree.frame import Frame
 from sage.structure.factorization import Factorization
 from sage.structure.sage_object import SageObject
 
@@ -40,7 +40,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: OMTree(Phi)
             OM Tree of (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20)) with 1 leaves
@@ -98,7 +98,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<x> = ZpFM(3,7)[]
         sage: f=x^4 + 234
         sage: om=OMTree(f)
@@ -114,7 +114,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
         sage: g=(z^3+2)^5+5
@@ -130,7 +130,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
         sage: g=(z^3+2)^5+5
@@ -146,7 +146,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
         sage: g=(z^6+2)^25+5
@@ -154,7 +154,7 @@ class OMTree(SageObject):
         sage: om.degrees_of_factors()
         [50, 50, 50]
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R=ZpFM(5,50)
         sage: S.<x>=R[]
         sage: f=x^5+75*x^3-15*x^2+125*x-5
@@ -173,7 +173,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<x> = ZpFM(3,7)[]
         sage: f=x^4 + 234
         sage: om=OMTree(f)
@@ -188,7 +188,7 @@ class OMTree(SageObject):
 
         EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30, print_mode='terse')
         sage: Rz.<z>=R[]
         sage: g=(z^3+2)^5+5
@@ -204,7 +204,7 @@ class OMTree(SageObject):
         The depths of the leaves of the OMTree
 
         EXAMPLES::
-        sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
 
         sage: k = ZpFM(2, prec = 20)
         sage: kx.<x> = k[]
@@ -235,7 +235,7 @@ class OMTree(SageObject):
 
         Factoring polynomials over Zp(2)[x]::
 
-           sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+           sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
            sage: f = ZpFM(2,50,'terse')['x']( (x^32+16)*(x^32+16+2^16*x^2)+2^34 )
            sage: omtree = OMTree(f); factors = omtree.factorization(); len(factors) # long time (4.5s)
            2
@@ -247,7 +247,7 @@ class OMTree(SageObject):
 
         We look at the appoximations to the factors and lift them::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: R.<x> = ZpFM(3,7)[]
             sage: f=x^4 + 234
             sage: om=OMTree(f)
@@ -300,7 +300,7 @@ class OMTree(SageObject):
         Representation of the OM tree self.
 
         EXAMPLES:
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: R.<x> = ZpFM(3,7)[];f=(x^2 - 15)*(x^2-12)+81
             sage: om = OMTree(f)
             sage: om

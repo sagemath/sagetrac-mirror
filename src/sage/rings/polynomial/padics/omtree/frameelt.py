@@ -44,8 +44,8 @@ class FrameElt(SageObject):
 
     If the FrameElt comes from the first frame, the term must be a constant::
 
-        sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-        sage: from sage.rings.polynomial.padics.factor.frame import Frame
+        sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+        sage: from sage.rings.polynomial.padics.omtree.frame import Frame
         sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
         sage: f = Frame(x^32+16); f.seed(x)
         sage: FrameElt(f,6)
@@ -76,8 +76,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: fe = FrameElt(f, 20)
@@ -114,8 +114,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: fe = FrameElt(f, 20)
@@ -137,8 +137,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0,6)
@@ -177,8 +177,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,print_mode='terse',show_prec=False); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0,6)
@@ -209,8 +209,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import *
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import *
             sage: k = ZpFM(5,40,'terse'); kx.<x> = k[]
             sage: f = kx([627500,6111375,13000,40,1])
             sage: t = OMTree(f).leaves()[0]
@@ -252,8 +252,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
@@ -291,8 +291,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
@@ -311,8 +311,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -348,8 +348,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: f1 = f0.polygon[0].factors[0].next_frame()
@@ -377,8 +377,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -401,8 +401,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -419,8 +419,8 @@ class FrameElt(SageObject):
 
         TESTS::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -437,8 +437,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -494,8 +494,8 @@ class FrameElt(SageObject):
 
         TESTS::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -512,8 +512,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -551,8 +551,8 @@ class FrameElt(SageObject):
 
         Building the needed framework and squaring 6 as a FrameElt::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: fe = FrameElt(f,6); fe
@@ -606,8 +606,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -629,8 +629,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0,6)
@@ -651,8 +651,8 @@ class FrameElt(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0,6)
@@ -687,8 +687,8 @@ class FrameEltTerm(SageObject):
 
     If the parent FrameElt comes from the first frame, the term is a constant::
 
-        sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-        sage: from sage.rings.polynomial.padics.factor.frame import Frame
+        sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+        sage: from sage.rings.polynomial.padics.omtree.frame import Frame
         sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
         sage: f = Frame(x^32+16); f.seed(x)
         sage: elt = FrameElt(f)
@@ -721,8 +721,8 @@ class FrameEltTerm(SageObject):
 
         TESTS::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: fe = FrameElt(f)
@@ -758,8 +758,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -793,8 +793,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -821,8 +821,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
@@ -867,8 +867,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0]
             sage: f = t.phi**3
@@ -888,8 +888,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
@@ -913,8 +913,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0)
@@ -934,8 +934,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
@@ -962,8 +962,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
@@ -1001,8 +1001,8 @@ class FrameEltTerm(SageObject):
 
         Building the needed framework and squaring 12 as a FrameEltTerm::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: fet = FrameEltTerm(FrameElt(f),3,2); fet
@@ -1054,8 +1054,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.omtree import OMTree
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
             sage: t = OMTree(x^32+16).leaves()[0].prev_frame()
             sage: f = t.phi**3
@@ -1077,8 +1077,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f = Frame(x^32+16); f.seed(x)
             sage: f = f.polygon[0].factors[0].next_frame();
@@ -1106,8 +1106,8 @@ class FrameEltTerm(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
-            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
             sage: f0 = Frame(x^32+16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
