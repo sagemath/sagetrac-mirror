@@ -1600,6 +1600,11 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.schemes.hyperelliptic_curves.pari_hyperellpadic',
+              sources = ['sage/schemes/hyperelliptic_curves/pari_hyperellpadic.pyx'],
+              extra_compile_args=["-std=c99"],
+              libraries = ['pari']),
+
     Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
               sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
               extra_compile_args=["-std=c99"],
