@@ -103,7 +103,7 @@ class FrameElt(SageObject):
 
             sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: R.<x> = ZpFM(2, 20, 'terse')
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: f = Frame(x^32 + 16); f.seed(x)
             sage: fe = FrameElt(f, 20)
             sage: fe.terms
