@@ -104,9 +104,9 @@ class AssociatedFactor:
             basis = [(self.gamma**j*self.FFbase_gamma**i).polynomial() for j in range(0,self.Fplus) for i in range(0,self.FFbase.degree())]
             self.basis_trans_mat = Matrix([self.FF(b)._vector_() for b in basis])
 
-    def __cmp__(self, other):
-        """
-        Comparison.
+    def __eq__(self, other):
+        r"""
+        Return whether this factor equals ``other``.
 
         EXAMPLES::
 
@@ -115,10 +115,24 @@ class AssociatedFactor:
             sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
             sage: t.leaves()[0].prev == t.leaves()[0].polygon[0].factors[0]
             False
+
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp((self.segment, self.rho, self.rhoexp), (other.segment, other.rho, other.rhoexp))
+        return type(self) == type(other) and self.segment == other.segment and self.rho == other.rho and self.rhoexp == other.rhoexp
+
+    def __ne__(self, other):
+        r"""
+        Return whether this factor does not equal ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
+            sage: t.leaves()[0].prev != t.leaves()[0].polygon[0].factors[0]
+            True
+
+        """
+        return not (self == other)
 
     def FF_elt_to_FFbase_vector(self,a):
         """
