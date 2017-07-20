@@ -1,11 +1,21 @@
 r"""
-Irreduble factors of associate polynomials needed for OM computations
+Irreducible factors of associate polynomials needed for OM computations
 
 AUTHORS:
 
 - Brian Sinclair and Sebastian Pauli (2012-02-22): initial version
 
 """
+#*****************************************************************************
+#       Copyright (C) 2012-2017 Brian Sinclair <bsinclai@gmail.com>
+#                               Sebastian Pauli <s_pauli@uncg.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.matrix.constructor import Matrix
@@ -22,32 +32,50 @@ class AssociatedFactor:
     of the original polynomial.
 
     If ``rho`` is not linear, then we have found inertia. Future associated
-    polynomials wll need to be produced over an extension over our ground
+    polynomials will need to be produced over an extension over our ground
     field by ``rho``.  This can produce a tower of finite field extensions
     to be worked in.
 
     INPUT:
 
-    - ``segment`` -- The segment whose associated polynomial self is a factor of.
+    - ``segment`` -- the segment whose associated polynomial this is a factor
+      of
 
-    - ``rho`` -- The irreducible finite field polynomial factor of the
-      associated polynomial.
+    - ``rho`` -- the irreducible finite field polynomial factor of the
+      associated polynomial
 
-    - ``rhoexp`` -- The multiplicity of the factor.
+    - ``rhoexp`` -- the multiplicity of the factor
+
+    EXAMPLES:
+
+    This class is used internally by the OM computation::
+
+        sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+        sage: k = ZpFM(2, 20, 'terse')
+        sage: kx.<x> = k[]
+        sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
+        sage: factor = t.leaves()[0].prev
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.padics.omtree.associatedfactor import AssociatedFactor
+        sage: isinstance(factor, AssociatedFactor)
+        True
 
     """
-    def __init__(self,segment,rho,rhoexp):
+    def __init__(self, segment, rho, rhoexp):
         """
         Initialization.
-
-        See ``AssociatedFactor`` for full documentation.
 
         TESTS::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-            sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
-            sage: TestSuite(t.leaves()[0].prev).run()
+            sage: k = ZpFM(2, 20, 'terse')
+            sage: kx.<x> = k[]
+            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
+            sage: factor = t.leaves()[0].prev
+            sage: TestSuite(factor).run()
+
         """
         self.segment = segment
         self.rho = rho
@@ -68,7 +96,6 @@ class AssociatedFactor:
             # rho is linear delta is the root of rho
             self.delta = self.rho.roots()[0][0]
         else:
-            #self.FF = GF(self.FFbase.order()**self.Fplus,'a'+str(fr.depth))
             self.FF = GF(self.FFbase.order()**self.Fplus,'a'+str(fr.depth))
             self.FFz = PolynomialRing(self.FF,'z'+str(fr.depth))
             self.FFbase_gamma = (self.FFz(self.FFbase.modulus())).roots()[0][0]
