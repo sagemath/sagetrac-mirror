@@ -788,7 +788,7 @@ class RationalCuspidalPoint(ModuleElement):
 
     def _add_(self, other):
         r"""
-        Adds two elements in the cuspidal subgroup.
+        Add two elements in the cuspidal subgroup.
 
         EXAMPLES::
 
@@ -802,7 +802,7 @@ class RationalCuspidalPoint(ModuleElement):
 
     def _sub_(self, other):
         r"""
-        Substracts two elements in the cuspidal subgroup.
+        Substract two elements in the cuspidal subgroup.
 
         EXAMPLES::
 
@@ -835,7 +835,7 @@ class RationalCuspidalPoint(ModuleElement):
 
     def _rmul_(self, left):
         r"""
-        Return the product of self by left.
+        Return the product of ``self`` by ``left``.
 
         EXAMPLES::
 
@@ -854,7 +854,7 @@ class RationalCuspidalPoint(ModuleElement):
 
     def _lmul_(self, right):
         r"""
-        Return the product of self by right.
+        Return the product of ``self`` by ``right``.
 
         EXAMPLES::
 
@@ -904,10 +904,9 @@ class RationalCuspidalPoint(ModuleElement):
         """
         return not( self == other )
 
-
     def additive_order(self):
         r"""
-        Return the additive order of self.
+        Return the additive order of ``self``.
 
         EXAMPLES::
 
