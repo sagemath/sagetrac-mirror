@@ -96,18 +96,20 @@ def echelonize(M, transformation):
     while i < n or j < m:
         val = Infinity
         pivi = i
-        for ii in range(i,m):
-            v = M[i,j].valuation()
+        for ii in range(i,n):
+            v = M[ii,j].valuation()
             if v < val:
                 pivi = ii
                 val = v
 
-        if M[pivi,j] == 0:
-            if val is Infinity:
-                j += 1
-                continue
-            else:
-                raise PrecisionError("Not enough precision to echelonize")
+        if val is Infinity:
+            j += 1
+            continue
+
+        if R.tracks_precision():
+            for ii in range(n):
+                if M[ii,j].precision_absolute() <= val:
+                    raise PrecisionError("Not enough precision to echelonize")
 
         pivots.append(j)
 
@@ -120,12 +122,22 @@ def echelonize(M, transformation):
         M[i,j] = R(1) << val
         if transformation:
             left.rescale_row(i, inv)
+
+        inv = ~(M[i,j] >> val); inv = R(inv)
+        if R.tracks_precision():
+            inv = inv.lift_to_maximal_precision()
+        M.rescale_row(i,inv,j+1)
+        M[i,j] = R(1) << val
+
         for ii in range(i+1,n):
             scalar = -(M[ii,j] >> val)
+            if R.tracks_precision():
+                scalar = scalar.lift_to_maximal_precision()
             M.add_multiple_of_row(ii,i,scalar,j+1)
             M[ii,j] = R(0)
             if transformation:
                 left.add_multiple_of_row(ii,i,scalar)
+
         for ii in range(i):
             scalar = -(M[ii,j] // M[i,j])
             M[ii,j] %= M[i,j]
