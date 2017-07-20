@@ -1,5 +1,61 @@
 """
-This module implements Groebner bases computation via the F5 algorithm.
+
+Educational Versions of the F5 Algorithm to compute Groebner bases.
+
+We have followed [F02], [AP11] [EF17] and [VY17].
+
+No attempt was made to optimize the algorithm as the emphasis of
+these implementations is a clean and easy presentation. To compute a
+Groebner basis in Sage efficiently use the
+:meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal.groebner_basis()`
+method on multivariate polynomial objects.
+
+The main algorithm is ``educational_F5``; secondary algorithms of importance are ``SymbolicPreprocessing``,  
+``RowEchelonMac_and_listpivots``  and ``UpdateGpaires``. 
+
+The idea of the algorithm is to use an adapted Buchberger termination criterion
+on $S$-pairs while reducing all computations to linear algebra
+and eliminating useless polynomials with the F5 elimination criterion.
+The core part of the main algorithm is a while loop
+while there are still S-polynomials, where it applies:
+
+* ``SymbolicPreprocessing`` to construct a matrix with the polynomials of the pairs of a given degree d and reducers to reduce them. It uses the F5 elimination criterion.
+* ``RowEchelonMac_and_listpivots`` to echelonize the previous matrix.
+* ``UpdateGpaires`` to update the list in construction of a Groebner basis (more precisely, an $\mathfrak{S}$-Groebner basis), and obtain the new S-polynomials.
+
+.. note::
+    The setting is strictly that of homogeneous initial polynomials.
+
+EXAMPLES:
+
+Consider Katsura-6 w.r.t. a ``degrevlex`` ordering.::
+
+    sage: from sage.rings.polynomial.toy_F5 import *
+    sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(GF(32003),10)
+    sage: I = sage.rings.ideal.Katsura(P,6).homogenize()
+    sage: F = I.gens()
+
+    sage: g1 = F5_reduced(F)
+    sage: g2 = I.groebner_basis()
+
+All algorithms actually compute a Groebner basis::
+
+    sage: Ideal(g1).basis_is_groebner()
+    True
+    sage: Ideal(g2).basis_is_groebner()
+    True
+
+The results are correct::
+
+    sage: Ideal(g1) == Ideal(g2)
+    True
+
+REFERENCES:
+
+.. [F02] Jean-Charles Faugère. *A new efficient algorithm for computing Gröbner bases without reduction to zero (F5)*.  In Proceedings of the 2002 international symposium on Symbolic and algebraic computation, ISSAC '02, pages 75-83, New York, NY, USA, 2002. ACM. 
+.. [AP11] Alberto Arri and John Perry. *The F5 criterion revised*.  In Journal of Symbolic Computation, 2011. Corrigendum in 2017.
+.. [EF17] Christian Eder and Jean-Charles Faugère. *A survey on signature-based algorithms for computing Gröbner bases*.  In Journal of Symbolic Computation, 2017.
+.. [VY17] T. Vaccon, K.Yokoyama, A Tropical F5 Algorithm, proceedings of ISSAC 2017.
 
 AUTHOR:
 
@@ -7,90 +63,12 @@ AUTHOR:
 """
 
 
-#*****************************************************************************
-#  Copyright (C) 2017 Tristan Vaccon <tristan.vaccon@unilim.fr>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+
 
 from copy import copy
 from sage.structure.sequence import Sequence
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix, Matrix
-
-def list_monom(P,d):
-    r"""
-
-    Return a decreasingly ordered list of the monomials of P of degree d
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``d`` -- an integer
-
-    OUTPUT:
-
-    The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import list_monom
-        sage: list_monom(S,2)
-        [x^2, x*y, y^2, x*z, y*z, z^2]
-    """
-    if d == 0:
-        return [P(1)]
-    l1 = [ a for a in P.gens()]
-    if d == 1:
-        return l1
-    ld1 = list_monom(P,d-1)
-    ld = [[x*u for x in l1] for u in ld1]
-    ld = sum(ld,[])
-    s = []
-    for i in ld:
-        if i not in s:
-            s.append(i)
-    s.sort()
-    s.reverse()
-    return s
-
-def list_monom_iteratif(P,d,ld1):
-    r"""
-
-    Return a decreasingly ordered list of the monomials of P of degree d, built from the corresponding list of degree d-1
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``d`` -- an integer
-    - ``ld1`` -- the list of the monomials of degree d-1
-
-    OUTPUT:
-
-    The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import list_monom_iteratif
-        sage: list_monom_iteratif(S,2,[x,y,z])
-        [x^2, x*y, y^2, x*z, y*z, z^2]
-    """
-    if d == 0:
-        return [P(1)]
-    l1 = [ a for a in P.gens()]
-    if d == 1:
-        return l1
-    ld = [[x*u for x in l1] for u in ld1]
-    ld = sum(ld,[])
-    s = list(set(ld))
-    s.sort()
-    s.reverse()
-    return s
 
 def index_last_variable(P,mon):
     r"""
@@ -109,7 +87,7 @@ def index_last_variable(P,mon):
     EXAMPLES::
 
         sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import index_last_variable
+        sage: from sage.rings.polynomial.toy_F5 import index_last_variable
         sage: index_last_variable(S,x*y)
         1
         sage: index_last_variable(S,S(1))
@@ -125,7 +103,7 @@ def index_last_variable(P,mon):
     return i
 
 
-def list_monom_iteratif_no_repeat(P,d,ld1):
+def list_monom_no_repeat(P,d,ld1):
     r"""
 
     Return a decreasingly ordered list of the monomials of P of degree d, built from the corresponding list in degree d-1
@@ -143,8 +121,8 @@ def list_monom_iteratif_no_repeat(P,d,ld1):
     EXAMPLES::
 
         sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import list_monom_iteratif_no_repeat
-        sage: list_monom_iteratif_no_repeat(S,2,[x,y,z])
+        sage: from sage.rings.polynomial.toy_F5 import list_monom_no_repeat
+        sage: list_monom_no_repeat(S,2,[x,y,z])
         [x^2, x*y, y^2, x*z, y*z, z^2]
     """
     if d == 0:
@@ -161,57 +139,6 @@ def list_monom_iteratif_no_repeat(P,d,ld1):
     ld.sort()
     ld.reverse()
     return ld
-
-def Make_Macaulay_Matrix(list_poly, monom):
-    r"""
-
-    Build the Macaulay matrix for the polynomials of degree d in list_poly. It is represented as a couple of a matrix and the list of the signatures of its rows, assuming compatibility.
- 
-    INPUT:
-
-    - ``list_poly`` -- a list of degree d polynomials
-    - ``monom`` -- the list of the monomials of degree d, ordered decreasingly
-
-    OUTPUT:
-
-    The Macaulay matrix defined by list_poly
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix
-        sage: list_poly = [[0,1,x**2+y**2], [1,1,x*y], [2,1,y*z], [3,1,z**2]]
-        sage: Mac = Make_Macaulay_Matrix(list_poly,[x**2, x*y, y**2, x*z, y*z, z**2])
-        sage: Mac[0]
-        [1 0 1 0 0 0]
-        [0 1 0 0 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1]
-        sage: Mac[1]
-        [[0, 1], [1, 1], [2, 1], [3, 1]]
-        
-    """
-
-    R = list_poly[0][2].parent()
-    d = list_poly[0][2].degree()
-    l = len(monom)
-
-    listsign = []
-    Mac = Matrix(R.base_ring(), 0, l, [])
-    Mac = [Mac, []]
-    for fuple in list_poly:
-        listsign.append([fuple[0],fuple[1]])
-        f = fuple[2]
-        list = f.monomials()
-        flist = [ R(0) ] * l
-        for mon in list:
-            if mon in monom:
-                i = monom.index(mon)
-                flist[i] = f.monomial_coefficient(mon)
-        fmat = Matrix(R.base_ring(), 1, l, flist)
-        Mac[0] = Mac[0].stack(fmat)
-    Mac[1] = listsign
-    return Mac
 
 def Make_Macaulay_Matrix_sparse_dict(list_poly, monom):
     r"""
@@ -231,7 +158,7 @@ def Make_Macaulay_Matrix_sparse_dict(list_poly, monom):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix_sparse_dict
+        sage: from sage.rings.polynomial.toy_F5 import Make_Macaulay_Matrix_sparse_dict
         sage: list_poly = [[0,1,x**2+y**2], [1,1,x*y], [2,1,y*z], [3,1,z**2]]
         sage: Mac = Make_Macaulay_Matrix_sparse_dict(list_poly,[x**2, x*y, y**2, x*z, y*z, z**2])
         sage: Mac[0]
@@ -286,7 +213,7 @@ def F5_criterion(sign,G):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import F5_criterion
+        sage: from sage.rings.polynomial.toy_F5 import F5_criterion
         sage: sign = [1,x**3]
         sage: G =  [[0,1,x**2], [1,1,x*y], [2,1,y*z], [3,1,z**2]]
         sage: F5_criterion(sign,G)
@@ -307,43 +234,6 @@ def F5_criterion(sign,G):
                 return True
     return False  
 
-def Reducible_resp_sign(f,g):
-    r"""
-    
-    Inside the F5 algorithm, f and g are of the form [i,x**alpha, poly].
-    Tests whether g can reduce f while respecting their signatures with strict inequality
-    
-    INPUT:
-
-    - ``f`` -- a polynomial with signature
-    - ``g`` -- a polynomial with signature
-    
-    OUTPUT:
-
-    a boolean, testing whether g can reduce f while respecting their signatures
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Reducible_resp_sign
-        sage: g = [0,x,x**2]
-        sage: f = [1,x**2,x**3*y]
-        sage: f2 = [0,x**2,x**3]
-        sage: f3 = [0,1,x**3]
-        sage: Reducible_resp_sign(f,g)
-        True
-        sage: Reducible_resp_sign(f2,g)
-        False
-        sage: Reducible_resp_sign(f3,g)
-        False
-    """
-    R = f[2].parent()
-    flm = f[2].lm()
-    glm = g[2].lm()
-    if glm.divides(flm):
-        return (f[0]> g[0] or (f[0] == g[0] and R.monomial_quotient(flm,glm)*g[1]<f[1]))
-    return False
-
 
 def Reducible_large_resp_sign(f,g):
     r"""
@@ -363,7 +253,7 @@ def Reducible_large_resp_sign(f,g):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Reducible_large_resp_sign
+        sage: from sage.rings.polynomial.toy_F5 import Reducible_large_resp_sign
         sage: g = [0,x,x**2]
         sage: f = [1,x**2,x**3*y]
         sage: f2 = [0,x**2,x**3]
@@ -400,7 +290,7 @@ def Reducible_large_resp_sign_family(f,G):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: G = [[0,1,x**2], [1,1,x*y], [2,1,y*z], [3,1,z**2]]
         sage: f = [1,x**2,x**3*y]
         sage: f2 = [0,x**2,x**3]
@@ -440,7 +330,7 @@ def Rewritten(R,G,g):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: G = [[0,y,x**2+2*z**2], [1,x,x*y+y**2], [2,1,y*z+z**2], [3,1,z**2]]
         sage: g = [2,x,2*x*y*z+x*z**2+y**2*z]
         sage: Rewritten(S,G,g)
@@ -479,7 +369,7 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: G = [[0,y,x**2+2*z**2], [1,x,x*y+y**2], [2,1,y*z+z**2], [3,1,z**2]]
         sage: paires = []
@@ -500,7 +390,6 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
     paires_to_remove = []
     list_already_erased = []
     list_already_added = []
-    # Might be faster with a list like list_already_passing_F5
 
 
     for paire in paires:
@@ -546,7 +435,6 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
             list_poly.append(signj_polyj)
             list_already_added.append(signj)
         
-        #set_done_monom.add(signj_polyj[2].lm())
         
         signi_polyi = [paire[5][0],paire[5][1]*paire[4], paire[4]*paire[5][2]]
         signi = [paire[5][0],paire[5][1]*paire[4]]
@@ -554,7 +442,7 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
             poly_to_do.append(signi_polyi)
             list_poly.append(signi_polyi)
             list_already_added.append(signi)
-        #set_done_monom.add(signi_polyi[2].lm())
+
     
 
     #Here, we add the initial polynomials that are of degree d to the matrix.
@@ -592,7 +480,6 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
             smallest_g = 0
             smallest_sign = []
             for g in G:
-                #if Reducible_resp_sign([sign_et_poly[0],sign_et_poly[1],mon],g):
                 if g[2].lm().divides(mon):
                     glm = g[2].lm()
                     mult = R.monomial_quotient(mon,glm)
@@ -606,7 +493,6 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
                                 smallest_g = mult*g[2]
                                 smallest_sign = [g[0],mult*g[1]]
             if len(smallest_sign)>0:
-                #new_poly = [g[0],mult*g[1],mult*g[2]]
                 new_poly = smallest_sign+[smallest_g]
                 poly_to_do.append(new_poly)
                 poly_to_do.sort()
@@ -617,13 +503,8 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
 
 
     if len(list_poly)>0:
-        #print("\nje suis ici...")
-        #print(list_poly)
         Mac = Make_Macaulay_Matrix_sparse_dict(list_poly, monom)
-        #print(list_monom(R,d))
-        #print(Mac[0].str())
     else:
-        #Mac = [Matrix(R.base_ring(),0,len(list_monom(R,d)),[]),[]]
         Mac = [Matrix(R.base_ring(),0,0,[]),[]]
 
 
@@ -647,7 +528,7 @@ def list_indexes(Mat):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: mat = Matrix(QQ,4,4,[0,1,2,0,0,0,0,3,2,0,0,0,0,0,1,1])
         sage: list_indexes(mat)
         [1, 3, 0, 2]
@@ -686,7 +567,7 @@ def RowEchelonMac_and_listpivots(Mac):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: mat = Matrix(QQ,4,4,[0,1,2,0,-1,-2,0,3,2,0,0,0,2,1,3,1])
         sage: u = RowEchelonMac_and_listpivots(mat)
         sage: u[0]
@@ -734,7 +615,7 @@ def Reconstruction(Mactilde,i,monom,sign):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: mat = Matrix(QQ,2,3,[0,1,2,1,-1,-2])
         sage: monom = [x,y,z]
@@ -767,7 +648,7 @@ def Eliminate_unreduced(G,d):
 
     EXAMPLES:: 
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: G = [[0,1,x],[1,1,x**2+2*x*y+y**2-z**2],[1,1,y**2-z**2]]
         sage: G2=Eliminate_unreduced(G,2)
@@ -831,7 +712,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
 
     EXAMPLES::  
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: mat = Matrix(QQ,2,6,[1,1,0,0,0,1,1,2,1,0,0,-1])
         sage: Mac = [mat,[[0,1],[1,1]]]
@@ -860,11 +741,9 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     newG = []
     for i in range(n):
         if listindexes[i]<>listpivots[i] and listpivots[i]<m:
-            #Beware, 20/01 modification of condition of reconstruction
             if not(Reducible_large_resp_sign_family([Mac[1][i][0],Mac[1][i][1],monom[listpivots[i]]],G)):
                 newG.append(Reconstruction(Mactilde,i,monom,[Mac[1][i][0],Mac[1][i][1]]))
 
-    #Beware, because we do not use Rewritting techniques, we recompute the necessary pairs
 
 
 
@@ -873,7 +752,6 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     if redundancy_test:
         paires = []
         G2=Eliminate_unreduced(G2,d)
-        #can be simplified?
         G = [aa for aa in G if G2.count(aa)>0]
         newG = [aa for aa in newG if G2.count(aa)>0]
 
@@ -923,7 +801,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     
 
 
-def tentative_F5(list1):
+def educational_F5(list1):
     r"""
     Computes a Gröbner bases of the ideal generated by the list of polynomials list1.
     The monomial order is the ambiant monomial order in the polynomial ring containing
@@ -941,23 +819,23 @@ def tentative_F5(list1):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: list1 = [x+y+z, x*y+x*z+y*z,x*y*z]
-        sage: G = tentative_F5(list1)
+        sage: G = educational_F5(list1)
         sage: G
         [x + y + z, y^2 + y*z + z^2, z^3]
 
     ALGORITHM:
 
-    The following algorithm is adapted from [VY2017]_.
+    The following algorithm is adapted from [VY17]_.
 
     REFERENCES:
 
-    .. [VY2017] T. Vaccon, K.Yokoyama, A Tropical F5 Algorithm, proceedings of ISSAC 2017.
+    .. [VY17] T. Vaccon, K.Yokoyama, A Tropical F5 Algorithm, proceedings of ISSAC 2017.
 
     """
-    #Initialisation
+    #Initialization
     R = list1[0].parent()
     list_degrees = [aa.degree() for aa in list1]
     list_degrees.sort()
@@ -974,39 +852,22 @@ def tentative_F5(list1):
             u = list[i].lm().lcm(list[j].lm())
             d = u.degree()
             paires.append([d,j,R(u/list[j].lm()),listsign[j],R(u/list[i].lm()), listsign[i]])
-            #watch out: j>i
-    ######attention
     paires.sort()
 
-    #Corps du programme   
     d = 1
-    monom = list_monom_iteratif_no_repeat(R,d,[])
+    monom = list_monom_no_repeat(R,d,[])
     while paires != [] :
-        ###### No Rewriting
-        # Beware for d, not necessarily increasing...
-        # We might take d = paires[0][0], but this leads to (harmless ?) unnecessary computations
-        #print "d=",d
-        #print "remaining pairs=", len(paires)
-        #print "paires", paires
         Mac, paires = SymbolicPreprocessing(R,G, d,paires, monom)
-        #print "Macaulay matrix size=", [Mac[0].nrows(),Mac[0].ncols()]
-        #print "je reduis"
         Mactilde, listpivots = RowEchelonMac_and_listpivots(Mac[0])
-        # Beware, no pair of degree <=d will be considered anymore
         redundancy_check = (list_degrees.count(d)>0)
-        #print "je fais l'update"
         G, paires = UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d,redundancy_check, monom)
-        #print "forme de G"
-        #for g in G:
-        #    print [g[0],g[1],g[2].lm()]
         d = d+1
-        #print "calculs des monomes de degre d"
-        monom = list_monom_iteratif_no_repeat(R,d,monom)
+        monom = list_monom_no_repeat(R,d,monom)
     G = [g[2] for g in G]
     return G
 
 
-def tentative_F5_reduced(list1):
+def F5_reduced(list1):
     r"""
     Computes the reduced Gröbner bases of the ideal generated by the list of polynomials list1.
     The monomial order is the ambiant monomial order in the polynomial ring containing
@@ -1024,15 +885,15 @@ def tentative_F5_reduced(list1):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import*
+        sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: list1 = [x+y+z, x*y+x*z+y*z,x*y*z, z**4]
-        sage: G = tentative_F5_reduced(list1)
+        sage: G = F5_reduced(list1)
         sage: G
         [z^3, y^2 + y*z + z^2, x + y + z]
 
     """
-    G = tentative_F5(list1)
+    G = educational_F5(list1)
     G2 = Sequence(G)
     G3 = G2.reduced()
     return G3
