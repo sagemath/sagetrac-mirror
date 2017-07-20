@@ -29,7 +29,7 @@ class OMTree(SageObject):
     - Brian Sinclair and Sebastian Pauli (2017-07-18): class OMTree
 
     """
-    def __init__(self,Phi):
+    def __init__(self, Phi):
         r"""
         Construct a tree of OM (Okutsu-Montes/Ore-Mac Lane) representations for Phi.
 
@@ -41,7 +41,7 @@ class OMTree(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
             sage: OMTree(Phi)
             OM Tree of (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20)) with 1 leaves
         """
@@ -49,7 +49,7 @@ class OMTree(SageObject):
 
         self._Phi=Phi
 
-        def followsegment(next,Phi):
+        def followsegment(next, Phi):
             """
             Returns next if it corresponds to an irreducible factor of $\Phi$ 
             and follows every branch if not.
@@ -59,12 +59,12 @@ class OMTree(SageObject):
             if next.is_first() == False and next.phi == next.prev_frame().phi:
                 return [next]
             if next.phi_divides_Phi():
-                return [next]+[[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
+                return [next] + [[followsegment(fact.next_frame(fact.multiplicity + 1), Phi)
                                 for fact in seg.factors] for seg in next.polygon[1:]]
             # Check if we have an irreducible factor
             if sum([seg.length for seg in next.polygon]) == 1:
                 return next
-            return [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
+            return [[followsegment(fact.next_frame(fact.multiplicity + 1), Phi)
                      for fact in seg.factors] for seg in next.polygon]
 
         # Construct and initialize the first frame (phi = x)
@@ -73,13 +73,13 @@ class OMTree(SageObject):
 
         # Handle the special case wherein our initial approximation (phi = x) is a factor
         if next.phi_divides_Phi():
-            tree = [next] + [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
+            tree = [next] + [[followsegment(fact.next_frame(fact.multiplicity + 1), Phi)
                               for fact in seg.factors] for seg in next.polygon[1:]]
 
         # Construct the next level of the tree by following every factor of the
         # residual polynomials of every Newton polygon segment in our frame
         else:
-            tree = [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
+            tree = [[followsegment(fact.next_frame(fact.multiplicity + 1), Phi)
                      for fact in seg.factors] for seg in next.polygon]
 
         # tree contains the leaves of the tree of frames where each leaf corresponds
@@ -93,7 +93,7 @@ class OMTree(SageObject):
         EXAMPLES::
 
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-        sage: Phi = ZpFM(2,20,'terse')['x'](x^8+2)
+        sage: Phi = ZpFM(2, 20, 'terse')['x'](x^8 + 2)
         sage: T = OMTree(Phi)
         sage: T.Phi()
         (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (2 + O(2^20))
@@ -107,7 +107,7 @@ class OMTree(SageObject):
         EXAMPLES::
 
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-        sage: R.<x> = ZpFM(3,7)[]
+        sage: R.<x> = ZpFM(3, 7)[]
         sage: f=x^4 + 234
         sage: om=OMTree(f)
         sage: om.leaves()
@@ -125,7 +125,7 @@ class OMTree(SageObject):
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
-        sage: g=(z^3+2)^5+5
+        sage: g=(z^3 + 2)^5 + 5
         sage: om=OMTree(g)
         sage: om.ramification_indices()
         [5, 5]
@@ -141,7 +141,7 @@ class OMTree(SageObject):
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
-        sage: g=(z^3+2)^5+5
+        sage: g=(z^3 + 2)^5 + 5
         sage: om=OMTree(g)
         sage: om.inertia_degrees()
         [1, 2]
@@ -157,18 +157,18 @@ class OMTree(SageObject):
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
-        sage: g=(z^6+2)^25+5
+        sage: g=(z^6 + 2)^25 + 5
         sage: om=OMTree(g)
         sage: om.degrees_of_factors()
         [50, 50, 50]
 
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-        sage: R=ZpFM(5,50)
+        sage: R=ZpFM(5, 50)
         sage: S.<x>=R[]
-        sage: f=x^5+75*x^3-15*x^2+125*x-5
+        sage: f=x^5 + 75*x^3-15*x^2 + 125*x-5
         sage: W.<w>=R.ext(f)
         sage: Wz.<z>=W[]
-        sage: g=(z^5+75*z^3-15*z^2+125*z-5)*(z^25+5)*(z^5+w)+125
+        sage: g=(z^5 + 75*z^3-15*z^2 + 125*z-5)*(z^25 + 5)*(z^5 + w) + 125
         sage: om=OMTree(g)
         sage: om.degrees_of_factors()
         [1, 2, 2, 5, 25]
@@ -182,7 +182,7 @@ class OMTree(SageObject):
         EXAMPLES::
 
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-        sage: R.<x> = ZpFM(3,7)[]
+        sage: R.<x> = ZpFM(3, 7)[]
         sage: f=x^4 + 234
         sage: om=OMTree(f)
         sage: om.approximations()
@@ -206,7 +206,7 @@ class OMTree(SageObject):
         sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
         sage: R.<c> = ZqFM(125, prec = 30, print_mode='terse')
         sage: Rz.<z>=R[]
-        sage: g=(z^3+2)^5+5
+        sage: g=(z^3 + 2)^5 + 5
         sage: om=OMTree(g)
         sage: om.roots()
         [Frame with phi (1 + O(5^30))*z + (931322574615478515623 + O(5^30)),
@@ -223,14 +223,14 @@ class OMTree(SageObject):
 
         sage: k = ZpFM(2, prec = 20)
         sage: kx.<x> = k[]
-        sage: f = x^32+16
+        sage: f = x^32 + 16
         sage: om=OMTree(f)
         sage: om.depths()
         [3]
 
         sage: R.<c> = ZqFM(125, prec = 30)
         sage: Rz.<z>=R[]
-        sage: g=(z^3+2)^5+5
+        sage: g=(z^3 + 2)^5 + 5
         sage: om=OMTree(g)
         sage: om.depths()
         [1, 2]
@@ -251,19 +251,19 @@ class OMTree(SageObject):
         Factoring polynomials over Zp(2)[x]::
 
            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-           sage: f = ZpFM(2,50,'terse')['x']( (x^32+16)*(x^32+16+2^16*x^2)+2^34 )
+           sage: f = ZpFM(2, 50, 'terse')['x']( (x^32 + 16)*(x^32 + 16 + 2^16*x^2) + 2^34 )
            sage: omtree = OMTree(f); factors = omtree.factorization(); len(factors) # long time (4.5s)
            2
 
-        See the irreducibility of x^32+16 in Zp(2)[x]::
+        See the irreducibility of x^32 + 16 in Zp(2)[x]::
 
-           sage: OMTree(ZpFM(2)['x'](x^32+16)).factorization()
+           sage: OMTree(ZpFM(2)['x'](x^32 + 16)).factorization()
            (1 + O(2^20))*x^32 + (O(2^20))*x^31 + (O(2^20))*x^30 + (O(2^20))*x^29 + (O(2^20))*x^28 + (O(2^20))*x^27 + (O(2^20))*x^26 + (O(2^20))*x^25 + (O(2^20))*x^24 + (O(2^20))*x^23 + (O(2^20))*x^22 + (O(2^20))*x^21 + (O(2^20))*x^20 + (O(2^20))*x^19 + (O(2^20))*x^18 + (O(2^20))*x^17 + (O(2^20))*x^16 + (O(2^20))*x^15 + (O(2^20))*x^14 + (O(2^20))*x^13 + (O(2^20))*x^12 + (O(2^20))*x^11 + (O(2^20))*x^10 + (O(2^20))*x^9 + (O(2^20))*x^8 + (O(2^20))*x^7 + (O(2^20))*x^6 + (O(2^20))*x^5 + (O(2^20))*x^4 + (O(2^20))*x^3 + (O(2^20))*x^2 + (O(2^20))*x + (2^4 + O(2^20))
 
         We look at the appoximations to the factors and lift them::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: R.<x> = ZpFM(3,7)[]
+            sage: R.<x> = ZpFM(3, 7)[]
             sage: f=x^4 + 234
             sage: om=OMTree(f)
             sage: om.approximations()
@@ -287,28 +287,28 @@ class OMTree(SageObject):
             x_divides = False
 
         if Phi == Phi.base_ring().one():
-            return Factorization([(Phi.parent().gen(),1)] if x_divides else [])
+            return Factorization([(Phi.parent().gen(), 1)] if x_divides else [])
 
         # the leaves correspond to the factors of Phi
         tree = self.leaves()
 
         # If we only have one leaf, Phi is irreducible, so we do not lift it.
         if len(tree) == 1:
-            return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                                 [(Phi,1)])
+            return Factorization(([(Phi.parent().gen(), 1)] if x_divides else []) +
+                                 [(Phi, 1)])
         # quo_rem is faster than single_factor_lift, so Phi = f*g is specially handled
         if len(tree) == 2:
             if tree[0].phi.degree() < tree[1].phi.degree():
                 fact = tree[0].single_factor_lift()
-                return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                                     [(fact,1),(Phi.quo_rem(fact)[0],1)])
+                return Factorization(([(Phi.parent().gen(), 1)] if x_divides else []) +
+                                     [(fact, 1), (Phi.quo_rem(fact)[0], 1)])
             else:
                 fact = tree[1].single_factor_lift()
-                return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                                     [(fact,1),(Phi.quo_rem(fact)[0],1)])
+                return Factorization(([(Phi.parent().gen(), 1)] if x_divides else []) +
+                                     [(fact, 1), (Phi.quo_rem(fact)[0], 1)])
         # Phi has more than two factors, so we lift them all
-        return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                             [(frame.single_factor_lift(),1) for frame in tree])
+        return Factorization(([(Phi.parent().gen(), 1)] if x_divides else []) +
+                             [(frame.single_factor_lift(), 1) for frame in tree])
 
     def __repr__(self):
         """
@@ -316,9 +316,9 @@ class OMTree(SageObject):
 
         EXAMPLES:
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: R.<x> = ZpFM(3,7)[];f=(x^2 - 15)*(x^2-12)+81
+            sage: R.<x> = ZpFM(3, 7)[];f=(x^2 - 15)*(x^2-12) + 81
             sage: om = OMTree(f)
             sage: om
             OM Tree of (1 + O(3^7))*x^4 + (O(3^7))*x^3 + (2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^7))*x^2 + (O(3^7))*x + (2*3^2 + 3^5 + O(3^7)) with 2 leaves
         """
-        return "OM Tree of "+str(self.Phi())+" with "+str(len(self.leaves()))+" leaves"
+        return "OM Tree of " + str(self.Phi()) + " with " + str(len(self.leaves())) + " leaves"

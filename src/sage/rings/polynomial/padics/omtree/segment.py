@@ -46,7 +46,7 @@ class Segment(SageObject):
 
         sage: from sage.rings.polynomial.padics.omtree.frame import Frame
         sage: from sage.rings.polynomial.padics.omtree.segment import Segment
-        sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+        sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
         sage: f = Frame(Phi); f.seed(Phi.parent().gen())
         sage: f.polygon
         [Segment of length 32 and slope 1/8]
@@ -81,8 +81,8 @@ class Segment(SageObject):
     Associate polynomials for each segment check for possible inertia and
     the residue field is extended by their irreducible factors::
 
-        sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-        sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+        sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+        sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
         sage: f = Frame(Phi); f.seed(Phi.parent().gen())
         sage: f.polygon
         [Segment of length 4 and slope 1]
@@ -99,7 +99,7 @@ class Segment(SageObject):
         [AssociatedFactor of rho z0^2 + a0*z0 + 1]
 
     """
-    def __init__(self,frame,slope,verts):
+    def __init__(self, frame, slope, verts):
         """
         Initializes self.
 
@@ -108,8 +108,8 @@ class Segment(SageObject):
         TESTS::
 
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-            sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
             sage: TestSuite(f.polygon).run()
         """
@@ -123,7 +123,7 @@ class Segment(SageObject):
             self.psi = self.frame.find_psi(self.slope*self.Eplus)
         else:
             self.Eplus = Integer(1)
-        self.factors = [AssociatedFactor(self,afact[0],afact[1])
+        self.factors = [AssociatedFactor(self, afact[0], afact[1])
                         for afact in list(self.associate_polynomial().factor())]
 
     def __cmp__(self, other):
@@ -133,8 +133,8 @@ class Segment(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-            sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
             sage: f = Frame(Phi); f.seed(Phi.parent().gen()); P = f.polygon
             sage: f = f.polygon[0].factors[0].next_frame(); Q = f.polygon
             sage: P == Q
@@ -160,9 +160,9 @@ class Segment(SageObject):
 
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
             sage: from sage.rings.polynomial.padics.omtree.segment import Segment
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
-            sage: seg = Segment(f,1/8,[(0,4),(32,0)]); seg
+            sage: seg = Segment(f, 1/8, [(0, 4), (32, 0)]); seg
             Segment of length 32 and slope 1/8
             sage: seg.associate_polynomial()
             z^4 + 1
@@ -178,15 +178,15 @@ class Segment(SageObject):
         a = self.frame._phi_expansion_as_elts
         vertx = [v[0] for v in self.verts]
         chiex = [(v-vertx[0]) // self.Eplus for v in vertx]
-        chi = [a[v] * self.psi**c for v,c in zip(vertx,chiex)]
+        chi = [a[v] * self.psi**c for v, c in zip(vertx, chiex)]
         psitilde = self.frame.find_psi(chi[0].valuation())
         Ahat = [(c/psitilde).reduce() for c in chi]
         if self.frame.prev is None:
             z = self.frame.Rz.gen()
-            Az = sum([a.residue() * z**c for a,c in zip(Ahat,chiex)])
+            Az = sum([a.residue() * z**c for a, c in zip(Ahat, chiex)])
         else:
             z = self.frame.prev.FFz.gen()
-            Az = sum([a.residue() * z**c for a,c in zip(Ahat,chiex)])
+            Az = sum([a.residue() * z**c for a, c in zip(Ahat, chiex)])
         return Az
 
     def __repr__(self):
@@ -196,8 +196,8 @@ class Segment(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-            sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
             sage: f.polygon[0].__repr__()
             'Segment of length 4 and slope 1'
@@ -206,7 +206,7 @@ class Segment(SageObject):
             'Segment of length 2 and slope 5'
 
         """
-        return 'Segment of length '+repr(self.length)+' and slope '+repr(self.slope)
+        return 'Segment of length ' + repr(self.length) + ' and slope ' + repr(self.slope)
 
     def __hash__(self):
         r"""

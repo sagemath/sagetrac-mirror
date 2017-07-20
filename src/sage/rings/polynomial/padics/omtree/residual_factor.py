@@ -116,7 +116,7 @@ class ResidualFactor:
             Fields such as ``segments``, ``rho``, ``multiplicity``, ``Fplus``
             could be hidden behind a method/property so they get a proper
             docstring. Most other fields should probably be hidden completely
-            by prepending a ``_`` to their variable names.
+            by prepending a ``_`` to their names.
 
         TESTS::
 
