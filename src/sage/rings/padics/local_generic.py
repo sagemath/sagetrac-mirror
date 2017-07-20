@@ -193,7 +193,7 @@ class LocalGeneric(CommutativeRing):
         return self._repr_(do_latex = True)
 
     def change(self, **kwds):
-        """
+        r"""
         Return a new ring with changed attributes.
 
         INPUT:
@@ -225,10 +225,10 @@ class LocalGeneric(CommutativeRing):
                        the precision on the base is increased as necessary (respecting ramification).
                        If the precision is decreased, the precision of the base is unchanged.
 
-        - ``field`` -- bool.  If True, switch to a tower of fields via the fraction field.
+        - ``field`` -- bool.  If ``True``, switch to a tower of fields via the fraction field.
                         If False, switch to a tower of rings of integers.
 
-        - ``q`` -- prime power.  Replace the initial unramified extension of `\Qp` or `\Zp`
+        - ``q`` -- prime power.  Replace the initial unramified extension of `\Q_p` or `\Z_p`
                     with an unramified extension of residue cardinality `q`.
                     If the initial extension is ramified, add in an unramified extension.
 
@@ -266,65 +266,64 @@ class LocalGeneric(CommutativeRing):
             sage: repr(~R(17))
             '...13403'
 
+        Changing print mode to 'digits' works for Eisenstein extensions::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: W.print_mode()
+            'series'
+            sage: W.change(print_mode='digits').print_mode()
+            'digits'
+
         You can change extensions::
 
             sage: K.<a> = QqFP(125, prec=4)
             sage: K.change(q=64)
-            Unramified Extension of 2-adic Field with floating precision 4 in a defined by x^6 + x^4 + x^3 + x + 1
+            Unramified Extension in a defined by x^6 + x^4 + x^3 + x + 1 with floating precision 4 over 2-adic Field
             sage: R.<x> = QQ[]
             sage: K.change(modulus = x^2 - x + 2, print_pos=False)
-            Unramified Extension of 5-adic Field with floating precision 4 in a defined by x^2 - x + 2
+            Unramified Extension in a defined by x^2 - x + 2 with floating precision 4 over 5-adic Field
 
         and variable names::
 
             sage: K.change(names='b')
-            Unramified Extension of 5-adic Field with floating precision 4 in b defined by x^3 + 3*x + 3
+            Unramified Extension in b defined by x^3 + 3*x + 3 with floating precision 4 over 5-adic Field
 
         and precision::
 
             sage: Kup = K.change(prec=8); Kup
-            Unramified Extension of 5-adic Field with floating precision 8 in a defined by x^3 + 3*x + 3
+            Unramified Extension in a defined by x^3 + 3*x + 3 with floating precision 8 over 5-adic Field
             sage: Kup.base_ring()
             5-adic Field with floating precision 8
 
         If you decrease the precision, the precision of the base stays the same::
 
             sage: Kdown = K.change(prec=2); Kdown
-            Unramified Extension of 5-adic Field with floating precision 4 in a defined by x^3 + 3*x + 3
+            Unramified Extension in a defined by x^3 + 3*x + 3 with floating precision 2 over 5-adic Field
             sage: Kdown.precision_cap()
             2
             sage: Kdown.base_ring()
             5-adic Field with floating precision 4
 
-        Changing the prime works for extensions as long as the defining polynomial is exact::
+        Changing the prime works for extensions::
 
             sage: x = polygen(ZZ)
             sage: R.<a> = Zp(5).extension(x^2 + 2)
             sage: S = R.change(p=7)
             sage: S.defining_polynomial()
-            (1 + O(7^20))*x^2 + (O(7^20))*x + (2 + O(7^20))
+            x^2 + 2
             sage: A.<y> = Zp(5)[]
             sage: R.<a> = Zp(5).extension(y^2 + 2)
             sage: S = R.change(p=7)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: conversion between padic extensions not implemented
+            sage: S.defining_polynomial()
+            y^2 + 2
 
-        If the defining polynomial is exact, you can raise the precision at will::
+        ::
 
             sage: R.<a> = Zq(5^3)
             sage: S = R.change(prec=50)
             sage: S.defining_polynomial()
-            (1 + O(5^50))*x^3 + (O(5^50))*x^2 + (3 + O(5^50))*x + (3 + O(5^50))
-
-        However, you cannot increase the precision above the limit imposed by
-        an inexact defining polynomial::
-
-            sage: R.<a> = Zp(5).extension(y^2 + 2)
-            sage: S = R.change(prec=50)
-            Traceback (most recent call last):
-            ...
-            ValueError: Not enough precision in defining polynomial
+            x^3 + 3*x + 3
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
@@ -358,6 +357,15 @@ class LocalGeneric(CommutativeRing):
                 kwds['show_prec'] = _default_show_prec(new_type, kwds['mode'])
             else:
                 raise RuntimeError
+        p = kwds.get('p', functor.p if hasattr(functor, 'p') else self.prime())
+        curpstr = str(self.prime())
+        functor_dict = getattr(functor, "extras", getattr(functor, "kwds", None))
+        # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
+        if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
+           (functor_dict['print_mode'].get('mode') == 'digits' and p > getattr(functor, "p", p))):
+            from .padic_printing import _printer_defaults
+            kwds['alphabet'] = _printer_defaults.alphabet()[:p]
+
         # There are two kinds of functors possible:
         # CompletionFunctor and AlgebraicExtensionFunctor
         # We distinguish them by the presence of ``prec``,
@@ -377,14 +385,6 @@ class LocalGeneric(CommutativeRing):
                             raise TypeError('You must specify the type explicitly')
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
-            p = kwds.get('p', functor.p)
-            curpstr = str(self.prime())
-            # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
-            if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
-                (functor.extras['print_mode'].get('mode') == 'digits' and
-                 p > functor.p)):
-                from .padic_printing import _printer_defaults
-                kwds['alphabet'] = _printer_defaults.alphabet()[:p]
             for atr in ('p', 'prec', 'type'):
                 if atr in kwds:
                     setattr(functor, atr, kwds.pop(atr))
