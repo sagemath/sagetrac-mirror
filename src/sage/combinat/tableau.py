@@ -46,7 +46,7 @@ Parent classes:
 
 For display options, see :meth:`Tableaux.options`.
 
-.. TODO:
+.. TODO::
 
     - Move methods that only apply to semistandard tableaux from tableau to
       semistandard tableau
@@ -67,9 +67,8 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-
-from builtins import zip
+from six.moves import range, zip
+from six import add_metaclass
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -84,11 +83,10 @@ from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
-from .integer_vector import IntegerVectors
+from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 from . import permutation
-import itertools
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -96,6 +94,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class Tableau(ClonableList):
     """
     A class to model a tableau.
@@ -141,7 +141,7 @@ class Tableau(ClonableList):
         sage: T([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`SemistandardTableaux`
@@ -161,8 +161,6 @@ class Tableau(ClonableList):
         ValueError: A tableau must be a list of iterables.
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, t):
         r"""
@@ -804,7 +802,7 @@ class Tableau(ClonableList):
 
         This function exists mainly for compatibility with :class:`TableauTuple`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Tableau([[1,2,3],[4,5]]).level()
             1
@@ -4113,7 +4111,7 @@ class SemistandardTableau(Tableau):
         sage: SST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4254,7 +4252,7 @@ class StandardTableau(SemistandardTableau):
         sage: ST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4690,7 +4688,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: T.category()
         Category of sets
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableau`
         - :class:`SemistandardTableaux`
@@ -5158,7 +5156,7 @@ class SemistandardTableaux(Tableaux):
         sage: SemistandardTableaux()[0]
         []
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -5642,7 +5640,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
             for part in Partitions(self.size):
                 if i != 1:
                     for k in range(1, self.size+1):
-                        for c in IntegerVectors(self.size - k, i-1):
+                        for c in integer_vectors_nk_fast_iter(self.size - k, i-1):
                             c.append(k)
                             for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
@@ -5744,7 +5742,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
         while(True):
             if i != 1:
                 for k in range(1, n+1):
-                    for c in IntegerVectors(n - k, i-1):
+                    for c in integer_vectors_nk_fast_iter(n - k, i-1):
                         c.append(k)
                         for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)
@@ -5810,7 +5808,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: [[1,2],[3,3]] in SemistandardTableaux(4, max_entry=2)
             False
             sage: SST = SemistandardTableaux(4)
-            sage: all([sst in SST for sst in SST])
+            sage: all(sst in SST for sst in SST)
             True
 
         Check that :trac:`14145` is fixed::
@@ -5867,8 +5865,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             pos += 1
             tot += weights[pos]
         # we now have pos elements over the diagonal and n - 2 * pos on it
-        m = diagonal_matrix(IntegerVectors(self.size - 2 * pos, self.max_entry).random_element())
-        above_diagonal = IntegerVectors(pos, kchoose2m1 + 1).random_element()
+        m = diagonal_matrix( list(IntegerVectors(self.size - 2 * pos,
+                                                 self.max_entry).random_element()) )
+        above_diagonal = list(IntegerVectors(pos, kchoose2m1 + 1).random_element())
         index = 0
         for i in range(self.max_entry - 1):
             for j in range(i + 1, self.max_entry):
@@ -5891,9 +5890,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             9
             sage: SemistandardTableaux(4, max_entry=10).cardinality()
             4225
-            sage: ns = range(1, 6)
+            sage: ns = list(range(1, 6))
             sage: ssts = [ SemistandardTableaux(n) for n in ns ]
-            sage: all([sst.cardinality() == len(sst.list()) for sst in ssts])
+            sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)
             True
         """
         from sage.combinat.partition import Partitions
@@ -6025,7 +6024,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for c in IntegerVectors(sum(self.shape), self.max_entry):
+        for c in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
             for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                 yield self.element_class(self, sst)
 
@@ -6035,7 +6034,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         EXAMPLES::
 
             sage: SST = SemistandardTableaux([2,1])
-            sage: all([sst in SST for sst in SST])
+            sage: all(sst in SST for sst in SST)
             True
             sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
             8
@@ -6043,7 +6042,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             8
 
             sage: SST = SemistandardTableaux([2,1], max_entry=4)
-            sage: all([sst in SST for sst in SST])
+            sage: all(sst in SST for sst in SST)
             True
             sage: SST.cardinality()
             20
@@ -6168,7 +6167,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             return Integer(num / den)
         elif algorithm == 'sum':
             c = 0
-            for comp in IntegerVectors(sum(self.shape), self.max_entry):
+            for comp in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
                 c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
             return c
         raise ValueError("unknown algorithm {}".format(algorithm))
@@ -6209,7 +6208,7 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
         EXAMPLES::
 
             sage: SST = SemistandardTableaux([2,1], [2,1])
-            sage: all([sst in SST for sst in SST])
+            sage: all(sst in SST for sst in SST)
             True
             sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
             1
@@ -6362,9 +6361,9 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
         TESTS::
 
             sage: SST = SemistandardTableaux(6, [2,2,2])
-            sage: all([sst in SST for sst in SST])
+            sage: all(sst in SST for sst in SST)
             True
-            sage: all([sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2])])
+            sage: all(sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2]))
             True
         """
         from sage.combinat.partition import Partition
@@ -6412,7 +6411,7 @@ class StandardTableaux(SemistandardTableaux):
         sage: ST.list()
         [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -6587,7 +6586,7 @@ class StandardTableaux_size(StandardTableaux):
         TESTS::
 
             sage: ST3 = StandardTableaux(3)
-            sage: all([st in ST3 for st in ST3])
+            sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = StandardTableaux(4)
             sage: filter(lambda x: x in ST3, ST4)
@@ -6662,7 +6661,7 @@ class StandardTableaux_size(StandardTableaux):
             4
             sage: ns = [1,2,3,4,5,6]
             sage: sts = [StandardTableaux(n) for n in ns]
-            sage: all([st.cardinality() == len(st.list()) for st in sts])
+            sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
             sage: StandardTableaux(50).cardinality()
             27886995605342342839104615869259776
@@ -6674,7 +6673,7 @@ class StandardTableaux_size(StandardTableaux):
             ....:     for p in Partitions(n):
             ....:         c += StandardTableaux(p).cardinality()
             ....:     return c
-            sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(10)])
+            sage: all(cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(10))
             True
         """
         tableaux_number = self.size % 2  # identity involution
@@ -6726,7 +6725,7 @@ class StandardTableaux_size(StandardTableaux):
 
         TESTS::
 
-            sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
+            sage: all(StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20))
             True
         """
         from sage.misc.prandom import randrange
@@ -6790,7 +6789,7 @@ class StandardTableaux_shape(StandardTableaux):
         EXAMPLES::
 
             sage: ST = StandardTableaux([2,1,1])
-            sage: all([st in ST for st in ST])
+            sage: all(st in ST for st in ST)
             True
             sage: len(filter(lambda x: x in ST, StandardTableaux(4)))
             3

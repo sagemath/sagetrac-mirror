@@ -38,7 +38,7 @@ from sage.combinat.integer_lists.lists import IntegerLists
 from sage.combinat.integer_lists.base import Infinity
 
 
-class IntegerListsLex(IntegerLists):
+class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
     r"""
     Lists of nonnegative integers with constraints, in inverse
     lexicographic order.
@@ -266,7 +266,7 @@ class IntegerListsLex(IntegerLists):
     below the diagonal::
 
         sage: def dyck_words(n):
-        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        ....:     return IntegerListsLex(length=n, ceiling=list(range(n+1)), min_slope=0)
         sage: [dyck_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
@@ -782,8 +782,6 @@ class IntegerListsLex(IntegerLists):
         []
     """
     backend_class = IntegerListsBackend_invlex
-
-    __metaclass__ = ClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):

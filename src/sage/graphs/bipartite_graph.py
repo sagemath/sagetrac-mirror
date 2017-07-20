@@ -33,6 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from .graph import Graph
 
@@ -112,7 +113,7 @@ class BipartiteGraph(Graph):
     one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
-        sage: partition = [range(5), range(5,10)]
+        sage: partition = [list(range(5)), list(range(5,10))]
         sage: B = BipartiteGraph(P, partition)
         Traceback (most recent call last):
         ...
@@ -130,7 +131,7 @@ class BipartiteGraph(Graph):
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
         True
-        sage: B3 = BipartiteGraph(G, [range(4), range(4,7)])
+        sage: B3 = BipartiteGraph(G, [list(range(4)), list(range(4,7))])
         sage: B3
         Bipartite graph on 7 vertices
         sage: B3 == B2
@@ -139,7 +140,7 @@ class BipartiteGraph(Graph):
       ::
 
         sage: G = Graph({0:[], 1:[], 2:[]})
-        sage: part = (range(2), [2])
+        sage: part = (list(range(2)), [2])
         sage: B = BipartiteGraph(G, part)
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
@@ -148,7 +149,7 @@ class BipartiteGraph(Graph):
     4. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-        ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+        ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
         [1 1 1 0 0 0 0]
         [1 0 0 1 1 0 0]
@@ -255,10 +256,10 @@ class BipartiteGraph(Graph):
         Create a bipartite graph. See documentation ``BipartiteGraph?`` for
         detailed information.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
         if data is None:
@@ -302,8 +303,8 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, *args, **kwds)
             ncols = data.ncols()
             nrows = data.nrows()
-            self.left = set(xrange(ncols))
-            self.right = set(xrange(ncols, nrows + ncols))
+            self.left = set(range(ncols))
+            self.right = set(range(ncols, nrows + ncols))
 
             # ensure that the vertices exist even if there
             # are no associated edges (trac #10356)
@@ -410,7 +411,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns a short string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(16))
             sage: B
@@ -828,7 +829,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns the underlying bipartition of the bipartite graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(4))
             sage: B.bipartition()
@@ -841,7 +842,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto left vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_left()
@@ -860,7 +861,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto right vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_right()
@@ -878,7 +879,7 @@ class BipartiteGraph(Graph):
         r"""
         Overrides Graph's plot function, to illustrate the bipartite nature.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: B.plot()
@@ -931,7 +932,7 @@ class BipartiteGraph(Graph):
 
         - ``name`` - optional string for the variable name in the polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BipartiteGraph(graphs.CubeGraph(3)).matching_polynomial()
             x^8 - 12*x^6 + 42*x^4 - 44*x^2 + 9
@@ -993,7 +994,7 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: fi = open(file_name, 'w')
@@ -1067,8 +1068,8 @@ class BipartiteGraph(Graph):
 
         # now we have all the edges in our graph, just fill in the
         # bipartite partitioning
-        self.left = set(xrange(num_cols))
-        self.right = set(xrange(num_cols, num_cols + num_rows))
+        self.left = set(range(num_cols))
+        self.right = set(range(num_cols, num_cols + num_rows))
 
         # return self for chaining calls if desired
         return self
@@ -1081,10 +1082,10 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: M
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]
@@ -1103,7 +1104,7 @@ class BipartiteGraph(Graph):
             sage: for order in range(3, 13, 3):
             ....:     num_chks = int(order / 3)
             ....:     num_vars = order - num_chks
-            ....:     partition = (range(num_vars), range(num_vars, num_vars+num_chks))
+            ....:     partition = (list(range(num_vars)), list(range(num_vars, num_vars+num_chks)))
             ....:     for idx in range(100):
             ....:         g = graphs.RandomGNP(order, 0.5)
             ....:         try:
@@ -1164,12 +1165,12 @@ class BipartiteGraph(Graph):
 
         Returns (row index, column index) for the given pair of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
-            sage: B._BipartiteGraph__edge2idx(2,7,range(5),range(5,10))
+            sage: B._BipartiteGraph__edge2idx(2,7,list(range(5)),list(range(5,10)))
             (2, 2)
         """
         try:
@@ -1199,7 +1200,7 @@ class BipartiteGraph(Graph):
         Bipartite graphs that are not weighted will return a matrix over ZZ::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: B = BipartiteGraph(M)
             sage: N = B.reduced_adjacency_matrix()
             sage: N

@@ -26,7 +26,7 @@ EXAMPLES::
 
     sage: n = previous_prime_power(2^16 - 1)
     sage: while is_prime(n):
-    ...    n = previous_prime_power(n)
+    ....:  n = previous_prime_power(n)
     sage: factor(n)
     251^2
     sage: k = GF(n,'c'); type(k)
@@ -49,26 +49,27 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
-from element_ext_pari import FiniteField_ext_pariElement
-from element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
-from sage.structure.sage_object cimport SageObject
+from .element_ext_pari import FiniteField_ext_pariElement
+from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
+from sage.structure.sage_object cimport SageObject, richcmp
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all
-import finite_field_constructor as finite_field
+import sage.rings.finite_rings.finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 
 from sage.structure.parent cimport Parent
 
@@ -427,7 +428,7 @@ cdef class Cache_givaro(SageObject):
             den = e.denom()
             return self.parent(num)/self.parent(den)
 
-        elif isinstance(e, gen):
+        elif isinstance(e, Gen):
             pass # handle this in next if clause
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
@@ -455,9 +456,9 @@ cdef class Cache_givaro(SageObject):
 
         cdef GEN t
         cdef long c
-        if isinstance(e, gen):
+        if isinstance(e, Gen):
             sig_on()
-            t = (<gen>e).g
+            t = (<Gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
             else:
@@ -803,7 +804,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __init__(self, Cache_givaro cache):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -815,7 +816,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __next__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -835,7 +836,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k)
@@ -846,7 +847,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(4)
             sage: K.list() # indirect doctest
@@ -898,7 +899,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
     def _repr_(FiniteField_givaroElement self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<FOOBAR> = GF(3^4)
             sage: FOOBAR #indirect doctest
@@ -1302,7 +1303,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of
@@ -1331,7 +1332,8 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         cdef Cache_givaro cache = (<FiniteField_givaroElement>left)._cache
 
-        return cmp(cache.log_to_int(left.element), cache.log_to_int((<FiniteField_givaroElement>right).element) )
+        return richcmp(cache.log_to_int(left.element),
+                       cache.log_to_int((<FiniteField_givaroElement>right).element), op)
 
     def __int__(FiniteField_givaroElement self):
         """
@@ -1377,7 +1379,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: b.integer_representation()
             5
             sage: type(b.integer_representation())
-            <type 'int'>
+            <... 'int'>
         """
         return self._cache.log_to_int(self.element)
 
@@ -1532,7 +1534,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         Return a string representation of self that MAGMA can
         understand.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^5)
 

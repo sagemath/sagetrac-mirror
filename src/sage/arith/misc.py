@@ -465,7 +465,7 @@ def is_prime(n):
     except (AttributeError, NotImplementedError):
         return ZZ(n).is_prime()
 
-def is_pseudoprime(n, flag=None):
+def is_pseudoprime(n):
     r"""
     Test whether ``n`` is a pseudo-prime
 
@@ -495,22 +495,10 @@ def is_pseudoprime(n, flag=None):
         False
         sage: is_pseudoprime(-2)
         False
-
-    TESTS:
-
-    Deprecation warning from :trac:`16878`::
-
-        sage: is_pseudoprime(127, flag=0)
-        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and no longer used
-        See http://trac.sagemath.org/16878 for details.
-        True
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_pseudoprime()
 
-def is_prime_power(n, flag=None, get_data=False):
+def is_prime_power(n, get_data=False):
     r"""
     Test whether ``n`` is a positive power of a prime number
 
@@ -568,9 +556,6 @@ def is_prime_power(n, flag=None, get_data=False):
         ...
         TypeError: unable to convert 'foo' to an integer
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_prime_power(get_data=get_data)
 
 def is_pseudoprime_power(n, get_data=False):
@@ -617,26 +602,6 @@ def is_pseudoprime_power(n, get_data=False):
         (15, 0)
     """
     return ZZ(n).is_prime_power(proof=False, get_data=get_data)
-
-def is_pseudoprime_small_power(n, bound=None, get_data=False):
-    """
-    Deprecated version of ``is_pseudoprime_power``.
-
-    EXAMPLES::
-
-        sage: is_pseudoprime_small_power(1234)
-        doctest:...: DeprecationWarning: the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.
-        See http://trac.sagemath.org/16878 for details.
-        False
-        sage: is_pseudoprime_small_power(3^1024, get_data=True)
-        [(3, 1024)]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16878, "the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.")
-    if get_data:
-        return [ZZ(n).is_prime_power(proof=False, get_data=True)]
-    else:
-        return ZZ(n).is_prime_power(proof=False)
 
 
 def valuation(m, *args, **kwds):
@@ -949,7 +914,7 @@ def primes(start, stop=None, proof=None):
 
         sage: for a in range(-10, 50):
         ....:     for b in range(-10, 50):
-        ....:         assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ....:         assert list(primes(a,b)) == list(filter(is_prime, range(a,b)))
         sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
         True
         sage: for p in primes(10, infinity):
@@ -2225,10 +2190,6 @@ def rational_reconstruction(a, m, algorithm='fast'):
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
-    elif algorithm == 'python':
-        from sage.misc.superseded import deprecation
-        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
-        return ZZ(a).rational_reconstruction(m)
     else:
         raise ValueError("unknown algorithm %r" % algorithm)
 
@@ -2334,7 +2295,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
        a symbolic computation will not factor the integer, because it is
        considered as an element of a larger symbolic ring.
 
-       EXAMPLE::
+       EXAMPLES::
 
            sage: f(n)=n^2
            sage: is_prime(f(3))
@@ -2418,7 +2379,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(0)
         Traceback (most recent call last):
         ...
-        ArithmeticError: Prime factorization of 0 not defined.
+        ArithmeticError: factorization of 0 is not defined
         sage: factor(1)
         1
         sage: factor(-1)
@@ -3118,7 +3079,7 @@ def binomial(x, m, **kwds):
     r"""
     Return the binomial coefficient
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
@@ -3126,7 +3087,7 @@ def binomial(x, m, **kwds):
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = \binom{x}{x-m}
 
@@ -3212,19 +3173,19 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
         sage: binomial(float(1000), 1001)
         0.0
 
     Test more output types::
 
         sage: type(binomial(5r, 2))
-        <type 'int'>
+        <... 'int'>
         sage: type(binomial(5, 2r))
         <type 'sage.rings.integer.Integer'>
 
         sage: type(binomial(5.0r, 2))
-        <type 'float'>
+        <... 'float'>
 
         sage: type(binomial(5/1, 2))
         <type 'sage.rings.rational.Rational'>
@@ -3246,7 +3207,7 @@ def binomial(x, m, **kwds):
 
         sage: K.<x,y> = Integers(7)[]
         sage: binomial(y,3)
-        -y^3 + 3*y^2 - 2*y
+        6*y^3 + 3*y^2 + 5*y
         sage: binomial(y,3).parent()
         Multivariate Polynomial Ring in x, y over Ring of integers modulo 7
 
@@ -3360,7 +3321,7 @@ def multinomial(*ks):
 
     Returns the integer:
 
-    .. math::
+    .. MATH::
 
            \binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}
            =\frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}
@@ -4040,7 +4001,7 @@ def continuant(v, n=None):
 
     We verify the identity
 
-    .. math::
+    .. MATH::
 
         K_n(z,z,\cdots,z) = \sum_{k=0}^n \binom{n-k}{k} z^{n-2k}
 
@@ -4275,7 +4236,7 @@ def hilbert_conductor_inverse(d):
 
     TESTS::
 
-        sage: for i in xrange(100):
+        sage: for i in range(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
@@ -4609,7 +4570,7 @@ def two_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     n = a**2 + b**2
@@ -4723,7 +4684,7 @@ def three_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     c = ZZ.random_element(2**16, 2**20)
@@ -4848,7 +4809,7 @@ def four_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     n = ZZ.random_element(2**32,2**34)
         ....:     aa,bb,cc,dd = four_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n
@@ -5066,64 +5027,45 @@ def differences(lis, n=1):
         return lis
     return differences(lis, n - 1)
 
-def _cmp_complex_for_display(a, b):
-    r"""
-    Compare two complex numbers in a "pretty" (but mathematically
-    meaningless) fashion, for display only.
+
+def _key_complex_for_display(a):
+    """
+    Key function to sort complex numbers for display only.
 
     Real numbers (with a zero imaginary part) come before complex numbers,
-    and are sorted.  Complex numbers are sorted by their real part
+    and are sorted. Complex numbers are sorted by their real part
     unless their real parts are quite close, in which case they are
     sorted by their imaginary part.
 
     EXAMPLES::
 
         sage: import sage.arith.misc
-        sage: cmp_c = sage.arith.misc._cmp_complex_for_display
-        sage: teeny = 3e-11
-        sage: cmp_c(CC(5), CC(3, 3))
-        -1
-        sage: cmp_c(CC(3), CC(5, 5))
-        -1
-        sage: cmp_c(CC(5), CC(3))
-        1
-        sage: cmp_c(CC(teeny, -1), CC(-teeny, 1))
-        -1
-        sage: cmp_c(CC(teeny, 1), CC(-teeny, -1))
-        1
-        sage: cmp_c(CC(0, 1), CC(1, 0.5))
-        -1
-        sage: cmp_c(CC(3+teeny, -1), CC(3-teeny, 1))
-        -1
+        sage: key_c = sage.arith.misc._key_complex_for_display
+
+        sage: key_c(CC(5))
+        (0, 5.00000000000000)
+        sage: key_c(CC(5, 5))
+        (1, 5.00000000, 5.00000000000000)
+
         sage: CIF200 = ComplexIntervalField(200)
-        sage: cmp_c(CIF200(teeny, -1), CIF200(-teeny, 1))
-        -1
-        sage: cmp_c(CIF200(teeny, 1), CIF200(-teeny, -1))
-        1
-        sage: cmp_c(CIF200(0, 1), CIF200(1, 0.5))
-        -1
-        sage: cmp_c(CIF200(3+teeny, -1), CIF200(3-teeny, 1))
-        -1
+        sage: key_c(CIF200(5))
+        (0, 5)
+        sage: key_c(CIF200(5, 5))
+        (1, 5.00000000, 5)
     """
-    ar = a.real(); br = b.real()
-    ai = a.imag(); bi = b.imag()
-    epsilon = ar.parent()(1e-10)
-    if ai:
-        if bi:
-            if abs(br) < epsilon:
-                if abs(ar) < epsilon:
-                    return cmp(ai, bi)
-                return cmp(ar, 0)
-            if abs((ar - br) / br) < epsilon:
-                return cmp(ai, bi)
-            return cmp(ar, br)
-        else:
-            return 1
+    ar = a.real()
+    ai = a.imag()
+    if not ai:
+        return (0, ar)
+    epsilon = 1e-10
+    if ar.abs() < epsilon:
+        ar_truncated = 0
+    elif ar.prec() < 34:
+        ar_truncated = ar
     else:
-        if bi:
-            return -1
-        else:
-            return cmp(ar, br)
+        ar_truncated = ar.n(digits=9)
+    return (1, ar_truncated, ai)
+
 
 def sort_complex_numbers_for_display(nums):
     r"""
@@ -5131,12 +5073,12 @@ def sort_complex_numbers_for_display(nums):
     first element of each tuple is a complex number), we sort the list
     in a "pretty" order.  First come the real numbers (with zero
     imaginary part), then the complex numbers sorted according to
-    their real part.  If two complex numbers have a real part which is
-    sufficiently close, then they are sorted according to their
+    their real part.  If two complex numbers have the same real part,
+    then they are sorted according to their
     imaginary part.
 
     This is not a useful function mathematically (not least because
-    there's no principled way to determine whether the real components
+    there is no principled way to determine whether the real components
     should be treated as equal or not).  It is called by various
     polynomial root-finders; its purpose is to make doctest printing
     more reproducible.
@@ -5158,13 +5100,14 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c(nums)
         [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
-    if len(nums) == 0:
+    if not nums:
         return nums
 
     if isinstance(nums[0], tuple):
-        return sorted(nums, cmp=_cmp_complex_for_display, key=lambda t: t[0])
+        return sorted(nums, key=lambda t: _key_complex_for_display(t[0]))
     else:
-        return sorted(nums, cmp=_cmp_complex_for_display)
+        return sorted(nums, key=_key_complex_for_display)
+
 
 def fundamental_discriminant(D):
     r"""
@@ -5318,8 +5261,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     REFERENCES:
 
-    .. [Apostol] \T. Apostol, Modular functions and Dirichlet series
-       in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
+    - [Ap1997]_
 
     - :wikipedia:`Dedekind\_sum`
     """

@@ -87,10 +87,10 @@ def simplify_sqrt_real(expr):
     sexpr = str(expr)
     if 'sqrt(' not in sexpr:  # no sqrt to simplify
         return expr
-    if 'D[' in sexpr:
+    if ('D[' in sexpr) or ('diff(' in sexpr):
         return expr    #!# the code below is not capable of simplifying
-                       # expressions with symbolic derivatives denoted by Pynac
-                       # symbols of the type D[0]
+                       # expressions with symbolic derivatives denoted
+                       # by Pynac symbols of the type D[0] or diff(...)
     # Lists to store the positions of all the top-level sqrt's in sexpr:
     pos_sqrts = []  # position of first character, i.e. 's' of 'sqrt(...)'
     pos_after = []  # position of character immediatelty after 'sqrt(...)'
@@ -203,6 +203,10 @@ def simplify_abs_trig(expr):
     sexpr = str(expr)
     if 'abs(sin(' not in sexpr:  # nothing to simplify
         return expr
+    if ('D[' in sexpr) or ('diff(' in sexpr):
+        return expr    #!# the code below is not capable of simplifying
+                       # expressions with symbolic derivatives denoted
+                       # by Pynac symbols of the type D[0] or diff(...)
     tp = []
     val = []
     for pos in range(len(sexpr)):
@@ -614,7 +618,7 @@ class ExpressionNice(Expression):
         r"""
         LaTeX representation of the object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('x y z')
             (x, y, z)
@@ -890,3 +894,64 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
     graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
     return graph
 
+def exterior_derivative(form):
+    r"""
+    Exterior derivative of a differential form.
+
+    INPUT:
+
+    - ``form`` -- a differential form; this must an instance of either
+
+      * :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+        for a 0-form (scalar field)
+      * :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal` for
+        a `p`-form (`p\geq 1`) on a parallelizable manifold
+      * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a
+        a `p`-form (`p\geq 1`) on a non-parallelizable manifold
+
+    OUTPUT:
+
+    - the `(p+1)`-form that is the exterior derivative of ``form``
+
+    EXAMPLES:
+
+    Exterior derivative of a scalar field (0-form)::
+
+        sage: from sage.manifolds.utilities import exterior_derivative
+        sage: M = Manifold(3, 'M')
+        sage: X.<x,y,z> = M.chart()
+        sage: f = M.scalar_field({X: x+y^2+z^3}, name='f')
+        sage: df = exterior_derivative(f); df
+        1-form df on the 3-dimensional differentiable manifold M
+        sage: df.display()
+        df = dx + 2*y dy + 3*z^2 dz
+
+    An alias is ``xder``::
+
+        sage: from sage.manifolds.utilities import xder
+        sage: df == xder(f)
+        True
+
+    Exterior derivative of a 1-form::
+
+        sage: a = M.one_form(name='a')
+        sage: a[:] = [x+y*z, x-y*z, x*y*z]
+        sage: da = xder(a); da
+        2-form da on the 3-dimensional differentiable manifold M
+        sage: da.display()
+        da = (-z + 1) dx/\dy + (y*z - y) dx/\dz + (x*z + y) dy/\dz
+        sage: dda = xder(da); dda
+        3-form dda on the 3-dimensional differentiable manifold M
+        sage: dda.display()
+        dda = 0
+
+    .. SEEALSO::
+
+        :class:`sage.manifolds.differentiable.diff_form.DiffFormParal.exterior_derivative`
+        or :class:`sage.manifolds.differentiable.diff_form.DiffForm.exterior_derivative`
+        for more examples.
+
+    """
+    return form.exterior_derivative()
+
+xder = exterior_derivative

@@ -168,18 +168,29 @@ class SloaneSequence(SageObject):
         """
         raise NotImplementedError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
-            sage: cmp(sloane.A000007,sloane.A000045) == 0
+            sage: sloane.A000007 == sloane.A000045
             False
-            sage: cmp(sloane.A000007,sloane.A000007) == 0
+            sage: sloane.A000007 == sloane.A000007
             True
         """
         if not isinstance(other, SloaneSequence):
-            return cmp(type(self), type(other))
-        return cmp(repr(self), repr(other))
+            return False
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: sloane.A000007 != sloane.A000045
+            True
+            sage: sloane.A000007 != sloane.A000007
+            False
+        """
+        return not self.__eq__(other)
 
     def _sage_src_(self):
         """
@@ -9470,7 +9481,7 @@ class A000110(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             B_n = \sum{k=0}^{n} S(n, k) .
 
@@ -9530,7 +9541,7 @@ class A000587(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             C_n = \sum{k=0}^{n} (-1)^k S(n, k) .
 
@@ -9695,7 +9706,7 @@ class Sloane(SageObject):
         EXAMPLES::
 
             sage: type(sloane.trait_names())
-            <type 'list'>
+            <... 'list'>
         """
         try:
             return self.__trait_names

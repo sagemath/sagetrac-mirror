@@ -5,7 +5,7 @@ Weierstrass `\wp`-function for elliptic curves
 The Weierstrass `\wp` function associated to an elliptic curve over a
 field `k` is a Laurent series of the form
 
-.. math::
+.. MATH::
 
     \wp(z) = \frac{1}{z^2} +  c_2 \cdot z^2 + c_4 \cdot z^4 + \cdots.
 
@@ -19,7 +19,7 @@ coefficients where `p` is the characteristic of `k`. It can be defined
 via the formal group as `x+c` in the variable `z=\log_E(t)` for a
 constant `c` such that the constant term `c_0` in `\wp(z)` is zero.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: E = EllipticCurve([0,1])
     sage: E.weierstrass_p()

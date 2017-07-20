@@ -107,6 +107,7 @@ This base class provides a lot more methods than a general parent::
     ['__fraction_field',
      '__ideal_monoid',
      '__iter__',
+     '__len__',
      '__pow__',
      '__rpow__',
      '__rtruediv__',
@@ -164,7 +165,6 @@ This base class provides a lot more methods than a general parent::
      'is_ring',
      'is_subring',
      'krull_dimension',
-     'list',
      'ngens',
      'one',
      'order',
@@ -537,8 +537,11 @@ fields instead of the category of fields::
     sage: [p for p in dir(QuotientFields().parent_class) if p not in dir(Fields().parent_class)]
     []
     sage: [p for p in dir(QuotientFields().element_class) if p not in dir(Fields().element_class)]
-    ['_derivative', 'denominator', 'derivative', 'factor',
-     'numerator', 'partial_fraction_decomposition']
+    ['_derivative',
+     'denominator',
+     'derivative',
+     'numerator',
+     'partial_fraction_decomposition']
 
 .. end of output
 
@@ -1594,6 +1597,7 @@ Let us see what tests are actually performed::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1605,6 +1609,7 @@ Let us see what tests are actually performed::
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1764,6 +1769,7 @@ interesting.
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
       running ._test_factorisation() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1775,6 +1781,7 @@ interesting.
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass

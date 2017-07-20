@@ -211,6 +211,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import add_metaclass
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -220,12 +221,10 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.tableau import Tableau, Tableaux, Tableaux_size, Tableaux_all, StandardTableau,\
         StandardTableaux, StandardTableaux_size, StandardTableaux_all, StandardTableaux_shape
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
-from sage.misc.sage_unittest import TestSuite
 from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
@@ -700,10 +699,10 @@ class TableauTuple(CombinatorialElement):
         # attempt to return a tableau of the same type
         try:
             return self.parent()(conj)
-        except StandardError:
+        except Exception:
             try:
                 return self.parent().element_class(self.parent(), conj)
-            except StandardError:
+            except Exception:
                 return Tableau(conj)
 
     def pp(self):
@@ -1382,6 +1381,7 @@ class TableauTuple(CombinatorialElement):
 #--------------------------------------------------
 # Standard tableau tuple - element class
 #--------------------------------------------------
+@add_metaclass(ClasscallMetaclass)
 class StandardTableauTuple(TableauTuple):
     r"""
     A class to model a standard tableau of shape a partition tuple. This is
@@ -1489,8 +1489,6 @@ class StandardTableauTuple(TableauTuple):
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[], [[2],[5]]]) ).run()
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[[7]], [[2],[5]]]) ).run()
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -1897,7 +1895,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: t.category()
         Category of elements of Tableau tuples of level 3
 
-    .. SEE ALSO::
+    .. SEEALSO::
 
        - :class:`Tableau`
        - :class:`StandardTableau`
@@ -3245,7 +3243,8 @@ class StandardTableauTuples_level_size(StandardTableauTuples):
             return self.element_class(self, sum([[[[1],[2]]]],[[] for i in range(self.level()-1)]))
         else:
             return self.element_class(self, sum([[[[1]]],
-                      [[range(2,self.size()),[self.size()]]]],[[] for i in range(self.level()-2)]))
+                      [[list(range(2,self.size())),
+                        [self.size()]]]],[[] for i in range(self.level()-2)]))
 
 class StandardTableauTuples_shape(StandardTableauTuples):
     """

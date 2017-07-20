@@ -31,8 +31,9 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
+from six import iteritems
 
 # System imports
 import sys
@@ -55,6 +56,7 @@ from . import matrix_integer_sparse
 from . import matrix_rational_dense
 from . import matrix_rational_sparse
 
+from . import matrix_polynomial_dense
 from . import matrix_mpolynomial_dense
 
 # Sage imports
@@ -75,6 +77,7 @@ from sage.misc.all import lazy_attribute
 
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
+from sage.categories.enumerated_sets import EnumeratedSets
 
 _Rings = Rings()
 _Fields = Fields()
@@ -118,11 +121,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of infinite modules over (euclidean domains
-             and infinite enumerated sets and metric spaces)
+        Category of infinite enumerated modules over
+         (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of infinite algebras over (euclidean domains
-             and infinite enumerated sets and metric spaces)
+        Category of infinite enumerated algebras over
+         (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
         Category of infinite algebras over (quotient fields and metric spaces)
 
@@ -323,6 +326,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         elif is_finite is False:
             category = category.Infinite()
 
+        if base_ring in EnumeratedSets:
+            category = category.Enumerated()
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
@@ -381,7 +387,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Is it faster to copy a zero matrix or is it faster to create a
         new matrix from scratch?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),20,20)
             sage: MS._copy_zero
@@ -478,13 +484,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: x = polygen(QQ)
             sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
-            ...             SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
-            ...             NumberField(x^3+2,'a'), CyclotomicField(4),
-            ...             PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
-            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
-            ...       B = A.augment(A)
-            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
-            ...       B = A.augment(A)
+            ....:           SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
+            ....:           NumberField(x^3+2,'a'), CyclotomicField(4),
+            ....:           PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
+            ....:     A = MatrixSpace(R,60,30,sparse=False)(0)
+            ....:     B = A.augment(A)
+            ....:     A = MatrixSpace(R,60,30,sparse=True)(0)
+            ....:     B = A.augment(A)
 
         Check that :trac:`13012` is fixed::
 
@@ -630,6 +636,39 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ 5  6  7  8  9]
             [10 11 12 13 14]
             [15 16 17 18 19]
+
+        TESTS:
+
+        Check that :trac:`22091` is fixed::
+
+            sage: A = Zmod(4)
+            sage: R = MatrixSpace(A, 2)
+            sage: G = GL(2, A)
+            sage: R.coerce_map_from(G)
+            Call morphism:
+              From: General Linear Group of degree 2 over Ring of integers modulo 4
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 4
+            sage: R.coerce_map_from(GL(2, ZZ))
+            Call morphism:
+              From: General Linear Group of degree 2 over Integer Ring
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 4
+
+            sage: m = R([[1, 0], [0, 1]])
+            sage: m in G
+            True
+            sage: m in list(G)
+            True
+            sage: m == G(m)
+            True
+
+            sage: G = SL(3, QQ)
+            sage: M = MatrixSpace(QQ, 3)
+            sage: G.one() == M.identity_matrix()
+            True
+            sage: G.one() + M.identity_matrix()
+            [2 0 0]
+            [0 2 0]
+            [0 0 2]
         """
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
@@ -638,6 +677,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
                 raise TypeError("no canonical coercion")
+        from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
+        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
+        if ((is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement))
+            and self.base_ring().has_coerce_map_from(x.base_ring())):
+            return self(x)
         return self._coerce_try(x, self.base_ring())
 
     def _repr_(self):
@@ -964,7 +1008,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS[2]
             Traceback (most recent call last):
             ...
-            NotImplementedError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
         if isinstance(x, (int, long, integer.Integer)):
             return self.list()[x]
@@ -1033,6 +1077,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         return matrix_gfpn_dense.Matrix_gfpn_dense
                     except ImportError:
                         pass
+            elif sage.rings.polynomial.polynomial_ring.is_PolynomialRing(R) and R.base_ring() in _Fields:
+                return matrix_polynomial_dense.Matrix_polynomial_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
@@ -1151,8 +1197,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if self.__nrows != self.__ncols:
             raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
-        for i in xrange(self.__nrows):
-            A[i,i] = 1
+        for i in range(self.__nrows):
+            A[i, i] = 1
         A.set_immutable()
         return A
 
@@ -1438,7 +1484,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
-        if isinstance(x, (types.GeneratorType, xrange)):
+        if isinstance(x, (types.GeneratorType,)):
             x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)
@@ -1743,10 +1789,10 @@ def dict_to_list(entries, nrows, ncols):
         sage: dict_to_list(d, 2, 3)
         [1, 0, 0, 0, 2, 0]
     """
-    v = [0]*(nrows*ncols)
-    for ij, y in entries.iteritems():
-        i,j = ij
-        v[i*ncols + j] = y
+    v = [0] * (nrows * ncols)
+    for ij, y in iteritems(entries):
+        i, j = ij
+        v[i * ncols + j] = y
     return v
 
 def list_to_dict(entries, nrows, ncols, rows=True):

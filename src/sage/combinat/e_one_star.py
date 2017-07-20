@@ -221,7 +221,6 @@ from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 # matplotlib color maps, loaded on-demand
@@ -353,15 +352,19 @@ class Face(SageObject):
         """
         v1 = self.vector()
         v2 = other.vector()
-        t1 = self.type()
-        t2 = other.type()
-
         if v1 < v2:
             return -1
         elif v1 > v2:
             return 1
-        else:
-            return cmp(t1, t2)
+
+        t1 = self.type()
+        t2 = other.type()
+        if t1 < t2:
+            return -1
+        elif t1 > t2:
+            return 1
+
+        return 0
 
     def __hash__(self):
         r"""
@@ -1087,7 +1090,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 
@@ -1237,7 +1240,7 @@ class Patch(SageObject):
             sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
-            sage: view(P, tightpage=true)                       #not tested
+            sage: view(P)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 
@@ -1253,7 +1256,7 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: M = matrix(2, 3, map(float, [1,0,-0.7071,0,1,-0.7071]))
+            sage: M = matrix(2,3,[float(u) for u in [1,0,-0.7071,0,1,-0.7071]])
             sage: P = E(P, 3)
             sage: s = P.plot_tikz(projmat=M, edgecolor='facecolor', scale=0.6, drawzero=True)
 

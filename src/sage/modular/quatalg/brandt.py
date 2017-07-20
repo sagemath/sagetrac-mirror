@@ -7,7 +7,7 @@ Introduction
 This tutorial outlines the construction of Brandt modules in Sage. The
 importance of this construction is that it provides us with a method
 to compute modular forms on `\Gamma_0(N)` as outlined in Pizer's paper
-[Pizer]_. In fact there exists a non-canonical Hecke algebra isomorphism
+[Piz1980]_. In fact there exists a non-canonical Hecke algebra isomorphism
 between the Brandt modules and a certain subspace of
 `S_{2}(\Gamma_0(pM))` which contains all the newforms.
 
@@ -147,10 +147,8 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Pizer] Arnold Pizer, *An Algorithm for Computing Modular Forms on* `\Gamma_{0}(N)`
-
-.. [Kohel] David Kohel, *Hecke Module Structure of Quaternions*
-
+- [Piz1980]_
+- [Koh2000]_
 
 Further Examples
 ----------------
@@ -305,7 +303,7 @@ def class_number(p, r, M):
     Return the class number of an order of level `N = p^r M` in the
     quaternion algebra over `\QQ` ramified precisely at `p` and infinity.
 
-    This is an implementation of Theorem 1.12 of [Pizer]_.
+    This is an implementation of Theorem 1.12 of [Piz1980]_.
 
     INPUT:
 
@@ -341,7 +339,7 @@ def maximal_order(A):
     Return a maximal order in the quaternion algebra ramified
     at `p` and infinity.
 
-    This is an implementation of Proposition 5.2 of [Pizer]_.
+    This is an implementation of Proposition 5.2 of [Piz1980]_.
 
     INPUT:
 
@@ -528,7 +526,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         Always trivial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BrandtModule(11,5).character()
             Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1
@@ -1009,7 +1007,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
             sage: B = BrandtModule(5,11); B
             Brandt module of dimension 4 of level 5*11 of weight 2 over Rational Field
-            sage: sorted(list(B._theta_dict(5).iteritems()))
+            sage: sorted(list(B._theta_dict(5).items()))
             [((1, 0, 0, 4, 0), [3]),
              ((1, 0, 0, 4, 2), [2]),
              ((1, 0, 2, 0, 6), [1]),
@@ -1017,7 +1015,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         In this example, the theta series does not determine the ideal class::
 
-             sage: sorted(list(BrandtModule(37)._theta_dict(6).iteritems()))
+             sage: sorted(list(BrandtModule(37)._theta_dict(6).items()))
              [((1, 0, 2, 2, 6, 4), [1, 2]), ((1, 2, 2, 4, 2, 4), [0])]
         """
         C = self.right_ideals()

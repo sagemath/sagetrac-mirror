@@ -15,18 +15,16 @@ Classes for symbolic functions
 #*****************************************************************************
 from __future__ import division
 
-from six import itervalues
-
-from .ginac cimport *
-
+from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, parent_c
-from expression cimport new_Expression_from_GEx, Expression
+from sage.structure.element cimport Element, parent
+from .expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
 from sage.structure.element cimport coercion_model
+from sage.structure.sage_object cimport richcmp
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -118,7 +116,7 @@ cdef class Function(SageObject):
             global sfunction_serial_dict
             sfunction_serial_dict[self._serial] = self
 
-            from sage.symbolic.pynac import symbol_table, register_symbol
+            from sage.libs.pynac.pynac import symbol_table, register_symbol
             symbol_table['functions'][self._name] = self
 
             register_symbol(self, self._conversions)
@@ -305,7 +303,7 @@ cdef class Function(SageObject):
         else:
             return self._name
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         TESTS::
 
@@ -318,9 +316,11 @@ cdef class Function(SageObject):
             True
 
         """
-        if isinstance(other, Function):
-            return cmp(self._serial, (<Function>other)._serial)
-        return False
+        try:
+            return richcmp((<Function>self)._serial,
+                           (<Function>other)._serial, op)
+        except AttributeError:
+            return NotImplemented
 
     def __call__(self, *args, bint coerce=True, bint hold=False):
         """
@@ -381,7 +381,7 @@ cdef class Function(SageObject):
         Return types for non-exact input depends on the input type::
 
             sage: type(exp(float(0)))
-            <type 'float'>
+            <... 'float'>
             sage: exp(RR(0)).parent()
             Real Field with 53 bits of precision
 
@@ -395,7 +395,7 @@ cdef class Function(SageObject):
             ...
             TypeError: cannot coerce arguments: ...
             sage: exp(QQbar(I))
-            0.540302305868140 + 0.841470984807897*I
+            e^I
 
         For functions with single argument, if coercion fails we try to call
         a method with the name of the function on the object::
@@ -418,10 +418,10 @@ cdef class Function(SageObject):
             (0, Integer Ring)
             sage: out = sin(int(0))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), float(1))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), RR(1))
             sage: (out, parent(out))
             (0, Integer Ring)
@@ -450,7 +450,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
-        if any(parent_c(arg) is SR for arg in args):
+        if any(parent(arg) is SR for arg in args):
             symbolic_input = True
         else:
             symbolic_input = False
@@ -1157,7 +1157,7 @@ cdef class SymbolicFunction(Function):
         # see if there is already an SFunction with the same state
         cdef Function sfunc
         cdef long myhash = self._hash_()
-        for sfunc in itervalues(sfunction_serial_dict):
+        for sfunc in sfunction_serial_dict.itervalues():
             if isinstance(sfunc, SymbolicFunction) and \
                     myhash == (<SymbolicFunction>sfunc)._hash_():
                 # found one, set self._serial to be a copy

@@ -1,7 +1,7 @@
 r"""
 Base class for old-style parent objects with generators
 
-.. note::
+.. NOTE::
 
    This class is being deprecated, see
    ``sage.structure.parent.Parent`` and
@@ -75,14 +75,15 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
-import gens_py
-cimport parent
+from . import gens_py
+cimport sage.structure.parent as parent
 from sage.structure.coerce_dict import MonoDict
 cimport sage.structure.category_object as category_object
 
@@ -103,7 +104,7 @@ cdef class ParentWithGens(ParentWithBase):
         EXAMPLES::
 
             sage: class MyParent(ParentWithGens):
-            ...       def ngens(self): return 3
+            ....:     def ngens(self): return 3
             sage: P = MyParent(base = QQ, names = 'a,b,c', normalize = True, category = Groups())
             sage: P.category()
             Category of groups
@@ -216,10 +217,6 @@ cdef class ParentWithGens(ParentWithBase):
         d['_list'] = self._list
         d['_names'] = self._names
         d['_latex_names'] = self._latex_names
-        try:
-            d['_generator_orders'] = self._generator_orders
-        except AttributeError:
-            pass
 
         return d
 
@@ -228,7 +225,6 @@ cdef class ParentWithGens(ParentWithBase):
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)
-            self._generator_orders = d['_generator_orders']
         except (AttributeError,KeyError):
             pass
         self._base = d['_base']
@@ -262,13 +258,13 @@ cdef class ParentWithGens(ParentWithBase):
 
         - a homomorphism self --> codomain
 
-        .. note::
+        .. NOTE::
 
            As a shortcut, one can also give an object X instead of
            ``im_gens``, in which case return the (if it exists)
            natural map to X.
 
-        EXAMPLE: Polynomial Ring
+        EXAMPLES: Polynomial Ring
         We first illustrate construction of a few homomorphisms
         involving a polynomial ring.
 
@@ -297,7 +293,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f(x^2+1)
             3
 
-        EXAMPLE: Natural morphism
+        EXAMPLES: Natural morphism
 
         ::
 
@@ -359,7 +355,7 @@ cdef class localvars:
         ....:     print(x^3 + y^3 - x*y)
         z^3 + w^3 - z*w
 
-    .. note::
+    .. NOTE::
 
        I wrote this because it was needed to print elements of the
        quotient of a ring R by an ideal I using the print function for

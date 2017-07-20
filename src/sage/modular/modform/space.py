@@ -1419,8 +1419,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         REFERENCES:
 
-        .. [Sturm] \J. Sturm, On the congruence of modular forms, Number theory
-           (New York, 1984-1985), Springer, Berlin, 1987, pp. 275-280.
+        - [Stu1987]_
 
         NOTE:
 
@@ -1560,7 +1559,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is cuspidal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_cuspidal()
@@ -1574,7 +1573,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is Eisenstein.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_eisenstein()

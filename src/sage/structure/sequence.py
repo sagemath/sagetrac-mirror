@@ -77,6 +77,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
@@ -126,7 +127,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -310,7 +311,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -451,7 +452,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self.__universe = universe
         if check:
             x = list(x)
-            for i in xrange(len(x)):
+            for i in range(len(x)):
                 try:
                     x[i] = universe(x[i])
                 except TypeError:
@@ -778,7 +779,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5

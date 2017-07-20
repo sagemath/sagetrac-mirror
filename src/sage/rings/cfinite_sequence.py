@@ -92,7 +92,8 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
+from six import add_metaclass
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -167,6 +168,7 @@ def CFiniteSequences(base_ring, names = None, category = None):
     return CFiniteSequences_generic(polynomial_ring, category)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CFiniteSequence(FieldElement):
     r"""
     Create a C-finite sequence given its ordinary generating function.
@@ -249,9 +251,6 @@ class CFiniteSequence(FieldElement):
         ...
         NotImplementedError: Multidimensional o.g.f. not implemented.
     """
-
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, ogf):
         r"""
@@ -568,6 +567,32 @@ class CFiniteSequence(FieldElement):
             return False
         return self.ogf() == other.ogf()
 
+    def __ne__(self, other):
+        """
+        Compare two CFiniteSequences.
+
+        EXAMPLES::
+
+            sage: f = CFiniteSequence((2-x)/(1-x-x^2))
+            sage: f2 = CFiniteSequence((2-x)/(1-x-x^2))
+            sage: f != f2
+            False
+            sage: f != (2-x)/(1-x-x^2)
+            True
+            sage: (2-x)/(1-x-x^2) != f
+            True
+            sage: C.<x> = CFiniteSequences(QQ)
+            sage: r = C.from_recurrence([1,1],[2,1])
+            sage: s = C.from_recurrence([-1],[1])
+            sage: r != s
+            True
+            sage: r = C.from_recurrence([-1],[1])
+            sage: s = C(1/(1+x))
+            sage: r != s
+            False
+        """
+        return not self.__eq__(other)
+    
     def __getitem__(self, key):
         r"""
         Return a slice of the sequence.
@@ -622,7 +647,7 @@ class CFiniteSequence(FieldElement):
         """
         if isinstance(key, slice):
             m = max(key.start, key.stop)
-            return [self[ii] for ii in xrange(*key.indices(m + 1))]
+            return [self[ii] for ii in range(*key.indices(m + 1))]
         elif isinstance(key, (int, Integer)):
             from sage.matrix.constructor import Matrix
             d = self._deg
