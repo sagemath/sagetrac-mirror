@@ -590,6 +590,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         EXAMPLES::
 
+            sage: x = QQ['x'].gen()
             sage: f = x^5-23*x^3+18*x^2+40*x
             sage: H = HyperellipticCurve(f)
             sage: m = H.padic_frobenius_matrix(11,2); m
@@ -602,12 +603,12 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: gp.hyperellcharpoly(f.change_ring(GF(11))) == gp(mcp)
             True
 
+            sage: x = QQ['x'].gen()
             sage: K.<a> = NumberField(x^3-5*x+1)
             sage: x = K['x'].gen()
             sage: H = HyperellipticCurve(x^5+x^3-3*a*x^2-2*(a+1)*x-2)
             sage: P = K.ideal(11).factor()[0][0]
-            sage: H = H.change_ring(H.hyperelliptic_polynomials()[0].base_ring().residue_field(P))
-            sage: m = H.padic_frobenius_matrix(11,5)
+            sage: m = H.padic_frobenius_matrix(P,5)
             sage: m.charpoly()
             (1 + O(11^5))*x^4 + (O(11^5))*x^3 + (3 + 11 + O(11^5))*x^2 + (O(11^5))*x + (11^2 + O(11^5))
 
@@ -626,6 +627,12 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: m2 = H.change_ring(GF(31)).frobenius_matrix()
             sage: m1.charpoly() == m2.charpoly()
             True
+
+            sage: H = HyperellipticCurve(x^7-2.5)
+            sage: H.padic_frobenius_matrix(3,5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         AUTHORS:
 
@@ -649,14 +656,15 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         except AttributeError:
             residue_field = GF(p)
         H = (Q**2 + 4*P)
+        pp = residue_field.characteristic()
         if residue_field.is_prime_field():
             H = H.change_ring(residue_field)
-            ans = gen_to_sage(pari_hyperellpadicfrobenius(pari(H),p,prec))
+            ans = gen_to_sage(pari_hyperellpadicfrobenius(pari(H),pp,prec))
         else:
             R = PolynomialRing(ZZ, base.variable_name())
             H = H.change_ring(residue_field)
             T = R(residue_field.polynomial().change_ring(ZZ))
-            pp = residue_field.characteristic()
+
             Kp = Qp(pp,prec).extension(T, names=base.variable_name())
             ldict = {base.variable_name() : R.gen()}
             ans = gen_to_sage(pari_nfhyperellpadicfrobenius(pari(H),pari(T),pp,prec).lift(),locals=ldict)
