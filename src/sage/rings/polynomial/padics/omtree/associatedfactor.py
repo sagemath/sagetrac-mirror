@@ -134,6 +134,21 @@ class AssociatedFactor:
         """
         return not (self == other)
 
+    def __hash__(self):
+        r"""
+        Return a hash value for this factor.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: t = OMTree(x^4+20*x^3+44*x^2+80*x+1040)
+            sage: factor = t.leaves()[0]
+            sage: hash(factor) == hash(factor)
+
+        """
+        return hash((self.segment, self.rho, self.rhoexp))
+
     def FF_elt_to_FFbase_vector(self,a):
         """
         Represents an element in our current extended residue field as a
