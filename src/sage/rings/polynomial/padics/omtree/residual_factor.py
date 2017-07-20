@@ -134,7 +134,7 @@ class ResidualFactor:
         self.Fplus = self.rho.degree()
 
         fr = self.segment.frame
-        if self.segment.frame.is_first():
+        if self.segment.frame.is_root():
             # In the first frame, so FFbase is the residue class field of O
             self.FFbase = fr.R
         else:
@@ -223,8 +223,8 @@ class ResidualFactor:
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: R.<x> = ZpFM(2, 20, 'terse')[]
-            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
-            sage: T.prev
+            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
+            sage: t.prev
             z^2 + z + 1
             sage: t.polygon[0].factors[0]
             z0^2 + a0*z0 + 1
@@ -242,7 +242,7 @@ class ResidualFactor:
             [1, a0 + 1]
 
         """
-        if self.segment.frame.is_first() and self.Fplus == 1:
+        if self.segment.frame.is_root() and self.Fplus == 1:
             return a
         elif self.Fplus == 1:
             return self.segment.frame.prev.FF_elt_to_FFbase_vector(a)
@@ -273,7 +273,7 @@ class ResidualFactor:
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: R.<x> = ZpFM(2, 20, 'terse')[]
-            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
+            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
 
         We take elements in the different finite fields and lift them to the
         next residue field upward in the extension tower::
@@ -289,7 +289,7 @@ class ResidualFactor:
 
         """
         fr = self.segment.frame
-        if fr.is_first() and self.Fplus == 1:
+        if fr.is_root() and self.Fplus == 1:
             return b
         elif self.Fplus == 1:
             return fr.prev.FFbase_elt_to_FF(b)
@@ -378,14 +378,14 @@ class ResidualFactor:
         from frame import Frame
         fr = self.segment.frame
         if self.segment.slope is infinity:
-            next = Frame(fr.Phi, self, fr.iteration)
+            next = Frame(fr.Phi(), self, fr.iteration)
             self.next = next
             next.seed(fr.phi, length=length)
             return next
         if self.Fplus == 1 and self.segment.Eplus == 1:
-            next = Frame(fr.Phi, fr.prev, fr.iteration)
+            next = Frame(fr.Phi(), fr.prev, fr.iteration)
         else:
-            next = Frame(fr.Phi, self, fr.iteration)
+            next = Frame(fr.Phi(), self, fr.iteration)
         self.next = next
         self.gamma_frameelt = FrameElt(next, self.segment.psi**-1, self.segment.Eplus)
         if self.Fplus == 1 and fr.F == 1:

@@ -6,7 +6,7 @@ AUTHORS:
 - Brian Sinclair (2012-02-22): initial version
 
 """
-from sage.rings.polynomial.padics.omtree.associatedfactor import AssociatedFactor
+from sage.rings.polynomial.padics.omtree.residual_factor import ResidualFactor
 from sage.rings.infinity import infinity
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -26,7 +26,7 @@ class Segment(SageObject):
     Each Segment represents a partitioning of the roots of the original
     polynomial, and thus each is responsible for branching the OM tree.
 
-    Also, Segments can find their own associated polynomials, whose factors
+    Also, Segments can find their own residual polynomials, whose factors
     represent further branching of the OM tree.
 
     INPUT:
@@ -37,7 +37,7 @@ class Segment(SageObject):
     - ``slope`` -- Rational or infinity; The slope of the segment.
 
     - ``verts`` -- List of tuples; The list of vertices of points of the
-      associated polynomial found on this segment. Most notably, this
+      residual polynomial found on this segment. Most notably, this
       needs to include the endpoints of the segment.
 
     EXAMPLES::
@@ -78,7 +78,7 @@ class Segment(SageObject):
         sage: f.polygon[0].Eplus
         2
 
-    Associate polynomials for each segment check for possible inertia and
+    Residual polynomials for each segment check for possible inertia and
     the residue field is extended by their irreducible factors::
 
         sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
@@ -86,17 +86,17 @@ class Segment(SageObject):
         sage: f = Frame(Phi); f.seed(Phi.parent().gen())
         sage: f.polygon
         [Segment of length 4 and slope 1]
-        sage: f.polygon[0].associate_polynomial()
+        sage: f.polygon[0].residual_polynomial()
         z^4 + z^2 + 1
         sage: f.polygon[0].factors
-        [AssociatedFactor of rho z^2 + z + 1]
+        [z^2 + z + 1]
         sage: f = f.polygon[0].factors[0].next_frame()
         sage: f.polygon
         [Segment of length 2 and slope 5]
-        sage: f.polygon[0].associate_polynomial()
+        sage: f.polygon[0].residual_polynomial()
         z0^2 + a0*z0 + 1
         sage: f.polygon[0].factors
-        [AssociatedFactor of rho z0^2 + a0*z0 + 1]
+        [z0^2 + a0*z0 + 1]
 
     """
     def __init__(self, frame, slope, verts):
@@ -123,8 +123,8 @@ class Segment(SageObject):
             self.psi = self.frame.find_psi(self.slope*self.Eplus)
         else:
             self.Eplus = Integer(1)
-        self.factors = [AssociatedFactor(self, afact[0], afact[1])
-                        for afact in list(self.associate_polynomial().factor())]
+        self.factors = [ResidualFactor(self, afact[0], afact[1])
+                        for afact in list(self.residual_polynomial().factor())]
 
     def __cmp__(self, other):
         """
@@ -145,11 +145,11 @@ class Segment(SageObject):
         return cmp((self.length, self.verts, self.slope), (other.length, other.verts, other.slope))
 
     @cached_method
-    def associate_polynomial(self):
+    def residual_polynomial(self):
         """
-        Return the associated polynomial of this segment.
+        Return the residual polynomial of this segment.
 
-        The associated polynomial is found by taking the points on the
+        The residual polynomial is found by taking the points on the
         segment, shortening the segment by the discovered ramification
         (the increase in slope denominator) and taking their residues.
 
@@ -164,7 +164,7 @@ class Segment(SageObject):
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
             sage: seg = Segment(f, 1/8, [(0, 4), (32, 0)]); seg
             Segment of length 32 and slope 1/8
-            sage: seg.associate_polynomial()
+            sage: seg.residual_polynomial()
             z^4 + 1
 
         """

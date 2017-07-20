@@ -56,7 +56,7 @@ class OMTree(SageObject):
 
             """
             # Handle the unlikely event that our approximation is actually a factor
-            if next.is_first() == False and next.phi == next.prev_frame().phi:
+            if next.is_root() == False and next.phi == next.prev_frame().phi:
                 return [next]
             if next.phi_divides_Phi():
                 return [next] + [[followsegment(fact.next_frame(fact.multiplicity + 1), Phi)

@@ -102,7 +102,7 @@ class FrameElt(SageObject):
             self.terms = [FrameEltTerm(self, a, this_exp)]
         elif a is None:
             self.terms = []
-        elif frame.is_first():
+        elif frame.is_root():
             self.terms = [FrameEltTerm(self, a, 0)]
         else:
             # Compute the phi-expansion of a
@@ -235,7 +235,7 @@ class FrameElt(SageObject):
         if not self.is_reduced():
             self = self.reduce()
 
-        if self.frame.is_first():
+        if self.frame.is_root():
             if self.terms[0]._exponent == 0:
                 # unable to coerce in Zq
                 #return self.frame.R(self.terms[0]._unit)
@@ -272,7 +272,7 @@ class FrameElt(SageObject):
             sage: e.reduce()
             [[[[1025*2^40]phi1^5]phi2^1]phi3^0, [[[134217729*2^13]phi1^0]phi2^1]phi3^1]
         """
-        if self.frame.is_first():
+        if self.frame.is_root():
             return self
         Eplus = self.frame.prev.segment.Eplus
         Fplus = self.frame.prev.Fplus
@@ -282,16 +282,16 @@ class FrameElt(SageObject):
                 b = FrameElt(self.frame)
                 b.terms = [FrameEltTerm(b, a.value(), a._exponent - Eplus * Fplus)]
                 b *= self.frame.prev.reduce_elt
-                reduced_elt + = b.reduce()
+                reduced_elt += b.reduce()
             elif a._exponent < 0:
                 b = FrameElt(self.frame)
                 b.terms = [FrameEltTerm(b, a.value(), a._exponent + Eplus * Fplus)]
                 b *= (self.frame.prev.reduce_elt)**(-1)
-                reduced_elt + = b.reduce()
+                reduced_elt += b.reduce()
             else:
                 summand = FrameElt(self.frame)
                 summand.terms = [FrameEltTerm(reduced_elt, a.value().reduce(), a._exponent)]
-                reduced_elt + = summand
+                reduced_elt += summand
         return reduced_elt
 
     def is_reduced(self):
@@ -331,7 +331,7 @@ class FrameElt(SageObject):
             sage: fe1.find_denominator()
             1
         """
-        if self.frame.is_first():
+        if self.frame.is_root():
             return self.terms[0]._exponent
         else:
             return min([fet._coefficient.find_denominator() for fet in self.terms])
@@ -376,7 +376,7 @@ class FrameElt(SageObject):
         else:
             if min([a._exponent for a in self.terms]) < 0:
                 raise ValueError("Cannot construct polynomial representation of FrameElt over Zp with negative exponents without denominator flag")
-            if self.frame.is_first():
+            if self.frame.is_root():
                 return self.frame.Ox(self.frame.O.uniformizer()**int(self.terms[0]._exponent)*self.terms[0]._unit)
             else:
                 return sum([self.frame.prev_frame().phi**int(a._exponent)*a._coefficient.polynomial() for a in self.terms])
@@ -398,7 +398,7 @@ class FrameElt(SageObject):
             sage: -fe1
             [[524285*2^1]phi1^0, [262139*2^2]phi1^2]
         """
-        if self.frame.is_first():
+        if self.frame.is_root():
             return FrameElt(self.frame, -self.polynomial())
         else:
             neg = FrameElt(self.frame)
@@ -755,7 +755,7 @@ class FrameEltTerm(SageObject):
                 else:
                     self._unit = a.unit_part()
                     if a.valuation() > 0:
-                        self._exponent + = a.valuation()
+                        self._exponent += a.valuation()
             else:
                 self._coefficient = FrameElt(self.frameelt.frame.prev_frame(), a)
         else:
@@ -1105,7 +1105,7 @@ class FrameEltTerm(SageObject):
             [524285*2^1]phi1^2
 
         """
-        if self.frameelt.frame.is_first():
+        if self.frameelt.frame.is_root():
             return FrameEltTerm(self.frameelt, -self._unit, self._exponent)
         else:
             return FrameEltTerm(self.frameelt, -self._coefficient, self._exponent)

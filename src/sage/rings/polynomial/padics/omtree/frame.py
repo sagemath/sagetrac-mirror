@@ -133,11 +133,10 @@ class Frame(SageObject):
             sage: TestSuite(f).run()
 
         """
+        self._Phi = Phi
         self.prev = prev
-        self.Phi = Phi
         self.O = Phi.base_ring()
         self.Ox = Phi.parent()
-        self.x = self.Ox.gen()
         self.R = self.O.residue_class_field()
         self.Rz = PolynomialRing(self.R, names='z')
         self.phi = None
@@ -188,9 +187,9 @@ class Frame(SageObject):
 
         # Construct the phi expansion of Phi
         self._phi_expansion_as_polynomials = []
-        if self.phi.degree() > self.Phi.degree():
-            self._phi_expansion_as_polynomials = [self.Phi]
-        q, r = self.Phi.quo_rem(self.phi)
+        if self.phi.degree() > self.Phi().degree():
+            self._phi_expansion_as_polynomials = [self.Phi()]
+        q, r = self.Phi().quo_rem(self.phi)
         self._phi_expansion_as_polynomials.append(r)
         while q != 0 and length > len(self._phi_expansion_as_polynomials):
             q, r = q.quo_rem(self.phi)
@@ -288,7 +287,7 @@ class Frame(SageObject):
             sage: T.leaves()[0].root()
             Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
             sage: Fr = Frame(Phi)
-            sage: Fr.seed(Fr.x)
+            sage: Fr.seed(Fr.Ox.gen())
             sage: Fr.root() == Fr
             True
             sage: T.leaves()[0].root() == Fr
@@ -348,7 +347,7 @@ class Frame(SageObject):
             sage: v = [e.valuation() for e in f._phi_expansion_as_elts];v
             [20, 1, 0, 0]
             sage: f._newton_polygon(v)
-            [Segment of length 1 and slope + Infinity,
+            [Segment of length 1 and slope +Infinity,
              Segment of length 1 and slope 1,
              Segment of length 1 and slope 0]
 
@@ -446,6 +445,23 @@ class Frame(SageObject):
         """
         return self.prev is None
 
+    def Phi(self):
+        r"""
+        Return `\Phi`, the local field polynomial being factored.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
+            sage: Phi = ZpFM(2, 20, 'terse')['x'](x^3 + x)
+            sage: f = Frame(Phi)
+            sage: f.seed(Phi.parent().gen())
+            sage: f.Phi()
+            (1 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (1 + O(2^20))*x + (0 + O(2^20))
+
+        """
+        return self._Phi
+
+
     def phi_divides_Phi(self):
         r"""
         Return whether the approximation ``phi`` divides `\Phi`.
@@ -459,7 +475,7 @@ class Frame(SageObject):
             sage: Phi = ZpFM(2, 20, 'terse')['x'](x^3 + x)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
-            sage: f.Phi
+            sage: f.Phi()
             (1 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (1 + O(2^20))*x + (0 + O(2^20))
             sage: f.phi
             (1 + O(2^20))*x + (0 + O(2^20))
@@ -523,7 +539,7 @@ class Frame(SageObject):
         prec = self.O.precision_cap()
         LiftRing = self.O.change(prec=2*prec, type="fixed-mod")
         Lifty = PolynomialRing(LiftRing, names='y')
-        Phi = _move_poly(self.Phi, Lifty)
+        Phi = _move_poly(self.Phi(), Lifty)
         phi = _move_poly(self.phi, Lifty)
 
         a0,a1 = self._phi_expansion_as_elts[0:2]
@@ -582,4 +598,4 @@ class Frame(SageObject):
         if self.phi:
             return 'Frame with phi ' + repr(self.phi)
         else:
-            return 'Unseeded Frame regarding ' + repr(self.Phi)
+            return 'Unseeded Frame regarding ' + repr(self.Phi())
