@@ -83,7 +83,7 @@ from sage.structure.formal_sum      import FormalSum
 
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
-    def _compute_lattice(self, rational_only=False, rational_subgroup=False):
+    def _lattice(self, rational_only=False, rational_subgroup=False):
         r"""
         Return a list of vectors that define elements of the rational
         homology that generate this finite subgroup.
@@ -105,7 +105,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
 
             sage: J = J0(37)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_lattice()
+            sage: C._lattice()
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
             [  1   0   0   0]
@@ -114,7 +114,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             [  0   0   0 1/3]
             sage: J = J0(43)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_lattice()
+            sage: C._lattice()
             Free module of degree 6 and rank 6 over Integer Ring
             Echelon basis matrix:
             [  1   0   0   0   0   0]
@@ -125,7 +125,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             [  0   0   0   0   0   1]
             sage: J = J0(22)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_lattice()
+            sage: C._lattice()
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
             [1/5 1/5 4/5   0]
@@ -134,7 +134,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             [  0   0   0 1/5]
             sage: J = J1(13)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_lattice()
+            sage: C._lattice()
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
             [ 1/19     0     0  9/19]
@@ -148,12 +148,12 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
         ::
 
             sage: J = J0(27); G = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: G._compute_lattice()
+            sage: G._lattice()
             Free module of degree 2 and rank 2 over Integer Ring
             Echelon basis matrix:
             [1/3   0]
             [  0 1/3]
-            sage: G._compute_lattice(rational_only=True)
+            sage: G._lattice(rational_only=True)
             Free module of degree 2 and rank 2 over Integer Ring
             Echelon basis matrix:
             [1/3   0]
@@ -243,7 +243,7 @@ class CuspidalSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_only = False)
+            lattice = self._lattice(rational_only = False)
             self.__lattice = lattice
             return lattice
 
@@ -295,7 +295,7 @@ class RationalCuspSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_only = True)
+            lattice = self._lattice(rational_only = True)
             self.__lattice = lattice
             return lattice
 
@@ -345,7 +345,7 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_subgroup = True)
+            lattice = self._lattice(rational_subgroup = True)
             self.__lattice = lattice
             return lattice
 
@@ -432,7 +432,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
        http://msp.org/ant/2011/5-1/p02.xhtml
     """
 
-    def _compute_lambda(self):
+    def _lambda(self):
         r"""
         This computes the matrix `\Lambda:V \rightarrow W`.
 
@@ -441,7 +441,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
         \span(\eta_{p^r})` where `\eta_n(\tau)=\eta(n\tau)` and `\eta`
         is the modular `\eta` function. Here `P_{p^r}` is the Galois
         stable divisor of degree `1` of cusps in the conjugacy class
-        `{i \over p^r}`.  We have `V=\Otimes V_p` and `W=\otimes W_p`
+        `\frac{i}{p^r}`.  We have `V=\Otimes V_p` and `W=\otimes W_p`
         with the obvious identifications (`\otimes
         P_{p_i^{s_i}}=P_{\prod p_i^{s_i}}`).
 
@@ -453,7 +453,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
             sage: J = J0(15)
             sage: C = J.rational_cuspidal_subgroup_ligozat()
-            sage: C._compute_lambda()
+            sage: C._lambda()
             [15/8 -3/8|-5/8  1/8]
             [-3/8 15/8| 1/8 -5/8]
             [---------+---------]
@@ -462,7 +462,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
             sage: J = J0(25)
             sage: C = J.rational_cuspidal_subgroup_ligozat()
-            sage: C._compute_lambda()
+            sage: C._lambda()
             [    1  -1/5     0]
             [ -1/4 13/10  -1/4]
             [    0  -1/5     1]
@@ -485,7 +485,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
         return ret
 
-    def _compute_P_d_integral(self):
+    def _P_d_integral(self):
         r"""
         This function calculates the module of integral elements in
         `V`.
@@ -501,7 +501,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
             sage: J = J0(25)
             sage: C = J.rational_cuspidal_subgroup_ligozat()
-            sage: C._compute_P_d_integral()
+            sage: C._P_d_integral()
             Sparse free module of degree 3 and rank 3 over Integer Ring
             Echelon basis matrix:
             [1 0 0]
@@ -516,11 +516,12 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
         return Vb.row_module()
 
-    def _compute_parity_module(self):
+    def _parity_module(self):
         r"""
-        This computes the elements in `W` that satisfy the
+        Compute the elements in `W` that satisfy the
         parity condition (4) of Ligozat [Ligo]_
-        (Proposition 1.3, (5) in [Yaz].)
+
+        See also Proposition 1.3, (5) in [Yaz].
 
         In particular, if `\eta_d` is in the module that is returned,
         then `\prod_{d | n} d^{\eta_d}` will be a perfect square.
@@ -529,7 +530,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
             sage: J = J0(25)
             sage: C = J.rational_cuspidal_subgroup_ligozat()
-            sage: C._compute_parity_module()
+            sage: C._parity_module()
             Free module of degree 3 and rank 3 over Integer Ring
             Echelon basis matrix:
             [1 0 0]
@@ -538,7 +539,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
 
             sage: J = J0(15)
             sage: C = J.rational_cuspidal_subgroup_ligozat()
-            sage: C._compute_parity_module()
+            sage: C._parity_module()
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
             [1 0 0 0]
@@ -605,7 +606,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
         V2 = deg.inverse_image((ZZ**1).span([]))
 
         # V3 is the lattice of integral cuspidal divisors invariant under Galois
-        V3 = self._compute_P_d_integral()
+        V3 = self._P_d_integral()
 
         self.__V0 = V2.intersection(V3)
         return self.__V0
@@ -640,7 +641,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
         except AttributeError:
             pass
 
-        L = self._compute_lambda()
+        L = self._lambda()
         d = L.nrows()
 
         V = ZZ**d
@@ -651,7 +652,7 @@ class RationalCuspidalSubgroupLigozat(FiniteSubgroup):
         V1 = lamb.inverse_image(W.ambient_module())
 
         # V4 is the lattice satisfying the parity condition
-        Weven = self._compute_parity_module().intersection(W)
+        Weven = self._parity_module().intersection(W)
         V4 = lamb.inverse_image(Weven)
 
         self.__Vprincipal = self.V0().intersection(V1).intersection(V4)
