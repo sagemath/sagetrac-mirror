@@ -712,15 +712,11 @@ class PollackStevensModularSymbolspace(Module):
 
             sage: D = OverconvergentDistributions(2, 11)
             sage: M = PollackStevensModularSymbols(Gamma0(11), coefficients=D)
-            sage: M.random_element(10)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: M.random_element(10) #indirect doctest
+            Modular symbol of level 11 with values in Space of 11-adic distributions with k=2 action and precision cap 20
+        
         """
-        # This function still has bugs and is not used in the rest of
-        # the package. It is left to be implemented in the future.
-        #raise NotImplementedError
-
+        
         if M is None and not self.coefficient_module().is_symk():
             M = self.coefficient_module().precision_cap()
 
@@ -826,7 +822,6 @@ class PollackStevensModularSymbolspace(Module):
                     v = [0] * M
                     v[1] = 1
                     mu_1 = self.base_ring()(-t.moment(0)) * self.coefficient_module()(v) #this caused problems... precision issues
-                    #mu_1 = (self.coefficient_module()(v)).scale(-t.moment(0)/(chara * k * a **(k-1) * c))
                     for e in manin.gens()[1:]: #rescales all randomly assigned values by (scale)
                         D[e] = self.base_ring()(scale)*D[e]
                     D[g] = D[g]+mu_1 #adds mu_1 to our distinguished value
