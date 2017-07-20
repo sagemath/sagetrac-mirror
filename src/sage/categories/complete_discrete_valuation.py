@@ -326,9 +326,11 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
                 sage: K = Qp(5)
                 sage: K.integer_ring()
+                5-adic Ring with capped relative precision 20
 
                 sage: L.<t> = LaurentSeriesRing(GF(5))
                 sage: L.integer_ring()
+                Power Series Ring in t over Finite Field of size 5
             """
 
 
