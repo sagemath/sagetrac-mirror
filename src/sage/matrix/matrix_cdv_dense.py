@@ -77,3 +77,70 @@ def smith_normal_form(M, transformation):
         return smith, left, right
     else:
         return smith
+
+
+def echelonize(M, transformation):
+    """
+    Helper method to echelonize matrices over CDVR/CDVF
+
+    See also :meth:`_matrix_echelonize`
+    """
+    n = M.nrows()
+    m = M.ncols()
+    R = M.base_ring()
+    if transformation:
+        from sage.matrix.special import identity_matrix
+        left = identity_matrix(R,n)
+    i = j = 0
+    pivots = [ ]
+    while i < n or j < m:
+        val = Infinity
+        pivi = i
+        for ii in range(i,m):
+            v = M[i,j].valuation()
+            if v < val:
+                pivi = ii
+                val = v
+
+        if M[pivi,j] == 0:
+            if val is Infinity:
+                j += 1
+                continue
+            else:
+                raise PrecisionError("Not enough precision to echelonize")
+
+        pivots.append(j)
+
+        M.swap_rows(pivi,i)
+        if transformation:
+            left.swap_rows(pivi,i)
+
+        inv = R(~(M[i,j] >> val))
+        M.rescale_row(i, inv, j+1)
+        M[i,j] = R(1) << val
+        if transformation:
+            left.rescale_row(i, inv)
+        for ii in range(i+1,n):
+            scalar = -(M[ii,j] >> val)
+            M.add_multiple_of_row(ii,i,scalar,j+1)
+            M[ii,j] = R(0)
+            if transformation:
+                left.add_multiple_of_row(ii,i,scalar)
+        for ii in range(i):
+            scalar = -(M[ii,j] // M[i,j])
+            M[ii,j] %= M[i,j]
+            M.add_multiple_of_row(ii,i,scalar,j+1)
+            if transformation:
+                left.add_multiple_of_row(ii,i,scalar)
+
+        i += 1; j += 1
+
+    #if transformation:
+    #    if R.tracks_precision():
+    #        prec = min([ x.precision_absolute() for x in M.list() ])
+    #        if prec is not Infinity:
+    #            prec -= curval
+    #        left = left.apply_map(lambda x: x.add_bigoh(prec))
+    #    return left
+
+    return pivots, left

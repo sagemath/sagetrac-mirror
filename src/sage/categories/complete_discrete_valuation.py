@@ -163,6 +163,10 @@ class CompleteDiscreteValuationRings(Category_singleton):
             from sage.matrix.matrix_cdv_dense import smith_normal_form
             return smith_normal_form(M, transformation)
 
+        def _matrix_echelonize(self, M, transformation=True):
+            from sage.matrix.matrix_cdv_dense import echelonize
+            return echelonize(M, transformation)
+
 
     class ElementMethods:
         @abstract_method
@@ -354,6 +358,10 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             from sage.matrix.matrix_cdv_dense import smith_normal_form
             return smith_normal_form(M, transformation)
+
+        def _matrix_echelonize(self, M, transformation=True):
+            from sage.matrix.matrix_cdv_dense import echelonize
+            return echelonize(M, transformation)
 
 
     class ElementMethods:
