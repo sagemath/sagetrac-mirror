@@ -70,18 +70,11 @@ def class_graph(top, depth=5, name_filter=None, classes=None, as_graph = True):
        can be emulated by setting the option ``as_graph`` to ``False``::
 
         sage: class_graph(sage.rings.polynomial.padics, depth=2, as_graph=False)
-<<<<<<< HEAD
         {'Polynomial_padic_generic_field': ['Polynomial_padic', 'Polynomial_generic_dense_field'],
          'Polynomial_padic_generic_ring': ['Polynomial_padic', 'Polynomial_generic_domain', 'Polynomial_generic_dense'],
          'Polynomial_padic': ['Polynomial_generic_domain'],
          'Polynomial_padic_capped_relative_dense': ['Polynomial_padic'],
          'Polynomial_padic_flat': ['Polynomial_padic_generic_ring']}
-=======
-        {'Polynomial_padic': ['Polynomial'],
-         'Polynomial_padic_capped_relative_dense': ['Polynomial_generic_cdv',
-          'Polynomial_padic'],
-         'Polynomial_padic_flat': ['Polynomial_generic_dense', 'Polynomial_padic']}
->>>>>>> develop
 
     .. note:: the ``classes`` and ``as_graph`` options are mostly
        intended for internal recursive use.
