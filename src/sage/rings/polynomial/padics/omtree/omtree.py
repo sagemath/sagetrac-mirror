@@ -59,12 +59,12 @@ class OMTree(SageObject):
             if next.is_first() == False and next.phi == next.prev_frame().phi:
                 return [next]
             if next.phi_divides_Phi():
-                return [next]+[[followsegment(fact.next_frame(fact.rhoexp+1),Phi)
+                return [next]+[[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
                                 for fact in seg.factors] for seg in next.polygon[1:]]
             # Check if we have an irreducible factor
             if sum([seg.length for seg in next.polygon]) == 1:
                 return next
-            return [[followsegment(fact.next_frame(fact.rhoexp+1),Phi)
+            return [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
                      for fact in seg.factors] for seg in next.polygon]
 
         # Construct and initialize the first frame (phi = x)
@@ -73,13 +73,13 @@ class OMTree(SageObject):
 
         # Handle the special case wherein our initial approximation (phi = x) is a factor
         if next.phi_divides_Phi():
-            tree = [next] + [[followsegment(fact.next_frame(fact.rhoexp+1),Phi)
+            tree = [next] + [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
                               for fact in seg.factors] for seg in next.polygon[1:]]
 
         # Construct the next level of the tree by following every factor of the
         # residual polynomials of every Newton polygon segment in our frame
         else:
-            tree = [[followsegment(fact.next_frame(fact.rhoexp+1),Phi)
+            tree = [[followsegment(fact.next_frame(fact.multiplicity+1),Phi)
                      for fact in seg.factors] for seg in next.polygon]
 
         # tree contains the leaves of the tree of frames where each leaf corresponds
