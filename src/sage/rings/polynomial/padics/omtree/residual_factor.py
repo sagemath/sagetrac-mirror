@@ -1,13 +1,13 @@
 r"""
-Irreducible factors of associated polynomials of higher order Newton Polygons
+Irreducible factors of residual polynomials of higher order Newton Polygons
 
 Okutsu-Montes/Ore-Mac Lane-trees (OM trees) encode information about the
 factorization of a polynomial `\Phi` in the form of a tree. Each node (called a
 :class:`frame.Frame`) has a (higher order) Newton polygon associated to it.
-To each :class:`segment.Segment` of such a Newton polygon one associates a polynomial (the
-:meth:`segment.Segment.associate_polynomial`) over the residue field (of the
-previous frame). Each irreducible factor (represented by an
-:class:`AssociatedFactor`) of these associated polynomials corresponds to a
+To each :class:`segment.Segment` of such a Newton polygon one associates a
+polynomial (the :meth:`segment.Segment.residual_polynomial`) over the residue
+field (of the previous frame). Each irreducible factor (represented by an
+:class:`ResidualFactor`) of these residual polynomials corresponds to a
 factor of `\Phi` approximated in this frame. If such an irreducible factor over
 the residue field is not linear, it encodes a residue field extension, i.e.,
 inertia introduced by the corresponding factor of `\Phi`.
@@ -36,22 +36,31 @@ This OM tree consist of three frames::
     sage: leaf.prev_frame().prev_frame()
     Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
 
-The Newton polygon of the first frame has an associated polynomial that does
-not factor into linear factors::
+The Newton polygon of the first frame has a residual polynomial that does not
+factor into linear factors::
 
     sage: frame = leaf.prev_frame().prev_frame()
     sage: frame.polygon
     [Segment of length 4 and slope 1]
     sage: segment = frame.polygon[0]
-    sage: segment.associate_polynomial().factor()
+    sage: segment.residual_polynomial().factor()
     (z^2 + z + 1)^2
 
-This is an associated factor of the next frame in the tree which corresponds to
+This is an residual factor of the next frame in the tree which corresponds to
 a degree 2 residue field extension::
 
     sage: frame = leaf.prev_frame()
     sage: frame.prev
-    AssociatedFactor of rho z^2 + z + 1
+    z^2 + z + 1
+
+.. TODO::
+
+    Most of the code in this class only exists to work around the fact that
+    there is no proper implementation of towers finite fields (as of 2017-07.)
+    Once towers of finite fields are in better shape, this file can probably go
+    away and replaced by just an irreducible polynomial over the residue field.
+    The only really important method in this file is probably
+    :meth:`ResidualFactor.next_frame`.
 
 """
 #*****************************************************************************
@@ -71,19 +80,19 @@ from sage.matrix.constructor import Matrix
 from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
 from sage.rings.infinity import infinity
 
-class AssociatedFactor:
+class ResidualFactor:
     r"""
-    An irreducible factor of an :meth:`segment.Segment.associate_polynomial` of
+    An irreducible factor of an :meth:`segment.Segment.residual_polynomial` of
     a :class:`segment.Segment` of a higher order Newton polygon.
 
     INPUT:
 
-    - ``segment`` -- the segment of the Newton polygon of whose associated
+    - ``segment`` -- the segment of the Newton polygon of whose residual
       polygon this is a factor
 
     - ``rho`` -- the irreducible factor over the residue field
 
-    - ``multiplicity`` -- the multiplicity of the factor in the associated polygon
+    - ``multiplicity`` -- the multiplicity of the factor in the residual polygon
 
     EXAMPLES::
 
@@ -91,12 +100,12 @@ class AssociatedFactor:
         sage: R.<x> = ZpFM(2, 20, 'terse')[]
         sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
         sage: factor = t.leaves()[0].prev; factor
-        AssociatedFactor of rho z0^2 + a0*z0 + 1
+        z0^2 + a0*z0 + 1
 
     TESTS::
 
-        sage: from sage.rings.polynomial.padics.omtree.associatedfactor import AssociatedFactor
-        sage: isinstance(factor, AssociatedFactor)
+        sage: from sage.rings.polynomial.padics.omtree.residual_factor import ResidualFactor
+        sage: isinstance(factor, ResidualFactor)
         True
 
     """
@@ -106,14 +115,15 @@ class AssociatedFactor:
 
             Fields such as ``segments``, ``rho``, ``multiplicity``, ``Fplus``
             could be hidden behind a method/property so they get a proper
-            docstring.
+            docstring. Most other fields should probably be hidden completely
+            by prepending a ``_`` to their variable names.
 
         TESTS::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
             sage: R.<x> = ZpFM(2, 20, 'terse')[]
-            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
-            sage: factor = t.leaves()[0].prev
+            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
+            sage: factor = T.leaves()[0].prev
             sage: TestSuite(factor).run()
 
         """
@@ -136,6 +146,7 @@ class AssociatedFactor:
             # rho is linear: delta is the root of rho
             self.delta = self.rho.roots()[0][0]
         else:
+            # the residue field as an absolute field
             self.FF = GF(self.FFbase.order()**self.Fplus, 'a' + str(fr.depth))
             self.FFz = PolynomialRing(self.FF, 'z' + str(fr.depth))
             self.FFbase_gamma = (self.FFz(self.FFbase.modulus())).roots()[0][0]
@@ -151,10 +162,9 @@ class AssociatedFactor:
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: k = ZpFM(2, 20, 'terse')
-            sage: kx.<x> = k[]
-            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
-            sage: t.leaves()[0].prev == t.leaves()[0].polygon[0].factors[0]
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
+            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
+            sage: T.leaves()[0].prev == T.leaves()[0].prev
             False
 
         """
@@ -167,10 +177,9 @@ class AssociatedFactor:
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: k = ZpFM(2, 20, 'terse')
-            sage: kx.<x> = k[]
-            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
-            sage: t.leaves()[0].prev != t.leaves()[0].polygon[0].factors[0]
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
+            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
+            sage: T.leaves()[0].prev != T.leaves()[0].prev
             True
 
         """
@@ -195,35 +204,35 @@ class AssociatedFactor:
 
     def FF_elt_to_FFbase_vector(self, a):
         r"""
-        Represent an element in our current extended residue field as a vector
-        over its ground residue field.
-
+        Represent ``a`` as a vector over the ground residue field.
+        
         INPUT:
 
         - ``a`` -- element of our extended residue field
 
         OUTPUT:
 
-        A list representing a vector of ``a`` over the ground field of the
-        latest extension
+        A list representing ``a`` over the ground field of the latest extension
+
+        .. TODO::
+
+            This methods works around missing functionality for towers of
+            finite fields.
 
         EXAMPLES:
 
-        We set up associated factors building a tower of extensions::
-
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: k = ZpFM(2, 20, 'terse')
-            sage: kx.<x> = k[]
-            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
-            sage: t.prev
-            AssociatedFactor of rho z^2 + z + 1
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
+            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
+            sage: T.prev
+            z^2 + z + 1
             sage: t.polygon[0].factors[0]
-            AssociatedFactor of rho z0^2 + a0*z0 + 1
+            z0^2 + a0*z0 + 1
 
         We take elements in the different finite fields and represent them as
         vectors over their base residue field::
 
-            sage: K.<a0> = t.prev.FF;K
+            sage: K.<a0> = t.prev.FF; K
             Finite Field in a0 of size 2^2
             sage: t.prev.FF_elt_to_FFbase_vector(a0 + 1)
             [1, 1]
@@ -255,18 +264,16 @@ class AssociatedFactor:
 
         - ``b`` -- element in the previous residue field.
 
-        OUTPUT:
+        .. TODO::
 
-        an element in the current extended residue field
+            This methods works around missing functionality for towers of
+            finite fields.
 
         EXAMPLES:
 
-        We set up AssociatedFactors building a tower of extensions::
-
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: k = ZpFM(2, 20, 'terse')
-            sage: kx.<x> = k[]
-            sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
+            sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
 
         We take elements in the different finite fields and lift them to the
         next residue field upward in the extension tower::
@@ -303,12 +310,12 @@ class AssociatedFactor:
             sage: kx.<x> = k[]
             sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040).leaves()[0].prev_frame()
             sage: t.prev.__repr__()
-            'AssociatedFactor of rho z^2 + z + 1'
+            'z^2 + z + 1'
             sage: t.polygon[0].factors[0].__repr__()
-            'AssociatedFactor of rho z0^2 + a0*z0 + 1'
+            'z0^2 + a0*z0 + 1'
 
         """
-        return "AssociatedFactor of rho " + repr(self.rho)
+        return repr(self.rho)
 
     def lift(self, delta):
         """
@@ -339,10 +346,10 @@ class AssociatedFactor:
     def next_frame(self, length=infinity):
         r"""
         Produce the child
-        :class:`sage.rings.polynomial.padics.omtree.frame.Frame` in the tree of
-        OM representations with the partitioning from this factor.
+        :class:`sage.rings.polynomial.padics.omtree.frame.Frame` corresponding
+        to this factor in the OM tree.
 
-        This method generates a new frame with this factor as previous and
+        This method generates a new frame with this factor as ``previous`` and
         seeds it with a new approximation with strictly greater valuation than
         the current one.
 
