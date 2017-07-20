@@ -250,6 +250,21 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             return True
 
+        @abstract_method
+        def integer_ring(self):
+            """
+            Return the integer ring of this CDVF
+
+            EXAMPLES::
+
+                sage: K = Qp(5)
+                sage: K.integer_ring()
+
+                sage: L.<t> = LaurentSeriesRing(GF(5))
+                sage: L.integer_ring()
+            """
+
+
         def _matrix_smith_form(self, M, transformation):
             """
             Return the Smith normal form of this matrix.
