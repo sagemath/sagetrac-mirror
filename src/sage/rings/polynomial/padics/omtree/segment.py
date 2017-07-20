@@ -207,3 +207,15 @@ class Segment(SageObject):
 
         """
         return 'Segment of length '+repr(self.length)+' and slope '+repr(self.slope)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this segment.
+        """
+        return hash((self.length, self.slope))
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+    def __ne__(self, other):
+        raise NotImplementedError

@@ -43,7 +43,7 @@ not factor into linear factors::
     sage: frame.polygon
     [Segment of length 4 and slope 1]
     sage: segment = frame.polygon[0]
-    sage: segment.associated_factor().factor()
+    sage: segment.associate_polynomial().factor()
     (z^2 + z + 1)^2
 
 This is an associated factor of the next frame in the tree which corresponds to
@@ -91,6 +91,7 @@ class AssociatedFactor:
         sage: R.<x> = ZpFM(2, 20, 'terse')[]
         sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
         sage: factor = t.leaves()[0].prev; factor
+        AssociatedFactor of rho z0^2 + a0*z0 + 1
 
     TESTS::
 
@@ -110,7 +111,7 @@ class AssociatedFactor:
         TESTS::
 
             sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
-            sage: R = ZpFM(2, 20, 'terse')[]
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
             sage: factor = t.leaves()[0].prev
             sage: TestSuite(factor).run()
@@ -185,8 +186,9 @@ class AssociatedFactor:
             sage: k = ZpFM(2, 20, 'terse')
             sage: kx.<x> = k[]
             sage: t = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
-            sage: factor = t.leaves()[0]
+            sage: factor = t.leaves()[0].prev
             sage: hash(factor) == hash(factor)
+            True
 
         """
         return hash((self.segment, self.rho, self.multiplicity))
