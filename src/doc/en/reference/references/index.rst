@@ -770,6 +770,10 @@ REFERENCES:
             of Hecke points. Forum Mathematicum, 15:2, pp. 165--189,
             De Gruyter, 2003.
 
+.. [GNP2012] J. Guardia, E. Nart, S. Pauli. Single-factor lifting and
+             factorization of polynomials over local fields.  J. Symb. Comput.
+             47(11): 1318-1346 (2012)
+
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 

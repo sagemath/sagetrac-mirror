@@ -14,7 +14,40 @@ AUTHORS:
 
 - Brian Sinclair (2012-02-22): initial version
 
+EXAMPLES:
+
+Consider the following OM tree with respect to `\Z_2`::
+
+    sage: from sage.rings.polynomial.padics.omtree.omtree import OMTree
+    sage: R.<x> = ZpFM(2, 20, 'terse')[]
+    sage: T = OMTree(x^32 + 16)
+
+This OM tree consist of four frames::
+
+    sage: T.leaves()
+    [Frame with phi (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (1048568 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (1048568 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (1048568 + O(2^20))*x^21 + (24 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (48 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (24 + O(2^20))*x^16 + (32 + O(2^20))*x^15 + (1048544 + O(2^20))*x^14 + (32 + O(2^20))*x^13 + (1048480 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (1048496 + O(2^20))*x^10 + (1048544 + O(2^20))*x^9 + (1048544 + O(2^20))*x^8 + (1048512 + O(2^20))*x^7 + (64 + O(2^20))*x^6 + (1048544 + O(2^20))*x^5 + (96 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (96 + O(2^20))*x^2 + (0 + O(2^20))*x + (48 + O(2^20))]
+    sage: leaf = T.leaves()[0]
+    sage: leaf.prev_frame()
+    Frame with phi (1 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (1048572 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (1048572 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (1048572 + O(2^20))*x^5 + (4 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (8 + O(2^20))*x^2 + (0 + O(2^20))*x + (4 + O(2^20))
+    sage: leaf.prev_frame().prev_frame()
+    Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (1048574 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
+    sage: leaf.prev_frame().prev_frame().prev_frame()
+    Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
+
+Since there are no branch points in the tree, the polynomial `x^32 + 16` is
+irreducible over `\Z_2`.
+
 """
+#*****************************************************************************
+#       Copyright (C) 2012-2017 Brian Sinclair <bsinclai@gmail.com>
+#                          2017 Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.padics.omtree.frameelt import FrameElt, FrameEltTerm
@@ -23,7 +56,7 @@ from sage.rings.infinity import infinity
 from sage.structure.sage_object import SageObject
 
 class Frame(SageObject):
-    """
+    r"""
     A node in an OM tree.
 
     .. NOTE::
@@ -85,7 +118,7 @@ class Frame(SageObject):
 
     """
     def __init__(self, Phi, prev=None, iteration_count=0):
-        """
+        r"""
         .. TODO::
 
             Fields in this class should be hidden behind methods/properties so
@@ -109,7 +142,7 @@ class Frame(SageObject):
         self.Rz = PolynomialRing(self.R, names='z')
         self.phi = None
         self.iteration = iteration_count + 1
-        if self.is_first(): # that is self.prev is None
+        if self.is_root(): # that is self.prev is None
             self.E = 1
             self.F = 1
             self.depth = 0
@@ -118,39 +151,23 @@ class Frame(SageObject):
             self.F = self.prev_frame().F * self.prev.Fplus
             self.depth = self.prev_frame().depth + 1
 
-    def __cmp__(self, other):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.padics.omtree.frame import *
-            sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
-            sage: f = Frame(Phi)
-            sage: g = Frame(Phi, iteration_count=4)
-            sage: f == g
-            False
-        """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp((self.Phi, self.iteration), (other.Phi, other.iteration))
-
     def seed(self, phi, length=infinity):
-        """
-        Seed all of the intermediate values of the Frame based on the new
+        r"""
+        Seed all of the intermediate values of the frame based on the new
         approximation to a factor ``phi``.
 
-        In seeding, the Frame will compute a ``phi``-expansion of ``Phi`` and
-        the newton polygon of higher order. Then Segments will construct their
-        assocated polynomials and factors.
+        In seeding, the frame will compute a ``phi``-expansion of `\Phi` and
+        the newton polygon of higher order. Then the Newton polygon will be
+        constructed with its :class:`segment.Segment` and their residual
+        polynomials.
 
         INPUT:
 
-        - ``phi`` - an approximation to a factor of ``Phi``
+        - ``phi`` - an approximation to a factor of `\Phi`
 
-        - ``length`` - Integer or infinity; default infinity. the length of
-          the segment that resulted in this frame.  This provides an extra
-          stopping point for finding phi-expansions if finite as we only
+        - ``length`` - Integer or ``infinity`` (default: ``infinity``); the
+          length of the segment that resulted in this frame.  This provides an
+          extra stopping point for finding phi-expansions if finite as we only
           need up to ``length`` terms.
 
         EXAMPLES::
@@ -158,7 +175,7 @@ class Frame(SageObject):
             sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
             sage: f = Frame(Phi); f
-            Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))
+            Unseeded Frame regarding (1 + O(2^20))*x^32 + ... + (16 + O(2^20))
             sage: f.phi is None
             True
             sage: f.seed(Phi.parent().gen()); f
@@ -182,32 +199,29 @@ class Frame(SageObject):
         self.polygon = self._newton_polygon([e.valuation() for e in self._phi_expansion_as_elts]) # list of segments
 
     def find_psi(self, val):
-        """
-        Find a polynomial (as a FrameElt) with given valuation
+        r"""
+        Find a polynomial (as a :class:`frameelt.FrameElt`) with given valuation.
 
         INPUT:
 
-        - ``val`` - Rational. The desired valuation. The denominator of ``val``
-          must divide the current level of ramification (``E``).
+        - ``val`` - a rational; the desired valuation. The denominator of
+          ``val`` must divide the current level of ramification (``E``).
 
         OUTPUT:
 
-        - A FrameElt with respect to the current frame with valuation ``val``.
+        a FrameElt with respect to the current frame with valuation ``val``
 
-        EXAMPLES::
-
-        First we need an appropriate Frame::
+        EXAMPLES:
 
             sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2, 20, print_mode='terse')['x'](x^16 + 16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
-            sage: f = f.polygon[0].factors[0].next_frame()
-            sage: f
+            sage: f = f.polygon[0].factors[0].next_frame(); f
             Frame with phi (1 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
 
-        We get a valid FrameElt with integer exponents as long as the
-        denominator of ``val`` divides the current ramification::
+        We get a valid :class:`frameelt.FrameElt` with integer exponents as
+        long as the denominator of ``val`` divides the current ramification::
 
             sage: f.E
             4
@@ -219,12 +233,13 @@ class Frame(SageObject):
             (2 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (0 + O(2^20))
 
         If the denominator does not divide the ramification, then we cannot
-        construct a polynomial of this valuation and an error is raised::
+        construct a polynomial of this valuation::
 
             sage: f.find_psi(3/8)
             Traceback (most recent call last):
             ...
             ValueError: Denominator of given valuation does not divide E
+
         """
 
         if self.E % val.denom() != 0:
@@ -248,17 +263,21 @@ class Frame(SageObject):
         return psielt
 
     def root(self):
-        """
-        Returns the root frame reached by traversing up the tree from ``self``.
+        r"""
+        Return a root frame of the OM tree.
 
-        As a note, the leaves for a polynomial's OM Tree may have different roots.
-        Becuase optimal OM Trees remove 'improvement frames' (those for which
-        neither ramificaiton or inertia is found), an OM Tree may technically
-        be a forest.
+        .. NOTE::
 
-        See :meth: `OMTree.roots()` which returns this for each OM Tree leaf.
+            The leaves for a polynomial's OM Tree may have different roots.
+            Becuase optimal OM Trees remove "improvement frames" (those for
+            which neither ramificaiton or inertia is found), an OM Tree may
+            technically be a forest.
 
-        EXAMPLES::
+        .. SEEALSO::
+        
+            :meth:`omtree.OMTree.roots`
+
+        EXAMPLES:
 
         In this example, the root is the default initial frame::
 
@@ -285,34 +304,40 @@ class Frame(SageObject):
             Frame with phi (1 + O(5^30))*z + (931322574615478515623 + O(5^30))
             sage: om.leaves()[1].root()
             Frame with phi (1 + O(5^30))*z + (0 + O(5^30))
+
         """
-        if self.is_first():
+        if self.is_root():
             return self
         else:
             return self.prev_frame().root()
 
     def _newton_polygon(self, a):
-        """
-        Compute the newton polygon of higher order of ``Phi`` with respect to
-        the valuations of the phi-expansion of ``Phi``.
+        r"""
+        Compute the newton polygon of higher order of `\Phi` with respect to
+        the valuations of the phi-expansion of `\Phi`.
 
-        This method constructs finds the slopes of each segment as well as
-        the points on the line of each segment. These values are used to
-        initialize the output Segments.
+        This method finds the slopes of each :class:`segment.Segment` as well
+        as the points on the line of each segment.
+
+        .. TODO::
+
+            This method should be replaced with the more generic newton polygon
+            implementation provided by
+            :class:`sage.geometry.newton_polygon.NewtonPolygon`.
 
         INPUT:
 
-        - ``a`` -- A List of the valuations of the coefficients in the 
-          phi-expansion of ``Phi``.
+        - ``a`` -- a list; the valuations of the coefficients in the
+          phi-expansion of `\Phi`
 
         OUTPUT:
 
-        - A list of Segments comprising the newton polygon of higher order.
+        a list of segments
 
         ALGORITHM:
 
-        - Monotone chain algorithm.
-          See http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+        Monotone chain algorithm,s ee
+        http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
 
         EXAMPLES::
 
@@ -329,15 +354,11 @@ class Frame(SageObject):
 
         """
         def cross(o, a, b):
-            """
-            2D cross product of the vectors oa and ob.
-            """
+            # 2D cross product of the vectors oa and ob
             return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
         def find_slope(a, b):
-            """
-            The negative of the slope through the points a and b.
-            """
-            # Note that we negate the slope
+            # the negative of the slope through the points a and b
+            # (note that we negate the slope)
             return (a[1]-b[1]) / (b[0]-a[0])
 
         lower = [(0, a[0])]
@@ -376,15 +397,11 @@ class Frame(SageObject):
         segments.append(Segment(self, slope, verts))
         return segments
 
-    # Data Access Methods
-
     def prev_frame(self):
-        """
-        Returns the parent of this frame in the OM tree.
+        r"""
+        Return the parent of this frame in the OM tree.
 
-        OUTPUT:
-
-        - The Frame object that is the parent of self in the OM tree.
+        Returns ``None`` if this is a root.
 
         EXAMPLES::
 
@@ -410,32 +427,31 @@ class Frame(SageObject):
         else:
             return self.prev.segment.frame
 
-    def is_first(self):
-        """
-        Returns ``True`` if self is the root of the OM tree, otherwise
-        ``False``.
+    def is_root(self):
+        r"""
+        Return whether this is a root of the OM tree.
 
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.frame import *
             sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
             sage: f = Frame(Phi)
-            sage: f.is_first()
+            sage: f.is_root()
             True
             sage: f.seed(Phi.parent().gen())
             sage: f = f.polygon[0].factors[0].next_frame()
-            sage: f.is_first()
+            sage: f.is_root()
             False
 
         """
         return self.prev is None
 
     def phi_divides_Phi(self):
-        """
-        Returns ``True`` if phi divides Phi, otherwise ``False``.
+        r"""
+        Return whether the approximation ``phi`` divides `\Phi`.
 
-        This is done by checking if the constant term of the phi-expansion
-        of Phi is 0.
+        This is done by checking if the constant term of the ``phi``-expansion
+        of `\Phi` is zero.
 
         EXAMPLES::
 
@@ -455,15 +471,15 @@ class Frame(SageObject):
 
     def single_factor_lift(self):
         r"""
-        Lift a Frame to a factor of the polynomial it approximates.
+        Lift a frame to a factor of the polynomial it approximates.
 
         INPUT:
 
-        - ``frame`` -- a Frame that is the leaf of an OM tree.
+        - ``frame`` -- a frame that is the leaf of an OM tree.
 
         OUTPUT:
 
-        A factor of the polynomial referred to by the input frame
+        a factor of the polynomial referred to by the input frame
 
         EXAMPLES::
 
@@ -480,16 +496,14 @@ class Frame(SageObject):
 
         REFERENCES:
 
-            J. Guardia, E. Nart, S. Pauli. Single-factor lifting and
-            factorization of polynomials over local fields.
-            J. Symb. Comput. 47(11): 1318-1346 (2012)
+        - [GNP2012]
 
         """
         if self.phi_divides_Phi():
             return self.phi
 
         def _reduce(poly, phi, d):
-            """ returns poly mod phi and simplifies the denominator of poly """
+            # returns poly mod phi and simplifies the denominator of poly
             poly = poly % phi
             if d != 0:
                 g = min([d] + [p.valuation() for p in poly])
@@ -499,11 +513,11 @@ class Frame(SageObject):
             return poly, d
 
         def _move_elt(a, S):
-            """ move the element a of R to S which is a changed R """
+            # move the element a of R to S which is a changed R
             return S(a.polynomial().list())
 
         def _move_poly(f, Sy):
-            """ move the polynomial f over R to a polynomial over S which is a changed R """
+            # move the polynomial f over R to a polynomial over S which is a changed R
             return Sy([_move_elt(a, Sy.base()) for a in f.coefficients(sparse=False)])
 
         prec = self.O.precision_cap()
@@ -512,39 +526,39 @@ class Frame(SageObject):
         Phi = _move_poly(self.Phi, Lifty)
         phi = _move_poly(self.phi, Lifty)
 
-        a0, a1 = self._phi_expansion_as_elts[0:2]
+        a0,a1 = self._phi_expansion_as_elts[0:2]
 
         Psi = self.find_psi(-a1.valuation())
         A0 = Psi * a0
         A1 = Psi * a1
 
-        Psi, Psiden = Psi.polynomial(True)
+        Psi,Psiden = Psi.polynomial(True)
         Psi = _move_poly(Psi, Lifty)
 
         C1inv = self.polygon[0].factors[0].lift(1/(A1.residue()))
-        C1inv, C1invden = C1inv.polynomial(True)
+        C1inv,C1invden = C1inv.polynomial(True)
         C1inv = _move_poly(C1inv, Lifty)
-        C1inv, C1invden = _reduce(C1inv, phi, C1invden)
+        C1inv,C1invden = _reduce(C1inv, phi, C1invden)
 
-        A0, A0den = A0.polynomial(True)
-        A0, A0den = _reduce(_move_poly(A0, Lifty), phi, A0den)
+        A0,A0den = A0.polynomial(True)
+        A0,A0den = _reduce(_move_poly(A0, Lifty), phi, A0den)
 
-        C, Cden = _reduce(A0*C1inv, phi, A0den + C1invden)
+        C,Cden = _reduce(A0*C1inv, phi, A0den + C1invden)
         phi = (phi + C)
 
         h = 2
         oldphi = None
         while h < prec and phi != oldphi:
             oldphi = phi
-            C1, C0 = Phi.quo_rem(phi)
+            C1,C0 = Phi.quo_rem(phi)
 
-            C0, C0den = _reduce((Psi*C0), phi, Psiden)
-            C1, C1den = _reduce((Psi*C1), phi, Psiden)
+            C0,C0den = _reduce((Psi*C0), phi, Psiden)
+            C1,C1den = _reduce((Psi*C1), phi, Psiden)
 
-            x1, x1den = _reduce((LiftRing(2)<<(C1den + C1invden))-C1*C1inv, phi, C1den + C1invden)
-            C1inv, C1invden = _reduce(C1inv*x1, phi, C1invden + x1den)
+            x1,x1den = _reduce((LiftRing(2)<<(C1den + C1invden))-C1*C1inv, phi, C1den + C1invden)
+            C1inv,C1invden = _reduce(C1inv*x1, phi, C1invden + x1den)
 
-            C, Cden = _reduce((C0*C1inv), phi, C0den + C1invden)
+            C,Cden = _reduce((C0*C1inv), phi, C0den + C1invden)
 
             phi = (phi + C)
             h = 2 * h
@@ -552,7 +566,7 @@ class Frame(SageObject):
 
     def __repr__(self):
         """
-        Representation of self.
+        Return a printable representation of this frame.
 
         EXAMPLES::
 
@@ -560,7 +574,7 @@ class Frame(SageObject):
             sage: Phi = ZpFM(2, 20, 'terse')['x'](x^32 + 16)
             sage: f = Frame(Phi)
             sage: f.__repr__()
-            'Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))'
+            'Unseeded Frame regarding (1 + O(2^20))*x^32 + ... + (16 + O(2^20))'
             sage: f.seed(Phi.parent().gen())
             sage: f.__repr__()
             'Frame with phi (1 + O(2^20))*x + (0 + O(2^20))'
