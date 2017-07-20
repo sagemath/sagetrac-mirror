@@ -62,6 +62,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
 from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
+from sage.misc.functional import cyclotomic_polynomial
 
 from sage.modules.free_module_element import vector
 
@@ -2014,6 +2015,12 @@ cdef class NumberFieldElement(FieldElement):
     def sqrt(self, extend=False, name=None, all=False):
         """
         Returns the square root of this number in the given number field.
+        
+        INPUT:
+        
+        - ''extend'' -- If True, create an extension field that contain the square root of self
+        - ''name'' -- The name of the square root
+        - ''all'' -- Return a list of the two squares roots
 
         EXAMPLES::
 
@@ -2088,6 +2095,12 @@ cdef class NumberFieldElement(FieldElement):
             a^2
             sage: K((a-3)^5).nth_root(5)
             a - 3
+            
+       ::
+       
+           sage: K.<a> = NumberField(x^2-3)
+           sage: a.nth_root(5, extend=True, name='b', name_root_unity='z', all=True)
+           [b, b*z, b*z^2, b*z^3, -b*z^3 - b*z^2 - b*z - b]
 
         ALGORITHM: Use PARI to factor `x^n` - ``self`` in `K`.
         """
@@ -2104,9 +2117,8 @@ cdef class NumberFieldElement(FieldElement):
             E1 = K.extension(f, name)
             phi_n = cyclotomic_polynomial(n, R.gen())
             E2 = E1.extension(phi_n, name_root_unity)
-            roots = []
-            for i in range(n):
-                roots.append(E1.gen()*(E2.gen())**i)
+            root_of_unity = E2.gen()
+            roots = [(E1.gen()*root_of_unity**i, 1) for i in range(n)]
         else:
             roots = f.roots()
         if all:
