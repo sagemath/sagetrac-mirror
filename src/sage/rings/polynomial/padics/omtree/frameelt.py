@@ -1,24 +1,32 @@
 r"""
-Representations of polynomials as sums of powers of OM approximations
+Representations of polynomials as `\phi`-adic expansions
 
-A :class:`FrameEltTerm` object represents a coefficient polynomial multiplied by the
-approximation `\phi` from the previous term.  In the first term, `\phi`
-is replaced by the uniformizer, presenting a valuation-unit representation
-of a constant. The coefficient in :class:`FrameEltTerm`s beyond the first is a
-:class:`FrameElt` from the previous :class:`frame.Frame`.
+Okutsu-Montes/Ore-Mac Lane-trees (OM trees) encode information about the
+factorization of a polynomial `\Phi`. Each node of such a tree (a
+:class:`frame.Frame`) comes with a polynomial `\phi` which approximates a
+factor of a polynomial `\Phi`. During the construction of the OM tree one
+frequently needs to compute valuations and residue of polynomials with respect
+to a certain frame. Such computations are based on computation of `\phi`-adic
+expansions.
 
-A :class:`FrameElt` is a polynominal in the current :class:`frame.Frame` as a
-sum of powers of the current approximation multiplied by polynomial
-coefficients. The representation is a list of :class:`FrameEltTerm`s, each with
-a power of the approximation and coefficient polynomial.
+The `\phi`-adic expansion of a polynomial `f` is `f = \sum a_i\phi^i` such that
+`\deg a_i<\deg \phi`. This expansion can be computed by repeated quotient
+remainder of `f` with respect to `\phi`.
+
+The frame elements (:class:`FrameElt`) provided by this module are wrapper
+classes around such an expansion. Its terms `a_i\phi^i` are called frame
+element terms (:class:`FrameEltTerm`).
 
 AUTHORS:
 
 - Brian Sinclair (2012-02-22): initial version
 
+- Julian Rüth (2017-07-20): extended documentation
+
 """
 #*****************************************************************************
 #       Copyright (C) 2012-2017 Brian Sinclair <bsinclai@gmail.com>
+#                          2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +34,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.structure.sage_object import SageObject
@@ -34,17 +41,16 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.padic_printing import pAdicPrinter
 
 class FrameElt(SageObject):
-    """
-    Polynomials recursively represented by powers of the approximations
-    `\phi_t(x)` to a factor of `\Phi(x)`.
+    r"""
+    A wrapper of the polynomial ``a`` in its `\phi`-adic expansion where `\phi`
+    is the approximation given by parent frame of ``frame``.
 
     INPUT:
 
-    - ``frame`` -- the :class:`frame.Frame` (and thus approximation) this
-      refers to
+    - ``frame`` -- a :class:`frame.Frame`
 
-    - ``a`` -- a polynomial (default: ``None``); the polynomial to be
-      represented by this frame element.
+    - ``a`` -- a polynomial (default: ``None`` for the zero polynomial); the
+      polynomial to be represented by this frame element
 
     - ``this_exp`` -- int (default: `None``); if not ``None``,
       then this frame element is initialized as having a single term in its
@@ -52,48 +58,58 @@ class FrameElt(SageObject):
 
     EXAMPLES:
 
-    If the FrameElt comes from the first frame, the term must be a constant::
+    For the root frame, the parent frome does not exist. So by convention, only
+    constants can be expressed as frame elements::
 
         sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
         sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-        sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+        sage: R.<x> = ZpFM(2, 20, 'terse')[]
         sage: f = Frame(x^32 + 16); f.seed(x)
         sage: FrameElt(f, 6)
         [3*2^1]
-
-    Otherwise the we have an error (from FrameEltTerm)::
-
         sage: FrameElt(f, x + 1)
         Traceback (most recent call last):
         ...
         TypeError: not a constant polynomial
 
-    Moving to a higher frame and representing 6x^2 + 1.  Notice that the
-    first FrameEltTerm represents 1 and the second (3 * 2^1)*x^2::
+    Moving to a higher frame, the approximation `\phi` of the previous frame is
+    used. Here `6x^2 + 1` is expressed in its `x`-adic expansion as ``[1,
+    6*x^2]``::
 
         sage: f = f.polygon[0].factors[0].next_frame(); f
         Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
         sage: FrameElt(f, 6*x^2 + 1)
         [[1*2^0]phi1^0, [3*2^1]phi1^2]
 
+    TESTS::
+
+        sage: isinstance(f, FrameElt)
+        True
+
     """
-
     def __init__(self, frame, a=None, this_exp=None):
-        """
-        Initializes self.
+        r"""
+        .. TODO::
 
-        See ``FrameElt`` for full documentation.
+            Fields in this class should be hidden behind methods/properties so
+            they get proper docstrings or they should be hidden by prepending a
+            ``_`` to their name.
+
+            Furthermore, frame elements should inherit from ``Element`` and
+            have a parent so that they do not have to implement so much
+            arithmetic boilerplate.
 
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: R.<x> = ZpFM(2, 20, 'terse')
             sage: f = Frame(x^32 + 16); f.seed(x)
             sage: fe = FrameElt(f, 20)
             sage: fe.terms
             [5*2^2]
             sage: TestSuite(fe).run()
+
         """
         # deg(a) < deg(frame.phi)*frame.Eplus*frame.Fplus
         self.frame = frame
@@ -105,7 +121,7 @@ class FrameElt(SageObject):
         elif frame.is_first():
             self.terms = [FrameEltTerm(self, a, 0)]
         else:
-            # Compute the phi-expansion of a
+            # compute the phi-expansion of a
             a = self.frame.Ox(a)
             if self.frame.prev_frame().phi.degree() > a.degree():
                 b = [a]
@@ -118,32 +134,44 @@ class FrameElt(SageObject):
                     b.append(r)
             self.terms = [FrameEltTerm(self, b[i], i) for i in range(len(b)) if not b[i].is_zero()]
 
-    def __cmp__(self, other):
-        """
-        Comparison.
+    def __eq__(self, other):
+        r"""
+        Return whether this is equal to the frame element ``other``.
 
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: R.<x> = ZpFM(2, 20, 'terse')
             sage: f = Frame(x^32 + 16); f.seed(x)
             sage: fe = FrameElt(f, 20)
-            sage: fe2 = FrameElt(f, 20)
-            sage: fe == fe2
+            sage: fe == fe
             True
-            sage: fe == 0
-            False
-            sage: FrameElt(f) == 0
-            False
+
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp((self.frame, self.terms), (other.frame, other.terms))
+        return type(self) is type(other) and self.frame == other.frame and self.terms == other.terms
+
+    def __ne__(self, other):
+        r"""
+        Return whether this is not equal to the frame element ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
+            sage: R.<x> = ZpFM(2, 20, 'terse')
+            sage: f = Frame(x^32 + 16); f.seed(x)
+            sage: fe = FrameElt(f, 20)
+            sage: fe != fe
+            False
+
+        """
+        return not (self == other)
 
     def is_single_term(self):
-        """
-        Returns ``True`` if the FrameElt is a sum of only one term, otherwise ``False``
+        r"""
+        Return whether this is the sum of only one term, i.e., whether this is
+        constant times `\phi`.
 
         EXAMPLES::
 
@@ -153,17 +181,18 @@ class FrameElt(SageObject):
             sage: f0 = Frame(x^32 + 16); f0.seed(x)
             sage: fe0 = FrameElt(f0, 6)
 
-        Since ``fe0`` represents `6`, it has a single term::
+        ::
 
             sage: fe0.is_single_term()
             True
 
-        We can create another ``FrameElt`` that has multiple terms::
+        ::
 
             sage: f1 = f0.polygon[0].factors[0].next_frame()
             sage: fe1 = FrameElt(f1, 6*x^2 + 1)
             sage: fe1.is_single_term()
             False
+
         """
         if len(self.terms) == 1:
             if self.frame.prev is None:
@@ -173,17 +202,19 @@ class FrameElt(SageObject):
         return False
 
     def valuation(self, purge=True):
-        """
-        Returns the valuation of self.
+        r"""
+        Return the valuation of the polynomial represented by this frame
+        element with respect to the associated frame.
 
-        The valuation of a sum (and thus a FrameElt) is the minimum of the
-        valuations of its terms.
+        ALGORITHM:
+
+        Due to the choice of the polynomial `\phi`, the valuation is the
+        minimum of the valuations of its terms.
 
         INPUT:
 
-        - ``purge`` -- Boolean, default True; If True, signals the method
-          to remove any terms from the sum any terms of valuation higher
-          than the minimum.
+        - ``purge`` -- bool, (default: ``True``); if set, the method removes
+          frame element terms that have a valuation higher than the minimum
 
         EXAMPLES::
 
@@ -204,6 +235,7 @@ class FrameElt(SageObject):
             0
             sage: fe1.terms
             [[1*2^0]phi1^0]
+
         """
         if len(self.terms) > 0:
             v = min([a.valuation() for a in self.terms])
@@ -214,8 +246,8 @@ class FrameElt(SageObject):
         return v
 
     def residue(self):
-        """
-        Returns the residue of this frame element.
+        r"""
+        Return the residue of the polynomial represented by this frame element.
 
         EXAMPLES::
 
@@ -231,6 +263,7 @@ class FrameElt(SageObject):
             3*a1^3 + 4*a1^2 + 3*a1 + 4
             sage: e.residue().parent()
             Finite Field in a1 of size 5^4
+
         """
         if not self.is_reduced():
             self = self.reduce()
@@ -256,7 +289,7 @@ class FrameElt(SageObject):
             return self.frame.R(0)
 
     def reduce(self):
-        """
+        r"""
         Uses identities to fix the exponents of self to between
         zero and E + times F + .
 
