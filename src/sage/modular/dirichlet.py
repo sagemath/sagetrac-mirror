@@ -1698,20 +1698,16 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: b.element()
             (0, 1)
         """
-        try:
-            return self.__element
-        except AttributeError:
-            P = self.parent()
-            M = P._module
-            if is_ComplexField(P.base_ring()):
-                zeta = P._zeta
-                zeta_argument = zeta.argument()
-                v = M([int(round(x.argument()/zeta_argument))
-                       for x in self.values_on_gens()])
-            else:
-                v = M([P._zeta_dlog(x) for x in self.values_on_gens()])
-            self.__element = v
-            return v
+        P = self.parent()
+        M = P._module
+        if is_ComplexField(P.base_ring()):
+            zeta = P.zeta()
+            zeta_argument = zeta.argument()
+            v = M([int(round(x.argument()/zeta_argument))
+                   for x in self.values_on_gens()])
+        else:
+            v = M([P._zeta_dlog(x) for x in self.values_on_gens()])
+        return v
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
@@ -2002,18 +1998,6 @@ class DirichletGroup_class(WithEqualityById, Parent):
         self._zeta_order = rings.Integer(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
-        self._zeta_powers = []
-
-        a = zeta.parent().one()
-        for i in range(self._zeta_order):
-            if is_ComplexField(base_ring):
-                a._set_multiplicative_order(zeta_order/gcd(zeta_order, i))
-            self._zeta_dlog.set_cache(i, a)
-            self._zeta_powers.append(a)
-            a = a * zeta
-
-        self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
-                                              len(self._integers.unit_gens()))
 
     def __setstate__(self, state):
         """
@@ -2547,7 +2531,10 @@ class DirichletGroup_class(WithEqualityById, Parent):
             sage: DirichletGroup(19).zeta_order()
             18
         """
-        return self._zeta_order
+        order = self._zeta_order
+        if order is None:
+            order = self.zeta().multiplicative_order()
+        return order
 
     @cached_method
     def _zeta_dlog(self, x):

@@ -43,6 +43,18 @@ Set positive domain using a relation::
     sage: assumptions()
     [x > 0]
 
+Assumptions also affect operations that do not use Maxima::
+
+    sage: forget()
+    sage: assume(x, 'even')
+    sage: assume(x, 'real')
+    sage: (-1)^x
+    1
+    sage: (-gamma(pi))^x
+    gamma(pi)^x
+    sage: binomial(2*x, x).is_integer()
+    True
+
 Assumptions are added and in some cases checked for consistency::
 
     sage: assume(x>0)
@@ -79,8 +91,6 @@ class GenericDeclaration(SageObject):
         sage: decl = GenericDeclaration(x, 'integer')
         sage: decl.assume()
         sage: sin(x*pi)
-        sin(pi*x)
-        sage: sin(x*pi).simplify()
         0
         sage: decl.forget()
         sage: sin(x*pi)
@@ -115,8 +125,6 @@ class GenericDeclaration(SageObject):
             sage: decl = GenericDeclaration(x, 'integer')
             sage: decl.assume()
             sage: sin(x*pi)
-            sin(pi*x)
-            sage: sin(x*pi).simplify()
             0
             sage: decl.forget()
             sage: sin(x*pi)
@@ -182,7 +190,7 @@ class GenericDeclaration(SageObject):
         """
         Make this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'even')
@@ -222,7 +230,7 @@ class GenericDeclaration(SageObject):
         """
         Forget this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'odd')
@@ -425,8 +433,6 @@ def assume(*args):
     Simplifying certain well-known identities works as well::
 
         sage: sin(n*pi)
-        sin(pi*n)
-        sage: sin(n*pi).simplify()
         0
         sage: forget()
         sage: sin(n*pi).simplify()
@@ -492,6 +498,26 @@ def assume(*args):
         sin(pi*n)
         sage: sin(m*pi).simplify()
         sin(pi*m)
+
+    Check that positive integers can be created (:trac:`20132`)
+
+        sage: forget()
+        sage: x = SR.var('x', domain='positive')
+        sage: assume(x, 'integer')
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: x = SR.var('x', domain='integer')
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: assume(x, "integer")
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
@@ -519,10 +545,11 @@ def forget(*args):
 
     We define and forget multiple assumptions::
 
+        sage: forget()
         sage: var('x,y,z')
         (x, y, z)
         sage: assume(x>0, y>0, z == 1, y>0)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x:str(x))
         [x > 0, y > 0, z == 1]
         sage: forget(x>0, z==1)
         sage: assumptions()
@@ -580,7 +607,7 @@ def assumptions(*args):
         []
         sage: assume(x > y)
         sage: assume(z > w)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x: str(x))
         [x > y, z > w]
         sage: forget()
         sage: assumptions()
