@@ -126,7 +126,7 @@ class Polynomial_padic(Polynomial_generic_domain):
         return s or "0"
 
     def quo_rem(self, right):
-        """
+        r"""
         Returns the quotient and remainder of division by right
 
         EXAMPLES:
@@ -138,7 +138,7 @@ class Polynomial_padic(Polynomial_generic_domain):
         return self._quo_rem_naive(right)
 
     def _quo_rem_naive(self, right):
-        """
+        r"""
         Naive quotient with remainder operating on padic polynomials as their coefficient lists
 
         EXAMPLES:
@@ -166,7 +166,7 @@ class Polynomial_padic(Polynomial_generic_domain):
 
     @cached_method
     def content(self):
-        """
+        r"""
         Compute the content of this polynomial.
 
         OUTPUT:
@@ -276,6 +276,7 @@ class Polynomial_padic(Polynomial_generic_domain):
         Return True if the polynomial self is Eisenstein
 
         EXAMPLES::
+
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R.<x> = ZpFM(3,7)[]
             sage: f = x^2 - x + 15
@@ -311,8 +312,7 @@ class Polynomial_padic(Polynomial_generic_domain):
             (1 + O(3^20))*x^9 + (3205887336 + O(3^20))*x^8 + (634107690 + O(3^20))*x^7 + (1030936815 + O(3^20))*x^6 + (1721931291 + O(3^20))*x^5 + (2532448143 + O(3^20))*x^4 + (1806953859 + O(3^20))*x^3 + (3022253919 + O(3^20))*x^2 + (460349730 + O(3^20))*x + (3286601949 + O(3^20))
             sage: S.<q> = R.ext(g)
             sage: pi = q + theta*q^(m+1)
-            sage: Sy.<y> = S[]
-            sage: h = f.move(Sy)
+            sage: h = f.change_ring(S)
             sage: h(pi).is_zero()
             True
 
@@ -355,33 +355,6 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         return g.truncate(n+1).monic()
 
-    def move(self,newRx):
-        r"""
-        Move the polynomial `self` over `R` to a polynomial in `newRx`, the polynomial ring of `newR` which was obtained `R` by change
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
-            sage: zp = ZpFM(3,7)
-            sage: zpx.<x> = zp[]
-            sage: f = x^2 - x + 15
-            sage: f
-            (1 + O(3^7))*x^2 + (2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^7))*x + (2*3 + 3^2 + O(3^7))
-            sage: zp100 = zp.change(prec=100, type="fixed-mod")
-            sage: zp100y.<y> = zp100[]
-            sage: g = f.move(zp100y)
-            sage: g
-            (1 + O(3^100))*y^2 + (2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^100))*y + (2*3 + 3^2 + O(3^100))
-            sage: g.move(zpx)
-            (1 + O(3^7))*x^2 + (2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^7))*x + (2*3 + 3^2 + O(3^7))
-        """
-        if self.is_zero():
-            return newRx(0)
-        if newRx.base() == newRx.base().base():
-            return newRx([newRx.base()(a) for a in self])
-        else:
-            return newRx([newRx.base()(a.polynomial().list()) if not a.is_zero() else newRx.base()(0) for a in self])
-
     @cached_method
     def omtree(self, check_squarefree=True, check_field=True):
         r"""
@@ -422,12 +395,9 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         R = self.parent().base()
         RFM = R.change(type="fixed-mod", field=False)
-        #Phi = self.change_ring(RFM)
-        RFMy = PolynomialRing(RFM,names='y')
-        Phi = self.move(RFMy)
+        Phi = self.change_ring(RFM)
 
         return OMTree(Phi)
-
 
     def ramification_polynomial(self):
         r"""
@@ -436,6 +406,9 @@ class Polynomial_padic(Polynomial_generic_domain):
         The ramification polynomial is `self(a*x+a)/a^n` where `a` is a root of `self` and `n` is the degree of self.
 
         EXAMPLES::
+
+        Compute the ramification polynomial::
+
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R = ZpFM(3,20,print_mode='terse'); Rx.<x> = R[]
             sage: f = x^9+9*x^2+3
@@ -444,8 +417,14 @@ class Polynomial_padic(Polynomial_generic_domain):
             sage: rho = f.ramification_polynomial()
             sage: rho
             (1 + O(a^180))*y^9 + (9 + O(a^180))*y^8 + (36 + O(a^180))*y^7 + (84 + O(a^180))*y^6 + (126 + O(a^180))*y^5 + (126 + O(a^180))*y^4 + (84 + O(a^180))*y^3 + (36 + 729*a + 3486784398*a^2 + 2324522943*a^4 + 3486784374*a^6 + 81*a^8 + O(a^180))*y^2 + (9 + 1458*a + 3486784395*a^2 + 2324522952*a^4 + 3486784347*a^6 + 162*a^8 + O(a^180))*y + (0 + O(a^180))
+
+        Construct the ramification polygon from the ramifcation polynomial::
+
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: rp = NewtonPolygon([(i,rho[i].valuation()) for i in range(1,rho.degree()+1)])
+
+        Compare it to the result of the method `ramification_polygon`.
+
             sage: rp == f.ramification_polygon()
             True
 
@@ -455,7 +434,7 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         """
         if not self.is_eisenstein():
-            raise ValueError("the polynomial self must be Eisenstein")
+            raise ValueError("ramification polynomials are only defined for Eisenstein polynomials")
 
         Rx = self.parent()
         R = Rx.base()
@@ -474,6 +453,8 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         EXAMPLES::
 
+        The vertices of a ramification polygon and the slopes of its segments::
+
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R = ZpFM(3,20,print_mode='terse'); Rx.<x> = R[]
             sage: f = x^27+3*x^24+3*x^18+3*x^9+9*x^3+9*x^3+6
@@ -482,6 +463,8 @@ class Polynomial_padic(Polynomial_generic_domain):
             [(1, 51), (3, 24), (9, 9), (27, 0)]
             sage: rp.slopes(repetition=False)
             [-27/2, -5/2, -1/2]
+
+        A ramification polygon with a horizontal segment::
 
             sage: R = ZpFM(3,20,print_mode='terse'); Rx.<x> = R[]
             sage: f = x^108+3*x^24+3*x^18+3*x^9+9*x^3+9*x^3+6
@@ -497,7 +480,7 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         """
         if not self.is_eisenstein():
-            raise ValueError("the polynomial self must be Eisenstein")
+            raise ValueError("ramification polygons are only defined for Eisenstein polynomials and this polynomial is not Eisenstein")
 
         from sage.geometry.newton_polygon import NewtonPolygon
 
@@ -532,6 +515,8 @@ class Polynomial_padic(Polynomial_generic_domain):
         The ramification polygon is the Newton polygon of `self(a*x+a)/a^n` where `a` is a root of self and `n` is the degree of `self`.
 
         EXAMPLES::
+
+        We compare the output of this method with the output of `ramification_polygon`.
 
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R = ZpFM(5,20,print_mode='terse'); Rx.<x> = R[]
@@ -632,10 +617,13 @@ class Polynomial_padic(Polynomial_generic_domain):
 
     @cached_method
     def residual_polynomials(self):
-        """
+        r"""
         Returns a list of the residual polynomials of the ramification polynomial of an Eisenstein polynomial self.
 
         EXAMPLES::
+
+        The residual polynomials of the segments of the ramification polygon of an Eisenstein polynomial::
+
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R = ZpFM(3,30); Rx.<x> = R[]
             sage: f = x^9+6*x^3+3
@@ -886,6 +874,8 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         EXAMPLES::
 
+        We Monge-reduce a polynomial,.
+
             sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
             sage: R = ZpFM(3,30); Rx.<x> = R[]
             sage: f = x^9+249*x^3+486*x+30
@@ -893,8 +883,8 @@ class Polynomial_padic(Polynomial_generic_domain):
             sage: g
             (1 + O(3^30))*x^9 + ... + (2*3^2 + O(3^30))*x^6 + ... + (2*3 + 2*3^2 + O(3^30))*x^3 + ... + (3 + O(3^30))
 
-        We now create the extension S of R generated by g and examine the factorization of f over S.
-        As the polynomial f has a linear factor over S (and deg(f)=deg(g)).
+        We now create the extension `S` of `R` generated by `g` and examine the factorization of `f` over `S`.
+        As the polynomial `f` has a linear factor over `S` (and deg(`f`)=deg(`g`)).
 
             sage: S.<a> = R.ext(g)
             sage: Sy.<y> = S[]
@@ -1169,67 +1159,11 @@ class Polynomial_padic(Polynomial_generic_domain):
         - Julian Rueth and David Roe (2013)
         - Sebastian Pauli and Brian Sinclair (2017-07-19): factorization over extensions, non monic, algorithm choice
         """
-        def _pari_padic_factorization_to_sage(G, R, leading_coeff):
-            r"""
-            Given a PARI factorization matrix `G` representing a factorization
-            of some polynomial in the `p`-adic polynomial ring `R`,
-            return the corresponding Sage factorization. All factors in `G`
-            are assumed to have content 1 (this is how PARI returns its
-            factorizations).
-
-            INPUT:
-
-            - ``G`` -- PARI factorization matrix, returned by ``factorpadic``.
-
-            - ``R`` -- polynomial ring to be used as parent ring of the factors
-
-            - ``leading_coeff`` -- leading coefficient of the polynomial which
-              was factored. This can belong to any ring which can be coerced
-              into ``R.base_ring()``.
-
-            OUTPUT:
-
-            - A Sage :class:`Factorization`.
-
-            """
-            B = R.base_ring()
-            p = B.prime()
-            leading_coeff = B(leading_coeff)
-
-            pols = [R(f, absprec=f.padicprec(p)) for f in G[0]]
-            exps = [int(e) for e in G[1]]
-
-            # Determine unit part (which is discarded by PARI)
-            if B.is_field():
-                # When the base ring is a field, we normalize
-                # the irreducible factors so they have leading
-                # coefficient 1.
-                for i in range(len(pols)):
-                    lc = pols[i].leading_coefficient()
-                    lc = lc.lift_to_precision()  # Ensure we don't lose precision
-                    pols[i] *= ~lc
-            else:
-                # When the base ring is not a field, we normalize
-                # the irreducible factors so that the leading term
-                # is a power of p.
-                c, leading_coeff = leading_coeff.val_unit()
-                for i in range(len(pols)):
-                    v, upart = pols[i].leading_coefficient().val_unit()
-                    upart = upart.lift_to_precision()  # Ensure we don't lose precision
-                    pols[i] *= ~upart
-                    c -= exps[i] * v
-                if c:
-                    # Add factor p^c
-                    pols.append(R(p))
-                    exps.append(c)
-
-            return Factorization(zip(pols, exps), leading_coeff)
 
         if self == 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
 
-        Rx = self.parent()
-        R = Rx.base()
+        R = self.base_ring()
 
         self_normal, normalize_by = self.normalized(monic_if_possible=True)
 
@@ -1251,7 +1185,7 @@ class Polynomial_padic(Polynomial_generic_domain):
         if self_normal.is_monic() and (algorithm=="auto" or algorithm=="om"):
             om = self_normal.omtree(check_squarefree=check_squarefree,check_field=False)
             omf = om.factorization()
-            return Factorization([[(gm[0]).move(Rx),gm[1]] for gm in omf],normalize_by)
+            return Factorization([[(gm[0]).change_ring(R),gm[1]] for gm in omf],normalize_by)
 
         raise NotImplementedError("No factorization method was selected for the given input")
 
@@ -1354,19 +1288,74 @@ class Polynomial_padic(Polynomial_generic_domain):
         if normalize_by == None:
             f, normalize_by = f.normalized(monic_if_possible=True)
 
-        Kx = f.parent()
+        K = f.base_ring()
         g,uni,multval,exp = make_monic(f)
         if multval > 0:
             L = f.base_ring().change(prec=f.base_ring().precision_cap()+2*multval,type='fixed-mod',field=False)
-            Ly = PolynomialRing(L,names='y')
-            f = f.move(Ly)
+            f = f.change_ring(L)
             g,uni,multval,exp = make_monic(f)
         facts = [fact[0] for fact in g.factor(check_squarefree=check_squarefree,algorithm=algorithm)]
         facts = [undo_monic(f,exp,fact) for fact in facts]
         facts = dist_den(facts,multval)
         if multval > 0:
-            uni = Ly(uni).move(Kx)
-            facts = [fact.move(Kx) for fact in facts]
+            uni = K(uni)
+            facts = [fact.change_ring(K) for fact in facts]
         if multval < 0:
             return Factorization([(f.base_ring().uniformizer(),-multval)] + [(fact,1) for fact in facts],unit=uni*normalize_by)
         return Factorization([(fact,1) for fact in facts],unit=uni*normalize_by)
+
+def _pari_padic_factorization_to_sage(G, R, leading_coeff):
+    r"""
+    Given a PARI factorization matrix `G` representing a factorization
+    of some polynomial in the `p`-adic polynomial ring `R`,
+    return the corresponding Sage factorization. All factors in `G`
+    are assumed to have content 1 (this is how PARI returns its
+    factorizations).
+
+    INPUT:
+
+    - ``G`` -- PARI factorization matrix, returned by ``factorpadic``.
+
+    - ``R`` -- polynomial ring to be used as parent ring of the factors
+
+    - ``leading_coeff`` -- leading coefficient of the polynomial which
+      was factored. This can belong to any ring which can be coerced
+      into ``R.base_ring()``.
+
+    OUTPUT:
+
+    - A Sage :class:`Factorization`.
+
+    """
+    B = R.base_ring()
+    p = B.prime()
+    leading_coeff = B(leading_coeff)
+
+    pols = [R(f, absprec=f.padicprec(p)) for f in G[0]]
+    exps = [int(e) for e in G[1]]
+
+    # Determine unit part (which is discarded by PARI)
+    if B.is_field():
+        # When the base ring is a field, we normalize
+        # the irreducible factors so they have leading
+        # coefficient 1.
+        for i in range(len(pols)):
+            lc = pols[i].leading_coefficient()
+            lc = lc.lift_to_precision()  # Ensure we don't lose precision
+            pols[i] *= ~lc
+    else:
+        # When the base ring is not a field, we normalize
+        # the irreducible factors so that the leading term
+        # is a power of p.
+        c, leading_coeff = leading_coeff.val_unit()
+        for i in range(len(pols)):
+            v, upart = pols[i].leading_coefficient().val_unit()
+            upart = upart.lift_to_precision()  # Ensure we don't lose precision
+            pols[i] *= ~upart
+            c -= exps[i] * v
+        if c:
+            # Add factor p^c
+            pols.append(R(p))
+            exps.append(c)
+
+    return Factorization(zip(pols, exps), leading_coeff)
