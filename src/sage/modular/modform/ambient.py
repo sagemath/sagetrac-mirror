@@ -64,6 +64,7 @@ AUTHORS:
 - Julian Rueth (2014-05-10): improved caching
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -89,12 +90,12 @@ from sage.structure.unique_representation import CachedRepresentation
 from sage.misc.cachefunc import cached_method
 
 
-import cuspidal_submodule
-import defaults
-import eisenstein_submodule
-import eis_series
-import space
-import submodule
+
+from . import defaults
+from . import eisenstein_submodule
+from . import eis_series
+from . import space
+from . import submodule
 
 
 class ModularFormsAmbient(CachedRepresentation,
@@ -197,7 +198,7 @@ class ModularFormsAmbient(CachedRepresentation,
             1 + q^3 + q^4 + 2*q^5 + O(q^6)
             ]
         """
-        import constructor
+        from . import constructor
         M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
         return M
 
@@ -235,7 +236,7 @@ class ModularFormsAmbient(CachedRepresentation,
         """
         if not (N % self.level() == 0 or self.level() % N == 0):
             raise ValueError("N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level()))
-        import constructor
+        from . import constructor
         return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
 
     def _degeneracy_raising_matrix(self, M, t):
@@ -244,7 +245,7 @@ class ModularFormsAmbient(CachedRepresentation,
         to `f(q) \mapsto f(q^t)`. Here the level of M should be a multiple of
         the level of self, and t should divide the quotient.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(22, 2)._degeneracy_raising_matrix(ModularForms(44, 2), 1)
             [  1   0  -1  -2   0   0   0   0   0]
@@ -481,6 +482,7 @@ class ModularFormsAmbient(CachedRepresentation,
             Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for
             Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         """
+	from .cuspidal_submodule import CuspidalSubmodule
         return cuspidal_submodule.CuspidalSubmodule(self)
 
     @cached_method

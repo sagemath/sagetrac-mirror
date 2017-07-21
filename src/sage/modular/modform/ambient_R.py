@@ -8,6 +8,7 @@ AUTHORS:
 - Julian Rueth (2014-05-10): improved caching
 
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -19,9 +20,9 @@ AUTHORS:
 #########################################################################
 
 import sage.rings.all as rings
-
-import ambient
-from cuspidal_submodule import CuspidalSubmodule_R
+from . import ambient
+from .cuspidal_submodule import CuspidalSubmodule_R
+from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
@@ -176,7 +177,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         r"""
         Return the cuspidal subspace of this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = CuspForms(7, 4, base_ring=CyclotomicField(5)) # indirect doctest
             sage: type(C)
@@ -188,7 +189,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         r"""
         Return this modular forms space with the base ring changed to the ring R.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: chi = DirichletGroup(109, CyclotomicField(3)).0
             sage: M9 = ModularForms(chi, 2, base_ring = CyclotomicField(9))

@@ -53,8 +53,6 @@ file gives the function signatures.
 
 The gluing file should ctypedef celement as appropriate.
 
-Each linkage file should include stdsage.pxi
-
 .. NOTE::
 
     This particular file is not included anywhere.  It just defines
@@ -112,7 +110,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``reduce_b`` -- a bint, whether ``b`` needs to be reduced.
     - ``prime_pow`` -- the PowComputer for the ring.
 
-    OUPUT:
+    OUTPUT:
 
     - If neither ``a`` nor ``b`` needs to be reduced, returns
       -1 (if `a < b`), 0 (if `a == b`) or 1 (if `a > b`)
@@ -331,7 +329,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:
@@ -366,7 +364,7 @@ cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 1.
 
@@ -381,7 +379,7 @@ cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint ciszero(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
 
@@ -439,12 +437,12 @@ cdef inline cpickle(celement a, PowComputer_class prime_pow):
 
 cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruction from the output of :meth:`cpickle`.
 
     INPUT:
 
     - ``out`` -- the ``celement`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
+    - ``x`` -- the result of :meth:`cpickle`.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     pass

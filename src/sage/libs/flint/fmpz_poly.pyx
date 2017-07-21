@@ -18,14 +18,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
-
-from sage.misc.long cimport pyobject_to_long
-
 from cpython.sequence cimport *
 
+from cysignals.memory cimport sig_free
+
+from sage.misc.long cimport pyobject_to_long
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef class Fmpz_poly(SageObject):
 
@@ -102,7 +102,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f[200]
             0
         """
-        cdef Integer res = <Integer>PY_NEW(Integer)
+        cdef Integer res = Integer.__new__(Integer)
         fmpz_poly_get_coeff_mpz(res.value, self.poly, i)
         return res
 
@@ -118,7 +118,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef char* ss = fmpz_poly_get_str(self.poly)
         cdef object s = ss
-        sage_free(ss)
+        sig_free(ss)
         return s
 
     def degree(self):
@@ -150,7 +150,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f.list()
             [2, 1, 0, -1]
         """
-        return [self[i] for i in xrange(self.degree()+1)]
+        return [self[i] for i in xrange(self.degree() + 1)]
 
     def __add__(left, right):
         """

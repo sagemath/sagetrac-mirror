@@ -33,7 +33,7 @@ TESTS::
     True
 
 
-We check that #10453 is fixed::
+We check that :trac:`10453` is fixed::
 
     sage: CuspForms(Gamma1(11), 2).old_submodule()
     Modular Forms subspace of dimension 0 of Modular Forms space of dimension 10 for Congruence Subgroup Gamma1(11) of weight 2 over Rational Field
@@ -47,6 +47,7 @@ AUTHORS:
 - Julian Rueth (2014-05-10): improved caching
 
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -62,9 +63,9 @@ import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 from sage.misc.cachefunc import cached_method
 
-import ambient
-import cuspidal_submodule
-import eisenstein_submodule
+from . import ambient
+from . import cuspidal_submodule
+from . import eisenstein_submodule
 
 class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
     """
@@ -143,7 +144,7 @@ class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
         r"""
         Compute the matrix of the diamond operator <d> on this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(GammaH(9, [4]), 7)._compute_diamond_matrix(2)
             [-1  0  0  0  0  0  0  0]
@@ -161,7 +162,7 @@ class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
         r"""
         Compute the matrix of the Hecke operator T_n acting on this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(Gamma1(7), 4).hecke_matrix(3) # indirect doctest
             [           0          -42          133            0            0            0            0            0            0]
