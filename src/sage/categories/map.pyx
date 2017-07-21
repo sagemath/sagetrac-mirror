@@ -1888,16 +1888,6 @@ cdef class FormalCompositeMap(Map):
             True
 
         """
-        try:
-            # we try the category first
-            # as of 2017-06, the MRO of this class does not get patched to
-            # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
-            # invoke the category method explicitly
-            return self.getattr_from_category('is_injective')()
-        except (AttributeError, NotImplementedError):
-            pass
-
         injectives = []
         for f in self.__list:
             if f.is_injective():
@@ -1907,7 +1897,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_surjective() for f in injectives]):
+        if all(f.is_surjective() for f in injectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce injectivity.")
@@ -1954,16 +1944,6 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
-        try:
-            # we try the category first
-            # as of 2017-06, the MRO of this class does not get patched to
-            # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
-            # invoke the category method explicitly
-            return self.getattr_from_category('is_surjective')()
-        except (AttributeError, NotImplementedError):
-            pass
-
         surjectives = []
         for f in self.__list[::-1]:
             if f.is_surjective():
@@ -1973,7 +1953,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_injective() for f in surjectives]):
+        if all(f.is_injective() for f in surjectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce surjectivity.")
