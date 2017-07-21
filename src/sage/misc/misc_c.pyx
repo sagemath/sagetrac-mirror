@@ -79,6 +79,10 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
     This assumes that your multiplication is associative; we don't promise
     which end of the list we start at.
 
+    .. SEEALSO::
+
+        For the symbolic product function, see :func:`sage.calculus.calculus.symbolic_product`.
+
     EXAMPLES::
 
         sage: prod([1,2,34])
@@ -579,7 +583,7 @@ cpdef list normalize_index(object key, int size):
             raise IndexError("index out of range")
         return [index]
     elif isinstance(key, slice):
-        return range(*key.indices(size))
+        return list(xrange(*key.indices(size)))
     elif type(key) is tuple:
         index_tuple = key
     elif type(key) is list:

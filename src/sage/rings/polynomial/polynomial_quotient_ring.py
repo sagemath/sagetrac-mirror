@@ -267,7 +267,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: isinstance(Q.an_element(),Q.element_class)
         True
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'is_idempotent', 'is_one', 'is_unit', 'lift', 'powers']
+        ['cartesian_product', 'inverse_of_unit', 'is_idempotent', 'is_one', 'is_unit', 'lift', 'powers']
         sage: first_class = Q.__class__
 
     We try to find out whether `Q` is a field. Indeed it is, and thus its category,
@@ -281,7 +281,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'powers', 'quo_rem', 'xgcd']
+        ['cartesian_product',
+         'euclidean_degree',
+         'factor',
+         'gcd',
+         'inverse_of_unit',
+         'is_idempotent',
+         'is_one',
+         'is_unit',
+         'lcm',
+         'lift',
+         'powers',
+         'quo_rem',
+         'xgcd']
 
     As one can see, the elements are now inheriting additional
     methods: lcm and gcd. Even though ``Q.an_element()`` belongs to
@@ -311,7 +323,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __init__(self, ring, polynomial, name=None, category=None):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S = R.quo(x^2-4)
@@ -595,13 +607,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Represent ``self`` in the Singular interface.
 
-        TEST::
+        TESTS::
 
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
             sage: singular(Q)        # indirect doctest
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    xbar
@@ -812,8 +824,27 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: S = R.quotient(x^2 - 2)
             sage: S.is_field()
             True
+
+        If proof is ``True``, requires the ``is_irreducible`` method of the
+        modulus to be implemented::
+
+            sage: R1.<x> = GF(5)[]
+            sage: F1 = R1.quotient_ring(x^2+x+1)
+            sage: R2.<x> = F1[]
+            sage: F2 = R2.quotient_ring(x^2+x+1)
+            sage: F2.is_field()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: F2.is_field(proof = False)
+            False
         """
-        return self.base_ring().is_field(proof) and self.modulus().is_irreducible()
+        if proof:
+            return self.base_ring().is_field(True) and self.modulus().is_irreducible()
+        try:
+            return self.base_ring().is_field(False) and self.modulus().is_irreducible()
+        except NotImplementedError:
+            return False
 
     def krull_dimension(self):
         return self.base_ring().krull_dimension()
@@ -934,11 +965,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
     @cached_method
     def _S_decomposition(self, S):
         """
-        Compute the decomposition of self into a product of number
-        fields.  This is an internal function used by
-        :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
+        Compute the decomposition of self into a product of number fields.
 
-        EXAMPLE::
+        This is an internal function used by
+        :meth:`S_class_group`, :meth:`S_units` and :meth:`selmer_group`.
+
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]
@@ -1109,7 +1141,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: CG = S.S_class_group([])
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
 
@@ -1235,7 +1267,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: CG = S.class_group()
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
 
@@ -1302,7 +1334,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: U = L.S_units([])
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])
@@ -1388,7 +1420,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5)
             sage: U = L.units()
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])
