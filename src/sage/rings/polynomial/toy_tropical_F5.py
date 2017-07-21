@@ -1,312 +1,80 @@
-#This module implements variants of the F5 algorithm, with a view for implementation over finite-precision complete discrete valuation field.
-
-#AUTHOR:
+"""
 
-#- Tristan Vaccon (2016-2017)
+Educational Versions of the F5 Algorithm to compute Groebner bases.
 
+We have followed [F02], [AP11] [EF17] and [VY17].
 
-#*****************************************************************************
-#  Copyright (C) 2015 Tristan Vaccon <tristan.vaccon@univ-rennes1.fr>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-
-
-
-def list_monom(P,d):
-    r"""
-
-    Return an ordered list of the monomials of P of degree d
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``d`` -- an integer
+No attempt was made to optimize the algorithm as the emphasis of
+these implementations is a clean and easy presentation. To compute a
+Groebner basis in Sage efficiently use the
+:meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal.groebner_basis()`
+method on multivariate polynomial objects.
 
-    OUTPUT:
-
-    The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
+The main algorithm is ``educational_F5``; secondary algorithms of importance are ``SymbolicPreprocessing``,  
+``RowEchelonMac_and_listpivots``  and ``UpdateGpaires_trop``. 
 
-    EXAMPLES::
+The idea of the algorithm is to use an adapted Buchberger termination criterion
+on $S$-pairs while reducing all computations to linear algebra
+and eliminating useless polynomials with the F5 elimination criterion.
+The core part of the main algorithm is a while loop
+while there are still S-polynomials, where it applies:
 
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import list_monom
-        sage: list_monom(S,2)
-        [x^2, x*y, y^2, x*z, y*z, z^2]
-    """
-    if d == 0:
-        return [P(1)]
-    l1 = [ a for a in P.gens()]
-    if d == 1:
-        return l1
-    ld1 = list_monom(P,d-1)
-    ld = [[x*u for x in l1] for u in ld1]
-    ld = sum(ld,[])
-    s = []
-    for i in ld:
-        if i not in s:
-            s.append(i)
-    s.sort()
-    s.reverse()
-    return s
-
-def list_monom_iteratif(P,d,ld1):
-    r"""
-
-    Return an ordered list of the monomials of P of degree d
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``d`` -- an integer
-    - ``ld1`` -- the list of the monomials of degree d-1
-
-    OUTPUT:
-
-    The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import list_monom
-        sage: list_monom_dminus(S,2n,[x,y,z])
-        [x^2, x*y, y^2, x*z, y*z, z^2]
-    """
-    if d == 0:
-        return [P(1)]
-    l1 = [ a for a in P.gens()]
-    if d == 1:
-        return l1
-    ld = [[x*u for x in l1] for u in ld1]
-    ld = sum(ld,[])
-    s = list(set(ld))
-    s.sort()
-    s.reverse()
-    return s
-
-def index_last_variable(P,mon):
-    r"""
-
-    Return the index of the last variable dividing mon
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``mon`` -- a monomial
-
-    OUTPUT:
-
-    Return the index of the last variable dividing mon
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import list_monom
-        sage: index_last_variable(S,x*y)
-        2
-    """    
-    list_expo = P(mon).exponents()[0]
-    l = len(list_expo)
-    i = l-1
-    while (i >=0):
-        if list_expo[i]>0:
-            return i
-        i=i-1
-    return i
-
-
-def list_monom_iteratif_no_repeat(P,d,ld1):
-    r"""
-
-    Return an ordered list of the monomials of P of degree d
- 
-    INPUT:
-
-    - ``P`` -- a polynomial ring
-    - ``d`` -- an integer
-    - ``ld1`` -- the list of the monomials of degree d-1
-
-    OUTPUT:
-
-    The list of monomials in P of degree d, ordered from the biggest to the smallest according to the monomial ordering on P
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=Qp(5)[]
-        sage: from sage.rings.polynomial.padics.toy_MatrixF5 import list_monom
-        sage: list_monom_iteratif_no_repeat(S,2,[x,y,z])
-        [x^2, x*y, y^2, x*z, y*z, z^2]
-    """
-    if d == 0:
-        return [P(1)]
-    l1 = [ a for a in P.gens()]
-    n = len(l1)
-    if d == 1:
-        return l1
-    ld = []
-    for mon in ld1:
-        i = index_last_variable(P,mon)
-        for j in range(i,n):
-            ld.append(mon*l1[j])
-    ld.sort()
-    ld.reverse()
-    return ld
-
-def Make_Macaulay_Matrix(list_poly):
-    #Mac will be a couple of a matrix and a list of signatures
-    # We assume list_poly is ordered by signature and compatible
-    r"""
-
-    Make the Macaulay matrix for the polynomials of degree d in list_poly
- 
-    INPUT:
-
-    - ``list_poly`` -- a list of degree d polynomials with signature
-
-    OUTPUT:
-
-    The Macaulay matrix defined by list_poly
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix
-        sage: list_poly = [[0,1,x^2+y^2], [1,1,x*y], [2,1,y*z], [3,1,z^2]]
-        sage: Mac = Make_Macaulay_Matrix(list_poly)
-        sage: Mac[0]
-        [1 0 1 0 0 0]
-        [0 1 0 0 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1]
-        sage: Mac[1]
-        [[0, 1], [1, 1], [2, 1], [3, 1]]
-        
-    """
-
-    R = list_poly[0][2].parent()
-    d = list_poly[0][2].degree()
-    monom = list_monom(R,d)
-    l = len(monom)
-
-    listsign = []
-    Mac = Matrix(R.base_ring(), 0, l, [])
-    Mac = [Mac, []]
-    for fuple in list_poly:
-        listsign.append([fuple[0],fuple[1]])
-        f = fuple[2]
-        list = f.monomials()
-        flist = [ R(0) ] * l
-        for mon in list:
-            if mon in monom:
-                i = monom.index(mon)
-                flist[i] = f.monomial_coefficient(mon)
-        fmat = Matrix(R.base_ring(), 1, l, flist)
-        Mac[0] = Mac[0].stack(fmat)
-    Mac[1] = listsign
-    return Mac
-
-def Make_Macaulay_Matrix_sparse_dict(list_poly, monom):
-    #Mac will be a couple of a matrix and a list of signatures
-    # We assume list_poly is ordered by signature and compatible
-    r"""
-
-    Make the sparse Macaulay matrix for the polynomials of degree d in list_poly
- 
-    INPUT:
-
-    - ``list_poly`` -- a list of degree d polynomials
-    - ``monom`` -- the list of the monomials of degree d, ordered decreasingly
-
-    OUTPUT:
-
-    The Macaulay matrix defined by list_poly
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix
-        sage: list_poly = [[0,1,x^2+y^2], [1,1,x*y], [2,1,y*z], [3,1,z^2]]
-        sage: Mac = Make_Macaulay_Matrix_sparse_dict(list_poly,[x^2, x*y, y^2, x*z, y*z, z^2])
-        sage: Mac[0]
-        [1 0 1 0 0 0]
-        [0 1 0 0 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1]
-        sage: Mac[1]
-        [[0, 1], [1, 1], [2, 1], [3, 1]]
-        
-    """
-
-    R = list_poly[0][2].parent()
-    d = list_poly[0][2].degree()
-    l = len(monom)
-
-    dict_monom = {monom[aa]:aa for aa in range(l)}
-
-
-    nrows = len(list_poly)
-
-    listsign = []
-    Mac = MatrixSpace(R.base_ring(),nrows,l,sparse=True)(0)
-    for u in range(nrows):
-        fuple=list_poly[u]
-        listsign.append([fuple[0],fuple[1]])
-        f = fuple[2]
-        list = f.monomials()
-        for mon in list:
-            if dict_monom.has_key(mon):
-                j = dict_monom[mon]
-                Mac[u,j] = f.monomial_coefficient(mon)
-    Mac = [Mac, listsign]
-    return Mac
-
-def Make_Macaulay_Matrix_no_sign(list_poly):
-    r"""
-
-    Make the Macaulay matrix for the polynomials of degree d in list_poly
- 
-    INPUT:
-
-    - ``list_poly`` -- a list of degree d polynomials
-
-    OUTPUT:
-
-    The Macaulay matrix defined by list_poly
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix
-        sage: list_poly = [x^2+y^2,x*y,y*z,z^2]
-        sage: Mac = Make_Macaulay_Matrix_no_sign(list_poly)
-        sage: Mac
-        [1 0 1 0 0 0]
-        [0 1 0 0 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1]        
-    """
-
-    R = list_poly[0].parent()
-    d = list_poly[0].degree()
-    monom = list_monom(R,d)
-    l = len(monom)
-
-    listsign = []
-    Mac = Matrix(R.base_ring(), 0, l, [])
-    for f in list_poly:
-        list = f.monomials()
-        flist = [ R(0) ] * l
-        for mon in list:
-            if mon in monom:
-                i = monom.index(mon)
-                flist[i] = f.monomial_coefficient(mon)
-        fmat = Matrix(R.base_ring(), 1, l, flist)
-        Mac = Mac.stack(fmat)
-    return Mac
+* ``SymbolicPreprocessing`` to construct a matrix with the polynomials of the pairs of a given degree d and reducers to reduce them. It uses the F5 elimination criterion.
+* ``RowEchelonMac_and_listpivots`` to echelonize the previous matrix.
+* ``UpdateGpaires_trop`` to update the list in construction of a Groebner basis (more precisely, an $\mathfrak{S}$-Groebner basis), and obtain the new S-polynomials.
+
+.. note::
+    The setting is strictly that of homogeneous initial polynomials.
+
+EXAMPLES:
+
+Consider Katsura-6 w.r.t. a ``degrevlex`` ordering.::
+
+    sage: from sage.rings.polynomial.toy_F5 import *
+    sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(GF(32003),10)
+    sage: I = sage.rings.ideal.Katsura(P,6).homogenize()
+    sage: F = I.gens()
+
+    sage: g1 = F5_reduced(F)
+    sage: g2 = I.groebner_basis()
+
+All algorithms actually compute a Groebner basis::
+
+    sage: Ideal(g1).basis_is_groebner()
+    True
+    sage: Ideal(g2).basis_is_groebner()
+    True
+
+The results are correct::
+
+    sage: Ideal(g1) == Ideal(g2)
+    True
+
+REFERENCES:
+
+.. [F02] Jean-Charles Faugère. *A new efficient algorithm for computing Gröbner bases without reduction to zero (F5)*.  In Proceedings of the 2002 international symposium on Symbolic and algebraic computation, ISSAC '02, pages 75-83, New York, NY, USA, 2002. ACM. 
+.. [AP11] Alberto Arri and John Perry. *The F5 criterion revised*.  In Journal of Symbolic Computation, 2011. Corrigendum in 2017.
+.. [EF17] Christian Eder and Jean-Charles Faugère. *A survey on signature-based algorithms for computing Gröbner bases*.  In Journal of Symbolic Computation, 2017.
+.. [VY17] T. Vaccon, K.Yokoyama, A Tropical F5 Algorithm, proceedings of ISSAC 2017.
+
+AUTHOR:
+
+- Tristan Vaccon (2016--2017)
+"""
+
+from copy import copy
+from sage.structure.sequence import Sequence
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix, Matrix
+from sage.rings.polynomial.toy_F5 import index_last_variable, list_monom_no_repeat, Make_Macaulay_Matrix_sparse_dict, Reconstruction
+
+
+
+
+
+
+
+
 
 def Make_Macaulay_Matrix_sparse_dict_no_sign(list_poly, monom):
     #Mac will be a couple of a matrix and a list of signatures
@@ -327,16 +95,15 @@ def Make_Macaulay_Matrix_sparse_dict_no_sign(list_poly, monom):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Make_Macaulay_Matrix
-        sage: list_poly = [[0,1,x^2+y^2], [1,1,x*y], [2,1,y*z], [3,1,z^2]]
-        sage: Mac = Make_Macaulay_Matrix_sparse_dict(list_poly,[x^2, x*y, y^2, x*z, y*z, z^2])
-        sage: Mac[0]
+        sage: from sage.rings.polynomial.toy_tropical_F5 import Make_Macaulay_Matrix_sparse_dict_no_sign
+        sage: list_poly = [x^2+y^2,x*y,y*z,z^2]
+        sage: Mac = Make_Macaulay_Matrix_sparse_dict_no_sign(list_poly,[x^2, x*y, y^2, x*z, y*z, z^2])
+        sage: Mac
         [1 0 1 0 0 0]
         [0 1 0 0 0 0]
         [0 0 0 0 1 0]
         [0 0 0 0 0 1]
-        sage: Mac[1]
-        [[0, 1], [1, 1], [2, 1], [3, 1]]
+
         
     """
 
@@ -379,7 +146,7 @@ def LT_trop(f,R,w):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import LM_trop
+        sage: from sage.rings.polynomial.toy_tropical_F5 import LT_trop
         sage: f = 2*x^2+3*y^2+z^2
         sage: R1.<x1,y1,z1> = Qp(2)[]
         sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
@@ -428,7 +195,7 @@ def LM_trop(f,R,w):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import LM_trop
+        sage: from sage.rings.polynomial.toy_tropical_F5 import LM_trop
         sage: f = 2*x^2+3*y^2+z^2
         sage: R1.<x1,y1,z1> = Qp(2)[]
         sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
@@ -458,55 +225,6 @@ def LM_trop(f,R,w):
     return lmon[imin]
 
 
-def LC_trop(f,R,w):
-    r"""
-    
-    Computes the coefficient of the leading term of f according to the tropical term order
-    given by the monomial ordering on R and the weight w
- 
-    INPUT:
-
-    - ``f`` -- a polynomial
-    - ``R`` -- a polynomial ring of dimension
-    - ``w`` -- a list of n rational numbers
-    
-    OUTPUT:
-
-    a coefficient of f, the coefficient of the leading term of f  
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import LM_trop
-        sage: f = 2*x^2+3*y^2+z^2
-        sage: R1.<x1,y1,z1> = Qp(2)[]
-        sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
-        sage: w1 = [0,0,0]
-        sage: w2 = [0,0,-1]
-        sage: LC_trop(f,R1,w1)
-        3
-        sage: LC_trop(f,R2,w2)
-        1
-    """
-    lmon = f.monomials()
-    lcoeff = f.coefficients()
-    nvar = len(f.parent().gens())
-    K = R.base_ring()
-    if len(lmon) == 0:
-        return f
-    else:
-        imin = 0
-        mon = lmon[0]
-        trop_weight0 = K(lcoeff[0]).valuation()+sum([lmon[0].degrees()[vv]*w[vv] for vv in range(nvar)])
-        for uu in range(len(lmon)):
-            trop_weight = K(lcoeff[uu]).valuation()+sum([lmon[uu].degrees()[ww]*w[ww] for ww in range(nvar)])
-            if trop_weight < trop_weight0 or (trop_weight == trop_weight0 and R(lmon[uu])> R(mon)):
-                imin = uu
-                mon = lmon[uu]
-                trop_weight0 = trop_weight
-    return lcoeff[imin]
-
-
 def F5_criterion_trop(sign,G,R,w):
     r"""
     
@@ -528,7 +246,7 @@ def F5_criterion_trop(sign,G,R,w):
     EXAMPLES::
 
         sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import F5_criterion
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: sign = [1,x^3]
         sage: G =  [[0,1,x^2], [1,1,x*y], [2,1,y*z], [3,1,2*x^2+3*y^2+z^2]]
         sage: R1.<x1,y1,z1> = Qp(2)[]
@@ -551,58 +269,9 @@ def F5_criterion_trop(sign,G,R,w):
         ei = g[0]
         glm = LM_trop(g[2],R,w)
         if ei < sign[0]:
-            if parent(glm).monomial_divides(glm,sign[1]):
+            if glm.parent().monomial_divides(glm,sign[1]):
                 return True
     return False 
-
-def Reducible_resp_sign_trop(f,g,R,w):
-    r"""
-    
-    Inside the F5 algorithm, f and g are of the form [i,x^alpha, poly].
-    Tests whether g can reduce f while respecting their signatures with strict inequality
-    
-    INPUT:
-
-    - ``f`` -- a polynomial with signature
-    - ``g`` -- a polynomial with signature
-    - ``R`` -- a polynomial ring of dimension
-    - ``w`` -- a list of n rational numbers
-    
-    OUTPUT:
-
-    a boolean, testing whether g can reduce f while respecting their signatures
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: R1.<x1,y1,z1> = Qp(2)[]
-        sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
-        sage: w1 = [0,0,0]
-        sage: w2 = [0,0,-1]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import Reducible_resp_sign
-        sage: g = [0,x,x^2]
-        sage: f = [1,x^2,x^3*y]
-        sage: f2 = [0,x^2,x^3]
-        sage: f3 = [0,1,x^3]
-        sage: Reducible_resp_sign_trop(f,g,R1,w1)
-        True
-        sage: Reducible_resp_sign_trop(f2,g,R1,W1)
-        False
-        sage: Reducible_resp_sign_trop(f3,g,R2,w2)
-        False
-    """
-    fpol = f[2]
-    R0 = fpol.parent()
-    flm = LM_trop(f[2],R,w)
-    glm = LM_trop(g[2],R,w)
-    nvar = len(fpol.parent().gens())
-    trop_weight_sign = sum([f[1].degrees()[vv]*w[vv] for vv in range(nvar)])
-    if parent(glm).monomial_divides(glm,flm):
-        test_sign = R0.monomial_quotient(flm,glm)*g[1]
-        trop_weight_test_sign = sum([test_sign.degrees()[vv]*w[vv] for vv in range(nvar)])
-        bool_comp_sign =( trop_weight_test_sign > trop_weight_sign or (trop_weight_test_sign == trop_weight_sign and R(test_sign) < R(f[1])))
-        return (f[0]> g[0] or (f[0] == g[0] and bool_comp_sign))
-    return False
 
 def Reducible_large_resp_sign_trop(f,g,R,w):
     r"""
@@ -628,11 +297,11 @@ def Reducible_large_resp_sign_trop(f,g,R,w):
         sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
         sage: w1 = [0,0,0]
         sage: w2 = [0,0,-1]
-        sage: from sage.rings.polynomial.padics.toy_F5 import Reducible_large_resp_sign
+        sage: from sage.rings.polynomial.toy_tropical_F5 import Reducible_large_resp_sign_trop
         sage: g = [0,x,x^2]
         sage: f = [1,x^2,x^3*y]
         sage: f2 = [0,x^2,x^3]
-        sage: f3 = [0,1,x^3]
+        sage: f3 = [0,S(1),x^3]
         sage: Reducible_large_resp_sign_trop(f,g,R1,w1)
         True
         sage: Reducible_large_resp_sign_trop(f2,g,R1,w1)
@@ -645,7 +314,7 @@ def Reducible_large_resp_sign_trop(f,g,R,w):
     glm = LM_trop(g[2],R,w)
     nvar = len(f[2].parent().gens())
     trop_weight_sign = sum([f[1].degrees()[vv]*w[vv] for vv in range(nvar)])
-    if parent(glm).monomial_divides(glm,flm):
+    if glm.parent().monomial_divides(glm,flm):
         test_sign = R0.monomial_quotient(flm,glm)*g[1]
         trop_weight_test_sign = sum([test_sign.degrees()[vv]*w[vv] for vv in range(nvar)])
         bool_comp_sign = trop_weight_test_sign > trop_weight_sign or (trop_weight_test_sign == trop_weight_sign and R(test_sign) <= R(f[1]))
@@ -677,11 +346,11 @@ def Reducible_large_resp_sign_family_trop(f,G,R,w):
         sage: R2 = PolynomialRing(Qp(3),['x2','y2','z2'] , order = 'lex') 
         sage: w1 = [0,0,0]
         sage: w2 = [0,0,-1]
-        sage: from sage.rings.polynomial.padics.toy_F5trop import all
-        sage: G = [[0,1,x^2], [1,1,x*y], [2,1,y*z], [3,1,z^2]]
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
+        sage: G = [[0,S(1),x^2], [1,S(1),x*y], [2,S(1),y*z], [3,S(1),z^2]]
         sage: f = [1,x^2,x^3*y]
         sage: f2 = [0,x^2,x^3]
-        sage: f3 = [0,1,x^3]
+        sage: f3 = [0,S(1),x^3]
         sage: Reducible_large_resp_sign_family_trop(f,G,R1,w1)
         True
         sage: Reducible_large_resp_sign_family_trop(f2,G,R1,w1)
@@ -719,11 +388,11 @@ def Rewritten(R,G,g, R1,w):
         sage: S.<x,y,z>=QQ[]
         sage: R1.<x1,y1,z1> = Qp(2)[]
         sage: w1 = [0,0,0]
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: G = [[0,y,x^2+2*z^2], [1,x,x*y+y^2], [2,1,y*z+z^2], [3,1,z^2]]
         sage: g = [2,x,2*x*y*z+x*z^2+y^2*z]
-        sage: Rewritten(G,g)
-        [2,x,x*y*z+x*z^2]
+        sage: Rewritten(S,G,g,R1,w1)
+        [2, x, x*y*z + x*z^2]
 
     """
     mon_sign = LM_trop(R(g[1]),R1,w)
@@ -761,20 +430,21 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
         sage: S.<x,y,z>=QQ[]
         sage: R1.<x1,y1,z1> = Qp(2)[]
         sage: w1 = [0,0,0]
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: G = [[0,y,x^2+2*z^2], [1,x,x*y+y^2], [2,S(1),y*z+z^2], [3,S(1),z^2]]
         sage: paires = []
         sage: paires.append([3,1,x,[1,x,x*y+y^2],y, [0,S(1),x^2+2*z^2]])
         sage: paires.append([3,3,y,[3,S(1),x*z+3*y*z+z^2],z, [3,S(1),x*y+2*y*z+z^2]])
         sage: d = 3
-        sage: Mac = SymbolicPreprocessingTrop(R1,w1, G, d, paires)
+        sage: monom = [x^3,x^2*y,x*y^2,y^3,x^2*z,x*y*z,y^2*z, x*z^2,y*z^2,z^3]
+        sage: Mac = SymbolicPreprocessingTrop(R1,w1, G, d, paires, monom)
         sage: Mac[0][0]
         [0 0 0 0 0 0 0 0 1 1]
-        [0 0 0 0 0 0 1 0 1 0]
-        [0 0 0 0 0 1 0 0 2 1]
-        [0 0 0 0 0 1 3 0 1 0]
+        [0 0 0 0 0 0 0 0 0 1]
+        [0 0 0 0 0 0 0 0 1 0]
+
         sage: Mac[0][1]
-        [[2, z], [2, y], [3, z], [3, y]]
+        [[2, z], [3, z], [3, y]]
 
     """
     R0 = G[0][2].parent()
@@ -832,7 +502,7 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
             poly_to_do.append(signi_polyi)
             list_poly.append(signi_polyi)
             list_already_added.append(signi)
-        #set_done_monom.add(signi_polyi[2].lm())
+
     
     
     #Here, we add the initial polynomials that are of degree d to the matrix.
@@ -844,7 +514,7 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
             list_already_added.append([g[0],g[1]])
     
     
-    # Refaire le sort??? Peut§etre pas necessaire
+
     poly_to_do.sort()
     list_poly.sort()
 
@@ -867,14 +537,13 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
 
             # We do take for mon the biggest monomial available here
             # We look for a g in G and x^alpha such that  mon ==x^alpha* g.lm() with smallest signature
-            # In other word, we look for a "reducer." Yet for signature reason, this reducer could be on more reduced than reducing
+            # In other word, we look for a "reducer." Yet for signature reason, this reducer could be more reduced than reducing
             smallest_g = 0
             smallest_sign = []
             for g in G:
-                #if Reducible_resp_sign([sign_et_poly[0],sign_et_poly[1],mon],g):
-                if parent(mon).monomial_divides(LM_trop(g[2],R,w),mon):
+                if mon.parent().monomial_divides(LM_trop(g[2],R,w),mon):
                     glm =  LM_trop(g[2],R,w)
-                    mult = parent(mon).monomial_quotient(mon,glm)
+                    mult = mon.parent().monomial_quotient(mon,glm)
                     if len(smallest_sign)==0 and list_already_added.count([g[0],mult*g[1]])<1:
                         smallest_g = mult*g[2]
                         smallest_sign = [g[0],mult*g[1]]
@@ -884,7 +553,6 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
                             smallest_sign = [g[0],mult*g[1]]
 
             if len(smallest_sign)>0:
-                #new_poly = [g[0],mult*g[1],mult*g[2]]
                 list_already_added.append(smallest_sign)
                 new_poly = smallest_sign+[smallest_g]
                 poly_to_do.append(new_poly)
@@ -896,11 +564,7 @@ def SymbolicPreprocessingTrop(R,w,G, d, paires, monom):
 
 
     if len(list_poly)>0:
-        #print("\nje suis ici...")
-        #print(list_poly)
         Mac = Make_Macaulay_Matrix_sparse_dict(list_poly, monom)
-        #print(list_monom(R,d))
-        #print(Mac[0].str())
     else:
         Mac = [Matrix(R.base_ring(),0,0,[]),[]]
 
@@ -930,15 +594,16 @@ def list_indexes_trop(Mat, monom, R,w):
     EXAMPLES::
 
         sage: S.<x,y,z,t>=QQ[]
+        sage: from sage.rings.polynomial.toy_tropical_F5_incr import *
         sage: R1.<x1,y1,z1,t1> = Qp(2)[]
         sage: w1 = [0,0,0,0]
         sage: mat = Matrix(QQ,4,4,[0,1,2,0,0,0,0,3,2,0,0,0,0,0,1,1])
         sage: monom = [x,y,z,t]
         sage: list_indexes_trop(mat, monom, R1, w1)
-        [1,3,0,2]
+        [1, 3, 0, 2]
         sage: w2 = [2,9,1,2]
         sage: list_indexes_trop(mat, monom, R1, w2)
-        [2,3,0,2]
+        [2, 3, 0, 2]
     """
     n = Mat.nrows()
     m = Mat.ncols()
@@ -975,14 +640,15 @@ def column_transposition(mat,list_monom,j1,j2):
 
     EXAMPLES::
 
+        sage: from sage.rings.polynomial.toy_tropical_F5_incr import column_transposition
         sage: T.<x,y,z> = QQ[]
         sage: Mac = Matrix(QQ,1,3,[1,2,3])
         sage: list_monom = [x,y,z]
         sage: column_transposition(Mac,list_monom,1,2)
         sage: Mac
-        [1,3,2]
+        [1 3 2]
         sage: list_monom
-        [x,z,y]
+        [x, z, y]
         
     """
     if j1 != j2:
@@ -1017,6 +683,8 @@ def Trop_RowEchelonMac_and_listpivots(Mac,list_monom, R, tropical_weight):
     pivot on a row) and a list 
 
     EXAMPLES::
+
+        sage: from sage.rings.polynomial.toy_tropical_F5_incr import *
         sage: S.<x,y,z,t> = QQ[]
         sage: R.<xx,yy,zz,tt> = Qp(2,50)[]
         sage: w = [-1,0,2,-3]
@@ -1062,45 +730,13 @@ def Trop_RowEchelonMac_and_listpivots(Mac,list_monom, R, tropical_weight):
         else:
             listpivots.append(index_column)
             column_transposition(Mactilde, list_monom, index_column, max_col) 
-            Mactilde.rescale_row(i, Mactilde[i,index_column]^(-1), start_col=index_column)
+            Mactilde.rescale_row(i, Mactilde[i,index_column]**(-1), start_col=index_column)
             for l in range(i+1,n):
                 if Mactilde[l,index_column] != 0:
                     Mactilde.add_multiple_of_row(l, i, -Mactilde[l,index_column] , start_col=index_column)
             index_column +=1 
     return Mactilde, list_monom, listpivots
 
-def Reconstruction(Mactilde,i,monom,sign):
-    r"""
-    
-    Computes a polynomial with signature, 
-    corresponding to the row of Mactilde of index i
-
-
-    
-    INPUT:
-
-    - ``Mactilde`` -- a Macaulay matrix (just the matrix)
-    - ``i`` -- an integer
-    - ``monom`` -- the list of the monomials corresponding to the columns of Mactilde
-    - ``sign`` -- the signature corresponding to the row of Mactilde of index i
-    
-    OUTPUT:
-
-    a polynomial with signature, corresponding to the row of Mactilde of index i
-
-    EXAMPLES::
-
-        sage: S.<x,y,z>=QQ[]
-        sage: mat = Matrix(QQ,2,3,[0,1,2,1,-1,-2])
-        sage: monom = [x,y,z]
-        sage: sign = [0,1]
-        sage: Reconstruction(mat,1,monom,sign)
-        [0, 1, x - y - 2*z]
-    """
-    r = Mactilde.row(i)
-    m = Mactilde.ncols()
-    pol = sum(r[j]*monom[j] for j in range(m))
-    return sign+[pol]
 
 def Eliminate_unreduced(G,F,d):
     r"""
@@ -1121,13 +757,13 @@ def Eliminate_unreduced(G,F,d):
 
     EXAMPLES:: 
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: F = [[0,1,x],[1,1,x^2+2*x*y+y^2-z^2]]
         sage: G = [[0,1,x],[1,1,x^2+2*x*y+y^2-z^2],[1,1,y^2-z^2]]
-        sage: Eliminate_unreduced(G,F,2)
+        sage: G=Eliminate_unreduced(G,F,2)
         sage: G
-        [[0,1,x],[1,1,y^2-z^2]]        
+        [[0, 1, x], [1, 1, y^2 - z^2]]       
     """
 
     newGd = []
@@ -1151,7 +787,7 @@ def Eliminate_unreduced(G,F,d):
                  newG.remove(tempF[i])
     return newG       
 
-def UpdateGpaires(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d, R1, w, redundancy_test, F):
+def UpdateGpaires_trop(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d, R1, w, redundancy_test, F):
     # Compute the new G and the new set of admissible pairs
     r"""
     
@@ -1186,7 +822,7 @@ def UpdateGpaires(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d
 
     EXAMPLES::  
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
@@ -1197,9 +833,10 @@ def UpdateGpaires(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d
         sage: lmonom_mat2 = [x*y,y^2, x^2,x*z,y*z,z^2]
         sage: listpivots = [0,1]
         sage: G = [[0,1,2*x^2+x*y+4*z^2],[1,1,x*y+y^2-z^2]]
+        sage: F=G
         sage: paires = []
         sage: d = 2
-        sage: UpdateGpaires(Mac, monom, mat2, lmonom_mat2, listpivots, G, paires, d, R,w)
+        sage: G, paires = UpdateGpaires_trop(Mac, monom, mat2, lmonom_mat2, listpivots, G, paires, d, R,w, false, F)
         sage: G
         [[0, 1, 2*x^2 + x*y + 4*z^2],
          [1, 1, x*y + y^2 - z^2],
@@ -1221,7 +858,6 @@ def UpdateGpaires(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d
     newG = []
     for i in range(n):
         if listpivots[i]<m and monom[listindexes[i]]<>lmonom_mactilde[listpivots[i]]:
-            #Beware on whether this condition is necessary or not
             if not(Reducible_large_resp_sign_family_trop([Mac[1][i][0],Mac[1][i][1],lmonom_mactilde[listpivots[i]]],G,R1,w)):
                 newG.append(Reconstruction(Mactilde,i,lmonom_mactilde,[Mac[1][i][0],Mac[1][i][1]]))
 
@@ -1230,7 +866,6 @@ def UpdateGpaires(Mac, monom, Mactilde, lmonom_mactilde, listpivots, G, paires,d
     if redundancy_test:
         paires = []
         G2=Eliminate_unreduced(G2,F,d)
-        #can be simplified?
         G = [aa for aa in G if G2.count(aa)>0]
         newG = [aa for aa in newG if G2.count(aa)>0]
 
@@ -1298,13 +933,14 @@ def tentative_F5Trop(list1,R1,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
         sage: list1 = [x+y+z, x*y+x*z+y*z,x*y*z]
         sage: G = tentative_F5Trop(list1,R,w)
         sage: G
+        [x + y + z, y^2 + y*z + z^2, z^3]
 
     """
     #Initialisation
@@ -1325,29 +961,18 @@ def tentative_F5Trop(list1,R1,w):
             d = u.degree()
             paires.append([d,j,R.monomial_quotient(u,LM_trop(list[j],R1,w)),listsign[j],R.monomial_quotient(u,LM_trop(list[i],R1,w)), listsign[i]])
             #watch out: j>i
-    ######attention
+
     paires.sort()
-    #Corps du programme   
+    #Main part
     d = 1
-    monom = list_monom_iteratif_no_repeat(R,d,[])
+    monom = list_monom_no_repeat(R,d,[])
     while paires != [] :
-        ###### No Rewriting
-        # Beware for d, not necessarily increasing...
-        # We might take d = paires[0][0], but this leads to (harmless ?) unnecessary computations
-        print "d=",d
-        #print "remaining pairs=", len(paires)
         Mac, paires = SymbolicPreprocessingTrop(R1,w,G, d, paires, monom)
-        #print "Macaulay matrix size=", [Mac[0].nrows(),Mac[0].ncols()]
-        #print "je reduis"
         Mactilde, list_monom_mactilde, listpivots = Trop_RowEchelonMac_and_listpivots(Mac[0],monom, R1, w)
-        # Beware, no pair of degree <=d will be considered anymore
         redundancy_check = (list_degrees.count(d)>0)
-        #print "je fais l'update"
-        G, paires = UpdateGpaires(Mac, monom, Mactilde,list_monom_mactilde, listpivots, G, paires,d, R1,w,redundancy_check, listsign )
-        #print "longueur de G", len(G)
-        #print "calculs des monomes de degre d"
+        G, paires = UpdateGpaires_trop(Mac, monom, Mactilde,list_monom_mactilde, listpivots, G, paires,d, R1,w,redundancy_check, listsign )
         d = d+1
-        monom = list_monom_iteratif_no_repeat(R,d,monom)
+        monom = list_monom_no_repeat(R,d,monom)
     G = [g[2] for g in G]
     return G
 
@@ -1377,13 +1002,13 @@ def minimalization(G,R1,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
         sage: list1 = [x+y+z, x*y+x*z+y*z,x*y*z]
         sage: G = tentative_F5Trop(list1,R,w)
-        sage: minimalization(G,R1,w)
+        sage: minimalization(G,R,w)
         [x + y + z, y^2 + y*z + z^2, z^3]
 
     """
@@ -1434,28 +1059,32 @@ def symb_preprocess_for_reduction(G,R1,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
         sage: list1 = [z^2, x^3 + 2*x^2*y + y^3, y^3 + y^2*z + y*z^2, y^2*z + z^3]
         sage: G = tentative_F5Trop(list1,R,w)
-        sage: G = minimalization(G,R1,w)
-        sage: symb_preprocess_for reduction(G,R1,w)
-        [[2, 1, [0 0 0 0 0 1]],
-         [
+        sage: G = minimalization(G,R,w)
+        sage: symb_preprocess_for_reduction(G,R,w)
+        ([[2, 1, [0 0 0 0 0 1]],
+          [
               [1 2 0 1 0 0 0 0 0 0]
               [0 0 0 1 0 0 1 0 1 0]
               [0 0 0 0 0 0 1 0 0 1]
               [0 0 0 0 0 0 0 0 1 0]
-         3, 3, [0 0 0 0 0 0 0 0 0 1]
-        ]]
+        3, 3, [0 0 0 0 0 0 0 0 0 1]
+        ]],
+         [[x, y, z],
+          [x^2, x*y, y^2, x*z, y*z, z^2],
+          [x^3, x^2*y, x*y^2, y^3, x^2*z, x*y*z, y^2*z, x*z^2, y*z^2, z^3]])
+
     """ 
     listmat = []
     lmonom = []
     d0=1
     P = G[0].parent()
-    lmonom.append(list_monom_iteratif_no_repeat(P,d0,[]))
+    lmonom.append(list_monom_no_repeat(P,d0,[]))
 
 
     deg = set([])
@@ -1463,7 +1092,7 @@ def symb_preprocess_for_reduction(G,R1,w):
         deg.add(g.degree())
     for d in deg:
         for u in range(d0+1,d+1):
-            lmonom.append(list_monom_iteratif_no_repeat(P,u,lmonom[u-2]))
+            lmonom.append(list_monom_no_repeat(P,u,lmonom[u-2]))
         d0=d
 
         listd = []
@@ -1485,8 +1114,8 @@ def symb_preprocess_for_reduction(G,R1,w):
                 mon = set_monom.pop()
                 for g in G:
                     glm =  LM_trop(g,R1,w)
-                    if parent(mon).monomial_divides(glm,mon):
-                        mult = parent(mon).monomial_quotient(mon,glm)
+                    if mon.parent().monomial_divides(glm,mon):
+                        mult = mon.parent().monomial_quotient(mon,glm)
                         listd.append(mult*g)
                         list_to_do.append(mult*g)
                         break
@@ -1516,12 +1145,12 @@ def tropical_complete_row_reduction(Mat, lmonom, R,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
         sage: Mat = Matrix(QQ,5,10,[1,2,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1])
-        sage: lmonom = list_monom(S,3)
+        sage: lmonom = [x^3,x^2*y,x*y^2,y^3,x^2*z,x*y*z,y^2*z, x*z^2,y*z^2,z^3]
         sage: u = tropical_complete_row_reduction(Mat, lmonom, R,w)
         sage: u[0]
         [1 0 0 0 0 0 0 0 2 0]
@@ -1560,7 +1189,7 @@ def tropical_complete_row_reduction(Mat, lmonom, R,w):
                     max_monomial = list_monom[j0]
         if max_term is not None:
             column_transposition(Mactilde, list_monom, index_column, max_col) 
-            Mactilde.rescale_row(i, Mactilde[i,index_column]^(-1), start_col=index_column)
+            Mactilde.rescale_row(i, Mactilde[i,index_column]**(-1), start_col=index_column)
             for l in range(n):
                 if l <> i:
                     Mactilde.add_multiple_of_row(l, i, -Mactilde[l,index_column] , start_col=index_column)
@@ -1590,7 +1219,7 @@ def reduction_trop_GB(G,R1,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5 import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
@@ -1598,6 +1227,7 @@ def reduction_trop_GB(G,R1,w):
         sage: G = tentative_F5Trop(list1,R,w)
         sage: G = minimalization(G,R,w)
         sage: G = reduction_trop_GB(G,R,w)
+        sage: G
         [z^2, x^3 + 2*x^2*y, y^3, y^2*z]
 
     """
@@ -1641,12 +1271,13 @@ def reduced_trop_GB(F,R1,w):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.padics.toy_F5 import all
+        sage: from sage.rings.polynomial.toy_tropical_F5_incr import *
         sage: S.<x,y,z>=QQ[]
         sage: R.<x1,y1,z1>=Qp(2)[]
         sage: w = [0,0,0]
         sage: list1 = [z^2, x^3 + 2*x^2*y + y^3, y^3 + y^2*z + y*z^2, y^2*z + z^3]
-        sage: G = reduced_trop_GB(G,R,w)
+        sage: G = reduced_trop_GB(list1,R,w)
+        sage: G
         [z^2, x^3 + 2*x^2*y, y^3, y^2*z]
 
     """    
@@ -1654,14 +1285,3 @@ def reduced_trop_GB(F,R1,w):
     G = minimalization(G,R1,w)
     G = reduction_trop_GB(G,R1,w)
     return G    
-
-def sym_pol(n):
-    #Computes the list of elementary symmetric polynomials in n variables (sorted by increasing degree)
-    Sym = SymmetricFunctions(QQ)
-    e = Sym.elementary()
-    list1 = []
-    for i in range(1,n+1):
-        list1.append(e[i].expand(n))
-    return list1
-
-
