@@ -150,6 +150,21 @@ class Frame(SageObject):
             self.F = self.prev_frame().F * self.prev.Fplus
             self.depth = self.prev_frame().depth + 1
 
+    def __eq__(self, other):
+        """
+        Check whether self is equal to other
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.frame import *
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: f = Frame(Phi)
+            sage: g = Frame(Phi, iteration_count=4)
+            sage: f == g
+            False
+        """
+        return type(self) == type(other) and self.Phi() == other.Phi() and self.phi == other.phi and self.iteration == other.iteration
+
     def seed(self, phi, length=infinity):
         r"""
         Seed all of the intermediate values of the frame based on the new
@@ -273,7 +288,7 @@ class Frame(SageObject):
             technically be a forest.
 
         .. SEEALSO::
-        
+
             :meth:`omtree.OMTree.roots`
 
         EXAMPLES:

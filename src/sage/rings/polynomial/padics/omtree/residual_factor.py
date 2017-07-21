@@ -165,7 +165,7 @@ class ResidualFactor:
             sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
             sage: T.leaves()[0].prev == T.leaves()[0].prev
-            False
+            True
 
         """
         return type(self) == type(other) and self.segment == other.segment and self.rho == other.rho and self.multiplicity == other.multiplicity
@@ -180,7 +180,7 @@ class ResidualFactor:
             sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: T = OMTree(x^4 + 20*x^3 + 44*x^2 + 80*x + 1040)
             sage: T.leaves()[0].prev != T.leaves()[0].prev
-            True
+            False
 
         """
         return not (self == other)

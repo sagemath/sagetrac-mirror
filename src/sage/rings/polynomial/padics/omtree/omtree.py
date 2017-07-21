@@ -192,7 +192,7 @@ class OMTree(SageObject):
 
     def roots(self):
         """
-        The roots of the trees with the leaves the OMTree.
+        The roots of the trees whose leaves are in the OMTree.
 
         As a note, the leaves for a polynomial's OM Tree may have different roots.
         Becuase optimal OM Trees remove 'improvement frames' (those for which

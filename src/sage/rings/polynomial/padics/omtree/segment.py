@@ -6,6 +6,7 @@ AUTHORS:
 - Brian Sinclair (2012-02-22): initial version
 
 """
+
 from sage.rings.polynomial.padics.omtree.residual_factor import ResidualFactor
 from sage.rings.infinity import infinity
 from sage.structure.sage_object import SageObject
@@ -126,24 +127,6 @@ class Segment(SageObject):
         self.factors = [ResidualFactor(self, afact[0], afact[1])
                         for afact in list(self.residual_polynomial().factor())]
 
-    def __cmp__(self, other):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
-            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
-            sage: f = Frame(Phi); f.seed(Phi.parent().gen()); P = f.polygon
-            sage: f = f.polygon[0].factors[0].next_frame(); Q = f.polygon
-            sage: P == Q
-            False
-        """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp((self.length, self.verts, self.slope), (other.length, other.verts, other.slope))
-
     @cached_method
     def residual_polynomial(self):
         """
@@ -215,7 +198,37 @@ class Segment(SageObject):
         return hash((self.length, self.slope))
 
     def __eq__(self, other):
-        raise NotImplementedError
+        r"""
+        Return whether this is equal to the segment ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
+            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
+            sage: f1 = Frame(Phi); f1.seed(Phi.parent().gen())
+            sage: s1 = f1.polygon[0] # first segment of the polygon of frame f1
+            sage: f2 = f1.polygon[0].factors[0].next_frame()
+            sage: s2 = f2.polygon[0] # first segment of the polygon of frame f2
+            sage: s1 == s2
+            False
+        """
+        return type(self) is type(other) and self.length == other.length and self.verts == other.verts and self.slope == other.slope
 
     def __ne__(self, other):
-        raise NotImplementedError
+        r"""
+        Return whether this is not equal to the segment ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.omtree.frame import Frame
+            sage: k = ZpFM(2, 20, 'terse'); kx.<x> = k[]
+            sage: Phi = x^4 + 20*x^3 + 44*x^2 + 80*x + 1040
+            sage: f1 = Frame(Phi); f1.seed(Phi.parent().gen())
+            sage: s1 = f1.polygon[0] # first segment of the polygon of frame f1
+            sage: f2 = f1.polygon[0].factors[0].next_frame()
+            sage: s2 = f2.polygon[0] # first segment of the polygon of frame f2
+            sage: s1 != s2
+            True
+        """
+        return not (self == other)

@@ -73,17 +73,17 @@ class FrameElt(SageObject):
         TypeError: not a constant polynomial
 
     Moving to a higher frame, the approximation `\phi` of the previous frame is
-    used. Here `6x^2 + 1` is expressed in its `x`-adic expansion as ``[1,
-    6*x^2]``::
+    used. Here `6x^2 + 1` is expressed in its `x`-adic expansion as ``[1, 6*x^2]``::
 
-        sage: f = f.polygon[0].factors[0].next_frame(); f
+        sage: fr = f.polygon[0].factors[0].next_frame(); fr
         Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
-        sage: FrameElt(f, 6*x^2 + 1)
+        sage: fe = FrameElt(fr, 6*x^2 + 1)
+        sage: fe
         [[1*2^0]phi1^0, [3*2^1]phi1^2]
 
     TESTS::
 
-        sage: isinstance(f, FrameElt)
+        sage: isinstance(fe, FrameElt)
         True
 
     """
@@ -142,7 +142,7 @@ class FrameElt(SageObject):
 
             sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: R.<x> = ZpFM(2, 20, 'terse')
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: f = Frame(x^32 + 16); f.seed(x)
             sage: fe = FrameElt(f, 20)
             sage: fe == fe
@@ -159,7 +159,7 @@ class FrameElt(SageObject):
 
             sage: from sage.rings.polynomial.padics.omtree.frameelt import FrameElt
             sage: from sage.rings.polynomial.padics.omtree.frame import Frame
-            sage: R.<x> = ZpFM(2, 20, 'terse')
+            sage: R.<x> = ZpFM(2, 20, 'terse')[]
             sage: f = Frame(x^32 + 16); f.seed(x)
             sage: fe = FrameElt(f, 20)
             sage: fe != fe
