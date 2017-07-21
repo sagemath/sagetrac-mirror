@@ -80,7 +80,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             - the only non-vanishing entries of `S` are located on
               the diagonal (through `S` might be not a square matrix)
 
-            - if `d_i` denotes the `(i,i)` entry of `D`, then `d_i`
+            - if `d_i` denotes the `(i,i)` entry of `S`, then `d_i`
               divides `d_{i+1}` for all `i`.
 
             The `d_i`'s are uniquely determined provided that they are
@@ -105,8 +105,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [         ...1 ...2222222214]
                 [            0          ...1]
 
-            If not needed, it is possible to do not compute the
-            transformations matrices L and R as follows::
+            If not needed, it is possible to avoid the computation of
+            the transformations matrices L and R::
 
                 sage: M.smith_form(transformation=False)  # indirect doctest
                 [ ...1     0]
@@ -200,9 +200,9 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [    0     0]
 
             An error is raised if the precision on the entries is
-            not enough to determine the Smith normal form::
+            not enough to determine the echelon form::
 
-                sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+                sage: M = matrix(A, 2, 2, [A(0,5), 1, 5^8, 1])
                 sage: M.echelon_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
@@ -210,7 +210,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             TESTS::
 
-            We check that Smith decomposition works over various rings::
+            We check that it works over various rings::
 
                 sage: from sage.rings.padics.precision_error import PrecisionError
                 sage: ring1 = ZpCA(5,15)
@@ -333,178 +333,6 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 Power Series Ring in t over Finite Field of size 5
             """
 
-
-        def _matrix_smith_form(self, M, transformation):
-            """
-            Return the Smith normal form of this matrix.
-
-            INPUT:
-
-            - ``transformation`` -- a boolean (default: True)
-              Indicates whether the transformation matrices are returned
-
-            NOTE:
-
-            We recall that a Smith decomposition of a matrix `M`
-            defined over a complete discrete valuation ring/field
-            is a writing of the form `L*M*R = S` where:
-
-            - `L` and `R` are invertible matrices in the ring of
-              integers
-
-            - the only non-vanishing entries of `S` are located on
-              the diagonal (through `S` might be not a square matrix)
-
-            - if `d_i` denotes the `(i,i)` entry of `D`, then `d_i`
-              divides `d_{i+1}` for all `i`.
-
-            The `d_i`'s are uniquely determined provided that they are
-            normalized so that they are all either `0` or a power of the 
-            distinguished uniformizer of the base ring.
-            Normalized this way, the writing `L*M*R = S` is called the
-            Smith normal form of `M`.
-
-            EXAMPLES::
-
-                sage: A = Qp(5, prec=10, print_mode="digits")
-                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
-
-                sage: S, L, R = M.smith_form()  # indirect doctest
-                sage: S
-                [ ...1     0]
-                [    0 ...10]
-                sage: L
-                [...222222223          ...]
-                [...444444444         ...2]
-                sage: R
-                [         ...1 ...2222222214]
-                [            0          ...1]
-
-            If not needed, it is possible to do not compute the
-            transformations matrices L and R as follows::
-
-                sage: M.smith_form(transformation=False)  # indirect doctest
-                [ ...1     0]
-                [    0 ...10]
-
-            This method works for rectangular matrices as well::
-
-                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-                sage: S, L, R = M.smith_form()  # indirect doctest
-                sage: S
-                [ ...1     0]
-                [    0 ...10]
-                [    0     0]
-                sage: L
-                [...222222223          ...          ...]
-                [...444444444         ...2          ...]
-                [...444444443         ...1         ...1]
-                sage: R
-                [         ...1 ...2222222214]
-                [            0          ...1]
-
-            An error is raised if the precision on the entries is
-            not enough to determine the Smith normal form::
-
-                sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
-                sage: M.smith_form()  # indirect doctest
-                Traceback (most recent call last):
-                ...
-                PrecisionError: Not enough precision to compute Smith normal form
-
-            TESTS::
-
-            We check that Smith decomposition works over various rings::
-
-                sage: from sage.rings.padics.precision_error import PrecisionError
-                sage: ring1 = Qp(7,10)
-                sage: ring2 = Qq(7^2,names='a')
-                sage: ring3 = Qp(7).extension(x^3-7, names='pi')
-                sage: ring4 = LaurentSeriesRing(GF(7), name='t')
-                sage: for A in [ ring1, ring2, ring4 ]:  # ring3 causes troubles (see ticket #23464)
-                ....:     for _ in range(10):
-                ....:         M = random_matrix(A,4)
-                ....:         try:
-                ....:             S, L, R = M.smith_form()
-                ....:         except PrecisionError:
-                ....:             continue
-                ....:         if L*M*R != S: raise RuntimeError
-            """
-            from sage.matrix.matrix_cdv_dense import smith_normal_form
-            return smith_normal_form(M, transformation)
-
-        def _matrix_echelonize(self, M, transformation=True, secure=False):
-            """
-            Row-echelonize this matrix
-
-            INPUT:
-
-            - ``transformation`` -- a boolean (default: True)
-              Indicates whether the transformation matrix is returned
-
-            OUTPUT:
-
-            The position of the pivots and the transformation matrix
-            if asked for.
-
-            EXAMPLES::
-
-                sage: A = Qp(5, prec=10, print_mode="digits")
-                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
-
-                sage: M.echelon_form()  # indirect doctest
-                [ ...1  ...1]
-                [    0 ...10]
-
-                sage: H,L = M.echelon_form(transformation=True)  # indirect doctest
-                sage: H
-                [ ...1  ...1]
-                [    0 ...10]
-                sage: L
-                [        ...1 ...444444444]
-                [...444444444         ...2]
-                sage: L*M == H
-                True
-
-            This method works for rectangular matrices as well::
-
-                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-                sage: M.echelon_form()  # indirect doctest
-                [ ...1  ...1]
-                [    0 ...10]
-                [    0     0]
-
-            An error is raised if the precision on the entries is
-            not enough to determine the Smith normal form::
-
-                sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
-                sage: M.echelon_form()  # indirect doctest
-                Traceback (most recent call last):
-                ...
-                PrecisionError: Not enough precision to echelonize
-
-            TESTS::
-
-            We check that Smith decomposition works over various rings::
-
-                sage: from sage.rings.padics.precision_error import PrecisionError
-                sage: ring1 = Qp(7,10)
-                sage: ring2 = Qq(7^2,names='a')
-                sage: ring3 = Qp(7).extension(x^3-7, names='pi')
-                sage: ring4 = LaurentSeriesRing(GF(7), name='t')
-                sage: for A in [ ring1, ring2, ring4 ]:  # ring3 causes troubles (see ticket #23464)
-                ....:     for _ in range(10):
-                ....:         M = random_matrix(A,4)
-                ....:         try:
-                ....:             H, L = M.echelon_form(transformation=True)
-                ....:         except PrecisionError:
-                ....:             continue
-                ....:         if L*M != H: raise RuntimeError
-            """
-            from sage.matrix.matrix_cdv_dense import echelonize
-            return echelonize(M, transformation, secure=secure)
-
-
     class ElementMethods:
         @abstract_method
         def precision_absolute(self):
@@ -533,5 +361,3 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: x.precision_relative()
                 20
             """
-
-
