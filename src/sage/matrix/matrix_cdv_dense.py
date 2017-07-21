@@ -82,7 +82,7 @@ def smith_normal_form(M, transformation):
         return smith
 
 
-def echelonize(M, transformation):
+def echelonize(M, transformation, secure):
     """
     Helper method to echelonize matrices over CDVR/CDVF
 
@@ -92,6 +92,8 @@ def echelonize(M, transformation):
 
     Analyse better precision.
     """
+    print "Echelonize"
+    print M
     n = M.nrows()
     m = M.ncols()
     R = M.base_ring()
@@ -122,9 +124,22 @@ def echelonize(M, transformation):
             continue
 
         if R.tracks_precision():
+            not_enough_precision = False
             for ii in range(n):
                 if M[ii,j].precision_absolute() <= val:
+                    not_enough_precision = True
+            if not_enough_precision:
+                # In this situation, we do not know for sure what
+                # is the pivot. 
+                if secure:
                     raise PrecisionError("Not enough precision to echelonize")
+                # When secure is False, if all entries on the column
+                # are inexact zeroes, we go ahead
+                for ii in range(i,n):
+                    if M[ii,j] != 0:
+                        raise PrecisionError("Not enough precision to echelonize")
+                j += 1
+                continue
 
         pivots.append(j)
 

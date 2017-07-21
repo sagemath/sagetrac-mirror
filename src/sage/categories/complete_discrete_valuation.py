@@ -158,7 +158,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             from sage.matrix.matrix_cdv_dense import smith_normal_form
             return smith_normal_form(M, transformation)
 
-        def _matrix_echelonize(self, M, transformation=True):
+        def _matrix_echelonize(self, M, transformation=True, secure=False):
             """
             Row-echelonize this matrix
 
@@ -227,7 +227,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 ....:         if L*M != H: raise RuntimeError
             """
             from sage.matrix.matrix_cdv_dense import echelonize
-            return echelonize(M, transformation)
+            return echelonize(M, transformation, secure=secure)
 
 
     class ElementMethods:
@@ -433,7 +433,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             from sage.matrix.matrix_cdv_dense import smith_normal_form
             return smith_normal_form(M, transformation)
 
-        def _matrix_echelonize(self, M, transformation=True):
+        def _matrix_echelonize(self, M, transformation=True, secure=False):
             """
             Row-echelonize this matrix
 
@@ -502,7 +502,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 ....:         if L*M != H: raise RuntimeError
             """
             from sage.matrix.matrix_cdv_dense import echelonize
-            return echelonize(M, transformation)
+            return echelonize(M, transformation, secure=secure)
 
 
     class ElementMethods:

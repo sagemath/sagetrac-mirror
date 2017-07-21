@@ -458,6 +458,7 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
 
             sage: R.<x> = LaurentSeriesRing(GF(17))
             sage: R.integer_ring()
+            Power Series Ring in x over Finite Field of size 17
 
             sage: R.<x> = LaurentSeriesRing(ZZ)
             sage: R.integer_ring()
