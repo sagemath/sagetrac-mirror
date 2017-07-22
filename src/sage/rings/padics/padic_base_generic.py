@@ -20,6 +20,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer_ring import ZZ
+
 from .padic_generic import pAdicGeneric
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
@@ -59,7 +61,8 @@ class pAdicBaseGeneric(pAdicGeneric):
             coerce_list = [pAdicCoercion_ZZ_FP(self)]
             convert_list = [pAdicConvert_QQ_FP(self)]
         else:
-            raise RuntimeError
+            coerce_list = [ZZ]
+            convert_list = []
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
 
     def fraction_field(self, print_mode=None):

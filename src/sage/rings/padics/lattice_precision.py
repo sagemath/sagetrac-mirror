@@ -1,110 +1,323 @@
-# The parent
-############
+"""
+Toy implementation of lattice precision for p-adic numbers.
 
-class pAdicFieldLattice(pAdicRingBaseGeneric):
+Here is a small demo::
+
+    sage: R = ZpLP(3)
+    sage: x = R(1,10)
+
+Of course, when we multiply by 3, we gain one digit of absolute 
+precision::
+
+    sage: 3*x
+    3 + O(3^11)
+
+The lattice precision machinery sees this even if we decompose
+the computation into several steps::
+
+    sage: y = x+x
+    sage: y
+    2 + O(3^10)
+    sage: x+y
+    3 + O(3^11)
+
+The same works for the multiplication::
+
+    sage: z = x^2
+    sage: z
+    1 + O(3^10)
+    sage: x*z
+    1 + O(3^11)
+
+This comes more funny when we are working with elements given
+at different precisions::
+
+    sage: R = ZpLP(2)
+    sage: x = R(1,10)
+    sage: y = R(1,5)
+    sage: z = x+y; z
+    2 + O(2^5)
+    sage: t = x-y; t
+    0 + O(2^5)
+    sage: z+t  # observe that z+t = 2*x
+    2 + O(2^11)
+    sage: z-t  # observe that z-t = 2*y
+    2 + O(2^6)
+
+    sage: x = R(28888,15)
+    sage: y = R(204,10)
+    sage: z = x/y; z
+    242 + O(2^9)
+    sage: z*y  # which is x
+    28888 + O(2^15)
+
+The SOMOS sequence is the sequence defined by the recurrence::
+
+..MATH::
+
+    u_n = \frac {u_{n-1} u_{n-3} + u_{n-2}^2} {u_{n-4}}
+
+It is known for its numerical instability.
+On the one hand, one can show that if the initial values are
+invertible in `\mathbb{Z}_p` and known at precision `O(p^N)`
+then all the next terms of the SOMOS sequence will be known 
+at the same precision as well.
+On the other hand, because of the division, when we unroll
+the recurrence, we loose a lot of precision. Observe::
+
+    sage: R = Zp(2, print_mode='terse')
+    sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    4 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    13 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    55 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    21975 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    6639 + O(2^13)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    7186 + O(2^13)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    569 + O(2^13)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    253 + O(2^13)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    4149 + O(2^13)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    2899 + O(2^12)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    3072 + O(2^12)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    349 + O(2^12)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    619 + O(2^12)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    243 + O(2^12)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    3 + O(2^2)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    2 + O(2^2)
+
+If instead, we use the lattice precision, everything goes well::
+
+    sage: R = ZpLP(2)
+    sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    4 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    13 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    55 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    21975 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    23023 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    31762 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    16953 + O(2^15)
+    sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+    16637 + O(2^15)
+
+    sage: for _ in range(100):
+    ....:     a,b,c,d = b,c,d,(b*d+c*c)/a
+    sage: a
+    15519 + O(2^15)
+    sage: b
+    32042 + O(2^15)
+    sage: c
+    17769 + O(2^15)
+    sage: d
+    20949 + O(2^15)
+"""
+
+import _weakref as weakref
+from sage.misc.prandom import randint
+from sage.rings.integer_ring import ZZ
+from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric
+from sage.rings.padics.padic_generic_element import pAdicGenericElement
+
+class pAdicRingLattice(pAdicRingBaseGeneric):
     # Internal variables:
-    #  . self._working_precision_cap
-    #    a cap for the working precision
-    #    meaning that the precision lattice always contains p^(self._working_precision_cap)
+    #  . self._prec_cap
+    #    a cap for the (working) precision
+    #    meaning that the precision lattice always contains p^(self._prec_cap)
     #  . self._elements
     #    list of weak references of elements in this parent
-    #  . self._precision_lattice
-    #    a matrix over ZZ representing the lattice of precision
+    #  . self._precision
+    #    an upper triangular matrix over ZZ representing the 
+    #    lattice of precision
     #    (its columns are indexed by self._elements)
 
-    def __init__(self, p, working_precision_cap, print_mode):
-        # Initialize variables here
+    def __init__(self, p, prec=50, print_mode={'mode':'terse'}, label=None):
+        if label is None:
+            self._label = None
+        else:
+            self._label = str(label)
+        self._elements = [ ]
+        self._precision = { }
+        self._prec_cap = prec
+        self._modulus = p**prec
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, '', pAdicLatticeElement)
 
-    def _echelonize(self):
-        # Echelonize the matrix giving the precision lattice
+    def _prec_type(self):
+        return 'lattice'
 
-    def _add_element(self, elt, prec):
-        # A new element in the parent has just been created
-        # We should:
-        #  . add a weak reference to it to the list self._elements
-        #  . add a column to self._precision_lattice
-        #    and update this matrix according to prec 
-        #    (and possibly the working precision cap)
-        # NOTE: prec be either an integer or a formal linear combinaison
-        # of the precision on the other elements of this parent
+    def label(self):
+        return self._label
 
-    def _del_element(self, elt):
-        # The element elt has just been garbage collected
-        # We should:
-        #  . remove it to the list self._elements
-        #  . remove the corresponding column of self._precision_lattice
+    def precision_cap(self):
+        return self._prec_cap
 
-    def precision_absolute(self, elt):
-        # Return the (optimal) absolute precision of the element elt
-        # This precision can be read off on self._precision_lattice:
-        # it is the smallest valuation of an entry of the column of
-        # self._precision_lattice corresponding to the element elt
+    def _repr_(self):
+        s = "%s-adic Field with lattice precision" % self.prime()
+        if self._label is not None:
+            s += ", called '%s'" % self._label
+        return s
 
-    def working_precision(self, elt):
-        # Return the working precision of the element elt
-        # This precision can be read off on the precision lattice:
-        # it is the smallest integer n for which the precision
-        # lattice contains p^n*[elt] where [elt] denotes the 
-        # basis vector corresponding to elt
+    def _new_element(self, x, prec, dx):
+        n = len(self._elements)
+        x_ref = weakref.ref(x, self._del_element)
+        self._elements.append(x_ref)
+        if prec is None or prec > self._prec_cap:
+            prec = self._prec_cap
+        modulus = self.prime()**prec
+        col = n * [ZZ(0)]
+        for ref,scalar in dx:
+            c = self._precision[ref]
+            for i in range(len(c)):
+                col[i] += scalar * c[i]
+        for i in range(n):
+            col[i] = ZZ(col[i]) % modulus
+            # We should handle the case where col[i] is not an integer but I'm lazy...
+        col.append(modulus)
+        self._precision[x_ref] = col
+        
+    def _del_element(self, ref):
+        try:
+            index = len(self._precision[ref]) - 1
+        except IndexError:
+            return
+        del self._elements[index]
+        del self._precision[ref]
 
-    def _element_constructor_(self, x, prec):
-        # We ask for the creation of an element in this parent
-        # We should:
-        #  . create this element (called elt hereafter) from x
-        #    Note: elt is an instance of the class pAdicLatticeElement below
-        #  . call the method _new_element(elt, prec)
-        #  . install a callback so that when elt will be collected
-        #    by the garbage collector, the method _del_element will
-        #    be called
+        # Now, we echelonize...
+        p = self.prime()
+        n = len(self._elements)
+        modulus = self._modulus
+        for i in range(index,n):
+            col = self._precision[self._elements[i]]
+            d, u, v = col[i].xgcd(col[i+1])
+            up, vp = col[i+1]/d, -col[i]/d
+            col[i] = d
+            del col[i+1]
+            for j in range(i+1,n):
+                col = self._precision[self._elements[j]]
+                col[i], col[i+1] = (u*col[i] + v*col[i+1]) % modulus, (up*col[i] + vp*col[i+1]) % modulus
+        # Actually, the matrix we obtained this way is not in Hermite normal form
+        # because its entries above the diagonal are not necessarily completely reduced
+        # (though they are at least modulo p^precision_cap)
+        # Should we reduce them further (this affects seriously the complexity)?
 
-QpLP = pAdicFieldLattice
+    def precision_absolute(self, x):
+        ref = weakref.ref(x)
+        p = self.prime()
+        return min([ c.valuation(p) for c in self._precision[ref] ])
+
+    def working_precision(self, x):
+        # Do something better here
+        return self._prec_cap
+
+ZpLP = pAdicRingLattice
 
 
 # The elements
 ##############
 
-class pAdicLatticeElement(Element):
+class pAdicLatticeElement(pAdicGenericElement):
     # Internal variable:
     #  . self._approximation
     #    an approximation of this p-adic number
     #    it is defined modulo p^(working_precision)
 
+    def __init__(self, parent, x, prec=None, dx={}):
+        self._parent = parent
+        self._hash = hash((x, randint(1, 100000)))
+        pAdicGenericElement.__init__(self, parent)
+        if prec is None:
+            prec = parent.precision_cap()
+        self._parent._new_element(self, prec, dx)
+        self._approximation = x
+
+    def __hash__(self):
+        return self._hash
+
     def working_precision(self):
         return self.parent().working_precision(self)
 
-    def approximation(self):
-        # We should:
-        #  . reduce self._approximation modulo p^(self.working_precision())
-        #    (and update self._approximation accordingly)
-        #  . return the result
+    def approximation(self, reduce=True):
+        if reduce:
+            workprec = self.working_precision()
+            p = self._parent.prime()
+            self._approximation %= p**workprec
+        return self._approximation
 
     def precision_absolute(self):
         return self.parent().precision_absolute(self)
 
     def valuation(self, secure=False):
-        # We should:
-        #  . compute the valuation of self.approximation()
-        #  . compare it to the self.precision_absolute()
-        #  . if the former is less than the latter, we return the former
-        #  . otherwise, if secure is False, we return the latter
-        #               if secure is True, we raise an error
+        p = self._parent.prime()
+        val = self._approximation.valuation(p)
+        prec = self.precision_absolute()
+        if val < prec: 
+            return val
+        elif secure:
+            raise PrecisionError("Not enough precision")
+        else:
+            return prec
 
     def precision_relative(self, secure=False):
         return self.precision_absolute() - self.valuation(secure=secure)
 
     def _repr_(self):
-        # Print like this:
-        #   self.approximation() + O(p^self.precision_absolute())
-
+        prec = self.precision_absolute()
+        p = self._parent.prime()
+        app = self._approximation % (p**prec)
+        return "%s + O(%s^%s)" % (app, p, prec)
 
     def _add_(self, other):
-        # We should:
-        #  . compute app = self.approximation() + other.approximation()
-        #  . create a new element from app and the precision given by the differential:
-        #    dapp = dself + dother
+        x = self.approximation() + other.approximation()
+        dx = [  [weakref.ref(self), 1], 
+               [weakref.ref(other), 1] ]
+        return self.__class__(self._parent, x, dx=dx)
+
+    def _sub_(self, other):
+        x = self.approximation() - other.approximation()
+        dx = [  [weakref.ref(self), 1 ], 
+               [weakref.ref(other), -1] ]
+        return self.__class__(self._parent, x, dx=dx)
 
     def _mul_(self, other):
-        # We should:
-        #  . compute app = self.approximation() * other.approximation()
-        #  . create a new element from app and the precision given by the differential:
-        #    dapp = self*dother + other*dself
+        x_self = self.approximation()
+        x_other = other.approximation()
+        x = x_self * x_other
+        dx = [  [weakref.ref(self), x_other],
+               [weakref.ref(other), x_self ] ]
+        return self.__class__(self._parent, x, dx=dx)
+
+    def _div_(self, other):
+        p = self._parent.prime()
+        x_self = self.approximation()
+        x_other = other.approximation()
+        wp_other = other.working_precision()
+        d, inv, _ = x_other.xgcd(p**wp_other)
+        q, r = x_self.quo_rem(d)
+        if r != 0:
+            raise ValueError("division is not exact")        
+        x = q * inv
+        # dx = (1/other)*dself - (self/other^2)*dother
+        dx = [  [weakref.ref(self), inv/d    ],
+               [weakref.ref(other), -x*inv/d ] ]
+        return self.__class__(self._parent, x, dx=dx)
