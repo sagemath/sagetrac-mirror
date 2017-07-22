@@ -2065,26 +2065,29 @@ cdef class NumberFieldElement(FieldElement):
         K = self.parent()
         R = self.number_field()['t']
         f = R([-self, 0, 1])
-        if extend:
+        roots = f.roots(multiplicities=False)
+        if extend and len(roots)==0:
             if name is None:
                 raise TypeError("You must specify a name of the square root of %s."%(self))
             E = K.extension(f, name)
-            roots = [(E.gen(),1), (-E.gen(),1)]
-        else:
-            roots = f.roots()
-        if all:
-            return [r[0] for r in roots]
-        elif len(roots) > 0:
-            return roots[0][0]
+            if all:
+                return [E.gen(), -E.gen()]
+            else:
+                return E.gen()
+        elif len(roots)>0:
+            if all:
+                return roots
+            else:
+                return roots[0]
         else:
             try:
                 # This is what integers, rationals do...
                 from sage.all import SR, sqrt
                 return sqrt(SR(self))
             except TypeError:
-                raise ValueError("%s not a square in %s. Try setting extend=True for creating an extension field."%(self, self._parent))
+                raise ValueError("%s not a square in %s. Try setting extend=True for creating an extension field that contains the square root of %s."%(self, self._parent, self))
 
-    def nth_root(self, n, extend=False, name=None, name_root_unity=None, all=False):
+    def nth_root(self, n, extend=False, name1=None, all=False):
         r"""
         Return an `n`'th root of ``self`` in its parent `K`.
 
@@ -2108,30 +2111,38 @@ cdef class NumberFieldElement(FieldElement):
         R = self.number_field()['t']
         if not self:
             return [self] if all else self
-        f = (R.gen(0) << (n-1)) - self
-        if extend:
-            if name is None:
+        f = (R.gen() << (n-1)) - self
+        nth_roots = f.roots(multiplicities=False)
+        if extend and len(nth_roots)==0:
+            if name1 is None:
                 raise TypeError("You must specify a name of the %s-th root of %s."%(n, self))
-            if name_root_unity is None:
-                raise TypeError("You must specify a name of the %s-th root of unity."%(n, self))
-            E1 = K.extension(f, name)
+            #if name2 is None:
+            #    raise TypeError("You must specify a name of the %s-th root of unity."%(n, self))
+            E1 = K.extension(f, name1)
             phi_n = cyclotomic_polynomial(n, R.gen())
-            E2 = E1.extension(phi_n, name_root_unity)
-            root_of_unity = E2.gen()
-            roots = [(E1.gen()*root_of_unity**i, 1) for i in range(n)]
-        else:
-            roots = f.roots()
-        if all:
-            return [r[0] for r in roots]
-        elif len(roots) > 0:
-            return roots[0][0]
+            E2 = E1.extension(phi_n, 's3').relativize(K.gen(), ['s1', 's2'])
+            def_pol_E2 = E2.defining_polynomial()
+            def_pol_E3 = K['x']([K(c.list()) for c in def_pol_E2.list()])
+            E3 = K.extension(def_pol_E3, name1)
+            S = E3['u']
+            f_E3 = (S.gen() << (n-1)) - E3.gen(1)
+            nth_roots_extend = f_E3.roots(multiplicities=False)
+            if all:
+                return nth_roots_extend
+            else:
+                return nth_roots_extend[0]
+        elif len(nth_roots) > 0:
+            if all:
+                return nth_roots
+            else:
+                return nth_roots[0]
         else:
             try:
                 # This is what integers, rationals do...
                 from sage.all import SR, sqrt
                 return SR(self)**(1/n)
             except TypeError:
-                raise ValueError("%s not a %s-th root in %s. Try setting extend=True for creating an extension field."%(self, n, self._parent))
+                raise ValueError("%s not a %s-th root in %s. Try setting extend=True for creating an extension field that contains the %s-th root of %s."%(self, n, self._parent, n, self))
 
     def is_nth_power(self, n):
         r"""
