@@ -65,3 +65,98 @@ class Monomial(object):
                         for index, exponent in iteritems(component))
 
     __str__ = __repr__
+
+    def deg(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a
+            x0_0^2*x0_2^3*x1_0^3*x1_3
+            sage: a.deg()
+            9
+        """
+        return sum(exponent
+                   for component in self._exponents_
+                   for exponent in itervalues(component))
+
+    def _sorting_key_lex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+
+            sage: x_0 = Monomial(({0: 1},))
+            sage: x_1 = Monomial(({1: 1},))
+            sage: u_0 = Monomial(({0: 2},))
+            sage: u_1 = Monomial(({1: 2},))
+            sage: x_0._sorting_key_lex_() < x_1._sorting_key_lex_()
+            True
+            sage: u_0._sorting_key_lex_() < u_1._sorting_key_lex_()
+            True
+            sage: x_0._sorting_key_lex_() < u_1._sorting_key_lex_()
+            True
+            sage: u_0._sorting_key_lex_() < x_1._sorting_key_lex_()
+            True
+            sage: x_0._sorting_key_lex_() < u_0._sorting_key_lex_()
+            True
+            sage: x_1._sorting_key_lex_() < u_1._sorting_key_lex_()
+            True
+
+            sage: names = ('x', 'y')
+            sage: x_0 = Monomial(({0: 1}, {}))
+            sage: x_1 = Monomial(({1: 1}, {}))
+            sage: y_0 = Monomial(({}, {0: 1}))
+            sage: y_1 = Monomial(({}, {1: 1}))
+            sage: x_0._sorting_key_lex_() < x_1._sorting_key_lex_()
+            True
+            sage: y_0._sorting_key_lex_() < y_1._sorting_key_lex_()
+            True
+            sage: x_0._sorting_key_lex_() < y_0._sorting_key_lex_()
+            True
+            sage: x_1._sorting_key_lex_() < y_0._sorting_key_lex_()
+            True
+            sage: x_0._sorting_key_lex_() < y_1._sorting_key_lex_()
+            True
+            sage: x_1._sorting_key_lex_() < y_1._sorting_key_lex_()
+            True
+            
+
+            sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a.__repr__(names)
+            'x_0^2*x_2^3*y_0^3*y_3'
+            sage: b = Monomial(({0: 2, 2: 3}, {0: 2, 3: 2})); b.__repr__(names)
+            'x_0^2*x_2^3*y_0^2*y_3^2'
+            sage: c = Monomial(({0: 3, 2: 2}, {0: 2, 3: 2})); c.__repr__(names)
+            'x_0^3*x_2^2*y_0^2*y_3^2'
+            sage: d = Monomial(({0: 1, 2: 4}, {0: 2, 3: 2})); d.__repr__(names)
+            'x_0*x_2^4*y_0^2*y_3^2'
+            sage: a._sorting_key_lex_() < b._sorting_key_lex_()
+            True
+            sage: a._sorting_key_lex_() < c._sorting_key_lex_()
+            True
+            sage: a._sorting_key_lex_() < d._sorting_key_lex_()
+            True
+            sage: c._sorting_key_lex_() < b._sorting_key_lex_()
+            True
+            sage: b._sorting_key_lex_() < d._sorting_key_lex_()
+            True
+            sage: c._sorting_key_lex_() < d._sorting_key_lex_()
+            True
+            sage: e = Monomial(({0: 4, 2: 2}, {0: 2, 3: 2})); e.__repr__(names)
+            'x_0^4*x_2^2*y_0^2*y_3^2'
+            sage: c._sorting_key_lex_() < e._sorting_key_lex_()
+            True
+        """
+        return tuple(sum(sorted(iteritems(component), reverse=True), ())
+                     for component in reversed(self._exponents_))
+
+    def _sorting_key_revlex_(self):
+        return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_)
+
+    def _sorting_key_deglex_(self):
+        return (self.deg(), self._sorting_key_lex_())
+
+    def _sorting_key_deglex_(self):
+        return (self.deg(), self._sorting_key_revlex_())
+
+
