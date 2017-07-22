@@ -292,69 +292,6 @@ class Polynomial_padic(Polynomial_generic_domain):
                 and coeffs[n].valuation() == 0
                 and all(coeffs[x].valuation() >= 1 for x in range(1,n)))
 
-    def deformed_eisenstein(self, m, theta, trunc):
-        r"""
-        Return the "deformed" Eisenstein polynomial, ie. the minimal polynomial of the uniformizer `q` such that `q + theta*q^(m+1) = pi`.
-        Note that we also have that `q = pi - theta*pi^(m+1) + O(pi^(m+2))`
-
-        EXAMPLES::
-
-        We deform an Eisenstein polynomial and check the relationship between `q` and `pi`.
-
-            sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
-            sage: R = ZpFM(3,20,print_mode='terse'); Rx.<x> = R[]
-            sage: f = x^9+9*x^2+3
-            sage: f.is_eisenstein()
-            True
-            sage: m = 2; theta = 1; trunc = 180
-            sage: g = f.deformed_eisenstein(m,theta,trunc)
-            sage: g
-            (1 + O(3^20))*x^9 + (3205887336 + O(3^20))*x^8 + (634107690 + O(3^20))*x^7 + (1030936815 + O(3^20))*x^6 + (1721931291 + O(3^20))*x^5 + (2532448143 + O(3^20))*x^4 + (1806953859 + O(3^20))*x^3 + (3022253919 + O(3^20))*x^2 + (460349730 + O(3^20))*x + (3286601949 + O(3^20))
-            sage: S.<q> = R.ext(g)
-            sage: pi = q + theta*q^(m+1)
-            sage: h = f.change_ring(S)
-            sage: h(pi).is_zero()
-            True
-
-        AUTHORS:
-
-        - Maurizio Monge (2014-11-14): initial version
-        - Sebastian Pauli and Brian Sinclair (2017-07-20): bang to sage 8.0, documentation
-
-        """
-        if not self.is_eisenstein():
-            raise ValueError("this function can only deform Eisenstein polynomials")
-
-        f = self
-        n = f.degree()
-        x = f.variables()[0]
-
-        # truncation level, because x^trunc = 0 mod piK^prec, as v(x) = 1/n
-        g = f(x + theta*x**(m+1)).truncate(trunc) # IMPROVE-ME: use f_0 instead of x^n
-
-        prev = (0, n)
-        while(g.degree() > n):
-            g_coeffs = g.coefficients(sparse=False)
-
-            #where f has terms we want to kick out
-            extra_range = range(n+1, g.degree()+1)
-
-            cur_prec = min([(g_coeffs[i].valuation())*n + i for i in extra_range])
-            if cur_prec >= trunc:
-                break
-
-            # lexicographically minimal pair (val(f_i), i), for i in the extra range
-            min_val, min_idx = min([(g_coeffs[i].valuation(), i) for i in extra_range])
-
-            # the bad terms should be going away...
-            assert(prev < (min_val, min_idx))
-            prev = (min_val, min_idx)
-
-            # subtract, from g, (badmononial/x^n)*g
-            g = g - g_coeffs[min_idx] * g.shift(min_idx-n).truncate(trunc)
-
-        return g.truncate(n+1).monic()
-
     @cached_method
     def omtree(self, check_squarefree=True, check_field=True):
         r"""
@@ -861,11 +798,71 @@ class Polynomial_padic(Polynomial_generic_domain):
                     return True
         return False
 
+    def deformed_eisenstein(self, m, theta, trunc):
+        r"""
+        Return the "deformed" Eisenstein polynomial, ie. the minimal polynomial of the uniformizer `q` such that `q + theta*q^(m+1) = pi`.
+        Note that we also have that `q = pi - theta*pi^(m+1) + O(pi^(m+2))`
+
+        EXAMPLES::
+
+        We deform an Eisenstein polynomial and check the relationship between `q` and `pi`.
+
+            sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
+            sage: R = ZpFM(3,20,print_mode='terse'); Rx.<x> = R[]
+            sage: f = x^9+9*x^2+3
+            sage: f.is_eisenstein()
+            True
+            sage: m = 2; theta = 1; trunc = 180
+            sage: g = f.deformed_eisenstein(m,theta,trunc)
+            sage: g
+            (1 + O(3^20))*x^9 + (3205887336 + O(3^20))*x^8 + (634107690 + O(3^20))*x^7 + (1030936815 + O(3^20))*x^6 + (1721931291 + O(3^20))*x^5 + (2532448143 + O(3^20))*x^4 + (1806953859 + O(3^20))*x^3 + (3022253919 + O(3^20))*x^2 + (460349730 + O(3^20))*x + (3286601949 + O(3^20))
+            sage: S.<q> = R.ext(g)
+            sage: pi = q + theta*q^(m+1)
+            sage: h = f.change_ring(S)
+            sage: h(pi).is_zero()
+            True
+
+        AUTHORS:
+
+        - Maurizio Monge (2014-11-14): initial version
+        - Sebastian Pauli and Brian Sinclair (2017-07-20): bang to sage 8.0, documentation
+
+        """
+        if not self.is_eisenstein():
+            raise ValueError("this function can only deform Eisenstein polynomials")
+
+        f = self
+        n = f.degree()
+        x = f.variables()[0]
+
+        # truncation level, because x^trunc = 0 mod piK^prec, as v(x) = 1/n
+        g = f(x + theta*x**(m+1)).truncate(trunc) # IMPROVE-ME: use f_0 instead of x^n
+        prev = (0, n)
+        while(g.degree() > n):
+            # where f has terms we want to kick out
+            extra_range = range(n+1, g.degree()+1)
+
+            cur_prec = min([(g[i].valuation())*n + i for i in extra_range])
+            if cur_prec >= trunc:
+                break
+
+            # lexicographically minimal pair (val(f_i), i), for i in the extra range
+            min_val, min_idx = min([(g[i].valuation(), i) for i in extra_range])
+
+            # the bad terms should be going away...
+            assert(prev < (min_val, min_idx))
+            prev = (min_val, min_idx)
+
+            # subtract, from g, (badmononial/x^n)*g
+            g = (g - g[min_idx] * g.shift(min_idx-n)).truncate(trunc)
+
+        return g.truncate(n+1).monic()
+
     def monge_reduce(self):
         r"""
         Return the Monge-reduced polynomial that generates an extensions isomorphic to the extensions generated by the Eisenstein polynomial `self`.
 
-        When fixing set of representatives for the classes of elements of the residue class field occuring in the Monge reduction, 
+        When fixing set of representatives for the classes of elements of the residue class field occuring in the Monge reduction,
         the Monge-reduced polynomials are unique.  We make the following choices.
 
         If the coefficient ring of `self` is unramified, we choose the representatives of the classes of elements of the residue class field 
@@ -881,7 +878,13 @@ class Polynomial_padic(Polynomial_generic_domain):
             sage: f = x^9+249*x^3+486*x+30
             sage: g = f.monge_reduce()
             sage: g
-            (1 + O(3^30))*x^9 + ... + (2*3^2 + O(3^30))*x^6 + ... + (2*3 + 2*3^2 + O(3^30))*x^3 + ... + (3 + O(3^30))
+            (1 + O(3^30))*x^9 + ... + (2*3 + O(3^30))*x^3 + ... + (3 + O(3^30))
+
+        If the polynomial is Monge-reduced it does not change when reduced again::
+
+            sage: h = g.monge_reduce()
+            sage: h == g
+            True
 
         We now create the extension `S` of `R` generated by `g` and examine the factorization of `f` over `S`.
         As the polynomial `f` has a linear factor over `S` (and deg(`f`)=deg(`g`)).
@@ -899,12 +902,12 @@ class Polynomial_padic(Polynomial_generic_domain):
             sage: g
             (1 + O(3^30))*x^20 + ... + (3 + O(3^30))
 
-        The Monge-reduction of a polynomial generating a tamely ramified extensionof large degree::
+        The Monge-reduction of a polynomial generating a tamely ramified extension of large degree::
 
             sage: f = x^90+249*x^81+486*x^18+30
             sage: g = f.monge_reduce()
-            sage: g
-            (1 + O(3^30))*x^90 + ... + (2*3 + O(3^30))*x^81 + ... + (3 + 3^3 + O(3^30))
+            sage: ZZ['X'](g)
+            X^90 + 3*X^81 + 9*X^78 + 9*X^72 + 9*X^54 + 54*X^44 + 54*X^43 + 54*X^41 + 54*X^40 + 18*X^39 + 54*X^38 + 27*X^26 + 54*X^13 + 3
 
         We use Monge reduction to verify that two polynomials generate isomorphic extensions
 
@@ -918,9 +921,16 @@ class Polynomial_padic(Polynomial_generic_domain):
 
             sage: R.<g> = ZqFM(4,30); Rx.<x> = R[]
             sage: f = x^8 + 66*g*x^6 + 132*g*x + 258
-            sage: g = f.monge_reduce()
-            sage: g
+            sage: f.monge_reduce()
             (1 + O(2^30))*x^8 + (O(2^30))*x^7 + (g*2 + O(2^30))*x^6 + ... + (g*2^2 + O(2^30))*x + (2 + O(2^30))
+
+        Monge reduction over a totally ramified extension::
+
+            sage: R = ZpFM(3,30); Rx.<x> = R[]
+            sage: S.<a> = R.ext(x^3+9*x+3); Sy.<y> = S[]
+            sage: f = y^6+6*y^2+a
+            sage: f.monge_reduce()
+            (1 + O(a^90))*y^6 + (O(a^90))*y^5 + (O(a^90))*y^4 + (O(a^90))*y^3 + (a^3 + O(a^90))*y^2 + (O(a^90))*y + (a + O(a^90))
 
         AUTHORS:
 
@@ -964,7 +974,7 @@ class Polynomial_padic(Polynomial_generic_domain):
             else:
                 bset = [[ZZ(b) for b in (alpha+s).polynomial()] for s in modset]
             bset.sort()
-            return F(bset[0])
+            return F(bset[0]) # could use min instead of first element of sorted list
 
         def solve_naive(funct,gamma):
         # solve poly(t)=gamma
@@ -992,18 +1002,21 @@ class Polynomial_padic(Polynomial_generic_domain):
 
         # other reduction steps
 
-        def f_ij(f, lev):
+        def f_ij(f,m):
+            lev = self.hasse_herbrand(m)
             i = lev % n
-            j = (n - i + lev) // n
-            fij = F(f[i].padded_list(j+1)[-1])
+            j = ZZ((n - i + lev) // n)
+            fij = F(f[i].expansion(j))
             return fij, i, j
 
+        J0 = self.ramification_polygon().vertices()[0][1]
+        trunc = n + 2*J0 # truncate here in deform
         for m in range(1,(-min(self.ramification_polygon().slopes())).ceil()):
             alpha, i, j = f_ij(f,m)
             Sm = f.residual_polynomial_of_component(m)
             beta = canonical_representative_add(alpha,[eta**j*Sm(a) for a in F])
             theta = solve_naive(eta**j*Sm,alpha-beta)
-            f = f.deformed_eisenstein(m, R(theta), n*R.precision_cap())
+            f = f.deformed_eisenstein(m, -R(theta), trunc)
 
         # Find the last break in the Hasse-Herbrand function of self
         hhslope = n
@@ -1023,8 +1036,11 @@ class Polynomial_padic(Polynomial_generic_domain):
         #    (lrb mod n, (n-(lrb mod n) + lrb)/n)
         # can be set to zero.
         i = lrb % n
-        j = (n - i + lrb) / n
-        f = RT([cc % R.uniformizer_pow(j+1) for cc in f.list()[:i]] + [cc % R.uniformizer_pow(j) for cc in f.list()[i:n]] + [R.one()])
+        j = ZZ((n - i + lrb) // n)
+        if R.ramification_index() == 1:
+            f = RT([cc.add_bigoh(j+1) for cc in f.list()[:i]] + [cc.add_bigoh(j) for cc in f.list()[i:n]] + [R.one()])
+        else:
+            f = RT([cc - (cc >> j+1 << j+1) for cc in f.list()[:i]] + [cc - (cc >> j << j) for cc in f.list()[i:n]] + [R.one()])
         return f
 
     def factor(self,check_squarefree=True,algorithm="auto"):
@@ -1047,7 +1063,7 @@ class Polynomial_padic(Polynomial_generic_domain):
             sage: len((ZpFM(2,285)['x'](x^32+16)).factor())
             1
 
-        Some times we can find a factoprization although the discriminant (to the give precision) is 0.
+        Some times we can find a factorization although the discriminant (to the give precision) is 0.
 
         We use an OM algorithm for factoring.
 
@@ -1168,8 +1184,13 @@ class Polynomial_padic(Polynomial_generic_domain):
         self_normal, normalize_by = self.normalized(monic_if_possible=True)
 
         absprec = min([x.precision_absolute() for x in self_normal])
-        if check_squarefree and self_normal.discriminant().valuation() >= absprec:
-            raise PrecisionError("p-adic factorization not well-defined since the discriminant is zero up to the requested p-adic precision")
+        if check_squarefree:
+            try:
+                d = self_normal.discriminant().valuation()
+            except:
+                d = 0
+            if d >= absprec:
+                   raise PrecisionError("p-adic factorization not well-defined since the discriminant is zero up to the requested p-adic precision")
 
         # Factor with pari
         if algorithm=="pari" or (algorithm=="auto" and R == R.base()):

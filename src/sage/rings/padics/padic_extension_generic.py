@@ -81,7 +81,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             w + w^5 + O(w^10)
         """
         # Far more functionality needs to be added here later.
-        if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
+        if isinstance(R, pAdicExtensionGeneric) and R.is_field() and R.fraction_field() is self:
             if self._implementation == 'NTL':
                 return True
             elif R._prec_type() == 'capped-abs':
