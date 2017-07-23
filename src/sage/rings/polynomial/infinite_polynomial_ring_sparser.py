@@ -194,3 +194,17 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
                        in sorted(iteritems(self._summands_), reverse=True))
         return r or '0'
 
+
+class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
+
+    def __init__(self, parent, name, index):
+        self._index = index
+        super(InfinitePolynomialGen_sparser, self).__init__(parent, name)
+
+    @cached_method
+    def __getitem__(self, i):
+        monomial = Monomial(
+            tuple(({i: 1} if index == self._index else {})
+                  for index in range(len(self._parent._names_))))
+        return InfinitePolynomial_sparser(self._parent, monomial)
+
