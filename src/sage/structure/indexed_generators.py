@@ -87,6 +87,9 @@ class IndexedGenerators(object):
     - ``string_quotes`` -- bool (default: ``True``), if ``True`` then
       display string indices with quotes
 
+    - ``latex_compact`` -- bool (default: ``False``), if ``True`` then
+      latex output will be in a more compact form when possible
+
     .. NOTE::
 
         These print options may also be accessed and modified using the
@@ -139,6 +142,7 @@ class IndexedGenerators(object):
         self._print_options = {'prefix': prefix,
                                'bracket': None,
                                'latex_bracket': False,
+                               'latex_compact': False,
                                'latex_prefix': None,
                                'scalar_mult': "*",
                                'latex_scalar_mult': None,

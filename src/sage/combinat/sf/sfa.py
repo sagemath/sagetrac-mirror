@@ -2642,7 +2642,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: latex(f)
             m_{1,1,1} + m_{2,1} + m_{3}
         """
-        return super(SymmetricFunctionAlgebra_generic, self)._latex_term(','.join(str(i) for i in m))
+        lterm = super(SymmetricFunctionAlgebra_generic, self)._latex_term
+        if self._print_options['latex_compact']:
+            if m==[]:
+                return '\\mathbb{1}'
+            return lterm(''.join('\\overline{'+str(i)+'}~' for i in m if i>=10)+
+                ''.join(str(i) for i in m if i<10))
+        return lterm(','.join(str(i) for i in m))
 
     def from_polynomial(self, poly, check=True):
         r"""
