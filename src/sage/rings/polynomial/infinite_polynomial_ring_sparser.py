@@ -31,6 +31,15 @@ from __future__ import absolute_import
 from six import iteritems
 from six import itervalues
 from six import string_types
+
+from sage.misc.cachefunc import cached_method
+from sage.rings.ring import Algebra
+from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.unique_representation import UniqueRepresentation
+
+from .infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
+
+
 def monomial_factory(data):
     if isinstance(data, Monomial):
         return data
