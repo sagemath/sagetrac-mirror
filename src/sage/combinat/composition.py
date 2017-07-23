@@ -1653,6 +1653,55 @@ class Compositions(UniqueRepresentation, Parent):
             raise ValueError("%s not in %s"%(elt, self))
         return elt
 
+    @staticmethod
+    def _latex_compact_(m):
+        r"""
+        Compact display for elements with compositions as subscripts
+
+        INPUT:
+
+        - ``m`` -- a composition or list of integers
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: Compositions._latex_compact_([1,3,1,2])
+            '1312'
+            sage: Compositions._latex_compact_([1,13,10,2])
+            '1\\underline{13}~\\underline{10}~2'
+        """
+        def part_to_string(i):
+            if i>=10:
+                return '\\underline{'+str(i)+'}~'
+            else:
+                return str(i)
+        return ''.join(part_to_string(i) for i in m)
+
+    @staticmethod
+    def _latex_short_(m):
+        r"""
+        Short display for elements with compositions as subscripts
+
+        INPUT:
+
+        - ``m`` -- a composition or list of integers
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: Compositions._latex_compact_([1,3,1,2])
+            '1,3,1,2'
+            sage: Compositions._latex_compact_([1,13,10,2])
+            '1,13,10,2'
+        """
+        return ','.join(part_to_string(i) for i in m)
+
     def __contains__(self, x):
         """
         TESTS::

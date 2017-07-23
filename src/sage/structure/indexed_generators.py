@@ -246,7 +246,7 @@ class IndexedGenerators(object):
                 kwds['sorting_key'] = cmp_to_key(kwds['generator_cmp'])
                 del kwds['generator_cmp']
             for option in kwds:
-                if option in self._print_options:
+                if option in self._print_options.keys() + ['latex_format']:
                     self._print_options[option] = kwds[option]
                 else:
                     raise ValueError('{} is not a valid print option.'.format(option))
@@ -410,6 +410,7 @@ class IndexedGenerators(object):
         - ``prefix``
         - ``latex_prefix``
         - ``latex_bracket``
+        - ``latex_format``
 
         (Alternatively, one can use the :meth:`print_options` method
         to achieve the same effect.)
@@ -460,7 +461,8 @@ class IndexedGenerators(object):
         """
         from sage.misc.latex import latex
 
-        s = latex(m)
+        # use the function in 'latex_format' or the default latex of m
+        s = self._print_options.get('latex_format',latex)(m)
         if s.find('\\text{\\textt') != -1:
             # m contains "non-LaTeXed" strings, use string representation
             s = str(m)
