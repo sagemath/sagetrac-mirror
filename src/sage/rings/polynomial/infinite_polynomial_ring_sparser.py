@@ -182,6 +182,11 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
                                for monomial, coefficient in iteritems(data)}
         else:
             self._summands_ = data
+
+    def __iter__(self):
+        return iter((coefficient, InfinitePolynomial_sparser(monomial))
+                    for monomial, coefficient in iteritems(self._summands_))
+
     def _repr_(self):
         def summand(monomial, coefficient):
             factors = ('{}*'.format(coefficient) if coefficient != 1 else '',
@@ -250,6 +255,9 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
     def coefficient_ring(self):
         return self._coefficient_ring_
 
+    def term_order(self):
+        return self._order_
+
     @cached_method
     def gens(self):
         r"""
@@ -274,6 +282,11 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
 
     def ngens(self):
         return len(self.gens())
+
+    def _sorting_key_monomial_lex_(self, monomial):
+        return getattr(monomial,
+                       '_sorting_key_{}_'.format(self.term_order().name()))()
+
     def _element_constructor_(self, data):
         return self.element_class(self, data)
 
