@@ -169,3 +169,28 @@ class Monomial(object):
         return (self.deg(), self._sorting_key_revlex_())
 
 
+class InfinitePolynomial_sparser(CommutativeAlgebraElement):
+    def __init__(self, parent, data, _copy=True):
+        super(InfinitePolynomial_sparser, self).__init__(parent=parent)
+
+        coefficient_ring = parent.coefficient_ring()
+        if isinstance(data, Monomial):
+            self._summands_ = {data: coefficient_ring(1)}
+        elif _copy:
+            self._summands_ = {monomial_factory(monomial):
+                               coefficient_ring(coefficient)
+                               for monomial, coefficient in iteritems(data)}
+        else:
+            self._summands_ = data
+    def _repr_(self):
+        def summand(monomial, coefficient):
+            factors = ('{}*'.format(coefficient) if coefficient != 1 else '',
+                       monomial.__repr__(self.parent()._names_))
+            s = '*'.join(f for f in factors if f)
+            return s or '1'
+
+        r = ' + '.join(summand(monomial, coefficient)
+                       for monomial, coefficient
+                       in sorted(iteritems(self._summands_), reverse=True))
+        return r or '0'
+
