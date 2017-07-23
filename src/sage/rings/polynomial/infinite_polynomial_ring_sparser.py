@@ -208,3 +208,75 @@ class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
                   for index in range(len(self._parent._names_))))
         return InfinitePolynomial_sparser(self._parent, monomial)
 
+
+class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
+
+    Element = InfinitePolynomial_sparser
+
+    def __init__(self, coefficient_ring, names, order='lex'):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: P
+            Infinite polynomial ring in x, y over Rational Field
+        """
+        from sage.rings.polynomial.term_order import TermOrder
+        from sage.symbolic.ring import isidentifier
+
+        self._coefficient_ring_ = coefficient_ring
+
+        if order not in ('lex', 'deglex', 'degrevlex'):
+            raise ValueError("wrong order '{}'".format(order))
+        self._order_ = TermOrder(order)
+
+        if not isinstance(names, tuple):
+            raise TypeError('wrong names {}'.format(names))
+        if not all(isinstance(name, string_types) and isidentifier(name)
+                   for name in names):
+            raise ValueError('wrong names {}'.format(names))
+        self._names_ = names
+
+        super(InfinitePolynomialRing_sparser, self).__init__(
+            base_ring=coefficient_ring,
+            category=None)
+
+    def _repr_(self):
+        return 'Infinite polynomial ring in {} over {}'.format(
+            ', '.join(self._names_),
+            self.coefficient_ring())
+
+    def coefficient_ring(self):
+        return self._coefficient_ring_
+
+    @cached_method
+    def gens(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')  # indirect doctest
+            sage: x
+            x_*
+            sage: x[3]
+            x_3
+            sage: y
+            y_*
+            sage: y[42]
+            y_42
+        """
+        return tuple(InfinitePolynomialGen_sparser(self, name, index)
+                     for index, name in enumerate(self._names_))
+
+    def gen(self, n=0):
+        return self.gens()[0]
+
+    def ngens(self):
+        return len(self.gens())
+    def _element_constructor_(self, data):
+        return self.element_class(self, data)
+
+
+def InfinitePolynomialRing(*args, **kwds):
+    return InfinitePolynomialRing_sparser(*args, **kwds)
