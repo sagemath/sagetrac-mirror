@@ -165,7 +165,7 @@ class Monomial(object):
     def _sorting_key_deglex_(self):
         return (self.deg(), self._sorting_key_lex_())
 
-    def _sorting_key_deglex_(self):
+    def _sorting_key_degrevlex_(self):
         return (self.deg(), self._sorting_key_revlex_())
 
 
@@ -184,7 +184,8 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             self._summands_ = data
 
     def __iter__(self):
-        return iter((coefficient, InfinitePolynomial_sparser(monomial))
+        parent = self.parent()
+        return iter((coefficient, InfinitePolynomial_sparser(parent, monomial))
                     for monomial, coefficient in iteritems(self._summands_))
 
     def _repr_(self):
@@ -194,9 +195,15 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             s = '*'.join(f for f in factors if f)
             return s or '1'
 
+        def key(monomial_and_coefficient):
+            monomial = monomial_and_coefficient[0]
+            return self.parent()._sorting_key_monomial_(monomial)
+
         r = ' + '.join(summand(monomial, coefficient)
                        for monomial, coefficient
-                       in sorted(iteritems(self._summands_), reverse=True))
+                       in sorted(iteritems(self._summands_),
+                                 key=key,
+                                 reverse=True))
         return r or '0'
 
 
@@ -283,7 +290,16 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
     def ngens(self):
         return len(self.gens())
 
-    def _sorting_key_monomial_lex_(self, monomial):
+    def _sorting_key_monomial_(self, monomial):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: monomial = next(iter(x[0]._summands_))
+            sage: P._sorting_key_monomial_(monomial)
+            (1, ((0, 1),))
+        """
         return getattr(monomial,
                        '_sorting_key_{}_'.format(self.term_order().name()))()
 
