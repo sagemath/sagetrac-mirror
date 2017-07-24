@@ -75,6 +75,7 @@ class Monomial(object):
 
     __str__ = __repr__
 
+    @cached_method
     def deg(self):
         r"""
         TESTS::
@@ -89,6 +90,7 @@ class Monomial(object):
                    for component in self._exponents_
                    for exponent in itervalues(component))
 
+    @cached_method
     def _sorting_key_lex_(self):
         r"""
         TESTS::
