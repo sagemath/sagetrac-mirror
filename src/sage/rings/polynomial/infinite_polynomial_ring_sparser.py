@@ -493,10 +493,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: P(3/2)
             3/2
         """
-        if type(data) == self.element_class and data.parent() == self:
-            return data
-
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return self.element_class(self, data)
 
         elif data == 0:
