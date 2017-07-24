@@ -306,7 +306,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
     @cached_method
     def gens(self):
         r"""
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')  # indirect doctest
@@ -341,8 +341,43 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         return getattr(monomial,
                        '_sorting_key_{}_'.format(self.term_order().name()))()
 
+    def _monomial_one_(self):
+        return Monomial(tuple({} for _ in self._names_))
+
     def _element_constructor_(self, data):
-        return self.element_class(self, data)
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+
+            sage: P(x)
+            sage: P(x[0])
+            x_0
+
+            sage: P({x[13]: 3, y[14]: 4})
+            4*y_14 + 3*x_13
+            sage: mx = next(iter(x[0]._summands_))
+            sage: P({mx: 2})
+            2*x_0
+
+            sage: P(int(0))
+            0
+            sage: P(QQ(0))
+            0
+            sage: P(3/2)
+            3/2
+        """
+        if type(data) == self.element_class and data.parent() == self:
+            return data
+
+        elif isinstance(data, dict):
+            return self.element_class(self, data)
+
+        elif data == 0:
+            return self.element_class(self, {})
+        else:
+            return self.element_class(self, {self._monomial_one_(): data})
 
 
 def InfinitePolynomialRing(*args, **kwds):
