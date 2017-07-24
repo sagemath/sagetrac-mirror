@@ -41,8 +41,31 @@ from .infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomia
 
 
 def monomial_factory(data):
+    r"""
+    TESTS::
+
+        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import monomial_factory
+        sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+
+        sage: mx = next(iter(x[0]._summands_))
+        sage: monomial_factory(mx)
+        x0_0
+        sage: monomial_factory(x[13])
+        x0_13
+        sage: monomial_factory(({3: 4}, {5: 6, 7: 8}))
+        x0_3^4*x1_5^6*x1_7^8
+    """
     if isinstance(data, Monomial):
         return data
+    elif isinstance(data, InfinitePolynomial_sparser):
+        summands = data._summands_
+        if len(summands) != 1:
+            raise ValueError('{} is not monomial'.format(data))
+        monomial, coefficient = next(iteritems(summands))
+        if coefficient != 1:
+            raise ValueError('{} is not normalized monomial')
+        return monomial
     else:
         return Monomial(data)
 
