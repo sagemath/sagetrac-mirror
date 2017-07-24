@@ -173,6 +173,23 @@ class Monomial(object):
     def __hash__(self):
         return hash(self._sorting_key_lex_())
 
+    def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: mx = next(iter(x[0]._summands_))
+            sage: mx == mx
+            True
+            sage: my = next(iter(y[0]._summands_))
+            sage: mx == my
+            False
+        """
+        return self._sorting_key_lex_() == other._sorting_key_lex_()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     def __init__(self, parent, data, _copy=True):
         super(InfinitePolynomial_sparser, self).__init__(parent=parent)
