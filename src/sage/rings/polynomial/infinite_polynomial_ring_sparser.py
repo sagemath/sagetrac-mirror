@@ -259,8 +259,26 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return sorted(iteritems(self._summands_), key=key, reverse=True)
 
     def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: 2*x[0]
+            2*x_0
+            sage: x[0] - x[0]
+            0
+            sage: P(1)
+            1
+            sage: P(42)
+            42
+            sage: 1 + y[0]
+            y_0 + 1
+            sage: y[42]-2*x[13]
+            y_42 - 2*x_13
+        """
         def summand(monomial, coefficient):
-            factors = ('{}*'.format(coefficient) if coefficient != 1 else '',
+            factors = (str(coefficient) if coefficient != 1 else '',
                        monomial.__repr__(self.parent()._names_))
             s = '*'.join(f for f in factors if f)
             return s or '1'
@@ -268,6 +286,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r = ' + '.join(summand(monomial, coefficient)
                        for monomial, coefficient
                        in self._sorted_monomials_and_coefficients_())
+        r = r.replace(' + -', ' - ')
         return r or '0'
 
     def __hash__(self):
