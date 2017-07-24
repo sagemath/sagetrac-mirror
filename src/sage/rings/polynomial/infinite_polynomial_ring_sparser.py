@@ -495,9 +495,58 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             0
             sage: P(3/2)
             3/2
+
+            sage: Q = InfinitePolynomialRing(QQ, names=('y', 'x'), order='deglex')
+            sage: Q(x[0]), Q(y[0])
+            (x_0, y_0)
+            sage: Q(x[0] * y[0])
+            sage: Q(x[0] + y[0])
+            x_0 + y_0
+            sage: Q(x[42]^3 * y[24]^5)
+
+            sage: R = InfinitePolynomialRing(QQ, names=('x',), order='deglex')
+            sage: R(x[1])
+            x_1
+            sage: R(y[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert y_3
+            to Infinite polynomial ring in x over Rational Field
+            > *previous* ValueError: 'y' does not specify a generator
+            of Infinite polynomial ring in x over Rational Field
+            sage: R(x[3]^2 + x[2]^5 * x[1])
+
+            sage: Z.<z> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: R(z[3])
+            x_3
         """
+        from sage.rings.asymptotic.misc import combine_exceptions
+
         if isinstance(data, dict):
             return self.element_class(self, data)
+
+        elif isinstance(data, InfinitePolynomial_sparser):
+            if self.ngens() == 1 and data.parent().ngens() == 1:
+                return self.element_class(self, data._summands_)
+            else:
+                def map_index(index):
+                    try:
+                        return self._index_by_name_(data.parent()._names_[index])
+                    except ValueError as e:
+                        raise combine_exceptions(
+                            ValueError('cannot convert {} to {}'.format(
+                                data, self)), e)
+                def rewire(monomial):
+                    rewired_monomial = [{} for _ in self._names_]
+                    for index, component in enumerate(monomial._exponents_):
+                        if component:
+                            rewired_monomial[map_index(index)] = component
+                    return Monomial(rewired_monomial)
+
+                summands = {rewire(monomial): coefficient
+                            for monomial, coefficient
+                            in iteritems(data._summands_)}
+                return self.element_class(self, summands)
 
         elif data == 0:
             return self.element_class(self, {})
