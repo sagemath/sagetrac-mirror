@@ -340,6 +340,18 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return self.parent().element_class(self.parent(), summands)
 
     def _sub_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: x[0] - x[0]
+            0
+            sage: x[1] - y[2]
+            -y_2 + x_1
+            sage: y[1] - x[2]
+            y_1 - x_2
+        """
         return self + self.parent().coefficient_ring()(-1) * other
 
 
