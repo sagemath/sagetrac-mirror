@@ -168,6 +168,8 @@ class Monomial(object):
     def _sorting_key_degrevlex_(self):
         return (self.deg(), self._sorting_key_revlex_())
 
+    def __hash__(self):
+        return hash(self._sorting_key_lex_())
 
 class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     def __init__(self, parent, data, _copy=True):
@@ -188,6 +190,13 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return iter((coefficient, InfinitePolynomial_sparser(parent, monomial))
                     for monomial, coefficient in iteritems(self._summands_))
 
+    @cached_method
+    def _sorted_monomials_and_coefficients_(self):
+        def key(monomial_and_coefficient):
+            monomial = monomial_and_coefficient[0]
+            return self.parent()._sorting_key_monomial_(monomial)
+        return sorted(iteritems(self._summands_), key=key, reverse=True)
+
     def _repr_(self):
         def summand(monomial, coefficient):
             factors = ('{}*'.format(coefficient) if coefficient != 1 else '',
@@ -195,16 +204,14 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             s = '*'.join(f for f in factors if f)
             return s or '1'
 
-        def key(monomial_and_coefficient):
-            monomial = monomial_and_coefficient[0]
-            return self.parent()._sorting_key_monomial_(monomial)
-
         r = ' + '.join(summand(monomial, coefficient)
                        for monomial, coefficient
-                       in sorted(iteritems(self._summands_),
-                                 key=key,
-                                 reverse=True))
+                       in self._sorted_monomials_and_coefficients_())
         return r or '0'
+
+    def __hash__(self):
+        return hash((self.parent(),
+                     tuple(self._sorted_monomials_and_coefficients_())))
 
 
 class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
@@ -212,6 +219,9 @@ class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
     def __init__(self, parent, name, index):
         self._index = index
         super(InfinitePolynomialGen_sparser, self).__init__(parent, name)
+
+    def __hash__(self):
+        return hash((self._parent, self._name, self._index))
 
     @cached_method
     def __getitem__(self, i):
@@ -258,6 +268,12 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         return 'Infinite polynomial ring in {} over {}'.format(
             ', '.join(self._names_),
             self.coefficient_ring())
+
+    @cached_method
+    def __hash__(self):
+        return hash((self.coefficient_ring(),
+                     self._names_,
+                     self.term_order()))
 
     def coefficient_ring(self):
         return self._coefficient_ring_
