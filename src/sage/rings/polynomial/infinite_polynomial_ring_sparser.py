@@ -274,6 +274,43 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return hash((self.parent(),
                      tuple(self._sorted_monomials_and_coefficients_())))
 
+    def _add_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: x[0] + y[0]
+            y_0 + x_0
+            sage: x[0] + y[0] + x[0]
+            y_0 + 2*x_0
+        """
+        summands = dict(self._summands_)
+        for monomial, coefficient in iteritems(other._summands_):
+            try:
+                summands[monomial] += coefficient
+            except KeyError:
+                summands[monomial] = coefficient
+        return self.parent().element_class(self.parent(), summands)
+
+    def _lmul_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: (42/37)*x[0]
+            42/37*x_0
+        """
+        if other == 0:
+            return self.parent().zero()
+        summands = {monomial: other*coefficient
+                    for monomial, coefficient in iteritems(self._summands_)}
+        return self.parent().element_class(self.parent(), summands)
+
+    def _sub_(self, other):
+        return self + self.parent().coefficient_ring()(-1) * other
+
 
 class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
 
