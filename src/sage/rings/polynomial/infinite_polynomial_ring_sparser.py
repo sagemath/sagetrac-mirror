@@ -444,12 +444,15 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
     def gen(self, n=0):
         return self.gens()[0]
 
-    def gen_by_name(self, name):
+    def _index_by_name_(self, name):
         try:
-            index = self._names_.find(name)
+            return self._names_.index(name)
         except ValueError:
-            raise ValueError("'{}' does not specify a generator".format(name))
-        return self.gen(index)
+            raise ValueError("'{}' does not specify a generator of {}".format(
+                name, self))
+
+    def gen_by_name(self, name):
+        return self.gen(self._index_by_name_(name))
 
     def ngens(self):
         return len(self.gens())
