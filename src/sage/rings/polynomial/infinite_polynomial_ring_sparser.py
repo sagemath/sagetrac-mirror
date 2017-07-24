@@ -276,11 +276,23 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             y_0 + 1
             sage: y[42]-2*x[13]
             y_42 - 2*x_13
+            sage: x[1] - y[2]
+            -y_2 + x_1
+            sage: y[1] - x[2]
+            y_1 - x_2
         """
         def summand(monomial, coefficient):
-            factors = (str(coefficient) if coefficient != 1 else '',
-                       monomial.__repr__(self.parent()._names_))
-            s = '*'.join(f for f in factors if f)
+            if coefficient == 1:
+                sc = ''
+                sign = ''
+            elif coefficient == -1:
+                sc = ''
+                sign = '-'
+            else:
+                sc = str(coefficient)
+                sign = ''
+            factors = (sc, monomial.__repr__(self.parent()._names_))
+            s = sign + '*'.join(f for f in factors if f)
             return s or '1'
 
         r = ' + '.join(summand(monomial, coefficient)
