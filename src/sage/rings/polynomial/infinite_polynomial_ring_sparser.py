@@ -190,19 +190,22 @@ class Monomial(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
 class InfinitePolynomial_sparser(CommutativeAlgebraElement):
-    def __init__(self, parent, data, _copy=True):
+    def __init__(self, parent, data):
         super(InfinitePolynomial_sparser, self).__init__(parent=parent)
+        print('__init__', data)
 
         coefficient_ring = parent.coefficient_ring()
         if isinstance(data, Monomial):
             self._summands_ = {data: coefficient_ring(1)}
-        elif _copy:
+        elif isinstance(data, dict):
             self._summands_ = {monomial_factory(monomial):
                                coefficient_ring(coefficient)
-                               for monomial, coefficient in iteritems(data)}
+                               for monomial, coefficient in iteritems(data)
+                               if coefficient != 0}
         else:
-            self._summands_ = data
+            raise TypeError('cannot create polynomial out of {}'.format(data))
 
     def __iter__(self):
         parent = self.parent()
