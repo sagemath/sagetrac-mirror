@@ -420,6 +420,13 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
     def gen(self, n=0):
         return self.gens()[0]
 
+    def gen_by_name(self, name):
+        try:
+            index = self._names_.find(name)
+        except ValueError:
+            raise ValueError("'{}' does not specify a generator".format(name))
+        return self.gen(index)
+
     def ngens(self):
         return len(self.gens())
 
@@ -446,7 +453,6 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
 
-            sage: P(x)
             sage: P(x[0])
             x_0
 
