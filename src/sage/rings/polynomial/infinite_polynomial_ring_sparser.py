@@ -194,6 +194,22 @@ class Monomial(object):
         return (self.deg(), self._sorting_key_revlex_())
 
     def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: mx = next(iter(x[0]._summands_))
+            sage: hash(mx)  # random
+            -42
+            sage: my = next(iter(y[0]._summands_))
+            sage: hash(mx) == hash(my)
+            False
+            sage: mx2 = Monomial(({0: 1}, {}))
+            sage: mx is mx2, mx == mx2, hash(mx) == hash(mx2)
+            (False, True, True)
+        """
         return hash(self._sorting_key_lex_())
 
     def __eq__(self, other):
@@ -214,10 +230,10 @@ class Monomial(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     def __init__(self, parent, data):
         super(InfinitePolynomial_sparser, self).__init__(parent=parent)
-        print('__init__', data)
 
         coefficient_ring = parent.coefficient_ring()
         if isinstance(data, Monomial):
