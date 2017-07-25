@@ -63,6 +63,8 @@ cdef extern from "automataC.h":
 	Automaton emonde_inf (Automaton a, bool verb)
 	Automaton emonde (Automaton a, bool verb)
 	Automaton emondeI (Automaton a, bool verb)
+	void AccCoAcc (Automaton *a, int *coa)
+	void CoAcc (Automaton *a, int *coa)
 	bool equalsAutomaton (Automaton a1, Automaton a2)
 	Dict NewDict (int n)
 	void FreeDict (Dict *d)
@@ -1154,6 +1156,20 @@ cdef class FastAutomaton:
 		free(l)
 		sig_off()
 		return l2.values()
+	
+	def acc_and_coacc (self):
+		sig_on()
+		cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
+		AccCoAcc(self.a, l)
+		sig_off()
+		return [i for i in range(self.a.n) if l[i] == 1]
+	
+	def coaccessible_states (self):
+		sig_on()
+		cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
+		CoAcc(self.a, l)
+		sig_off()
+		return [i for i in range(self.a.n) if l[i] == 1]
 	
 	def sub_automaton (self, l, verb=False):
 		sig_on()

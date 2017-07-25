@@ -146,6 +146,12 @@ NAutomaton Transpose (Automaton a);
 //Tarjan algorithm
 int StronglyConnectedComponents (Automaton a, int *res);
 
+//determine accessible and co-accessible states
+void AccCoAcc (Automaton *a, int *coa);
+
+//determine co-accessible states
+void CoAcc (Automaton *a, int *coa);
+
 //retire tous les états non accessible ou non co-accessible
 Automaton emonde (Automaton a, bool verb);
 

@@ -2344,7 +2344,7 @@ class WordMorphism(SageObject):
                  " is implemented only for k = 1 (not %s)" % k)
     
     @cached_method
-    def rauzy_fractal_projection_exact(self, eig=None):
+    def rauzy_fractal_projection_exact(self, eig=None, integral=False):
         r"""
         Returns a dictionary giving the projection of the canonical basis.
 
@@ -2425,8 +2425,15 @@ class WordMorphism(SageObject):
         # Projections of canonical base vectors from R^size_alphabet to C, using vb
         from sage.modules.free_module import VectorSpace
         canonical_basis = VectorSpace(K,size_alphabet).basis()
+        
+        canonical_basis = [vb*x for x in canonical_basis]
+        
+        if integral:
+        	from sage.arith.misc import lcm
+	        g = lcm([x.minpoly()[0].denom() for x in canonical_basis])
+	        canonical_basis = [x*g for x in canonical_basis]
 
-        return dict([(a, vb*x) for a, x in zip(alphabet, canonical_basis)]) #associe à chaque lettre son projeté (exact)
+        return dict(zip(alphabet, canonical_basis)) #associe à chaque lettre son projeté (exact)
     
     @cached_method
     def rauzy_fractal_projection(self, eig=None, prec=53):
@@ -2650,7 +2657,7 @@ class WordMorphism(SageObject):
 
         return orbit_points
 
-    def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None):
+    def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None, integral=False):
         r"""
         Returns a dictionary of list of points associated with the pieces
         of the Rauzy fractal of ``self``.
@@ -2692,7 +2699,7 @@ class WordMorphism(SageObject):
             Paul Mercat (2014-06-25)
         """
         alphabet = self.domain().alphabet()
-        canonical_basis_proj = self.rauzy_fractal_projection_exact(eig=eig)
+        canonical_basis_proj = self.rauzy_fractal_projection_exact(eig=eig, integral=integral)
 
         # if exchange, set the projection to its opposite
         if exchange:
@@ -3194,7 +3201,7 @@ class WordMorphism(SageObject):
 
         return M._column_ambient_module().change_ring(QQ).subspace(basis)
 
-    def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, tss=True, det=True, verb=False):
+    def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, tss=True, det=True, verb=False, integral=False):
         r"""
         Returns the beta-adic monoid associated to the substitution.
 
@@ -3208,7 +3215,7 @@ class WordMorphism(SageObject):
         if verb: print("projection exact...")
         
         #Projection of each letter
-        C0 = self.rauzy_fractal_projection_exact (eig=eig)
+        C0 = self.rauzy_fractal_projection_exact (eig=eig, integral=integral)
         
         if verb: print("C0=%s"%C0)
         

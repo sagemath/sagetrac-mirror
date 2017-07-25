@@ -3324,6 +3324,86 @@ Automaton emonde (Automaton a, bool verb)
 	return r;
 }
 
+bool AccCoAccRec (Automaton *a, int *coa, int e)
+{
+	if (coa[e] == 2)
+	{
+		//printf("e=%d...\n", e);
+		int i, f;
+		bool coacc = a->e[e].final;
+		coa[e] = 0; //indicate that the state has been seen
+		for (i=0;i<a->na;i++)
+		{
+			f = a->e[e].f[i];
+			if (f != -1)
+				if (AccCoAccRec(a, coa, f))
+					coacc = true;
+		}
+		if (coacc)
+			coa[e] = 1;
+		//printf(" -> coacc=%d\n", coacc);
+		return coacc;
+	}else
+		return (coa[e] == 1);
+}
+
+//détermine les états accessibles et coaccessibles
+// 0 : non co-accessible mais accessible
+// 1 : accessible et co-accessible
+// 2 : non-accessible (et on ne sais rien sur la co-accessibilité)
+void AccCoAcc (Automaton *a, int *coa)
+{
+	int i;
+	for (i=0;i<a->n;i++)
+	{
+		coa[i] = 2; //indique les états non encore vus
+	}
+	if (a->i != -1)
+		AccCoAccRec(a, coa, a->i);
+}
+
+bool CoAccRec (Automaton *a, int *coa, int e)
+{
+	if (coa[e] == 2)
+	{
+		//printf("e=%d...\n", e);
+		int i, f;
+		bool coacc = a->e[e].final;
+		coa[e] = 0; //indicate that the state has been seen
+		for (i=0;i<a->na;i++)
+		{
+			f = a->e[e].f[i];
+			if (f != -1)
+				if (CoAccRec(a, coa, f))
+					coacc = true;
+		}
+		if (coacc)
+			coa[e] = 1;
+		//printf(" -> coacc=%d\n", coacc);
+		return coacc;
+	}else
+		return (coa[e] == 1);
+}
+
+//détermine les états co-accessibles
+// 0 : non co-accessible
+// 1 : co-accessible
+void CoAcc (Automaton *a, int *coa)
+{
+	int i;
+	for (i=0;i<a->n;i++)
+	{
+		coa[i] = 2; //indique les états non encore vus
+	}
+	if (a->i != -1)
+		CoAccRec(a, coa, a->i);
+	for (i=0;i<a->n;i++)
+	{
+		if (coa[i] == 2)
+			CoAccRec(a, coa, i);
+	}
+}
+
 //détermine les sommets accessibles
 void emondeI_rec (Automaton a, int etat)
 {
