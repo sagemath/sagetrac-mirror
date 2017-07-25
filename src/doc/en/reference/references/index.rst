@@ -81,6 +81,9 @@ REFERENCES:
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
+.. [AP2011] Alberto Arri and John Perry. *The F5 criterion revised*.  
+            In Journal of Symbolic Computation, 2011. Corrigendum in 2017.
+
 .. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
@@ -636,6 +639,10 @@ REFERENCES:
             Version
             1.3". 2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
+.. [EF2017] Christian Eder and Jean-Charles Faugère. 
+            *A survey on signature-based algorithms for computing Gröbner bases*.  
+            In Journal of Symbolic Computation, 2017.
+
 .. [EM2001] Pavel Etingof and Xiaoguang Ma.
             *Lecture notes on Cherednik algebras*.
             http://www-math.mit.edu/~etingof/73509.pdf :arXiv:`1001.0432`.
@@ -661,6 +668,12 @@ REFERENCES:
 .. _ref-F:
 
 **F**
+
+.. [Fau2002] Jean-Charles Faugère. *A new efficient algorithm for 
+             computing Gröbner bases without reduction to zero (F5)*.  
+             In Proceedings of the 2002 international symposium on Symbolic 
+             and algebraic computation, ISSAC '02, pages 75-83, New York, 
+             NY, USA, 2002. ACM. 
 
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
@@ -1698,6 +1711,9 @@ REFERENCES:
 
 .. [Voi2012] \J. Voight. Identifying the matrix ring: algorithms for
              quaternion algebras and quadratic forms, to appear.
+
+.. [VY2017] T. Vaccon, K.Yokoyama, *A Tropical F5 Algorithm*, 
+            proceedings of ISSAC 2017.
 
 .. [VW1994] Leonard Van Wyk. *Graph groups are biautomatic*. J. Pure
             Appl. Alg. **94** (1994). no. 3, 341-352.
