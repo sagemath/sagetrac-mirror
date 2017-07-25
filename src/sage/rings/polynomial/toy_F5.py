@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 
 Educational Versions of the F5 Algorithm to compute Groebner bases.
 
-We have followed [F02], [AP11] [EF17] and [VY17].
+We have followed [Fau02], [AP11] [EF17] and [VY17].
 
 No attempt was made to optimize the algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
@@ -11,19 +12,92 @@ Groebner basis in Sage efficiently use the
 method on multivariate polynomial objects.
 
 The main algorithm is ``educational_F5``; secondary algorithms of importance are ``SymbolicPreprocessing``,  
-``RowEchelonMac_and_listpivots``  and ``UpdateGpaires``. 
+``RowEchelonMac_and_listpivots``  and ``UpdateGpairs``. 
 
 The idea of the algorithm is to use an adapted Buchberger termination criterion
-on $S$-pairs while reducing all computations to linear algebra
+on S-pairs while reducing all computations to linear algebra
 and eliminating useless polynomials with the F5 elimination criterion.
 The core part of the main algorithm is a while loop
 while there are still S-polynomials, where it applies:
 
 * ``SymbolicPreprocessing`` to construct a matrix with the polynomials of the pairs of a given degree d and reducers to reduce them. It uses the F5 elimination criterion.
 * ``RowEchelonMac_and_listpivots`` to echelonize the previous matrix.
-* ``UpdateGpaires`` to update the list in construction of a Groebner basis (more precisely, an $\mathfrak{S}$-Groebner basis), and obtain the new S-polynomials.
+* ``UpdateGpairs`` to update the list in construction of a Groebner basis (more precisely, an ``\mathfrak{S}``-Groebner basis), and obtain the new S-polynomials.
 
-.. note::
+A necessary tool in order to use the F5 elimination criterion is the notion of signature.
+Let ``f_0,\dots,f_s`` be homogeneous polynomials (ordered with increasing degree) in ``k[X_1,\dots,X_n]`` for ``k`` a field. 
+Let ``I= \left\lbrace f_0,\dots,f_s \right\rbrace`` and ``f \in I`` be
+a homogeneous polynmomial.
+We can define the signature of ``f`` as the following.
+Among all the possible ways of writing ``f=\sum_{j=0}^i a_j f_j``(``a_j`` homogeneous, all the non-zero ``a_j f_j`` of same degree), we select one such that:
+
+*Firstly, ``i`` is minimal such that ``a_i \neq 0.``
+*Secundly, among all such writing for this minimal ``i,`` we select one with ``x^\alpha:=a_i.lm()`` minimal.
+
+Then we write that the signature of ``f`` is ``x^\alpha e_i,`` with ``(e_0,\dots,e_s)`` being the canonical basis of ``k[X_1,\dots,X_n]^s.``
+
+It is possible to define a vector space filtration of ``I`` using increasing signature as filtration.
+The F5 elimination criterion enables the detection of some of the vector spaces in this filtration that do not provide any new polynomial
+to the ideal.
+
+In order to achieve this detection, all the polynomial handled by the program are encapsulated into a list of three elements:
+* an integer ``i.``
+* a monomial ``x^\alpha.`` 
+* the polynomial itself, whose signature is ``x^\alpha e_i``.
+
+Only operations on polynomials that preserve the knowledge of the signature are performed (``\textit{i.e.}`` addition of two polynomials of distinct signature).
+A Gröbner basis that is compatible with the filtration by signature is called an ``\mathfrak{S}``-Groebner basis. The F5 algorithm computes
+``\mathfrak{S}``-Groebner bases.
+
+
+Let us look at the following example coming from Christian Eder's talk at ISSAC 2017 in Kaiserslautern (reference: http://www.mathematik.uni-kl.de/~ederc/download/issac-2017.pdf).
+
+In ``\mathbb{Q}[x,y,z]`` with degree-reverse lexicographical ordering as monomial ordering, we begin with ``f_1 = xy-z^2`` and ``f_2 = y^2-z^2.``
+
+The algorithm will first produce the list ``G=[[0,1,xy-z^2],[1,1,y^2-z^2]]`` as Gröbner basis in construction.
+It encodes two polynomials with signature: ``g_1=f_1`` of signature ``e_0`` and ``g_2=f_2`` of signature ``e_1.``
+
+A corresponding S-pair is then produced: ``[3,1,x,[1,1,y^2-z^2],y,[0,1,xy-z^2]].``
+It summarizes the fact that the S-polynomial ``S_{g_1,g_2}`` of ``g_1`` and ``g_2`` is obtained as `` xg_2-yg_1.``
+
+The SymbolicPreprocessing will then produce a Macaulay matrix with two rows (in that order):
+*one for ``yg_1=xy^2-yz^2`` with corresponding signature ``ye_0.``
+*one for ``xg_2=xy^2-x*z^2`` with corresponding signature ``xe_1.``
+
+
+This matrix is then echelonize by RowEchelonMac_and_listpivots.
+The first row is used as pivot to eliminate ``xy^2`` on the second row.
+A new polynomial is produced on this second row: ``g_3=-xz^2+yz^2,`` of signature ``xe_1.``
+As it produces a new leading monomial (``xz^2``) for the polynomials of signature less or equal to ``xe_1,`` it is added to ``G``
+as ``[1,x,-xz^2+yz^2].``
+
+UpdateGpairs then produce two new S-pairs corresponding to the S-polynomials ``S_{g_1,g_3}`` and ``S_{g_2,g_3},`` respectively:
+*``[4,1,y,[1,x,-xz^2+yz^2],z^2,[0,1,xy-z^2]].``
+*``[5,1,y^2,[1,x,-xz^2+yz^2],xz^2,[1,1,y^2-z^2]].``
+
+We now go again through the main while loop of the algorithm.
+However, this time, we will see the F5 elimination criterion into action.
+Indeed, for the first S-pair, the signature that would be produced on the matrix in degree 4 for the left polynomial is
+``xye_1.`` Since ``g_1.lm()=f_0.lm()=xy,`` ``xy`` can be achieved as leading monomial of a polynomial of signature ``x^\beta e_j`` with ``j<1.``
+The F5 elimination criterion then states exactly that both left and right polynomials of the S-pair can be discarded.
+
+As a consequence, no matrix is built in degree 4.
+
+We can then go again through the main while loop of the algorithm.
+The F5 elimination criterion applies again.
+Indeed, the only remaining S-pair is ``[5,1,y^2,[1,x,-xz^2+yz^2],xz^2,[1,1,y^2-z^2]].``
+The signature that would be produced on the matrix in degree 5 for the right polynomial is
+``xy^2e_1.`` Since ``g_1.lm()=f_0.lm()=xy,`` ``xy^2`` can be achieved as leading monomial of a polynomial of signature ``x^\beta e_j`` with ``j<1.``
+The F5 elimination criterion then states again that both left and right polynomials of the S-pair can be discarded.
+
+As a consequence, no matrix is built in degree 5.
+No S-pair is remaining and the F5 algorithm then outputs 
+``[y^2-z^2,xy-z^2,-xz^2+yz^2]`` as Gröbner basis of ``I= \left\lbrace f_0,f_1 \right\rbrace`` (indeed, in this case, this basis is
+already reduced).
+
+We should remark that the S-pair in degree 5 would have been ruled out by Buchberger's product criterion for elimination.
+It is however not the case of the S-pair in degree 4, which here does require the F5 elimination criterion. Buchberger's chain criterion
+would not have applied... note::
     The setting is strictly that of homogeneous initial polynomials.
 
 EXAMPLES:
@@ -319,7 +393,7 @@ def Rewritten(R,G,g):
     - ``R`` -- a polynomial ring
     - ``G`` -- a list of polynomials with signature, ordered by signature
     - ``g`` -- a polynomial with signature
-    - ``paires`` -- a list of pairs of polynomials with signature
+    - ``pairs`` -- a list of pairs of polynomials with signature
 
     
     OUTPUT:
@@ -347,10 +421,10 @@ def Rewritten(R,G,g):
     return newg
 
 
-def SymbolicPreprocessing(R,G, d, paires, monom):
+def SymbolicPreprocessing(R,G, d, pairs, monom):
     r"""
     
-    Constructs the Macaulay matrix from the pairs in paires,
+    Constructs the Macaulay matrix from the pairs in pairs,
     while using the F5 criterion
 
     
@@ -359,7 +433,7 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
     - ``R`` -- a polynomial ring
     - ``G`` -- a list of polynomials with signature
     - ``d`` -- an integer, representing the degree of the processed polynomials
-    - ``paires`` -- a list of pairs of polynomials with signature
+    - ``pairs`` -- a list of pairs of polynomials with signature
     - ``monom`` -- the list of the monomials of degree d, ordered decreasingly
     
     OUTPUT:
@@ -372,11 +446,11 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
         sage: from sage.rings.polynomial.toy_F5 import*
         sage: S.<x,y,z>=QQ[]
         sage: G = [[0,y,x**2+2*z**2], [1,x,x*y+y**2], [2,1,y*z+z**2], [3,1,z**2]]
-        sage: paires = []
-        sage: paires.append([3,1,x,[1,x,x*y+y**2],y, [0,1,x**2+2*z**2]])
-        sage: paires.append([3,3,y,[3,1,x*z+3*y*z+z**2],z, [3,1,x*y+2*y*z+z**2]])
+        sage: pairs = []
+        sage: pairs.append([3,1,x,[1,x,x*y+y**2],y, [0,1,x**2+2*z**2]])
+        sage: pairs.append([3,3,y,[3,1,x*z+3*y*z+z**2],z, [3,1,x*y+2*y*z+z**2]])
         sage: d = 3
-        sage: Mac = SymbolicPreprocessing(S, G, d, paires,[x**3, x**2*y, x*y**2, y**3, x**2*z, x*y*z, y**2*z, x*z**2, y*z**2, z**3])
+        sage: Mac = SymbolicPreprocessing(S, G, d, pairs,[x**3, x**2*y, x*y**2, y**3, x**2*z, x*y*z, y**2*z, x*z**2, y*z**2, z**3])
         sage: Mac[0][0]
         [0 0 0 0 0 0 0 0 1 1]
         [0 0 0 0 0 0 0 0 0 1]
@@ -386,19 +460,19 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
 
     """
 
-    paires_to_process = []
-    paires_to_remove = []
+    pairs_to_process = []
+    pairs_to_remove = []
     list_already_erased = []
     list_already_added = []
 
 
-    for paire in paires:
+    for pair in pairs:
         i_acceptable = True
         j_acceptable = True
-        if paire[0] == d :
-            paires_to_remove.append(paire)
-            signj = [paire[3][0],paire[3][1]*paire[2]]
-            signi = [paire[5][0],paire[5][1]*paire[4]]
+        if pair[0] == d :
+            pairs_to_remove.append(pair)
+            signj = [pair[3][0],pair[3][1]*pair[2]]
+            signi = [pair[5][0],pair[5][1]*pair[4]]
             if not(signj in list_already_erased) and not(signi in list_already_erased):
                 if F5_criterion(signj,G):
                     j_acceptable = False
@@ -409,13 +483,13 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
                     list_already_erased.append(signi)
 
                 if i_acceptable and j_acceptable:
-                    paires_to_process.append(paire)
+                    pairs_to_process.append(pair)
 
 
 
     #Erasing the pairs that we have considered
-    for paire in paires_to_remove:
-        paires.remove(paire)
+    for pair in pairs_to_remove:
+        pairs.remove(pair)
 
 
 
@@ -427,17 +501,17 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
     poly_to_do = []
     list_poly = []
     set_done_monom = set()
-    for paire in paires_to_process:
-        signj_polyj = [paire[3][0],paire[3][1]*paire[2],paire[2]*paire[3][2]]
-        signj = [paire[3][0],paire[3][1]*paire[2]]
+    for pair in pairs_to_process:
+        signj_polyj = [pair[3][0],pair[3][1]*pair[2],pair[2]*pair[3][2]]
+        signj = [pair[3][0],pair[3][1]*pair[2]]
         if poly_to_do.count(signj_polyj)<1 and list_already_added.count(signj)<1:
             poly_to_do.append(signj_polyj)
             list_poly.append(signj_polyj)
             list_already_added.append(signj)
         
         
-        signi_polyi = [paire[5][0],paire[5][1]*paire[4], paire[4]*paire[5][2]]
-        signi = [paire[5][0],paire[5][1]*paire[4]]
+        signi_polyi = [pair[5][0],pair[5][1]*pair[4], pair[4]*pair[5][2]]
+        signi = [pair[5][0],pair[5][1]*pair[4]]
         if poly_to_do.count(signi_polyi)<1 and list_already_added.count(signi)<1:
             poly_to_do.append(signi_polyi)
             list_poly.append(signi_polyi)
@@ -473,7 +547,6 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
         set_monom.sort()
         while len(set_monom)>0:
             mon = set_monom.pop()
-            #print "test", mon
             # We do take for mon the biggest monomial available here
             # We look for a g in G and x**alpha such that  mon ==x**alpha* g.lm() with smallest signature
             # In other word, we look for a "reducer." Yet for signature reason, this reducer could be on more reduced than reducing
@@ -508,7 +581,7 @@ def SymbolicPreprocessing(R,G, d, paires, monom):
         Mac = [Matrix(R.base_ring(),0,0,[]),[]]
 
 
-    return Mac, paires
+    return Mac, pairs
 
 
 def list_indexes(Mat):
@@ -539,7 +612,7 @@ def list_indexes(Mat):
     for i in range(n):
         j=0
         while j<m:
-            if Mat[i,j] <>0:
+            if Mat[i,j] !=0:
                 break
             j=j+1
         listindexes.append(j)
@@ -585,14 +658,14 @@ def RowEchelonMac_and_listpivots(Mac):
     for i in range(n):
         j=0
         while j<m:
-            if Mactilde[i,j] <>0:
+            if Mactilde[i,j] !=0:
                 break
             j=j+1
         listpivots.append(j)
         if j<m:
             Mactilde.rescale_row(i, Mactilde[i,j]**(-1), start_col=j)
             for l in range(i+1,n):
-                if Mactilde[l,j]<>0:
+                if Mactilde[l,j]!=0:
                     Mactilde.add_multiple_of_row(l, i, -Mactilde[l,j] , start_col=j) 
     return Mactilde, listpivots
 
@@ -632,7 +705,7 @@ def Eliminate_unreduced(G,d):
     r"""
     
     In the list of polynomials with signature G, remove the polynomials
-    such that their signature is attained by another member of $G$ with smaller
+    such that their signature is attained by another member of ``G`` with smaller
     leading monomial. This is done only for polynomials of degree d.
     
 
@@ -682,16 +755,16 @@ def Eliminate_unreduced(G,d):
     return newG
 
 
-def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom):
+def UpdateGpairs(Mac, Mactilde, listpivots, G, pairs,d, redundancy_test, monom):
     r"""
     
     In the F5 algorithm, updates the current list of polynomials with
     signatures G, according to the Macaulay matrix Mac,
     its row-echelon form (with no choice of pivot) Mactilde,
     and previous computation.
-    paires, the list of the remaining S-pairs to proceed is also
+    pairs, the list of the remaining S-pairs to proceed is also
     updated.
-    G and paires are updated in place.
+    G and pairs are updated in place.
 
     
     INPUT:
@@ -700,7 +773,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     - ``Mactilde`` -- a Macaulay matrix (just the matrix)
     - ``listpivots`` -- the list of the pivots used when computing the row-echelon form Mactilde of Mac
     - ``G`` -- a list of polynomials with signature
-    - ``paires`` -- a list of S-pairs of polynomials with signature
+    - ``pairs`` -- a list of S-pairs of polynomials with signature
     - ``d`` -- an integer, to tell the degree of the polynomials that are processed
     - ``redundancy_test`` -- a boolean to check whether a redundancy test is required
     - ``monom`` -- the list of the monomials of degree d, ordered decreasingly
@@ -708,7 +781,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     OUTPUT:
 
     - ``G`` -- an updated list of polynomials with signature
-    - ``paires`` -- an updated list of S-pairs of polynomials with signature
+    - ``pairs`` -- an updated list of S-pairs of polynomials with signature
 
     EXAMPLES::  
 
@@ -719,20 +792,20 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
         sage: Mactilde = Matrix(QQ,2,6,[1,1,0,0,0,1,0,1,1,0,0,-2])
         sage: listpivots = [0,1]
         sage: G = [[0,1,x**2+x*y+z**2],[1,1,x**2+2*x*y+y**2-z**2]]
-        sage: paires = []
+        sage: pairs = []
         sage: monom = [x**2, x*y, y**2, x*z, y*z, z**2]
         sage: d = 2
-        sage: G2, paires2=UpdateGpaires(Mac, Mactilde, listpivots, G, paires, d,true, monom)
+        sage: G2, pairs2=UpdateGpairs(Mac, Mactilde, listpivots, G, pairs, d,true, monom)
         sage: G2
         [[0, 1, x^2 + x*y + z^2], [1, 1, x*y + y^2 - 2*z^2]]
-        sage: paires2
+        sage: pairs2
         [[3, 1, x, [1, 1, x*y + y^2 - 2*z^2], y, [0, 1, x^2 + x*y + z^2]]]
     """
     n = Mac[0].nrows()
     m = Mac[0].ncols()
 
     if n == 0:
-        return G,paires
+        return G,pairs
 
 
     listindexes = list_indexes(Mac[0])
@@ -740,7 +813,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
 
     newG = []
     for i in range(n):
-        if listindexes[i]<>listpivots[i] and listpivots[i]<m:
+        if listindexes[i]!=listpivots[i] and listpivots[i]<m:
             if not(Reducible_large_resp_sign_family([Mac[1][i][0],Mac[1][i][1],monom[listpivots[i]]],G)):
                 newG.append(Reconstruction(Mactilde,i,monom,[Mac[1][i][0],Mac[1][i][1]]))
 
@@ -750,7 +823,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
     G2 = G+newG
     G2.sort()
     if redundancy_test:
-        paires = []
+        pairs = []
         G2=Eliminate_unreduced(G2,d)
         G = [aa for aa in G if G2.count(aa)>0]
         newG = [aa for aa in newG if G2.count(aa)>0]
@@ -763,7 +836,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
                 u = g[2].lm().lcm(g2[2].lm())
                 du = u.degree()
                 if du > d :
-                    paires.append([du,g2[0],R(u/g2[2].lm()),g2,R(u/g[2].lm()), g])
+                    pairs.append([du,g2[0],R(u/g2[2].lm()),g2,R(u/g[2].lm()), g])
     
     else:
 
@@ -780,7 +853,7 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
                 u = gtemp1[2].lm().lcm(gtemp2[2].lm())
                 du = u.degree()
                 if du > d :
-                    paires.append([du,gtemp2[0],R(u/gtemp2[2].lm()),gtemp2,R(u/gtemp1[2].lm()), gtemp1])
+                    pairs.append([du,gtemp2[0],R(u/gtemp2[2].lm()),gtemp2,R(u/gtemp1[2].lm()), gtemp1])
     
         long = len(newG)
         for j1 in range(long):
@@ -790,14 +863,14 @@ def UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d, redundancy_test, monom
                 u = g[2].lm().lcm(g2[2].lm())
                 du = u.degree()
                 if du > d :
-                    paires.append([du,g2[0],R(u/g2[2].lm()),g2,R(u/g[2].lm()), g])
+                    pairs.append([du,g2[0],R(u/g2[2].lm()),g2,R(u/g[2].lm()), g])
 
 
 
     if len(newG)>0 or redundancy_test:
-        paires.sort()
+        pairs.sort()
 
-    return G2, paires
+    return G2, pairs
     
 
 
@@ -846,21 +919,21 @@ def educational_F5(list1):
         listsign.append([i,1,list[i]])
     G = listsign
     l = len(G)
-    paires = []
+    pairs = []
     for i in range(s):
         for j in range(i+1,l):
             u = list[i].lm().lcm(list[j].lm())
             d = u.degree()
-            paires.append([d,j,R(u/list[j].lm()),listsign[j],R(u/list[i].lm()), listsign[i]])
-    paires.sort()
+            pairs.append([d,j,R(u/list[j].lm()),listsign[j],R(u/list[i].lm()), listsign[i]])
+    pairs.sort()
 
     d = 1
     monom = list_monom_no_repeat(R,d,[])
-    while paires != [] :
-        Mac, paires = SymbolicPreprocessing(R,G, d,paires, monom)
+    while pairs != [] :
+        Mac, pairs = SymbolicPreprocessing(R,G, d,pairs, monom)
         Mactilde, listpivots = RowEchelonMac_and_listpivots(Mac[0])
         redundancy_check = (list_degrees.count(d)>0)
-        G, paires = UpdateGpaires(Mac, Mactilde, listpivots, G, paires,d,redundancy_check, monom)
+        G, pairs = UpdateGpairs(Mac, Mactilde, listpivots, G, pairs,d,redundancy_check, monom)
         d = d+1
         monom = list_monom_no_repeat(R,d,monom)
     G = [g[2] for g in G]
