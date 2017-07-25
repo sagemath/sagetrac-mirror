@@ -252,11 +252,11 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
                     for monomial, coefficient in iteritems(self._summands_))
 
     @cached_method
-    def _sorted_monomials_and_coefficients_(self):
+    def _sorted_monomials_and_coefficients_(self, reverse=False):
         def key(monomial_and_coefficient):
             monomial = monomial_and_coefficient[0]
             return self.parent()._sorting_key_monomial_(monomial)
-        return sorted(iteritems(self._summands_), key=key, reverse=True)
+        return sorted(iteritems(self._summands_), key=key, reverse=reverse)
 
     def _repr_(self):
         r"""
@@ -297,13 +297,13 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
 
         r = ' + '.join(summand(monomial, coefficient)
                        for monomial, coefficient
-                       in self._sorted_monomials_and_coefficients_())
+                       in self._sorted_monomials_and_coefficients_(reverse=True))
         r = r.replace(' + -', ' - ')
         return r or '0'
 
     def __hash__(self):
         return hash((self.parent(),
-                     tuple(self._sorted_monomials_and_coefficients_())))
+                     tuple(self._sorted_monomials_and_coefficients_(reverse=True))))
 
     def _add_(self, other):
         r"""
