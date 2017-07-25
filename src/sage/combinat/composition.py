@@ -1695,9 +1695,9 @@ class Compositions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: Compositions._latex_compact_([1,3,1,2])
+            sage: Compositions._latex_short_([1,3,1,2])
             '1,3,1,2'
-            sage: Compositions._latex_compact_([1,13,10,2])
+            sage: Compositions._latex_short_([1,13,10,2])
             '1,13,10,2'
         """
         return ','.join(part_to_string(i) for i in m)

@@ -87,6 +87,9 @@ class IndexedGenerators(object):
     - ``string_quotes`` -- bool (default: ``True``), if ``True`` then
       display string indices with quotes
 
+    - ``latex_format`` -- function (default: not set), if a value is set
+      then use that function to latex the indexing element
+
     .. NOTE::
 
         These print options may also be accessed and modified using the
@@ -203,6 +206,7 @@ class IndexedGenerators(object):
         - ``string_quotes``
         - ``sorting_key``
         - ``sorting_reverse``
+        - ``latex_format``
 
         See the documentation for :class:`IndexedGenerators` for
         descriptions of the effects of setting each of these options.
