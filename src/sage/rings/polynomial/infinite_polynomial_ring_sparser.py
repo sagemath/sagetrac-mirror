@@ -137,6 +137,8 @@ class Monomial(object):
             sage: x_1._sorting_key_lex_() < u_1._sorting_key_lex_()
             True
 
+        ::
+
             sage: names = ('x', 'y')
             sage: x_0 = Monomial(({0: 1}, {}))
             sage: x_1 = Monomial(({1: 1}, {}))
@@ -154,7 +156,24 @@ class Monomial(object):
             True
             sage: x_1._sorting_key_lex_() < y_1._sorting_key_lex_()
             True
-            
+
+            sage: sorted([x_0, x_1, y_0, y_1], key=lambda k: k._sorting_key_lex_())
+            [x1_0, x1_1, x0_0, x0_1]
+
+            sage: x_2 = Monomial(({2: 1}, {}))
+            sage: x_3 = Monomial(({3: 1}, {}))
+            sage: y_2 = Monomial(({}, {2: 1}))
+            sage: y_3 = Monomial(({}, {3: 1}))
+            sage: sorted([x_2, x_3, y_0, y_1], key=lambda k: k._sorting_key_lex_())
+            [x1_0, x1_1, x0_2, x0_3]
+            sage: sorted([x_0, x_1, y_2, y_3], key=lambda k: k._sorting_key_lex_())
+            [x1_2, x1_3, x0_0, x0_1]
+
+            sage: sorted([x_0, x_1, x_2, x_3, y_0, y_1, y_2, y_3],
+            ....:        key=lambda k: k._sorting_key_lex_())
+            [x1_0, x1_1, x1_2, x1_3, x0_0, x0_1, x0_2, x0_3]
+
+        ::
 
             sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a.__repr__(names)
             'x_0^2*x_2^3*y_0^3*y_3'
@@ -182,7 +201,7 @@ class Monomial(object):
             True
         """
         return tuple(sum(sorted(iteritems(component), reverse=True), ())
-                     for component in reversed(self._exponents_))
+                     for component in self._exponents_)
 
     def _sorting_key_revlex_(self):
         return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_)
