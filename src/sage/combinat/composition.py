@@ -1700,7 +1700,7 @@ class Compositions(UniqueRepresentation, Parent):
             sage: Compositions._latex_short_([1,13,10,2])
             '1,13,10,2'
         """
-        return ','.join(part_to_string(i) for i in m)
+        return ','.join(str(i) for i in m)
 
     def __contains__(self, x):
         """

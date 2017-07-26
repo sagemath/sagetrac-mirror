@@ -123,6 +123,31 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                     c = self._indices(list(c))
             return self.monomial(c)
 
+        def set_latex_style(self, ls):
+            r"""
+            Set the latex style for the basis
+
+            INPUT:
+
+            - ``ls`` -- a string, either 'compact' or 'short'
+
+            EXAMPLES::
+
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: latex(M[3,2])
+                M_{[3, 2]}
+                sage: M.set_latex_style('compact')
+                M_{32}
+                sage: M.set_latex_style('short')
+                M_{3,2}
+            """
+            if ls == 'compact':
+                self.print_options(latex_format = Compositions._latex_compact_)
+            elif ls == 'short':
+                self.print_options(latex_format = Compositions._latex_short_)
+            elif 'latex_format' in self._print_options:
+                self._print_options.pop('latex_format')
+
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
         @cached_method
         def one_basis(self):

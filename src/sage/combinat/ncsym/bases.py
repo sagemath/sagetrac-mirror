@@ -140,6 +140,33 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 i = (i,)
             return self.monomial(SetPartition(i))
 
+        def set_latex_style(self, ls):
+            r"""
+            Set the latex style for the basis
+
+            INPUT:
+
+            - ``ls`` -- a string, either 'compact' or 'short'
+
+            EXAMPLES::
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: latex(m[[1,2,3],[4,5]])
+                m_{\{\{1, 2, 3\}, \{4, 5\}\}}
+                sage: m.set_latex_style('compact')
+                sage: latex(m[[1,2,3],[4,5]])
+                m_{123|45}
+                sage: m.set_latex_style('short')
+                sage: latex(m[[1,2,3],[4,5]])
+                m_{\{1,2,3|4,5\}}
+            """
+            if ls == 'compact':
+                self.print_options(latex_format = SetPartitions._latex_compact_)
+            elif ls == 'short':
+                self.print_options(latex_format = SetPartitions._latex_short_)
+            elif 'latex_format' in self._print_options:
+                self._print_options.pop('latex_format')
+
         @cached_method
         def one_basis(self):
             r"""
