@@ -9,6 +9,7 @@ from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
+from sage.graphs.bipartite_graph import BipartiteGraph
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
     r"""
@@ -24,9 +25,27 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
     """
 
-    def __init__(self, B, groundset):
+    def __init__(self, B, groundset = None):
         """
         See class definition for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: B = BipartiteGraph(edgedict)
+            sage: M = TransversalMatroid(B)
+            sage: M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: G = Graph(edgedict)
+            sage: M1 = TransversalMatroid(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: ground set must be specified or graph must be BipartiteGraph
+            sage: N = TransversalMatroid(G, groundset = [0, 5, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: ground set must specify a bipartition
         """
         # Make this work with a bipartite graph as input
         # In a later ticket, make the constructor work with a collection of sets as input
@@ -34,7 +53,26 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         #               `groundset` is one side (not optional)
         # Later, the constructor should be able to accept Graph as input
         # And convert to BipartiteGraph if the ground set makes sense
-        # TODO: Let it guess the ground set from the largest of B.bipartition()
+        if groundset is None:
+            if isinstance(B, BipartiteGraph):
+                bipartition = B.bipartition()
+                if len(bipartition[0]) >= len(bipartition[1]):
+                    groundset = bipartition[0]
+                else:
+                    groundset = bipartition[1]
+            else:
+                raise TypeError("ground set must be specified or graph must be BipartiteGraph")
+        else:
+            if not (set(groundset).issubset(set(B.vertices())) and
+                len(groundset) == len(set(groundset))):
+                raise ValueError("ground set must correspond to vertices")
+            if not (B.is_independent_set(groundset) and
+                B.is_independent_set(set(B.vertices()).difference(set(groundset)))):
+                raise ValueError("ground set must specify a bipartition")
+
+        # put the ground set on the left
+        partition = [list(groundset), list(set(B.vertices()).difference(set(groundset)))]
+        self._B = BipartiteGraph(B, partition, immutable = True)
 
         self._buckets = [B.neighbors(v) for v in set(B.vertices()) if v not in groundset]
 
@@ -44,6 +82,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             set([v for u, v, l in self._matching]))
         basis = frozenset([v for v in vertices_in_matching if v in groundset])
 
+        # This creates self._groundset attribute, among other things
         BasisExchangeMatroid.__init__(self, groundset, basis)
 
         # Build a DiGraph for doing basis exchange
@@ -103,3 +142,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             + str(self.size()) + " elements, with " + str(len(self._buckets))
             + " subsets.")
         return S
+
+    def graph(self):
+        """
+        Return a bipartite graph representing the transversal matroid.
+        """
+        return self._B.copy(data_structure = 'sparse')

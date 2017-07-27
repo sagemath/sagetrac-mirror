@@ -5,4 +5,4 @@ from .basis_exchange_matroid cimport BasisExchangeMatroid
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
     cdef list _matching, _buckets
-    cdef object _D
+    cdef object _D, _B
