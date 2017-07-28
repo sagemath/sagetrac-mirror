@@ -35,6 +35,16 @@ class AlphabetWithInverses(Parent):
     duplicate. Inverse letters are either given or assumed to be
     capitalized letters.
 
+    INPUT:
+
+    -``type`` can be:
+
+        - 'abc' to get an alphabet abc... and inverses ABC...
+
+        - 'x0' to get an alphabet x0, x1,... and inverses X0, X1,...
+
+        - 'a0' to get an alphabet a0, a1,... and inverses A0, A1,...
+
     EXAMPLES::
 
         sage: AlphabetWithInverses(['a','b','c'],['A','B','C'])
@@ -63,15 +73,6 @@ class AlphabetWithInverses(Parent):
         The alphabet can also be specified by the number of letters
         and its type (default is 'abc'). `
 
-        INPUT:
-
-        -``type`` can be:
-
-            - 'abc' to get an alphabet abc... and inverses ABC...
-
-            - 'x0' to get an alphabet x0, x1,... and inverses X0, X1,...
-
-            - 'a0' to get an alphabet a0, a1,... and inverses A0, A1,...
 
         EXAMPLES::
 

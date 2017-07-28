@@ -50,6 +50,15 @@ class GraphWithInverses(DiGraph):
 
     - from a list of edges: ``[initial_vertex,terminal_vertex,letter]``.
 
+    INPUT:
+
+     - ``data`` -- (default None) a list or dictionary
+       from a list of edges: ``[initial_vertex,terminal_vertex,letter]``.
+       a dictionnary that maps letters of the alphabet to lists
+       ``(initial_vertex,terminal_vertex)``.
+     - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses
+        by default.
+
     EXAMPLES::
 
         sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
@@ -68,14 +77,6 @@ class GraphWithInverses(DiGraph):
 
     def __init__(self, data=None, alphabet=None):
         """
-        INPUT:
-
-        - ``data`` -- (default None) a list or dictionary
-          from a list of edges: ``[initial_vertex,terminal_vertex,letter]``.
-          a dictionnary that maps letters of the alphabet to lists
-          ``(initial_vertex,terminal_vertex)``.
-        - ``alphabet`` -- (default None ) alphabet AlphabetWithInverses
-          by default.
 
         EXAMPLES::
 

@@ -44,6 +44,18 @@ class MarkedGraph(GraphWithInverses):
     A ``MarkedGraph`` can be created from a ``GraphWithInverses`` by
     computing (randomly) a rose equivalent to the graph.
 
+    INPUT:
+
+    - ``graph`` -- (default: ``None``) GraphWithInverses is expected
+      or will be combute from ''grap''.
+    - ``marking`` -- (default: ``None``) GraphMap is expected
+      or will be compute.
+    - ``alphabet`` -- (default: ``None``) if ``graph`` is GraphWithInverses
+      ``alphabet`` will be use for ``self``.
+    - ``marking_alphabet`` -- (default:`` None``) alphabet used in the case of a
+      ``MarkedGraph`` is created from a GraphWithInverses`` by
+      computing (randomly) a rose equivalent to the graph.
+
     EXAMPLES::
 
         sage: from sage.groups.free_groups.inverse_graph import GraphWithInverses
@@ -61,17 +73,6 @@ class MarkedGraph(GraphWithInverses):
     def __init__(self, graph=None, marking=None, alphabet=None,
                  marking_alphabet=None):
         """
-        INPUT:
-
-        - ``graph`` -- (default None) GraphWithInverses is expected
-          or will be combute from ''grap''.
-        - ``marking`` -- (default None) GraphMap is expected
-          or will be compute.
-        - ``alphabet`` -- (default None) if ``graph`` is GraphWithInverses
-          ``alphabet`` will be use for ``self``.
-        - ``marking_alphabet`` -- (default None) alphabet used in the case of a
-          ``MarkedGraph`` is created from a GraphWithInverses`` by
-          computing (randomly) a rose equivalent to the graph.
 
         EXAMPLES::
 
