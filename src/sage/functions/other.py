@@ -1550,22 +1550,37 @@ factorial = Function_factorial()
 class Function_binomial(GinacFunction):
     def __init__(self):
         r"""
-        Return the binomial coefficient
+        Return the binomial coefficient `\binom{x}{m}`.
+
+        This is first defined for `m \in \NN` and any `x` by
 
         .. MATH::
 
             \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
+        This is then extended to more general arguments as follows.
 
-        which is defined for `m \in \ZZ` and any
-        `x`. We extend this definition to include cases when
-        `x-m` is an integer but `m` is not by
+        If `x-m \in NN`, then one uses instead
 
         .. MATH::
 
-            \binom{x}{m}= \binom{x}{x-m}
+            \binom{x}{m} = \binom{x}{x-m}
 
-        If `m < 0`, return `0`.
+        If `m < 0`, then for integers `x` and `m`, the expression
+
+        .. MATH::
+
+            \binom{x}{m} = \frac{\Gamma(x+1)}{\Gamma(m+1)\Gamma(x-m+1)}
+
+        in terms of the `\Gamma` function gives
+
+        .. MATH::
+
+            \binom{x}{m} = \begin{cases}
+            (-1)^m \binom{-x+m-1}{m} \quad\text{if} m\geq 0,\\
+            (-1)^{x-m} \binom{-m-1}{x-m} \quad\text{if} m\leq x,\\
+            0 \quad\text{otherwise.}
+            \end{cases}
 
         INPUT:
 
@@ -1582,8 +1597,8 @@ class Function_binomial(GinacFunction):
             1
             sage: binomial(1/2, 0)
             1
-            sage: binomial(3,-1)
-            0
+            sage: [binomial(-1, i) for i in range(-3,4)]
+            [1, -1, 1, 1, -1, 1, -1]
             sage: binomial(20,10)
             184756
             sage: binomial(-2, 5)
@@ -1650,7 +1665,7 @@ class Function_binomial(GinacFunction):
     def _binomial_sym(self, n, k):
         """
         Expand the binomial formula symbolically when the second argument
-        is an integer.
+        is an nonnegative integer.
 
         EXAMPLES::
 
@@ -1665,12 +1680,17 @@ class Function_binomial(GinacFunction):
 
             sage: binomial._binomial_sym(x, 0r)
             1
-            sage: binomial._binomial_sym(x, -1)
-            0
 
             sage: y = polygen(QQ, 'y')
             sage: binomial._binomial_sym(y, 2).parent()
             Univariate Polynomial Ring in y over Rational Field
+
+        TESTS::
+
+            sage: binomial._binomial_sym(x, -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: second argument must be a nonnegative integer
         """
         if isinstance(k, Expression):
             if k.is_integer():
@@ -1679,9 +1699,9 @@ class Function_binomial(GinacFunction):
                 raise ValueError("second argument must be an integer")
 
         if k < 0:
-            return s_parent(k)(0)
+            raise ValueError("second argument must be a nonnegative integer")
         if k == 0:
-            return s_parent(k)(1)
+            return s_parent(n).one()
         if k == 1:
             return n
 
@@ -1716,9 +1736,9 @@ class Function_binomial(GinacFunction):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
                 return self._evalf_(n, k)
-        if k in ZZ:
+        if k in ZZ and k >= 0:
             return self._binomial_sym(n, k)
-        if (n - k) in ZZ:
+        if (n - k) in ZZ and n - k >= 0:
             return self._binomial_sym(n, n - k)
 
         return None

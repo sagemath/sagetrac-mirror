@@ -2924,21 +2924,37 @@ def CRT_vectors(X, moduli):
 
 def binomial(x, m, **kwds):
     r"""
-    Return the binomial coefficient
+    Return the binomial coefficient `\binom{x}{m}`.
+
+    This is first defined for `m \in \NN` and any `x` by
 
     .. MATH::
 
         \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
-    which is defined for `m \in \ZZ` and any
-    `x`. We extend this definition to include cases when
-    `x-m` is an integer but `m` is not by
+    This is then extended to more general arguments as follows.
+
+    If `x-m \in NN`, then one uses instead
 
     .. MATH::
 
         \binom{x}{m} = \binom{x}{x-m}
 
-    If `m < 0`, return `0`.
+    If `m < 0`, then for integers `x` and `m`, the expression
+
+    .. MATH::
+
+        \binom{x}{m} = \frac{\Gamma(x+1)}{\Gamma(m+1)\Gamma(x-m+1)}
+
+    in terms of the `\Gamma` function gives
+
+    .. MATH::
+
+        \binom{x}{m} = \begin{cases}
+        (-1)^m \binom{-x+m-1}{m} \quad\text{if} m\geq 0,\\
+        (-1)^{x-m} \binom{-m-1}{x-m} \quad\text{if} m\leq x,\\
+        0 \quad\text{otherwise.}
+        \end{cases}
 
     INPUT:
 
@@ -3152,7 +3168,7 @@ def binomial(x, m, **kwds):
 
     # case 4: naive method
     if m < ZZ.zero():
-        return P(0)
+        return 0
     return P(prod(x - i for i in range(m))) / m.factorial()
 
 def multinomial(*ks):

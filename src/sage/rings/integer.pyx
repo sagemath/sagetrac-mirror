@@ -6524,6 +6524,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: 13.binomial(2r)
             78
+            sage: [ZZ(-1).binomial(i) for i in range(-3,4)]
+            [1, -1, 1, 1, -1, 1, -1]
 
         Check that it can be interrupted (:trac:`17852`)::
 
@@ -6552,11 +6554,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mm = Integer(m)
 
         # trivial cases and potential simplification binom(n,x) -> binom(n,n-x)
-        if self == zero or mm < zero or mm > self > zero:
+        if self == zero:
             return one if mm == zero else zero
+        if 0 < self and (mm < zero or mm > self):
+            return zero
+        if self < mm < 0:
+            return zero
 
         if 2*mm > self > zero:
             mm = self - mm
+
+        if mm < 0:
+            return (-1)**(self - mm) * (- mm - 1).binomial(self - mm,
+                                                           algorithm=algorithm)
 
         if mm == zero:
             return one
