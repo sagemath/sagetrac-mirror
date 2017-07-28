@@ -1558,18 +1558,7 @@ class free_group_automorphisms:
     r"""
     Many examples of free group automorphisms.
 
-    REFERENCES:
 
-    .. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
-        automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
-
-    .. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
-        automorphisms of free groups, Transactions of
-        Amer. Math. Soc. 359, 3153-3183, 2007.
-
-    .. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
-        fixed subgroup of a free group automorphism, Inventiones
-        Math. 96, 613-638, 1989.
     """
     @staticmethod
     def tribonacci():

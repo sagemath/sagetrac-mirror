@@ -36,7 +36,7 @@ from .inverse_alphabet import AlphabetWithInverses
 from .inverse_graph import GraphWithInverses
 
 
-class GraphMap():
+class GraphMap(object):
     """
     A GraphMap is a map from a Graph to another.  It maps a vertex to
     a vertex and an edge to an edge-path. It respects incidence
@@ -193,7 +193,7 @@ class GraphMap():
 
         OUTPUT:
 
-        Domain of ``self`` which is a GrapMap
+        Domain of ``self`` which is a `GrapMap`
 
         EXAMPLES::
 
@@ -214,7 +214,7 @@ class GraphMap():
 
         OUTPUT:
 
-        Codomain of ``self`` which is a GrapMap
+        Codomain of ``self`` which is a `GrapMap`
 
         EXAMPLES::
 
@@ -272,7 +272,7 @@ class GraphMap():
     def compose_edge_map(self, edge_morph):
         """Compose ``self`` with the morphism ``edge_morph``.
 
-        Update the edge_map of ``self`` with (``edge_morph`` o ``self``).
+        Update the edge_map of ``self`` with (``edge_morph`` or ``self``).
 
         INPUT:
 

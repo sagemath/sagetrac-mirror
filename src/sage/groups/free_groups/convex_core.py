@@ -44,27 +44,28 @@ from .free_group_automorphism import FreeGroupAutomorphism
 import bisect
 
 
-class ConvexCore():
+class ConvexCore(object):
     """Guirardel's convex core of two simplicial
     trees with an action of a free group.
 
-    Let T1 and T2 be trees with actions of the free group FN. G1=T1/FN
+    Let ``T1`` and ``T2`` be trees with actions of the free group FN. G1=T1/FN
     and G2=T2/FN are MarkedGraph.
 
     A ConvexCore is a CW-complex of dimension 2. 2-cells are
-    squares. 1-cells are edges labeled by edges of G1 or G2. A square
-    is of the form:
+    squares. 1-cells are edges labeled by edges of ``G1`` or ``G2``.
+    A square is of the form::
 
-    ......e
-    ...------>
-    ..|.......|
-    f.|.......|.f
-    ..|.......|
-    ..v.......v
-    ...------>
-    ......e
+           e
+        ------>
+       |       |
+     f |       |f
+       |       |
+       v       v
+        ------>
+           e
 
-    where e is an edge of G1 and f an edge of G2. G0 and G1 based
+    where ``e`` is an edge of ``G1`` and ``f`` an edge of ``G2``.
+    ``G0`` and ``G1`` based.
 
     MetricGraph with edges of length 0 can be used for trees with a
     non-free action of FN.
@@ -78,13 +79,13 @@ class ConvexCore():
       universal covers T1 and T2 of ``G1`` and ``G2``
       respectively. Edges of length 0 are quotient out.
     - ``ConvexCore(f)``: where ``f`` is a homotopy equivalence between
-      graphs G1 and G2: The convex core of the universal covers T1 and
-      T2 of G1 and G2, with the fundamental group F of G1 acting on G2
+      graphs ``G1`` and ``G2``: The convex core of the universal covers T1 and
+      T2 of G1 and G2, with the fundamental group F of ``G1`` acting on ``G2``
       through ``f``. Edges of length 0 are quotient out.
 
     .. WARNING::
 
-        It is assumed that boths graphs G1 and G2 do not have vertices
+        It is assumed that boths graphs ``G1`` and ``G2`` do not have vertices
         of valence 1 or 2.
 
     EXAMPLES::
@@ -690,7 +691,7 @@ class ConvexCore():
 
     def _build_signed_ends(self, verbose=False):
         """
-        For each edge of G1 computes a list of edges in T0 assigned with a
+        For each edge of ``G1`` computes a list of edges in T0 assigned with a
         + or a - sign.
 
         It is assumed that ``f=self._f01``: G0->G1 is
@@ -778,41 +779,40 @@ class ConvexCore():
 
         A d dimensional cell is a d+2 tuple:
 
-        - d=2: squares: (w,v,a,b) where w is a path in G0 starting
-          from v0 standing for the vertex of T0 at the end of w, v is
-          a vertex in G1 standing for the vertex at the end of t1(v)
+        - d = 2: squares: (w,v,a,b) where ``w`` is a path in ``G0`` starting
+          from v0 standing for the vertex of T0 at the end of ``w``, ``v`` is
+          a vertex in ``G1`` standing for the vertex at the end of t1(v)
           in T1, a is a positive letter in A0 and b is a positive
           letter in A1
-        - d=1: edges: (w,v,(a,0)) or (w,v,(b,1)) with w and v as
+        - d = 1: edges: (w,v,(a,0)) or (w,v,(b,1)) with ``w`` and ``v`` as
           above. Note that edges are oriented and that wa needs not be
           reduced.
-        - d=0: vertices: (w,v) with w and v as above
+        - d = 0: vertices: ``(w,v)`` with ``w`` and ``v`` as above
         - The boundary of a square is a list [e0,e1,e2,e3] of edges such that
-          e0=(w,v,(a,0)) and e2 are edges with a positive letter
+          e0 = (w,v,(a,0)) and e2 are edges with a positive letter
           a, and e1=(w,v,(b,1)) and e3 are edges with b a
           positive letter.
         - The boundary of an edge it is the list [v0,v1] of the initial vertex
-          v0=(w,v) followed by the terminal vertex.
+          v0 = (w,v) followed by the terminal vertex.
 
         Whereas for lists:
 
-        - squares: ``[v0,v1,v2,v3,a,b]`` where v0,v1,v2 and v3 are
-          integers standing for vertices and a,b are positive letters
-          labeling edges of G0 and G1 :
+        - squares: ``[v0,v1,v2,v3,a,b]`` where ``v0``, ``v1``,``v2`` and ``v3``
+          are integers standing for vertices and a,b are positive letters
+          labeling edges of ``G0`` and ``G1``::
 
-          .....a
-          v3 -------> v2
-          .^.........^
-          .|.........|
-          .|b........|b
-          .|.........|
-          .|.........|
-          .|....a....|
-          v0 ------->v1
+                 a
+           v3 -------> v2
+            ^          ^
+            |          |
+            |          |
+            |b         |b
+            |          |
+            |    a     |
+           v0 -------->v1
 
         - edges : ``[v0,v1,(a,side)]`` where ``v0`` and ``v1`` are
-          integers standing for vertices a is a label of the tree on
-          ``side``.
+          integers standing for vertices a is a label of the tree on ``side``.
 
         INPUT:
 
@@ -887,21 +887,22 @@ class ConvexCore():
         Recall that on each side, each connected component of the
         1-skeleton of ``self`` is a tree. The origin is a vertex
 
-        - (v0,w1) with v0 the origin of G0 and w1 a vertex of G1.
+        - ``(v0,w1)`` with v0 the origin of ``G0`` and ``w1``
+          a vertex of ``G1``.
 
         or
 
-        - (w0,v1) with w0 a path of the form t0[v] and v1 the origin
-          of G1.
+        - ``(w0,v1)`` with ``w0`` a path of the form t0[v] and ``v1`` the
+          origin of  ``G1``.
 
 
         INPUT:
 
-        - ``vertex``: either a 2-tuple ``(w,v)``. where w is a path in
-          G0 starting from v0 standing for the vertex of T0 at the end
-          of w, v is a vertex in G1 standing for the vertex at the end
-          of t1(v) in T1. Or either an integer standing for a vertex
-          of ``self``.
+        - ``vertex``: either a 2-tuple ``(w,v)``. where ``w`` is a path in
+          ``G0`` starting from v0 standing for the vertex of ``T0`` at the end
+          of ``w``, ``v`` is a vertex in ``G1`` standing for the vertex at
+          the end of t1(v) in ``T1``. Or either an integer standing for a
+          vertex of ``self``.
         - ``side``: 0 or 1 standing for ``T0`` or ``T1``
         - ``verbose`` -- (default: False) for verbose option
 
@@ -1138,7 +1139,7 @@ class ConvexCore():
         INPUT:
 
         - ``side`` is 0 or 1, standing for ``T0`` or ``T1``
-        - ``augmented`` -- (default: False) if ``True`` twice light
+        - ``augmented`` -- (default: ``False``) if ``True`` twice light
           edges bounded a twice light squares are considered as edges.
 
         OUTPUT:
@@ -1233,7 +1234,7 @@ class ConvexCore():
 
         INPUT:
 
-        - ``verbose`` -- (default: False) for verbose option
+        - ``verbose`` -- (default: ``False``) for verbose option
 
         OUTPUT:
 
@@ -1300,7 +1301,7 @@ class ConvexCore():
 
         - ``orientation`` (default: 1): the orientation of the first
           square of ``self``. It can be either 1 or -1.
-        - ``verbose`` -- (default: False) for verbose option
+        - ``verbose`` -- (default: ``False``) for verbose option
 
         OUTPUT:
 
@@ -1388,8 +1389,8 @@ class ConvexCore():
 
         INPUT:
 
-        - ``orientation`` (default: None): list of square  orientation
-        - ``verbose`` -- (default: False) for verbose option
+        - ``orientation`` (default: ``None``): list of square  orientation
+        - ``verbose`` -- (default: ``False``) for verbose option
 
         OUTPUT:
 
@@ -1489,10 +1490,10 @@ class ConvexCore():
                                  cyclic_order_0=None, cyclic_order_1=None,
                                  verbose=False):
         """
-        Plot the set of ideal curves on the surface S=S(g,1) of genus g
+        Plot the set of ideal curves on the surface S=S(g,1) of genus ``g``
         with one puncture.
 
-        The free group has rank N=2g, the trees T0 and T1 are roses
+        The free group has rank N=2g, the trees ``T0`` and ``T1`` are roses
         transverse to a maximal set of ideal curves on S. The convex
         core is transverse to the two collections of curves: vertices
         are connected components of the complement of the union of the
@@ -1505,24 +1506,24 @@ class ConvexCore():
         mapping class group is that generated by the
         ``surface_dehn_twist()`` method of the ``FreeGroup`` class.
 
-        The set of ideal curves of T0 is drawn as the boundary of a
-        regular 2N-gone, and the set of ideal curves of T1 is drawn
+        The set of ideal curves of ``T0`` is drawn as the boundary of a
+        regular 2N-gone, and the set of ideal curves of ``T1`` is drawn
         inside this 2N-gone.
 
         INPUT:
 
         - ``radius``: (default: 1) the radius of the regular 2N-gone
           which is the fondamental domain of the surface.
-        - ``cyclic_order_0``: (default None) List of edges outgoing
-          from the sole vertex of T0 ordered according to the embedding
+        - ``cyclic_order_0``: (default: ``None``) List of edges outgoing
+          from the sole vertex of ``T0`` ordered according to the embedding
           in the surface. A typical value in rank 4, compatible with
           the definition of ``FreeGroup.surface_dehn_twist()`` is :
           ['A','B','a','C','D','c','d','b'].
-        - ``cyclic_order_1``: (default: None) List of edges outgoing
+        - ``cyclic_order_1``: (default: ``None``) List of edges outgoing
           from the sole vertex of T1 ordered according to the embedding
           in the surface.
         - ``orientation`` -- (default: 1): list of square  orientation
-        - ``verbose`` -- (default: False) for verbose option
+        - ``verbose`` -- (default: ``False``) for verbose option
 
         OUTPUT:
 
@@ -1557,7 +1558,8 @@ class ConvexCore():
         N = len(A0)
         A1 = T1.alphabet()
 
-        # Let ``self`` be the convex core of trees T0 and T1. T0 and
+        # Let ``self`` be the convex core of trees ``T0`` and ``T1``. ``T0``
+        # and
         # T1 need to be roses. The trees T0 and T1 may be given as
         # embedded inside the surface. In this case the edges outgoing
         # from the sole vertex are cyclically ordered.
@@ -2135,7 +2137,7 @@ class ConvexCore():
         INPUT:
 
         - ``orientation`` -- (default: 1): list of square  orientation
-        - ``verbose`` -- (default: False) for verbose option
+        - ``verbose`` -- (default: ``False``) for verbose option
 
         .. TODO::
 

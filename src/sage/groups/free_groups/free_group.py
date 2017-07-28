@@ -74,7 +74,7 @@ from sage.structure.sequence import Sequence
 
 def is_FreeGroup(x):
     """
-    Test whether ``x`` is a :class:`FreeGroup_class`.
+    Test whether ``x`` is a :class: `FreeGroup_class`.
 
     INPUT:
 

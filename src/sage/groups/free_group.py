@@ -12,4 +12,4 @@ TESTS::
 """
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.groups.free_groups.free_group', '*', deprecation=20154)
+lazy_import('sage.groups.free_groups.free_group', '_lexi_gen', '*', deprecation=20154)

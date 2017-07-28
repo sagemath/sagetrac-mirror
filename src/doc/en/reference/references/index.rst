@@ -252,6 +252,9 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BH-train-track] M. Bestvina, M.  Handel, Train tracks and
+                    automorphisms of free groups, Annals of Math, 135, 1-51, 1992.
+
 .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
             generators for inseparable algebraic extensions. Bulletin of the
             American Mathematical Society 46, no. 2 (1940): 182-186.
@@ -403,6 +406,10 @@ REFERENCES:
 .. [CK2015] \J. Campbell and V. Knight. *On testing degeneracy of
             bi-matrix
             games*. http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/ (2015)
+
+.. [CL-dynamics] M. Cohen, M. Lustig, on the dynamics and the
+                 fixed subgroup of a free group automorphism, Inventiones
+                 Math. 96, 613-638, 1989.
 
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
@@ -868,6 +875,10 @@ REFERENCES:
              and fibrations of toric Calabi-Yau
              hypersurfaces. *Adv. Theor. Math. Phys.*,
              6(3):457-506, 2002. arXiv:math/0010082v2 [math.AG].
+
+.. [HM-parageometric] M. Handel, L. Mosher, parageometric outer
+                      automorphisms of free groups, Transactions of
+                      Amer. Math. Soc. 359, 3153-3183, 2007.
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
