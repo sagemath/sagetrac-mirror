@@ -10,14 +10,6 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import infinity
 from sage.misc.latex import latex
 
-#import operator
-
-#from sage.functions.other import (floor, ceil)
-#from fastmult import reduce_GL
-
-#load 'fastmult.spyx'
-#from fastmult import reduce_GL
-
 
 class SiegelModularFormPrecision (SageObject):
     r"""
@@ -67,7 +59,7 @@ class SiegelModularFormPrecision (SageObject):
             sage: prec = SiegelModularFormPrecision(101)
             sage: TestSuite(prec).run()
         """
-        ## copy constructor
+        # copy constructor
         if isinstance(prec, SiegelModularFormPrecision):
             self.__type = deepcopy(prec.type())
             self.__prec = deepcopy(prec.prec())
@@ -259,7 +251,7 @@ class SiegelModularFormPrecision (SageObject):
         if self.__type == 'infinity':
             return infinity
         elif self.__type == 'disc':
-            return ceil((self.__prec+1)/4)
+            return ceil((self.__prec + 1) / 4)
         elif self.__type == 'box':
             return self.__prec[2]
         else:
@@ -292,15 +284,15 @@ class SiegelModularFormPrecision (SageObject):
             raise NotImplementedError("can only compare with elements of "
                                       "the same class")
 
-        ## TODO: implement comparison of precisions of different types
+        # TODO: implement comparison of precisions of different types
         if self.__type != other.__type:
             return False
 
         if self.__type == 'box':
             a, b, c = self.__prec
             ao, bo, co = other.__prec
-            return (a <= ao and b <= bo and c <= co
-                    and any([a < ao, b < bo, c < co]))
+            return (a <= ao and b <= bo and c <= co and
+                    any([a < ao, b < bo, c < co]))
 
         elif self.__type == 'disc':
             return self.__prec < other.__prec
@@ -442,17 +434,17 @@ class SiegelModularFormPrecision (SageObject):
                 yield (0, 0, c)
 
             atop = isqrt(self.__prec // 3)
-            if 3*atop*atop == self.__prec:
+            if 3 * atop * atop == self.__prec:
                 atop -= 1
             for a in xrange(1, atop + 1):
-                for b in xrange(a+1):
-                    for c in xrange(a, ceil((b**2 + self.__prec)/(4*a))):
+                for b in xrange(a + 1):
+                    for c in xrange(a, ceil((b**2 + self.__prec) / (4 * a))):
                         yield (a, b, c)
 
         elif 'box' == self.__type:
             (am, bm, cm) = self.__prec
             for a in xrange(am):
-                for b in xrange(min(bm, a+1)):
+                for b in xrange(min(bm, a + 1)):
                     for c in xrange(a, cm):
                         yield (a, b, c)
 
@@ -482,20 +474,18 @@ class SiegelModularFormPrecision (SageObject):
         """
         if self.__type == 'disc':
             atop = isqrt(self.__prec // 3)
-            if 3*atop*atop == self.__prec:
+            if 3 * atop * atop == self.__prec:
                 atop -= 1
             for a in xrange(1, atop + 1):
-                for b in xrange(a+1):
-                    for c in xrange(a, ceil((b**2 + self.__prec)/(4*a))):
+                for b in xrange(a + 1):
+                    for c in xrange(a, ceil((b**2 + self.__prec) / (4 * a))):
                         yield (a, b, c)
-
         elif 'box' == self.__type:
             (am, bm, cm) = self.__prec
             for a in xrange(am):
-                for b in xrange(min(bm, a+1)):
+                for b in xrange(min(bm, a + 1)):
                     for c in xrange(a, cm):
                         yield (a, b, c)
-
         else:
             raise RuntimeError("Unexpected value of self.__type")
 

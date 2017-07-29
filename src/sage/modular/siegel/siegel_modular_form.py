@@ -87,6 +87,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.functional import isqrt
 from sage.modular.modform.constructor import ModularForms
 from sage.rings.integer_ring import ZZ
+from sage.rings.all import QQ
 from sage.structure.element import AlgebraElement
 
 SMF_DEFAULT_PREC = 101
@@ -300,19 +301,19 @@ class SiegelModularForm_class(AlgebraElement):
         except TypeError:
             raise TypeError("the key %s must be an integral quadratic form" % str(key))
 
-        if b**2 - 4*a*c > 0 or a < 0 or c < 0:
-            return self.base_ring()(0)
-        ## otherwise we have a semi-positive definite form
+        if b**2 - 4 * a * c > 0 or a < 0 or c < 0:
+            return self.base_ring().zero()
+        # otherwise we have a semi-positive definite form
         if (a, b, c) in self.__coeffs:
             return self.__coeffs[(a, b, c)]
-        ## otherwise GL2(ZZ)-reduce (a,b,c) and try again
+        # otherwise GL2(ZZ)-reduce (a,b,c) and try again
         from fastmult import reduce_GL
         (a0, b0, c0) = reduce_GL(a, b, c)
         if self.precision().is_in_bound((a0, b0, c0)):
-##            return get_coeff_with_action(a,b,c,self.coeffs(),self.base_ring())
+            # return get_coeff_with_action(a,b,c,self.coeffs(),self.base_ring())
             return self.__coeffs.get((a0, b0, c0), self.base_ring()(0))
-        ## otherwise error - precision is too low
-        raise ValueError('precision %s is not high enough to extract coefficient at %s' % (self.prec(), str(key)))
+        # otherwise error - precision is too low
+        raise ValueError('precision %s is not high enough to extract coefficient at %s' % (self.prec(), key))
 
     def coeffs(self, disc=None):
         r"""
@@ -395,7 +396,7 @@ class SiegelModularForm_class(AlgebraElement):
             sage: [f.max_disc() for f in gens]
             [0, 0, -3, -3]
         """
-        return max([b**2 - 4*a*c for (a, b, c) in self.support()])
+        return max(b**2 - 4 * a * c for (a, b, c) in self.support())
 
     def _keys(self):
         r"""
@@ -481,7 +482,7 @@ class SiegelModularForm_class(AlgebraElement):
                                                 name=self.name())
 
     ################
-    ## Arithmetic ##
+    # Arithmetic ##
     ################
 
     def _add_(left, right):
@@ -810,9 +811,9 @@ class SiegelModularForm_class(AlgebraElement):
         rc = right.coeffs()
         # make coefficients that are implicitly zero be actually zero
         for k in new_smf_prec:
-            if not k in lc:
+            if k not in lc:
                 lc[k] = 0
-            if not k in rc:
+            if k not in rc:
                 rc[k] = 0
 
         return lc == rc
@@ -832,7 +833,6 @@ class SiegelModularForm_class(AlgebraElement):
             I don't really think I have the right syntax since I could not
             load it after doing this.
         """
-        from sage.rings.all import QQ
         if self.base_ring().fraction_field() == QQ:
             pol = [0, 1]
             coeffs = self.coeffs()
@@ -841,7 +841,7 @@ class SiegelModularForm_class(AlgebraElement):
             coeffs = dict()
             for k in self.coeffs():
                 coeffs[k] = self.coeffs()[k].list()
-        if None == name:
+        if name is None:
             _name = self._repr_()
         f1 = 'format %d: [this string, wt, name, pol., prec., dict. of coefficients]' % 1
         data = [f1, self.weight(), _name, pol, self.prec(), coeffs]
@@ -862,12 +862,12 @@ class SiegelModularForm_class(AlgebraElement):
             181440
         """
         prec = self.prec()
-        NN = 4*N
+        NN = 4 * N
         keys = [(disc, r) for disc in range(prec)
                 for r in range(NN) if (r**2 - disc) % NN == 0]
         coeff = dict()
         for disc, r in keys:
-            (a, b, c) = (-(r**2 - disc)/NN, r, N)
+            (a, b, c) = (-(r**2 - disc) / NN, r, N)
             coeff[(-disc, r)] = self[(a, b, c)]
         return coeff
 
@@ -887,17 +887,18 @@ class SiegelModularForm_class(AlgebraElement):
             -20160*x^2 - 40320*y^2
         """
         from sage.rings.all import PolynomialRing
-        R = PolynomialRing(ZZ, names)
-        x, y = R.gens()
-        d_left_coeffs = dict((f, (f[0]*x*x + f[1]*x*y + f[2]*y*y)*left[f])
-                             for f in left.coeffs())
+        x, y = PolynomialRing(ZZ, names).gens()
+        d_left_coeffs = {f: (f[0] * x * x + f[1] * x * y + f[2] * y * y) *
+                         left[f]
+                         for f in left.coeffs()}
         d_left = SiegelModularForm(left.group(), left.weight(),
                                    d_left_coeffs, left.prec())
-        d_right_coeffs = dict((f, (f[0]*x*x + f[1]*x*y + f[2]*y*y)*right[f])
-                              for f in right.coeffs())
+        d_right_coeffs = {f: (f[0] * x * x + f[1] * x * y + f[2] * y * y) *
+                          right[f]
+                          for f in right.coeffs()}
         d_right = SiegelModularForm(right.group(), right.weight(),
                                     d_right_coeffs, right.prec())
-        return d_left*right/left.weight() - d_right*left/right.weight()
+        return d_left * right / left.weight() - d_right * left / right.weight()
 
     #################
     # Hecke operators
@@ -928,9 +929,9 @@ class SiegelModularForm_class(AlgebraElement):
         try:
             # TODO: I am not sure whether this sets the right prec
             a, b, c = self.prec()
-            prec = (ceil(a/ell), ceil(b/ell), ceil(c/ell))
+            prec = (ceil(a / ell), ceil(b / ell), ceil(c / ell))
         except TypeError:
-            prec = ceil(self.prec()/ell/ell)
+            prec = ceil(self.prec() / ell / ell)
             prec = _normalized_prec(prec)
         d = dict((f, self.hecke_coefficient(ell, f)) for f in self._keys() if _is_bounded(f, prec))
         if self.name():
@@ -971,12 +972,12 @@ class SiegelModularForm_class(AlgebraElement):
         qf = BinaryQF([a, b, c])
         for t1 in divisors(ell):
             for t2 in divisors(t1):
-                cosets = self._get_representatives(ell, t1/t2)
+                cosets = self._get_representatives(ell, t1 / t2)
                 for V in cosets:
                     aprime, bprime, cprime = qf.matrix_action_right(V)[:]
-                    if aprime % t1 == 0 and bprime % t2 == 0 and cprime % t2 == 0:
+                    if 0 == aprime % t1 == bprime % t2 == cprime % t2:
                         try:
-                            coeff = coeff + t1**(k-2)*t2**(k-1)*self[(ell*aprime/t1**2, ell*bprime/t1/t2, ell*cprime/t2**2)]
+                            coeff += t1**(k - 2) * t2**(k - 1) * self[(ell * aprime / t1**2, ell * bprime / t1 / t2, ell * cprime / t2**2)]
                         except KeyError, msg:
                             raise ValueError('%s' % (self, msg))
         return coeff
@@ -1161,7 +1162,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     - prec -- either a triple (amax,bmac,cmax) or an integer Dmax
     """
     k = f.weight()
-    assert(k+2 == g.weight()) | (f == 0) | (g == 0), "incorrect weights!"
+    assert(k + 2 == g.weight()) | (f == 0) | (g == 0), "incorrect weights!"
     assert(g.q_expansion(1) == 0), "second argument is not a cusp form"
 
     from sage.modular.siegel.siegel_modular_group import Sp4Z
@@ -1178,16 +1179,17 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
             # here prec = (0,0,>=0)
             Dtop = 0
         else:
-            Dtop = 4*(amax-1)*(cmax-1)
+            Dtop = 4 * (amax - 1) * (cmax - 1)
     else:
         clean_prec = max(0, prec)
         if 0 == clean_prec:
             # no reduced forms below prec
-            return _SiegelModularForm_from_dict(group=Sp4Z, weight=k, coeffs=dict(), prec=0)
+            return _SiegelModularForm_from_dict(group=Sp4Z, weight=k,
+                                                coeffs={}, prec=0)
         while 0 != clean_prec % 4 and 1 != clean_prec % 4:
             clean_prec -= 1
         Dtop = clean_prec - 1
-    precision = (Dtop+1)//4 + 1
+    precision = (Dtop + 1) // 4 + 1
     # TODO: examine error when called with 1 == prec
     if 1 == precision:
         precision = 2
@@ -1206,7 +1208,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     PS = PowerSeriesRing(QQ, name='q')
     q = PS.gens()[0]
 
-    ## Create the quasi Dedekind eta^-6 power series:
+    # Create the quasi Dedekind eta^-6 power series:
     pari_prec = max(1, precision - 1)
     # next line yields error if 0 == pari_prec
     from sage.libs.pari.all import pari
@@ -1215,81 +1217,86 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     eta_quasi = PS(pari('Vec(eta(q))')) + O(q**precision)
     etapow = eta_quasi**-6
 
-    ## Create the Jacobi forms A=a*etapow and B=b*etapow in stages.
-    ## Recall a = sum_{s != r mod 2} s^2*(-1)^r*q^((s^2+r^2-1)/4)*zeta^r
-    ##        b = sum_{s != r mod 2}     (-1)^r*q^((s^2+r^2-1)/4)*zeta^r
-    ## r, s run over ZZ but with opposite parities.
-    ## For r=0, we need s odd, (s^2-1)/4 < precision, with s=2t+1 hence t^2+t < precision.
-    ## For r=1, we need s even, s^2/4 < precision, with s=2t hence t^2 < precision.
+    # Create the Jacobi forms A=a*etapow and B=b*etapow in stages.
+    # Recall a = sum_{s != r mod 2} s^2*(-1)^r*q^((s^2+r^2-1)/4)*zeta^r
+    #        b = sum_{s != r mod 2}     (-1)^r*q^((s^2+r^2-1)/4)*zeta^r
+    # r, s run over ZZ but with opposite parities.
+    # For r=0, we need s odd, (s^2-1)/4 < precision, with s=2t+1 hence t^2+t < precision.
+    # For r=1, we need s even, s^2/4 < precision, with s=2t hence t^2 < precision.
 
-    a1 = -2*sum((2*t)**2 * q**(t**2) for t in xsrange(1, precision) if t*t < precision)
-    b1 = -2*sum(q**(t**2) for t in xsrange(1, precision) if t*t < precision)
-    a0 = 2*sum((2*t+1)**2 * q**(t**2+t) for t in xsrange(precision) if t*t + t < precision)
-    b0 = 2*sum(q**(t**2+t) for t in xsrange(precision) if t*t + t < precision)
+    a1 = -2 * sum((2 * t)**2 * q**(t**2) for t in xsrange(1, precision)
+                  if t * t < precision)
+    b1 = -2 * sum(q**(t**2) for t in xsrange(1, precision)
+                  if t * t < precision)
+    a0 = 2 * sum((2 * t + 1)**2 * q**(t**2 + t) for t in xsrange(precision)
+                 if t * t + t < precision)
+    b0 = 2 * sum(q**(t**2 + t) for t in xsrange(precision)
+                 if t * t + t < precision)
     b1 = b1 - 1
 
-    ## Form A and B - the Jacobi forms used in [Sko]'s I map.
+    # Form A and B - the Jacobi forms used in [Sko]'s I map.
 
     (A0, A1, B0, B1) = (a0 * etapow, a1 * etapow, b0 * etapow, b1 * etapow)
 
-    ## Calculate the image of the pair of modular forms (f,g) under
-    ## [Sko]'s isomorphism I : M_{k} \oplus S_{k+2} -> J_{k,1}.
+    # Calculate the image of the pair of modular forms (f,g) under
+    # [Sko]'s isomorphism I : M_{k} \oplus S_{k+2} -> J_{k,1}.
 
     fderiv = PS(q * f.qexp(precision).derivative())
     (f, g) = (PS(f.qexp(precision)), PS(g.qexp(precision)))
 
-    ## Finally: I(f,g) is given by the formula below:
-    Ifg0 = k/2*f*A0 - fderiv*B0 + g*B0 + O(q**precision)
-    Ifg1 = k/2*f*A1 - fderiv*B1 + g*B1 + O(q**precision)
+    # Finally: I(f,g) is given by the formula below:
+    Ifg0 = k / 2 * f * A0 - fderiv * B0 + g * B0 + O(q**precision)
+    Ifg1 = k / 2 * f * A1 - fderiv * B1 + g * B1 + O(q**precision)
 
-    ## For applying the Maass' lifting to genus 2 modular forms.
-    ## we put the coefficients og Ifg into a dictionary Chi
-    ## so that we can access the coefficient corresponding to
-    ## discriminant D by going Chi[D].
+    # For applying the Maass' lifting to genus 2 modular forms.
+    # we put the coefficients og Ifg into a dictionary Chi
+    # so that we can access the coefficient corresponding to
+    # discriminant D by going Chi[D].
 
-    ## Note: Ifg.list()[i].list()[j] gives the coefficient of q^i*zeta^j
+    # Note: Ifg.list()[i].list()[j] gives the coefficient of q^i*zeta^j
 
     Cphi = {0: 0}  # initialise dictionary. Value changed in the loop if we have a 'noncusp form'
     qcoeffs0 = Ifg0.list()
     qcoeffs1 = Ifg1.list()
     for i in xsrange(len(qcoeffs0)):
-        Cphi[-4*i] = qcoeffs0[i]
-        Cphi[1-4*i] = qcoeffs1[i]
+        Cphi[-4 * i] = qcoeffs0[i]
+        Cphi[1 - 4 * i] = qcoeffs1[i]
 
-    ## the most negative discriminant occurs when i is largest
-    ## and j is zero.  That is, discriminant 0^2-4*i
-    ## Note that i < precision.
-    maxD = -4*i
+    # the most negative discriminant occurs when i is largest
+    # and j is zero.  That is, discriminant 0^2-4*i
+    # Note that i < precision.
+    maxD = -4 * i
 
     """
     Create the Maass lift F := VI(f,g) as in [Sko].
     """
 
-    ## The constant term is given by -Cphi[0]*B_{2k}/(4*k)
-    ## (note in [Sko] this coeff has typos).
-    ## For nonconstant terms,
-    ## The Siegel coefficient of q^n * zeta^r * qdash^m is given
-    ## by the formula  \sum_{ a | gcd(n,r,m) } Cphi[D/a^2] where
-    ## D = r^2-4*n*m is the discriminant.
-    ## Hence in either case the coefficient
-    ## is fully deterimined by the pair (D,gcd(n,r,m)).
-    ## Put (D,t) -> \sum_{ a | t } Cphi[D/a^2]
-    ## in a dictionary (hash table) maassc.
-    maassc = dict()
-    ## First calculate maass coefficients corresponding to strictly
-    ## positive definite matrices:
+    # The constant term is given by -Cphi[0]*B_{2k}/(4*k)
+    # (note in [Sko] this coeff has typos).
+    # For nonconstant terms,
+    # The Siegel coefficient of q^n * zeta^r * qdash^m is given
+    # by the formula  \sum_{ a | gcd(n,r,m) } Cphi[D/a^2] where
+    # D = r^2-4*n*m is the discriminant.
+    # Hence in either case the coefficient
+    # is fully deterimined by the pair (D,gcd(n,r,m)).
+    # Put (D,t) -> \sum_{ a | t } Cphi[D/a^2]
+    # in a dictionary (hash table) maassc.
+    maassc = {}
+    # First calculate maass coefficients corresponding to strictly
+    # positive definite matrices:
     from sage.rings.all import is_fundamental_discriminant
     for disc in [d for d in xsrange(maxD, 0) if is_fundamental_discriminant(d)]:
-        for s in xsrange(1, isqrt(maxD//disc) + 1):
-            ## add (disc*s^2,t) as a hash key, for each t that divides s
+        for s in xsrange(1, isqrt(maxD // disc) + 1):
+            # add (disc*s^2,t) as a hash key, for each t that divides s
             for t in s.divisors():
-                maassc[(disc*s**2, t)] = sum(a**(k-1) * Cphi[disc*s**2/a**2]
-                                             for a in t.divisors())
+                maassc[(disc * s**2, t)] = sum(a**(k - 1) *
+                                               Cphi[disc * s**2 / a**2]
+                                               for a in t.divisors())
 
-    ## Compute the coefficients of the Siegel form $F$:
+    # Compute the coefficients of the Siegel form $F$:
     siegelq = {}
     if isinstance(prec, tuple):
-        ## Note: m>=n>=r, n>=1 implies m>=n>r^2/4n
+        # Note: m>=n>=r, n>=1 implies m>=n>r^2/4n
         for r in xsrange(0, bmax):
             for n in xsrange(max(r, 1), amax):
                 for m in xsrange(n, cmax):
@@ -1299,23 +1306,23 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
         bound = cmax
     else:
         bound = 0
-        for n in xsrange(1, isqrt(Dtop//3) + 1):
+        for n in xsrange(1, isqrt(Dtop // 3) + 1):
             for r in xsrange(n + 1):
-                bound = max(bound, (Dtop + r*r)//(4*n) + 1)
-                for m in xsrange(n, (Dtop + r*r)//(4*n) + 1):
+                bound = max(bound, (Dtop + r * r) // (4 * n) + 1)
+                for m in xsrange(n, (Dtop + r * r) // (4 * n) + 1):
                     D = r**2 - 4 * m * n
                     g = gcd([n, r, m])
                     siegelq[(n, r, m)] = maassc[(D, g)]
 
-    ## Secondly, deal with the singular part.
-    ## Include the coeff corresponding to (0,0,0):
-    ## maassc = {(0,0): -bernoulli(k)/(2*k)*Cphi[0]}
-    siegelq[(0, 0, 0)] = -bernoulli(k)/(2*k)*Cphi[0]
+    # Secondly, deal with the singular part.
+    # Include the coeff corresponding to (0,0,0):
+    # maassc = {(0,0): -bernoulli(k)/(2*k)*Cphi[0]}
+    siegelq[(0, 0, 0)] = -bernoulli(k) / (2 * k) * Cphi[0]
 
-    ## Calculate the other discriminant-zero maass coefficients:
+    # Calculate the other discriminant-zero maass coefficients:
     for i in xsrange(1, bound):
-        ## maassc[(0,i)] = sigma(i, k-1) * Cphi[0]
-        siegelq[(0, 0, i)] = sigma(i, k-1) * Cphi[0]
+        # maassc[(0,i)] = sigma(i, k - 1) * Cphi[0]
+        siegelq[(0, 0, i)] = sigma(i, k - 1) * Cphi[0]
 
     return _SiegelModularForm_from_dict(group=Sp4Z, weight=k, coeffs=siegelq,
                                         prec=clean_prec, name=name)
@@ -1395,7 +1402,7 @@ def _SiegelModularForm_from_theta_characteristics(char_dict, prec=SMF_DEFAULT_PR
             coeffs[f] = val
     wt = 0
     for l in char_dict:
-        wt = max(wt, len(l)/2)
+        wt = max(wt, len(l) / 2)
     return _SiegelModularForm_from_dict(group=None, weight=wt,
                                         coeffs=coeffs, prec=prec, name=name)
 
@@ -1418,7 +1425,7 @@ def _SiegelModularForm_from_QuadraticForm(Q, prec, name):
         Siegel modular form on Siegel Modular Group Gamma0(11) of weight 2
     """
     N = Q.level()
-    k = Q.dim()/2
+    k = Q.dim() / 2
     coeffs = Q.theta_series_degree_2(prec)
     return _SiegelModularForm_from_dict(group=Sp4Z_Gamma0(N), weight=k,
                                         coeffs=coeffs, prec=prec, name=name)
@@ -1507,7 +1514,7 @@ def _SiegelModularForm_from_dict(group, weight, coeffs, prec, degree=2, parent=N
         {(1, 1, 1): 1, (1, 0, 2): 2}
     """
     if prec is None:
-        prec = -min([b**2 - 4*a*c for (a, b, c) in coeffs]) + 1
+        prec = -min([b**2 - 4 * a * c for (a, b, c) in coeffs]) + 1
 
     if parent is None:
         from sage.structure.all import Sequence
@@ -1593,8 +1600,8 @@ def _is_bounded((a, b, c), prec):
     if isinstance(prec, tuple):
         return (a, b, c) < prec
     else:
-        D = 4*a*c - b*b
-        return D < prec if D != 0 else c < (prec+1)/4
+        D = 4 * a * c - b * b
+        return D < prec if D != 0 else c < (prec + 1) / 4
 
 
 def _prec_min(prec1, prec2):

@@ -6,9 +6,9 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.all import GroupAlgebra
 from sage.categories.group_algebras import GroupAlgebras
 from sage.groups.all import KleinFourGroup
-from sage.misc.all import cached_method, cached_function
+from sage.misc.all import cached_method
 from sage.modular.all import ModularForms
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, infinity
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.ring import is_Ring
 from sage.structure.factory import UniqueFactory
@@ -50,7 +50,7 @@ class SiegelModularFormsAlgebraFactory(UniqueFactory):
             raise TypeError('The coefficient ring must be a ring')
         if not (isinstance(group, grp.Group) or group is None):
             raise TypeError('The group must be given by an GSp4_Arithmetic_Subgroup, or None')
-        if not weights in ('even', 'all'):
+        if weights not in ('even', 'all'):
             raise ValueError("The argument weights must be 'even' or 'all'")
         try:
             degree = int(degree)
@@ -282,7 +282,9 @@ class SiegelModularFormsAlgebra_class(Algebra):
             sage: S._repr_()
             'Algebra of Siegel modular forms of degree 2 and even weights on Siegel Modular Group Sp(4,Z) over Rational Field'
         """
-        return 'Algebra of Siegel modular forms of degree %s and %s weights on %s over %s' % (self.__degree, self.__weights, self.__group, self.__coeff_ring)
+        txt = 'Algebra of Siegel modular forms of degree %s and %s weights on %s over %s'
+        return txt % (self.__degree, self.__weights,
+                      self.__group, self.__coeff_ring)
 
     def _latex_(self):
         r"""
@@ -293,10 +295,12 @@ class SiegelModularFormsAlgebra_class(Algebra):
             sage: S = SiegelModularFormsAlgebra(coeff_ring=QQ)
             sage: S._latex_()
             '\\texttt{Algebra of Siegel modular forms of degree }2\\texttt{ and even weights on Siegel Modular Group Sp(4,Z) over }\\Bold{Q}'
-
         """
         from sage.misc.all import latex
-        return r'\texttt{Algebra of Siegel modular forms of degree }%s\texttt{ and %s weights on %s over }%s' % (latex(self.__degree), self.__weights, self.__group, latex(self.__coeff_ring))
+        txt = r'\texttt{Algebra of Siegel modular forms of degree }%s\texttt{ and %s weights on %s over }%s'
+        return txt % (latex(self.__degree),
+                      self.__weights, self.__group,
+                      latex(self.__coeff_ring))
 
     def _coerce_map_from_(self, other):
         r"""
@@ -356,15 +360,15 @@ class SiegelModularFormsAlgebra_class(Algebra):
 
         if isinstance(x.parent(), SiegelModularFormsAlgebra_class):
             d = dict((f, self.coeff_ring()(x[f])) for f in x.coeffs())
-            return self.element_class(parent=self, weight=x.weight(), coeffs=d, prec=x.prec(), name=x.name())
+            return self.element_class(parent=self, weight=x.weight(),
+                                      coeffs=d, prec=x.prec(), name=x.name())
 
         R = self.base_ring()
         if R.has_coerce_map_from(x.parent()):
             d = {(0, 0, 0): R(x)}
-            from sage.rings.all import infinity
-            return self.element_class(parent=self, weight=0, coeffs=d, prec=infinity, name=str(x))
+            return self.element_class(parent=self, weight=0, coeffs=d,
+                                      prec=infinity, name=str(x))
         elif x.parent() is self.coeff_ring():
-            from sage.rings.all import infinity
             return self.element_class(parent=self, weight=0,
                                       coeffs={(0, 0, 0): x}, prec=infinity)
         else:
@@ -396,7 +400,6 @@ class SiegelModularFormsAlgebra_class(Algebra):
             Algebra of Siegel modular forms of degree 2 and even weights on Siegel Modular Group Sp(4,Z) over Real Field with 53 bits of precision
 
         """
-        #B = self.base_ring()
         S = self.coeff_ring()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         if is_PolynomialRing(S):
@@ -405,7 +408,10 @@ class SiegelModularFormsAlgebra_class(Algebra):
             xS = R
         else:
             raise TypeError("cannot extend to %s" % R)
-        return SiegelModularFormsAlgebra(coeff_ring=xS, group=self.group(), weights=self.weights(), degree=self.degree(), default_prec=self.default_prec())
+        return SiegelModularFormsAlgebra(coeff_ring=xS, group=self.group(),
+                                         weights=self.weights(),
+                                         degree=self.degree(),
+                                         default_prec=self.default_prec())
 
     def construction(self):
         r"""
@@ -418,7 +424,10 @@ class SiegelModularFormsAlgebra_class(Algebra):
             (SMFAlg{"Siegel Modular Group Sp(4,Z)", "even", 2, 101}, Rational Field)
         """
         from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
-        return SiegelModularFormsAlgebraFunctor(self.group(), self.weights(), self.degree(), self.default_prec()), self.coeff_ring()
+        return (SiegelModularFormsAlgebraFunctor(self.group(), self.weights(),
+                                                 self.degree(),
+                                                 self.default_prec()),
+                self.coeff_ring())
 
 
 def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
@@ -479,7 +488,8 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
             c = F.coeffs()
             for f in c.iterkeys():
                 c[f] = ZZ(c[f])
-            F = parent.element_class(parent=parent, weight=F.weight(), coeffs=c, prec=prec, name=F.name())
+            F = parent.element_class(parent=parent, weight=F.weight(),
+                                     coeffs=c, prec=prec, name=F.name())
             b.append(F)
         if weights == 'even':
             return b
@@ -488,7 +498,9 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
             coeffs35 = chi35(prec, b[0], b[1], b[2], b[3])
             R = GroupAlgebra(KleinFourGroup(), QQ)
             det = R(R.group().gen(0))
-            E = parent.element_class(parent=parent, weight=35, coeffs=coeffs35, prec=prec, name='Delta_35')
+            E = parent.element_class(parent=parent, weight=35,
+                                     coeffs=coeffs35, prec=prec,
+                                     name='Delta_35')
             E = E * det
             b.append(E)
             return b
