@@ -483,10 +483,9 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
         # Here a hack for now:
         a = [A, B, C, D]
         b = []
-        from sage.rings.all import ZZ
         for F in a:
             c = F.coeffs()
-            for f in c.iterkeys():
+            for f in c:
                 c[f] = ZZ(c[f])
             F = parent.element_class(parent=parent, weight=F.weight(),
                                      coeffs=c, prec=prec, name=F.name())

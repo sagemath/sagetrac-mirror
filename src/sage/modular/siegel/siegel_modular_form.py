@@ -361,7 +361,7 @@ class SiegelModularForm_class(AlgebraElement):
             True
             sage: C.coeffs()[(1, 0, 3)]
             -272
-            sage: len(D.coeffs(disc=-16).keys())
+            sage: len(D.coeffs(disc=-16))
             2
             sage: D.coeffs(disc=-16)[(2, 0, 2)]
             17600
@@ -432,7 +432,7 @@ class SiegelModularForm_class(AlgebraElement):
             sage: A._keys()
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (1, 0, 1), (1, 0, 2), (1, 0, 3), (1, 1, 1), (1, 1, 2), (1, 1, 3), (2, 2, 2)]
         """
-        return sorted(self.coeffs().keys())
+        return sorted(self.coeffs())
 
     def prec(self):
         r"""
@@ -1354,7 +1354,7 @@ def _SiegelModularForm_from_file(loc):
     r"""
     Initialize an instance of SiegelModularForm_class from a file.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.siegel.siegel_modular_form import _SiegelModularForm_from_file
         sage: url = 'http://sage.math.washington.edu/home/nils/Siegel-Modular-Forms/data/upsilon-forms_20-32_1000/Upsilon_20.p'  # optional -- internet
@@ -1376,7 +1376,7 @@ def _SiegelModularForm_from_file(loc):
         from sage.rings.all import PolynomialRing, NumberField
         R = PolynomialRing(ZZ, 'x')
         K = NumberField(R(pol), name='a')
-        for k in coeffs.iterkeys():
+        for k in coeffs:
             coeffs[k] = K(coeffs[k])
     return _SiegelModularForm_from_dict(group=Sp4Z, weight=wt, coeffs=coeffs,
                                         prec=prec, name=name)
@@ -1435,11 +1435,11 @@ def _SiegelModularForm_from_QuadraticForm(Q, prec, name):
 
     INPUT:
 
-     - ``Q`` - a quadratic form.
+     - ``Q`` -- a quadratic form
 
-     - ``prec`` - an integer.
+     - ``prec`` -- an integer
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.siegel.siegel_modular_form import _SiegelModularForm_from_QuadraticForm
         sage: Q11 = QuadraticForm(ZZ, 4, [3,0,11,0, 3,0,11, 11,0, 11])
