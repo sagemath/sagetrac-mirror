@@ -1,16 +1,14 @@
 """
 Low level functions for coefficients of Siegel modular forms
 """
-
-
 # coeffs_dict* are dictionaries of the form (a,b,c) -> Integer, where
 # (a,b,c) is GL(2,Z)-reduced, i.e. |b| <= a <= c, and b^2-4ac <= 0,
 # and where the keys consist either of all reduced triples in a box of the form
 # (0,A)x(0,B)x(0,C) or else of all reduced triples (a,b,c) with 4ac-b^2 below
 # a given bound (and c <=  if 4ac-b^2=0).
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -18,6 +16,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.structure.element cimport Element
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
+from sage.categories.group_algebras import GroupAlgebras
 
 cdef struct int_triple:
     int a
@@ -335,8 +334,7 @@ cdef get_coeff_with_action(int a0, int b0, int c0, coeffs_dict, R):
     except KeyError:
         return None
 
-    from sage.algebras.all import GroupAlgebra
-    if isinstance( R, GroupAlgebra):
+    if R in GroupAlgebras:
         B = R.base_ring()
     else:
         B = R

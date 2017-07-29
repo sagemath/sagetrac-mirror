@@ -73,15 +73,21 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 import cPickle
 import urllib
+
 from siegel_modular_form_prec import SiegelModularFormPrecision
-from sage.rings.all import ZZ
-from sage.algebras.all import AlgebraElement
 from siegel_modular_group import Sp4Z
 from siegel_modular_group import Sp4Z_Gamma0_constructor as Sp4Z_Gamma0
+
+from sage.arith.misc import sigma, bernoulli, gcd, xgcd, divisors
+from sage.arith.srange import xsrange
+from sage.functions.all import ceil
+from sage.misc.cachefunc import cached_method
+from sage.misc.functional import isqrt
 from sage.modular.modform.constructor import ModularForms
+from sage.rings.integer_ring import ZZ
+from sage.structure.element import AlgebraElement
 
 SMF_DEFAULT_PREC = 101
 
@@ -131,7 +137,6 @@ class SiegelModularForm_class(AlgebraElement):
         self.__precision = SiegelModularFormPrecision(prec)
         self.__prec = _normalized_prec(prec)
         self.__name = name
-        self.__rep_lists = dict()
         AlgebraElement.__init__(self, parent)
 
     def base_ring(self):
@@ -917,8 +922,6 @@ class SiegelModularForm_class(AlgebraElement):
             T(5)(Igusa_4)
         """
         # TODO: compute precision for T(ell)F
-        from sage.functions.all import ceil
-        from sage.rings.arith import gcd
         if gcd(ell, self.group().level()) > 1:
             raise NotImplementedError("Implementation of Hecke operators T_ell "
                                       "for ell coprime to the level")
@@ -959,13 +962,11 @@ class SiegelModularForm_class(AlgebraElement):
             sage: Ups20.hecke_coefficient(5, (1, 0, 1)) / Ups20[(1, 0, 1)]
             -5232247240500
         """
-        from sage.rings.arith import gcd
         if gcd(ell, self.group().level()) > 1:
             raise NotImplementedError("Implementation of Hecke operators "
                                       "T_ell for ell coprime to the level")
         k = self.weight()
         coeff = 0
-        from sage.rings.all import divisors
         from sage.quadratic_forms.binary_qf import BinaryQF
         qf = BinaryQF([a, b, c])
         for t1 in divisors(ell):
@@ -980,12 +981,13 @@ class SiegelModularForm_class(AlgebraElement):
                             raise ValueError('%s' % (self, msg))
         return coeff
 
+    @cached_method
     def _get_representatives(self, ell, t):
         r"""
-        A helper function used in hecke_coefficient that computes the right
-        coset representatives of `\Gamma^0(t)\SL(2,Z)` where `\Gamma^0(t)`
-        is the subgroup of `SL(2,Z)` where the upper left hand corner is
-        divisible by `t`.
+        Helper function used in :meth:`hecke_coefficient` that
+        computes the right coset representatives of
+        `\Gamma^0(t)\SL(2,Z)` where `\Gamma^0(t)` is the subgroup of
+        `SL(2,Z)` where the upper left hand corner is divisible by `t`.
 
         EXAMPLES::
 
@@ -1001,21 +1003,15 @@ class SiegelModularForm_class(AlgebraElement):
             We use the bijection $\Gamma^0(t)\SL(2,Z) \rightarrow P^1(\Z/t\Z)$
             given by $A \mapsto [1:0]A$.
          """
-        try:
-            return self.__rep_lists[(ell, t)]
-        except KeyError:
-            from sage.matrix.all import MatrixSpace
-            M = MatrixSpace(ZZ, 2, 2)
+        from sage.matrix.all import MatrixSpace
+        from sage.modular.all import P1List
+        M = MatrixSpace(ZZ, 2, 2)
         if t == 1:
             return [M([1, 0, 0, 1])]
-        from sage.modular.all import P1List
-        from sage.rings.all import xgcd
         rep_list = []
         for x, y in P1List(t):
-            e, d, c = xgcd(x, y)
-            rep = M([x, y, -c, d])
-            rep_list.append(rep)
-        self.__rep_lists[(ell, t)] = rep_list
+            _, d, c = xgcd(x, y)
+            rep_list.append(M([x, y, -c, d]))
         return rep_list
 
 
@@ -1226,8 +1222,6 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     ## For r=0, we need s odd, (s^2-1)/4 < precision, with s=2t+1 hence t^2+t < precision.
     ## For r=1, we need s even, s^2/4 < precision, with s=2t hence t^2 < precision.
 
-    from sage.misc.all import xsrange
-
     a1 = -2*sum((2*t)**2 * q**(t**2) for t in xsrange(1, precision) if t*t < precision)
     b1 = -2*sum(q**(t**2) for t in xsrange(1, precision) if t*t < precision)
     a0 = 2*sum((2*t+1)**2 * q**(t**2+t) for t in xsrange(precision) if t*t + t < precision)
@@ -1236,7 +1230,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
 
     ## Form A and B - the Jacobi forms used in [Sko]'s I map.
 
-    (A0, A1, B0, B1) = (a0*etapow, a1*etapow, b0*etapow, b1*etapow)
+    (A0, A1, B0, B1) = (a0 * etapow, a1 * etapow, b0 * etapow, b1 * etapow)
 
     ## Calculate the image of the pair of modular forms (f,g) under
     ## [Sko]'s isomorphism I : M_{k} \oplus S_{k+2} -> J_{k,1}.
@@ -1285,44 +1279,40 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     ## First calculate maass coefficients corresponding to strictly
     ## positive definite matrices:
     from sage.rings.all import is_fundamental_discriminant
-    from sage.misc.all import isqrt
     for disc in [d for d in xsrange(maxD, 0) if is_fundamental_discriminant(d)]:
-        for s in xsrange(1, isqrt(maxD//disc)+1):
+        for s in xsrange(1, isqrt(maxD//disc) + 1):
             ## add (disc*s^2,t) as a hash key, for each t that divides s
             for t in s.divisors():
-                maassc[(disc*s**2, t)] = sum([a**(k-1)*Cphi[disc*s**2/a**2]
-                                              for a in t.divisors()])
+                maassc[(disc*s**2, t)] = sum(a**(k-1) * Cphi[disc*s**2/a**2]
+                                             for a in t.divisors())
 
     ## Compute the coefficients of the Siegel form $F$:
-    from sage.rings.all import gcd
-    siegelq = dict()
+    siegelq = {}
     if isinstance(prec, tuple):
         ## Note: m>=n>=r, n>=1 implies m>=n>r^2/4n
         for r in xsrange(0, bmax):
             for n in xsrange(max(r, 1), amax):
                 for m in xsrange(n, cmax):
-                    D = r**2 - 4*m*n
+                    D = r**2 - 4 * m * n
                     g = gcd([n, r, m])
                     siegelq[(n, r, m)] = maassc[(D, g)]
         bound = cmax
     else:
         bound = 0
-        for n in xsrange(1, isqrt(Dtop//3)+1):
+        for n in xsrange(1, isqrt(Dtop//3) + 1):
             for r in xsrange(n + 1):
                 bound = max(bound, (Dtop + r*r)//(4*n) + 1)
                 for m in xsrange(n, (Dtop + r*r)//(4*n) + 1):
-                    D = r**2 - 4*m*n
+                    D = r**2 - 4 * m * n
                     g = gcd([n, r, m])
                     siegelq[(n, r, m)] = maassc[(D, g)]
 
     ## Secondly, deal with the singular part.
     ## Include the coeff corresponding to (0,0,0):
     ## maassc = {(0,0): -bernoulli(k)/(2*k)*Cphi[0]}
-    from sage.rings.all import bernoulli
     siegelq[(0, 0, 0)] = -bernoulli(k)/(2*k)*Cphi[0]
 
     ## Calculate the other discriminant-zero maass coefficients:
-    from sage.rings.all import sigma
     for i in xsrange(1, bound):
         ## maassc[(0,i)] = sigma(i, k-1) * Cphi[0]
         siegelq[(0, 0, i)] = sigma(i, k-1) * Cphi[0]

@@ -1,6 +1,8 @@
 """
 Theta constants
 """
+from sage.arith.srange import xsrange
+from sage.misc.functional import isqrt
 
 
 def _compute_theta_char_poly(char_dict, f):
@@ -59,15 +61,15 @@ def _multiply_theta_char(l, f):
         sage: _multiply_theta_char(tc, [0, 0, 0])
         0
     """
-    if 0 == len(l):
+    if not l:
         return (1 if (0, 0, 0) == f else 0)
     a, b, c = f
     m1, m2, m3, m4 = l[0]
     # if the characteristic is not even:
-    if 1 == (m1 * m3 + m2 * m4) % 2:
+    if (m1 * m3 + m2 * m4) % 2:
         return 0
     coeff = 0
-    from sage.misc.all import isqrt, xsrange
+
     for u in xsrange(m1, isqrt(a) + 1, 2):
         for v in xsrange(m2, isqrt(c) + 1, 2):
             if 0 == u and 0 == v:

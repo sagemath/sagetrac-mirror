@@ -1,10 +1,16 @@
 from siegel_modular_form import (SiegelModularForm, SiegelModularForm_class,
                                  SMF_DEFAULT_PREC)
 from siegel_modular_group import Sp4Z
-from sage.algebras.algebra import Algebra
 
+from sage.algebras.algebra import Algebra
+from sage.algebras.all import GroupAlgebra
+from sage.categories.group_algebras import GroupAlgebras
+from sage.groups.all import KleinFourGroup
 from sage.misc.all import cached_method, cached_function
+from sage.modular.all import ModularForms
 from sage.rings.all import ZZ, QQ
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.ring import is_Ring
 from sage.structure.factory import UniqueFactory
 import sage.groups.group as grp
 
@@ -40,7 +46,6 @@ class SiegelModularFormsAlgebraFactory(UniqueFactory):
             sage: SiegelModularFormsAlgebra.create_key(coeff_ring=QQ, group=Sp4Z_Gamma0(5), weights='all', degree=2, default_prec=41)
             (SMFAlg{"Siegel Modular Group Gamma0(5)", "all", 2, 41}(FractionField(...)), Integer Ring)
         """
-        from sage.rings.ring import is_Ring
         if not is_Ring(coeff_ring):
             raise TypeError('The coefficient ring must be a ring')
         if not (isinstance(group, grp.Group) or group is None):
@@ -129,10 +134,9 @@ class SiegelModularFormsAlgebra_class(Algebra):
         self.__degree = degree
         self.__default_prec = default_prec
         R = coeff_ring
-        from sage.algebras.all import GroupAlgebra
-        if isinstance(R, GroupAlgebra):
+
+        if R in GroupAlgebras:
             R = R.base_ring()
-        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         if is_PolynomialRing(R):
             self.__base_ring = R.base_ring()
         else:
@@ -455,7 +459,6 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
     if prec is None:
         prec = parent.default_prec()
     if group == Sp4Z and 0 == coefficient_degree:
-        from sage.modular.all import ModularForms
         E4 = ModularForms(1, 4).gen(0)
         M6 = ModularForms(1, 6)
         E6 = ModularForms(1, 6).gen(0)
@@ -483,7 +486,7 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
         if weights == 'all':
             from fastmult import chi35
             coeffs35 = chi35(prec, b[0], b[1], b[2], b[3])
-            R = KleinFourGroupAlgebra(QQ)
+            R = GroupAlgebra(KleinFourGroup(), QQ)
             det = R(R.group().gen(0))
             E = parent.element_class(parent=parent, weight=35, coeffs=coeffs35, prec=prec, name='Delta_35')
             E = E * det
@@ -499,19 +502,3 @@ def _siegel_modular_forms_generators(parent, prec=None, coefficient_degree=0):
                 c.append(F.satoh_bracket(G))
         return c
     raise NotImplementedError("Not yet implemented")
-
-
-@cached_function
-def KleinFourGroupAlgebra(base_ring):
-    """
-    Return the group algebra of the Klein four group over the given ring.
-
-    EXAMPLES::
-
-        sage: from sage.modular.siegel.siegel_modular_forms_algebra import KleinFourGroupAlgebra
-        sage: KleinFourGroupAlgebra(ZZ)
-        Group algebra of group "The Klein 4 group of order 4, as a permutation group" over base ring Integer Ring
-    """
-    from sage.groups.all import KleinFourGroup
-    from sage.algebras.all import GroupAlgebra
-    return GroupAlgebra(KleinFourGroup(), base_ring)
