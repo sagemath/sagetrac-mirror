@@ -825,12 +825,13 @@ class SiegelModularForm_class(AlgebraElement):
         EXAMPLES::
 
             sage: A = SiegelModularFormsAlgebra(default_prec=20).0
-            sage: FILE = open('A.sobj', 'w')
+            sage: fname = tmp_filename(ext='.sobj')
+            sage: FILE = open(fname, 'w')
             sage: A.pickle(FILE)
 
         .. TODO::
 
-            I don't really think I have the right syntax since I could not
+            I do not really think I have the right syntax since I could not
             load it after doing this.
         """
         if self.base_ring().fraction_field() == QQ:
@@ -838,7 +839,7 @@ class SiegelModularForm_class(AlgebraElement):
             coeffs = self.coeffs()
         else:
             pol = self.base_ring().polynomial().list()
-            coeffs = dict()
+            coeffs = {}
             for k in self.coeffs():
                 coeffs[k] = self.coeffs()[k].list()
         if name is None:
