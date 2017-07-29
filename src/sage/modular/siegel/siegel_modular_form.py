@@ -42,11 +42,34 @@ REFERENCES:
 
 USAGE:
 
-This class allows users to produce Siegel modular forms of degree 2.  In particular, one can compute generators of rings for which the generators and known.  Currently the rings are of levels 1 to 4.  Furthermore, one can compute specific kinds of Siegel modular forms of degree 2:  theta series attached to binary quadratic forms, theta constants, Eisenstein series, and Saito-Kurokawa and Maass lifts.  Finally one can also compute certain vector-valued Siegel modular forms; in particular, those of weight (k,2).
+This class allows users to produce Siegel modular forms of degree 2.
+In particular, one can compute generators of rings for which the
+generators and known.  Currently the rings are of levels 1 to 4.
+Furthermore, one can compute specific kinds of Siegel modular forms of
+degree 2: theta series attached to binary quadratic forms, theta
+constants, Eisenstein series, and Saito-Kurokawa and Maass lifts.
+Finally one can also compute certain vector-valued Siegel modular
+forms; in particular, those of weight (k,2).
 
-For each such Siegel modular form object one can compute the action of Hecke operators on it.  One can also add two Siegel modular forms (provided they are both either scalar valued or vector valued and of the same weight) and multiply two Siegel modular forms (in this implementation one can, indeed, multiply scalar-valued and vector-valued Siegel modular forms).
+For each such Siegel modular form object one can compute the action of
+Hecke operators on it.  One can also add two Siegel modular forms
+(provided they are both either scalar valued or vector valued and of
+the same weight) and multiply two Siegel modular forms (in this
+implementation one can, indeed, multiply scalar-valued and
+vector-valued Siegel modular forms).
 
-Siegel modular forms of degree 2 have Fourier expansions supported on positive semi-definite binary quadratic forms.  The precision of a Siegel modular form `F` is measured in one of four different ways:  box precision `(a,b,c)` means that the support of `F` includes all binary quadratic forms `(x,y,z)` less than `x<a`, `y<b` and `z<c`; disc precision `D>0` means that the support of `F` contains all positive definite quadratic forms of discrimant `d` such that `-d<D` and all indefinite forms `(0,0,c)` where `c< D/4`; trace precision `T` means that the support of `F` contains all quadratic forms whose trace is less than `T`; dyadic trace precision `W` means that the support of `F` contains all quadratic forms `(a,b,c)` whose dyadic trace `w((a,b,c)):=a+b-|c|/2` is less than `W`.
+Siegel modular forms of degree 2 have Fourier expansions supported on
+positive semi-definite binary quadratic forms.  The precision of a
+Siegel modular form `F` is measured in one of four different ways: box
+precision `(a,b,c)` means that the support of `F` includes all binary
+quadratic forms `(x,y,z)` less than `x<a`, `y<b` and `z<c`; disc
+precision `D>0` means that the support of `F` contains all positive
+definite quadratic forms of discrimant `d` such that `-d<D` and all
+indefinite forms `(0,0,c)` where `c< D/4`; trace precision `T` means
+that the support of `F` contains all quadratic forms whose trace is
+less than `T`; dyadic trace precision `W` means that the support of
+`F` contains all quadratic forms `(a,b,c)` whose dyadic trace
+`w((a,b,c)):=a+b-|c|/2` is less than `W`.
 
 EXAMPLES::
 
@@ -63,7 +86,7 @@ EXAMPLES::
 
 .. TODO::
 
-    include examples of other rings
+    Include examples of other rings.
 """
 
 #*****************************************************************************
@@ -82,12 +105,13 @@ from siegel_modular_group import Sp4Z_Gamma0_constructor as Sp4Z_Gamma0
 
 from sage.arith.misc import sigma, bernoulli, gcd, xgcd, divisors
 from sage.arith.srange import xsrange
-from sage.functions.all import ceil
+from sage.functions.all import ceil, floor
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import isqrt
 from sage.modular.modform.constructor import ModularForms
-from sage.rings.integer_ring import ZZ
 from sage.rings.all import QQ
+from sage.rings.all import infinity
+from sage.rings.integer_ring import ZZ
 from sage.structure.element import AlgebraElement
 
 SMF_DEFAULT_PREC = 101
@@ -647,7 +671,6 @@ class SiegelModularForm_class(AlgebraElement):
         """
         from sage.modular.siegel.siegel_modular_forms_algebra import SiegelModularFormsAlgebra
         par = left.parent()
-        from sage.rings.all import infinity
         if left.prec() is infinity:
             tmp = right
             right = left
@@ -799,7 +822,6 @@ class SiegelModularForm_class(AlgebraElement):
         new_prec = min(left.prec(), right.prec())
         # if new_prec is infinity, then left and right are both
         # constant Siegel modular forms
-        from sage.rings.all import infinity
         if new_prec is infinity:
             return left[0, 0, 0] == right[0, 0, 0]
 
@@ -1002,8 +1024,8 @@ class SiegelModularForm_class(AlgebraElement):
 
         .. NOTE::
 
-            We use the bijection $\Gamma^0(t)\SL(2,Z) \rightarrow P^1(\Z/t\Z)$
-            given by $A \mapsto [1:0]A$.
+            We use the bijection `\Gamma^0(t)\SL(2,Z) \rightarrow P^1(\Z/t\Z)`
+            given by `A \mapsto [1:0]A`.
          """
         from sage.matrix.all import MatrixSpace
         from sage.modular.all import P1List
@@ -1127,7 +1149,6 @@ def SiegelModularForm(arg0, arg1=None, arg2=None, prec=None, name=None,
     if isinstance(arg0, QuadraticForm):
         return _SiegelModularForm_from_QuadraticForm(arg0, prec, name)
     if isinstance(arg0, RingElement) and arg1 is None:
-        from sage.rings.all import infinity
         return _SiegelModularForm_from_dict(group=Sp4Z, weight=0, coeffs={(0, 0, 0): arg0}, prec=infinity)
     if isinstance(arg0, str) and arg1 is None:
         return _SiegelModularForm_from_file(arg0)
@@ -1196,7 +1217,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
         precision = 2
 
     """
-    Create the Jacobi form I(f,g) as in [Sko].
+    Create the Jacobi form I(f,g) as in [Sko]_.
 
     It suffices to construct for all Jacobi forms phi only the part
     sum_{r=0,1;n} c_phi(r^2-4n) q^n zeta^r.
@@ -1269,7 +1290,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
     maxD = -4 * i
 
     """
-    Create the Maass lift F := VI(f,g) as in [Sko].
+    Create the Maass lift F := VI(f,g) as in [Sko]_.
     """
 
     # The constant term is given by -Cphi[0]*B_{2k}/(4*k)
@@ -1294,7 +1315,7 @@ def _SiegelModularForm_as_Maass_spezial_form(f, g, prec=SMF_DEFAULT_PREC, name=N
                                                Cphi[disc * s**2 / a**2]
                                                for a in t.divisors())
 
-    # Compute the coefficients of the Siegel form $F$:
+    # Compute the coefficients of the Siegel form F:
     siegelq = {}
     if isinstance(prec, tuple):
         # Note: m>=n>=r, n>=1 implies m>=n>r^2/4n
@@ -1556,14 +1577,12 @@ def _normalized_prec(prec):
 
     .. NOTE::
 
-        $(a,b,c)$ is within the precison defined
-        by prec, if $a,b,c < floor(a),floor(b),floor(c)%
-        respectively $4ac-b^2 < floor(prec)$.
+        `(a,b,c)` is within the precision defined
+        by prec, if `a,b,c < floor(a),floor(b),floor(c)`
+        respectively `4ac-b^2 < floor(prec)`.
     """
-    from sage.rings.all import infinity
     if prec is infinity:
         return prec
-    from sage.functions.all import floor
     if isinstance(prec, tuple):
         a, b, c = prec
         a = min(floor(a), floor(c))
