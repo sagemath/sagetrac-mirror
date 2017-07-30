@@ -163,13 +163,13 @@ class Monomial(object):
             True
             sage: y_0._sorting_key_lex_() < y_1._sorting_key_lex_()
             True
-            sage: x_0._sorting_key_lex_() < y_0._sorting_key_lex_()
+            sage: y_0._sorting_key_lex_() < x_0._sorting_key_lex_()
             True
-            sage: x_1._sorting_key_lex_() < y_0._sorting_key_lex_()
+            sage: y_1._sorting_key_lex_() < x_0._sorting_key_lex_()
             True
-            sage: x_0._sorting_key_lex_() < y_1._sorting_key_lex_()
+            sage: y_0._sorting_key_lex_() < x_1._sorting_key_lex_()
             True
-            sage: x_1._sorting_key_lex_() < y_1._sorting_key_lex_()
+            sage: y_1._sorting_key_lex_() < x_1._sorting_key_lex_()
             True
 
             sage: sorted([x_0, x_1, y_0, y_1], key=lambda k: k._sorting_key_lex_())
@@ -200,7 +200,7 @@ class Monomial(object):
             'x_0*x_2^4*y_0^2*y_3^2'
             sage: a._sorting_key_lex_() < b._sorting_key_lex_()
             True
-            sage: a._sorting_key_lex_() < c._sorting_key_lex_()
+            sage: c._sorting_key_lex_() < a._sorting_key_lex_()
             True
             sage: a._sorting_key_lex_() < d._sorting_key_lex_()
             True
@@ -332,11 +332,11 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             sage: 1 + y[0]
             y_0 + 1
             sage: y[42]-2*x[13]
-            y_42 - 2*x_13
+            -2*x_13 + y_42
             sage: x[1] - y[2]
-            -y_2 + x_1
+            x_1 - y_2
             sage: y[1] - x[2]
-            y_1 - x_2
+            -x_2 + y_1
         """
         def summand(monomial, coefficient):
             if coefficient == 1:
@@ -382,9 +382,9 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: x[0] + y[0]
-            y_0 + x_0
+            x_0 + y_0
             sage: x[0] + y[0] + x[0]
-            y_0 + 2*x_0
+            2*x_0 + y_0
         """
         summands = dict(self._summands_)
         update_by_adding_coefficients(summands, other._summands_)
@@ -414,9 +414,9 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             sage: x[0] - x[0]
             0
             sage: x[1] - y[2]
-            -y_2 + x_1
+            x_1 - y_2
             sage: y[1] - x[2]
-            y_1 - x_2
+            -x_2 + y_1
         """
         return self + self.parent().coefficient_ring()(-1) * other
 
@@ -560,7 +560,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             x_0
 
             sage: P({x[13]: 3, y[14]: 4})
-            4*y_14 + 3*x_13
+            3*x_13 + 4*y_14
             sage: mx = next(iter(x[0]._summands_))
             sage: P({mx: 2})
             2*x_0
@@ -576,9 +576,11 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: Q(x[0]), Q(y[0])
             (x_0, y_0)
             sage: Q(x[0] * y[0])
+            y_0*x_0
             sage: Q(x[0] + y[0])
-            x_0 + y_0
+            y_0 + x_0
             sage: Q(x[42]^3 * y[24]^5)
+            y_24^5*x_42^3
 
             sage: R = InfinitePolynomialRing(QQ, names=('x',), order='deglex')
             sage: R(x[1])
@@ -591,6 +593,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             > *previous* ValueError: 'y' does not specify a generator
             of Infinite polynomial ring in x over Rational Field
             sage: R(x[3]^2 + x[2]^5 * x[1])
+            x_1*x_2^5 + x_3^2
 
             sage: Z.<z> = InfinitePolynomialRing(QQ, order='deglex')
             sage: R(z[3])
