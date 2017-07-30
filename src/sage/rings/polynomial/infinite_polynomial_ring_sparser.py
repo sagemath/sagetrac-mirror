@@ -1,6 +1,34 @@
 r"""
 Infinite Multivariate Polynomial Ring with Sparse Exponents
 
+::
+
+    sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+
+Indices can be anything (hashable, totally orderable)::
+
+    sage: from functools import total_ordering
+    sage: @total_ordering
+    ....: class a(object):
+    ....:     def __init__(self, i, j):
+    ....:         self.i = i
+    ....:         self.j = j
+    ....:     def __repr__(self):
+    ....:         return '{i}_{j}'.format(i=self.i, j=self.j)
+    ....:     def __key__(self):
+    ....:         return (self.i + self.j, self.j)
+    ....:     def __hash__(self):
+    ....:         return hash(self.__key__())
+    ....:     def __eq__(self, other):
+    ....:         return self.__key__() == other.__key__()
+    ....:     def __lt__(self, other):
+    ....:         return self.__key__() < other.__key__()
+    sage: P.<A> = InfinitePolynomialRing(QQ, order='deglex')
+    sage: A[a(1,1)]
+    A_1_1
+    sage: A[a(1,1)]^2 * A[a(2,1)] * A[a(1,2)]^3 + 3*A[a(4,4)]^7
+    3*A_4_4^7 + A_1_1^2*A_2_1*A_1_2^3
+
 Various
 =======
 
