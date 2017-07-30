@@ -362,6 +362,19 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return hash((self.parent(),
                      tuple(self._sorted_monomials_and_coefficients_(reverse=True))))
 
+    def __bool__(self):
+        return bool(self._summands_)
+
+    __nonzero__ = __bool__
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        try:
+            return not bool(self - other)
+        except (TypeError, ValueError):
+            return False
+
     def _add_(self, other):
         r"""
         EXAMPLES::
