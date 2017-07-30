@@ -40,18 +40,14 @@ from sage.structure.unique_representation import UniqueRepresentation
 from .infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
 
 
-def update_by_adding_coefficients(D, E):
-    for key, value in iteritems(E):
-        try:
-            D[key] += value
-        except KeyError:
-            D[key] = value
-
-
 def updated_by_adding_coefficients(D, E):
     from copy import copy
     DD = copy(D)
-    update_by_adding_coefficients(DD, E)
+    for key, value in iteritems(E):
+        try:
+            DD[key] += value
+        except KeyError:
+            DD[key] = value
     return DD
 
 
@@ -386,8 +382,8 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             sage: x[0] + y[0] + x[0]
             2*x_0 + y_0
         """
-        summands = dict(self._summands_)
-        update_by_adding_coefficients(summands, other._summands_)
+        summands = updated_by_adding_coefficients(
+            self._summands_, other._summands_)
         return self.parent().element_class(self.parent(), summands)
 
     def _lmul_(self, other):
