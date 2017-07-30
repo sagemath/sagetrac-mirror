@@ -364,6 +364,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     __nonzero__ = __bool__
 
     def __eq__(self, other):
+        # TODO: use richcmp
         if other is None:
             return False
         try:
