@@ -457,6 +457,12 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: P
             Infinite polynomial ring in x, y over Rational Field
+
+        ::
+
+            sage: Q = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex')
+            sage: P is Q
+            True
         """
         from sage.rings.polynomial.term_order import TermOrder
         from sage.symbolic.ring import isidentifier
