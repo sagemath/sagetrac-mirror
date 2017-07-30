@@ -264,6 +264,29 @@ class Monomial(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __mul__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: x_0 = Monomial(({0: 1}, {}))
+            sage: x_1 = Monomial(({1: 1}, {}))
+            sage: y_0 = Monomial(({}, {0: 1}))
+            sage: y_1 = Monomial(({}, {1: 1}))
+            sage: x_0*x_0
+            x0_0^2
+            sage: x_0*x_1
+            x0_0*x0_1
+            sage: x_0*y_0
+            x0_0*x1_0
+            sage: x_0*y_1
+            x0_0*x1_1
+        """
+        return Monomial(
+            tuple(updated_by_adding_coefficients(scomponent, ocomponent)
+                  for scomponent, ocomponent
+                  in zip(self._exponents_, other._exponents_)))
+
 
 class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     def __init__(self, parent, data):
