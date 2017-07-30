@@ -40,6 +40,21 @@ from sage.structure.unique_representation import UniqueRepresentation
 from .infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
 
 
+def update_by_adding_coefficients(D, E):
+    for key, value in iteritems(E):
+        try:
+            D[key] += value
+        except KeyError:
+            D[key] = value
+
+
+def updated_by_adding_coefficients(D, E):
+    from copy import copy
+    DD = copy(D)
+    update_by_adding_coefficients(DD, E)
+    return DD
+
+
 def monomial_factory(data):
     r"""
     TESTS::
