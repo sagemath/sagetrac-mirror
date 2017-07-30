@@ -69,13 +69,7 @@ cdef class Matrix_dense(matrix.Matrix):
         if not self._is_immutable:
             raise TypeError("mutable matrices are unhashable")
 
-        v = self._list()
-        cdef Py_ssize_t i
-        cdef long h = 0
-
-        for i from 0 <= i < len(v):
-            h = h ^ (i * hash(v[i]))
-
+        cdef long h = hash(tuple(self._list()))
         if h == -1:
             h = -2
 
