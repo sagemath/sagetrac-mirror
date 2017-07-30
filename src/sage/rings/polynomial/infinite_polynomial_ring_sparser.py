@@ -387,11 +387,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             y_0 + 2*x_0
         """
         summands = dict(self._summands_)
-        for monomial, coefficient in iteritems(other._summands_):
-            try:
-                summands[monomial] += coefficient
-            except KeyError:
-                summands[monomial] = coefficient
+        update_by_adding_coefficients(summands, other._summands_)
         return self.parent().element_class(self.parent(), summands)
 
     def _lmul_(self, other):
@@ -403,7 +399,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             sage: (42/37)*x[0]
             42/37*x_0
         """
-        if other == 0:
+        if not other:
             return self.parent().zero()
         summands = {monomial: other*coefficient
                     for monomial, coefficient in iteritems(self._summands_)}
@@ -423,6 +419,16 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             y_1 - x_2
         """
         return self + self.parent().coefficient_ring()(-1) * other
+
+    def _mul_by_summand_(self, other_monomial, other_coefficient):
+        summands = {monomial*other_monomial: coefficient*other_coefficient
+                    for monomial, coefficient in iteritems(self._summands_)}
+        return self.parent().element_class(self.parent(), summands)
+
+    def _mul_(self, other):
+        return sum((self._mul_by_summand_(monomial, coefficient)
+                    for monomial, coefficient in iteritems(other._summands_)),
+                   self.parent().zero())
 
 
 class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
