@@ -105,7 +105,7 @@ class Monomial(object):
         return '*'.join('{}_{}'.format(name, index)
                         + ('^{}'.format(exponent) if exponent > 1 else '')
                         for component, name in zip(self._exponents_, names)
-                        for index, exponent in iteritems(component))
+                        for index, exponent in sorted(iteritems(component)))
 
     __str__ = __repr__
 
