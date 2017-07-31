@@ -138,14 +138,14 @@ class Monomial(object):
     __str__ = __repr__
 
     @cached_method
-    def deg(self):
+    def degree(self):
         r"""
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
             sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a
             x0_0^2*x0_2^3*x1_0^3*x1_3
-            sage: a.deg()
+            sage: a.degree()
             9
         """
         return sum(exponent
@@ -246,10 +246,10 @@ class Monomial(object):
         return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_)
 
     def _sorting_key_deglex_(self):
-        return (self.deg(), self._sorting_key_lex_())
+        return (self.degree(), self._sorting_key_lex_())
 
     def _sorting_key_degrevlex_(self):
-        return (self.deg(), self._sorting_key_revlex_())
+        return (self.degree(), self._sorting_key_revlex_())
 
     def __hash__(self):
         r"""
@@ -454,6 +454,30 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return sum((self._mul_by_summand_(monomial, coefficient)
                     for monomial, coefficient in iteritems(other._summands_)),
                    self.parent().zero())
+
+    def degree(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: x[0].degree()
+            1
+            sage: (x[0]*x[2]^3).degree()
+            4
+            sage: (x[1]^4*y[2]^5 + x[3]^5*y[3]^6).degree()
+            11
+
+        TESTS::
+
+            sage: P(1/2).degree()
+            0
+            sage: P(0).degree()
+            -1
+        """
+        if not self._summands_:
+            return -1
+        return max(monomial.degree() for monomial in self._summands_)
 
 
 class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
