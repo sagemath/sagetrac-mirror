@@ -151,6 +151,7 @@ from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.word import Word
 from sage.structure.category_object import normalize_names
+from sage.structure.element import parent
 
 
 class FreeAlgebraFactory(UniqueFactory):
@@ -1179,7 +1180,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: R(x*y)
             PBW[x*y] + PBW[y]*PBW[x]
         """
-        if isinstance(x, FreeAlgebraElement):
+        if isinstance(x, FreeAlgebraElement) or parent(x) is self.base_ring():
             return self._alg.pbw_element(self._alg(x))
         return CombinatorialFreeModule._element_constructor_(self, x)
 
@@ -1196,23 +1197,20 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: G = FreeAlgebra(QQ, 3, 'x,y,z').pbw_basis()
             sage: H = FreeAlgebra(ZZ, 1, 'y').pbw_basis()
             sage: F._coerce_map_from_(G)
-            False
             sage: G._coerce_map_from_(F)
-            True
             sage: F._coerce_map_from_(H)
-            False
             sage: F._coerce_map_from_(QQ)
-            False
             sage: G._coerce_map_from_(QQ)
             True
             sage: F._coerce_map_from_(G._alg.monoid())
-            True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
             sage: F.has_coerce_map_from(FreeAlgebra(ZZ, 3, 'x,y,z'))
-            True
+            False
         """
-        return self._alg.has_coerce_map_from(R)
+        if R is self.base_ring():
+            return True
+        return self._coerce_map_via([self.base_ring()], R)
 
     def one_basis(self):
         """

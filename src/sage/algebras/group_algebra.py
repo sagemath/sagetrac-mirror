@@ -201,6 +201,10 @@ class GroupAlgebra_class(CombinatorialFreeModule):
         G = self.basis().keys()
         K = self.base_ring()
 
+        f = self._coerce_map_via([K], S)
+        if f is not None:
+            return f
+
         if G.has_coerce_map_from(S):
             from sage.categories.groups import Groups
             # No coercion for additive groups because of ambiguity of +
@@ -215,6 +219,8 @@ class GroupAlgebra_class(CombinatorialFreeModule):
             if hom_K is not None and hom_G is not None:
                 return SetMorphism(S.Hom(self, category=self.category() | S.category()),
                                    lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
+
+        return super(GroupAlgebra_class, self)._coerce_map_from_(S)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.algebras.group_algebras', 'GroupAlgebra',  GroupAlgebra_class)

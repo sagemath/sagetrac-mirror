@@ -226,7 +226,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
-    _no_generic_basering_coercion = True
+
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
         """
         EXAMPLES::
@@ -271,11 +271,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.Element = self._polynomial_class
         self.__cyclopoly_cache = {}
         self._has_singular = False
-        # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But the attribute _no_generic_basering_coercion prevents that from happening,
-        # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__generator = self.element_class(self, [0,1], is_gen=True)
         self._populate_coercion_lists_(

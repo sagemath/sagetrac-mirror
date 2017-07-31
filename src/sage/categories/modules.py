@@ -676,6 +676,24 @@ class Modules(Category_module):
             return [self.base_category()]
 
         class ParentMethods:
+
+            def __init_extra__(self):
+                """
+                Initialise the base ring of ``self``.
+
+                TESTS::
+
+                    sage: A = cartesian_product((QQ['x'], QQ['y,z'])); A
+                    The Cartesian product of (Univariate Polynomial Ring in x over Rational Field, Multivariate Polynomial Ring in y, z over Rational Field)
+                    sage: A.base_ring()
+                    Rational Field
+                """
+                factors = self._sets
+                if factors:
+                    R = factors[0].base_ring()
+                    if all(A.base_ring() is R for A in factors):
+                        self._base = R
+
             def base_ring(self):
                 """
                 Return the base ring of this Cartesian product.
@@ -690,7 +708,24 @@ class Modules(Category_module):
                     sage: C.base_ring()
                     Integer Ring
                 """
-                return self._sets[0].base_ring()
+                return self._base
+
+        class ElementMethods:
+
+            def _lmul_(self, x):
+                """
+                Return the product of `x` with ``self``.
+
+                EXAMPLES::
+
+                    sage: A = FreeModule(ZZ, 2)
+                    sage: B = cartesian_product([A, A]); B
+                    The Cartesian product of (Ambient free module of rank 2 over the principal ideal domain Integer Ring, Ambient free module of rank 2 over the principal ideal domain Integer Ring)
+                    sage: 5*B(([1, 2], [3, 4]))
+                    ((5, 10), (15, 20))
+                """
+                return self.parent()._cartesian_product_of_elements(
+                    x*y for y in self.cartesian_factors())
 
     class TensorProducts(TensorProductsCategory):
         """

@@ -30,6 +30,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.sets.family import Family
+from sage.structure.element import parent
 
 class ShuffleAlgebra(CombinatorialFreeModule):
     r"""
@@ -376,7 +377,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             W = self.basis().keys()
             return self.monomial(W(x))
 
-        P = x.parent()
+        P = parent(x)
         if isinstance(P, ShuffleAlgebra):
             if P is self:
                 return x
@@ -458,23 +459,19 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             ['x', 'y', 'z'] over Finite Field of size 7 to Shuffle Algebra on 3
             generators ['x', 'y', 'z'] over Integer Ring
         """
-        try:
-            R = x.parent()
+        R = parent(x)
 
-            # shuffle algebras in the same variables over any base
-            # that coerces in:
-            if isinstance(R,ShuffleAlgebra):
-                if R.variable_names() == self.variable_names():
-                    if self.has_coerce_map_from(R.base_ring()):
-                        return self(x)
-                    else:
-                        raise TypeError("no natural map between bases of shuffle algebras")
+        # shuffle algebras in the same variables over any base
+        # that coerces in:
+        if isinstance(R, ShuffleAlgebra):
+            if R.variable_names() == self.variable_names():
+                if self.has_coerce_map_from(R.base_ring()):
+                    return self(x)
+                else:
+                    raise TypeError("no natural map between bases of shuffle algebras")
 
-            if isinstance(R, DualPBWBasis):
-                return self(R.expansion(x))
-
-        except AttributeError:
-            pass
+        if isinstance(R, DualPBWBasis):
+            return self(R.expansion(x))
 
         # any ring that coerces to the base ring of this shuffle algebra.
         return self._coerce_try(x, [self.base_ring()])
@@ -692,7 +689,7 @@ class DualPBWBasis(CombinatorialFreeModule):
         if isinstance(x, (str, FiniteWord_class)):
             W = self.basis().keys()
             x = W(x)
-        elif isinstance(x.parent(), ShuffleAlgebra):
+        elif isinstance(parent(x), ShuffleAlgebra):
             return self._alg.to_dual_pbw_element(self._alg(x))
         return super(DualPBWBasis, self)._element_constructor_(x)
 

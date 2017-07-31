@@ -403,7 +403,9 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: CM._coerce_map_from_(SR)
-            True
+            Generic morphism:
+              From: Symbolic Ring
+              To:   Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
             sage: CM._coerce_map_from_(CU)
@@ -412,15 +414,12 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             True
 
         """
-        if other is SR:
-            return True  # coercion from the base ring (multiplication by the
-                         # algebra unit, i.e. self.one())
-                         # cf. ScalarField._lmul_() for the implementation of
-                         # the coercion map
-        elif isinstance(other, DiffScalarFieldAlgebra):
+        if isinstance(other, DiffScalarFieldAlgebra):
             return self._domain.is_subset(other._domain)
-        else:
-            return False
+        # coercion from the base ring (multiplication by the algebra
+        # unit, i.e. self.one()); cf. ScalarField._lmul_() for the
+        # implementation of the coercion map
+        return super(DiffScalarFieldAlgebra, self)._coerce_map_from_(other)
 
     #### End of methods required for any Parent
 

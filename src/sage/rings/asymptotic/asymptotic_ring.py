@@ -3939,6 +3939,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: AR_QQ.has_coerce_map_from(ZZ)
             True
         """
+        if R is self.base_ring():
+            return super(AsymptoticRing, self)._coerce_map_from_(R)
         from sage.data_structures.mutable_poset import MutablePoset
         if R == MutablePoset:
             return

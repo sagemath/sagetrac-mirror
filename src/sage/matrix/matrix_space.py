@@ -141,7 +141,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ...
         ValueError: number of rows and columns may be at most...
     """
-    _no_generic_basering_coercion = True
 
     @staticmethod
     def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation='flint'):

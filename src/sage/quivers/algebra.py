@@ -354,28 +354,14 @@ class PathAlgebra(CombinatorialFreeModule):
               From: Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
               To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
             sage: A1.coerce_map_from(ZZ) # indirect doctest
-            Composite map:
-                  From: Integer Ring
-                  To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
-                  Defn:   Natural morphism:
-                          From: Integer Ring
-                          To:   Finite Field of size 3
-                        then
-                          Generic morphism:
-                          From: Finite Field of size 3
-                          To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
-            sage: A1.coerce_map_from(QQ) # indirect doctest
-            sage: A1.coerce_map_from(ZZ)
-            Composite map:
+            Coercion map:
               From: Integer Ring
               To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
-              Defn:   Natural morphism:
-                      From: Integer Ring
-                      To:   Finite Field of size 3
-                    then
-                      Generic morphism:
-                      From: Finite Field of size 3
-                      To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
+            sage: A1.coerce_map_from(QQ) # indirect doctest
+            sage: A1.coerce_map_from(ZZ)
+            Coercion map:
+              From: Integer Ring
+              To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
 
         ::
 

@@ -173,7 +173,7 @@ cdef class Module(Parent):
                 return M.hom([self._element_constructor_(x) for x in M.gens()], self)
         except (TypeError, NotImplementedError, AttributeError, ArithmeticError):
             pass
-        return None
+        return super(Module, self)._coerce_map_from_(M)
 
     def change_ring(self, R):
         """

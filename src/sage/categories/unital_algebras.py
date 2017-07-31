@@ -14,8 +14,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
-from sage.categories.rings import Rings
-from sage.categories.magmas import Magmas
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 
 class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
@@ -66,10 +64,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             """
             return self.one()._lmul_(r)
 
-        def __init_extra__(self):
+        def _coerce_map_from_(self, X):
             """
-            Declare the canonical coercion from ``self.base_ring()``
-            to ``self``, if there has been none before.
+            Return a coercion map from `X` to ``self``, or ``None``.
 
             EXAMPLES::
 
@@ -77,78 +74,50 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
                 sage: coercion_model = sage.structure.element.get_coercion_model()
                 sage: coercion_model.discover_coercion(QQ, A)
-                (Generic morphism:
+                ((map internal to coercion system -- copy before use)
+                 Generic morphism:
                   From: Rational Field
                   To:   An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field, None)
                 sage: A(1)          # indirect doctest
                 B[word: ]
 
+            Check that :trac:`19225` is solved::
+
+                    sage: A = cartesian_product((QQ['z'],)); A
+                    The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                    sage: A.base_ring()
+                    Rational Field
+                    sage: A(1)
+                    (1,)
             """
-            # If self has an attribute _no_generic_basering_coercion
-            # set to True, then this declaration is skipped.
-            # This trick, introduced in #11900, is used in
-            # sage.matrix.matrix_space.py and
-            # sage.rings.polynomial.polynomial_ring.
-            # It will hopefully be refactored into something more
-            # conceptual later on.
-            if getattr(self, '_no_generic_basering_coercion', False):
-                return
-
             base_ring = self.base_ring()
-            if base_ring is self:
-                # There are rings that are their own base rings. No need to register that.
-                return
-            if self.is_coercion_cached(base_ring):
-                # We will not use any generic stuff, since a (presumably) better conversion
-                # has already been registered.
-                return
-            mor = None
-            # This could be a morphism of Algebras(self.base_ring()); however, e.g., QQ is not in Algebras(QQ)
-            H = Hom(base_ring, self, Rings()) # TODO: non associative ring!
+            if X is base_ring:
+                from sage.categories.sets_cat import Sets
+                H = Hom(base_ring, self, Sets())
 
-            # Idea: There is a generic method "from_base_ring", that just does multiplication with
-            # the multiplicative unit. However, the unit is constructed repeatedly, which is slow.
-            # Hence, if the unit is available *now*, then we store it.
-            #
-            # However, if there is a specialised from_base_ring method, then it should be used!
-            try:
-                has_custom_conversion = self.category().parent_class.from_base_ring.__func__ is not self.from_base_ring.__func__
-            except AttributeError:
-                # Sometimes from_base_ring is a lazy attribute
-                has_custom_conversion = True
-            if has_custom_conversion:
-                mor = SetMorphism(function = self.from_base_ring, parent = H)
+                # Idea: There is a generic method "from_base_ring",
+                # that just multiplies by the multiplicative unit.
+                # However, the unit is constructed repeatedly, which
+                # may be slow, so we store the unit.
+                #
+                # However, if there is a specialised from_base_ring
+                # method, then it should be used!
                 try:
-                    self.register_coercion(mor)
-                except AssertionError:
-                    pass
-                return
-
-            try:
-                one = self.one()
-            except (NotImplementedError, AttributeError, TypeError):
-                # The unit is not available, yet. But there are cases
-                # in which it will be available later. Hence:
-                mor = SetMorphism(function = self.from_base_ring, parent = H)
-            # try sanity of one._lmul_
-            if mor is None:
+                    has_custom_conversion = self.category().parent_class.from_base_ring.__func__ is not self.from_base_ring.__func__
+                except AttributeError:
+                    # Sometimes from_base_ring is a lazy attribute
+                    has_custom_conversion = True
+                if has_custom_conversion:
+                    return SetMorphism(function=self.from_base_ring, parent=H)
                 try:
-                    if one._lmul_(base_ring.an_element()) is None:
-                        # There are cases in which lmul returns None, believe it or not.
-                        # One example: Hecke algebras.
-                        # In that case, the generic implementation of from_base_ring would
-                        # fail as well. Hence, unless it is overruled, we will not use it.
-                        #mor = SetMorphism(function = self.from_base_ring, parent = H)
-                        return
+                    one = self.one()
+                    return SetMorphism(function=one._lmul_, parent=H)
                 except (NotImplementedError, AttributeError, TypeError):
-                    # it is possible that an_element or lmul are not implemented.
-                    return
-                    #mor = SetMorphism(function = self.from_base_ring, parent = H)
-                mor = SetMorphism(function = one._lmul_, parent = H)
-            try:
-                self.register_coercion(mor)
-            except AssertionError:
-                pass
+                    # It is possible that an_element or lmul are not
+                    # implemented.
+                    pass
+            return self._coerce_map_via([base_ring], X)
+
 
     class WithBasis(CategoryWithAxiom_over_base_ring):
 

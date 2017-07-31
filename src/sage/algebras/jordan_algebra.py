@@ -235,10 +235,6 @@ class SpecialJordanAlgebra(JordanAlgebra):
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
-            self._no_generic_basering_coercion = True
-            # Remove the preceding line once trac #16492 is fixed
-            # Removing this line will also break some of the input formats,
-            # see trac #16054
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():
@@ -596,7 +592,6 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         self._form = form
         self._M = FreeModule(R, form.ncols())
         cat = MagmaticAlgebras(R).Commutative().Unital().FiniteDimensional().WithBasis()
-        self._no_generic_basering_coercion = True # Remove once 16492 is fixed
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):
@@ -694,6 +689,22 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             return self.element_class(self, R(args[0]), self._M(args[1:]))
 
         raise ValueError("unable to construct an element from the given data")
+
+    def _coerce_map_from_(self, other):
+        """
+        Return a coercion map from ``other`` to ``self``.
+
+        TESTS::
+
+            sage: J = JordanAlgebra(Matrix([[0, 1], [1, 1]]))
+            sage: J.coerce_map_from(ZZ)
+            Coercion map:
+              From: Integer Ring
+              To:   Jordan algebra over Integer Ring given by the symmetric bilinear form:
+            [0 1]
+            [1 1]
+        """
+        return True  # defer processing of arguments to _element_constructor_()
 
     @cached_method
     def basis(self):

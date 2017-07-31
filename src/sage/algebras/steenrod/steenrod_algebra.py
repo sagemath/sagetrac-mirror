@@ -2023,9 +2023,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             sage: EA = SteenrodAlgebra(generic=True)
             sage: A._coerce_map_from_(EA)
-            False
             sage: EA._coerce_map_from_(A)
-            False
             sage: EA._coerce_map_from_(EA)
             True
 
@@ -2044,7 +2042,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         from sage.rings.all import ZZ, GF
         from sage.rings.infinity import Infinity
         p = self.prime()
-        if S == ZZ or S == GF(p):
+        if S is self.base_ring():
             return True
         if (isinstance(S, SteenrodAlgebra_generic) and p == S.prime() and self._generic == S._generic):
             # deal with profiles.
@@ -2068,7 +2066,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 return True
             except ValueError:
                 return False
-        return False
+        return self._coerce_map_via([self.base_ring()], S)
 
     def _element_constructor_(self, x):
         r"""
