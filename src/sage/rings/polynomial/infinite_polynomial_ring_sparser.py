@@ -501,7 +501,10 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
 
     Element = InfinitePolynomial_sparser
 
-    def __init__(self, coefficient_ring, names, order='lex'):
+    @staticmethod
+    def __classcall__(cls, coefficient_ring, names,
+                      order='lex',
+                      category=None):
         r"""
         TESTS::
 
@@ -512,13 +515,44 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
 
         ::
 
-            sage: Q = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex')
-            sage: P is Q
+            sage: InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex') is P
+            True
+            sage: InfinitePolynomialRing(QQ, ('x', 'y'), order='deglex') is P
             True
         """
+
+        names = tuple(names)
+
+        if category is None:
+            from sage.categories.commutative_algebras import CommutativeAlgebras
+            from sage.categories.rings import Rings
+            category = CommutativeAlgebras(Rings())
+
+        return super(InfinitePolynomialRing_sparser,
+                     cls).__classcall__(cls, coefficient_ring, names,
+                                        order=order,
+                                        category=category)
+
+    def __init__(self, coefficient_ring, names, order, category):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: P
+            Infinite polynomial ring in x, y over Rational Field
+
+        ::
+
+            sage: P.category()
+            Category of commutative algebras over rings
+        """
+        from sage.categories.rings import Rings
         from sage.rings.polynomial.term_order import TermOrder
         from sage.symbolic.ring import isidentifier
 
+        if coefficient_ring not in Rings():
+            raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
         self._coefficient_ring_ = coefficient_ring
 
         if order not in ('lex', 'deglex', 'degrevlex'):
@@ -534,7 +568,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
 
         super(InfinitePolynomialRing_sparser, self).__init__(
             base_ring=coefficient_ring,
-            category=None)
+            category=category)
 
     def _repr_(self):
         return 'Infinite polynomial ring in {} over {}'.format(
