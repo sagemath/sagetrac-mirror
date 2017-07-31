@@ -1564,6 +1564,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                                          bracket="", prefix=prefix)
 
     _print_style = 'lex'
+    _latex_style = 'latex_default'
 
     # Todo: share this with ncsf and over algebras with basis indexed by word-like elements
     def __getitem__(self, c, *rest):
@@ -2593,6 +2594,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         r"""
         Set the value of the current print style to ``ps``.
 
+        The print style of 'lex', 'length' or 'maximal_part' determines
+        the sorting order in which the terms are displayed.  If the print
+        style begins with 'latex' (either 'latex_default' or 'latex_compact')
+        then the latex style is set to that value.
+
         INPUT:
 
         - ``ps`` -- a string specifying the printing style
@@ -2606,6 +2612,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.get_print_style()
             'length'
             sage: s.set_print_style('lex')
+            sage: s.set_print_style('latex_compact')
+            sage: s.set_print_style('latex_default')
         """
         if ps == 'lex':
             self.print_options(sorting_key=lambda x: x)
@@ -2613,8 +2621,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             self.print_options(sorting_key=lambda x: len(x))
         elif ps == 'maximal_part':
             self.print_options(sorting_key=lambda x: _lmax(x))
+        elif ps.find('latex')==0:
+            self._latex_style = ps
+            return
         else:
-            raise ValueError("the print style must be one of lex, length, or maximal_part ")
+            raise ValueError("the print style must be one of lex, length, "+ \
+                " maximal_part, latex_default or latex_compact ")
         self._print_style = ps
 
     def _latex_term(self, m):
@@ -2641,8 +2653,18 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: m.set_print_style('maximal_part')
             sage: latex(f)
             m_{1,1,1} + m_{2,1} + m_{3}
+            sage: m.set_print_style('latex_compact')
+            sage: latex(m[11,2]*m[8])
+            m_{\underline{11}82} + m_{\underline{11}~\underline{10}} + m_{\underline{19}2}
+            sage: m.set_print_style('latex_default')
         """
-        return super(SymmetricFunctionAlgebra_generic, self)._latex_term(','.join(str(i) for i in m))
+        lterm = super(SymmetricFunctionAlgebra_generic, self)._latex_term
+        if self._latex_style=='latex_compact':
+            if m==[]:
+                return '\\mathbb{1}'
+            return lterm('~'.join('\\underline{'+str(i)+'}' \
+                for i in m if i>=10)+''.join(str(i) for i in m if i<10))
+        return lterm(','.join(str(i) for i in m))
 
     def from_polynomial(self, poly, check=True):
         r"""

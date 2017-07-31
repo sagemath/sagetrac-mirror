@@ -1370,6 +1370,33 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
+    def set_print_style(self, ps):
+        r"""
+        Set the print style to ``ps`` for all of the bases with a shorthand.
+
+        The print style of 'lex', 'length' or 'maximal_part' determines
+        the sorting order in which the terms are displayed.  If the print
+        style begins with 'latex' (either 'latex_default' or 'latex_compact')
+        then the latex style is set to that value.
+
+        INPUT:
+
+        - ``ps`` -- a string specifying the printing style
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: s = Sym.schur()
+            sage: s.get_print_style()
+            'lex'
+            sage: Sym.set_print_style('length')
+            sage: s.get_print_style()
+            'length'
+            sage: Sym.set_print_style('lex')
+        """
+        for base in self._shorthands_all:
+            eval('self.'+base+'().set_print_style(ps)')
+
     _shorthands = ['e', 'f', 'h', 'm', 'p', 's']
     _shorthands_all = sorted(_shorthands + ['ht', 'o', 'sp', 'st', 'w'])
 
