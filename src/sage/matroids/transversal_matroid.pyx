@@ -6,10 +6,24 @@ from __future__ import print_function, absolute_import
 
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
+from sage.matroids.minor_matroid import MinorMatroid
 
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.bipartite_graph import BipartiteGraph
+
+cpdef graph_from_buckets(groundset, buckets):
+    r"""
+    Construct a bipartite graph from sets over a given ground set.
+    """
+    B = BipartiteGraph()
+    for e in groundset:
+        B.add_vertex(e, left=True)
+    for s in buckets:
+        v = B.add_vertex(right=True)
+        for e in s:
+            B.add_edge(e, v)
+    return B
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
     r"""
@@ -77,7 +91,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         # put the ground set on the left
         partition = [list(groundset), list(set(B.vertices()).difference(set(groundset)))]
-        self._B = BipartiteGraph(B, partition, immutable = True)
 
         self._buckets = [B.neighbors(v) for v in set(B.vertices()) if v not in groundset]
 
@@ -156,8 +169,28 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     def graph(self):
         """
         Return a bipartite graph representing the transversal matroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: B = BipartiteGraph(edgedict)
+            sage: M = TransversalMatroid(B)
+            sage: B2 = M.graph()
+            sage: B == B2
+            True
+            sage: B is B2
+            False
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 'a':[1,3,4]}
+            sage: B3 = BipartiteGraph(edgedict)
+            sage: M = TransversalMatroid(B3)
+            sage: B2 = M.graph()
+            sage: B3 == B2
+            False
+            sage: B3.is_isomorphic(B2)
+            True
         """
-        return self._B.copy(data_structure = 'sparse')
+        return graph_from_buckets(self._groundset, self._buckets)
 
     def digraph(self):
         """
@@ -165,3 +198,40 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         internal variables in Cython.
         """
         return self._D
+
+    cpdef _minor(self, contractions, deletions):
+        """
+        Return a minor.
+
+        Deletions will yield a new transversal matroid. Contractions will have to
+        be a MinorMatroid until Gammoid is implemented.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: B = BipartiteGraph(edgedict)
+            sage: M1 = TransversalMatroid(B)
+            sage: N1 = M1.delete([2,3])
+            sage: B.delete_vertices([2,3])
+            sage: M2 = TransversalMatroid(B)
+            sage: N1 == M2
+            True
+            sage: M1._minor(deletions=set([3]), contractions=set([4]))
+            M / {4}, where M is Transversal matroid of rank 3 on 4 elements, with 3 subsets.
+        """
+        if deletions:
+            buckets = []
+            for s in self._buckets:
+                new_s = [e for e in s if e not in deletions]
+                buckets.append(new_s)
+            groundset = self._groundset.difference(deletions)
+
+            N = TransversalMatroid(graph_from_buckets(groundset, buckets))
+        else:
+            N = self
+
+        if contractions:
+            return MinorMatroid(N, contractions=contractions, deletions=set())
+        else:
+            return N
