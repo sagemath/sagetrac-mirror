@@ -7,22 +7,50 @@ from __future__ import print_function, absolute_import
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from sage.matroids.minor_matroid import MinorMatroid
+from sage.matroids.utilities import newlabel
 
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.bipartite_graph import BipartiteGraph
 
-cpdef graph_from_buckets(groundset, buckets):
+from cpython.object cimport Py_EQ, Py_NE
+
+cpdef graph_from_buckets(buckets, groundset=[]):
     r"""
     Construct a bipartite graph from sets over a given ground set.
+
+    INPUT:
+
+    - ``buckets`` -- A frozenset of frozensets. Each inner set corresponds
+      to a vertex on the right side, and its elements correspond
+      to the vertex's neighbors and its own name.
+    - ``groundset`` -- A list of vertices on the left side.
+
+    OUTPUT:
+
+    A BipartiteGraph.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.transversal_matroid import graph_from_buckets
     """
+    # groundset could be made optional, but we require it for efficiency's sake
     B = BipartiteGraph()
     for e in groundset:
         B.add_vertex(e, left=True)
     for s in buckets:
-        v = B.add_vertex(right=True)
+        v = s[0]
+        if len(v) == 1:
+            v = v.pop()
+        else:
+            raise ValueError("buckets do not match ground set")
+
+        B.add_vertex(v, right=True)
         for e in s:
-            B.add_edge(e, v)
+        # This will attempt to add loops, which unfortunately will not fail silently
+            if e != v:
+                B.add_edge(e, v)
+
     return B
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
@@ -40,8 +68,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         4
         sage: sum(1 for b in M.bases()) # yes, these can be different
         4
-
-
     """
 
     def __init__(self, B, groundset = None):
@@ -92,7 +118,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         # put the ground set on the left
         partition = [list(groundset), list(set(B.vertices()).difference(set(groundset)))]
 
-        self._buckets = [B.neighbors(v) for v in set(B.vertices()) if v not in groundset]
+        # put the bucket's name in the bucket, to distinguish between those
+        # with the same sets of neighbors
+        self._buckets = frozenset([(v, frozenset(B.neighbors(v))) for v in
+            B.vertices() if v not in groundset])
 
         # throw away edge labels
         self._matching = [(u, v) for (u, v, l) in B.matching()]
@@ -166,6 +195,23 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             + " subsets.")
         return S
 
+    cpdef sets(self):
+        """
+        Return the sets of the transversal matroid.
+
+        A transversal matroid can be views as a ground set with a collection
+        from its powerset. This is represented as a bipartite graph, where
+        an edge represents containment.
+
+        Each set will contain the name of the vertex the represents it in the
+        graphic presentation, and the names of ground set elements it contains.
+
+        OUTPUT:
+
+        A frozenset of frozensets.
+        """
+        return self._buckets
+
     def graph(self):
         """
         Return a bipartite graph representing the transversal matroid.
@@ -184,13 +230,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: edgedict = {5:[0,1,2,3], 6:[1,2], 'a':[1,3,4]}
             sage: B3 = BipartiteGraph(edgedict)
             sage: M = TransversalMatroid(B3)
-            sage: B2 = M.graph()
-            sage: B3 == B2
+            sage: B4 = M.graph()
+            sage: B4 == B2
             False
-            sage: B3.is_isomorphic(B2)
+            sage: B4.is_isomorphic(B2)
             True
         """
-        return graph_from_buckets(self._groundset, self._buckets)
+        return graph_from_buckets(self._buckets, self._groundset)
 
     def digraph(self):
         """
@@ -221,13 +267,15 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             M / {4}, where M is Transversal matroid of rank 3 on 4 elements, with 3 subsets.
         """
         if deletions:
-            buckets = []
+            buckets = set()
             for s in self._buckets:
-                new_s = [e for e in s if e not in deletions]
-                buckets.append(new_s)
+                new_s = set([e for e in s if e not in deletions])
+                if len(new_s) > 1:
+                # skip over empty buckets, keeping in mind the label is in there
+                    buckets.add(frozenset(new_s))
             groundset = self._groundset.difference(deletions)
 
-            N = TransversalMatroid(graph_from_buckets(groundset, buckets))
+            N = TransversalMatroid(graph_from_buckets(buckets, groundset))
         else:
             N = self
 
@@ -235,3 +283,91 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             return MinorMatroid(N, contractions=contractions, deletions=set())
         else:
             return N
+
+    cpdef transversal_extension(self, element=None, newset=None, sets=None):
+        r"""
+        Return a TransversalMatroid extended by an element.
+
+        INPUT:
+
+        - ``element`` -- (optional) The name for the new element.
+        - ``newset`` -- (optioanl) If given, the element will be
+          given its own set, with this name
+        -- ``sets`` -- (default: ``None``) A list of labels representing the
+          sets in the current presentation that the new element will belong to.
+
+        OUTPUT:
+
+        A TransversalMatroid with a groundset element added to specified sets.
+        """
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self._groundset:
+            raise ValueError("cannot extend by element already in ground set")
+
+        buckets = set()
+        #this is broken
+        for b in self._buckets:
+            if b in sets:
+                b.add(element)
+                sets.remove(b)
+        if sets:
+            raise ValueError("sets do not match the current presentation")
+
+        # if newset:
+        #     if newset in B:
+        #         raise ValueError("newset is already a vertex in the presentation")
+        #     buckets.add(set([element, newset]))
+
+        groundset = self._groundset.union(set(element))
+        buckets = frozenset([frozenset(b) for b in buckets])
+
+        return TransversalMatroid(graph_from_buckets(buckets, groundset))
+
+    def __richcmp__(left, right, op):
+        r"""
+        Compare two matroids.
+
+        We take a very restricted view on equality: the objects need to be of
+        the exact same type (so no subclassing) and the internal data need to
+        be the same. For transversal matroids, in particular, the presentation
+        as a bipartite graph must be the same.
+
+        .. WARNING::
+
+            This method is linked to __hash__. If you override one, you MUST override the other!
+        """
+        if op not in [Py_EQ, Py_NE]:
+            return NotImplemented
+        if not isinstance(left, TransversalMatroid) or not isinstance(right, TransversalMatroid):
+            return NotImplemented
+        if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
+            return NotImplemented
+        if op == Py_EQ:
+            res = True
+        if op == Py_NE:
+            res = False
+        # res gets inverted if matroids are deemed different.
+        if left.groundset() == right.groundset() and left.sets() == right.sets():
+            return res
+        else:
+            return not res
+
+    def __hash__(self):
+        r"""
+        Return an invariant of the matroid.
+
+        This function is called when matroids are added to a set. It is very
+        desirable to override it so it can distinguish matroids on the same
+        groundset, which is a very typical use case!
+
+        .. WARNING::
+
+            This method is linked to __richcmp__ (in Cython) and __cmp__ or
+            __eq__/__ne__ (in Python). If you override one, you should (and in
+            Cython: MUST) override the other!
+
+        EXAMPLES::
+
+        """
+        return hash((self.groundset(), self.sets()))
