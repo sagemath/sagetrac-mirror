@@ -65,7 +65,7 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 
-from .infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
+from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
 
 
 def updated_by_adding_coefficients(D, E):
