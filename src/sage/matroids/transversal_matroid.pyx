@@ -22,6 +22,11 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         sage: M = TransversalMatroid(B, [0, 1, 2, 3])
         sage: M.full_rank()
         3
+        sage: M.bases_count()
+        4
+        sage: sum(1 for b in M.bases()) # yes, these can be different
+        4
+
 
     """
 
@@ -50,7 +55,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         # Make this work with a bipartite graph as input
         # In a later ticket, make the constructor work with a collection of sets as input
         # Assumptions: `B` is an instance of BipartiteGraph
-        #               `groundset` is one side (not optional)
+        #               `groundset` is one side
         # Later, the constructor should be able to accept Graph as input
         # And convert to BipartiteGraph if the ground set makes sense
         if groundset is None:
@@ -76,30 +81,32 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         self._buckets = [B.neighbors(v) for v in set(B.vertices()) if v not in groundset]
 
-        self._matching = B.matching()
+        # throw away edge labels
+        self._matching = [(u, v) for (u, v, l) in B.matching()]
 
-        vertices_in_matching = set([u for u, v, l in self._matching]).union(
-            set([v for u, v, l in self._matching]))
+        vertices_in_matching = set([u for u, v in self._matching])
+        vertices_in_matching.update([v for u, v in self._matching])
         basis = frozenset([v for v in vertices_in_matching if v in groundset])
 
         # This creates self._groundset attribute, among other things
         BasisExchangeMatroid.__init__(self, groundset, basis)
 
         # Build a DiGraph for doing basis exchange
+        # This will be a simple DiGraph
         self._D = DiGraph()
         for u, v, l in B.edge_iterator():
-            if (u, v, l) in self._matching:
+            if (u, v) in self._matching:
             # For the edges in our matching, orient them as starting from the collections
                 if u in self._groundset:
-                    self._D.add_edge(v, u, l)
+                    self._D.add_edge(v, u)
                 else:
-                    self._D.add_edge(u, v, l)
+                    self._D.add_edge(u, v)
             else:
             # Otherwise orient them as starting from the ground set
                 if u in self._groundset:
-                    self._D.add_edge(u, v, l)
+                    self._D.add_edge(u, v)
                 else:
-                    self._D.add_edge(v, u, l)
+                    self._D.add_edge(v, u)
 
 
     cdef bint __is_exchange_pair(self, long x, long y) except -1:
@@ -107,7 +114,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         Check for `M`-alternating path from `x` to `y`.
         """
         # Question: Do I need to consider exchanges between `x` and `x`?
-        if self._D.shortest_path(x, y):
+        if self._D.shortest_path(y, x):
             return True
         else:
             return False
@@ -116,14 +123,17 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
-        shortest_path = self._D.shortest_path(x, y)
+        sh = self._D.shortest_path(y, x)
+        shortest_path = []
+        for i in range(len(sh[:-1])):
+            shortest_path.append((sh[i], sh[i+1]))
         self._D.reverse_edges(shortest_path)
 
-        for u, v, l in shortest_path:
-            if (u, v, l) in self._matching:
-                self._matching.remove((u, v, l))
+        for u, v in shortest_path:
+            if (u, v) in self._matching:
+                self._matching.remove((u, v))
             else:
-                self._matching.append((v, u, l))
+                self._matching.append((v, u))
 
         BasisExchangeMatroid.__exchange(self, x, y)
 
@@ -148,3 +158,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         Return a bipartite graph representing the transversal matroid.
         """
         return self._B.copy(data_structure = 'sparse')
+
+    def digraph(self):
+        """
+        Temporary method because it seems like maybe I can't directly get
+        internal variables in Cython.
+        """
+        return self._D
