@@ -392,6 +392,16 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
     __nonzero__ = __bool__
 
     def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: x[0] == y[0], x[0] != y[0]
+            (False, True)
+            sage: P(1) == 1, P(1) != 1
+            (True, False)
+        """
         # TODO: use richcmp
         if other is None:
             return False
@@ -399,6 +409,9 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             return not bool(self - other)
         except (TypeError, ValueError):
             return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def _add_(self, other):
         r"""
@@ -410,6 +423,11 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             x_0 + y_0
             sage: x[0] + y[0] + x[0]
             2*x_0 + y_0
+
+        TESTS::
+
+            sage: x[0] + 1
+            x_0 + 1
         """
         summands = updated_by_adding_coefficients(
             self._summands_, other._summands_)
