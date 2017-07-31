@@ -615,6 +615,31 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
+    def set_print_style(self, ps):
+        r"""
+        Set the print style for all bases of the algebra.
+
+        INPUT:
+
+        - ``ps`` -- string, can be one of 'latex_compact', 'latex_short'
+          or 'latex_default'
+
+        EXAMPLES::
+
+            sage: Q = QuasiSymmetricFunctions(QQ)
+            sage: M = Q.Monomial()
+            sage: latex(M[3,2])
+            M_{[3, 2]}
+            sage: Q.set_print_style('latex_compact')
+            sage: latex(M[3,2])
+            M_{32}
+            sage: Q.set_print_style('latex_short')
+            sage: latex(M[3,2])
+            M_{3,2}
+        """
+        for base in self._shorthands:
+            eval('self.'+base+'().set_print_style(ps)')
+
     _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS'])
 
     def dual(self):

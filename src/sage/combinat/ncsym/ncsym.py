@@ -319,6 +319,31 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         """
         return self.powersum()
 
+    def set_print_style(self, ps):
+        r"""
+        Set the print style for all bases of the algebra.
+
+        INPUT:
+
+        - ``ps`` -- string, can be one of 'latex_compact', 'latex_short'
+          or 'latex_default'
+
+        EXAMPLES::
+
+            sage: N = SymmetricFunctionsNonCommutingVariables(QQ)
+            sage: m = N.monomial()
+            sage: latex(m[[1,2,3],[4,5]])
+            m_{\{\{1, 2, 3\}, \{4, 5\}\}}
+            sage: N.set_print_style('latex_compact')
+            sage: latex(m[[1,2,3],[4,5]])
+            m_{123|45}
+            sage: N.set_print_style('latex_short')
+            sage: latex(m[[1,2,3],[4,5]])
+            m_{\{1,2,3|4,5\}}
+        """
+        for base in self._shorthands:
+            eval('self.'+base+'().set_print_style(ps)')
+
     _shorthands = tuple(['chi', 'cp', 'm', 'e', 'h', 'p', 'rho', 'x'])
 
     def dual(self):

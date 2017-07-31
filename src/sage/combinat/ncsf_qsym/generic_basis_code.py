@@ -123,30 +123,35 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                     c = self._indices(list(c))
             return self.monomial(c)
 
-        def set_latex_style(self, ls):
+        def set_print_style(self, ps):
             r"""
-            Set the latex style for the basis
+            Set the print style for a basis.
 
             INPUT:
 
-            - ``ls`` -- a string, either 'compact' or 'short'
+            - ``ps`` -- string, can be one of 'latex_compact',
+              'latex_short' or 'latex_default'
 
             EXAMPLES::
 
-                sage: M = QuasiSymmetricFunctions(QQ).M()
-                sage: latex(M[3,2])
-                M_{[3, 2]}
-                sage: M.set_latex_style('compact')
-                M_{32}
-                sage: M.set_latex_style('short')
-                M_{3,2}
+                sage: R = NonCommutativeSymmetricFunctions(QQ).Ribbon()
+                sage: latex(R[3,2])
+                R_{[3, 2]}
+                sage: R.set_print_style('latex_compact')
+                sage: latex(R[3,2])
+                R_{32}
+                sage: R.set_print_style('latex_short')
+                sage: latex(R[3,2])
+                R_{3,2}
             """
-            if ls == 'compact':
-                self.print_options(latex_format = Compositions._latex_compact_)
-            elif ls == 'short':
-                self.print_options(latex_format = Compositions._latex_short_)
-            elif 'latex_format' in self._print_options:
-                self._print_options.pop('latex_format')
+            po = self._print_options
+            if ps=='latex_compact':
+                po['latex_format'] = Compositions._latex_compact_
+            elif ps=='latex_short':
+                po['latex_format'] = Compositions._latex_short_
+            elif ps=='latex_default':
+                if 'latex_format' in po:
+                    po.pop('latex_format')
 
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
         @cached_method

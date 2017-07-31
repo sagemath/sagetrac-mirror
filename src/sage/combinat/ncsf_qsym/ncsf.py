@@ -460,6 +460,31 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.complete()
 
+    def set_print_style(self, ps):
+        r"""
+        Set the print style for all bases of the algebra.
+
+        INPUT:
+
+        - ``ps`` -- string, can be one of 'latex_compact', 'latex_short'
+          or 'latex_default'
+
+        EXAMPLES::
+
+            sage: N = NonCommutativeSymmetricFunctions(QQ)
+            sage: R = N.Ribbon()
+            sage: latex(R[3,2])
+            R_{[3, 2]}
+            sage: N.set_print_style('latex_compact')
+            sage: latex(R[3,2])
+            R_{32}
+            sage: N.set_print_style('latex_short')
+            sage: latex(R[3,2])
+            R_{3,2}
+        """
+        for base in self._shorthands:
+            eval('self.'+base+'().set_print_style(ps)')
+
     _shorthands = tuple(['S', 'R', 'L', 'Phi', 'Psi', 'nM', 'I'])
 
     def dual(self):

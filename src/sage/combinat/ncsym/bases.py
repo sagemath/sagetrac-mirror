@@ -140,32 +140,34 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
                 i = (i,)
             return self.monomial(SetPartition(i))
 
-        def set_latex_style(self, ls):
+        def set_print_style(self, ps):
             r"""
-            Set the latex style for the basis
+            Set the print style for the basis
 
             INPUT:
 
-            - ``ls`` -- a string, either 'compact' or 'short'
+            - ``ps`` -- a string, either 'latex_compact', 'latex_short' or
+              'latex_default'
 
             EXAMPLES::
 
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
                 sage: latex(m[[1,2,3],[4,5]])
                 m_{\{\{1, 2, 3\}, \{4, 5\}\}}
-                sage: m.set_latex_style('compact')
+                sage: m.set_print_style('latex_compact')
                 sage: latex(m[[1,2,3],[4,5]])
                 m_{123|45}
-                sage: m.set_latex_style('short')
+                sage: m.set_print_style('latex_short')
                 sage: latex(m[[1,2,3],[4,5]])
                 m_{\{1,2,3|4,5\}}
             """
-            if ls == 'compact':
+            if ps == 'latex_compact':
                 self.print_options(latex_format = SetPartitions._latex_compact_)
-            elif ls == 'short':
+            elif ps == 'latex_short':
                 self.print_options(latex_format = SetPartitions._latex_short_)
-            elif 'latex_format' in self._print_options:
-                self._print_options.pop('latex_format')
+            elif ps=='latex_default':
+                if 'latex_format' in self._print_options:
+                    self._print_options.pop('latex_format')
 
         @cached_method
         def one_basis(self):
