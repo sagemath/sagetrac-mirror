@@ -243,12 +243,30 @@ class Monomial(object):
                      for component in self._exponents_)
 
     def _sorting_key_revlex_(self):
-        return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_)
+        r"""
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+
+            sage: x_0 = Monomial(({0: 1},))
+            sage: x_0._sorting_key_lex_()
+            ((0, 1),)
+            sage: x_0._sorting_key_revlex_()
+            ((0, -1),)
+        """
+        return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_())
 
     def _sorting_key_deglex_(self):
         return (self.degree(), self._sorting_key_lex_())
 
     def _sorting_key_degrevlex_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='degrevlex')
+            sage: x[0] + y[1]
+            x_0 + y_1
+        """
         return (self.degree(), self._sorting_key_revlex_())
 
     def __hash__(self):
@@ -361,6 +379,12 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             x_1 - y_2
             sage: y[1] - x[2]
             -x_2 + y_1
+
+        ::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='degrevlex')
+            sage: x[0] + y[1]
+            x_0 + y_1
         """
         def summand(monomial, coefficient):
             if coefficient == 1:
@@ -649,6 +673,13 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: monomial = next(iter(x[0]._summands_))
             sage: P._sorting_key_monomial_(monomial)
             (1, ((0, 1),))
+
+        ::
+
+            sage: P.<x> = InfinitePolynomialRing(QQ, order='degrevlex')
+            sage: monomial = next(iter(x[0]._summands_))
+            sage: P._sorting_key_monomial_(monomial)
+            (1, ((0, -1),))
         """
         return getattr(monomial,
                        '_sorting_key_{}_'.format(self.term_order().name()))()
