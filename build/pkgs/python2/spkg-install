@@ -30,13 +30,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$UNAME" = "CYGWIN" ]; then
-    EXE=".exe"
-elif [ "$UNAME" = "Linux" ]; then
+if [ "$UNAME" = "Linux" ]; then
     export LD_LIBRARY_PATH="."
 fi
 
-PYTHON_VERSION=$("./python${EXE}" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+# When building on a case-insensitive filesystem (on any OS, not just Windows)
+# the Python executable is output to the build directory as 'python.exe'
+if [ -f "python.exe" ]; then
+    PYTHON="./python.exe"
+else
+    PYTHON="./python"
+fi
+
+PYTHON_VERSION=$($PYTHON -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python2.*/config/libpython2.x.a causes problems with
