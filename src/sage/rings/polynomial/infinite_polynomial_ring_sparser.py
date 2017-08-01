@@ -434,11 +434,15 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             False
             sage: P(0) == P(0)
             True
+            sage: P(1) == int(0)
+            False
+            sage: P(0) == int(0)
+            True
         """
         if other is None:
             return False
-        if isinstance(other, InfinitePolynomial_sparser):
-            if not other._summands_:
+        if (isinstance(other, int) and other == 0 or
+            isinstance(other, InfinitePolynomial_sparser) and not other._summands_):
                 return not bool(self)
         try:
             return not bool(self - other)
