@@ -427,10 +427,19 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
             (False, True)
             sage: P(1) == 1, P(1) != 1
             (True, False)
+
+        ::
+
+            sage: P(1) == P(0)
+            False
+            sage: P(0) == P(0)
+            True
         """
-        # TODO: use richcmp
         if other is None:
             return False
+        if isinstance(other, InfinitePolynomial_sparser):
+            if not other._summands_:
+                return not bool(self)
         try:
             return not bool(self - other)
         except (TypeError, ValueError):
