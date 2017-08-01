@@ -142,7 +142,7 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
 
         def set_print_style(self, ps):
             r"""
-            Set the print style for the basis
+            Set the print style for the basis.
 
             INPUT:
 
@@ -152,14 +152,15 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
-                sage: latex(m[[1,2,3],[4,5]])
-                m_{\{\{1, 2, 3\}, \{4, 5\}\}}
                 sage: m.set_print_style('latex_compact')
                 sage: latex(m[[1,2,3],[4,5]])
                 m_{123|45}
                 sage: m.set_print_style('latex_short')
                 sage: latex(m[[1,2,3],[4,5]])
                 m_{\{1,2,3|4,5\}}
+                sage: m.set_print_style('latex_default')
+                sage: latex(m[[1,2,3],[4,5]])
+                m_{\{\{1, 2, 3\}, \{4, 5\}\}}
             """
             if ps == 'latex_compact':
                 self.print_options(latex_format = SetPartitions._latex_compact_)

@@ -330,16 +330,17 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: N = SymmetricFunctionsNonCommutingVariables(QQ)
-            sage: m = N.monomial()
-            sage: latex(m[[1,2,3],[4,5]])
-            m_{\{\{1, 2, 3\}, \{4, 5\}\}}
-            sage: N.set_print_style('latex_compact')
+            sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
+            sage: m = NCSym.monomial()
+            sage: NCSym.set_print_style('latex_compact')
             sage: latex(m[[1,2,3],[4,5]])
             m_{123|45}
-            sage: N.set_print_style('latex_short')
+            sage: NCSym.set_print_style('latex_short')
             sage: latex(m[[1,2,3],[4,5]])
             m_{\{1,2,3|4,5\}}
+            sage: NCSym.set_print_style('latex_default')
+            sage: latex(m[[1,2,3],[4,5]])
+            m_{\{\{1, 2, 3\}, \{4, 5\}\}}
         """
         for base in self._shorthands:
             eval('self.'+base+'().set_print_style(ps)')

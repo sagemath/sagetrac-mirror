@@ -135,14 +135,15 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: R = NonCommutativeSymmetricFunctions(QQ).Ribbon()
-                sage: latex(R[3,2])
-                R_{[3, 2]}
                 sage: R.set_print_style('latex_compact')
                 sage: latex(R[3,2])
                 R_{32}
                 sage: R.set_print_style('latex_short')
                 sage: latex(R[3,2])
                 R_{3,2}
+                sage: R.set_print_style('latex_default')
+                sage: latex(R[3,2])
+                R_{[3, 2]}
             """
             po = self._print_options
             if ps=='latex_compact':

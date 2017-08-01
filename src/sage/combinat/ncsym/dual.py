@@ -95,16 +95,17 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: N = SymmetricFunctionsNonCommutingVariables(QQ)
-            sage: m = N.monomial()
-            sage: latex(m[[1,2,3],[4,5]])
-            m_{\{\{1, 2, 3\}, \{4, 5\}\}}
-            sage: N.set_print_style('latex_compact')
-            sage: latex(m[[1,2,3],[4,5]])
-            m_{123|45}
-            sage: N.set_print_style('latex_short')
-            sage: latex(m[[1,2,3],[4,5]])
-            m_{\{1,2,3|4,5\}}
+            sage: NCSymD = SymmetricFunctionsNonCommutingVariablesDual(QQ)
+            sage: w = NCSymD.w()
+            sage: NCSymD.set_print_style('latex_compact')
+            sage: latex(w[[1,2,3],[4,5]])
+            w_{123|45}
+            sage: NCSymD.set_print_style('latex_short')
+            sage: latex(w[[1,2,3],[4,5]])
+            w_{\{1,2,3|4,5\}}
+            sage: NCSymD.set_print_style('latex_default')
+            sage: latex(w[[1,2,3],[4,5]])
+            w_{\{\{1, 2, 3\}, \{4, 5\}\}}
         """
         for base in self._shorthands:
             eval('self.'+base+'().set_print_style(ps)')
