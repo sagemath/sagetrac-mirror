@@ -197,12 +197,19 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicFixedModRingGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFloatingPointRingGeneric, \
-                          pAdicFloatingPointFieldGeneric
+                          pAdicFloatingPointFieldGeneric, \
+                          pAdicGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
 from .padic_fixed_mod_element import pAdicFixedModElement
 from .padic_floating_point_element import pAdicFloatingPointElement
+from .padic_lattice_element import pAdicLatticeElement
+from .lattice_precision import PrecisionLattice
+
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import Infinity
+
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
     r"""
@@ -810,3 +817,185 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
         if do_latex:
             return "\\QQ_{%s}" % self.prime()
         return "%s-adic Field with floating precision %s"%(self.prime(), self.precision_cap())
+
+
+
+# Lattice precision
+###################
+
+# Maybe the next class should go to sage.rings.padics.generic_nodes but I 
+# don't understand quite well the structure of all classes in this directory
+class pAdicLatticeGeneric(pAdicGeneric):
+    def __init__(self, p, prec, label=None, proof=False):
+        if proof:
+            raise NotImplementedError("p-adic with *proved* lattice precision not implemented yet")
+        if label is None:
+            self._label = None
+        else:
+            self._label = str(label)
+        self._prec_cap = prec
+        self._precision = PrecisionLattice(p, label)
+        # We do not use the standard attribute element_class 
+        # because we need to be careful with precision
+        # Instead we implement _element_constructor_ (cf below)
+        self._element_class = pAdicLatticeElement
+
+    def _prec_type(self):
+        return 'lattice'
+
+    def precision(self):
+        return self._precision
+
+    def label(self):
+        return self._label
+
+    def _element_constructor_(self, x, prec=None):
+        # We first try the __copy__ method which is sharp on precision
+        try:
+            if prec is None:
+                return x.__copy__(parent=self)
+            else:
+                return x.__copy__(parent=self).add_bigoh(prec)
+        except (TypeError, ValueError, AttributeError):
+            pass
+        return self._element_class(self, x, prec)
+
+    def convert_multiple(self, *elts):
+        p = self.prime()
+
+        # We sort elements by precision lattice
+        elt_by_prec = { }
+        elt_other = [ ]
+        indices = { }
+        for i in range(len(elts)):
+            x = elts[i]; idx = id(x)
+            if indices.has_key(idx):
+                indices[idx].append(i)
+            else:
+                indices[idx] = [i]
+            if isinstance(x, pAdicLatticeElement):
+                prec = x.parent().precision()
+                if prec.prime() != p:
+                    raise TypeError("conversion between different p-adic rings not supported")
+                if elt_by_prec.has_key(prec):
+                    elt_by_prec[prec].append(x)
+                else:
+                    elt_by_prec[prec] = [x]
+            else:
+                elt_other.append(x)
+
+        # We create the elements
+        ans = len(elts)*[None]
+        selfprec = self._precision
+        # First the elements with precision lattice
+        for (prec, L) in elt_by_prec.iteritems():
+            if prec is selfprec:
+                # Here, we use the __copy__ method in order
+                # to be sharp on precision
+                for x in L:
+                    y = x.__copy__(parent=self)
+                    for i in indices[id(x)]:
+                        ans[i] = y
+            else:
+                lattice = prec.precision_lattice(L)
+                for j in range(len(L)):
+                    x = L[j]; dx = [ ]
+                    for i in range(j):
+                        dx.append([L[i], lattice[i,j]])
+                    prec = lattice[j,j].valuation(p)
+                    y = self.element_class(self, x.value(), prec, dx=dx, dx_mode='values', check=False)
+                    for i in indices[id(x)]:
+                        ans[i] = y
+                    L[j] = y
+        # Now the other elements
+        for x in elt_other:
+            y = self.element_class(self, x)
+            for i in indices[id(x)]:
+                ans[i] = y
+
+        # We return the created elements
+        return ans
+
+
+
+class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
+    def __init__(self, p, prec, print_mode, name, label=None, proof=False):
+        pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+
+    def _repr_(self, do_latex=False):
+        if do_latex:
+            if self._label is not None:
+                return "\\verb'%s' (\simeq \\mathbb Z_{%s})" % (self._label, self.prime())
+            else:
+                return "\\mathbb Z_{%s}" % self.prime()
+        else:
+            if self._label is not None:
+                return "%s-adic Ring with lattice precision (label: %s)" % (self.prime(), self._label)
+            else:
+                return "%s-adic Ring with lattice precision" % self.prime()
+
+    def _coerce_map_from_(self, R):
+        if isinstance(R, pAdicRingLattice) and R.precision() is self.precision():
+            return True
+
+    def random_element(self, prec=None):
+        if prec is None:
+            prec = self._prec_cap
+        p = self.prime()
+        x = ZZ.random_element(p**prec)
+        return self._element_class(self, x, prec=prec)
+
+    def integer_ring(self, print_mode=None):
+        if print_mode is None:
+            return self
+        from sage.rings.padics.factory import Zp
+        return Zp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
+                  names=self._uniformizer_print(), label=self._label)
+
+    def fraction_field(self, print_mode=None):
+        from sage.rings.padics.factory import Qp
+        return Qp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
+                  names=self._uniformizer_print(), label=self._label)
+
+
+
+class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
+    def __init__(self, p, prec, print_mode, name, label=None, proof=False):
+        pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+
+    def _repr_(self, do_latex=False):
+        if do_latex:
+            if self._label is not None:
+                return "\\verb'%s' (\simeq \\mathbb Q_{%s})" % (self._label, self.prime())
+            else:
+                return "\\mathbb Q_{%s}" % self.prime()
+        else:
+            if self._label is not None:
+                return "%s-adic Field with lattice precision (label: %s)" % (self.prime(), self._label)
+            else:
+                return "%s-adic Field with lattice precision" % self.prime()
+
+    def _coerce_map_from_(self, R):
+        if isinstance(R, (pAdicRingLattice, pAdicFieldLattice)) and R.precision() is self.precision():
+            return True
+
+    def random_element(self, prec=None):
+        if prec is None:
+            prec = self._prec_cap
+        p = self.prime()
+        x = ZZ.random_element(p**prec)
+        return self._element_class(self, x, prec)
+
+    def integer_ring(self, print_mode=None):
+        from sage.rings.padics.factory import Zp
+        return Zp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
+                  names=self._uniformizer_print(), label=self._label)
+
+    def fraction_field(self, print_mode=None):
+        if print_mode is None:
+            return self
+        from sage.rings.padics.factory import Qp
+        return Qp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
+                  names=self._uniformizer_print(), label=self._label)
