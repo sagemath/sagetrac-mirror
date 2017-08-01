@@ -74,6 +74,8 @@ def updated_by_adding_coefficients(D, E):
     for key, value in iteritems(E):
         try:
             DD[key] += value
+            if not DD[key]:
+                del DD[key]
         except KeyError:
             DD[key] = value
     return DD
