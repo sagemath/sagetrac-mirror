@@ -1656,7 +1656,7 @@ class Compositions(UniqueRepresentation, Parent):
     @staticmethod
     def _latex_compact_(m):
         r"""
-        Compact display for elements with compositions as subscripts
+        Compact display for elements with compositions as subscripts.
 
         INPUT:
 
@@ -1671,19 +1671,22 @@ class Compositions(UniqueRepresentation, Parent):
             sage: Compositions._latex_compact_([1,3,1,2])
             '1312'
             sage: Compositions._latex_compact_([1,13,10,2])
-            '1\\underline{13}~\\underline{10}~2'
+            '1\\underline{13}~\\underline{10}2'
         """
-        def part_to_string(i):
-            if i>=10:
-                return '\\underline{'+str(i)+'}~'
+        out = ""
+        for i in range(len(m)):
+            if m[i]>=10:
+                out+='\\underline{'+str(m[i])+'}'
+                if i!=len(m)-1 and m[i+1]>=10:
+                    out+="~"
             else:
-                return str(i)
-        return ''.join(part_to_string(i) for i in m)
+                out+=str(m[i])
+        return out
 
     @staticmethod
     def _latex_short_(m):
         r"""
-        Short display for elements with compositions as subscripts
+        Short display for elements with compositions as subscripts.
 
         INPUT:
 

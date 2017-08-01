@@ -1462,7 +1462,7 @@ class SetPartitions(UniqueRepresentation, Parent):
     @staticmethod
     def _latex_compact_(S):
         r"""
-        Compact latex expression of a set partition S
+        Compact latex expression of a set partition ``S``.
 
         INPUT:
 
@@ -1472,20 +1472,17 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: SetPartitions._latex_compact_([[1,2,3],[4,5]])
             '123|45'
-            sage: SetPartitions._latex_compact_([[1,2,4,10],[3,5,11],[6,7,8,9]])
-            '124\\underline{10}~|35\\underline{11}~|6789'
+            sage: SetPartitions._latex_compact_([[1,12],[3,13],[9,10,11]])
+            '1\\underline{12}|3\\underline{13}|9\\underline{10}~\\underline{11}'
         """
-        def lval( v ):
-            if v<10:
-                return str(v)
-            else:
-                return '\\underline{'+str(v)+'}~'
-        return '|'.join(''.join(lval(v) for v in A) for A in S)
+        return '|'.join(''.join(str(v) for v in A if v<10) + \
+            '~'.join('\\underline{'+str(v)+'}' for v in A if v>=10) \
+            for A in S)
 
     @staticmethod
     def _latex_short_(S):
         r"""
-        Short latex expression of a set partition S
+        Short latex expression of a set partition ``S``.
 
         INPUT:
 
@@ -1495,8 +1492,8 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: SetPartitions._latex_short_([[1,2,3],[4,5]])
             '\\{1,2,3|4,5\\}'
-            sage: SetPartitions._latex_short_([[1,2,4,10],[3,5,11],[6,7,8,9]])
-            '\\{1,2,4,10|3,5,11|6,7,8,9\\}'
+            sage: SetPartitions._latex_short_([[1,12],[3,13],[9,10,11]])
+            '\\{1,12|3,13|9,10,11\\}'
         """
         return '\\{'+'|'.join(','.join(str(v) for v in A) for A in S)+'\\}'
 
