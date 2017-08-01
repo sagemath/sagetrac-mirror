@@ -118,7 +118,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             B.vertices() if v not in groundset])
 
         # throw away edge labels
-        self._matching = [(u, v) for (u, v, l) in B.matching()]
+        self._matching = set([(u, v) for (u, v, l) in B.matching()])
 
         vertices_in_matching = set([u for u, v in self._matching])
         vertices_in_matching.update([v for u, v in self._matching])
@@ -151,11 +151,19 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Check for `M`-alternating path from `x` to `y`.
         """
+        e = self._E[x]
+        f = self._E[y]
         # Question: Do I need to consider exchanges between `x` and `x`?
-        if self._D.shortest_path(y, x):
+        if self._D.shortest_path(f, e):
             return True
         else:
             return False
+
+    def E(self):
+        """
+        debugging...
+        """
+        return self._E
 
     def digraph(self):
         """
@@ -163,11 +171,19 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         return self._D
 
+    def matching(self):
+        """
+        Temporary method for debugging
+        """
+        return self._matching
+
     cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
-        sh = self._D.shortest_path(y, x)
+        e = self._E[x]
+        f = self._E[y]
+        sh = self._D.shortest_path(f, e)
         shortest_path = []
         for i in range(len(sh[:-1])):
             shortest_path.append((sh[i], sh[i+1]))
@@ -177,9 +193,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             if (u, v) in self._matching:
                 self._matching.remove((u, v))
             else:
-                self._matching.append((v, u))
+                self._matching.add((v, u))
 
-        BasisExchangeMatroid.__exchange(self, x, y)
+        BasisExchangeMatroid.__exchange(self, e, f)
 
     def _repr_(self):
         """
