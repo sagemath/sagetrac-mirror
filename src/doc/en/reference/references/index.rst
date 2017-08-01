@@ -1564,6 +1564,9 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [Sh1967] \T. Shioda. *On the graded ring of invariants of binary octavics* in
+            American J. of Math., 89(4):1022-1046, 1967.
+
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004
 

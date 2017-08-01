@@ -415,14 +415,9 @@ def absolute_igusa_invariants_kohel(f):
 
 def shioda_invariants(f):
     r"""
-    Given a octavic form `f`, return the 9 Shioda invariants, [Sh]_.
+    Given a octavic form `f`, return the 9 Shioda invariants, [Sh1967]_.
 
     `f` may be homogeneous in two variables or inhomogeneous in one.
-
-    REFERENCES:
-
-    .. [Sh] Shioda, Tetsuji. *On the graded ring of invariants of binary octavics*.
-       American J. of Math., 89(4):1022-1046, 1967.
 
     EXAMPLES::
 
@@ -442,11 +437,6 @@ def shioda_invariants(f):
         f = PolynomialRing(f.parent().base_ring(), 1, f.parent().variable_name())(f)
         x1, x2 = f.homogenize().parent().gens()
         F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9)])
-    #P.<x,y> = PolynomialRing(f.parent().base_ring(),2)
-    #F = f(x/y).numerator()
-    #if F.degree(x) == 7:
-    #    F = F*y
-    # The Ueberschiebung operator is the classical transvectant
     H = Ueberschiebung(F,F,2)
     g = Ueberschiebung(F,F,4)
     k = Ueberschiebung(F,F,6)
@@ -455,7 +445,6 @@ def shioda_invariants(f):
     n = Ueberschiebung(F,h,4)
     p = Ueberschiebung(g,k,4)
     q = Ueberschiebung(g,h,4)
-    # Invariants
     J2 = Ueberschiebung(F,F,8)
     J3 = Ueberschiebung(F,g,8)
     J4 = Ueberschiebung(k,k,4)
