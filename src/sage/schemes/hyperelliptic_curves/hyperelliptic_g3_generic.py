@@ -21,7 +21,7 @@ from . import invariants
 class HyperellipticCurve_g3_generic(hyperelliptic_generic.HyperellipticCurve_generic):
     def shioda_invariants(self):
         r"""
-        Return the Shioda invariants `(J2, J3, J4, J5, J6, J7, J8, J9, J10)` of Shioda, [Sh]_.
+        Return the Shioda invariants `(J2, J3, J4, J5, J6, J7, J8, J9, J10)` of Shioda, [Sh1967]_.
 
         .. SEEALSO::
 
@@ -47,12 +47,6 @@ class HyperellipticCurve_g3_generic(hyperelliptic_generic.HyperellipticCurve_gen
             [358/35, 1901607/1097600, 1858655/115248, 5952869/1075648, -447875123/16941456,
             -229108271171/25299240960, -289161500810731/12396628070400, 
             2763886995805/185949421056, 1393753442816093/36446086526976]
-
-        
-        REFERENCES:
-        
-        .. [Sh] Shioda, Tetsuji. *On the graded ring of invariants of binary octavics*.
-        American J. of Math., 89(4):1022-1046, 1967.
 
         """
         f, h = self.hyperelliptic_polynomials()
