@@ -1,5 +1,11 @@
 r"""
 Transversal matroids
+
+A transversal matroid arises from a ground set `E` and a collection `A` of sets
+over the ground set. This can be modeled as a bipartite graph `B`, where the
+vertices the left are ground set elements, the vertices on the right are the
+sets, and edges represent containment. Then a set `X` from the ground set is
+independent if and only if `X` has a matching in `B`.
 """
 
 from __future__ import print_function, absolute_import
@@ -32,6 +38,13 @@ cpdef graph_from_buckets(buckets, groundset=[]):
     EXAMPLES::
 
         sage: from sage.matroids.transversal_matroid import graph_from_buckets
+        sage: from sage.matroids.transversal_matroid import TransversalMatroid
+        sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(4,3))
+        sage: M = TransversalMatroid(B)
+        sage: buckets = M.sets()
+        sage: G = graph_from_buckets(buckets, range(4))
+        sage: G == B
+        True
     """
     # groundset could be made optional, but we require it for efficiency's sake
     B = BipartiteGraph()
@@ -62,6 +75,21 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         4
         sage: sum(1 for b in M.bases()) # yes, these can be different
         4
+
+    ::
+
+        sage: from sage.matroids.transversal_matroid import TransversalMatroid
+        sage: G = Graph([('a', 'b'), ('b', 'c')])
+        sage: G.add_vertex('d')
+        sage: M = TransversalMatroid(G, groundset=['a','c','d'])
+        sage: M.loops()
+        frozenset({'d'})
+        sage: M.full_rank()
+        1
+        sage: N = M.delete('d'); N
+        Transversal matroid of rank 1 on 2 elements, with 1 subsets.
+        sage: N.is_isomorphic(matroids.Uniform(1,2))
+        True
     """
 
     def __init__(self, B, groundset = None):
@@ -195,7 +223,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             else:
                 self._matching.add((v, u))
 
-        BasisExchangeMatroid.__exchange(self, e, f)
+        BasisExchangeMatroid.__exchange(self, x, y)
 
     def _repr_(self):
         """
@@ -304,7 +332,22 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             True
             sage: M1._minor(deletions=set([3]), contractions=set([4]))
             M / {4}, where M is Transversal matroid of rank 3 on 4 elements, with 3 subsets.
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: G = Graph([('a', 'b'), ('b', 'c')])
+            sage: G.add_vertex('d')
+            sage: G.add_edge('e','f')
+            sage: M = TransversalMatroid(G, groundset=['a','c','d','e'])
+            sage: N = M.delete(['d','e']); N
+            Transversal matroid of rank 1 on 2 elements, with 1 subsets.
         """
+        # if contractions are just coloops, we can just delete them
+        if self.corank(contractions) == 0:
+            deletions = deletions.union(contractions)
+            contractions = set()
+
         if deletions:
             buckets = set()
             for label, s in self._buckets:
@@ -315,6 +358,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             groundset = self._groundset.difference(deletions)
 
             N = TransversalMatroid(graph_from_buckets(buckets, groundset))
+            # Check if what remains is just coloops
+            return N.contract(contractions)
         else:
             N = self
 
@@ -323,15 +368,21 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         else:
             return N
 
-    cpdef transversal_extension(self, element=None, newset=None, sets=[]):
+    cpdef transversal_extension(self, element=None, newset=False, sets=[]):
         r"""
         Return a TransversalMatroid extended by an element.
+
+        This will modify the presentation of the transversal matroid by adding
+        a new element, and placing this element in the specified sets. It is also
+        possible to use this method to create a new set which will have the new
+        element as its only member, making it a coloop.
 
         INPUT:
 
         - ``element`` -- (optional) The name for the new element.
-        - ``newset`` -- (optional) If given, the element will be
-          given its own set, with this name. This will make the element
+        - ``newset`` -- (optional) If specified, the element will be
+          given its own set. If ``True``, a name will be generated; otherwise
+          this value will be used. This will make the element
           a coloop.
         - ``sets`` -- (default: ``None``) An iterable of labels representing the
           sets in the current presentation that the new element will belong to.
@@ -339,6 +390,60 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         OUTPUT:
 
         A TransversalMatroid with a groundset element added to specified sets.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: G = Graph([('a', 'b'), ('b', 'c')])
+            sage: M = TransversalMatroid(G, groundset=['a','c'])
+            sage: M1 = M.transversal_extension(element='d', newset='e')
+            sage: M2 = M.transversal_extension(element='d', newset=True)
+            sage: M1.coloops()
+            frozenset({'d'})
+            sage: True in M2.graph().vertices()
+            False
+            sage: M1.is_isomorphic(M2)
+            True
+            sage: M3 = M.transversal_extension('d', sets=['b'])
+            sage: M3.is_isomorphic(matroids.Uniform(1,3))
+            True
+            sage: M4 = M.transversal_extension('d', sets=['a'])
+            Traceback (most recent call last):
+            ...
+            ValueError: sets do not match presentation
+            sage: M4 = M.transversal_extension('a', sets=['b'])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot extend by element already in ground set
+            sage: M2.transversal_extension(newset='b')
+            Traceback (most recent call last):
+            ...
+            ValueError: newset is already a vertex in the presentation
+            sage: M5 = M1.transversal_extension()
+            sage: len(M5.loops())
+            1
+            sage: M2.transversal_extension(element='b')
+            Transversal matroid of rank 2 on 4 elements, with 2 subsets.
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: B = BipartiteGraph(edgedict)
+            sage: M = TransversalMatroid(B)
+            sage: N = M.delete(2)
+            sage: M1 = N.transversal_extension(element=2, sets=[5,6])
+            sage: M1 == M
+            True
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(4,3))
+            sage: M = TransversalMatroid(B)
+            sage: N = M.transversal_extension(element='a', newset=True, sets=[4])
+            sage: N.graph().degree('a')
+            2
         """
         sets = set(sets)
         if element is None:
@@ -355,11 +460,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         labels_map = {l: l for l in labels}
         if element in labels:
             new_label = newlabel(self.groundset().union(labels))
-            labels_map[label] = new_label
+            labels_map[element] = new_label
 
         # newset should not be a ground set element or existing set
         if newset in self._D:
-            raise ValueError("newset is already a vertex in the presentation")
+            # keywords `True` and `False` give us problems here
+            if newset is not False and newset is not True:
+                raise ValueError("newset is already a vertex in the presentation")
 
         buckets = set()
         for l, s in self._buckets:
@@ -369,6 +476,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 buckets.add((labels_map[l], s))
 
         if newset:
+            if newset is True:
+                newset = newlabel(self.groundset().union(labels))
             buckets.add((newset, frozenset([element])))
 
         groundset = self.groundset().union([element])
