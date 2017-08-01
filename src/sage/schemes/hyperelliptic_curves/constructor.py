@@ -4,7 +4,7 @@ Hyperelliptic curve constructor
 AUTHORS:
 
 - David Kohel: Initial version
-- Soria Ionica, Elisa Lorenzo Garcia, Anna Somoza (2016-01-11): Added 
+- Sorina Ionica, Elisa Lorenzo Garcia, Anna Somoza (2017-01-11): Added
   functionality for genus 3.
 """
 from __future__ import absolute_import

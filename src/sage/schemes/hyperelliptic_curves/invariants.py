@@ -21,7 +21,7 @@ REFERENCES:
 AUTHORS:
 
 - Nick Alexander: Initial version
-- Soria Ionica, Elisa Lorenzo Garcia, Anna Somoza (2016-01-11): Added 
+- Sorina Ionica, Elisa Lorenzo Garcia, Anna Somoza (2017-01-11): Added
   functionality for genus 3.
 """
 from sage.rings.all import ZZ
@@ -423,7 +423,7 @@ def shioda_invariants(f):
 
         sage: R.<x> = QQ[]
         sage: f = x^7 - x^4 + 3
-        sage: from sage.schemes.hyperelliptic_curves.invariants import shioda_invariants 
+        sage: from sage.schemes.hyperelliptic_curves.invariants import shioda_invariants
         sage: shioda_invariants(f)
         [1/70,  -9/34300,  1/57624,  -1/672280,  1/33882912,  333534899/6324810240,
         2334744453/1033052339200,  333534907/1859494210560,  778248143/101239129241600]
