@@ -2435,7 +2435,7 @@ def ZpLP(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
     Observe that `5^10 = 9765625` and `5^5 = 3125`.
     The above matrix then reflects the precision on `x` and `y`.
 
-    Now, obseve how the precision lattices changes while
+    Now, observe how the precision lattice changes while
     performing computations::
 
         sage: x, y = 3*x+2*y, 2*(x-y)
