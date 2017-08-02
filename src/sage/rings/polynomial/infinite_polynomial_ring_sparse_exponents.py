@@ -26,8 +26,23 @@ Indices can be anything (hashable, totally orderable)::
     sage: P.<A> = InfinitePolynomialRing(QQ, order='deglex')
     sage: A[a(1,1)]
     A_1_1
+    sage: A[a(1,1)] + A[a(2,0)] + A[a(0,2)]
+    A_0_2 + A_1_1 + A_2_0
     sage: A[a(1,1)]^2 * A[a(2,1)] * A[a(1,2)]^3 + 3*A[a(4,4)]^7
     3*A_4_4^7 + A_1_1^2*A_2_1*A_1_2^3
+
+::
+
+    sage: class b(a):
+    ....:     def __neg__(self):
+    ....:         return self.__class__(-self.i, -self.j)
+    sage: Q.<B> = InfinitePolynomialRing(QQ, order='degrevlex')
+    sage: B[b(1,1)]
+    B_1_1
+    sage: B[b(1,1)] + B[b(2,0)] + B[b(0,2)]
+    B_2_0 + B_1_1 + B_0_2
+    sage: B[b(1,1)]^2 * B[b(2,1)] * B[b(1,2)]^3 + 3*B[b(4,4)]^7
+    3*B_4_4^7 + B_1_1^2*B_2_1*B_1_2^3
 
 Various
 =======
