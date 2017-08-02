@@ -465,7 +465,6 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
         m = self.parent().m()-1
         w1 = b1.weight()[m]+b1.weight()[m+1]
         w2 = b2.weight()[m]+b2.weight()[m+1]
-        print w1,w2
         
         # Proposition 2.8.ii.a
         if i < 0:
