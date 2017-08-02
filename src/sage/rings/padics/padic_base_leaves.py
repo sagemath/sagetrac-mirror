@@ -921,7 +921,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
 class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
     def __init__(self, p, prec, print_mode, name, label=None, proof=False):
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), pAdicLatticeElement)
 
     def _repr_(self, do_latex=False):
         if do_latex:
@@ -963,7 +963,7 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
 class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, name, label=None, proof=False):
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), pAdicLatticeElement)
 
     def _repr_(self, do_latex=False):
         if do_latex:

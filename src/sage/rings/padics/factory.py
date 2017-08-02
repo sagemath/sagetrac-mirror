@@ -2465,22 +2465,22 @@ def ZpLP(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
     Each elementary operation requires significant manipulations
     on the lattice precision and then is costly. Precisely:
 
-    - The creation of a new element has a cost `O(n)` when `n`
+    - The creation of a new element has a cost `O(n)` where `n`
       is the number of tracked elements.
 
-    - The destruction of one element has a cost `O(m^2)` when
+    - The destruction of one element has a cost `O(m^2)` where
       `m` is the distance between the destroyed element and 
       the last one. Fortunately, it seems that `m` tends to
       be small in general (the dynamics of the list of tracked
       elements is rather close to that of a stack).
 
     It is nevertheless still possible to manipulate several
-    hundred variables (e.g. squares matrices of size 5 or
+    hundred variables (e.g. square matrices of size 5 or
     polynomials of degree 20 are accessible).
 
     The class :class:`PrecisionLattice` provides several
     features for introspection (especially concerning timings).
-    If enables, it maintains an history of all actions and stores
+    If enabled, it maintains an history of all actions and stores
     the wall time of each of them::
 
         sage: R = ZpLP(3)
