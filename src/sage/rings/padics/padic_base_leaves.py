@@ -903,13 +903,13 @@ class pAdicLatticeGeneric(pAdicGeneric):
                     for i in range(j):
                         dx.append([L[i], lattice[i,j]])
                     prec = lattice[j,j].valuation(p)
-                    y = self.element_class(self, x.value(), prec, dx=dx, dx_mode='values', check=False)
+                    y = self._element_class(self, x.value(), prec, dx=dx, dx_mode='values', check=False, reduce=False)
                     for i in indices[id(x)]:
                         ans[i] = y
                     L[j] = y
         # Now the other elements
         for x in elt_other:
-            y = self.element_class(self, x)
+            y = self._element_class(self, x)
             for i in indices[id(x)]:
                 ans[i] = y
 
@@ -921,7 +921,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
 class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
     def __init__(self, p, prec, print_mode, name, label=None, proof=False):
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), pAdicLatticeElement)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
 
     def _repr_(self, do_latex=False):
         if do_latex:
@@ -963,7 +963,7 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
 class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, name, label=None, proof=False):
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), pAdicLatticeElement)
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
 
     def _repr_(self, do_latex=False):
         if do_latex:

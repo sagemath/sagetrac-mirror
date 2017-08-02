@@ -10,7 +10,7 @@ from sage.rings.padics.lattice_precision import pRational
 
 
 class pAdicLatticeElement(pAdicGenericElement):
-    def __init__(self, parent, x, prec=None, dx=[], dx_mode='linear_combinaison', valuation=None, check=True):
+    def __init__(self, parent, x, prec=None, dx=[], dx_mode='linear_combinaison', valuation=None, check=True, reduce=True):
         self._parent = parent
         pAdicGenericElement.__init__(self, parent)
         self._precision = parent.precision()
@@ -31,9 +31,11 @@ class pAdicLatticeElement(pAdicGenericElement):
                 prec = cap
         self._precision.new_element(self, dx, bigoh=prec, dx_mode=dx_mode)
         if isinstance(x, pRational):
-            self._value = x.reduce(prec)
+            self._value = x
         else:
-            self._value = pRational(parent.prime(), QQ(x)).reduce(prec)
+            self._value = pRational(parent.prime(), QQ(x))
+        if reduce:
+            self._value = self._value.reduce(prec)
         self._approx_one = pRational(parent.prime(), 1)
         self._approx_minusone = pRational(parent.prime(), -1)
 
