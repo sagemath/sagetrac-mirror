@@ -3,7 +3,7 @@ Infinite Multivariate Polynomial Ring with Sparse Exponents
 
 ::
 
-    sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+    sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
 
 Indices can be anything (hashable, totally orderable)::
 
@@ -85,8 +85,8 @@ def monomial_factory(data):
     r"""
     TESTS::
 
-        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
-        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import monomial_factory
+        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
+        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import monomial_factory
         sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
 
         sage: mx = next(iter(x[0]._summands_))
@@ -99,7 +99,7 @@ def monomial_factory(data):
     """
     if isinstance(data, Monomial):
         return data
-    elif isinstance(data, InfinitePolynomial_sparser):
+    elif isinstance(data, InfinitePolynomial_sparse_exponents):
         summands = data._summands_
         if len(summands) != 1:
             raise ValueError('{} is not monomial'.format(data))
@@ -123,7 +123,7 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1}))
             sage: a  # indirect doctest
             x0_0^2*x0_2^3*x1_0^3*x1_3
@@ -144,7 +144,7 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a
             x0_0^2*x0_2^3*x1_0^3*x1_3
             sage: a.degree()
@@ -159,7 +159,7 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
 
             sage: x_0 = Monomial(({0: 1},))
             sage: x_1 = Monomial(({1: 1},))
@@ -246,7 +246,7 @@ class Monomial(object):
 
     def _sorting_key_revlex_(self):
         r"""
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
 
             sage: x_0 = Monomial(({0: 1},))
             sage: x_0._sorting_key_lex_()
@@ -263,8 +263,8 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='degrevlex')
             sage: x[0] + y[1]
             x_0 + y_1
@@ -275,8 +275,8 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: mx = next(iter(x[0]._summands_))
             sage: hash(mx)  # random
@@ -294,7 +294,7 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: mx = next(iter(x[0]._summands_))
             sage: mx == mx
@@ -312,7 +312,7 @@ class Monomial(object):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import Monomial
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: x_0 = Monomial(({0: 1}, {}))
             sage: x_1 = Monomial(({1: 1}, {}))
             sage: y_0 = Monomial(({}, {0: 1}))
@@ -332,9 +332,9 @@ class Monomial(object):
                   in zip(self._exponents_, other._exponents_)))
 
 
-class InfinitePolynomial_sparser(CommutativeAlgebraElement):
+class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
     def __init__(self, parent, data):
-        super(InfinitePolynomial_sparser, self).__init__(parent=parent)
+        super(InfinitePolynomial_sparse_exponents, self).__init__(parent=parent)
 
         coefficient_ring = parent.coefficient_ring()
         if isinstance(data, Monomial):
@@ -349,7 +349,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
 
     def __iter__(self):
         parent = self.parent()
-        return iter((coefficient, InfinitePolynomial_sparser(parent, monomial))
+        return iter((coefficient, InfinitePolynomial_sparse_exponents(parent, monomial))
                     for monomial, coefficient in iteritems(self._summands_))
 
     @cached_method
@@ -363,7 +363,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: 2*x[0]
             2*x_0
@@ -421,7 +421,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: x[0] == y[0], x[0] != y[0]
             (False, True)
@@ -437,7 +437,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         """
         if other is None:
             return False
-        if (isinstance(other, InfinitePolynomial_sparser)
+        if (isinstance(other, InfinitePolynomial_sparse_exponents)
             and not other._summands_):
                 return not bool(self)
         try:
@@ -452,7 +452,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: x[0] + y[0]
             x_0 + y_0
@@ -472,7 +472,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: (42/37)*x[0]
             42/37*x_0
@@ -487,7 +487,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: x[0] - x[0]
             0
@@ -512,7 +512,7 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: x[0].degree()
             1
@@ -533,11 +533,11 @@ class InfinitePolynomial_sparser(CommutativeAlgebraElement):
         return max(monomial.degree() for monomial in self._summands_)
 
 
-class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
+class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
 
     def __init__(self, parent, name, index):
         self._index = index
-        super(InfinitePolynomialGen_sparser, self).__init__(parent, name)
+        super(InfinitePolynomialGen_sparse_exponents, self).__init__(parent, name)
 
     def __hash__(self):
         return hash((self._parent, self._name, self._index))
@@ -547,12 +547,12 @@ class InfinitePolynomialGen_sparser(InfinitePolynomialGen_generic):
         monomial = Monomial(
             tuple(({i: 1} if index == self._index else {})
                   for index in range(len(self._parent._names_))))
-        return InfinitePolynomial_sparser(self._parent, monomial)
+        return InfinitePolynomial_sparse_exponents(self._parent, monomial)
 
 
-class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
+class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
-    Element = InfinitePolynomial_sparser
+    Element = InfinitePolynomial_sparse_exponents
 
     @staticmethod
     def __classcall__(cls, coefficient_ring, names,
@@ -561,7 +561,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: P
             Infinite polynomial ring in x, y over Rational Field
@@ -581,7 +581,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             from sage.categories.rings import Rings
             category = CommutativeAlgebras(Rings())
 
-        return super(InfinitePolynomialRing_sparser,
+        return super(InfinitePolynomialRing_sparse_exponents,
                      cls).__classcall__(cls, coefficient_ring, names,
                                         order=order,
                                         category=category)
@@ -590,7 +590,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
             sage: P
             Infinite polynomial ring in x, y over Rational Field
@@ -619,7 +619,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             raise ValueError('wrong names {}'.format(names))
         self._names_ = names
 
-        super(InfinitePolynomialRing_sparser, self).__init__(
+        super(InfinitePolynomialRing_sparse_exponents, self).__init__(
             base_ring=coefficient_ring,
             category=category)
 
@@ -645,7 +645,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         r"""
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')  # indirect doctest
             sage: x
             x_*
@@ -656,7 +656,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
             sage: y[42]
             y_42
         """
-        return tuple(InfinitePolynomialGen_sparser(self, name, index)
+        return tuple(InfinitePolynomialGen_sparse_exponents(self, name, index)
                      for index, name in enumerate(self._names_))
 
     def gen(self, n=0):
@@ -679,7 +679,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x> = InfinitePolynomialRing(QQ, order='deglex')
             sage: monomial = next(iter(x[0]._summands_))
             sage: P._sorting_key_monomial_(monomial)
@@ -702,7 +702,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         r"""
         TESTS::
 
-            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparser import InfinitePolynomialRing
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
 
             sage: P(x[0])
@@ -753,7 +753,7 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
         if isinstance(data, dict):
             return self.element_class(self, data)
 
-        elif isinstance(data, InfinitePolynomial_sparser):
+        elif isinstance(data, InfinitePolynomial_sparse_exponents):
             if self.ngens() == 1 and data.parent().ngens() == 1:
                 return self.element_class(self, data._summands_)
             else:
@@ -783,4 +783,4 @@ class InfinitePolynomialRing_sparser(Algebra, UniqueRepresentation):
 
 
 def InfinitePolynomialRing(*args, **kwds):
-    return InfinitePolynomialRing_sparser(*args, **kwds)
+    return InfinitePolynomialRing_sparse_exponents(*args, **kwds)
