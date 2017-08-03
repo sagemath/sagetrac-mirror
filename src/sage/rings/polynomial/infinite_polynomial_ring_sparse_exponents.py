@@ -84,6 +84,26 @@ from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialGen
 
 
 def updated_by_adding_values(D, E):
+    r"""
+    Return a copy of dictionary ``D`` which is updated from
+    dictionary/iterable ``E`` by adding values.
+
+    INPUT:
+
+    - ``D`` -- dictionary
+
+    - ``E`` -- dictionary
+
+    OUTPUT:
+
+    dictionary
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import updated_by_adding_values
+        sage: updated_by_adding_values({1: 2, 3: 4}, {2: 5, 3: 6})
+        {1: 2, 2: 5, 3: 10}
+    """
     from copy import copy
     DD = copy(D)
     for key, value in iteritems(E):
@@ -98,7 +118,17 @@ def updated_by_adding_values(D, E):
 
 def monomial_factory(data):
     r"""
-    TESTS::
+    Convert ``data`` to :class:`Monomial`.
+
+    INPUT:
+
+    - ``data`` -- object
+
+    OUTPUT:
+
+    :class:`Monomial`
+
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
         sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import monomial_factory
@@ -127,8 +157,24 @@ def monomial_factory(data):
 
 
 class Monomial(object):
+    r"""
+    Datastructure of a monomial in
+    :class:`InfinitePolynomialRing_sparse_exponents`.
+    """
 
     def __init__(self, exponents):
+        r"""
+        INPUT:
+
+        - ``exponents`` -- tuple (or other iterable) of
+          dictionaries mapping indices to exponents
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
+            sage: Monomial(({0: 2, 2: 3}, {0: 3, 3: 1}))
+            x0_0^2*x0_2^3*x1_0^3*x1_3
+        """
         self._exponents_ = tuple({index: int(exponent)
                                   for index, exponent in iteritems(component)
                                   if exponent != 0}
@@ -136,6 +182,18 @@ class Monomial(object):
 
     def __repr__(self, names=None):
         r"""
+        Return a representation string of this monomial.
+
+        INPUT:
+
+        - ``names`` -- tuple (or other iterable) of strings
+
+          If ``names`` is ``None``, then ``'x0'``, ``'x1'``, etc. are used.
+
+        OUTPUT:
+
+        string
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
@@ -157,6 +215,12 @@ class Monomial(object):
     @cached_method
     def degree(self):
         r"""
+        Return the degree of this monomial.
+
+        OUTPUT:
+
+        nonnegative integer
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
@@ -172,6 +236,12 @@ class Monomial(object):
     @cached_method
     def _sorting_key_lex_(self):
         r"""
+        Return a key for sorting in lexicographic ordering.
+
+        OUTPUT:
+
+        tuple
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
@@ -261,6 +331,14 @@ class Monomial(object):
 
     def _sorting_key_revlex_(self):
         r"""
+        Return a key for sorting in reverse lexicographic ordering.
+
+        OUTPUT:
+
+        tuple
+
+        TESTS::
+
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
 
             sage: x_0 = Monomial(({0: 1},))
@@ -272,10 +350,31 @@ class Monomial(object):
         return tuple(tuple(-t for t in T) for T in self._sorting_key_lex_())
 
     def _sorting_key_deglex_(self):
+        r"""
+        Return a key for sorting in degree lexicographic ordering.
+
+        OUTPUT:
+
+        tuple
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
+
+            sage: x_0 = Monomial(({0: 1},))
+            sage: x_0._sorting_key_deglex_()
+            (1, ((0, 1),))
+        """
         return (self.degree(), self._sorting_key_lex_())
 
     def _sorting_key_degrevlex_(self):
         r"""
+        Return a key for sorting in degree reverse lexicographic ordering.
+
+        OUTPUT:
+
+        tuple
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
@@ -288,6 +387,12 @@ class Monomial(object):
 
     def __hash__(self):
         r"""
+        Return a hash value of this monomial.
+
+        OUTPUT:
+
+        integer
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
@@ -307,6 +412,16 @@ class Monomial(object):
 
     def __eq__(self, other):
         r"""
+        Return whether this monomial equals the monomial ``other``.
+
+        INPUT:
+
+        - ``other`` -- :class:`Monomial`
+
+        OUTPUT:
+
+        A boolean.
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
@@ -321,10 +436,42 @@ class Monomial(object):
         return self._sorting_key_lex_() == other._sorting_key_lex_()
 
     def __ne__(self, other):
+        r"""
+        Return whether this monomial does not equal the monomial ``other``.
+
+        INPUT:
+
+        - ``other`` -- :class:`Monomial`
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: mx = next(iter(x[0]._summands_))
+            sage: mx != mx
+            False
+            sage: my = next(iter(y[0]._summands_))
+            sage: mx != my
+            True
+        """
         return not self.__eq__(other)
 
     def __mul__(self, other):
         r"""
+        Return the product of this monomial with the monomial ``other``.
+
+        INPUT:
+
+        - ``other`` -- :class:`Monomial`
+
+        OUTPUT:
+
+        :class:`Monomial`
+
         TESTS::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
