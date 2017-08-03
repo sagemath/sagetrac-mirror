@@ -10,6 +10,9 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
 cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
     cpdef ModuleElement __u
     cdef long __n
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cpdef long number_of_terms(self)
 
 cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
@@ -17,5 +20,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     cdef MPolynomial _poly
     cdef PolyDict _prod
     cdef _new_c(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cpdef long number_of_terms(self)
 

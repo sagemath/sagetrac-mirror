@@ -5,5 +5,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
     cdef GEN val        # PARI t_FFELT describing the element
     cdef void* chunk    # memory block containing the data
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cdef void construct(FiniteFieldElement_pari_ffelt self, GEN g)
     cdef void construct_from(FiniteFieldElement_pari_ffelt self, object x) except *

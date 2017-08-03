@@ -33,6 +33,9 @@ cdef class CRElement(pAdicTemplateElement):
     cdef long relprec
 
     cdef CRElement _new_c(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cdef int _normalize(self) except -1
 
 cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):

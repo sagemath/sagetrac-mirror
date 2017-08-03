@@ -6,3 +6,5 @@ cdef class PowerSeries_mpoly(PowerSeries):
     cdef object __poly
     cdef object __list
     cdef bint _truncated
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)

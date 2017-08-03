@@ -12,7 +12,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     # cdef'd methods
     cdef _new_c(self, object v)
-
+    cpdef _add_(self, other)
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     # data
@@ -20,4 +20,5 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     # cdef'd methods
     cdef _new_c(self, object v)
+    cpdef _add_(self, other)
 

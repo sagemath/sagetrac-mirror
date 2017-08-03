@@ -97,7 +97,7 @@ cdef class GurobiBackend(GenericBackend):
     cdef GRBenv * env_master
     cdef GRBmodel * model
     cpdef __copy__(self)
-
+    cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, name=*, coefficients=*) except -1
     cdef int num_vars
 
 

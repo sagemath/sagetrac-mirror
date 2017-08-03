@@ -32,6 +32,8 @@ cdef class FPElement(pAdicTemplateElement):
     cdef long ordp
 
     cdef FPElement _new_c(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cdef int _normalize(self) except -1
     cdef int _set_infinity(self) except -1
 

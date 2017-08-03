@@ -5,6 +5,7 @@ from sage.structure.parent cimport Parent
 cdef class Vector_rational_dense(FreeModuleElement):
     cdef mpq_t* _entries
     cdef int _init(self, Py_ssize_t degree, Parent parent) except -1
+    cpdef _add_(self, other)
 
     cdef inline Vector_rational_dense _new_c(self):
         cdef type t = type(self)

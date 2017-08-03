@@ -8,3 +8,4 @@ cdef class Vector_mod2_dense(FreeModuleElement):
 
     cdef _new_c(self)
     cdef _init(self, Py_ssize_t degree, parent)
+    cpdef _add_(self, other)
