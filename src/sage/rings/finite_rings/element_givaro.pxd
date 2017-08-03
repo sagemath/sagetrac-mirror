@@ -63,6 +63,8 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
     cdef Cache_givaro _cache
     cdef object _multiplicative_order
     cdef FiniteField_givaroElement _new_c(self, int value)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
 cdef class Cache_givaro(SageObject):
     cdef GivaroGfq *objectptr # C++ object

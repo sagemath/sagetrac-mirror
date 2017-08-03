@@ -22,3 +22,5 @@ cdef class InteractiveLPBackend(GenericBackend):
     cpdef dictionary(self)
 
     cpdef interactive_lp_problem(self)
+
+    cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, name=*, coefficients=*) except -1

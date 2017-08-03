@@ -3,3 +3,5 @@ from power_series_ring_element cimport PowerSeries
 
 cdef class PowerSeries_pari(PowerSeries):
     cdef pari_gen g
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)

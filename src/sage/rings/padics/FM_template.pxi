@@ -795,7 +795,7 @@ cdef class FMElement(pAdicTemplateElement):
         # for backward compatibility
         return cvaluation(self.value, self.prime_pow.prec_cap, self.prime_pow)
 
-    cpdef val_unit(self):
+    cpdef val_unit(self, p=None):
         """
         Returns a 2-tuple, the first element set to the valuation of
         self, and the second to the unit part of self.
@@ -811,6 +811,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: b.val_unit()
             (5, O(5^5))
         """
+        if p is not None and p != self.parent().prime():
+            raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         cdef FMElement unit = self._new_c()
         cdef Integer valuation = Integer.__new__(Integer)
         mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.prec_cap, self.prime_pow))

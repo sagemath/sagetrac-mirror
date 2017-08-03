@@ -5,6 +5,8 @@ from sage.structure.element cimport RingElement, ModuleElement
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     cdef ZZ_pX_c value
     cdef pAdicZZpXFMElement _new_c(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cdef pAdicZZpXFMElement _lshift_c(self, long n)
     cdef pAdicZZpXFMElement _rshift_c(self, long n)
 

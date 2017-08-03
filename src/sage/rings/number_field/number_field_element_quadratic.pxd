@@ -8,6 +8,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cdef mpz_t a, b, denom
     cdef Integer D
     cdef bint standard_embedding
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cpdef NumberFieldElement galois_conjugate(self)
     cdef bint is_sqrt_disc(self)
 

@@ -18,3 +18,5 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
     cdef GF2E_c x
     cdef Cache_ntl_gf2e _cache
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)

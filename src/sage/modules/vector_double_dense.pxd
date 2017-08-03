@@ -9,4 +9,5 @@ cdef class Vector_double_dense(FreeModuleElement):
     cdef object _sage_vector_dtype
     cdef numpy.ndarray _vector_numpy
     cdef Vector_double_dense _new(self, numpy.ndarray vector_numpy)
+    cpdef _add_(self, other)
     cdef _replace_self_with_numpy(self, numpy.ndarray numpy_array)

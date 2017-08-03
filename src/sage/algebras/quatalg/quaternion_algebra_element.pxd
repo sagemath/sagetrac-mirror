@@ -17,12 +17,18 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
     cdef object x, y, z, w
         # we will assume that our element has the representation
         # x + yi + zj + wk, where i^2 = a, j^2 = b
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
 cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstract):
     cdef fmpz_poly_t x, y, z, w, a, b, modulus
     cdef mpz_t d
     cdef inline canonicalize(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
 cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abstract):
     cdef mpz_t x, y, z, w, a, b, d
     cdef inline canonicalize(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
