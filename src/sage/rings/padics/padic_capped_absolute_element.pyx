@@ -285,7 +285,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             mpz_clear(ppow_minus_one)
             return infinity
 
-    def _log_binary_splitting(self, aprec, mina=0):
+    def _log_binary_splitting(self, aprec):
         r"""
         Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
@@ -297,9 +297,6 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         - ``aprec`` -- an integer, the precision to which the result is
           correct. ``aprec`` must not exceed the precision cap of the ring over
           which this element is defined.
-        - ``mina`` -- an integer (default: 0), the series will check `n` up to
-          this valuation (and beyond) to see if they can contribute to the
-          series.
 
         NOTE::
 
