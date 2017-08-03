@@ -465,6 +465,8 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
         #m = self.parent().m()-1
         #w1 = b1.weight()[m]+b1.weight()[m+1]
         #w2 = b2.weight()[m]+b2.weight()[m+1]
+        w = self.weight()
+        (a,b,c,d) = w
         
         # Proposition 2.8.ii.a
         if i < 0:
@@ -490,8 +492,8 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 
         # Proposition 2.8.ii.c
         elif i == 0:
-            #if w1+w2==0:
-            #    return None
+            if c==-b or d==-a or c==-a-1 or d==-b+1:
+                return None
             if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
                 x = b1.f(i)
                 if x is not None:
@@ -506,6 +508,8 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
         #m = self.parent().m()-1
         #w1 = b1.weight()[m]+b1.weight()[m+1]
         #w2 = b2.weight()[m]+b2.weight()[m+1]
+        w = self.weight()
+        (a,b,c,d) = w
 
         # Proposition 2.8.ii.a
         if i < 0:
@@ -531,8 +535,8 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 
         # Proposition 2.8.ii.c
         elif i == 0:
-            #if w1+w2==0:
-            #    return None
+            if c==-b or d==-a or c==-a-1 or d==-b+1:
+                return None
             if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
                 x = b1.e(i)
                 if x is not None:
