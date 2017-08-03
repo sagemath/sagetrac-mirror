@@ -83,7 +83,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialGen as InfinitePolynomialGen_generic
 
 
-def updated_by_adding_coefficients(D, E):
+def updated_by_adding_values(D, E):
     from copy import copy
     DD = copy(D)
     for key, value in iteritems(E):
@@ -342,7 +342,7 @@ class Monomial(object):
             x0_0*x1_1
         """
         return Monomial(
-            tuple(updated_by_adding_coefficients(scomponent, ocomponent)
+            tuple(updated_by_adding_values(scomponent, ocomponent)
                   for scomponent, ocomponent
                   in zip(self._exponents_, other._exponents_)))
 
@@ -479,7 +479,7 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
             sage: x[0] + 1
             x_0 + 1
         """
-        summands = updated_by_adding_coefficients(
+        summands = updated_by_adding_values(
             self._summands_, other._summands_)
         return self.parent().element_class(self.parent(), summands)
 
