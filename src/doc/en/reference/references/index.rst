@@ -1712,7 +1712,7 @@ REFERENCES:
 .. [Voi2012] \J. Voight. Identifying the matrix ring: algorithms for
              quaternion algebras and quadratic forms, to appear.
 
-.. [VY2017] T. Vaccon, K.Yokoyama, *A Tropical F5 Algorithm*, 
+.. [VY2017] \T. Vaccon, K.Yokoyama, *A Tropical F5 Algorithm*, 
             proceedings of ISSAC 2017.
 
 .. [VW1994] Leonard Van Wyk. *Graph groups are biautomatic*. J. Pure

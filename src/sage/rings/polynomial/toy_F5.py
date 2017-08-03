@@ -3,7 +3,7 @@
 
 Educational Versions of the F5 Algorithm to compute Groebner bases.
 
-We have followed [Fau02], [AP11] [EF17] and [VY17].
+We have followed [Fau02]_, [AP11]_, [EF17]_ and [VY17]_.
 
 No attempt was made to optimize the algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
@@ -126,10 +126,10 @@ The results are correct::
 
 REFERENCES:
 
-.. [F02] Jean-Charles Faugère. *A new efficient algorithm for computing Gröbner bases without reduction to zero (F5)*.  In Proceedings of the 2002 international symposium on Symbolic and algebraic computation, ISSAC '02, pages 75-83, New York, NY, USA, 2002. ACM. 
-.. [AP11] Alberto Arri and John Perry. *The F5 criterion revised*.  In Journal of Symbolic Computation, 2011. Corrigendum in 2017.
-.. [EF17] Christian Eder and Jean-Charles Faugère. *A survey on signature-based algorithms for computing Gröbner bases*.  In Journal of Symbolic Computation, 2017.
-.. [VY17] T. Vaccon, K.Yokoyama, A Tropical F5 Algorithm, proceedings of ISSAC 2017.
+- [Fau2002]_
+- [AP2011]_
+- [EF2017]_
+- [VY2017]_
 
 AUTHOR:
 
