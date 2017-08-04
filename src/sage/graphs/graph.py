@@ -2793,6 +2793,17 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: k(=-3) must be a nonnegative integer
+
+        :trac:`23546`::
+
+            sage: g = Graph({0:[1,2], 3:[4,5], 4:[5]})
+            sage: g.treewidth(algorithm='sage')
+            2
+            sage: t = g.treewidth(certificate=True, algorithm='sage')
+            sage: t.is_tree()
+            True
+            sage: max(len(u) for u in t.vertex_iterator())
+            3
         """
         g = self
 
@@ -2848,9 +2859,10 @@ class Graph(GenericGraph):
                 else:
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
-                return Graph(sum([cc.treewidth(certificate=True).edges(labels=False)
-                                  for cc in g.connected_components_subgraphs()],[]),
-                             name="Tree decomposition")
+                TT = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
+                T = Graph(sum([h.edges(labels=False) for h in TT],[]), name="Tree decomposition")
+                T.add_path([next(h.vertex_iterator()) for h in TT])
+                return T
 
         # Forcing k to be defined
         if k is None:
