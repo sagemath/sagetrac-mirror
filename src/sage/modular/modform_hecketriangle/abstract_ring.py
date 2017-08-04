@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -22,8 +23,8 @@ from sage.algebras.free_algebra import FreeAlgebra
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
-from constructor import FormsRing, FormsSpace
-from series_constructor import MFSeriesConstructor
+from .constructor import FormsRing, FormsSpace
+from .series_constructor import MFSeriesConstructor
 
 
 # Maybe replace Parent by just SageObject?
@@ -35,10 +36,10 @@ class FormsRing_abstract(Parent):
     instantiate one of the derived classes of this class.
     """
 
-    from graded_ring_element import FormsRingElement
+    from .graded_ring_element import FormsRingElement
     Element = FormsRingElement
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     def __init__(self, group, base_ring, red_hom, n):
@@ -161,7 +162,7 @@ class FormsRing_abstract(Parent):
             ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
-        from graded_ring_element import FormsRingElement
+        from .graded_ring_element import FormsRingElement
         if isinstance(el, FormsRingElement):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
                 el_f = el._reduce_d()._rat
@@ -219,8 +220,8 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        from space import FormsSpace_abstract
-        from functors import _common_subgroup
+        from .space import FormsSpace_abstract
+        from .functors import _common_subgroup
         if (    isinstance(S, FormsRing_abstract)\
             and self._group         == _common_subgroup(self._group, S._group)\
             and self._analytic_type >= S._analytic_type\
@@ -438,7 +439,7 @@ class FormsRing_abstract(Parent):
             CuspForms(n=3, k=12, ep=1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.extend_by(analytic_type)
@@ -485,14 +486,14 @@ class FormsRing_abstract(Parent):
             ZeroForms(n=3, k=6, ep=-1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.reduce_to(analytic_type)
 
-        if (degree == None and not self.is_homogeneous()):
+        if (degree is None and not self.is_homogeneous()):
             return FormsRing(analytic_type, group=self.group(), base_ring=self.base_ring(), red_hom=self.has_reduce_hom())
-        elif (degree == None):
+        elif (degree is None):
             return FormsSpace(analytic_type, group=self.group(), base_ring=self.base_ring(), k=self.weight(), ep=self.ep())
         else:
             (weight, ep) = degree
@@ -527,7 +528,7 @@ class FormsRing_abstract(Parent):
             (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
         """
 
-        from functors import FormsRingFunctor, BaseFacade
+        from .functors import FormsRingFunctor, BaseFacade
         return FormsRingFunctor(self._analytic_type, self._group, self._red_hom), BaseFacade(self._base_ring)
 
     @cached_method
@@ -892,7 +893,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return self._weight != None
+        return self._weight is not None
 
     def is_modular(self):
         r"""

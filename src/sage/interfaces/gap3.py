@@ -12,7 +12,7 @@ AUTHORS:
 
     The experimental package for GAP3 is Jean Michel's pre-packaged GAP3,
     which is a minimal GAP3 distribution containing packages that have
-    no equivalent in GAP4, see :trac:20107 and also 
+    no equivalent in GAP4, see :trac:`20107` and also 
 
         https://webusers.imj-prg.fr/~jean.michel/gap3/
 
@@ -226,6 +226,7 @@ Controlling variable names used by GAP3::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import Expect
@@ -310,7 +311,7 @@ class Gap3(Gap_generic):
         Expect.__init__(self,
              name='gap3',
              prompt='gap> ',
-             command=self.__gap3_command_string + " -p -y 500",
+             command=self.__gap3_command_string + " -p -b -y 500",
              server=None,
              ulimit=None,
              script_subdirectory=None,
@@ -326,6 +327,8 @@ class Gap3(Gap_generic):
 
     def _start(self):
         r"""
+        Initialize the interface and start gap3.
+
         EXAMPLES::
 
             sage: gap3 = Gap3()                            #optional - gap3
@@ -334,6 +337,11 @@ class Gap3(Gap_generic):
             sage: gap3._start()                            #optional - gap3
             sage: gap3.is_running()                        #optional - gap3
             True
+
+        Check that :trac:`23142` is fixed::
+
+            sage: gap3.eval("1+1")                         #optional - gap3
+            '2'
             sage: gap3.quit()                              #optional - gap3
         """
         Expect._start(self)
@@ -344,6 +352,7 @@ class Gap3(Gap_generic):
             '@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+', '@e','@c',
             '@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
         self._compiled_small_pattern = self._expect.compile_pattern_list('@J')
+        self._expect.expect("@i")
 
     def _object_class(self):
         r"""
@@ -488,7 +497,7 @@ class Gap3(Gap_generic):
             from sage.misc.pager import pager as pag
             pag()(helptext)
         else:
-            print helptext
+            print(helptext)
 
     def cputime(self, t=None):
         r"""
@@ -556,13 +565,13 @@ class Gap3(Gap_generic):
             sage: gap3('3+2')
             Traceback (most recent call last):
             ...
-            TypeError: unable to start gap3 because the command '/wrongpath/gap3 -p -y 500' failed: The command was not found or was not executable: /wrongpath/gap3.
+            TypeError: unable to start gap3 because the command '/wrongpath/gap3 ...' failed: The command was not found or was not executable: /wrongpath/gap3.
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
                 - If you do not have GAP3 installed, then you must either...
-            sage: print gap3._install_hints()
+            sage: print(gap3._install_hints())
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
@@ -574,7 +583,7 @@ class Gap3(Gap_generic):
     have GAP3 installed, or because it is not configured correctly.
 
     - If you do not have GAP3 installed, then you must either install
-      the optional package, see :trac:20107, or you download and
+      the optional package, see :trac:`20107`, or you download and
       install it yourself.
       Here are two other ways to obtain GAP3:
 
