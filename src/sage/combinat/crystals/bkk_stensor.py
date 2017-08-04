@@ -497,28 +497,72 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
                     return self.parent()(x, b2)
 
         # Proposition 2.8.ii.c
+        # grand unified rule
         elif i == 0:
-            if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
+            m = self.parent().cartan_type().m-1
+            w1 = b1.weight()
+            w2 = b2.weight()
+            if w1[m]+w1[m+1]>0 or w2[m]+w2[m+1]==0:
                 x = b1.f(i)
                 if x is not None:
-                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
-                        return None
-                    else:
-                        return self.parent()(x, b2)
-                #    return self.parent()(x, b2)
-            else:
+                    return self.parent()(x, b2)
+            elif w2[m]+w2[m+1]<0 or w1[m]+w1[m+1]==0:
                 y = b2.f(i)
                 if y is not None:
-                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
-                        return None
-                    else:
-                        return self.parent()(b1, y)
-                    #return self.parent()(b1, y)
+                    return self.parent()(b1, y)
+
+
+        # Proposition 2.8.ii.c
+        # semisimple rule
+        #elif i == 0:
+        #    m = self.parent().cartan_type().m-1
+        #    w1 = b1.weight()
+        #    w2 = b2.weight()
+        #    if (sign(w1[m]+w1[m+1])>0 and sign(w2[m]+w2[m+1])<=0) or (sign(w1[m]+w1[m+1])<=0 and sign(w2[m]+w2[m+1])>0):
+        #        return None
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
+        #        x = b1.f(i)
+        #        if x is not None:
+        #            return self.parent()(x, b2)
+        #    else:
+        #        y = b2.f(i)
+        #        if y is not None:
+        #            return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.c
+        # BKK rule
+        #elif i == 0:
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
+        #        x = b1.f(i)
+        #        if x is not None:
+        #            return self.parent()(x, b2)
+        #    else:
+        #        y = b2.f(i)
+        #        if y is not None:
+        #            return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.c
+        # This implements the cutting rule using atypicality
+        #elif i == 0:
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
+        #        x = b1.f(i)
+        #        if x is not None:
+        #            if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
+        #                return None
+        #            else:
+        #                return self.parent()(x, b2)
+        #        #    return self.parent()(x, b2)
+        #    else:
+        #        y = b2.f(i)
+        #        if y is not None:
+        #            if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
+        #                return None
+        #            else:
+        #                return self.parent()(b1, y)
+        #            #return self.parent()(b1, y)
 
     def e(self, i):
         (b1, b2) = self
-        if b1 is None or b2 is None:
-            return None
 
         # Proposition 2.8.ii.a
         if i < 0:
@@ -543,23 +587,69 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
                     return self.parent()(x, b2)
 
         # Proposition 2.8.ii.c
+        # grand unified rule
         elif i == 0:
-            if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
+            m = self.parent().cartan_type().m-1
+            w1 = b1.weight()
+            w2 = b2.weight()
+            if w1[m]+w1[m+1]>0 or w2[m]+w2[m+1]==0:
                 x = b1.e(i)
                 if x is not None:
-                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
-                        return None
-                    else:
-                        return self.parent()(x, b2)
-                    #return self.parent()(x, b2)
-            else:
+                    return self.parent()(x, b2)
+            elif w2[m]+w2[m+1]<0 or w1[m]+w1[m+1]==0:
                 y = b2.e(i)
                 if y is not None:
-                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
-                        return None
-                    else:
-                        return self.parent()(b1, y)
-                    #return self.parent()(b1, y)
+                    return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.c
+        # semisimple rule
+        #elif i == 0:
+        #    m = self.parent().cartan_type().m-1
+        #    w1 = b1.weight()
+        #    w2 = b2.weight()
+        #    if (sign(w1[m]+w1[m+1])>0 and sign(w2[m]+w2[m+1])<=0) or (sign(w1[m]+w1[m+1])<=0 and sign(w2[m]+w2[m+1])>0):
+        #        return None
+        #elif i == 0:
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
+        #        x = b1.e(i)
+        #        if x is not None:
+        #            return self.parent()(x, b2)
+        #    else:
+        #        y = b2.e(i)
+        #        if y is not None:
+        #            return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.c
+        # This is the usual BKK rule
+        #elif i == 0:
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
+        #        x = b1.e(i)
+        #        if x is not None:
+        #            return self.parent()(x, b2)
+        #    else:
+        #        y = b2.e(i)
+        #        if y is not None:
+        #            return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.c
+        # This rule implements the tensor product using cutting via atypicality
+        #elif i == 0:
+        #    if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
+        #        x = b1.e(i)
+        #        if x is not None:
+        #            if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
+        #                return None
+        #            else:
+        #                return self.parent()(x, b2)
+        #            #return self.parent()(x, b2)
+        #    else:
+        #        y = b2.e(i)
+        #        if y is not None:
+        #            if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
+        #                return None
+        #            else:
+        #                return self.parent()(b1, y)
+        #            #return self.parent()(b1, y)
 
     def epsilon(self, i):
         string_length = 0
