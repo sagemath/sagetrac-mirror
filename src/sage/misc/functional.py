@@ -1614,6 +1614,35 @@ def squarefree_part(x):
             n *= p
     return n * F.unit()
 
+def trace(x, *args, **kwds):
+    """
+    Return the trace of ``x``.
+
+    EXAMPLES::
+
+        sage: M = matrix(2,[1,2,3,4])
+        sage: M.trace()
+        5
+        sage: trace(M)
+        5
+
+    .. NOTE::
+
+        Using the :func:`trace` function to trace code execution is
+        now deprecated. Use :func:`~sage.misc.trace.trace_execution`
+        instead.
+    """
+    try:
+        return x.trace(*args, **kwds)
+    except AttributeError:
+        if isinstance(x, str):
+            from sage.misc.superseded import deprecation
+            from sage.misc.trace import trace_execution
+            deprecation(9704, "Please use the trace_execution() function to trace code execution.")
+            trace_execution(x, *args, **kwds)
+        else:
+            raise
+
 def transpose(x):
     """
     Return the transpose of ``x``.

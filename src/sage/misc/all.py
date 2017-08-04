@@ -136,13 +136,14 @@ from .functional import (additive_order,
                         squarefree_part,
                         symbolic_sum as sum,
                         symbolic_prod as product,
+                        trace,
                         transpose,
                         )
 
 
 from .latex import LatexExpr, latex, view, pretty_print_default
 
-from .trace import trace
+from .trace import trace_execution
 
 from .constant_function import ConstantFunction
 
