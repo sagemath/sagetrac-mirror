@@ -47,13 +47,16 @@ class RegularSuperCrystals(Category_singleton):
             from sage.graphs.digraph import DiGraph
             from sage.misc.latex import LatexExpr
             from sage.combinat.root_system.cartan_type import CartanType
+            from sage.combinat.crystals.bkk_stensor import atypical
 
             d = {x: {} for x in self}
             for i in self.index_set():
                 for x in d:
                     y = x.f(i)
                     if y is not None:
-                        d[x][y] = i
+                        if not (i==0 and (atypical(x)>0 and atypical(x) == atypical(y))):
+                            d[x][y] = i
+                        #d[x][y] = i
             G = DiGraph(d, format='dict_of_dicts')
 
             def edge_options((u, v, l)):
@@ -141,10 +144,12 @@ class RegularSuperCrystals(Category_singleton):
                 raise ValueError("all crystals must be of the same Cartan type")
             return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
-        def character(self):
+        def character(self, subset=None):
+            if subset is None:
+                subset = self
             from sage.rings.all import ZZ
             A = self.weight_lattice_realization().algebra(ZZ)
-            return A.sum(A(x.weight()) for x in self)
+            return A.sum(A(x.weight()) for x in subset)
 
     class ElementMethods:
         def epsilon(self, i):
