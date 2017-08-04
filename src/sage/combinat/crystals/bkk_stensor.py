@@ -457,17 +457,23 @@ class TensorProductOfBKKCrystals(TensorProductOfCrystals):
         for x in cartesian_product([c.list() for c in self.crystals]):
             yield self(*x)
 
+    def rho(self):
+        v = self.an_element().weight().change_ring(QQ)
+        n = Rational(self.n())
+        m = Rational(self.m())
+        for i in range(m):
+            v[i] = m-(i+1)+1-(m+n+1)/2
+        for j in range(n):
+            v[m+j] = -(j+1)+(m+n+1)/2
+        return v
+
+
 class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 
     def f(self, i):
         # FIXME: generalize this to deal with more than two tensor factors
         (b1, b2) = self
-        #m = self.parent().m()-1
-        #w1 = b1.weight()[m]+b1.weight()[m+1]
-        #w2 = b2.weight()[m]+b2.weight()[m+1]
-        w = self.weight()
-        (a,b,c,d) = w
-        
+         
         # Proposition 2.8.ii.a
         if i < 0:
             if b1.phi(i) > b2.epsilon(i):
@@ -492,24 +498,27 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 
         # Proposition 2.8.ii.c
         elif i == 0:
-            if c==-b or d==-a or c==-a-1 or d==-b+1:
-                return None
             if b1.phi(i)+b1.epsilon(i) >= b2.phi(i) + b2.epsilon(i):
                 x = b1.f(i)
                 if x is not None:
-                    return self.parent()(x, b2)
+                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
+                        return None
+                    else:
+                        return self.parent()(x, b2)
+                #    return self.parent()(x, b2)
             else:
                 y = b2.f(i)
                 if y is not None:
-                    return self.parent()(b1, y)
+                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
+                        return None
+                    else:
+                        return self.parent()(b1, y)
+                    #return self.parent()(b1, y)
 
     def e(self, i):
         (b1, b2) = self
-        #m = self.parent().m()-1
-        #w1 = b1.weight()[m]+b1.weight()[m+1]
-        #w2 = b2.weight()[m]+b2.weight()[m+1]
-        w = self.weight()
-        (a,b,c,d) = w
+        if b1 is None or b2 is None:
+            return None
 
         # Proposition 2.8.ii.a
         if i < 0:
@@ -535,16 +544,22 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 
         # Proposition 2.8.ii.c
         elif i == 0:
-            if c==-b or d==-a or c==-a-1 or d==-b+1:
-                return None
             if b1.phi(i)+b1.epsilon(i) >= b2.phi(i)+b2.epsilon(i):
                 x = b1.e(i)
                 if x is not None:
-                    return self.parent()(x, b2)
+                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(x, b2)):
+                        return None
+                    else:
+                        return self.parent()(x, b2)
+                    #return self.parent()(x, b2)
             else:
                 y = b2.e(i)
                 if y is not None:
-                    return self.parent()(b1, y)
+                    if atypical(self)>0 and atypical(self) == atypical(self.parent()(b1, y)):
+                        return None
+                    else:
+                        return self.parent()(b1, y)
+                    #return self.parent()(b1, y)
 
     def epsilon(self, i):
         string_length = 0
@@ -570,3 +585,30 @@ class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
         return sum(x.weight() for x in self)
 
 TensorProductOfBKKCrystals.Element = TensorProductOfBKKCrystalsElement
+
+def rho(m,n):
+    """
+    EXAMPLES::
+
+        sage: rho(3,2)
+        (0, -1, -2, 2, 1)
+    """
+    from sage.modules.free_module_element import vector
+    from sage.rings.all import QQ
+    v = [0]*(m+n)
+    for i in range(m):
+        v[i] = m-(i+1)+1-(m+n+1)/QQ(2)
+    for j in range(n):
+        v[m+j] = -(j+1)+(m+n+1)/QQ(2)
+    return vector(v)
+
+def atypical(t):
+    m = t.parent().cartan_type().m+1
+    n = t.parent().cartan_type().n+1
+    wr = t.weight() + rho(m,n)
+    l = 0
+    for k in range(m):
+        for j in range(n):
+            if wr[k]==-wr[j+m]:
+                l+=1
+    return l
