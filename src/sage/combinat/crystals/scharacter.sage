@@ -151,6 +151,29 @@ class SuperWeylCharacterRing(WeylCharacterRing):
             print "not implemented for atypicality >1."
             return None
             
-        
+    def irreducible_socle(self, lam):
+        """
+        If lam is a dominant weight with atypicality 1, we observe
+        that the kernel of the canonical map K(lam) -> L(lam)
+        from the Kac module to its irreducible quotient is
+        often irreducible. I this is so, this method
+        attempts to find mu such that we have a short
+        exact sequence L(mu) -> K(lam) -> L(lam).
+
+        sage: G0=SuperWeylCharacterRing(2,2)
+        sage: G0.atypicality([2,1,1,0])
+        1
+        sage: G0.irreducible_socle([2,1,1,0])
+        (2, 0, 1, 1)
+        sage: G0.irreducible_socle([2,0,1,1])
+        (2, -2, 2, 2)
+        """
+        f = self.KacCharacter(lam)-self.character(lam)
+        for mu in f.monomial_coefficients().keys():
+            if f == self.character(mu):
+                return mu
+        print "irreducible socle not found."
+        return None
+
 
 
