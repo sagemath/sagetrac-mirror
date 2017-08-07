@@ -43,6 +43,10 @@ side is assumed to be the ground set, unless the ground set is specified::
     sage: M = TransversalMatroid(B); M.groundset()
     frozenset({0, 1, 2, 3})
 
+AUTHORS:
+
+- Zachary Gershkoff (2017-08-07): initial version
+
 REFERENCES
 ==========
 
@@ -51,7 +55,15 @@ REFERENCES
 Methods
 =======
 """
-
+#*****************************************************************************
+#       Copyright (C) 2017 Zachary Gershkoff <zgersh2@lsu.edu>
+#
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from __future__ import print_function, absolute_import
 
 from sage.matroids.matroid cimport Matroid
