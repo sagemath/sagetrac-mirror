@@ -932,7 +932,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # A lattice that is not join-distributive is either not upper
         # semimodular or contains a diamond as a covering sublattice.
         result = self.is_upper_semimodular(certificate=True)
-        if result[0] == False:
+        if not result[0]:
             return (False, self.meet(result[1]))
 
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
@@ -1015,7 +1015,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # A lattice that is not meet-distributive is either not lower
         # semimodular or contains a diamond as a covering sublattice.
         result = self.is_lower_semimodular(certificate=True)
-        if result[0] == False:
+        if not result[0]:
             return (False, self.join(result[1]))
 
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
@@ -1626,6 +1626,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset(Poset(G).with_bounds())
             sage: L.is_relatively_complemented()
             False
+
+        Confirm that :trac:`22292` is fixed::
+
+            sage: L = LatticePoset(DiGraph('IYOS`G?CE?@?C?_@??'))
+            sage: L.is_relatively_complemented(certificate=True)
+            (False, (7, 8, 9))
         """
         from sage.misc.flatten import flatten
         from collections import Counter
@@ -1649,8 +1655,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
-                    e2 = H.neighbors_in(e3)[0]
-                    e1 = H.neighbors_in(e2)[0]
+                    for e2 in H.neighbors_in(e3):
+                        if e2 in H.neighbors_out(e1):
+                            break
                     return (False, (self._vertex_to_element(e1),
                                     self._vertex_to_element(e2),
                                     self._vertex_to_element(e3)))
@@ -1905,19 +1912,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                         c[x].append(y)
                         c[y].append(x)
 
-            comps={}
+            comps = {}
             for i in range(n):
-                if len(c[i]) > 0:
+                if c[i]:
                     comps[self._vertex_to_element(i)] = (
-                        [self._vertex_to_element(x) for x in c[i]] )
+                        [self._vertex_to_element(x) for x in c[i]])
             return comps
 
         # Looking for complements of one element.
         if not element in self:
-            raise ValueError("element (=%s) not in poset"%element)
-        return [x for x in self if
-         self.meet(x, element)==self.bottom() and
-         self.join(x, element)==self.top()]
+            raise ValueError("element (=%s) not in poset" % element)
+        return [x for x in self
+                if self.meet(x, element) == self.bottom() and
+                self.join(x, element) == self.top()]
 
     def is_pseudocomplemented(self, certificate=False):
         """
@@ -1978,7 +1985,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return (True, None)
             return True
         for e in H.neighbor_out_iterator(0):
-            if H.pseudocomplement(e) is None:
+            if H.kappa(e) is None:
                 if certificate:
                     return (False, self._vertex_to_element(e))
                 return False
@@ -3784,7 +3791,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`day_doubling`
+            - Stronger properties: :meth:`is_distributive` (doubling by interval),
+              :meth:`is_join_semidistributive` (doubling by lower pseudo-intervals),
+              :meth:`is_meet_semidistributive` (doubling by upper pseudo-intervals)
+            - Mutually exclusive properties: :meth:`is_simple` (doubling by any set)
+            - Other: :meth:`day_doubling`
 
         EXAMPLES:
 
@@ -4103,6 +4114,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_isoform`
+            - Mutually exclusive properties: :meth:`is_constructible_by_doublings`
+              (by any set)
             - Other: :meth:`congruence`
 
         EXAMPLES::

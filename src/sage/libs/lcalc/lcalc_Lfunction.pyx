@@ -21,7 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
@@ -185,7 +186,7 @@ cdef class Lfunction:
             sage: chi=DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi,type="complex")
             sage: L.hardy_z_function(0)
-            0.7939675904771...
+            0.793967590477...
             sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
             True
             sage: E=EllipticCurve([-82,0])

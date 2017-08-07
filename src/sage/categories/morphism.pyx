@@ -29,7 +29,7 @@ import operator
 import homset
 
 from sage.structure.element cimport Element
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -359,6 +359,30 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             return NotImplemented
 
+    def __nonzero__(self):
+        r"""
+        Return whether this morphism is not a zero morphism.
+
+        .. NOTE::
+
+            Be careful when overriding this method. Often morphisms are used
+            (incorrecly) in constructs such as ``if f: # do something`` where
+            the author meant to write ``if f is not None: # do something``.
+            Having morphisms return ``False`` here can therefore lead to subtle
+            bugs.
+
+        EXAMPLES::
+
+            sage: f = Hom(ZZ,Zmod(1)).an_element()
+            sage: bool(f) # indirect doctest
+            False
+
+        """
+        try:
+            return self._is_nonzero()
+        except Exception:
+            return super(Morphism, self).__nonzero__()
+
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
@@ -469,7 +493,7 @@ cdef class SetMorphism(Morphism):
         """
         Extra arguments are passed to the defining function.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
@@ -502,6 +526,7 @@ cdef class SetMorphism(Morphism):
             {'_codomain': Integer Ring,
              '_domain': Integer Ring,
              '_function': <built-in function __abs__>,
+             '_is_coercion': False,
              '_repr_type_str': None,
              'bla': 1}
         """

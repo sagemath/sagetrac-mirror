@@ -871,8 +871,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -5136,7 +5135,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: number of rows must be the same, not 2 != 3
         """
-        if hasattr(right, '_vector_'):
+        if not isinstance(right, Matrix) and hasattr(right, '_vector_'):
             right = right.column()
         if self._nrows != right.nrows():
             raise TypeError('number of rows must be the same, not {0} != {1}'.format(self._nrows, right.nrows()))
@@ -5511,7 +5510,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: type(pari(a))
             <type 'cypari2.gen.Gen'>
         """
-        return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
+        return integer_matrix(self._matrix, 0)
 
     def _rank_pari(self):
         """
@@ -5592,7 +5591,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         cdef GEN A
         sig_on()
-        A = _new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
+        A = _new_GEN_from_fmpz_mat_t_rotate90(self._matrix)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
         clear_stack()  # This calls sig_off()
@@ -5652,7 +5651,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [1 2 3]
             [0 3 6]
         """
-        cdef Gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef Gen H = integer_matrix(self._matrix, 1)
         H = H.mathnf(flag)
         sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
@@ -5819,7 +5818,7 @@ cdef inline GEN pari_GEN(Matrix_integer_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef GEN A = _new_GEN_from_fmpz_mat_t(B._matrix, B._nrows, B._ncols)
+    cdef GEN A = _new_GEN_from_fmpz_mat_t(B._matrix)
     return A
 
 

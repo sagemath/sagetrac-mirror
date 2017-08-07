@@ -30,10 +30,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
 from cpython.object cimport Py_EQ, Py_NE
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
@@ -592,7 +592,7 @@ cdef class LeanMatrix:
         cdef list X_2 = list(U_2)
         cdef list Y_1 = []
         cdef list Y_2 = []
-        if z1 != None:
+        if z1 is not None:
             Y_1 = list(V_1) + [z1]
             Y_2 = list(V_2)
         else:
