@@ -6,6 +6,11 @@ over the ground set. This can be modeled as a bipartite graph `B`, where the
 vertices the left are ground set elements, the vertices on the right are the
 sets, and edges represent containment. Then a set `X` from the ground set is
 independent if and only if `X` has a matching in `B`.
+
++REFERENCES
++==========
++
++..  [JEB17] \Joseph E. Bonin, Lattices Related to Extensions of Presentations of Transversal Matroids. In The Electronic Journal of Combinatorics (2017), #P1.49
 """
 
 from __future__ import print_function, absolute_import
@@ -20,8 +25,9 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.bipartite_graph import BipartiteGraph
 
 from cpython.object cimport Py_EQ, Py_NE
+from copy import copy, deepcopy
 
-cpdef graph_from_buckets(buckets, groundset=[]):
+cpdef graph_from_buckets(buckets, groundset):
     r"""
     Construct a bipartite graph from sets over a given ground set.
 
@@ -62,7 +68,21 @@ cpdef graph_from_buckets(buckets, groundset=[]):
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
     r"""
-    Transversal matroids
+    The Transversal Matroid class.
+
+    INPUT:
+
+    - ``B`` -- A SageMath graph.
+    - ``groundset`` -- (optional) An iterable containing names of ground set
+      elements. If the ground set is not specified and ``B`` is an instance of
+      ``BipartiteGraph``, the ground set, can be assumed to be the vertices on the
+      largest side, or the left side of both sides have the same cardinality.
+      If ``B`` is not an instance of ``BipartiteGraph``, the ground set must be
+      specified.
+
+    OUTPUT:
+
+    An instance of ``TransversalMatroid``.
 
     EXAMPLES::
 
@@ -73,7 +93,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         3
         sage: M.bases_count()
         4
-        sage: sum(1 for b in M.bases()) # yes, these can be different
+        sage: sum(1 for b in M.bases())
         4
 
     ::
@@ -116,10 +136,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         # Make this work with a bipartite graph as input
         # In a later ticket, make the constructor work with a collection of sets as input
-        # Assumptions: `B` is an instance of BipartiteGraph
-        #               `groundset` is one side
-        # Later, the constructor should be able to accept Graph as input
-        # And convert to BipartiteGraph if the ground set makes sense
         if groundset is None:
             if isinstance(B, BipartiteGraph):
                 bipartition = B.bipartition()
@@ -181,29 +197,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         e = self._E[x]
         f = self._E[y]
-        # Question: Do I need to consider exchanges between `x` and `x`?
         if self._D.shortest_path(f, e):
             return True
         else:
             return False
-
-    def E(self):
-        """
-        debugging...
-        """
-        return self._E
-
-    def digraph(self):
-        """
-        Temporary method for debugging
-        """
-        return self._D
-
-    def matching(self):
-        """
-        Temporary method for debugging
-        """
-        return self._matching
 
     cdef int __exchange(self, long x, long y) except -1:
         r"""
@@ -389,7 +386,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A TransversalMatroid with a groundset element added to specified sets.
+        A TransversalMatroid with a ground set element added to specified sets.
 
         EXAMPLES::
 
@@ -484,6 +481,52 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         return TransversalMatroid(graph_from_buckets(buckets, groundset))
 
+    def transversal_extensions(self, element=None, sets=[]):
+        r"""
+        Return an iterator of extensions based on the transversal presentation.
+
+        This method will take an extension by adding an element to every possible
+        sub-collection of the collection of desired sets. No checking is done
+        for equal matroids. It is advised to make sure the presentation has as
+        few sets as possible by using
+        :meth:`reduce_presentation() <sage.matroids.transversal_matroid.TransversalMatroid.reduce_presentation>`
+
+        INPUT:
+
+        - ``element`` -- (optional) The name of the new element.
+        - ``sets`` -- (optional) a list containing names of sets in the matroid's
+          presentation. If not specified, every set will be used.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid(BipartiteGraph(graphs.CompleteBipartiteGraph(3,4)))
+            sage: len([N for N in M.transversal_extensions()])
+            8
+            sage: len([N for N in M.transversal_extensions(sets=[0,1])])
+            4
+            sage: set(sorted([N.groundset() for N in M.transversal_extensions(element=7)]))
+            {frozenset({3, 4, 5, 6, 7})}
+        """
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self._groundset:
+            raise ValueError("cannot extend by element already in ground set")
+
+        labels = [label for label, s in self._buckets]
+        if not sets:
+            sets = labels
+        elif not set(sets).issubset(labels):
+            raise ValueError("sets do not match presentation")
+
+        # Adapted from the Python documentation
+        from itertools import chain, combinations
+        sets_list = list(sets)
+        powerset = chain.from_iterable(combinations(sets_list, r) for r in range(len(sets_list)+1))
+
+        for collection in powerset:
+            yield self.transversal_extension(element=element, sets=collection)
+
     def __richcmp__(left, right, op):
         r"""
         Compare two matroids.
@@ -552,3 +595,86 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             False
         """
         return hash((self.groundset(), self.sets()))
+
+    cpdef reduce_presentation(self):
+        """
+        Return an equal transversal matroid where the number of sets equals the rank.
+
+        Every transversal matroid `M` has a presentation with `r(M)` sets, and if `M`
+        has no coloops, then every presentation has `r(M)` sets. This method
+        discards extra sets if `M` has coloops.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A ``TransversalMatroid`` instance with a reduced presentation.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgelist = [(0, 'a'), (1, 'a'), (2, 'b'), (2, 'c')]
+            sage: M = TransversalMatroid(Graph(edgelist), groundset = [0,1,2]); M
+            Transversal matroid of rank 2 on 3 elements, with 3 subsets.
+            sage: N = M.reduce_presentation(); N
+            Transversal matroid of rank 2 on 3 elements, with 2 subsets.
+            sage: N.equals(M)
+            True
+            sage: N == M
+            False
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid(BipartiteGraph(graphs.CompleteBipartiteGraph(3,4)))
+            sage: N = M.reduce_presentation()
+            sage: M == N
+            True
+        """
+        if len(self.sets()) == self.full_rank():
+            return self
+        else:
+            coloops = self.coloops()
+            N = self.delete(coloops)
+            buckets = set(N.sets())
+            for c in coloops:
+                buckets.add((newlabel(self._D.vertices()), frozenset([c])))
+            return TransversalMatroid(graph_from_buckets(buckets, self.groundset()))
+
+    def __copy__(self):
+        """
+        Create a shallow copy.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: M = TransversalMatroid(BipartiteGraph(edgedict))
+            sage: N = copy(M)  # indirect doctest
+            sage: N == M
+            True
+        """
+        cdef TransversalMatroid N
+        N = TransversalMatroid(groundset=self._E, B=self._D.to_undirected())
+        N.rename(getattr(self, '__custom_name'))
+        return N
+
+    def __deepcopy__(self, memo):
+        """
+        Create a deep copy.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: M = TransversalMatroid(BipartiteGraph(edgedict))
+            sage: N = deepcopy(M)  # indirect doctest
+            sage: M == N
+            True
+        """
+        cdef TransversalMatroid N
+        N = TransversalMatroid(groundset=deepcopy(self._E, memo), B=deepcopy(
+            self._D.to_undirected(), memo))
+        return N
