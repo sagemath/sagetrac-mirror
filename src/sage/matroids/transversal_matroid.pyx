@@ -733,13 +733,14 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         EXAMPLES::
 
-            sage: from sage.matroids.advanced import *
-            sage: M = BasisMatroid(matroids.named_matroids.Vamos())
-            sage: M == loads(dumps(M))  # indirect doctest
+            sage: from sage.matroids.transversal_matroid import *
+            sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(6,3))
+            sage: M = TransversalMatroid(B)
+            sage: M == loads(dumps(M))
             True
-            sage: M.rename('Vamos')
+            sage: M.rename('U36')
             sage: loads(dumps(M))
-            Vamos
+            U36
         """
         import sage.matroids.unpickling
         data = (self.sets(), self._E, getattr(self, '__custom_name'))
