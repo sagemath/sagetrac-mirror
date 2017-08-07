@@ -7,10 +7,49 @@ vertices the left are ground set elements, the vertices on the right are the
 sets, and edges represent containment. Then a set `X` from the ground set is
 independent if and only if `X` has a matching in `B`.
 
-+REFERENCES
-+==========
-+
-+..  [JEB17] \Joseph E. Bonin, Lattices Related to Extensions of Presentations of Transversal Matroids. In The Electronic Journal of Combinatorics (2017), #P1.49
+Construction
+============
+
+Exposure from the constructor and :mod:`sage.matroids.advanced` will be added later.
+
+To construct a transversal matroid, first import TransversalMatroid from
+:mod:`sage.matroids.transversal_matroid`.
+The input should be a ``BipartiteGraph``. A ``Graph`` may also be used, but in this
+case, the ground set must be specified so the method will know the desired
+bipartition::
+
+    sage: from sage.matroids.transversal_matroid import *
+    sage: G = graphs.CompleteBipartiteGraph(3,6)
+    sage: B = BipartiteGraph(G)
+    sage: M = TransversalMatroid(B); M
+    Transversal matroid of rank 3 on 6 elements, with 3 subsets.
+    sage: M.groundset()
+    frozenset({3, 4, 5, 6, 7, 8})
+    sage: M.is_isomorphic(matroids.Uniform(3,6))
+    True
+    sage: N = TransversalMatroid(G)
+    Traceback (most recent call last):
+    ...
+    TypeError: ground set must be specified or graph must be BipartiteGraph
+    sage: N = TransversalMatroid(G, groundset=[3,4,5,6,7,8])
+    sage: N == M
+    True
+
+If a ``BipartiteGraph`` is given and both sides have the same cardinality, the left
+side is assumed to be the ground set, unless the ground set is specified::
+
+    sage: from sage.matroids.transversal_matroid import *
+    sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(4,4))
+    sage: M = TransversalMatroid(B); M.groundset()
+    frozenset({0, 1, 2, 3})
+
+REFERENCES
+==========
+
+..  [JEB17] \Joseph E. Bonin, Lattices Related to Extensions of Presentations of Transversal Matroids. In The Electronic Journal of Combinatorics (2017), #P1.49
+
+Methods
+=======
 """
 
 from __future__ import print_function, absolute_import
@@ -39,12 +78,11 @@ cpdef graph_from_buckets(buckets, groundset):
 
     OUTPUT:
 
-    A BipartiteGraph.
+    A ``BipartiteGraph``.
 
     EXAMPLES::
 
-        sage: from sage.matroids.transversal_matroid import graph_from_buckets
-        sage: from sage.matroids.transversal_matroid import TransversalMatroid
+        sage: from sage.matroids.transversal_matroid import *
         sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(4,3))
         sage: M = TransversalMatroid(B)
         sage: buckets = M.sets()
@@ -150,11 +188,11 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 len(groundset) == len(set(groundset))):
                 raise ValueError("ground set must correspond to vertices")
             if not (B.is_independent_set(groundset) and
-                B.is_independent_set(set(B.vertices()).difference(set(groundset)))):
+                B.is_independent_set(set(B.vertices()).difference(groundset))):
                 raise ValueError("ground set must specify a bipartition")
 
         # put the ground set on the left
-        partition = [list(groundset), list(set(B.vertices()).difference(set(groundset)))]
+        partition = [list(groundset), list(set(B.vertices()).difference(groundset))]
 
         # put the bucket's name in the bucket, to distinguish between those
         # with the same sets of neighbors
@@ -637,7 +675,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             return self
         else:
             coloops = self.coloops()
-            N = self.delete(coloops)
+            coloops_to_delete = [e for e in coloops if self._D.degree(e) > 1]
+            N = self.delete(coloops_to_delete)
             buckets = set(N.sets())
             for c in coloops:
                 buckets.add((newlabel(self._D.vertices()), frozenset([c])))
@@ -678,3 +717,31 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         N = TransversalMatroid(groundset=deepcopy(self._E, memo), B=deepcopy(
             self._D.to_undirected(), memo))
         return N
+
+    def __reduce__(self):
+        """
+        Save the matroid for later reloading.
+
+        OUTPUT:
+
+        A tuple ``(unpickle, (version, data))``, where ``unpickle`` is the
+        name of a function that, when called with ``(version, data)``,
+        produces a matroid isomorphic to ``self``. ``version`` is an integer
+        (currently 0) and ``data`` is a tuple ``(sets, E, name)`` where
+        ``E`` is the groundset of the matroid, ``sets`` is the subsets of the
+        transversal, and ``name`` is a custom name.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: M = BasisMatroid(matroids.named_matroids.Vamos())
+            sage: M == loads(dumps(M))  # indirect doctest
+            True
+            sage: M.rename('Vamos')
+            sage: loads(dumps(M))
+            Vamos
+        """
+        import sage.matroids.unpickling
+        data = (self.sets(), self._E, getattr(self, '__custom_name'))
+        version = 0
+        return sage.matroids.unpickling.unpickle_transversal_matroid, (version, data)
