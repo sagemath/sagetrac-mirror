@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 echo "Only installing enum34 for Python 2: it is only needed for Python version 3.3 or older."
 
 cd src && $PIP_INSTALL -2 .
