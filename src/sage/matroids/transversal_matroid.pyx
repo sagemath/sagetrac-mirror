@@ -185,6 +185,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             Traceback (most recent call last):
             ...
             ValueError: ground set must specify a bipartition
+
+        TESTS::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: G = Graph(6)
+            sage: M = TransversalMatroid(G, groundset=range(3)); M
+            Transversal matroid of rank 0 on 3 elements, with 0 subsets.
         """
         # Make this work with a bipartite graph as input
         # In a later ticket, make the constructor work with a collection of sets as input
@@ -211,7 +218,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         # put the bucket's name in the bucket, to distinguish between those
         # with the same sets of neighbors
         self._buckets = frozenset([(v, frozenset(B.neighbors(v))) for v in
-            B.vertices() if v not in groundset])
+            B.vertices() if (B.degree(v) > 0 and v not in groundset)])
 
         # throw away edge labels
         self._matching = set([(u, v) for (u, v, l) in B.matching()])
