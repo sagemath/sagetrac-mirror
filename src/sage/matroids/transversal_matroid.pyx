@@ -78,6 +78,8 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 from cpython.object cimport Py_EQ, Py_NE
 from copy import copy, deepcopy
 
+import networkx as nx
+
 cpdef graph_from_buckets(buckets, groundset):
     r"""
     Construct a bipartite graph from sets over a given ground set.
@@ -222,11 +224,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         BasisExchangeMatroid.__init__(self, groundset, basis)
 
         # Build a DiGraph for doing basis exchange
-        # This will be a simple DiGraph
-        self._D = DiGraph()
+        self._D = nx.DiGraph()
         # Make sure we get isolated vertices, corresponding to loops
         for v in groundset:
-            self._D.add_vertex(v)
+            self._D.add_node(v)
         for u, v, l in B.edge_iterator():
             if (u, v) in self._matching:
             # For the edges in our matching, orient them as starting from the collections
@@ -245,9 +246,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Check for `M`-alternating path from `x` to `y`.
         """
+        from networkx import has_path
         e = self._E[x]
         f = self._E[y]
-        if self._D.shortest_path(f, e):
+        if has_path(self._D, f, e):
             return True
         else:
             return False
@@ -256,13 +258,17 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
+        from networkx import shortest_path
         e = self._E[x]
         f = self._E[y]
-        sh = self._D.shortest_path(f, e)
+        sh = shortest_path(self._D, f, e)
         shortest_path = []
+        shortest_path_r = []
         for i in range(len(sh[:-1])):
             shortest_path.append((sh[i], sh[i+1]))
-        self._D.reverse_edges(shortest_path)
+            shortest_path_r.append((sh[i+1], sh[i]))
+        self._D.remove_edges_from(shortest_path)
+        self._D.add_edges_from(shortest_path_r)
 
         for u, v in shortest_path:
             if (u, v) in self._matching:
@@ -724,7 +730,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             True
         """
         cdef TransversalMatroid N
-        N = TransversalMatroid(groundset=self._E, B=self._D.to_undirected())
+        N = TransversalMatroid(groundset=self._E, B=graph_from_buckets(
+            self.sets(), self._E))
         N.rename(getattr(self, '__custom_name'))
         return N
 
@@ -742,8 +749,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             True
         """
         cdef TransversalMatroid N
-        N = TransversalMatroid(groundset=deepcopy(self._E, memo), B=deepcopy(
-            self._D.to_undirected(), memo))
+        N = TransversalMatroid(groundset=deepcopy(self._E, memo), B=deepcopy(graph_from_buckets(
+            self.sets(), self._E), memo))
         return N
 
     def __reduce__(self):
