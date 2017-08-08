@@ -2074,6 +2074,11 @@ cdef class Matrix(matrix1.Matrix):
         """
         Synonym for self.charpoly(...).
 
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
+
         EXAMPLES::
 
             sage: a = matrix(QQ, 2,2, [1,2,3,4]); a
@@ -2186,6 +2191,11 @@ cdef class Matrix(matrix1.Matrix):
         - ``algorithm`` - string:
             - ``"df"`` - Generic `O(n^4)` division-free algorithm
             - ``"hessenberg"`` - Use the Hessenberg form of the matrix
+
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
 
         EXAMPLES:
 

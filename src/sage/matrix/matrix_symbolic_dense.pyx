@@ -388,8 +388,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         .. NOTE::
 
-            This computes the characteristic polynomial in
-            this way `\det(xI-A)`.
+            The characteristic polynomial is defined as `\det(xI-A)`.
 
         EXAMPLES::
 

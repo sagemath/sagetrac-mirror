@@ -996,6 +996,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         Return the characteristic polynomial of this matrix.
 
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
+
         INPUT:
 
 
