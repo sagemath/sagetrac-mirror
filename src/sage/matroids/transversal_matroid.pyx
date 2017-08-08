@@ -682,6 +682,18 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: N = M.reduce_presentation()
             sage: M == N
             True
+
+        TESTS::
+
+            sage: from sage.matroids.transversal_matroid import *
+            sage: edgelist = [((0, 0), (1, 4)),  ((0, 2), (1, 1)), ((0, 2), (1, 3)), ((0, 3), (1, 4)), ((0
+            ....: , 4), (1, 0)), ((0, 4), (1, 1)), ((0, 6), (1, 2)), ((0, 6), (1, 3)), ((0, 7), (1, 1))]
+            sage: B = BipartiteGraph(edgelist)
+            sage: M = TransversalMatroid(B, groundset=[(1,i) for i in range(5)])
+            sage: M1 = M.reduce_presentation(); M1
+            Transversal matroid of rank 5 on 5 elements, with 5 subsets.
+            sage: len(M1.graph().edges())
+            5
         """
         if len(self.sets()) == self.full_rank():
             return self
