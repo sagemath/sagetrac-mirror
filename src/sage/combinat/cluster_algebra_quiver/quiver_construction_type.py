@@ -68,17 +68,18 @@ class QuiverConstructionType(SageObject):
         # The standard construction types
 
         if isinstance(data,ClusterSeed):
-            self._description = "a cluster seed"
+            self._description = "Seed"
         elif isinstance(data,ClusterQuiver):
-            self._description = "a quiver"
+            self._description = "Quiver"
         elif isinstance(data,DiGraph):
-            self._description = "a digraph"
+            self._description = "Digraph"
         elif isinstance(data,Matrix):
-            self._description = "a skew-symmetrizable matrix"
+            self._description = "Matrix"
             
         # More exotic construction types
         elif type(data) in [list,tuple]:
             if data[0] == 'DB':
+                self._description = "DB"
                 # defaults to assume input does not contain a two reduced words in 'list form'
                 word = False
                 
@@ -136,7 +137,7 @@ class QuiverConstructionType(SageObject):
                 
                 # Modifies the original construction so that the digraph has skew-symmetric edges
                 newEdges = []
-                for edge in self._construction_digraph.edges():
+                for edge in self._construction_if isinstance(data,ClusterSeed):
                     if edge[0] in self._frozen or edge[1] in self._frozen:
                         newEdges.append((edge[0],edge[1],(1,-1)))
                     else:
@@ -146,7 +147,15 @@ class QuiverConstructionType(SageObject):
                 self._digraph.add_vertices(self._frozen)
                 u = u.reduced_word()
                 v = v.reduced_word()
-                self._description = "a double Bruhat cell in a group of type " + str(CartanType)
+                
+                self._CartanType = CartanType        if self._description == "Seed":
+            return "a cluster seed"
+        elif self._description == "Quiver":
+            return "a quiver"
+        elif self._description == "Digraph":
+            return "a digraph"
+        elif self._description == "Matrix":
+            return "a matrix"
                 self._details = " using the reduced words " + str(u) + " and " +  str(v)
                 
                 
@@ -157,12 +166,22 @@ class QuiverConstructionType(SageObject):
         """
         Return the string representation of ``self``.
         """
-        
-        return self._description
+        if self._description == "Seed":
+            return "a cluster seed"
+        elif self._description == "Quiver":
+            return "a quiver"
+        elif self._description == "Digraph":
+            return "a digraph"
+        elif self._description == "Matrix":
+            return "a matrix"
+        elif self._description == "DB":
+            return "a double Bruhat cell in a group of type " + str(self._CartanType)     
+
+
     
     def full_description(self):
         
-        print "Quiver constructed from " + self._description + self._details  + "." 
+        print "Quiver constructed from " + str(self) + self._details  + "." 
     
 def _construction_type_error(data):
     return ValueError(data)
