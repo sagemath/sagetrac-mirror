@@ -1,3 +1,14 @@
+r"""
+Quiver Construction Types
+
+This file contains the QuiverConstructionType class, which records the method used to 
+construct a quiver. This also provides infrastructure to implement more exotic quiver
+constructions, such as the construction of a quiver from a double Bruhat cell.
+
+AUTHORS:
+
+- Ben Strasser (2017, initial version)
+"""
 from sage.structure.sage_object import SageObject
 #from sage.misc.all import cached_method
 from sage.rings.integer import Integer
@@ -6,10 +17,46 @@ from sage.combinat.root_system.weyl_group import WeylGroup, WeylGroup_gens, Weyl
 from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.double_bruhat_digraph import DoubleBruhatDigraph
 from sage.matrix.matrix import Matrix
+from six.moves import range
 
 class QuiverConstructionType(SageObject):
+    """
+    The *construction type* for a *quiver*. In the case of standard construction types,
+    this class simply records the method used to construct the quiver and stores the 
+    string representation of that quiver. For other construction types, this class 
+    constructs the digraph and the list of frozen vertices. It also records the string
+    representation of the quiver, with details about the construction method used.
+
+    TESTS::
+    sage: W = WeylGroup(['B',5])
+    sage: s1,s2,s3,s4,s5 = W.simple_reflections()
+    sage: ClusterQuiver(['DB',[W, s1*s2*s3,s1*s2*s3*s4*s5]])._construction_type
+    a double Bruhat cell in a group of type ['B', 5]
+    sage: ClusterQuiver(['DB',[W, s1*s2*s3,s1*s2*s3*s4*s5]])._construction_type.full_description()
+    Quiver constructed from a double Bruhat cell in a group of type ['B', 5] using the reduced words [1, 2, 3] and [1, 2, 3, 4, 5].
+
+    sage: ClusterQuiver(['A',3])._construction_type
+    a digraph
+
+    sage: S = ClusterSeed(['D',4])
+    sage: S._construction_type
+    a digraph
+    sage: ClusterSeed(S)._construction_type
+    a digraph
+    sage: M = S.b_matrix()
+    sage: ClusterSeed(M)._construction_type
+    a skew-symmetrizable matrix
+    sage: S._construction_type = None
+    sage: ClusterQuiver(S)._construction_type
+    a cluster seed
+    sage: Q = ClusterQuiver(S)
+    sage: Q._construction_type = None
+    sage: ClusterQuiver(Q)._construction_type
+    a quiver
+    """
 
     def __init__(self,data):
+        
         
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
@@ -32,6 +79,8 @@ class QuiverConstructionType(SageObject):
         # More exotic construction types
         elif type(data) in [list,tuple]:
             if data[0] == 'DB':
+                # defaults to assume input does not contain a two reduced words in 'list form'
+                word = False
                 
                 # defaults to type A and interprets the list as a partition
                 if len(data[1]) == 2:
@@ -42,11 +91,11 @@ class QuiverConstructionType(SageObject):
                         print("Invalid input for construction type 'DB'")
                     CartanType = ['A',len(u)]
                     
+                # The first element of data[1] should identify the relevant Weyl group
                 elif len(data[1]) == 3:
                     if isinstance(data[1][0],WeylGroup_gens):
                         CartanType = data[1][0].cartan_type()
                         
-                    # In this case, the list is interpreted as a word in the generators of the Weyl group
                     elif type(data[1][0]) in [tuple,list]:
                         
                         if len(data[1][0]) == 2 and isinstance(data[1][0][0], str) and type(data[1][0][1]) in [int,Integer]:
@@ -54,13 +103,23 @@ class QuiverConstructionType(SageObject):
                         else:
                             _construction_type_error(data)
                         W = WeylGroup(CartanType)
+
+                    # In this case, the list is interpreted as a word in the generators of the Weyl group
                     if isinstance(data[1][1],list) and isinstance(data[1][2],list):
                         S = W.simple_reflections()
-                        u = 1
-                        v = 1
-                        for i in range(len(data[1][1])):
-                            u = u*S[data[1][1][i]]
-                            v = v*S[data[1][2][i]]
+                        u = W.one()
+                        v = W.one()
+                        for i in data[1][1]:
+                            u = u*S[i]
+                        for j in data[1][2]:
+                            v = v*S[j]
+                        
+                        # If the expressions for u and v were reduced, use them as is
+                        if u.length() == len(data[1][1]) and v.length() == len(data[1][2]):
+                            word = data[1][1]
+                            for n in data[1][2]:
+                                word.append(-n)
+
                     elif isinstance(data[1][1], WeylGroupElement) and isinstance(data[1][2], WeylGroupElement):
                         u = data[1][1]
                         v = data[1][2]
@@ -70,9 +129,10 @@ class QuiverConstructionType(SageObject):
                             v = WeylGroupElement(WeylGroup(CartanType),data[1][2])
                         except Exception:
                             print("Invalid input for construction type 'DB'")
+
                         
             
-                self._construction_digraph, self._frozen = DoubleBruhatDigraph(CartanType,u,v)
+                self._construction_digraph, self._frozen, self._strings = DoubleBruhatDigraph(CartanType,u,v)
                 
                 # Modifies the original construction so that the digraph has skew-symmetric edges
                 newEdges = []

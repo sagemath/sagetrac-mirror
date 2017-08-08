@@ -180,6 +180,18 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver( [[1,2],[2,3],[3,4],[4,1]] ); Q
             Quiver on 4 vertices
 
+        from data describing a double Bruhat cell::
+
+            sage: W = WeylGroup(['B',3])
+            sage: s1,s2,s3 = W.simple_reflections()
+            sage: ClusterQuiver(['DB',[W,s1*s2*s3,s2*s3]])
+            Quiver on 8 vertices with 6 frozen vertices constructed from a double Bruhat cell in a group of type ['B', 3]
+            sage: ClusterQuiver(['DB',[[1,2,3],[3,2,1]]])
+            Quiver on 6 vertices with 5 frozen vertices constructed from a double Bruhat cell in a group of type ['A', 3]
+            sage: ClusterQuiver(['DB',[['D',5],[1,2,1],[2,3,4]]])
+            Quiver on 11 vertices with 9 frozen vertices constructed from a double Bruhat cell in a group of type ['D', 5]
+
+
     TESTS::
 
         sage: Q = ClusterQuiver(DiGraph([[1,1]]))
@@ -327,7 +339,10 @@ class ClusterQuiver(SageObject):
                 
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
-            self.__init__( data.quiver() )
+            Q = data._quiver
+            if not data._construction_type:
+                Q._construction_type = QuiverConstructionType(data)
+            self.__init__( Q )
 
         # constructs a quiver from a quiver
         elif isinstance(data, ClusterQuiver):
@@ -344,7 +359,10 @@ class ClusterQuiver(SageObject):
             self._vertex_dictionary = data._vertex_dictionary
             self._mutation_type = data._mutation_type
             self._description = data._description
-            self._construction_type = data._construction_type
+            if data._construction_type:
+                self._construction_type = data._construction_type
+            else:
+                self._construction_type = QuiverConstructionType(data)
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
