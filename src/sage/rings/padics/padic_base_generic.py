@@ -20,6 +20,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from .padic_generic import pAdicGeneric
 from .misc import precprint
 from sage.rings.padics.pow_computer import PowComputer
@@ -44,8 +47,11 @@ class pAdicBaseGeneric(pAdicGeneric):
             if self.is_capped_relative():
                 coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
                 convert_list = []
-            else:
+            elif self.is_floating_point():
                 coerce_list = [pAdicCoercion_ZZ_FP(self), pAdicCoercion_QQ_FP(self)]
+                convert_list = []
+            else:
+                coerce_list = [QQ]
                 convert_list = []
         elif self.is_capped_relative():
             coerce_list = [pAdicCoercion_ZZ_CR(self)]
@@ -60,7 +66,8 @@ class pAdicBaseGeneric(pAdicGeneric):
             coerce_list = [pAdicCoercion_ZZ_FP(self)]
             convert_list = [pAdicConvert_QQ_FP(self)]
         else:
-            raise RuntimeError
+            coerce_list = [ZZ]
+            convert_list = []
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
 
     def _repr_(self, do_latex=False):
