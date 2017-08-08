@@ -15,11 +15,10 @@ from __future__ import absolute_import
 #*****************************************************************************
 from .matroid import Matroid
 from .utilities import sanitize_contractions_deletions, setprint_s
-from .basis_exchange_matroid import BasisExchangeMatroid
 
 from copy import copy, deepcopy
 
-class Gammoid(BasisExchangeMatroid):
+class Gammoid(Matroid):
     r"""
     Gammoid
 
@@ -88,7 +87,7 @@ class Gammoid(BasisExchangeMatroid):
             sage: M.rank([2])
             1
             sage: M.full_rank()
-            0  # This is plainly wrong
+            2
             sage: M.rank(M.groundset())
             2
 
