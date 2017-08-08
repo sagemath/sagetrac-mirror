@@ -16,7 +16,7 @@ class QuiverConstructionType(SageObject):
         
         self._description = None
         self._details = ""
-        self._digraph = None
+        self._digraph = True
         
         # The standard construction types
 
@@ -39,7 +39,7 @@ class QuiverConstructionType(SageObject):
                         u = Permutation(data[1][0])
                         v = Permutation(data[1][1])
                     except Exception:
-                        print "Invalid input for construction type 'DB'"
+                        print("Invalid input for construction type 'DB'")
                     CartanType = ['A',len(u)]
                     
                 elif len(data[1]) == 3:
@@ -67,9 +67,9 @@ class QuiverConstructionType(SageObject):
                     else:
                         try:
                             u = WeylGroupElement(WeylGroup(CartanType),data[1][1])
-                            v = WeylGroupElement(WeylGroup(CarQuiverConstructionType(data),CartanType),data[1][2])
+                            v = WeylGroupElement(WeylGroup(CartanType),data[1][2])
                         except Exception:
-                            print "Invalid input for construction type 'DB'"
+                            print("Invalid input for construction type 'DB'")
                         
             
                 self._construction_digraph, self._frozen = DoubleBruhatDigraph(CartanType,u,v)
@@ -82,6 +82,8 @@ class QuiverConstructionType(SageObject):
                     else:
                         newEdges.append(edge)
                 self._digraph = DiGraph(newEdges)
+                # Ensures isolated frozen vertices are in the digraph
+                self._digraph.add_vertices(self._frozen)
                 u = u.reduced_word()
                 v = v.reduced_word()
                 self._description = "a double Bruhat cell in a group of type " + str(CartanType)

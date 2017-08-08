@@ -236,7 +236,8 @@ class ClusterQuiver(SageObject):
                 else:
                     self._nlist = user_labels
 
-        # constructs a quiver from string representing a mutation type or a common quiver type (see Examples)
+        # constructs a quiver from string representing a mutation type, a common quiver type, or a construction_type (see Examples)
+        # NOTE: At the moment, the only construction_type is 'DB', for a double Bruhat cell
         # NOTE: for now, any string representing a *reducible type* is coerced into the standard quiver, but there is now more flexibility in how to input a connected (irreducible) quiver.
         elif type( data ) in [list,tuple] and ( isinstance(data[0], str) or all(type( comp ) in [list,tuple] and isinstance(comp[0], str) for comp in data) ):
             if frozen is not None:
