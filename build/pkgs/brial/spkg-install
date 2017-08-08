@@ -23,11 +23,10 @@ fi
 
 for ver in $versions
 do
-    export PYTHON=python$ver
     ./configure \
         --prefix="$SAGE_LOCAL" \
         --libdir="$SAGE_LOCAL/lib" \
-        --enable-shared --disable-static
+        --enable-shared --disable-static PYTHON=python$ver
     if [ $? -ne 0 ]; then
         echo "Error configuring BRiAl"
         exit 1
