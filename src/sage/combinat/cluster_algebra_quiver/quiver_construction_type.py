@@ -16,7 +16,7 @@ class QuiverConstructionType(SageObject):
         
         self._description = None
         self._details = ""
-        self._digraph = True
+        self._digraph = False
         
         # The standard construction types
 
