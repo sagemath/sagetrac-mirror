@@ -690,9 +690,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             coloops_to_delete = [e for e in coloops if self._D.degree(e) > 1]
             N = self.delete(coloops_to_delete)
             buckets = set(N.sets())
-            for c in coloops:
-                buckets.add((newlabel(self._D.vertices()), frozenset([c])))
-            return TransversalMatroid(graph_from_buckets(buckets, self.groundset()))
+            labels = N.graph().vertices()
+            for c in coloops_to_delete:
+                l = newlabel(labels)
+                buckets.add((l, frozenset([c])))
+                labels.append(l)
+            return TransversalMatroid(graph_from_buckets(buckets, self._E),
+                self._E)
 
     def __copy__(self):
         """
