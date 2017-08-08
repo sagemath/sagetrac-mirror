@@ -79,7 +79,8 @@ class QuiverConstructionType(SageObject):
         # More exotic construction types
         elif type(data) in [list,tuple]:
             if data[0] == 'DB':
-
+                # defaults to assume input does not contain a two reduced words in 'list form'
+                word = False
                 
                 # defaults to type A and interprets the list as a partition
                 if len(data[1]) == 2:
@@ -90,11 +91,11 @@ class QuiverConstructionType(SageObject):
                         print("Invalid input for construction type 'DB'")
                     CartanType = ['A',len(u)]
                     
+                # The first element of data[1] should identify the relevant Weyl group
                 elif len(data[1]) == 3:
                     if isinstance(data[1][0],WeylGroup_gens):
                         CartanType = data[1][0].cartan_type()
                         
-                    # In this case, the list is interpreted as a word in the generators of the Weyl group
                     elif type(data[1][0]) in [tuple,list]:
                         
                         if len(data[1][0]) == 2 and isinstance(data[1][0][0], str) and type(data[1][0][1]) in [int,Integer]:
@@ -102,13 +103,23 @@ class QuiverConstructionType(SageObject):
                         else:
                             _construction_type_error(data)
                         W = WeylGroup(CartanType)
+
+                    # In this case, the list is interpreted as a word in the generators of the Weyl group
                     if isinstance(data[1][1],list) and isinstance(data[1][2],list):
                         S = W.simple_reflections()
-                        u = 1
-                        v = 1
-                        for i in range(len(data[1][1])):
-                            u = u*S[data[1][1][i]]
-                            v = v*S[data[1][2][i]]
+                        u = W.one()
+                        v = W.one()
+                        for i in data[1][1]:
+                            u = u*S[i]
+                        for j in data[1][2]:
+                            v = v*S[j]
+                        
+                        # If the expressions for u and v were reduced, use them as is
+                        if u.length() == len(data[1][1]) and v.length() == len(data[1][2]):
+                            word = data[1][1]
+                            for n in data[1][2]:
+                                word.append(-n)
+
                     elif isinstance(data[1][1], WeylGroupElement) and isinstance(data[1][2], WeylGroupElement):
                         u = data[1][1]
                         v = data[1][2]

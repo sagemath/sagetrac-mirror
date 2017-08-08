@@ -186,10 +186,11 @@ class ClusterQuiver(SageObject):
             sage: s1,s2,s3 = W.simple_reflections()
             sage: ClusterQuiver(['DB',[W,s1*s2*s3,s2*s3]])
             Quiver on 8 vertices with 6 frozen vertices constructed from a double Bruhat cell in a group of type ['B', 3]
+            sage: ClusterQuiver(['DB',[[1,2,3],[3,2,1]]])
+            Quiver on 6 vertices with 5 frozen vertices constructed from a double Bruhat cell in a group of type ['A', 3]
+            sage: ClusterQuiver(['DB',[['D',5],[1,2,1],[2,3,4]]])
+            Quiver on 11 vertices with 9 frozen vertices constructed from a double Bruhat cell in a group of type ['D', 5]
 
-            
-
-            
 
     TESTS::
 

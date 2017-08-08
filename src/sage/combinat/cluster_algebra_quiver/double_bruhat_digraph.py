@@ -1,6 +1,7 @@
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.graphs.graph import DiGraph
 #from sage.rings.integer import sign
+from six.moves import range
 
 def DoubleBruhatDigraph(CartanType, u,v,word = False):
     '''Returns a quiver from the Weyl group elements u and v, along with lists of exchangable and frozen vertices, using the algorithm outlined in Cluster Algebras III.  
@@ -16,12 +17,17 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
     - CartanType -- the Cartan type of the underlying group, i.e. ['A', 5], ['C',6], etc.
     - ``word`` -- (default: False) a chosen reduced word for (u,v) as an element of W x W, using the convention that simple reflections in v are associated to negative integers.
 
-    TESTS::
+    Examples::
 
+        sage: from sage.combinat.cluster_algebra_quiver.double_bruhat_digraph import DoubleBruhatDigraph
         sage: W = WeylGroup(['C',4])
         sage: s1,s2,s3,s4 = W.simple_reflections()
         sage: D,F = DoubleBruhatDigraph(['C',4],s1*s2*s3*s4,s4*s3*s2*s1)
-        sage: ClusterQuiver(D,F)
+        sage: D
+        Digraph on 12 vertices
+        sage: F
+        [-4, -3, -2, -1, 5, 6, 7, 8]
+
 ''' 
     
     typeChar = CartanType[0]
@@ -37,8 +43,8 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
             word.append(-n)
           
     # Pads the list with frozen variables (Note: there will be other frozen variable in the final quiver)
-    word = range(-r,0) + word
-    indecies = range(-r,0) + range(1,lu+lv+1)   
+    word = list(range(-r,0)) + word
+    indecies = list(range(-r,0)) + list(range(1,lu+lv+1))   
     M = CartanMatrix(CartanType)
     
     # Determines the exchangable vertices
