@@ -32,6 +32,7 @@ from sage.all import prod
 from sage.matrix.all import matrix
 
 
+
 class QuiverMutationTypeFactory(SageObject):
     def __call__(self, *args):
         """
@@ -1639,7 +1640,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                     self._digraph.add_edges( [ (5,6,2),(6,2,None) ] )
             else:
                 _mutation_type_error( data )
-
+        
         # otherwise, an error is raised
         else:
             _mutation_type_error( data )
@@ -1659,6 +1660,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         # _description is as for CartanType
         if twist: self._description = str( [letter,rank,twist] )
         else: self._description = str( [letter,rank] )
+            
 
     def irreducible_components( self ):
         """
