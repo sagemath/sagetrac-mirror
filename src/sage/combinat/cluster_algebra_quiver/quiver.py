@@ -327,7 +327,10 @@ class ClusterQuiver(SageObject):
                 
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
-            self.__init__( data.quiver() )
+            Q = data._quiver
+            if not data._construction_type:
+                Q._construction_type = QuiverConstructionType(data)
+            self.__init__( Q )
 
         # constructs a quiver from a quiver
         elif isinstance(data, ClusterQuiver):
@@ -344,7 +347,10 @@ class ClusterQuiver(SageObject):
             self._vertex_dictionary = data._vertex_dictionary
             self._mutation_type = data._mutation_type
             self._description = data._description
-            self._construction_type = data._construction_type
+            if data._construction_type:
+                self._construction_type = data._construction_type
+            else:
+                self._construction_type = QuiverConstructionType(data)
 
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
