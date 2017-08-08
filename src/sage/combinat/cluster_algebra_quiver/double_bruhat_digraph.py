@@ -26,7 +26,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
     
     typeChar = CartanType[0]
     r = CartanType[1]
-    
+   
     lu = u.length()
     lv = v.length()
     
@@ -53,6 +53,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
     # Constructs the digraph described by BFZ in Cluster Algebras III
     dg = DiGraph()
     dg.add_vertices(indecies)
+
     for k0 in range(len(word)):
         for l0 in range(k0+1,len(word)):
             
@@ -129,4 +130,25 @@ def iExchangable(k,word,r):
     if (k >=1 and k<=(len(word) - r)) and (plus(k,word,r) >=1 and plus(k,word,r)<=(len(word) - r)):
         return True
 
-    return False  
+    return False
+
+def strings(indices,iks,r):
+    listk=[]  
+    for l in range(0, r):
+        listl=[]
+        for k in range(0,len(iks)):
+            if abs(iks[l]) == abs(iks[k]):
+                listl.append(indices[k])
+          
+        listk.append(listl)
+    listk.reverse()
+    return listk
+
+def subgraphs(graph, listk, M, r):
+    listsub=[]
+    for l in range(0, r):
+        for k in range(0, l+1):
+            if M[l,k]<0:
+                listsub.append(graph.subgraph(listk[l]+listk[k]))
+    return listsub
+        
