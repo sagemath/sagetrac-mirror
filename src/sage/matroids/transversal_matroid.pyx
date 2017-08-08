@@ -16,7 +16,8 @@ To construct a transversal matroid, first import TransversalMatroid from
 :mod:`sage.matroids.transversal_matroid`.
 The input should be a ``BipartiteGraph``. A ``Graph`` may also be used, but in this
 case, the ground set must be specified so the method will know the desired
-bipartition::
+bipartition. If a ``BipartiteGraph`` is used and the ground set is not specified,
+it will be assumed that the larger side of the bipartition is the ground set::
 
     sage: from sage.matroids.transversal_matroid import *
     sage: G = graphs.CompleteBipartiteGraph(3,6)
