@@ -180,6 +180,17 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver( [[1,2],[2,3],[3,4],[4,1]] ); Q
             Quiver on 4 vertices
 
+        from data describing a double Bruhat cell::
+
+            sage: W = WeylGroup(['B',3])
+            sage: s1,s2,s3 = W.simple_reflections()
+            sage: ClusterQuiver(['DB',[W,s1*s2*s3,s2*s3]])
+            Quiver on 8 vertices with 6 frozen vertices constructed from a double Bruhat cell in a group of type ['B', 3]
+
+            
+
+            
+
     TESTS::
 
         sage: Q = ClusterQuiver(DiGraph([[1,1]]))
