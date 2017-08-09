@@ -211,7 +211,6 @@ class ClusterQuiver(SageObject):
         ValueError: The input DiGraph contains two-cycles
 
         sage: Q = ClusterQuiver('whatever')
-                self._construction_type = QuiverConstructionType(data)
         Traceback (most recent call last):
         ...
         ValueError: The input data was not recognized.

@@ -167,7 +167,7 @@ class QuiverConstructionType(SageObject):
         elif self._description == "Digraph":
             return "a digraph"
         elif self._description == "Matrix":
-            return "a matrix"
+            return "a skew-symmetrizable matrix"
         elif self._description == "DB":
             return "a double Bruhat cell in a group of type " + str(self._cartan_type)     
 
