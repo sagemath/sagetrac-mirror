@@ -63,6 +63,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
     iks=[]
 
     for k0 in range(len(word)):
+        iks.append(word[k0])
         for l0 in range(k0+1,len(word)):
             
             # There are some unfortunate indexing gymnastics to avoid the '0' problem
@@ -70,7 +71,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
             il = word[l0]
             k = indices[k0]
             l = indices[l0]
-            iks.append(ik)
+            
             
             kplus = plus(k,word,r)
             lplus = plus(l,word,r)
