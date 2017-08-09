@@ -24,6 +24,15 @@ echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
 
 sdh_make libs netlib shared $OPENBLAS_CONFIGURE
 sdh_make_install PREFIX="$SAGE_LOCAL" NO_STATIC=1 $OPENBLAS_CONFIGURE
-
 cd ..
 ./write_pc_file.py
+
+# OpenBLAS's Makefile has a bug w.r.t. calling install_name_tool when
+# DESTDIR is set.  It should *not* include the DESTDIR in the library's
+# install_name; we set the correct install_name here
+if [ "$UNAME" = "Darwin" ]; then
+    cd "$SAGE_DESTDIR$SAGE_LOCAL/lib"
+    for dylib in lib*openblas*.dylib; do
+        install_name_tool -id "$SAGE_LOCAL/lib/$dylib" "$dylib"
+    done
+fi
