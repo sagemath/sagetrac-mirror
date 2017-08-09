@@ -9,6 +9,8 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
+- :class:`algebras.ArikiKoike
+  <sage.algebras.hecke_algebras.ariki_koike_algebra.ArikiKoikeAlgebra>`
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
 - :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
@@ -79,6 +81,7 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 lazy_import('sage.algebras.rational_cherednik_algebra', 'RationalCherednikAlgebra', 'RationalCherednik')
+lazy_import('sage.algebras.hecke_algebras.ariki_koike_algebra', 'ArikiKoikeAlgebra', 'ArikiKoike')
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.descent_algebra', 'DescentAlgebra', 'Descent')
@@ -95,3 +98,4 @@ lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
 lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
+
