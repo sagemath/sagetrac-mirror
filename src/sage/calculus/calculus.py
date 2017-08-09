@@ -231,7 +231,7 @@ Another example::
     sage: f(x=3)
     arcsinh(1)
     sage: f.derivative(x)
-    1/sqrt(x^2 + 9)
+    1/3/sqrt(1/9*x^2 + 1)
 
 We compute the length of the parabola from 0 to 2::
 
