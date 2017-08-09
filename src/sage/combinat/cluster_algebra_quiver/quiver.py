@@ -46,6 +46,7 @@ from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
 from sage.rings.integer import Integer
 from sage.graphs.all import Graph, DiGraph
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
@@ -677,7 +678,7 @@ class ClusterQuiver(SageObject):
                 
         return dg.plot( **options )
 
-    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
+    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, sheets=False, greens=[]):
         """
         Show the plot of the underlying digraph of ``self``.
 
@@ -701,11 +702,25 @@ class ClusterQuiver(SageObject):
             sage: Q.show() # long time
         """
         n, m = self._n, self._m
-        plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)
-        if circular:
-            plot.show( figsize=[fig_size*3*(n+m)/4+1,fig_size*3*(n+m)/4+1] )
+
+        if sheets:
+            if self._construction_type._description != 'DB':
+                raise ValueError("Sheets are only valid for double Bruhat cells")
+
+            M = CartanMatrix(self._construction_type._CartanType)           
+            listk = self._construction_type._strings
+            for l in range(0, M.nrows()):
+                for k in range(0, l+1):
+                    if M[l,k]<0:
+                        self._digraph.subgraph(listk[l]+listk[k]).show()
+
         else:
-            plot.show( figsize=[fig_size*n+1,fig_size*n+1] )
+
+            plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)
+            if circular:
+                plot.show( figsize=[fig_size*3*(n+m)/4+1,fig_size*3*(n+m)/4+1] )
+            else:
+                plot.show( figsize=[fig_size*n+1,fig_size*n+1] )
 
     def interact(self, fig_size=1, circular=True):
         """

@@ -4,7 +4,7 @@ from sage.graphs.graph import DiGraph
 from six.moves import range
 
 def DoubleBruhatDigraph(CartanType, u,v,word = False):
-    '''Returns a quiver from the Weyl group elements u and v, along with lists of exchangable and frozen vertices, using the algorithm outlined in Cluster Algebras III.  
+    '''Returns a quiver from the Weyl group elements u and v, along with lists of exchangeable and frozen vertices, using the algorithm outlined in Cluster Algebras III.  
     
     INPUT:
 
@@ -32,7 +32,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
     
     typeChar = CartanType[0]
     r = CartanType[1]
-    
+   
     lu = u.length()
     lv = v.length()
     
@@ -44,39 +44,44 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
           
     # Pads the list with frozen variables (Note: there will be other frozen variable in the final quiver)
     word = list(range(-r,0)) + word
-    indecies = list(range(-r,0)) + list(range(1,lu+lv+1))   
+    indices = list(range(-r,0)) + list(range(1,lu+lv+1))   
     M = CartanMatrix(CartanType)
     
-    # Determines the exchangable vertices
-    exchangables = []
+    # Determines the exchangeable vertices
+    exchangeables = []
     frozen = []
-    for character in indecies:
-        if iExchangable(character, word, r):
-            exchangables.append(character)
+    for character in indices:
+        if iExchangeable(character, word, r):
+            exchangeables.append(character)
         else: 
             frozen.append(character) 
             
     # Constructs the digraph described by BFZ in Cluster Algebras III
     dg = DiGraph()
-    dg.add_vertices(indecies)
+    dg.add_vertices(indices)
+
+    iks=[]
+
     for k0 in range(len(word)):
+        iks.append(word[k0])
         for l0 in range(k0+1,len(word)):
             
             # There are some unfortunate indexing gymnastics to avoid the '0' problem
             ik = word[k0] 
             il = word[l0]
-            k = indecies[k0]
-            l = indecies[l0]
+            k = indices[k0]
+            l = indices[l0]
+            
             
             kplus = plus(k,word,r)
             lplus = plus(l,word,r)
-            if kplus in indecies:
-                ikplus = word[indecies.index(kplus)]
-            if lplus in indecies: 
-                ilplus = word[indecies.index(lplus)]
+            if kplus in indices:
+                ikplus = word[indices.index(kplus)]
+            if lplus in indices: 
+                ilplus = word[indices.index(lplus)]
                     
             # This runs through BFZ's three conditions under which there can be an edge between k and l
-            if k in exchangables or l in exchangables:
+            if k in exchangeables or l in exchangeables:
                 
                 # horizontal edges
                 if l == kplus: 
@@ -99,7 +104,7 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
                     else:
                         dg.add_edge(l,k,(-M[abs(il)-1,abs(ik)-1],M[abs(ik)-1,abs(il)-1]))
    
-    return dg,frozen
+    return dg,frozen,strings(indices,iks,r)
 
 def plus(k,word,r):
     '''Returns the index 'k+', being the smallest index l in 'word' such that k<l and the index k and l entries of 'word' agree.  NOTE: the 'index' is assumed to be following the indexing conventions of DoubleBruhatDigraph, not the standard python conventions.
@@ -123,8 +128,8 @@ def plus(k,word,r):
 
     return len(word) - r + 1        
 
-def iExchangable(k,word,r):
-    '''Returns True if index k is exchangable, and False otherwise.
+def iExchangeable(k,word,r):
+    '''Returns True if index k is exchangeable, and False otherwise.
 
     INPUT:
 
@@ -135,4 +140,26 @@ def iExchangable(k,word,r):
     if (k >=1 and k<=(len(word) - r)) and (plus(k,word,r) >=1 and plus(k,word,r)<=(len(word) - r)):
         return True
 
-    return False  
+    return False
+
+def strings(indices,iks,r):
+    listk=[]  
+    for l in range(0, r):
+        listl=[]
+        for k in range(0,len(iks)):
+            if abs(iks[l]) == abs(iks[k]):
+                listl.append(indices[k])
+          
+        listk.append(listl)
+    listk.reverse()
+    return listk
+
+def subgraphs(graph, listk, M, r):
+    listsub=[]
+    for l in range(0, r):
+        for k in range(0, l+1):
+            if M[l,k]<0:
+                listsub.append(graph.subgraph(listk[l]+listk[k]))
+    return listsub
+        
+

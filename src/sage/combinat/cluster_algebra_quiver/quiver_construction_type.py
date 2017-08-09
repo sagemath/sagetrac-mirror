@@ -133,11 +133,11 @@ class QuiverConstructionType(SageObject):
 
                         
             
-                self._construction_digraph, self._frozen = DoubleBruhatDigraph(CartanType,u,v)
+                self._construction_digraph, self._frozen, self._strings = DoubleBruhatDigraph(CartanType,u,v)
                 
                 # Modifies the original construction so that the digraph has skew-symmetric edges
                 newEdges = []
-                for edge in self._construction_if isinstance(data,ClusterSeed):
+                for edge in self._construction_digraph.edges():
                     if edge[0] in self._frozen or edge[1] in self._frozen:
                         newEdges.append((edge[0],edge[1],(1,-1)))
                     else:
@@ -148,14 +148,8 @@ class QuiverConstructionType(SageObject):
                 u = u.reduced_word()
                 v = v.reduced_word()
                 
-                self._CartanType = CartanType        if self._description == "Seed":
-            return "a cluster seed"
-        elif self._description == "Quiver":
-            return "a quiver"
-        elif self._description == "Digraph":
-            return "a digraph"
-        elif self._description == "Matrix":
-            return "a matrix"
+
+                self._cartan_type = CartanType        
                 self._details = " using the reduced words " + str(u) + " and " +  str(v)
                 
                 
@@ -175,12 +169,19 @@ class QuiverConstructionType(SageObject):
         elif self._description == "Matrix":
             return "a matrix"
         elif self._description == "DB":
-            return "a double Bruhat cell in a group of type " + str(self._CartanType)     
+            return "a double Bruhat cell in a group of type " + str(self._cartan_type)     
 
 
     
     def full_description(self):
-        
+        """
+        Prints a string with detailed information about the construction_type.
+
+        EXAMPLES::
+
+        sage: ClusterQuiver(['DB',[['D',4],[1,2,3,4],[4,3,2,1]]])._construction_type.full_description()
+        Quiver constructed from a double Bruhat cell in a group of type ['D', 4] using the reduced words [1, 2, 4, 3] and [4, 3, 2, 1].
+        """
         print "Quiver constructed from " + str(self) + self._details  + "." 
     
 def _construction_type_error(data):
