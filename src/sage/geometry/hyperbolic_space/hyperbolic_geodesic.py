@@ -1422,8 +1422,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         expressions do not generate runtime errors. ::
 
             sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
-            sage: g.midpoint()
-            Point in UHP 1/2*(sqrt(2)*e^(1/2*arccosh(3)) - sqrt(2) + (I - 1)*e^(1/2*arccosh(3)) + I - 1)/((1/4*I - 1/4)*sqrt(2)*e^(1/2*arccosh(3)) - (1/4*I - 1/4)*sqrt(2) + 1/2*e^(1/2*arccosh(3)) + 1/2)
+            sage: g.midpoint().coordinates().simplify_full().n().abs() #  abs tol 1e-10
+            1.414213562373
 
         Check that floating points remain floating points
         in :meth:`midpoint` ::
