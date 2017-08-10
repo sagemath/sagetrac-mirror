@@ -84,13 +84,13 @@ class ClusterSeed(SageObject):
         A seed for a cluster algebra of rank 7 of type ['A', [2, 5], 1]
 
         sage: T = ClusterSeed( S._M ); T
-        A seed for a cluster algebra of rank 7
+        A seed for a cluster algebra of rank 7 constructed from a skew-symmetrizable matrix
 
         sage: T = ClusterSeed( S.quiver()._digraph ); T
-        A seed for a cluster algebra of rank 7
+        A seed for a cluster algebra of rank 7 constructed from a digraph
 
         sage: T = ClusterSeed( S.quiver()._digraph.edges() ); T
-        A seed for a cluster algebra of rank 7
+        A seed for a cluster algebra of rank 7 constructed from a digraph
 
         sage: S = ClusterSeed(['B',2]); S
         A seed for a cluster algebra of rank 2 of type ['B', 2]
@@ -123,7 +123,13 @@ class ClusterSeed(SageObject):
         False
         
         sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['c']); S
-        A seed for a cluster algebra of rank 4 with 1 frozen variable
+        A seed for a cluster algebra of rank 4 constructed from a digraph with 1 frozen variable
+
+        sage: S = ClusterSeed(['D',4],user_labels = [-1,0,1,2]); S
+        A seed for a cluster algebra of rank 4 of type ['D', 4]
+
+        sage: S = ClusterSeed(['DB',[['D',4],[1,2,3,4],[4,3,2,1]]]); S
+        A seed for a cluster algebra of rank 4 constructed from a double Bruhat cell in a group of type ['D', 4] with 8 frozen variables
 
     """
     def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x'):
@@ -142,7 +148,7 @@ class ClusterSeed(SageObject):
             * self._use_fpolys - a boolean tracking whether F-polynomials and cluster variables will be tracked as part of every mutation.
             * self._cluster - a list tracking the current names of cluster elements.
             * self._user_labels_prefix - the prefix for every named cluster element. Defaults to 'x'.
-            * self._user_labels - an optional dictionary or list of user defined names for all cluster elements. Defaults to 'x_i' for mutable elements and 'y_i' for immutable elements. All labels should be nonnegative integers or alphanumeric strings.'
+            * self._user_labels - an optional dictionary or list of user defined names for all cluster elements. Defaults to 'x_i' for mutable elements and 'y_i' for immutable elements. All labels should be integers or alphanumeric strings.'
             * self._init_vars - an internal list for defining ambient the algebraic setting and naming quiver vertices.
             * self._init_exch - the dictionary storing the initial mutable cluster variable names.
             * self._U - the coefficient tuple of the initial cluster seed.
@@ -769,18 +775,25 @@ class ClusterSeed(SageObject):
             sage: S._init_vars
             {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
         """
+        
         self._init_vars = {}
         if isinstance(user_labels,list):          
             for i in range(len(user_labels)):
                 if isinstance(user_labels[i], Integer):
-                    self._init_vars[i] = user_labels_prefix+user_labels[i].str()
+                    if user_labels[i] >= 0:
+                        self._init_vars[i] = user_labels_prefix+user_labels[i].str()
+                    else:
+                        self._init_vars[i] = user_labels_prefix+'neg'+(-user_labels[i]).str()
                 elif isinstance(user_labels[i], (list, tuple)):
 
                     self._user_labels_prefix = user_labels_prefix
                     strng = self._user_labels_prefix
                     for j in user_labels[i]:
                         if isinstance(j, Integer):
-                            strng = strng+"_"+j.str()
+                            if j >= 0:
+                                strng = strng+"_"+j.str()
+                            else:
+                                strng = strng+"_"+'neg'+(-j).str()
                         else:
                             strng = strng+"_"+j
                     self._init_vars[i] = strng
@@ -793,7 +806,10 @@ class ClusterSeed(SageObject):
                     strng = self._user_labels_prefix
                     for j in user_labels[key]:
                         if isinstance(j, Integer):
-                            strng = strng+"_"+j.str()
+                            if j >=0:
+                                strng = strng+"_"+j.str()
+                            else:
+                                strng = strng+"_"+'neg'+(-j).str()
                         else:
                             strng = strng+"_"+j
                     self._init_vars[key] = strng
@@ -1277,6 +1293,10 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['b','d'])
             sage: S.nlist()
             ['a', 'c', 'e']
+
+            sage: S=ClusterSeed(DiGraph([[5,'b']]))
+            sage: S.nlist()
+            [5, 'b']
         """
         return self._nlist
     
@@ -1446,9 +1466,10 @@ class ClusterSeed(SageObject):
             [1, y1*y2 + y2 + 1, y1 + 1]
 
             sage: S = ClusterSeed(Matrix([[0,1],[-1,0],[1,0],[-1,1]])); S.use_c_vectors(bot_is_c=True); S
-            A seed for a cluster algebra of rank 2 with 2 frozen variables
+            A seed for a cluster algebra of rank 2 constructed from a skew-symmetrizable matrix with 2 frozen variables
             sage: T = ClusterSeed(Matrix([[0,1],[-1,0]])).principal_extension(); T
-            A seed for a cluster algebra of rank 2 with principal coefficients
+            A seed for a cluster algebra of rank 2 constructed from a skew-symmetrizable matrix with principal coefficients
+
             sage: S.mutate(0)
             sage: T.mutate(0)
             sage: S.f_polynomials()
@@ -1655,12 +1676,12 @@ class ClusterSeed(SageObject):
             [(1, 0, 0), (0, 0, -1), (0, -1, 0)]
 
             sage: S = ClusterSeed(Matrix([[0,1],[-1,0],[1,0],[-1,1]])); S
-            A seed for a cluster algebra of rank 2 with 2 frozen variables
+            A seed for a cluster algebra of rank 2 constructed from a skew-symmetrizable matrix with 2 frozen variables
             sage: S.c_vector(0)
             (1, 0)
 
             sage: S = ClusterSeed(Matrix([[0,1],[-1,0],[1,0],[-1,1]])); S.use_c_vectors(bot_is_c=True); S
-            A seed for a cluster algebra of rank 2 with 2 frozen variables
+            A seed for a cluster algebra of rank 2 constructed from a skew-symmetrizable matrix with 2 frozen variables
             sage: S.c_vector(0)
             (1, -1)
 
@@ -2412,6 +2433,34 @@ class ClusterSeed(SageObject):
             sage: S.cluster()
             [(b + 1)/a, (a*c*d + b + 1)/(a*b), c, (a*c*d + b^2 + 2*b + 1)/(a*b*d)]
 
+            sage: S=ClusterSeed(DiGraph([[5,'b']]))
+            sage: S.mutate(5)
+            sage: S.cluster()
+            [(b + 1)/x5, b]
+            sage: S.mutate([5])
+            sage: S.cluster()
+            [x5, b]
+            sage: S.mutate(0)
+            sage: S.cluster()
+            [(b + 1)/x5, b]
+
+            sage: S=ClusterSeed(DiGraph([[1,2]]))
+            sage: S.cluster()
+            [x1, x2]
+            sage: S.mutate(1)
+            Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.
+            sage: S.cluster()
+            [(x2 + 1)/x1, x2]
+
+            sage: S = ClusterSeed(DiGraph([[-1,0],[0,1]]))
+            sage: S.cluster()
+            [xneg1, x0, x1]
+            sage: S.mutate(-1);S.cluster()
+            [(x0 + 1)/xneg1, x0, x1]
+            sage: S.mutate(0);S.cluster()
+            Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.
+            [(x0 + 1)/xneg1, (x0*x1 + xneg1 + x1)/(xneg1*x0), x1]
+
         """
 
         # check for sanitizable data
@@ -2470,7 +2519,7 @@ class ClusterSeed(SageObject):
 
         V = IE + list(range(n))
 
-        if (sequence in range(n)) or (sequence in IE) or isinstance(sequence,str):
+        if (sequence in range(n)) or (sequence in IE) or isinstance(sequence,str) or (sequence in seed.nlist()):
             seqq = [sequence]
         else:
             seqq = sequence
@@ -3007,6 +3056,11 @@ class ClusterSeed(SageObject):
             [ 0  1]
             [ 0 -1]
 
+            sage: S = ClusterSeed(['A',5],user_labels = [-2,-1,0,1,2])
+            sage: U = S.universal_extension()
+            sage: U.b_matrix() == ClusterSeed(['A',5]).universal_extension().b_matrix()
+            True
+
         """
         if self._m != 0:
             raise ValueError("To have universal coefficients we need "
@@ -3031,7 +3085,15 @@ class ClusterSeed(SageObject):
                     for alpha in almost_positive_coroots])
 
         M = self._M.stack(C)
-        seed = ClusterSeed(M, is_principal = False, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
+        n = C.nrows()
+        new_labels = None
+        if self._user_labels:
+            if isinstance(self._user_labels,list):
+                new_labels = self._user_labels + ['y%s'%i for i in range(n)]
+            elif isinstance(self._user_labels,dict):
+                new_labels = copy(self._user_labels)
+                new_labels.update( {(i+self._n):'y%s'%i for i in range(n)}  )
+        seed = ClusterSeed(M, is_principal = False, user_labels=new_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
         seed.use_c_vectors(self._use_c_vec)
         seed.use_fpolys(self._use_fpolys)
         seed.use_g_vectors(self._use_g_vec)
@@ -3049,10 +3111,10 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed([[0,1],[1,2],[2,3],[2,4]]); S
-            A seed for a cluster algebra of rank 5
+            A seed for a cluster algebra of rank 5 constructed from a digraph
 
             sage: T = S.principal_extension(); T
-            A seed for a cluster algebra of rank 5 with principal coefficients
+            A seed for a cluster algebra of rank 5 constructed from a skew-symmetrizable matrix with principal coefficients
 
             sage: T.b_matrix()
             [ 0  1  0  0  0]
@@ -3084,12 +3146,14 @@ class ClusterSeed(SageObject):
             raise ValueError("The b-matrix is not square.")
         M = self._M.stack(identity_matrix(self._n))
         is_principal = (self._m == 0)
+        new_labels = None
         if self._user_labels:
             if isinstance(self._user_labels,list):
-                self._user_labels = self._user_labels + ['y%s'%i for i in range(self._n)]
+                new_labels = self._user_labels + ['y%s'%i for i in range(self._n)]
             elif isinstance(self._user_labels,dict):
-                self._user_labels.update( {(i+self._n):'y%s'%i for i in range(self._n)}  )
-        seed = ClusterSeed(M, is_principal = is_principal, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
+                new_labels = copy(self._user_labels)
+                new_labels.update( {(i+self._n):'y%s'%i for i in range(self._n)}  )
+        seed = ClusterSeed(M, is_principal = is_principal, user_labels=new_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
         seed.use_c_vectors(self._use_c_vec)
         seed.use_fpolys(self._use_fpolys)
         seed.use_g_vectors(self._use_g_vec)
@@ -4074,7 +4138,7 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['E',8,[1,1]]); S
             A seed for a cluster algebra of rank 10 of type ['E', 8, [1, 1]]
             sage: S._mutation_type = S._quiver._mutation_type = None; S
-            A seed for a cluster algebra of rank 10
+            A seed for a cluster algebra of rank 10 constructed from a digraph
             sage: S.mutation_type() # long time
             ['E', 8, [1, 1]]
 

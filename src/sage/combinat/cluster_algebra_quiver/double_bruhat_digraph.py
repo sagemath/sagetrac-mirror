@@ -22,11 +22,14 @@ def DoubleBruhatDigraph(CartanType, u,v,word = False):
         sage: from sage.combinat.cluster_algebra_quiver.double_bruhat_digraph import DoubleBruhatDigraph
         sage: W = WeylGroup(['C',4])
         sage: s1,s2,s3,s4 = W.simple_reflections()
-        sage: D,F = DoubleBruhatDigraph(['C',4],s1*s2*s3*s4,s4*s3*s2*s1)
+        sage: D,F,S = DoubleBruhatDigraph(['C',4],s1*s2*s3*s4,s4*s3*s2*s1)
         sage: D
         Digraph on 12 vertices
         sage: F
         [-4, -3, -2, -1, 5, 6, 7, 8]
+        sage: S
+        [[-1, 1, 8], [-2, 2, 7], [-3, 3, 6], [-4, 4, 5]]
+
 
 ''' 
     

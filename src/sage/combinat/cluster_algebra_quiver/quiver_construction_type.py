@@ -148,7 +148,8 @@ class QuiverConstructionType(SageObject):
                 u = u.reduced_word()
                 v = v.reduced_word()
                 
-                self._CartanType = CartanType        
+
+                self._cartan_type = CartanType        
                 self._details = " using the reduced words " + str(u) + " and " +  str(v)
                 
                 
@@ -166,14 +167,21 @@ class QuiverConstructionType(SageObject):
         elif self._description == "Digraph":
             return "a digraph"
         elif self._description == "Matrix":
-            return "a matrix"
+            return "a skew-symmetrizable matrix"
         elif self._description == "DB":
-            return "a double Bruhat cell in a group of type " + str(self._CartanType)     
+            return "a double Bruhat cell in a group of type " + str(self._cartan_type)     
 
 
     
     def full_description(self):
-        
+        """
+        Prints a string with detailed information about the construction_type.
+
+        EXAMPLES::
+
+        sage: ClusterQuiver(['DB',[['D',4],[1,2,3,4],[4,3,2,1]]])._construction_type.full_description()
+        Quiver constructed from a double Bruhat cell in a group of type ['D', 4] using the reduced words [1, 2, 4, 3] and [4, 3, 2, 1].
+        """
         print "Quiver constructed from " + str(self) + self._details  + "." 
     
 def _construction_type_error(data):

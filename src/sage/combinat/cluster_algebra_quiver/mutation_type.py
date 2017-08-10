@@ -63,7 +63,7 @@ def is_mutation_finite(M, nr_of_checks=None):
     Check that :trac:`19495` is fixed::
     
         sage: dg = DiGraph(); dg.add_vertex(0); S = ClusterSeed(dg); S
-        A seed for a cluster algebra of rank 1
+        A seed for a cluster algebra of rank 1 constructed from a digraph
         sage: S.is_mutation_finite()
         True
     """

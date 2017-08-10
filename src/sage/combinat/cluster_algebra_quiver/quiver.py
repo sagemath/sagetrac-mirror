@@ -211,7 +211,6 @@ class ClusterQuiver(SageObject):
         ValueError: The input DiGraph contains two-cycles
 
         sage: Q = ClusterQuiver('whatever')
-                self._construction_type = QuiverConstructionType(data)
         Traceback (most recent call last):
         ...
         ValueError: The input data was not recognized.
@@ -267,7 +266,7 @@ class ClusterQuiver(SageObject):
             else:
                 mutation_type = QuiverMutationType( data )
 
-            # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.        
+                # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.        
 
                 if len(data) == 2 and isinstance(data[0], str):
                     if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2):
@@ -298,35 +297,17 @@ class ClusterQuiver(SageObject):
 
                         else:
                             self.__init__( mutation_type.standard_quiver() )
-                    elif len(data) == 3 and isinstance(data[0], str):
-                        if (data[0] == 'F' and data[1] == 4 and data[2] == [2,1])   or (data[0] == 'G' and data[1] == 2 and data[2] == [3,1]):
-                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], tuple(data[2]) )._digraph )
-                            quiv._mutation_type = mutation_type
-                            self.__init__( quiv )
-                        elif (data[0] == 'F' and data[1] == 4 and data[2] == (2,1) )   or (data[0] == 'G' and data[1] == 2 and data[2] == (3,1) ):
+                    elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
+                        if len(data[1]) == 2 and min(data[1]) == 0:
                             quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
                             quiv._mutation_type = mutation_type
                             self.__init__( quiv )
-                        elif data[0] == 'A' and isinstance(data[1], list) and data[2] == 1:
-                            if len(data[1]) == 2 and min(data[1]) == 0:
-                                quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]), data[2] )._digraph )
-                                quiv._mutation_type = mutation_type
-                                self.__init__( quiv )
-                            else:
-                                self.__init__( mutation_type.standard_quiver() )
-
-                        elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
-                            if len(data[1]) == 2 and min(data[1]) == 0:
-                                quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
-                                quiv._mutation_type = mutation_type
-                                self.__init__( quiv )
-                            else:
-                                self.__init__( mutation_type.standard_quiver() )
-
                         else:
                             self.__init__( mutation_type.standard_quiver() )
                     else:
                         self.__init__( mutation_type.standard_quiver() )
+                else:
+                    self.__init__( mutation_type.standard_quiver() )
 
             if user_labels:
                 
@@ -728,7 +709,7 @@ class ClusterQuiver(SageObject):
             if self._construction_type._description != 'DB':
                 raise ValueError("Sheets are only valid for double Bruhat cells")
 
-            M = CartanMatrix(self._construction_type._CartanType)           
+            M = CartanMatrix(self._construction_type._cartan_type)           
             listk = self._construction_type._strings
             for l in range(0, M.nrows()):
                 for k in range(0, l+1):
@@ -1677,7 +1658,7 @@ class ClusterQuiver(SageObject):
             self._M.set_immutable()
             self._digraph = dg
         else:
-            Q = ClusterQuiver( M )
+            Q = ClusterQuiver( dg, frozen = self._mlist )
             Q._construction_type = self._construction_type
             Q._mutation_type = self._mutation_type
             return Q
