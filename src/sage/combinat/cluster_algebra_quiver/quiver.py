@@ -558,7 +558,7 @@ class ClusterQuiver(SageObject):
             name += ' constructed from '+ str(self._construction_type)
         return name
 
-    def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
+    def plot(self, subgraph = None, circular=True, center=(0, 0), directed=True, mark=None,
              save_pos=False, greens=[]):
         """
         Return the plot of the underlying digraph of ``self``.
@@ -588,10 +588,31 @@ class ClusterQuiver(SageObject):
         from sage.graphs.graph_generators import GraphGenerators
         from sage.all import e, pi, I
         graphs = GraphGenerators()
+        
+        if subgraph:
+            digraph = subgraph
+            vertices = digraph.vertices()
+            nlist = [ v for v in vertices if v in self._nlist ]
+            mlist = [ v for v in vertices if v in self._mlist ]
+            if len(mlist) + len(nlist) < len(vertices):
+                raise ValueError(" Optional subgraph input not a subgraph of self._digraph ")
+            n = len(nlist)
+            m = len(mlist)
+            vertex_dict = dict(zip(list(range(len(vertices))),vertices))
+
+        
+        else:
+            n, m = self._n, self._m
+            # So that we don't remove elements of these lists later
+            nlist = copy(self._nlist)
+            mlist = copy(self._mlist)
+            digraph = self._digraph
+            vertex_dict = self._vertex_dictionary
+
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
         def _graphs_concentric_circles(n, m):
-            g1 = graphs.CycleGraph(n).get_pos()
             g2 = graphs.CycleGraph(m).get_pos()
+            g1 = graphs.CycleGraph(n).get_pos()
             for i in g2:
                 z = CC(g2[i])*e**(-pi*I/(2*m))
                 g2[i] = (z.real_part(),z.imag_part())
@@ -599,18 +620,14 @@ class ClusterQuiver(SageObject):
                 g1[n+i] = [2*g2[i][0], 2*g2[i][1]]
             return g1
 
-        n, m = self._n, self._m
-        # So that we don't remove elements of these lists later
-        nlist = copy(self._nlist)
-        mlist = copy(self._mlist)
         colors = rainbow(11)
         color_dict = { colors[0]:[], colors[1]:[], colors[6]:[], colors[5]:[] }
         
         # Set up our graph. If it's directed we have a digraph, else just a normal graph
         if directed:
-            dg = DiGraph( self._digraph )
+            dg = DiGraph( digraph )
         else:
-            dg = Graph( self._digraph )
+            dg = Graph( digraph )
             
         # For each edge in our graph we assign a color
         for edge in dg.edges():
@@ -670,12 +687,15 @@ class ClusterQuiver(SageObject):
             options['pos'] = {}
             for v in pp:
                 # If we're using vertex dictionary set that as key
-                if v in self._vertex_dictionary:
-                    vkey = self._vertex_dictionary[v]
+                if v in vertex_dict:
+                    vkey = vertex_dict[v]
                 else:
                     vkey = v
                 options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
                 
+        print(vertex_dict)
+        print(vertex_color_dict)
+        print(color_dict)
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, sheets=False, greens=[]):
@@ -704,6 +724,7 @@ class ClusterQuiver(SageObject):
         n, m = self._n, self._m
 
         if sheets:
+            subgraphs=[]
             if self._construction_type._description != 'DB':
                 raise ValueError("Sheets are only valid for double Bruhat cells")
 
@@ -712,8 +733,26 @@ class ClusterQuiver(SageObject):
             for l in range(0, M.nrows()):
                 for k in range(0, l+1):
                     if M[l,k]<0:
+                        #self._digraph.subgraph(listk[l]+listk[k]).show(layout='planar')
+                        subgraphs.append(self._digraph.subgraph(listk[l]+listk[k]))
                         self._digraph.subgraph(listk[l]+listk[k]).show()
-
+            from sage.plot.plot import Graphics
+            from sage.plot.text import text
+            fig_size = 1.2
+            if m == 0:
+                width_factor = 3
+                fig_size = fig_size*2*n/3
+            else:
+                width_factor = 6
+                fig_size = fig_size*4*n/3
+            plot_sequence = [ self.plot(subgraph = subgraphs[i], circular=True, center=(i*width_factor,0)) for i in range(len(subgraphs)) ]
+            sequence = []
+            for p in plot_sequence:
+                sequence.append( p )
+            plot_obj = Graphics()
+            for elem in sequence:
+                plot_obj += elem
+            plot_obj.show(axes=False, figsize=[fig_size*len(subgraphs),fig_size])
         else:
 
             plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)
