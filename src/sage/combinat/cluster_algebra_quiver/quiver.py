@@ -266,7 +266,7 @@ class ClusterQuiver(SageObject):
             else:
                 mutation_type = QuiverMutationType( data )
 
-            # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.        
+                # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.        
 
                 if len(data) == 2 and isinstance(data[0], str):
                     if data[0] == 'TR' or data[0] == 'GR' or (data[0] == 'C' and data[1] == 2):
@@ -297,8 +297,15 @@ class ClusterQuiver(SageObject):
 
                         else:
                             self.__init__( mutation_type.standard_quiver() )
-                    else:
-                        self.__init__( mutation_type.standard_quiver() )
+                    elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
+                        if len(data[1]) == 2 and min(data[1]) == 0:
+                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
+                            quiv._mutation_type = mutation_type
+                            self.__init__( quiv )
+                        else:
+                            self.__init__( mutation_type.standard_quiver() )
+                else:
+                    self.__init__( mutation_type.standard_quiver() )
 
             if user_labels:
                 
