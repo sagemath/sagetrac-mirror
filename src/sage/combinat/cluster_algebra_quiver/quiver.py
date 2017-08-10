@@ -304,6 +304,8 @@ class ClusterQuiver(SageObject):
                             self.__init__( quiv )
                         else:
                             self.__init__( mutation_type.standard_quiver() )
+                    else:
+                        self.__init__( mutation_type.standard_quiver() )
                 else:
                     self.__init__( mutation_type.standard_quiver() )
 
@@ -686,7 +688,7 @@ class ClusterQuiver(SageObject):
             if self._construction_type._description != 'DB':
                 raise ValueError("Sheets are only valid for double Bruhat cells")
 
-            M = CartanMatrix(self._construction_type._CartanType)           
+            M = CartanMatrix(self._construction_type._cartan_type)           
             listk = self._construction_type._strings
             for l in range(0, M.nrows()):
                 for k in range(0, l+1):
@@ -1617,7 +1619,7 @@ class ClusterQuiver(SageObject):
             self._M.set_immutable()
             self._digraph = dg
         else:
-            Q = ClusterQuiver( M )
+            Q = ClusterQuiver( dg, frozen = self._mlist )
             Q._construction_type = self._construction_type
             Q._mutation_type = self._mutation_type
             return Q
