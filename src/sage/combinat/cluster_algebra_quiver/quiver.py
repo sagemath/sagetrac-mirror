@@ -297,33 +297,6 @@ class ClusterQuiver(SageObject):
 
                         else:
                             self.__init__( mutation_type.standard_quiver() )
-                    elif len(data) == 3 and isinstance(data[0], str):
-                        if (data[0] == 'F' and data[1] == 4 and data[2] == [2,1])   or (data[0] == 'G' and data[1] == 2 and data[2] == [3,1]):
-                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], tuple(data[2]) )._digraph )
-                            quiv._mutation_type = mutation_type
-                            self.__init__( quiv )
-                        elif (data[0] == 'F' and data[1] == 4 and data[2] == (2,1) )   or (data[0] == 'G' and data[1] == 2 and data[2] == (3,1) ):
-                            quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
-                            quiv._mutation_type = mutation_type
-                            self.__init__( quiv )
-                        elif data[0] == 'A' and isinstance(data[1], list) and data[2] == 1:
-                            if len(data[1]) == 2 and min(data[1]) == 0:
-                                quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]), data[2] )._digraph )
-                                quiv._mutation_type = mutation_type
-                                self.__init__( quiv )
-                            else:
-                                self.__init__( mutation_type.standard_quiver() )
-
-                        elif data[0] == 'A' and isinstance(data[1], tuple) and data[2] == 1:
-                            if len(data[1]) == 2 and min(data[1]) == 0:
-                                quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], data[1], data[2] )._digraph )
-                                quiv._mutation_type = mutation_type
-                                self.__init__( quiv )
-                            else:
-                                self.__init__( mutation_type.standard_quiver() )
-
-                        else:
-                            self.__init__( mutation_type.standard_quiver() )
                     else:
                         self.__init__( mutation_type.standard_quiver() )
 
