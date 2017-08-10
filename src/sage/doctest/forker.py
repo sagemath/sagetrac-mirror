@@ -38,7 +38,7 @@ from __future__ import absolute_import
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
-import tempfile
+import tempfile, importlib, copy
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
 from .sources import DictAsObject
@@ -2187,10 +2187,19 @@ class DocTestTask(object):
                     import sage.all_notebook as sage_all
                 else:
                     import sage.all_cmdline as sage_all
-                dict_all = sage_all.__dict__
+                dict_all = copy.copy(sage_all.__dict__)
                 # Remove '__package__' item from the globals since it is not
                 # always in the globals in an actual Sage session.
                 dict_all.pop('__package__', None)
+                for module in options.import_modules.split():
+                    if options.verbose:
+                        msgfile.write("importing * from %s into testing namespace\n"%module)
+                        msgfile.flush()
+                    mod = importlib.import_module(module)
+                    if mod.__dict__.has_key('__all__'):
+                        dict_all.update((key,mod.__dict__[key]) for key in mod.__dict__['__all__'])
+                    else:
+                        dict_all.update(i for i in mod.__dict__.items() if i[0][0]!='_')
                 sage_namespace = RecordingDict(dict_all)
                 sage_namespace['__name__'] = '__main__'
                 doctests, extras = self.source.create_doctests(sage_namespace)

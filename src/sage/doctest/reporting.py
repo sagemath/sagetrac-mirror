@@ -142,13 +142,15 @@ class DocTestReporter(SageObject):
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"
-        if self.controller.options.long:
+        options = self.controller.options
+        if options.long:
             cmd += " --long"
-        warnlong = self.controller.options.warn_long
-        if warnlong is not None:
+        if options.warn_long is not None:
             cmd += " --warn-long"
-            if warnlong != 1.0:
-                cmd += " %.1f"%(warnlong)
+            if options.warn_long != 1.0:
+                cmd += " %.1f"%(options.warn_long)
+        if options.import_modules:
+            cmd += ' --import="%s"'%options.import_modules
         cmd += " " + source.printpath
         return cmd
 

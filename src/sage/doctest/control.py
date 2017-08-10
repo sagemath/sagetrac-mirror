@@ -100,6 +100,7 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+        self.import_modules = ""
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
@@ -969,19 +970,28 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
             sage: print(DC._assemble_cmd())
-            python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
+            python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout="123" hello_world.py
         """
         cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
+        bool_opt = ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new")
+        value_opt =  ("timeout", "randorder", "stats_path")
+        other_opt = ("optional", "import_modules", "valgrind", "gdb")
+        known_opt = bool_opt + value_opt + other_opt
+        unknown = set(opt).difference(known_opt)
+        if unknown:
+            raise ValueError("Unkown options %s"%unknown)
         for o in ("all", "sagenb"):
             if o in opt:
                 raise ValueError("You cannot run gdb/valgrind on the whole sage%s library"%("" if o == "all" else "nb"))
-        for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
+        for o in bool_opt:
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "randorder", "stats_path"):
+        for o in value_opt:
             if o in opt:
-                cmd += "--%s=%s "%(o, opt[o])
+                cmd += '--%s="%s" '%(o, opt[o])
+        if "import_modules" in opt:
+            cmd += '--import="%s" '%opt["import_modules"]
         if "optional" in opt:
             cmd += "--optional={} ".format(self._optional_tags_string())
         return cmd + " ".join(self.files)
@@ -1005,19 +1015,38 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(gdb=True)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" --args python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=0 hello_world.py
+            exec gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" --args python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout="0" hello_world.py
 
         ::
 
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout="172800" --optional=all hello_world.py
+
+        TESTS:
+
+        We test that one cannot use valgrind with ``--all`` or ``--sagenb``::
+
+            sage: DD = DocTestDefaults(valgrind=True, all=True, timeout=172800)
+            sage: DC = DocTestController(DD, ["hello_world.py"])
+            sage: DC.run_val_gdb(testing=True)
+            ValueError('You cannot run gdb/valgrind on the whole sage library',)
+            2
+
+        ::
+
+            sage: DD = DocTestDefaults(valgrind=True, sagenb=True, timeout=172800)
+            sage: DC = DocTestController(DD, ["hello_world.py"])
+            sage: DC.run_val_gdb(testing=True)
+            ValueError('You cannot run gdb/valgrind on the whole sagenb library',)
+            2
+
         """
         try:
             sage_cmd = self._assemble_cmd()
         except ValueError:
-            self.log(sys.exc_info()[1])
+            self.log(sys.exc_info()[1].__repr__())
             return 2
         opt = self.options
         if opt.gdb:
@@ -1139,6 +1168,8 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
+            if self.options.import_modules:
+                self.log('Using --import="%s"'%self.options.import_modules) 
             if self.options.optional is True or 'external' in self.options.optional:
                 self.log("External software to be detected: " + ','.join(external_software))
 

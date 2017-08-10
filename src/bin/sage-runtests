@@ -79,6 +79,9 @@ if __name__ == "__main__":
     parser.add_option("--stats_path", "--stats-path", default=os.path.join(DOT_SAGE, "timings2.json"),
                           help="path to a json dictionary for the latest run storing a timing for each file")
 
+    parser.add_option("--import", dest = "import_modules", metavar = "MODULES", default="",
+        help = "import the modules in the list MODULES before running the tests."
+               "Put the modules between quotes when importing multiple modules")
     # The --serial option is only really for internal use, better not
     # document it.
     parser.add_option("--serial", action="store_true", default=False, help=optparse.SUPPRESS_HELP)

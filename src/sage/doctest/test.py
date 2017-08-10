@@ -471,6 +471,69 @@ Test an invalid value for ``--optional``::
     ValueError: invalid optional tag 'bad-option'
     1
 
+
+Test the ``--import`` option::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--import", "doctest", "import.rst"], **kwds) # long time 
+    Running doctests ...
+    Using --import="doctest"
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 --import="doctest" import.rst
+        [1 test, ... s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+
+::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "import.rst"], **kwds) # long time
+    Running doctests ...
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 import.rst
+    **********************************************************************
+    File "import.rst", line 3, in sage.doctest.tests.import
+    Failed example:
+        DocTest
+    Exception raised:
+    ...
+        NameError: name 'DocTest' is not defined
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.import
+        [1 test, 1 failure, ... s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 0.0 import.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+    1
+
+::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--import", "importlib", "import.rst"], **kwds) # long time
+    Running doctests ...
+    Using --import="importlib"
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 --import="importlib" import.rst
+    **********************************************************************
+    File "import.rst", line 3, in sage.doctest.tests.import
+    Failed example:
+        DocTest
+    Exception raised:
+    ...
+        NameError: name 'DocTest' is not defined
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.import
+        [1 test, 1 failure, ... s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 0.0 --import="importlib" import.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+    1
+
+
 Test ``atexit`` support in the doctesting framework::
 
     sage: F = tmp_filename()
