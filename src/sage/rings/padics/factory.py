@@ -1581,7 +1581,7 @@ class Zp_class(UniqueFactory):
             print_max_terms = check
             check = True
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
-                            print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point'], 'lattice'], label=label)
+                            print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice'], label=label)
 
     def create_object(self, version, key):
         """
@@ -2233,7 +2233,7 @@ def ZpFP(p, prec = DEFAULT_PREC, print_mode = None, names = None, print_pos = No
               print_pos=print_pos, print_sep=print_sep, print_alphabet=print_alphabet, print_max_terms=print_max_terms,
               type = 'floating-point')
 
-def ZpLP(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names = None, print_pos = None,
+def ZpLP(p, prec = DEFAULT_PREC, print_mode = None, names = None, print_pos = None,
          print_sep = None, print_alphabet = None, print_max_terms = None, check=True, label=None):
     """
     A shortcut function to create `p`-adic rings with lattice precision.
@@ -2534,7 +2534,7 @@ def ZpLP(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
          'partial reduce': 0.0917658805847168}
 
     """
-    return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check, names=names,
+    return Zp(p=p, prec=prec, print_mode=print_mode, check=check, names=names,
               print_pos=print_pos, print_sep=print_sep, print_alphabet=print_alphabet, print_max_terms=print_max_terms,
               type = 'lattice', label=label)
 
