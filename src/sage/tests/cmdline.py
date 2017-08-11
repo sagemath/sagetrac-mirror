@@ -205,13 +205,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
+        sage: import doctest
+        sage: doctest.ELLIPSIS_MARKER = '***'
         sage: print(out)
-        Found local metadata for sqlite-...
+        ***
+        Found local metadata for sqlite-***
         = SQLite =
-        ...
+        ***
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
-        ...
+        ***
         sage: err
         ''
         sage: ret
@@ -219,16 +222,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
         sage: print(out)
-        Found local metadata for sqlite-...
+        ***
+        Found local metadata for sqlite-***
         = SQLite =
-        ...
+        ***
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
-        ...
+        ***
         sage: err
         ''
         sage: ret
         0
+        sage: doctest.ELLIPSIS_MARKER = '...'
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
 
