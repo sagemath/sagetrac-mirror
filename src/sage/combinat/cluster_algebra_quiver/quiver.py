@@ -539,15 +539,17 @@ class ClusterQuiver(SageObject):
             name += ' constructed from '+ str(self._construction_type)
         return name
 
-    def plot(self, subgraph = None, circular=True, center=(0, 0), directed=True, mark=None,
+    def plot(self, subgraph = None, circular=True, linear=False, center=(0, 0), directed=True, mark=None,
              save_pos=False, greens=[]):
         """
         Return the plot of the underlying digraph of ``self``.
 
         INPUT:
-
+        - ``subgraph`` -- (default: ``None``)
         - ``circular`` -- (default: ``True``) if ``True``, the circular plot
           is chosen, otherwise >>spring<< is used.
+        - ``linear`` -- (default: ``False``) if ``True``, the linear plot is
+          chosen.  Requires ilist and jlist.
         - ``center`` -- (default:(0,0)) sets the center of the circular plot,
           otherwise it is ignored.
         - ``directed`` -- (default: ``True``) if ``True``, the directed
@@ -571,7 +573,12 @@ class ClusterQuiver(SageObject):
         graphs = GraphGenerators()
         
         if subgraph:
-            digraph = subgraph
+            if isinstance(subgraph,list):
+                digraph = subgraph[0]
+                ilist = subgraph[1]
+                jlist = subgraph[2]
+            else:
+                digraph = subgraph
             vertices = digraph.vertices()
             nlist = [ v for v in vertices if v in self._nlist ]
             mlist = [ v for v in vertices if v in self._mlist ]
@@ -580,7 +587,6 @@ class ClusterQuiver(SageObject):
             n = len(nlist)
             m = len(mlist)
             vertex_dict = dict(zip(list(range(len(vertices))),vertices))
-
         
         else:
             n, m = self._n, self._m
@@ -592,6 +598,10 @@ class ClusterQuiver(SageObject):
 
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
         def _graphs_concentric_circles(n, m):
+            # To avoid the fact that graphs.CycleGraph(1) causes an error
+            if n == 1 or m == 1:
+                g1 = {0: (0,0)}
+                return g1
             g2 = graphs.CycleGraph(m).get_pos()
             g1 = graphs.CycleGraph(n).get_pos()
             for i in g2:
@@ -599,6 +609,16 @@ class ClusterQuiver(SageObject):
                 g2[i] = (z.real_part(),z.imag_part())
             for i in range(m):
                 g1[n+i] = [2*g2[i][0], 2*g2[i][1]]
+            return g1
+        
+        # returns positions for graph vertices on lines in sheets
+        def _graphs_linear( ilist, jlist ):
+            max_len = max( len(ilist),len(jlist) )
+            ilist.sort()
+            jlist.sort()
+            g1 = dict(zip(ilist,[(1,n) for n in range(len(ilist))]))
+            g2 = dict(zip(jlist,[(0,n) for n in range(len(jlist))]))
+            g1.update(g2)            
             return g1
 
         colors = rainbow(11)
@@ -642,7 +662,7 @@ class ClusterQuiver(SageObject):
                 raise ValueError("The given mark is not a vertex of self.")
         else:
             
-            # Parititon out the green vertices
+            # Partition out the green vertices
 
             for i in greens:
                 if i in nlist:
@@ -673,10 +693,13 @@ class ClusterQuiver(SageObject):
                 else:
                     vkey = v
                 options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
-                
-        print(vertex_dict)
-        print(vertex_color_dict)
-        print(color_dict)
+        if linear: 
+            pp=_graphs_linear(ilist,jlist)
+            options['pos'] = {}
+            for v in pp.keys():
+                vkey = v
+                options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
+               
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, sheets=False, greens=[]):
@@ -705,35 +728,33 @@ class ClusterQuiver(SageObject):
         n, m = self._n, self._m
 
         if sheets:
-            subgraphs=[]
+            from sage.plot.plot import Graphics
+            fig_size = 1.2
+            if m == 0:
+                width_factor = 1
+                fig_size = fig_size*2*n/3
+            else:
+                width_factor = 2
+                fig_size = fig_size*4*n/3
             if self._construction_type._description != 'DB':
                 raise ValueError("Sheets are only valid for double Bruhat cells")
 
             M = CartanMatrix(self._construction_type._cartan_type)           
             listk = self._construction_type._strings
-            for l in range(0, M.nrows()):
-                for k in range(0, l+1):
-                    if M[l,k]<0:
-                        #self._digraph.subgraph(listk[l]+listk[k]).show(layout='planar')
-                        subgraphs.append(self._digraph.subgraph(listk[l]+listk[k]))
-                        self._digraph.subgraph(listk[l]+listk[k]).show()
-            from sage.plot.plot import Graphics
-            from sage.plot.text import text
-            fig_size = 1.2
-            if m == 0:
-                width_factor = 3
-                fig_size = fig_size*2*n/3
-            else:
-                width_factor = 6
-                fig_size = fig_size*4*n/3
-            plot_sequence = [ self.plot(subgraph = subgraphs[i], circular=True, center=(i*width_factor,0)) for i in range(len(subgraphs)) ]
+            plot_sequence = []
+            number_of_sheets = 0
+            for i in range(0, M.nrows()):
+                for j in range(0, i+1):
+                    if M[i,j]<0:
+                        plot_sequence.append(self.plot(subgraph = [self._digraph.subgraph(listk[i]+listk[j]),listk[i],listk[j]], circular=False, linear=True, center=(number_of_sheets*width_factor,0)))
+                        number_of_sheets += 1
             sequence = []
             for p in plot_sequence:
                 sequence.append( p )
             plot_obj = Graphics()
             for elem in sequence:
                 plot_obj += elem
-            plot_obj.show(axes=False, figsize=[fig_size*len(subgraphs),fig_size])
+            plot_obj.show(axes=False, figsize=[fig_size*number_of_sheets,fig_size])
         else:
 
             plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)

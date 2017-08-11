@@ -120,6 +120,7 @@ class QuiverConstructionType(SageObject):
                             word = data[1][1]
                             for n in data[1][2]:
                                 word.append(-n)
+                        
 
                     elif isinstance(data[1][1], WeylGroupElement) and isinstance(data[1][2], WeylGroupElement):
                         u = data[1][1]
@@ -133,7 +134,7 @@ class QuiverConstructionType(SageObject):
 
                         
             
-                self._construction_digraph, self._frozen, self._strings = DoubleBruhatDigraph(CartanType,u,v)
+                self._construction_digraph, self._frozen, self._strings = DoubleBruhatDigraph(CartanType,u,v,word)
                 
                 # Modifies the original construction so that the digraph has skew-symmetric edges
                 newEdges = []

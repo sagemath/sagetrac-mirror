@@ -157,12 +157,5 @@ def strings(indices,iks,r):
     listk.reverse()
     return listk
 
-def subgraphs(graph, listk, M, r):
-    listsub=[]
-    for l in range(0, r):
-        for k in range(0, l+1):
-            if M[l,k]<0:
-                listsub.append(graph.subgraph(listk[l]+listk[k]))
-    return listsub
         
 
