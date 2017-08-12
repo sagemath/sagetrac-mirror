@@ -1474,6 +1474,18 @@ ext_modules = [
               sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
               libraries = ["flint"]),
 
+    Extension('sage.rings.padics.Zp_approx_element',
+              sources = ['sage/rings/padics/Zp_approx_element.pyx',
+                         'sage/rings/padics/Qp_approximated_element.cc',
+                         'sage/rings/padics/Zp_approximated_element.cc',
+                         'sage/rings/padics/pow_prime.cc'],
+              depends = ['sage/rings/padics/padic_approximated_element.h',
+                         'sage/rings/padics/Qp_approximated_element.h',
+                         'sage/rings/padics/Zp_approximated_element.h',
+                         'sage/rings/padics/pow_prime.h'],
+              libraries = ["gmp"],
+              language = 'c++'),
+
     ################################
     ##
     ## sage.rings.polynomial
