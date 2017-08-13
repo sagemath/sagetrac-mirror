@@ -67,6 +67,8 @@ Methods
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+include 'sage/data_structures/bitset.pxi'
+
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from sage.matroids.minor_matroid import MinorMatroid
@@ -254,10 +256,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Check for `M`-alternating path from `x` to `y`.
         """
-        from networkx import has_path
         e = self._E[x]
         f = self._E[y]
-        if has_path(self._D, f, e):
+        if nx.has_path(self._D, f, e):
             return True
         else:
             return False
@@ -266,19 +267,18 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
-        from networkx import shortest_path
         e = self._E[x]
         f = self._E[y]
-        sh = shortest_path(self._D, f, e)
-        shortest_path = []
-        shortest_path_r = []
+        sh = nx.shortest_path(self._D, f, e)
+        sh_edges = []
+        sh_edges_r = []
         for i in range(len(sh[:-1])):
-            shortest_path.append((sh[i], sh[i+1]))
-            shortest_path_r.append((sh[i+1], sh[i]))
-        self._D.remove_edges_from(shortest_path)
-        self._D.add_edges_from(shortest_path_r)
+            sh_edges.append((sh[i], sh[i+1]))
+            sh_edges_r.append((sh[i+1], sh[i]))
+        self._D.remove_edges_from(sh_edges)
+        self._D.add_edges_from(sh_edges_r)
 
-        for u, v in shortest_path:
+        for u, v in sh_edges:
             if (u, v) in self._matching:
                 self._matching.remove((u, v))
             else:
