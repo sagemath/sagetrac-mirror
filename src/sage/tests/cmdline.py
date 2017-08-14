@@ -205,7 +205,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print(out)
+        sage: print("ignore"); print(out)
+        ignore...
         Found local metadata for sqlite-...
         = SQLite =
         ...
@@ -218,7 +219,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print(out)
+        sage: print("ignore"); print(out)
+        ignore...
         Found local metadata for sqlite-...
         = SQLite =
         ...
