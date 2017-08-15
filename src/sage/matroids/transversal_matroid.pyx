@@ -60,7 +60,6 @@ from sage.matroids.utilities import newlabel
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.bipartite_graph import BipartiteGraph
-from sage.rings.integer import Integer
 
 from cpython.object cimport Py_EQ, Py_NE
 from copy import copy, deepcopy
@@ -462,3 +461,71 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         D.relabel({i:e for i, e in enumerate(self._E)})
         partition = [self._E, self._set_labels]
         return BipartiteGraph(D, partition)
+
+    cpdef _minor(self, contractions, deletions):
+        """
+        Return a minor.
+
+        Deletions will yield a new transversal matroid. Contractions will have to
+        be a MinorMatroid until Gammoid is implemented.
+
+        INPUT:
+
+        - ``contractions`` -- An independent subset of the ground set, as a frozenset.
+        - ``deletions`` -- A coindependent subset of the ground set, as a frozenset.
+
+        OUTPUT:
+
+        If ``contractions`` is the empty set, or if ``contractions`` consists of only
+        coloops,  an instance of TransversalMatroid.
+        Otherwise, an instance of MinorMatroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
+            sage: M1 = TransversalMatroid(sets)
+            sage: N1 = M1.delete([2,3])
+            sage: sets2 = [[0,1], [1], [4]]
+            sage: M2 = TransversalMatroid(sets2)
+            sage: N1.is_isomorphic(M2)
+            True
+            sage: M1._minor(deletions=set([3]), contractions=set([4]))
+            M / {4}, where M is Transversal matroid of rank 3 on 4 elements, with 3 sets.
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [['a', 'c'], ['e']]
+            sage: gs = ['a', 'c', 'd', 'e']
+            sage: M = TransversalMatroid(sets, groundset=gs)
+            sage: N = M.delete(['d','e']); N
+            Transversal matroid of rank 1 on 2 elements, with 1 sets.
+        """
+        # if contractions are just coloops, we can just delete them
+        if self.corank(contractions) == 0:
+            deletions = deletions.union(contractions)
+            contractions = set()
+
+        if deletions:
+            new_sets = []
+            new_set_labels = []
+            for i, s in enumerate(self.sets()):
+                new_s = [e for e in s if e not in deletions]
+                if new_s:
+                # skip over empty buckets, and do bookkeeping with the labels
+                    new_sets.append(new_s)
+                    new_set_labels.append(self._set_labels[i])
+            groundset = self._groundset.difference(deletions)
+
+            N = TransversalMatroid(new_sets, groundset, new_set_labels)
+            # Check if what remains is just coloops
+            return N.contract(contractions)
+        else:
+            N = self
+
+        if contractions:
+            # Until gammoids are implemented
+            return MinorMatroid(N, contractions=contractions, deletions=set())
+        else:
+            return N
