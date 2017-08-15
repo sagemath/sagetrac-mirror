@@ -10,3 +10,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     cdef object _sets
     cdef object _D
     cdef list _set_labels
+
+    cpdef sets(self)
+    cpdef __translate_matching(self)

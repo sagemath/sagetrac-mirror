@@ -23,7 +23,7 @@ The input should be a set system::
     Transversal matroid of rank 3 on 6 elements, with 3 sets.
     sage: M.groundset()
     frozenset({3, 4, 5, 6, 7, 8})
-    sage: M.is_isomorphic(matroids.Uniform(3,6))  # currently broken
+    sage: M.is_isomorphic(matroids.Uniform(3,6))
     True
 
 
@@ -124,7 +124,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         3
         sage: M.bases_count()
         4
-        sage: sum(1 for b in M.bases())  # some of the code thinks 3 is a coloop
+        sage: sum(1 for b in M.bases())
         4
 
     ::
@@ -244,10 +244,20 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
+        # update the internal matching
         sh = nx.shortest_path(self._D, y, x)
         del self._matching[x]
         for i in range(0, len(sh)-1, 2):
             self._matching[sh[i]] = sh[i+1]
+
+        # update the graph to reflect this new matching
+        sh_edges = []
+        sh_edges_r = []
+        for i in range(len(sh[:-1])):
+            sh_edges.append((sh[i], sh[i+1]))
+            sh_edges_r.append((sh[i+1], sh[i]))
+        self._D.remove_edges_from(sh_edges)
+        self._D.add_edges_from(sh_edges_r)
 
         BasisExchangeMatroid.__exchange(self, x, y)
 
@@ -267,3 +277,152 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             + str(self.size()) + " elements, with " + str(sets_number)
             + " sets.")
         return S
+
+    cpdef sets(self):
+        """
+        Return the sets of the transversal matroid.
+
+        A transversal matroid can be viewed as a ground set with a collection
+        from its powerset. This is represented as a bipartite graph, where
+        an edge represents containment.
+
+        OUTPUT:
+
+        A list of lists that correspond to the sets of the transversal matroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [3,4]]
+            sage: set_labels = [5,6,7]
+            sage: M = TransversalMatroid(sets, set_labels=set_labels)
+            sage: sorted(M.sets()) == sorted(sets)
+            True
+        """
+        # Format this in the same way we expect input
+        set_list = []
+        for s, number in self._sets.iteritems():
+            for i in range(number):
+                set_list.append(list(s))
+        return set_list
+
+    def __richcmp__(left, right, op):
+        r"""
+        Compare two matroids.
+
+        We take a very restricted view on equality: the objects need to be of
+        the exact same type (so no subclassing) and the internal data need to
+        be the same. For transversal matroids, in particular, the presentation
+        as a bipartite graph must be the same.
+
+        .. WARNING::
+
+            This method is linked to __hash__. If you override one, you MUST override the other!
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [['a','b','c'], ['c','d'], ['a','d'], ['e']]
+            sage: M = TransversalMatroid(sets)
+            sage: M1 = TransversalMatroid(sets)
+            sage: sets2 = [['a','b','c'], ['c','d'], ['a','d','e'], ['e']]
+            sage: M2 = TransversalMatroid(sets2)
+            sage: M1 == M2
+            False
+            sage: M1.equals(M2)
+            True
+        """
+        if op not in [Py_EQ, Py_NE]:
+            return NotImplemented
+        if not isinstance(left, TransversalMatroid) or not isinstance(right, TransversalMatroid):
+            return NotImplemented
+        if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
+            return NotImplemented
+        if op == Py_EQ:
+            res = True
+        if op == Py_NE:
+            res = False
+        # res gets inverted if matroids are deemed different.
+        if (left.groundset() == right.groundset() and
+            sorted(left.sets()) == sorted(right.sets())):
+            return res
+        else:
+            return not res
+
+    def __hash__(self):
+        r"""
+        Return an invariant of the matroid.
+
+        This function is called when matroids are added to a set. It is very
+        desirable to override it so it can distinguish matroids on the same
+        groundset, which is a very typical use case!
+
+        .. WARNING::
+
+            This method is linked to __richcmp__ (in Cython) and __cmp__ or
+            __eq__/__ne__ (in Python). If you override one, you should (and in
+            Cython: MUST) override the other!
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets1 = [[0,1,2,3], [1,2], [3,4]]
+            sage: M1 = TransversalMatroid(sets1)
+            sage: M2 = TransversalMatroid(sets1, set_labels=[5,6,7])
+            sage: sets3 = [['a','b','c'], ['c','d'], ['a','d','e']]
+            sage: M3 = TransversalMatroid(sets3)
+            sage: hash(M1) == hash(M2)
+            True
+            sage: hash(M1) == hash(M3)
+            False
+        """
+        return hash((self._E, self._sets.iteritems()))
+
+    cpdef __translate_matching(self):
+        """
+        Return a Python dictionary that can be used as input in __init__().
+        """
+        matching = {}
+        for x in self._matching.keys():
+            matching[self._E[x]] = self._matching[x]
+        return matching
+
+
+    def __copy__(self):
+        """
+        Create a shallow copy.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
+            sage: M = TransversalMatroid(sets)
+            sage: N = copy(M)  # indirect doctest
+            sage: N == M
+            True
+        """
+        cdef TransversalMatroid N
+        N = TransversalMatroid(groundset=self._E, sets=self.sets(),
+            set_labels=self._set_labels, matching=self.__translate_matching())
+        N.rename(getattr(self, '__custom_name'))
+        return N
+
+    def __deepcopy__(self, memo):
+        """
+        Create a deep copy.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
+            sage: M = TransversalMatroid(sets)
+            sage: N = deepcopy(M)  # indirect doctest
+            sage: N == M
+            True
+        """
+        cdef TransversalMatroid N
+        N = TransversalMatroid(groundset=deepcopy(self._E, memo), sets=deepcopy(
+            self.sets(), memo), set_labels=deepcopy(self._set_labels, memo),
+            matching=deepcopy(self.__translate_matching(), memo))
+        N.rename(deepcopy(getattr(self, '__custom_name'), memo))
+        return N
