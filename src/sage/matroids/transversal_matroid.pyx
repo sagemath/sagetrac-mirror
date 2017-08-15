@@ -68,35 +68,6 @@ from collections import Counter
 
 import networkx as nx
 
-cpdef graph_from_buckets(buckets, groundset):
-    r"""
-    Construct a bipartite graph from sets over a given ground set.
-
-    INPUT:
-
-    - ``buckets`` -- A frozenset consisting of tuples. Each tuple corresponds
-      to a vertex on the right side and its neighbors.
-    - ``groundset`` -- A list of vertices on the left side.
-
-    OUTPUT:
-
-    A ``BipartiteGraph``.
-    """
-    # this will have to be rewritten entirely
-    # groundset could be made optional, but we require it for efficiency's sake
-    B = BipartiteGraph()
-    for e in groundset:
-        B.add_vertex(e, left=True)
-    for s in buckets:
-        v = s[0]
-        B.add_vertex(v, right=True)
-        for e in s[1]:
-            if e not in groundset:
-                raise ValueError("buckets do not match ground set")
-            B.add_edge(e, v)
-
-    return B
-
 cdef class TransversalMatroid(BasisExchangeMatroid):
     r"""
     The Transversal Matroid class.
@@ -456,3 +427,38 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_transversal_matroid, (version, data)
+
+    def graph(self):
+        """
+        Return a bipartite graph representing the transversal matroid.
+
+        The TransversalMatroid object keeps track of a particular correspondence
+        between ground set elements and sets as specified by the input. The graph
+        returned by this method will reflect this correspondence, as opposed to
+        giving a minimal presentation.
+
+        OUTPUT:
+
+        A SageMath graph.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: edgedict = {5:[0,1,2,3], 6:[1,2], 7:[1,3,4]}
+            sage: B = BipartiteGraph(edgedict)
+            sage: M = TransversalMatroid(edgedict.values(), set_labels=edgedict.keys())
+            sage: M.graph() == B
+            True
+            sage: M2 = TransversalMatroid(edgedict.values())
+            sage: B2 = M2.graph()
+            sage: B2 == B
+            False
+            sage: B2.is_isomorphic(B)
+            True
+        """
+        # cast the internal networkx as a sage DiGraph
+        D = DiGraph(self._D)
+        # relabel the vertices, then return as a BipartiteGraph
+        D.relabel({i:e for i, e in enumerate(self._E)})
+        partition = [self._E, self._set_labels]
+        return BipartiteGraph(D, partition)
