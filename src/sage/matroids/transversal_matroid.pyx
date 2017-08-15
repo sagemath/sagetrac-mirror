@@ -426,3 +426,33 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             matching=deepcopy(self.__translate_matching(), memo))
         N.rename(deepcopy(getattr(self, '__custom_name'), memo))
         return N
+
+    def __reduce__(self):
+        """
+        Save the matroid for later reloading.
+
+        OUTPUT:
+
+        A tuple ``(unpickle, (version, data))``, where ``unpickle`` is the
+        name of a function that, when called with ``(version, data)``,
+        produces a matroid isomorphic to ``self``. ``version`` is an integer
+        (currently 0) and ``data`` is a tuple ``(sets, E, name)`` where
+        ``E`` is the groundset of the matroid, ``sets`` is the subsets of the
+        transversal, and ``name`` is a custom name.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import *
+            sage: sets = [range(6)] * 3
+            sage: M = TransversalMatroid(sets)
+            sage: M == loads(dumps(M))
+            True
+            sage: M.rename('U36')
+            sage: loads(dumps(M))
+            U36
+        """
+        import sage.matroids.unpickling
+        data = (self.sets(), self._E, self._set_labels, self.__translate_matching(),
+            getattr(self, '__custom_name'))
+        version = 0
+        return sage.matroids.unpickling.unpickle_transversal_matroid, (version, data)

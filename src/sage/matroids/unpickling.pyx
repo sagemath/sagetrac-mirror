@@ -35,7 +35,7 @@ from .circuit_closures_matroid cimport CircuitClosuresMatroid
 from .basis_matroid cimport BasisMatroid
 from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
-from sage.matroids.transversal_matroid import TransversalMatroid, graph_from_buckets
+from sage.matroids.transversal_matroid import TransversalMatroid
 
 
 #############################################################################
@@ -628,8 +628,8 @@ def unpickle_transversal_matroid(version, data):
     EXAMPLES::
 
         sage: from sage.matroids.transversal_matroid import *
-        sage: B = BipartiteGraph(graphs.CompleteBipartiteGraph(6,3))
-        sage: M = TransversalMatroid(B)
+        sage: sets = [range(6)] * 3
+        sage: M = TransversalMatroid(sets)
         sage: M == loads(dumps(M))
         True
         sage: M.rename('U36')
@@ -638,9 +638,8 @@ def unpickle_transversal_matroid(version, data):
     """
     if version != 0:
         raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    sets, groundset, name = data
-    B = graph_from_buckets(sets, groundset)
-    M = TransversalMatroid(B, groundset)
+    sets, groundset, set_labels, matching, name = data
+    M = TransversalMatroid(sets, groundset, set_labels, matching)
     if name is not None:
         M.rename(name)
     return M
