@@ -6,9 +6,10 @@ from .basis_exchange_matroid cimport BasisExchangeMatroid
 cpdef graph_from_buckets(buckets, groundset)
 
 cdef class TransversalMatroid(BasisExchangeMatroid):
-    cdef set _matching
-    cdef frozenset _buckets
+    cdef dict _matching
+    cdef object sets
     cdef object _D
+    cdef list buckets # temporary
 
     cpdef sets(self)
     cpdef transversal_extension(self, element=*, newset=*, sets=*)

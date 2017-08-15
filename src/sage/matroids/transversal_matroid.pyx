@@ -80,6 +80,7 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 
 from cpython.object cimport Py_EQ, Py_NE
 from copy import copy, deepcopy
+from collections import Counter
 
 import networkx as nx
 
@@ -167,7 +168,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         True
     """
 
-    def __init__(self, B, groundset = None):
+    def __init__(self, sets, groundset=None, set_labels=None, matching=None):
         """
         See class definition for full documentation.
 
@@ -196,69 +197,73 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M = TransversalMatroid(G, groundset=range(3)); M
             Transversal matroid of rank 0 on 3 elements, with 0 subsets.
         """
-        # Make this work with a bipartite graph as input
-        # In a later ticket, make the constructor work with a collection of sets as input
+        contents = set([e for subset in sets for e in subset])
         if groundset is None:
-            if isinstance(B, BipartiteGraph):
-                bipartition = B.bipartition()
-                if len(bipartition[0]) >= len(bipartition[1]):
-                    groundset = bipartition[0]
-                else:
-                    groundset = bipartition[1]
-            else:
-                raise TypeError("ground set must be specified or graph must be BipartiteGraph")
+            groundset = contents
+        elif not contents.issubset(groundset):
+            raise ValueError("ground set and sets do not match")
+
+        self._sets = Counter([frozenset(s) for s in sets])
+
+        # we need a matching and a corresponding graph
+        if set_labels:
+            if matching is None:
+                raise ValueError("set labels must be provided if matching is provided")
+            if len(set_labels) != len(sets):
+                raise ValueError("set labels do not match sets")
+            # that should be enough input checking, since these options will mainly
+            # be used internally
+            matching_temp = matching
         else:
-            if not (set(groundset).issubset(set(B.vertices())) and
-                len(groundset) == len(set(groundset))):
-                raise ValueError("ground set must correspond to vertices")
-            if not (B.is_independent_set(groundset) and
-                B.is_independent_set(set(B.vertices()).difference(groundset))):
-                raise ValueError("ground set must specify a bipartition")
+            B = BipartiteGraph()
+            for e in groundset:
+                B.add_vertex(e, left=True)
+            for i, s in enumerate(sets):
+                new_vertex = 's' + str(i)
+                for e in s:
+                    B.add_edge(new_vertex, e)
+            matching_temp = {}
+            for u, v in B.matching():
+                if u in groundset:
+                    matching_temp[u] = v
+                else:
+                    matching_temp[v] = u
 
-        # put the ground set on the left
-        partition = [list(groundset), list(set(B.vertices()).difference(groundset))]
-
-        # put the bucket's name in the bucket, to distinguish between those
-        # with the same sets of neighbors
-        self._buckets = frozenset([(v, frozenset(B.neighbors(v))) for v in
-            B.vertices() if (B.degree(v) > 0 and v not in groundset)])
-
-        # throw away edge labels
-        self._matching = set([(u, v) for (u, v, l) in B.matching()])
-
+        # determine the basis from the matching
         vertices_in_matching = set([u for u, v in self._matching])
         vertices_in_matching.update([v for u, v in self._matching])
         basis = frozenset([v for v in vertices_in_matching if v in groundset])
 
         # This creates self._groundset attribute, among other things
+        # It takes the actual ground set labels, not the translated ones
         BasisExchangeMatroid.__init__(self, groundset, basis)
+
+        # matching_temp uses actual ground set labels
+        # self._matching will use the translated ones
+        element_int_map = {e:i for i, e in enumerate(groundset)}
+        self._matching = {element_int_map[e]: matching_temp[e] for e in matching_temp.keys()}
 
         # Build a DiGraph for doing basis exchange
         self._D = nx.DiGraph()
         # Make sure we get isolated vertices, corresponding to loops
         for v in groundset:
             self._D.add_node(v)
-        for u, v, l in B.edge_iterator():
-            if (u, v) in self._matching:
-            # For the edges in our matching, orient them as starting from the collections
-                if u in self._groundset:
-                    self._D.add_edge(v, u)
-                else:
-                    self._D.add_edge(u, v)
-            else:
-            # Otherwise orient them as starting from the ground set
-                if u in self._groundset:
-                    self._D.add_edge(u, v)
-                else:
-                    self._D.add_edge(v, u)
+
+        # For sets in the matching, orient them as starting from the collections
+        for u in self._matching.keys():
+            self._D.add_edge(self._matching[u], u)
+
+        for i, s in enumerate(sets):
+            for e in s:
+                if (not (e in matching_temp.keys()) or
+                    not (matching_temp[e] == set_labels[i])):
+                    self._D.add_edge(element_int_map[e], set_labels[i])
 
     cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check for `M`-alternating path from `x` to `y`.
         """
-        e = self._E[x]
-        f = self._E[y]
-        if nx.has_path(self._D, f, e):
+        if nx.has_path(self._D, y, x):
             return True
         else:
             return False
@@ -267,22 +272,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
-        e = self._E[x]
-        f = self._E[y]
-        sh = nx.shortest_path(self._D, f, e)
-        sh_edges = []
-        sh_edges_r = []
-        for i in range(len(sh[:-1])):
-            sh_edges.append((sh[i], sh[i+1]))
-            sh_edges_r.append((sh[i+1], sh[i]))
-        self._D.remove_edges_from(sh_edges)
-        self._D.add_edges_from(sh_edges_r)
-
-        for u, v in sh_edges:
-            if (u, v) in self._matching:
-                self._matching.remove((u, v))
-            else:
-                self._matching.add((v, u))
+        sh = nx.shortest_path(self._D, y, x)
+        del self._matching[x]
+        for i in range(0, len(sh)-1, 2):
+            self._matching[sh[i]] = sh[i+1]
 
         BasisExchangeMatroid.__exchange(self, x, y)
 
