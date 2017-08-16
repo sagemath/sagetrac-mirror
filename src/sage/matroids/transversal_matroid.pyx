@@ -147,11 +147,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 raise ValueError("set labels cannot be element labels")
             if matching:
                 matching_temp = matching
+            self._set_labels_input = list(set_labels)
 
-        if not set_labels:
+        else:
             if matching:
                 raise ValueError("set labels must be provided if matching is provided")
-            set_labels = ['s' + str(i) for i in range(len(sets))]
+            self._set_labels_input = ['s' + str(i) for i in range(len(sets))]
+        set_labels = ['s' + str(i) for i in range(len(sets))]
 
         if not matching:
             B = BipartiteGraph()
@@ -299,6 +301,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             False
             sage: M1.equals(M2)
             True
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
+            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5,6,7])
+            sage: M2 = TransversalMatroid(sets)
+            sage: M == M2
+            True
         """
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
@@ -312,7 +320,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             res = False
         # res gets inverted if matroids are deemed different.
         if (left.groundset() == right.groundset() and
-            sorted(left.sets()) == sorted(right.sets())):
+            sorted([sorted(s) for s in left.sets()]) == sorted([sorted(s) for s in right.sets()])):
             return res
         else:
             return not res
@@ -456,8 +464,11 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         # cast the internal networkx as a sage DiGraph
         D = DiGraph(self._D)
         # relabel the vertices, then return as a BipartiteGraph
-        D.relabel({i:e for i, e in enumerate(self._E)})
-        partition = [self._E, self._set_labels]
+        vertex_map = {i:e for i, e in enumerate(self._E)}
+        for i, l in enumerate(self._set_labels):
+            vertex_map[l] = self._set_labels_input[i]
+        D.relabel(vertex_map)
+        partition = [self._E, self._set_labels_input]
         return BipartiteGraph(D, partition)
 
     cpdef _minor(self, contractions, deletions):
@@ -513,7 +524,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 if new_s:
                 # skip over empty buckets, and do bookkeeping with the labels
                     new_sets.append(new_s)
-                    new_set_labels.append(self._set_labels[i])
+                    new_set_labels.append(self._set_labels_input[i])
             groundset = self._groundset.difference(deletions)
 
 
@@ -533,7 +544,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         Return the labels used for the transversal sets.
         """
-        return copy(self._set_labels)
+        return copy(self._set_labels_input)
 
     cpdef reduce_presentation(self):
         """
@@ -664,7 +675,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5,6,7])
             sage: N = M.delete(2)
             sage: M1 = N.transversal_extension(element=2, sets=[5,6])
-            sage: M1 == M   # this is incorrect
+            sage: M1 == M
             True
 
         ::
@@ -692,7 +703,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             labels_map[element] = new_label
 
         # newset should not be a ground set element or existing set
-        if newset in self._D:
+        if newset in self._E or newset in self._set_labels_input:
             # keywords `True` and `False` give us problems here
             if newset is not False and newset is not True:
                 raise ValueError("newset is already a vertex in the presentation")
