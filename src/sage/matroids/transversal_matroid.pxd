@@ -11,3 +11,4 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
     cpdef sets(self)
     cpdef __translate_matching(self)
+    cpdef reduce_presentation(self)

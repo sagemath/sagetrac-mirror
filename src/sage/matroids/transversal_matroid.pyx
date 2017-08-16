@@ -138,17 +138,18 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         int_element_map = {i:e for i, e in enumerate(groundset)}
 
         # we need a matching and a corresponding graph
-        if not set_labels:
-            if matching:
-                raise ValueError("set labels must be provided if matching is provided")
-            set_labels = ['s' + str(i) for i in range(len(sets))]
-        else:
+        if set_labels:
             if len(set_labels) != len(sets):
                 raise ValueError("set labels do not match sets")
             if not contents.isdisjoint(set_labels):
                 raise ValueError("set labels cannot be element labels")
             if matching:
                 matching_temp = matching
+
+        if not set_labels:
+            if matching:
+                raise ValueError("set labels must be provided if matching is provided")
+            set_labels = ['s' + str(i) for i in range(len(sets))]
 
         if not matching:
             B = BipartiteGraph()
@@ -529,3 +530,74 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             return MinorMatroid(N, contractions=contractions, deletions=set())
         else:
             return N
+
+    def set_labels(self):
+        """
+        Return the labels used for the transversal sets.
+        """
+        return copy(self._set_labels)
+
+    cpdef reduce_presentation(self):
+        """
+        Return an equal transversal matroid where the number of sets equals the rank.
+
+        Every transversal matroid `M` has a presentation with `r(M)` sets, and if `M`
+        has no coloops, then every presentation has `r(M)` sets. This method
+        discards extra sets if `M` has coloops.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A ``TransversalMatroid`` instance with a reduced presentation.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1], [2], [2]]
+            sage: M = TransversalMatroid(sets); M
+            Transversal matroid of rank 2 on 3 elements, with 3 sets.
+            sage: N = M.reduce_presentation(); N
+            Transversal matroid of rank 2 on 3 elements, with 2 sets.
+            sage: N.equals(M)
+            True
+            sage: N == M
+            False
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0, 1, 2, 3]] * 3
+            sage: M = TransversalMatroid(sets)
+            sage: N = M.reduce_presentation()
+            sage: M == N
+            True
+
+        TESTS::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[4], [1,3], [4], [0,1], [2,3], [1]]
+            sage: M = TransversalMatroid(sets)
+            sage: M1 = M.reduce_presentation(); M1
+            Transversal matroid of rank 5 on 5 elements, with 5 sets.
+            sage: len(M1.graph().edges())
+            5
+        """
+        if len(self.sets()) == self.full_rank():
+            return self
+        else:
+            coloops = self.coloops()
+            coloops_to_delete = [e for e in coloops if self._D.degree(e) > 1]
+            N = self.delete(coloops_to_delete)
+            sets = N.sets()
+            # reuse the old set labels
+            # this does not respect containment
+            labels = N.set_labels()
+            free_labels = set(self._set_labels).difference(labels)
+            for c in coloops_to_delete:
+                l = free_labels.pop()
+                sets.append([c])
+                labels.append(l)
+            return TransversalMatroid(sets, groundset=self.groundset(), set_labels=labels)
