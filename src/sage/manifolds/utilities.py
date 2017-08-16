@@ -560,7 +560,7 @@ class ExpressionNice(Expression):
 
         import re
 
-        # find all occurences of diff
+        # find all occurrences of diff
         list_d = []
         _list_derivatives(self, list_d)
 
@@ -583,7 +583,7 @@ class ExpressionNice(Expression):
                 if bool(re.search(r'[+|-|/|*|^|(|)]', strv[i])):
                     strv[i] = "(" + strv[i] + ")"
 
-            # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
+            # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = dict((i, strv[i] + "^" + str(diffargs.count(i))
                        if (diffargs.count(i)>1) else strv[i])
                        for i in diffargs)
@@ -653,7 +653,7 @@ class ExpressionNice(Expression):
 
         import re
 
-        # find all occurences of diff
+        # find all occurrences of diff
         list_d = []
         _list_derivatives(self, list_d)
 
@@ -682,7 +682,7 @@ class ExpressionNice(Expression):
                 if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
                     latv[i] = "\left(" + latv[i] + "\\right)"
 
-            # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
+            # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = {i: (latv[i] + "^" + latex(diffargs.count(i))
                        if diffargs.count(i) > 1 else latv[i])
                    for i in diffargs}
