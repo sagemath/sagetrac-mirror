@@ -132,7 +132,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         elif not contents.issubset(groundset):
             raise ValueError("ground set and sets do not match")
 
-        self._sets = Counter([frozenset(s) for s in sets if s])
+        # keep the original list as input so we don't lose order between minors etc.
+        self._sets_input = [s for s in sets if s]
+        self._sets = Counter([frozenset(s) for s in self._sets_input])
 
         element_int_map = {e:i for i, e in enumerate(groundset)}
         int_element_map = {i:e for i, e in enumerate(groundset)}
@@ -270,12 +272,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: sorted(M.sets()) == sorted(sets)
             True
         """
-        # Format this in the same way we expect input
-        set_list = []
-        for s, number in self._sets.iteritems():
-            for i in range(number):
-                set_list.append(list(s))
-        return set_list
+        return copy(self._sets_input)
 
     def __richcmp__(left, right, op):
         r"""
@@ -519,6 +516,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                     new_set_labels.append(self._set_labels[i])
             groundset = self._groundset.difference(deletions)
 
+
             N = TransversalMatroid(new_sets, groundset, new_set_labels)
             # Check if what remains is just coloops
             return N.contract(contractions)
@@ -585,11 +583,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: len(M1.graph().edges())
             5
         """
+        element_int_map = {e:i for i,e in enumerate(self._groundset)}
         if len(self.sets()) == self.full_rank():
             return self
         else:
             coloops = self.coloops()
-            coloops_to_delete = [e for e in coloops if self._D.degree(e) > 1]
+            coloops_to_delete = [e for e in coloops if self._D.degree(element_int_map[e]) > 1]
             N = self.delete(coloops_to_delete)
             sets = N.sets()
             # reuse the old set labels
@@ -601,3 +600,116 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 sets.append([c])
                 labels.append(l)
             return TransversalMatroid(sets, groundset=self.groundset(), set_labels=labels)
+
+    cpdef transversal_extension(self, element=None, newset=False, sets=[]):
+        r"""
+        Return a TransversalMatroid extended by an element.
+
+        This will modify the presentation of the transversal matroid by adding
+        a new element, and placing this element in the specified sets. It is also
+        possible to use this method to create a new set which will have the new
+        element as its only member, making it a coloop.
+
+        INPUT:
+
+        - ``element`` -- (optional) The name for the new element.
+        - ``newset`` -- (optional) If specified, the element will be
+          given its own set. If ``True``, a name will be generated; otherwise
+          this value will be used. This will make the element
+          a coloop.
+        - ``sets`` -- (default: ``None``) An iterable of labels representing the
+          sets in the current presentation that the new element will belong to.
+
+        OUTPUT:
+
+        A TransversalMatroid with a ground set element added to specified sets.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid([['a','c']], groundset=['a','c'], set_labels=['b'])
+            sage: M1 = M.transversal_extension(element='d', newset='e')
+            sage: M2 = M.transversal_extension(element='d', newset=True)
+            sage: M1.coloops()
+            frozenset({'d'})
+            sage: True in M2.graph().vertices()
+            False
+            sage: M1.is_isomorphic(M2)
+            True
+            sage: M3 = M.transversal_extension('d', sets=['b'])
+            sage: M3.is_isomorphic(matroids.Uniform(1,3))
+            True
+            sage: M4 = M.transversal_extension('d', sets=['a'])
+            Traceback (most recent call last):
+            ...
+            ValueError: sets do not match presentation
+            sage: M4 = M.transversal_extension('a', sets=['b'])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot extend by element already in ground set
+            sage: M2.transversal_extension(newset='b')
+            Traceback (most recent call last):
+            ...
+            ValueError: newset is already a vertex in the presentation
+            sage: M5 = M1.transversal_extension()
+            sage: len(M5.loops())
+            1
+            sage: M2.transversal_extension(element='b')
+            Transversal matroid of rank 2 on 4 elements, with 2 sets.
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
+            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5,6,7])
+            sage: N = M.delete(2)
+            sage: M1 = N.transversal_extension(element=2, sets=[5,6])
+            sage: M1 == M   # this is incorrect
+            True
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0, 1, 2, 3]] * 3
+            sage: M = TransversalMatroid(sets, set_labels=[4,5,6])
+            sage: N = M.transversal_extension(element='a', newset=True, sets=[4])
+            sage: N.graph().degree('a')
+            2
+        """
+        sets = set(sets)
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self._groundset:
+            raise ValueError("cannot extend by element already in ground set")
+        labels = self.set_labels()
+        if not sets.issubset(labels):
+            raise ValueError("sets do not match presentation")
+
+        # check for conflicts with new labels
+        labels_map = {l: l for l in labels}
+        if element in labels:
+            new_label = newlabel(self.groundset().union(labels).union([newset]))
+            labels_map[element] = new_label
+
+        # newset should not be a ground set element or existing set
+        if newset in self._D:
+            # keywords `True` and `False` give us problems here
+            if newset is not False and newset is not True:
+                raise ValueError("newset is already a vertex in the presentation")
+
+        new_sets = []
+        for i, s in enumerate(self.sets()):
+            if labels[i] in sets:
+                new_sets.append(s + [element])
+            else:
+                new_sets.append(s)
+
+        if newset:
+            if newset is True:
+                newset = newlabel(self.groundset().union(labels))
+            new_sets.append([element])
+            labels.append(newset)
+
+        groundset = self.groundset().union([element])
+
+        return TransversalMatroid(new_sets, groundset, labels)
