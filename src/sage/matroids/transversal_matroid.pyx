@@ -379,7 +379,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         cdef TransversalMatroid N
         N = TransversalMatroid(groundset=self._E, sets=self.sets(),
-            set_labels=self._set_labels, matching=self.__translate_matching())
+            set_labels=self._set_labels_input, matching=self.__translate_matching())
         N.rename(getattr(self, '__custom_name'))
         return N
 
@@ -398,7 +398,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         cdef TransversalMatroid N
         N = TransversalMatroid(groundset=deepcopy(self._E, memo), sets=deepcopy(
-            self.sets(), memo), set_labels=deepcopy(self._set_labels, memo),
+            self.sets(), memo), set_labels=deepcopy(self._set_labels_input, memo),
             matching=deepcopy(self.__translate_matching(), memo))
         N.rename(deepcopy(getattr(self, '__custom_name'), memo))
         return N
@@ -428,7 +428,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             U36
         """
         import sage.matroids.unpickling
-        data = (self.sets(), self._E, self._set_labels, self.__translate_matching(),
+        data = (self.sets(), self._E, self.set_labels(), self.__translate_matching(),
             getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_transversal_matroid, (version, data)
@@ -605,7 +605,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             # reuse the old set labels
             # this does not respect containment
             labels = N.set_labels()
-            free_labels = set(self._set_labels).difference(labels)
+            free_labels = set(self._set_labels_input).difference(labels)
             for c in coloops_to_delete:
                 l = free_labels.pop()
                 sets.append([c])
