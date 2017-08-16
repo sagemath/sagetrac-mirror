@@ -14,9 +14,8 @@ Exposure from the constructor and :mod:`sage.matroids.advanced` will be added la
 
 To construct a transversal matroid, first import TransversalMatroid from
 :mod:`sage.matroids.transversal_matroid`.
-The input should be a set system::
+The input should be a set system, formatted as a list of lists::
 
-    sage: from sage.matroids.transversal_matroid import*
     sage: from sage.matroids.transversal_matroid import *
     sage: sets = [[3,4,5,6,7,8]] * 3
     sage: M = TransversalMatroid(sets); M
@@ -25,7 +24,9 @@ The input should be a set system::
     frozenset({3, 4, 5, 6, 7, 8})
     sage: M.is_isomorphic(matroids.Uniform(3,6))
     True
-
+    sage: M = TransversalMatroid([[0,1], [1,2,3], [3,4,5]], set_labels=['1','2','3'])
+    sage: M.graph().vertices()
+    [0, 1, 2, 3, 4, 5, '1', '2', '3']
 
 AUTHORS:
 
@@ -125,6 +126,19 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
             sage: M = TransversalMatroid([[],[],[]], groundset=range(3)); M
             Transversal matroid of rank 0 on 3 elements, with 0 sets.
+            sage: sets = [[0,1,2,3,4],[4,5]]
+            sage: M = TransversalMatroid(sets, groundset=[0,1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: ground set and sets do not match
+            sage: M = TransversalMatroid(sets, set_labels=[1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: set labels do not match sets
+            sage: M = TransversalMatroid(sets, set_labels=[1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: set labels cannot be element labels
         """
         contents = set([e for subset in sets for e in subset])
         if groundset is None:
@@ -198,13 +212,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
                 if (not (e in matching_temp.keys()) or
                     not (matching_temp[e] == set_labels[i])):
                     self._D.add_edge(element_int_map[e], set_labels[i])
-
-    def digraph(self):
-        """
-        debugging
-        """
-        return self._D
-
 
     cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
@@ -543,6 +550,23 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     def set_labels(self):
         """
         Return the labels used for the transversal sets.
+
+        This method will return a list of the labels used of the non-ground set vertices
+        of the bipartite graph used to represent the transversal matroid. This method
+        does not set anything.
+
+        OUTPUT:
+
+        A list.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid([[0,1], [1,2,3], [3,4,7]])
+            sage: M.set_labels()
+            ['s0', 's1', 's2']
+            sage: M.graph().vertices()
+            [0, 1, 2, 3, 4, 7, 's0', 's1', 's2']
         """
         return copy(self._set_labels_input)
 
@@ -724,3 +748,50 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         groundset = self.groundset().union([element])
 
         return TransversalMatroid(new_sets, groundset, labels)
+
+    def transversal_extensions(self, element=None, sets=[]):
+        r"""
+        Return an iterator of extensions based on the transversal presentation.
+
+        This method will take an extension by adding an element to every possible
+        sub-collection of the collection of desired sets. No checking is done
+        for equal matroids. It is advised to make sure the presentation has as
+        few sets as possible by using
+        :meth:`reduce_presentation() <sage.matroids.transversal_matroid.TransversalMatroid.reduce_presentation>`
+
+        INPUT:
+
+        - ``element`` -- (optional) The name of the new element.
+        - ``sets`` -- (optional) a list containing names of sets in the matroid's
+          presentation. If not specified, every set will be used.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[3,4,5,6]] * 3
+            sage: M = TransversalMatroid(sets, set_labels=[0,1,2])
+            sage: len([N for N in M.transversal_extensions()])
+            8
+            sage: len([N for N in M.transversal_extensions(sets=[0,1])])
+            4
+            sage: set(sorted([N.groundset() for N in M.transversal_extensions(element=7)]))
+            {frozenset({3, 4, 5, 6, 7})}
+        """
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self._groundset:
+            raise ValueError("cannot extend by element already in ground set")
+
+        labels = self._set_labels_input
+        if not sets:
+            sets = labels
+        elif not set(sets).issubset(labels):
+            raise ValueError("sets do not match presentation")
+
+        # Adapted from the Python documentation
+        from itertools import chain, combinations
+        sets_list = list(sets)
+        powerset = chain.from_iterable(combinations(sets_list, r) for r in range(len(sets_list)+1))
+
+        for collection in powerset:
+            yield self.transversal_extension(element=element, sets=collection)
