@@ -943,6 +943,28 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         else:
             return self.element_class(self, {self._monomial_one_(): data})
 
+    def _coerce_map_from_(self, R):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: P.has_coerce_map_from(P)
+            True
+            sage: P.has_coerce_map_from(QQ)
+            True
+            sage: P.has_coerce_map_from(ZZ)
+            True
+
+            sage: Q.<y, z, x> = InfinitePolynomialRing(QQ, order='deglex')
+            sage: P.has_coerce_map_from(Q)
+            False
+            sage: Q.has_coerce_map_from(P)
+            True
+        """
+        if isinstance(R, InfinitePolynomialRing_sparse_exponents):
+            return all(name in self._names_ for name in R._names_)
+
 
 def InfinitePolynomialRing(*args, **kwds):
     return InfinitePolynomialRing_sparse_exponents(*args, **kwds)
