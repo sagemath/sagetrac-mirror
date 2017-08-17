@@ -1133,6 +1133,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P  # indirect doctest
+            Infinite polynomial ring in x, y over Rational Field
         """
         return 'Infinite polynomial ring in {} over {}'.format(
             ', '.join(self._names_),
@@ -1161,6 +1162,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P.coefficient_ring()
+            Rational Field
         """
         return self._coefficient_ring_
 
@@ -1172,6 +1174,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P.term_order()
+            Degree lexicographic term order
         """
         return self._order_
 
@@ -1188,6 +1191,8 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')  # indirect doctest
+            sage: P.gens()
+            (x_*, y_*)
             sage: x
             x_*
             sage: x[3]
@@ -1259,7 +1264,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P.gen_by_name('y')
-            1
+            y_*
         """
         return self.gen(self._index_by_name_(name))
 
@@ -1320,8 +1325,8 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         TESTS::
 
             sage: P.<x> = InfinitePolynomialRing(QQ, order='degrevlex', implementation='sparse_exponents')
-            sage: P._monomial_one_()
-            1
+            sage: repr(P._monomial_one_()) == ''
+            True
         """
         return Monomial(tuple({} for _ in self._names_))
 
