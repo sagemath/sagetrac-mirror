@@ -549,6 +549,44 @@ class Monomial(object):
                     for rule, component in zip(rules, self._exponents_)
                     for index, exponent in iteritems(component))
 
+    def indices_of_variables(self):
+        r"""
+        Return the indices of the variables occurring in this monomial.
+
+        OUTPUT:
+
+        tuple of sets of indices
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
+            sage: a = Monomial(({0: 5, 1: 6}, {2: 7}))
+            sage: a.indices_of_variables()
+            ({0, 1}, {2})
+        """
+        return tuple(set(component)
+                     for component in self._exponents_)
+
+    def indices_nonempty_components(self):
+        r"""
+        Return the indices of the components occurring in this monomial.
+
+        OUTPUT:
+
+        tuple
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
+            sage: a = Monomial(({0: 5, 1: 6}, {2: 7}))
+            sage: a.indices_nonempty_components()
+            (0, 1)
+        """
+        return tuple(c
+                     for c, component in enumerate(self._exponents_)
+                     if component)
+
+
 class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
     def __init__(self, parent, data):
         super(InfinitePolynomial_sparse_exponents, self).__init__(parent=parent)
