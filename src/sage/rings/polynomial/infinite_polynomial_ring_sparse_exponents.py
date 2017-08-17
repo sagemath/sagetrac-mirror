@@ -604,7 +604,8 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
     def __iter__(self):
         parent = self.parent()
-        return iter((coefficient, InfinitePolynomial_sparse_exponents(parent, monomial))
+        cls = parent.element_class
+        return iter((coefficient, cls(parent, monomial))
                     for monomial, coefficient in iteritems(self._summands_))
 
     @cached_method
