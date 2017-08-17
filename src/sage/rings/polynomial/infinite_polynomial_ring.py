@@ -349,9 +349,13 @@ class InfinitePolynomialRingFactory(UniqueFactory):
             F = C
         if not isinstance(F, InfinitePolynomialFunctor):
             raise TypeError("We expected an InfinitePolynomialFunctor, not %s"%type(F))
-        if F._imple=='sparse':
+        if F._imple == 'sparse':
             return InfinitePolynomialRing_sparse(R, F._gens, order=F._order)
-        return InfinitePolynomialRing_dense(R, F._gens, order=F._order)
+        elif F._imple == 'sparse_exponents':
+            from .infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing_sparse_exponents
+            return InfinitePolynomialRing_sparse_exponents(R, F._gens, order=F._order)
+        else:
+            return InfinitePolynomialRing_dense(R, F._gens, order=F._order)
 
 InfinitePolynomialRing = InfinitePolynomialRingFactory('InfinitePolynomialRing')
 
