@@ -946,7 +946,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         if isinstance(R, InfinitePolynomialRing_sparse_exponents):
             return all(name in self._names_ for name in R._names_)
 
-    def construction(self):
+    def construction(self, _implementation='sparse_exponents'):
         r"""
         Return the construction of this infinite polynomial ring.
 
@@ -966,6 +966,6 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         """
         from sage.categories.pushout import InfinitePolynomialFunctor
         return (InfinitePolynomialFunctor(self._names_,
-                                          'sparse_exponents'),
                                           self._order_.name(),
+                                          _implementation),
                 self.coefficient_ring())
