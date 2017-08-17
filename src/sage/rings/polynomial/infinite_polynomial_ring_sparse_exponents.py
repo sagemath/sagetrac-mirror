@@ -276,7 +276,7 @@ class Monomial(object):
 
         nonnegative integer
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
             sage: a = Monomial(({0: 2, 2: 3}, {0: 3, 3: 1})); a
@@ -1058,7 +1058,7 @@ class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
     @cached_method
     def __getitem__(self, i):
         r"""
-        Return the ``i``th variable associated to this infinite generator.
+        Return the `i`-th variable associated to this infinite generator.
 
         TESTS::
 
@@ -1227,7 +1227,7 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
     def gen(self, n=0):
         r"""
-        Return the `n`th infinite (indexable) generators of this
+        Return the `n`-th infinite (indexable) generators of this
         infinite polynomial ring.
 
         OUTPUT:
