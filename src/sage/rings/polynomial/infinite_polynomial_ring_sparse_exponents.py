@@ -945,3 +945,27 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
         """
         if isinstance(R, InfinitePolynomialRing_sparse_exponents):
             return all(name in self._names_ for name in R._names_)
+
+    def construction(self):
+        r"""
+        Return the construction of this infinite polynomial ring.
+
+        OUTPUT:
+
+        A pair ``(F, R)`` with
+        - a construction functor ``F`` and
+        - a ring ``R``
+        such that ``F(R)`` is this infinite polynomial ring.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.construction()
+            (InfPoly{[x,y], "Degree lexicographic term order", "sparse_exponents"},
+             Rational Field)
+        """
+        from sage.categories.pushout import InfinitePolynomialFunctor
+        return (InfinitePolynomialFunctor(self._names_,
+                                          self._order_,
+                                          'sparse_exponents'),
+                self.coefficient_ring())
