@@ -961,11 +961,11 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P.construction()
-            (InfPoly{[x,y], "Degree lexicographic term order", "sparse_exponents"},
+            (InfPoly{[x,y], "deglex", "sparse_exponents"},
              Rational Field)
         """
         from sage.categories.pushout import InfinitePolynomialFunctor
         return (InfinitePolynomialFunctor(self._names_,
-                                          self._order_,
                                           'sparse_exponents'),
+                                          self._order_.name(),
                 self.coefficient_ring())
