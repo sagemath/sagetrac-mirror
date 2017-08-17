@@ -1,6 +1,10 @@
 r"""
 Infinite Multivariate Polynomial Ring with Sparse Exponents
 
+.. SEEALSO::
+
+    :mod:`sage.rings.polynomial.infinite_polynomial_ring`
+
 Examples
 ========
 
