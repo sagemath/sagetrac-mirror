@@ -614,7 +614,18 @@ class Monomial(object):
 
 
 class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
+    r"""
+    A polynomial with sparse exponents of an infinite polynomial ring.
+    """
+
     def __init__(self, parent, data):
+        r"""
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: x[0]  # indirect doctest
+            x_0
+        """
         super(InfinitePolynomial_sparse_exponents, self).__init__(parent=parent)
 
         coefficient_ring = parent.coefficient_ring()
@@ -1018,8 +1029,17 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
 
 class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
-
+    r"""
+    A infinite generator for infinite polynomial rings with sparse exponents.
+    """
     def __init__(self, parent, name, index):
+        r"""
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.gen()  # indirect doctest
+            x_*
+        """
         self._index = index
         super(InfinitePolynomialGen_sparse_exponents, self).__init__(parent, name)
 
