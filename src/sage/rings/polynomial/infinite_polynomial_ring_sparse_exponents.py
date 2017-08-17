@@ -130,7 +130,6 @@ def monomial_factory(data):
 
         sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import monomial_factory
         sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
-
         sage: mx = next(iter(x[0]._summands_))
         sage: monomial_factory(mx)
         x0_0
@@ -138,9 +137,20 @@ def monomial_factory(data):
         x0_13
         sage: monomial_factory(({3: 4}, {5: 6, 7: 8}))
         x0_3^4*x1_5^6*x1_7^8
+
+        sage: S.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse')
+        sage: monomial_factory(x[13])
+        x0_13
+        sage: S.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='dense')
+        sage: monomial_factory(y[31])
+        x1_31
     """
+    from .infinite_polynomial_element import InfinitePolynomial_sparse
+    from .infinite_polynomial_element import InfinitePolynomial_dense
+
     if isinstance(data, Monomial):
         return data
+
     elif isinstance(data, InfinitePolynomial_sparse_exponents):
         summands = data._summands_
         if len(summands) != 1:
@@ -149,6 +159,28 @@ def monomial_factory(data):
         if coefficient != 1:
             raise ValueError('{} is not normalized monomial')
         return monomial
+
+    elif isinstance(data, (InfinitePolynomial_sparse,
+                           InfinitePolynomial_dense)):
+        summands = data.dict()
+        if len(summands) != 1:
+            raise ValueError('{} is not monomial'.format(data))
+        monomial, coefficient = next(iteritems(summands))
+        if coefficient != 1:
+            raise ValueError('{} is not normalized monomial')
+        name_to_component = {name: i
+                             for i, name in
+                             enumerate(data.parent()._names)}
+        indices = tuple((name_to_component[name], int(index))
+            for name, index in
+            (repr(gen).rsplit('_', 1)
+             for gen in data.polynomial().parent().gens()))
+
+        exponents = tuple({} for _ in data.parent()._names)
+        for (component, index), exponent in zip(indices, monomial):
+            exponents[component][index] = exponent
+        return Monomial(exponents)
+
     else:
         return Monomial(data)
 
