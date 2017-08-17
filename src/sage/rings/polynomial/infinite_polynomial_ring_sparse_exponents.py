@@ -1019,9 +1019,23 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
             False
             sage: Q.has_coerce_map_from(P)
             True
+
+            sage: S = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex', implementation='sparse')
+            sage: P.has_coerce_map_from(S)
+            True
+            sage: D = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex', implementation='dense')
+            sage: P.has_coerce_map_from(D)
+            True
+            sage: F = PolynomialRing(QQ, names=('x_4', 'y_3'), order='deglex')
+            sage: P.has_coerce_map_from(F)  # not tested; see :trac:`23632`.
+            True
         """
         if isinstance(R, InfinitePolynomialRing_sparse_exponents):
             return all(name in self._names_ for name in R._names_)
+
+        F, B = self.construction(_implementation='sparse')
+        if F(B).has_coerce_map_from(R):
+            return True
 
     def construction(self, _implementation='sparse_exponents'):
         r"""
