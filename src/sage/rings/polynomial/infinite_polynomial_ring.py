@@ -853,6 +853,18 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: X('(x_1^2+2/3*x_4)*(x_2+x_5)')
             2/3*x_5*x_4 + x_5*x_1^2 + 2/3*x_4*x_2 + x_2*x_1^2
 
+        ::
+
+            sage: P = InfinitePolynomialRing(QQ, ('u', 'x'), order='deglex')
+            sage: Q.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P(x[2]*x[3] + x[4]^4)
+            x_4^4 + x_3*x_2
+            sage: P(y[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't convert y_0 into an element of
+            Infinite polynomial ring in u, x over Rational Field
+            (y_* is not a generator)
         """
         # if x is in self, there's nothing left to do
         if parent(x) is self:
@@ -866,6 +878,20 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                 return sage_eval(x, self.gens_dict())
             except Exception:
                 raise ValueError("Can't convert %s into an element of %s" % (x, self))
+
+        from .infinite_polynomial_ring_sparse_exponents import InfinitePolynomialRing_sparse_exponents
+        if isinstance(parent(x), InfinitePolynomialRing_sparse_exponents):
+            rules = {}
+            for gen in x.variables(skip_indices=True):
+                name = gen._name
+                try:
+                    index = self._names.index(name)
+                except ValueError:
+                    raise ValueError(("Can't convert {} into an element of {} "
+                                      "({} is not a generator)").format(
+                                          x, self, repr(gen)))
+                rules[name] = self.gens()[index]
+            return x.subs(**rules)
 
         if isinstance(parent(x), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past
