@@ -603,6 +603,17 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
             raise TypeError('cannot create polynomial out of {}'.format(data))
 
     def __iter__(self):
+        r"""
+        Return an iterator over all pairs ``(coefficient, monomial)``
+        of this polynomial.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: a = x[0] + 2*x[1] + y[0]*y[1]
+            sage: sorted(a, key=lambda cm: repr(cm[1]))
+            [(1, x_0), (2, x_1), (1, y_0*y_1)]
+        """
         parent = self.parent()
         cls = parent.element_class
         return iter((coefficient, cls(parent, monomial))
@@ -610,6 +621,17 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
     @cached_method
     def _sorted_monomials_and_coefficients_(self, reverse=False):
+        r"""
+        Return a sorted list over all pairs ``(monomial, coefficient)``
+        of this polynomial.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: a = x[0] + 2*x[1] + y[0]*y[1]
+            sage: a._sorted_monomials_and_coefficients_()
+            [(x0_0, 1), (x0_1, 2), (x1_0*x1_1, 1)]
+        """
         def key(monomial_and_coefficient):
             monomial = monomial_and_coefficient[0]
             return self.parent()._sorting_key_monomial_(monomial)
@@ -617,6 +639,8 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
+        Return the representation string of this polynomial.
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -664,16 +688,38 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
         return r or '0'
 
     def __hash__(self):
+        r"""
+        Return a hash value of this polynomial.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='degrevlex', implementation='sparse_exponents')
+            sage: hash(x[0] + y[1])  # random output
+            42
+        """
         return hash((self.parent(),
                      tuple(self._sorted_monomials_and_coefficients_(reverse=True))))
 
     def __bool__(self):
+        r"""
+        Return whether this polynomial is nonzero.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='degrevlex', implementation='sparse_exponents')
+            sage: bool(P(0))
+            False
+            sage: bool(x[1])
+            True
+        """
         return bool(self._summands_)
 
     __nonzero__ = __bool__
 
     def __eq__(self, other):
         r"""
+        Return whether this polynomial is equal to ``other``.
+
         TESTS::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -700,10 +746,23 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
             return False
 
     def __ne__(self, other):
+        r"""
+        Return whether this polynomial is not equal to ``other``.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: x[0] == y[0], x[0] != y[0]
+            (False, True)
+            sage: P(1) == 1, P(1) != 1
+            (True, False)
+        """
         return not self.__eq__(other)
 
     def _add_(self, other):
         r"""
+        Return the sum of this polynomial and ``other``.
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -723,6 +782,8 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
     def _lmul_(self, other):
         r"""
+        Return the product of this polynomial and the scalar ``other``.
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -737,6 +798,8 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
 
     def _sub_(self, other):
         r"""
+        Return the difference of this polynomial and ``other``.
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -750,17 +813,39 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
         return self + self.parent().coefficient_ring()(-1) * other
 
     def _mul_by_summand_(self, other_monomial, other_coefficient):
+        r"""
+        Return the product of this polynomial and the given data.
+
+        This method is called in :meth:`_mul_`.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: x[0]*y[0]  # indirect doctest
+            x_0*y_0
+        """
         summands = {monomial*other_monomial: coefficient*other_coefficient
                     for monomial, coefficient in iteritems(self._summands_)}
         return self.parent().element_class(self.parent(), summands)
 
     def _mul_(self, other):
+        r"""
+        Return the product of this polynomial and ``other``.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: x[0]*y[0]
+            x_0*y_0
+        """
         return sum((self._mul_by_summand_(monomial, coefficient)
                     for monomial, coefficient in iteritems(other._summands_)),
                    self.parent().zero())
 
     def degree(self):
         r"""
+        Return the total degree of this polynomial.
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
