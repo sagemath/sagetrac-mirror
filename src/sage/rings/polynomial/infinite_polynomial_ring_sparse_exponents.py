@@ -1,7 +1,33 @@
 r"""
 Infinite Multivariate Polynomial Ring with Sparse Exponents
 
+Examples
+========
+
+Creating an infinite polynomial ring is done by
 ::
+
+    sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+    sage: P
+    Infinite polynomial ring in x, y over Rational Field
+
+Note that a ``'sparse'`` and a ``'dense'`` implementation are
+available as well; see :mod:`sage.rings.polynomial.infinite_polynomial_ring`.
+
+Using variables is easy::
+
+    sage: x[0]
+    x_0
+    sage: y[42]
+    y_42
+
+Arithmetic operations are as usual::
+
+    sage: x[1]^2 + y[2]^3*x[0]
+    x_0*y_2^3 + x_1^2
+
+Non-integer Indices
+-------------------
 
 Indices can be anything (hashable, totally orderable)::
 
