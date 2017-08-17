@@ -965,6 +965,12 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
     def _coerce_map_from_(self, R):
         r"""
+        Does ``R`` coerce to this infinite polynomial ring?
+
+        INPUT:
+
+        - ``R`` -- parent
+
         TESTS::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
