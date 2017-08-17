@@ -67,6 +67,7 @@ Infinite Polynomial Rings
 
    sage/rings/polynomial/infinite_polynomial_ring
    sage/rings/polynomial/infinite_polynomial_element
+   sage/rings/polynomial/infinite_polynomial_ring_sparse_exponents
 
    sage/rings/polynomial/symmetric_ideal
    sage/rings/polynomial/symmetric_reduction
