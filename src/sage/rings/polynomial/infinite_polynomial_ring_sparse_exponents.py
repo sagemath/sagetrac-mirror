@@ -518,6 +518,36 @@ class Monomial(object):
                   for scomponent, ocomponent
                   in zip(self._exponents_, other._exponents_)))
 
+    def subs(self, rules):
+        r"""
+        Substitute according to the given rules.
+
+        This is called by :meth:`InfinitePolynomial_sparse_exponents.subs`.
+
+        INPUT:
+
+        - ``rules`` -- a tuple (or other iterable) of the same length
+          as the number of generators with indexable
+          entries
+
+        OUTPUT:
+
+        object
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: from sage.rings.polynomial.infinite_polynomial_ring_sparse_exponents import Monomial
+            sage: a = Monomial(({0: 5, 1: 6}, {2: 7}))
+            sage: print(a.__repr__(('x', 'y')))
+            x_0^5*x_1^6*y_2^7
+            sage: a.subs([x, y])
+            x_0^5*x_1^6*y_2^7
+        """
+        from sage.misc.misc_c import prod
+        return prod(rule[index]**exponent
+                    for rule, component in zip(rules, self._exponents_)
+                    for index, exponent in iteritems(component))
 
 class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
     def __init__(self, parent, data):
@@ -712,6 +742,73 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
         if not self._summands_:
             return -1
         return max(monomial.degree() for monomial in self._summands_)
+
+    def subs(self, **rules):
+        r"""
+        Substitute the specified generators.
+
+        INPUT:
+
+        - ``rules`` -- keyword arguments ``generator=replacement``
+
+          A generator can be indexed (e.g. ``x_3``) or not (e.g. ``x``).
+
+          .. NOTE::
+
+              A more specific rules overrides a more general rules.
+              For example, if ``x=a`` as well as ``x_3=b`` are both specified,
+              then ``x_3`` is replaced according to its rule by ``b``
+              and ``x_i`` for `i\neq3` are replaced according to the
+              rule of ``x``, namely by ``a[i]``.
+
+        OUTPUT:
+
+        object
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: Q.<a, b> = InfinitePolynomialRing(QQ)
+            sage: (2*x[4] + 3*y[5]).subs(x=b, y=a)
+            3*a_5 + 2*b_4
+
+            sage: (2*x[4] + 3*x[5]).subs(x_5=15)
+            2*x_4 + 45
+            sage: (2*x[4] + 3*x[5]).subs(x=y, x_5=x[5])
+            3*x_5 + 2*y_4
+        """
+        class Rule(object):
+            def __init__(self, default):
+                self.default = default
+                self.rules = {}
+            def __getitem__(self, index):
+                try:
+                    return self.rules[index]
+                except KeyError:
+                    return self.default[index]
+
+        rules_monomial = tuple(Rule(gen) for gen in self.parent().gens())
+        for name, replacement in iteritems(rules):
+            try:
+                rule = rules_monomial[self.parent()._index_by_name_(name)]
+                rule.default = replacement
+                continue
+            except ValueError:
+                pass
+
+            gen, index = name.rsplit('_', 1)
+            try:
+                rule = rules_monomial[self.parent()._index_by_name_(gen)]
+                rule.rules[int(index)] = replacement
+                continue
+            except ValueError:
+                pass
+
+            raise ValueError("'{}' does not specify a generator of {}".format(
+                name, self.parent()))
+
+        return sum(coefficient * monomial.subs(rules_monomial)
+                   for monomial, coefficient in iteritems(self._summands_))
 
 
 class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
