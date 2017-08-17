@@ -22,7 +22,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from .matroid import Matroid
-from .utilities import sanitize_contractions_deletions, setprint_s
+from .utilities import newlabel
 
 from sage.graphs.digraph import DiGraph
 from .minor_matroid import MinorMatroid
@@ -93,7 +93,7 @@ class Gammoid(Matroid):
                 raise ValueError("ground set must be a subset of the vertices")
 
         # discard edge labels
-        self._D = DiGraph(D.edges(labels=False))
+        self._D = DiGraph([D.vertices(), D.edges(labels=False)])
         self._prune_vertices()
         self._G = self._D.copy(immutable=True)
         self._rootv = self._D.add_vertex()
