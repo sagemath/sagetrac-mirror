@@ -848,6 +848,62 @@ class InfinitePolynomial_sparse_exponents(CommutativeAlgebraElement):
         return sum(coefficient * monomial.subs(rules_monomial)
                    for monomial, coefficient in iteritems(self._summands_))
 
+    def variables(self, skip_indices=False):
+        r"""
+        Return the variables occurring in this polynomial.
+
+        INPUT:
+
+        - ``skip_indices`` -- boolean
+
+          If set, then the indices are skipped, i.e. only the generators
+          occurring in this polynomial are returned.
+
+        OUTPUT:
+
+        A tuple of generators/variables.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+
+            sage: (x[2]*y[3] + x[4]).variables()
+            (x_2, x_4, y_3)
+            sage: (x[2]*y[3] + x[4]).variables(skip_indices=True)
+            (x_*, y_*)
+
+            sage: (x[2] + x[4]).variables()
+            (x_2, x_4)
+            sage: (x[2] + x[4]).variables(skip_indices=True)
+            (x_*,)
+
+        TESTS::
+
+            sage: P(1).variables()
+            ()
+            sage: P(1).variables(skip_indices=True)
+            ()
+            sage: P(0).variables()
+            ()
+            sage: P(0).variables(skip_indices=True)
+            ()
+        """
+        if skip_indices:
+            indices = set()
+            for monomial, _ in iteritems(self._summands_):
+                indices.update(monomial.indices_nonempty_components())
+            return tuple(g
+                         for i, g in enumerate(self.parent().gens())
+                         if i in indices)
+        else:
+            indices = tuple(set() for _ in self.parent()._names_)
+            for monomial, _ in iteritems(self._summands_):
+                for I, J in zip(indices, monomial.indices_of_variables()):
+                    I.update(J)
+            return tuple(gen[i]
+                         for gen, I in zip(self.parent().gens(), indices)
+                         for i in sorted(I))
+
 
 class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
 
