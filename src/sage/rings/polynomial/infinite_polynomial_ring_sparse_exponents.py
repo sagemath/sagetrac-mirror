@@ -1214,8 +1214,10 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: P.gen()
             x_*
+            sage: P.gen(1)
+            y_*
         """
-        return self.gens()[0]
+        return self.gens()[n]
 
     def _index_by_name_(self, name):
         r"""
