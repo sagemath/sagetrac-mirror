@@ -923,6 +923,21 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
             sage: Z.<z> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
             sage: R(z[3])
             x_3
+
+            sage: S = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex', implementation='sparse')
+            sage: sx, sy = S.gens()
+            sage: P(sx[4] + 2*sy[3]^5)
+            2*y_3^5 + x_4
+
+            sage: D = InfinitePolynomialRing(QQ, names=('x', 'y'), order='deglex', implementation='dense')
+            sage: dx, dy = D.gens()
+            sage: P(dx[4] + 2*dy[3]^5)
+            2*y_3^5 + x_4
+
+            sage: F = PolynomialRing(QQ, names=('x_4', 'y_3'), order='deglex')
+            sage: fx, fy = F.gens()
+            sage: P(fx + 2*fy^5)
+            2*y_3^5 + x_4
         """
         from sage.rings.asymptotic.misc import combine_exceptions
 
@@ -960,8 +975,26 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
 
         elif data == 0:
             return self.element_class(self, {})
-        else:
+
+        try:
             return self.element_class(self, {self._monomial_one_(): data})
+        except (TypeError, ValueError):
+            pass
+
+        F, B = self.construction(_implementation='sparse')
+        P = F(B)
+        try:
+            data = P(data)
+        except (TypeError, ValueError) as e:
+            raise combine_exceptions(
+                ValueError('cannot convert {} to {}'.format(
+                    data, self)), e)
+
+        summands = rewire_summands(data,
+                                   {monomial_factory(monomial): coefficient
+                                    for coefficient, monomial in data},
+                                   data.parent()._names)
+        return self.element_class(self, summands)
 
     def _coerce_map_from_(self, R):
         r"""
