@@ -1024,10 +1024,28 @@ class InfinitePolynomialGen_sparse_exponents(InfinitePolynomialGen_generic):
         super(InfinitePolynomialGen_sparse_exponents, self).__init__(parent, name)
 
     def __hash__(self):
+        r"""
+        Return a hash value of this infinite polynomial generator.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: hash(x)  # random output
+            42
+        """
         return hash((self._parent, self._name, self._index))
 
     @cached_method
     def __getitem__(self, i):
+        r"""
+        Return the ``i``th variable associated to this infinite generator.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: x[0]  # indirect doctest
+            x_0
+        """
         monomial = Monomial(
             tuple(({i: 1} if index == self._index else {})
                   for index in range(len(self._parent._names_))))
@@ -1043,6 +1061,8 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
                       order='lex',
                       category=None):
         r"""
+        Create a unique key.
+
         TESTS::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -1106,25 +1126,65 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
             category=category)
 
     def _repr_(self):
+        r"""
+        Return the representation string of this infinite polynomial ring.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P  # indirect doctest
+        """
         return 'Infinite polynomial ring in {} over {}'.format(
             ', '.join(self._names_),
             self.coefficient_ring())
 
     @cached_method
     def __hash__(self):
+        r"""
+        Return a hash value of this infinite polynomial ring.
+
+        TESTS::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: hash(P)  # random output
+            42
+        """
         return hash((self.coefficient_ring(),
                      self._names_,
                      self.term_order()))
 
     def coefficient_ring(self):
+        r"""
+        Return the coefficient ring of this infinite polynomial ring.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.coefficient_ring()
+        """
         return self._coefficient_ring_
 
     def term_order(self):
+        r"""
+        Return the term order of this infinite polynomial ring.
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.term_order()
+        """
         return self._order_
 
     @cached_method
     def gens(self):
         r"""
+        Return the infinite (indexable) generators of this
+        infinite polynomial ring.
+
+        OUTPUT:
+
+        tuple of :class:`InfinitePolynomialRing_sparse_exponents`
+
         EXAMPLES::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')  # indirect doctest
@@ -1141,9 +1201,40 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
                      for index, name in enumerate(self._names_))
 
     def gen(self, n=0):
+        r"""
+        Return the `n`th infinite (indexable) generators of this
+        infinite polynomial ring.
+
+        OUTPUT:
+
+        :class:`InfinitePolynomialRing_sparse_exponents`
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.gen()
+            x_*
+        """
         return self.gens()[0]
 
     def _index_by_name_(self, name):
+        r"""
+        Return the index of the generator ``name`` in all generators.
+
+        INPUT:
+
+        - ``name`` -- string
+
+        OUTPUT:
+
+        integer
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P._index_by_name_('y')
+            1
+        """
         try:
             return self._names_.index(name)
         except ValueError:
@@ -1151,13 +1242,54 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
                 name, self))
 
     def gen_by_name(self, name):
+        r"""
+        Return the generator with given ``name``.
+
+        INPUT:
+
+        - ``name`` -- string
+
+        OUTPUT:
+
+        :class:`InfinitePolynomialRing_sparse_exponents`
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.gen_by_name('y')
+            1
+        """
         return self.gen(self._index_by_name_(name))
 
     def ngens(self):
+        r"""
+        Return the number of infinite (indexable) generators of this
+        infinite polynomial ring.
+
+        OUTPUT:
+
+        integer
+
+        EXAMPLES::
+
+            sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
+            sage: P.ngens()
+            2
+        """
         return len(self.gens())
 
     def _sorting_key_monomial_(self, monomial):
         r"""
+        Return a key for sorting monomials according to the rings order.
+
+        INPUT:
+
+        - ``monomial`` -- :class:`Monomial`
+
+        OUTPUT:
+
+        tuple
+
         TESTS::
 
             sage: P.<x> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
@@ -1176,10 +1308,25 @@ class InfinitePolynomialRing_sparse_exponents(Algebra, UniqueRepresentation):
                        '_sorting_key_{}_'.format(self.term_order().name()))()
 
     def _monomial_one_(self):
+        r"""
+        Return the monomial `1` associated to this infinite polynomial ring.
+
+        OUTPUT:
+
+        :class:`Monomial`
+
+        TESTS::
+
+            sage: P.<x> = InfinitePolynomialRing(QQ, order='degrevlex', implementation='sparse_exponents')
+            sage: P._monomial_one_()
+            1
+        """
         return Monomial(tuple({} for _ in self._names_))
 
     def _element_constructor_(self, data):
         r"""
+        Convert ``data`` to a polynomial.
+
         TESTS::
 
             sage: P.<x, y> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse_exponents')
