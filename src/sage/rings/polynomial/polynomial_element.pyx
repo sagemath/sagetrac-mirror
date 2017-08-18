@@ -4133,7 +4133,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
                 P = self._parent
-                P._singular_().set_ring()
+                P_singular = P._singular_()
+                if P_singular.isQuotientRing():
+                    from sage.misc.stopgap import stopgap
+                    stopgap("Factorization over some quotients can be incorrect.", 23642)
+                P_singular.set_ring()
                 S = self._singular_().factorize()
                 factors = S[1]
                 exponents = S[2]
