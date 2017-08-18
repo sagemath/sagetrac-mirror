@@ -104,6 +104,52 @@ class ObjectReprABC(object):
             return '--- object not handled by representer ---'
 
 
+
+class SetRepr(ObjectReprABC):
+    def __init__(self, basetype, start = '{', end = '}', sortkey = str):
+        """
+        Factory that returns a pprint function useful for sets and frozensets.
+        Only difference with the IPython implementation is the added sortkey option.
+        """
+        self.start = start
+        self.end = end
+        self.basetype = basetype
+        self.sortkey = sortkey
+
+    def __call__(self, obj, p, cycle):
+        start = self.start
+        end = self.end
+        basetype = self.basetype
+
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
+        if cycle:
+            return p.text(start + '...' + end)
+        if len(obj) == 0:
+            # Special case.
+            p.text(basetype.__name__ + '()')
+        else:
+            step = len(start)
+            p.begin_group(step, start)
+            # Like dictionary keys, we will try to sort the items if there aren't too many
+            items = obj
+            if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+                try:
+                    items = sorted(obj, key=self.sortkey)
+                except Exception:
+                    # Sometimes the items don't sort.
+                    pass
+            for idx, x in p._enumerate(items):
+                if idx:
+                    p.text(',')
+                    p.breakable()
+                p.pretty(x)
+            p.end_group(step, end)
+
+
 class SomeIPythonRepr(ObjectReprABC):
 
     def __init__(self):
@@ -123,6 +169,8 @@ class SomeIPythonRepr(ObjectReprABC):
         del type_repr[types.BuiltinFunctionType]
         del type_repr[types.FunctionType]
         del type_repr[str]
+        type_repr[set] = SetRepr(set)
+        type_repr[frozenset] = SetRepr(frozenset)
         self._type_repr = type_repr
 
     def __call__(self, obj, p, cycle):
@@ -358,4 +406,5 @@ class TallListRepr(ObjectReprABC):
         p.text(output)
         return True
 
-            
+
+
