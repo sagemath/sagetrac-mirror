@@ -112,7 +112,7 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, unicode_literals
 from six.moves import range
 from six import iteritems, string_types, class_types, text_type
 from sage.misc.six import u
@@ -1637,9 +1637,9 @@ def _sage_getdoc_unformatted(obj):
     if not isinstance(r, string_types):
         return ''
     elif isinstance(r, text_type):  # unicode (py2) = str (py3)
-        return r.encode('utf-8', 'ignore')
-    else:
         return r
+    else:
+        return r.decode('utf-8', 'ignore')
 
 
 def sage_getdoc_original(obj):

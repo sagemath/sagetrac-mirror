@@ -55,14 +55,14 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
 
     class Algebras(AlgebrasCategory):
         class ParentMethods:
-            group = Groups.Algebras.ParentMethods.group.__func__
+            group = Groups.Algebras.ParentMethods.group
 
     class Finite(CategoryWithAxiom):
         class Algebras(AlgebrasCategory):
-            extra_super_categories = Groups.Finite.Algebras.extra_super_categories.__func__
+            extra_super_categories = Groups.Finite.Algebras.extra_super_categories
 
             class ParentMethods:
-                __init_extra__ = Groups.Finite.Algebras.ParentMethods.__init_extra__.__func__
+                __init_extra__ = Groups.Finite.Algebras.ParentMethods.__init_extra__
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
 
