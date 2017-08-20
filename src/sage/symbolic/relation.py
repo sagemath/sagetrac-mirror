@@ -1,7 +1,72 @@
 r"""
 Symbolic Equations and Inequalities
 
-Sage can solve symbolic equations and inequalities. For
+Overview
+--------
+
+We create a relational expression::
+
+    sage: x = var('x')
+    sage: eqn = (x-1)^2 <= x^2 - 2*x + 3
+    sage: eqn.subs(x == 5)
+    16 <= 18
+
+Notice that squaring the relation squares both sides.
+
+::
+
+    sage: eqn^2
+    (x - 1)^4 <= (x^2 - 2*x + 3)^2
+    sage: eqn.expand()
+    x^2 - 2*x + 1 <= x^2 - 2*x + 3
+
+This can transform a true relation into a false one::
+
+    sage: eqn = SR(-5) < SR(-3); eqn
+    -5 < -3
+    sage: bool(eqn)
+    True
+    sage: eqn^2
+    25 < 9
+    sage: bool(eqn^2)
+    False
+
+We can do arithmetic with relations::
+
+    sage: e = x+1 <= x-2
+    sage: e + 2
+    x + 3 <= x
+    sage: e - 1
+    x <= x - 3
+    sage: e*(-1)
+    -x - 1 <= -x + 2
+    sage: (-2)*e
+    -2*x - 2 <= -2*x + 4
+    sage: e*5
+    5*x + 5 <= 5*x - 10
+    sage: e/5
+    1/5*x + 1/5 <= 1/5*x - 2/5
+    sage: 5/e
+    5/(x + 1) <= 5/(x - 2)
+    sage: e/(-2)
+    -1/2*x - 1/2 <= -1/2*x + 1
+    sage: -2/e
+    -2/(x + 1) <= -2/(x - 2)
+
+We can even add together two relations, as long as the operators are
+the same::
+
+    sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
+    x^3 <= 2*x - 27
+
+Here they are not::
+
+    sage: (x^3 + x <= x - 17)  + (-x >= x - 10)
+    Traceback (most recent call last):
+    ...
+    TypeError: incompatible relations
+
+Sage can solve some symbolic equations and inequalities. For
 example, we derive the quadratic formula as follows::
 
     sage: a,b,c = var('a,b,c')

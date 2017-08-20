@@ -2,78 +2,123 @@
 """
 Symbolic Expressions
 
-RELATIONAL EXPRESSIONS:
+Symbolic expressions consist of symbols (variables or constants) and
+numeric objects linked by operators (functions). Numeric objects can
+be any Sage Python object.
 
-We create a relational expression::
+Expressions support a huge number of operations that are all member
+functions of the ``Expression`` class, so you apply the operation by
+following the expression with a period ``.`` followed by the member
+function call, as it is usual in Python.
 
-    sage: x = var('x')
-    sage: eqn = (x-1)^2 <= x^2 - 2*x + 3
-    sage: eqn.subs(x == 5)
-    16 <= 18
+The member functions can be grouped in the following categories:
+ - algebraic operations: :func:`~Expression.coefficient`,
+   :func:`~Expression.coefficients`, :func:`~Expression.content`,
+   :func:`~Expression.default_variable`, :func:`~Expression.degree`,
+   :func:`~Expression.denominator`, :func:`~Expression.gcd`,
+   :func:`~Expression.lcm`, :func:`~Expression.leading_coefficient`,
+   :func:`~Expression.low_degree`, :func:`~Expression.minpoly`,
+   :func:`~Expression.numerator`, :func:`~Expression.numerator_denominator`,
+   :func:`~Expression.primitive_part`, :func:`~Expression.resultant`,
+   :func:`~Expression.trailing_coefficient`, :func:`~Expression.unit`,
+   :func:`~Expression.unit_content_primitive`
+ - calculus operations: :func:`~Expression.derivative`,
+   :func:`~Expression.diff`, :func:`~Expression.find_local_maximum`,
+   :func:`~Expression.find_local_minimum`, :func:`~Expression.find_root`,
+   :func:`~Expression.gradient`, :func:`~Expression.implicit_derivative`,
+   :func:`~Expression.integral`, :func:`~Expression.inverse_laplace`,
+   :func:`~Expression.laplace`, :func:`~Expression.limit`,
+   :func:`~Expression.nintegral`, :func:`~Expression.partial_fraction`,
+   :func:`~Expression.rectform`, :func:`~Expression.residue`,
+   :func:`~Expression.roots`
+ - standard functions (better use the prefix versions, see
+   :doc:`functions/index`): :func:`~Expression.abs`,
+   :func:`~Expression.arccos`, :func:`~Expression.arccosh`,
+   :func:`~Expression.arcsin`, :func:`~Expression.arcsinh`,
+   :func:`~Expression.arctan`, :func:`~Expression.arctan2`,
+   :func:`~Expression.arctanh`, :func:`~Expression.binomial`,
+   :func:`~Expression.conjugate`,
+   :func:`~Expression.cos`, :func:`~Expression.cosh`,
+   :func:`~Expression.csgn`, :func:`~Expression.exp`,
+   :func:`~Expression.factorial`, :func:`~Expression.gamma`,
+   :func:`~Expression.imag`, :func:`~Expression.imag_part`,
+   :func:`~Expression.log`, :func:`~Expression.log_gamma`,
+   :func:`~Expression.norm`, :func:`~Expression.real`,
+   :func:`~Expression.real_part`, :func:`~Expression.sin`,
+   :func:`~Expression.sinh`, :func:`~Expression.sqrt`,
+   :func:`~Expression.step`, :func:`~Expression.tan`,
+   :func:`~Expression.tanh`, :func:`~Expression.zeta`
+ - numerics: :func:`~Expression.numerical_approx`, :func:`~Expression.round`
+ - plotting, printing: :func:`~Expression.plot`, :func:`~Expression.show`
+ - relations: :func:`~Expression.left`, :func:`~Expression.lhs`,
+   :func:`~Expression.negation`, :func:`~Expression.rhs`,
+   :func:`~Expression.right`, :func:`~Expression.test_relation`
+ - assumptions: :func:`~Expression.assume`, :func:`~Expression.contradicts`,
+   :func:`~Expression.forget`
+ - equation solving: :func:`~Expression.solve`,
+   :func:`~Expression.solve_diophantine`,
+ - summation: :func:`~Expression.WZ_certificate`,
+   :func:`~Expression.gosper_sum`, :func:`~Expression.gosper_term`,
+   :func:`~Expression.sum`, :func:`~Expression.prod`
+ - series and asymptotics (see also :doc:`sage/symbolic/series`
+   and :doc:`asymptotic/index`): :func:`~Expression.Order`,
+   :func:`~Expression.power_series`, :func:`~Expression.series`,
+   :func:`~Expression.taylor`, :func:`~Expression.truncate`
+ - rewriting the expression: :func:`~Expression.canonicalize_radical`,
+   :func:`~Expression.collect`, :func:`~Expression.collect_common_factors`,
+   :func:`~Expression.combine`, :func:`~Expression.distribute`,
+   :func:`~Expression.expand`, :func:`~Expression.expand_log`,
+   :func:`~Expression.expand_rational`, :func:`~Expression.expand_sum`,
+   :func:`~Expression.expand_trig`, :func:`~Expression.factor`,
+   :func:`~Expression.factorial_simplify`, :func:`~Expression.full_simplify`,
+   :func:`~Expression.gamma_normalize`, :func:`~Expression.horner`,
+   :func:`~Expression.hypergeometric_simplify`, :func:`~Expression.log_expand`,
+   :func:`~Expression.log_simplify`, :func:`~Expression.normalize`,
+   :func:`~Expression.poly`, :func:`~Expression.rational_simplify`,
+   :func:`~Expression.reduce_trig`, :func:`~Expression.simplify`,
+   :func:`~Expression.simplify_factorial`, :func:`~Expression.simplify_full`,
+   :func:`~Expression.simplify_hypergeometric`,
+   :func:`~Expression.simplify_log`, :func:`~Expression.simplify_rational`,
+   :func:`~Expression.simplify_real`, :func:`~Expression.simplify_rectform`,
+   :func:`~Expression.simplify_trig`, :func:`~Expression.to_gamma`,
+   :func:`~Expression.trig_expand`, :func:`~Expression.trig_reduce`,
+   :func:`~Expression.trig_simplify`, :func:`~Expression.unhold`
+ - substitution: :func:`~Expression.subs`,
+   :func:`~Expression.substitute_function`
+ - factorization lists: :func:`~Expression.factor_list`
+ - matrices: :func:`~Expression.hessian`
+ - conversions: :func:`~Expression.fraction`,
+   :func:`~Expression.laurent_polynomial`, :func:`~Expression.polynomial`
+ - patterns: :func:`~Expression.find`, :func:`~Expression.match`
+ - querying the expression stucture: :func:`~Expression.args`,
+   :func:`~Expression.arguments`, :func:`~Expression.free_variables`,
+   :func:`~Expression.has`, :func:`~Expression.has_wild`,
+   :func:`~Expression.is_algebraic`, :func:`~Expression.is_constant`,
+   :func:`~Expression.is_exact`, :func:`~Expression.is_infinity`,
+   :func:`~Expression.is_integer`, :func:`~Expression.is_negative`,
+   :func:`~Expression.is_negative_infinity`, :func:`~Expression.is_numeric`,
+   :func:`~Expression.is_polynomial`, :func:`~Expression.is_positive`,
+   :func:`~Expression.is_positive_infinity`, :func:`~Expression.is_real`,
+   :func:`~Expression.is_relational`, :func:`~Expression.is_series`,
+   :func:`~Expression.is_symbol`, :func:`~Expression.is_terminating_series`,
+   :func:`~Expression.is_trivial_zero`, :func:`~Expression.is_unit`,
+   :func:`~Expression.iterator`, :func:`~Expression.nops`,
+   :func:`~Expression.number_of_arguments`,
+   :func:`~Expression.number_of_operands`, :func:`~Expression.op`,
+   :func:`~Expression.operands`, :func:`~Expression.operator`,
+   :func:`~Expression.pyobject`, :func:`~Expression.variables`
+ - operators for internal use: :func:`~Expression.add`,
+   :func:`~Expression.add_to_both_sides`,
+   :func:`~Expression.divide_both_sides`, :func:`~Expression.function`,
+   :func:`~Expression.mul`, :func:`~Expression.multiply_both_sides`,
+   :func:`~Expression.power`, :func:`~Expression.subtract_from_both_sides`
+ - units: :func:`~Expression.convert`
+ - using the Maxima subsystem: :func:`~Expression.maxima_methods`
 
-Notice that squaring the relation squares both sides.
-
-::
-
-    sage: eqn^2
-    (x - 1)^4 <= (x^2 - 2*x + 3)^2
-    sage: eqn.expand()
-    x^2 - 2*x + 1 <= x^2 - 2*x + 3
-
-This can transform a true relation into a false one::
-
-    sage: eqn = SR(-5) < SR(-3); eqn
-    -5 < -3
-    sage: bool(eqn)
-    True
-    sage: eqn^2
-    25 < 9
-    sage: bool(eqn^2)
-    False
-
-We can do arithmetic with relations::
-
-    sage: e = x+1 <= x-2
-    sage: e + 2
-    x + 3 <= x
-    sage: e - 1
-    x <= x - 3
-    sage: e*(-1)
-    -x - 1 <= -x + 2
-    sage: (-2)*e
-    -2*x - 2 <= -2*x + 4
-    sage: e*5
-    5*x + 5 <= 5*x - 10
-    sage: e/5
-    1/5*x + 1/5 <= 1/5*x - 2/5
-    sage: 5/e
-    5/(x + 1) <= 5/(x - 2)
-    sage: e/(-2)
-    -1/2*x - 1/2 <= -1/2*x + 1
-    sage: -2/e
-    -2/(x + 1) <= -2/(x - 2)
-
-We can even add together two relations, as long as the operators are
-the same::
-
-    sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
-    x^3 <= 2*x - 27
-
-Here they are not::
-
-    sage: (x^3 + x <= x - 17)  + (-x >= x - 10)
-    Traceback (most recent call last):
-    ...
-    TypeError: incompatible relations
-
-
-ARBITRARY SAGE ELEMENTS:
-
-You can work symbolically with any Sage data type.  This can lead to
-nonsense if the data type is strange, e.g., an element of a finite
-field (at present).
-
-We mix Singular variables with symbolic variables::
+Numeric objects are any Sage Python object that can be coerced into
+the Symbolic Ring. The resulting expression need not make sense
+mathematically.
+An example where we mix Singular variables with symbolic variables::
 
     sage: R.<u,v> = QQ[]
     sage: var('a,b,c')
