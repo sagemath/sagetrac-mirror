@@ -35,7 +35,7 @@ class Gammoid(Matroid):
 
     INPUT:
 
-    - ``D`` -- A DiGraph representing the gammoid.
+    - ``D`` -- A loopless DiGraph representing the gammoid.
     - ``roots`` -- A subset of the vertices.
     - ``groundset`` -- (optional) A subset of the vertices. If not specified,
       the entire vertex set is used (and the gammoid will be strict).
@@ -79,6 +79,38 @@ class Gammoid(Matroid):
             sage: N2 = M.delete(8)
             sage: N1 == N2
             True
+
+        TESTS::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: D = DiGraph([(0,0),(0,1),(1,1)], loops=True)
+            sage: M = Gammoid(D, roots=[1])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: D = DiGraph([(0,1), (0,1)], multiedges=True)
+            sage: M = Gammoid(D, roots=[1])
+            sage: M.is_isomorphic(matroids.Uniform(1,2))
+            True
+            sage: M = Gammoid(D, roots=[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: roots must be a subset of the vertices
+            sage: M = Gammoid(D, roots=[1], groundset=[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: ground set must be a subset of the vertices
+
+        ::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: edgedict = {1:[2], 2:[3], 4:[1,5], 5:[2,3,8], 6:[4,7], 7:[5,8]}
+            sage: D = DiGraph(edgedict)
+            sage: M = Gammoid(D, roots=[]); M
+            Gammoid of rank 0 on 8 elements
+            sage: M = Gammoid(D, roots=[], groundset=[]); M
+            Gammoid of rank 0 on 0 elements
+
         """
         self._roots = frozenset(roots)
         vertices = frozenset(D.vertices())
@@ -92,7 +124,9 @@ class Gammoid(Matroid):
             if not self._groundset.issubset(vertices):
                 raise ValueError("ground set must be a subset of the vertices")
 
-        # discard edge labels
+        # self._D is used for computations
+        # self._G is used for referencing and hashing
+        # loops will cause an error here, but multiedges will be ignored
         self._D = DiGraph([D.vertices(), D.edges(labels=False)])
         self._prune_vertices()
         self._G = self._D.copy(immutable=True)
@@ -102,7 +136,7 @@ class Gammoid(Matroid):
 
     def _prune_vertices(self):
         """
-        Remove irrelevant vertices from the internal graph.
+        Remove irrelevant vertices from the internal digraph.
 
         This will remove vertices that are not part of the ground set and
         cannot be used in a valid path between an element and a root.
@@ -363,19 +397,83 @@ class Gammoid(Matroid):
         else:
             return N
 
-    def gammoid_extension(self, vertex, neighbors=None):
+    def gammoid_extension(self, vertex, neighbors=[]):
         """
         Return a gammoid extended by an element.
 
         The new element can be a vertex of the digraph that is not in the starting set,
         or it can be a new source vertex.
 
-        INPUT::
+        INPUT:
 
         - ``vertex`` -- A vertex of the gammoid's digraph that is not already in the
           ground set, or a new vertex.
         - ``neighbors`` -- (optional) If ``vertex`` is not already in the graph,
           its neighbors will be specified. The new vertex will have in degree `0`
           regardless of this option.
+
+        OUTPUT:
+
+        a Gammoid
+
+        EXAMPLES::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: edgedict = {1:[2], 2:[3], 4:[1,5], 5:[2,3,8], 6:[4,7], 7:[5,8]}
+            sage: D = DiGraph(edgedict)
+            sage: M = Gammoid(D, roots=[2,3,4], groundset=range(2,9))
+            sage: M1 = M.gammoid_extension(1)
+            sage: M1.groundset()
+            frozenset({1, 2, 3, 4, 5, 6, 7, 8})
+            sage: N = Gammoid(D, roots=[2,3,4])
+            sage: M1 == N
+            True
+            sage: M1.delete(1)
+            Gammoid of rank 3 on 7 elements
+            sage: M == M1.delete(1)
+            True
+            sage: M2 = M.gammoid_extension(9); sorted(M2.loops())
+            [8, 9]
+            sage: M4 = M.gammoid_extension(9, [1,2,3])
+            sage: M4.digraph().neighbors_out(9)
+            [1, 2, 3]
+            sage: M4.digraph().neighbors_in(9)
+            []
+
+        TESTS::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: edgedict = {1:[2], 2:[3], 4:[1,5], 5:[2,3,8], 6:[4,7], 7:[5,8]}
+            sage: D = DiGraph(edgedict)
+            sage: M = Gammoid(D, roots=[2,3,4], groundset=range(2,9))
+            sage: M.gammoid_extension(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot extend by element already in groundset
+            sage: M.gammoid_extension(1, [2,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: neighbors of vertex in digraph cannot be changed
+            sage: M.gammoid_extension(9, [9])
+            Traceback (most recent call last):
+            ...
+            ValueError: neighbors must already be in graph
         """
-        pass
+
+        if vertex in self._groundset:
+            raise ValueError("cannot extend by element already in groundset")
+        elif vertex in self._G:
+            if neighbors:
+                raise ValueError("neighbors of vertex in digraph cannot be changed")
+            new_groundset = set(self._groundset).union([vertex])
+            return Gammoid(D=self._G, roots=self._roots,
+                groundset=new_groundset)
+        else:
+            if not set(neighbors).issubset(self._G.vertices()):
+                raise ValueError("neighbors must already be in graph")
+            D = self.digraph()
+            D.add_vertex(vertex)
+            for n in neighbors:
+                D.add_edge(vertex, n)
+            new_groundset = set(self._groundset).union([vertex])
+            return Gammoid(D=D, roots=self._roots, groundset=new_groundset)
