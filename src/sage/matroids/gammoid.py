@@ -35,14 +35,14 @@ class Gammoid(Matroid):
 
     INPUT:
 
-    - ``D`` -- A loopless DiGraph representing the gammoid.
-    - ``roots`` -- A subset of the vertices.
-    - ``groundset`` -- (optional) A subset of the vertices. If not specified,
-      the entire vertex set is used (and the gammoid will be strict).
+    - ``D`` -- a loopless DiGraph representing the gammoid
+    - ``roots`` -- a subset of the vertices
+    - ``groundset`` -- (optional) a subset of the vertices
 
     OUTPUT:
 
-    An instance of ``Gammoid``.
+    An instance of ``Gammoid``. If ``groundset`` is not specified,
+    the entire vertex set is used (and the gammoid will be strict).
 
     EXAMPLES::
 
@@ -201,7 +201,7 @@ class Gammoid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- a matroid
 
         OUTPUT:
 
@@ -232,7 +232,7 @@ class Gammoid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- a matroid
 
         OUTPUT:
 
@@ -406,15 +406,15 @@ class Gammoid(Matroid):
 
         INPUT:
 
-        - ``vertex`` -- A vertex of the gammoid's digraph that is not already in the
-          ground set, or a new vertex.
-        - ``neighbors`` -- (optional) If ``vertex`` is not already in the graph,
-          its neighbors will be specified. The new vertex will have in degree `0`
-          regardless of this option.
+        - ``vertex`` -- a vertex of the gammoid's digraph that is not already in the
+          ground set, or a new vertex
+        - ``neighbors`` -- (optional) a set of vertices of the digraph
 
         OUTPUT:
 
-        a Gammoid
+        A Gammoid. If ``vertex`` is not already in the graph, then the new vertex
+        will be have edges to ``neighbors``. The new vertex will have in degree `0`
+        regardless of whether or not ``neighbors`` is specified.
 
         EXAMPLES::
 
