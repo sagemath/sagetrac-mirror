@@ -4679,7 +4679,7 @@ class Graph(GenericGraph):
             return False
 
     @doc_index("Leftovers")
-    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver = "PPL", verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
 
@@ -4744,12 +4744,19 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
+            5/2
+
+        With GLPK::
+
+            sage: g.fractional_chromatic_index(solver="GLPK")
             2.5
 
-        With PPL::
+        Check that :trac:`23658` is fixed::
 
-            sage: g.fractional_chromatic_index(solver="PPL")
-            5/2
+            sage: g=graphs.PetersenGraph()
+            sage: g.fractional_chromatic_index()
+            3
+
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
