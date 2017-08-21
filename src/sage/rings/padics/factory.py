@@ -31,8 +31,10 @@ from .padic_base_leaves import (pAdicRingCappedRelative,
                                 pAdicRingCappedAbsolute,
                                 pAdicRingFixedMod,
                                 pAdicRingFloatingPoint,
+                                pAdicRingLattice,
                                 pAdicFieldCappedRelative,
-                                pAdicFieldFloatingPoint)
+                                pAdicFieldFloatingPoint,
+                                pAdicFieldLattice)
 from . import padic_printing
 
 ######################################################
@@ -95,7 +97,7 @@ def _default_show_prec(type, print_mode):
     else:
         return False
 
-def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, valid_non_lazy_types):
+def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, valid_non_lazy_types, label=None):
     """
     This implements create_key for Zp and Qp: moving it here prevents code duplication.
 
@@ -105,9 +107,9 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
 
         sage: from sage.rings.padics.factory import get_key_base
         sage: get_key_base(11, 5, 'capped-rel', None, None, None, None, ':', None, None, False, True, ['capped-rel'])
-        (11, 5, 'capped-rel', 'series', '11', True, '|', (), -1, False)
+        (11, 5, 'capped-rel', 'series', '11', True, '|', (), -1, False, None)
         sage: get_key_base(12, 5, 'capped-rel', 'digits', None, None, None, None, None, None, True, False, ['capped-rel'])
-        (12, 5, 'capped-rel', 'digits', '12', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B'), -1, True)
+        (12, 5, 'capped-rel', 'digits', '12', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B'), -1, True, None)
     """
     if prec is None:
         prec = DEFAULT_PREC
@@ -186,7 +188,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
     if show_prec is None:
         show_prec = _default_show_prec(type, print_mode)
     if type in valid_non_lazy_types:
-        key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms, show_prec)
+        key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms, show_prec, label)
     else:
         print(type)
         raise ValueError("type must be %s"%(", ".join(valid_non_lazy_types)))
@@ -537,7 +539,7 @@ class Qp_class(UniqueFactory):
     """
     def create_key(self, p, prec = None, type = 'capped-rel', print_mode = None,
                    names = None, ram_name = None, print_pos = None,
-                   print_sep = None, print_alphabet = None, print_max_terms = None, show_prec=None, check = True):
+                   print_sep = None, print_alphabet = None, print_max_terms = None, show_prec=None, check = True, label=None):
         """
         Creates a key from input parameters for ``Qp``.
 
@@ -546,7 +548,7 @@ class Qp_class(UniqueFactory):
         TESTS::
 
             sage: Qp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True, None)
         """
         if isinstance(names, (int, Integer)):
             # old pickle; names is what used to be halt.
@@ -556,7 +558,7 @@ class Qp_class(UniqueFactory):
             print_alphabet = print_max_terms
             print_max_terms = check
             check = True
-        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point'])
+        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point'], label)
 
     def create_object(self, version, key):
         """
@@ -566,7 +568,7 @@ class Qp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Qp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
+            sage: Qp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1, None))
             5-adic Field with capped relative precision 41
         """
         if version[0] < 3 or (version[0] == 3 and version[1] < 2) or (version[0] == 3 and version[1] == 2 and version[2] < 3):
@@ -576,7 +578,7 @@ class Qp_class(UniqueFactory):
             p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
             show_prec = None
         else:
-            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec = key
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, label = key
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
@@ -592,7 +594,7 @@ class Qp_class(UniqueFactory):
                     return obj
             except KeyError:
                 pass
-            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec = key
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, label = key
 
         if type == 'capped-rel':
             if print_mode == 'terse':
@@ -608,6 +610,13 @@ class Qp_class(UniqueFactory):
             else:
                 return pAdicFieldFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                          'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
+        elif type == 'lattice':
+            if print_mode == 'terse':
+                return pAdicFieldLattice(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                   'ram_name': name, 'max_terse_terms': print_max_terms, 'show_prec': show_prec}, name, label)
+            else:
+                return pAdicFieldLattice(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                   'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name, label)
         else:
             raise ValueError("unexpected type")
 
@@ -1173,6 +1182,21 @@ def QpFP(p, prec = None, *args, **kwds):
     """
     return Qp(p, prec, 'floating-point', *args, **kwds)
 
+def QpLP(p, prec = None, *args, **kwds):
+    """
+    A shortcut function to create `p`-adic fields with lattice precision.
+
+    See :func:`ZpLP` for more information about this model of precision.
+
+    EXAMPLES::
+
+        sage: R = QpLP(2)
+        sage: R
+        2-adic Field with lattice precision
+
+    """
+    return Qp(p, prec, 'lattice', *args, **kwds)
+
 def QqCR(q, prec = None, *args, **kwds):
     """
     A shortcut function to create capped relative unramified `p`-adic
@@ -1595,7 +1619,7 @@ class Zp_class(UniqueFactory):
     """
     def create_key(self, p, prec = None, type = 'capped-rel', print_mode = None,
                    names = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None,
-                   print_max_terms = None, show_prec = None, check = True):
+                   print_max_terms = None, show_prec = None, check = True, label = None):
         """
         Creates a key from input parameters for ``Zp``.
 
@@ -1604,9 +1628,9 @@ class Zp_class(UniqueFactory):
         TESTS::
 
             sage: Zp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True, None)
             sage: Zp.create_key(5,40,print_mode='digits')
-            (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1, False)
+            (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1, False, None)
         """
         if isinstance(names, (int, Integer)):
             # old pickle; names is what used to be halt.
@@ -1617,7 +1641,7 @@ class Zp_class(UniqueFactory):
             print_max_terms = check
             check = True
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
-                            print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point'])
+                            print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice'], label=label)
 
     def create_object(self, version, key):
         """
@@ -1627,7 +1651,7 @@ class Zp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
+            sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1, None))
             5-adic Ring with capped relative precision 41
         """
         if (version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or
@@ -1637,8 +1661,9 @@ class Zp_class(UniqueFactory):
         elif version[0] < 8:
             p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
             show_prec = None
+            label = None
         else:
-            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec = key
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, label = key
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError("lazy p-adics need more work.  Sorry.")
@@ -1647,14 +1672,14 @@ class Zp_class(UniqueFactory):
             # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series'
             # that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, name, None, print_pos, print_sep, print_alphabet,
-                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
+                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs', 'lattice'])
             try:
                 obj = self._cache[version, key]()
                 if obj is not None:
                     return obj
             except KeyError:
                 pass
-            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec = key
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, label = key
         if type == 'capped-rel':
             return pAdicRingCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
@@ -1667,6 +1692,9 @@ class Zp_class(UniqueFactory):
         elif type == 'floating-point':
             return pAdicRingFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
+        elif type == 'lattice':
+            return pAdicRingLattice(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                              'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name, label)
         else:
             raise ValueError("unexpected type")
 
@@ -2280,6 +2308,308 @@ def ZpFP(p, prec = None, *args, **kwds):
         5-adic Ring with floating precision 40
     """
     return Zp(p, prec, 'floating-point', *args, **kwds)
+
+def ZpLP(p, prec = None, *args, **kwds):
+    """
+    A shortcut function to create `p`-adic rings with lattice precision.
+
+    Below is a small demo of the features by this model of precision::
+
+        sage: R = ZpLP(3, print_mode='terse')
+        sage: x = R(1,10)
+
+    Of course, when we multiply by 3, we gain one digit of absolute
+    precision::
+
+        sage: 3*x
+        3 + O(3^11)
+
+    The lattice precision machinery sees this even if we decompose
+    the computation into several steps::
+
+        sage: y = x+x
+        sage: y
+        2 + O(3^10)
+        sage: x + y
+        3 + O(3^11)
+
+    The same works for the multiplication::
+
+        sage: z = x^2
+        sage: z
+        1 + O(3^10)
+        sage: x*z
+        1 + O(3^11)
+
+    This comes more funny when we are working with elements given
+    at different precisions::
+
+        sage: R = ZpLP(2, print_mode='terse')
+        sage: x = R(1,10)
+        sage: y = R(1,5)
+        sage: z = x+y; z
+        2 + O(2^5)
+        sage: t = x-y; t
+        0 + O(2^5)
+        sage: z+t  # observe that z+t = 2*x
+        2 + O(2^11)
+        sage: z-t  # observe that z-t = 2*y
+        2 + O(2^6)
+
+        sage: x = R(28888,15)
+        sage: y = R(204,10)
+        sage: z = x/y; z
+        242 + O(2^9)
+        sage: z*y  # which is x
+        28888 + O(2^15)
+
+    The SOMOS sequence is the sequence defined by the recurrence::
+
+    ..MATH::
+
+        u_n = \frac {u_{n-1} u_{n-3} + u_{n-2}^2} {u_{n-4}}
+
+    It is known for its numerical instability.
+    On the one hand, one can show that if the initial values are
+    invertible in `\mathbb{Z}_p` and known at precision `O(p^N)`
+    then all the next terms of the SOMOS sequence will be known
+    at the same precision as well.
+    On the other hand, because of the division, when we unroll
+    the recurrence, we loose a lot of precision. Observe::
+
+        sage: R = Zp(2, 30, print_mode='terse')
+        sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        4 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        13 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        55 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        21975 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        6639 + O(2^13)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        7186 + O(2^13)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        569 + O(2^13)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        253 + O(2^13)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        4149 + O(2^13)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        2899 + O(2^12)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        3072 + O(2^12)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        349 + O(2^12)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        619 + O(2^12)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        243 + O(2^12)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        3 + O(2^2)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        2 + O(2^2)
+
+    If instead, we use the lattice precision, everything goes well::
+
+        sage: R = ZpLP(2, 30, print_mode='terse')
+        sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        4 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        13 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        55 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        21975 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        23023 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        31762 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        16953 + O(2^15)
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        16637 + O(2^15)
+
+        sage: for _ in range(100):
+        ....:     a,b,c,d = b,c,d,(b*d+c*c)/a
+        sage: a
+        15519 + O(2^15)
+        sage: b
+        32042 + O(2^15)
+        sage: c
+        17769 + O(2^15)
+        sage: d
+        20949 + O(2^15)
+
+    BEHIND THE SCENE:
+
+    The precision is global.
+    It is encoded by a lattice in a huge vector space whose dimension
+    is the number of elements having this parent.
+
+    Concretely, this precision datum is an instance of the class
+    :class:`sage.rings.padic.lattice_precision.PrecisionLattice`.
+    It is attached to the parent and is created at the same time
+    as the parent.
+    (It is actually a bit more subtle because two different parents
+    may share the same instance; this happens for instance for a
+    `p`-adic ring and its field of fractions.)
+
+    This precision datum is accessible through the method
+    :meth:`precision`::
+
+        sage: R = ZpLP(5, print_mode='terse')
+        sage: prec = R.precision()
+        sage: prec
+        Precision Lattice on 0 object
+
+    This instance knows about all elements of the parent, it is
+    automatically updated when a new element (of this parent) is
+    created::
+
+        sage: x = R(3513,10)
+        sage: prec
+        Precision Lattice on 1 object
+        sage: y = R(176,5)
+        sage: prec
+        Precision Lattice on 2 objects
+        sage: z = R.random_element()
+        sage: prec
+        Precision Lattice on 3 objects
+
+    The method :meth:`tracked_elements` provides the list of all
+    tracked elements::
+
+        sage: prec.tracked_elements()
+        [3513 + O(5^10), 176 + O(5^5), ...]
+
+    Similarly, when a variable is collected by the garbage collector,
+    the precision lattice is updated. Note however that the update
+    might be delayed. We can force it with the method :meth:`del_elements`::
+
+        sage: z = 0
+        sage: prec
+        Precision Lattice on 3 objects
+        sage: prec.del_elements()
+        sage: prec
+        Precision Lattice on 2 objects
+
+    The method :meth:`precision_lattice` returns (a matrix defining)
+    the lattice that models the precision. Here we have::
+
+        sage: prec.precision_lattice()
+        [9765625       0]
+        [      0    3125]
+
+    Observe that `5^10 = 9765625` and `5^5 = 3125`.
+    The above matrix then reflects the precision on `x` and `y`.
+
+    Now, observe how the precision lattice changes while
+    performing computations::
+
+        sage: x, y = 3*x+2*y, 2*(x-y)
+        sage: prec.del_elements()
+        sage: prec.precision_lattice()
+        [    3125 48825000]
+        [       0 48828125]
+
+    The matrix we get is no longer diagonal, meaning that
+    some digits of precision are diffused among the two
+    new elements `x` and `y`. They nevertheless show up
+    when we compute for instance `x+y`::
+
+        sage: x
+        1516 + O(5^5)
+        sage: y
+        424 + O(5^5)
+        sage: x+y
+        17565 + O(5^11)
+
+    It is these diffused digits of precision (which are
+    tracked but do not appear on the printing) that allow
+    to be always sharp on precision.
+
+    PERFORMANCES:
+
+    Each elementary operation requires significant manipulations
+    on the lattice precision and then is costly. Precisely:
+
+    - The creation of a new element has a cost `O(n)` where `n`
+      is the number of tracked elements.
+
+    - The destruction of one element has a cost `O(m^2)` where
+      `m` is the distance between the destroyed element and
+      the last one. Fortunately, it seems that `m` tends to
+      be small in general (the dynamics of the list of tracked
+      elements is rather close to that of a stack).
+
+    It is nevertheless still possible to manipulate several
+    hundred variables (e.g. square matrices of size 5 or
+    polynomials of degree 20 are accessible).
+
+    The class :class:`PrecisionLattice` provides several
+    features for introspection (especially concerning timings).
+    If enabled, it maintains an history of all actions and stores
+    the wall time of each of them::
+
+        sage: R = ZpLP(3)
+        sage: prec = R.precision()
+        sage: prec.history_enable()
+        sage: M = random_matrix(R, 5)
+        sage: d = M.determinant()
+        sage: print prec.history()  # somewhat random
+           ---
+        0.004212s  oooooooooooooooooooooooooooooooooooo
+        0.000003s  oooooooooooooooooooooooooooooooooo~~
+        0.000010s  oooooooooooooooooooooooooooooooooo
+        0.001560s  ooooooooooooooooooooooooooooooooooooooooo
+        0.000004s  ooooooooooooooooooooooooooooo~oooo~oooo~o
+        0.002168s  oooooooooooooooooooooooooooooooooooooo
+        0.001787s  ooooooooooooooooooooooooooooooooooooooooo
+        0.000004s  oooooooooooooooooooooooooooooooooooooo~~o
+        0.000198s  ooooooooooooooooooooooooooooooooooooooo
+        0.001152s  ooooooooooooooooooooooooooooooooooooooooo
+        0.000005s  ooooooooooooooooooooooooooooooooo~oooo~~o
+        0.000853s  oooooooooooooooooooooooooooooooooooooo
+        0.000610s  ooooooooooooooooooooooooooooooooooooooo
+        ...
+        0.003879s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000006s  oooooooooooooooooooooooooooooooooooooooooooooooooooo~~~~~
+        0.000036s  oooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.006737s  oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000005s  oooooooooooooooooooooooooooooooooooooooooooooooooooo~~~~~ooooo
+        0.002637s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.007118s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000008s  oooooooooooooooooooooooooooooooooooooooooooooooooooo~~~~o~~~~oooo
+        0.003504s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.005371s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000006s  ooooooooooooooooooooooooooooooooooooooooooooooooooooo~~~o~~~ooo
+        0.001858s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.003584s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000004s  oooooooooooooooooooooooooooooooooooooooooooooooooooooo~~o~~oo
+        0.000801s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.001916s  ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        0.000022s  ooooooooooooooooooooooooooooo~~~~~~~~~~~~~~~~~~~~~~oooo~o~o
+        0.014705s  ooooooooooooooooooooooooooooooooooo
+        0.001292s  ooooooooooooooooooooooooooooooooooooo
+        0.000002s  ooooooooooooooooooooooooooooooooooo~o
+
+    The symbol `o` symbolized a tracked element.
+    The symbol `~` means that the element is marked for deletion.
+
+    The global timings are also accessible as follows::
+
+        sage: prec.timings()   # somewhat random
+        {'add': 0.25049376487731934,
+         'del': 0.11911273002624512,
+         'mark': 0.0004909038543701172,
+         'partial reduce': 0.0917658805847168}
+
+    """
+    return Zp(p, prec, 'lattice', *args, **kwds)
 
 def ZqCR(q, prec = None, *args, **kwds):
     """
