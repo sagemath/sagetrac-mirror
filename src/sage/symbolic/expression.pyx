@@ -31,8 +31,8 @@ The member functions can be grouped in the following categories:
    :func:`~Expression.nintegral`, :func:`~Expression.partial_fraction`,
    :func:`~Expression.rectform`, :func:`~Expression.residue`,
    :func:`~Expression.roots`
- - standard functions (better use the prefix versions, see
-   :doc:`functions/index`): :func:`~Expression.abs`,
+ - standard functions (better use the global versions):
+   :func:`~Expression.abs`,
    :func:`~Expression.arccos`, :func:`~Expression.arccosh`,
    :func:`~Expression.arcsin`, :func:`~Expression.arcsinh`,
    :func:`~Expression.arctan`, :func:`~Expression.arctan2`,
@@ -60,8 +60,8 @@ The member functions can be grouped in the following categories:
  - summation: :func:`~Expression.WZ_certificate`,
    :func:`~Expression.gosper_sum`, :func:`~Expression.gosper_term`,
    :func:`~Expression.sum`, :func:`~Expression.prod`
- - series and asymptotics (see also :doc:`sage/symbolic/series`
-   and :doc:`asymptotic/index`): :func:`~Expression.Order`,
+ - series and asymptotics (see also :doc:`series`):
+   :func:`~Expression.Order`,
    :func:`~Expression.power_series`, :func:`~Expression.series`,
    :func:`~Expression.taylor`, :func:`~Expression.truncate`
  - rewriting the expression: :func:`~Expression.canonicalize_radical`,
