@@ -10,8 +10,6 @@ independent if and only if `X` has a matching in `B`.
 Construction
 ============
 
-Exposure from the constructor and :mod:`sage.matroids.advanced` will be added later.
-
 To construct a transversal matroid, first import TransversalMatroid from
 :mod:`sage.matroids.transversal_matroid`.
 The input should be a set system, formatted as a list of lists::
@@ -74,13 +72,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
     INPUT:
 
-    - ``B`` -- A SageMath graph.
-    - ``groundset`` -- (optional) An iterable containing names of ground set
-      elements. If the ground set is not specified and ``B`` is an instance of
-      ``BipartiteGraph``, the ground set, can be assumed to be the vertices on the
-      largest side, or the left side of both sides have the same cardinality.
-      If ``B`` is not an instance of ``BipartiteGraph``, the ground set must be
-      specified.
+    - ``sets`` -- an iterable of iterables of elements
+    - ``groundset`` -- (optional) an iterable containing names of ground set
+      elements
+    - ``set_labels`` -- (optional) a list of labels in 1-1 correspondence with
+      the iterables in ``sets``
+    - ``matching`` -- (optional) a dictionary specifying a matching between
+      elements and set labels
 
     OUTPUT:
 
@@ -451,7 +449,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A SageMath graph.
+        A Graph.
 
         EXAMPLES::
 
@@ -487,8 +485,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         INPUT:
 
-        - ``contractions`` -- An independent subset of the ground set, as a frozenset.
-        - ``deletions`` -- A coindependent subset of the ground set, as a frozenset.
+        - ``contractions`` -- an independent subset of the ground set, as a frozenset
+        - ``deletions`` -- a coindependent subset of the ground set, as a frozenset
 
         OUTPUT:
 
@@ -578,10 +576,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         has no coloops, then every presentation has `r(M)` sets. This method
         discards extra sets if `M` has coloops.
 
-        INPUT:
-
-        None.
-
         OUTPUT:
 
         A ``TransversalMatroid`` instance with a reduced presentation.
@@ -647,17 +641,18 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         INPUT:
 
-        - ``element`` -- (optional) The name for the new element.
-        - ``newset`` -- (optional) If specified, the element will be
-          given its own set. If ``True``, a name will be generated; otherwise
-          this value will be used. This will make the element
-          a coloop.
-        - ``sets`` -- (default: ``None``) An iterable of labels representing the
-          sets in the current presentation that the new element will belong to.
+        - ``element`` -- (optional) the name for the new element
+        - ``newset`` -- (optional) if specified, the element will be
+          given its own set
+        - ``sets`` -- (default: ``None``) an iterable of labels representing the
+          sets in the current presentation that the new element will belong to
 
         OUTPUT:
 
         A TransversalMatroid with a ground set element added to specified sets.
+        Note that the ``newset`` option will make the new element a coloop. If
+        ``newset == True``, a name will be generated; otherwise the value of ``newset``
+        will be used.
 
         EXAMPLES::
 
@@ -761,9 +756,15 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         INPUT:
 
-        - ``element`` -- (optional) The name of the new element.
+        - ``element`` -- (optional) the name of the new element
         - ``sets`` -- (optional) a list containing names of sets in the matroid's
-          presentation. If not specified, every set will be used.
+          presentation.
+
+        OUTPUT:
+
+        An iterator of ``TransversalMatroids``.
+
+        If ``sets`` is not specified, every set will be used.
 
         EXAMPLES::
 
