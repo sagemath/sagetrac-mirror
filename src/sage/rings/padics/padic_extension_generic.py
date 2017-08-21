@@ -56,16 +56,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode['var_name'] = names[0]
         names = names[0]
         pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
-        self._populate_coercion_lists_(coerce_list=[R], element_constructor=element_class)
-
-#     def __reduce__(self):
-#         """
-#         For pickling.
-
-#         This function is provided because prime_pow needs to be set before _printer, so the standard unpickling fails.
-#         """
-#         from sage.rings.padics.factory import ExtensionFactory
-#         return ExtensionFactory, (self.base_ring(), self._exact_modulus, self.precision_cap(), self.print_mode(), None, self.variable_name())
+        self._populate_coercion_lists_(element_constructor=element_class)
 
     def _coerce_map_from_(self, R):
         """
@@ -91,6 +82,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             elif R._prec_type() == 'floating-point':
                 from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
             return coerce_map(R, self)
+
+        if R is self.base_ring():
+            return True
 
     def _convert_map_from_(self, R):
         """
