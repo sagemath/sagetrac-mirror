@@ -11,7 +11,7 @@ Construction
 ============
 
 To construct a transversal matroid, first import TransversalMatroid from
-:mod:`sage.matroids.transversal_matroid`.
+:class:`sage.matroids.transversal_matroid`.
 The input should be a set system, formatted as a list of lists::
 
     sage: from sage.matroids.transversal_matroid import *
