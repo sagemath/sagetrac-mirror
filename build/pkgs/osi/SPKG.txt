@@ -1,0 +1,17 @@
+= Osi =
+
+== Description ==
+
+Osi (Open solver interface) is a C++ library providing abstract classes
+to a generic linear programming solver (over floating point numbers).
+
+Website: https://projects.coin-or.org/Osi
+
+== License ==
+
+Osi is licensed under the Eclipse Public License (EPL)
+
+== Upstream Contact ==
+
+ * mailing list http://list.coin-or.org/mailman/listinfo/osi
+ * bug report http://projects.coin-or.org/Osi/newticket
