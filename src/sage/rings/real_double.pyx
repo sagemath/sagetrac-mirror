@@ -64,7 +64,7 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.integer cimport Integer
-from sage.rings.integer_ring import ZZ
+
 
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -341,6 +341,7 @@ cdef class RealDoubleField_class(Field):
 
         from .rational_field import QQ
         from .real_lazy import RLF
+        from sage.rings.integer_ring import ZZ
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
@@ -1806,6 +1807,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(3).is_integer()
             True
         """
+        from sage.rings.integer_ring import ZZ
         return self._value in ZZ
 
 
