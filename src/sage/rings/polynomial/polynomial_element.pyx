@@ -8574,12 +8574,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.parent()
             Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
         """
-        R = self._parent
+        cdef Parent R = self._parent
         if new_base_ring is not None:
             R = R.change_ring(new_base_ring)
         elif isinstance(f, Map):
             R = R.change_ring(f.codomain())
-        return R({k: f(v) for (k,v) in self.dict().items()})
+        cdef list L = [f(v) for v in self.list(copy=False)]
+        return R.element_class(R, L)
 
     def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""
