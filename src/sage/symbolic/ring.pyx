@@ -937,7 +937,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: a(4)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 0
+            ValueError: failed attempt to make a function call on an expression without variables
 
 
         Note that you make get unexpected results when calling
@@ -965,6 +965,8 @@ cdef class SymbolicRing(CommutativeRing):
             d = {}
 
             vars = _the_element.variables()
+            if len(vars) == 0:
+                raise ValueError("failed attempt to make a function call on an expression without variables")
             for i, arg in enumerate(args):
                 try:
                     d[ vars[i] ] = arg

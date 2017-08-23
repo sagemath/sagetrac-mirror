@@ -5333,7 +5333,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( 2^(8/9) - 2^(1/9) )(x-1)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 0
+            ValueError: failed attempt to make a function call on an expression without variables
         """
         return len(self.arguments())
 
