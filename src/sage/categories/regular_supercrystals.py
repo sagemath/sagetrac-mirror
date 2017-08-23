@@ -104,7 +104,8 @@ class RegularSuperCrystals(Category_singleton):
         return [Crystals().Finite()]
 
     class ParentMethods:
-        def digraph(self, index_set=None):
+        @cached_method
+        def digraph(self):
             r"""
             Return the :class:`DiGraph` associated to ``self``.
 
@@ -123,11 +124,9 @@ class RegularSuperCrystals(Category_singleton):
             from sage.graphs.digraph import DiGraph
             from sage.misc.latex import LatexExpr
             from sage.combinat.root_system.cartan_type import CartanType
-            if index_set is None:
-                index_set = self.index_set()
 
             d = {x: {} for x in self}
-            for i in index_set:
+            for i in self.index_set():
                 for x in d:
                     y = x.f(i)
                     if y is not None:
