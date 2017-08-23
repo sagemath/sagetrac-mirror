@@ -662,9 +662,13 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
         return self.subs(**d)
 
-    def dict(self):
+    def dict(self, f=None):
         """
         Return a dictionary representing ``self``.
+
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
 
         EXAMPLES::
             sage: R.<x,y> = ZZ[]
@@ -674,7 +678,17 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f.dict()
             {-9: y^3, -6: 3*x^3*y^2, -3: 3*x^6*y, 0: x^9, 2: 1}
         """
-        return dict(zip(self.exponents(), self.coefficients()))
+        cdef dict D = {}
+        cdef int i
+        cdef list E = self.exponents()
+        cdef list C = self.coefficients()
+        if f is None:
+            for i in range(len(E)):
+                D[E.pop()] = C.pop()
+        else:
+            for i in range(len(E)):
+                D[E.pop()] = f(C.pop())
+        return D
 
     def coefficients(self):
         """
@@ -2240,8 +2254,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             v.sort()
         return tuple(v)
 
-    def dict(self):
+    def dict(self, f=None):
         """
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
+
         EXAMPLES::
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
@@ -2251,7 +2269,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         if self._prod is None:
             self._compute_polydict()
-        return self._prod.dict()
+        return self._prod.dict(f)
 
     def _fraction_pair(self):
         """

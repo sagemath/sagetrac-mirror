@@ -707,12 +707,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
 
-    def dict(self):
+    def dict(self, f=None):
         """
         Return underlying dictionary with keys the exponents and values
         the coefficients of this polynomial.
+
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
         """
-        return self.element().dict()
+        return self.element().dict(f)
 
     #def __iter__(self):
     #    """

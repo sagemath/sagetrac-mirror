@@ -3628,10 +3628,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         p = [zero] + [cm.bin_op(Q(self[n]), n+1, operator.div) if self[n] else zero for n in range(self.degree()+1)]
         return S(p)
 
-    def dict(self):
+    def dict(self, f = None):
         """
         Return a sparse dictionary representation of this univariate
         polynomial.
+
+        INPUT:
+
+        Map (optional), to be applied to the coefficients.
 
         EXAMPLES::
 
@@ -3640,13 +3644,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.dict()
             {0: 13, 1: -1/7, 3: 1}
         """
-        X = {}
-        Y = self.list(copy=False)
-        for i in xrange(len(Y)):
-            c = Y[i]
-            if c:
-                X[i] = c
-        return X
+        cdef int k
+        cdef list L = self.list(copy=False)
+        cdef dict D = {}
+        if f is None:
+            for k,c in enumerate(L):
+                if c:
+                    D[k] = c
+        else:
+            for k,c in enumerate(L):
+                if c:
+                    D[k] = f(c)
+        return D
 
     def factor(self, **kwargs):
         r"""
@@ -8579,8 +8588,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             R = R.change_ring(new_base_ring)
         elif isinstance(f, Map):
             R = R.change_ring(f.codomain())
-        cdef list L = [f(v) for v in self.list(copy=False)]
-        return R.element_class(R, L)
+        return R.element_class(R, self.dict(f))
 
     def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""

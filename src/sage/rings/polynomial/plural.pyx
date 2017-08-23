@@ -2130,11 +2130,15 @@ cdef class NCPolynomial_plural(RingElement):
 
         return (<NCPolynomialRing_plural>self._parent)._base._zero_element
 
-    def dict(self):
+    def dict(self, f=None):
         """
         Return a dictionary representing ``self``. This dictionary is in
         the same format as the generic MPolynomial: The dictionary
         consists of ``ETuple:coefficient`` pairs.
+
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
 
         EXAMPLES::
 
@@ -2156,16 +2160,28 @@ cdef class NCPolynomial_plural(RingElement):
         base = (<NCPolynomialRing_plural>self._parent)._base
         p = self._poly
         pd = dict()
-        while p:
-            d = dict()
-            for v from 1 <= v <= r.N:
-                n = p_GetExp(p,v,r)
-                if n!=0:
-                    d[v-1] = n
+        if f is None:
+            while p:
+                d = dict()
+                for v from 1 <= v <= r.N:
+                    n = p_GetExp(p,v,r)
+                    if n!=0:
+                        d[v-1] = n
 
-            pd[ETuple(d,r.N)] = si2sa(p_GetCoeff(p, r), r, base)
+                pd[ETuple(d,r.N)] = si2sa(p_GetCoeff(p, r), r, base)
 
-            p = pNext(p)
+                p = pNext(p)
+        else:
+            while p:
+                d = dict()
+                for v from 1 <= v <= r.N:
+                    n = p_GetExp(p,v,r)
+                    if n!=0:
+                        d[v-1] = n
+
+                pd[ETuple(d,r.N)] = f(si2sa(p_GetCoeff(p, r), r, base))
+
+                p = pNext(p)
         return pd
 
 

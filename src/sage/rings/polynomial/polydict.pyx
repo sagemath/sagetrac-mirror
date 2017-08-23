@@ -178,10 +178,14 @@ cdef class PolyDict:
             ret.append([c, list(e)])
         return ret
 
-    def dict(PolyDict self):
+    def dict(PolyDict self, f=None):
         """
         Return a copy of the dict that defines self.  It is
         safe to change this.  For a reference, use dictref.
+
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
 
         EXAMPLES::
 
@@ -190,7 +194,9 @@ cdef class PolyDict:
             sage: f.dict()
             {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
-        return self.__repn.copy()
+        if f is None:
+            return self.__repn.copy()
+        return {k:f(v) for k,v in self.__repn.iteritems()}
 
     def coefficients(PolyDict self):
         """

@@ -123,10 +123,14 @@ class Polynomial_generic_sparse(Polynomial):
         if check:
             self.__normalize()
 
-    def dict(self):
+    def dict(self, f=None):
         """
         Return a new copy of the dict of the underlying
         elements of ``self``.
+
+        INPUT:
+
+        Map (optional) to be applied to the coefficients.
 
         EXAMPLES::
 
@@ -139,7 +143,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.dict()
             {0: 5, 1997: 1, 10000: 7}
         """
-        return dict(self.__coeffs)
+        if f is None:
+            return dict(self.__coeffs)
+        return {k:f(v) for k,v in self.__coeffs.iteritems()}
 
     def coefficients(self, sparse=True):
         """
