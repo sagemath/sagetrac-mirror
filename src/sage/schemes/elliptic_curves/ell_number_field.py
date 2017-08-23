@@ -90,7 +90,7 @@ from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
-from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
+from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.rings.finite_rings.all import GF
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
 from six import reraise as raise_
@@ -619,7 +619,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Q = E(1,0)
             sage: E.regulator_of_points([P,Q])
             0.000000000000000
-            sage: 2*P==Q
+            sage: 2*P == Q
             True
 
         ::
@@ -723,7 +723,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_local_integral_model(P1,P2)
             True
         """
-        if len(P)==1: P=P[0]
+        if len(P) == 1: P=P[0]
         if isinstance(P,(tuple,list)):
             return forall(P, lambda x : self.is_local_integral_model(x))[0]
         return forall(self.ainvs(), lambda x : x.valuation(P) >= 0)[0]
@@ -750,7 +750,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.local_integral_model((P1,P2))
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
         """
-        if len(P)==1: P=P[0]
+        if len(P) == 1: P=P[0]
         if isinstance(P,(tuple,list)):
             E=self
             for Pi in P: E=E.local_integral_model(Pi)
@@ -943,7 +943,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         K = self.base_field()
         r1, r2 = K.signature()
-        if r1+r2==1: # unit rank is 0
+        if r1+r2 == 1: # unit rank is 0
             return self
 
         prec = 1000  # lower precision works badly!
@@ -1596,7 +1596,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         # Note: for number fields other than QQ we could initialize
         # N=K.ideal(1) or N=OK.ideal(1), which are the same, but for
-        # K==QQ it has to be ZZ.ideal(1).
+        # K == QQ it has to be ZZ.ideal(1).
         OK = self.base_ring().ring_of_integers()
         self._conductor = prod([d.prime()**(d.conductor_valuation()) \
                                 for d in self.local_data()],\
@@ -1658,7 +1658,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # we treat separately the case where there are no bad primes,
         # which cannot happen over QQ, since ideals of QQ behave
         # differently to (fractional) ideals of other number fields.
-        if len(dat)==0:
+        if len(dat) == 0:
             return self.base_field().ideal(1)
         return prod([d.prime()**d.discriminant_valuation() for d in dat])
 
@@ -1804,7 +1804,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         K = self.base_field()
         Cl = K.class_group()
-        if K.class_number()==1:
+        if K.class_number() == 1:
             return Cl(1)
         D = self.discriminant()
         dat = self.local_data()
@@ -2058,7 +2058,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         bound = ZZ(0)
         k = 0
         K = E.base_field()
-        OK = K.ring_of_integers()
         disc = E.discriminant()
         p = Integer(1)
         # runs through primes, decomposes them into prime ideals
@@ -2839,7 +2838,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         number)::
 
             sage: EL = E.change_ring(L)
-            sage: CL = EL.isogeny_class(); len(CL) # long time (~121s)
+            sage: CL = EL.isogeny_class(); len(CL) # long time (~85s)
             6
             sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False)) # long time
             True
@@ -3550,13 +3549,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - ``points (list)`` - list of points on E
+        - ``points (list)`` - list of points on E.  Points of finite
+          order are ignored; the remaining points should be independent,
+          or an error is raised.
 
         - ``verbose (bool)`` - (default: False), if True, give
           verbose output
 
         - ``max_prime (int)`` - (default: 0), saturation is performed
-          for all primes up to max_prime. If max_prime==0, perform
+          for all primes up to max_prime. If max_prime == 0, perform
           saturation at *all* primes, i.e., compute the true
           saturation
 
@@ -3593,8 +3594,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
             sage: EK = E.change_ring(K)
+            sage: P,Q = [EK(_)for _ in E.gens()]
 
             sage: EK.saturation([2*P], max_prime=2)
             ([(-1 : 1 : 1)], 2, 0.686667083305587)
@@ -3611,7 +3612,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943143)
 
             sage: P, Q, R = EK.gens()
-            sage: print P, Q, R
+            sage: print(P, Q, R)
             (i - 2 : -i - 3 : 1) (-1 : 1 : 1) (0 : -1 : 1)
             sage: EK.saturation([P+Q, Q+R, R+P], lower_ht_bound=0.1)
             ([(841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1),
@@ -3625,9 +3626,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Another number field::
 
             sage: E = EllipticCurve('389a')
-            sage: P, Q = E.gens()
             sage: K.<a> = NumberField(x^3-x+1)
             sage: EK = E.change_ring(K)
+            sage: P,Q = [EK(_)for _ in E.gens()]
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=0.1)
             ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([3*P, P+5*Q], lower_ht_bound=0.1)
@@ -3654,9 +3655,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ...
             ValueError: points not linearly independent in saturation()
 
-        Degenerate case::
+        Degenerate cases::
 
             sage: EK.saturation([])
+            ([], 1, 1.00000000000000)
+
+        Points of finite order are discarded::
+
+            sage: K.<a> = NumberField(x^2-2)
+            sage: E = EllipticCurve([a,0])
+            sage: P = E(0,0)
+            sage: P.has_finite_order()
+            True
+            sage: E.saturation([P])
             ([], 1, 1.00000000000000)
 
         ALGORITHM:
@@ -3672,8 +3683,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
             sage: EK = E.change_ring(K)
+            sage: P,Q = [EK(_)for _ in E.gens()]
 
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
             ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
@@ -3686,8 +3697,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             45,
             0.152460177943144)
         """
-        full_saturation = (max_prime == 0) and (one_prime==0)
+        full_saturation = (max_prime == 0) and (one_prime == 0)
         Plist = [self(P) for P in points]
+        Plist = [P for P in points if P.has_infinite_order()]
         n = len(Plist)
         index = ZZ(1)
 
@@ -3708,7 +3720,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.rings.all import prime_range
         if full_saturation:
             if lower_ht_bound is None:
-                # TODO (robertb): verify this for rank > 1
                 if verbose:
                     print("Computing lower height bound..")
                 lower_ht_bound = self.height_function().min(.1, 5) ** n
@@ -3788,7 +3799,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise ValueError("gens_quadratic() requires the base field to be quadratic")
 
         EE = self.descend_to(QQ)
-        if len(EE)==0:
+        if len(EE) == 0:
             raise ValueError("gens_quadratic() requires the elliptic curve to be a base change from Q")
 
         # In all cases there are exactly two distinct curves /Q whose
@@ -3808,7 +3819,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         self.__gens = gens
         return gens
 
-def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
+def p_saturation(Plist, p, sieve=True, lin_combs=dict(), verbose=False):
     r""" Checks whether the list of points is `p`-saturated.
 
     INPUT:
@@ -3890,10 +3901,10 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     # group structure computations, and would benefit immensely if those
     # were sped up.
     n = len(Plist)
-    if n==0:
+    if n == 0:
         return (True, lin_combs)
 
-    if n==1:
+    if n == 1:
         try:
             return (False, 0, Plist[0].division_points(p)[0])
         except IndexError:
@@ -3967,14 +3978,13 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         from sage.groups.generic import discrete_log_lambda
         from sage.modules.all import vector
 
-        if len(gens)==1:               # cyclic case
+        if len(gens) == 1:               # cyclic case
             n = orders[0]
             m = n.prime_to_m_part(n)
             p2 = n//m                  # p-primary order
             g = (m*gens[0]).element()  # generator of p-primary part
-            assert g.order()==p2
-            # if verbose:
-            #     print("   cyclic, %s-primary part generated by %s of order %s" % (p,g,p2))
+            assert g.order() == p2
+            # cyclic, p-primary part generated by g of order p2
 
             # multiplying any point by m takes it into the p-primary
             # part -- this way we do discrete logs in a cyclic group
@@ -3998,21 +4008,20 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         # Note the code makes no assumption about which generator
         # order divides the other, since conventions differ!
 
-        mm = [n.prime_to_m_part(p) for n in orders]
-        pp = [n//m for n,m in zip(orders,mm)] # p-powers
-        gg = [(m*g).element() for m,g in zip(mm,gens)] # p-power order gens
+        mm = [n_.prime_to_m_part(p) for n_ in orders]
+        pp = [n_//m_ for n_,m_ in zip(orders,mm)] # p-powers
+        gg = [(m_*g_).element() for m_,g_ in zip(mm,gens)] # p-power order gens
         m = max(mm) # = lcm(mm), the prime-to-p exponent of G;
                     # multiply by this to map onto the p-primary part.
         p2 = max(pp) # p-exponent of G
-        p1 = min(pp) # ==1 iff p-primary part is cyclic
+        p1 = min(pp) # == 1 iff p-primary part is cyclic
 
-        if p1==1:                  # p-primary part is cyclic of order p2
+        if p1 == 1:                  # p-primary part is cyclic of order p2
             g = gg[pp.index(p2)]   # g generates the p-primary part
                                    # and we do discrete logs there:
 
-            assert g.order()==p2
-            # if verbose:
-            #     print("   non-cyclic but %s-primary part cyclic generated by %s of order %s" % (p,g,p2))
+            assert g.order() == p2
+            # non-cyclic but p-primary part cyclic generated by g of order p2
             def dlog(pt):
                 try:
                     return discrete_log_lambda(m*pt,g,(0,p2),'+')
@@ -4026,10 +4035,9 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         # Now the p-primary part is non-cyclic of exponent p2; we use
         # Weil pairings of this order, whose values are p1'th roots of unity.
 
-        # if verbose:
-        #     print("   %s-primary part non-cyclic generated by %s of orders %s" % (p,gg,pp))
+        # The p-primary part is generated by gg, with orders pp
         zeta = gg[0].weil_pairing(gg[1],p2) # a p1'th root of unity
-        if zeta.multiplicative_order()!=p1:
+        if zeta.multiplicative_order() != p1:
             if verbose:
                 print("Ek = ",Ek)
                 print("(p1,p2) = (%s,%s)" % (p1,p2))
@@ -4041,7 +4049,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
             w = (m*pt).weil_pairing(g,p2) # result is a p1'th root of unity
             return discrete_log_lambda(w,zeta,(0,p1),'*')
 
-        return [vector(GF(p), [a(pt,g) for pt in projPlist]) for g in gg]
+        return [vector(GF(p), [a(pt,g_) for pt in projPlist]) for g_ in gg]
 
     if verbose:
         print("Using sieve method to saturate...")
@@ -4051,57 +4059,55 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     count = 0
     from sage.sets.primes import Primes
     for q in Primes():
-     for Q in K.primes_above(q, degree=1):
-        if E.has_bad_reduction(Q):
-            continue
-        vecs = projections(Q,p)
-        if len(vecs)==0:
-            continue
-        for v in vecs:
-            # if verbose:
-            #     print(" --adding row %s" % v)
-            A = matrix(A.rows()+[v])
-        newrank = A.rank()
-        if verbose:
-            print(" --rank is now %s" % newrank)
-        if newrank==n:
+        for Q in K.primes_above(q, degree=1):
+            if E.has_bad_reduction(Q):
+                continue
+            vecs = projections(Q,p)
+            if len(vecs) == 0:
+                continue
+            for v in vecs:
+                A = matrix(A.rows()+[v])
+            newrank = A.rank()
             if verbose:
-                print("Reached full rank: points were %s-saturated" % p)
-            return (True, lin_combs)
-        if newrank == rankA:
-            count+=1
-            if count==10:
+                print(" --rank is now %s" % newrank)
+            if newrank == n:
                 if verbose:
-                    print("! rank same for 10 steps, checking kernel...")
-                # no increase in rank for the last 10 primes Q
-                # find the points in the kernel and call the no-sieve version
-                vecs = A.right_kernel().basis()
-                if verbose:
-                    print("kernel vectors: %s" % vecs)
-                Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
-                         for v in vecs]
-                if verbose:
-                    print("points generating kernel: %s" % Rlist)
+                    print("Reached full rank: points were %s-saturated" % p)
+                return (True, lin_combs)
+            if newrank == rankA:
+                count += 1
+                if count == 10:
+                    if verbose:
+                        print("! rank same for 10 steps, checking kernel...")
+                    # no increase in rank for the last 10 primes Q
+                    # find the points in the kernel and call the no-sieve version
+                    vecs = A.right_kernel().basis()
+                    if verbose:
+                        print("kernel vectors: %s" % vecs)
+                    Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
+                             for v in vecs]
+                    if verbose:
+                        print("points generating kernel: %s" % Rlist)
 
-                res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
-                if res[0]: # points really were saturated
-                    if verbose:
-                        print("-- points were %s-saturated" % p)
-                    return (True, lin_combs)
-                else: # they were not, and Rlist[res[1]] can be
-                      # replaced by res[2] to enlarge the span; we
-                      # need to find a point in Plist which can be
-                      # replaced: any one with a nonzero coordinate in
-                      # the appropriate kernel vector will do.
-                    if verbose:
-                        print("-- points were not %s-saturated, gaining index %s" % (p,p))
-                    j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+                    res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
+                    if res[0]: # points really were saturated
+                        if verbose:
+                            print("-- points were %s-saturated" % p)
+                        return (True, lin_combs)
+                    else: # they were not, and Rlist[res[1]] can be
+                        # replaced by res[2] to enlarge the span; we
+                        # need to find a point in Plist which can be
+                        # replaced: any one with a nonzero coordinate in
+                        # the appropriate kernel vector will do.
+                        if verbose:
+                            print("-- points were not %s-saturated, gaining index %s" % (p,p))
+                        j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
                     return (False, j, res[2])
-            else: # rank stayed same; carry on using more Qs
-                pass
-        else: # rank went up but is <n; carry on using more Qs
-            rankA = newrank
-            count = 0
+                else: # rank stayed same; carry on using more Qs
+                    pass
+            else: # rank went up but is <n; carry on using more Qs
+                rankA = newrank
+                count = 0
     # We reach here only if using all good primes of norm<1000 the
     # rank never stuck for 10 consecutive Qs but is still < n.  That
     # means that n is rather large, or perhaps that E has a large
@@ -4168,7 +4174,7 @@ def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
         1)
 
     """
-    if len(Plist)==0:
+    if len(Plist) == 0:
         return Plist, ZZ(0)
 
     exponent = ZZ(0)
@@ -4206,7 +4212,7 @@ def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
 
     res = p_saturation(Plist, p, True, lin_combs, verbose)
     while not res[0]:
-        exponent +=1
+        exponent += 1
         Plist[res[1]] = res[2]
         res = p_saturation(Plist, p, True, lin_combs, verbose)
 
