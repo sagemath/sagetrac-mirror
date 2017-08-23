@@ -21,9 +21,9 @@ over a bigger field. In each case we also decompose the space using
 ::
 
     sage: M = ModularSymbols(23,2,base_ring=QQ)
-    sage: print M.T(2).charpoly('x').factor()
+    sage: M.T(2).charpoly('x').factor()
     (x - 3) * (x^2 + x - 1)^2
-    sage: print M.decomposition(2)
+    sage: M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field,
     Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
@@ -32,9 +32,9 @@ over a bigger field. In each case we also decompose the space using
 ::
 
     sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5, 'sqrt5'))
-    sage: print M.T(2).charpoly('x').factor()
+    sage: M.T(2).charpoly('x').factor()
     (x - 3) * (x - 1/2*sqrt5 + 1/2)^2 * (x + 1/2*sqrt5 + 1/2)^2
-    sage: print M.decomposition(2)
+    sage: M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
@@ -60,6 +60,15 @@ This test catches a tricky corner case for spaces with character::
 
     sage: ModularSymbols(DirichletGroup(20).1**3, weight=3, sign=1).cuspidal_subspace()
     Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 and level 20, weight 3, character [1, -zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
+    
+This tests the bugs reported in :trac:`20932`::
+
+    sage: chi = kronecker_character(3*34603)
+    sage: ModularSymbols(chi, 2, sign=1, base_ring=GF(3)) # not tested # long time (600 seconds)
+    Modular Symbols space of dimension 11535 and level 103809, weight 2, character [2, 2], sign 1, over Finite Field of size 3
+    sage: chi = kronecker_character(3*61379)
+    sage: ModularSymbols(chi, 2, sign=1, base_ring=GF(3)) # not tested # long time (1800 seconds)
+    Modular Symbols space of dimension 20460 and level 184137, weight 2, character [2, 2], sign 1, over Finite Field of size 3
 """
 
 #*****************************************************************************
@@ -78,10 +87,11 @@ This test catches a tricky corner case for spaces with character::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import weakref
 
-import ambient
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
@@ -156,7 +166,8 @@ def ModularSymbols_clear_cache():
 
     TESTS:
 
-        Make sure #10548 is fixed
+    Make sure :trac:`10548` is fixed::
+
         sage: import gc
         sage: m=ModularSymbols(Gamma1(29))
         sage: m=[]
@@ -276,7 +287,7 @@ def ModularSymbols(group  = 1,
     ::
 
         sage: G = DirichletGroup(13,GF(4,'a')); G
-        Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
+        Group of Dirichlet characters modulo 13 with values in Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
         Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a + 1
         sage: M = ModularSymbols(e,4); M
@@ -299,7 +310,7 @@ def ModularSymbols(group  = 1,
 
         sage: ModularSymbols_clear_cache()
         sage: def custom_init(M):
-        ...       M.customize='hi'
+        ....:     M.customize='hi'
         sage: M = ModularSymbols(1,12, custom_init=custom_init)
         sage: M.customize
         'hi'
@@ -307,7 +318,7 @@ def ModularSymbols(group  = 1,
     We illustrate the relation between custom_init and use_cache::
 
         sage: def custom_init(M):
-        ...       M.customize='hi2'
+        ....:     M.customize='hi2'
         sage: M = ModularSymbols(1,12, custom_init=custom_init)
         sage: M.customize
         'hi'
@@ -331,6 +342,7 @@ def ModularSymbols(group  = 1,
         sage: M is ModularSymbols(11,use_cache=False)
         False
     """
+    from . import ambient
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:

@@ -45,8 +45,8 @@ EXAMPLES::
 We make a table of the order of the cuspidal subgroup for the first
 few levels::
 
-    sage: for N in range(11,40): print N, J0(N).cuspidal_subgroup().order()
-    ...
+    sage: for N in range(11,40):
+    ....:     print("{} {}".format(N, J0(N).cuspidal_subgroup().order()))
     11 5
     12 1
     13 1
@@ -96,6 +96,8 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
@@ -103,14 +105,14 @@ from sage.modules.free_module import is_FreeModule
 from sage.structure.element import ModuleElement
 from sage.structure.gens_py import abelian_iterator
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import QQ, ZZ, QQbar, Integer
 from sage.arith.all import gcd, lcm
 from sage.misc.all import prod
-from sage.structure.element import get_coercion_model
-
-import abvar as abelian_variety
+from sage.structure.element import coercion_model
 
 
+@richcmp_method
 class FiniteSubgroup(Module):
     r"""
     A finite subgroup of a modular abelian variety.
@@ -152,10 +154,10 @@ class FiniteSubgroup(Module):
         from sage.categories.fields import Fields
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         from sage.categories.modules import Modules
-
+        from .abvar import is_ModularAbelianVariety
         if field_of_definition not in Fields():
             raise TypeError("field_of_definition must be a field")
-        if not abelian_variety.is_ModularAbelianVariety(abvar):
+        if not is_ModularAbelianVariety(abvar):
             raise TypeError("abvar must be a modular abelian variety")
         category = Category.join((Modules(ZZ), FiniteEnumeratedSets()))
         Module.__init__(self, ZZ, category=category)
@@ -208,12 +210,12 @@ class FiniteSubgroup(Module):
             return M
 
     # General functionality
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` to ``other``.
 
-        If ``other`` is not a :class:`FiniteSubgroup`, then the types
-        of ``self`` and ``other`` are compared.  If ``other`` is a
+        If ``other`` is not a :class:`FiniteSubgroup`, then
+        ``NotImplemented`` is returned. If ``other`` is a
         :class:`FiniteSubgroup` and the ambient abelian varieties are
         not equal, then the ambient abelian varieties are compared.
         If ``other`` is a :class:`FiniteSubgroup` and the ambient
@@ -233,30 +235,26 @@ class FiniteSubgroup(Module):
             True
             sage: H.is_subgroup(G)
             True
-            sage: H < 5 #random (meaningless since it depends on memory layout)
-            False
-            sage: 5 < H #random (meaningless since it depends on memory layout)
-            True
 
         The ambient varieties are compared::
 
-            sage: cmp(A[0].cuspidal_subgroup(), J0(11).cuspidal_subgroup())
-            1
+            sage: A[0].cuspidal_subgroup() > J0(11).cuspidal_subgroup()
+            True
 
         Comparing subgroups sitting in different abelian varieties::
 
-            sage: cmp(A[0].cuspidal_subgroup(), A[1].cuspidal_subgroup())
-            -1
+            sage: A[0].cuspidal_subgroup() < A[1].cuspidal_subgroup()
+            True
         """
         if not isinstance(other, FiniteSubgroup):
-            return cmp(type(self), type(other))
+            return NotImplemented
         A = self.abelian_variety()
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
-            return cmp(A.ambient_variety(), B.ambient_variety())
+            return richcmp(A.ambient_variety(), B.ambient_variety(), op)
         L = A.lattice() + B.lattice()
-        # Minus sign because order gets reversed in passing to lattices.
-        return -cmp(self.lattice() + L, other.lattice() + L)
+        # order gets reversed in passing to lattices.
+        return richcmp(other.lattice() + L, self.lattice() + L, op)
 
     def is_subgroup(self, other):
         """
@@ -304,7 +302,7 @@ class FiniteSubgroup(Module):
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
             raise ValueError("self and other must be in the same ambient Jacobian")
-        K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
+        K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:
             lattice += C.lattice()
@@ -385,21 +383,23 @@ class FiniteSubgroup(Module):
             sage: A.intersection(B)[0]
             Finite subgroup with invariants [3, 3] over QQ of Abelian subvariety of dimension 2 of J0(33)
         """
+        from .abvar import is_ModularAbelianVariety
         A = self.abelian_variety()
-        if abelian_variety.is_ModularAbelianVariety(other):
+        if is_ModularAbelianVariety(other):
             amb = other
             B = other
             M = B.lattice().scale(Integer(1)/self.exponent())
-            K = get_coercion_model().common_parent(self.field_of_definition(), other.base_field())
+            K = coercion_model.common_parent(self.field_of_definition(), other.base_field())
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
-                raise TypeError("only addition of two finite subgroups is defined")
+                raise TypeError("only intersection with a finite subgroup or "
+                        "modular abelian variety is defined")
             B = other.abelian_variety()
             if A.ambient_variety() != B.ambient_variety():
                 raise TypeError("finite subgroups must be in the same ambient product Jacobian")
             M = other.lattice()
-            K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
+            K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
 
         L = self.lattice()
         if A != B:
@@ -833,9 +833,10 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
         """
         if check:
+            from .abvar import is_ModularAbelianVariety
             if not is_FreeModule(lattice) or lattice.base_ring() != ZZ:
                 raise TypeError("lattice must be a free module over ZZ")
-            if not abelian_variety.is_ModularAbelianVariety(abvar):
+            if not is_ModularAbelianVariety(abvar):
                 raise TypeError("abvar must be a modular abelian variety")
             if not abvar.lattice().is_submodule(lattice):
                 lattice += abvar.lattice()

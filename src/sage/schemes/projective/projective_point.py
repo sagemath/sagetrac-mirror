@@ -31,11 +31,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField
 from sage.rings.morphism import RingHomomorphism_im_gens
@@ -48,6 +48,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RealField, RR, is_RealField
 from sage.arith.all import gcd, lcm, is_prime, binomial
+from sage.functions.other import ceil
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -55,8 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-
-
+from sage.structure.richcmp import rich_to_bool, richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties
@@ -113,9 +113,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             ...
             ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
 
-        ::
-
-        It is possible to avoid the possibly time consuming checks, but be careful!!
+        It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
             sage: P = ProjectiveSpace(3, QQ)
             sage: P.point([0,0,0,0], check=False)
@@ -134,16 +132,35 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P = ProjectiveSpace(1, R.quo(t^2+1))
             sage: P([2*t, 1])
             (2*tbar : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,2)
+            sage: P(Infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
             from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
             d = X.codomain().ambient_space().ngens()
+
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
+
             if not isinstance(v,(list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
@@ -166,9 +183,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             X.extended_codomain()._check_satisfies_equations(v)
 
-        self._coords = v
+        self._coords = tuple(v)
 
-    def __eq__(self, right):
+    def _richcmp_(self, right, op):
         """
         Tests the projective equality of two points.
 
@@ -178,7 +195,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - Boolean - True if ``self`` and ``right`` define the same point. False otherwise.
+        - Boolean
 
         Examples::
 
@@ -200,7 +217,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
-            sage: P == 0
+            sage: P == PS(0)
             True
 
         ::
@@ -216,7 +233,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
-            sage: P == 0
+            sage: P == PS([0, 0])
             False
 
         ::
@@ -267,31 +284,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q1 = f(P1)
             sage: Q1 == P1
             False
-        """
-        if not isinstance(right, SchemeMorphism_point):
-            try:
-                right = self.codomain()(right)
-            except TypeError:
-                return False
-        if self.codomain() != right.codomain():
-            return False
-        n = len(self._coords)
-        return all([self[i]*right[j] == self[j]*right[i]
-                   for i in range(0,n) for j in range(i+1, n)])
 
-    def __ne__(self,right):
-        """
-        Tests the projective equality of two points.
-
-        INPUT:
-
-        - ``right`` - a point on projective space.
-
-        OUTPUT:
-
-        - Boolean - True if ``self`` and ``right`` define different points. False otherwise.
-
-        Examples::
+        For inequality::
 
             sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
@@ -311,7 +305,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
-            sage: P != 0
+            sage: P != PS(0)
             False
 
         ::
@@ -327,7 +321,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
-            sage: P != 0
+            sage: P != PS([0, 0])
             True
 
         ::
@@ -351,15 +345,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             try:
                 right = self.codomain()(right)
             except TypeError:
-                return True
+                return NotImplemented
         if self.codomain() != right.codomain():
-            return True
+            return op == op_NE
+
         n = len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return True
-        return False
+        if op in [op_EQ, op_NE]:
+            b = all(self[i] * right[j] == self[j] * right[i]
+                    for i in range(n) for j in range(i + 1, n))
+            return b == (op == op_EQ)
+        return richcmp(self._coords, right._coords, op)
 
     def __hash__(self):
         """
@@ -376,11 +371,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: hash(P([1, 1]))
-            1265304440                      # 32-bit
-            7316841028997809016             # 64-bit
+            1300952125                      # 32-bit
+            3713081631935493181             # 64-bit
             sage: hash(P.point([2, 2], False))
-            1265304440                      # 32-bit
-            7316841028997809016             # 64-bit
+            1300952125                      # 32-bit
+            3713081631935493181             # 64-bit
 
         ::
 
@@ -389,11 +384,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: hash(P([1+w, 2]))
-            -609701421                     # 32-bit
-            4801154424156762579            # 64-bit
+            -1562365407                    # 32-bit
+            1251212645657227809            # 64-bit
             sage: hash(P([2, 1-w]))
-            -609701421                     # 32-bit
-            4801154424156762579            # 64-bit
+            -1562365407                    # 32-bit
+            1251212645657227809            # 64-bit
 
         ::
 
@@ -408,7 +403,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if R in IntegralDomains():
             P = self.change_ring(FractionField(R))
             P.normalize_coordinates()
-            return hash(str(P))
+            return hash(tuple(P))
         #if there is no good way to normalize return
         #a constant value
         return hash(self.codomain())
@@ -455,10 +450,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         R = self.codomain().base_ring()
         if isinstance(R, QuotientRing_generic):
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
-                self._coords[i] = R(self._coords[i].lift()*t)
+                new_coords = [R(u.lift()*t) for u in self]
         else:
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
-                self._coords[i] = R(self._coords[i]*t)
+                new_coords = [R(u*t) for u in self]
+        self._coords = tuple(new_coords)
 
     def normalize_coordinates(self):
         """
@@ -915,10 +911,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([17*x^2+1/7*y^2, 17*w*x*y])
             sage: f.green_function(P.point([w, 2], False), K.places()[1])
             1.7236334013785676107373093775
-            sage: print f.green_function(P([2, 1]), K.ideal(7), N=7)
+            sage: f.green_function(P([2, 1]), K.ideal(7), N=7)
             0.48647753726382832627633818586
-            sage: print f.green_function(P([w, 1]), K.ideal(17), error_bound=0.001)
-            -0.70691993106090157426711999977
+            sage: f.green_function(P([w, 1]), K.ideal(17), error_bound=0.001)
+            -0.70813041039490996737374178059
 
         .. TODO:: Implement general p-adic extensions so that the flip trick can be used
              for number fields.
@@ -957,7 +953,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             err = R(err)
             if not err>0:
                 raise ValueError("error bound (=%s) must be positive"%err)
-            if G.is_endomorphism() == False:
+            if not G.is_endomorphism():
                 raise NotImplementedError("error bounds only for endomorphisms")
 
             #if doing error estimates, compute needed number of iterates
@@ -973,9 +969,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             CR = GBR.codomain().ambient_space().coordinate_ring() #.lift() only works over fields
             I = CR.ideal(GBR.defining_polynomials())
             maxh = 0
+            Res = 1
             for k in range(dim + 1):
                 CoeffPolys = (CR.gen(k) ** D).lift(I)
-                Res = 1
                 h = 1
                 for poly in CoeffPolys:
                     if poly != 0:
@@ -1052,7 +1048,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ALGORITHM:
 
-            The sum of the Green's function at the archimedean places and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
+
+        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
+        not have to factor the resultant.
 
         INPUT:
 
@@ -1070,6 +1069,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         - ``error_bound`` - a positive real number (optional).
 
         OUTPUT: a real number.
+
+        AUTHORS:
+
+        - Original algorithm written by Elliot Wells [WELLS]_
+
+        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+
 
         EXAMPLES::
 
@@ -1089,7 +1095,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: Q = P(5, 4)
             sage: f.canonical_height(Q, N=30)
-            1.4989058602918874235833076226e-9
+            4.0810803274380803222471849762e-9
 
         ::
 
@@ -1100,11 +1106,74 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = X([4, 4, 1])
             sage: f.canonical_height(Q, badprimes=[2,3,5], prec=200)
             2.7054056208276961889784303469356774912979228770208655455481
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([1000*x^2-29*y^2, 1000*y^2])
+            sage: Q = P(-1/4, 1)
+            sage: Q.canonical_height(f, error_bound=0.01)
+            3.7996079979254623065837411853
+
+        ::
+
+            sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
+                1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+                2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+                02143413
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([RSA768*x^2 + y^2, x*y])
+            sage: Q = P(RSA768,1)
+            sage: Q.canonical_height(f, error_bound=0.00000000000000001)
+            931.18256422718241278672729195
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
+
+        #Wells' Algorithm
+        if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
+            # write our point with coordinates whose gcd is 1
+            self.normalize_coordinates()
+            if self.parent().value_ring() is QQ:
+                self.clear_denominators()
+            #assures integer coeffcients
+            coeffs = F[0].coefficients() + F[1].coefficients()
+            t = 1
+            for c in coeffs:
+                t = lcm(t, c.denominator())
+            A = t*F[0]
+            B = t*F[1]
+            Res = F.resultant(normalize=True)
+            H = 0
+            x_i = self[0]
+            y_i = self[1]
+            d = F.degree()
+            R = RealField(prec)
+            N = kwds.get('N', 10)
+            err = kwds.get('error_bound', None)
+            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
+            if Res > 1:
+                if not err is None:
+                    err = err/2
+                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    if N < 1:
+                        N = 1
+                    kwds.update({'error_bound': err})
+                    kwds.update({'N': N})
+                for n in range(N):
+                    x = A(x_i,y_i) % Res**(N-n)
+                    y = B(x_i,y_i) % Res**(N-n)
+                    g = gcd([x, y, Res])
+                    H = H + R(g).abs().log()/(d**(n+1))
+                    x_i = x/g
+                    y_i = y/g
+            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
+            # and what Green's Function returns for the infinite place
+            return self.green_function(F, 0 , **kwds) - H + R(t).log()
 
         if not K in _NumberFields:
             if not K is QQbar:
@@ -1137,7 +1206,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     bad_primes += b.denominator().prime_factors()
                 else:
                     bad_primes += b.denominator_ideal().prime_factors()
-            bad_primes += K(f.resultant()).support()
+            bad_primes += K(f.resultant(normalize=True)).support()
             bad_primes = list(set(bad_primes))
 
         emb = K.places(prec=prec)
@@ -1442,6 +1511,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P([QQbar(sqrt(-1)), 1, 1])
             sage: Q.is_preperiodic(f)
             True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([16*x^2-29*y^2, 16*y^2])
+            sage: Q = P(-1,4)
+            sage: Q.is_preperiodic(f)
+            True
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(self.codomain()):
@@ -1462,11 +1540,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         # however precision issues can occur so we can only tell *not* preperiodic
         # if the value is larger than the error
         if h <= err:
-            # if the canonical height is less than than the
+            # if the canonical height is less than the
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
-            # and the height, so the cannonical height cannot be 0
+            # and the height, so the canonical height cannot be 0
             B = f.height_difference_bound()
             orbit = [self]
             n = 1 # to compute period
@@ -1547,6 +1625,26 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: Q=P([2, 1])
             sage: Q[0].parent()
             Finite Field of size 7
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,2)
+            sage: P(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1554,10 +1652,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
-            if not isinstance(v,(list,tuple)):
+            if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
                 raise TypeError("v (=%s) must have %s components"%(v, d))
@@ -1585,7 +1680,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
             X.extended_codomain()._check_satisfies_equations(v)
 
-        self._coords = v
+        self._coords = tuple(v)
 
     def __hash__(self):
         """
@@ -1597,15 +1692,15 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: hash(P([1/2, 1]))
-            -1741117121                     # 32-bit
-            3714374126286711103             # 64-bit
+            -1503642134                     # 32-bit
+            -6819944855328768534            # 64-bit
             sage: hash(P.point([1, 2], False))
-            -1741117121                     # 32-bit
-            3714374126286711103             # 64-bit
+            -1503642134                     # 32-bit
+            -6819944855328768534            # 64-bit
         """
         P = copy(self)
         P.normalize_coordinates()
-        return hash(str(P))
+        return hash(tuple(P))
 
     def normalize_coordinates(self):
         r"""
@@ -1650,7 +1745,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: Q = P([-1/2*QQbar(sqrt(2)) + QQbar(I), 1])
             sage: S = Q._number_field_from_algebraics(); S
-            (-1/2*a^3 - a^2 + 1/2*a : 1)
+            (1/2*a^3 + a^2 - 1/2*a : 1)
             sage: S.codomain()
             Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1
         """
@@ -1703,6 +1798,74 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             (3 : 2)
         """
         self.scale_by(lcm([t.denominator() for t in self]))
+
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity of the codomain of this point and ``X`` at this point.
+
+        This uses the intersection_multiplicity implementations for projective/affine subschemes. This
+        point must be a point of a projective subscheme.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as that of the codomain of this point.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x*z - y^2])
+            sage: Y = P.subscheme([x^3 - y*w^2 + z*w^2, x*y - z*w])
+            sage: Q1 = X([1/2, 1/4, 1/8, 1])
+            sage: Q1.intersection_multiplicity(Y)
+            1
+            sage: Q2 = X([0,0,0,1])
+            sage: Q2.intersection_multiplicity(Y)
+            5
+            sage: Q3 = X([0,0,1,0])
+            sage: Q3.intersection_multiplicity(Y)
+            6
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x^2 - y^2])
+            sage: Q = P([1,1,1,0])
+            sage: Q.intersection_multiplicity(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: this point must be a point on a projective subscheme
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point on its codomain.
+
+        Uses the subscheme multiplicity implementation. This point must be a point on
+        a projective subscheme.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: X = P.subscheme([y^6 - x^3*w^2*t + t^5*w, x^2 - t^2])
+            sage: Q1 = X([1,0,2,1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,-2,1,0])
+            sage: Q2.multiplicity()
+            8
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.codomain()):
+            raise TypeError("this point must be a point on a projective subscheme")
+        return self.codomain().multiplicity(self)
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

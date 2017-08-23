@@ -12,8 +12,10 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from six.moves import range
 
-import logging, optparse, os, shutil, subprocess, sys, re
+import optparse, os, shutil, subprocess, sys, re
+import logging, warnings
 
 import sphinx.cmdline
 import sphinx.util.console
@@ -22,7 +24,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC, SAGE_DOC_OUTPUT, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -39,6 +41,20 @@ def excepthook(*exc_info):
 Note: incremental documentation builds sometimes cause spurious
 error messages. To be certain that these are real errors, run
 "make doc-clean" first and try again.''')
+
+
+def delete_empty_directories(root_dir):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            logger.warning('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
 
 
 ##########################################
@@ -61,7 +77,7 @@ def build_ref_doc(args):
 def builder_helper(type):
     """
     Returns a function which builds the documentation for
-    output type type.
+    output type ``type``.
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
@@ -95,7 +111,7 @@ def builder_helper(type):
             logger.warning("LaTeX file written to {}".format(output_dir))
         else:
             logger.warning(
-                "Build finished.  The built documents can be found in {}".
+                "Build finished. The built documents can be found in {}".
                 format(output_dir))
 
     f.is_output_format = True
@@ -107,7 +123,7 @@ class DocBuilder(object):
         """
         INPUT:
 
-        - ``name`` - the name of a subdirectory in SAGE_DOC, such as
+        - ``name`` - the name of a subdirectory in SAGE_DOC_SRC, such as
           'tutorial' or 'bordeaux_2008'
 
         - ``lang`` - (default "en") the language of the document.
@@ -120,7 +136,7 @@ class DocBuilder(object):
 
         self.name = os.path.join(*doc)
         self.lang = lang
-        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
+        self.dir = os.path.join(SAGE_DOC_SRC, self.lang, self.name)
 
     def _output_dir(self, type):
         """
@@ -135,7 +151,7 @@ class DocBuilder(object):
             sage: b._output_dir('html')
             '.../html/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, type, self.lang, self.name)
+        d = os.path.join(SAGE_DOC, type, self.lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -152,7 +168,7 @@ class DocBuilder(object):
             sage: b._doctrees_dir()
             '.../doctrees/en/tutorial'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, 'doctrees', self.lang, self.name)
+        d = os.path.join(SAGE_DOC, 'doctrees', self.lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -225,6 +241,37 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
+
+if NUM_THREADS > 1:
+    def build_many(target, args):
+        from multiprocessing import Pool
+        pool = Pool(NUM_THREADS, maxtasksperchild=1)
+        # map_async handles KeyboardInterrupt correctly. Plain map and
+        # apply_async does not, so don't use it.
+        x = pool.map_async(target, args, 1)
+        try:
+            ret = x.get(99999)
+            pool.close()
+            pool.join()
+        except Exception:
+            pool.terminate()
+            if ABORT_ON_ERROR:
+                raise
+        return ret
+else:
+    def build_many(target, args):
+        results = []
+
+        for arg in args:
+            try:
+                results.append(target(arg))
+            except Exception:
+                if ABORT_ON_ERROR:
+                    raise
+
+        return results
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -274,27 +321,15 @@ class AllBuilder(object):
             getattr(get_builder(document), name)(*args, **kwds)
 
         # build the other documents in parallel
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
         L = [(doc, name, kwds) + args for doc in others]
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(build_other_doc, L, 1)
-        try:
-            x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
+        build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
     def get_all_documents(self):
         """
         Returns a list of all of the documents. A document is a directory within one of
-        the language subdirectories of SAGE_DOC specified by the global LANGUAGES
+        the language subdirectories of SAGE_DOC_SRC specified by the global LANGUAGES
         variable.
 
         EXAMPLES::
@@ -308,9 +343,9 @@ class AllBuilder(object):
         """
         documents = []
         for lang in LANGUAGES:
-            for document in os.listdir(os.path.join(SAGE_DOC, lang)):
+            for document in os.listdir(os.path.join(SAGE_DOC_SRC, lang)):
                 if (document not in OMIT
-                    and os.path.isdir(os.path.join(SAGE_DOC, lang, document))):
+                    and os.path.isdir(os.path.join(SAGE_DOC_SRC, lang, document))):
                     documents.append(os.path.join(lang, document))
 
         # Ensure that the reference guide is compiled first so that links from
@@ -360,7 +395,7 @@ class WebsiteBuilder(DocBuilder):
         reference_dir = os.path.abspath(os.path.join(self._output_dir('html'),
                                                      '..', 'reference'))
         reference_builder = ReferenceBuilder('reference')
-        refdir = os.path.join(os.environ['SAGE_DOC'], 'en', 'reference')
+        refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', 'reference')
         for document in reference_builder.get_all_documents(refdir):
             #path is the directory above reference dir
             path = os.path.abspath(os.path.join(reference_dir, '..'))
@@ -447,7 +482,8 @@ class ReferenceBuilder(AllBuilder):
 
     def _output_dir(self, type, lang='en'):
         """
-        Returns the directory where the output of type type is stored.
+        Return the directory where the output of type ``type`` is stored.
+
         If the directory does not exist, then it will automatically be
         created.
 
@@ -458,7 +494,7 @@ class ReferenceBuilder(AllBuilder):
             sage: b._output_dir('html')
             '.../html/en/reference'
         """
-        d = os.path.join(SAGE_DOC_OUTPUT, type, lang, self.name)
+        d = os.path.join(SAGE_DOC, type, lang, self.name)
         sage_makedirs(d)
         return d
 
@@ -468,23 +504,12 @@ class ReferenceBuilder(AllBuilder):
         top-level document and its components.
         """
         for lang in LANGUAGES:
-            refdir = os.path.join(SAGE_DOC, lang, self.name)
+            refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
-            from multiprocessing import Pool
-            pool = Pool(NUM_THREADS, maxtasksperchild=1)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            # (See comment in AllBuilder._wrapper about using map instead of apply.)
-            x = pool.map_async(build_ref_doc, L, 1)
-            try:
-                x.get(99999)
-                pool.close()
-                pool.join()
-            except Exception:
-                pool.terminate()
-                if ABORT_ON_ERROR:
-                    raise
+            build_many(build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -501,17 +526,18 @@ class ReferenceBuilder(AllBuilder):
                 # few seconds.)
                 getattr(get_builder('website'), 'html')()
                 # Copy the relevant pieces of
-                # SAGE_DOC_OUTPUT/html/en/website/_static to output_dir.
+                # SAGE_DOC/html/en/website/_static to output_dir.
                 # (Don't copy all of _static to save some space: we
                 # don't need all of the MathJax stuff, and in
                 # particular we don't need the fonts.)
-                website_dir = os.path.join(SAGE_DOC_OUTPUT, 'html',
+                website_dir = os.path.join(SAGE_DOC, 'html',
                                            'en', 'website')
                 static_files = ['COPYING.txt', 'basic.css', 'blank.gif',
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -533,7 +559,7 @@ class ReferenceBuilder(AllBuilder):
                 html_bottom = html.rfind('</table>') + len('</table>')
                 # For the content, we modify doc/en/reference/index.rst,
                 # which has two parts: the body and the table of contents.
-                f = open(os.path.join(SAGE_DOC, lang, 'reference', 'index.rst'))
+                f = open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst'))
                 rst = f.read()
                 f.close()
                 # Replace rst links with html links.  There are two forms:
@@ -609,7 +635,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
             sage: from sage_setup.docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
-            sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
+            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
             ['reference/algebras',
              'reference/arithgroup',
@@ -629,12 +655,12 @@ for a webpage listing all of the documents.''' % (output_dir,
 
 class ReferenceSubBuilder(DocBuilder):
     """
-    This class builds sub-components of the reference manual.  It is
-    resposible for making sure the auto generated ReST files for the
+    This class builds sub-components of the reference manual. It is
+    responsible for making sure that the auto generated reST files for the
     Sage library are up to date.
 
     When building any output, we must first go through and check
-    to see if we need to update any of the autogenerated ReST
+    to see if we need to update any of the autogenerated reST
     files.  There are two cases where this would happen:
 
     1. A new module gets added to one of the toctrees.
@@ -660,59 +686,66 @@ class ReferenceSubBuilder(DocBuilder):
         This is the wrapper around the builder_helper methods that
         goes through and makes sure things are up to date.
         """
-        # Delete the auto-generated .rst files, if the inherited
+        # Force regeneration of all modules if the inherited
         # and/or underscored members options have changed.
         global options
-        inherit_prev = self.get_cache().get('option_inherited')
-        underscore_prev = self.get_cache().get('option_underscore')
-        if (inherit_prev is None or inherit_prev != options.inherited or
-            underscore_prev is None or underscore_prev != options.underscore):
-            logger.info("Detected change(s) in inherited and/or underscored members option(s).")
-            self.clean_auto()
-            self.get_cache.clear_cache()
+        cache = self.get_cache()
+        force = False
+        try:
+            if (cache['option_inherited'] != options.inherited or
+                cache['option_underscore'] != options.underscore):
+                logger.info("Detected change(s) in inherited and/or underscored members option(s).")
+                force = True
+        except KeyError:
+            force = True
+        cache['option_inherited'] = options.inherited
+        cache['option_underscore'] = options.underscore
+        self.save_cache()
 
-        # After "sage -clone", refresh the .rst file mtimes in
+        # After "sage -clone", refresh the reST file mtimes in
         # environment.pickle.
         if options.update_mtimes:
-            logger.info("Checking for .rst file mtimes to update...")
+            logger.info("Checking for reST file mtimes to update...")
             self.update_mtimes()
 
-        #Update the .rst files for modified Python modules
-        logger.info("Updating .rst files with modified modules...")
-        for module_name in self.get_modified_modules():
-            self.write_auto_rest_file(module_name.replace(os.path.sep, '.'))
+        if force:
+            # Write reST files for all modules from scratch.
+            self.clean_auto()
+            for module_name in self.get_all_included_modules():
+                self.write_auto_rest_file(module_name)
+        else:
+            # Write reST files for new and updated modules.
+            for module_name in self.get_new_and_updated_modules():
+                self.write_auto_rest_file(module_name)
 
-        #Write the .rst files for newly included modules
-        logger.info("Writing .rst files for newly-included modules...")
-        for module_name in self.get_newly_included_modules(save=True):
-            self.write_auto_rest_file(module_name)
-
-        #Copy over the custom .rst files from _sage
+        # Copy over the custom reST files from _sage
         _sage = os.path.join(self.dir, '_sage')
         if os.path.exists(_sage):
-            logger.info("Copying over custom .rst files from %s ...", _sage)
+            logger.info("Copying over custom reST files from %s ...", _sage)
             shutil.copytree(_sage, os.path.join(self.dir, 'sage'))
 
         getattr(DocBuilder, build_type)(self, *args, **kwds)
 
     def cache_filename(self):
         """
-        Returns the filename where the pickle of the dictionary of
-        already generated ReST files is stored.
+        Return the filename where the pickle of the reference cache
+        is stored.
         """
         return os.path.join(self._doctrees_dir(), 'reference.pickle')
 
     @cached_method
     def get_cache(self):
         """
-        Retrieve the cache of already generated ReST files.  If it
-        doesn't exist, then we just return an empty dictionary.  If it
+        Retrieve the reference cache which contains the options previously used
+        by the reference builder.
+
+        If it doesn't exist, then we just return an empty dictionary.  If it
         is corrupted, return an empty dictionary.
         """
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'rb')
         try:
             cache = cPickle.load(file)
@@ -720,26 +753,21 @@ class ReferenceSubBuilder(DocBuilder):
             logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
             cache = {}
         else:
-            logger.debug("Loaded .rst file cache: %s", filename)
+            logger.debug("Loaded the reference cache: %s", filename)
         finally:
             file.close()
         return cache
 
     def save_cache(self):
         """
-        Save the cache of already generated ReST files.
+        Pickle the current reference cache for later retrieval.
         """
         cache = self.get_cache()
-
-        global options
-        cache['option_inherited'] = options.inherited
-        cache['option_underscore'] = options.underscore
-
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'wb')
         cPickle.dump(cache, file)
         file.close()
-        logger.debug("Saved .rst file cache: %s", self.cache_filename())
+        logger.debug("Saved the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
         """
@@ -753,7 +781,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(config, env_pickle)
+            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:
@@ -762,7 +790,7 @@ class ReferenceSubBuilder(DocBuilder):
 
     def update_mtimes(self):
         """
-        Updates the modification times for ReST files in the Sphinx
+        Updates the modification times for reST files in the Sphinx
         environment for this project.
         """
         env = self.get_sphinx_environment()
@@ -770,7 +798,7 @@ class ReferenceSubBuilder(DocBuilder):
             import time
             for doc in env.all_docs:
                 env.all_docs[doc] = time.time()
-            logger.info("Updated %d .rst file mtimes", len(env.all_docs))
+            logger.info("Updated %d reST file mtimes", len(env.all_docs))
             # This is the only place we need to save (as opposed to
             # load) Sphinx's pickle, so we do it right here.
             env_pickle = os.path.join(self._doctrees_dir(),
@@ -783,7 +811,8 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            import cPickle, types
+            from six.moves import cPickle
+            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -793,7 +822,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
@@ -816,7 +845,6 @@ class ReferenceSubBuilder(DocBuilder):
             logger.info("Sphinx found %d modified modules", len(changed))
         except OSError as err:
             logger.debug("Sphinx failed to determine modified modules: %s", err)
-            self.clean_auto()
             return
         for name in changed:
             # Only pay attention to files in a directory sage/... In
@@ -856,34 +884,74 @@ class ReferenceSubBuilder(DocBuilder):
             for module in self.get_modules(filename):
                 yield module
 
-    def get_newly_included_modules(self, save=False):
+    def get_new_and_updated_modules(self):
         """
-        Returns an iterator for all modules that appear in the
-        toctrees that don't appear in the cache.
+        Return an iterator for all new and updated modules that appear in
+        the toctrees, and remove obsolete old modules.
         """
-        cache = self.get_cache()
-        new_modules = 0
-        for module in self.get_all_included_modules():
-            if module not in cache:
-                cache[module] = True
-                new_modules += 1
-                yield module
-        logger.info("Found %d newly included modules", new_modules)
-        if save:
-            self.save_cache()
+        env = self.get_sphinx_environment()
+        if env is None:
+            all_docs = {}
+        else:
+            all_docs = env.all_docs
 
-    def print_newly_included_modules(self):
+        new_modules = []
+        updated_modules = []
+        old_modules = []
+        for module_name in self.get_all_included_modules():
+            docname = module_name.replace('.', os.path.sep)
+
+            if docname not in all_docs:
+                new_modules.append(module_name)
+                yield module_name
+                continue
+
+            # get the modification timestamp of the reST doc for the module
+            mtime = all_docs[docname]
+            try:
+                with warnings.catch_warnings():
+                    # primarily intended to ignore deprecation warnings
+                    warnings.simplefilter("ignore")
+                    __import__(module_name)
+            except ImportError as err:
+                logger.error("Warning: Could not import %s %s", module_name, err)
+                raise
+            newtime = os.path.getmtime(sys.modules[module_name].__file__)
+
+            if newtime > mtime:
+                updated_modules.append(module_name)
+                yield module_name
+            else: # keep good old module
+                old_modules.append(module_name)
+
+        removed_modules = []
+        for docname in all_docs.keys():
+            if docname.startswith('sage' + os.path.sep):
+                module_name = docname.replace(os.path.sep, '.')
+                if not (module_name in old_modules or module_name in updated_modules):
+                    try:
+                        os.remove(os.path.join(self.dir, docname) + '.rst')
+                    except OSError: # already removed
+                        pass
+                    logger.debug("Deleted auto-generated reST file %s".format(docname))
+                    removed_modules.append(module_name)
+
+        logger.info("Found %d new modules", len(new_modules))
+        logger.info("Found %d updated modules", len(updated_modules))
+        logger.info("Removed %d obsolete modules", len(removed_modules))
+
+    def print_new_and_updated_modules(self):
         """
-        Prints all of the modules that appear in the toctrees that
-        don't appear in the cache.
+        Print all the modules that appear in the toctrees that
+        are newly included or updated.
         """
-        for module_name in self.get_newly_included_modules():
+        for module_name in self.get_new_and_updated_modules():
             print(module_name)
 
     def get_modules(self, filename):
         """
-        Given a filename for a ReST file, return an iterator for
-        all of the autogenerated ReST files that it includes.
+        Given a filename for a reST file, return an iterator for
+        all of the autogenerated reST files that it includes.
         """
         #Create the regular expression used to detect an autogenerated file
         auto_re = re.compile('^\s*(..\/)*(sage(nb)?\/[\w\/]*)\s*$')
@@ -936,7 +1004,7 @@ class ReferenceSubBuilder(DocBuilder):
 
     def write_auto_rest_file(self, module_name):
         """
-        Writes the autogenerated ReST file for module_name.
+        Writes the autogenerated reST file for module_name.
         """
         if not module_name.startswith('sage'):
             return
@@ -976,17 +1044,12 @@ class ReferenceSubBuilder(DocBuilder):
 
     def clean_auto(self):
         """
-        Remove the cache file for the autogenerated files as well as
-        the files themselves.
+        Remove all autogenerated reST files.
         """
-        if os.path.exists(self.cache_filename()):
-            os.unlink(self.cache_filename())
-            logger.debug("Deleted .rst cache file: %s", self.cache_filename())
-
         import shutil
         try:
             shutil.rmtree(os.path.join(self.dir, 'sage'))
-            logger.debug("Deleted auto-generated .rst files in: %s",
+            logger.debug("Deleted auto-generated reST files in: %s",
                          os.path.join(self.dir, 'sage'))
         except OSError:
             pass
@@ -1038,7 +1101,6 @@ class ReferenceSubBuilder(DocBuilder):
         for module_name in self.get_all_included_modules():
             print(module_name)
 
-
 class SingleFileBuilder(DocBuilder):
     """
     This is the class used to build the documentation for a single
@@ -1087,7 +1149,7 @@ class SingleFileBuilder(DocBuilder):
 # This file is automatically generated by {}, do not edit!
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC'])
+sys.path.append(os.environ['SAGE_DOC_SRC'])
 sys.path.append({!r})
 from common.conf import *
 project = u'Documentation for {}'
@@ -1139,7 +1201,8 @@ def setup(app):
 
     def _output_dir(self, type):
         """
-        Returns the directory where the output of type type is stored.
+        Return the directory where the output of type ``type`` is stored.
+
         If the directory does not exist, then it will automatically be
         created.
         """
@@ -1167,7 +1230,7 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
-    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC, 'en', name)):
+    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC_SRC, 'en', name)):
         return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)
@@ -1183,7 +1246,8 @@ def get_builder(name):
         print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
-def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
+
+def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns
     a Unicode string representation.  The number of columns is
@@ -1198,13 +1262,14 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     if cols is None:
         import math
         cols = math.trunc((width - indent) / size)
-    s = " " * indent
-    for i in xrange(len(lst)):
+    s = u" " * indent
+    for i in range(len(lst)):
         if i != 0 and i % cols == 0:
-            s += "\n" + " " * indent
-        s += "{0:{1}{2}}".format(lst[i], align, size)
-    s += "\n"
-    return unicode(s)
+            s += u"\n" + u" " * indent
+        s += u"{0:{1}{2}}".format(lst[i], align, size)
+    s += u"\n"
+    return s
+
 
 def help_usage(s=u"", compact=False):
     """
@@ -1271,7 +1336,7 @@ def help_documents(s=u""):
     s += "(!) Builds everything.\n\n"
     if 'reference' in docs:
         s+= "Other valid document names take the form 'reference/DIR', where\n"
-        s+= "DIR is a subdirectory of SAGE_DOC/en/reference/.\n"
+        s+= "DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"
         s+= "This builds just the specified part of the reference manual.\n"
     s += "DOCUMENT may also have the form 'file=/path/to/FILE', which builds\n"
     s += "the documentation for the specified file.\n"
@@ -1305,8 +1370,8 @@ def help_commands(name='all', s=u""):
     # To do: Generate the lists dynamically, using class attributes,
     # as with the Builders above.
     command_dict = { 'reference' : [
-        'print_included_modules',   'print_modified_modules       (*)',
-        'print_unincluded_modules', 'print_newly_included_modules (*)',
+        'print_included_modules',   'print_modified_modules        (*)',
+        'print_unincluded_modules', 'print_new_and_updated_modules (*)',
         ] }
     for doc in command_dict:
         if name == 'all' or doc == name:
@@ -1430,9 +1495,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
-    standard.add_option("--no-tests", dest="skip_tests", default=False,
-                        action="store_true",
-                        help="do not include TESTS blocks in the reference manual")
+    standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
+                        action="store_false",
+                        help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1466,7 +1531,7 @@ def setup_parser():
                         help="pass comma-separated OPTS to sphinx-build")
     advanced.add_option("-U", "--update-mtimes", dest="update_mtimes",
                         default=False, action="store_true",
-                        help="before building reference manual, update modification times for auto-generated ReST files")
+                        help="before building reference manual, update modification times for auto-generated reST files")
     advanced.add_option("-k", "--keep-going", dest="keep_going",
                         default=False, action="store_true",
                         help="Do not abort on errors but continue as much as possible after an error")
@@ -1499,7 +1564,7 @@ def setup_logger(verbose=1, color=True):
     colors = ['darkblue', 'darkred', 'brown', 'reset']
     styles = ['reset', 'reset', 'reset', 'reset']
     format_debug = ""
-    for i in xrange(len(fields)):
+    for i in range(len(fields)):
         format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
         if i != len(fields):
             format_debug += " "
@@ -1602,6 +1667,11 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
+
+    # Delete empty directories. This is needed in particular for empty
+    # directories due to "git checkout" which never deletes empty
+    # directories it leaves behind. See Trac #20010.
+    delete_empty_directories(SAGE_DOC_SRC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()
