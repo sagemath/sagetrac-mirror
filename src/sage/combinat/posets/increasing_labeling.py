@@ -41,12 +41,12 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
     # that decides where things go
     @staticmethod
     def __classcall_private__(self, poset=None, n=None, restrict=None):
-        self.poset=poset
+        self._poset=poset
         if n is None:
             if restrict is None:
-                return IncreasingLabelings_all(poset)
+                return IncreasingLabelings_all()
             else:
-                return IncreasingLabelings_restrict(poset,restrict=restrict)     
+                return IncreasingLabelings_restrict(restrict=restrict)     
         else:
             if restrict is None:
                 if isinstance(n, (int,Integer)):
@@ -68,15 +68,24 @@ class IncreasingLabelings_all(IncreasingLabelings):
     def __init__(self):
         IncreasingLabelings.__init__(self, True)
 
+    def _repr_(self):
+        return "The set of all increasing labelings of %s"%(self._poset)
+
 class IncreasingLabelings_n(IncreasingLabelings):
 
     def __init__(self, n):
         IncreasingLabelings.__init__(self, False)
-        self.n = n
+        self._n = n
+
+    def _repr_(self):
+        return "The set of all increasing labelings of %s with largest possible part %s"%(self._poset, self._n)
             
 class IncreasingLabelings_restrict(IncreasingLabelings):
 
-   def __init__(self, restrict):
+    def __init__(self, restrict):
        IncreasingLabelings.__init__(self, False)
-       self.restrict = restrict
+       self._restrict = restrict
+
+    def _repr_(self):
+        return "The set of all increasing labelings of %s with parts restricted by %s"%(self._poset, self._restrict)
  
