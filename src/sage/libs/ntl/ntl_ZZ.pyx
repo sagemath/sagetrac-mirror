@@ -14,9 +14,8 @@
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -168,7 +167,7 @@ cdef class ntl_ZZ(object):
 
         Agrees with the hash of the corresponding sage integer.
         """
-        cdef Integer v = PY_NEW(Integer)
+        cdef Integer v = Integer.__new__(Integer)
         ZZ_to_mpz(v.value, &self.x)
         return v.hash_c()
 
@@ -294,7 +293,7 @@ cdef class ntl_ZZ(object):
 
         AUTHOR: Joel B. Mohler
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         ZZ_to_mpz(ans.value, &self.x)
         return ans
         #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
@@ -445,9 +444,9 @@ def ntl_setSeed(x=None):
     cdef ntl_ZZ seed = ntl_ZZ(1)
     if x is None:
         from random import randint
-        seed = ntl_ZZ(str(randint(0,int(2)**64)))
+        seed = ntl_ZZ(randint(0,int(2)**64))
     else:
-        seed = ntl_ZZ(str(x))
+        seed = ntl_ZZ(x)
     sig_on()
     ZZ_SetSeed(seed.x)
     sig_off()
@@ -457,7 +456,8 @@ ntl_setSeed()
 
 def randomBnd(q):
     r"""
-    Returns random number in the range [0,n) .
+    Return a random number in the range [0,n).
+
     According to the NTL documentation, these numbers are
     "cryptographically strong"; of course, that depends in part on
     how they are seeded.
@@ -468,14 +468,15 @@ def randomBnd(q):
         [30675, 84282, 80559, 6939, 44798]
 
     AUTHOR:
-        -- Didier Deshommes <dfdeshom@gmail.com>
+
+    - Didier Deshommes <dfdeshom@gmail.com>
     """
     current_randstate().set_seed_ntl(False)
 
     cdef ntl_ZZ w
 
     if not isinstance(q, ntl_ZZ):
-        q = ntl_ZZ(str(q))
+        q = ntl_ZZ(q)
     w = q
     cdef ntl_ZZ ans
     ans = ntl_ZZ.__new__(ntl_ZZ)

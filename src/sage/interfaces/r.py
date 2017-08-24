@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interfaces to R
 
@@ -567,7 +568,7 @@ class R(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('a <- 2+2\n')
+            sage: _ = f.write('a <- 2+2\n')
             sage: f.close()
             sage: r.read(filename)
             sage: r.get('a')
@@ -667,7 +668,11 @@ class R(ExtraTabCompletion, Expect):
             ...
             ImportError: ...
         """
-        ret = self.eval('require("%s")'%library_name)
+        ret = self.eval('require("%s")' % library_name)
+        try:
+            ret = ret.decode('utf-8')
+        except UnicodeDecodeError:
+            ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)

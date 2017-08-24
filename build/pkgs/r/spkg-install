@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting"
     echo >&2 "Maybe run 'sage --sh'?"
@@ -110,10 +108,6 @@ fi
 # See patches/R.sh.patch
 export SAGE_BUILDING_R=yes
 
-# Move patches only applied on Cygwin.
-if [ "$UNAME" = "CYGWIN" ]; then
-    mv patches/cygwin/*.patch patches/
-fi
 
 config()
 {

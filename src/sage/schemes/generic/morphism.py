@@ -24,7 +24,7 @@ provide a method
 
 * ``myscheme._homset(*args, **kwds)`` returning a
   Hom-set, which must be an element of a derived class of
-  `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
+  :class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
   new Hom-set class does not use ``myscheme._morphism`` then you
   do not have to provide it.
 
@@ -83,6 +83,7 @@ from __future__ import absolute_import, print_function
 import operator
 from sage.structure.element import (AdditiveGroupElement, RingElement,
         Element, generic_power, parent, coercion_model)
+from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -90,7 +91,6 @@ from sage.categories.fields import Fields
 from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.morphism import is_RingHomomorphism
 from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
 from . import scheme
@@ -102,7 +102,6 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
-from sage.categories.morphism import Morphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 
@@ -763,13 +762,14 @@ class SchemeMorphism_spec(SchemeMorphism):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            if not is_RingHomomorphism(phi):
+            from sage.categories.all import Rings
+            if not (isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
                 raise TypeError("phi (=%s) must have domain %s"
@@ -1441,7 +1441,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             S = self.codomain().change_ring(R)
             H = Hom(T,S)
 
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
             if R.domain() == self.base_ring():
                 R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
         G = []
@@ -1760,7 +1760,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return len(self._coords)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two scheme morphisms.
 
@@ -1771,15 +1771,15 @@ class SchemeMorphism_point(SchemeMorphism):
 
         OUTPUT:
 
-        ``+1``, ``0``, or ``-1``.
+        boolean
 
         EXAMPLES::
 
             sage: A = AffineSpace(2, QQ)
             sage: a = A(1,2)
             sage: b = A(3,4)
-            sage: a.__cmp__(b)
-            -1
+            sage: a < b
+            True
             sage: a != b
             True
         """
@@ -1787,10 +1787,8 @@ class SchemeMorphism_point(SchemeMorphism):
             try:
                 other = self._codomain.ambient_space()(other)
             except TypeError:
-                return -1
-        return cmp(self._coords, other._coords)
-
-    __cmp__ = _cmp_
+                return NotImplemented
+        return richcmp(self._coords, other._coords, op)
 
     def scheme(self):
         """

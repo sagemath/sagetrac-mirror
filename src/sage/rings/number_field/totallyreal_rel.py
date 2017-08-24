@@ -55,7 +55,7 @@ with root discriminant `\le 10`.
     [False, True, True, True, False, False, True, True, False, False, False, False, False, True, True, False, False, True, False, False, False]
 
 Eight out of 21 such fields are Galois (with Galois group `C_4`
-or `C_2 \times C_2`); the others have have Galois closure of degree 8
+or `C_2 \times C_2`); the others have Galois closure of degree 8
 (with Galois group `D_8`).
 
 Finally, we compute the cubic extensions of `\QQ(\zeta_7)^+` with
@@ -703,7 +703,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     is set to ``False``::
 
         sage: type(enumerate_totallyreal_fields_rel(F, 2, 2000)[0][1])
-        <type 'sage.libs.cypari2.gen.Gen'>
+        <type 'cypari2.gen.Gen'>
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][1].parent()
@@ -931,7 +931,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
         sage: enumerate_totallyreal_fields_all(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
         sage: type(enumerate_totallyreal_fields_all(2, 10)[0][1])
-        <type 'sage.libs.cypari2.gen.Gen'>
+        <type 'cypari2.gen.Gen'>
         sage: enumerate_totallyreal_fields_all(2, 10, return_pari_objects=False)[0][1].parent()
         Univariate Polynomial Ring in x over Rational Field
 

@@ -93,7 +93,7 @@ def simplify_sqrt_real(expr):
                        # by Pynac symbols of the type D[0] or diff(...)
     # Lists to store the positions of all the top-level sqrt's in sexpr:
     pos_sqrts = []  # position of first character, i.e. 's' of 'sqrt(...)'
-    pos_after = []  # position of character immediatelty after 'sqrt(...)'
+    pos_after = []  # position of character immediately after 'sqrt(...)'
     the_sqrts = []  # the sqrt sub-expressions in sexpr, i.e. 'sqrt(...)'
     pos_max = len(sexpr) - 6
     pos = 0
@@ -561,7 +561,7 @@ class ExpressionNice(Expression):
 
         import re
 
-        # find all occurences of diff
+        # find all occurrences of diff
         list_d = []
         _list_derivatives(self, list_d)
 
@@ -584,7 +584,7 @@ class ExpressionNice(Expression):
                 if bool(re.search(r'[+|-|/|*|^|(|)]', strv[i])):
                     strv[i] = "(" + strv[i] + ")"
 
-            # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
+            # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = dict((i, strv[i] + "^" + str(diffargs.count(i))
                        if (diffargs.count(i)>1) else strv[i])
                        for i in diffargs)
@@ -654,7 +654,7 @@ class ExpressionNice(Expression):
 
         import re
 
-        # find all occurences of diff
+        # find all occurrences of diff
         list_d = []
         _list_derivatives(self, list_d)
 
@@ -683,7 +683,7 @@ class ExpressionNice(Expression):
                 if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
                     latv[i] = "\left(" + latv[i] + "\\right)"
 
-            # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
+            # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = {i: (latv[i] + "^" + latex(diffargs.count(i))
                        if diffargs.count(i) > 1 else latv[i])
                    for i in diffargs}

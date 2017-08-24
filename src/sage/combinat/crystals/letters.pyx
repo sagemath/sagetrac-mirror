@@ -370,8 +370,10 @@ cdef class Letter(Element):
             sage: loads(dumps(a)) == a
             True
         """
-        self._set_parent(state[0])
-        self.value = state[1]['value']
+        P, D = state
+        if P is not None:
+            self._parent = P
+        self.value = D['value']
 
     def __reduce__(self):
         r"""
@@ -1297,8 +1299,10 @@ cdef class LetterTuple(Element):
             sage: loads(dumps(a)) == a
             True
         """
-        self._set_parent(state[0])
-        self.value = tuple(state[1]['value'])
+        P, D = state
+        if P is not None:
+            self._parent = P
+        self.value = tuple(D['value'])
 
     def __reduce__(self):
         """
@@ -2521,7 +2525,7 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
     @lazy_attribute
     def _tuple_to_element_dict(self):
         """
-        A dictonary from tuples to elements of ``self``.
+        A dictionary from tuples to elements of ``self``.
 
         EXAMPLES::
 
