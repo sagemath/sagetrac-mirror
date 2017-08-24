@@ -1586,9 +1586,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
-    def increasing_labelings(self,restrict=None,largest_label=None):
+    def increasing_labelings(self,n=None, restrict=None):
         from .increasing_labeling import IncreasingLabelings
-        return IncreasingLabelings(self,n=largest_label,restrict=restrict)
+        return IncreasingLabelings(poset=self, n = n, restrict = restrict)
 
     def is_linear_extension(self, l):
         """

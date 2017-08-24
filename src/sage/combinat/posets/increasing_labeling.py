@@ -20,11 +20,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class IncreasingLabeling(ClonableArray):
-    @staticmethod
-    def __classcall_private__(cls, poset, labels):
-        if isinstance(IncreasingLabeling, cls):
-            return labels
-        return LinearExtensionsOfPoset(poset)(labels)
     
     def check(self):
         # A function to check that we have an increasing labeling
@@ -44,8 +39,9 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
     # Ie, we have one parent for increasing labelings with given function
     # one parent for largest max entry, and this is the 'parent' of the parents
     # that decides where things go
-
-    def __classcall_private__(self, poset,n=None,restrict=None):
+    @staticmethod
+    def __classcall_private__(self, poset=None, n=None, restrict=None):
+        self.poset=poset
         if n is None:
             if restrict is None:
                 return IncreasingLabelings_all(poset)
@@ -54,116 +50,33 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
         else:
             if restrict is None:
                 if isinstance(n, (int,Integer)):
-                    return IncreasingLabelings_n(poset,n=n)
+                    return IncreasingLabelings_n(n=n)
+        raise ValueError("At least one of restrict and n must be None")
+
+    def __init__(self, is_infinite=False):
         if is_infinite:
             Parent.__init__(self, category=InfiniteEnumeratedSets())
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
+        
 
     Element = IncreasingLabeling
-
-#    def _element_constructor_(self, lst, check=True):
-#        if isinstance(lst, IncreasingLabeling):
-#            lst = list(lst)
-#        if not isinstance(lst, (list, tuple)):
-#            raise TypeError("input should be a list or tuple")
-#        lst = [self._poset(_) for _ in lst]
-#        if self._is_facade:
-#            return lst
-#        else:
-#            return self.element_class(self, lst, check)       
-
-#    def __contains__(self, x):    
-
-
 
     
 class IncreasingLabelings_all(IncreasingLabelings):
 
-    @staticmethod
-    def __classcall_private__(cls,poset):
-        self.poset=poset
-        
-    def __init__(self, is_infinite=True):
-            IncreasingLabelings.__init__(self, True)
-    
-class IncreasingLabelings_restrict(IncreasingLabelings):
-# Class of increasing labelings with function for range
-# of possible values 'restrict'
+    def __init__(self):
+        IncreasingLabelings.__init__(self, True)
 
-    def __init__(self, poset, restrict):
-        """
-        Initialize ``self``.
-
-        """
-        self.restrict=restrict
-        IncreasingLabelings.__init__(self, poset, False)
-        
-        
-#    def __iter__(self):
-#        for il in inc_labels(self._poset, self.restrict)
-#            yield self.element_class(self, il)
-        
-
-    
 class IncreasingLabelings_n(IncreasingLabelings):
-# class of increasing labelings with max entry n.
-    
-    def __classcall_private__(cls, n):
-        """
-        Standardize input to ensure a unique representation.
-
-        EXAMPLES::
-
-            sage: C = Compositions(5)
-            sage: C2 = Compositions(int(5))
-            sage: C3 = Compositions(ZZ(5))
-            sage: C is C2
-            True
-            sage: C is C3
-            True
-        """
-# Change doc test
-        return super(IncreasingLabelings_n, cls).__classcall__(cls, Integer(n))
 
     def __init__(self, n):
+        IncreasingLabelings.__init__(self, False)
         self.n = n
+            
+class IncreasingLabelings_restrict(IncreasingLabelings):
 
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: repr(Compositions(3))
-            'Compositions of 3'
-        """
-        return "Increasing labelings of %s with largest possible label $s. "%(self.n, self.poset)
-# Fix doctests.    
-
-
-    
-def inc_labels(poset,restrict,i=None,f=None,labels=None):
-    if labels is None:
-        labels=[]
-    if f is None:
-        f={}
-    if i is None:
-        i=0
-    if i<poset.cardinality():
-        for j in restrict[i]:
-            assign_val=True
-            for k in poset.lower_covers(i):
-                if j<=f.get(k):
-                    assign_val=False
-                    break
-            if assign_val is True:
-                f.update({i:j})
-                labels=inc_labels(poset,restrict,i+1,f,labels)
-                f.pop(i)
-    else:
-        if f not in labels:
-            labels.append(copy(f))
-    return labels
-
-
+   def __init__(self, restrict):
+       IncreasingLabelings.__init__(self, False)
+       self.restrict = restrict
+ 
