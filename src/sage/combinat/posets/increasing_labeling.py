@@ -89,3 +89,26 @@ class IncreasingLabelings_restrict(IncreasingLabelings):
     def _repr_(self):
         return "The set of all increasing labelings of %s with parts restricted by %s"%(self._poset, self._restrict)
  
+def inc_labels_iter(poset,restrict,i=None,f=None,labels=None):
+    if labels is None:
+        labels=[]
+    if f is None:
+        f={}
+    if i is None:
+        i=0
+    if i<poset.cardinality():
+        for j in restrict[i]:
+            assign_val=True
+            for k in poset.lower_covers(i):
+                if j<=f.get(k):
+                    assign_val=False
+                    break
+            if assign_val is True:
+                f.update({i:j})
+                for il in inc_labels_iter(poset,restrict,i+1,f,labels):
+                    yield il
+                f.pop(i)
+    else:
+        if f not in labels:
+            labels.append(copy(f))
+            yield f
