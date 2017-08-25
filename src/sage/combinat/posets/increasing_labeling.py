@@ -24,11 +24,12 @@ class IncreasingLabeling(ClonableArray):
     def check(self):
         # A function to check that we have an increasing labeling
         # I think we want this check in IncreasingLabelings classes, also
-        P = self.parent().poset()
+        P = self.parent()._poset
         is_inc_label = True
+        dic=dict(self)
         for elem in P:
             for lc in P.lower_covers(elem):
-                if restrict[lc]>=restrict[elem]:
+                if dic[lc]>=dic[elem]:
                     is_inc_label = False
         if is_inc_label is False:
             raise ValueError("%s is not an increasing labeling of %s"%(self, P))
@@ -41,16 +42,16 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
     # that decides where things go
     @staticmethod
     def __classcall_private__(self, poset=None, n=None, restrict=None):
-        self._poset=poset
+#        self._poset=poset
         if n is None:
             if restrict is None:
-                return IncreasingLabelings_all()
+                return IncreasingLabelings_all(poset=poset)
             else:
-                return IncreasingLabelings_restrict(restrict=restrict)     
+                return IncreasingLabelings_restrict(poset=poset,restrict=restrict)     
         else:
             if restrict is None:
                 if isinstance(n, (int,Integer)):
-                    return IncreasingLabelings_n(n=n)
+                    return IncreasingLabelings_n(poset=poset,n=n)
         raise ValueError("At least one of restrict and n must be None")
 
     def __init__(self, is_infinite=False):
@@ -58,33 +59,61 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
             Parent.__init__(self, category=InfiniteEnumeratedSets())
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
-        
+
+    def _element_constructor_(self, label, check=True):
+        r"""
+        Constructor for elements of this class.
+
+        TESTS::
+
+            sage: P = Poset(([1,2,3,4], [[1,2],[1,4],[2,3]]))
+            sage: L = P.linear_extensions()
+            sage: x = L._element_constructor_([1,2,4,3]); x
+            [1, 2, 4, 3]
+            sage: x.parent() is L
+            True
+
+            sage: L._element_constructor_([4,3,2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [4, 3, 2, 1] is not a linear extension of Finite poset containing 4 elements
+            sage: L._element_constructor_([4,3,2,1],check=False)
+            [4, 3, 2, 1]
+        """
+        if isinstance(label, IncreasingLabeling):
+            label = list(label)
+        if not isinstance(label, list):
+            raise TypeError("input should be a list")
+        label=dict(label)
+        label2 = {self._poset(x):label[x] for x in label}
+        return self.element_class(self, label2.items()) 
 
     Element = IncreasingLabeling
 
     
 class IncreasingLabelings_all(IncreasingLabelings):
-
-    def __init__(self):
+    def __init__(self, poset):
         IncreasingLabelings.__init__(self, True)
+        self._poset=poset
+        
 
     def _repr_(self):
         return "The set of all increasing labelings of %s"%(self._poset)
 
 class IncreasingLabelings_n(IncreasingLabelings):
-
-    def __init__(self, n):
+    def __init__(self,poset, n):
         IncreasingLabelings.__init__(self, False)
         self._n = n
+        self._poset=poset
 
     def _repr_(self):
         return "The set of all increasing labelings of %s with largest possible part %s"%(self._poset, self._n)
             
 class IncreasingLabelings_restrict(IncreasingLabelings):
-
-    def __init__(self, restrict):
+    def __init__(self,poset, restrict):
        IncreasingLabelings.__init__(self, False)
        self._restrict = restrict
+       self._poset=poset 
 
     def _repr_(self):
         return "The set of all increasing labelings of %s with parts restricted by %s"%(self._poset, self._restrict)
