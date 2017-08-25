@@ -23,8 +23,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 class IncreasingLabeling(ClonableArray):
     
     def check(self):
-        # A function to check that we have an increasing labeling
-        # I think we want this check in IncreasingLabelings classes, also
         P = self.parent()._poset
         is_inc_label = True
         for elem in P:
@@ -60,33 +58,13 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    def _element_constructor_(self, label, check=True):
-        r"""
-        Constructor for elements of this class.
-
-        TESTS::
-
-            sage: P = Poset(([1,2,3,4], [[1,2],[1,4],[2,3]]))
-            sage: L = P.linear_extensions()
-            sage: x = L._element_constructor_([1,2,4,3]); x
-            [1, 2, 4, 3]
-            sage: x.parent() is L
-            True
-
-            sage: L._element_constructor_([4,3,2,1])
-            Traceback (most recent call last):
-            ...
-            ValueError: [4, 3, 2, 1] is not a linear extension of Finite poset containing 4 elements
-            sage: L._element_constructor_([4,3,2,1],check=False)
-            [4, 3, 2, 1]
-        """
-        if isinstance(label, IncreasingLabeling):
-            label = Family(label)
-        if not isinstance(label, (list, dict)):
-            raise TypeError("input should be a list")
-        label2 = Family({self._poset(x):label[x] for x in label})
-#        label2 = {self._poset(x):label[x] for x in label}
-        return self.element_class(self, label2) 
+#    def _element_constructor_(self, label, check=True):
+#        if isinstance(label, IncreasingLabeling):
+#            label = Family(label)
+#        if not isinstance(label, (list, dict)):
+#            raise TypeError("input should be a list")
+#        label2 = Family({self._poset(x):label[x] for x in label})
+#        return self.element_class(self, label2) 
 
     Element = IncreasingLabeling
 
@@ -100,6 +78,14 @@ class IncreasingLabelings_all(IncreasingLabelings):
     def _repr_(self):
         return "The set of all increasing labelings of %s"%(self._poset)
 
+    def _element_constructor_(self, label, check=True):
+        if isinstance(label, IncreasingLabeling):
+            label = Family(label)
+        if not isinstance(label, (list, dict)):
+            raise TypeError("input should be a list")
+        label2 = Family({self._poset(x):label[x] for x in label})
+        return self.element_class(self, label2) 
+
 class IncreasingLabelings_n(IncreasingLabelings):
     def __init__(self,poset, n):
         IncreasingLabelings.__init__(self, False)
@@ -108,6 +94,17 @@ class IncreasingLabelings_n(IncreasingLabelings):
 
     def _repr_(self):
         return "The set of all increasing labelings of %s with largest possible part %s"%(self._poset, self._n)
+
+    def _element_constructor_(self, label, check=True):
+        if isinstance(label, IncreasingLabeling):
+            label = Family(label)
+        if not isinstance(label, (list, dict)):
+            raise TypeError("input should be a list")
+        label2 = Family({self._poset(x):label[x] for x in label})
+        for p in label2:
+            if p>self._n:
+                raise ValueError("%s exceeds largest allowable label %s"%(p,self._n))
+        return self.element_class(self, label2,)
             
 class IncreasingLabelings_restrict(IncreasingLabelings):
     def __init__(self,poset, restrict):
@@ -117,6 +114,17 @@ class IncreasingLabelings_restrict(IncreasingLabelings):
 
     def _repr_(self):
         return "The set of all increasing labelings of %s with parts restricted by %s"%(self._poset, self._restrict)
+
+    def _element_constructor_(self, label, check=True):
+        if isinstance(label, IncreasingLabeling):
+            label = Family(label)
+        if not isinstance(label, (list, dict)):
+            raise TypeError("input should be a list")
+        label2 = Family({self._poset(x):label[x] for x in label})
+        for p in self._poset:
+            if label2[p] not in restrict[p]:
+                raise ValueError("%s is not a valid label for %s"%(label2[p],p))
+        return self.element_class(self, label2,)
  
 def inc_labels_iter(poset,restrict,i=None,f=None,labels=None):
     if labels is None:
