@@ -13,6 +13,7 @@ from sage.structure.parent import Parent
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from sage.structure.list_clone import ClonableArray
+from sage.sets.family import Family
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from sage.rings.integer import Integer
@@ -26,10 +27,9 @@ class IncreasingLabeling(ClonableArray):
         # I think we want this check in IncreasingLabelings classes, also
         P = self.parent()._poset
         is_inc_label = True
-        dic=dict(self)
         for elem in P:
             for lc in P.lower_covers(elem):
-                if dic[lc]>=dic[elem]:
+                if self[lc]>=self[elem]:
                     is_inc_label = False
         if is_inc_label is False:
             raise ValueError("%s is not an increasing labeling of %s"%(self, P))
@@ -81,12 +81,12 @@ class IncreasingLabelings(UniqueRepresentation, Parent):
             [4, 3, 2, 1]
         """
         if isinstance(label, IncreasingLabeling):
-            label = list(label)
-        if not isinstance(label, list):
+            label = Family(label)
+        if not isinstance(label, (list, dict)):
             raise TypeError("input should be a list")
-        label=dict(label)
-        label2 = {self._poset(x):label[x] for x in label}
-        return self.element_class(self, label2.items()) 
+        label2 = Family({self._poset(x):label[x] for x in label})
+#        label2 = {self._poset(x):label[x] for x in label}
+        return self.element_class(self, label2) 
 
     Element = IncreasingLabeling
 
