@@ -236,7 +236,7 @@ def lifting(p, t, A, G):
 
 def p_t_part(f, p, t):
     r"""
-    Computes polynomial `g` such that all cofficients of `f-p^tg` are 
+    Computes polynomial `g` such that all cofficients of `f-p^tg` are
     in `\{0, \ldots, p^t-1\}`.
 
     INPUT:
@@ -580,7 +580,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def normalize_nu(self, p, t, nu, p_min_polys):
         r"""
-        
+
         Computes a normalized `(p^t)`-minimal polynomial.
 
         INPUT:
@@ -591,16 +591,16 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``nu`` -- a `(p^t)`-minimal polynomial of `B`
 
-        - ``p_min_polys`` -- a dictionary, keys are elements `s \in \mathcal{S}` with 
-          `s \le t`, the values are the associated normalized `(p^s)`-minimal polynomials 
+        - ``p_min_polys`` -- a dictionary, keys are elements `s \in \mathcal{S}` with
+          `s \le t`, the values are the associated normalized `(p^s)`-minimal polynomials
           `\nu_s`
-          
+
         OUTPUT:
 
-        The `(p^t)`-minimal polynomial `\nu` whose coefficients are smallest possible 
+        The `(p^t)`-minimal polynomial `\nu` whose coefficients are smallest possible
         integers between `0` and `p^t-1`.
-        
-        
+
+
         EXAMPLES::
 
         sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
@@ -608,7 +608,7 @@ class ComputeMinimalPolynomials(SageObject):
         sage: N = ComputeMinimalPolynomials(B)
         sage: N.p_minimal_polynomials(2)
         {1: x^2 + x, 2: x^3 + x^2}
-        
+
         """
         from sage.misc.misc import verbose
         verbose("normalize nu")
@@ -817,7 +817,7 @@ class ComputeMinimalPolynomials(SageObject):
             if nu.degree() == deg_prev_nu:
                 G = G.delete_columns([G.ncols() - 1])
                 del p_min_polys[t-1]
-            
+
             nu = self.normalize_nu(p, t, nu, p_min_polys)
             column = self.mccoy_column(p, t, nu)
             verbose("corresponding columns for G")
