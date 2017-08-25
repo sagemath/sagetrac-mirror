@@ -125,27 +125,35 @@ class IncreasingLabelings_restrict(IncreasingLabelings):
             if label2[p] not in restrict[p]:
                 raise ValueError("%s is not a valid label for %s"%(label2[p],p))
         return self.element_class(self, label2,)
+
+    def __iter__(self):
+        for il in inc_labels_iter(self._poset, self._restrict):
+            yield self.element_class(self, il)
  
-def inc_labels_iter(poset,restrict,i=None,f=None,labels=None):
+def inc_labels_iter(poset,restrict,f=None,labels=None):
     if labels is None:
         labels=[]
     if f is None:
         f={}
-    if i is None:
-        i=0
-    if i<poset.cardinality():
-        for j in restrict[i]:
-            assign_val=True
-            for k in poset.lower_covers(i):
-                if j<=f.get(k):
+    restrict = deepcopy(restrict)
+    d=restrict.popitem()
+    for i in d[1]:
+        assign_val=True
+        for k in poset.lower_covers(d[0]):
+            if (f.get(k) is not None) and (i<=f.get(k)):
                     assign_val=False
                     break
-            if assign_val is True:
-                f.update({i:j})
-                for il in inc_labels_iter(poset,restrict,i+1,f,labels):
+        for j in poset.upper_covers(d[0]):
+            if (f.get(j) is not None) and (i>=f.get(j)):
+                    assign_val=False
+                    break
+        if assign_val is True:
+            f.update({d[0]:i})
+            if restrict:
+                for il in inc_labels_iter(poset,restrict,f,labels):
                     yield il
-                f.pop(i)
-    else:
-        if f not in labels:
-            labels.append(copy(f))
-            yield f
+            else:
+                if f not in labels:
+                    labels.append(copy(f))
+                    yield f
+            f.pop(d[0])
