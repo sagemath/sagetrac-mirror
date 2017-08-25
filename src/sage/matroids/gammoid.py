@@ -487,3 +487,57 @@ class Gammoid(Matroid):
                 D.add_edge(vertex, n)
             new_groundset = set(self._groundset).union([vertex])
             return Gammoid(D=D, roots=self._roots, groundset=new_groundset)
+
+    def gammoid_extensions(self, vertices=None):
+        """
+        Return an iterator of Gammoid extensions.
+
+        This will only consider extensions from vertices that are already present
+        in the digraph.
+
+        INPUT:
+
+        - ``vertices` -- (optional) a list of vertices not in the digraph
+
+        OUTPUT:
+
+        An iterator of Gammoids. If ``vertices`` is not specified, every vertex
+        not already in the ground set will be considered.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: M = Gammoid(digraphs.TransitiveTournament(5), roots=[3,4], groundset=[0,1,4])
+            sage: [sorted(M1.groundset()) for M1 in M.gammoid_extensions()]
+            [[0, 1, 2, 4], [0, 1, 3, 4]]
+            sage: N = Gammoid(digraphs.TransitiveTournament(5), roots=[3,4])
+            sage: [sorted(N1.groundset()) for N1 in N.gammoid_extensions()]
+            []
+
+        ::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: edgelist =[(i, i+1) for i in range(10)]
+            sage: M = Gammoid(DiGraph(edgelist), roots=[9], groundset=[0])
+            sage: sum(1 for M1 in M.gammoid_extensions(vertices=[3,4,5]))
+            3
+            sage: sum(1 for M1 in M.gammoid_extensions())
+            9
+            sage: set([M1.is_isomorphic(matroids.Uniform(1,2)) for M1 in M.gammoid_extensions()])
+            {True}
+            sage: len([M1 for M1 in M.gammoid_extensions([0,1,2])])
+            Traceback (most recent call last):
+            ...
+            ValueError: vertices must be in the digraph and not already in the ground set
+        """
+        free_vertices = set(self._G.vertices()).difference(self._groundset)
+        if vertices is None:
+            vertices = free_vertices
+        else:
+            vertices = set(vertices)
+            if not vertices.issubset(free_vertices):
+                raise ValueError("vertices must be in the digraph and not "
+                    + "already in the ground set")
+        for v in vertices:
+            new_groundset = self._groundset.union([v])
+            yield Gammoid(self._G, self._roots, new_groundset)
