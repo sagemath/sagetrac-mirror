@@ -111,6 +111,16 @@ class Gammoid(Matroid):
             sage: M = Gammoid(D, roots=[], groundset=[]); M
             Gammoid of rank 0 on 0 elements
 
+        ::
+
+            sage: from sage.matroids.gammoid import Gammoid
+            sage: M = Gammoid(digraphs.TransitiveTournament(5), roots=[3,4])
+            sage: TestSuite(M).run()
+            sage: TestSuite(M).run(verbose=True)
+            running ._test_category() . . . pass
+            running ._test_new() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
         """
         self._roots = frozenset(roots)
         vertices = frozenset(D.vertices())
