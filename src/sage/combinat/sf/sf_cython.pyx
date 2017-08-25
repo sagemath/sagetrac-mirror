@@ -11,7 +11,7 @@ from cpython.list cimport *
 from cpython.dict cimport *
 
 from sage.combinat.permutation_cython cimport next_perm
-from sage.combinat.partition import _Partitions
+from sage.combinat.partition import _Partitions, Partitions
 
 from sage.misc.misc_c import prod
 from sage.arith.misc import factorial
@@ -134,4 +134,32 @@ cpdef dict pmm(list mu, list nu):
         PyDict_SetItem(cp, la, Integer(c(la._list, n) * cp[la] / denom))
 
     return cp
+
+###############################################################################
+
+cdef int coeff_m_rec(list la, list mu, list nu):
+    if sum(la) == sum(mu) == sum(nu) == 0:
+        return 1
+
+    cdef int ret = 0
+    cdef int part = nu[0]
+    cdef list nu_ = nu[1:]
+    cdef int a, b, i
+    cdef list la_, mu_
+    la = la + [0]
+    mu = mu + [0]
+    for a in set(la):
+        b = part - a
+        if b in mu:
+            i = la.index(a)
+            la_ = la[:i] + la[i+1:]
+            i = mu.index(b)
+            mu_ = mu[:i] + mu[i+1:]
+            ret += coeff_m_rec(la_, mu_, nu_)
+    return ret
+
+cpdef dict compute_m_product(list la, list mu):
+    return {nu: coeff_m_rec(la, mu, list(nu)) for nu in Partitions(sum(la) + sum(mu))}
+
+###############################################################################
 
