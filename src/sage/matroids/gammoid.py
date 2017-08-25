@@ -10,6 +10,38 @@ Some authors use a reverse convention, where instead of a set `T` of roots,
 they have a starting set `S` that is linked into subsets of `E`. Here we use
 the convention that the vertices `T` are at the end of the directed paths,
 not the beginning.
+
+Construction
+============
+
+To construct a gammoid, first import Gammoid from
+:mod:`sage.matroids.gammoid`.
+A digraph and a list of roots from the vertex set are required for input.
+
+    sage: from sage.matroids.gammoid import *
+    sage: edgelist = [(0,1),(1,2),(2,3),(3,4)]
+    sage: D = DiGraph(edgelist)
+    sage: M = Gammoid(D, roots=[4]); M
+    Gammoid of rank 1 on 5 elements
+    sage: N = Gammoid(D, roots=[4], groundset=range(1,5)); N
+    Gammoid of rank 1 on 4 elements
+    sage: M.delete(0) == N
+    True
+    sage: N.is_isomorphic(matroids.Uniform(1,4))
+    True
+    sage: O = Gammoid(D, roots=[3]); O
+    Gammoid of rank 1 on 5 elements
+    sage: O.rank([0])
+    1
+    sage: O.rank([4])
+    0
+
+AUTHORS:
+
+- Zachary Gershkoff (2017-08-25): initial version
+
+Methods
+=======
 """
 from __future__ import absolute_import
 #*****************************************************************************
