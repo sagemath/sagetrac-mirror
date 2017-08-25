@@ -63,6 +63,7 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 from cpython.object cimport Py_EQ, Py_NE
 from copy import copy, deepcopy
 from collections import Counter
+from six import iteritems
 
 import networkx as nx
 
@@ -137,6 +138,16 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             Traceback (most recent call last):
             ...
             ValueError: set labels cannot be element labels
+
+        ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid([[0,1],[1,2],[2,3],[3,4]])
+            sage: TestSuite(M).run(verbose=True)
+            running ._test_category() . . . pass
+            running ._test_new() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
         """
         contents = set([e for subset in sets for e in subset])
         if groundset is None:
@@ -357,7 +368,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: hash(M1) == hash(M3)
             False
         """
-        return hash((self._E, self._sets.iteritems()))
+        return hash((self._E, iteritems(self._sets)))
 
     cpdef __translate_matching(self):
         """
