@@ -21,14 +21,16 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from copy import copy
-from sage.rings.ring import CommutativeRing
+from sage.rings.ring cimport CommutativeRing
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
 from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-class LocalGeneric(CommutativeRing):
+from sage.rings.padics.pool cimport get_pool
+
+cdef class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
         """
         Initializes self.
@@ -53,6 +55,7 @@ class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
+        self._pool_empty, self._pool = get_pool(element_class, None)
         default_category = getattr(self, '_default_category', None)
         if self.is_field():
             category = CompleteDiscreteValuationFields()
@@ -62,6 +65,15 @@ class LocalGeneric(CommutativeRing):
         if default_category is not None:
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
+
+    def pool_enable(self, size=None):
+        _, self._pool = get_pool(self.element_class, size)
+
+    def pool_disable(self):
+        self._pool = self._pool_empty
+
+    def pool(self):
+        return self._pool
 
     def is_capped_relative(self):
         """
@@ -916,4 +928,4 @@ class LocalGeneric(CommutativeRing):
             else:
                 tester.assertEqual(y.valuation(), 0)
             z = y.residue()
-            tester.assertEqual(x, z)
+            tester.assertEqual(x, z)        

@@ -1392,11 +1392,17 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.rings.padics.pool',
+              sources = ['sage/rings/padics/pool.pyx']),
+
     Extension('sage.rings.padics.morphism',
               sources = ['sage/rings/padics/morphism.pyx']),
 
     Extension('sage.rings.padics.common_conversion',
               sources = ['sage/rings/padics/common_conversion.pyx']),
+
+    Extension('sage.rings.padics.local_generic',
+              sources = ['sage/rings/padics/local_generic.pyx']),
 
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
