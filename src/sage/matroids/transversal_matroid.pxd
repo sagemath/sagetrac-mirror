@@ -10,6 +10,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     cdef list _set_labels, _sets_input, _set_labels_input
 
     cpdef sets(self)
-    cpdef __translate_matching(self)
+    cdef __translate_matching(self)
     cpdef reduce_presentation(self)
     cpdef transversal_extension(self, element=*, newset=*, sets=*)

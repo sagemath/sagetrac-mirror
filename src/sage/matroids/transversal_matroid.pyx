@@ -370,7 +370,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         return hash((self._E, iteritems(self._sets)))
 
-    cpdef __translate_matching(self):
+    cdef __translate_matching(self):
         """
         Return a Python dictionary that can be used as input in __init__().
         """
