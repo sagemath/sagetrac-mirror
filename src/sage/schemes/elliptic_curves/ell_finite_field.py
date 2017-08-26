@@ -38,7 +38,7 @@ from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
-
+from sage.graphs.graph import DiGraph
 import sage.plot.all as plot
 
 import sage.libs.pari
@@ -1342,6 +1342,69 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...
         """
         return self.points()[n]
+
+    def isogeny_graph(self, l):
+        """
+        Return the `l`-isogeny graph of `E`.
+
+        INPUT:
+
+        - `l` -- a prime number (not the characteristic of the base field)
+
+        EXAMPLE::
+
+            sage: E = EllipticCurve(GF(31),[1,2,3,4,5])
+            sage: E.isogeny_graph(5).edges()
+            [(3, 9, None), (9, 3, None)]
+            sage: E = EllipticCurve(GF(5081),[3290,3887])
+            sage: E.isogeny_graph(5).edges()
+            [(478, 794, None),
+             (531, 3959, None),
+             (711, 2483, None),
+             (794, 478, None),
+             (794, 1223, None),
+             (794, 2919, None),
+             (794, 3431, None),
+             (794, 4700, None),
+             (794, 4888, None),
+             (820, 1986, None),
+             (820, 2285, None),
+             (820, 2467, None),
+             (820, 2919, None),
+             (820, 3413, None),
+             ...
+             (4996, 3959, None)]
+
+        TESTS::
+
+            sage: E.isogeny_graph(5081).edges()
+            Traceback (most recent call last):
+            ...
+            ValueError: l must not be equal to the characteristic
+        """
+        if not l.is_prime():
+            raise ValueError("l has to be prime")
+
+        if l == self.base_field().characteristic():
+            raise ValueError('l must not be equal to the characteristic')
+
+        X, j = PolynomialRing(self.base_field(), 'X,j').gens()
+        mod_pol = sage.modular.ssmod.ssmod.Phi_polys(l, X, j)
+        x = polygen(self.base_field(), 'x')
+        G = DiGraph(sparse=True, multiedges=True, loops=True)
+        already_visited = []
+
+        def recurse_loop(j):
+            if j in already_visited:
+                return
+            already_visited.append(j)
+
+            for (r, m) in mod_pol(X=x, j=j).roots():
+                G.add_edges([(r, j)] * m)
+                recurse_loop(r)
+
+        recurse_loop(self.j_invariant())
+        return G
 
     @cached_method
     def abelian_group(self, debug=False):
