@@ -55,21 +55,25 @@ cdef class Pool:
 cdef inline PY_NEW_WITH_POOL(type t, Pool pool):
     cdef PyObject* o
     if pool.allocated > 0:
+        #print("reuse")
         pool.allocated -= 1
         o = pool.elements[pool.allocated]
         o.ob_refcnt = 0
         return <object>o
     else:
+        #print("create")
         return (<PyTypeObject*>t).tp_new(t, <object>NULL, <object>NULL)
 
 
 cdef void tp_dealloc(PyObject* o):
     cdef Pool pool = (<LocalGeneric>(<LocalGenericElement>o)._parent)._pool
     if pool.allocated < pool.size:
+        #print("add to pool")
         o.ob_refcnt = 1
         pool.elements[pool.allocated] = o
         pool.allocated += 1
     else:
+        #print("dealloc")
         pool.save_tp_dealloc(o)
 
 

@@ -75,6 +75,9 @@ cdef inline int assert_nonzero(CRElement x) except -1:
         raise PrecisionError("cannot divide by something indistinguishable from zero.")
 
 cdef class CRElement(pAdicTemplateElement):
+    def __cinit__(self):
+        cconstruct(self.unit, self.prime_pow)
+
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
         """
         Sets the value of this element from given defining data.
@@ -136,7 +139,6 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(S(17, 5)) #indirect doctest
             2 + 3*5 + O(5^5)
         """
-        cconstruct(self.unit, self.prime_pow)
         cdef long rprec = comb_prec(relprec, self.prime_pow.prec_cap)
         cdef long aprec = comb_prec(absprec, xprec)
         if aprec <= val: # this may also hit an exact zero, if aprec == val == maxordp
@@ -191,7 +193,6 @@ cdef class CRElement(pAdicTemplateElement):
         cdef CRElement ans = PY_NEW_WITH_POOL(t, (<LocalGeneric>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
-        cconstruct(ans.unit, ans.prime_pow)
         return ans
 
     cdef int check_preccap(self) except -1:
