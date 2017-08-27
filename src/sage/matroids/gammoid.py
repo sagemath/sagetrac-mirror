@@ -16,7 +16,7 @@ Construction
 
 To construct a gammoid, first import Gammoid from
 :mod:`sage.matroids.gammoid`.
-A digraph and a list of roots from the vertex set are required for input.
+A digraph and a list of roots from the vertex set are required for input::
 
     sage: from sage.matroids.gammoid import *
     sage: edgelist = [(0,1),(1,2),(2,3),(3,4)]
@@ -529,7 +529,7 @@ class Gammoid(Matroid):
 
         INPUT:
 
-        - ``vertices` -- (optional) a list of vertices not in the digraph
+        - ``vertices`` -- (optional) a list of vertices not in the digraph
 
         OUTPUT:
 
