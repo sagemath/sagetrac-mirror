@@ -43,7 +43,7 @@ from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
 
 from sage.rings.padics.local_generic cimport LocalGeneric
-from sage.rings.padics.pool cimport PY_NEW_WITH_POOL
+from sage.rings.padics.pool cimport PY_NEW_FROM_POOL
 
 
 cdef inline bint exactzero(long ordp):
@@ -190,7 +190,7 @@ cdef class CRElement(pAdicTemplateElement):
             2 + 3*5 + 5^2 + O(5^5)
         """
         cdef type t = type(self)
-        cdef CRElement ans = PY_NEW_WITH_POOL(t, (<LocalGeneric>self._parent)._pool)
+        cdef CRElement ans = PY_NEW_FROM_POOL((<LocalGeneric>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         return ans

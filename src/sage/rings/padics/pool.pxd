@@ -15,8 +15,8 @@ cdef class Pool:
     cdef Pool new_enabled(self)
 
 
-cdef PY_NEW_WITH_POOL(type, Pool)
+cdef PY_NEW_FROM_POOL(Pool)
 
-cdef pool_disabled(type)
-cdef pool_enabled(Pool, long, bint)
+cdef pool_disabled(type t)
+cdef pool_enabled(Pool pool, length, bint is_global)
 
