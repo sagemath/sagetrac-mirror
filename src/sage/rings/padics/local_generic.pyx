@@ -28,7 +28,7 @@ from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.rings.padics.pool cimport get_pool
+from sage.rings.padics.pool cimport pool_disabled, pool_enabled
 
 cdef class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
@@ -55,7 +55,8 @@ cdef class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
-        self._pool_empty, self._pool = get_pool(element_class, None)
+        self._pool_disabled = pool_disabled(<type>element_class)
+        self._pool = pool_enabled(self._pool_disabled, 0, 1)
         default_category = getattr(self, '_default_category', None)
         if self.is_field():
             category = CompleteDiscreteValuationFields()
@@ -66,11 +67,11 @@ cdef class LocalGeneric(CommutativeRing):
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
 
-    def pool_enable(self, size=None):
-        _, self._pool = get_pool(self.element_class, size)
+    def pool_enable(self, size=0):
+        self._pool = pool_enabled(self._pool_disabled, size, 1)
 
     def pool_disable(self):
-        self._pool = self._pool_empty
+        self._pool = self._pool_disabled
 
     def pool(self):
         return self._pool

@@ -3,18 +3,20 @@ from cpython.object cimport PyObject, PyTypeObject, destructor
 cdef class Pool:
     cdef object __weakref__
 
-    cdef PyObject** elements
     cdef bint enabled
+    cdef PyTypeObject* type
+
+    cdef PyObject** elements
     cdef long size
     cdef long allocated
 
-    cdef PyTypeObject* type
     cdef destructor save_tp_dealloc
 
-    cdef Pool _new(self)
+    cdef Pool new_enabled(self)
 
 
-cdef PY_NEW_WITH_POOL(type t, Pool pool)
+cdef PY_NEW_WITH_POOL(type, Pool)
 
-cdef get_pool(t, size)
-  
+cdef pool_disabled(type)
+cdef pool_enabled(Pool, long, bint)
+
