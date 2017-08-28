@@ -1061,9 +1061,9 @@ AS_IF([test x$srcdir != x.],
 	    done
 	    cat > sage <<EOF
 #!/usr/bin/env bash
-SAGE_ROOT=$SAGE_ROOT
+SAGE_ROOT="$SAGE_ROOT"
 export SAGE_ROOT
-exec "$SAGE_SRC_ROOT/src/bin/sage" "$@"
+exec "$SAGE_SRC_ROOT/src/bin/sage" "\@S|@@"
 EOF
 	    chmod +x sage
 	    sed "s|^top_srcdir =.*|top_srcdir = $SAGE_SRC_ROOT|" $srcdir/Makefile > Makefile
