@@ -196,8 +196,10 @@ fi
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
     if [ -n "$SAGE_LOCAL" ] && [ -f "$SAGE_LOCAL/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
+        SAGE_SRC_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
+        SAGE_SRC_SCRIPTS_DIR="$SAGE_SRC_ROOT/src/bin"
     else
         echo >&2 "Error: You must set either the SAGE_LOCAL or SAGE_SCRIPTS_DIR environment variable to run this"
         return 1
@@ -484,7 +486,7 @@ fi
 # Whenever a flag like SAGE64 has been set once, it needs to be
 # restored in every run of sage, as mixing 64-bit and 32-bit code is
 # bad idea at best.  This script takes care of that.
-. "$SAGE_SCRIPTS_DIR/sage-arch-env"
+. "$SAGE_SRC_SCRIPTS_DIR/sage-arch-env"
 
 ############ compilation flags
 
