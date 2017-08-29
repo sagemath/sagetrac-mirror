@@ -65,7 +65,9 @@ from __future__ import print_function, absolute_import
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
+import six
 import types
+
 
 def is_lazy_string(obj):
     """
@@ -139,6 +141,7 @@ def _make_lazy_string(ftype, fpickle, args, kwargs):
     else:
         f = fpickle
     return _LazyString(f, args, kwargs)
+
 
 cdef class _LazyString(object):
     """
@@ -328,13 +331,14 @@ cdef class _LazyString(object):
         """
         EXAMPLES::
 
+            sage: import six
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda: "laziness"
             sage: s = lazy_string(f)
-            sage: unicode(s) # indirect doctest
+            sage: six.u(s) # indirect doctest
             u'laziness'
         """
-        return unicode(self.val())
+        return six.u(self.val())
 
     def __add__(self, other):
         """
