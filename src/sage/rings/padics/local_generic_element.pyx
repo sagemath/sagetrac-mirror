@@ -25,6 +25,8 @@ from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
 
+from sage.rings.padics.pool cimport PY_NEW_FROM_POOL
+
 cdef class LocalGenericElement(CommutativeRingElement):
     #cpdef _add_(self, right):
     #    raise NotImplementedError
@@ -795,6 +797,43 @@ cdef class LocalGenericElement(CommutativeRingElement):
             return (self.parent().zero(), self)
         return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
                  self.parent().zero() )
+
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` and
+        ``cls.__new__(cls, parent)`` do not crash Python,
+        where ``cls = type(self)`` and ``parent = parent(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: p = Parent()
+            sage: e = Element(p)
+            sage: e._test_new()
+        """
+        cdef type cls = type(self)
+        cdef LocalGenericElement elt
+        try:
+            elt = cls.__new__(cls)
+            # Setting the parent is needed for pool mecanism
+            elt._parent = self._parent
+        except Exception:
+            pass
+        try:
+            elt = cls.__new__(cls, self._parent)
+            # Setting the parent is needed for pool mecanism
+            elt._parent = self._parent
+        except Exception:
+            pass
+        try:
+            elt = PY_NEW_FROM_POOL(self._parent._pool)
+            # Setting the parent is needed for pool mecanism
+            elt._parent = self._parent
+        except Exception:
+            pass
 
     def _test_trivial_powers(self, **options):
         r"""
