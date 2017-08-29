@@ -235,7 +235,7 @@ doc-pdf: $(DOC_DEPENDENCIES)
 doc-clean: doc-src-clean doc-output-clean
 
 doc-src-clean:
-	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+	cd "$(SAGE_SRC_ROOT)/src/doc" && $(MAKE) clean
 
 doc-output-clean:
 	rm -rf "$(SAGE_SHARE)/doc/sage"
