@@ -175,7 +175,9 @@ sagelib: \
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC_ROOT)/src/bin/%
 	$(AM_V_at)cp $< $@
 
-$(SAGE_LOCAL)/bin/sage-env-config: $(SAGE_SRC)/bin/sage-env-config
+SCRIPTS += $(SAGE_LOCAL)/bin/sage-env-config
+
+$(SAGE_LOCAL)/bin/sage-env-config: $(SAGE_ROOT)/src/bin/sage-env-config
 	$(AM_V_at)cp $< $@
 
 # Don't just use "install -D" since we don't want to change permissions.

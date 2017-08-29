@@ -885,11 +885,6 @@ done || exit 1
 echo >&7
 echo >&7
 
-
-# We need sage-env-config to exist before running this.
-# TODO: fix this in Trac #21524
-touch "$SAGE_ROOT/src/bin/sage-env-config"
-
 echo >&7 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
     # Skip files with ".in" extension
