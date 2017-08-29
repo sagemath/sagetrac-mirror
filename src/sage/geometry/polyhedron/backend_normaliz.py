@@ -303,11 +303,11 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: sorted(set(p.Hrepresentation()), key = str)       # optional - pynormaliz
+            sage: sorted(set(p.Hrepresentation()), key=str)         # optional - pynormaliz
             [An inequality (-5, 12) x + 10 >= 0,
              An inequality (1, -12) x + 6 >= 0,
              An inequality (1, 4) x - 2 >= 0]
-            sage: sorted(set(p.Vrepresentation()), key = str)       # optional - pynormaliz
+            sage: sorted(set(p.Vrepresentation()), key=str)         # optional - pynormaliz
             [A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6)]
 
         """
