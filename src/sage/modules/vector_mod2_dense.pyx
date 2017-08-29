@@ -194,14 +194,15 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
                 raise TypeError("x must be a list of the right length")
             for i in range(len(x)):
                 xi = x[i]
-                if isinstance(xi, (IntegerMod_int, int, long, Integer)):
-                    # the if/else statement is because in some compilers, (-1)%2 is -1
-                    mzd_write_bit(self._entries, 0, i, 1 if xi%2 else 0)
-                elif isinstance(xi, Rational):
+                if isinstance(xi, Rational):
                     if not (xi.denominator() % 2):
-                        raise ZeroDivisionError("inverse does not exist")
+                        raise ZeroDivisionError("Inverse does not exist")
                     mzd_write_bit(self._entries, 0, i, 1 if (xi.numerator() % 2) else 0)
                 else:
+                    if isinstance(xi, IntegerMod_int):
+                        # IntegerMod_int.__mod__() is pretty slow. Calculating
+                        # the mod using a Python int object is much faster
+                        xi = int(xi)
                     mzd_write_bit(self._entries, 0, i, xi%2)
         elif x != 0:
             raise TypeError("can't initialize vector from nonzero non-list")
