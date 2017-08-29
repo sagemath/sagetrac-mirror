@@ -182,7 +182,7 @@ $(SAGE_LOCAL)/bin/sage-env-config: $(SAGE_SRC)/bin/sage-env-config
 # cp won't correctly setup the SAGE_EXTCODE directory structure
 # (unlike install), so we need a mkdir here such that cp can copy into
 # an existing folder.
-$(SAGE_EXTCODE)/%: $(SAGE_SRC_ROOT)/src/ext/%
+$(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 	@mkdir -p "$(@D)"
 	$(AM_V_at)cp $< $@
 
@@ -235,7 +235,7 @@ doc-pdf: $(DOC_DEPENDENCIES)
 doc-clean: doc-src-clean doc-output-clean
 
 doc-src-clean:
-	cd "$(SAGE_SRC_ROOT)/src/doc" && $(MAKE) clean
+	cd "$(SAGE_ROOT)/src/doc" && $(MAKE) -f $(SAGE_SRC)/doc/Makefile clean
 
 doc-output-clean:
 	rm -rf "$(SAGE_SHARE)/doc/sage"
