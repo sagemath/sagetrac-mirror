@@ -129,6 +129,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
 
+from sage.structure.pool cimport pool_disabled, pool_enabled
+
 
 cdef _record_exception():
     coercion_model._record_exception()
@@ -201,7 +203,7 @@ cdef inline bint good_as_convert_domain(S):
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
     def __init__(self, base=None, *, category=None, element_constructor=None,
-                 names=None, normalize=True, facade=None, **kwds):
+                 names=None, normalize=True, facade=None, pool=False, **kwds):
         """
         Base class for all parents.
 
@@ -235,6 +237,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
           punctuation, etc)
 
         - ``facade`` -- a parent, or tuple thereof, or ``True``
+
+        - ``pool`` -- a boolean (default: False), whether a pool
+          should be supported for this parent
 
         If ``facade`` is specified, then ``Sets().Facade()`` is added
         to the categories of the parent. Furthermore, if ``facade`` is
@@ -315,6 +320,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             self._element_constructor = element_constructor
             self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
         self.init_coerce(False)
+
+        # We activate the pool
+        # Be very careful: two parents sharing the same element class
+        # must either both activate or both desactivate the pool
+        if pool:
+            if self.element_class is None:
+                raise TypeError("element_class must be set in order to activate the pool")
+            self._pool_disabled = self._pool = pool_disabled(<type>self.element_class)
 
         for cls in self.__class__.mro():
             # this calls __init_extra__ if it is *defined* in cls (not in a super class)
@@ -1027,6 +1040,144 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if switch:
             return _mul_(self,switch_sides=True)
         return _mul_(x)
+
+
+    #############################################################################
+    # Pool
+    #############################################################################
+
+    def pool_enable(self, length=None, is_global=True):
+        """
+        Enable pool for elements with this parent
+
+        INPUT:
+
+        - `length` -- an integer or `None` (default: `None`)
+          the length of the pool; if none, a default length is used
+
+        - `is_global` -- boolean (default: True)
+          whether the pool is global (i.e. shared with other parents
+          whose elements are handled by the same class)
+
+        NOTE:
+
+        A pool is used to improved performances.
+        This works as follows. When an element is collected
+        by the garbage collected, it is not deleted from memory but
+        pushed to the pool (except if the pool is full). On the other
+        hand, when a new element (with the same parent) is requested
+        for creation, the system checks if there are some available
+        elements in the pool. If there is one, it is returned and,
+        of course, removed from the pool. Otherwise, a new element
+        is created.
+
+        The pool is enabled and global by default.
+
+        EXAMPLES::
+            sage: R = Zp(3)
+            sage: R.pool_enable()
+            sage: R.pool()
+            Pool of ... elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+
+        We check performances::
+
+            sage: x = R.random_element()
+            sage: y = R.random_element()
+            sage: timeit("z = x + y")   # somewhat random
+            625 loops, best of 3: 193 ns per loop
+
+            sage: R.pool_disable()
+            sage: timeit("z = x + y")   # somewhat random
+            625 loops, best of 3: 390 ns per loop
+
+        We check the pools are global::
+
+            sage: S = Zp(5)
+            sage: S.pool_enable()
+            sage: S.pool() is R.pool()
+            True
+
+        We can nevertheless enable a local pool (local to this parent)::
+
+            sage: S.pool_enable(is_global=False)
+            sage: S.pool() is R.pool()
+            False
+        """
+        if self._pool_disabled is None:
+            raise TypeError("pool is not supported for this parent")
+        self._pool = pool_enabled(self._pool_disabled, length, is_global)
+
+    def pool_disable(self):
+        """
+        Disable pool for elements with this parent
+
+        EXAMPLES::
+
+            sage: R = Zp(3)
+            sage: R.disable_pool()
+            sage: R.pool()
+            Disabled pool of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+        """
+        if self._pool_disabled is None:
+            raise TypeError("pool is not supported for this parent")
+        self._pool = self._pool_disabled
+
+    def pool(self):
+        """
+        Return the pool handling the creation/deletion of elements
+        with this parent
+
+        EXAMPLES::
+
+            sage: R = Zp(3)
+            sage: R.enable_pool()
+            sage: R.pool()
+            Pool of ... elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+
+        The pool is an actual object and can be accessed through several
+        methods::
+
+            sage: pool = R.pool()
+            sage: pool.length()
+            100
+            sage: pool.usage()   # somewhat random
+            37
+        The length of the pool is the maximal number of elements which can
+        be stored in it. The usage of the pool is the number of element
+        which are currently actually stored.
+
+        The pool can be resized::
+
+            sage: pool.resize(500)
+            sage: pool.length()
+            500
+
+        or cleared (note that this does not affect the length)::
+
+            sage: pool.clear()
+            sage: pool.usage()
+            0
+            sage: pool.length()
+            500
+
+        or set for automatic resizing as follows::
+
+            sage: pool.automatic_resize()
+
+        This option ensures that when the pool is full, it is
+        automatically resized by doubling its length. If enabled,
+        this implies that collected elements of this parent are
+        never deallocated (i.e. they always stay in memory) except
+        after an explicit call to the method :meth:`clear`.
+
+        This option is disabled as follows::
+
+            sage: pool.automatic_resize(False)
+        """
+        if self._pool_disabled is None:
+            raise TypeError("pool is not supported for this parent")
+        return self._pool
+
 
     #############################################################################
     # Containment testing

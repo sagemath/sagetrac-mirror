@@ -21,16 +21,15 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from copy import copy
-from sage.rings.ring cimport CommutativeRing
+from sage.rings.ring import CommutativeRing
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
 from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.rings.padics.pool cimport pool_disabled, pool_enabled
 
-cdef class LocalGeneric(CommutativeRing):
+class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
         """
         Initializes self.
@@ -55,8 +54,6 @@ cdef class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
-        self._pool_disabled = pool_disabled(<type>element_class)
-        self._pool = pool_enabled(self._pool_disabled, None, 1)
         default_category = getattr(self, '_default_category', None)
         if self.is_field():
             category = CompleteDiscreteValuationFields()
@@ -65,135 +62,8 @@ cdef class LocalGeneric(CommutativeRing):
         category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
-        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
-
-    def pool_enable(self, length=None, is_global=True):
-        """
-        Enable pool for elements with this parent
-
-        INPUT:
-
-        - `length` -- an integer or `None` (default: `None`)
-          the length of the pool; if none, a default length is used
-
-        - `is_global` -- boolean (default: True)
-          whether the pool is global (i.e. shared with other parents
-          whose elements are handled by the same class)
-
-        NOTE:
-
-        A pool is used to improved performances.
-        This works as follows. When an element is collected
-        by the garbage collected, it is not deleted from memory but
-        pushed to the pool (except if the pool is full). On the other
-        hand, when a new element (with the same parent) is requested
-        for creation, the system checks if there are some available
-        elements in the pool. If there is one, it is returned and,
-        of course, removed from the pool. Otherwise, a new element
-        is created.
-
-        The pool is enabled and global by default.
-
-        EXAMPLES::
-
-            sage: R = Zp(3)
-            sage: R.pool_enable()
-            sage: R.pool()
-            Pool of ... elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
-
-        We check performances::
-
-            sage: x = R.random_element()
-            sage: y = R.random_element()
-            sage: timeit("z = x + y")   # somewhat random
-            625 loops, best of 3: 193 ns per loop
-
-            sage: R.pool_disable()
-            sage: timeit("z = x + y")   # somewhat random
-            625 loops, best of 3: 390 ns per loop
-
-        We check the pools are global::
-
-            sage: S = Zp(5)
-            sage: S.pool_enable()
-            sage: S.pool() is R.pool()
-            True
-
-        We can nevertheless enable a local pool (local to this parent)::
-
-            sage: S.pool_enable(is_global=False)
-            sage: S.pool() is R.pool()
-            False
-        """
-        self._pool = pool_enabled(self._pool_disabled, length, is_global)
-
-    def pool_disable(self):
-        """
-        Disable pool for elements with this parent
-
-        EXAMPLES::
-
-            sage: R = Zp(3)
-            sage: R.disable_pool()
-            sage: R.pool()
-            Disabled pool of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
-        """
-        self._pool = self._pool_disabled
-
-    def pool(self):
-        """
-        Return the pool handling the creation/deletion of elements 
-        with this parent
-
-        EXAMPLES::
-
-            sage: R = Zp(3)
-            sage: R.enable_pool()
-            sage: R.pool()
-            Pool of ... elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
-
-        The pool is an actual object and can be accessed through several 
-        methods::
-
-            sage: pool = R.pool()
-            sage: pool.length()
-            100
-            sage: pool.usage()   # somewhat random
-            37
-
-        The length of the pool is the maximal number of elements which can 
-        be stored in it. The usage of the pool is the number of element 
-        which are currently actually stored.
-
-        The pool can be resized::
-
-            sage: pool.resize(500)
-            sage: pool.length()
-            500
-
-        or cleared (note that this does not affect the length)::
-
-            sage: pool.clear()
-            sage: pool.usage()
-            0
-            sage: pool.length()
-            500
-
-        or set for automatic resizing as follows::
-
-            sage: pool.automatic_resize()
-
-        This option ensures that when the pool is full, it is 
-        automatically resized by doubling its length. If enabled,
-        this implies that collected elements of this parent are
-        never deallocated (i.e. they always stay in memory) except
-        after an explicit call to the method :meth:`clear`.
-
-        This option is disabled as follows::
-
-            sage: pool.automatic_resize(False)
-        """
-        return self._pool
+        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class, pool=True)
+        self.pool_enable()
 
     def is_capped_relative(self):
         """

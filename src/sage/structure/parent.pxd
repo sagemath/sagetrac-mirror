@@ -9,6 +9,8 @@
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
+from sage.structure.pool cimport Pool
+
 cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef public _element_constructor
     cdef public _convert_method_name
@@ -17,6 +19,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef public _initial_action_list
     cdef public _initial_convert_list
     cdef readonly bint _coercions_used
+
+    # Pool variables
+    cdef Pool _pool_disabled
+    cdef Pool _pool_enabled
 
     # Flags, see below
     cdef int flags

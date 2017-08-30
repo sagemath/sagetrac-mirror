@@ -16,6 +16,9 @@ numbers), the bottleneck is often the creation/deletion of
 instances of the corresponding classes. Therefore, having a
 pool can improve drastically the performances.
 
+Parents that wants to benefit of pool features should derive
+from the class :class:`ParentWithPool`.
+
 EXAMPLES::
 
     sage: R = Zp(3)
@@ -37,10 +40,8 @@ import _weakref
 from cpython.object cimport PyObject, PyTypeObject, destructor
 from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
-from sage.rings.padics.local_generic cimport LocalGeneric
-from sage.rings.padics.local_generic_element cimport LocalGenericElement
-
-from sage.rings.integer_ring import ZZ
+from sage.structure.parent cimport Parent
+from sage.structure.element cimport Element
 
 
 cdef long DEFAULT_POOL_LENGTH = 100
@@ -175,6 +176,7 @@ cdef class Pool:
             sage: R.pool().length()
             100
         """
+        from sage.rings.integer_ring import ZZ
         return ZZ(self.size)
 
     def usage(self):
@@ -195,6 +197,7 @@ cdef class Pool:
             sage: R.pool().usage()
             1
         """
+        from sage.rings.integer_ring import ZZ
         return ZZ(self.allocated)
 
     def resize(self, length=None):
@@ -350,7 +353,7 @@ cdef void tp_dealloc(PyObject* o):
     This function must not be called manually (even in Cython code).
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<LocalGeneric>(<LocalGenericElement>o)._parent)._pool
+    cdef Pool pool = (<Parent>(<Element>o)._parent)._pool
     if pool.allocated < pool.size:
         #print("add to pool")
         o.ob_refcnt = 1
@@ -379,7 +382,7 @@ cdef void tp_dealloc_with_resize(PyObject* o):
     This function must not be called manually. 
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<LocalGeneric>(<LocalGenericElement>o)._parent)._pool
+    cdef Pool pool = (<Parent>(<Element>o)._parent)._pool
     if pool.allocated >= pool.size:
         pool.resize()
     #print("add to pool")
