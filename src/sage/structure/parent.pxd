@@ -20,10 +20,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef public _initial_convert_list
     cdef readonly bint _coercions_used
 
-    # Pool variables
-    cdef Pool _pool_disabled
-    cdef Pool _pool
-
     # Flags, see below
     cdef int flags
     cdef inline bint get_flag(self, int flag):
@@ -103,6 +99,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef MonoDict _convert_from_hash
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
+
+    # Pool variables
+    cdef Pool _pool_disabled
+    cdef Pool _pool
 
 # Flags for Parent.flags
 cdef enum:
