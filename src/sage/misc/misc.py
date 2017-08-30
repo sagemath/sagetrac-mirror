@@ -50,7 +50,6 @@ import sage.misc.prandom as random
 import warnings
 from .lazy_string import lazy_string
 
-
 from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
@@ -128,6 +127,24 @@ def SAGE_TMP():
     sage_makedirs(d)
     return d
 
+
+@lazy_string
+def ECL_TMP():
+    """
+    Temporary directory that should be used by ECL interfaces launched from
+    Sage.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import ECL_TMP
+        sage: ECL_TMP
+        l'.../temp/.../ecl'
+    """
+    d = os.path.join(str(SAGE_TMP), 'ecl')
+    sage_makedirs(d)
+    return d
+
+
 @lazy_string
 def SPYX_TMP():
     """
@@ -137,7 +154,8 @@ def SPYX_TMP():
         sage: SPYX_TMP
         l'.../temp/.../spyx'
     """
-    return os.path.join(SAGE_TMP, 'spyx')
+    return os.path.join(str(SAGE_TMP), 'spyx')
+
 
 @lazy_string
 def SAGE_TMP_INTERFACE():
@@ -148,7 +166,7 @@ def SAGE_TMP_INTERFACE():
         sage: SAGE_TMP_INTERFACE
         l'.../temp/.../interface'
     """
-    d = os.path.join(SAGE_TMP, 'interface')
+    d = os.path.join(str(SAGE_TMP), 'interface')
     sage_makedirs(d)
     return d
 
