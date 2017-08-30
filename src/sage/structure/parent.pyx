@@ -129,7 +129,13 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
 
+from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
 from sage.structure.pool cimport pool_disabled, pool_enabled
+
+
+cpdef idrc(o):
+    return "id=%s, refcnt=%s" % (id(<object>o), (<PyObject*>o).ob_refcnt)
+
 
 
 cdef _record_exception():
@@ -202,6 +208,12 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
+    def __dealloc__(self):
+        print("dealloc parent: %s" % id(self))
+        if self._pool_disabled is not None:
+            Py_DECREF(self._pool)
+            Py_DECREF(self._pool_disabled)
+
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  names=None, normalize=True, facade=None, pool=False, **kwds):
         """
@@ -328,6 +340,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if self.element_class is None:
                 raise TypeError("element_class must be set in order to activate the pool")
             self._pool_disabled = self._pool = pool_disabled(<type>self.element_class)
+            Py_INCREF(self._pool_disabled)
+            Py_INCREF(self._pool)
+            print("Pool disabled: %s" % idrc(self._pool_disabled))
+            print("Pool: %s" % idrc(self._pool))
 
         for cls in self.__class__.mro():
             # this calls __init_extra__ if it is *defined* in cls (not in a super class)
@@ -1104,7 +1120,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         if self._pool_disabled is None:
             raise TypeError("pool is not supported for this parent")
+        Py_DECREF(self._pool)
         self._pool = pool_enabled(self._pool_disabled, length, local)
+        Py_INCREF(self._pool)
 
     def pool_disable(self):
         """
@@ -1119,7 +1137,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         if self._pool_disabled is None:
             raise TypeError("pool is not supported for this parent")
+        Py_DECREF(self._pool)
         self._pool = self._pool_disabled
+        Py_INCREF(self._pool)
 
     def pool(self):
         """

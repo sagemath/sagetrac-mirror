@@ -350,6 +350,7 @@ cdef class Pool:
         """
         Deallocate this pool
         """
+        print "dealloc pool %s" % id(self)
         self.clear()
         if self.elements != NULL:
             sig_free(self.elements)
@@ -404,17 +405,14 @@ cdef void tp_dealloc(PyObject* o):
     This function must not be called manually (even in Cython code).
     It is called automatically by Python when the object `o` is collected.
     """
-    print "Pointer to object: %s" % <uintptr_t>o
-    cdef Parent parent = (<Element?>o)._parent
-    print "Pointer to parent: %s" % <uintptr_t>(<PyObject*>parent)
-    if parent is None:
-        print "ARGH"
-        return
+    cdef Parent parent = (<Element>o)._parent
+    print("id(parent) = %s" % id(parent))
     cdef Pool pool = parent._pool
-    print "Pointer to pool: %s" % <uintptr_t>(<PyObject*>pool)
+    print("id(pool) = %s" % id(pool))
     if pool.allocated < pool.size:
         #print("add to pool")
         o.ob_refcnt = 1
+        (<Element>o)._parent = None
         pool.elements[pool.allocated] = o
         pool.allocated += 1
     else:

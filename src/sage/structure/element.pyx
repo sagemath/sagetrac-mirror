@@ -372,6 +372,9 @@ cdef class Element(SageObject):
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
+    def __dealloc__(self):
+        print("dealloc element: %s" % id(self))
+
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass
