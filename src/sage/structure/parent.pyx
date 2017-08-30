@@ -1071,8 +1071,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         of course, removed from the pool. Otherwise, a new element
         is created.
 
-        The pool is enabled and global by default.
-
         EXAMPLES::
             sage: R = Zp(3)
             sage: R.pool_enable()
