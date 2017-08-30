@@ -5,7 +5,7 @@ from sage.structure.parent cimport Parent
 cdef class Pool:
     cdef object __weakref__
 
-    cdef bint enabled
+    cdef Pool disabled
     cdef PyTypeObject* type
 
     cdef PyObject** elements

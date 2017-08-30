@@ -1046,7 +1046,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # Pool
     #############################################################################
 
-    def pool_enable(self, length=None, is_global=True):
+    def pool_enable(self, length=None, local=False):
         """
         Enable pool for elements with this parent
 
@@ -1055,9 +1055,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         - `length` -- an integer or `None` (default: `None`)
           the length of the pool; if none, a default length is used
 
-        - `is_global` -- boolean (default: True)
-          whether the pool is global (i.e. shared with other parents
-          whose elements are handled by the same class)
+        - `local` -- boolean (default: False)
+          whether the pool is local to this parent or global (i.e. 
+          shared with other parents whose elements are handled by 
+          the same class)
 
         NOTE:
 
@@ -1097,13 +1098,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         We can nevertheless enable a local pool (local to this parent)::
 
-            sage: S.pool_enable(is_global=False)
+            sage: S.pool_enable(local=True)
             sage: S.pool() is R.pool()
             False
         """
         if self._pool_disabled is None:
             raise TypeError("pool is not supported for this parent")
-        self._pool = pool_enabled(self._pool_disabled, length, is_global)
+        self._pool = pool_enabled(self._pool_disabled, length, local)
 
     def pool_disable(self):
         """

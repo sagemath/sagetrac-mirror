@@ -1,3 +1,5 @@
+from libc.stdint cimport uintptr_t
+
 """
 This module implements pools for Sage elements.
 
@@ -59,7 +61,7 @@ cdef class Pool:
 
         By default the pool is empty and disabled.
 
-        This method should not be called directly.
+        This method must not be called directly.
         Instead use the functions :func:`pool_enabled` and
         :func:`pool_disabled` which serve as factory. They
         in particular prevent the creation of many disabled
@@ -68,7 +70,6 @@ cdef class Pool:
         self.type = <PyTypeObject*>t
         self.save_tp_dealloc = self.type.tp_dealloc
         self.type.tp_dealloc = &tp_dealloc
-        self.enabled = 0
 
     def __repr__(self):
         """
@@ -79,10 +80,10 @@ cdef class Pool:
             sage: R.pool()   # indirect doctest
             Pool of ... elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
         """
-        if self.enabled:
-            s = "Pool of %s elements of type " % self.allocated
-        else:
+        if self.disabled is None:
             s = "Disabled pool of type "
+        else:
+            s = "Pool of %s elements of type " % self.allocated
         s += str(<type>self.type)[7:-2]
         return s
 
@@ -95,7 +96,10 @@ cdef class Pool:
         """
         cdef Pool pool = Pool(<type>self.type)
         pool.save_tp_dealloc = self.save_tp_dealloc
-        pool.enabled = 1
+        if self.disabled is None:
+            pool.disabled = self
+        else:
+            pool.disabled = self.disabled
         return pool
 
     def automatic_resize(self, enable=True):
@@ -157,10 +161,10 @@ cdef class Pool:
             ValueError: this pool is disabled
         """
         if enable:
-            if self.enabled:
-                self.type.tp_dealloc = &tp_dealloc_with_resize
-            else:
+            if self.disabled is None:
                 raise ValueError("this pool is disabled")
+            else:
+                self.type.tp_dealloc = &tp_dealloc_with_resize
         else:
             self.type.tp_dealloc = &tp_dealloc
 
@@ -199,6 +203,49 @@ cdef class Pool:
         """
         from sage.rings.integer_ring import ZZ
         return ZZ(self.allocated)
+
+    def is_local(self):
+        """
+        Return whether this pool is local (i.e. only used for
+        one parent) or global (i.e. shared with all parents
+        having the same element class).
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: R.pool_enable()
+
+        By default, the pool is global::
+
+            sage: R.pool().is_local()
+            False
+
+        We can create a local pool as follows::
+
+            sage: R.pool_enable(local=True)
+            sage: R.pool()   # we get here a newly created empty pool
+            Pool of 0 elements of type sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+            sage: R.pool().is_local()
+            True
+
+        and we reactive a global pool as follows::
+
+            sage: R.pool_enable()
+            sage: R.pool().is_local()
+            False
+
+        Note that the latter global pool might be different from the 
+        former if the former has been garbage collected in the meanwhile.
+        """
+        cdef type t = <type>self.type
+        cdef dict d
+        if self.disabled is None:
+            d = pools_disabled
+        else:
+            d = pools_enabled
+        if not d.has_key(t):
+            return True
+        return not(_weakref.ref(self) == d[t])
 
     def resize(self, length=None):
         """
@@ -249,7 +296,7 @@ cdef class Pool:
             ValueError: this pool is disabled
         """
         cdef long size
-        if not self.enabled:
+        if self.disabled is None:
             raise ValueError("this pool is disabled")
         if length is None:
             size = 2 * self.size 
@@ -306,6 +353,10 @@ cdef class Pool:
         self.clear()
         if self.elements != NULL:
             sig_free(self.elements)
+        if self.disabled is None:
+            # We reintroduce the standard deallocating function
+            # if there are still alive objects of this type
+            self.type.tp_dealloc = self.save_tp_dealloc
 
 
 cdef inline PY_NEW_FROM_POOL(Pool pool):
@@ -353,7 +404,14 @@ cdef void tp_dealloc(PyObject* o):
     This function must not be called manually (even in Cython code).
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<Parent>(<Element>o)._parent)._pool
+    print "Pointer to object: %s" % <uintptr_t>o
+    cdef Parent parent = (<Element?>o)._parent
+    print "Pointer to parent: %s" % <uintptr_t>(<PyObject*>parent)
+    if parent is None:
+        print "ARGH"
+        return
+    cdef Pool pool = parent._pool
+    print "Pointer to pool: %s" % <uintptr_t>(<PyObject*>pool)
     if pool.allocated < pool.size:
         #print("add to pool")
         o.ob_refcnt = 1
@@ -382,7 +440,7 @@ cdef void tp_dealloc_with_resize(PyObject* o):
     This function must not be called manually. 
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<Parent>(<Element>o)._parent)._pool
+    cdef Pool pool = (<Element>o)._parent._pool
     if pool.allocated >= pool.size:
         pool.resize()
     #print("add to pool")
@@ -428,7 +486,7 @@ cdef pool_disabled(type t):
     return pool
 
 
-cdef pool_enabled(Pool pool_dis, length, bint is_global):
+cdef pool_enabled(Pool pool_dis, length, bint local):
     """
     Return an enabled pool
 
@@ -442,13 +500,13 @@ cdef pool_enabled(Pool pool_dis, length, bint is_global):
     - `length` -- an integer or `None`
       the length of the pool
 
-    - `is_global` -- a boolean
-      whether this pool should be marked as global (a global
-      enabled pool is unique for a given type)
+    - `local` -- a boolean
+      whether this pool should be local or global 
+      (a global enabled pool is unique for a given type)
 
     NOTE:
 
-    If `length` is specified and `is_global` is true, the
+    If `length` is specified and `local` is false, the
     global corresponding pool, if it already exists, is resized.
 
     If `length` is not specified and a new pool needs to be
@@ -472,7 +530,11 @@ cdef pool_enabled(Pool pool_dis, length, bint is_global):
     """
     cdef type t = <type>pool_dis.type
     cdef Pool pool = None
-    if is_global:
+    if local:
+        pool = pool_dis.new_enabled()
+        if length is None:
+            length = DEFAULT_POOL_LENGTH
+    else:
         if pools_enabled.has_key(t):
             wr_pool = pools_enabled[t]
             pool = wr_pool()
@@ -481,10 +543,6 @@ cdef pool_enabled(Pool pool_dis, length, bint is_global):
             if length is None:
                 length = DEFAULT_POOL_LENGTH
         pools_enabled[t] = _weakref.ref(pool)
-    else:
-        pool = pool_dis.new_enabled()
-        if length is None:
-            length = DEFAULT_POOL_LENGTH
     if length is not None:
         pool.resize(length)
     return pool

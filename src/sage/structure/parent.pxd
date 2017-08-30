@@ -22,7 +22,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
     # Pool variables
     cdef Pool _pool_disabled
-    cdef Pool _pool_enabled
+    cdef Pool _pool
 
     # Flags, see below
     cdef int flags
