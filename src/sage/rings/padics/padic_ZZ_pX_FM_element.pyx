@@ -123,6 +123,9 @@ from cysignals.signals cimport sig_on, sig_off
 
 include "sage/libs/ntl/decl.pxi"
 
+from sage.structure.parent cimport Parent
+from sage.structure.pool cimport PY_NEW_FROM_POOL
+
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -425,7 +428,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             1 + w^5 + O(w^25)
         """
         self.prime_pow.restore_top_context()
-        cdef pAdicZZpXFMElement ans = pAdicZZpXFMElement.__new__(pAdicZZpXFMElement)
+        cdef pAdicZZpXFMElement ans = PY_NEW_FROM_POOL((<Parent>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         return ans

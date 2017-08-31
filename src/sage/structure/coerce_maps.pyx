@@ -98,7 +98,7 @@ cdef class DefaultConvertMap(Map):
         # First we use the pool if activated
         if C._pool_disabled is not None:
             ans = PY_NEW_FROM_POOL(C._pool)
-            C.element_class.__init__(ans, x)
+            C.element_class.__init__(ans, C, x)
             return ans
 
         try:
@@ -124,7 +124,7 @@ cdef class DefaultConvertMap(Map):
         # First we use the pool if activated
         if C._pool_disabled is not None:
             ans = PY_NEW_FROM_POOL(C._pool)
-            C.element_class.__init__(ans, x, *args, **kwds)
+            C.element_class.__init__(ans, C, x, *args, **kwds)
             return ans
 
         try:

@@ -36,6 +36,7 @@ AUTHORS:
 include "padic_template_element.pxi"
 from cpython.int cimport *
 
+from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.rings.padics.common_conversion cimport comb_prec, _process_args_and_kwds
 from sage.rings.integer_ring import ZZ
@@ -44,7 +45,12 @@ from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
 
+from sage.structure.pool cimport PY_NEW_FROM_POOL
+
 cdef class FMElement(pAdicTemplateElement):
+    def __cinit__(self):
+        cconstruct(self.value, None)
+
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
         """
         Sets the value of this element from given defining data.
@@ -95,11 +101,9 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef type t = type(self)
-        cdef FMElement ans = t.__new__(t)
+        cdef FMElement ans = PY_NEW_FROM_POOL((<Parent>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
-        cconstruct(ans.value, ans.prime_pow)
         return ans
 
     cdef int check_preccap(self) except -1:

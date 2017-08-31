@@ -163,6 +163,9 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
 include "sage/libs/ntl/decl.pxi"
 
+from sage.structure.parent cimport Parent
+from sage.structure.pool cimport PY_NEW_FROM_POOL
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.mpz cimport *
@@ -183,6 +186,7 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
+
 
 cdef object infinity
 from sage.rings.infinity import infinity
@@ -850,7 +854,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: w^5 + 1 # indirect doctest
             1 + w^5 + O(w^25)
         """
-        cdef pAdicZZpXCAElement ans = pAdicZZpXCAElement.__new__(pAdicZZpXCAElement)
+        cdef pAdicZZpXCAElement ans = PY_NEW_FROM_POOL((<Parent>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         ans.absprec = absprec

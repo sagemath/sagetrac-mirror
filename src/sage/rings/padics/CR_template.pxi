@@ -76,7 +76,7 @@ cdef inline int assert_nonzero(CRElement x) except -1:
 
 cdef class CRElement(pAdicTemplateElement):
     def __cinit__(self):
-        cconstruct(self.unit, self.prime_pow)
+        cconstruct(self.unit, None)
 
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
         """
@@ -189,7 +189,6 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef type t = type(self)
         cdef CRElement ans = PY_NEW_FROM_POOL((<Parent>self._parent)._pool)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
