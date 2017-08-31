@@ -19,6 +19,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from cpython cimport *
 
 import sage.modules.free_module
@@ -59,7 +60,7 @@ cdef class Matrix(matrix0.Matrix):
             v.append( ','.join(tmp))
         return 'Mat([%s])'%(';'.join(v))
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the Pari matrix corresponding to self.
 
@@ -169,20 +170,20 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: M = matrix(ZZ,2,range(4))
-            sage: giac(M)                              # optional - giac
+            sage: giac(M)
             [[0,1],[2,3]]
 
         ::
 
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: giac(M)                                      # optional - giac
+            sage: giac(M)
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
-            sage: giac(M)                             # optional - giac
+            sage: giac(M)
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -203,7 +204,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: a = maxima(m); a
             matrix([0,1,2],[3,4,5],[6,7,8])
             sage: a.charpoly('x').expand()
-            -x^3+12*x^2+18*x
+            (-x^3)+12*x^2+18*x
             sage: m.charpoly()
             x^3 - 12*x^2 - 18*x
         """
@@ -342,6 +343,25 @@ cdef class Matrix(matrix0.Matrix):
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
         return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+
+    def _polymake_(self, polymake=None):
+        """
+        Tries to coerce this matrix to a polymake matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: polymake(M)                   # optional - polymake
+            0 1
+            2 3
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: M = matrix(K, [[1, 2], [sqrt5, 3]])
+            sage: polymake(M)                   # optional - polymake
+            1 2
+            0+1r5 3
+        """
+        P = polymake(self.parent())
+        return polymake.new_object(P, [ list(r) for r in self.rows(copy=False) ])
 
     def _singular_(self, singular=None):
         """
@@ -1677,7 +1697,9 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not (isinstance(columns, list) or isinstance(columns, tuple)):
+        if isinstance(columns, xrange):
+            columns = list(columns)
+        elif not isinstance(columns, (list, tuple)):
             raise TypeError("columns (=%s) must be a list of integers" % columns)
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1702,8 +1724,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``dcols`` - list of indices of columns to be deleted from self.
         * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_rows` and :meth:`matrix_from_columns`
+            are related.
 
         EXAMPLES::
 
@@ -1746,7 +1770,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(dcols, list) or isinstance(dcols, tuple)):
+        if isinstance(dcols, xrange):
+            dcols = list(dcols)
+        elif not isinstance(dcols, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1773,7 +1799,9 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (isinstance(rows, list) or isinstance(rows, tuple)):
+        if isinstance(rows, xrange):
+            rows = list(rows)
+        elif not isinstance(rows, (list, tuple)):
             raise TypeError("rows must be a list of integers")
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1789,7 +1817,6 @@ cdef class Matrix(matrix0.Matrix):
             k += 1
         return A
 
-
     def delete_rows(self, drows, check=True):
         """
         Return the matrix constructed from deleting the rows with indices in the ``drows`` list.
@@ -1799,8 +1826,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``drows`` - list of indices of rows to be deleted from self.
         * ``check`` - checks whether any index in ``drows`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_columns` and :meth:`matrix_from_rows` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_columns` and :meth:`matrix_from_rows`
+            are related.
 
         EXAMPLES::
 
@@ -1842,7 +1871,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(drows, list) or isinstance(drows, tuple)):
+        if isinstance(drows, xrange):
+            drows = list(drows)
+        elif not isinstance(drows, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
@@ -1893,9 +1924,14 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not isinstance(rows, list):
+        if isinstance(rows, xrange):
+            rows = list(rows)
+        elif not isinstance(rows, list):
             raise TypeError("rows must be a list of integers")
-        if not isinstance(columns, list):
+
+        if isinstance(columns, xrange):
+            columns = list(columns)
+        elif not isinstance(columns, list):
             raise TypeError("columns must be a list of integers")
 
         cdef Matrix A
@@ -1936,12 +1972,12 @@ cdef class Matrix(matrix0.Matrix):
           take. If not provided, take all rows below and all columns to
           the right of the starting entry.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 
@@ -2137,7 +2173,7 @@ cdef class Matrix(matrix0.Matrix):
         If this matrix is sparse, return a dense matrix with the same
         entries. If this matrix is dense, return this matrix (not a copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing to
            do with the number of nonzero entries. Sparse and dense are
@@ -2204,7 +2240,7 @@ cdef class Matrix(matrix0.Matrix):
         entries. If this matrix is sparse, return this matrix (not a
         copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing
            to do with the number of nonzero entries. Sparse and dense are

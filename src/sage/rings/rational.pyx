@@ -42,10 +42,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 from cpython cimport *
+
+from cysignals.signals cimport sig_on, sig_off
 
 import sys
 import operator
@@ -56,16 +57,15 @@ from sage.misc.long cimport pyobject_to_long
 import sage.misc.misc as misc
 import sage.rings.rational_field
 
-cimport integer
-from integer cimport Integer
+cimport sage.rings.integer as integer
+from .integer cimport Integer
 
-import sage.libs.pari.pari_instance
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
+from cypari2.paridecl cimport *
+from cypari2.gen cimport Gen as pari_gen
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
-from integer_ring import ZZ
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from .integer_ring import ZZ
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
@@ -206,7 +206,7 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
         sage: integer_rational_power(0, QQ(0))
         1
     """
-    cdef Integer z = <Integer>PY_NEW(Integer)
+    cdef Integer z = Integer.__new__(Integer)
     if mpz_sgn(mpq_numref(b.value)) < 0:
         raise ValueError("Only positive exponents supported.")
     cdef int sgn = mpz_sgn(a.value)
@@ -270,6 +270,27 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         2/3*sqrt(3)
         sage: t^2
         4/3
+
+    Check if :trac:`15605` is fixed::
+
+        sage: rational_power_parts(-1, -1/3)
+        (1, -1)
+        sage: (-1)^(-1/3)
+        -(-1)^(2/3)
+        sage: 1 / ((-1)^(1/3))
+        -(-1)^(2/3)
+        sage: rational_power_parts(-1, 2/3)
+        (1, -1)
+        sage: (-1)^(2/3)
+        (-1)^(2/3)
+        sage: all(rational_power_parts(-1, i/77) == (1,-1) for i in range(1,9))
+        True
+        sage: (-1)^(1/3)*(-1)^(1/5)
+        (-1)^(8/15)
+        sage: bool((-1)^(2/3) == -1/2 + sqrt(3)/2*I)
+        True
+        sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
+        True
     """
     b_negative=False
     if b < 0:
@@ -286,6 +307,8 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     if c is not None:
         return c, 1
     numer, denom = b.numerator(), b.denominator()
+    if a == -1 and denom > 1:
+        return 1, -1
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
@@ -676,21 +699,21 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         if type == "std":
             while mpz_sgn(q) != 0:
-                z = PY_NEW(Integer)
+                z = Integer.__new__(Integer)
                 mpz_fdiv_qr(z.value,tmp,p,q)
                 mpz_set(p,q)
                 mpz_set(q,tmp)
                 res.append(z)
         elif type == "hj":
             while mpz_sgn(q) != 0:
-                z = PY_NEW(Integer)
+                z = Integer.__new__(Integer)
                 mpz_cdiv_qr(z.value,tmp,p,q)
                 mpz_set(p,q)
                 mpz_set(q,tmp)
                 res.append(z)
                 if mpz_sgn(q) == 0:
                     break
-                z = PY_NEW(Integer)
+                z = Integer.__new__(Integer)
                 mpz_fdiv_qr(z.value,tmp,p,q)
                 mpz_set(p,q)
                 mpz_set(q,tmp)
@@ -1313,7 +1336,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
-        This gives the output of the PARI function bnfisnorm.
+        This gives the output of the PARI function :pari:`bnfisnorm`.
 
         Tries to tell whether the rational number ``self`` is the norm of some
         element `y` in ``K``. Returns a pair `(a, b)` where
@@ -1617,7 +1640,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (-4/17).val_unit(2) # indirect doctest
             (2, -1/17)
         """
-        cdef integer.Integer v
         cdef Rational u
         if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError("p must be at least 2.")
@@ -1626,7 +1648,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             u = Rational.__new__(Rational)
             mpq_set_ui(u.value, 1, 1)
             return (sage.rings.infinity.infinity, u)
-        v = PY_NEW(integer.Integer)
+        cdef Integer v = Integer.__new__(Integer)
         u = Rational.__new__(Rational)
         sig_on()
         mpz_set_ui(v.value, mpz_remove(mpq_numref(u.value), mpq_numref(self.value), p.value))
@@ -1978,7 +2000,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = str(s)
         PyMem_Free(s)
         return k
 
@@ -2560,9 +2582,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (-4/17).__nonzero__()
-            True
-            sage: (0/5).__nonzero__()
+            sage: bool(0/5)
             False
             sage: bool(-4/17)
             True
@@ -2817,8 +2837,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         if not mpz_cmp_si(mpq_denref(self.value), 1) == 0:
             raise TypeError("no conversion of this rational to integer")
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
@@ -2827,14 +2846,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = -5/11
             sage: x.numer()
             -5
         """
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
@@ -2842,7 +2860,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = 5/11
             sage: x.numerator()
@@ -2854,8 +2872,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.numerator()
             3
         """
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
@@ -2912,8 +2929,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.denom()
             1
         """
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_denref(self.value))
         return n
 
@@ -2930,8 +2946,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.denominator()
             1
         """
-        cdef integer.Integer n
-        n = PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_denref(self.value))
         return n
 
@@ -2951,7 +2966,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
         """
         return self.numerator().factor() * \
            sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
@@ -2979,6 +2994,104 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.is_zero():
             raise ArithmeticError("Support of 0 not defined.")
         return sage.arith.all.prime_factors(self)
+
+    def log(self, m=None, prec=None):
+        r"""
+        Return the log of ``self``.
+
+        INPUT:
+
+        - ``m`` -- the base (default: natural log base e)
+
+        - ``prec`` -- integer (optional); the precision in bits
+
+        OUTPUT:
+
+        When ``prec`` is not given, the log as an element in symbolic
+        ring unless the logarithm is exact. Otherwise the log is a
+        :class:`RealField` approximation to ``prec`` bit precision.
+
+        EXAMPLES::
+
+            sage: (124/345).log(5)
+            log(124/345)/log(5)
+            sage: (124/345).log(5,100)
+            -0.63578895682825611710391773754
+            sage: log(QQ(125))
+            log(125)
+            sage: log(QQ(125), 5)
+            3
+            sage: log(QQ(125), 3)
+            log(125)/log(3)
+            sage: QQ(8).log(1/2)
+            -3
+            sage: (1/8).log(1/2)
+            3
+            sage: (1/2).log(1/8)
+            1/3
+            sage: (1/2).log(8)
+            -1/3
+            sage: (16/81).log(8/27)
+            4/3
+            sage: (8/27).log(16/81)
+            3/4
+            sage: log(27/8, 16/81)
+            -3/4
+            sage: log(16/81, 27/8)
+            -4/3
+            sage: (125/8).log(5/2)
+            3
+            sage: (125/8).log(5/2,prec=53)
+            3.00000000000000
+        """
+        if self.denom() == ZZ.one():
+            return ZZ(self.numer()).log(m, prec)
+        if mpz_sgn(mpq_numref(self.value)) < 0:
+            from sage.symbolic.all import SR
+            return SR(self).log()
+        if m <= 0 and m is not None:
+            raise ValueError("log base must be positive")
+        if prec:
+            from sage.rings.real_mpfr import RealField
+            if m is None:
+                return RealField(prec)(self).log()
+            return RealField(prec)(self).log(m)
+
+        from sage.functions.log import function_log
+        if m is None:
+            return function_log(self, dont_call_method_on_arg=True)
+
+        anum = self.numer()
+        aden = self.denom()
+        mrat = Rational(m)
+        bnum = mrat.numer()
+        bden = mrat.denom()
+
+        anp = anum.perfect_power()
+        bnp = bnum.perfect_power()
+        adp = aden.perfect_power()
+        bdp = bden.perfect_power()
+        if (anp[0] == bnp[0] and adp[0] == bdp[0]):
+            nu_ratio = Rational((anp[1], bnp[1]))
+            de_ratio = Rational((adp[1], bdp[1]))
+            if nu_ratio == de_ratio:
+                return nu_ratio
+            if nu_ratio == ZZ.one():
+                return de_ratio
+            if de_ratio == ZZ.one():
+                return nu_ratio
+        elif (anp[0] == bdp[0] and adp[0] == bnp[0]):
+            up_ratio = Rational((anp[1], bdp[1]))
+            lo_ratio = Rational((adp[1], bnp[1]))
+            if up_ratio == lo_ratio:
+                return -up_ratio
+            if up_ratio == ZZ.one():
+                return -lo_ratio
+            if lo_ratio == ZZ.one():
+                return -up_ratio
+
+        return (function_log(self, dont_call_method_on_arg=True) /
+                function_log(m, dont_call_method_on_arg=True))
 
     def gamma(self, prec=None):
         """
@@ -3503,22 +3616,21 @@ cdef class Rational(sage.structure.element.FieldElement):
     # Support for interfaces
     ##################################################
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Returns the PARI version of this rational number.
 
         EXAMPLES::
 
             sage: n = 9390823/17
-            sage: m = n._pari_(); m
+            sage: m = n.__pari__(); m
             9390823/17
             sage: type(m)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'cypari2.gen.Gen'>
             sage: m.type()
             't_FRAC'
         """
-        cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.new_gen_from_mpq_t(self.value)
+        return new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):
         """
@@ -3892,8 +4004,7 @@ cdef class Q_to_Z(Map):
         """
         if not mpz_cmp_si(mpq_denref((<Rational>x).value), 1) == 0:
             raise TypeError("no conversion of this rational to integer")
-        cdef integer.Integer n
-        n = <integer.Integer>PY_NEW(integer.Integer)
+        cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_numref((<Rational>x).value))
         return n
 

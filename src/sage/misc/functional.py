@@ -22,11 +22,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range, builtins
+from six import integer_types
 
 import sage.misc.latex
 import sage.interfaces.expect
 import sage.interfaces.mathematica
-
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -34,8 +35,6 @@ from sage.rings.real_double import RDF, RealDoubleElement
 import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
-
-from six.moves import builtins
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -248,7 +247,7 @@ def denominator(x):
         sage: denominator(r)
         x - 1
     """
-    if isinstance(x, (int, long)):
+    if isinstance(x, integer_types):
         return 1
     return x.denominator()
 
@@ -304,7 +303,7 @@ def eta(x):
 
     The `\eta` function is
 
-    .. math::
+    .. MATH::
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
 
@@ -421,6 +420,8 @@ def symbolic_sum(expression, *args, **kwds):
 
       - ``'giac'`` - (optional) use Giac
 
+      - ``'sympy'`` - use SymPy
+
     EXAMPLES::
 
         sage: k, n = var('k,n')
@@ -447,15 +448,15 @@ def symbolic_sum(expression, *args, **kwds):
         In particular, this does not work::
 
             sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
+            sage: mylist = [1,2,3,4,5]
+            sage: sum(mylist[n], n, 0, 3)
             Traceback (most recent call last):
             ...
             TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
 
-            sage: sum(list[n] for n in range(4))
+            sage: sum(mylist[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::
@@ -698,7 +699,7 @@ def interval(a, b):
         sage: 4 in I
         False
     """
-    return range(a,b+1)
+    return list(range(a, b + 1))
 
 def xinterval(a, b):
     r"""
@@ -713,7 +714,7 @@ def xinterval(a, b):
         sage: 6 in I
         False
     """
-    return xrange(a, b+1)
+    return range(a, b + 1)
 
 def is_commutative(x):
     """
@@ -1088,7 +1089,7 @@ def numerator(x):
         sage: numerator(17/11111)
         17
     """
-    if isinstance(x, (int, long)):
+    if isinstance(x, integer_types):
         return x
     return x.numerator()
 

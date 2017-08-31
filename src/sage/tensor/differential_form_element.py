@@ -30,6 +30,9 @@ from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
 
 
+import six
+
+
 def sort_subscript(subscript):
     """
     A subscript is a range of integers.  This function sorts a subscript
@@ -569,8 +572,8 @@ class DifferentialForm(AlgebraElement):
                 # pairs as we go along.
 
                 for (key1, val1), (key2, val2) in \
-                        zip(self._components.iteritems(), \
-                            other._components.iteritems()):
+                        zip(six.iteritems(self._components), \
+                            six.iteritems(other._components)):
                     if key1 != key2 or str(val1) != str(val2):
                         return False
                 return True
@@ -651,31 +654,7 @@ class DifferentialForm(AlgebraElement):
             ...
             TypeError: Cannot add forms of degree 1 and 2
 
-        """
-
-        if self.is_zero():
-            return other
-        if other.is_zero():
-            return self
-
-        if self._degree != other._degree:
-            raise TypeError("Cannot add forms of degree %s and %s" % \
-                    (self._degree, other._degree))
-
-        sumform = DifferentialForm(self.parent(), self._degree)
-        sumform._components = self._components.copy()
-        for comp, fun in other._components.items():
-            sumform[comp] += fun
-
-        sumform._cleanup()
-        return sumform
-
-
-    def _sub_(self, other):
-        r"""
-        Subtract other from self.
-
-        EXAMPLES::
+        Subtraction is implemented by adding the negative::
 
             sage: x, y, z = var('x, y, z')
             sage: F = DifferentialForms()
@@ -699,10 +678,24 @@ class DifferentialForm(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot add forms of degree 1 and 2
-
         """
-        return self._add_(-other)
 
+        if self.is_zero():
+            return other
+        if other.is_zero():
+            return self
+
+        if self._degree != other._degree:
+            raise TypeError("Cannot add forms of degree %s and %s" % \
+                    (self._degree, other._degree))
+
+        sumform = DifferentialForm(self.parent(), self._degree)
+        sumform._components = self._components.copy()
+        for comp, fun in other._components.items():
+            sumform[comp] += fun
+
+        sumform._cleanup()
+        return sumform
 
     def _cleanup(self):
         r"""

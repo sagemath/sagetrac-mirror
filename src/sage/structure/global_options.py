@@ -135,7 +135,7 @@ illustrated by an example::
 
 I all of the examples above the options are contructed with  single call to
 :class:`GlobalOptions`, however, it is also possible to construct the options
-dynnamically using the :meth:`GlobalOptions._add_to_options` methods.
+dynamically using the :meth:`GlobalOptions._add_to_options` methods.
 
 For more details see :class:`GlobalOptions`.
 
@@ -416,10 +416,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+from six import iteritems
 
 from importlib import import_module
 from pickle import PicklingError
 import inspect
+
 
 class Option(object):
     r"""
@@ -1193,7 +1195,8 @@ class GlobalOptions(object):
                         self._display_values[option] = {val.lower():val for val in self._legal_values[option]}
                         self._legal_values[option] = [val.lower() for val in self._legal_values[option]]
                     if option in self._alias:
-                        self._alias[option] = {k.lower():v.lower() for k,v in self._alias[option].iteritems()}
+                        self._alias[option] = {k.lower():v.lower()
+                                               for k, v in iteritems(self._alias[option])}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec == 'checker':
                 if not callable(specifications[spec]):

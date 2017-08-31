@@ -113,7 +113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
         In this example, we throw away the current matrix and make a
         new uninitialized matrix representing the data for the class.::
 
@@ -595,7 +595,7 @@ cdef class Matrix_double_dense(Matrix_dense):
           the condition number, the Frobenius norm, which for a
           matrix `A=(a_{ij})` computes
 
-          .. math::
+          .. MATH::
 
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
@@ -625,7 +625,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             9923.88955...
             sage: A.condition(p='frob')
             9923.88955...
-            sage: A.condition(p=Infinity)  # tol 2e-14
+            sage: A.condition(p=Infinity)  # tol 3e-14
             22738.50000000045
             sage: A.condition(p=-Infinity)  # tol 2e-14
             17.50000000000028
@@ -777,7 +777,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         - ``p = 'frob'``: the Frobenius norm, which for
           a matrix `A=(a_{ij})` computes
 
-          .. math::
+          .. MATH::
 
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
@@ -926,7 +926,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         cutoff value, based on the size of the matrix, the largest
         singular value and the smallest nonzero value representable
         by the 53-bit precision values used.  See the discussion
-        at page 268 of [WATKINS]_.
+        at page 268 of [Wat2010]_.
 
         See the examples for a way to use the "verbose" facility
         to easily watch the zero cutoffs in action.
@@ -1042,11 +1042,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             ValueError: could not convert string to float: junk
-
-        REFERENCES:
-
-        .. [WATKINS] Watkins, David S. Fundamentals of Matrix Computations,
-           Third Edition.  Wiley, Hoboken, New Jersey, 2010.
 
         AUTHOR:
 
@@ -1789,7 +1784,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(2e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field
@@ -2118,7 +2113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             ([], [], [])
             sage: def shape(x): return (x.nrows(), x.ncols())
             sage: m = matrix(RDF, 2, 3, range(6))
-            sage: map(shape, m.SVD())
+            sage: list(map(shape, m.SVD()))
             [(2, 2), (2, 3), (3, 3)]
             sage: for x in m.SVD(): x.is_immutable()
             True
@@ -2176,7 +2171,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         ``Q``, ``R`` -- a pair of matrices such that if `A`
         is the original matrix, then
 
-        .. math::
+        .. MATH::
 
           A = QR, \quad Q^\ast Q = I
 
@@ -3005,7 +3000,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         If ``self`` is the matrix `A`, then
 
-        .. math::
+        .. MATH::
 
             A = QT({\overline Q})^t
 
@@ -3288,7 +3283,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         For a matrix `A` the routine returns a lower triangular
         matrix `L` such that,
 
-        .. math::
+        .. MATH::
 
             A = LL^\ast
 
@@ -3443,7 +3438,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         is Hermitian (which reduces to symmetric in the real case),
         and for every nonzero vector `\vec{x}`,
 
-        .. math::
+        .. MATH::
 
             \vec{x}^\ast A \vec{x} > 0
 
@@ -3738,7 +3733,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 

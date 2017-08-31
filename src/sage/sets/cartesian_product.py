@@ -140,7 +140,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = cartesian_product([range(5), range(5)])
+            sage: C = cartesian_product([list(range(5)), list(range(5))])
             sage: (1, 1) in C
             True
             sage: (1, 6) in C
@@ -367,7 +367,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: A((1, 1.23)).cartesian_factors()
                 (1, 1.23000000000000)
                 sage: type(_)
-                <type 'tuple'>
+                <... 'tuple'>
             """
             return self.value
 

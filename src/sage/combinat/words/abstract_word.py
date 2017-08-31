@@ -52,7 +52,7 @@ class Word_class(SageObject):
             Finite words over Set of Python objects of type 'object'
             sage: Word(range(12)).parent()
             Finite words over Set of Python objects of type 'object'
-            sage: Word(range(4), alphabet=range(6)).parent()
+            sage: Word(range(4), alphabet=list(range(6))).parent()
             Finite words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
             Finite words over {'a', 'b', 'c'}
@@ -209,16 +209,16 @@ class Word_class(SageObject):
 
     def __len__(self):
         r"""
-        Returns the length of self (as a python integer).
+        Return the length of self (as a python integer).
 
-        ..NOTE::
+        .. NOTE::
 
             For infinite words or words of unknown length,
             use `length()` method instead.
 
         OUTPUT:
 
-            positive integer
+        positive integer
 
         EXAMPLES::
 
@@ -338,7 +338,7 @@ class Word_class(SageObject):
 
             boolean
 
-        .. NOTE:
+        .. NOTE::
 
             This function will not terminate if self and other are equal
             infinite words!
@@ -424,7 +424,7 @@ class Word_class(SageObject):
 
             boolean
 
-        .. NOTE:
+        .. NOTE::
 
             This function will not terminate if self and other are equal
             infinite words!

@@ -451,7 +451,7 @@ class BinaryRecurrenceSequence(SageObject):
                     p1fac = list((p-1).factor())
 
                     #The order of any matrix in GL_2(F_p) either divides p(p-1) or (p-1)(p+1).
-                    #The order divides p-1 if it is diagaonalizable.  In any case, det(F^(p-1))=1,
+                    #The order divides p-1 if it is diagonalizable.  In any case, det(F^(p-1))=1,
                     #so if tr(F^(p-1)) = 2, then it must be triangular of the form [[1,a],[0,1]].
                     #The order of the subgroup of matrices of this form is p, so the order must divide
                     #p(p-1) -- in fact it must be a multiple of p.  If this is not the case, then the
@@ -503,7 +503,7 @@ class BinaryRecurrenceSequence(SageObject):
                             n = b
                     perp = n
 
-                #Now compute the period mod p^e by steping up by multiples of p
+                #Now compute the period mod p^e by stepping up by multiples of p
                 F = A.change_ring(Integers(p**e))
                 v = w.change_ring(Integers(p**e))
                 FF = F**perp
@@ -950,7 +950,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
 
                     N = _goodness(R._ell, R, p)
 
-                    #proceed only if R._ell statisfies the goodness requirements
+                    #proceed only if R._ell satisfies the goodness requirements
                     if qqold < N <= qq:
                         return R._ell
 
@@ -964,8 +964,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
         return False
 
 
-def _is_p_power_mod(a,p,N):
-
+def _is_p_power_mod(a, p, N):
     """
     Determine if ``a`` is a ``p`` th power modulo ``N``.
 

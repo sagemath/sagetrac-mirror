@@ -32,7 +32,7 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from libc.string cimport memset
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
 
 from sage.arith.all import factor
 from sage.rings.infinity import infinity
@@ -47,7 +47,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     This calculates the coefficients of the n-th cyclotomic polynomial
     by using the formula
 
-    .. math::
+    .. MATH::
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 
@@ -297,7 +297,7 @@ def cyclotomic_value(n, x):
             return x + ZZ.one()
         raise ValueError("n must be positive")
 
-    P = parent_c(x)
+    P = parent(x)
     try:
         return P(pari.polcyclo(n, x).sage())
     except Exception:

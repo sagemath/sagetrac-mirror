@@ -206,7 +206,7 @@ cdef class LazyImport(object):
             Option ``at_startup=True`` for lazy import ZZ not needed anymore
             Integer Ring
 
-        .. note::
+        .. NOTE::
 
            For a :class:`LazyImport` object that appears in a class
            namespace, we need to do something special. Indeed, the
@@ -217,9 +217,9 @@ cdef class LazyImport(object):
            ``__get__``::
 
                sage: class Foo(object):
-               ...       lazy_import('sage.all', 'plot')
+               ....:     lazy_import('sage.all', 'plot')
                sage: class Bar(Foo):
-               ...       pass
+               ....:     pass
                sage: type(Foo.__dict__['plot'])
                <type 'sage.misc.lazy_import.LazyImport'>
 
@@ -232,7 +232,7 @@ cdef class LazyImport(object):
            Now ``Bar`` has been replaced in the dictionary of ``Foo``::
 
                sage: type(Foo.__dict__['plot'])
-               <type 'function'>
+               <... 'function'>
         """
         if self._object is not None:
             return self._object
@@ -296,7 +296,7 @@ cdef class LazyImport(object):
         except TypeError:
             return self._deprecation
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return the docstring of the wrapped object for introspection.
 
@@ -304,14 +304,14 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: my_isprime = LazyImport('sage.all', 'is_prime')
-            sage: my_isprime._sage_doc_() is is_prime.__doc__
+            sage: my_isprime.__doc__ is is_prime.__doc__
             True
 
         TESTS:
 
         Check that :trac:`19475` is fixed::
 
-            sage: 'A subset of the real line' in RealSet._sage_doc_()
+            sage: 'A subset of the real line' in RealSet.__doc__
             True
         """
         return sageinspect.sage_getdoc_original(self._get_object())
@@ -500,7 +500,7 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: class Foo:
-            ...       my_method = LazyImport('sage.all', 'my_method')
+            ....:     my_method = LazyImport('sage.all', 'my_method')
 
         Now we can use it as a usual method::
 
@@ -538,7 +538,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
@@ -552,7 +552,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
@@ -906,7 +906,7 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: range(100)[foo]
+            sage: list(range(100))[foo]
             10
         """
         return operator.index(self._get_object())
@@ -1033,15 +1033,15 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
     We check that :func:`lazy_import` also works for methods::
 
         sage: class Foo(object):
-        ...       lazy_import('sage.all', 'plot')
+        ....:     lazy_import('sage.all', 'plot')
         sage: class Bar(Foo):
-        ...       pass
+        ....:     pass
         sage: type(Foo.__dict__['plot'])
         <type 'sage.misc.lazy_import.LazyImport'>
         sage: 'EXAMPLES' in Bar.plot.__doc__
         True
         sage: type(Foo.__dict__['plot'])
-        <type 'function'>
+        <... 'function'>
 
     If deprecated then a deprecation warning is issued::
 
@@ -1150,3 +1150,8 @@ def get_star_imports(module_name):
             all = [key for key in dir(module) if key[0] != "_"]
         star_imports[module_name] = all
         return all
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(LazyImport)

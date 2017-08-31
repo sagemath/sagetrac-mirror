@@ -729,9 +729,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             (Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
             24*x^2*ss1^3 + 24*ss1^3 + (a0^3 - 8*a0),
              Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
-             24*s1^2*ss0 + (a0^3 - 8*a0)*ss0^2 + (6*a0^3)*s1,
+             24*s1^2*ss0 + (a0^3 - 8*a0)*ss0^2 + (-6*a0^3)*s1,
              Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
-             8*y^2*s0^4 + (-4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
+             8*y^2*s0^4 + (4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
 
         ::
 
@@ -1471,7 +1471,7 @@ class AffinePlaneCurve(AffineCurve):
               To:   Affine Plane Curve over Number Field in a with defining
             polynomial a^2 + 7 defined by x^2 + y^2 + 7
               Defn: Defined on coordinates by sending (t) to
-                    (((7*a)*t^2 + (a))/(-7*t^2 + 1), (-14*t)/(-7*t^2 + 1))
+                    ((-7*t^2 + 7)/((-a)*t^2 + (-a)), 14*t/((-a)*t^2 + (-a)))
         """
         para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
         # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables
@@ -1485,6 +1485,49 @@ class AffinePlaneCurve(AffineCurve):
         H = Hom(A_line, C)
         return H([para[1]/para[0], para[2]/para[0]])
 
+    def fundamental_group(self):
+        r"""
+        Return a presentation of the fundamental group of the complement
+        of ``self``.
+
+        .. NOTE::
+
+            The curve must be defined over the rationals or a number field
+            with an embedding over `\QQbar`.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve(y^2 - x^3 - x^2)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x0 |  >
+
+        In the case of number fields, they need to have an embedding
+        to the algebraic field::
+
+            sage: a = QQ[x](x^2+5).roots(QQbar)[0][0]
+            sage: F = NumberField(a.minpoly(), 'a', embedding=a)
+            sage: F.inject_variables()
+            Defining a
+            sage: A.<x,y> = AffineSpace(F, 2)
+            sage: C = A.curve(y^2 - a*x^3 - x^2)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x0 |  >
+
+        .. WARNING::
+
+            This functionality requires the sirocco package to be installed.
+        """
+        from sage.schemes.curves.zariski_vankampen import fundamental_group
+        F = self.base_ring()
+        from sage.rings.qqbar import QQbar
+        if QQbar.coerce_map_from(F) is None:
+            raise NotImplementedError("the base field must have an embedding"
+                                      " to the algebraic field")
+        f = self.defining_polynomial()
+        return fundamental_group(f, projective=False)
+
+
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 
     _point = point.AffinePlaneCurvePoint_finite_field
@@ -1496,7 +1539,7 @@ class AffinePlaneCurve_finite_field(AffinePlaneCurve):
         Use *very* naive point enumeration to find all rational points on
         this curve over a finite field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(2,GF(9,'a'))
             sage: C = Curve(x^2 + y^2 - 1)
@@ -1542,7 +1585,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
 
         OUTPUT: basis of L(Div)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PolynomialRing(GF(5),2,names = ["x","y"])
             sage: x, y = R.gens()
@@ -1603,7 +1646,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
            The Brill-Noether package does not always work. When it
            fails a RuntimeError exception is raised.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x, y = (GF(5)['x,y']).gens()
             sage: f = y^2 - x^9 - x

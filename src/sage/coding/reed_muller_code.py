@@ -4,7 +4,7 @@ Reed-Muller code
 Given integers `m, r` and a finite field `F`,
 the corresponding Reed-Muller Code is the set:
 
-.. math::
+.. MATH::
 
     \{ (f(\alpha_i)\mid \alpha_i \in F^m)  \mid  f \in F[x_1,x_2,\ldots,x_m], \deg f \leq r \}
 
@@ -24,6 +24,7 @@ This file contains the following elements:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from operator import mul
 from sage.matrix.constructor import matrix
@@ -139,7 +140,7 @@ def ReedMullerCode(base_field, order, num_of_var):
 
     A Reed-Muller Code of order `r` and number of variables `m` over a finite field `F` is the set:
 
-    .. math::
+    .. MATH::
 
         \{ (f(\alpha_i)\mid \alpha_i \in F^m)  \mid  f \in F[x_1,x_2,\ldots,x_m], \deg f \leq r \}
 
@@ -657,11 +658,13 @@ class ReedMullerVectorEncoder(Encoder):
         matrix_list = []
         max_individual_degree = min(order, (q - 1))
         for degree in range(order + 1):
-            exponents = Subsets(range(num_of_var) * max_individual_degree,
+            exponents = Subsets(list(range(num_of_var)) * max_individual_degree,
                                 degree, submultiset=True)
             matrix_list += [[reduce(mul, [x[i] for i in exponent], 1)
                              for x in points] for exponent in exponents]
-        return matrix(base_field, matrix_list)
+        M = matrix(base_field, matrix_list)
+        M.set_immutable()
+        return M
 
     def points(self):
         r"""

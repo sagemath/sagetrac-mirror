@@ -182,6 +182,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
+    :meth:`bounded_affine_permutation` | Returns a partial permutation representing the bounded affine permutation of a matrix.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
     :meth:`descents_composition_last` | Returns the largest element of a descent class.
@@ -1341,7 +1342,7 @@ class Permutation(CombinatorialElement):
             sage: p(2)
             1
             sage: p = Permutation([5,2,1,6,3,7,4])
-            sage: map(p, range(1,8))
+            sage: list(map(p, range(1,8)))
             [5, 2, 1, 6, 3, 7, 4]
 
         TESTS::
@@ -1377,7 +1378,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1, 2, 4, 6, 3, 5]).rank()
             10
             sage: perms = Permutations(6).list()
-            sage: [p.rank() for p in perms ] == range(factorial(6))
+            sage: [p.rank() for p in perms] == list(range(factorial(6)))
             True
         """
         n = len(self)
@@ -1520,7 +1521,7 @@ class Permutation(CombinatorialElement):
         (This implementation is the best choice for ``size > 410``
         approximately.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = Permutation([5,9,1,8,2,6,4,7,3])
             sage: p._to_inversion_vector_divide_and_conquer()
@@ -4163,7 +4164,7 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: p = Permutation([2,1,3])
-            sage: a = range(3)
+            sage: a = list(range(3))
             sage: p.action(a)
             [1, 0, 2]
             sage: b = [1,2,3,4]
@@ -4173,7 +4174,7 @@ class Permutation(CombinatorialElement):
             ValueError: len(a) must equal len(self)
 
             sage: q = Permutation([2,3,1])
-            sage: a = range(3)
+            sage: a = list(range(3))
             sage: q.action(a)
             [1, 2, 0]
         """
@@ -4697,7 +4698,7 @@ class Permutation(CombinatorialElement):
         semi-lengths of the cycles of this graph (see Chapter VII of [Mcd]_ for
         more details, particularly Section VII.2).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).hyperoctahedral_double_coset_type()
             [3, 1]
@@ -5014,8 +5015,10 @@ class Permutations(UniqueRepresentation, Parent):
             Standard permutations
             sage: Permutations(5, 3)
             Permutations of {1,...,5} of length 3
+            sage: Permutations([1,2,3,4,6])
+            Permutations of the set [1, 2, 3, 4, 6]
             sage: Permutations([1,2,3,4,5])
-            Permutations of the set [1, 2, 3, 4, 5]
+            Standard permutations of 5
         """
         valid_args = ['descents', 'bruhat_smaller', 'bruhat_greater',
                       'recoils_finer', 'recoils_fatter', 'recoils', 'avoiding']
@@ -5073,12 +5076,20 @@ class Permutations(UniqueRepresentation, Parent):
                 else:
                     return Permutations_nk(n,k)
             else:
-                #In this case, we have that n is a list
-                if [n.index(_) for _ in n] == list(range(len(n))):
-                    if k is None:
-                        return Permutations_set(n)
+                # In this case, we have that n is a list
+                # Because of UniqueRepresentation, we require the elements
+                #   to be hashable
+                if len(set(n)) == len(n):
+                    if list(n) == list(range(1, len(n)+1)):
+                        if k is None:
+                            return StandardPermutations_n(len(n))
+                        else:
+                            return Permutations_nk(len(n), k)
                     else:
-                        return Permutations_setk(n,k)
+                        if k is None:
+                            return Permutations_set(n)
+                        else:
+                            return Permutations_setk(n,k)
                 else:
                     if k is None:
                         return Permutations_mset(n)
@@ -5285,9 +5296,9 @@ class Permutations_nk(Permutations):
         EXAMPLES::
 
             sage: Permutations(3,2).random_element()
-            [0, 1]
+            [1, 2]
         """
-        return sample(range(self.n), self.k)
+        return sample(range(1, self.n+1), self.k)
 
 class Permutations_mset(Permutations):
     r"""
@@ -5720,7 +5731,7 @@ class Permutations_setk(Permutations_set):
         """
         TESTS::
 
-            sage: P = Permutations([1,2,3],2)
+            sage: P = Permutations([1,2,4],2)
             sage: TestSuite(P).run()
         """
         Permutations_set.__init__(self, s)
@@ -5730,12 +5741,12 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: p = Permutations([1,2,3],2)
-            sage: [1,2,3] in p
+            sage: p = Permutations([1,2,4],2)
+            sage: [1,2,4] in p
             False
             sage: [2,2] in p
             False
-            sage: [1,3] in p
+            sage: [1,4] in p
             True
             sage: [2,1] in p
             True
@@ -5749,8 +5760,8 @@ class Permutations_setk(Permutations_set):
         """
         TESTS::
 
-            sage: repr(Permutations([1,2,3],2))
-            'Permutations of the set [1, 2, 3] of length 2'
+            sage: repr(Permutations([1,2,4],2))
+            'Permutations of the set [1, 2, 4] of length 2'
         """
         return "Permutations of the set %s of length %s"%(list(self._set), self.k)
 
@@ -5758,8 +5769,8 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: [i for i in Permutations([1,2,3],2)] # indirect doctest
-            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+            sage: [i for i in Permutations([1,2,4],2)]
+            [[1, 2], [1, 4], [2, 1], [2, 4], [4, 1], [4, 2]]
         """
         for perm in itertools.permutations(self._set, self.k):
             yield self.element_class(self, perm)
@@ -5768,7 +5779,7 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,3],2).random_element()
+            sage: Permutations([1,2,4], 2).random_element()
             [1, 2]
         """
         return sample(self._set, self.k)
@@ -6148,11 +6159,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         EXAMPLES::
 
             sage: SP3 = Permutations(3)
-            sage: l = map(SP3.unrank, range(6))
+            sage: l = list(map(SP3.unrank, range(6)))
             sage: l == SP3.list()
             True
             sage: SP0 = Permutations(0)
-            sage: l = map(SP0.unrank, range(1))
+            sage: l = list(map(SP0.unrank, range(1)))
             sage: l == SP0.list()
             True
         """
@@ -6176,10 +6187,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             4
 
             sage: SP3 = Permutations(3)
-            sage: map(SP3.rank, SP3)
+            sage: list(map(SP3.rank, SP3))
             [0, 1, 2, 3, 4, 5]
             sage: SP0 = Permutations(0)
-            sage: map(SP0.rank, SP0)
+            sage: list(map(SP0.rank, SP0))
             [0]
         """
         if p is None:
@@ -6975,6 +6986,62 @@ def bistochastic_as_sum_of_permutations(M, check = True):
         value += minimum * CFM(P([x[1]-n+1 for x in matching]))
 
     return value
+
+
+def bounded_affine_permutation(A):
+    r"""
+    Return the bounded affine permutation of a matrix.
+
+    The *bounded affine permutation* of a matrix `A` with entries in `R`
+    is a partial permutation of length `n`, where `n` is the number of
+    columns of `A`. The entry in position `i` is the smallest value `j`
+    such that column `i` is in the span of columns `i+1, \ldots, j`,
+    over `R`, where column indices are taken modulo `n`.
+    If column `i` is the zero vector, then the permutation has a
+    fixed point at `i`.
+
+    INPUT:
+
+    - ``A`` -- matrix with entries in a ring `R`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.permutation import bounded_affine_permutation
+        sage: A = Matrix(ZZ, [[1,0,0,0], [0,1,0,0]])
+        sage: bounded_affine_permutation(A)
+        [5, 6, 3, 4]
+
+        sage: A = Matrix(ZZ, [[0,1,0,1,0], [0,0,1,1,0]])
+        sage: bounded_affine_permutation(A)
+        [1, 4, 7, 8, 5]
+
+    REFERENCES:
+
+    - [KLS2013]_
+    """
+    n = A.ncols()
+    R = A.base_ring()
+    from sage.modules.free_module import FreeModule
+    from sage.modules.free_module import span
+    z = FreeModule(R, A.nrows()).zero()
+    v = A.columns()
+    perm = []
+    for j in range(n):
+        if not v[j]:
+            perm.append(j + 1)
+            continue
+        V = span([z], R)
+        for i in range(j + 1, j + n + 1):
+            index = i % n
+            V = V + span([v[index]], R)
+            if not V.dimension():
+                continue
+            if v[j] in V:
+                perm.append(i + 1)
+                break
+    S = Permutations(2 * n, n)
+    return S(perm)
+
 
 class StandardPermutations_descents(StandardPermutations_n_abstract):
     """
@@ -7782,9 +7849,9 @@ class CyclicPermutations(Permutations_mset):
              [[1, 1, 1], [1, 1, 1]]
         """
         if distinct:
-            content = [1]*len(self.mset)
+            content = [1] * len(self.mset)
         else:
-            content = [0]*len(self.mset)
+            content = [0] * len(self.mset)
             index_list = map(self.mset.index, self.mset)
             for i in index_list:
                 content[i] += 1

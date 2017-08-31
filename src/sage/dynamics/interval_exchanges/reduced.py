@@ -51,9 +51,8 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-from six.moves import range
+from __future__ import print_function, absolute_import
+from six.moves import range, zip
 
 from sage.structure.sage_object import SageObject
 
@@ -712,7 +711,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         r"""
         Returns the relabelization obtained from this move.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: q = p.reduced()
@@ -721,18 +720,18 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: s_t = q.rauzy_move_relabel('t')
             sage: s_t
             WordMorphism: a->a, b->b, c->c, d->d
-            sage: map(s_t, p_t[0]) == map(Word, q_t[0])
+            sage: list(map(s_t, p_t[0])) == list(map(Word, q_t[0]))
             True
-            sage: map(s_t, p_t[1]) == map(Word, q_t[1])
+            sage: list(map(s_t, p_t[1])) == list(map(Word, q_t[1]))
             True
             sage: p_b = p.rauzy_move('b')
             sage: q_b = q.rauzy_move('b')
             sage: s_b = q.rauzy_move_relabel('b')
             sage: s_b
             WordMorphism: a->a, b->d, c->b, d->c
-            sage: map(s_b, q_b[0]) == map(Word, p_b[0])
+            sage: list(map(s_b, q_b[0])) == list(map(Word, p_b[0]))
             True
-            sage: map(s_b, q_b[1]) == map(Word, p_b[1])
+            sage: list(map(s_b, q_b[1])) == list(map(Word, p_b[1]))
             True
         """
         from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
@@ -905,7 +904,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
-    Rauzy movavability and Rauzy move::
+    Rauzy movability and Rauzy move::
 
         sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
         sage: p.has_rauzy_move(0)
@@ -1238,7 +1237,7 @@ class FlippedReducedPermutation(ReducedPermutation):
         r"""
         Performs a Rauzy move on the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True,flips='c')
             sage: p.right_rauzy_move('top')
@@ -1463,14 +1462,14 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip([self.alphabet().unrank(_) for _ in range(0,len(self))], self._flips[0])
-            a1 = zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1])
+            a0 = list(zip([self.alphabet().unrank(_) for _ in range(len(self))], self._flips[0]))
+            a1 = list(zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1]))
 
         else:
-            a0 = [self.alphabet().unrank(_) for _ in range(0,len(self))]
+            a0 = [self.alphabet().unrank(_) for _ in range(len(self))]
             a1 = [self.alphabet().unrank(_) for _ in self._twin[1]]
 
-        return [a0,a1]
+        return [a0, a1]
 
     def _get_loser_to(self, winner) :
         r"""
