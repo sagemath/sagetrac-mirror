@@ -647,23 +647,17 @@ cdef class Element(SageObject):
             sage: e._test_new()
         """
         cdef type cls = type(self)
-        cdef Element elt
         try:
-            elt = cls.__new__(cls)
-            # Setting the parent is needed for the pool mecanism
-            elt._parent = self._parent
+            cls.__new__(cls)
         except Exception:
             pass
         try:
-            elt = cls.__new__(cls, self._parent)
-            # Setting the parent is needed for the pool mecanism
-            elt._parent = self._parent
+            cls.__new__(cls, self._parent)
         except Exception:
             pass
         if self._parent._pool_disabled is not None:
             try:
-                elt = PY_NEW_FROM_POOL(self._parent._pool)
-                elt._parent = self._parent
+                PY_NEW_FROM_POOL(self._parent._pool)
             except Exception:
                 pass
 

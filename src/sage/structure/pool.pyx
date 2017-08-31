@@ -45,17 +45,27 @@ from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 
 cdef long DEFAULT_POOL_LENGTH = 100
+
 cdef dict pools_disabled = {}
 cdef dict pools_enabled = {}
+
+cdef dict tp_deallocs = {}
+cdef class PythonDestructor:
+    cdef destructor d
+    cdef set(self, destructor d):
+        self.d = d
 
 
 cdef class Pool:
     """
     A class for handling pools in Sage.
     """
-    def __cinit__(self, t):
+    def init_disabled(self, t):
         """
         Initialize this pool.
 
@@ -67,8 +77,15 @@ cdef class Pool:
         in particular prevent the creation of many disabled
         pools for the same type.
         """
+        cdef PythonDestructor Py_destructor
         self.type = <PyTypeObject*>t
-        self.save_tp_dealloc = self.type.tp_dealloc
+        if tp_deallocs.has_key(t):
+            self.save_tp_dealloc = (<PythonDestructor>tp_deallocs[t]).d
+        else:
+            self.save_tp_dealloc = self.type.tp_dealloc
+            Py_destructor = PythonDestructor()
+            Py_destructor.set(self.type.tp_dealloc)
+            tp_deallocs[t] = Py_destructor
         self.type.tp_dealloc = &tp_dealloc
 
     def __repr__(self):
@@ -94,7 +111,8 @@ cdef class Pool:
         This method should not be called directly but through
         the function :func:`pool_enabled`.
         """
-        cdef Pool pool = Pool(<type>self.type)
+        cdef Pool pool = Pool()
+        pool.type = self.type
         pool.save_tp_dealloc = self.save_tp_dealloc
         if self.disabled is None:
             pool.disabled = self
@@ -350,7 +368,6 @@ cdef class Pool:
         """
         Deallocate this pool
         """
-        print("Dealloc pool %s" % id(self))
         self.clear()
         if self.elements != NULL:
             sig_free(self.elements)
@@ -387,6 +404,12 @@ cdef inline PY_NEW_FROM_POOL(Pool pool):
         return t.tp_new(<type>t, <object>NULL, <object>NULL)
 
 
+cdef void tp_dealloc_fallback(PyObject* o):
+    cdef type t = type(<object>o)
+    cdef destructor dealloc = (<PythonDestructor>tp_deallocs[t]).d
+    dealloc(o)
+
+
 cdef void tp_dealloc(PyObject* o):
     """
     Add an element to a pool
@@ -405,7 +428,14 @@ cdef void tp_dealloc(PyObject* o):
     This function must not be called manually (even in Cython code).
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<Element>o)._parent._pool
+    cdef Parent parent = (<Element>o)._parent
+    if unlikely(parent is None):
+        tp_dealloc_fallback(o)
+        return
+    cdef Pool pool = parent._pool
+    if unlikely(pool is None):
+        tp_dealloc_fallback(o)
+        return
     if pool.allocated < pool.size:
         #print("add to pool")
         o.ob_refcnt = 1
@@ -435,8 +465,15 @@ cdef void tp_dealloc_with_resize(PyObject* o):
     This function must not be called manually. 
     It is called automatically by Python when the object `o` is collected.
     """
-    cdef Pool pool = (<Element>o)._parent._pool
-    if pool.allocated >= pool.size:
+    cdef Parent parent = (<Element>o)._parent
+    if unlikely(parent is None):
+        tp_dealloc_fallback(o)
+        return
+    cdef Pool pool = parent._pool
+    if unlikely(pool is None):
+        tp_dealloc_fallback(o)
+        return
+    if unlikely(pool.allocated >= pool.size):
         pool.resize()
     #print("add to pool")
     o.ob_refcnt = 1
@@ -476,7 +513,8 @@ cdef pool_disabled(type t):
         wr_pool = pools_disabled[t]
         pool = wr_pool()
     if pool is None:
-        pool = Pool(t)
+        pool = Pool()
+        pool.init_disabled(t)
     pools_disabled[t] = _weakref.ref(pool)
     return pool
 
