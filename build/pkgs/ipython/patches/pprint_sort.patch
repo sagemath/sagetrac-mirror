@@ -1,0 +1,63 @@
+commit 6426ee36b6bb6e46526ecc0c7f215b02bbdd9876
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Thu Aug 31 15:47:24 2017 +0200
+
+    Sort on string representation if sorting fails
+
+diff --git a/IPython/lib/pretty.py b/IPython/lib/pretty.py
+index db39afa..1285392 100644
+--- a/IPython/lib/pretty.py
++++ b/IPython/lib/pretty.py
+@@ -137,6 +137,22 @@ def _safe_getattr(obj, attr, default=None):
+     except Exception:
+         return default
+ 
++def _sorted_for_pprint(items):
++    """
++    Sort the given items for pretty printing. Since some predictable
++    sorting is better than no sorting at all, we sort on the string
++    representation if normal sorting fails.
++    """
++    items = list(items)
++    try:
++        return sorted(items)
++    except Exception:
++        try:
++            return sorted(items, key=str)
++        except Exception:
++            return items
++
++
+ def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
+     """
+     Pretty print the object's representation.
+@@ -594,13 +610,10 @@ def inner(obj, p, cycle):
+             step = len(start)
+             p.begin_group(step, start)
+             # Like dictionary keys, we will try to sort the items if there aren't too many
+-            items = obj
+             if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+-                try:
+-                    items = sorted(obj)
+-                except Exception:
+-                    # Sometimes the items don't sort.
+-                    pass
++                items = _sorted_for_pprint(obj)
++            else:
++                items = obj
+             for idx, x in p._enumerate(items):
+                 if idx:
+                     p.text(',')
+@@ -627,11 +640,7 @@ def inner(obj, p, cycle):
+         keys = obj.keys()
+         # if dict isn't large enough to be truncated, sort keys before displaying
+         if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+-            try:
+-                keys = sorted(keys)
+-            except Exception:
+-                # Sometimes the keys don't sort.
+-                pass
++            keys = _sorted_for_pprint(keys)
+         for idx, key in p._enumerate(keys):
+             if idx:
+                 p.text(',')
