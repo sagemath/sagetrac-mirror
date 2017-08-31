@@ -88,8 +88,8 @@ micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 
-TESTALL = $(top_srcdir)/sage -t --all
-PTESTALL = $(top_srcdir)/sage -t -p --all
+TESTALL = ./sage -t --all
+PTESTALL = ./sage -t -p --all
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
