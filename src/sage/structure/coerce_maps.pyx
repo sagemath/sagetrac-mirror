@@ -9,6 +9,7 @@ import types
 from .parent import Set_PythonType
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
+from sage.structure.pool cimport PY_NEW_FROM_POOL
 
 cdef object BuiltinMethodType = type(repr)
 
@@ -93,6 +94,13 @@ cdef class DefaultConvertMap(Map):
             Power Series Ring in x over Rational Field
         """
         cdef Parent C = self._codomain
+
+        # First we use the pool if activated
+        if C._pool_disabled is not None:
+            ans = PY_NEW_FROM_POOL(C._pool)
+            C.element_class.__init__(ans, x)
+            return ans
+
         try:
             return C._element_constructor(C, x)
         except Exception:
@@ -112,6 +120,13 @@ cdef class DefaultConvertMap(Map):
             2/3 + O(x^4)
         """
         cdef Parent C = self._codomain
+
+        # First we use the pool if activated
+        if C._pool_disabled is not None:
+            ans = PY_NEW_FROM_POOL(C._pool)
+            C.element_class.__init__(ans, x, *args, **kwds)
+            return ans
+
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
