@@ -51,25 +51,16 @@ def _add_variable_or_fallback(key, fallback, force=False):
         sage: import os, sage.env
         sage: sage.env.SAGE_ENV = dict()
         sage: os.environ['SAGE_FOO'] = 'foo'
-        sage: sage.env._add_variable_or_fallback('SAGE_FOO', '---$SAGE_URL---')
+        sage: sage.env._add_variable_or_fallback('SAGE_FOO', '---TESTING---')
         sage: sage.env.SAGE_FOO
         'foo'
         sage: sage.env.SAGE_ENV['SAGE_FOO']
         'foo'
 
     If the environment variable does not exist, the fallback is
-    used. Previously-declared variables are replaced if they are
-    prefixed with a dollar sign::
-
-        sage: _ = os.environ.pop('SAGE_BAR', None)  # ensure that SAGE_BAR does not exist
-        sage: sage.env._add_variable_or_fallback('SAGE_BAR', '---$SAGE_FOO---')
-        sage: sage.env.SAGE_BAR
-        '---foo---'
-        sage: sage.env.SAGE_ENV['SAGE_BAR']
-        '---foo---'
+    used.
     """
     global SAGE_ENV
-    import six
     try:
         import os
         value = os.environ[key]
@@ -77,26 +68,22 @@ def _add_variable_or_fallback(key, fallback, force=False):
         value = fallback
     if force:
         value = fallback
-    if isinstance(value, six.string_types):
-        for k,v in SAGE_ENV.items():
-            if isinstance(v, six.string_types):
-                value = value.replace('$'+k, v)
     SAGE_ENV[key] = value
     globals()[key] = value
 
 # system info
 _add_variable_or_fallback('UNAME',           os.uname()[0])
 _add_variable_or_fallback('HOSTNAME',        socket.gethostname())
-_add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
+_add_variable_or_fallback('LOCAL_IDENTIFIER', HOSTNAME + '%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      None)
-_add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
-_add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
-_add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
+_add_variable_or_fallback('SAGE_ETC',        opj(SAGE_LOCAL, 'etc'))
+_add_variable_or_fallback('SAGE_INC',        opj(SAGE_LOCAL, 'include'))
+_add_variable_or_fallback('SAGE_SHARE',      opj(SAGE_LOCAL, 'share'))
 
-_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
+_add_variable_or_fallback('SAGE_SRC',        opj(SAGE_ROOT, 'src'))
 
 try:
     sitepackages_dirs = site.getsitepackages()
@@ -107,20 +94,20 @@ _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj(SAGE_ROOT, 'src', 'build', 'cythonized'))
 
 # Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
-_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
+_add_variable_or_fallback('SAGE_PKGS', opj(SAGE_ROOT, 'build', 'pkgs'))
 
 
-_add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
-_add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
-_add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))
-_add_variable_or_fallback('SAGE_DOC_SRC',    opj('$SAGE_SRC', 'doc'))
-_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SHARE', 'doc', 'sage'))
-_add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
-_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
-_add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
+_add_variable_or_fallback('SAGE_EXTCODE',    opj(SAGE_SHARE, 'sage', 'ext'))
+_add_variable_or_fallback('SAGE_LOGS',       opj(SAGE_ROOT, 'logs', 'pkgs'))
+_add_variable_or_fallback('SAGE_SPKG_INST',  opj(SAGE_LOCAL, 'var', 'lib', 'sage', 'installed'))
+_add_variable_or_fallback('SAGE_DOC_SRC',    opj(SAGE_SRC, 'doc'))
+_add_variable_or_fallback('SAGE_DOC',        opj(SAGE_SHARE, 'doc', 'sage'))
+_add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME', SAGE_ROOT), '.sage'))
+_add_variable_or_fallback('SAGE_DOT_GIT',    opj(SAGE_ROOT, '.git'))
+_add_variable_or_fallback('SAGE_DISTFILES',  opj(SAGE_ROOT, 'upstream'))
 
 # misc
 _add_variable_or_fallback('SAGE_URL',                'http://sage.math.washington.edu/sage/')
@@ -134,12 +121,12 @@ _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
 # additional packages locations
-_add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
-_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
-_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
-_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
-_add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
-_add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
+_add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj(SAGE_SHARE, 'conway_polynomials'))
+_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj(SAGE_SHARE, 'graphs'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj(SAGE_SHARE, 'ellcurves'))
+_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj(SAGE_SHARE, 'reflexive_polytopes'))
+_add_variable_or_fallback('GAP_ROOT_DIR',     opj(SAGE_LOCAL, 'gap', 'latest'))
+_add_variable_or_fallback('THEBE_DIR',        opj(SAGE_SHARE, 'thebe'))
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
@@ -190,8 +177,8 @@ if UNAME[:6] == 'CYGWIN':
     del _uname, re
 
 # things that need DOT_SAGE
-_add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))
-_add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
+_add_variable_or_fallback('PYTHON_EGG_CACHE',   opj(DOT_SAGE, '.python-eggs'))
+_add_variable_or_fallback('SAGE_STARTUP_FILE',  opj(DOT_SAGE, 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
