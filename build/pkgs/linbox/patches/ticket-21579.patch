@@ -1,0 +1,71 @@
+--- a/linbox/solutions/charpoly.h	2015-10-29 14:25:06.000000000 +0100
++++ b/linbox/solutions/charpoly.h	2017-08-31 15:20:34.831187721 +0200
+@@ -177,8 +177,20 @@
+ 
+ 
+ 	}
+-
+-
++            // Blackbox with dense elimination method: convert the matrix to a dense format.
++        template <class Blackbox, class Polynomial >
++        Polynomial& charpoly (Polynomial                       & P,
++                              const Blackbox                   & A,
++                              const RingCategories::IntegerTag & tag,
++                              const Method::BlasElimination    & M)
++        {
++                if (A.coldim() != A.rowdim())
++                        throw LinboxError("LinBox ERROR: matrix must be square for characteristic polynomial computation\n");
++
++                BlasMatrix< typename Blackbox::Field >     BBB (A);
++                charpoly (P, BBB);
++                return P;
++        }
+ }
+ 
+ #include "linbox/algorithms/matrix-hom.h"
+@@ -409,9 +421,9 @@
+ 	}
+ 
+ 
+-	template < class Polynomial,class Blackbox >
++	template < class Field, class Polynomial >
+ 	Polynomial& charpoly (Polynomial                       & P,
+-			      const Blackbox                   & A,
++			      const DenseMatrix<Field>         & A,
+ 			      const RingCategories::IntegerTag & tag,
+ 			      const Method::BlasElimination    & M)
+ 	{
+@@ -421,17 +433,13 @@
+ 		commentator().start ("Integer Dense Charpoly : No NTL installation -> chinese remaindering", "IbbCharpoly");
+ 
+ 		RandomPrimeIterator genprime( 26-(int)ceil(log((double)A.rowdim())*0.7213475205));
+-#if 0
+-		typename Blackbox::ConstIterator it = A.Begin();
+-		typename Blackbox::ConstIterator it_end = A.End();
+-		integer max = 1,min=0;
+-		while( it != it_end ){
+-			//      cerr<<"it="<<(*it)<<endl;
++#if 1
++                integer max = 1,min=0;
++		for (auto it = A.Begin(); it != A.End(); it++){
+ 			if (max < (*it))
+ 				max = *it;
+ 			if ( min > (*it))
+ 				min = *it;
+-			it++;
+ 		}
+ 		if (max<-min)
+ 			max=-min;
+@@ -440,9 +448,10 @@
+ 
+ 
+ 		ChineseRemainder< FullMultipCRA<Givaro::Modular<double> > > cra(hadamarcp);
+-#endif
++#else
+ 		ChineseRemainder< EarlyMultipCRA<Givaro::Modular<double> > > cra(3UL);
+-		IntegerModularCharpoly<Blackbox,Method::BlasElimination> iteration(A, M);
++#endif
++		IntegerModularCharpoly<DenseMatrix<Field>,Method::BlasElimination> iteration(A, M);
+ 		cra(P, iteration, genprime);
+ 		commentator().stop ("done", NULL, "IbbCharpoly");
+ 		return P;
