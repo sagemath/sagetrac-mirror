@@ -19,6 +19,7 @@ Direct Sum of Crystals
 from sage.structure.parent import Parent
 from sage.categories.category import Category
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.element import get_coercion_model
 
@@ -52,7 +53,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         sage: [b.f(1) for b in B]
         [2, None, None, None, [[2], [3]], None]
         sage: B.module_generators
-        [1, [[1], [2]]]
+        (1, [[1], [2]])
 
     ::
 
@@ -60,7 +61,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         sage: B.list()
         [(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)]
         sage: B.module_generators
-        [(0, 1), (1, 1)]
+        ((0, 1), (1, 1))
         sage: b = B( tuple([0,C(1)]) )
         sage: b
         (0, 1)
@@ -81,10 +82,43 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
         sage: TestSuite(C).run()
     """
-    __classcall_private__ = staticmethod(DisjointUnionEnumeratedSets.__classcall_private__)
+    @staticmethod
+    def __classcall_private__(cls, crystals, facade=True, keepkey=False, category=None):
+        """
+        Normalization of arguments; see :class:`UniqueRepresentation`.
 
+        TESTS:
 
-    def __init__(self, crystals, **options):
+        We check that direct sum of crystals have unique representation::
+
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: C = crystals.Letters(['A',2])
+            sage: D1 = crystals.DirectSum([B, C])
+            sage: D2 = crystals.DirectSum((B, C))
+            sage: D1 is D2
+            True
+            sage: D3 = crystals.DirectSum([B, C, C])
+            sage: D4 = crystals.DirectSum([D1, C])
+            sage: D3 is D4
+            True
+        """
+        if not isinstance(facade, bool) or not isinstance(keepkey, bool):
+            raise TypeError
+        # Normalize the facade-keepkey by giving keepkey dominance
+        facade = not keepkey
+
+        # We expand out direct sums of crystals
+        ret = []
+        for x in Family(crystals):
+            if isinstance(x, DirectSumOfCrystals):
+                ret += list(x.crystals)
+            else:
+                ret.append(x)
+        category = Category.meet([Category.join(c.categories()) for c in ret])
+        return super(DirectSumOfCrystals, cls).__classcall__(cls,
+            Family(ret), facade=facade, keepkey=keepkey, category=category)
+
+    def __init__(self, crystals, facade, keepkey, category, **options):
         """
         TESTS::
 
@@ -99,31 +133,21 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        if 'keepkey' in options:
-            keepkey = options['keepkey']
-        else:
-            keepkey = False
-#        facade = options['facade']
-        if keepkey:
-            facade = False
-        else:
-            facade = True
-        category = Category.meet([Category.join(crystal.categories()) for crystal in crystals])
-        Parent.__init__(self, category = category)
-        DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey = keepkey, facade = facade)
-        self.rename("Direct sum of the crystals %s"%(crystals,))
+        DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey=keepkey,
+                                             facade=facade, category=category)
+        self.rename("Direct sum of the crystals {}".format(crystals))
         self._keepkey = keepkey
         self.crystals = crystals
         if len(crystals) == 0:
-            raise ValueError("The direct sum is empty")
+            raise ValueError("the direct sum is empty")
         else:
             assert(crystal.cartan_type() == crystals[0].cartan_type() for crystal in crystals)
             self._cartan_type = crystals[0].cartan_type()
         if keepkey:
-            self.module_generators = [ self(tuple([i,b])) for i in range(len(crystals))
-                                       for b in crystals[i].module_generators ]
+            self.module_generators = tuple([ self((i,b)) for i,B in enumerate(crystals)
+                                             for b in B.module_generators ])
         else:
-            self.module_generators = sum( (list(B.module_generators) for B in crystals), [])
+            self.module_generators = sum((tuple(B.module_generators) for B in crystals), ())
 
     def weight_lattice_realization(self):
         r"""
@@ -153,12 +177,11 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     class Element(ElementWrapper):
         r"""
-        A class for elements of direct sums of crystals
+        A class for elements of direct sums of crystals.
         """
-
         def e(self, i):
             r"""
-            Returns the action of `e_i` on self.
+            Return the action of `e_i` on ``self``.
 
             EXAMPLES::
 
@@ -176,7 +199,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
         def f(self, i):
             r"""
-            Returns the action of `f_i` on self.
+            Return the action of `f_i` on ``self``.
 
             EXAMPLES::
 
@@ -194,7 +217,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
         def weight(self):
             r"""
-            Returns the weight of self.
+            Return the weight of ``self``.
 
             EXAMPLES::
 

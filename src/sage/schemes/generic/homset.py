@@ -35,17 +35,16 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 
-from sage.rings.all import ( gcd, ZZ, QQ )
+from sage.rings.all import ZZ, QQ, CommutativeRing
+from sage.arith.all import gcd
 
-from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -153,14 +152,14 @@ class SchemeHomsetFactory(UniqueFactory):
              'base_ring': Integer Ring,
              'check': False}
         """
-        if is_CommutativeRing(X):
+        if isinstance(X, CommutativeRing):
             X = AffineScheme(X)
-        if is_CommutativeRing(Y):
+        if isinstance(Y, CommutativeRing):
             Y = AffineScheme(Y)
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
-        elif is_CommutativeRing(base):
+        elif isinstance(base, CommutativeRing):
             base_spec = AffineScheme(base)
             base_ring = base
         else:
@@ -289,7 +288,7 @@ class SchemeHomset_generic(HomsetWithBase):
         EXAMPLES::
 
             sage: A = AffineSpace(4, QQ)
-            sage: print A.structure_morphism()._repr_()
+            sage: print(A.structure_morphism()._repr_())
             Scheme morphism:
               From: Affine Space of dimension 4 over Rational Field
               To:   Spectrum of Rational Field
@@ -341,7 +340,7 @@ class SchemeHomset_generic(HomsetWithBase):
         EXAMPLES::
 
             sage: f = ZZ.hom(QQ); f
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
 
@@ -354,7 +353,7 @@ class SchemeHomset_generic(HomsetWithBase):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -364,7 +363,7 @@ class SchemeHomset_generic(HomsetWithBase):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -387,11 +386,13 @@ class SchemeHomset_generic(HomsetWithBase):
         if isinstance(x, (list, tuple)):
             return self.domain()._morphism(self, x, check=check)
 
-        if is_RingHomomorphism(x):
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+        if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
+            # x is a morphism of Rings
             return SchemeMorphism_spec(self, x, check=check)
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
-
 
 #*******************************************************************
 # Base class for points
@@ -454,7 +455,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def _element_constructor_(self, *v, **kwds):
         """
-        The element contstructor.
+        The element constructor.
 
         INPUT:
 
@@ -593,7 +594,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
         A tuple containing all points of the toric variety.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P1 = toric_varieties.P1(base_ring=GF(3))
             sage: P1.point_set().list()

@@ -86,20 +86,37 @@ hope to get better performances.
     There is some symmetry to break as the reverse of a satisfiable ordering is
     also a satisfiable ordering.
 
+This module contains the following methods
+------------------------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`bandwidth` | Compute the bandwidth of an undirected graph
+    :meth:`~sage.graphs.base.boost_graph.bandwidth_heuristics` | Uses Boost heuristics to approximate the bandwidth of the input graph
+
 Functions
 ---------
 """
+
 #*****************************************************************************
-#          Copyright (C) 2015 Nathann Cohen <nathann.cohen@gmail.com>
+#       Copyright (C) 2015 Nathann Cohen <nathann.cohen@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/interrupt.pxi'
 
 from libc.stdint cimport uint16_t
-from libc.stdlib cimport malloc, free
+from cysignals.signals cimport sig_check
+
 from sage.graphs.distances_all_pairs cimport all_pairs_shortest_path_BFS
+from sage.graphs.base.boost_graph import bandwidth_heuristics
+from sage.ext.memory_allocator cimport MemoryAllocator
 
 ctypedef uint16_t index_t
 
@@ -224,36 +241,17 @@ def bandwidth(G, k=None):
     cdef int n = G.order()
     cdef list int_to_vertex = G.vertices()
 
-    cdef unsigned short ** d                = <unsigned short **> malloc( n   * sizeof(unsigned short *))
-    cdef unsigned short *  distances        = <unsigned short *>  malloc( n*n * sizeof(unsigned short  ))
-    cdef index_t *         current          = <index_t *>         malloc( n   * sizeof(index_t))
-    cdef index_t *         ordering         = <index_t *>         malloc( n   * sizeof(index_t))
-    cdef index_t *         left_to_order    = <index_t *>         malloc( n   * sizeof(index_t))
-    cdef index_t *         index_array_tmp  = <index_t *>         malloc( n   * sizeof(index_t))
-    cdef range_t *         range_arrays     = <range_t *>         malloc( n*n * sizeof(range_t))
-    cdef range_t **        ith_range_array  = <range_t **>        malloc( n   * sizeof(range_t *))
-    cdef range_t *         range_array_tmp  = <range_t *>         malloc( n   * sizeof(range_t))
+    cdef MemoryAllocator mem = MemoryAllocator()
 
-    if (d               is NULL or
-        distances       is NULL or
-        current         is NULL or
-        ordering        is NULL or
-        left_to_order   is NULL or
-        index_array_tmp is NULL or
-        ith_range_array is NULL or
-        range_arrays    is NULL or
-        range_array_tmp is NULL):
-
-        free(d)
-        free(distances)
-        free(current)
-        free(ordering)
-        free(left_to_order)
-        free(index_array_tmp)
-        free(range_arrays)
-        free(ith_range_array)
-        free(range_array_tmp)
-        raise MemoryError
+    cdef unsigned short ** d                = <unsigned short **> mem.allocarray(n,   sizeof(unsigned short *))
+    cdef unsigned short *  distances        = <unsigned short *>  mem.allocarray(n*n, sizeof(unsigned short  ))
+    cdef index_t *         current          = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         ordering         = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         left_to_order    = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         index_array_tmp  = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef range_t *         range_arrays     = <range_t *>         mem.allocarray(n*n, sizeof(range_t))
+    cdef range_t **        ith_range_array  = <range_t **>        mem.allocarray(n,   sizeof(range_t *))
+    cdef range_t *         range_array_tmp  = <range_t *>         mem.allocarray(n,   sizeof(range_t))
 
     cdef int i,j,kk
     all_pairs_shortest_path_BFS(G,NULL,distances,NULL) # compute the distance matrix
@@ -270,36 +268,22 @@ def bandwidth(G, k=None):
     for i in range(n):
         left_to_order[i] = i
 
-    try:
-        sig_on()
-        if k is None:
-            for kk in range((n-1)//G.diameter(),n):
-                if bandwidth_C(n,kk,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
-                    ans = True
-                    break
-        else:
-            ans = bool(bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp))
+    if k is None:
+        for kk in range((n-1)//G.diameter(),n):
+            if bandwidth_C(n,kk,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
+                ans = True
+                break
+    else:
+        ans = bool(bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp))
 
-        if ans:
-            order = [int_to_vertex[ordering[i]] for i in range(n)]
-
-        sig_off()
-
-    finally:
-        free(d)
-        free(distances)
-        free(current)
-        free(ordering)
-        free(left_to_order)
-        free(index_array_tmp)
-        free(range_arrays)
-        free(ith_range_array)
-        free(range_array_tmp)
+    if ans:
+        order = [int_to_vertex[ordering[i]] for i in range(n)]
 
     if ans:
         ans = (kk, order) if k is None else order
 
     return ans
+
 
 cdef bint bandwidth_C(int n, int k,
                      unsigned short ** d,
@@ -323,6 +307,7 @@ cdef bint bandwidth_C(int n, int k,
 
     i = 0
     while True:
+        sig_check()
 
         # There are (n-i) choices for vertex i, as i-1 have already been
         # determined. Thus, i<=current[i]<n.
@@ -433,6 +418,7 @@ cdef bint is_matching_feasible(int n, range_t * range_array, range_t * range_arr
         index_array_tmp[v] = 0
 
     for v in range(n):
+        sig_check()
         for j in range(range_array_tmp[v].m, range_array_tmp[v].M+1):
             if not index_array_tmp[j]:
                 index_array_tmp[j] = 1
