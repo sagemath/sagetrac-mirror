@@ -714,7 +714,6 @@ class ModularSymbolSage(ModularSymbol):
             sage: m = EllipticCurve('11a1').modular_symbol(implementation="sage")
             sage: m(0)
             1/5
-
         """
         # this next line takes most of the time  # zero = weight-2
         w = self._ambient_modsym.modular_symbol([zero, oo, Cusps(r)], check=False)
