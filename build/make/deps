@@ -252,6 +252,6 @@ clean:
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
 sagelib-clean:
-	cd "$(SAGE_SRC)" && $(MAKE) clean
+	cd "$(SAGE_ROOT)/src" && $(MAKE) clean
 
 build-clean: clean doc-clean sagelib-clean
