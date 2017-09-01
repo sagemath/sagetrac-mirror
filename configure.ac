@@ -1042,10 +1042,6 @@ AS_IF([test x$srcdir != x.],
 	[
 	    SAGE_ROOT=${ac_abs_top_builddir}
 	    SAGE_SRC_ROOT=${ac_abs_top_srcdir}
-	    # Temporary solution for VPATH builds using symlinks -- until scripts are fixed properly
-	    if test ! -d src ; then
-		ln -s $srcdir/src .
-	    fi
 	    # Assume that $srcdir is readonly, so symlink existing upstream files into build directory upstream
 	    # If new packages are downloaded, they end up in the build directory upstream.
 	    mkdir -p upstream
@@ -1062,8 +1058,6 @@ exec "$SAGE_SRC_ROOT/src/bin/sage" "\@S|@@"
 EOF
 	    chmod +x sage
 	    sed "s|^top_srcdir =.*|top_srcdir = $SAGE_SRC_ROOT|" $srcdir/Makefile > Makefile
-	    sed "s|^export SAGE_SRC_ROOT=.*|export SAGE_SRC_ROOT=$SAGE_SRC_ROOT|" $srcdir/build/make/install > build/make/install
-	    chmod +x build/make/install
 	])
     ])
 

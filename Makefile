@@ -18,7 +18,7 @@ build: all-build
 	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+$(top_srcdir)/build/bin/sage-logger \
-		"cd build/make && ./install '$@'" logs/install.log
+		"cd build/make && $(top_srcdir)/build/make/install '$@'" logs/install.log
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
