@@ -337,7 +337,7 @@ def package_versions(package_type, local=False):
     are of the form ``'package': (installed, latest)``, where
     ``installed`` is the installed version (or ``None`` if not
     installed) and ``latest`` is the latest available version. If the
-    package has a directory in ``SAGE_SRC_ROOT/build/pkgs/``, then
+    package has a directory in ``SAGE_VPATH/build/pkgs/``, then
     ``latest`` is determined by the file ``package-version.txt`` in
     that directory.  If ``local`` is ``False``, then Sage's servers are
     queried for package information.

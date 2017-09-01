@@ -118,13 +118,13 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
-_add_variable_or_fallback('SAGE_SRC_ROOT',   None)
+_add_variable_or_fallback('SAGE_VPATH',   None)
 _add_variable_or_fallback('SAGE_LOCAL',      None)
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
-_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_SRC_ROOT', 'src'))
+_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_VPATH', 'src'))
 
 try:
     sitepackages_dirs = site.getsitepackages()
@@ -137,8 +137,8 @@ _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
 _add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
 
-# Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
-_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_SRC_ROOT', 'build', 'pkgs'))
+# Used by sage/misc/package.py.  Should be SAGE_VPATH in VPATH.
+_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_VPATH', 'build', 'pkgs'))
 
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
@@ -147,7 +147,7 @@ _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 's
 _add_variable_or_fallback('SAGE_DOC_SRC',    opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SHARE', 'doc', 'sage'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
-_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_SRC_ROOT', '.git'))
+_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_VPATH', '.git'))
 _add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
 
 # misc

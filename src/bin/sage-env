@@ -186,8 +186,8 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
-if [ -z "$SAGE_SRC_ROOT" ]; then
-    export SAGE_SRC_ROOT="$SAGE_ROOT"
+if [ -z "$SAGE_VPATH" ]; then
+    export SAGE_VPATH="$SAGE_ROOT"
 fi
 
 # sage-env must know where the Sage's script files are.
@@ -199,7 +199,7 @@ if [ -z "$SAGE_SCRIPTS_DIR" ]; then
         SAGE_SRC_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
-        SAGE_SRC_SCRIPTS_DIR="$SAGE_SRC_ROOT/src/bin"
+        SAGE_SRC_SCRIPTS_DIR="$SAGE_VPATH/src/bin"
     else
         echo >&2 "Error: You must set either the SAGE_LOCAL or SAGE_SCRIPTS_DIR environment variable to run this"
         return 1
@@ -274,7 +274,7 @@ export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
-export SAGE_SRC="$SAGE_SRC_ROOT/src"
+export SAGE_SRC="$SAGE_VPATH/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export SAGE_DOC="$SAGE_SHARE/doc/sage"
 

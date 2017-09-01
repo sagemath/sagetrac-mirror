@@ -286,7 +286,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     # we try to find a package in upstream
     PKG_VER="${PKG_NAME#${PKG_BASE}}"
     PKG_VER="${PKG_VER#-}"
-    PKG_SCRIPTS="$SAGE_SRC_ROOT/build/pkgs/$PKG_BASE"
+    PKG_SCRIPTS="$SAGE_VPATH/build/pkgs/$PKG_BASE"
     LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
     if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" = "$LOCAL_PKG_VER" ]; then
         PKG_VER="$LOCAL_PKG_VER"
@@ -674,7 +674,7 @@ write_script_wrapper() {
 #!/usr/bin/env bash
 
 export SAGE_ROOT="$SAGE_ROOT"
-export SAGE_SRC_ROOT="$SAGE_SRC_ROOT"
+export SAGE_VPATH="$SAGE_VPATH"
 export SAGE_SRC="$SAGE_SRC"
 export SAGE_PKG_DIR="$pkgdir"
 
@@ -684,7 +684,7 @@ export PKG_VER="$PKG_VER"
 
 for lib in env dist-helpers; do
     lib="sage-\$lib"
-    source "\$SAGE_SRC_ROOT/src/bin/\$lib"
+    source "\$SAGE_VPATH/src/bin/\$lib"
     if [ \$? -ne 0 ]; then
         echo >&2 "Error: failed to source \$lib"
         echo >&2 "Is \$SAGE_ROOT the correct SAGE_ROOT?"
@@ -867,7 +867,7 @@ cat > "$PKG_NAME_INSTALLED" << __EOF__
     "package_version": "$PKG_VER",
     "install_date": "$(date)",
     "system_uname": "$(uname -a)",
-    "sage_version": "$(cat "${SAGE_SRC_ROOT}/VERSION.txt")",
+    "sage_version": "$(cat "${SAGE_VPATH}/VERSION.txt")",
     "test_result": "$TEST_SUITE_RESULT"
 }
 __EOF__

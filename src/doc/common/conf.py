@@ -1,10 +1,10 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC_ROOT, THEBE_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_VPATH, THEBE_DIR
 from datetime import date
 from six import iteritems
 
 # If your extensions are in another directory, add it here.
-sys.path.append(os.path.join(SAGE_SRC_ROOT, "src", "sage_setup", "docbuild", "ext"))
+sys.path.append(os.path.join(SAGE_VPATH, "src", "sage_setup", "docbuild", "ext"))
 
 # General configuration
 # ---------------------

@@ -172,7 +172,7 @@ sagelib: \
 ###############################################################################
 
 # Don't just use "install" since we don't want to change permissions
-$(SAGE_LOCAL)/bin/%: $(SAGE_SRC_ROOT)/src/bin/%
+$(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 	$(AM_V_at)cp $< $@
 
 SCRIPTS += $(SAGE_LOCAL)/bin/sage-env-config
@@ -237,7 +237,7 @@ doc-pdf: $(DOC_DEPENDENCIES)
 doc-clean: doc-src-clean doc-output-clean
 
 doc-src-clean:
-	cd "$(SAGE_SRC_ROOT)/src/doc" && $(MAKE) -f $(SAGE_SRC)/doc/Makefile clean
+	cd "$(SAGE_VPATH)/src/doc" && $(MAKE) -f $(SAGE_SRC)/doc/Makefile clean
 
 doc-output-clean:
 	rm -rf "$(SAGE_SHARE)/doc/sage"
