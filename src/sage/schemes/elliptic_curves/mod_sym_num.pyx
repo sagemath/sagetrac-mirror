@@ -175,10 +175,8 @@ AUTHOR:
 #****************************************************************************
 
 from __future__ import print_function
-
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include 'cysignals/signals.pxi'
+from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
+from cysignals.signals cimport sig_check
 
 from sage.misc.cachefunc import cached_method
 
@@ -762,11 +760,11 @@ cdef class ModularSymbolNumerical:
             sage: M(12/11) # indirect doctest
             1/2
         """
-        self._ans_num = <double *> sage_malloc( 1002 * sizeof(double) )
-        self._ans = <int*> sage_malloc(1002 * sizeof(int) )
+        self._ans_num = <double *> sig_malloc( 1002 * sizeof(double) )
+        self._ans = <int*> sig_malloc(1002 * sizeof(int) )
         if self._ans is NULL or self._ans_num is NULL:
-            if self._ans is not NULL: sage_free(self._ans)
-            if self._ans_num is not NULL: sage_free(self._ans_num)
+            if self._ans is not NULL: sig_free(self._ans)
+            if self._ans_num is not NULL: sig_free(self._ans_num)
             raise MemoryError("Memory.")
 
     def __init__(self, E, sign=+1):
@@ -814,8 +812,8 @@ cdef class ModularSymbolNumerical:
         r"""
         Free the memory of the stored Fourier coefficients
         """
-        sage_free(self._ans_num)
-        sage_free(self._ans)
+        sig_free(self._ans_num)
+        sig_free(self._ans)
 
 # == basics ================
 
@@ -1322,12 +1320,12 @@ cdef class ModularSymbolNumerical:
         # function again with only a few new terms
         T += 100
 
-        self._ans_num = <double *> sage_realloc(self._ans_num,
+        self._ans_num = <double *> sig_realloc(self._ans_num,
                                                 (T+2)*sizeof(double))
-        self._ans = <int*> sage_realloc(self._ans, (T+2)*sizeof(int) )
+        self._ans = <int*> sig_realloc(self._ans, (T+2)*sizeof(int) )
         if self._ans is NULL or self._ans_num is NULL:
-            if self._ans is not NULL: sage_free(self._ans)
-            if self._ans_num is not NULL: sage_free(self._ans_num)
+            if self._ans is not NULL: sig_free(self._ans)
+            if self._ans_num is not NULL: sig_free(self._ans_num)
             raise MemoryError("Memory error with an coefficients.")
 
         verbose("   not enough precomputed coefficients, "
@@ -1873,12 +1871,12 @@ cdef class ModularSymbolNumerical:
             # return a python list of doubles that we cache
             res = [<double>(res[j]) for j in range(m)]
         else:
-            ra = <double *> sage_malloc( m * sizeof(double))
+            ra = <double *> sig_malloc( m * sizeof(double))
             if ra is NULL:
                 raise MemoryError
             oi = self._partial_real_sums_double(y, m, T, ra)
             res = [ra[j] for j in range(m)]
-            sage_free(ra)
+            sig_free(ra)
         #verbose("       leaving _kappa with"
         #        " [%s, %s, ... %s]"%(res[0], res[1], res[m-1]), level=5)
         return res
@@ -3693,7 +3691,7 @@ def _test_integration_via_partials(E, y, m, T):
         """
     cdef int oi, mm = <int>(m)
     cdef double * ra
-    ra = <double *> sage_malloc( mm * sizeof(double))
+    ra = <double *> sig_malloc( mm * sizeof(double))
     if ra is NULL:
         raise MemoryError
     M = ModularSymbolNumerical(E)
@@ -3701,7 +3699,7 @@ def _test_integration_via_partials(E, y, m, T):
     tt = <int>T
     oi = M._partial_real_sums_double(y, m, T, ra)
     res = [ra[j] for j in range(m)]
-    sage_free(ra)
+    sig_free(ra)
     return res
 
 def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
