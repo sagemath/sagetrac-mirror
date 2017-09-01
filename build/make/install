@@ -4,6 +4,19 @@
 # Set various environment variables
 ########################################################################
 
+deprecate_sage_64() {
+    if [ -n "$SAGE64" ] || [ -n "$CFLAG64" ] ; then
+        echo >&2 ""
+        echo >&2 "**************************************************************************"
+        echo >&2 "Warning: The environment variables SAGE64 and CFLAG64 are deprecated as of"
+        echo >&2 "Sage 8.1 (September 2017) and will be removed from a future version of Sage."
+        echo >&2 "**************************************************************************"
+        echo >&2 ""
+    fi
+}
+
+deprecate_sage_64
+
 # Assume current directory is SAGE_ROOT/build/make
 export SAGE_ROOT=`cd ../.. && pwd -P`
 export SAGE_SRC="$SAGE_ROOT/src"
@@ -108,6 +121,8 @@ fi
 
 # Build succeeded.
 echo "Sage build/upgrade complete!"
+
+deprecate_sage_64
 
 if [ "$1" = "all" ]; then
     echo
