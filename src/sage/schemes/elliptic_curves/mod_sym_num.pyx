@@ -585,7 +585,7 @@ cdef class _CuspsForModularSymbolNumerical:
 
         - ``N`` -- the level as a long long
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.mod_sym_num \
             ....: import _CuspsForModularSymbolNumerical
@@ -753,7 +753,7 @@ cdef class ModularSymbolNumerical:
         Initialisation function. Allocates memory to store the
         Fourier coefficients of the newform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve([1,-1])
             sage: M = E.modular_symbol(implementation="num")
@@ -821,7 +821,7 @@ cdef class ModularSymbolNumerical:
         """
         String representation of modular symbols.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("14a1")
             sage: M = E.modular_symbol(implementation="num")
@@ -834,7 +834,7 @@ cdef class ModularSymbolNumerical:
         r"""
         Return the elliptic curve of this modular symbol.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("15a4")
             sage: M = E.modular_symbol(implementation="num")
@@ -1005,7 +1005,7 @@ cdef class ModularSymbolNumerical:
         The eigenvalues are stored in a python dict _epsQs.
         Doctest in _test_init.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("20a2")
             sage: M = E.modular_symbol(implementation="num") #indirect doctest
@@ -1160,7 +1160,7 @@ cdef class ModularSymbolNumerical:
         This sets up the minimal twist. This is only called from __call__
         if use_twist is True.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("63a2")
             sage: M =E.modular_symbol(implementation="num")
@@ -2748,7 +2748,7 @@ cdef class ModularSymbolNumerical:
         See the docstring of manin_symbol for detail,
         examples and indirect doctest for this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.mod_sym_num \
             ....: import ModularSymbolNumerical
@@ -3245,7 +3245,7 @@ cdef class ModularSymbolNumerical:
 
         OUTPUT: a rational number
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("735e4")
             sage: M = E.modular_symbol(implementation="num")
@@ -3468,7 +3468,7 @@ cdef class ModularSymbolNumerical:
 
         OUTPUT: a real number
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve("735e4")
             sage: M = E.modular_symbol(implementation="num")
@@ -3720,7 +3720,7 @@ def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
 
     OUTPUT: Boolean. If False the function also prints information.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.mod_sym_num \
         ....: import _test_against_table
