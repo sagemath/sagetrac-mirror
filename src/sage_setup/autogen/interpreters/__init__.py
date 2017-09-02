@@ -111,7 +111,7 @@ compatibility.
 
 from __future__ import print_function, absolute_import
 
-import os, errno
+import os
 
 from os.path import getmtime
 
@@ -195,7 +195,7 @@ def rebuild(dirname, force=False):
     try:
         os.makedirs(dirname)
     except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
+        if os.path.isdir(dirname):
             pass
         else:
             raise
