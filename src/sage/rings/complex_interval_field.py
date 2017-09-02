@@ -115,7 +115,7 @@ class ComplexIntervalField_class(ring.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexIntervalFieldElement
+        TypeError: unable to coerce x to a ComplexIntervalFieldElement (imag=0)
 
     This illustrates precision::
 

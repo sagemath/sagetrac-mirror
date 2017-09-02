@@ -144,8 +144,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ii = R(imag)
             mpfi_set(self.__re, rr.value)
             mpfi_set(self.__im, ii.value)
-        except TypeError:
-            raise TypeError("unable to coerce %s with Parent %s to a ComplexIntervalFieldElement (imag=%s)"%(real, imag))
+        except TypeError,msg:
+            raise TypeError("unable to coerce %s to a ComplexIntervalFieldElement (imag=%s)"%(real, imag))
 
 
     def  __dealloc__(self):
