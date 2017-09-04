@@ -293,6 +293,42 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         mat._subdivisions = subdivisions
         return mat
 
+    def matrix_space(self, nrows=None, ncols=None, sparse=None):
+        r"""
+        Return a matrix space over the integers.
+
+        INPUT:
+
+        - ``nrows`` - number of rows
+
+        - ``ncols`` - number of columns
+
+        - ``sparse`` - (boolean) sparseness
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix(['A', 3])
+            sage: cm.matrix_space()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+            sage: cm.matrix_space(2, 2)
+            Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring
+            sage: cm[:2,1:]   # indirect doctest
+            [-1  0]
+            [ 2 -1]
+        """
+        if nrows is None:
+            nrows = self.nrows()
+        if ncols is None:
+            ncols = self.ncols()
+        if sparse is None:
+            sparse = True
+        
+        if nrows == self.nrows() and ncols == self.ncols() and sparse:
+            return self.parent()
+        else:
+            from sage.matrix.matrix_space import MatrixSpace
+            return MatrixSpace(ZZ, nrows, ncols, sparse is None or bool(sparse))
+
     def _CM_init(self, cartan_type, index_set, cartan_type_check):
         """
         Initialize ``self`` as a Cartan matrix.
