@@ -837,21 +837,6 @@ else
     fi
 fi
 
-if [ "$SAGE_CHECK" = "yes" ]; then
-    if [ -f spkg-check ]; then
-        echo "Running the test suite for $PKG_NAME..."
-        time ./spkg-check
-        if [ $? -ne 0 ]; then
-            error_msg "Error testing package $PKG_NAME" "make check"
-            exit 1
-        fi
-        TEST_SUITE_RESULT="passed"
-    else
-        echo "Package $PKG_NAME has no test suite."
-        TEST_SUITE_RESULT="not available"
-    fi
-fi
-
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used
 echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
@@ -906,6 +891,28 @@ if [ "$UNAME" = "CYGWIN" ]; then
     # have conflicting address spaces
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
+
+
+# Note: spkg-check tests are run after the package has been copied into
+# SAGE_LOCAL.  It might make more sense to run the tests before, but the
+# spkg-check scripts were written before use of DESTDIR installs, and so
+# fail in many cases.
+
+if [ "$SAGE_CHECK" = "yes" ]; then
+    if [ -f spkg-check ]; then
+        echo "Running the test suite for $PKG_NAME..."
+        time ./spkg-check
+        if [ $? -ne 0 ]; then
+            error_msg "Error testing package $PKG_NAME" "make check"
+            exit 1
+        fi
+        TEST_SUITE_RESULT="passed"
+    else
+        echo "Package $PKG_NAME has no test suite."
+        TEST_SUITE_RESULT="not available"
+    fi
+fi
+
 
 # Mark that the new package has been installed (and tested, if
 # applicable).
