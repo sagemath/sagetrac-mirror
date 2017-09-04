@@ -61,6 +61,10 @@ fi
 # interfere with the Python build.
 rm -f "$SAGE_LOCAL/lib/python"
 
+# Make sure -L. is placed before -L$SAGE_LOCAL/lib so that python and extension
+# modules are linked with the right libpython
+export LDFLAGS="-L. $LDFLAGS"
+
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --enable-unicode=ucs4 --enable-shared $PYTHON_CONFIGURE
 

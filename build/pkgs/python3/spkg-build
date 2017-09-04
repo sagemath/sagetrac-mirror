@@ -42,6 +42,10 @@ fi
 # interfere with the Python build.
 rm -f "$SAGE_LOCAL/lib/python"
 
+# Make sure -L. is placed before -L$SAGE_LOCAL/lib so that python and extension
+# modules are linked with the right libpython
+export LDFLAGS="-L. $LDFLAGS"
+
 # Note: --without-ensurepip ensures that setuptools+pip are *not* installed
 # automatically when installing python3. They will be installed instead by
 # the separate setuptools and pip packages; see
