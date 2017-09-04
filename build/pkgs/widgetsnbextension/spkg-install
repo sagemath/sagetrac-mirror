@@ -3,9 +3,3 @@ set -e
 cd src
 
 $PIP_INSTALL .
-
-# Note: Setting PYTHONPATH here is something of a hack to support
-# installation into $SAGE_DESTDIR.  This might be better handled
-# as a post-install step
-SITE_PACKAGES="$(sage-python23 -c 'import site; print(site.getsitepackages()[0])')"
-PYTHONPATH="$SAGE_DESTDIR$SITE_PACKAGES" jupyter nbextension enable --sys-prefix --py widgetsnbextension
