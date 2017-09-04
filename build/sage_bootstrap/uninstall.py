@@ -151,12 +151,8 @@ def modern_uninstall(spkg_name, sage_local, files):
     print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
 
     # Run the package's postrm script, if it exists
-    prerm = pth.join(spkg_scripts, 'spkg-prerm')
-    if pth.exists(prerm):
-        print("Running pre-uninstall script for '{0}'".format(spkg_name),
-              file=sys.stderr)
-        # If an error occurs here we abort the uninstallation for now
-        subprocess.check_call([prerm])
+    # If an error occurs here we abort the uninstallation for now
+    run_spkg_script(spkg_name, spkg_scripts, 'prerm', 'pre-uninstall')
 
     def rmdir(dirname):
         if dirname and os.path.exists(dirname):
@@ -195,9 +191,11 @@ def modern_uninstall(spkg_name, sage_local, files):
         # state--looking as though it's still 'installed', but with all its
         # files removed
         try:
+            run_spkg_script(spkg_name, spkg_scripts, 'postrm',
+                            'post-uninstall')
             subprocess.check_call([postrm])
         except Exception as exc:
-            print("Warning: Error running the post-install script for "
+            print("Warning: Error running the post-uninstall script for "
                   "'{0}'; the package will still be uninstalled, but "
                   "may have left behind some files or settings".format(
                   spkg_name))
@@ -206,6 +204,19 @@ def modern_uninstall(spkg_name, sage_local, files):
             shutil.rmtree(spkg_scripts)
         except:
             pass
+
+
+def run_spkg_script(spkg_name, path, script_name, script_descr):
+    """
+    Runs the specified ``spkg-<foo>`` script under the given ``path``,
+    if it exists.
+    """
+
+    script = pth.join(path, 'spkg-{0}'.format(script_name))
+    if pth.exists(script):
+        print("Running {0} script for '{1}'".format(script_descr, spkg_name),
+              file=sys.stderr)
+        subprocess.check_call([script])
 
 
 def dir_type(path):
