@@ -1,0 +1,1 @@
+jupyter nbextension disable --sys-prefix --py widgetsnbextension
