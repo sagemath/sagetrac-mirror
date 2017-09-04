@@ -989,7 +989,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
 
         # Add a target to remove the "installed" file for "sage -f"
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	rm -f \$(INST)/$PKG_VERSION"
+        echo >&7 "	sage-spkg-uninstall $PKG_NAME \"\$(SAGE_LOCAL)\""
         echo >&7
     fi
 
