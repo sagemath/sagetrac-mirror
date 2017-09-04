@@ -1,0 +1,69 @@
+# It is best to unset these environment variables, as they might confuse
+# the Python installer.
+unset PYTHONHOME
+unset PYTHONPATH
+
+# Prevent use of the system hg and svn as it might make the installation fail
+export HAS_HG=no
+export SVNVERSION=no
+
+cd src
+
+if [ "$SAGE_DEBUG" = "yes" ]; then
+    echo "Building Python with pydebug"
+    PYTHON_CONFIGURE="$PYTHON_CONFIGURE --with-pydebug"
+fi
+
+# pymalloc screws with valgrind, so let's disable it
+if [ "$SAGE_VALGRIND" = "yes" ]; then
+    echo "Building Python without pymalloc"
+    PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-pymalloc"
+fi
+
+if [ "$UNAME" = Darwin ]; then
+    if [ $MACOSX_VERSION -ge 16 ]; then
+        echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
+        CC=clang
+    fi
+elif [ "$UNAME" = SunOS ]; then
+    # Enable some C99 features on Solaris. This in particular enables
+    # the isinf() and isfinite() functions. It works both for C and
+    # C++ code (which is not true for -std=c99).  See
+    # http://trac.sagemath.org/sage_trac/ticket/14265
+    export CFLAGS="-D__C99FEATURES__ $CFLAGS"
+fi
+
+if [ "$SAGE64" = yes ]; then
+    echo "64 bit build of Python enabled"
+    export CC="$CC -m64"
+fi
+
+# Remove old symbolic link: it is not needed and its presence can
+# interfere with the Python build.
+rm -f "$SAGE_LOCAL/lib/python"
+
+# Note: --without-ensurepip ensures that setuptools+pip are *not* installed
+# automatically when installing python3. They will be installed instead by
+# the separate setuptools and pip packages; see
+# https://trac.sagemath.org/ticket/23398
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --without-ensurepip $PYTHON_CONFIGURE
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring Python."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building Python."
+    exit 1
+fi
+
+# On OS X, test to see if _scproxy built before installing.
+if [ "$UNAME" = "Darwin" ]; then
+    if [ -z `find build -name _scproxy*.so` ]; then
+        echo >&2 "Error: the _scproxy module failed to build."
+        exit 1
+    fi
+fi
