@@ -54,12 +54,10 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import sys
 import shutil, re
 import os.path
 import random
 import subprocess
-import types
 
 from sage.misc.temporary_file import tmp_dir
 from . import sage_eval
@@ -1749,53 +1747,38 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         sage: s = sage.misc.latex._latex_file_(blah())
         coucou
     """
-    process = True
-    if has_latex_attr(objects):
-        objects = [objects]
-
-    if not isinstance(objects, list):
-        objects = [objects]
-
-    if tiny:
-        size='\\tiny\n'
-    else:
-        size=''
-
-    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
-    s = '%s\n\\begin{document}%s%s'%(extra_preamble, formatted_title, size)
-
+    from sage.misc.html import HtmlFragment
+    objects = objects[:] if isinstance(objects, list) else [objects]
+    lines = [extra_preamble, r'\begin{document}']
     if title:
-        s += '\\vspace{40mm}'
-    if process:
-        for i in range(len(objects)):
-            x = objects[i]
-            L = latex(x)
-            if '\\begin{pgfpicture}' in L:
-                # Resize the pgf figure to the text width if larger.
-                s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
-                s += r'\begin{lrbox}{\pgffigure}' + '\n'
-                s += '%s'%L
-                s += r'\end{lrbox}'
-                s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
-            elif not '\\begin{verbatim}' in L:
-                s += '%s%s%s'%(math_left, L, math_right)
-            else:
-                s += '%s'%L
-            if i < len(objects)-1:
-                s += '\n\n%s\n\n'%sep
-    else:
-        s += "\n\n".join([str(x) for x in objects])
-
+        lines.append(r'\begin{center}{\Large\bf %s}\end{center}' % title)
+    if tiny:
+        lines.append(r'\tiny')
+    if title:
+        lines.append(r'\vspace{40mm}')
+    for i, x in enumerate(objects):
+        if isinstance(x, HtmlFragment):
+            continue
+        x = latex(x)
+        if r'\begin{pgfpicture}' in x:
+            # Resize the pgf figure to the text width if larger.
+            x = (r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
+                 r'\begin{lrbox}{\pgffigure}' '\n' + x + r'\end{lrbox}'
+                 r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' '\n')
+        elif not '\\begin{verbatim}' in x:
+            x = '%s%s%s' % (math_left, x, math_right)
+        objects[i] = x
+    lines.append(('\n\n%s\n\n' % sep).join(objects))
     # latex_extra_preamble() is called here and not before because some objects
     # may require additional packages to be displayed in LaTeX. Hence, the call
     # to latex(x) in the previous loop may change the result of
     # latex_extra_preamble()
-    MACROS = latex_extra_preamble()
-    s = LATEX_HEADER + '\n' + MACROS + s + '\n\\end{document}'
-
+    lines.insert(0, LATEX_HEADER)
+    lines.insert(1, latex_extra_preamble())
+    lines.append(r'\end{document}')
+    s = '\n'.join(lines)
     if debug:
         print(s)
-
     return s
 
 class MathJaxExpr:
