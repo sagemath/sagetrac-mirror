@@ -866,7 +866,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
     # Generate installed filed list
     FILE_LIST=""
     FIRST=1
-    IFS=$'\n'
+    old_IFS="$IFS"; IFS=$'\n'
     for filename in $(find "$PREFIX" -type f -o -type l | sort); do
         filename="${filename#$PREFIX}"
         if [ $FIRST -eq 1 ]; then
@@ -885,6 +885,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
             exit 1
         fi
     done
+    IFS="$old_IFS"
 fi
 
 
