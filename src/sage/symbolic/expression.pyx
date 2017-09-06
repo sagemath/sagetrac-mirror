@@ -6847,6 +6847,8 @@ cdef class Expression(CommutativeRingElement):
             sage: r = gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
             sage: r / (x^5 - 17*y + 2/3) in QQ
             True
+            sage: gcd(I + I*x, x^2 - 1)
+            x + 1
 
         TESTS:
 
@@ -6880,6 +6882,8 @@ cdef class Expression(CommutativeRingElement):
         sig_on()
         try:
             x = g_gcd(self._gobj, r._gobj)
+        except RuntimeError:
+            return self.maxima_methods().gcd(b)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
