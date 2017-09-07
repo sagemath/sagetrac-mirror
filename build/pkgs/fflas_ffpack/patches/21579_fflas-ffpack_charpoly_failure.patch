@@ -1,0 +1,10 @@
+--- a/fflas-ffpack/ffpack/ffpack_charpoly.inl	2016-07-30 21:12:32.000000000 +0200
++++ b/fflas-ffpack/ffpack/ffpack_charpoly.inl	2017-09-07 13:30:28.715257459 +0200
+@@ -113,6 +113,7 @@
+ 						CharpolyArithProg (F, charp, N, A, lda, __FFPACK_CHARPOLY_THRESHOLD);
+ 					}
+ 					catch (CharpolyFailed){
++						charp.clear();
+ 						if (attempts++ < 2)
+ 							cont = true;
+ 						else
