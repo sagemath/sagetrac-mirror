@@ -79,23 +79,21 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
     sage: patch
     Closed subscheme of Affine Space of dimension 3
     over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
+      -x00^2 + x01,
+      -x00*x01 + x02,
+      -x01^2 + x00*x02
     sage: patch.embedding_morphism()
     Scheme morphism:
-      From: Closed subscheme of Affine Space of dimension 3
-      over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
-      To:   Closed subscheme of Projective Space of dimension 3
-      over Rational Field defined by:
+      From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+      -x00^2 + x01,
+      -x00*x01 + x02,
+      -x01^2 + x00*x02
+      To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
       x1^2 - x0*x2,
       x1*x2 - x0*x3,
       x2^2 - x1*x3
-      Defn: Defined on coordinates by sending (x0, x1, x2) to
-            (1 : x0 : x1 : x2)
+      Defn: Defined on coordinates by sending (x00, x01, x02) to
+            (1 : x00 : x01 : x02)
 
 
 AUTHORS:
@@ -407,7 +405,7 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd = X.neighborhood(p)
             sage: nbhd
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -x00^2*x01 - 2*x00*x01
 
         Note that `p=(1,1,0)` is a singular point of `X`. So the
         neighborhood of `p` is not just affine space. The
@@ -424,11 +422,11 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -x00^2*x01 - 2*x00*x01
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x^2*z - y^2*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 + 1 : x1)
+              Defn: Defined on coordinates by sending (x00, x01) to
+                    (1 : x00 + 1 : x01)
 
         A couple more examples::
 
@@ -486,8 +484,7 @@ class AlgebraicScheme(scheme.Scheme):
             sage: p = [1,-1,3,4]
             sage: nbhd = X.neighborhood(p); nbhd
             Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              x30^2*x32^2 - x31^2*x32^2 + 6*x30^2*x32 - 6*x31^2*x32 + 2*x30*x32^2 + 2*x31*x32^2 - 7*x30^2 + 7*x31^2 + 12*x30*x32 + 12*x31*x32 - 14*x30 - 14*x31
             sage: nbhd.embedding_center()
             (0, 0, 0)
             sage: nbhd.embedding_morphism()(nbhd.embedding_center())
@@ -495,12 +492,11 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              x30^2*x32^2 - x31^2*x32^2 + 6*x30^2*x32 - 6*x31^2*x32 + 2*x30*x32^2 + 2*x31*x32^2 - 7*x30^2 + 7*x31^2 + 12*x30*x32 + 12*x31*x32 - 14*x30 - 14*x31
               To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
               w^2*y^2 - x^2*y^2 - w^2*z^2 + x^2*z^2
-              Defn: Defined on coordinates by sending (x0, x1, x2) to
-                    (x0 + 1 : x1 - 1 : x2 + 3 : 4)
+              Defn: Defined on coordinates by sending (x30, x31, x32) to
+                    (x30 + 1 : x31 - 1 : x32 + 3 : 4)
         """
         if '_embedding_center' in self.__dict__:
             return self._embedding_center
@@ -2620,15 +2616,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              x00^3*x01 + x01^3 + x00
             sage: U.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              x00^3*x01 + x01^3 + x00
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               X^3*Y + Y^3*Z + X*Z^3
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 : x1)
+              Defn: Defined on coordinates by sending (x00, x01) to
+                    (1 : x00 : x01)
             sage: U.projective_embedding() is U.embedding_morphism()
             True
 
@@ -2755,15 +2751,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             (0 : -3/2 : 1)
             sage: patch = S.neighborhood(s); patch
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x10 + 3*x11
             sage: patch.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x10 + 3*x11
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x + 2*y + 3*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (x0 : -3/2 : x1 + 1)
+              Defn: Defined on coordinates by sending (x10, x11) to
+                    (x10 : -3/2 : x11 + 1)
             sage: patch.embedding_center()
             (0, 0)
             sage: patch.embedding_morphism()([0,0])
@@ -3646,8 +3642,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
             over Rational Field defined by:
-              x1^2 + x2^2 - 2*x0,
-              x0^2 - x2^2) must be proper and finite
+              x01^2 + x02^2 - 2*x00,
+              x00^2 - x02^2) must be proper and finite
         """
         try:
             self.ambient_space()(P)

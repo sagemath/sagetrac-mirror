@@ -955,20 +955,28 @@ class ProjectiveSpace_ring(AmbientSpace):
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (x0 : x1 : 1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x20, x21, x22, x23, x24) to
+                    (x20 : x21 : 1 : x22 : x23 : x24)
             sage: AA.projective_embedding(0)
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (1 : x0 : x1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x20, x21, x22, x23, x24) to
+                    (1 : x20 : x21 : x22 : x23 : x24)
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: P.affine_patch(0).projective_embedding(0).codomain() == P
             True
+
+        TESTS
+
+        check :trac:`23807` is fixed::
+
+            sage: PP = ProjectiveSpace(QQ,1)
+            sage: PP.affine_patch(0) is PP.affine_patch(1)
+            False
         """
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
@@ -987,7 +995,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         #if no ith patch exists, we may still be here with AA==None
         if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
-            AA = AffineSpace(n, self.base_ring(), names = 'x')
+            AA = AffineSpace(n, self.base_ring(), names = 'x'+str(i))
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
         AA._default_embedding_index = i

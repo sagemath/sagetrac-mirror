@@ -1407,8 +1407,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+y^2, y^2])
             sage: f.dehomogenize(0)
             Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2/(x^2 + 1))
+              Defn: Defined on coordinates by sending (x0) to
+                    (x0^2/(x0^2 + 1))
 
         ::
 
@@ -1416,9 +1416,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-y^2, y^2])
             sage: f.dehomogenize((0,1))
-            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x) to
-                    ((-x^2 + 1)/x^2)
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x0) to
+                    ((-x0^2 + 1)/x0^2)
 
         ::
 
@@ -1427,8 +1429,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+y^2, y^2-z^2, 2*z^2])
             sage: f.dehomogenize(2)
             Scheme endomorphism of Affine Space of dimension 2 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1/2*x0^2 + 1/2*x1^2, 1/2*x1^2 - 1/2)
+              Defn: Defined on coordinates by sending (x20, x21) to
+                    (1/2*x20^2 + 1/2*x21^2, 1/2*x21^2 - 1/2)
 
         ::
 
@@ -1439,8 +1441,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.dehomogenize(2)
             Scheme endomorphism of Affine Space of dimension 2 over Fraction Field
             of Univariate Polynomial Ring in t over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1/t*x0^2 + x1^2, x1^2 - 1/t)
+              Defn: Defined on coordinates by sending (x20, x21) to
+                    (1/t*x20^2 + x21^2, x21^2 - 1/t)
 
         ::
 
@@ -1450,9 +1452,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2, y^2, x*z])
             sage: f.dehomogenize(2)
             Scheme endomorphism of Closed subscheme of Affine Space of dimension 2 over Integer Ring defined by:
-              x0^2 - x1^2
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (x0, x1^2/x0)
+              x20^2 - x21^2
+              Defn: Defined on coordinates by sending (x20, x21) to
+                    (x20, x21^2/x20)
 
         ::
 
@@ -6243,7 +6245,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: H = End(R)
             sage: f=H([x^5,y^5])
             sage: f.automorphism_group(return_functions=True, iso_type=True)
-            ([x, 1/x], 'Cyclic of order 2')
+            ([x1, 1/x1], 'Cyclic of order 2')
 
             ::
 
