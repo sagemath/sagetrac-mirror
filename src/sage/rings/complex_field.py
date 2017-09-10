@@ -363,7 +363,7 @@ class ComplexField_class(ring.Field):
             return self.zero()
         # we leave this here to handle the imaginary parameter
         if im is not None:
-            x = x, im
+            return self._element_constructor_((x, im))
         return Parent.__call__(self, x)
 
     def _element_constructor_(self, x):

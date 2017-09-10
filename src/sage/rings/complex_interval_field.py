@@ -43,8 +43,6 @@ from . import complex_interval
 from . import complex_field
 from sage.misc.sage_eval import sage_eval
 
-from sage.structure.parent_gens import ParentWithGens
-
 
 def is_ComplexIntervalField(x):
     """
@@ -194,7 +192,7 @@ class ComplexIntervalField_class(ring.Field):
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ring.Field.__init__(self, self._real_field(), names = ('I',), normalize = False, category = Fields())
 
     def __reduce__(self):
         """
@@ -415,8 +413,7 @@ class ComplexIntervalField_class(ring.Field):
         if im is None:
             return super(ComplexIntervalField_class,self).__call__(x)
         else:
-            return super(ComplexIntervalField_class,self).__call__((x, im))
-        return ans
+            return self.element_class(self,(x, im))
 
 
     def _element_constructor_(self, x):
@@ -463,10 +460,10 @@ class ComplexIntervalField_class(ring.Field):
         if isinstance(x, str):
             # TODO: this is probably not the best and most
             # efficient way to do this.  -- Martin Albrecht
-            return complex_interval.ComplexIntervalFieldElement(self,
-                           sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+            return self.element_class(self, sage_eval(x.replace(' ',''),
+                                      locals={"I":self.gen(), "i":self.gen()}))
 
-        return complex_interval.ComplexIntervalFieldElement(self, x)
+        return self.element_class(self, x)
 
 
     def _coerce_map_from_(self, S):
@@ -579,7 +576,7 @@ class ComplexIntervalField_class(ring.Field):
         """
         if n != 0:
             raise IndexError("n must be 0")
-        return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
+        return self.element_class(self, 0, 1)
 
     def random_element(self, *args, **kwds):
         """
@@ -686,7 +683,7 @@ class ComplexIntervalField_class(ring.Field):
             RR = self._real_field()
             pi = RR.pi()
             z = 2*pi/n
-            x = complex_interval.ComplexIntervalFieldElement(self, z.cos(), z.sin())
+            x = self.element_class(self, z.cos(), z.sin())
         # Uncomment after implemented
         #x._set_multiplicative_order( n )
         return x

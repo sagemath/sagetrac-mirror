@@ -123,17 +123,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_init2(self.__im, self._prec)
 
         if imag is None:
-            if isinstance(real, ComplexNumber):
-                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
-            elif isinstance(real, ComplexIntervalFieldElement):
+            if isinstance(real, ComplexIntervalFieldElement):
                 real, imag = (<ComplexIntervalFieldElement>real).real(), (<ComplexIntervalFieldElement>real).imag()
+            elif isinstance(real, ComplexNumber):
+                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, ComplexDoubleElement):
                 real, imag = real.real(), real.imag()
             elif isinstance(real, pari_gen):
                 real, imag = real.real(), real.imag()
             elif isinstance(real, list) or isinstance(real, tuple):
-                re, imag = real
-                real = re
+                real, imag = real
             elif isinstance(real, complex):
                 real, imag = real.real, real.imag
             else:
