@@ -3832,6 +3832,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     if p is None:
         p = a._parent.order()
+
     p = Integer(p)
 
     cdef int p_mod_16 = p % 16
