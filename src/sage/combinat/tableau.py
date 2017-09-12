@@ -1084,18 +1084,18 @@ class Tableau(ClonableList):
         r"""
         Return the sign matrix of ``self``.
 
-        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the 
-        partial sums of each column is either 0 or 1 and the partial sums of 
+        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the
+        partial sums of each column is either 0 or 1 and the partial sums of
         each row is non-negative. [Aval2008]_
-        
-        INPUT: 
 
-        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in 
+        INPUT:
+
+        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in
           the tableau. Defaults to the largest entry in the tableau if not specified.
 
 
-        EXAMPLES:: 
-       
+        EXAMPLES::
+
             sage: t = SemistandardTableau([[1,1,1,2,4],[3,3,4],[4,5],[6,6]])
             sage: t.to_sign_matrix(6)
             [ 0  0  0  1  0  0]
@@ -1125,7 +1125,7 @@ class Tableau(ClonableList):
 
         .. [Aval2008] Jean-Christope Aval.
            *Keys and Alternating Sign Matrices*,
-           Seminaire Lotharingien de Combinatoire 59 (2008) B59f 
+           Seminaire Lotharingien de Combinatoire 59 (2008) B59f
            :arxiv:`0711.2150`
         """
         from sage.rings.all import ZZ
@@ -1133,7 +1133,7 @@ class Tableau(ClonableList):
         PI = PositiveIntegers()
         for row in self:
             if any(c not in PI for c in row):
-                raise ValueError("the entries must be non-negative integers")        
+                raise ValueError("the entries must be non-negative integers")
         from sage.matrix.matrix_space import MatrixSpace
         if max_entry is None:
             max_entry=max([max(c) for c in self])
@@ -3903,7 +3903,7 @@ class Tableau(ClonableList):
         deg = self.shape()._initial_degree(e,multicharge)
         res = self.shape().initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
-            if res[r] == res[r+1]: 
+            if res[r] == res[r+1]:
                 deg -= 2
             elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
                 deg += (e == 2 and 2 or 1)
@@ -3993,7 +3993,7 @@ class Tableau(ClonableList):
 
     def first_column_descent(self):
         r"""
-        Return the first cell where ``self`` is not column standard. 
+        Return the first cell where ``self`` is not column standard.
 
         Cells are ordered left to right along the rows and then top to bottom.
         That is, the cell `(r, c)` with `r` and `c` minimal such that
@@ -4137,7 +4137,7 @@ class SemistandardTableau(Tableau):
         ValueError: entries must be positive integers
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, check=True):
         r"""
         This ensures that a SemistandardTableau is only ever constructed as an
         element_class call of an appropriate parent.
@@ -4156,8 +4156,8 @@ class SemistandardTableau(Tableau):
         """
         if isinstance(t, SemistandardTableau):
             return t
-        elif t in SemistandardTableaux():
-            return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+        elif not check or t in SemistandardTableaux():
+            return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t, check=check)
 
         # t is not a semistandard tableau so we give an appropriate error message
         if t not in Tableaux():
@@ -4173,7 +4173,7 @@ class SemistandardTableau(Tableau):
         raise ValueError('%s is not a column strict tableau' % t)
 
 
-    def __init__(self, parent, t):
+    def __init__(self, parent, t, check=True):
         r"""
         Initialize a semistandard tableau.
 
@@ -4197,6 +4197,8 @@ class SemistandardTableau(Tableau):
         """
         super(SemistandardTableau, self).__init__(parent, t)
 
+        if not check:
+            return
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers which are weakly increasing
         # along rows

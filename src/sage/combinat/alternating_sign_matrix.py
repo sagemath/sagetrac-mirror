@@ -937,7 +937,7 @@ class AlternatingSignMatrix(Element):
         for i in range(len(mt)):
             for j in range(len(mt[i])):
                 ssyt[i][j] = mt[j][-(i+1)]
-        return SemistandardTableau(ssyt)
+        return SemistandardTableau(ssyt, check=False)
 
     def left_key(self):
         r"""
