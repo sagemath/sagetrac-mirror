@@ -135,6 +135,9 @@ def u(x):
     raise TypeError('input has no conversion to unicode')
 
 
+to_unicode = u
+
+
 def to_bytes(x):
     r"""
     Convert `x` to bytes, assuming UTF-8 encoding.
