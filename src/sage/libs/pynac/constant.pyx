@@ -16,6 +16,7 @@ Wrapper around Pynac's constants
 
 from __future__ import absolute_import, division, print_function
 
+from sage.misc.six import to_bytes
 from .pynac cimport *
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
@@ -52,6 +53,8 @@ cdef class PynacConstant:
             raise ValueError
 
         self._name = name
+        name = to_bytes(name)
+        texname = to_bytes(texname)
 
         # For the constants explicitly defined in constant.cpp in the
         # Pynac library, we use those symbols. Otherwise, we create a
