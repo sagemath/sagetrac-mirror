@@ -135,12 +135,17 @@ def u(x):
     raise TypeError('input has no conversion to unicode')
 
 
-to_unicode = u
-
-
-def to_bytes(x):
+def string_to_bytes(x):
     r"""
-    Convert `x` to bytes, assuming UTF-8 encoding.
+    Convert ``x`` to bytes using the utf-8 encoding.
+
+    INPUT:
+
+    - ``x`` -- a string (bytes or unicode)
+
+    OUTPUT:
+
+    an object of type ``bytes``
 
     Python2 behaviour:
 
@@ -156,10 +161,10 @@ def to_bytes(x):
 
     EXAMPLES::
 
-        sage: from sage.misc.six import to_bytes
-        sage: to_bytes("500 €")
+        sage: from sage.misc.six import string_to_bytes
+        sage: string_to_bytes("500 €")
         '500 \xe2\x82\xac'
-        sage: to_bytes(u"500 \u20ac")
+        sage: string_to_bytes(u"500 \u20ac")
         '500 \xe2\x82\xac'
     """
     if isinstance(x, text_type):  # py2 unicode and py3 str
