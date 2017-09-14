@@ -1726,6 +1726,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
         """
         if is_Cone(right):
+            if self.ambient() is right.ambient():
+                return cmp(self._ambient_ray_indices, right._ambient_ray_indices)
             # We don't care about particular type of right in this case
             return richcmp((self.lattice(), self.rays()),
                            (right.lattice(), right.rays()), op)
