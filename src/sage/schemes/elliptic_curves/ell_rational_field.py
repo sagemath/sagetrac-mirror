@@ -93,13 +93,12 @@ import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
-
+from sage.misc.cachefunc import cached_method
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
 from sage.functions.other import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
-from sage.misc.cachefunc import cached_method
 from copy import copy
 
 Q = RationalField()
@@ -4221,7 +4220,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        - `p` -- optional, default (None); if given, return the local
+        - `p` -- optional, default (``None``); if given, return the local
           root number at `p`
 
         EXAMPLES::
