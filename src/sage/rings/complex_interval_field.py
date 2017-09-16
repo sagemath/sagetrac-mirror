@@ -35,14 +35,13 @@ heavily modified:
 from __future__ import absolute_import
 
 from . import complex_double
-from . import ring
 from . import integer
 import weakref
 from . import real_mpfi
 from . import complex_interval
 from . import complex_field
 from sage.misc.sage_eval import sage_eval
-
+from sage.rings.ring import Field
 
 def is_ComplexIntervalField(x):
     """
@@ -89,7 +88,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(ring.Field):
+class ComplexIntervalField_class(Field):
     """
     The field of complex (interval) numbers.
 
@@ -192,7 +191,8 @@ class ComplexIntervalField_class(ring.Field):
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ring.Field.__init__(self, self._real_field(), names = ('I',), normalize = False, category = Fields())
+        Field.__init__(self, self._real_field(), names=('I',),
+                       normalize=False, category=Fields())
 
     def __reduce__(self):
         """
@@ -203,7 +203,7 @@ class ComplexIntervalField_class(ring.Field):
             sage: loads(dumps(CIF)) == CIF
             True
         """
-        return ComplexIntervalField, (self._prec, )
+        return ComplexIntervalField, (self._prec,)
 
     def construction(self):
         """
@@ -411,10 +411,9 @@ class ComplexIntervalField_class(ring.Field):
         for more examples and documentation see _element_constructor_
         """
         if im is None:
-            return super(ComplexIntervalField_class,self).__call__(x)
+            return super(ComplexIntervalField_class, self).__call__(x)
         else:
-            return self.element_class(self,(x, im))
-
+            return self.element_class(self, (x, im))
 
     def _element_constructor_(self, x):
         """
@@ -447,8 +446,6 @@ class ComplexIntervalField_class(ring.Field):
             ...
             ValueError: can not convert complex algebraic number to real interval
 
-
-
         TESTS:
 
         We test that :trac:`23739` is fixed::
@@ -464,7 +461,6 @@ class ComplexIntervalField_class(ring.Field):
                                       locals={"I":self.gen(), "i":self.gen()}))
 
         return self.element_class(self, x)
-
 
     def _coerce_map_from_(self, S):
         """
@@ -526,7 +522,6 @@ class ComplexIntervalField_class(ring.Field):
         from sage.rings.qqbar import AA, QQbar
         from sage.rings.real_lazy import CLF, RLF
         return self._coerce_map_via([RR, AA, QQbar, RLF, CLF], S) #this order might be tweeked for performance
-
 
     def _repr_(self):
         """
