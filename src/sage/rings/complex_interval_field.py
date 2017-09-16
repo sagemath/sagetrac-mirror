@@ -468,6 +468,11 @@ class ComplexIntervalField_class(Field):
 
         - This ComplexIntervalField or any other of higher precision
 
+        - The ComplexField of the same or higher precision
+
+        - Any parent whose elements define a ``_complex_mpfi_`` or
+          ``_complex_mpfr_field_`` method
+
         - Anything that canonically coerces to the RealIntervalField of
           this precision
 
@@ -495,13 +500,26 @@ class ComplexIntervalField_class(Field):
             TypeError: unsupported operand parent(s) for +: 'Complex Interval
             Field with 53 bits of precision' and 'Complex Field with 25 bits of precision'
 
+            sage: CIF.coerce_map_from(CC)
+            Coercion map:
+              From: Complex Field with 53 bits of precision
+              To:   Complex Interval Field with 53 bits of precision
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: CIF.coerce_map_from(UCF)
+            Conversion via <lambda> map:
+              From: Universal Cyclotomic Field
+              To:   Complex Interval Field with 53 bits of precision
         """
         RR = self._real_field()
-
         if RR is S:
             return self._generic_coerce_map(RR)
 
-        if is_ComplexIntervalField(S):
+        CC = self._middle_field()
+        if CC is S:
+            return self._generic_coerce_map(CC)
+
+        if isinstance(S, ComplexIntervalField_class):
             if self._prec <= S._prec:
                 return self._generic_coerce_map(S)
             else:
@@ -511,17 +529,22 @@ class ComplexIntervalField_class(Field):
         if hasattr(S, "element_class"):
             element_class = S.element_class
         elif hasattr(S, "an_element"):
-            element_class = S.an_element().__class__
+            try:
+                element_class = S.an_element().__class__
+            except (TypeError, ValueError):
+                pass
         if element_class:
             if hasattr(element_class, '_complex_mpfi_'):
-                return lambda cls,elt : elt._complex_mpfi_(self)
+                return lambda cls, elt: elt._complex_mpfi_(self)
             if hasattr(element_class, '_complex_mpfr_field_'):
-                return lambda cls,elt : elt._complex_mpfr_field_(self)
+                return lambda cls, elt: elt._complex_mpfr_field_(self)
 
 
         from sage.rings.qqbar import AA, QQbar
         from sage.rings.real_lazy import CLF, RLF
-        return self._coerce_map_via([RR, AA, QQbar, RLF, CLF], S) #this order might be tweeked for performance
+        # This order might be tweeked for performance
+        others = [CC, RR, AA, QQbar, RLF, CLF]
+        return self._coerce_map_via(others, S)
 
     def _repr_(self):
         """
@@ -592,10 +615,10 @@ class ComplexIntervalField_class(Field):
             sage: CIF.random_element(max=0, min=-5)
             -0.079017286535590259? - 2.8712089896087117?*I
         """
-        return self._real_field().random_element(*args, **kwds) \
-            + self.gen() * self._real_field().random_element(*args, **kwds)
+        return (self._real_field().random_element(*args, **kwds)
+                + self.gen() * self._real_field().random_element(*args, **kwds))
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Return ``True``, since the complex numbers are a field.
 
