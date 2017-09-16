@@ -53,6 +53,7 @@ from sage.structure.element cimport FieldElement, RingElement, Element, ModuleEl
 from sage.structure.parent cimport Parent
 from .complex_number cimport ComplexNumber
 from .complex_field import ComplexField
+from .complex_double import ComplexDoubleElement
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
 from .real_mpfr cimport RealNumber, RealField
@@ -122,15 +123,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_init2(self.__im, self._prec)
 
         if imag is None:
-            if isinstance(real, ComplexNumber):
-                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
-            elif isinstance(real, ComplexIntervalFieldElement):
+            if isinstance(real, ComplexIntervalFieldElement):
                 real, imag = (<ComplexIntervalFieldElement>real).real(), (<ComplexIntervalFieldElement>real).imag()
+            elif isinstance(real, ComplexNumber):
+                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
+            elif isinstance(real, ComplexDoubleElement):
+                real, imag = real.real(), real.imag()
             elif isinstance(real, pari_gen):
                 real, imag = real.real(), real.imag()
             elif isinstance(real, list) or isinstance(real, tuple):
-                re, imag = real
-                real = re
+                real, imag = real
             elif isinstance(real, complex):
                 real, imag = real.real, real.imag
             else:
@@ -141,8 +143,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ii = R(imag)
             mpfi_set(self.__re, rr.value)
             mpfi_set(self.__im, ii.value)
-        except TypeError:
-            raise TypeError("unable to coerce to a ComplexIntervalFieldElement")
+        except TypeError,msg:
+            raise TypeError("unable to coerce %s to a ComplexIntervalFieldElement (imag=%s)"%(real, imag))
 
 
     def  __dealloc__(self):

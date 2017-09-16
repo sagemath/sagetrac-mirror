@@ -43,21 +43,6 @@ from . import complex_interval
 from . import complex_field
 from sage.misc.sage_eval import sage_eval
 
-from sage.structure.parent_gens import ParentWithGens
-
-NumberFieldElement_quadratic = None
-def late_import():
-    """
-    Import the objects/modules after build (when needed).
-
-    TESTS::
-
-        sage: sage.rings.complex_interval_field.late_import()
-    """
-    global NumberFieldElement_quadratic
-    if NumberFieldElement_quadratic is None:
-        import sage.rings.number_field.number_field_element_quadratic as nfeq
-        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
 
 def is_ComplexIntervalField(x):
     """
@@ -128,7 +113,7 @@ class ComplexIntervalField_class(ring.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexIntervalFieldElement
+        TypeError: unable to coerce x to a ComplexIntervalFieldElement (imag=0)
 
     This illustrates precision::
 
@@ -192,6 +177,8 @@ class ComplexIntervalField_class(ring.Field):
         sage: x + CIF(RIF(3.14,3.15), 0)
         x + 3.15?
     """
+    Element = complex_interval.ComplexIntervalFieldElement
+
     def __init__(self, prec=53):
         """
         Initialize ``self``.
@@ -205,7 +192,7 @@ class ComplexIntervalField_class(ring.Field):
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ring.Field.__init__(self, self._real_field(), names = ('I',), normalize = False, category = Fields())
 
     def __reduce__(self):
         """
@@ -414,6 +401,23 @@ class ComplexIntervalField_class(ring.Field):
 
     def __call__(self, x, im=None):
         """
+        Creates a ComplexIntervalField_class.
+
+        EXAMPLES:
+
+            sage: CIF(pi,1)
+            3.141592653589794? + 1*I
+
+        for more examples and documentation see _element_constructor_
+        """
+        if im is None:
+            return super(ComplexIntervalField_class,self).__call__(x)
+        else:
+            return self.element_class(self,(x, im))
+
+
+    def _element_constructor_(self, x):
+        """
         Construct an element.
 
         EXAMPLES::
@@ -442,54 +446,47 @@ class ComplexIntervalField_class(ring.Field):
             Traceback (most recent call last):
             ...
             ValueError: can not convert complex algebraic number to real interval
+
+
+
+        TESTS:
+
+        We test that :trac:`23739` is fixed::
+
+            sage: NF.<a> = QuadraticField(-2)
+            sage: CIF(a)
+            1.414213562373095?*I
         """
-        if im is None:
-            if isinstance(x, complex_interval.ComplexIntervalFieldElement):
-                if x.parent() is self:
-                    return x
-                else:
-                    return complex_interval.ComplexIntervalFieldElement(self, x)
-            elif isinstance(x, complex_double.ComplexDoubleElement):
-                return complex_interval.ComplexIntervalFieldElement(self, x.real(), x.imag())
-            elif isinstance(x, str):
-                # TODO: this is probably not the best and most
-                # efficient way to do this.  -- Martin Albrecht
-                return complex_interval.ComplexIntervalFieldElement(self,
-                            sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+        if isinstance(x, str):
+            # TODO: this is probably not the best and most
+            # efficient way to do this.  -- Martin Albrecht
+            return self.element_class(self, sage_eval(x.replace(' ',''),
+                                      locals={"I":self.gen(), "i":self.gen()}))
 
-            late_import()
-            if isinstance(x, NumberFieldElement_quadratic):
-                parent = x.parent()
-                if (list(parent.polynomial()) == [1, 0, 1] and
-                        parent.coerce_embedding() is not None):
-                    (re, im) = list(x)
-                    if not parent._standard_embedding:
-                        im = -im
-                    return complex_interval.ComplexIntervalFieldElement(self, re, im)
+        return self.element_class(self, x)
 
-            try:
-                return x._complex_mpfi_( self )
-            except AttributeError:
-                pass
-            try:
-                return x._complex_mpfr_field_( self )
-            except AttributeError:
-                pass
-        return complex_interval.ComplexIntervalFieldElement(self, x, im)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, S):
         """
-        Return the canonical coerce of ``x`` into this complex field, if it is
-        defined, otherwise raise a ``TypeError``.
+        The rings that canonically coerce to this ComplexIntervalField are:
 
-        The rings that canonically coerce to the MPFI complex field are:
+        - This ComplexIntervalField or any other of higher precision
 
-        * this MPFI complex field, or any other of higher precision
+        - Anything that canonically coerces to the RealIntervalField of
+          this precision
 
-        * anything that canonically coerces to the mpfi real field with this
-          precision
+        - AA, QQbar
+
+        - CLF, RLF and anything that coerces into these
 
         EXAMPLES::
+
+            sage: ComplexIntervalField(200)(1) + RealIntervalField(90)(1) # indirect doctest
+            2
+            sage: parent(ComplexIntervalField(200)(1) + RealIntervalField(90)(1)) # indirect doctest
+            Complex Interval Field with 90 bits of precision
+            sage: CIF.0 + RIF(1/3) # indirect doctest
+            0.3333333333333334? + 1*I
 
             sage: CIF((2,1)) + 2 + I # indirect doctest
             4 + 2*I
@@ -501,18 +498,35 @@ class ComplexIntervalField_class(ring.Field):
             ...
             TypeError: unsupported operand parent(s) for +: 'Complex Interval
             Field with 53 bits of precision' and 'Complex Field with 25 bits of precision'
+
         """
-        try:
-            K = x.parent()
-            if is_ComplexIntervalField(K) and K._prec >= self._prec:
-                return self(x)
-#            elif complex_field.is_ComplexField(K) and K.prec() >= self._prec:
-#                return self(x)
-        except AttributeError:
-            pass
-        if hasattr(x, '_complex_mpfr_field_') or hasattr(x, '_complex_mpfi_'):
-            return self(x)
-        return self._coerce_try(x, self._real_field())
+        RR = self._real_field()
+
+        if RR is S:
+            return self._generic_coerce_map(RR)
+
+        if is_ComplexIntervalField(S):
+            if self._prec <= S._prec:
+                return self._generic_coerce_map(S)
+            else:
+                return None
+
+        element_class = None
+        if hasattr(S, "element_class"):
+            element_class = S.element_class
+        elif hasattr(S, "an_element"):
+            element_class = S.an_element().__class__
+        if element_class:
+            if hasattr(element_class, '_complex_mpfi_'):
+                return lambda cls,elt : elt._complex_mpfi_(self)
+            if hasattr(element_class, '_complex_mpfr_field_'):
+                return lambda cls,elt : elt._complex_mpfr_field_(self)
+
+
+        from sage.rings.qqbar import AA, QQbar
+        from sage.rings.real_lazy import CLF, RLF
+        return self._coerce_map_via([RR, AA, QQbar, RLF, CLF], S) #this order might be tweeked for performance
+
 
     def _repr_(self):
         """
@@ -562,7 +576,7 @@ class ComplexIntervalField_class(ring.Field):
         """
         if n != 0:
             raise IndexError("n must be 0")
-        return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
+        return self.element_class(self, 0, 1)
 
     def random_element(self, *args, **kwds):
         """
@@ -669,7 +683,7 @@ class ComplexIntervalField_class(ring.Field):
             RR = self._real_field()
             pi = RR.pi()
             z = 2*pi/n
-            x = complex_interval.ComplexIntervalFieldElement(self, z.cos(), z.sin())
+            x = self.element_class(self, z.cos(), z.sin())
         # Uncomment after implemented
         #x._set_multiplicative_order( n )
         return x
