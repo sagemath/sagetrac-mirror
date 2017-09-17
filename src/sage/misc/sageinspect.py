@@ -1637,9 +1637,9 @@ def _sage_getdoc_unformatted(obj):
     if not isinstance(r, string_types):
         return ''
     elif isinstance(r, text_type):  # unicode (py2) = str (py3)
-        return r.encode('utf-8', 'ignore')
-    else:
         return r
+    else:
+        return r.encode('utf-8', 'ignore')
 
 
 def sage_getdoc_original(obj):
