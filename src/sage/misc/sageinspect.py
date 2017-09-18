@@ -1636,10 +1636,8 @@ def _sage_getdoc_unformatted(obj):
     # not a 'getset_descriptor' or similar.
     if not isinstance(r, string_types):
         return ''
-    elif isinstance(r, text_type):  # unicode (py2) = str (py3)
-        return r
     else:
-        return r.encode('utf-8', 'ignore')
+        return r
 
 
 def sage_getdoc_original(obj):
