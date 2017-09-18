@@ -79,7 +79,7 @@ cimport sage.structure.category_object as category_object
 
 
 cdef inline check_old_coerce(parent.Parent p):
-    if p._element_constructor is not None:
+    if p.__construct_element is not None:
         raise RuntimeError("%s still using old coercion framework" % p)
 
 
@@ -155,7 +155,7 @@ cdef class ParentWithGens(ParentWithBase):
             ...
             ValueError: variable names cannot be changed after object creation.
         """
-        if self._element_constructor is not None:
+        if self.__construct_element is not None:
             return parent.Parent._assign_names(self, names=names, normalize=normalize)
         if names is None: return
         if normalize:
@@ -174,7 +174,7 @@ cdef class ParentWithGens(ParentWithBase):
     # i.e., just define __dict__ as an attribute and all this code gets generated.
     #################################################################################
     def __getstate__(self):
-        if self._element_constructor is not None:
+        if self.__construct_element is not None:
             return parent.Parent.__getstate__(self)
         d = []
         try:
@@ -284,7 +284,7 @@ cdef class ParentWithGens(ParentWithBase):
             ...
             TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
         """
-        if self._element_constructor is not None:
+        if self.__construct_element is not None:
             return parent.Parent.hom(self, im_gens, codomain, check)
         if isinstance(im_gens, parent.Parent):
             return self.Hom(im_gens).natural_map()

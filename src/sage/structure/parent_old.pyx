@@ -40,7 +40,7 @@ from cpython.object cimport *
 from cpython.bool cimport *
 
 cdef inline check_old_coerce(Parent p):
-    if p._element_constructor is not None:
+    if p.__construct_element is not None:
         raise RuntimeError("%s still using old coercion framework" % p)
 
 
@@ -226,13 +226,13 @@ cdef class Parent(parent.Parent):
     #################################################################################
 
     def _coerce_(self, x):            # Call this from Python (do not override!)
-        if self._element_constructor is not None:
+        if self.__construct_element is not None:
             return self.coerce(x)
         check_old_coerce(self)
         return self._coerce_c(x)
 
     cpdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
-        if self._element_constructor is not None:
+        if self.__construct_element is not None:
             return self.coerce(x)
         check_old_coerce(self)
         try:
@@ -363,19 +363,19 @@ cdef class Parent(parent.Parent):
     ############################################################################
 
     cpdef _coerce_map_from_(self, S):
-        if self._element_constructor is None:
+        if self.__construct_element is None:
             return self.coerce_map_from_c(S)
         else:
             return parent.Parent._coerce_map_from_(self, S)
 
     cpdef _get_action_(self, other, op, bint self_on_left):
-        if self._element_constructor is None:
+        if self.__construct_element is None:
             return self.get_action_c(other, op, self_on_left)
         else:
             return parent.Parent._get_action_(self, other, op, self_on_left)
 
     def _an_element_(self):
-        if self._element_constructor is None:
+        if self.__construct_element is None:
             return self._an_element_c()
         else:
             return parent.Parent._an_element_(self)
@@ -391,10 +391,10 @@ cdef class Parent(parent.Parent):
            Category of sets with partial maps
 
         """
-        if self._element_constructor is None:
+        if self.__construct_element is None:
             if hasattr(self, '_element_constructor_'):
                 assert callable(self._element_constructor_)
-                self._element_constructor = self._element_constructor_
+                self.__construct_element = self._element_constructor_
             else:
                 from sage.categories.morphism import CallMorphism
                 from sage.categories.homset import Hom

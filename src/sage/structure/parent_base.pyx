@@ -19,7 +19,7 @@ cimport sage.structure.parent as parent
 from .coerce_exceptions import CoercionException
 
 cdef inline check_old_coerce(parent.Parent p):
-    if p._element_constructor is not None:
+    if p.__construct_element is not None:
         raise RuntimeError("%s still using old coercion framework" % p)
 
 

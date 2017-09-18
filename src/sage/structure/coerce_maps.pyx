@@ -58,7 +58,7 @@ cdef class DefaultConvertMap(Map):
         Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use
-        if (<Parent>codomain)._element_constructor is None:
+        if (<Parent>codomain).__construct_element is None:
             raise RuntimeError("BUG in coercion model, no element constructor for {}".format(type(codomain)))
 
     def _repr_type(self):
@@ -94,11 +94,11 @@ cdef class DefaultConvertMap(Map):
         """
         cdef Parent C = self._codomain
         try:
-            return C._element_constructor(C, x)
+            return C.__construct_element(C, x)
         except Exception:
             if print_warnings:
                 print(type(C), C)
-                print(type(C._element_constructor), C._element_constructor)
+                print(type(C.__construct_element), C.__construct_element)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -116,18 +116,18 @@ cdef class DefaultConvertMap(Map):
             if len(args) == 0:
                 if len(kwds) == 0:
                     # This line is apparently never used in any tests (hivert, 2009-04-28)
-                    return C._element_constructor(C, x)
+                    return C.__construct_element(C, x)
                 else:
-                    return C._element_constructor(C, x, **kwds)
+                    return C.__construct_element(C, x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return C._element_constructor(C, x, *args)
+                    return C.__construct_element(C, x, *args)
                 else:
-                    return C._element_constructor(C, x, *args, **kwds)
+                    return C.__construct_element(C, x, *args, **kwds)
         except Exception:
             if print_warnings:
                 print(type(C), C)
-                print(type(C._element_constructor), C._element_constructor)
+                print(type(C.__construct_element), C.__construct_element)
             raise
 
 
@@ -146,11 +146,11 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
     cpdef Element _call_(self, x):
         cdef Parent C = self._codomain
         try:
-            return C._element_constructor(x)
+            return C.__construct_element(x)
         except Exception:
             if print_warnings:
                 print(type(C), C)
-                print(type(C._element_constructor), C._element_constructor)
+                print(type(C.__construct_element), C.__construct_element)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -158,18 +158,18 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return C._element_constructor(x)
+                    return C.__construct_element(x)
                 else:
-                    return C._element_constructor(x, **kwds)
+                    return C.__construct_element(x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return C._element_constructor(x, *args)
+                    return C.__construct_element(x, *args)
                 else:
-                    return C._element_constructor(x, *args, **kwds)
+                    return C.__construct_element(x, *args, **kwds)
         except Exception:
             if print_warnings:
                 print(type(C), C)
-                print(type(C._element_constructor), C._element_constructor)
+                print(type(C.__construct_element), C.__construct_element)
             raise
 
 
@@ -299,7 +299,7 @@ cdef class NamedConvertMap(Map):
             x^2 + 1
         """
         cdef Parent C = self._codomain
-        return C._element_constructor(self._call_(x), *args, **kwds)
+        return C.__construct_element(self._call_(x), *args, **kwds)
 
 
 # Perhaps this could be a method, extracting (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth and/or PyCFunction_GET_FUNCTION(method)

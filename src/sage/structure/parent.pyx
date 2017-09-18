@@ -246,9 +246,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         Internal invariants:
 
         - ``self._element_init_pass_parent == guess_pass_parent(self,
-          self._element_constructor)`` Ensures that :meth:`__call__`
+          self.__construct_element)`` Ensures that :meth:`__call__`
           passes down the parent properly to
-          :meth:`_element_constructor`.  See :trac:`5979`.
+          :meth:`__construct_element`.  See :trac:`5979`.
 
         .. TODO::
 
@@ -313,7 +313,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if element_constructor is None:
             self._set_element_constructor()
         else:
-            self._element_constructor = element_constructor
+            self.__construct_element = element_constructor
             self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
         self.init_coerce(False)
 
@@ -594,7 +594,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: k = GF(5); k._element_constructor # indirect doctest
+            sage: k = GF(5); k.__construct_element # indirect doctest
             <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
         """
         try: #if hasattr(self, '_element_constructor_'):
@@ -604,8 +604,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # it is a possible reason for "hasattr" to return False
             return
         assert callable(_element_constructor_)
-        self._element_constructor = _element_constructor_
-        self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
+        self.__construct_element = _element_constructor_
+        self._element_init_pass_parent = guess_pass_parent(self, self.__construct_element)
 
     def category(self):
         """
@@ -773,7 +773,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         d = CategoryObject.__getstate__(self)
         d['_embedding'] = self._embedding
-        d['_element_constructor'] = self._element_constructor
+        d['_element_constructor'] = self.__construct_element
         d['_convert_method_name'] = self._convert_method_name
         d['_element_init_pass_parent'] = self._element_init_pass_parent
         d['_initial_coerce_list'] = self._initial_coerce_list
@@ -881,9 +881,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that the invariant::
+        We check that the invariant ::
 
-                self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+            self._element_init_pass_parent == guess_pass_parent(self, self.__construct_element)
 
         is preserved (see :trac:`5979`)::
 
@@ -907,12 +907,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
 
         """
-        if self._element_constructor is None:
+        if self.__construct_element is None:
             # Neither __init__ nor _populate_coercion_lists_ have been called...
             try:
                 assert callable(self._element_constructor_)
-                self._element_constructor = self._element_constructor_
-                self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
+                self.__construct_element = self._element_constructor_
+                self._element_init_pass_parent = guess_pass_parent(self, self.__construct_element)
             except (AttributeError, AssertionError):
                 raise NotImplementedError
         cdef Py_ssize_t i
@@ -1449,7 +1449,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 element_constructor = self._element_constructor_
             except AttributeError:
                 raise RuntimeError("element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call")
-        self._element_constructor = element_constructor
+        self.__construct_element = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
         if not isinstance(coerce_list, list):
@@ -1866,7 +1866,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if isinstance(S, type):
                 element_constructor = S
             elif isinstance(S, Parent):
-                element_constructor = (<Parent>S)._element_constructor
+                element_constructor = (<Parent>S).__construct_element
                 if not isinstance(element_constructor, type):
                     # if element_constructor is not an actual class, get the element class
                     element_constructor = type(S.an_element())

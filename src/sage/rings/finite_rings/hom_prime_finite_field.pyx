@@ -41,7 +41,7 @@ from sage.rings.morphism cimport RingHomomorphism_im_gens
 cdef class SectionFiniteFieldHomomorphism_prime(SectionFiniteFieldHomomorphism_generic):
     cpdef Element _call_(self, x):
         try:
-            return self._codomain._element_constructor(x)
+            return self._codomain.__construct_element(x)
         except TypeError:
             raise ValueError("%s is not in the image of %s" % (x, self._inverse))
 
@@ -93,7 +93,7 @@ cdef class FiniteFieldHomomorphism_prime(FiniteFieldHomomorphism_generic):
             sage: a.parent()
             Finite Field in t of size 3^5
         """
-        return self._codomain._element_constructor(x)
+        return self._codomain.__construct_element(x)
 
 
 cdef class FrobeniusEndomorphism_prime(FrobeniusEndomorphism_finite_field):

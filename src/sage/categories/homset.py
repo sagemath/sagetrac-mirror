@@ -769,7 +769,7 @@ class Homset(Set_generic):
                               From: Integer Ring
                               To:   Rational Field
         """
-        if self._element_constructor is None:
+        if False:  # if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism
             from sage.categories.homset import Hom
             return CallMorphism(Hom(S, self))

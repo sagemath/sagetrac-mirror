@@ -423,9 +423,9 @@ cdef class IdentityMorphism(Morphism):
             return x
         cdef Parent C = self._codomain
         if C._element_init_pass_parent:
-            return C._element_constructor(C, x, *args, **kwds)
+            return C.__construct_element(C, x, *args, **kwds)
         else:
-            return C._element_constructor(x, *args, **kwds)
+            return C.__construct_element(x, *args, **kwds)
 
     def __mul__(left, right):
         if not isinstance(right, Map):

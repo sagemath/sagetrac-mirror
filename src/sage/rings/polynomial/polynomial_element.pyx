@@ -5065,8 +5065,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             []
         """
         if a:
-            return self.__class__(P,[a], check=False) #P._element_constructor(a, check=False)
-        return self.__class__(P,[], check=False)
+            return self.__class__(P, [a], check=False)
+        return self.__class__(P, [], check=False)
 
     def is_monic(self):
         """

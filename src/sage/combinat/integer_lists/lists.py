@@ -170,8 +170,8 @@ class IntegerLists(Parent):
             return False
         if self.backend != other.backend:
             return False
-        a = self._element_constructor
-        b = other._element_constructor
+        a = self._element_constructor_
+        b = other._element_constructor_
         if ismethod(a):
             a = get_method_function(a)
         if ismethod(b):
@@ -204,7 +204,7 @@ class IntegerLists(Parent):
             sage: list(C)     # indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
         """
-        return self._element_iter(self.backend._iter(), self._element_constructor)
+        return self._element_iter(self.backend._iter(), self._element_constructor_)
 
     @staticmethod
     def _element_iter(itr, constructor):
@@ -274,13 +274,13 @@ class IntegerLists(Parent):
             [1, 2, 3]
 
         When relevant, this is assigned to
-        ``self._element_constructor`` by :meth:`__init__`, to avoid
+        ``self._element_constructor_`` by :meth:`__init__`, to avoid
         overhead when constructing elements from trusted data in the
         iterator::
 
-            sage: L._element_constructor
+            sage: L._element_constructor_
             <bound method IntegerListsLex._element_constructor_nocheck of ...>
-            sage: L._element_constructor([1,2,3])
+            sage: L._element_constructor_([1,2,3])
             [1, 2, 3]
         """
         return self.element_class(self, l, check=False)
