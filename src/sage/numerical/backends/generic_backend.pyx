@@ -1589,17 +1589,22 @@ def default_mip_solver(solver = None):
     global default_solver
 
     if solver is None:
-
         if default_solver is not None:
             return default_solver
 
-        else:
-            for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
-                try:
-                    default_mip_solver(s)
-                    return s
-                except ValueError:
-                    pass
+        # Try Cplex and Gurobi optional solvers.
+        # We do not use Cbc by default because it has very high memory
+        # requirements (Trac #23879).
+        for s in ["Cplex", "Gurobi"]:
+            try:
+                default_mip_solver(s)
+                return s
+            except ValueError:
+                pass
+
+        # Fall back to GLPK, which is standard
+        default_solver = "Glpk"
+        return default_solver
 
     solver = solver.capitalize()
 
