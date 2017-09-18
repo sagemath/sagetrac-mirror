@@ -202,7 +202,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
             sage: hom_set = dP8.Hom(P2)
 
             sage: fm = FanMorphism(identity_matrix(2), dP8.fan(), P2.fan())
-            sage: hom_set(fm)     # calls hom_set._element_constructor_()
+            sage: hom_set(fm)     # indirect doctest
             Scheme morphism:
               From: 2-d CPR-Fano toric variety covered by 4 affine patches
               To:   2-d CPR-Fano toric variety covered by 3 affine patches

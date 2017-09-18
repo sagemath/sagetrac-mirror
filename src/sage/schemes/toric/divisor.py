@@ -354,7 +354,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
 
             sage: P2 = toric_varieties.P2()
             sage: TDiv = P2.toric_divisor_group()
-            sage: TDiv._element_constructor_([ (1,P2.gen(2)) ])
+            sage: TDiv([ (1,P2.gen(2)) ])       # indirect doctest
             V(z)
             sage: TDiv( P2.fan(1)[0] )
             V(x)

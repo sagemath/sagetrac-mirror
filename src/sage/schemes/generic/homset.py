@@ -349,7 +349,7 @@ class SchemeHomset_generic(HomsetWithBase):
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
 
-            sage: phi = H(f); phi
+            sage: phi = H(f); phi           # indirect doctest
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
@@ -357,15 +357,7 @@ class SchemeHomset_generic(HomsetWithBase):
                       From: Integer Ring
                       To:   Rational Field
 
-        TESTS::
-
-            sage: H._element_constructor_(f)
-            Affine Scheme morphism:
-              From: Spectrum of Rational Field
-              To:   Spectrum of Integer Ring
-              Defn: Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
+        TESTS:
 
         We illustrate input type checking::
 
@@ -480,13 +472,9 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: F_points = P2(F)
             sage: type(F_points)
             <class 'sage.schemes.projective.projective_homset.SchemeHomset_points_projective_field_with_category'>
-            sage: F_points([4,2*a])
+            sage: F_points([4,2*a])             # indirect doctest
             (1 : 2*a : 1)
 
-        TESTS::
-
-            sage: F_points._element_constructor_([4,2*a])
-            (1 : 2*a : 1)
         """
         if len(v) == 1:
             v = v[0]

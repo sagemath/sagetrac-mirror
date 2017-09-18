@@ -69,17 +69,11 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
             Ring endomorphism of Rational Field
               Defn: 1 |--> 1
             sage: H = X.Hom(X)
-            sage: H(ring_hom)
+            sage: H(ring_hom)               # indirect doctest
             Affine Scheme endomorphism of Spectrum of Rational Field
               Defn: Ring endomorphism of Rational Field
                       Defn: 1 |--> 1
 
-        TESTS::
-
-            sage: H._element_constructor_(ring_hom)
-            Affine Scheme endomorphism of Spectrum of Rational Field
-              Defn: Ring endomorphism of Rational Field
-                      Defn: 1 |--> 1
         """
         return sage.schemes.generic.homset.SchemeHomset_generic._element_constructor_(self, *args, **kwds)
 

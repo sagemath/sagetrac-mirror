@@ -49,12 +49,10 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
         EXAMPLES::
 
             sage: P = ProductProjectiveSpaces([1, 1], ZZ, 'z')
-            sage: Q = P([4, 6, 6, 2]); Q
+            sage: Q = P([4, 6, 6, 2]); Q            # indirect doctest
             (4 : 6 , 6 : 2)
             sage: type(Q)
             <class 'sage.schemes.product_projective.point.ProductProjectiveSpaces_point_ring'>
-            sage: P(QQ)._element_constructor_([4, 2, 2, 0])
-            (4 : 2 , 2 : 0)
         """
         return self.codomain()._point(self, v, **kwds)
 

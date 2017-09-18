@@ -3257,9 +3257,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
 
             sage: P2 = toric_varieties.P2()
             sage: H = P2.cohomology_ring()
-            sage: H._element_constructor_(1)
-            [1]
-            sage: H(1)
+            sage: H(1)                  # indirect doctest
             [1]
             sage: type( H(1) )
             <class 'sage.schemes.toric.variety.CohomologyClass'>

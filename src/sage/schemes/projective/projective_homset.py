@@ -321,15 +321,11 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
 
             sage: E = EllipticCurve('37a')
             sage: X = E(QQ)
-            sage: P = X([0,1,0]);  P
+            sage: P = X([0,1,0]);  P                # indirect doctest
             (0 : 1 : 0)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
 
-        TESTS::
-
-            sage: X._element_constructor_([0,1,0])
-            (0 : 1 : 0)
         """
         if len(v) == 1:
             v = v[0]
