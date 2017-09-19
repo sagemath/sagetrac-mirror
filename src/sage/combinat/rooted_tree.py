@@ -539,7 +539,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
         EXAMPLES::
 
             sage: B = RootedTrees()
-            sage: B._element_constructor_([])
+            sage: B([]) # indirect doctest
             []
             sage: B([[],[]]) # indirect doctest
             [[], []]

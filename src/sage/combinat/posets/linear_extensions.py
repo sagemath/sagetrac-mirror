@@ -748,16 +748,16 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2,3,4], [[1,2],[1,4],[2,3]]))
             sage: L = P.linear_extensions()
-            sage: x = L._element_constructor_([1,2,4,3]); x
+            sage: x = L([1,2,4,3]); x             # indirect doctest
             [1, 2, 4, 3]
             sage: x.parent() is L
             True
 
-            sage: L._element_constructor_([4,3,2,1])
+            sage: L([4,3,2,1])                    # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: [4, 3, 2, 1] is not a linear extension of Finite poset containing 4 elements
-            sage: L._element_constructor_([4,3,2,1],check=False)
+            sage: L([4,3,2,1], check=False)       # indirect doctest
             [4, 3, 2, 1]
         """
         if isinstance(lst, LinearExtensionOfPoset):

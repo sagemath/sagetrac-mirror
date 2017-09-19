@@ -1776,7 +1776,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             sage: parts = PartitionTuples(3)
             sage: parts([[2,1],[1],[2,2,2]]).parent() is parts
             True
-            sage: PartitionTuples._element_constructor_(PartitionTuples(), [[2,1],[3,2],[1,1,1]])
+            sage: PartitionTuples()([[2,1],[3,2],[1,1,1]]) # indirect doctest
             ([2, 1], [3, 2], [1, 1, 1])
             sage: parts([[1,2]])
             Traceback (most recent call last):

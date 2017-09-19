@@ -409,7 +409,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         TESTS::
 
             sage: A2 = WeylCharacterRing("A2")
-            sage: A2._element_constructor_([2,1,0])
+            sage: A2([2,1,0])           # indirect doctest
             A2(2,1,0)
         """
         weight = self._space.from_vector_notation(weight, style = self._style)
@@ -1671,7 +1671,7 @@ class WeightRing(CombinatorialFreeModule):
         TESTS::
 
             sage: A2 = WeylCharacterRing("A2")
-            sage: A2._element_constructor_([2,1,0])
+            sage: A2([2,1,0]) # indirect doctest
             A2(2,1,0)
         """
         weight = self._space.from_vector_notation(weight, style = self._style)

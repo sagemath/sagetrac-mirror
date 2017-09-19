@@ -107,12 +107,12 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             sage: s = SymmetricFunctions(QQ).s()
             sage: s(2)
             2*s[]
-            sage: s([2,1]) # indirect doctest
+            sage: s([2,1])              # indirect doctest
             s[2, 1]
 
             sage: McdJ = SymmetricFunctions(QQ['q','t'].fraction_field()).macdonald().J()
             sage: s = SymmetricFunctions(McdJ.base_ring()).s()
-            sage: s._element_constructor_(McdJ(s[2,1]))
+            sage: s(McdJ(s[2,1]))       # indirect doctest
             s[2, 1]
 
         TESTS:

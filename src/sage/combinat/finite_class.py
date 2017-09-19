@@ -56,9 +56,7 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
-            sage: F._element_constructor_(1)
-            1
-            sage: F(1)
+            sage: F(1) # indirect doctest
             1
         """
         return x

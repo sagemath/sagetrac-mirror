@@ -282,9 +282,9 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
         EXAMPLES::
 
             sage: X = SchubertPolynomialRing(QQ)
-            sage: X._element_constructor_([2,1,3])
+            sage: X([2,1,3])                      # indirect doctest
             X[2, 1]
-            sage: X._element_constructor_(Permutation([2,1,3]))
+            sage: X(Permutation([2,1,3]))         # indirect doctest
             X[2, 1]
 
             sage: R.<x1, x2, x3> = QQ[]
@@ -296,7 +296,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
         We check that :trac:`12924` is fixed::
 
             sage: X = SchubertPolynomialRing(QQ)
-            sage: X._element_constructor_([1,2,1])
+            sage: X([1,2,1])                      # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: The input [1, 2, 1] is not a valid permutation

@@ -201,9 +201,7 @@ class Associahedra(Polyhedra_QQ_ppl):
 
             sage: from sage.combinat.root_system.associahedron import Associahedra
             sage: parent = Associahedra(QQ,2)
-            sage: parent(['A',2])
-            Generalized associahedron of type ['A', 2] with 5 vertices
-            sage: parent._element_constructor_(['A',2])
+            sage: parent(['A',2])       # indirect doctest
             Generalized associahedron of type ['A', 2] with 5 vertices
         """
         cartan_type = CartanType(cartan_type)
