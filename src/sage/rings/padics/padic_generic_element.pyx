@@ -1601,7 +1601,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _number_field_(self, K):
         r"""
-        Return an element of K approximating this p-adic number.
+        Return an element of ``K`` approximating this `p`-adic number.
 
         INPUT:
 

@@ -69,7 +69,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _coerce_map_from_(self, R):
         """
-        Finds coercion maps from R to this ring.
+        Find a coercion map from ``R`` to this ring.
 
         EXAMPLES::
 
@@ -94,7 +94,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _convert_map_from_(self, R):
         """
-        Finds conversion maps from R to this ring.
+        Find a conversion map from ``R`` to this ring.
 
         Currently, a conversion exists if the defining polynomial is the same.
 
