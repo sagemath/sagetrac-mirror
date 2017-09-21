@@ -797,7 +797,80 @@ class FractionField_generic(ring.Field):
                     ret.append(self(a)/self(b))
         return ret
 
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        Return the greatest common divisor of univariate polynomials over a fraction field ``f`` and ``g``.  
+        For univariate polynomials over a fraction field that were dense and of degree greater than 5,  
+        the computation of GCD used to be extremely slow (:trac:``). 
+        This function rectifies that. 
 
+        INPUT:
+
+          - ``f``, ``g`` -- two univariate polynomials defined over this Fraction Field.
+       OUTPUT: The gcd of the two polynomials
+
+        EXAMPLES : 
+        
+        
+
+        sage: A.<x,y>=ZZ[]
+
+        sage: B= Frac(A)
+
+        sage: C.<z> = B[]
+
+        sage: p = C.random_element(6) 
+
+        sage: q = C.random_element(6)
+
+        sage: gcd(p,q) #used to hang previously
+        1       
+         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_element import Polynomial
+        
+        from sage.rings.polynomial.multi_polynomial_element import MPolynomial
+      
+        if f.degree() < g.degree():
+            A,B = g, f
+        else:
+            A,B = f, g
+
+        if B.is_zero():
+            return A
+
+        a = b = self.zero()
+        
+        for c in A.coefficients():
+            a = a.gcd(c)
+            if a.is_one():
+                break
+        for c in B.coefficients():
+            b = b.gcd(c)
+            if b.is_one():
+                break
+       
+        d=1
+                  
+        A = A // a
+        B = B // b
+        
+        variablesf = f.base_ring().variable_names()
+        variablesg = g.base_ring().variable_names()
+        Ring1 = PolynomialRing(f.base_ring().base_ring(), variablesf)
+        Ring2 = PolynomialRing(g.base_ring().base_ring(), variablesg)
+        Ring3 = PolynomialRing(Ring1, f.parent().variable_names())
+        Ring4 = PolynomialRing(Ring2, g.parent().variable_names())
+        if f.degree() < g.degree():
+            m = Ring3(B)
+            l = Ring4(A)
+        else:
+            m = Ring3(A)
+            l = Ring4(B)
+        
+        d = Polynomial.gcd(m,l)
+       
+        return d
 class FractionField_1poly_field(FractionField_generic):
     """
     The fraction field of a univariate polynomial ring over a field.
