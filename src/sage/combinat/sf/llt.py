@@ -126,25 +126,25 @@ def min_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
 
 def count_inv(A, B, C):
     r"""
-        Counts the number of inversions occurring between cells in A, B and C.
-        INPUT:
-        - ``A`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
-        - ``B`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
-        - ``C`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
-        If u is a cell with row index i, column index j and is in the p-th (skew) tableau in tuple
-        then diag(u) is the quantity j-i, pos(u) is the index p, row(u) is the row index i, while ent(u)
-        is the entry of the cell u.
-        We require that A be a dictionary of cells with a fixed diag value d, B be a dictionary of cells
-        with diag value d+1, while C be a dictionary of cells with diag value d-1 (if B or C exist).
-        OUTPUT:
-        - returns the total number of inversions amongst pairs of cells in A and amongst pair of a
-        cell in A and a cell in B.
-        An inversion occurs for the pair of cells (u,v) when all of the following are satisfied:
-        (1) either (diag(u) = diag(v) and pos(u) < pos(v)) or (diag(u) + 1 = diag(v) and pos(u) > pos(v))
-        (2) row (u) <= row (v)
-        (3) entry(v) < entry(u) < entry(vdown), vdown is the cell below t (in English notation) and
-            entry(vdown) = infinity if no such cell exists.
-        EXAMPLES:
+    Counts the number of inversions occurring between cells in A, B and C.
+    INPUT:
+    - ``A`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    - ``B`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    - ``C`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    If u is a cell with row index i, column index j and is in the p-th (skew) tableau in tuple
+    then diag(u) is the quantity j-i, pos(u) is the index p, row(u) is the row index i, while ent(u)
+    is the entry of the cell u.
+    We require that A be a dictionary of cells with a fixed diag value d, B be a dictionary of cells
+    with diag value d+1, while C be a dictionary of cells with diag value d-1 (if B or C exist).
+    OUTPUT:
+    - returns the total number of inversions amongst pairs of cells in A and amongst pair of a
+    cell in A and a cell in B.
+    An inversion occurs for the pair of cells (u,v) when all of the following are satisfied:
+    (1) either (diag(u) = diag(v) and pos(u) < pos(v)) or (diag(u) + 1 = diag(v) and pos(u) > pos(v))
+    (2) row (u) <= row (v)
+    (3) entry(v) < entry(u) < entry(vdown), vdown is the cell below t (in English notation) and
+    entry(vdown) = infinity if no such cell exists.
+    EXAMPLES:
         sage: t1 = SkewTableau([[None,3],[3,4]])
         sage: t2 = SkewTableau([[1,1,1],[3]])
         sage: t3 = SkewTableau([[None,2],[2,3],[4]])
@@ -161,7 +161,7 @@ def count_inv(A, B, C):
         sage: C=dict(((diag-1,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag-1))
         sage: count_inv(A,B,C)
         1
-        """
+    """
     inv = 0
     if len(A) == 0:
         return inv
@@ -471,7 +471,7 @@ class LLT_class(UniqueRepresentation):
         - returns the LLT polynomial indexed by ``la`` in the monomial basis
         EXAMPLES:
         sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
-        sage: L = LLT_class(Sym,4)
+        sage: Sym.llt(4)
         sage: L.llt_inv([[],[2,1],[],[1]])
         (5*t+3)*m[1, 1, 1, 1] + (2*t+2)*m[2, 1, 1] + (t+1)*m[2, 2] + m[3, 1]
         sage: s = Sym.schur()
