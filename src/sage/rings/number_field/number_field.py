@@ -918,7 +918,6 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
             raise ValueError("D must not be a perfect square.")
     x = polygen(QQ, 'x')
     f = x * x - D
-    raise ValueError('{}'.format(f.coefficients()))
     if embedding is True:
         if D > 0:
             embedding = RLF(D).sqrt()

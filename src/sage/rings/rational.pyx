@@ -2073,7 +2073,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = str(s)
+        k = str(s.decode('utf-8'))
         PyMem_Free(s)
         return k
 
