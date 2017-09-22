@@ -287,6 +287,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: L(L.residue_field().zero())
             O(3)
 
+        Check that :trac:`22084` has been fixed::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = R.ext(x^3 - 15*x + 5)
+            sage: Q = W.fraction_field()
+            sage: W(w, 4)
+            w + O(w^4)
+            sage: Q(w, 4)
+            w + O(w^4)
+            sage: W(Q(w), 4)
+            w + O(w^4)
+            sage: Q(Q(w), 4)
+            w + O(w^4)
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -447,19 +461,27 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     if _x.relprec < 0:
                         _x._normalize()
                     if _x._is_exact_zero():
-                        self._set_exact_zero()
-                    elif _x._is_inexact_zero():
-                        self._set_inexact_zero(_x.ordp)
+                        if absprec is infinity:
+                            self._set_exact_zero()
+                        else:
+                            self._set_inexact_zero(aprec)
+                    elif _x._is_inexact_zero() or (absprec is not infinity and aprec <= _x.ordp):
+                        if absprec is infinity:
+                            self._set_inexact_zero(_x.ordp)
+                        else:
+                            self._set_inexact_zero(min(_x.ordp, aprec))
                     else:
                         if _x.relprec < rprec:
                             rprec = _x.relprec
+                        if aprec - _x.ordp < rprec:
+                            rprec = aprec - _x.ordp
                         self._set(&_x.unit, _x.ordp, rprec)
                 else:
                     # x is a pAdicZZpXCAElement
                     xordp = x.valuation()
-                    xprec = x.precision_absolute()
-                    if xordp == xprec:
-                        self._set_inexact_zero(mpz_get_si((<Integer>xordp).value))
+                    xprec = min(x.precision_absolute(), Integer(aprec))
+                    if xordp >= xprec:
+                        self._set_inexact_zero(mpz_get_si((<Integer?>xprec).value))
                     else:
                         poly = x._ntl_rep_abs()[0]
                         if absprec is infinity:
@@ -471,12 +493,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 if _x.relprec < 0:
                     _x._normalize()
                 if _x._is_exact_zero():
-                    self._set_exact_zero()
-                elif _x._is_inexact_zero():
-                    self._set_inexact_zero(_x.ordp)
+                    if absprec is infinity:
+                        self._set_exact_zero()
+                    else:
+                        self._set_inexact_zero(aprec)
+                elif _x._is_inexact_zero() or (absprec is not infinity and aprec <= _x.ordp):
+                    if absprec is infinity:
+                        self._set_inexact_zero(_x.ordp)
+                    else:
+                        self._set_inexact_zero(min(_x.ordp, aprec))
                 else:
                     if _x.relprec < rprec:
                         rprec = _x.relprec
+                    if aprec - _x.ordp < rprec:
+                            rprec = aprec - _x.ordp
                     self._set(&_x.unit, _x.ordp, rprec)
             else:
                 raise NotImplementedError("Conversion from different p-adic extensions not yet supported")

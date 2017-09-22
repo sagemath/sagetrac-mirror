@@ -144,6 +144,7 @@ from sage.interfaces.gp import GpElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
+from sage.rings.infinity import infinity
 
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec=None, relprec=None, empty=False):
@@ -920,6 +921,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: a.add_bigoh(1)
             1 + O(7^4)
         """
+        if absprec is infinity:
+            return self
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
