@@ -2045,8 +2045,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_free_str(s)
         return t
 
-    hex = __hex__
-
     def __copy__(self):
         """
         Return copy of ``self`` - since ``self`` is immutable, we just return

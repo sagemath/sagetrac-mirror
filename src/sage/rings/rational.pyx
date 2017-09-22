@@ -2073,7 +2073,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = str(s)
+        k = str(s.decode('utf-8'))
         PyMem_Free(s)
         return k
 
@@ -2367,7 +2367,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     mpq_denref((<Rational>left).value))
             return x
 
-        return coercion_model.bin_op(left, right, operator.div)
+        return coercion_model.bin_op(left, right, operator.truediv)
 
     cpdef _div_(self, right):
         """
