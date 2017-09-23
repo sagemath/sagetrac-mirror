@@ -6,19 +6,15 @@ fi
 
 # This spkg shouldn't be installed if gcc is already installed
 if [ -a "$SAGE_LOCAL"/bin/gcc ]; then
-    echo >&2 "gcc appear to already be installed ... exiting"
+    echo >&2 "Error: gcc is already installed"
     exit 1
 fi
-
-# Apply fixes to upstream source
-cd src
 
 # Exit on error
 set -e
 
 # Build in a separate directory, not in src/ (a.k.a. a VPATH build).
 # This is the recommended way to build GCC.
-cd ..
 mkdir gcc-build
 cd gcc-build
 
@@ -80,6 +76,3 @@ $MAKE install
 # so it doesn't conflict with the configured C compiler.
 rm -f "$SAGE_LOCAL"/bin/gcc "$SAGE_LOCAL"/bin/cpp
 
-# Force re-configuration: the next time that "make" is run, we don't
-# want GFORTRAN to be built again, see Trac #19324
-touch "$SAGE_ROOT/configure"
