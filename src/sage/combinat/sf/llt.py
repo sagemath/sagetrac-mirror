@@ -1,6 +1,8 @@
 r"""
 LLT symmetric functions
+
 REFERENCES:
+
 .. [LLT1997] Alain Lascoux, Bernard Leclerc, Jean-Yves Thibon,
    Ribbon tableaux, Hall-Littlewood functions, quantum affine algebras, and unipotent varieties,
    J. Math. Phys. 38 (1997), no. 2, 1041-1068,
