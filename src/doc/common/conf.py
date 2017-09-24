@@ -232,7 +232,7 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
                          for i in ('docs', 'README*', 'test',
                                    'unpacked', 'LICENSE')]
 else:
-     extensions.append('sphinx.ext.pngmath')
+     extensions.append('sphinx.ext.imgmath')
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
@@ -520,7 +520,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                 v.__module__ not in skip_picklability_check_modules):
                 # OK, probably this is an *unpicklable* nested class.
                 app.warn('Pickling of nested class %r is probably broken. '
-                         'Please set __metaclass__ of the parent class to '
+                         'Please set the metaclass of the parent class to '
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 

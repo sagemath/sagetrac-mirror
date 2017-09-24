@@ -110,7 +110,7 @@ class Tableau(ClonableList):
 
     A tableau is abstractly a mapping from the cells in a partition to
     arbitrary objects (called entries). It is often represented as a
-    finite list of nonempty lists (or, more generallym an iterator of
+    finite list of nonempty lists (or, more generally an iterator of
     iterables) of weakly decreasing lengths. This list,
     in particular, can be empty, representing the empty tableau.
 
@@ -876,13 +876,13 @@ class Tableau(ClonableList):
             sage: c.parent()
             Standard tableaux
         """
-        conj_shape = self.shape().conjugate()
-
-        conj = [[None]*row_length for row_length in conj_shape]
-
-        for i in range(len(conj)):
-            for j in range(len(conj[i])):
-                conj[i][j] = self[j][i]
+        if self:
+            conj = [[] for i in range(len(self[0]))]
+            for row in self:
+                for j, x in enumerate(row):
+                    conj[j].append(x)
+        else:
+            conj = []
 
         if isinstance(self, StandardTableau):
             return StandardTableau(conj)
@@ -3245,7 +3245,7 @@ class Tableau(ClonableList):
         Lapointe-Lascoux-Morse promotion operator from the
         semistandard tableau ``self``.
 
-        .. WARNING:
+        .. WARNING::
 
             This is not Schuetzenberger's jeu-de-taquin promotion!
             For the latter, see :meth:`promotion` and
@@ -4415,8 +4415,8 @@ class StandardTableau(SemistandardTableau):
             sage: [x for x in t.down()]
             []
         """
-        if len(self) > 0:
-            yield self.restrict( self.size() - 1 )
+        if self:
+            yield self.restrict(self.size() - 1)
 
     def down_list(self):
         """
@@ -4461,9 +4461,9 @@ class StandardTableau(SemistandardTableau):
             #find out what row i and i+1 are in (we're using the
             #standardness of self here)
             for row in self:
-                if row.count(i+1) > 0:
+                if row.count(i + 1):
                     break
-                if row.count(i) > 0:
+                if row.count(i):
                     descents.append(i)
                     break
         return descents

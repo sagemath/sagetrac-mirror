@@ -145,8 +145,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         The key we create is the tuple in the following order:
 
         - overall degree
-        - length of the weyl group element
-        - the weyl group element
+        - length of the Weyl group element
+        - the Weyl group element
         - the element of `\mathfrak{h}`
         - the element of `\mathfrak{h}^*`
 
@@ -333,8 +333,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
 
         # Do Lac Ra if they are both non-trivial
         if dl and dr:
-            il = dl.keys()[0]
-            ir = dr.keys()[0]
+            il = next(iter(dl.keys()))
+            ir = next(iter(dr.keys()))
 
             # Compute the commutator
             terms = self._product_coroot_root(il, ir)

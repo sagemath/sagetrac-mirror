@@ -118,6 +118,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 import sage.tests.all as tests
+from sage.cpython.all    import *
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
@@ -177,8 +178,9 @@ lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
 lazy_import('sage.interacts', 'all', 'interacts')
-lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
+# interact decorator from SageNB (will be overridden by Jupyter)
+lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 
@@ -325,3 +327,20 @@ warnings.filterwarnings('default',
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
+def sage_globals():
+    r"""
+    Return the Sage namespace.
+
+    EXAMPLES::
+
+        sage: 'log' in sage_globals()
+        True
+        sage: 'MatrixSpace' in sage_globals()
+        True
+        sage: 'Permutations' in sage_globals()
+        True
+        sage: 'TheWholeUniverse' in sage_globals()
+        False
+    """
+    return globals()

@@ -39,22 +39,26 @@ Test NumPy conversions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
+from __future__ import print_function, absolute_import
+
+cimport libc.math
+from libc.string cimport memcpy
 from cpython.object cimport *
 from cpython.float cimport *
-include "sage/ext/python_debug.pxi"
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include "cysignals/signals.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gsl.all cimport *
-cimport libc.math
 
 gsl_set_error_handler_off()
 
 import math, operator
 
-from sage.libs.cypari2.convert cimport new_gen_from_double
+from cypari2.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational
@@ -65,7 +69,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 
 def is_RealDoubleField(x):
@@ -335,12 +339,12 @@ cdef class RealDoubleField_class(Field):
         if S is int or S is float:
             return ToRDF(S)
 
-        from rational_field import QQ
-        from real_lazy import RLF
+        from .rational_field import QQ
+        from .real_lazy import RLF
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealField_class
         if isinstance(S, RealField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
@@ -420,7 +424,7 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return RealField(prec)
 
 
@@ -512,7 +516,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True
@@ -835,7 +839,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         # First, check special values
         if self._value == 0:
-            return RealDoubleElement(ldexp(1.0, -1074))
+            return RealDoubleElement(libc.math.ldexp(1.0, -1074))
         if gsl_isnan(self._value):
             return self
         if gsl_isinf(self._value):
@@ -843,12 +847,12 @@ cdef class RealDoubleElement(FieldElement):
 
         # Normal case
         cdef int e
-        frexp(self._value, &e)
+        libc.math.frexp(self._value, &e)
         e -= 53
         # Correction for denormals
         if e < -1074:
             e = -1074
-        return RealDoubleElement(ldexp(1.0, e))
+        return RealDoubleElement(libc.math.ldexp(1.0, e))
 
     def real(self):
         """
@@ -1761,7 +1765,7 @@ cdef class RealDoubleElement(FieldElement):
             [1.4142135623730951*I, -1.4142135623730951*I]
         """
         if self._value >= 0:
-            x = self._new_c(sqrt(self._value))
+            x = self._new_c(libc.math.sqrt(self._value))
             if all:
                 if x.is_zero():
                     return [x]
@@ -2469,7 +2473,7 @@ cdef class RealDoubleElement(FieldElement):
             return self._parent.nan()
         while True:
             a1 = (a+b)/2
-            b1 = sqrt(a*b)
+            b1 = libc.math.sqrt(a*b)
             if abs((b1/a1)-1) < eps: return self._new_c(a1)
             a, b = a1, b1
 

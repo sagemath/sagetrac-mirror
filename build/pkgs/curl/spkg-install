@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ] ; then
     echo >&2 "Error - SAGE_LOCAL undefined ... exiting"
     echo >&2 "Maybe run 'sage -sh'?"
@@ -29,13 +27,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building curl."
     exit 1
 fi
 
-$MAKE install V=1
+$MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing curl."
     exit 1
