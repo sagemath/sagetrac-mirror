@@ -16,7 +16,7 @@ REFERENCES:
 
 .. [SSW2003] Anne Schilling, Mark Shimozono, and Dennis E. White,
    Branching formula for q-Littlewood-Richardson coefficients,
-   Advances in Applied Mathematics 30.1-2, 2003, pp 258-272,
+   Advances in Applied Mathematics 30.1-2, 2003, pp 258-272
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -704,7 +704,9 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - ``self`` - an instance of the LLT hspin or hcospin basis
         - ``x`` - an element of the monomial basis
+
         OUTPUT:
+
         - returns ``x`` expanded in the basis ``self``
 
         EXAMPLES::
