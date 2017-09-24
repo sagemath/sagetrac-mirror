@@ -323,6 +323,7 @@ class LLT_class(UniqueRepresentation):
             True
             sage: L3p != SymmetricFunctions(QQ).llt(3,t=1)
             True
+
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: ks3 = Sym.kschur(3)
             sage: llt3 = Sym.llt(3)
@@ -614,6 +615,7 @@ class LLT_class(UniqueRepresentation):
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
             sage: HCosp3([1])^2
             1/t*HCosp3[1, 1] + ((t-1)/t)*HCosp3[2]
+
             sage: s = Sym.schur()
             sage: HCosp3(s([2]))
             HCosp3[2]
@@ -644,6 +646,7 @@ class LLT_class(UniqueRepresentation):
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: HSp3([1])^2
             HSp3[1, 1] + (-t+1)*HSp3[2]
+
             sage: s = Sym.schur()
             sage: HSp3(s([2]))
             HSp3[2]
@@ -653,6 +656,7 @@ class LLT_class(UniqueRepresentation):
             s[2, 1] + t*s[3]
         """
         return LLT_spin(self)
+
 
 
 class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
@@ -716,7 +720,9 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: m = Sym.monomial()
             sage: HSp3._m_to_self(m[2,1])
             -2*HSp3[1, 1, 1] + (2*t^2+2*t+1)*HSp3[2, 1] + (-2*t^2-t)*HSp3[3]
+
         This is for internal use only. Please use instead::
+
             sage: HSp3(m[2,1])
             -2*HSp3[1, 1, 1] + (2*t^2+2*t+1)*HSp3[2, 1] + (-2*t^2-t)*HSp3[3]
         """
@@ -742,7 +748,9 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: m = Sym.monomial()
             sage: HSp3._self_to_m(HSp3[2,1])
             (t+2)*m[1, 1, 1] + (t+1)*m[2, 1] + t*m[3]
+
         This is for internal use only. Please use instead::
+
             sage: m(HSp3[2,1])
             (t+2)*m[1, 1, 1] + (t+1)*m[2, 1] + t*m[3]
         """
@@ -865,10 +873,14 @@ class LLT_spin(LLT_generic):
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: TestSuite(HSp3).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (10s on sage.math, 2012)
             sage: TestSuite(HSp3).run(elements = [HSp3.t*HSp3[1,1]+HSp3.t*HSp3[2], HSp3[1]+(1+HSp3.t)*HSp3[1,1]])  # long time (depends on previous)
+
         ::
+
             sage: HS3t2 = SymmetricFunctions(QQ).llt(3,t=2).hspin()
             sage: TestSuite(HS3t2).run() # products are too expensive, long time (7s on sage.math, 2012)
+
         ::
+
             sage: HS3x = SymmetricFunctions(FractionField(QQ['x'])).llt(3,t=x).hspin()
             sage: TestSuite(HS3x).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (4s on sage.math, 2012)
             sage: TestSuite(HS3x).run(elements = [HS3x.t*HS3x[1,1]+HS3x.t*HS3x[2], HS3x[1]+(1+HS3x.t)*HS3x[1,1]])  # long time (depends on previous)
@@ -931,10 +943,14 @@ class LLT_cospin(LLT_generic):
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
             sage: TestSuite(HCosp3).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (11s on sage.math, 2012)
             sage: TestSuite(HCosp3).run(elements = [HCosp3.t*HCosp3[1,1]+HCosp3.t*HCosp3[2], HCosp3[1]+(1+HCosp3.t)*HCosp3[1,1]])  # long time (depends on previous)
+
         ::
+
             sage: HC3t2 = SymmetricFunctions(QQ).llt(3,t=2).hcospin()
             sage: TestSuite(HC3t2).run() # products are too expensive, long time (6s on sage.math, 2012)
+
         ::
+
             sage: HC3x = SymmetricFunctions(FractionField(QQ['x'])).llt(3,t=x).hcospin()
             sage: TestSuite(HC3x).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (5s on sage.math, 2012)
             sage: TestSuite(HC3x).run(elements = [HC3x.t*HC3x[1,1]+HC3x.t*HC3x[2], HC3x[1]+(1+HC3x.t)*HC3x[1,1]])  # long time (depends on previous)
