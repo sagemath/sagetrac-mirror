@@ -63,23 +63,28 @@ def max_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
     r"""
     Returns the maximum value of the difference ``diag`` of the column index and row index
     of a skew tableau.
+
     INPUT:
-    - ``t`` -- a skew tableau of shape lambda/mu, where lambda is a partition
-    (or outer shape) and mu is a partition whose Young diagram contained in the Young
-    diagram of lambda (or inner shape)
+
+    - ``t`` -- a skew tableau of shape $\lambda/\mu$, where lambda is a partition
+    and $\mu$ is a partition whose Young diagram is contained in the Young diagram of $\lambda$
+
     OUTPUT:
+
     - returns the maximum value of ``diag`` = j-i over all cells c present in the skew
     tableau ``t``, where i and j are the row index and the column index of cell c
+
     EXAMPLES::
-    sage: t = SkewTableau([[None,1,2],[3,4],[5],[6]])
-    sage: t
-    [[None,1,2],[3,4],[5],[6]]
-    sage: max_diagonal(t)
-    2
-    sage: t = SkewTableau([[None,None,None,None],[None,None,3],[None,1],[2],[4]])
-    [[None,None,None,None],[None,None,3],[None,1],[2],[4]]
-    sage: max_diagonal(t)
-    1
+
+        sage: t = SkewTableau([[None,1,2],[3,4],[5],[6]])
+        sage: t
+        [[None,1,2],[3,4],[5],[6]]
+        sage: max_diagonal(t)
+        2
+        sage: t = SkewTableau([[None,None,None,None],[None,None,3],[None,1],[2],[4]])
+        [[None,None,None,None],[None,None,3],[None,1],[2],[4]]
+        sage: max_diagonal(t)
+        1
     """
     A = t.outer_shape()
     B = t.inner_shape()
@@ -95,14 +100,19 @@ def min_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
     r"""
     Returns the minimum value of the difference ``diag`` of the column index and row index
     of a skew tableau.
+
     INPUT:
-    - ``t`` -- a skew tableau of shape lambda/mu, where lambda is a partition (or outer shape)
-    and mu is a partition whose Young diagram contained in the Young
-    diagram of lambda (or inner shape)
+
+    - ``t`` -- a skew tableau of shape $\lambda/\mu$, where $\lambda$ is a partition
+    and $\mu$ is a partition whose Young diagram is contained in the Young diagram of $\lambda$
+
     OUTPUT:
+
     - returns the minimum value of ``diag`` = j-i over all cells c present in the skew tableau
     ``t``, where i and j are respectively the row index and the column index of cell c
+
     EXAMPLES::
+
         sage: t = SkewTableau([[None,1,2],[3,4],[5],[6]])
         sage: t
         [[None,1,2],[3,4],[5],[6]]
@@ -127,7 +137,9 @@ def min_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
 def count_inv(A, B, C):
     r"""
     Counts the number of inversions occurring between cells in A, B and C.
+
     INPUT:
+
     - ``A`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
     - ``B`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
     - ``C`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
@@ -136,7 +148,9 @@ def count_inv(A, B, C):
     is the entry of the cell u.
     We require that A be a dictionary of cells with a fixed diag value d, B be a dictionary of cells
     with diag value d+1, while C be a dictionary of cells with diag value d-1 (if B or C exist).
+
     OUTPUT:
+
     - returns the total number of inversions amongst pairs of cells in A and amongst pair of a
     cell in A and a cell in B.
     An inversion occurs for the pair of cells (u,v) when all of the following are satisfied:
@@ -144,7 +158,9 @@ def count_inv(A, B, C):
     (2) row (u) <= row (v)
     (3) entry(v) < entry(u) < entry(vdown), vdown is the cell below t (in English notation) and
     entry(vdown) = infinity if no such cell exists.
-    EXAMPLES:
+
+    EXAMPLES::
+
         sage: t1 = SkewTableau([[None,3],[3,4]])
         sage: t2 = SkewTableau([[1,1,1],[3]])
         sage: t3 = SkewTableau([[None,2],[2,3],[4]])
@@ -199,11 +215,14 @@ def count_inv(A, B, C):
 def inv(*T):
     r"""
     Returns the inv statistic of a tuple of (skew) semistandard Young tableaux T.
+
     INPUT:
     - ``T`` -- a tuple of (skew) semistandard Young tableaux T = (t_1, t_2, ..., t_k)
+
     OUTPUT:
     - returns inv(T), the total number of inversions that occur within T.
     The definition of inv(T) as detailed in [SSW2003]_ is employed here.
+
     EXAMPLES:
         sage: t1 = SkewTableau([[None,3],[3,4]])
         sage: t2 = SkewTableau([[1,1,1],[3]])
@@ -239,7 +258,9 @@ def inv(*T):
 class LLT_class(UniqueRepresentation):
     r"""
     A class for working with LLT symmetric functions.
+
     EXAMPLES::
+
         sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
         sage: L3 = Sym.llt(3); L3
         level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -250,7 +271,9 @@ class LLT_class(UniqueRepresentation):
         sage: m = Sym.monomial()
         sage: m( HC3[1,1] )
         (t+1)*m[1, 1] + m[2]
+
     We require that the parameter `t` must be in the base ring::
+
         sage: Symxt = SymmetricFunctions(QQ['x','t'].fraction_field())
         sage: (x,t) = Symxt.base_ring().gens()
         sage: LLT3x = Symxt.llt(3,t=x)
@@ -275,16 +298,22 @@ class LLT_class(UniqueRepresentation):
     def __init__(self, Sym, k, t='t'):
         r"""
         Class of LLT symmetric function bases
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric function bases
         - ``k`` -- a positive integer (the level)
         - ``t`` -- a parameter (default: `t`)
+
         EXAMPLES::
+
             sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
             sage: L3 == loads(dumps(L3))
             True
             sage: TestSuite(L3).run(skip=["_test_associativity","_test_distributivity","_test_prod"])
+
         TESTS::
+
             sage: L3 != SymmetricFunctions(FractionField(QQ['t'])).llt(2)
             True
             sage: L3p = SymmetricFunctions(FractionField(QQ['t'])).llt(3,t=1)
@@ -312,11 +341,17 @@ class LLT_class(UniqueRepresentation):
     def __repr__(self):
         r"""
         Representation of the LLT symmetric functions
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric function bases
+
         OUTPUT:
+
         - returns a string representing the LLT symmetric functions
+
         EXAMPLES::
+
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3)
             level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: SymmetricFunctions(QQ).llt(3,t=2)
@@ -328,11 +363,17 @@ class LLT_class(UniqueRepresentation):
         r"""
         The symmetric function algebra associated to the family of LLT
         symmetric function bases
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
+
         OUTPUT:
+
         - returns the symmetric function ring associated to ``self``.
+
         EXAMPLES ::
+
             sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
             sage: L3.symmetric_function_ring()
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -342,11 +383,17 @@ class LLT_class(UniqueRepresentation):
     def base_ring(self):
         r"""
         Returns the base ring of ``self``.
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
+
         OUTPUT:
+
         - returns the base ring of the symmetric function ring associated to ``self``
+
         EXAMPLES::
+
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3).base_ring()
             Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
@@ -355,11 +402,17 @@ class LLT_class(UniqueRepresentation):
     def level(self):
         r"""
         Returns the level of ``self``.
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
+
         OUTPUT:
+
         - the level is the parameter of `k` in the basis
+
         EXAMPLES::
+
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3).level()
             3
         """
@@ -370,7 +423,9 @@ class LLT_class(UniqueRepresentation):
         Takes in partition, list of partitions, or a list of skew
         partitions as well as a function which takes in two partitions and
         a level and returns a coefficient.
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
         - ``skp`` -- a partition or a list of partitions or a list of skew partitions
         - ``stat`` -- a function which accepts two partitions and a value
@@ -378,10 +433,14 @@ class LLT_class(UniqueRepresentation):
           in a parameter `t`.  The first partition is the index of the
           LLT function, the second partition is the index of the monomial
           basis element.
+
         OUTPUT:
+
         - returns the monomial expansion of the LLT symmetric function
           indexed by ``skp``
+
         EXAMPLES::
+
             sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
             sage: f = lambda skp,mu,level: QQ(1)
             sage: L3._llt_generic([3,2,1],f)
@@ -418,14 +477,20 @@ class LLT_class(UniqueRepresentation):
          Calculates a single instance of a spin squared LLT symmetric function
          associated with a partition, list of partitions, or a list of skew partitions.
          This family of symmetric functions is defined in [LT2000]_ equation (43).
+
          INPUT:
+
          - ``self`` -- a family of LLT symmetric functions bases
          - ``skp`` -- a partition of a list of partitions or a list of skew
            partitions
+
          OUTPUT:
+
          - returns the monomial expansion of the LLT symmetric function spin-square
            functions indexed by ``skp``
+
          EXAMPLES::
+
              sage: L3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3)
              sage: L3.spin_square([2,1])
              t*m[1]
@@ -442,14 +507,20 @@ class LLT_class(UniqueRepresentation):
         r"""
         Calculates a single instance of the cospin symmetric functions.
         These are the functions defined in [LLT1997]_ equation (26).
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
         - ``skp`` -- a partition or a list of partitions or a list of skew
           partitions
+
         OUTPUT:
+
         - returns the monomial expansion of the LLT symmetric function cospin
           functions indexed by ``skp``
+
         EXAMPLES::
+
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: L3 = Sym.llt(3)
             sage: L3.cospin([2,1])
@@ -465,18 +536,24 @@ class LLT_class(UniqueRepresentation):
     def llt_inv(self,la):
         r"""
         Computes the LLT polynomial associated to a tuple of partitions.
+
         INPUT:
-        - ``la`` -- a tuple of partitions la = (lambda^{(1)}, lambda^{(2)}, ..., lambda^{(k)})
+
+        - ``la`` -- a tuple of partitions la = $(\lambda^{(1)}, \lambda^{(2)}, ..., \lambda^{(k)})$
+
         OUTPUT:
+
         - returns the LLT polynomial indexed by ``la`` in the monomial basis
-        EXAMPLES:
-        sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
-        sage: Sym.llt(4)
-        sage: L.llt_inv([[],[2,1],[],[1]])
-        (5*t+3)*m[1, 1, 1, 1] + (2*t+2)*m[2, 1, 1] + (t+1)*m[2, 2] + m[3, 1]
-        sage: s = Sym.schur()
-        sage: s(L.llt_inv([[1,1],[2],[],[1]]))
-        t^3*s[2, 1, 1, 1] + t^2*s[2, 2, 1] + (t^2+t)*s[3, 1, 1] + t*s[3, 2] + s[4, 1]
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+            sage: Sym.llt(4)
+            sage: L.llt_inv([[],[2,1],[],[1]])
+            (5*t+3)*m[1, 1, 1, 1] + (2*t+2)*m[2, 1, 1] + (t+1)*m[2, 2] + m[3, 1]
+            sage: s = Sym.schur()
+            sage: s(L.llt_inv([[1,1],[2],[],[1]]))
+            t^3*s[2, 1, 1, 1] + t^2*s[2, 2, 1] + (t^2+t)*s[3, 1, 1] + t*s[3, 2] + s[4, 1]
         """
         if len(la) == self.level():
             nu = [Partition(la[i]) for i in range(len(la))]
@@ -519,11 +596,17 @@ class LLT_class(UniqueRepresentation):
         r"""
         Returns the HCospin basis.
         This basis is defined [LLT1997]_ equation (27).
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
+
         OUTPUT:
+
         - returns the h-cospin basis of the LLT symmetric functions
+
         EXAMPLES::
+
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HCosp3 = Sym.llt(3).hcospin(); HCosp3
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
@@ -543,11 +626,17 @@ class LLT_class(UniqueRepresentation):
         r"""
         Returns the HSpin basis.
         This basis is defined [LLT1997]_ equation (28).
+
         INPUT:
+
         - ``self`` -- a family of LLT symmetric functions bases
+
         OUTPUT:
+
         - returns the h-spin basis of the LLT symmetric functions
+
         EXAMPLES::
+
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HSp3 = Sym.llt(3).hspin(); HSp3
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
@@ -570,10 +659,14 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         r"""
         A class of methods which are common to both the hspin and hcospin
         of the LLT symmetric functions.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
         - ``llt`` -- a family of LLT symmetric functions
+
         EXAMPLES::
+
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: SymmetricFunctions(QQ).llt(3,t=2).hspin()
@@ -604,12 +697,16 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
     def _m_to_self(self, x):
         r"""
         Isomorphism from the monomial basis into ``self``
+
         INPUT:
+
         - ``self`` - an instance of the LLT hspin or hcospin basis
         - ``x`` - an element of the monomial basis
         OUTPUT:
         - returns ``x`` expanded in the basis ``self``
+
         EXAMPLES::
+
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HSp3 = Sym.llt(3).hspin()
             sage: m = Sym.monomial()
@@ -624,12 +721,18 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
     def _self_to_m(self, x):
         r"""
         Isomorphism from self to the monomial basis
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
         - ``x`` -- an element of ``self``
+
         OUTPUT:
+
         - returns ``x`` expanded in the monomial basis.
+
         EXAMPLES::
+
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HSp3 = Sym.llt(3).hspin()
             sage: m = Sym.monomial()
@@ -645,11 +748,17 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
     def level(self):
         r"""
         Returns the level of ``self``.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
+
         OUTPUT:
+
         - returns the level associated to the basis ``self``.
+
         EXAMPLES::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3.level()
             3
@@ -659,11 +768,17 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
     def llt_family( self ):
         r"""
         The family of the llt bases of the symmetric functions.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
+
         OUTPUT:
+
         - returns an instance of the family of LLT bases associated to ``self``.
+
         EXAMPLES::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3.llt_family()
             level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -674,12 +789,18 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         r"""
         Convert to the monomial basis, do the multiplication there, and
         convert back to the basis ``self``.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
         - ``left``, ``right`` -- elements of the symmetric functions
+
         OUTPUT:
+
         - returns the product of ``left`` and ``right`` expanded in the basis ``self``
+
         EXAMPLES::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3._multiply(HSp3([1]), HSp3([2]))
             HSp3[2, 1] + (-t+1)*HSp3[3]
@@ -693,10 +814,14 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         r"""
         Compute the change of basis from the monomial symmetric functions
         to ``self``.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin or hcospin basis
         - ``n`` -- a positive integer representing the degree
+
         EXAMPLES::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3._m_cache(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
@@ -725,10 +850,14 @@ class LLT_spin(LLT_generic):
     def __init__(self, llt):
         r"""
         A class of methods for the h-spin LLT basis of the symmetric functions.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hcospin basis
         - ``llt`` -- a family of LLT symmetric function bases
+
         TESTS::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: TestSuite(HSp3).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (10s on sage.math, 2012)
             sage: TestSuite(HSp3).run(elements = [HSp3.t*HSp3[1,1]+HSp3.t*HSp3[2], HSp3[1]+(1+HSp3.t)*HSp3[1,1]])  # long time (depends on previous)
@@ -754,13 +883,19 @@ class LLT_spin(LLT_generic):
         r"""
         Returns a function which gives the coefficient of a partition
         in the monomial expansion of self(part).
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hspin basis
         - ``part`` -- a partition
+
         OUTPUT:
+
         - returns a function which accepts a partition and returns the coefficient
           in the expansion of the monomial basis
+
         EXAMPLES::
+
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: f21 = HSp3._to_m(Partition([2,1]))
             sage: [f21(p) for p in Partitions(3)]
@@ -781,10 +916,14 @@ class LLT_cospin(LLT_generic):
     def __init__(self, llt):
         r"""
         A class of methods for the h-cospin LLT basis of the symmetric functions.
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hcospin basis
         - ``llt`` -- a family of LLT symmetric function bases
+
         TESTS::
+
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
             sage: TestSuite(HCosp3).run(skip = ["_test_associativity", "_test_distributivity", "_test_prod"]) # products are too expensive, long time (11s on sage.math, 2012)
             sage: TestSuite(HCosp3).run(elements = [HCosp3.t*HCosp3[1,1]+HCosp3.t*HCosp3[2], HCosp3[1]+(1+HCosp3.t)*HCosp3[1,1]])  # long time (depends on previous)
@@ -808,13 +947,19 @@ class LLT_cospin(LLT_generic):
         r"""
         Returns a function which gives the coefficient of part2 in the
         monomial expansion of self(part).
+
         INPUT:
+
         - ``self`` -- an instance of the LLT hcospin basis
         - ``part`` -- a partition
+
         OUTPUT:
+
         - returns a function which accepts a partition and returns the coefficient
           in the expansion of the monomial basis
+
         EXAMPLES::
+
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
             sage: f21 = HCosp3._to_m(Partition([2,1]))
             sage: [f21(p) for p in Partitions(3)]
