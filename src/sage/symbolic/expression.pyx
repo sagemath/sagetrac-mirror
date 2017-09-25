@@ -478,7 +478,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (1+x)._dbgprint()
             x + 1
         """
-        self._gobj.dbgprint()
+        sig_on()
+        try:
+            self._gobj.dbgprint()
+        finally:
+            sig_off()
 
     def _dbgprinttree(self):
         r"""
@@ -531,7 +535,11 @@ cdef class Expression(CommutativeRingElement):
                 x (symbol) ...
                 =====
         """
-        self._gobj.dbgprinttree();
+        sig_on()
+        try:
+            self._gobj.dbgprinttree()
+        finally:
+            sig_off()
 
     def __setstate__(self, state):
         """
@@ -1189,6 +1197,7 @@ cdef class Expression(CommutativeRingElement):
             0.9036020036...
         """
         cdef GEx res
+        sig_on()
         try:
             res = self._gobj.evalf(0, {'parent':R})
         except TypeError as err:
@@ -1202,6 +1211,9 @@ cdef class Expression(CommutativeRingElement):
                 except (TypeError, AttributeError):
                     raise err
             res = self._gobj.evalf(0, {'parent':R_complex})
+        finally:
+            sig_off()
+
         if is_a_numeric(res):
             ans = py_object_from_numeric(res)
             # Convert ans to R.
@@ -1258,7 +1270,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f._convert({'parent':int})
             0
         """
-        cdef GEx res = self._gobj.evalf(0, kwds)
+        cdef GEx res
+        sig_on()
+        try:
+            res = self._gobj.evalf(0, kwds)
+        finally:
+            sig_off()
         return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):
@@ -1582,7 +1599,11 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(unsigned_infinity) == hash(SR(unsigned_infinity))
             True
         """
-        return self._gobj.gethash()
+        sig_on()
+        try:
+            return self._gobj.gethash()
+        finally:
+            sig_off()
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -1653,31 +1674,34 @@ cdef class Expression(CommutativeRingElement):
                 return False
             if is_a_relational(r._gobj):
                 # both lhs and rhs are relations, so we can get to work
-                if l.operator() == r.operator():
-                    e2 = ( # case: (x _ y) ?= (x _ y)
-                           ( l._gobj.lhs().is_equal(r._gobj.lhs()) and
-                             l._gobj.rhs().is_equal(r._gobj.rhs()) ) or
+                sig_on()
+                try:
+                    if l.operator() == r.operator():
+                        e2 = ( # case: (x _ y) ?= (x _ y)
+                               ( l._gobj.lhs().is_equal(r._gobj.lhs()) and
+                                 l._gobj.rhs().is_equal(r._gobj.rhs()) ) or
 
-                           # case: (x == y) ?= (y == x)
-                           #       (x != y) ?= (y != x)
-                           ( ( l.operator() == operator.eq or
-                               l.operator() == operator.ne ) and
-                             l._gobj.lhs().is_equal(r._gobj.rhs()) and
-                             l._gobj.rhs().is_equal(r._gobj.lhs()) ))
-                else:
-                    e2 = ( # case: (x < y)  ?= (y > x)  (or vice versa)
-                           #       (x <= y) ?= (y >= x) (or vice versa)
-                           ( ( l.operator() == operator.lt and
-                               r.operator() == operator.gt ) or
-                             ( l.operator() == operator.gt and
-                               r.operator() == operator.lt ) or
-                             ( l.operator() == operator.le and
-                               r.operator() == operator.ge ) or
-                             ( l.operator() == operator.ge and
-                               r.operator() == operator.le ) ) and
-                           l._gobj.lhs().is_equal(r._gobj.rhs()) and
-                           l._gobj.rhs().is_equal(r._gobj.lhs()) )
-
+                               # case: (x == y) ?= (y == x)
+                               #       (x != y) ?= (y != x)
+                               ( ( l.operator() == operator.eq or
+                                   l.operator() == operator.ne ) and
+                                 l._gobj.lhs().is_equal(r._gobj.rhs()) and
+                                 l._gobj.rhs().is_equal(r._gobj.lhs()) ))
+                    else:
+                        e2 = ( # case: (x < y)  ?= (y > x)  (or vice versa)
+                               #       (x <= y) ?= (y >= x) (or vice versa)
+                               ( ( l.operator() == operator.lt and
+                                   r.operator() == operator.gt ) or
+                                 ( l.operator() == operator.gt and
+                                   r.operator() == operator.lt ) or
+                                 ( l.operator() == operator.le and
+                                   r.operator() == operator.ge ) or
+                                 ( l.operator() == operator.ge and
+                                   r.operator() == operator.le ) ) and
+                               l._gobj.lhs().is_equal(r._gobj.rhs()) and
+                               l._gobj.rhs().is_equal(r._gobj.lhs()) )
+                finally:
+                    sig_off()
             else:
                 e2 = False              # l is relational but r isn't.
 
@@ -2353,7 +2377,11 @@ cdef class Expression(CommutativeRingElement):
             False
         """
         cdef Expression symbol0 = self.coerce_in(var)
-        return self._gobj.is_polynomial(symbol0._gobj)
+        sig_on()
+        try:
+            return self._gobj.is_polynomial(symbol0._gobj)
+        finally:
+            sig_off()
 
     cpdef bint is_relational(self):
         """
@@ -3744,7 +3772,11 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return print_order_compare(left._gobj, right._gobj)
+        sig_on()
+        try:
+            return print_order_compare(left._gobj, right._gobj)
+        finally:
+            sig_off()
 
     cpdef int _cmp_mul(Expression left, Expression right) except -2:
         """
@@ -3772,7 +3804,11 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return print_order_compare_mul(left._gobj, right._gobj)
+        sig_on()
+        try:
+            return print_order_compare_mul(left._gobj, right._gobj)
+        finally:
+            sig_off()
 
     def __pow__(self, exp, ignored):
         """
@@ -3939,12 +3975,16 @@ cdef class Expression(CommutativeRingElement):
         else:
             nexp = base.coerce_in(exp)
         cdef GEx x
-        if is_a_relational(base._gobj):
-            x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
-                           g_pow(base._gobj.rhs(), nexp._gobj),
-                           relational_operator(base._gobj))
-        else:
-            x = g_pow(base._gobj, nexp._gobj)
+        sig_on()
+        try:
+            if is_a_relational(base._gobj):
+                x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
+                               g_pow(base._gobj.rhs(), nexp._gobj),
+                               relational_operator(base._gobj))
+            else:
+                x = g_pow(base._gobj, nexp._gobj)
+        finally:
+            sig_off()
         return new_Expression_from_GEx(base._parent, x)
 
     def derivative(self, *args):
@@ -4823,7 +4863,12 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList mlst
-        cdef bint res = self._gobj.match(p._gobj, mlst)
+        cdef bint res
+        sig_on()
+        try:
+            res = self._gobj.match(p._gobj, mlst)
+        finally:
+            sig_off()
         if not res:
             return None
 
@@ -4872,7 +4917,11 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.comparison import print_sorted
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList found
-        self._gobj.find(p._gobj, found)
+        sig_on()
+        try:
+            self._gobj.find(p._gobj, found)
+        finally:
+            sig_off()
         res = []
         cdef GExListIter itr = found.begin()
         while itr != found.end():
@@ -5186,9 +5235,12 @@ cdef class Expression(CommutativeRingElement):
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
-
-        return new_Expression_from_GEx(self._parent,
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent,
                                        self._gobj.subs_map(smap, 0))
+        finally:
+            sig_off()
 
     subs = substitute
 
@@ -5235,8 +5287,12 @@ cdef class Expression(CommutativeRingElement):
             x - 1
             """
         cdef Expression p = self.coerce_in(expr)
-        return new_Expression_from_GEx(self._parent, self._gobj.subs(p._gobj))
-
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent,
+                                            self._gobj.subs(p._gobj))
+        finally:
+            sig_off()
 
     substitute_expression = deprecated_function_alias(12834, substitute)
     subs_expr = deprecated_function_alias(12834, subs)
@@ -6083,7 +6139,11 @@ cdef class Expression(CommutativeRingElement):
             for i from 0 <= i < ss._gobj.nops():
                 res = res.coefficient(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
             return res
-        return new_Expression_from_GEx(self._parent, self._gobj.coeff(ss._gobj, n))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.coeff(ss._gobj, n))
+        finally:
+            sig_off()
 
     coeff = deprecated_function_alias(17438, coefficient)
 
@@ -6185,7 +6245,11 @@ cdef class Expression(CommutativeRingElement):
         if x is None:
             x = self.default_variable()
         xx = self.coerce_in(x)
-        self._gobj.coefficients(xx._gobj, vec)
+        sig_on()
+        try:
+            self._gobj.coefficients(xx._gobj, vec)
+        finally:
+            sig_off()
         l = []
         for p in vec:
             l.append([new_Expression_from_GEx(self._parent, p.first),
@@ -6260,7 +6324,11 @@ cdef class Expression(CommutativeRingElement):
             x^3 + 2/x
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.lcoeff(ss._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.lcoeff(ss._gobj))
+        finally:
+            sig_off()
 
     leading_coeff = leading_coefficient
 
@@ -6283,7 +6351,11 @@ cdef class Expression(CommutativeRingElement):
             a*x + x*y + x/y + 100
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.tcoeff(ss._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.tcoeff(ss._gobj))
+        finally:
+            sig_off()
 
     trailing_coeff = trailing_coefficient
 
@@ -6311,7 +6383,11 @@ cdef class Expression(CommutativeRingElement):
             0
         """
         cdef Expression ss = self.coerce_in(s)
-        return self._gobj.ldegree(ss._gobj)
+        sig_on()
+        try:
+            return self._gobj.ldegree(ss._gobj)
+        finally:
+            sig_off()
 
     def degree(self, s):
         """
@@ -6337,7 +6413,11 @@ cdef class Expression(CommutativeRingElement):
             0
         """
         cdef Expression ss = self.coerce_in(s)
-        return self._gobj.degree(ss._gobj)
+        sig_on()
+        try:
+            return self._gobj.degree(ss._gobj)
+        finally:
+            sig_off()
 
     def unit(self, s):
         """
@@ -6370,7 +6450,11 @@ cdef class Expression(CommutativeRingElement):
             -1
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.unit(ss._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.unit(ss._gobj))
+        finally:
+            sig_off()
 
     def content(self, s):
         """
@@ -6409,7 +6493,11 @@ cdef class Expression(CommutativeRingElement):
             2
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
+        finally:
+            sig_off()
 
     def primitive_part(self, s):
         """
@@ -6443,7 +6531,11 @@ cdef class Expression(CommutativeRingElement):
             x + 2*sin(y)
         """
         cdef Expression ss = self.coerce_in(s)
-        return new_Expression_from_GEx(self._parent, self._gobj.primpart(ss._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.primpart(ss._gobj))
+        finally:
+            sig_off()
 
     def unit_content_primitive(self, s):
         """
@@ -6475,9 +6567,13 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         cdef GEx unit, cont, prim
         self._gobj.unitcontprim(ss._gobj, unit, cont, prim)
-        return (new_Expression_from_GEx(self._parent, unit),
-                new_Expression_from_GEx(self._parent, cont),
-                new_Expression_from_GEx(self._parent, prim))
+        sig_on()
+        try:
+            return (new_Expression_from_GEx(self._parent, unit),
+                    new_Expression_from_GEx(self._parent, cont),
+                    new_Expression_from_GEx(self._parent, prim))
+        finally:
+            sig_off()
 
     def poly(self, x=None):
         r"""
@@ -7365,7 +7461,11 @@ cdef class Expression(CommutativeRingElement):
             sage: abs(pi+i)
             abs(pi + I)
         """
-        return new_Expression_from_GEx(self._parent, g_abs(self._gobj))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, g_abs(self._gobj))
+        finally:
+            sig_off()
 
     def abs(self, hold=False):
         """
@@ -8926,8 +9026,12 @@ cdef class Expression(CommutativeRingElement):
             sage: (1+sin((x + 1)/x - 1/x)).combine(deep=True)
             sin(1) + 1
         """
-        return new_Expression_from_GEx(self._parent,
-                self._gobj.combine_fractions(deep))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent,
+                            self._gobj.combine_fractions(deep))
+        finally:
+            sig_off()
 
     def normalize(self):
         """
@@ -8970,7 +9074,11 @@ cdef class Expression(CommutativeRingElement):
         ALGORITHM: Uses GiNaC.
 
         """
-        return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, True))
+        sig_on()
+        try:
+            return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, True))
+        finally:
+            sig_off()
 
     def numerator(self, bint normalize = True):
         """
@@ -9041,7 +9149,11 @@ cdef class Expression(CommutativeRingElement):
         cdef GExVector vec
         cdef GEx oper, power
         if normalize:
-            return new_Expression_from_GEx(self._parent, self._gobj.numer())
+            sig_on()
+            try:
+                return new_Expression_from_GEx(self._parent, self._gobj.numer())
+            finally:
+                sig_off()
         elif is_a_mul(self._gobj):
             for i from 0 <= i < self._gobj.nops():
                 oper = self._gobj.op(i)
@@ -9126,7 +9238,11 @@ cdef class Expression(CommutativeRingElement):
         cdef GExVector vec
         cdef GEx oper, ex, power
         if normalize:
-            return new_Expression_from_GEx(self._parent, self._gobj.denom())
+            sig_on()
+            try:
+                return new_Expression_from_GEx(self._parent, self._gobj.denom())
+            finally:
+                sig_off()
         elif is_a_mul(self._gobj):
             for i from 0 <= i < self._gobj.nops():
                 oper = self._gobj.op(i)
@@ -9212,40 +9328,44 @@ cdef class Expression(CommutativeRingElement):
         cdef GExVector vecnumer, vecdenom
         cdef GEx oper, ex, power
         cdef GNumeric power_num
-        if normalize:
-            ex = self._gobj.numer_denom()
-            return (new_Expression_from_GEx(self._parent, ex.op(0)),
-                    new_Expression_from_GEx(self._parent, ex.op(1)))
-        elif is_a_mul(self._gobj):
-            for i from 0 <= i < self._gobj.nops():
-                oper = self._gobj.op(i)
-                if is_a_power(oper):   # oper = ex^power
-                    ex = oper.op(0)
-                    power = oper.op(1)
-                    if not is_a_numeric(power):
-                        raise TypeError("self is not a rational expression")
-                    elif is_a_numeric(power):
-                        power_num = ex_to_numeric(power)
-                        if power_num.is_positive():
-                            vecnumer.push_back(oper)
-                        else:
-                            vecdenom.push_back(g_pow(ex, g_abs(power)))
-                else:
-                    vecnumer.push_back(oper)
-            return (new_Expression_from_GEx(self._parent,
-                                            g_mul_construct(vecnumer, False)),
-                    new_Expression_from_GEx(self._parent,
-                                            g_mul_construct(vecdenom, False)))
-        elif is_a_power(self._gobj):
-            power = self._gobj.op(1)
-            if is_a_numeric(power) and ex_to_numeric(power).is_positive():
-                return (self, self._parent.one())
-            else:
-                return (self._parent.one(),
+        sig_on()
+        try:
+            if normalize:
+                ex = self._gobj.numer_denom()
+                return (new_Expression_from_GEx(self._parent, ex.op(0)),
+                        new_Expression_from_GEx(self._parent, ex.op(1)))
+            elif is_a_mul(self._gobj):
+                for i from 0 <= i < self._gobj.nops():
+                    oper = self._gobj.op(i)
+                    if is_a_power(oper):   # oper = ex^power
+                        ex = oper.op(0)
+                        power = oper.op(1)
+                        if not is_a_numeric(power):
+                            raise TypeError("self is not a rational expression")
+                        elif is_a_numeric(power):
+                            power_num = ex_to_numeric(power)
+                            if power_num.is_positive():
+                                vecnumer.push_back(oper)
+                            else:
+                                vecdenom.push_back(g_pow(ex, g_abs(power)))
+                    else:
+                        vecnumer.push_back(oper)
+                return (new_Expression_from_GEx(self._parent,
+                                                g_mul_construct(vecnumer, False)),
                         new_Expression_from_GEx(self._parent,
-                               g_pow(self._gobj.op(0), g_abs(power))))
-        else:
-            return (self, self._parent.one())
+                                                g_mul_construct(vecdenom, False)))
+            elif is_a_power(self._gobj):
+                power = self._gobj.op(1)
+                if is_a_numeric(power) and ex_to_numeric(power).is_positive():
+                    return (self, self._parent.one())
+                else:
+                    return (self._parent.one(),
+                            new_Expression_from_GEx(self._parent,
+                                   g_pow(self._gobj.op(0), g_abs(power))))
+            else:
+                return (self, self._parent.one())
+        finally:
+            sig_off()
 
     def partial_fraction(self, var=None):
         r"""
