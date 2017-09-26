@@ -290,6 +290,7 @@ Low-Level Utilities
    :maxdepth: 1
 
    sage/ext/memory
+   sage/ext/pool
    sage/misc/c3
    sage/misc/c3_controlled
 
