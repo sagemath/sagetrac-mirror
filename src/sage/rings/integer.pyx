@@ -6096,11 +6096,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: 1 << (2^60)
+            sage: 1 << (2^60)                           # optional - mpir
             Traceback (most recent call last):
             ...
             MemoryError: failed to allocate ... bytes   # 64-bit
             OverflowError: ...                          # 32-bit
+
+            sage: 1 << (2^60)                           # optional - gmp
+            gmp: overflow in mpz type
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Aborted
         """
         cdef long n
 
