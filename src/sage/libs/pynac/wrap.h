@@ -11,6 +11,7 @@
 #include <pynac/ginac.h>
 #include <pynac/extern_templates.h>
 #include <string>
+#include "macros.h"
 
 using namespace GiNaC;
 
@@ -24,6 +25,13 @@ void list_symbols(const ex& e, std::set<ex, ex_is_less> &s)
     }
 }
 
+ex normalize(const ex& e, bool b1, bool b2)
+{
+    sig_on();
+    ex r = e.normal(0, b1, b2);
+    sig_off();
+    return r;
+}
 
 ex g_function_evalv(unsigned serial, exvector& vec, bool hold)
 {

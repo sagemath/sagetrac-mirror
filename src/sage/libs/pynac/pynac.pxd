@@ -28,6 +28,7 @@ Check that we can externally cimport this (:trac:`18825`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on, sig_off
 from cpython cimport PyObject
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
@@ -294,6 +295,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         GExSetIter end()
 
     void g_list_symbols "list_symbols" (GEx e, GExSet s)
+    GEx g_normalize "normalize" (GEx e, bint b1, bint b2) except +
 
     # more is_a tests
     bint is_a_add "is_a<GiNaC::add>" (GEx e)

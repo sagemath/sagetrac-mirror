@@ -8970,7 +8970,9 @@ cdef class Expression(CommutativeRingElement):
         ALGORITHM: Uses GiNaC.
 
         """
-        return new_Expression_from_GEx(self._parent, self._gobj.normal(0, False, True))
+        cdef GEx res
+        res = g_normalize(self._gobj, False, True)
+        return new_Expression_from_GEx(self._parent, res)
 
     def numerator(self, bint normalize = True):
         """
