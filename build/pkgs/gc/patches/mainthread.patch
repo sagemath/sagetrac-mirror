@@ -1,0 +1,41 @@
+diff --git a/os_dep.c b/os_dep.c
+index 49e2f573..e6c6b5e2 100644
+--- a/os_dep.c
++++ b/os_dep.c
+@@ -1194,16 +1194,25 @@ GC_INNER size_t GC_page_size = 0;
+ #   define STACKBOTTOM (ptr_t)pthread_get_stackaddr_np(pthread_self())
+ # endif
+ 
++/* renaming for now */
++# if defined(FREEBSD)
++#   include <pthread_np.h>
++# define pthread_getattr_np pthread_attr_get_np
++# endif
++
+   ptr_t GC_get_main_stack_base(void)
+   {
+     ptr_t result;
+-#   if defined(LINUX) && !defined(NO_PTHREAD_GETATTR_NP) \
++# if (defined(LINUX) || defined(FREEBSD)) \
+        && (defined(USE_GET_STACKBASE_FOR_MAIN) \
+            || (defined(THREADS) && !defined(REDIRECT_MALLOC)))
+       pthread_attr_t attr;
+       void *stackaddr;
+       size_t size;
+ 
++#     if defined(FREEBSD)
++      pthread_attr_init(&attr);
++#     endif
+       if (pthread_getattr_np(pthread_self(), &attr) == 0) {
+         if (pthread_attr_getstack(&attr, &stackaddr, &size) == 0
+             && stackaddr != NULL) {
+@@ -1270,8 +1279,7 @@ GC_INNER size_t GC_page_size = 0;
+ # define GET_MAIN_STACKBASE_SPECIAL
+ #endif /* !AMIGA, !BEOS, !OPENBSD, !OS2, !Windows */
+ 
+-#if (defined(GC_LINUX_THREADS) || defined(PLATFORM_ANDROID)) \
+-    && !defined(NO_PTHREAD_GETATTR_NP)
++#if (defined(GC_LINUX_THREADS) || defined(PLATFORM_ANDROID))
+ 
+ # include <pthread.h>
+   /* extern int pthread_getattr_np(pthread_t, pthread_attr_t *); */
