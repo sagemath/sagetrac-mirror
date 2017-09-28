@@ -13,9 +13,11 @@ ridiculously large integer, see :trac:`15363`::
     MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
 
     sage: 2^(2^63-3)                                           # optional - gmp
-    gmp: overflow in mpz type
+    gmp: overflow in mpz type                                  # 64-bit
+    Traceback (most recent call last):
     ...
-    RuntimeError: Aborted
+    RuntimeError: exponent must be at most 2147483647          # 32-bit
+    RuntimeError: Aborted                                      # 64-bit
 
 AUTHORS:
 
