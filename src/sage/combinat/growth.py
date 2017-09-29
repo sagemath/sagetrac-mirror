@@ -4137,6 +4137,111 @@ class RuleDomino(Rule):
 
         return z
 
+class RuleLeftCompositions(Rule):
+    """Dual graded graphs for (skew) quasisymmetric Schur functions.
+
+    These were introduced by Vaseet Tewari and Stephanie Van
+    Willigenburg in https://arxiv.org/pdf/1512.04614v1.pdf.
+    Currently, no forward and backward rules are implemented.
+
+    The vertices of the dual graded graph are
+    :class:`~sage.combinat.composition.Compositions`::
+
+        sage: L = GrowthDiagram.rules.LeftCompositions()
+        sage: L.vertices(3)
+        Compositions of 3
+
+    A saturated chain in the :meth:`P_graph` is a (skew)
+    :class:`~sage.combinat.composition_tableau.CompositionTableau`::
+
+        sage: c =  [[], [1], [2], [1, 2], [1, 1, 2], [1, 1, 3], [2, 1, 3], [1, 2, 1, 3]]
+        sage: L.P_symbol(c).pp()
+        1
+        4  2
+        5
+        7  6  3
+
+    The number of
+    :class:`~sage.combinat.composition_tableau.CompositionTableau` is
+    the same as the number of standard Young tableaux with one entry
+    less::
+
+        sage: [len(L.P_graph(n).maximal_chains()) for n in range(1,8)]
+        [1, 1, 2, 4, 10, 26, 76]
+
+        sage: [StandardTableaux(n).cardinality() for n in range(7)]
+        [1, 1, 2, 4, 10, 26, 76]
+
+    The saturated chains in the :meth:`Q_graph` are not familiar to
+    the author::
+
+        sage: [len(L.Q_graph(n).maximal_chains()) for n in range(1,8)]
+        [1, 1, 2, 6, 19, 69, 285]
+
+    TESTS::
+
+        sage: L._check_duality(4)
+
+    """
+    zero = Composition([])
+
+    def rank(self, v):
+        return v.size()
+
+    def normalize_vertex(self, v):
+        return Composition(v)
+
+    def vertices(self, n):
+        return Compositions(n)
+
+    def is_P_edge(self, v, w):
+
+        return self.rank(v) + 1 == self.rank(w) and any(t(i, v) == w for i in range(1,max(v+[0])+2))
+    def is_Q_edge(self, v, w):
+
+        return self.rank(v) + 1 == self.rank(w) and any(d(i, w) == v for i in range(1,max(w+[0])+1))
+
+    def P_symbol(self, P_chain):
+        """
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a composition tableau.
+
+        EXAMPLES::
+
+            sage: L = RuleLeftCompositions()
+            sage: c =  [[], [1], [2], [1, 2], [1, 1, 2], [1, 1, 3], [2, 1, 3], [1, 2, 1, 3]]
+            sage: L.P_symbol(c).pp()
+            1
+            4  2
+            5
+            7  6  3
+
+        We obtain all standard composition tableaux::
+
+            sage: n = 5
+            sage: C1 = [T for T in CompositionTableaux(n) if T.is_standard()]
+            sage: C2 = [L.P_symbol(c) for c in L.P_graph(n+1).maximal_chains()]
+            sage: sorted(C1) == sorted(C2)
+            True
+        """
+        if P_chain[0] != self.zero:
+            raise NotImplementedError
+
+        T = []
+        n = len(P_chain)
+        for i in range(1, n):
+            la = P_chain[i]
+            mu = P_chain[i-1]
+            if len(la) > len(mu):
+                # la and mu differ in first position
+                T = [[n-i]] + T
+            else:
+                # one part of la is larger
+                for j, p in enumerate(la):
+                    if p == mu[j] + 1:
+                        T[j] = T[j] + [n-i]
+        return CompositionTableau(T)
+
 #####################################################################
 ## Set the rules available from GrowthDiagram.rules.<tab>
 #####################################################################
@@ -4153,6 +4258,7 @@ class Rules(object):
     RSK = RuleRSK
     Burge = RuleBurge
     Domino = RuleDomino
+    LeftCompositions = RuleLeftCompositions
 
 GrowthDiagram.rules = Rules
 
