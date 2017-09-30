@@ -480,6 +480,8 @@ from sage.combinat.words.words import Words
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees, LabelledBinaryTree
 from sage.combinat.composition import Compositions
 from sage.combinat.partition import _Partitions, Partitions
+from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition_tableau import CompositionTableau, CompositionTableaux
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
@@ -4140,7 +4142,7 @@ class RuleDomino(Rule):
 class RuleLeftCompositions(Rule):
     """Dual graded graphs for (skew) quasisymmetric Schur functions.
 
-    These were introduced by Vaseet Tewari and Stephanie Van
+    These were introduced by Vasu Tewari and Stephanie Van
     Willigenburg in https://arxiv.org/pdf/1512.04614v1.pdf.
     Currently, no forward and backward rules are implemented.
 
@@ -4195,11 +4197,67 @@ class RuleLeftCompositions(Rule):
         return Compositions(n)
 
     def is_P_edge(self, v, w):
+        def t(i, c):
+            """
+            Increase the left most entry equal to i-1 by one.
+
+            If there is no such entry, return 0.
+
+            EXAMPLES::
+
+                sage: c = [3,2,3,1,2]
+                sage: [t(i, c) for i in range(1,6)]
+                [[1, 3, 2, 3, 1, 2], [3, 2, 3, 2, 2], [3, 3, 3, 1, 2], [4, 2, 3, 1, 2], 0]
+            """
+            assert i > 0
+            if c == 0:
+                return 0
+            if i == 1:
+                return [1] + list(c)
+            try:
+                j = c.index(i-1)
+            except ValueError:
+                return 0
+
+            return c[:j] + [c[j]+1] + c[j+1:]
 
         return self.rank(v) + 1 == self.rank(w) and any(t(i, v) == w for i in range(1,max(v+[0])+2))
-    def is_Q_edge(self, v, w):
 
-        return self.rank(v) + 1 == self.rank(w) and any(d(i, w) == v for i in range(1,max(w+[0])+1))
+    def is_Q_edge(self, v, w):
+        r"""
+        Return whether ``(v, w)`` is a `Q`-edge of ``self``.
+
+        ``(v, w)`` is an edge if any right most occurrence of a
+        letter in ``w`` can be decreased by one to obtain ``v``.
+
+        TESTS::
+
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: L.is_Q_edge(L.zero, Composition([1]))
+            True
+
+            sage: L.is_Q_edge(Composition([1]), Composition([1,1]))
+            True
+
+            sage: L.is_Q_edge(Composition([1,2]), Composition([2,2]))
+            False
+        """
+        if self.rank(v) + 1 != self.rank(w):
+            return False
+
+        # find difference between v and w:
+        #    v = ... l_{j-1} x l_{j+1} ...
+        #    w = ... l_{j-1} x+1 l_{j+1} ..., and x+1 is right most
+        #
+        # or v = ... l_{j-1} l_j ...
+        # or w = ... l_{j-1} 1 l_j ..., and 1 is right most
+        for j in range(len(v)):
+            if v[j] != w[j]:
+                if v[j] + 1 == w[j]:
+                    return v[j+1:] == w[j+1:] and w[j] not in w[j+1:]
+                else:
+                    return w[j] == 1 and v[j:] == w[j+1:] and w[j] not in w[j+1:]
+        return w[len(v)] == 1
 
     def P_symbol(self, P_chain):
         """
@@ -4223,10 +4281,19 @@ class RuleLeftCompositions(Rule):
             sage: C2 = [L.P_symbol(c) for c in L.P_graph(n+1).maximal_chains()]
             sage: sorted(C1) == sorted(C2)
             True
+
+        There should be a descent set preserving bijection::
+
+            sage: n = 4
+            sage: P = L.P_graph(n+1); Q = L.Q_graph(n+1).hasse_diagram()
+            sage: d1 = sorted([L.P_symbol(T).descent_set() for T in P.maximal_chains() for i in range(len(Q.all_paths(L.zero, T[-1])))])
+            sage: d2 = sorted([pi.descents(from_zero=False) for pi in Permutations(n)])
+            sage: d1 == d2
+            True
         """
         if P_chain[0] != self.zero:
             raise NotImplementedError
-
+        # we only consider the standard case for now
         T = []
         n = len(P_chain)
         for i in range(1, n):
