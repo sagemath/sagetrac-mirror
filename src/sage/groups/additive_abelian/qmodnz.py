@@ -138,6 +138,17 @@ class QmodnZ(Parent, UniqueRepresentation):
             True
             sage: G4.has_coerce_map_from(G2)
             False
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
+            sage: G1 = QmodnZ(5/3)
+            sage: G2 = QmodnZ(5/4)
+            sage: G3 = QmodnZ(5/2)
+            sage: G1.has_coerce_map_from(G2)
+            False
+            sage: G3.has_coerce_map_from(G2)
+            False
+            sage: G2.has_coerce_map_from(G3)
+            True
+
         """
         if QQ.has_coerce_map_from(S):
             return True

@@ -47,6 +47,8 @@ class QmodnZ_Element(AdditiveGroupElement):
         sage: G = QQ/(19*ZZ)
         sage: G(400/19)
         39/19
+
+    .. automethod:: _div_
     """
     def __init__(self, parent, x, construct=False):
         r"""
