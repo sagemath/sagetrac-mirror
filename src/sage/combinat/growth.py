@@ -4139,12 +4139,74 @@ class RuleDomino(Rule):
 
         return z
 
+def mason_insert(k, T):
+    """
+    Insert ``k`` into a composition tableau ``T``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.growth import mason_insert
+
+        sage: T = [[1,1],[3,2,2,2],[6,5,4],[7,4,3]]
+        sage: mason_insert(5, T)
+        [[1, 1], [2], [3, 3, 2, 2], [6, 5, 5], [7, 4, 4]]
+    """
+    S = T[:]
+    r = max([0] + [len(row) for row in S])
+    j = r
+    while j > 0:
+        # print "j is", j
+        for i, row in enumerate(S):
+            # print "row", row
+            if len(row) == j and row[j-1] >= k :
+                S[i].append(k)
+                return S
+            if len(row) > j and row[j-1] >= k > row[j]:
+                # print "bumping", k, row[j]
+                S[i] = row[:j] + [k] + row[j+1:]
+                k = row[j]
+                # print "S is now", S
+        j -= 1
+    return sorted([[k]] + S)
+
+def mason(pi):
+    """
+    Return the composition tableau corresponding to the word pi.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.growth import mason
+
+        sage: mason([3,1,2]).pp()
+        1
+        3  2
+        sage: mason([1,3,2]).pp()
+        1
+        3  2
+        sage: mason([2,1,3]).pp()
+        2  1
+        3
+        sage: pi = Permutation([3, 2, 6, 17, 10, 20, 14, 9, 16, 4, 19, 15, 1, 13, 18, 7, 5, 8, 12, 11])
+        sage: pi.complement().inverse().descents(from_zero=False)
+        [3, 6, 10, 13, 14, 16, 17]
+        sage: mason(pi).descent_set()
+        [3, 4, 6, 7, 10, 14, 17]
+
+    """
+    T = []
+    for e in pi:
+        T = mason_insert(e, T)
+    return CompositionTableau(T)
+
+
 class RuleLeftCompositions(Rule):
     """Dual graded graphs for (skew) quasisymmetric Schur functions.
 
     These were introduced by Vasu Tewari and Stephanie Van
     Willigenburg in https://arxiv.org/pdf/1512.04614v1.pdf.
-    Currently, no forward and backward rules are implemented.
+    Currently, the backward rule is not implemented.  The forward
+    rule seems to agree with Mason's insertion algorithm from Section
+    6.1 of http://www.math.ubc.ca/~steph/papers/QS5.pdf.
 
     The vertices of the dual graded graph are
     :class:`~sage.combinat.composition.Compositions`::
@@ -4156,7 +4218,7 @@ class RuleLeftCompositions(Rule):
     A saturated chain in the :meth:`P_graph` is a (skew)
     :class:`~sage.combinat.composition_tableau.CompositionTableau`::
 
-        sage: c =  [[], [1], [2], [1, 2], [1, 1, 2], [1, 1, 3], [2, 1, 3], [1, 2, 1, 3]]
+        sage: c = [[], [1], [2], [1, 2], [1, 1, 2], [1, 1, 3], [2, 1, 3], [1, 2, 1, 3]]
         sage: L.P_symbol(c).pp()
         1
         4  2
@@ -4182,7 +4244,12 @@ class RuleLeftCompositions(Rule):
 
     TESTS::
 
-        sage: L._check_duality(4)
+        sage: [L._check_duality(n) for n in range(6)]
+        [None, None, None, None, None, None]
+
+        sage: l = {pi: L(pi) for pi in Permutations(4)}
+        sage: len(set([tuple(G.out_labels()) for G in l.values()]))
+        24
 
     """
     zero = Composition([])
@@ -4196,32 +4263,98 @@ class RuleLeftCompositions(Rule):
     def vertices(self, n):
         return Compositions(n)
 
+    def is_P_edge_aux(self, v, w):
+        """Return `i` if `w = t_i(v)`, ``None`` otherwise.
+
+        `t_i(v)` increases the left most occurrence of `i-1` by one.
+        `t_1(v)` prepends `1` to the composition.  `t_i(w)=0` if
+        `i-1` does not occur in `w`.
+
+        EXAMPLES::
+
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: L.is_P_edge_aux([1],[1,1])
+            1
+            sage: L.is_P_edge_aux([1],[2])
+            2
+            sage: L.is_P_edge_aux([1,1,1],[1,2,1])
+
+            sage: L.is_P_edge_aux([3,2,3,1,2],[3,3,3,1,2])
+            3
+        """
+        # find difference between v and w:
+        #    v = ... l_{j-1} x l_{j+1} ..., and x is left most
+        #    w = ... l_{j-1} x+1 l_{j+1} ...
+        # or
+        #    v = l_0 ...
+        #    w = 1 l_0 ...
+        if w[1:] == v:
+            assert w[0] == 1
+            return 1
+
+        for j in range(len(v)):
+            if v[j] != w[j]:
+                if w[j] == v[j] + 1 and w[j+1:] == v[j+1:] and v[j] not in v[:j]:
+                    return w[j]
+                return None
+        return None
+
     def is_P_edge(self, v, w):
-        def t(i, c):
-            """
-            Increase the left most entry equal to i-1 by one.
+        r"""
+        Return whether ``(v, w)`` is a `P`-edge of ``self``.
 
-            If there is no such entry, return 0.
+        ``(v, w)`` is an edge if any left most occurrence of a letter
+        in ``v`` can be increased by one to obtain ``w``.
 
-            EXAMPLES::
+        TESTS::
 
-                sage: c = [3,2,3,1,2]
-                sage: [t(i, c) for i in range(1,6)]
-                [[1, 3, 2, 3, 1, 2], [3, 2, 3, 2, 2], [3, 3, 3, 1, 2], [4, 2, 3, 1, 2], 0]
-            """
-            assert i > 0
-            if c == 0:
-                return 0
-            if i == 1:
-                return [1] + list(c)
-            try:
-                j = c.index(i-1)
-            except ValueError:
-                return 0
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: L.is_P_edge(L.zero, Composition([1]))
+            True
 
-            return c[:j] + [c[j]+1] + c[j+1:]
+            sage: L.is_P_edge(Composition([1]), Composition([1,1]))
+            True
 
-        return self.rank(v) + 1 == self.rank(w) and any(t(i, v) == w for i in range(1,max(v+[0])+2))
+            sage: L.is_P_edge(Composition([2]), Composition([2,1]))
+            False
+        """
+        return self.rank(v) + 1 == self.rank(w) and self.is_P_edge_aux(v, w) is not None
+
+    def is_Q_edge_aux(self, v, w):
+        """Return `i` if `v = d_i(w)`, ``None`` otherwise.
+
+        `d_i(w)` decreases the right most occurrence of `i` by one.
+        `d_i(w)=0` if `i` does not occur in `w`.
+
+        EXAMPLES::
+
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: L.is_Q_edge_aux([1],[1,1])
+            1
+            sage: L.is_Q_edge_aux([1],[2])
+            2
+            sage: L.is_Q_edge_aux([1,1,1],[1,2,1])
+            2
+            sage: L.is_Q_edge_aux([1],[4])
+        """
+        # find difference between v and w:
+        #    v = ... l_{j-1} x l_{j+1} ...
+        #    w = ... l_{j-1} x+1 l_{j+1} ..., and x+1 is right most
+        #
+        # or v = ... l_{j-1} l_j ...
+        # or w = ... l_{j-1} 1 l_j ..., and 1 is right most
+        for j in range(len(v)):
+            if v[j] != w[j]:
+                if w[j] == v[j] + 1:
+                    if w[j+1:] == v[j+1:] and w[j] not in w[j+1:]:
+                        return w[j]
+                else:
+                    if w[j] == 1 and w[j+1:] == v[j:] and w[j] not in w[j+1:]:
+                        return w[j]
+                return None
+        if w[len(v)] == 1:
+            return 1
+        return None
 
     def is_Q_edge(self, v, w):
         r"""
@@ -4242,22 +4375,7 @@ class RuleLeftCompositions(Rule):
             sage: L.is_Q_edge(Composition([1,2]), Composition([2,2]))
             False
         """
-        if self.rank(v) + 1 != self.rank(w):
-            return False
-
-        # find difference between v and w:
-        #    v = ... l_{j-1} x l_{j+1} ...
-        #    w = ... l_{j-1} x+1 l_{j+1} ..., and x+1 is right most
-        #
-        # or v = ... l_{j-1} l_j ...
-        # or w = ... l_{j-1} 1 l_j ..., and 1 is right most
-        for j in range(len(v)):
-            if v[j] != w[j]:
-                if v[j] + 1 == w[j]:
-                    return v[j+1:] == w[j+1:] and w[j] not in w[j+1:]
-                else:
-                    return w[j] == 1 and v[j:] == w[j+1:] and w[j] not in w[j+1:]
-        return w[len(v)] == 1
+        return self.rank(v) + 1 == self.rank(w) and self.is_Q_edge_aux(v, w) is not None
 
     def P_symbol(self, P_chain):
         """
@@ -4266,7 +4384,7 @@ class RuleLeftCompositions(Rule):
 
         EXAMPLES::
 
-            sage: L = RuleLeftCompositions()
+            sage: L = GrowthDiagram.rules.LeftCompositions()
             sage: c =  [[], [1], [2], [1, 2], [1, 1, 2], [1, 1, 3], [2, 1, 3], [1, 2, 1, 3]]
             sage: L.P_symbol(c).pp()
             1
@@ -4308,6 +4426,81 @@ class RuleLeftCompositions(Rule):
                     if p == mu[j] + 1:
                         T[j] = T[j] + [n-i]
         return CompositionTableau(T)
+
+    def forward_rule(self, y, t, x, content):
+        r"""
+        Return the output shape given three shapes and the content.
+
+        .. WARNING::
+
+            This rule is conjectural only.
+
+        INPUT:
+
+        - ``y, t, x`` -- three compositions from a cell in a growth
+          diagram, labelled as::
+
+              t x
+              y
+
+        - ``content`` -- `0` or `1`; the content of the cell
+
+        OUTPUT:
+
+        The fourth partition according to domino insertion.
+
+        EXAMPLES::
+
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: L([3,1,2]).out_labels()
+            [[], [1], [1, 1], [1, 2], [2], [1], []]
+
+        TESTS::
+
+            sage: from sage.combinat.growth import mason
+            sage: L = GrowthDiagram.rules.LeftCompositions()
+            sage: n = 7
+            sage: all(L(pi).P_symbol() == mason(pi.complement()) for pi in Permutations(n))
+            True
+        """
+        def t_operator(i, c):
+            """
+            Increase leftmost part equal to i-1.
+            """
+            assert i > 0
+            if c == 0:
+                return 0
+            if i == 1:
+                return [1] + list(c)
+            try:
+                j = c.index(i-1)
+            except ValueError:
+                return 0
+
+            return c[:j] + [c[j]+1] + c[j+1:]
+
+        if content == 0:
+            if y == t:
+                return x
+            if x == t:
+                return y
+            if x == y:
+                # find part in which they differ from t:
+                x_sorted = sorted(x, reverse=True)+[0]
+                t_sorted = sorted(t, reverse=True)+[0]
+                for i, (e, f) in enumerate(zip(t_sorted, x_sorted)):
+                    if e != f:
+                        return Composition(t_operator(x_sorted[i+1]+1, x))
+                raise ValueError("y=%s, t=%s, x=%s"%(y,t,x))
+            else:
+                i = self.is_P_edge_aux(t, y)
+                return Composition(t_operator(i, x))
+        else:
+            assert y == t == x
+            if len(y) == 0:
+                return Composition([1])
+            else:
+                return Composition(t_operator(max(t)+1, t))
 
 #####################################################################
 ## Set the rules available from GrowthDiagram.rules.<tab>
