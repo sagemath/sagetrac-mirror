@@ -1,5 +1,5 @@
 r"""
-Fusion algebras
+Verlinde Algebras
 
 AUTHORS:
 
@@ -7,67 +7,77 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#  Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
-from sage.categories.finite_dimensional_algebras_with_basis import FiniteDimensionalAlgebrasWithBasis
-from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.algebras import Algebras
 from sage.rings.all import ZZ
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.backtrack import TransitiveIdeal
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.crystals.monomial_crystals import CrystalOfNakajimaMonomials
 
-class FusionAlgebra(CombinatorialFreeModule):
+class VerlindeAlgebra(CombinatorialFreeModule):
     r"""
-    The fusion algebra with a given affine Cartan type.
+    The Verlinde algebra or fusion algebra that come from
+    Wess-Zumino-Witten (WZW) field theories or, equivalently,
+    associated with a given affine Cartan type.
 
-    Abstractly a *fusion algebra* `F` is a finite dimensional commutative
-    associative algebra over a ring `R` (typically `\QQ`) with a basis
-    `(B_a)_{a \in I}` indexed by `I` with structure coefficients
-    `N_{a,b}^c \in \ZZ_{\geq 0}` given by
+    Abstractly a *Verlinde algebra* or *fusion algebra* `F` is a
+    finite dimensional commutative associative algebra over a ring
+    `R` (typically `\QQ`) with a basis `(B_a)_{a \in I}` indexed by
+    `I` and non-negative structure coefficients, in other words for
 
     .. MATH::
 
-        B_a \cdot B_b = \sum_{c \in I} N_{a,b}^c B_c.
+        B_a \cdot B_b = \sum_{c \in I} N_{a,b}^c B_c
 
-    Let `D` denote the dimension of `F`. There must exist a distinguished
-    index `\Omega \in I` such that the matrix
+    we have `N_{a,b}^c \in \ZZ_{\geq 0}`, and satisfies the following.
+    Let `D` denote the dimension of `F`. There must exist a
+    distinguished index `\Omega \in I` such that the matrix
     `C_{\Omega} = (N_{a,b}^{\Omega})_{a,b \in I}` satisfies
     `C_{\Omega}^2 = I_D`. We call the matrix `C_{\Omega}` a
-    *conjugation matrix*. Thus we can define an order 2 permutation
-    `\sigma_{\Omega}` whose matrix is `C_{\Omega}` and
+    *conjugation matrix*. Thus we can define an involution on `I`
+    `\sigma_{\Omega}` whose matrix form is given by `C_{\Omega}` and
     `N_{a,b}^{\sigma_{\Omega}(c)}` is symmetric for all `a,b,c \in I`.
-    The multiplication of two basis elements in a fusion algebra is known as
-    a *fusion rule*.
+    The multiplication of two basis elements in a Verlinde algebra is
+    known as a *fusion rule*.
 
-    Using a conjugation matrix `C_{\Omega}` we can define an automorphism
-    `\mathcal{C}_{\Omega}` called *conjugation* given by
+    Using a conjugation matrix `C_{\Omega}`, we can define an involution
+    `\mathcal{C}_{\Omega}: F \to F` called *conjugation* given by
 
     .. MATH::
 
         \mathcal{C}_{\Omega}(B_a) = \sum_{b \in I} C^{\Omega}_{a,b} B_b.
 
-    We note that `\mathcal{C}_{\Omega}^2 = I_F`.
+    .. NOTE::
 
-    Fusion algebras are strongly tied to WZW and conformal field theories
-    and encode information about the operator product of two primary fields
-    of the conformal field theory. In particular, the coefficients given from
-    the operator product vanish if and only if the corresponding fusion
-    product coefficients vanish. See [Fuchs1992]_ for more information.
+        It follows from the existance of the conjugation involution
+        that a fusion algebra is unital [Fuchs1994]_.
 
+    Verlinde algebras are connected with conformal field theories, such
+    as the Wess-Zumino-Witten (WZW) field theory, and encode information
+    about the operator product of two primary fields of the conformal
+    field theory. In particular, the coefficients given from the operator
+    product vanish if and only if the corresponding fusion product
+    coefficients vanish. See [Fuchs1992]_ for more information.
+
+    Here we implement the Verlinde algebra arising from WZW field theories.
     Let `\mathfrak{g}` denote an affine Kac-Moody algebra and the
     corresponding classical weights by `\overline{\beta}`. Let
     `\overline{\rho}` denote the (classical) Weyl vector and `\theta` denote
     the (classical) highest root of `\overline{\mathfrak{g}}`. Let `W` be the
     (affine) Weyl group of `\mathfrak{g}` and `h^{\vee}` be the dual coxeter
-    number of `\overline{\mathfrak{g}}`. We can define fusion algebras using
+    number of `\overline{\mathfrak{g}}`. We can define Verlinde algebras using
     level `k` representations of `\mathfrak{g}` which has a basis consisting
     of level `k` dominant weights and the structure coefficients are given
     by the Kac-Waldron formula:
@@ -76,7 +86,7 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         N_{\lambda,\mu}^{(k) \, \nu} = \sum_{w \in W} \epsilon(w)
         M_{\overline{\lambda}}\bigl( w(\overline{\nu} + \overline{\rho})
-        - \overline{\mu} - \overline{\rho} \bigr)
+        - \overline{\mu} - \overline{\rho} \bigr),
 
     where `M_{\overline{\lambda}}(\beta)` is the multiplicity of the
     weight `\beta` in the (classical) highest weight representation
@@ -86,11 +96,11 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         s_0(\beta) = s_{\theta}(\beta) + (k + h^{\vee}) \theta.
 
-    We note we only need classical weights to define the fusion algebra since
-    we can describe level `k` weights only using classical weights `\beta`
-    such that `\langle \beta, \theta \rangle \leq k` and
-    `k - \langle \beta, \theta \rangle \equiv 0 \mod l_0` where `l_0` is the
-    level of `\Lambda_0`.
+    We note we only need classical weights to define the Verlinde algebra
+    since we can describe level `k` weights only using classical weights
+    `\beta` such that `\langle \beta, \theta \rangle \leq k` and
+    `k - \langle \beta, \theta \rangle \equiv 0 \mod l_0`, where `l_0`
+    is the level of `\Lambda_0`.
 
     INPUT:
 
@@ -104,71 +114,89 @@ class FusionAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: FusionAlgebra(QQ, ['A',2,1], 4)
-        The fusion algebra ['A', 2, 1] of level 4 over Rational Field
+        sage: V = algebras.Verlinde(QQ, ['A',2,1], 4)
+        sage: V
+        Verlinde algebra ['A', 2, 1] of level 4 over Rational Field
+        sage: B = V.basis()
+        sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
+        sage: V1 = B[La[1]]
+        sage: V2 = B[La[2]]
+        sage: V1 * V1
+        V[2*Lambda[1]] + V[Lambda[2]]
+        sage: V1 * V2
+        V[0] + V[Lambda[1] + Lambda[2]]
+        sage: V2 * V2
+        V[Lambda[1]] + V[2*Lambda[2]]
+        sage: V1^4
+        3*V[Lambda[1]] + 3*V[2*Lambda[1] + Lambda[2]]
+         + V[4*Lambda[1]] + 2*V[2*Lambda[2]]
+
+        sage: conj = V.conjugation(V.distinguished_indices()[0])
+        sage: conj(V1)
+        V[3*Lambda[1]]
+        sage: conj(conj(V1))
+        V[Lambda[1]]
+        sage: conj(V2)
+        V[3*Lambda[1] + Lambda[2]]
+        sage: conj(conj(V2))
+        V[Lambda[2]]
 
     REFERENCES:
 
-    .. [Feingold04] Alex J. Feingold.
-       *Fusion rules for affine Kac-Moody algebras*. Contemporary Mathematics.
-       Volume **343** (2004).
-
-    .. [Fuchs1992] Jurgen Fuchs. *Affine Lie Algebras and Quantum Groups*.
-       Cambridge Monographs on Mathematical Physics.
-       Cambridge University Press. (1992).
-
-    .. [QRS2002] Thomas Quella, Ingo Runkel, and Christoph Schweigert.
-       *An algorithm for twisted fusion rules*. Adv. Theor. Math. Phys.
-       **6** (2002). 197-205. :arxiv:`0203133`.
+    - [Feigngold2004]_
+    - [Fuchs1992]_
+    - [QRS2002]_
     """
     @staticmethod
     def __classcall_private__(cls, base_ring, cartan_type, level):
         """
         Normalize input to ensure a unique representation.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: F1 = FusionAlgebra(QQ, ['A',2,1], 4)
-            sage: F2 = FusionAlgebra(QQ, ('A',2,1), int(4))
-            sage: F3 = FusionAlgebra(QQ, CartanType('A2~'), 4)
+            sage: V1 = algebras.Verlinde(QQ, ['A',2,1], 4)
+            sage: V2 = algebras.Verlinde(QQ, ('A',2,1), int(4))
+            sage: V3 = algebras.Verlinde(QQ, CartanType('A2~'), 4)
+            sage: V1 is V2 and V1 is V3
+            True
         """
         cartan_type = CartanType(cartan_type)
         if not cartan_type.is_affine():
             raise ValueError("the Cartan type must be affine")
         if not cartan_type.is_untwisted_affine():
             raise NotImplementedError("only implemented for untwisted types")
-        return super(FusionAlgebra, cls).__classcall__(cls, base_ring, cartan_type, level)
+        return super(VerlindeAlgebra, cls).__classcall__(cls, base_ring, cartan_type, level)
 
     def __init__(self, base_ring, cartan_type, level):
         r"""
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 4)
-            sage: TestSuite(F).run()
-            sage: F = FusionAlgebra(QQ, ['C',2,1], 3)
-            sage: TestSuite(F).run()
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 4)
+            sage: TestSuite(V).run()
+            sage: V = algebras.Verlinde(QQ, ['C',2,1], 3)
+            sage: TestSuite(V).run()
         """
         self._cartan_type = cartan_type
         self._level = level
-        category = (FiniteDimensionalAlgebrasWithBasis(base_ring), CommutativeAlgebras(base_ring))
+        category = Algebras(base_ring).FiniteDimensional().Commutative().WithBasis()
 
         P = cartan_type.root_system().weight_lattice()
         P_cl = cartan_type.classical().root_system().weight_lattice()
 
         # Generate all dominant classical weights (thought of as affine weights)
         #   with level <= self._level
-        levels = {i:la.level() for i,la in dict(P.fundamental_weights()).items()}
-        La = P_cl.fundamental_weights()
-        next_weights = lambda x: [(levels[i] + x[0], x[1] + la)
-                                  for i,la in dict(La).items()
-                                  if levels[i] + x[0] <= level]
-        basis_keys = TransitiveIdeal(next_weights, [(0, P_cl.zero())])
+        levels = {i: la.level() for i,la in dict(P.fundamental_weights()).items()}
+        La = dict(P_cl.fundamental_weights())
+        def next_weights(x):
+            return [(levels[i] + x[0], x[1] + la) for i,la in La.items()
+                    if levels[i] + x[0] <= level]
+        basis_keys = RecursivelyEnumeratedSet([(0, P_cl.zero())], next_weights)
         basis_keys = [wt for l,wt in basis_keys if (level - l) % levels[0] == 0]
 
         CombinatorialFreeModule.__init__(self, base_ring, tuple(basis_keys),
-                                         prefix='F', category=category)
+                                         prefix='V', category=category)
 
     def _repr_(self):
         r"""
@@ -176,10 +204,10 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: FusionAlgebra(QQ, ['A',2,1], 4)
-            The fusion algebra ['A', 2, 1] of level 4 over Rational Field
+            sage: algebras.Verlinde(QQ, ['A',2,1], 4)
+            Verlinde algebra ['A', 2, 1] of level 4 over Rational Field
         """
-        return "The fusion algebra {} of level {} over {}".format(
+        return "Verlinde algebra {} of level {} over {}".format(
                 self._cartan_type, self._level, self.base_ring())
 
     def level(self):
@@ -188,8 +216,8 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 4)
-            sage: F.level()
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 4)
+            sage: V.level()
             4
         """
         return self._level
@@ -200,8 +228,8 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 4)
-            sage: F.cartan_type()
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 4)
+            sage: V.cartan_type()
             ['A', 2, 1]
         """
         return self._cartan_type
@@ -213,10 +241,10 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 4)
-            sage: F.one_basis()
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 4)
+            sage: V.one_basis()
             0
-            sage: F.one_basis().parent()
+            sage: V.one_basis().parent()
             Weight lattice of the Root system of type ['A', 2]
         """
         return self._cartan_type.classical().root_system().weight_lattice().zero()
@@ -229,52 +257,52 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['A',1,1], 3)
+            sage: V = algebras.Verlinde(QQ, ['A',1,1], 3)
             sage: la = RootSystem(['A',1]).weight_lattice().fundamental_weight(1)
-            sage: B = [F.basis()[i*la] for i in range(4)]; B
-            [F[0], F[Lambda[1]], F[2*Lambda[1]], F[3*Lambda[1]]]
-            sage: F0,F1,F2,F3 = B
-            sage: F2 * F3 # indirect doctest
-            F[Lambda[1]]
-            sage: F1 * F3
-            F[2*Lambda[1]]
-            sage: F1 * F2
-            F[Lambda[1]] + F[3*Lambda[1]]
+            sage: B = [V.basis()[i*la] for i in range(4)]; B
+            [V[0], V[Lambda[1]], V[2*Lambda[1]], V[3*Lambda[1]]]
+            sage: V0, V1, V2, V3 = B
+            sage: V2 * V3 # indirect doctest
+            V[Lambda[1]]
+            sage: V1 * V3
+            V[2*Lambda[1]]
+            sage: V1 * V2
+            V[Lambda[1]] + V[3*Lambda[1]]
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 2)
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 2)
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-            sage: B = F.basis()
+            sage: B = V.basis()
             sage: B[La[1]+La[2]] * B[La[1]+La[2]]
-            F[0] + F[Lambda[1] + Lambda[2]]
+            V[0] + V[Lambda[1] + Lambda[2]]
             sage: B[La[1]] * B[La[1]+La[2]]
-            F[Lambda[1]] + F[2*Lambda[2]]
+            V[Lambda[1]] + V[2*Lambda[2]]
             sage: B[2*La[1]] * B[2*La[2]]
-            F[0]
+            V[0]
 
-            sage: F = FusionAlgebra(QQ, ['B',3,1], 1)
-            sage: matrix([[x*y for y in F.basis()] for x in F.basis()])
-            [               F[0]        F[Lambda[3]]        F[Lambda[1]]]
-            [       F[Lambda[3]] F[0] + F[Lambda[1]]        F[Lambda[3]]]
-            [       F[Lambda[1]]        F[Lambda[3]]                F[0]]
+            sage: V = algebras.Verlinde(QQ, ['B',3,1], 1)
+            sage: matrix([[x*y for y in V.basis()] for x in V.basis()])
+            [               V[0]        V[Lambda[3]]        V[Lambda[1]]]
+            [       V[Lambda[3]] V[0] + V[Lambda[1]]        V[Lambda[3]]]
+            [       V[Lambda[1]]        V[Lambda[3]]                V[0]]
 
-            sage: F = FusionAlgebra(QQ, ['C',2,1], 1)
-            sage: matrix([[x*y for y in F.basis()] for x in F.basis()])
-            [               F[0]        F[Lambda[2]]        F[Lambda[1]]]
-            [       F[Lambda[2]]                F[0]        F[Lambda[1]]]
-            [       F[Lambda[1]]        F[Lambda[1]] F[0] + F[Lambda[2]]]
+            sage: V = algebras.Verlinde(QQ, ['C',2,1], 1)
+            sage: matrix([[x*y for y in V.basis()] for x in V.basis()])
+            [               V[0]        V[Lambda[2]]        V[Lambda[1]]]
+            [       V[Lambda[2]]                V[0]        V[Lambda[1]]]
+            [       V[Lambda[1]]        V[Lambda[1]] V[0] + V[Lambda[2]]]
 
         TESTS:
 
         We check that the product is commutative::
 
-            sage: F = FusionAlgebra(QQ, ['A',2,1], 3)
-            sage: all(x*y == y*x for x in F.basis() for y in F.basis())
+            sage: V = algebras.Verlinde(QQ, ['A',2,1], 3)
+            sage: all(x*y == y*x for x in V.basis() for y in V.basis())
             True
-            sage: F = FusionAlgebra(QQ, ['C',2,1], 2)
-            sage: all(x*y == y*x for x in F.basis() for y in F.basis())
+            sage: V = algebras.Verlinde(QQ, ['C',2,1], 2)
+            sage: all(x*y == y*x for x in V.basis() for y in V.basis())
             True
-            sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
-            sage: all(x*y == y*x for x in F.basis() for y in F.basis())
+            sage: V = algebras.Verlinde(QQ, ['D',4,1], 1)
+            sage: all(x*y == y*x for x in V.basis() for y in V.basis())
             True
         """
         # We'll need to do something slightly different for twisted types
@@ -296,7 +324,8 @@ class FusionAlgebra(CombinatorialFreeModule):
                 if next is not None:
                     ret.append((wt - alpha[i], next))
             return ret
-        weights = TransitiveIdeal(next_elt, [(rho + mu + la, B.highest_weight_vector())])
+        weights = RecursivelyEnumeratedSet([(rho+mu+la, B.highest_weight_vector())],
+                                           next_elt)
 
         # Convert that into multiplicities
         mults = {}
@@ -332,8 +361,8 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
-            sage: M = F.conjugation_matrices()
+            sage: V = algebras.Verlinde(QQ, ['D',4,1], 1)
+            sage: M = V.conjugation_matrices()
             sage: sorted(M)
             [
             [0 0 0 1]  [0 0 1 0]  [0 1 0 0]  [1 0 0 0]
@@ -342,8 +371,7 @@ class FusionAlgebra(CombinatorialFreeModule):
             [1 0 0 0], [0 1 0 0], [0 0 1 0], [0 0 0 1]
             ]
         """
-        from sage.matrix.constructor import matrix
-        from sage.matrix.constructor import identity_matrix
+        from sage.matrix.constructor import matrix, identity_matrix
         from sage.sets.family import Family
         K = self.get_order()
         B = self.basis()
@@ -366,12 +394,13 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
-            sage: sorted(F.distinguished_indices())
+            sage: V = algebras.Verlinde(QQ, ['D',4,1], 1)
+            sage: sorted(V.distinguished_indices())
             [0, Lambda[1], Lambda[3], Lambda[4]]
         """
         return self.conjugation_matrices().keys()
 
+    @cached_method
     def conjugation(self, omega):
         r"""
         Return the conjugation morphism `\mathcal{C}_{\Omega}` of ``self``.
@@ -382,20 +411,21 @@ class FusionAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
-            sage: omega = F.distinguished_indices()[0]; omega
+            sage: V = algebras.Verlinde(QQ, ['D',4,1], 1)
+            sage: omega = V.distinguished_indices()[0]; omega
             Lambda[4]
-            sage: conj = F.conjugation(omega); conj
-            Generic endomorphism of The fusion algebra ['D', 4, 1] of level 1 over Rational Field
-            sage: F.an_element()
-            2*F[0] + 3*F[Lambda[3]] + 2*F[Lambda[4]]
-            sage: conj(F.an_element())
-            2*F[0] + 3*F[Lambda[1]] + 2*F[Lambda[4]]
-            sage: conj(conj(F.an_element()))
-            2*F[0] + 3*F[Lambda[3]] + 2*F[Lambda[4]]
+            sage: conj = V.conjugation(omega); conj
+            Generic endomorphism of Verlinde algebra ['D', 4, 1] of level 1
+             over Rational Field
+            sage: V.an_element()
+            2*V[0] + 3*V[Lambda[3]] + 2*V[Lambda[4]]
+            sage: conj(V.an_element())
+            2*V[0] + 3*V[Lambda[1]] + 2*V[Lambda[4]]
+            sage: conj(conj(V.an_element()))
+            2*V[0] + 3*V[Lambda[3]] + 2*V[Lambda[4]]
         """
         C = self.conjugation_matrices()[omega]
         K = self.get_order()
-        conj = lambda x: self.sum_of_terms([(k, C[K.index(x)][i]) for i,k in enumerate(K)], distinct=True)
+        def conj(x): return self._from_dict({k: C[K.index(x)][i] for i,k in enumerate(K)})
         return self.module_morphism(conj, codomain=self)
 

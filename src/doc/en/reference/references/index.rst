@@ -1104,6 +1104,10 @@ REFERENCES:
 .. [Fed2015] Federal Agency on Technical Regulation and Metrology (GOST),
              GOST R 34.12-2015, (2015)
 
+.. [Feingold2004] Alex J. Feingold.
+                  *Fusion rules for affine Kac-Moody algebras*.
+                  Contemporary Mathematics. **343** (2004).
+
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
              Classes. Advances in Mathematics of Communications 3 (4),
@@ -1172,6 +1176,13 @@ REFERENCES:
 
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
+
+.. [Fuchs1992] Jürgen Fuchs. *Affine Lie Algebras and Quantum Groups*,
+               Cambridge Monographs on Mathematical Physics.
+               Cambridge University Press. (1992).
+
+.. [Fuchs1994] Jürgen Fuchs, *Fusion rules in conformal field theory*,
+               Fortsch. Phys. **42** (1994), 1-48. :arxiv:`hep-th/9306162`
 
 .. [Ful1997] William Fulton,
              *Young Tableaux*.
@@ -2455,6 +2466,13 @@ REFERENCES:
                http://www.combinatorics.org/ojs/index.php/eljc/article/view/v4i2r15
 
 .. _ref-Q:
+
+**Q**
+
+.. [QRS2002] Thomas Quella, Ingo Runkel, and Christoph Schweigert.
+             *An algorithm for twisted fusion rules*,
+             Adv. Theor. Math. Phys. **6** (2002), 197-205. :arxiv:`math/0203133`.
+
 .. _ref-R:
 
 **R**

@@ -59,12 +59,12 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
-- :class:`algebras.Fusion <sage.algebras.fusion_algebra.FusionAlgebra>`
+- :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
+- :class:`algebras.Verlinde <sage.algebras.verlinde_algebra.VerlindeAlgebra>`
 - :class:`algebras.WQSym <sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions>`
 - :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
-- :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -109,6 +109,6 @@ lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
 lazy_import('sage.algebras.quantum_groups.quantum_group_gap', 'QuantumGroup')
-lazy_import('sage.algebras.fusion_algebra', 'FusionAlgebra', 'Fusion')
+lazy_import('sage.algebras.verlinde_algebra', 'VerlindeAlgebra', 'Verlinde')
 lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
