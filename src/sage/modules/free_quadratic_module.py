@@ -109,8 +109,8 @@ def FreeQuadraticModule(
     .. NOTE::
 
         In Sage it is the case that there is only one dense and one
-        sparse free ambient quadratic module of rank `n` over `R` and given
-        inner product matrix.
+        sparse free ambient quadratic module of rank `n` over `R` given
+        inner product matrix and given base ring.
 
     EXAMPLES::
 
@@ -133,22 +133,83 @@ def FreeQuadraticModule(
         sage: M3 = FreeModule(ZZ,2,inner_product_matrix=[[1,2],[3,4]])
         sage: M3 is M2
         True
+        
+    The inner product can have values in a larger ring than the given base ring::
+    
+        sage: M4 = FreeQuadraticModule(ZZ,2,Matrix([[1,2],[3/7,4]]))
+        sage: M4
+        Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+        Inner product matrix:
+        [  1   2]
+        [3/7   4]
+        
+        sage: M5 = FreeQuadraticModule(RR,2,Matrix([[1,2],[1.3+CC(i),4]]))
+        sage: M5
+        Ambient quadratic space of dimension 2 over Real Field with 53 bits of precision
+        Inner product matrix:
+        [                     1.00000000000000                      2.00000000000000]
+        [1.30000000000000 + 1.00000000000000*I                      4.00000000000000]
+    
+    The following does not work since GF(9) does not coerce into GF(3)[x]::
+    
+        sage: R.<x> = GF(3)[]
+        sage: M6 = FreeQuadraticModule(GF(9),2,Matrix(R,[[x,1],[1,2*x]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: The base_ring must coerce into the inner_product_ring.
+
+    We can fix this by being more explicit::
+    
+        sage: S.<x> = GF(9)[]
+        sage: M7 = FreeQuadraticModule(GF(9),2,Matrix(S,[[x,1],[1,2*x]]))
+        sage: M7
+        Ambient quadratic space of dimension 2 over Finite Field in z2 of size 3^2
+        Inner product matrix:
+        [  x   1]
+        [  1 2*x]
+    
+    Note that we only require a coerce map to exist::
+    
+        sage: M8 = FreeQuadraticModule(ZZ,2,Matrix(S,[[x,1],[1,2*x]]))
+        sage: M8
+        Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+        Inner product matrix:
+        [  x   1]
+        [  1 2*x]
+
+    
+    
     """
     global _cache
     rank = int(rank)
 
     if inner_product_matrix is None:
         raise ValueError("An inner_product_matrix must be specified.")
-
-    # In order to use coercion into the inner_product_ring we need to pass
-    # this ring into the vector classes.
-    if inner_product_ring is not None:
-        raise NotImplementedError("An inner_product_ring can not currently be defined.")
-
-    inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+    try:
+        P = inner_product_matrix.parent()
+    except AttributeError:
+        P = None
+        
+    #Try a conversion if the inner_product_matrix is not yet a matrix
+    from sage.matrix.matrix_space import MatrixSpace
+    if not isinstance(P,MatrixSpace):
+        inner_product_matrix = MatrixSpace(base_ring, rank)(inner_product_matrix)
+    
+    try:
+        inner_product_matrix = inner_product_matrix.base_extend(base_ring)
+    except TypeError:
+        pass
+    
+    if inner_product_ring is None:
+        inner_product_ring = inner_product_matrix.base_ring()
+    
+    
+    if not inner_product_ring.has_coerce_map_from(base_ring):
+        raise ValueError("The base_ring must coerce into the inner_product_ring.")
+    inner_product_matrix = inner_product_matrix.base_extend(inner_product_ring)
     inner_product_matrix.set_immutable()
 
-    key = (base_ring, rank, inner_product_matrix, sparse)
+    key = (base_ring, rank, inner_product_matrix, sparse, inner_product_ring)
 
     if key in _cache:
         M = _cache[key]()
@@ -516,6 +577,18 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         A = self.inner_product_matrix()
         D = sage.matrix.constructor.diagonal_matrix([ A[i,i] for i in range(A.nrows()) ])
         return A == D
+        
+    def inner_product_ring(self):
+        """
+        Return the inner product ring of this FreeQuadraticModule
+        
+        TESTS::
+        
+            sage: M = FreeQuadraticModule(ZZ,1,Matrix(GF(2),1))
+            sage: M.inner_product_ring()
+            Finite Field of size 2 
+        """
+        return(self._inner_product_matrix.base_ring())
 
 class FreeQuadraticModule_generic_pid(
     free_module.FreeModule_generic_pid, FreeQuadraticModule_generic):
