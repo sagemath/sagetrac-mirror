@@ -13,3 +13,5 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing sympy"
     exit 1
 fi
+
+cp $SAGE_LOCAL/lib/python*/site-packages/sympy/external/tests/test_sage.py $SAGE_ROOT/src/sage/tests/sympy.py
