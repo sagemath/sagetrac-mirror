@@ -48,6 +48,8 @@ cdef extern from "flint/fmpq.h":
     void fmpq_pow_si(fmpq_t rop, const fmpq_t op, long e)
     void fmpq_addmul(fmpq_t res, const fmpq_t op1, const fmpq_t op2)
     void fmpq_submul(fmpq_t res, const fmpq_t op1, const fmpq_t op2)
+    void _fmpq_addmul(fmpz_t resnum, fmpz_t resden, const fmpz_t op1num, const fmpz_t op1den, const fmpz_t op2num, const fmpz_t op2den)
+    void _fmpq_submul(fmpz_t resnum, fmpz_t resden, const fmpz_t op1num, const fmpz_t op1den, const fmpz_t op2num, const fmpz_t op2den)
     void fmpq_inv(fmpq_t dest, const fmpq_t src)
     void fmpq_div(fmpq_t res, const fmpq_t op1, const fmpq_t op2)
     void fmpq_div_fmpz(fmpq_t res, const fmpq_t op, const fmpz_t x)

@@ -70,10 +70,26 @@ from sage.structure.element cimport coercion_model
 
 cdef class MatrixMulAction(Action):
     def __init__(self, G, S, is_left):
+        """
+        TESTS:
+
+        We check that :trac:`23576` is resolved::
+
+            sage: V = FreeModule(ZZ,1).span([vector([1/3])])
+            sage: M = MatrixSpace(ZZ,1,1)
+            sage: A = M.get_action(V)
+            sage: A.codomain()
+            Vector space of dimension 1 over Rational Field
+        """
         if not is_MatrixSpace(G):
             raise TypeError("Not a matrix space: %s" % G)
-        if G.base_ring() is not S.base_ring():
-            base = coercion_model.common_parent(G.base_ring(), S.base_ring())
+        if is_FreeModule(S):
+            # S may be a submodule with a non-integral basis matrix.
+            Sbase = S.coordinate_ring()
+        else:
+            Sbase = S.base_ring()
+        if G.base_ring() is not Sbase:
+            base = coercion_model.common_parent(G.base_ring(), Sbase)
         else:
             base = G.base_ring()
         Action.__init__(self, G, S, is_left, operator.mul)
@@ -353,5 +369,5 @@ cdef class VectorMatrixAction(MatrixMulAction):
                 v = v.sparse_vector()
             else:
                 v = v.dense_vector()
-        return (<Matrix>A)._vector_times_matrix_(v) # v * A
+        return A._vector_times_matrix_(v) # v * A
 

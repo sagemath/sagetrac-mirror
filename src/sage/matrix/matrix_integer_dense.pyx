@@ -68,8 +68,10 @@ from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
 
 from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport mpq_numref, mpq_denref
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
+from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
@@ -94,6 +96,7 @@ from sage.arith.multi_modular cimport MultiModularBasis
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
+from sage.libs.flint.fmpq cimport _fmpq_addmul
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
@@ -1092,7 +1095,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return 0
 
-    # TODO: Implement better
     cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
@@ -1112,30 +1114,148 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: w = V([-1,5])
             sage: w*B
             (14, 18)
+
+        TESTS:
+
+        We check that :trac:`23576` is resolved::
+
+            sage: M = V.span([vector([1/3,1/2])])
+            sage: m = M.gen(0)
+            sage: m*B
+            (11/6, 8/3)
         """
         cdef Vector_integer_dense w, ans
+        cdef Vector_rational_dense wq, ansq
         cdef Py_ssize_t i, j
-        cdef fmpz_t x
-        cdef fmpz_t z
+        cdef fmpz_t x, d, z, y, one
 
-        M = self._row_ambient_module()
-        w = <Vector_integer_dense> v
-        ans = M.zero_vector()
+        if isinstance(v, Vector_integer_dense):
+            M = self._row_ambient_module()
+            ans = M.zero_vector()
+            w = <Vector_integer_dense> v
+            sig_on()
+            fmpz_init(x)
+            fmpz_init(z)
+            for i in range(self._ncols):
+                fmpz_zero(x)
+                for j in range(self._nrows):
+                    fmpz_set_mpz(z,w._entries[j])
+                    fmpz_addmul(x, z, fmpz_mat_entry(self._matrix,j,i))
+                fmpz_get_mpz(ans._entries[i], x)
+            fmpz_clear(x)
+            fmpz_clear(z)
+            sig_off()
+            return ans
+        elif isinstance(v, Vector_rational_dense):
+            M = self._row_ambient_module(QQ)
+            ansq = M.zero_vector()
+            wq = <Vector_rational_dense> v
+            sig_on()
+            fmpz_init(x)
+            fmpz_init(d)
+            fmpz_init(z)
+            fmpz_init(y)
+            fmpz_init(one)
+            fmpz_one(one)
+            for i in range(self._ncols):
+                fmpz_zero(x)
+                fmpz_one(d)
+                for j in range(self._nrows):
+                    fmpz_set_mpz(z, mpq_numref(wq._entries[j]))
+                    fmpz_set_mpz(y, mpq_denref(wq._entries[j]))
+                    _fmpq_addmul(x, d, z, y, fmpz_mat_entry(self._matrix,j,i), one)
+                fmpz_get_mpz(mpq_numref(ansq._entries[i]), x)
+                fmpz_get_mpz(mpq_denref(ansq._entries[i]), d)
+            fmpz_clear(x)
+            fmpz_clear(d)
+            fmpz_clear(z)
+            fmpz_clear(y)
+            fmpz_clear(one)
+            sig_off()
+            return ansq
+        else:
+            return Matrix_dense._vector_times_matrix_(self, v)
 
-        sig_on()
-        fmpz_init(x)
-        fmpz_init(z)
-        for i from 0 <= i < self._ncols:
-            fmpz_set_si(x, 0)
-            for j from 0 <= j < self._nrows:
-                fmpz_set_mpz(z,w._entries[j])
-                fmpz_addmul(x, z, fmpz_mat_entry(self._matrix,j,i))
-            fmpz_get_mpz(ans._entries[i], x)
-        fmpz_clear(x)
-        fmpz_clear(z)
-        sig_off()
-        return ans
+    cdef _matrix_times_vector_(self, Vector v):
+        """
+        Returns the vector times matrix product.
 
+        INPUT:
+
+
+        -  ``v`` - a free module element.
+
+
+        OUTPUT: The vector times matrix product v\*A.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ,2, [1,2,3,4])
+            sage: V = ZZ^2
+            sage: w = V([-1,5])
+            sage: B*w
+            (9, 17)
+
+        TESTS:
+
+        We check that :trac:`23576` is resolved::
+
+            sage: M = V.span([vector([1/2,1/3])])
+            sage: m = M.gen(0)
+            sage: B*m
+            (7/6, 17/6)
+        """
+        cdef Vector_integer_dense w, ans
+        cdef Vector_rational_dense wq, ansq
+        cdef Py_ssize_t i, j
+        cdef fmpz_t x, d, z, y, one
+
+        if isinstance(v, Vector_integer_dense):
+            M = self._row_ambient_module()
+            ans = M.zero_vector()
+            w = <Vector_integer_dense> v
+            sig_on()
+            fmpz_init(x)
+            fmpz_init(z)
+            for i in range(self._nrows):
+                fmpz_zero(x)
+                #for j in range(self._ncols):
+                #    fmpz_set_mpz(z, w._entries[j])
+                #    fmpz_addmul(x, z, fmpz_mat_entry(self._matrix,i,j))
+                fmpz_get_mpz(ans._entries[i], x)
+            fmpz_clear(x)
+            fmpz_clear(z)
+            sig_off()
+            return ans
+        elif isinstance(v, Vector_rational_dense):
+            M = self._row_ambient_module(QQ)
+            ansq = M.zero_vector()
+            wq = <Vector_rational_dense> v
+            sig_on()
+            fmpz_init(x)
+            fmpz_init(d)
+            fmpz_init(z)
+            fmpz_init(y)
+            fmpz_init(one)
+            fmpz_one(one)
+            for i in range(self._nrows):
+                fmpz_zero(x)
+                fmpz_one(d)
+                for j in range(self._ncols):
+                    fmpz_set_mpz(z, mpq_numref(wq._entries[j]))
+                    fmpz_set_mpz(y, mpq_denref(wq._entries[j]))
+                    _fmpq_addmul(x, d, z, y, fmpz_mat_entry(self._matrix,i,j), one)
+                fmpz_get_mpz(mpq_numref(ansq._entries[i]), x)
+                fmpz_get_mpz(mpq_denref(ansq._entries[i]), d)
+            fmpz_clear(x)
+            fmpz_clear(d)
+            fmpz_clear(z)
+            fmpz_clear(y)
+            fmpz_clear(one)
+            sig_off()
+            return ansq
+        else:
+            return Matrix_dense._matrix_times_vector_(self, v)
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
