@@ -1465,7 +1465,7 @@ def circulant(v, sparse=None):
         True
     """
     from exceptions import AttributeError
-    if sparse==None:
+    if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:
@@ -3186,9 +3186,9 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
         ...
         ValueError: each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.
 
-    TODO:
+    .. TODO::
 
-    Modify the routine to allow for complex eigenvalues.
+        Modify the routine to allow for complex eigenvalues.
 
     AUTHOR:
 

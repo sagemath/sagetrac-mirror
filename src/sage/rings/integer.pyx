@@ -4,6 +4,8 @@ Elements of the ring `\ZZ` of integers
 Sage has highly optimized and extensive functionality about arithmetic with integers
 and the ring of integers.
 
+- Vincent Delecroix (2017-05-03): faster integer-rational comparisons
+
 EXAMPLES:
 
 Add 2 integers::
@@ -123,6 +125,7 @@ AUTHORS:
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #       Copyright (C) 2007,2008 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2007 David Roe <roed314@gmail.com>
+#       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -146,6 +149,8 @@ import operator
 import sys
 
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
@@ -160,7 +165,6 @@ cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent, coercion_model)
 from sage.structure.parent cimport Parent
-include "sage/ext/python_debug.pxi"
 from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -189,10 +193,6 @@ cdef extern from *:
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
-
-cdef mpz_t mpz_tmp
-mpz_init(mpz_tmp)
-
 
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
@@ -341,6 +341,7 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport rich_to_bool_sgn
+
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -464,6 +465,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -10380104371593008048799446356441519384
         sage: Integer(pari('Pol([-3])'))
         -3
+
+    .. automethod:: __pow__
     """
 
     def __cinit__(self):
@@ -909,38 +912,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef int c
         cdef double d
-        if isinstance(left, Integer):
-            if isinstance(right, Integer):
-                c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-            elif isinstance(right, int):
-                c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
-            elif isinstance(right, long):
-                mpz_set_pylong(mpz_tmp, right)
-                c = mpz_cmp((<Integer>left).value, mpz_tmp)
-            elif isinstance(right, float):
-                d = right
-                if isnan(d):
-                    return op == Py_NE
-                c = mpz_cmp_d((<Integer>left).value, d)
-            else:
-                return coercion_model.richcmp(left, right, op)
-        else: # right is an Integer and left is not
-            if isinstance(left, int):
-                c = -mpz_cmp_si((<Integer>right).value, PyInt_AS_LONG(left))
-            if isinstance(left, long):
-                mpz_set_pylong(mpz_tmp, left)
-                c = mpz_cmp(mpz_tmp, (<Integer>right).value)
-            if isinstance(left, float):
-                d = left
-                if isnan(d):
-                    return op == Py_NE
-                c = -mpz_cmp_d((<Integer>right).value, d)
-            else:
-                return coercion_model.richcmp(left, right, op)
+        cdef mpz_t mpz_tmp
+
+        assert isinstance(left, Integer)
+
+        if isinstance(right, Integer):
+            c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        elif isinstance(right, Rational):
+            c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
+        elif isinstance(right, int):
+            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
+        elif isinstance(right, long):
+            mpz_init(mpz_tmp)
+            mpz_set_pylong(mpz_tmp, right)
+            c = mpz_cmp((<Integer>left).value, mpz_tmp)
+            mpz_clear(mpz_tmp)
+        elif isinstance(right, float):
+            d = right
+            if isnan(d):
+                return op == Py_NE
+            c = mpz_cmp_d((<Integer>left).value, d)
+        else:
+            return coercion_model.richcmp(left, right, op)
 
         return rich_to_bool_sgn(op, c)
 
     cpdef int _cmp_(left, right) except -2:
+        r"""
+        EXAMPLES::
+
+            sage: 1._cmp_(2)
+            -1
+            sage: 0._cmp_(0)
+            0
+            sage: (-3**10 + 1)._cmp_(-3**10)
+            1
+        """
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         return (c > 0) - (c < 0)
@@ -1955,6 +1962,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 0^0
             1
+
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
         The base need not be an integer (it can be a builtin Python type).
 
@@ -4277,6 +4287,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def trunc(self):
+        """
+        Round this number to the nearest integer, which is self since
+        self is an integer.
+
+        EXAMPLES::
+
+            sage: n = 6
+            sage: n.trunc()
+            6
+        """
+        return self
+
+    def round(Integer self, mode="away"):
+        """
+        Returns the nearest integer to ``self``, which is self since
+        self is an integer.
+
+        EXAMPLES:
+
+        This example addresses :trac:`23502`::
+
+            sage: n = 6
+            sage: n.round()
+            6
+        """
+        return self
+
     def real(self):
         """
         Returns the real part of self, which is self.
@@ -6086,11 +6124,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: 1 << (2^60)
+            sage: 1 << (2^60)                                        # optional - mpir
             Traceback (most recent call last):
             ...
-            MemoryError: failed to allocate ... bytes   # 64-bit
-            OverflowError: ...                          # 32-bit
+            MemoryError: failed to allocate ... bytes                # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
+
+            sage: 1 << (2^60)                                        # optional - gmp
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Aborted                                    # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
         """
         cdef long n
 
@@ -6830,7 +6874,7 @@ cdef class int_to_Z(Morphism):
     already of the correct type which may have undesirable results::
 
         sage: f.domain()
-        Set of Python objects of type 'int'
+        Set of Python objects of class 'int'
         sage: f(1/3)
         0
         sage: f(1.7)
@@ -6852,7 +6896,7 @@ cdef class int_to_Z(Morphism):
 
             sage: f = ZZ.coerce_map_from(int)
             sage: f.parent()
-            Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
+            Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
@@ -6888,7 +6932,7 @@ cdef class int_to_Z(Morphism):
             sage: f = ZZ.coerce_map_from(int)
             sage: print(f)
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
         """
         return "Native"
@@ -6899,7 +6943,7 @@ cdef class long_to_Z(Morphism):
 
         sage: f = ZZ.coerce_map_from(long); f
         Native morphism:
-          From: Set of Python objects of type 'long'
+          From: Set of Python objects of class 'long'
           To:   Integer Ring
         sage: f(1rL)
         1

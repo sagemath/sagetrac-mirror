@@ -461,6 +461,58 @@ class HasseDiagram(DiGraph):
         H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
+    def _precompute_intervals(self):
+        """
+        Precompute all intervals of the poset.
+
+        This will significantly speed up computing congruences. On the
+        other hand it will cost much more memory. Currently this is
+        "hidden" feature. See example below of using.
+
+        EXAMPLES::
+
+            sage: B4 = Posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Slow
+            True
+            sage: B4._hasse_diagram._precompute_intervals()
+            sage: B4 = Posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Faster now
+            True
+        """
+        n = self.order()
+
+        v_up = [frozenset(self.depth_first_search(v)) for v in range(n)]
+        v_down = [frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+                  for v in range(n)]
+        self._intervals = [[sorted(up.intersection(down)) for down in v_down]
+                           for up in v_up]
+
+        self.interval = self._alternate_interval
+
+    def _alternate_interval(self, x, y):
+        """
+        Return the list of the elements greater than or equal to ``x``
+        and less than or equal to ``y``.
+
+        The list is sorted by numerical value, which is one linear
+        extension for the elements of the interval, but not necessary
+        the same as returned by ``interval()``.
+
+        This will be taken to use when ``_precompute_intervals()``
+        is called.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(3)
+            sage: P.interval(1, 7)
+            [1, 3, 5, 7]
+            sage: P._hasse_diagram._precompute_intervals()
+            sage: P.interval(1, 7)  # Uses this function
+            [1, 3, 5, 7]
+
+        """
+        return self._intervals[x][y]
+
     def interval(self, x, y):
         """
         Return a list of the elements `z` of ``self`` such that
@@ -1406,22 +1458,18 @@ class HasseDiagram(DiGraph):
 
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
-        distributive lattice, and ``False`` otherwise.
+        Deprecated.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
             sage: H.is_distributive_lattice()
-            False
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3]})
-            sage: H.is_distributive_lattice()
-            True
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
-            sage: H.is_distributive_lattice()
+            doctest:...: DeprecationWarning: This function will be removed in future versions. Convert ...
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(23111, "This function will be removed in future versions. Convert to lattice and use is_distributive().")
         try:
             jn = self.join_matrix()
             mt = self.meet_matrix()

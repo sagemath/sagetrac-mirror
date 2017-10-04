@@ -720,7 +720,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     #    returning tuples of the form (coeff, mon) for each
     #    non-zero monomial.
     #
-    #    EXAMPLES:
+    #    EXAMPLES::
+
     #        sage: R = ZZ['t']
     #        sage: P.<x,y,z> = PolynomialRing(R,3)
     #        sage: f = 3*x^3*y + 16*x + 7
@@ -990,7 +991,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         d = self.element().dict()
         if len(d) == 1:
-            e,c = d.items()[0]
+            (e, c), = d.items()
             if c.is_one() and len(e.nonzero_positions()) == 1 and e.nonzero_values()[0] == 1:
                 return True
         return False

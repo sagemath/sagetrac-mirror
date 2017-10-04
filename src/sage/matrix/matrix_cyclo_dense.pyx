@@ -55,7 +55,7 @@ from .constructor import matrix
 from .matrix_space import MatrixSpace
 from .matrix cimport Matrix
 from . import matrix_dense
-from .matrix_integer_dense import _lift_crt
+from .matrix_integer_dense cimport _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from .misc import matrix_integer_dense_rational_reconstruction
 
@@ -82,7 +82,8 @@ MAX_MODULUS = min(MAX_MODULUS_modn_dense_double, MAX_MODULUS_multi_modular)
 echelon_primes_increment = 15
 echelon_verbose_level = 1
 
-cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
+
+cdef class Matrix_cyclo_dense(Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
     # x * __cinit__
@@ -560,7 +561,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 

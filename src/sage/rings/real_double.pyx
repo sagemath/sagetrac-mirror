@@ -40,18 +40,19 @@ Test NumPy conversions::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
+cimport libc.math
+from libc.string cimport memcpy
 from cpython.object cimport *
 from cpython.float cimport *
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/ext/python_debug.pxi"
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gsl.all cimport *
-cimport libc.math
-from libc.string cimport memcpy
 
 gsl_set_error_handler_off()
 
@@ -338,12 +339,12 @@ cdef class RealDoubleField_class(Field):
         if S is int or S is float:
             return ToRDF(S)
 
-        from rational_field import QQ
-        from real_lazy import RLF
+        from .rational_field import QQ
+        from .real_lazy import RLF
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealField_class
         if isinstance(S, RealField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
@@ -423,7 +424,7 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return RealField(prec)
 
 
@@ -1322,8 +1323,13 @@ cdef class RealDoubleElement(FieldElement):
             1.5
             sage: abs(RDF(-1.5))
             1.5
+            sage: abs(RDF(0.0))
+            0.0
+            sage: abs(RDF(-0.0))
+            0.0
         """
-        if self._value >= 0:
+        # Use signbit instead of >= to handle -0.0 correctly
+        if not libc.math.signbit(self._value):
             return self
         else:
             return self._new_c(-self._value)
@@ -2575,13 +2581,13 @@ cdef class ToRDF(Morphism):
             0.5
             sage: f = RDF.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Real Double Field
             sage: f(3r)
             3.0
             sage: f = RDF.coerce_map_from(float); f
             Native morphism:
-              From: Set of Python objects of type 'float'
+              From: Set of Python objects of class 'float'
               To:   Real Double Field
             sage: f(3.5)
             3.5

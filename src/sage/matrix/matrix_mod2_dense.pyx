@@ -79,14 +79,14 @@ TESTS::
     [1 1 0]
     [0 0 1]
 
-TODO:
+.. TODO::
 
-- make LinBox frontend and use it
+    - make LinBox frontend and use it
 
-    - charpoly ?
-    - minpoly ?
+        - charpoly ?
+        - minpoly ?
 
-- make Matrix_modn_frontend and use it (?)
+    - make Matrix_modn_frontend and use it (?)
 """
 
 #*****************************************************************************
@@ -104,13 +104,13 @@ from __future__ import absolute_import
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
+from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
-from sage.misc.functional import log
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc import verbose, get_verbose, cputime
 from sage.modules.free_module import VectorSpace
@@ -254,12 +254,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         R = self.base_ring()
 
         # scalar ?
-        if not isinstance(entries, list):
+        if not isinstance(entries, (Iterator, Sequence)):
             if self._nrows and self._ncols and R(entries) == 1:
                 mzd_set_ui(self._entries, 1)
             return
 
-        # all entries are given as a long list
+        # all entries are given as a long iterable
+        if not isinstance(entries, (list, tuple)):
+            entries = list(entries)
         if len(entries) != self._nrows * self._ncols:
             raise IndexError("The vector of entries has the wrong length.")
 

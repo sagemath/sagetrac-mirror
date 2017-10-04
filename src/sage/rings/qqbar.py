@@ -508,7 +508,7 @@ Check that :trac:`22202` is fixed::
     1/4
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 from six.moves import range
 from six import integer_types, iteritems
 
@@ -1484,6 +1484,42 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         # could we instead just compute one root "randomly"?
         m = sage.misc.prandom.randint(0, len(roots)-1)
         return roots[m]
+
+    def _is_irreducible_univariate_polynomial(self, f):
+        r"""
+        Return whether ``f`` is irreducible.
+
+        INPUT:
+
+        - ``f`` -- a non-constant univariate polynomial defined over the
+          algebraic field
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_irreducible`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (x^2).is_irreducible() # indirect doctest
+            False
+
+        Note that this method does not handle constant polynomials::
+
+            sage: QQbar._is_irreducible_univariate_polynomial(R(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial must not be constant
+            sage: R(1).is_irreducible()
+            False
+
+        """
+        if f.degree() < 1:
+            # this case is handled by the caller (PolynomialElement.is_irreducible())
+            raise ValueError("polynomial must not be constant")
+
+        return f.degree() == 1
 
     def _factor_univariate_polynomial(self, f):
         """
@@ -2893,13 +2929,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: latex(AA(22/7))
             \frac{22}{7}
             sage: latex(QQbar(1/3 + 2/7*I))
-            \frac{2}{7} \sqrt{-1} + \frac{1}{3}
+            \frac{2}{7} i + \frac{1}{3}
             sage: latex(QQbar.zeta(4) + 5)
-            \sqrt{-1} + 5
+            i + 5
             sage: latex(QQbar.zeta(4))
-            \sqrt{-1}
+            i
             sage: latex(3*QQbar.zeta(4))
-            3 \sqrt{-1}
+            3 i
             sage: latex(QQbar.zeta(17))
             0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: latex(AA(19).sqrt())
@@ -2986,7 +3022,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.div))
+        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3218,7 +3254,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.div:
+        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.truediv:
             ans = bool(sd._left)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
@@ -3783,7 +3819,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: AA(1/sqrt(5)).radical_expression()
-            1/5*sqrt(5)
+            sqrt(1/5)
             sage: AA(sqrt(5 + sqrt(5))).radical_expression()
             sqrt(sqrt(5) + 5)
             sage: QQbar.zeta(5).radical_expression()
@@ -4551,7 +4587,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         real which isn't the case without calling _ensure_real (see
         :trac:`11728`)::
 
-            sage: P = AA[x](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
+            sage: P = AA['x'](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
             x^4 + 1.000000000000000?
             sage: a1,a2
             (x^2 - 1.414213562373095?*x + 1, x^2 + 1.414213562373095?*x + 1)
@@ -4988,7 +5024,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         elif type(sd) is ANBinaryExpr:
             ls = sd._left.sign()
             rs = sd._right.sign()
-            if sd._op is operator.mul or sd._op is operator.div:
+            if sd._op is operator.mul or sd._op is operator.truediv:
                 return sd._left.sign() * sd._right.sign()
             elif sd._op is operator.add:
                 if ls == rs:
@@ -7278,7 +7314,7 @@ class ANBinaryExpr(ANDescr):
             v = sib.sum([v1, -v2], simplify=True)
         elif op is operator.mul:
             v = sib.prod([v1, v2], simplify=True)
-        elif op is operator.div:
+        elif op is operator.truediv:
             v = v1 / v2
         else:
             raise RuntimeError("op is {}".format(op))
@@ -7458,7 +7494,7 @@ def an_binop_element(a, b, op):
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: an_binop_element(a, b, operator.mul)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: an_binop_element(a, b, operator.div)
+        sage: an_binop_element(a, b, operator.truediv)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
 
     The code tries to use existing unions of number fields::
@@ -7540,7 +7576,7 @@ def _init_qqbar():
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen())
+    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 

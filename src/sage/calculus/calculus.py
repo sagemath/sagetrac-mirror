@@ -266,7 +266,7 @@ We coerce various symbolic expressions into the complex numbers::
     sage: ComplexField(200)(sin(I))
     1.1752011936438014568823818505956008151557179813340958702296*I
     sage: f = sin(I) + cos(I/2); f
-    cos(1/2*I) + sin(I)
+    cosh(1/2) + I*sinh(1)
     sage: CC(f)
     1.12762596520638 + 1.17520119364380*I
     sage: ComplexField(200)(f)
@@ -610,7 +610,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
 
-    if hold == True:
+    if hold:
         from sage.functions.other import symbolic_sum as ssum
         return ssum(expression, v, a, b)
 
@@ -863,7 +863,7 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("product limits must not depend on the multiplication variable")
 
-    if hold == True:
+    if hold:
         from sage.functions.other import symbolic_product as sprod
         return sprod(expression, v, a, b)
 
@@ -1319,7 +1319,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if len(argv) != 1:
         raise ValueError("call the limit function like this, e.g. limit(expr, x=2).")
     else:
-        k = argv.keys()[0]
+        k, = argv.keys()
         v = var(k)
         a = argv[k]
 

@@ -54,10 +54,9 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
-TODO:
+.. TODO::
 
-- wrap ``mzd_slice_t``
-
+    Wrap ``mzd_slice_t``.
 
 REFERENCES:
 
@@ -633,7 +632,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Return ``a*B`` for ``a`` an element of the base field.
 
@@ -830,7 +829,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             _density = 1.0
 
         if _density == 1:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -847,7 +846,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
                         mzed_write_elem(self._entries, i, j, tmp)
                 sig_off()
         else:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):

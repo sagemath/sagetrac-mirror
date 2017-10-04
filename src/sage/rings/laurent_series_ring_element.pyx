@@ -51,7 +51,7 @@ AUTHORS:
 
 - Robert Bradshaw: Cython version
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import operator
 
@@ -737,10 +737,10 @@ cdef class LaurentSeries(AlgebraElement):
                           self.__u * right.__u,
                           self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         return type(self)(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         return type(self)(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):
@@ -1396,6 +1396,13 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Can only substitute elements of positive valuation
+
+        Test for :trac:`23928`::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: f(x)
+            x + O(x^7)
             """
         if len(kwds) >= 1:
             name = self.parent().variable_name()
@@ -1423,7 +1430,7 @@ cdef class LaurentSeries(AlgebraElement):
         if isinstance(x[0], tuple):
             x = x[0]
 
-        return self.__u(x)*(x[0]**self.__n)
+        return self.__u(*x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)
