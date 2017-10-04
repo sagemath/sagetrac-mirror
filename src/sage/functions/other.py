@@ -2675,5 +2675,17 @@ class Function_cases(GinacFunction):
             str += r"{%s} & {%s}\\" % (latex(left), latex(right))
         print(str[:-2] + r"\end{cases}")
 
+    def _sympy_(self, l):
+        """
+        Convert this cases expression to its SymPy equivalent.
+        """
+        from sympy import sympify
+        from sympy import Piecewise as pw
+        args = [(sympify(tup.op(1)), bool(tup.op(0)))
+                if tup.op(0).is_numeric()
+                else (sympify(tup.op(1)), sympify(tup.op(0)))
+                for tup in l.operands()[0].operands()]
+        return pw(*args)
+
 cases = Function_cases()
 
