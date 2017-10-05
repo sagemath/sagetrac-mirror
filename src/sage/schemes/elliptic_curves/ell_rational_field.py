@@ -2068,19 +2068,28 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ...
             ValueError: unknown algorithm 'garbage'
 
-        Since :trac:`23962`, the default is to use the Cremona
-        database. We also check that the result is cached correctly::
+        Elliptic curves are globally unique, as shown in this example::
 
-            sage: E = EllipticCurve([-517, -4528])  # 1888b1
-            sage: E.rank(use_database=False)
+            sage: E1 = EllipticCurve([-517, -4528]) # this is 1888b1
+            sage: E2 = EllipticCurve('1888b1')
+            sage: E1 is E2
+            True
+
+        The second way of initializing is from the Cremona database and uses
+        caching from the database so the default for functions like rank should
+        also be to use the Cremona database if possible in order to make the
+        behaviour independent of the intialization order.
+        This tests that :trac:`23962` is fixed::
+
+            sage: E1.rank(use_database=False)
             Traceback (most recent call last):
             ...
             RuntimeError: rank not provably correct (lower bound: 0)
-            sage: E._EllipticCurve_rational_field__rank
+            sage: E1._EllipticCurve_rational_field__rank
             (0, False)
-            sage: E.rank()
+            sage: E1.rank()
             0
-            sage: E._EllipticCurve_rational_field__rank
+            sage: E1._EllipticCurve_rational_field__rank
             (0, True)
         """
         if proof is None:
