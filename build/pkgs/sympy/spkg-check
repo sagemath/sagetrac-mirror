@@ -4,11 +4,10 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-# --force-lib because we dont want sage -t to compile test-sage.py
-sage -t --verbose --force-lib src/sympy/external/tests/test_sage.py
+sage -t --verbose src/sympy/external/tests/test_sage.py
 
 if [ $? -ne 0 ]; then
-  echo "There was a problem during the sympy tests."
-  exit 1
+    echo "There was a problem during the sympy tests."
+    exit 1
 fi
 
