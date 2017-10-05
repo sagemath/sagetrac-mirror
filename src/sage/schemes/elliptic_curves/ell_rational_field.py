@@ -2052,6 +2052,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ...
             RuntimeError: rank not provably correct (lower bound: 0)
 
+        When we construct a curve using the Cremona label, the rank is
+        already cached::
+
+            sage: E = EllipticCurve('4428f1')
+            sage: E._EllipticCurve_rational_field__rank
+            (0, True)
+            sage: E.rank()
+            0
+
         TESTS::
 
             sage: EllipticCurve([1,10000]).rank(algorithm="garbage")
