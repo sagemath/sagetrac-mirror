@@ -1173,11 +1173,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     continue
                 y = self.shift(x, s)
                 if s >= 0:
-                    self(y) >= self(x)
-                if self.domain().is_exact():
+                    tester.assertGreaterEqual(self(y),self(x))
+                from sage.categories.all import Fields
+                if self.domain().is_exact() and self.domain() in Fields():
                     # the shift here sometimes fails if elements implement
                     # __floordiv__ incorrectly, see #23971
-                    x == self.shift(y, -s)
+                    tester.assertEqual(x, self.shift(y, -s))
 
         def _test_scale(self, **options):
             r"""
