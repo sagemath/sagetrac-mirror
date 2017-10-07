@@ -309,11 +309,35 @@ class R(ExtraTabCompletion, Expect):
         * http://r-project.org/ provides more information about R.
         * http://rseek.org/ R's own search engine.
 
+        Useful tips:
+
+        * In the names of R functions, replace the dots by underscores.
+        * Quoted names must be quoted twice (once for Python, once for R).
+          This is not necessary for tags or objects accepted unquoted by R.
+        * R printing of its objects often inserts blank lines, which are
+          easier to read than to use. Casting them to a Sage object (usually 
+          a dictionary) allows further Sage use. 
+
         EXAMPLES::
 
-             sage: r.summary(r.c(1,2,3,111,2,3,2,3,2,5,4))
-             Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-             1.00    2.00    3.00   12.55    3.50  111.00
+            sage: r.summary(r.c(1,2,3,111,2,3,2,3,2,5,4))
+            Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+            1.00    2.00    3.00   12.55    3.50  111.00
+
+            # Note the use of double quoting
+            sage: r.c('"a"','"b"','"c"')
+            [1] "a" "b" "c"
+
+            # Note : -use of underscores in place of dots in R function names,
+            #        - access to R objects components as Sage dictionaries,
+            #        - no need to double-quote the dataframe column names (tags)
+            #          nor R formula (model notation).
+            sage: d=r.data_frame(x=r.c(r.rep(0,4), r.rep(1,4)),\
+                                 y=r.c(1,3,2,5,2,2,1,3))
+            sage: tt=r.t_test(r.as_formula("y~x"),data=d)
+            sage: tt.sage().get("DATA").get("p_value")
+            0.469526519083806
+
 
         TESTS::
 
