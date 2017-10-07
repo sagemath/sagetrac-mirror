@@ -33,6 +33,7 @@ from sage.misc.superseded import deprecated_function_alias
 from . import permutation
 import functools
 
+from sage.combinat.permutation import to_standard
 
 class RibbonTableau(SkewTableau):
     r"""
@@ -600,7 +601,7 @@ def spin_rec(t, nexts, current, part, weight, length):
     from sage.combinat.words.word import Word
     R = ZZ['t']
     if current == []:
-        return [R(0)]
+        return [R.zero()]
 
     tmp = []
     partp = part[0].conjugate()
@@ -611,11 +612,12 @@ def spin_rec(t, nexts, current, part, weight, length):
         perm = [partp[i] + len(partp) - (i + 1) - perms[i]
                 for i in range(len(partp))]
         perm.reverse()
-        perm = Word(perm).standard_permutation()
-        tmp.append( (weight[-1]*(length-1)-perm.number_of_inversions()) )
+        perm = to_standard(perm)
+        tmp.append( weight[-1]*(length-1) - perm.number_of_inversions() )
 
     if nexts != []:
-        return [sum([sum([t**tmp[i]*nexts[i][j] for j in range(len(nexts[i]))]) for i in range(len(tmp))])]
+        return [sum([sum([t**tmp[i]*nexts[i][j] for j in range(len(nexts[i]))])
+                     for i in range(len(tmp))])]
     else:
         return [sum([t**tmp[i] for i in range(len(tmp))])]
 
@@ -652,7 +654,7 @@ def spin_polynomial_square(part, weight, length):
         part = SkewPartition(part)
 
     if part == [[],[]] and weight == []:
-        return t.parent()(1)
+        return R.one()
 
     return R(graph_implementation_rec(part, weight, length, functools.partial(spin_rec,t))[0])
 
@@ -709,20 +711,20 @@ def cospin_polynomial(part, weight, length):
         3*t^4 + 6*t^3 + 9*t^2 + 5*t + 3
     """
     R = ZZ['t']
-    t = R.gen()
 
     # The power in the spin polynomial are all half integers
     # or all integers.  Manipulation of expressions need to
     # separate cases
     sp = spin_polynomial_square(part, weight, length)
     if sp == 0:
-        return R(0)
+        return R.zero()
 
     coeffs = [c for c in sp.coefficients(sparse=False) if c != 0]
     d = len(coeffs)-1
     exponents = [d-e for e in range(len(coeffs))]
 
-    return R(sum([ coeffs[i]*t**exponents[i] for i in range(len(coeffs))]))
+    t = R.gen()
+    return R(sum( coeffs[i]*t**exponents[i] for i in range(len(coeffs)) ))
 
 
 ##     //////////////////////////////////////////////////////////////////////////////////////////
