@@ -13,6 +13,10 @@ REFERENCES:
    in: Combinatorial methods in representation theory (Kyoto)
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    arXiv:math/9809122v3 [math.q-alg]
+
+.. [SSW2003] Anne Schilling, Mark Shimozono, and Dennis E. White,
+   Branching formula for q-Littlewood-Richardson coefficients,
+   Advances in Applied Mathematics 30.1-2, 2003, pp 258-272
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -31,7 +35,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from . import sfa
+import sage.combinat.sf.sfa as sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
 import sage.combinat.skew_partition
 from sage.rings.all import ZZ
@@ -39,6 +43,12 @@ import sage.combinat.partition
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.rings.rational_field import QQ
+
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.partition import Partition, Partitions
+from sage.combinat.tableau import SemistandardTableaux
+from sage.combinat.integer_matrices import integer_matrices_generator
+import itertools as it
 
 # cache for H spin basis
 hsp_to_m_cache={}
@@ -50,6 +60,202 @@ m_to_hcosp_cache={}
 
 QQt = QQ['t'].fraction_field()
 # This is to become the "abstract algebra" for llt polynomials
+
+def max_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
+    r"""
+    Returns the maximum value of the difference ``diag`` of the column index and row index
+    of a skew tableau.
+
+    INPUT:
+
+    - ``t`` -- a skew tableau of shape $\lambda/\mu$, where lambda is a partition
+    and $\mu$ is a partition whose Young diagram is contained in the Young diagram of $\lambda$
+
+    OUTPUT:
+
+    - returns the maximum value of ``diag`` = j-i over all cells c present in the skew
+    tableau ``t``, where i and j are the row index and the column index of cell c
+
+    EXAMPLES::
+
+        sage: t = SkewTableau([[None,1,2],[3,4],[5],[6]])
+        sage: t
+        [[None,1,2],[3,4],[5],[6]]
+        sage: max_diagonal(t)
+        2
+        sage: t = SkewTableau([[None,None,None,None],[None,None,3],[None,1],[2],[4]])
+        [[None,None,None,None],[None,None,3],[None,1],[2],[4]]
+        sage: max_diagonal(t)
+        1
+    """
+    A = t.outer_shape()
+    B = t.inner_shape()
+    if A == B:
+        return None
+    else:
+        for i in range(len(B)):
+            if A[i] > B[i]:
+                return A[i] - (i+1)
+        return A[len(B)] - (len(B)+1)
+
+def min_diagonal(t=SkewTableau([[None,1,2],[3,4],[5],[6]])):
+    r"""
+    Returns the minimum value of the difference ``diag`` of the column index and row index
+    of a skew tableau.
+
+    INPUT:
+
+    - ``t`` -- a skew tableau of shape $\lambda/\mu$, where $\lambda$ is a partition
+    and $\mu$ is a partition whose Young diagram is contained in the Young diagram of $\lambda$
+
+    OUTPUT:
+
+    - returns the minimum value of ``diag`` = j-i over all cells c present in the skew tableau
+    ``t``, where i and j are respectively the row index and the column index of cell c
+
+    EXAMPLES::
+
+        sage: t = SkewTableau([[None,1,2],[3,4],[5],[6]])
+        sage: t
+        [[None,1,2],[3,4],[5],[6]]
+        sage: min_diagonal(t)
+        -3
+        sage: t = SkewTableau([[None,None,None,None],[None,None,3],[None,1],[2],[4]])
+        sage: t
+        [[None,None,None,None],[None,None,3],[None,1],[2],[4]]
+        sage: min_diagonal(t)
+        -4
+    """
+    A = t.outer_shape().conjugate()
+    B = t.inner_shape().conjugate()
+    if A == B:
+        return None
+    else:
+        for i in range(len(B)):
+            if A[i] > B[i]:
+                return - A[i] + (i+1)
+        return - A[len(B)] + (len(B)+1)
+
+def count_inv(A, B, C):
+    r"""
+    Counts the number of inversions occurring between cells in A, B and C.
+
+    INPUT:
+
+    - ``A`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    - ``B`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    - ``C`` -- a dictionary of cells whose keys are triples (diag,pos,row) and values are ent.
+    If u is a cell with row index i, column index j and is in the p-th (skew) tableau in tuple
+    then diag(u) is the quantity j-i, pos(u) is the index p, row(u) is the row index i, while ent(u)
+    is the entry of the cell u.
+    We require that A be a dictionary of cells with a fixed diag value d, B be a dictionary of cells
+    with diag value d+1, while C be a dictionary of cells with diag value d-1 (if B or C exist).
+
+    OUTPUT:
+
+    - returns the total number of inversions amongst pairs of cells in A and amongst pair of a
+    cell in A and a cell in B.
+    An inversion occurs for the pair of cells (u,v) when all of the following are satisfied:
+    (1) either (diag(u) = diag(v) and pos(u) < pos(v)) or (diag(u) + 1 = diag(v) and pos(u) > pos(v))
+    (2) row (u) <= row (v)
+    (3) entry(v) < entry(u) < entry(vdown), vdown is the cell below t (in English notation) and
+    entry(vdown) = infinity if no such cell exists.
+
+    EXAMPLES::
+
+        sage: t1 = SkewTableau([[None,3],[3,4]])
+        sage: t2 = SkewTableau([[1,1,1],[3]])
+        sage: t3 = SkewTableau([[None,2],[2,3],[4]])
+        sage: T=[t1,t2,t3]
+        sage: diag = 1
+        sage: A=dict(((diag,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag))
+        sage: B=dict(((diag+1,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag+1))
+        sage: C=dict(((diag-1,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag-1))
+        sage: count_inv(A,B,C)
+        2
+        sage: diag = 0
+        sage: A=dict(((diag,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag))
+        sage: B=dict(((diag+1,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag+1))
+        sage: C=dict(((diag-1,pos,c[0]),T[pos][c[0]][c[1]]) for pos in range(len(T)) for c in T[pos].cells_by_content(diag-1))
+        sage: count_inv(A,B,C)
+        1
+    """
+    inv = 0
+    if len(A) == 0:
+        return inv
+    A_keys = sorted(A.keys())
+    m = len(A_keys)
+    for i in range(m):
+        for j in range(i + 1,m):
+            u = A_keys[i]
+            v = A_keys[j]
+            if u[1] < v[1] and u[2] <= v[2] and A[v] < A[u]:
+            # the condition is diag(u) = diag(v), pos(u) < pos(v), row(u) <= row(v) but entry(v) < entry(u)
+                diag = v[0]
+                pos = v[1]
+                row = v[2]
+                vdown = (diag-1,pos,row+1)
+                if vdown not in C.keys() or A[u] < C[vdown]:
+                # this checks further if the cell tdown exists and if so, whether or not entry(u) < entry(vdown)
+                   inv += 1
+    if len(B) == 0:
+        return inv
+    B_keys = sorted(B.keys())
+    for u in A_keys:
+        for v in B_keys:
+            if u[1] > v[1] and u[2] <= v[2] and B[v] < A[u]:
+            # the condition is diag(u)+1 = diag(v), pos(u) > pos(v), row(u) <= row(v) but entry(v) < entry(u)
+                diag = v[0]
+                pos = v[1]
+                row = v[2]
+                vdown = (diag-1,pos,row+1)
+                if vdown not in A.keys() or A[u] < A[vdown]:
+                # this checks further if the cell tdown exists and if so, whether or not entry(u) < entry(vdown)
+                    inv += 1
+    return inv
+
+def inv(*T):
+    r"""
+    Returns the inv statistic of a tuple of (skew) semistandard Young tableaux T.
+
+    INPUT:
+    - ``T`` -- a tuple of (skew) semistandard Young tableaux T = (t_1, t_2, ..., t_k)
+
+    OUTPUT:
+    - returns inv(T), the total number of inversions that occur within T.
+    The definition of inv(T) as detailed in [SSW2003]_ is employed here.
+
+    EXAMPLES:
+        sage: t1 = SkewTableau([[None,3],[3,4]])
+        sage: t2 = SkewTableau([[1,1,1],[3]])
+        sage: t3 = SkewTableau([[None,2],[2,3],[4]])
+        sage: T=[t1,t2,t3]
+        sage: inv(*T)
+        5
+        sage: T=[t2,t3,t1]
+        sage: inv(*T)
+        3
+    """
+    D = {}
+    for pos in range(len(T)):
+        t = SkewTableau(T[pos])
+        if t != SkewTableau([]):
+            D.update(dict(((diag,pos,c[0]),t[c[0]][c[1]]) for diag in range(min_diagonal(t),max_diagonal(t)+1) for c in t.cells_by_content(diag)))
+    inv = 0
+    if len(D) > 0:
+        M = [key[0] for key in D.keys()]
+        Max = max(M)
+        Min = min(M)
+        for diag in range(Min,Max+1):
+            A = dict((key,D[key]) for key in D.keys() if key[0] == diag)
+            B = {}
+            C = {}
+            if diag < Max:
+                B.update(dict((key,D[key]) for key in D.keys() if key[0] == diag+1))
+            if diag > Min:
+                C.update(dict((key,D[key]) for key in D.keys() if key[0] == diag-1))
+            inv += count_inv(A,B,C)
+    return inv
 
 class LLT_class(UniqueRepresentation):
     r"""
@@ -329,6 +535,54 @@ class LLT_class(UniqueRepresentation):
             t^4*s[2, 2, 1] + t^3*s[3, 1, 1] + (t^3+t^2)*s[3, 2] + (t^2+t)*s[4, 1] + s[5]
         """
         return self._llt_generic(skp, ribbon_tableau.cospin_polynomial)
+
+    def llt_inv(self,la):
+        r"""
+        Computes the LLT polynomial associated to a tuple of partitions.
+
+        INPUT:
+
+        - ``la`` -- a tuple of partitions la = $(\lambda^{(1)}, \lambda^{(2)}, ..., \lambda^{(k)})$
+
+        OUTPUT:
+
+        - returns the LLT polynomial indexed by ``la`` in the monomial basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+            sage: Sym.llt(4)
+            sage: L.llt_inv([[],[2,1],[],[1]])
+            (5*t+3)*m[1, 1, 1, 1] + (2*t+2)*m[2, 1, 1] + (t+1)*m[2, 2] + m[3, 1]
+            sage: s = Sym.schur()
+            sage: s(L.llt_inv([[1,1],[2],[],[1]]))
+            t^3*s[2, 1, 1, 1] + t^2*s[2, 2, 1] + (t^2+t)*s[3, 1, 1] + t*s[3, 2] + s[4, 1]
+        """
+        if len(la) == self.level():
+            nu = [Partition(la[i]) for i in range(len(la))]
+            la_size = [lam.size() for lam in nu]
+            n = sum(la_size)
+            min_l = max(len(lam) for lam in nu)
+            max_p = sum(lam[0] for lam in nu if lam.size()>0)
+            t = ((self._sym()).base_ring()).gens()
+            p = 0
+            for weight in Partitions(n,min_length=min_l,max_part=max_p):
+                iter = integer_matrices_generator(la_size,weight)
+                # Constructs all nonnegative integer valued matrices whose 
+                # row sum is la_size and column sum is weight
+                for T in iter:
+                    S = [SemistandardTableaux(shape=nu[i],eval=T[i]) for i in range(len(nu))]
+                    # There are len(nu) many weights in T
+                    # Constructs the Cartesian product of the set of semistandard Young
+                    # tableaux of shape la[i] and weight T[i]
+                    size = min(len(S[i]) for i in range(len(nu)))
+                    # Checks if S is empty
+                    if size > 0:
+                        C = it.product(*S)
+                        p += sum(t[0]**inv(*c)*self._m(weight) for c in C)
+            return p
+        else:
+            raise ValueError("There should be exactly {0} partitions or skew partitions in {1}".format(self.level(),la))
 
 #### Is it safe to delete this function?
 ##     def llt_inv(self, skp):
