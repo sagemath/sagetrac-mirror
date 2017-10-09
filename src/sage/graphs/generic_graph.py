@@ -21459,7 +21459,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return (len(partition) == len(new_partition))
 
-    def is_hamiltonian(self):
+    def is_hamiltonian(self, path=False):
         r"""
         Tests whether the current graph is Hamiltonian.
 
@@ -21470,6 +21470,14 @@ class GenericGraph(GenericGraph_pyx):
         Testing for Hamiltonicity being NP-Complete, this
         algorithm could run for some time depending on
         the instance.
+
+        INPUT:
+
+        - ``path``, a Boolean -- by default this function finds if the
+          graph has a cycle visiting each vertex exactly once, i.e. a
+          Hamiltonian cycle. If you want to test the existence of a
+          Hamiltonian path, set this argument to ``True``. Graphs with
+          this property are sometimes called semi-Hamiltonian.
 
         ALGORITHM:
 
@@ -21491,16 +21499,24 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        The Heawood Graph is known to be Hamiltonian ::
+        The Heawood Graph is known to be Hamiltonian::
 
             sage: g = graphs.HeawoodGraph()
             sage: g.is_hamiltonian()
             True
 
-        The Petergraph, though, is not ::
+        The Petergraph is not, but it is semi-Hamiltonian::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_hamiltonian()
+            False
+            sage: g.is_hamiltonian(path=True)
+            True
+
+        A star is of course not even semi-Hamiltonian::
+
+            sage: g = graphs.StarGraph(3)
+            sage: g.is_hamiltonian(path=True)
             False
 
         TESTS::
@@ -21517,6 +21533,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             True
         """
+        if path:
+            return self.hamiltonian_path() is not None
+
         from sage.categories.sets_cat import EmptySetError
         try:
             tsp = self.traveling_salesman_problem(use_edge_labels = False)
