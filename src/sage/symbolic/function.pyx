@@ -809,7 +809,7 @@ cdef class GinacFunction(BuiltinFunction):
         fname = self._ginac_name if self._ginac_name is not None else self._name
         # get serial
         try:
-            self._serial = find_function(fname, self._nargs)
+            self._serial = find_function(str(fname), self._nargs)
         except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
