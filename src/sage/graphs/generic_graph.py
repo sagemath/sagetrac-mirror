@@ -21505,7 +21505,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             True
 
-        The Petergraph graph is not, but it is semi-Hamiltonian::
+        The Petersen graph is not, but it is semi-Hamiltonian::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_hamiltonian()
