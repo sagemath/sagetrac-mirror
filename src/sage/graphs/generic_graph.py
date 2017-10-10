@@ -21499,13 +21499,13 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        The Heawood Graph is known to be Hamiltonian::
+        The Heawood graph is known to be Hamiltonian::
 
             sage: g = graphs.HeawoodGraph()
             sage: g.is_hamiltonian()
             True
 
-        The Petergraph is not, but it is semi-Hamiltonian::
+        The Petergraph graph is not, but it is semi-Hamiltonian::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_hamiltonian()
