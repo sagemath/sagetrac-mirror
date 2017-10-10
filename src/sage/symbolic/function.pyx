@@ -14,7 +14,7 @@ Classes for symbolic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division, absolute_import
-
+from sage.misc.six import u
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -86,6 +86,12 @@ cdef class Function(SageObject):
             ...
             ValueError: eval_func parameter must be callable
         """
+        if name:
+            name = u(name).encode('utf-8')
+
+        if latex_name:
+            latex_name = u(latex_name).encode('utf-8')
+
         self._name = name
         self._alt_name = alt_name
         self._nargs = nargs
@@ -803,7 +809,7 @@ cdef class GinacFunction(BuiltinFunction):
         fname = self._ginac_name if self._ginac_name is not None else self._name
         # get serial
         try:
-            self._serial = find_function(fname, self._nargs)
+            self._serial = find_function(str(fname), self._nargs)
         except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
