@@ -20,7 +20,32 @@ if [ "$SAGE_VALGRIND" = "yes" ]; then
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-pymalloc"
 fi
 
+# Use EXTRA_CFLAGS for user-defined CFLAGS since Python puts its own
+# default flags like -O3 after CFLAGS but before EXTRA_CFLAGS.
+# We also disable warnings about unused variables/functions which are
+# common in Cython-generated code.
+export EXTRA_CFLAGS="`testcflags.sh -Wno-unused` $CFLAGS"
+unset CFLAGS
+
 if [ "$UNAME" = Darwin ]; then
+    PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
+
+    mkdir "$CUR/include"
+    if ![ -z "$OPENSSL_INCLUDE" ];  then
+        # If the user explicitely states where to get the openssl
+        # includes, use that.
+        cp -rp "$OPENSSL_INCLUDE" "$CUR/include"
+        export CFLAGS="-I$CUR/include"
+    else
+        # Otherwise try using homebrew version
+        brew_openssl="/usr/local/opt/openssl/include"
+        if [ -d "$brew_openssl" ]; then
+            export LDFLAGS="$LDFLAGS -L/usr/local/opt/openssl/lib"
+            export CPPFLAGS="$CPPFLAGS -I/usr/local/opt/openssl/include"
+            export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/opt/openssl/lib/pkgconfig"
+        fi
+    fi
+
     if [ $MACOSX_VERSION -ge 16 ]; then
         echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
         CC=clang
@@ -46,12 +71,18 @@ rm -f "$SAGE_LOCAL/lib/python"
 # modules are linked with the right libpython
 export LDFLAGS="-L. $LDFLAGS"
 
-# Note: --without-ensurepip ensures that setuptools+pip are *not* installed
-# automatically when installing python3. They will be installed instead by
-# the separate setuptools and pip packages; see
-# https://trac.sagemath.org/ticket/23398
+if [ "$PKG_BASE" = "python2" ]; then
+    PYTHON_CONFIGURE="$PYTHON_CONFIGURE --enable-unicode=ucs4"
+else
+    # Note: --without-ensurepip ensures that setuptools+pip are *not* installed
+    # automatically when installing python3. They will be installed instead by
+    # the separate setuptools and pip packages; see
+    # https://trac.sagemath.org/ticket/23398
+    PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-ensurepip"
+fi
+
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --without-ensurepip $PYTHON_CONFIGURE
+    --enable-shared $PYTHON_CONFIGURE
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring Python."

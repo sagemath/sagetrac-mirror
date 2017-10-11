@@ -15,7 +15,7 @@ cd src
 
 
 # Remove old libraries
-rm -f "$SAGE_LOCAL"/lib/libpython3*
+rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
 
 # Running 'make install' in parallel is a bad idea, so we use
 # only 1 job.
@@ -28,8 +28,13 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing valgrind suppression file..."
+if [ "$PKG_BASE" = "python2" ]; then
+    SUPP_FILENAME="python.supp"
+else
+    SUPP_FILENAME="${PKG_BASE}.supp"
+fi
 mkdir -p "$SAGE_EXTCODE/valgrind"
-cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/python3.supp"
+cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/$SUPP_FILENAME"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing valgrind suppression file."
     exit 1
@@ -50,7 +55,12 @@ else
 fi
 
 PYTHON_VERSION=$($PYTHON -c 'import sys; print("%d.%d" % sys.version_info[:2])')
-PYTHON_ABIFLAGS=$($PYTHON -c 'import sys; print(sys.abiflags)')
+if [ "$PKG_BASE" = "python2" ]; then
+    PYTHON_LDVERSION="$PYTHON_VERSION"
+else
+    PYTHON_ABIFLAGS=$($PYTHON -c 'import sys; print(sys.abiflags)')
+    PYTHON_LDVERSION="$PYTHON_VERSION$PYTHON_ABIFLAGS"
+fi
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python3.x/config/libpython3.x.a causes problems with
@@ -59,9 +69,9 @@ PYTHON_ABIFLAGS=$($PYTHON -c 'import sys; print(sys.abiflags)')
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
+    rm -f "$SAGE_LOCAL/lib/python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.a"
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
-    ln -sf "python$PYTHON_VERSION/config-${PYTHON_VERSION}${PYTHON_ABIFLAGS}/libpython${PYTHON_VERSION}${PYTHON_ABIFLAGS}.dll.a" \
-        "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
+    ln -sf "python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.dll.a" \
+        "$SAGE_LOCAL/lib/libpython${PYTHON_LDVERSION}.dll.a"
 fi
