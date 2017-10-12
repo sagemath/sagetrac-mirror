@@ -8,6 +8,8 @@ instead of SymPy.
 
 ::
 
+    sage: from sage.interfaces.sympy import sympy_init
+    sage: sympy_init()
     sage: a = Rational((1,2))
     sage: a
     1/2
