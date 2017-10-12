@@ -148,7 +148,7 @@ As matrix and many other sage objects, words have a parent::
 
     sage: u = Word('xyxxyxyyy')
     sage: u.parent()
-    Finite words over Set of Python objects of type 'object'
+    Finite words over Set of Python objects of class 'object'
 
 ::
 
@@ -651,7 +651,7 @@ class FiniteWord_class(Word_class):
             sage: v = w.schuetzenberger_involution(); v
             word: 7849631
             sage: v.parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
 
             sage: w = Word([1,2,3],alphabet=[1,2,3,4,5])
             sage: v = w.schuetzenberger_involution();v
@@ -663,7 +663,7 @@ class FiniteWord_class(Word_class):
             sage: v = w.schuetzenberger_involution(n=5);v
             word: 345
             sage: v.parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
 
             sage: w = Word([11,32,69,2,53,1,2,3,18,41])
             sage: w.schuetzenberger_involution()
@@ -2463,10 +2463,8 @@ class FiniteWord_class(Word_class):
         """
         #If the length of the lps of self[:-1] is not known:
         if l is None:
-            for i in range(self.length()+1):
-                fact = self[i:]
-                if fact.is_palindrome(f=f):
-                    return fact
+            l = self.lps_lengths(f)[-1]
+            return self[len(self)-l:]
 
         #If l == w[:-1].length(), there is no shortcut
         if self.length() == l + 1:
@@ -3318,10 +3316,9 @@ class FiniteWord_class(Word_class):
         -   [2] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        for i in range(self.length()):
-            if self[:i].is_palindrome(f=f) and self[i:].is_palindrome(f=f):
-                return True
-        return False
+
+        square = self*self
+        return square.lps_lengths(f)[-1] >= self.length()
 
     def length_border(self):
         r"""

@@ -28,6 +28,7 @@ from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
+from copy import copy
 
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
@@ -399,16 +400,26 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: b^125 == b
             True
 
+        We check that :trac:`23736` is resolved::
+
+            sage: R.teichmuller(GF(5)(2))
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5)
+
         AUTHORS:
 
         - Initial version: David Roe
         - Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
-        if prec is None:
-            prec = self.precision_cap()
-        else:
-            prec = min(Integer(prec), self.precision_cap())
-        ans = self(x, prec)
+        ans = self(x) if prec is None else self(x, prec)
+        # Since teichmuller representatives are defined at infinite precision,
+        # we can lift to precision prec, as long as the absolute precision of ans is positive.
+        if ans.precision_absolute() <= 0:
+            raise ValueError("Not enough precision to determine Teichmuller representative")
+        if ans.valuation() > 0:
+            return self(0) if prec is None else self(0, prec)
+        ans = ans.lift_to_precision(prec)
+        if ans is x:
+            ans = copy(ans)
         ans._teichmuller_set_unsafe()
         return ans
 
@@ -920,9 +931,9 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         ....:     print(R(45))
         5 * 9 + O(5^21)
 
-    NOTES::
+    .. NOTE::
 
-        For more documentation see localvars in parent_gens.pyx
+        For more documentation see ``localvars`` in parent_gens.pyx
     """
     if isinstance(print_options, str):
         print_options = {'mode': print_options}
