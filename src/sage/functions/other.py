@@ -994,8 +994,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
         Interfaces to other software::
 
-            sage: import sympy
-            sage: sympy.sympify(gamma_inc_lower(x,x))
+            sage: gamma_inc_lower(x,x)._sympy_()
             lowergamma(x, x)
             sage: maxima(gamma_inc_lower(x,x))
             gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)

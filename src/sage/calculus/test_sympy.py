@@ -8,8 +8,6 @@ instead of SymPy.
 
 ::
 
-    sage: from sage.interfaces.sympy import sympy_init
-    sage: sympy_init()
     sage: a = Rational((1,2))
     sage: a
     1/2
@@ -109,7 +107,7 @@ And here are some actual tests of sympy::
 
 ::
 
-    sage: e = sympify(1)/cos(x)**3; e
+    sage: e = (1/cos(x)^3)._sympy_(); e
     cos(x)**(-3)
     sage: f = e.series(x, 0, 10); f
     1 + 3*x**2/2 + 11*x**4/8 + 241*x**6/240 + 8651*x**8/13440 + O(x**10)
@@ -145,7 +143,7 @@ And the functionality to convert from sympy format to Sage format::
 Mixing SymPy with Sage::
 
     sage: import sympy
-    sage: sympy.sympify(var("y"))+sympy.Symbol("x")
+    sage: var("x")._sympy_() + var("y")._sympy_()
     x + y
     sage: o = var("omega")
     sage: s = sympy.Symbol("x")
