@@ -95,14 +95,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# On OS X, test to see if _scproxy built before installing.
-if [ "$UNAME" = "Darwin" ]; then
-    if [ -z `find build -name _scproxy*.so` ]; then
-        echo >&2 "Error: the _scproxy module failed to build."
-        exit 1
-    fi
-fi
-
 if [ "$UNAME" = "Linux" ]; then
     export LD_LIBRARY_PATH="."
 elif [ "$UNAME" = "Darwin" ]; then
