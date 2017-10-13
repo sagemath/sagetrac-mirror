@@ -7668,22 +7668,21 @@ class GenericGraph(GenericGraph_pyx):
         except MIPSolverException:
             raise EmptySetError("The given graph is not Hamiltonian")
 
-
-    def hamiltonian_cycle(self, algorithm='tsp' ):
+    def hamiltonian_cycle(self, algorithm='tsp'):
         r"""
-        Returns a Hamiltonian cycle/circuit of the current graph/digraph
+        Return a Hamiltonian cycle/circuit of the current graph/digraph
 
-        A graph (resp. digraph) is said to be Hamiltonian
-        if it contains as a subgraph a cycle (resp. a circuit)
-        going through all the vertices.
+        A graph (resp. digraph) is said to be Hamiltonian if it
+        contains as a subgraph a cycle (resp. a circuit) going through
+        all the vertices.
 
-        Computing a Hamiltonian cycle/circuit being NP-Complete,
-        this algorithm could run for some time depending on
-        the instance.
+        Computing a Hamiltonian cycle/circuit being NP-Complete, this
+        algorithm could run for some time depending on the instance.
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem`` for 'tsp' algorithm and
+        See  :meth:`~GenericGraph.traveling_salesman_problem`` for 'tsp'
+        algorithm and
         ``find_hamiltonian`` from ``sage.graphs.generic_graph_pyx``
         for 'backtrack' algorithm.
 
@@ -7693,27 +7692,25 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        If using the 'tsp' algorithm, returns a Hamiltonian cycle/circuit if it
-        exists; otherwise, raises a ``EmptySetError`` exception. If using the
-        'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
-        Hamiltonian cycle and if B is False, P is a longest path found by the
-        algorithm. Observe that if B is False, the graph may still be Hamiltonian.
-        The 'backtrack' algorithm is only implemented for undirected
-        graphs.
+        If using the 'tsp' algorithm, returns a Hamiltonian cycle/circuit
+        if it exists; otherwise return ``None``. If using the 'backtrack'
+        algorithm, returns a pair `(B, P)`. If `B` is ``True`` then `P` is a
+        Hamiltonian cycle and if `B` is ``False``, `P` is a longest path found
+        by the algorithm. Observe that if `B` is False, the graph may
+        still be Hamiltonian.  The 'backtrack' algorithm is only
+        implemented for undirected graphs.
 
-        .. WARNING::
+        .. NOTE::
 
-            The 'backtrack' algorithm may loop endlessly on graphs
-            with vertices of degree 1.
+            Prior to version 8.1 this function raised an exception when
+            tried with non-Hamiltonian graph. Now it returns ``None``.
 
-        NOTE:
+            This function, as ``is_hamiltonian``, computes a Hamiltonian
+            cycle if it exists: the user should *NOT* test for
+            Hamiltonicity using ``is_hamiltonian`` before calling this
+            function, as it would result in computing it twice.
 
-        This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists: the user should *NOT* test for
-        Hamiltonicity using ``is_hamiltonian`` before calling this
-        function, as it would result in computing it twice.
-
-        The backtrack algorithm is only implemented for undirected graphs.
+            The backtrack algorithm is only implemented for undirected graphs.
 
         EXAMPLES:
 
@@ -7726,47 +7723,46 @@ class GenericGraph(GenericGraph_pyx):
         The Petersen Graph, though, is not ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.hamiltonian_cycle()
-            Traceback (most recent call last):
-            ...
-            EmptySetError: The given graph is not Hamiltonian
+            sage: g.hamiltonian_cycle() is None
+            True
 
         Now, using the backtrack algorithm in the Heawood graph ::
 
-            sage: G=graphs.HeawoodGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: g = graphs.HeawoodGraph()
+            sage: g.hamiltonian_cycle(algorithm='backtrack')
             (True, [11, 10, 1, 2, 3, 4, 9, 8, 7, 6, 5, 0, 13, 12])
 
         And now in the Petersen graph ::
 
-            sage: G=graphs.PetersenGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: g = graphs.PetersenGraph()
+            sage: g.hamiltonian_cycle(algorithm='backtrack')
             (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
 
         Finally, we test the algorithm in a cube graph, which is Hamiltonian ::
 
-            sage: G=graphs.CubeGraph(3)
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: g = graphs.CubeGraph(3)
+            sage: g.hamiltonian_cycle(algorithm='backtrack')
             (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
-
         """
         if self.order() < 2:
-            raise ValueError("the traveling salesman problem is not defined for empty or one-element graph")
+            raise ValueError('the Hamiltonian cycle problem is not well ' +
+                             'defined for empty and one-element (di)graphs')
 
         if algorithm=='tsp':
             from sage.numerical.mip import MIPSolverException
 
             try:
-                return self.traveling_salesman_problem(use_edge_labels = False)
+                return self.traveling_salesman_problem(use_edge_labels=False)
             except MIPSolverException:
-                from sage.categories.sets_cat import EmptySetError
-                raise EmptySetError("The given graph is not Hamiltonian")
+                return None
         elif algorithm=='backtrack':
+            if any(self.degree(v) < 2 for v in self):
+                return "What-to-do-here???"
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
-            return fh( self )
+            return fh(self)
 
         else:
-            raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'."%(algorithm))
+            raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'." % (algorithm))
 
     def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
         r"""
