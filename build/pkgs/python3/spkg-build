@@ -30,12 +30,12 @@ unset CFLAGS
 if [ "$UNAME" = Darwin ]; then
     PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
 
-    mkdir "$CUR/include"
+    mkdir "../include"
     if ![ -z "$OPENSSL_INCLUDE" ];  then
         # If the user explicitely states where to get the openssl
         # includes, use that.
-        cp -rp "$OPENSSL_INCLUDE" "$CUR/include"
-        export CFLAGS="-I$CUR/include"
+        cp -rp "$OPENSSL_INCLUDE" "../include"
+        export CFLAGS="-I../include"
     else
         # Otherwise try using homebrew version
         brew_openssl="/usr/local/opt/openssl/include"
