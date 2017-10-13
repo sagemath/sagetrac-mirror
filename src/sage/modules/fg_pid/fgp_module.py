@@ -1209,7 +1209,11 @@ class FGP_Module_class(Module):
         # This matrix T gives each basis element of self._V in terms
         # of our new optimized V, modulo the W's.
         A = V.basis_matrix().stack(self._W.basis_matrix())
-        B, d = A._clear_denom()
+        try:
+            B, d = A._clear_denom()
+        except AttributeError:
+            d = A.denominator()
+            B = A*d
         H, U = B.hermite_form(transformation=True)
         Y = H.solve_left(d*self._V.basis_matrix())
         T = Y * U.matrix_from_columns(range(V.rank()))
