@@ -1,10 +1,35 @@
-#   sympy.py - SymPy --> Sage interface
-#   Author: (2017) Ralf Stephan <ralf@ark.in-berin.de>
+"""
+SymPy --> Sage conversion
+
+The file consists of ``_sage_()`` methods that are added lazily to
+the respective SymPy objects. Any call of the ``_sympy_()`` method
+of a symbolic expression will trigger the addition. See
+`sage.symbolic.expression_conversion.SymPyConverter` for the
+conversion to SymPy.
+
+Only ``Function`` objects where the names differ need their own ``sage()``
+method. There are several functions with differing name that have an alias
+in Sage that is the same as the name in SymPy, so no explicit translation
+is needed for them::
+
+    sage: from sympy import Symbol, Si, Ci, Shi, Chi, sign
+    sage: assert sin_integral(x)._sympy_() == Si(Symbol('x'))
+    sage: assert sin_integral(x) == Si(Symbol('x'))._sage_()
+    sage: assert sinh_integral(x)._sympy_() == Shi(Symbol('x'))
+    sage: assert sinh_integral(x) == Shi(Symbol('x'))._sage_()
+    sage: assert cos_integral(x)._sympy_() == Ci(Symbol('x'))
+    sage: assert cos_integral(x) == Ci(Symbol('x'))._sage_()
+    sage: assert cosh_integral(x)._sympy_() == Chi(Symbol('x'))
+    sage: assert cosh_integral(x) == Chi(Symbol('x'))._sage_()
+    sage: assert sgn(x)._sympy_() == sign(Symbol('x'))
+    sage: assert sgn(x) == sign(Symbol('x'))._sage_()
+
+AUTHORS:
+
+- Ralf Stephan (2017-10)
+"""
+################################################################
 #   Distributed under GNU GPL3, see www.gnu.org
-#
-#   The file consists of sage() methods that are added to SymPy objects.
-#   Only Function objects where the names differ need their own sage() method.
-#   Please be very specific with imports to minimalize startup time.
 ################################################################
 from __future__ import absolute_import
 
@@ -245,7 +270,7 @@ def _sympysage_integral(self):
         sage: sx = Symbol('x')
         sage: assert integral(x, x, hold=True)._sympy_() == Integral(sx, sx)
         sage: assert integral(x, x, hold=True) == Integral(sx, sx)._sage_()
-        sage: assert integral(x, x, 0, 1, hold=True)._sympy_() == Integral(sx, (sx,int(0),int(1)))
+        sage: assert integral(x, x, 0, 1, hold=True)._sympy_() == Integral(sx, (sx,0,1)) # known bug
         sage: assert integral(x, x, 0, 1, hold=True) == Integral(sx, (sx,0,1))._sage_()
     """
     from sage.misc.functional import integral
@@ -263,56 +288,113 @@ def _sympysage_integral(self):
     return f
 
 def _sympysage_derivative(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Derivative
+        sage: f = function('f')
+        sage: sympy_diff = Derivative(f(x)._sympy_(), x._sympy_())
+        sage: assert diff(f(x),x)._sympy_() == sympy_diff
+        sage: assert diff(f(x),x) == sympy_diff._sage_()
+    """
     from sage.calculus.functional import derivative
     args = [arg._sage_() for arg in self.args]
     return derivative(*args)
 
 def _sympysage_order(self):
-    from sage.rings.integer import Integer
-    return Integer(0)
+    """
+    EXAMPLES::
+
+        sage: from sage.functions.other import Order
+        sage: from sympy.series import Order as SOrder
+        sage: assert Order(1)._sympy_() == SOrder(1)
+        sage: assert Order(1) == SOrder(1)._sage_()
+    """
+    from sage.functions.other import Order
+    return Order(self.args[0])._sage_()
 
 def _sympysage_rf(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, rf
+        sage: _ = var('x, y')
+        sage: rfxy = rf(Symbol('x'), Symbol('y'))
+        sage: assert rising_factorial(x,y)._sympy_() == rfxy.rewrite('gamma')
+        sage: assert rising_factorial(x,y) == rfxy._sage_()
+    """
     from sage.arith.all import rising_factorial
     return rising_factorial(self.args[0]._sage_(), self.args[1]._sage_())
 
 def _sympysage_ff(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, ff
+        sage: _ = var('x, y')
+        sage: ffxy = ff(Symbol('x'), Symbol('y'))
+        sage: assert falling_factorial(x,y)._sympy_() == ffxy.rewrite('gamma') # known bug
+        sage: assert falling_factorial(x,y) == ffxy._sage_()
+    """
     from sage.arith.all import falling_factorial
     return falling_factorial(self.args[0]._sage_(), self.args[1]._sage_())
 
 def _sympysage_lgamma(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, loggamma
+        sage: assert log_gamma(x)._sympy_() == loggamma(Symbol('x'))
+        sage: assert log_gamma(x) == loggamma(Symbol('x'))._sage_()
+    """
     from sage.functions.other import log_gamma
     return log_gamma(self.args[0]._sage_())
 
 def _sympysage_dirac_delta(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, DiracDelta
+        sage: assert dirac_delta(x)._sympy_() == DiracDelta(Symbol('x'))
+        sage: assert dirac_delta(x) == DiracDelta(Symbol('x'))._sage_()
+    """
     from sage.functions.generalized import dirac_delta
     return dirac_delta(self.args[0]._sage_())
 
 def _sympysage_heaviside(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, Heaviside
+        sage: assert heaviside(x)._sympy_() == Heaviside(Symbol('x'))
+        sage: assert heaviside(x) == Heaviside(Symbol('x'))._sage_()
+    """
     from sage.functions.generalized import heaviside
     return heaviside(self.args[0]._sage_())
 
 def _sympysage_expint(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, expint
+        sage: _ = var('x, y')
+        sage: sy = expint(Symbol('x'), Symbol('y'))
+        sage: assert exp_integral_e(x,y)._sympy_() == sy
+        sage: assert exp_integral_e(x,y) == sy._sage_()
+    """
     from sage.functions.exp_integral import exp_integral_e
     return exp_integral_e(self.args[0]._sage_(), self.args[1]._sage_())
 
-# are si,ci,shi,chi really necessary?
-def _sympysage_si(self):
-    from sage.functions.exp_integral import sin_integral
-    return sin_integral(self.args[0]._sage_())
-
-def _sympysage_ci(self):
-    from sage.functions.exp_integral import cos_integral
-    return cos_integral(self.args[0]._sage_())
-
-def _sympysage_shi(self):
-    from sage.functions.exp_integral import sinh_integral
-    return sinh_integral(self.args[0]._sage_())
-
-def _sympysage_chi(self):
-    from sage.functions.exp_integral import cosh_integral
-    return cosh_integral(self.args[0]._sage_())
-
 def _sympysage_hyp(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, hyper
+        sage: _ = var('a,b,p,q,x')
+        sage: sy = hyper((Symbol('a'), Symbol('b')), (Symbol('p'), Symbol('q')), Symbol('x'))
+        sage: assert hypergeometric((a,b),(p,q),x)._sympy_() == sy
+        sage: assert hypergeometric((a,b),(p,q),x) == sy._sage_()
+    """
     from sage.functions.hypergeometric import hypergeometric
     ap = [arg._sage_() for arg in self.args[0]]
     bq = [arg._sage_() for arg in self.args[1]]
@@ -349,16 +431,6 @@ def _sympysage_ynm(self):
                               self.args[2]._sage_(),
                               self.args[3]._sage_())
 
-#really necessary?
-def _sympysage_csch(self):
-    from sage.functions.hyperbolic import csch
-    return csch(self.args[0]._sage_())
-
-#really necessary?
-def _sympysage_sech(self):
-    from sage.functions.hyperbolic import sech
-    return sech(self.args[0]._sage_())
-
 def _sympysage_re(self):
     from sage.functions.other import real_part
     return real_part(self.args[0]._sage_())
@@ -366,11 +438,6 @@ def _sympysage_re(self):
 def _sympysage_im(self):
     from sage.functions.other import imag_part
     return imag_part(self.args[0]._sage_())
-
-#really necessary?
-def _sympysage_sign(self):
-    from sage.functions.generalized import sign
-    return sign(self.args[0]._sage_())
 
 def _sympysage_abs(self):
     from sage.functions.generalized import abs_symbolic
@@ -390,11 +457,10 @@ def sympy_init():
     from sympy.core.numbers import NaN as sympy_nan
     from sympy.functions.combinatorial.factorials import (RisingFactorial,
             FallingFactorial)
-    from sympy.functions.elementary.complexes import (re, im, sign, Abs)
-    from sympy.functions.elementary.hyperbolic import (csch, sech)
+    from sympy.functions.elementary.complexes import (re, im, Abs)
     from sympy.functions.special.bessel import (besselj, bessely, besseli, besselk)
     from sympy.functions.special.delta_functions import (DiracDelta, Heaviside)
-    from sympy.functions.special.error_functions import (expint, Si, Ci, Shi, Chi)
+    from sympy.functions.special.error_functions import expint
     from sympy.functions.special.elliptic_integrals import elliptic_k
     from sympy.functions.special.gamma_functions import loggamma
     from sympy.functions.special.hyper import hyper
@@ -429,10 +495,6 @@ def sympy_init():
     DiracDelta._sage_ = _sympysage_dirac_delta
     Heaviside._sage_ = _sympysage_heaviside
     expint._sage_ = _sympysage_expint
-    Si._sage_ = _sympysage_si
-    Ci._sage_ = _sympysage_ci
-    Shi._sage_ = _sympysage_shi
-    Chi._sage_ = _sympysage_chi
     hyper._sage_ = _sympysage_hyp
     elliptic_k._sage_ = _sympysage_elliptic_k
     KroneckerDelta._sage_ = _sympysage_kronecker_delta
@@ -441,12 +503,9 @@ def sympy_init():
     besseli._sage_ = _sympysage_besseli
     besselk._sage_ = _sympysage_besselk
     Ynm._sage_ = _sympysage_ynm
-    csch._sage_ = _sympysage_csch
-    sech._sage_ = _sympysage_sech
     re._sage_ = _sympysage_re
     im._sage_ = _sympysage_im
-    sign._sage_ = _sympysage_sign
-    Abs._sage_ = _sympysage_sign
+    Abs._sage_ = _sympysage_abs
 
 def check_expression(expr, var_symbols, only_from_sympy=False):
     """

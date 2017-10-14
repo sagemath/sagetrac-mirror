@@ -471,7 +471,7 @@ class Function_Order(GinacFunction):
                 conversions=dict(sympy='O'),
                 latex_name=r"\mathcal{O}")
 
-Function_Order()
+Order = Function_Order()
 
 class Function_frac(BuiltinFunction):
     def __init__(self):
