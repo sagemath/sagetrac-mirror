@@ -117,7 +117,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         We could have used :class:`AdditiveAbelianGroupWrapper` here, but it
         seems to be somewhat outdated. In particular, generic group
         functionality should now come from the category and not from the
-        super-class. A facade of \Q appeared to be the better approach.
+        super-class. A facade of `\QQ` appeared to be the better approach.
 
     EXAMPLES::
 
