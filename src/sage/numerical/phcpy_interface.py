@@ -1,4 +1,9 @@
+## TODO
+# 1) Most classes and methods need examples, tests, I/O documentation
+
 import warnings
+
+## CLASSES
 
 class PolynomialSystem(SageObject):
     """
@@ -22,7 +27,6 @@ class PolynomialSystem(SageObject):
             warnings.warn("SymbolicRing expressions not checked for consistency.",RuntimeWarning)
             myvars=list(set(flatten([list(p.variables()) for p in polys])))
             self.ring = PolynomialRing(CC,len(myvars),myvars)
-            print("hi")
             self.polys = [(self.ring)(p)  for p in polys]
         else:
             raise TypeError("coefficient ring")
@@ -33,7 +37,7 @@ class PolynomialSystem(SageObject):
             raise TypeError("point provided must be of type NumericalPoint")
         return([f.subs(npoint.to_dict()) for f in self.polys])
 
-class NumericalPoint():
+class NumericalPoint(SageObject):
     """
     A class for representing points numerically
     """
@@ -58,6 +62,34 @@ class NumericalPoint():
         else:
             raise AttributeError("please set a ring")
 
+class WitnessSet(SageObject):
+    def __init__(self, polySys, forms, points):
+        """
+        INPUT: 
+            *) polySys, an object of type PolynomialSystem
+            *) forms, an object of type PolynomialSystem consisting of linear forms w/ the same ring as polySys
+            *) points --- a list of objects of type NumericalPoint 
+        """
+        if not isinstance(system, PolynomialSystem):
+            raise TypeError("first argument should be a PolynomialSystem")
+        if not isinstance(forms, PolynomialSystem):
+            raise TypeError("second argument should be a polynomial system")
+        if not (isinstance(points, list) and len(set([p.parent() for p in points]))==1 and points[0].parent() == NumericalPoint):
+            raise TypeError("third argument should be a list of NumericalPoints")
+        if not polySys.ring == forms.ring:
+            raise TypeError("make sure first two arguments share a common ring")
+        self.system = polySys
+        self.linear_forms = forms
+        self.witness_points = points
+        self.dimension = len(forms)
+
+class NumericalIrreducibleDecomposition(SageObject):
+    def __init__(self):
+        self.components =dict()
+    def append_witnessset(self, wset):
+        if not isinstance(wset,WitnessSet):
+            raise TypeError("must append with a witness set")
+        self.components[wset.dim].append(wset)
 
 # class Homotopy(PolynomialSystem):
     """
@@ -66,7 +98,7 @@ class NumericalPoint():
 #    def __init__(self, polySys, params):
 
 
-# STAND-
+## STANDALONE FUNCTION
 
 
-# RUNNING EXAMPLES
+
