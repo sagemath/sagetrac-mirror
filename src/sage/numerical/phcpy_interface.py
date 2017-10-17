@@ -11,25 +11,28 @@ class PolynomialSystem(SageObject):
     """
     def __init__(self, polys):
         """
-        This is a constructor that takes a list of polynomials and
+        This is a constructor that takes a list of polynomials and 
         returns an object of class PolynomialSystem.
         """
-        if not isinstance(polys,list):
-             raise TypeError("incorrect input")
-        L=list(set([p.parent() for p in polys]))
-        if len(L) != 1 or not isinstance(L[0],Ring):
-            raise TypeError("polynomials don't have same parent ring")
-        # better error handling for coefficient field NEEDED
-        if L[0].base_ring() in set([RR,CC,QQ,ZZ]):
-            self.polys = polys
-            self.ring = polys[0].parent() # not strictly necessary
-        elif isinstance(L[0].base_ring(),sage.symbolic.ring.SymbolicRing):
-            warnings.warn("SymbolicRing expressions not checked for consistency.",RuntimeWarning)
-            myvars=list(set(flatten([list(p.variables()) for p in polys])))
-            self.ring = PolynomialRing(CC,len(myvars),myvars)
-            self.polys = [(self.ring)(p)  for p in polys]
+        if isinstance(polys,PolynomialSystem):
+            self=polys
         else:
-            raise TypeError("coefficient ring")
+            if not isinstance(polys,list):
+                raise TypeError("incorrect input")
+            L=list(set([p.parent() for p in polys]))
+            if len(L) != 1 or not isinstance(L[0],Ring):
+                raise TypeError("polynomials don't have same parent ring")
+            # better error handling for coefficient field NEEDED
+            if L[0].base_ring() in set([RR,CC,QQ,ZZ]):
+                self.polys = polys
+                self.ring = polys[0].parent() # not strictly necessary
+            elif isinstance(L[0].base_ring(),sage.symbolic.ring.SymbolicRing):
+                warnings.warn("SymbolicRing expressions not checked for consistency.",RuntimeWarning)
+                myvars=list(set(flatten([list(p.variables()) for p in polys])))
+                self.ring = PolynomialRing(CC,len(myvars),myvars)
+                self.polys = [(self.ring)(p)  for p in polys]
+            else:
+                raise TypeError("coefficient ring")
     def evaluate(self, npoint):
         if isinstance(npoint,list):
             npoint=NumericalPoint(npoint,ring=self.ring)
@@ -77,7 +80,7 @@ class WitnessSet(SageObject):
         INPUT: 
             *) polySys, an object of type PolynomialSystem
             *) forms, an object of type PolynomialSystem consisting of linear forms w/ the same ring as polySys
-            *) points --- a list of objects of type NumericalPoint 
+            *) points --- a list of objects of type NumericalPoint
         """
         if not isinstance(polySys, PolynomialSystem):
             raise TypeError("first argument should be a PolynomialSystem")
@@ -116,9 +119,23 @@ class NumericalIrreducibleDecomposition(SageObject):
                 return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
         return(return_string)
 
+class ParametrizedPolynomialSystem(PolynomialSystem):
+    def __init__(self,system,params):
+        super(ParametrizedPolynomialSystem,self).__init__(system)
+        if (not isinstance(params, list)) or (false in set([g in self.ring.gens() for g in params])):
+            raise TypeError("Parameters must be a list of variables in the ring.")
+        self.params = params
+        self.variables = (set(self.ring.gens())).difference(self.params)
+    def specialize(self,subDict,specialize_ring=true):
+        if false in set([g in subDict.keys() for g in self.params]):
+            raise TypeError("Specialization keys should be parameters.")
+        specialSelf=self
+        specialSelf.polys=[f.subs(subDict) for f in self.polys]
+        return(specialSelf)
+    
 # class Homotopy(PolynomialSystem):
     """
-    A doc string describing this class
+    A doc string describing this classs
     """
 #    def __init__(self, polySys, params):
 
