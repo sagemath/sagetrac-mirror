@@ -36,6 +36,9 @@ class PolynomialSystem(SageObject):
         if not isinstance(npoint,NumericalPoint):
             raise TypeError("point provided must be of type NumericalPoint")
         return([f.subs(npoint.to_dict()) for f in self.polys])
+    def __str__(self):
+        return("%s over %s. " %(self.polys, self.ring))
+        
 
 class NumericalPoint(SageObject):
     """
@@ -45,11 +48,14 @@ class NumericalPoint(SageObject):
         """
         Construct from list of coordinates
 
-        EXAMPLES
-        R.<x,y,z> =PolynomialRing(CC,3)
-        p = NumericalPoint([2,3,4],ring=R)
-        p.coordinates
-        p.to_dict()
+        EXAMPLES::
+
+            sage: R.<x,y,z> =PolynomialRing(CC,3)
+            sage: p = NumericalPoint([2,3,4],ring=R)
+            sage: p.coordinates
+            [2, 3, 4]
+            sage: p.to_dict()
+            {z: 4, y: 3, x: 2}        
         """
         self.coordinates = coords
         self.ring = ring
@@ -61,7 +67,10 @@ class NumericalPoint(SageObject):
             return(dict([(self.ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
         else:
             raise AttributeError("please set a ring")
+    def __str__(self):
+        return("A numerical point in CC^%s." %(len(self.coordinates)))
 
+        
 class WitnessSet(SageObject):
     def __init__(self, polySys, forms, points):
         """
@@ -70,7 +79,7 @@ class WitnessSet(SageObject):
             *) forms, an object of type PolynomialSystem consisting of linear forms w/ the same ring as polySys
             *) points --- a list of objects of type NumericalPoint 
         """
-        if not isinstance(system, PolynomialSystem):
+        if not isinstance(polySys, PolynomialSystem):
             raise TypeError("first argument should be a PolynomialSystem")
         if not isinstance(forms, PolynomialSystem):
             raise TypeError("second argument should be a polynomial system")
@@ -81,15 +90,31 @@ class WitnessSet(SageObject):
         self.system = polySys
         self.linear_forms = forms
         self.witness_points = points
-        self.dimension = len(forms)
+        self.dimension = len(forms.polys)
+    def __str__(self):
+        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.witness_points)))
 
+        
 class NumericalIrreducibleDecomposition(SageObject):
+    """
+    a class which organizes the witness sets appearing in the NID of a variety
+    """
     def __init__(self):
         self.components =dict()
-    def append_witnessset(self, wset):
+    def append_witness_set(self, wset):
         if not isinstance(wset,WitnessSet):
             raise TypeError("must append with a witness set")
-        self.components[wset.dim].append(wset)
+        if wset.dimension in self.components.keys():
+            self.components[wset.dimension].append(wset)
+        else:
+            self.components[wset.dimension] = [wset]
+    def __str__(self):
+        return_string = ""
+        for i in self.components.keys():
+            return_string += "Dimension "+str(i) + ":" + "\n"
+            for j in self.components[i]:
+                return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
+        return(return_string)
 
 # class Homotopy(PolynomialSystem):
     """
