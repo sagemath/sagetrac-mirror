@@ -2,6 +2,7 @@
 # 1) Most classes and methods need examples, tests, I/O documentation
 
 import warnings
+from sage.structure.sage_object import SageObject
 
 ## CLASSES
 
@@ -50,6 +51,7 @@ class NumericalPoint(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.numerical.phcpy_interface import NumericalPoint
             sage: R.<x,y,z> =PolynomialRing(CC,3)
             sage: p = NumericalPoint([2,3,4],ring=R)
             sage: p.coordinates
