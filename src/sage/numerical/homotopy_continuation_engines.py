@@ -2,21 +2,27 @@
 A standardized interface to a homotopy continuation solver.
 """
 
-from abc import ABCMeta
+import abc
 
 # TODO: Correct classes
 
 class HomotopyContinuationEngine(SageObject):
-    def __init__(self, numThreads):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def __init__(self, numThreads=1):
         raise NotImplementedError
 
+    @abc.abstractmethod
     def mixed_volume(self, polynomialSystem):
         raise NotImplementedError
 
+    @abc.abstractmethod
     def track_paths(self, homotopy, parameterStartValue, \
         parameterEndValue, startSolutions):
         raise NotImplementedError
 
+    @abc.abstractmethod
     def zero_dim_solve(self, system, prec=None, digits=None, adaptivePrec=False):
         """
         Assumes the system is 0-dimensional.
@@ -28,26 +34,32 @@ class HomotopyContinuationEngine(SageObject):
         raise NotImplementedError
 
 class PHCpackEngine(HomotopyContinuationEngine):
-    def __init__(self,numThreads):
+    def __init__(self, numThreads=1):
         try:
             import phcpy
+            self.phcpy = phcpy
         except ImportError:
             raise RuntimeError("phcpy not found")
+        try: assert numThreads >= 1
+        except Exception: raise ValueError("Invalid thread count: " + str(numThreads))
         self.numThreads = numThreads
-        return None
 
-    def __repr__(self): return phcpy.py2c_PHCpack_version_string()
+    def __repr__(self): return "Interface to " + self.phcpy.py2c_PHCpack_version_string()
     def __str__(self): return self.__repr__()
 
-    def syst_to_phcpy_strs(self, polynomialSystem):
+    def __syst_to_phcpy_strs(self, polynomialSystem):
         pass
 
-    def phcpy_sols_to_NomericalPoints(self, phcpySols):
+    def __phcpy_sols_to_NomericalPoints(self, phcpySols):
         pass
 
-    def call_phcpy_function(func):
+    def __call_phcpy_function(func):
         try: return func()
         except Exception: raise RuntimeError("Error running phcpy")
+
+    def track_paths(self, homotopy, parameterStartValue, \
+        parameterEndValue, startSolutions):
+        pass
 
     def zero_dim_solve(self, system, prec=None, digits=None, adaptivePrec=False):
         if adaptivePrec: raise NotImplementedError("adaptive precision not currently supported")
@@ -65,10 +77,10 @@ class PHCpackEngine(HomotopyContinuationEngine):
         else: # prec, digits both none
             phcpyPrec = 'd'
 
-        f = lambda: phcpy.solver.solve(syst_to_phcpy_strs(system), verbose = False, precision = phcpyPrec)
-        sols = call_phcpy_function(f)
-        return phcpy_sols_to_NumericalPoints(sols)
+        f = lambda: self.phcpy.solver.solve(__syst_to_phcpy_strs(system), verbose = False, tasks = self.numThreads - 1, precision = phcpyPrec)
+        sols = __call_phcpy_function(f)
+        return __phcpy_sols_to_NumericalPoints(sols)
 
     def mixed_volume(self, system):
-        f = lambda: phcpy.solver.mixed_volume(syst_to_phcpy_strs(system))
-        return Integer(call_phcpy_function(f))
+        f = lambda: self.phcpy.solver.mixed_volume(__syst_to_phcpy_strs(system))
+        return Integer(__call_phcpy_function(f))
