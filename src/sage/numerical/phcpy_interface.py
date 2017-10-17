@@ -147,6 +147,11 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
             raise TypeError("Specialization keys should be parameters.")
         specialSelf=self
         specialSelf.polys=[f.subs(subDict) for f in self.polys]
+        if specialize_ring:
+            newVars = list(set(self.ring.gens()).difference(subDict.keys()))
+            S=PolynomialRing(self.polys[0].base_ring(),len(newVars), newVars)
+            specialSelf.polys = [S(str(f)) for f in specialSelf.polys]
+            specialSelf.ring = S
         return(specialSelf)
     
 # class Homotopy(PolynomialSystem):
