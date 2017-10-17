@@ -24,7 +24,7 @@ del absolute_import, division, print_function
 sage_mode = 'cmdline'
 
 from sage.all import *
-from sage.calculus.predefined import x
+# from sage.calculus.predefined import x
 
 sage.misc.session.init()
 

@@ -316,6 +316,9 @@ class ComplexField_class(ring.Field):
             return NotImplemented
         return self._prec == other._prec
 
+    def __hash__(self):
+        return hash(self.__repr__())
+
     def __ne__(self, other):
         """
         Check whether ``self`` is not equal to ``other``.
