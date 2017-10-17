@@ -42,6 +42,8 @@ class PolynomialSystem(SageObject):
         return([f.subs(npoint.to_dict()) for f in self.polys])
     def __str__(self):
         return("%s over %s. " %(self.polys, self.ring))
+    def __repr__(self):
+        return("%s over %s. " %(self.polys, self.ring))
         
 
 class NumericalPoint(SageObject):
@@ -74,6 +76,8 @@ class NumericalPoint(SageObject):
             raise AttributeError("please set a ring")
     def __str__(self):
         return("A numerical point in CC^%s." %(len(self.coordinates)))
+    def __repr__(self):
+        return("A numerical point in CC^%s." %(len(self.coordinates)))
 
         
 class WitnessSet(SageObject):
@@ -98,6 +102,8 @@ class WitnessSet(SageObject):
         self.dimension = len(forms.polys)
     def __str__(self):
         return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.witness_points)))
+    def __repr__(self):
+        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.witness_points)))
 
         
 class NumericalIrreducibleDecomposition(SageObject):
@@ -120,6 +126,14 @@ class NumericalIrreducibleDecomposition(SageObject):
             for j in self.components[i]:
                 return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
         return(return_string)
+    def __repr__(self):
+        return_string = ""
+        for i in self.components.keys():
+            return_string += "Dimension "+str(i) + ":" + "\n"
+            for j in self.components[i]:
+                return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
+        return(return_string)
+
 
 class ParametrizedPolynomialSystem(PolynomialSystem):
     def __init__(self,system,params):
