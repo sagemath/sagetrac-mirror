@@ -26,6 +26,12 @@ class PolynomialSystem(SageObject):
             self.polys = [(self.ring)(p)  for p in polys]
         else:
             raise TypeError("coefficient ring")
+    def evaluate(self, npoint):
+        if isinstance(npoint,list):
+            npoint=NumericalPoint(npoint,ring=self.ring)
+        if not isinstance(npoint,NumericalPoint):
+            raise TypeError("point provided must be of type NumericalPoint")
+        return([f.subs(npoint.to_dict()) for f in self.polys])
 
 class NumericalPoint():
     """
@@ -51,8 +57,16 @@ class NumericalPoint():
             return(dict([(self.ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
         else:
             raise AttributeError("please set a ring")
+
+
 # class Homotopy(PolynomialSystem):
     """
     A doc string describing this class
     """
 #    def __init__(self, polySys, params):
+
+
+# STAND-
+
+
+# RUNNING EXAMPLES
