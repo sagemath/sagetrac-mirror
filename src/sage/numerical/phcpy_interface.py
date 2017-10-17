@@ -27,8 +27,30 @@ class PolynomialSystem(SageObject):
         else:
             raise TypeError("coefficient ring")
 
+class NumericalPoint():
+    """
+    A class for representing points numerically
+    """
+    def __init__(self, coords, ring=None, multiplicity=None, condition_number=None):
+        """
+        Construct from list of coordinates
 
-
+        EXAMPLES
+        R.<x,y,z> =PolynomialRing(CC,3)
+        p = NumericalPoint([2,3,4],ring=R)
+        p.coordinates
+        p.to_dict()
+        """
+        self.coordinates = coords
+        self.ring = ring
+        self.multiplicity = multiplicity
+        self.condition_number = condition_number
+        # and so on as more args are added
+    def to_dict(self):
+        if self.ring != None:
+            return(dict([(self.ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
+        else:
+            raise AttributeError("please set a ring")
 # class Homotopy(PolynomialSystem):
     """
     A doc string describing this class
