@@ -17,7 +17,7 @@ class PolynomialSystem(SageObject):
 		
 		EXAMPLES::
 
-			sage: sage.numerical.phcpy_interface import PolynomialSystem
+			sage: from sage.numerical.phcpy_interface import PolynomialSystem
 			sage: R.<x,y>=PolynomialRing(QQ,2)
 			sage: F=[x^2-y,x+y]
 			sage: A=PolynomialSystem(F)
