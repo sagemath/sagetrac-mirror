@@ -48,12 +48,20 @@ class PHCpackEngine(HomotopyContinuationEngine):
     def __str__(self): return self.__repr__()
 
     def __syst_to_phcpy_strs(self, polynomialSystem):
-        pass
+        return map(lambda p:str(p)+';', polynomialSystem.polys)
 
-    def __phcpy_sols_to_NomericalPoints(self, phcpySols):
+#def __init__(self, coords, ring=None, multiplicity=None, condition_number=None):
+    def __phcpy_sols_to_NumericalPoints(self, phcpySols):
         pass
+        """
+        import phcpy.solutions
+        toReturn = []
+        for phcpySol in phcpySols:
+            solDict = self.phcpy.solutions.strsol2dict(phcpySol)
+            NumericalPoint(
+        """
 
-    def __call_phcpy_function(func):
+    def __call_phcpy_function(self, func):
         try: return func()
         except Exception: raise RuntimeError("Error running phcpy")
 
@@ -62,6 +70,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
         pass
 
     def zero_dim_solve(self, system, prec=None, digits=None, adaptivePrec=False):
+        import phcpy.solver ##### kill w/ new version of phcpy
         if adaptivePrec: raise NotImplementedError("adaptive precision not currently supported")
 
         if not (prec is None):
@@ -77,10 +86,11 @@ class PHCpackEngine(HomotopyContinuationEngine):
         else: # prec, digits both none
             phcpyPrec = 'd'
 
-        f = lambda: self.phcpy.solver.solve(__syst_to_phcpy_strs(system), verbose = False, tasks = self.numThreads - 1, precision = phcpyPrec)
-        sols = __call_phcpy_function(f)
-        return __phcpy_sols_to_NumericalPoints(sols)
+        f = lambda: self.phcpy.solver.solve(self.__syst_to_phcpy_strs(system), verbose = False, tasks = self.numThreads - 1, precision = phcpyPrec)
+        sols = self.__call_phcpy_function(f)
+        return self.__phcpy_sols_to_NumericalPoints(sols)
 
     def mixed_volume(self, system):
-        f = lambda: self.phcpy.solver.mixed_volume(__syst_to_phcpy_strs(system))
-        return Integer(__call_phcpy_function(f))
+        import phcpy.solver ##### kill w/ new version of phcpy
+        f = lambda: self.phcpy.solver.mixed_volume(self.__syst_to_phcpy_strs(system))
+        return Integer(self.__call_phcpy_function(f))
