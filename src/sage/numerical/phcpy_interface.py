@@ -14,6 +14,38 @@ class PolynomialSystem(SageObject):
 		"""
 		This is a constructor that takes a list of polynomials and 
 		returns an object of class PolynomialSystem.
+		
+		EXAMPLES::
+
+			sage: R.<x,y>=PolynomialRing(QQ,2)
+			sage: F=[x^2-y,x+y]
+			sage: A=PolynomialSystem(F)
+			sage: B=PolynomialSystem(F,var_order=[y,x])
+			sage: A.ring
+			Multivariate Laurent Polynomial Ring in x, y over Rational Field
+			sage: B.ring
+			Multivariate Laurent Polynomial Ring in y, x over Rational Field
+
+			sage: S.<a,b,c>=PolynomialRing(RealField(100),3)
+			sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
+			sage: C=PolynomialSystem(G,var_order=[b,a,c])
+			sage: C.ring
+			Multivariate Laurent Polynomial Ring in b, a, c over Real Field with 100 bits of precision
+			sage: C.polys
+			
+			[b^2 + 2.0000000000000000000000000000*b*a + a^2 + 2.0000000000000000000000000000*b*c + 2.0000000000000000000000000000*a*c + c^2 - b - a - c,
+ b^2 - 2.0000000000000000000000000000*b*a + 2.0000000000000000000000000000*a^2 - 2.0000000000000000000000000000*a*c + c^2]
+
+
+			sage: var('w,z')
+			(w, z)
+			sage: D=PolynomialSystem([w^7-z])
+			... RuntimeWarning: SymbolicRing expressions not checked for consistency. Precision may be lost due to conversion of rationals.
+			sage: D.ring
+			Multivariate Laurent Polynomial Ring in z, w over Complex Field with 64 bits of precision
+			sage: D.polys
+			[w^7 - z]
+
 		"""
 		if isinstance(polys,PolynomialSystem):
 			self=polys
@@ -70,16 +102,18 @@ class NumericalPoint(SageObject):
 		EXAMPLES::
 
 			sage: from sage.numerical.phcpy_interface import NumericalPoint
-			sage: R.<x,y,z> =PolynomialRing(CC,3)
-			sage: p = NumericalPoint([2,3,4],ring=R)
+			sage: R.<x,y,z> = PolynomialRing(CC,3)
+			sage: p = NumericalPoint([2,3,4+I],ring=R)
+			sage: p.dict
+			{z: I + 4, y: 3, x: 2}
 			sage: p.coordinates
-			[2, 3, 4]
-			sage: p.to_dict()
-			{z: 4, y: 3, x: 2}		
+			[2, 3, I + 4]
+	
 		"""
 		if isinstance(coords,list):
 			self.coordinates = coords
 			self.ring = ring
+			self.dict = self.to_dict()
 			self.multiplicity = multiplicity
 			self.rco = rco
 			self.err = err
