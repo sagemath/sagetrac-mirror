@@ -97,9 +97,11 @@ class NumericalPoint(SageObject):
 			self.err = err
 			self.res = res		
 		# and so on as more args are added
-	def to_dict(self):
-		if self.ring != None:
-			return(dict([(self.ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
+	def to_dict(self, temp_ring=None):
+		if self.ring != None and temp_ring==None:
+			temp_ring=self.ring
+		if temp_ring != None:
+			return(dict([(temp_ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
 		else:
 			raise AttributeError("please set a ring")
 	def __str__(self):
@@ -166,12 +168,12 @@ class NumericalIrreducibleDecomposition(SageObject):
 class ParametrizedPolynomialSystem(PolynomialSystem):
 	def __init__(self,system,params):
 		super(ParametrizedPolynomialSystem,self).__init__(system)
-		if (not isinstance(params, list)) or (false in set([g in self.ring.gens() for g in params])):
+		if (not isinstance(params, list)) or (False in set([g in self.ring.gens() for g in params])):
 			raise TypeError("Parameters must be a list of variables in the ring.")
 		self.params = params
 		self.variables = (set(self.ring.gens())).difference(self.params)
-	def specialize(self,subDict,specialize_ring=true):
-		if false in set([g in subDict.keys() for g in self.params]):
+	def specialize(self,subDict,specialize_ring=True):
+		if False in set([g in subDict.keys() for g in self.params]):
 			raise TypeError("Specialization keys should be parameters.")
 		specialSelf=self
 		specialSelf.polys=[f.subs(subDict) for f in self.polys]
