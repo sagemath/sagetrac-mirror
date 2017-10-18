@@ -32,19 +32,19 @@ class PolynomialSystem(SageObject):
 		goodBaseRing=L[0].base_ring()
 	    else:
                 raise TypeError("coefficient ring")
-	    myvars=list(set(flatten([list(p.variables()) for p in polys])))
-	    if initiallySymbolic and var_order==None:
+	    myvars=list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
+	    if var_order==None:
 		var_order=myvars
 	    if var_order!=None:
 	        if set(var_order)==set(myvars):
 	            myvars=var_order
-		    self.ring = PolynomialRing(goodBaseRing,len(myvars),myvars)
+		    self.ring = LaurentPolynomialRing(goodBaseRing,len(myvars),myvars)
                     self.polys = [(self.ring)(p)  for p in polys]
 		else:
 	            raise TypeError("Variable order is not the exact list of variables involved")
-	    else:
-                self.polys = polys
-                self.ring = polys[0].parent() # not strictly necessary
+#	    else:
+#                self.polys = polys
+#                self.ring = polys[0].parent() # not strictly necessary
 	    if self.ring.base_ring()!=QQ and self.ring.base_ring()!=ZZ:
 		self.prec=self.ring.base_ring().precision()
     def evaluate(self, npoint):
