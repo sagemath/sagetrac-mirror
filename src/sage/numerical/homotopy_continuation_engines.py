@@ -13,8 +13,9 @@ class HomotopyContinuationEngine(SageObject):
     def __init__(self, numThreads=1):
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def mixed_volume(self, polynomialSystem):
+    def mixed_volume(self, polynomialSystem, stable=False):
+        raise NotImplementedError
+    def bezout_bound(self, polynomialSystem):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -43,23 +44,33 @@ class PHCpackEngine(HomotopyContinuationEngine):
         try: assert numThreads >= 1
         except Exception: raise ValueError("Invalid thread count: " + str(numThreads))
         self.numThreads = numThreads
+        # This records the correspondence between the original variables given by the user,
+        # and our own self-created variables, which we use to avoid the issue of phcpy not
+        # allowing certain variable names such as e, i, etc. Also, makes the strsol2dict
+        # work if the user chose m, t, etc. as a variable name.
+        self.__phcpyVarToInputVarDict = {}
+
+
+    def mixed_volume(self, system, stable=False):
+        f = lambda: Integer(self.phcpy.solver.mixed_volume(self.__syst_to_phcpy_strs(system), stable))
+        return self.__call_phcpy_function(f)
+    def bezout_bound(self, polynomialSystem):
+        f = lambda: Integer(self.phcpy.solver.total_degree(self.__syst_to_phcpy_strs(polynomialSystem)))
+        return self.__call_phcpy_function(f)
 
     def __repr__(self): return "Interface to " + self.phcpy.py2c_PHCpack_version_string()
     def __str__(self): return self.__repr__()
 
     def __syst_to_phcpy_strs(self, polynomialSystem):
+        self.__phcpyVarToInputVarDict
         return map(lambda p:str(p)+';', polynomialSystem.polys)
 
-#def __init__(self, coords, ring=None, multiplicity=None, condition_number=None):
-    def __phcpy_sols_to_NumericalPoints(self, phcpySols):
-        pass
-        """
-        import phcpy.solutions
+    def __phcpy_sols_to_NumericalPoints(self, phcpySols, ring):
         toReturn = []
         for phcpySol in phcpySols:
             solDict = self.phcpy.solutions.strsol2dict(phcpySol)
-            NumericalPoint(
-        """
+            pointDict = {variable:solDict[str(variable)] for variable in ring.gens()}
+            #NumericalPoint(pointDict, ring=ring, multiplicity = None, condition_number=None):
 
     def __call_phcpy_function(self, func):
         try: return func()
@@ -70,7 +81,6 @@ class PHCpackEngine(HomotopyContinuationEngine):
         pass
 
     def zero_dim_solve(self, system, prec=None, digits=None, adaptivePrec=False):
-        import phcpy.solver ##### kill w/ new version of phcpy
         if adaptivePrec: raise NotImplementedError("adaptive precision not currently supported")
 
         if not (prec is None):
@@ -85,12 +95,9 @@ class PHCpackEngine(HomotopyContinuationEngine):
             else: raise ValueError("Cannot work in greater than 64 digits of precision with PHCpack")
         else: # prec, digits both none
             phcpyPrec = 'd'
-
-        f = lambda: self.phcpy.solver.solve(self.__syst_to_phcpy_strs(system), verbose = False, tasks = self.numThreads - 1, precision = phcpyPrec)
+        systStrs = self.__syst_to_phcpy_strs(system)
+        f = lambda: self.phcpy.solver.solve(systStrs, verbose=False, tasks=self.numThreads - 1, precision=phcpyPrec)
         sols = self.__call_phcpy_function(f)
         return self.__phcpy_sols_to_NumericalPoints(sols)
 
-    def mixed_volume(self, system):
-        import phcpy.solver ##### kill w/ new version of phcpy
-        f = lambda: self.phcpy.solver.mixed_volume(self.__syst_to_phcpy_strs(system))
-        return Integer(self.__call_phcpy_function(f))
+
