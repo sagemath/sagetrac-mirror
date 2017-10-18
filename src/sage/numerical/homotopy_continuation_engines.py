@@ -50,7 +50,6 @@ class PHCpackEngine(HomotopyContinuationEngine):
         # work if the user chose m, t, etc. as a variable name.
         self.__phcpyVarToInputVarDict = {}
 
-
     def mixed_volume(self, system, stable=False):
         f = lambda: Integer(self.phcpy.solver.mixed_volume(self.__syst_to_phcpy_strs(system), stable))
         return self.__call_phcpy_function(f)
