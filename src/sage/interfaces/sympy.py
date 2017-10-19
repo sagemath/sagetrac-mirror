@@ -1,9 +1,8 @@
 """
 SymPy --> Sage conversion
 
-The file consists of ``_sage_()`` methods that are added lazily to
-the respective SymPy objects. Any call of the ``_sympy_()`` method
-of a symbolic expression will trigger the addition. See
+The file consists of ``_sage_()`` methods that are added lazily with
+any SymPy import to the respective SymPy objects. See
 :class:`sage.symbolic.expression_conversion.SymPyConverter` for the
 conversion to SymPy.
 
@@ -634,23 +633,17 @@ def sympy_init():
     Add ``_sage_()`` methods to SymPy objects where needed.
 
     This gets called with every call to ``Expression._sympy_()``
-    so there is only need to call it if you bypass ``_sympy_()`` to
-    create SymPy objects. Note that SymPy objects have ``_sage_()``
-    methods hard installed but having them inside Sage as
-    one file makes them easier to maintain for Sage developers.
+    and with any SymPy import so there is no need to call yourself.
+    Note that many SymPy objects have ``_sage_()`` methods hard installed
+    but having them inside Sage as one file makes it easier for Sage
+    developers to maintain and test them.
 
     EXAMPLES::
 
-        sage: from sage.interfaces.sympy import sympy_init
         sage: from sympy import Symbol, Abs
-        sage: sympy_init()
         sage: assert abs(x) == Abs(Symbol('x'))._sage_()
     """
-    from sympy import Add
-    if Add._sage_ == _sympysage_add:
-        return
-
-    from sympy import Mul, Pow, Symbol
+    from sympy import Add, Mul, Pow, Symbol
     from sympy.core.function import (Function, AppliedUndef, Derivative)
     from sympy.core.numbers import (Float, Integer, Rational, Infinity,
             NegativeInfinity, ComplexInfinity, Exp1, Pi, GoldenRatio,

@@ -1,0 +1,12 @@
+diff --git a/sympy/__init__.py b/sympy/__init__.py
+index 0c52a7512..35f088e58 100644
+--- a/sympy/__init__.py
++++ b/sympy/__init__.py
+@@ -90,3 +90,7 @@ def __sympy_debug():
+ #import abc
+ 
+ from .deprecated import *
++
++from sage.interfaces.sympy import sympy_init
++sympy_init()
++
