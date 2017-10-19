@@ -60,7 +60,7 @@ class PolynomialSystem(SageObject):
         else:
             if not isinstance(polys, list):
                 raise TypeError("incorrect input")
-            ringList = list(set([p.parent() for p in polys]))
+            ringList = list(set([p.parent() if initiallySymbolic==False else list(p.variables()) for p in polys]))
             if len(ringList) != 1 or not isinstance(ringList[0], Ring):
                 raise TypeError("polynomials don't have same parent ring")
             initiallySymbolic = isinstance(ringList[0].base_ring(), SymbolicRing)
@@ -121,9 +121,13 @@ class NumericalPoint(SageObject):
             self.rco = rco
             self.err = err
             self.res = res
-        if isinstance(coords, dict):
-            ringList = list(set([p.parent() for p in coords.keys()]))
-            if len(ringList) != 1 or not isinstance(ringList[0], Ring):
+            if ring != None:
+                self.dict=self.to_dict()
+            else:
+                self.dict=None
+        if isinstance(coords,dict):
+            ringList=list(set([p.parent() for p in coords.keys()]))
+            if len(ringList) != 1 or not isinstance(ringList[0],Ring):
                 raise TypeError("Keys are not all in the same ring")
             if len(coords.keys()) != coords.keys()[0].parent().ngens():
                 raise TypeError("Number of keys disagrees with number of variables of ring")
@@ -132,7 +136,8 @@ class NumericalPoint(SageObject):
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
-            self.res = res
+            self.res = res     
+            self.dict = coords   
         # and so on as more args are added
     def to_dict(self, temp_ring=None):
         if self.ring != None and temp_ring is None:
@@ -141,7 +146,7 @@ class NumericalPoint(SageObject):
             newDictionary = dict([(temp_ring.gens()[i], \
             self.coordinates[i]) for i in range(0, \
             len(self.coordinates))])
-        if self.ring != None:
+        if not self.ring is None:
             self.dict = newDictionary
             return newDictionary
         else:
@@ -159,6 +164,19 @@ class WitnessSet(SageObject):
             *) forms, an object of type PolynomialSystem consisting of linear \
             forms w/ the same ring as poly_sys
             *) points --- a list of objects of type NumericalPoint
+
+        EXAMPLES:
+
+            sage: from sage.numerical.phcpy_interface import PolynomialSystem
+            sage: from sage.numerical.phcpy_interface import NumericalPoint
+            sage: from sage.numerical.phcpy_interface import WitnessSet
+            sage: R.<x,y>=PolynomialRing(QQ,2)
+            sage: F=PolynomialSystem([y-x^2])
+            sage: L=PolynomialSystem([y-25])
+            sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
+            sage: W=WitnessSet(F,L,pts)
+            sage: W.check_validity()
+            True
         """
         if not isinstance(poly_sys, PolynomialSystem):
             raise TypeError("first argument should be a PolynomialSystem")
