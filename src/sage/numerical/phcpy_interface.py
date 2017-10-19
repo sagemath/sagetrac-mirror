@@ -82,18 +82,55 @@ class PolynomialSystem(SageObject):
             if self.ring.base_ring() != QQ and self.ring.base_ring() != ZZ:
                 self.prec = self.ring.base_ring().precision()
     def zero_dim_solve(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         sols = zero_dim_solve(self)
         self.solutions = sols
         return sols
     def evaluate(self, npoint):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         if isinstance(npoint, list):
             npoint = NumericalPoint(npoint, ring=self.ring)
         if not isinstance(npoint, NumericalPoint):
             raise TypeError("point provided must be of type NumericalPoint")
         return([f.subs(npoint.to_dict(temp_ring=self.ring)) for f in self.polynomials])
     def __str__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+
         return "%s over %s. " %(self.polynomials, self.ring)
     def __repr__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         return "%s over %s. " %(self.polynomials, self.ring)
 class NumericalPoint(SageObject):
     """
@@ -139,6 +176,15 @@ class NumericalPoint(SageObject):
             self.dict = coords
         # and so on as more args are added
     def to_dict(self, temp_ring=None):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         if self.ring != None and temp_ring is None:
             temp_ring = self.ring
         if temp_ring != None:
@@ -151,8 +197,27 @@ class NumericalPoint(SageObject):
             self.dict = new_dictionary
         return new_dictionary
     def to_vector(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         return vector(self.coordinates)
     def __str__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+
         return_string = ""
         return_string += str(self.coordinates) + "\n"
         if not self.multiplicity is None:
@@ -165,9 +230,28 @@ class NumericalPoint(SageObject):
             return_string += "Backward Error: " + str(self.res) + "\n"
         return return_string
     def __repr__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         return "A numerical point in CC^%s." %(len(self.coordinates))
 
 class WitnessSet(SageObject):
+    """
+    A blah that does blah
+
+    INPUT:
+
+    OUTPUT:
+
+    EXAMPLES::
+    """
+
     def __init__(self, poly_sys, forms, points):
         """
         INPUT:
@@ -205,6 +289,15 @@ class WitnessSet(SageObject):
         self.points = points
         self.dimension = len(forms.polynomials)
     def check_validity(self, tolerance=0.000001):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         evaluations = flatten([[(f.evaluate(p)) for f in \
             ([self.polynomials, self.slices])] for p in self.points])
         if False in set([(abs(q) < tolerance) for q in evaluations]):
@@ -212,9 +305,29 @@ class WitnessSet(SageObject):
         else:
             return True
     def __str__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+
         return "A witness set for a dimension-%s component with %s points." \
             %(self.dimension, len(self.points))
     def __repr__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+
         return "A witness set for a dimension-%s component with %s points." \
             %(self.dimension, len(self.points))
 
@@ -224,6 +337,7 @@ class NumericalIrreducibleDecomposition(SageObject):
     a class which organizes the witness sets appearing in the NID of a variety
     """
     def __init__(self):
+
         self.components = dict()
     def append_witness_set(self, wset):
         if not isinstance(wset, WitnessSet):
