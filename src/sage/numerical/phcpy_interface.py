@@ -61,8 +61,7 @@ class PolynomialSystem(SageObject):
         else:
             if not isinstance(polys, list):
                 raise TypeError("incorrect input")
-            ring_list = list(set([p.parent() if initially_symbolic == False \
-                else list(p.variables()) for p in polys]))
+            ring_list = list(set([p.parent() for p in polys]))
             if len(ring_list) != 1 or not isinstance(ring_list[0], Ring):
                 raise TypeError("polynomials don't have same parent ring")
             initially_symbolic = isinstance(ring_list[0].base_ring(), SymbolicRing)
@@ -76,7 +75,7 @@ class PolynomialSystem(SageObject):
                 good_base_ring = ring_list[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            myvars = list(reversed(list(set(flatten([list(p.parent().gens()) for p in polys])))))
+            myvars = list(reversed(list(set(flatten([list(p.parent().gens()) if initially_symbolic==False else list(p.variables()) for p in polys])))))
             if var_order == None:
                 var_order = myvars
             if var_order != None:
