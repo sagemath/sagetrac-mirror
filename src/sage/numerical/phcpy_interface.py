@@ -12,6 +12,7 @@ from sage.symbolic.ring import SymbolicRing
 # from sage.rings.complex_field import *
 from sage.rings.real_mpfr import RR
 from sage.misc.flatten import flatten
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
 ## CLASSES
 
@@ -60,18 +61,19 @@ class PolynomialSystem(SageObject):
         else:
             if not isinstance(polys, list):
                 raise TypeError("incorrect input")
-            ringList = list(set([p.parent() if initiallySymbolic==False else list(p.variables()) for p in polys]))
-            if len(ringList) != 1 or not isinstance(ringList[0], Ring):
+            ring_list = list(set([p.parent() if initially_symbolic == False \
+                else list(p.variables()) for p in polys]))
+            if len(ring_list) != 1 or not isinstance(ring_list[0], Ring):
                 raise TypeError("polynomials don't have same parent ring")
-            initiallySymbolic = isinstance(ringList[0].base_ring(), SymbolicRing)
-            if initiallySymbolic:
+            initially_symbolic = isinstance(ring_list[0].base_ring(), SymbolicRing)
+            if initially_symbolic:
                 good_base_ring = ComplexField(64)
                 warnings.warn("SymbolicRing expressions not checked for consistency. \
                 Precision may be lost due to conversion of rationals.", RuntimeWarning)
-            elif ringList[0].base_ring() in set([RR, CC, QQ, ZZ]) \
-                 or ringList[0].base_ring().parent() == RR.parent() or \
-                 ringList[0].base_ring().parent() == CC.parent():
-                good_base_ring = ringList[0].base_ring()
+            elif ring_list[0].base_ring() in set([RR, CC, QQ, ZZ]) \
+                 or ring_list[0].base_ring().parent() == RR.parent() or \
+                 ring_list[0].base_ring().parent() == CC.parent():
+                good_base_ring = ring_list[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
             myvars = list(reversed(list(set(flatten([list(p.parent().gens()) for p in polys])))))
@@ -122,12 +124,12 @@ class NumericalPoint(SageObject):
             self.err = err
             self.res = res
             if ring != None:
-                self.dict=self.to_dict()
+                self.dict = self.to_dict()
             else:
-                self.dict=None
-        if isinstance(coords,dict):
-            ringList=list(set([p.parent() for p in coords.keys()]))
-            if len(ringList) != 1 or not isinstance(ringList[0],Ring):
+                self.dict = None
+        if isinstance(coords, dict):
+            ring_list = list(set([p.parent() for p in coords.keys()]))
+            if len(ring_list) != 1 or not isinstance(ring_list[0], Ring):
                 raise TypeError("Keys are not all in the same ring")
             if len(coords.keys()) != coords.keys()[0].parent().ngens():
                 raise TypeError("Number of keys disagrees with number of variables of ring")
@@ -136,19 +138,19 @@ class NumericalPoint(SageObject):
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
-            self.res = res     
-            self.dict = coords   
+            self.res = res
+            self.dict = coords
         # and so on as more args are added
     def to_dict(self, temp_ring=None):
         if self.ring != None and temp_ring is None:
             temp_ring = self.ring
         if temp_ring != None:
-            newDictionary = dict([(temp_ring.gens()[i], \
+            new_dictionary = dict([(temp_ring.gens()[i], \
             self.coordinates[i]) for i in range(0, \
             len(self.coordinates))])
         if not self.ring is None:
-            self.dict = newDictionary
-            return newDictionary
+            self.dict = new_dictionary
+            return new_dictionary
         else:
             raise AttributeError("please set a ring")
     def __str__(self):
@@ -199,7 +201,7 @@ class WitnessSet(SageObject):
         if False in set([(abs(q) < tolerance) for q in evaluations]):
             return False
         else:
-	    return True
+            return True
     def __str__(self):
         return "A witness set for a dimension-%s component with %s points." \
             %(self.dimension, len(self.points))
@@ -207,15 +209,15 @@ class WitnessSet(SageObject):
         return "A witness set for a dimension-%s component with %s points." \
             %(self.dimension, len(self.points))
 
-        
+
 class NumericalIrreducibleDecomposition(SageObject):
     """
     a class which organizes the witness sets appearing in the NID of a variety
     """
     def __init__(self):
-        self.components =dict()
+        self.components = dict()
     def append_witness_set(self, wset):
-        if not isinstance(wset,WitnessSet):
+        if not isinstance(wset, WitnessSet):
             raise TypeError("must append with a witness set")
         if wset.dimension in self.components.keys():
             self.components[wset.dimension].append(wset)
@@ -240,30 +242,19 @@ class NumericalIrreducibleDecomposition(SageObject):
 class ParametrizedPolynomialSystem(PolynomialSystem):
     def __init__(self, system, params):
         super(ParametrizedPolynomialSystem, self).__init__(system)
-        if (not isinstance(params, list)) or (False in set([g in self.ring.gens() for g in params])):
+        if (not isinstance(params, list)) or (False in \
+            set([g in self.ring.gens() for g in params])):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
         self.variables = (set(self.ring.gens())).difference(self.params)
-    def specialize(self, subDict, specialize_ring=True):
-        if False in set([g in subDict.keys() for g in self.params]):
+    def specialize(self, sub_dict, specialize_ring=True):
+        if False in set([g in sub_dict.keys() for g in self.params]):
             raise TypeError("Specialization keys should be parameters.")
-        specialSelf = self
-        specialSelf.polys = [f.subs(subDict) for f in self.polys]
+        special_self = self
+        special_self.polys = [f.subs(sub_dict) for f in self.polys]
         if specialize_ring:
-            newVars = list(set(self.ring.gens()).difference(subDict.keys()))
-            specializedring = PolynomialRing(self.polys[0].base_ring(), len(newVars), newVars)
-            specialSelf.polys = [specializedring(str(f)) for f in specialSelf.polys]
-            specialSelf.ring = specializedring
-        return specialSelf
-    
-# class Homotopy(PolynomialSystem):
-    """
-    A doc string describing this classs
-    """
-#    def __init__(self, poly_sys, params):
-
-
-## STANDALONE FUNCTION
-
-
-
+            new_vars = list(set(self.ring.gens()).difference(sub_dict.keys()))
+            specializedring = PolynomialRing(self.polys[0].base_ring(), len(new_vars), new_vars)
+            special_self.polys = [specializedring(str(f)) for f in special_self.polys]
+            special_self.ring = specializedring
+        return special_self
