@@ -2,7 +2,17 @@
 # 1) Most classes and methods need examples, tests, I/O documentation
 
 import warnings
+
 from sage.structure.sage_object import SageObject
+from sage.rings.polynomial import *
+from sage.rings.polynomial.polynomial_element import *
+from sage.rings.all import *
+from sage.rings.ring import Ring
+from sage.symbolic.ring import SymbolicRing
+from sage.rings.complex_field import *
+from sage.rings import complex_field, integer_ring,rational_field
+from sage.rings.real_mpfr import RR
+from sage.misc.flatten import flatten
 
 ## CLASSES
 
@@ -57,7 +67,7 @@ class PolynomialSystem(SageObject):
 			if len(L) != 1 or not isinstance(L[0],Ring):
 				raise TypeError("polynomials don't have same parent ring")
 			# better error handling for coefficient field NEEDED
-			initiallySymbolic=isinstance(L[0].base_ring(),sage.symbolic.ring.SymbolicRing)
+			initiallySymbolic=isinstance(L[0].base_ring(),SymbolicRing)
 			if initiallySymbolic:
 				goodBaseRing=ComplexField(64)
 				warnings.warn("SymbolicRing expressions not checked for consistency. Precision may be lost due to conversion of rationals.",RuntimeWarning)
