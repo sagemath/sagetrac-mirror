@@ -1,7 +1,4 @@
-r"""
-Groebner Fans
-
-Sage provides much of the functionality of gfan, which is a
+age provides much of the functionality of gfan, which is a
 software package whose main function is to enumerate all reduced
 Groebner bases of a polynomial ideal. The reduced Groebner bases
 yield the maximal cones in the Groebner fan of the ideal. Several
@@ -52,6 +49,12 @@ TESTS::
     sage: g == loads(dumps(g))
     True
 
+    sage: R.<z1,z10,z11> = PolynomialRing(QQ,3)
+    sage: I = R.ideal([z1^2-z10-1,z10+z1-z11,z11^3+1*z1])
+    sage: GF = I.groebner_fan()
+    sage: GF.reduced_groebner_bases()[0]
+    [z11^6 - z11^3 - z11 - 1, -z11^3 + z10 - z11, z11^3 + z1]
+
 REFERENCES:
 
 - Anders N. Jensen; Gfan, a software system for Groebner fans;
@@ -91,10 +94,14 @@ def prefix_check(str_list):
 
         sage: from sage.rings.polynomial.groebner_fan import prefix_check
         sage: prefix_check(['z1','z1z1'])
+        doctest...: DeprecationWarning: this function is no longer used in sage and will be removed
+        See http://trac.sagemath.org/24070 for details.
         False
         sage: prefix_check(['z1','zz1'])
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(24070, "this function is no longer used in sage and will be removed")
     for index1 in range(len(str_list)):
         for index2 in range(len(str_list)):
             string1 = str_list[index1]
@@ -102,6 +109,26 @@ def prefix_check(str_list):
             if index1 != index2 and str_list[index1][0:len(string2)].find(string2) != -1:
                 return False
     return True
+
+def prefix_safety_switch(str_list):
+    """
+    Creates a new list of variables and dictionaries to switch back and forth,
+    to avoid prefixes of a variable name appearing in another, which is not
+    allowed by Gfan.
+
+    EXAMPLES::
+        sage: from sage.rings.polynomial.groebner_fan import prefix_safety_switch
+    """
+    nvars = len(str_list)
+    max_len = len(str(nvars))
+    new_names = ['GF' + '0'*(max_len-len(str(i))) + str(i) for i in range(nvars)]
+
+    new_to_old = {}
+    old_to_new = {}
+    for i in range(nvars):
+        new_to_old[new_names[i]] = str_list[i]
+        old_to_new[str_list[i]] = new_names[i]
+    return new_to_old, old_to_new
 
 
 def max_degree(list_of_polys):
@@ -621,7 +648,7 @@ class InitialForm(SageObject):
 
 def verts_for_normal(normal, poly):
     """
-    Returns the exponents of the vertices of a Newton polytope
+    Returns the exponents of the vertices of a newton polytope
     that make up the supporting hyperplane for the given outward
     normal.
 
@@ -684,16 +711,16 @@ class TropicalPrevariety(PolyhedralFan):
 
         EXAMPLES::
 
-            sage: R.<x,y> = QQ[]
-            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: R.<x,xx> = QQ[]
+            sage: I = R.ideal([(x+xx)^2-1,(x+xx)^2-2,(x+xx)^2-3])
             sage: GF = I.groebner_fan()
             sage: PF = GF.tropical_intersection()
             sage: pfi = PF.initial_form_systems()
             sage: for q in pfi:
             ....:     print(q.initial_forms())
-            [y^2 - 1, y^2 - 2, y^2 - 3]
+            [xx^2 - 1, xx^2 - 2, xx^2 - 3]
             [x^2 - 1, x^2 - 2, x^2 - 3]
-            [x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2]
+            [x^2 + 2*x*xx + xx^2, x^2 + 2*x*xx + xx^2, x^2 + 2*x*xx + xx^2]
         """
         try:
             return self._initial_form_systems
@@ -819,10 +846,21 @@ class GroebnerFan(SageObject):
         self.__verbose = verbose
         if not is_MPolynomialIdeal(I):
             raise TypeError("I must be a multivariate polynomial ideal")
-        if not prefix_check([str(R_gen) for R_gen in I.ring().gens()]):
-            raise RuntimeError("Ring variables cannot contain each other as prefixes")
+        #if prefix_check([str(R_gen) for R_gen in I.ring().gens()]) != True:
+        #    raise RuntimeError("Ring variables cannot contain each other as prefixes")
+        old_vars = [str(R_gen) for R_gen in I.ring().gens()]
+        self._new_to_old_str, self._old_to_new_str = prefix_safety_switch(old_vars)
+        new_vars =  [self._old_to_new_str[str(k)] for k in old_vars]
         S = I.ring()
         R = S.base_ring()
+        new_S = PolynomialRing(R, new_vars)
+        self._old_to_new = {}
+        skeys = sorted([[len(k),k] for k in self._old_to_new_str])[::-1]
+        skeys = [k[1] for k in skeys]
+        for k in skeys:
+             self._old_to_new[S(k)] = new_S(self._old_to_new_str[k])
+
+        new_I = new_S.ideal([new_S(str(x.subs(self._old_to_new))) for x in I.gens()])
         # todo: add support for ZZ, which only works for bases computation, not tropical intersections
         if not R.is_field():
             raise NotImplementedError("Groebner fan computation only implemented over fields")
@@ -833,8 +871,10 @@ class GroebnerFan(SageObject):
         if S.ngens() > 52:
             raise NotImplementedError("Groebner fan computation only implemented for rings in at most 52 variables.")
 
-        self.__ideal = I
-        self.__ring = S
+        self._gfan_ideal = new_I
+        self._gfan_ring = new_S
+        self._ideal = I
+        self._ring = S
 
     def _repr_(self):
         """
@@ -848,7 +888,7 @@ class GroebnerFan(SageObject):
             Groebner fan of the ideal:
             Ideal (q - u, u^2 - 1) of Multivariate Polynomial Ring in q, u over Rational Field
         """
-        return "Groebner fan of the ideal:\n%s"%self.__ideal
+        return "Groebner fan of the ideal:\n%s"%self._ideal
 
     def __eq__(self,right):
         """
@@ -875,7 +915,7 @@ class GroebnerFan(SageObject):
             sage: gf.ideal()
             Ideal (x1^3 - x2, x2^3 - 2*x1 - 2) of Multivariate Polynomial Ring in x1, x2 over Rational Field
         """
-        return self.__ideal
+        return self._ideal
 
     def _gfan_maps(self):
         """
@@ -909,7 +949,7 @@ class GroebnerFan(SageObject):
         try:
             return self.__gfan_maps
         except AttributeError:
-            S = self.__ring
+            S = self._ring
             n = S.ngens()
 
             # Define a polynomial ring in n variables
@@ -927,7 +967,7 @@ class GroebnerFan(SageObject):
             self.__gfan_maps = (phi, psi)
             return self.__gfan_maps
 
-    def _gfan_ring(self):
+    def _get_gfan_ring(self):
         """
         Return the ring in gfan's notation
 
@@ -935,12 +975,12 @@ class GroebnerFan(SageObject):
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
-            sage: G._gfan_ring()
+            sage: G._get_gfan_ring()
             'Q[x, y, z]'
         """
         return ring_to_gfan_format(self.ring())
 
-    def _gfan_ideal(self):
+    def _get_gfan_ideal(self):
         """
         Return the ideal in gfan's notation.
 
@@ -948,13 +988,13 @@ class GroebnerFan(SageObject):
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
-            sage: G._gfan_ideal()
-            'Q[x, y, z]{x^2*y-z,y^2*z-x,x*z^2-y}'
+            sage: G._get_gfan_ideal()
+            'Q[GF0, GF1, GF2]{GF0^2*GF1-GF2,GF1^2*GF2-GF0,GF0*GF2^2-GF1}'
         """
         try:
             return self.__gfan_ideal
         except AttributeError:
-            self.__gfan_ideal = ideal_to_gfan_format(self.ring(),self.__ideal.gens())
+            self.__gfan_ideal = ideal_to_gfan_format(self._gfan_ring,self._gfan_ideal.gens())
             return self.__gfan_ideal
 
     def weight_vectors(self):
@@ -990,7 +1030,20 @@ class GroebnerFan(SageObject):
             sage: gf.ring()
             Multivariate Polynomial Ring in x1, x2 over Rational Field
         """
-        return self.__ring
+        return self._ring
+
+    def _get_ring(self):
+        """
+        Return the multivariate polynomial ring of the input.
+
+        EXAMPLES::
+
+            sage: R.<x1,xx> = PolynomialRing(QQ,2)
+            sage: gf = R.ideal([x1^3-xx,xx^3-x1-2]).groebner_fan()
+            sage: gf._get_ring()
+            Multivariate Polynomial Ring in x1, xx over Rational Field
+        """
+        return self._ring
 
     def _gfan_reduced_groebner_bases(self):
         """
@@ -1002,7 +1055,7 @@ class GroebnerFan(SageObject):
             sage: R.<a,b> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([a^3-b^2,b^2-a-1]).groebner_fan()
             sage: gf._gfan_reduced_groebner_bases()
-            'Q[a,b]{{b^6-1+2*b^2-3*b^4,a+1-b^2},{b^2-1-a,a^3-1-a}}'
+            'Q[GF0,GF1]{{GF1^6-1+2*GF1^2-3*GF1^4,GF0+1-GF1^2},{GF1^2-1-GF0,GF0^3-1-GF0}}'
         """
         try:
             return self.__gfan_reduced_groebner_bases
@@ -1024,7 +1077,7 @@ class GroebnerFan(SageObject):
             sage: gf.characteristic()
             0
         """
-        return self.__ring.characteristic()
+        return self._ring.characteristic()
 
     def reduced_groebner_bases(self):
         """
@@ -1057,10 +1110,12 @@ class GroebnerFan(SageObject):
             return self.__reduced_groebner_bases
         except AttributeError:
             G = self._gfan_reduced_groebner_bases()
+            for k in self._new_to_old_str:
+                G = G.replace(k,self._new_to_old_str[k])
             if G.find(']') != -1:
                 G = G.split(']')[1]
             G = G.replace('{{','').replace('}}','').split('},{')
-            S = self.__ring
+            S = self._ring
             X = [ReducedGroebnerBasis(self, [S(f) for f in G[i].split(',')], G[i]) for i in range(len(G))]
             self.__reduced_groebner_bases = X
             return X
@@ -1107,10 +1162,10 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: gf.gfan()
-            'Q[x,y]\n{{\ny^9-1-y+3*y^3-3*y^6,\nx+1-y^3}\n,\n{\ny^3-1-x,\nx^3-y}\n,\n{\ny-x^3,\nx^9-1-x}\n}\n'
+            'Q[GF0,GF1]\n{{\nGF1^9-1-GF1+3*GF1^3-3*GF1^6,\nGF0+1-GF1^3}\n,\n{\nGF1^3-1-GF0,\nGF0^3-GF1}\n,\n{\nGF1-GF0^3,\nGF0^9-1-GF0}\n}\n'
         """
         if I is None:
-            I = self._gfan_ideal()
+            I = self._get_gfan_ideal()
         # todo -- put something in here (?) when self.__symmetry isn't None...
         cmd += self._gfan_mod()
         s = gfan(I, cmd, verbose=self.__verbose, format=format)
@@ -1164,10 +1219,12 @@ class GroebnerFan(SageObject):
             return self.__buchberger
         except AttributeError:
             B = self.gfan(cmd='buchberger')
+            for k in self._new_to_old_str:
+                B = B.replace(k,self._new_to_old_str[k])
             if B.find(']') != -1:
                 B = B.split(']')[1]
             B = B.replace('}','').replace('{','')
-            S = self.__ring
+            S = self._ring
             B = [S(f) for f in B.split(',')]
             self.__buchberger = B
             return B
@@ -1272,7 +1329,7 @@ class GroebnerFan(SageObject):
             ...
             NotImplementedError
         """
-        S = self.__ring
+        S = self._ring
         if S.ngens() < 3:
             print("For 2-D fan rendering the polynomial ring must have 3 variables (or more, which are ignored).")
             raise NotImplementedError
@@ -1453,7 +1510,7 @@ class GroebnerFan(SageObject):
             ...
             NotImplementedError
         """
-        S = self.__ring
+        S = self._ring
         if S.ngens() != 4:
             print("For 3-D fan rendering the polynomial ring must have 4 variables")
             raise NotImplementedError
@@ -1583,7 +1640,7 @@ class GroebnerFan(SageObject):
             sage: G.number_of_variables()
             10
         """
-        return self.__ring.ngens()
+        return self._ring.ngens()
 
     def tropical_basis(self, check=True, verbose = False):
         """
@@ -1623,9 +1680,11 @@ class GroebnerFan(SageObject):
                 raise ValueError("The ideal does not define a tropical curve.")
 
         B = self.gfan(cmd)
+        for k in self._new_to_old_str:
+            B = B.replace(k,self._new_to_old_str[k])
         if B.find(']') != -1:
                 B = B.split(']')[1]
-        S = self.__ring
+        S = self._ring
         B = B.replace('\n','')
         B = B.replace('{','').replace('}','').split(',')
         if verbose: print(S, B)
@@ -1694,7 +1753,7 @@ class GroebnerFan(SageObject):
             return self.__tropical_intersection
         except AttributeError:
             cmd = 'tropicalintersection'
-            id_str = self._gfan_ideal()
+            id_str = self._get_gfan_ideal()
             if parameters != []:
                 allvars = self.ring().gens()
                 truevars = [q for q in allvars if not q in parameters]
@@ -1772,7 +1831,7 @@ class ReducedGroebnerBasis(SageObject, list):
         self.__groebner_fan = groebner_fan
         list.__init__(self, gens)
         self.__gfan_gens = '{' + gfan_gens.replace(' ',',') + '}'
-        self.__ring = groebner_fan._gfan_ring()
+        self._gfan_ring = groebner_fan._get_gfan_ring()
 
     def _repr_(self):
         """
@@ -1896,7 +1955,7 @@ class ReducedGroebnerBasis(SageObject, list):
         if restrict:
             cmd += ' --restrict'
         gf = self.__groebner_fan
-        c = gf.gfan(cmd=cmd, I=self.__ring + self.__gfan_gens)
+        c = gf.gfan(cmd=cmd, I=self._gfan_ring + self.__gfan_gens)
         return PolyhedralCone(c)
 
 
@@ -1912,6 +1971,4 @@ class ReducedGroebnerBasis(SageObject, list):
             Ideal (-13*z^3 + y^2, -z^3 + x) of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         return self.__groebner_fan.ring().ideal(self)
-
-
 
