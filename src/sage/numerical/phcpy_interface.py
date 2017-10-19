@@ -69,7 +69,7 @@ class PolynomialSystem(SageObject):
                 goodBaseRing=ringList[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            myvars=list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
+            myvars=list(reversed(list(set(flatten([list(p.parent().gens()) for p in polys])))))
             if var_order==None:
                 var_order=myvars
             if var_order!=None:
@@ -89,7 +89,7 @@ class PolynomialSystem(SageObject):
             npoint=NumericalPoint(npoint,ring=self.ring)
         if not isinstance(npoint,NumericalPoint):
             raise TypeError("point provided must be of type NumericalPoint")
-        return([f.subs(npoint.to_dict()) for f in self.polys])
+        return([f.subs(npoint.to_dict(temp_ring=self.ring)) for f in self.polys])
     def __str__(self):
         return("%s over %s. " %(self.polys, self.ring))
     def __repr__(self):
@@ -118,7 +118,6 @@ class NumericalPoint(SageObject):
         if isinstance(coords,list):
             self.coordinates = coords
             self.ring = ring
-            self.dict = self.to_dict()
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
@@ -140,7 +139,10 @@ class NumericalPoint(SageObject):
         if self.ring != None and temp_ring==None:
             temp_ring=self.ring
         if temp_ring != None:
-            return(dict([(temp_ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))]))
+			newDictionary=dict([(temp_ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))])
+			if self.ring != None:
+				self.dict = newDictionary            
+			return(newDictionary)
         else:
             raise AttributeError("please set a ring")
     def __str__(self):
@@ -161,18 +163,25 @@ class WitnessSet(SageObject):
             raise TypeError("first argument should be a PolynomialSystem")
         if not isinstance(forms, PolynomialSystem):
             raise TypeError("second argument should be a polynomial system")
-        if not (isinstance(points, list) and len(set([p.parent() for p in points]))==1 and points[0].parent() == NumericalPoint):
+        points = [NumericalPoint(p,ring=polySys.ring) if isinstance(p,list) else p for p in points]
+        if not (isinstance(points, list) and len(set([p.parent() for p in points]))==1 and isinstance(points[0],NumericalPoint)):
             raise TypeError("third argument should be a list of NumericalPoints")
         if not polySys.ring == forms.ring:
             raise TypeError("make sure first two arguments share a common ring")
-        self.system = polySys
-        self.linear_forms = forms
-        self.witness_points = points
+        self.polynomials = polySys
+        self.slices = forms
+        self.points = points
         self.dimension = len(forms.polys)
+    def check_validity(self, tolerance=0.000001):
+		evaluations=flatten([[(f.evaluate(p)) for f in ([self.polynomials,self.slices])] for p in self.points])
+		if False in set([(abs(q)<tolerance) for q in evaluations]):
+			return(False)
+		else:
+			return(True)
     def __str__(self):
-        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.witness_points)))
+        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.points)))
     def __repr__(self):
-        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.witness_points)))
+        return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.points)))
 
         
 class NumericalIrreducibleDecomposition(SageObject):
