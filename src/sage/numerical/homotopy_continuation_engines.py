@@ -7,27 +7,46 @@ from sage.rings.all import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.flatten import flatten
 from sage.structure.all import SageObject
-
+from sage.numerical.phcpy_interface import NumericalPoint
 
 class HomotopyContinuationEngine(SageObject):
+    """
+    A base class for homotopy continuation engines. Any engine should inherit
+    from this class.
+    """
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, numthreads=1, prec=53, digits=None, useadaptiveprec=False):
         self.__numthreads = numthreads
 
+    @abstractmethod
     def mixed_volume(self, polynomialsystem, stable=False):
+        """
+        Compute mixed volume
+        """
         raise NotImplementedError
+
+    @abstractmethod
     def bezout_bound(self, polynomialsystem):
+        """
+        Compute Bezout bound
+        """
         raise NotImplementedError
 
     @abstractmethod
     def numerical_irreducible_decomp(self, polynomialsystem, topdim=None):
+        """
+        Find a numerical irreducible decomposition
+        """
         raise NotImplementedError
 
     @abstractmethod
     def track_paths(self, homotopy, parameterstartvalue, \
         parameterendvalue, startsolutions):
+        """
+        Track along a homotopy
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -42,6 +61,9 @@ class HomotopyContinuationEngine(SageObject):
         raise NotImplementedError
 
 class PHCpackEngine(HomotopyContinuationEngine):
+    """
+    PHCpack engine class for performing homotopy continuation.
+    """
     def __init__(self, numthreads=1, prec=53, digits=None, useadaptiveprec=False):
         HomotopyContinuationEngine.__init__(self)
         try:
