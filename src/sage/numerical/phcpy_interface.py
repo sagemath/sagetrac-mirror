@@ -69,7 +69,10 @@ class PolynomialSystem(SageObject):
                 good_base_ring = ring_list[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            myvars = list(reversed(list(set(flatten([list(p.parent().gens()) if initially_symbolic==False else list(p.variables()) for p in polys])))))
+            if initially_symbolic==False:
+                myvars = list(polys[0].parent().gens())
+            else:
+                myvars = list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
             if var_order == None:
                 var_order = myvars
             if var_order != None:
@@ -81,10 +84,17 @@ class PolynomialSystem(SageObject):
                     raise TypeError("Variable order is not the exact list of variables involved")
             if self.ring.base_ring() != QQ and self.ring.base_ring() != ZZ:
                 self.prec = self.ring.base_ring().precision()
+            self._solutions = None
     def zero_dim_solve(self):
-        sols = zero_dim_solve(self)
-        self.solutions = sols
+        H=PHCpackEngine()
+        sols = H.zero_dim_solve(self)
+        self._solutions = sols
         return sols
+    def solutions(self):
+        if not self._solutions is None:
+            return(self._solutions)
+        else:
+            print("Call zero_dim_solve() or numerical_irreducible_decomposition() to solve polynomial system")
     def evaluate(self, npoint):
         if isinstance(npoint, list):
             npoint = NumericalPoint(npoint, ring=self.ring)
@@ -256,6 +266,7 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
         self.variables = (set(self.ring.gens())).difference(self.params)
+#mixes variables? fix
     def specialize(self, sub_dict, specialize_ring=True):
         if False in set([g in sub_dict.keys() for g in self.params]):
             raise TypeError("Specialization keys should be parameters.")
