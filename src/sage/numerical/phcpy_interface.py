@@ -69,7 +69,7 @@ class PolynomialSystem(SageObject):
                 goodBaseRing=ringList[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            myvars=list(reversed(list(set(flatten([list(p.parent().gens()) for p in polys])))))
+            myvars=list(reversed(list(set(flatten([list(p.parent().gens()) if initiallySymbolic==False else list(p.variables()) for p in polys])))))
             if var_order==None:
                 var_order=myvars
             if var_order!=None:
@@ -122,6 +122,10 @@ class NumericalPoint(SageObject):
             self.rco = rco
             self.err = err
             self.res = res
+            if ring != None:
+                self.dict=self.to_dict()
+            else:
+                self.dict=None
         if isinstance(coords,dict):
             ringList=list(set([p.parent() for p in coords.keys()]))
             if len(ringList) != 1 or not isinstance(ringList[0],Ring):
@@ -133,16 +137,17 @@ class NumericalPoint(SageObject):
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
-            self.res = res        
+            self.res = res     
+            self.dict = coords   
         # and so on as more args are added
     def to_dict(self, temp_ring=None):
         if self.ring != None and temp_ring==None:
             temp_ring=self.ring
         if temp_ring != None:
-			newDictionary=dict([(temp_ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))])
-			if self.ring != None:
-				self.dict = newDictionary            
-			return(newDictionary)
+            newDictionary=dict([(temp_ring.gens()[i],self.coordinates[i]) for i in range(0,len(self.coordinates))])
+            if self.ring != None:
+                self.dict = newDictionary            
+            return(newDictionary)
         else:
             raise AttributeError("please set a ring")
     def __str__(self):
@@ -158,6 +163,19 @@ class WitnessSet(SageObject):
             *) polySys, an object of type PolynomialSystem
             *) forms, an object of type PolynomialSystem consisting of linear forms w/ the same ring as polySys
             *) points --- a list of objects of type NumericalPoint
+
+        EXAMPLES:
+
+            sage: from sage.numerical.phcpy_interface import PolynomialSystem
+            sage: from sage.numerical.phcpy_interface import NumericalPoint
+            sage: from sage.numerical.phcpy_interface import WitnessSet
+            sage: R.<x,y>=PolynomialRing(QQ,2)
+            sage: F=PolynomialSystem([y-x^2])
+            sage: L=PolynomialSystem([y-25])
+            sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
+            sage: W=WitnessSet(F,L,pts)
+            sage: W.check_validity()
+            True
         """
         if not isinstance(polySys, PolynomialSystem):
             raise TypeError("first argument should be a PolynomialSystem")
@@ -173,11 +191,11 @@ class WitnessSet(SageObject):
         self.points = points
         self.dimension = len(forms.polys)
     def check_validity(self, tolerance=0.000001):
-		evaluations=flatten([[(f.evaluate(p)) for f in ([self.polynomials,self.slices])] for p in self.points])
-		if False in set([(abs(q)<tolerance) for q in evaluations]):
-			return(False)
-		else:
-			return(True)
+        evaluations=flatten([[(f.evaluate(p)) for f in ([self.polynomials,self.slices])] for p in self.points])
+        if False in set([(abs(q)<tolerance) for q in evaluations]):
+            return(False)
+        else:
+            return(True)
     def __str__(self):
         return("A witness set for a dimension-%s component with %s points." %(self.dimension, len(self.points)))
     def __repr__(self):
