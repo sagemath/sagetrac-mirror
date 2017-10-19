@@ -81,7 +81,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
         try: return func()
         except Exception: raise RuntimeError("Error running phcpy")
         
-    def set_precision(prec=53, digits=None, useAdaptivePrec=False):
+    def set_precision(self, prec=53, digits=None, useAdaptivePrec=False):
         r"""
         Set the precision of PHCpack computations done with this engine object.
 
@@ -115,15 +115,26 @@ class PHCpackEngine(HomotopyContinuationEngine):
         f = lambda: Integer(self.phcpy.solver.total_degree(self.__syst_to_phcpy_strs(polynomialSystem)))
         return self.__call_phcpy_function(f)
 
+    def numerical_irreducible_decomposition(self, polynomialSystem, topDim=None):
+        numVars = polynomialSystem.ring.nvars()
+        if topDim == None:
+            topDim = numVars - 1
+        exponents = flatten([p.exponents(as_ETuples=False)
+            for p in polynomialSystem.polys])
+        islaurent = (len(filter(lambda a:a<0, exponents)) > 0)
+        self.phcpy.factor.solve(numVars, dim=topDim, pols=polynomialSystem.polys,
+            islaurent=islaurent, precision=self.__phcpy_prec,
+            tasks=self.__numThreads - 1, verbos=self.__verbose)
 
     def track_paths(self, homotopy, parameterStartValue, \
         parameterEndValue, startSolutions):
         pass
 
-    def zero_dim_solve(self, system):
+    def zero_dim_solve(self, polynomialSystem):
         # assumes 0-dim, doesn't check
-        systStrs = self.__syst_to_phcpy_strs(system)
-        f = lambda: self.phcpy.solver.solve(systStrs, verbose=self.__verbose, tasks=self.__numThreads - 1, precision=self.__phcpyPrec)
+        systStrs = self.__syst_to_phcpy_strs(polynomialSystem)
+        f = lambda: self.phcpy.solver.solve(systStrs, verbose=self.__verbose,
+            tasks=self.__numThreads - 1, precision=self.__phcpyPrec)
         sols = self.__call_phcpy_function(f)
         return self.__phcpy_sols_to_NumericalPoints(sols)
 
