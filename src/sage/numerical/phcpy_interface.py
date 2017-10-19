@@ -1,14 +1,15 @@
-## TODO
-# 1) Most classes and methods need examples, tests, I/O documentation
+"""
+Polynomial Systems and other Numerical Algebraic Geometry types.
+"""
 
 import warnings
-
 from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.ring import Ring
 from sage.symbolic.ring import SymbolicRing
 from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC, RR, QQ, ZZ
+from sage.modules import vector
 from sage.misc.flatten import flatten
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
@@ -69,10 +70,10 @@ class PolynomialSystem(SageObject):
                 good_base_ring = ring_list[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            myvars = list(reversed(list(set(flatten([list(p.parent().gens()) if initially_symbolic==False else list(p.variables()) for p in polys])))))
-            if var_order == None:
+            myvars = list(reversed(list(set(flatten([list(p.parent().gens()) if not initially_symbolic else list(p.variables()) for p in polys])))))
+            if var_order is None:
                 var_order = myvars
-            if var_order != None:
+            if not var_order is None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
                     self.ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
@@ -337,9 +338,26 @@ class NumericalIrreducibleDecomposition(SageObject):
     a class which organizes the witness sets appearing in the NID of a variety
     """
     def __init__(self):
+        """
+        A blah that does blah
 
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         self.components = dict()
     def append_witness_set(self, wset):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         if not isinstance(wset, WitnessSet):
             raise TypeError("must append with a witness set")
         if wset.dimension in self.components.keys():
@@ -347,15 +365,33 @@ class NumericalIrreducibleDecomposition(SageObject):
         else:
             self.components[wset.dimension] = [wset]
     def __str__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         return_string = ""
-        for i in self.components.keys():
+        for i in self.components:
             return_string += "Dimension "+str(i) + ":" + "\n"
             for j in self.components[i]:
                 return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
         return return_string
     def __repr__(self):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         return_string = ""
-        for i in self.components.keys():
+        for i in self.components:
             return_string += "Dimension "+str(i) + ":" + "\n"
             for j in self.components[i]:
                 return_string += "    Component of degree "+str(len(j.witness_points)) + "\n "
@@ -363,7 +399,19 @@ class NumericalIrreducibleDecomposition(SageObject):
 
 
 class ParametrizedPolynomialSystem(PolynomialSystem):
+    """
+    a class that is fun
+    """
     def __init__(self, system, params):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         super(ParametrizedPolynomialSystem, self).__init__(system)
         if (not isinstance(params, list)) or (False in \
             set([g in self.ring.gens() for g in params])):
@@ -371,6 +419,15 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         self.params = params
         self.variables = (set(self.ring.gens())).difference(self.params)
     def specialize(self, sub_dict, specialize_ring=True):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         if False in set([g in sub_dict.keys() for g in self.params]):
             raise TypeError("Specialization keys should be parameters.")
         special_self = self
@@ -382,7 +439,25 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
             special_self.ring = specializedring
         return special_self
 class Homotopy(ParametrizedPolynomialSystem):
+    """
+    A blah that does blah
+
+    INPUT:
+
+    OUTPUT:
+
+    EXAMPLES::
+    """
     def __init__(self, system, params):
+        """
+        A blah that does blah
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
         super(Homotopy, self).__init__(system)
-        if (len(params) > 1):
+        if len(params) > 1:
             raise TypeError("Homotopy can only have one parameter")
