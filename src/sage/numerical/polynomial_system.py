@@ -9,7 +9,7 @@ from sage.rings.ring import Ring
 from sage.symbolic.ring import SymbolicRing
 from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC, RR, QQ, ZZ
-from sage.modules import vector
+from sage.modules.free_module_element import vector
 from sage.misc.flatten import flatten
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 

@@ -7,7 +7,7 @@ from sage.rings.all import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.flatten import flatten
 from sage.structure.all import SageObject
-from sage.numerical.phcpy_interface import NumericalPoint
+from sage.numerical.polynomial_system import NumericalPoint
 
 class HomotopyContinuationEngine(SageObject):
     """
@@ -19,6 +19,14 @@ class HomotopyContinuationEngine(SageObject):
     @abstractmethod
     def __init__(self, numthreads=1, prec=53, digits=None, useadaptiveprec=False):
         pass
+
+    @abstractmethod
+    def __repr__(self):
+        return "Homotopy engine base class instance."
+
+    @abstractmethod
+    def __str__(self):
+        return self.__repr__()
 
     @abstractmethod
     def mixed_volume(self, polynomialsystem, stable=False):
@@ -88,6 +96,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
 
     def __repr__(self):
         return "Interface to " + self.phcpy.py2c_PHCpack_version_string()
+
     def __str__(self):
         return self.__repr__()
 
@@ -188,13 +197,14 @@ class PHCpackEngine(HomotopyContinuationEngine):
                 islaurent = True
                 break
 
-        self.phcpy.factor.solve(numvars,
-                                dim=topDim,
-                                pols=polynomialSystem.polynomials,
-                                islaurent=islaurent,
-                                precision=self.__phcpy_prec,
-                                tasks=self.__numthreads - 1,
-                                verbose=False)
+        sols = self.phcpy.factor.solve(numvars,
+                                       dim=topDim,
+                                       pols=polynomialSystem.polynomials,
+                                       islaurent=islaurent,
+                                       precision=self.__phcpy_prec,
+                                       tasks=self.__numthreads - 1,
+                                       verbose=False)
+        print sols
 
     def track_paths(self, homotopy, parameterStartValue, parameterEndValue, startSolutions):
         pass
