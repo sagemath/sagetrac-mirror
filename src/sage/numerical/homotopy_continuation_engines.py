@@ -7,7 +7,7 @@ from sage.rings.all import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.flatten import flatten
 from sage.structure.all import SageObject
-from sage.numerical.phcpy_interface import NumericalPoint
+from sage.numerical.polynomial_system import NumericalPoint
 
 class HomotopyContinuationEngine(SageObject):
     """
@@ -18,7 +18,15 @@ class HomotopyContinuationEngine(SageObject):
 
     @abstractmethod
     def __init__(self, numthreads=1, prec=53, digits=None, useadaptiveprec=False):
-        self.__numthreads = numthreads
+        pass
+
+    @abstractmethod
+    def __repr__(self):
+        return "Homotopy engine base class instance."
+
+    @abstractmethod
+    def __str__(self):
+        return self.__repr__()
 
     @abstractmethod
     def mixed_volume(self, polynomialsystem, stable=False):
@@ -82,11 +90,13 @@ class PHCpackEngine(HomotopyContinuationEngine):
         # work if the user chose m, t, etc. as a variable name.
         self.__phcpyvartoinputvardict = {}
         self.__originalring = None
+        self.__numthreads = numthreads
 
         self.set_precision(prec, digits, useadaptiveprec)
 
     def __repr__(self):
         return "Interface to " + self.phcpy.py2c_PHCpack_version_string()
+
     def __str__(self):
         return self.__repr__()
 
@@ -99,7 +109,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
         newring = PolynomialRing(inputring.base_ring(), names=newvarnames)
         subbedpolys = [
             p.subs({inputring.gen(i): newring.gen(i) for i in genindexlist})
-            for p in polynomialsystem.polys]
+            for p in polynomialsystem.polynomials]
         return [str(p) + ';' for p in subbedpolys]
 
     def __phcpy_sols_to_numerical_pts(self, phcpysols):
@@ -179,7 +189,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
         if topDim is None:
             topDim = numvars - 1
         exponents = flatten([p.exponents(as_ETuples=False)
-                             for p in polynomialSystem.polys])
+                             for p in polynomialSystem.polynomials])
 
         islaurent = False
         for exponent in exponents:
@@ -187,13 +197,14 @@ class PHCpackEngine(HomotopyContinuationEngine):
                 islaurent = True
                 break
 
-        self.phcpy.factor.solve(numvars,
-                                dim=topDim,
-                                pols=polynomialSystem.polys,
-                                islaurent=islaurent,
-                                precision=self.__phcpy_prec,
-                                tasks=self.__numthreads - 1,
-                                verbose=self.__verbose)
+        sols = self.phcpy.factor.solve(numvars,
+                                       dim=topDim,
+                                       pols=polynomialSystem.polynomials,
+                                       islaurent=islaurent,
+                                       precision=self.__phcpy_prec,
+                                       tasks=self.__numthreads - 1,
+                                       verbose=False)
+        print sols
 
     def track_paths(self, homotopy, parameterStartValue, parameterEndValue, startSolutions):
         pass
@@ -202,9 +213,9 @@ class PHCpackEngine(HomotopyContinuationEngine):
         # assumes 0-dim, doesn't check
         syststrs = self.__syst_to_phcpy_strs(polynomialSystem)
         func = lambda: self.phcpy.solver.solve(syststrs,
-                                               verbose=self.__verbose,
+                                               verbose=False,
                                                tasks=self.__numthreads - 1,
-                                               precision=self.__phcpyprec)
+                                               precision=self.__phcpy_prec)
         sols = self.__call_phcpy_function(func)
         return self.__phcpy_sols_to_numerical_pts(sols)
 
