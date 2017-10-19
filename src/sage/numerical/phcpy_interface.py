@@ -11,6 +11,8 @@ from sage.rings.ring import Ring
 from sage.symbolic.ring import SymbolicRing
 # from sage.rings.complex_field import *
 from sage.rings.real_mpfr import RR
+from sage.rings.complex_field import ComplexField
+from sage.rings.all import CC, RR, QQ, ZZ
 from sage.misc.flatten import flatten
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
@@ -41,17 +43,13 @@ class PolynomialSystem(SageObject):
             sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
             sage: C=PolynomialSystem(G,var_order=[b,a,c])
             sage: C.ring
-            Multivariate Laurent Polynomial Ring in b, a, c over Real Field \
-            with 100 bits of precision
+            Multivariate Laurent Polynomial Ring in b, a, c over Real Field with 100 bits of precision
             sage: var('w,z')
             (w, z)
             sage: D=PolynomialSystem([w^7-z])
-            doctest:...: RuntimeWarning: SymbolicRing expressions not checked \
-            for consistency. Precision may be lost due to conversion \
-            of rationals.
+            doctest:...: RuntimeWarning: SymbolicRing expressions not checked for consistency. Precision may be lost due to conversion of rationals.
             sage: D.ring
-            Multivariate Laurent Polynomial Ring in z, w over Complex \
-            Field with 64 bits of precision
+            Multivariate Laurent Polynomial Ring in z, w over Complex Field with 64 bits of precision
             sage: D.polys
             [w^7 - z]
 
@@ -147,11 +145,11 @@ class NumericalPoint(SageObject):
             new_dictionary = dict([(temp_ring.gens()[i], \
             self.coordinates[i]) for i in range(0, \
             len(self.coordinates))])
-        if not self.ring is None:
-            self.dict = new_dictionary
-            return new_dictionary
         else:
             raise AttributeError("please set a ring")
+        if not self.ring is None:
+            self.dict = new_dictionary
+        return new_dictionary
     def __str__(self):
         return "A numerical point in CC^%s." %(len(self.coordinates))
     def __repr__(self):
