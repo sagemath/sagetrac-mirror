@@ -17,7 +17,6 @@ Factory for Character-Based Art
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 from six import iteritems, string_types, text_type, binary_type
-
 from sage.structure.sage_object import SageObject
 
 

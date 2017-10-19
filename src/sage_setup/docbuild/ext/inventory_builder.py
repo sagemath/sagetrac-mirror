@@ -6,11 +6,11 @@
     A customized HTML builder which only generates intersphinx "object.inv"
     inventory files and pickle files. The documentation files are not written.
 """
+from six import iteritems, text_type
+
 from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.util.console import bold
 from os import path
-
-import six
 
 
 try:
@@ -18,6 +18,7 @@ try:
 except ImportError:
     # 2.4 compatibility
     from md5 import md5
+
 
 class InventoryBuilder(StandaloneHTMLBuilder):
     """
@@ -28,10 +29,10 @@ class InventoryBuilder(StandaloneHTMLBuilder):
 
     def get_outdated_docs(self):
         cfgdict = dict((name, self.config[name])
-                       for (name, desc) in six.iteritems(self.config.values)
+                       for (name, desc) in iteritems(self.config.values)
                        if desc[1] == 'html')
-        self.config_hash = md5(unicode(cfgdict).encode('utf-8')).hexdigest()
-        self.tags_hash = md5(unicode(sorted(self.tags)).encode('utf-8')) \
+        self.config_hash = md5(text_type(cfgdict).encode('utf-8')).hexdigest()
+        self.tags_hash = md5(text_type(sorted(self.tags)).encode('utf-8')) \
                 .hexdigest()
         old_config_hash = old_tags_hash = ''
         try:
