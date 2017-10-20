@@ -7,7 +7,7 @@ from sage.rings.all import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.flatten import flatten
 from sage.structure.all import SageObject
-from sage.numerical.polynomial_system import NumericalPoint
+from sage.numerical.polynomial_homotopy_types import NumericalPoint
 
 class HomotopyContinuationEngine(SageObject):
     """
@@ -29,29 +29,29 @@ class HomotopyContinuationEngine(SageObject):
         return self.__repr__()
 
     @abstractmethod
-    def mixed_volume(self, polynomialsystem, stable=False):
+    def mixed_volume(self, polynomial_system, stable=False):
         """
         Compute mixed volume
         """
         raise NotImplementedError
 
     @abstractmethod
-    def bezout_bound(self, polynomialsystem):
+    def bezout_bound(self, polynomial_system):
         """
         Compute Bezout bound
         """
         raise NotImplementedError
 
     @abstractmethod
-    def numerical_irreducible_decomp(self, polynomialsystem, topdim=None):
+    def numerical_irreducible_decomp(self, polynomial_system, topdim=None):
         """
         Find a numerical irreducible decomposition
         """
         raise NotImplementedError
 
     @abstractmethod
-    def track_paths(self, homotopy, parameterstartvalue, \
-        parameterendvalue, startsolutions):
+    def track_paths(self, homotopy, parameter_start_value, \
+        parameter_end_value, startsolutions):
         """
         Track along a homotopy
         """
@@ -83,13 +83,13 @@ class PHCpackEngine(HomotopyContinuationEngine):
             assert numthreads >= 1
         except Exception:
             raise ValueError("Invalid thread count: " + str(numthreads))
-        # __phcpyvartoinputvardict records the correspondence between the
+        # __phcpy_var_to_input_var_dict records the correspondence between the
         # original variables given by the user, and our own self-created
         # variables, which we use to avoid the issue of phcpy not allowing
         # certain variable names such as e, i, etc. Also, makes the strsol2dict
         # work if the user chose m, t, etc. as a variable name.
-        self.__phcpyvartoinputvardict = {}
-        self.__originalring = None
+        self.__phcpy_var_to_input_var_dict = {}
+        self.__original_ring = None
         self.__numthreads = numthreads
 
         self.set_precision(prec, digits, useadaptiveprec)
@@ -100,37 +100,37 @@ class PHCpackEngine(HomotopyContinuationEngine):
     def __str__(self):
         return self.__repr__()
 
-    def __syst_to_phcpy_strs(self, polynomialsystem):
-        inputring = polynomialsystem.ring
-        self.__originalring = inputring
-        genindexlist = range(inputring.ngens())
-        newvarnames = ['x'+str(i) for i in genindexlist]
-        self.__phcpyvartoinputvardict = {newvarnames[i]: inputring.gen(i) for i in genindexlist}
-        newring = PolynomialRing(inputring.base_ring(), names=newvarnames)
-        subbedpolys = [
-            p.subs({inputring.gen(i): newring.gen(i) for i in genindexlist})
-            for p in polynomialsystem.polynomials]
-        return [str(p) + ';' for p in subbedpolys]
+    def __syst_to_phcpy_strs(self, polynomial_system):
+        input_ring = polynomial_system.ring()
+        self.__original_ring = input_ring
+        gen_index_list = range(input_ring.ngens())
+        new_var_names = ['x'+str(i) for i in gen_index_list]
+        self.__phcpy_var_to_input_var_dict = {new_var_names[i]: input_ring.gen(i) for i in gen_index_list}
+        new_ring = PolynomialRing(input_ring.base_ring(), names=new_var_names)
+        subbed_polys = [
+            p.subs({input_ring.gen(i): new_ring.gen(i) for i in gen_index_list})
+            for p in polynomial_system.polynomials()]
+        return [str(p) + ';' for p in subbed_polys]
 
-    def __phcpy_sols_to_numerical_pts(self, phcpysols):
-        toreturn = []
-        basering = self.__originalring.base_ring()
-        for phcpysol in phcpysols:
-            soldict = self.phcpy.solutions.strsol2dict(phcpysol)
+    def __phcpy_sols_to_numerical_pts(self, phcpy_sols):
+        to_return = []
+        base_ring = self.__original_ring.base_ring()
+        for phcpy_sol in phcpy_sols:
+            sol_dict = self.phcpy.solutions().strsol2dict(phcpy_sol)
             try:
-                pointdict = {self.__phcpyvartoinputvardict[key] : basering(soldict[key])
-                             for key in self.__phcpyvartoinputvardict.keys()}
+                point_dict = {self.__phcpy_var_to_input_var_dict[key] : base_ring(sol_dict[key])
+                             for key in self.__phcpy_var_to_input_var_dict.keys()}
             except TypeError:
-                basering = ComplexField(prec = self.__prec)
-                pointdict = {self.__phcpyvartoinputvardict[key] : basering(soldict[key])
-                             for key in self.__phcpyvartoinputvardict.keys()}
-            toreturn.append(NumericalPoint(pointdict,
-                                           ring=self.__originalring,
-                                           multiplicity=soldict['m'],
-                                           rco=soldict['rco'],
-                                           err=soldict['err'],
-                                           res=soldict['res']))
-        return toreturn
+                base_ring = ComplexField(prec = self.__prec)
+                point_dict = {self.__phcpy_var_to_input_var_dict[key] : base_ring(sol_dict[key])
+                             for key in self.__phcpy_var_to_input_var_dict.keys()}
+            to_return.append(NumericalPoint(point_dict,
+                                           ring=self.__original_ring,
+                                           multiplicity=sol_dict['m'],
+                                           rco=sol_dict['rco'],
+                                           err=sol_dict['err'],
+                                           res=sol_dict['res']))
+        return to_return
 
     @classmethod
     def __call_phcpy_function(cls, func):
@@ -156,40 +156,40 @@ class PHCpackEngine(HomotopyContinuationEngine):
 
         if prec is not None:
             if prec <= 53:
-                phcpyprec = 'd'
+                phcpy_prec = 'd'
             elif prec <= 106:
-                phcpyprec = 'dd'
+                phcpy_prec = 'dd'
             elif prec <= 212:
-                phcpyprec = 'qd'
+                phcpy_prec = 'qd'
             else:
                 raise ValueError(
                     "phcpy cannot work in greater than 212 bits of precision.")
         elif digits is not None:
             if digits <= 16:
-                phcpyprec = 'd'
+                phcpy_prec = 'd'
             elif digits <= 32:
-                phcpyprec = 'dd'
+                phcpy_prec = 'dd'
             elif digits <= 64:
-                phcpyprec = 'qd'
+                phcpy_prec = 'qd'
             else:
                 raise ValueError(
                     "phcpy cannot work in greater than 64 digits of precision.")
         else:
-            phcpyprec = 'd'
+            phcpy_prec = 'd'
 
-        if phcpyprec == 'd':
+        if phcpy_prec == 'd':
             self.__digits = 16
             self.__prec = 53
-        elif phcpyprec == 'dd':
+        elif phcpy_prec == 'dd':
             self.__digits = 32
             self.__prec = 106
-        elif phcpyprec == 'qd':
+        elif phcpy_prec == 'qd':
             self.__digits = 64
             self.__prec = 212
         else:
-            raise ValueError("Invalid phcpy precision type: %s"%phcpyprec)
+            raise ValueError("Invalid phcpy precision type: %s"%phcpy_prec)
             
-        self.__phcpy_prec = phcpyprec
+        self.__phcpy_prec = phcpy_prec
 
     def mixed_volume(self, system, stable=False):
         func = lambda: Integer(self.phcpy.solver.mixed_volume(
@@ -202,11 +202,11 @@ class PHCpackEngine(HomotopyContinuationEngine):
         return self.__call_phcpy_function(func)
 
     def numerical_irreducible_decomp(self, polynomialSystem, topDim=None):
-        numvars = polynomialSystem.ring.nvars()
+        numvars = polynomialSystem.ring().nvars()
         if topDim is None:
             topDim = numvars - 1
         exponents = flatten([p.exponents(as_ETuples=False)
-                             for p in polynomialSystem.polynomials])
+                             for p in polynomialSystem.polynomials()])
 
         islaurent = False
         for exponent in exponents:
@@ -216,7 +216,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
 
         sols = self.phcpy.factor.solve(numvars,
                                        dim=topDim,
-                                       pols=polynomialSystem.polynomials,
+                                       pols=polynomialSystem.polynomials(),
                                        islaurent=islaurent,
                                        precision=self.__phcpy_prec,
                                        tasks=self.__numthreads - 1,
