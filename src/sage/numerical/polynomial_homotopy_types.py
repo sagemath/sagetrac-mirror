@@ -31,23 +31,23 @@ class PolynomialSystem(SageObject):
             sage: F=[x^2-y,x+y]
             sage: A=PolynomialSystem(F)
             sage: B=PolynomialSystem(F,var_order=[y,x])
-            sage: A.ring
+            sage: A.ring()
             Multivariate Laurent Polynomial Ring in x, y over Rational Field
-            sage: B.ring
+            sage: B.ring()
             Multivariate Laurent Polynomial Ring in y, x over Rational Field
 
             sage: S.<a,b,c>=PolynomialRing(RealField(100),3)
             sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
             sage: C=PolynomialSystem(G,var_order=[b,a,c])
-            sage: C.ring
+            sage: C.ring()
             Multivariate Laurent Polynomial Ring in b, a, c over Real Field with 100 bits of precision
             sage: var('w,z')
             (w, z)
             sage: D=PolynomialSystem([w^7-z])
             doctest:...: RuntimeWarning: SymbolicRing expressions not checked for consistency. Precision may be lost due to conversion of rationals.
-            sage: D.ring
+            sage: D.ring()
             Multivariate Laurent Polynomial Ring in z, w over Complex Field with 64 bits of precision
-            sage: D.polynomials
+            sage: D.polynomials()
             [w^7 - z]
 
         """
@@ -79,23 +79,29 @@ class PolynomialSystem(SageObject):
             if var_order is not None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
-                    self.ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
-                    self.polynomials = [(self.ring)(p)  for p in polys]
+                    self.__ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
+                    self.__polynomials = [(self.__ring)(p)  for p in polys]
                 else:
                     raise TypeError("Variable order is not the exact list of variables involved")
-            if self.ring.base_ring() != QQ and self.ring.base_ring() != ZZ:
-                self.prec = self.ring.base_ring().precision()
-            self._solutions = solutions
+            if self.__ring.base_ring() != QQ and self.__ring.base_ring() != ZZ:
+                self._prec = self.__ring.base_ring().precision()
+            self.__solutions = solutions
 
     def zero_dim_solve(self):
         engine = PHCpackEngine()
         sols = engine.zero_dim_solve(self)
-        self._solutions = sols
+        self.__solutions = sols
         return sols
 
+    def ring(self):
+        return(self.__ring)
+
+    def polynomials(self):
+        return(self.__polynomials)
+
     def solutions(self):
-        if self._solutions is not None:
-            return self._solutions
+        if self.__solutions is not None:
+            return self.__solutions
         else:
             print("Call zero_dim_solve() or numerical_irreducible_decomposition()"
                   "to solve polynomial system")
@@ -123,10 +129,10 @@ class PolynomialSystem(SageObject):
 
         """
         if isinstance(npoint, list):
-            npoint = NumericalPoint(npoint, ring=self.ring)
+            npoint = NumericalPoint(npoint, ring=self.__ring)
         if not isinstance(npoint, NumericalPoint):
             raise TypeError("point provided must be of type NumericalPoint")
-        return([f.subs(npoint.to_dict(temp_ring=self.ring)) for f in self.polynomials])
+        return([f.subs(npoint.to_dict(temp_ring=self.__ring)) for f in self.__polynomials])
     def __str__(self):
         """
         A blah that does blah
@@ -138,7 +144,7 @@ class PolynomialSystem(SageObject):
         EXAMPLES::
         """
 
-        return "%s over %s. " %(self.polynomials, self.ring)
+        return "%s over %s. " %(self.__polynomials, self.__ring)
     def __repr__(self):
         """
         A blah that does blah
@@ -149,7 +155,7 @@ class PolynomialSystem(SageObject):
 
         EXAMPLES::
         """
-        return "%s over %s. " %(self.polynomials, self.ring)
+        return "%s over %s. " %(self.__polynomials, self.__ring)
 class NumericalPoint(SageObject):
     """
     A class for representing points numerically
@@ -170,7 +176,7 @@ class NumericalPoint(SageObject):
         """
         if isinstance(coords, list):
             self.coordinates = coords
-            self.ring = ring
+            self.__ring = ring
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
@@ -185,8 +191,8 @@ class NumericalPoint(SageObject):
                 raise TypeError("Keys are not all in the same ring")
             if len(coords.keys()) != coords.keys()[0].parent().ngens():
                 raise TypeError("Number of keys disagrees with number of variables of ring")
-            self.ring = coords.keys()[0].parent()
-            self.coordinates = [coords[i] for i in self.ring.gens()]
+            self.__ring = coords.keys()[0].parent()
+            self.coordinates = [coords[i] for i in self.__ring.gens()]
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
@@ -205,15 +211,15 @@ class NumericalPoint(SageObject):
 
         EXAMPLES::
         """
-        if self.ring != None and temp_ring is None:
-            temp_ring = self.ring
+        if self.__ring != None and temp_ring is None:
+            temp_ring = self.__ring
         if temp_ring != None:
             new_dictionary = dict([(temp_ring.gens()[i], \
             self.coordinates[i]) for i in range(0, \
             len(self.coordinates))])
         else:
             raise AttributeError("please set a ring")
-        if self.ring is not None:
+        if self.__ring is not None:
             self.dict = new_dictionary
         return new_dictionary
     def to_vector(self):
@@ -297,17 +303,17 @@ class WitnessSet(SageObject):
             raise TypeError("first argument should be a PolynomialSystem")
         if not isinstance(forms, PolynomialSystem):
             raise TypeError("second argument should be a polynomial system")
-        points = [NumericalPoint(p, ring=poly_sys.ring) \
+        points = [NumericalPoint(p, ring=poly_sys.ring()) \
                   if isinstance(p, list) else p for p in points]
         if not (isinstance(points, list) and len(set([p.parent() \
             for p in points])) == 1 and isinstance(points[0], NumericalPoint)):
             raise TypeError("third argument should be a list of NumericalPoints")
-        if poly_sys.ring != forms.ring:
+        if poly_sys.ring() != forms.ring():
             raise TypeError("make sure first two arguments share a common ring")
-        self.polynomials = poly_sys
+        self.__polynomials = poly_sys
         self.slices = forms
         self.points = points
-        self.dimension = len(forms.polynomials)
+        self.dimension = len(forms.polynomials())
     def check_validity(self, tolerance=0.000001):
         """
         A blah that does blah
@@ -319,7 +325,7 @@ class WitnessSet(SageObject):
         EXAMPLES::
         """
         evaluations = flatten([[(f.evaluate(p)) for f in \
-            ([self.polynomials, self.slices])] for p in self.points])
+            ([self.__polynomials, self.slices])] for p in self.points])
         if False in set([(abs(q) < tolerance) for q in evaluations]):
             return False
         else:
@@ -433,10 +439,10 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         """
         super(ParametrizedPolynomialSystem, self).__init__(system)
         if (not isinstance(params, list)) or (False in \
-            set([g in self.ring.gens() for g in params])):
+            set([g in self.__ring.gens() for g in params])):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
-        self.variables = (set(self.ring.gens())).difference(self.params)
+        self.variables = (set(self.__ring.gens())).difference(self.params)
 #mixes variables? fix
     def specialize(self, sub_dict, specialize_ring=True):
         """
@@ -451,12 +457,12 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         if False in set([g in sub_dict.keys() for g in self.params]):
             raise TypeError("Specialization keys should be parameters.")
         special_self = self
-        special_self.polynomials = [f.subs(sub_dict) for f in self.polynomials]
+        special_self.__polynomials = [f.subs(sub_dict) for f in self.__polynomials]
         if specialize_ring:
-            new_vars = list(set(self.ring.gens()).difference(sub_dict.keys()))
-            specializedring = PolynomialRing(self.polynomials[0].base_ring(), len(new_vars), new_vars)
-            special_self.polynomials = [specializedring(str(f)) for f in special_self.polynomials]
-            special_self.ring = specializedring
+            new_vars = list(set(self.__ring.gens()).difference(sub_dict.keys()))
+            specializedring = PolynomialRing(self.__polynomials[0].base_ring(), len(new_vars), new_vars)
+            special_self.__polynomials = [specializedring(str(f)) for f in special_self.polynomials()]
+            special_self.__ring = specializedring
         return special_self
 class Homotopy(ParametrizedPolynomialSystem):
     """
