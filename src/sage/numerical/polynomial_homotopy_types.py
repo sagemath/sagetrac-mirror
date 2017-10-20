@@ -24,6 +24,18 @@ class PolynomialSystem(SageObject):
         This is a constructor that takes a list of polynomials and
         returns an object of class PolynomialSystem.
 
+        INPUT:
+
+            - polys -- a list of polynomials or Laurent polynomials. These polynomials may constructed 
+            either within sage's SymbolicRing OR as elements of a common ring with coefficients in
+            ZZ, QQ, RR, or CC. The user is advised to be conscious of precision issues when, say,
+            calling a numerical solver on a PolynomialSystem with QQ coefficients.
+
+            - var_order (optional) -- the user may provide their preferred variable ordering for the
+            resulting polynomial system, represented as a list of variables.
+
+            - solutions (optional) -- 
+
         EXAMPLES::
 
             sage: from sage.polynomial_homotopy_types import PolynomialSystem
@@ -203,13 +215,24 @@ class NumericalPoint(SageObject):
         """
         Obtain the dictionary representation of a NumericalPoint over a Laurent polynomial ring. 
         The keys of the dictionary are variables in the ring---the values of each key is the 
-        corresponding coordinate of the NumericalPoint. If the option temp_ring is not specified, then to_dict 
+        corresponding coordinate of the NumericalPoint. If the option temp_ring is not specified, then to_dict
+        will attempt to use a ring attached to the NumericalPoint. 
 
         INPUT:
 
+            - temp_ring (optional) -- the 
+
         OUTPUT:
 
+            - a dictionary. Keys are assigned to coordinates in the order prescribed by the ring used.
+
         EXAMPLES::
+
+            sage: from polynomial_homotopy_types import PolynomialSystem, NumericalPoint
+            sage: Q = NumericalPoint([0.111,1.4334])
+            sage: R =
+from sage.rings.polynomial.polynomial_element import Polynomial
+            sage: from 
         """
         if self.__ring != None and temp_ring is None:
             temp_ring = self.__ring
