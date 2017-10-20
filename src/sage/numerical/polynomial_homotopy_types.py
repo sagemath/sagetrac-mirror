@@ -309,35 +309,28 @@ class NumericalPoint(SageObject):
 
 class WitnessSet(SageObject):
     """
-    A blah that does blah
-
-    INPUT:
-
-    OUTPUT:
-
-    EXAMPLES::
+    A class for representing positive-dimensional solutions to polynomial systems.
     """
 
     def __init__(self, poly_sys, forms, points):
         """
         INPUT:
-            *) poly_sys, an object of type PolynomialSystem
-            *) forms, an object of type PolynomialSystem consisting of linear \
-            forms w/ the same ring as poly_sys
-            *) points --- a list of objects of type NumericalPoint
+            - poly_sys -- a PolynomialSystem
+            - forms, an object of type PolynomialSystem consisting of linear 
+            equations. 
+            - points --- a list of objects of type NumericalPoint. These
+            should be solutions to the system obtained by interesecting
+            poly_sys and forms. 
 
         EXAMPLES:
 
-            sage: from sage.numerical.phcpy_interface import PolynomialSystem
-            sage: from sage.numerical.phcpy_interface import NumericalPoint
-            sage: from sage.numerical.phcpy_interface import WitnessSet
+            sage: from sage.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=PolynomialSystem([y-x^2])
             sage: L=PolynomialSystem([y-25])
             sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
-            sage: W=WitnessSet(F,L,pts)
-            sage: W.check_validity()
-            True
+            sage: WitnessSet(F,L,pts)
+            
         """
         if not isinstance(poly_sys, PolynomialSystem):
             raise TypeError("first argument should be a PolynomialSystem")
@@ -363,6 +356,16 @@ class WitnessSet(SageObject):
         OUTPUT:
 
         EXAMPLES::
+
+            sage: from sage.numerical.phcpy_interface import PolynomialSystem, NumericalPoint, WitnessSet
+            sage: R.<x,y>=PolynomialRing(QQ,2)
+            sage: F=PolynomialSystem([y-x^2])
+            sage: L=PolynomialSystem([y-25])
+            sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
+            sage: W=WitnessSet(F,L,pts)
+            sage: W.check_validity()
+            True
+
         """
         evaluations = flatten([[(f.evaluate(p)) for f in \
             ([self.__polynomials, self.slices])] for p in self.points])
