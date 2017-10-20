@@ -1,6 +1,8 @@
 # Things to do
 
 ## File renaming suggested by Jan
+## Sort out circular imports
+## Get solvers + engine to the point where they can replicate examples in phcpy tutorial
 ## Figure out how to return "solutions" to poly systems over QQ rings
 ## Make many of the polynomial_homotopy types' data attributes to private + add methods for access
 ## NumericalPoints should point to the systems that they solve
