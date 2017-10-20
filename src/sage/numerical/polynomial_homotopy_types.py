@@ -93,7 +93,7 @@ class PolynomialSystem(SageObject):
                 myvars = list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
             if var_order is None:
                 var_order = myvars
-            if var_order not is None:
+            if not var_order is None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
                     self._ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
@@ -112,7 +112,7 @@ class PolynomialSystem(SageObject):
         return sols
 
     def numerical_irreducible_decomposition(self):
-        if self._numerical_irreducible_decomposition not is None:
+        if not self._numerical_irreducible_decomposition is None:
             return(self._numerical_irreducible_decomposition)
         else:
             return("No witness set attached yet. Try calling .NumericalIrreducibleDecomposition")
@@ -124,7 +124,7 @@ class PolynomialSystem(SageObject):
         return(self._polynomials)
 
     def solutions(self):
-        if self._solutions is not is None:
+        if not self._solutions is None:
             return self._solutions
         else:
             print("Call zero_dim_solve() or numerical_irreducible_decomposition()"
