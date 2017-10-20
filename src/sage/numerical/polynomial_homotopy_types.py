@@ -471,12 +471,13 @@ class WitnessSet(SageObject):
 
         EXAMPLES:
 
-            sage: from sage.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=PolynomialSystem([y-x^2])
             sage: L=PolynomialSystem([y-25])
             sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
             sage: WitnessSet(F,L,pts)
+            A witness set for a dimension-1 component with 2 points.
             
         """
         if not isinstance(poly_sys, PolynomialSystem):
@@ -668,7 +669,6 @@ class Homotopy(ParametrizedPolynomialSystem):
         sage: R.<x,t> = PolynomialRing(ComplexField(prec=32))
         sage: P = PolynomialSystem([x^2 - t^2])
         sage: H = Homotopy(P,t)
-        sage: 
     """
     def __init__(self, system, param):
         """
