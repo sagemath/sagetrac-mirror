@@ -3,13 +3,13 @@ Polynomial Systems and other Numerical Algebraic Geometry types.
 """
 
 import warnings
-from sage.structure.sage_object import SageObject
+from sage.structure.all import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.ring import Ring
-from sage.symbolic.ring import SymbolicRing
+from sage.rings.all import Ring
+from sage.symbolic.subring import SymbolicRing
 from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC, RR, QQ, ZZ
-from sage.modules.free_module_element import vector
+from sage.modules.all import vector
 from sage.misc.flatten import flatten
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
@@ -70,13 +70,13 @@ class PolynomialSystem(SageObject):
                 good_base_ring = ring_list[0].base_ring()
             else:
                 raise TypeError("coefficient ring")
-            if initially_symbolic==False:
+            if not initially_symbolic:
                 myvars = list(polys[0].parent().gens())
             else:
                 myvars = list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
             if var_order is None:
                 var_order = myvars
-            if not var_order is None:
+            if var_order is not None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
                     self.ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
@@ -85,17 +85,21 @@ class PolynomialSystem(SageObject):
                     raise TypeError("Variable order is not the exact list of variables involved")
             if self.ring.base_ring() != QQ and self.ring.base_ring() != ZZ:
                 self.prec = self.ring.base_ring().precision()
-            self._solutions = None
+            self._solutions = solutions
+
     def zero_dim_solve(self):
-        H=PHCpackEngine()
-        sols = H.zero_dim_solve(self)
+        engine = PHCpackEngine()
+        sols = engine.zero_dim_solve(self)
         self._solutions = sols
         return sols
+
     def solutions(self):
-        if not self._solutions is None:
-            return(self._solutions)
+        if self._solutions is not None:
+            return self._solutions
         else:
-            print("Call zero_dim_solve() or numerical_irreducible_decomposition() to solve polynomial system")
+            print("Call zero_dim_solve() or numerical_irreducible_decomposition()"
+                  "to solve polynomial system")
+
     def evaluate(self, npoint):
         """
         A blah that does blah
@@ -195,7 +199,7 @@ class NumericalPoint(SageObject):
             len(self.coordinates))])
         else:
             raise AttributeError("please set a ring")
-        if not self.ring is None:
+        if self.ring is not None:
             self.dict = new_dictionary
         return new_dictionary
     def to_vector(self):
@@ -222,13 +226,13 @@ class NumericalPoint(SageObject):
 
         return_string = ""
         return_string += str(self.coordinates) + "\n"
-        if not self.multiplicity is None:
+        if self.multiplicity is not None:
             return_string += "Multiplicity: " + str(self.multiplicity) + "\n"
-        if not self.rco is None:
+        if self.rco is not None:
             return_string += "Inverse of condition number: " + str(self.rco) + "\n"
-        if not self.err is None:
+        if self.err is not None:
             return_string += "Forward Error: " + str(self.err) + "\n"
-        if not self.res is None:
+        if self.res is not None:
             return_string += "Backward Error: " + str(self.res) + "\n"
         return return_string
     def __repr__(self):
@@ -284,7 +288,7 @@ class WitnessSet(SageObject):
         if not (isinstance(points, list) and len(set([p.parent() \
             for p in points])) == 1 and isinstance(points[0], NumericalPoint)):
             raise TypeError("third argument should be a list of NumericalPoints")
-        if not poly_sys.ring == forms.ring:
+        if poly_sys.ring != forms.ring:
             raise TypeError("make sure first two arguments share a common ring")
         self.polynomials = poly_sys
         self.slices = forms
