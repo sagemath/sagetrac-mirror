@@ -443,11 +443,14 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
         self.variables = (set(self.ring().gens())).difference(self.params)
+        self.__solutions=[]
 #mixes variables? fix
+    def solutions(self):
+        return(self.__solutions)
     def solve_instance(self, sub_dict):
         specialized_poly_system = self.specialize(sub_dict)
         specialized_solutions = specialized_poly_system.zero_dim_solve()
-        self.solutions.append([sub_dict, specialized_solutions])
+        self.__solutions.append([sub_dict, specialized_solutions])
     def specialize(self, sub_dict, specialize_ring=True):
         """
         A blah that does blah
