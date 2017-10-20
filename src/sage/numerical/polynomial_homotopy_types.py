@@ -522,24 +522,34 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         return special_self
 class Homotopy(ParametrizedPolynomialSystem):
     """
-    A blah that does blah
-
-    INPUT:
-
-    OUTPUT:
-
+    A distinguished class for parametrized polynomial systems with one parameter.
     EXAMPLES::
+        sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, Homotopy
+        sage: R.<x,t> = PolynomialRing(ComplexField(prec=32))
+        sage: P = PolynomialSystem([x^2 - t^2])
+        sage: H = Homotopy(P,t)
+        sage: 
     """
-    def __init__(self, system, params):
+    def __init__(self, system, param):
         """
-        A blah that does blah
+        A constructor 
 
         INPUT:
 
+            - system -- a PolynomialSystem
+            - param -- a parameter in the ring associated to system
+
         OUTPUT:
 
+            - object of type Homotopy
+
         EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, Homotopy
+            sage: R.<x,t> = PolynomialRing(ComplexField(prec=32))
+            sage: P = PolynomialSystem([x^2 - t^2])
+            sage: H = Homotopy(P,t)
         """
-        super(Homotopy, self).__init__(system)
-        if len(params) > 1:
-            raise TypeError("Homotopy can only have one parameter")
+        if param not in  system.ring().gens():
+            raise TypeError("parameter should be a variable in the ring defining your polynomial system")
+        super(Homotopy, self).__init__(system, [param])
