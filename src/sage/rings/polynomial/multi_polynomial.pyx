@@ -2347,17 +2347,16 @@ cdef class MPolynomial(CommutativeRingElement):
         # K[x,y,...] as K[x][y]...
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
-
     def zeta_function(self, p=None, N=None, affine=False, verbose=False):
         r"""
         Return the zeta function of $f$ up to precision $N$.
-        
+
         The zeta function is the generating function for the number of points
         on the hypersurface defined by $f$ over a finite field.
-        
+
         The ambient space may be either the algebraic torus $(\overline{\mathbb{F}_q}^\times)^n$
         (our default), or the affine space $(\overline{\mathbb{F}_q})^n$.
-        
+
         This implementation assumes that the finite field is of prime order.
 
         INPUT:
@@ -2382,14 +2381,14 @@ cdef class MPolynomial(CommutativeRingElement):
 
         Examples::
 
-            sage: R.<x> = LaurentPolynomialRing(ZZ)
-            sage: zeta_function(1+x^3, 7)
+            sage: R.<x> = PolynomialRing(ZZ,1)
+            sage: (1+x^3).zeta_function(7)
             -1/(T^3 - 3*T^2 + 3*T - 1)
 
         ::
 
-            sage: R.<x,y> = LaurentPolynomialRing(FiniteField(7))
-            sage: zeta_function(x^3+x+1-y^2,7)
+            sage: R.<x,y> = PolynomialRing(FiniteField(7))
+            sage: (x^3+x+1-y^2).zeta_function(7)
             (7*T^7 - 17*T^6 + 14*T^5 - 12*T^4 + 18*T^3 - 14*T^2 + 5*T - 1)/(7*T - 1)
         """
         from sage.calculus.functional import diff
@@ -2407,7 +2406,6 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.matrix.all import Matrix
         from sage.rings.real_mpfr import RR
         from sage.functions.log import log
-        from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         # ------------------------------------------------------------------
         #                             Input Checks
@@ -2494,13 +2492,12 @@ cdef class MPolynomial(CommutativeRingElement):
         # Determine the number of variables
         n = self.parent().ngens()
 
-        # Form the Newton polytope of f
-        if n == 1:
-            print(self.exponents())
-            NP = Polyhedron(self.exponents())
-            #NP = Polyhedron([(mu,) for mu in self.exponents()])
-        else:
-            NP = Polyhedron(self.exponents())
+        # Form the Newton polytope of f - self.exponents() works correctly for multipols
+        #if n == 1:
+        #    NP = Polyhedron([(mu,) for mu in self.exponents()])
+        #else:
+        #    NP = Polyhedron(self.exponents())
+        NP = Polyhedron(self.exponents())
 
         # Handle base cases based on dimension of Newton polytope
         n_tilde = NP.dimension()
@@ -2777,7 +2774,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 # xi = Gm/m as vector according to basis
                 xi = zero_vector(G.base_ring(), len(RwD[step][0]))
                 for i, mon in enumerate(RwD[step][0]):
-                    Gm = m*mon.parent()(Gm)
+                    Gm = (m*mon).parent()(Gm)
                     xi[i] = Gm.monomial_coefficient(m*mon)
 
                 # Compute inverse of xi
@@ -2800,7 +2797,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
                 # Reduce remaining part
                 meta = Gm.parent()(m*eta[i])
-                Gmbar = -sum([x[i]*diff(meta,Gm.parent()(x[i])) for i in range(n+1)])
+                x_i = Gm.parent()(x[i])
+                Gmbar = -sum([x_i*diff(meta,x_i) for i in range(n+1)])
 
                 # Update G by removing Gm but adding reduced piece
                 G = G - Gm + Gmbar
@@ -2926,6 +2924,7 @@ cdef class MPolynomial(CommutativeRingElement):
             print("")
             print("Chosen N = %d" % N)
             print( "Minimum Necessary N =",)
+            from sage.functions.log import log
             print(floor(log(max(map(abs,h.coefficients())),p)+1))
 
         if verbose:
@@ -2934,15 +2933,12 @@ cdef class MPolynomial(CommutativeRingElement):
         # Output Zeta function Z(f, T)
         return Z
 
-    
-    
 class _ThetaCoefficient:
     """
     Helper class for zeta_function()
     Handles splitting function coefficients
     and possible p's in denominator
     """
-
     def __init__(self, t, p, N):
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         from sage.arith.all import valuation
@@ -3001,7 +2997,6 @@ class _ThetaCoefficient:
         else:
             return self.x
 
-
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]
@@ -3009,3 +3004,4 @@ cdef remove_from_tuple(e, int ind):
         return w[0]
     else:
         return tuple(w)
+
