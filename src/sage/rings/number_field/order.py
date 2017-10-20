@@ -1345,7 +1345,7 @@ class AbsoluteOrder(Order):
             if self._is_maximal:
                 D = self._K.discriminant()
             else:
-                D = self._K.discriminant(self.basis())
+                D = ZZ(self._K.discriminant(self.basis()))
             self.__discriminant = D
             return D
 

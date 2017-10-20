@@ -3929,13 +3929,11 @@ cdef class FieldElement(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: K.<b> = NumberField(x^4 + x^2 + 2/3)
-            sage: c = (1+b) // (1-b); c
-            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
-            sage: (1+b) / (1-b) == c
-            True
-            sage: c * (1-b)
-            b + 1
+            sage: k = GF(19)
+            sage: k(4) // k(3)
+            14
+            sage: k(4) / k(3)
+            14
         """
         return self._div_(right)
 

@@ -61,6 +61,7 @@ from sage.rings.real_arb cimport RealBall
 from sage.rings.complex_arb cimport ComplexBall
 
 from sage.libs.gmp.pylong cimport mpz_pythonhash
+from .order import Order
 
 
 def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
@@ -1523,6 +1524,262 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(gcd)
 
         res._reduce_c_()
+        return res
+
+    cpdef _floordiv_(self, other):
+        """
+        Euclidean division in imaginary quadratic orders.
+
+        Return an order element ``t`` such that ``t`` is close to the
+        exact quotient ``self/other``. More precisely, the norm of
+        ``t - self/other`` must be less than 1. If there are multiple
+        possibilities, return the ``t`` which minimizes this norm.
+        If there are no possibilities, raise ``ArithmeticError``.
+        If ``other`` is zero, raise ``ZeroDivisionError``.
+
+        If the discriminant is -3, -4, -7, -8 or -11, the order is
+        Euclidean and this is always possible if ``other`` is non-zero.
+
+        OUTPUT:
+
+        - If the parent of ``self`` and ``other`` is a number field,
+          the output is an element of this field lying in the maximal
+          order (the ring of integers).
+        - If the parent of ``self`` and ``other`` is an order (possibly
+          non-maximal), the output lies in that order.
+
+        EXAMPLES::
+
+            sage: O.<i> = GaussianIntegers()
+            sage: (2 + i) // 3
+            1
+            sage: 6 // (2 + i)
+            -i + 2
+            sage: (11 - 5*i) / (2 + 3*i)
+            -43/13*i + 7/13
+            sage: (11 - 5*i) // (2 + 3*i)
+            -3*i + 1
+            sage: i // 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: number field element division by zero
+
+            sage: K.<a> = QuadraticField(-11)
+            sage: (2 + a) // 3
+            1/2*a + 1/2
+            sage: (3 + 4*a) // 5
+            a + 1
+
+        If there is more than one closest element, round to even::
+
+            sage: K.<a> = QuadraticField(-2)
+            sage: (21 - 9*a) // 6
+            -2*a + 4
+            sage: (21 - 15*a) // 6
+            -2*a + 4
+            sage: (27 - 9*a) // 6
+            -2*a + 4
+            sage: (27 - 15*a) // 6
+            -2*a + 4
+
+            sage: K.<z> = CyclotomicField(6)
+            sage: (z + 1) // 3
+            0
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-2)
+            sage: parent(a // 1) is K
+            True
+            sage: R.<t> = QQ[]
+            sage: O.<a> = EquationOrder(t^2 + 27)
+            sage: parent(a // 1) is O
+            True
+            sage: O.<a> = EquationOrder(t^2 - 2)
+            sage: a // a
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Euclidean division is only implemented for imaginary quadratic orders
+            sage: O.<a> = EquationOrder(t^2 + 3)
+            sage: (1 + a) // 2
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Euclidean division a + 1 // 2 in Order in Number Field in a with defining polynomial t^2 + 3 is not defined
+
+        Test Euclidean number fields: check the Euclidean condition and
+        that we always return the element which is closest to the exact
+        quotient. Note that we intentionally pick a non-standard way to
+        represent the number field::
+
+            sage: for D in [-3, -4, -7, -8, -11]:  # long time
+            ....:     K.<z> = NumberField((t + 10)^2 - 9*D)
+            ....:     a = K(D).sqrt()
+            ....:     fuzz = [K(i + j*a) for i in (-1,0,1) for j in (-1,0,1) if i or j]
+            ....:     if D & 1:
+            ....:         fuzz.extend(K(i + j*a) for i in (-1/2, 1/2) for j in (-1/2, 1/2))
+            ....:     for _ in range(200):
+            ....:         x = K.random_element()
+            ....:         y = K.random_element()
+            ....:         if not y: continue
+            ....:         q = x / y
+            ....:         e = x // y
+            ....:         N = (q - e).norm()
+            ....:         assert N < 1
+            ....:         assert all(N <= (q - (e+f)).norm() for f in fuzz)
+
+        In general orders, check the Euclidean condition if we do get
+        a result and check that exact division always works::
+
+            sage: for D in [-12, -15, -16, -19, -20, -23, -24, -27, -28, -31, -32, -35, -36]:  # long time
+            ....:     b = (D & 1)
+            ....:     a = (b^2 - D)//4
+            ....:     O.<z> = EquationOrder(t^2 + b*t + a)
+            ....:     assert O.discriminant() == D
+            ....:     for _ in range(200):
+            ....:         x = O.random_element()
+            ....:         y = O.random_element()
+            ....:         if not y: continue
+            ....:         assert (x * y) // y == x
+            ....:         q = x / y
+            ....:         try:
+            ....:             e = x // y
+            ....:         except ArithmeticError:
+            ....:             if D == -12:
+            ....:                 # D = -12 is a borderline case where we
+            ....:                 # can classify the undefined divisions
+            ....:                 assert (2 * x) / y in O
+            ....:             continue
+            ....:         assert e in O
+            ....:         N = (x/y - e).norm()
+            ....:         assert N < 1
+        """
+        # Parent of result: can be a number field or an order
+        R = self._parent
+
+        cdef Integer disc = R.absolute_discriminant()
+        if disc >= 0:
+            raise ArithmeticError("Euclidean division is only implemented for imaginary quadratic orders")
+        cdef bint disc_odd = mpz_odd_p(disc.value)
+
+        # First, compute the ordinary number field division
+        cdef NumberFieldElement_quadratic q = self / other
+
+        # Resulting element
+        cdef NumberFieldElement_quadratic res = R()
+
+        # Let q = (a + b sqrt(D))/d. We round down the components of q
+        # (a/d and b/d) and store the result in res. For b/d, this is
+        # slightly more complicated in the case of a non-maximal order.
+        #
+        # Let i be the smallest positive integer such that i * sqrt(D)
+        # is contained in the output order. For a maximal order, we have
+        # i = 1 (but not conversely: for D = -12, we also have i = 1)
+        # We really need to treat b/d * sqrt(D) as b/(d*i) sqrt(i^2 D).
+        #
+        # The final result can be res, but possibly we need to increase
+        # one or both components by 1 to a different "corner point".
+        # If the discriminant is odd, then we also need to consider the
+        # "middle point", where both components of res are increased by
+        # 1/2.
+        #
+        # Let r be the remainder of the division a/d and s the remainder
+        # of b/(d*i). To determine which corner point is the best, we
+        # need to check the conditions r <= d/2 and s <= (d*i)/2.
+        # So we store the sign of 2r - d and 2s - d.
+        #
+        # The know whether the result is close enough to q and to know
+        # whether the middle point is better than all corner points,
+        # we need to compute the norm of res - q.
+        #
+        # For the corner point, the norm of the difference equals
+        #
+        #          (d - |2r - d|)^2 - D (id - |2s - id|)^2
+        #     N1 = ---------------------------------------
+        #                          4 d^2
+        #
+        # For the middle point, the norm of the difference equals
+        #
+        #          (2r - d)^2 - D (2s - id)^2
+        #     N2 = --------------------------
+        #                    4 d^2
+
+        # Norms of the difference
+        cdef mpz_t N1
+        cdef mpz_t N2
+        mpz_init(N1)
+        if disc_odd:
+            mpz_init(N2)
+
+        # Index i
+        cdef mpz_t index
+        mpz_init_set(index, disc.value)
+        if not disc_odd:
+            mpz_tdiv_q_2exp(index, index, 2)
+        mpz_divexact(index, index, self.D.value)
+        mpz_sqrt(index, index)
+
+        # Below, we use res.denom as additional "scratch" variable
+        # denoted t in comments. This avoids an extra allocation.
+
+        # We compute with the imaginary part first
+        mpz_mul(N1, index, q.denom)                  # N1 = id
+        mpz_fdiv_qr(res.b, res.denom, q.b, N1)       # b/(id) with t = s
+        mpz_mul(res.b, res.b, index)                 # b *= i
+        mpz_mul_2exp(res.denom, res.denom, 1)        # t = 2s
+        mpz_sub(res.denom, res.denom, N1)            # t = 2s - id
+        cdef int sgn_s = mpz_sgn(res.denom)
+        mpz_abs(res.denom, res.denom)                # t = |2s - id|
+        if disc_odd:
+            mpz_mul(N2, res.denom, res.denom)        # N2 = (2s - id)^2
+            mpz_mul(N2, N2, q.D.value)               # N2 = D (2s - id)^2
+            mpz_neg(N2, N2)                          # N2 = -D (2s - id)^2
+        mpz_sub(res.denom, N1, res.denom)            # t = id - |2s - id|
+        mpz_mul(N1, res.denom, res.denom)            # N1 = (id - |2s - id|)^2
+        mpz_mul(N1, N1, q.D.value)                   # N1 = D (id - |2s - id|)^2
+        mpz_neg(N1, N1)                              # N1 = -D (id - |2s - id|)^2
+
+        mpz_fdiv_qr(res.a, res.denom, q.a, q.denom)  # a/d with t = r
+        mpz_mul_2exp(res.denom, res.denom, 1)        # t = 2r
+        mpz_sub(res.denom, res.denom, q.denom)       # t = 2r - d
+        cdef int sgn_r = mpz_sgn(res.denom)
+        mpz_abs(res.denom, res.denom)                # t = |2r - d|
+        if disc_odd:
+            mpz_addmul(N2, res.denom, res.denom)     # N2 += (2r - d)^2
+        mpz_sub(res.denom, q.denom, res.denom)       # t = d - |2r - d|
+        mpz_addmul(N1, res.denom, res.denom)         # N1 += (d - |2r - d|)^2
+
+        mpz_mul(res.denom, q.denom, q.denom)         # t = d^2
+        mpz_mul_2exp(res.denom, res.denom, 2)        # t = 4 d^2
+
+        # Check whether middle point is better
+        if disc_odd and mpz_cmp(N2, N1) < 0:
+            # Check whether middle point is good enough
+            if mpz_cmp(N2, res.denom) < 0:
+                # Add 1/2 and index/2 to the components of result
+                mpz_mul_2exp(res.a, res.a, 1)
+                mpz_add_ui(res.a, res.a, 1)          # a = 2*a + 1
+                mpz_mul_2exp(res.b, res.b, 1)
+                mpz_add(res.b, res.b, index)         # b = 2*b + i
+                mpz_set_ui(res.denom, 2)
+            else:
+                res = None
+        elif mpz_cmp(N1, res.denom) < 0:
+            # Corner point is better: find best corner point. In case of
+            # a tie, round to even.
+            if sgn_r > 0 or (sgn_r == 0 and mpz_get_ui(res.a) & 1):
+                mpz_add_ui(res.a, res.a, 1)
+            if sgn_s > 0 or (sgn_s == 0 and mpz_get_ui(res.b) & 1):
+                mpz_add(res.b, res.b, index)
+            mpz_set_ui(res.denom, 1)
+        else:
+            res = None
+
+        mpz_clear(N1)
+        if disc_odd: mpz_clear(N2)
+        mpz_clear(index)
+
+        if res is None:
+            raise ArithmeticError(f"Euclidean division {self} // {other} in {R} is not defined")
         return res
 
     cpdef NumberFieldElement galois_conjugate(self):

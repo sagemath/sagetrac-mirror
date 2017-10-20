@@ -2447,6 +2447,19 @@ cdef class NumberFieldElement(FieldElement):
             return otherinv._mul_(otherparent(self))
         return otherinv._mul_(self)
 
+    cpdef _floordiv_(self, other):
+        """
+        Euclidean division. Since this is not defined for general
+        number fields, this simply raises an error::
+
+            sage: K.<a> = CyclotomicField(8)
+            sage: a // a
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Euclidean division is only implemented for imaginary quadratic number fields
+        """
+        raise ArithmeticError("Euclidean division is only implemented for imaginary quadratic number fields")
+
     def __nonzero__(self):
         """
         Return True if this number field element is nonzero.

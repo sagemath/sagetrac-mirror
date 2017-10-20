@@ -1283,14 +1283,7 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
     TESTS::
 
-        sage: TestSuite(v).run(skip='_test_shift') # long time
-
-    The ``_test_shift`` test fails because the parent of the shift is
-    incorrect, see :trac:`23971`::
-
-        sage: v.shift(1, -1).parent()
-        Number Field in I with defining polynomial x^2 + 1
-
+        sage: TestSuite(v).run()  # long time
     """
     def __init__(self, parent, approximant, G, approximants):
         r"""

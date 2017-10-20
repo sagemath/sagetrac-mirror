@@ -295,7 +295,7 @@ class tr_data_rel:
                 Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
                 pari_string = '['+';'.join([','.join(["%s"%ii for ii in row]) for row in zip(*Q)])+']'
                 adj = pari(pari_string).qflll()[self.d]
-                anm1s[i] += sum([m*Z_Fbasis[ii]*int(adj[ii])//int(adj[self.d]) for ii in range(self.d)])
+                anm1s[i] += sum([m * Z_Fbasis[ii] * int(adj[ii]) / int(adj[self.d]) for ii in range(self.d)])
 
             self.amaxvals[m-1] = anm1s
             self.a[m-1] = self.amaxvals[m-1].pop()
