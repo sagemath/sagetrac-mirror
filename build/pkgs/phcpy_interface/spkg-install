@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+import os
+uname = os.uname()
+main_arch = uname[0]
+sub_arch = uname[-1]
+print uname, main_arch, sub_arch
