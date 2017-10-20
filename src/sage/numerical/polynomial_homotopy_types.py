@@ -34,7 +34,12 @@ class PolynomialSystem(SageObject):
             - var_order (optional) -- the user may provide their preferred variable ordering for the
             resulting polynomial system, represented as a list of variables.
 
-            - solutions (optional) -- 
+            - solutions (optional) -- A PolynomialSystem may be initialized with a list of solutions.
+            Generally these should be the result of calling a solver.
+
+        OUTPUT:
+
+            - a PolynomialSystem
 
         EXAMPLES::
 
@@ -230,9 +235,11 @@ class NumericalPoint(SageObject):
 
             sage: from polynomial_homotopy_types import PolynomialSystem, NumericalPoint
             sage: Q = NumericalPoint([0.111,1.4334])
-            sage: R =
-from sage.rings.polynomial.polynomial_element import Polynomial
-            sage: from 
+            sage: R.<x,y> = LaurentPolynomialRing(ComplexField(64))
+            sage: D = Q.to_dict(R)
+            sage: f = 1/x + x/y
+            sage: f.subs(D)
+            9.08644726769465 
         """
         if self.__ring != None and temp_ring is None:
             temp_ring = self.__ring
@@ -247,13 +254,23 @@ from sage.rings.polynomial.polynomial_element import Polynomial
         return new_dictionary
     def to_vector(self):
         """
-        A blah that does blah
+        Obtain a sage vector from a numerical point
 
         INPUT:
 
+            - None
+
         OUTPUT:
 
+            - a vector
+
         EXAMPLES::
+
+            sage: from polynomial_homotopy_types import NumericalPoint
+            sage: Q = NumericalPoint([0.111,1.4334])
+            sage: Q.to_vector()
+            (0.111000000000000, 1.43340000000000)
+            
         """
         return vector(self.coordinates)
     def __repr__(self):
