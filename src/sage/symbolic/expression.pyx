@@ -692,6 +692,27 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._parent._repr_element_(self)
 
+    def __getitem__(self, i):
+        """
+        EXAMPLES::
+
+            sage: f = function('f')
+            sage: ex = f(x<0, x>1, pi)
+            sage: ex[0]
+            x < 0
+            sage: ex[2]
+            pi
+            sage: ex[3]
+            Traceback (most recent call last):
+            ...
+            ValueError: bad index in Expression.__getitem__
+        """
+        from sage.symbolic.ring import SR
+        if i >= 0 and i < self.nops():
+            return new_Expression_from_GEx(SR, self._gobj.op(i))
+        else:
+            raise ValueError('bad index in Expression.__getitem__')
+
     def _sympy_character_art(self, use_unicode):
         r"""
         Create character art using Sympy
