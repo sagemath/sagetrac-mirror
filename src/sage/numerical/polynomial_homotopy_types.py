@@ -19,7 +19,7 @@ class PolynomialSystem(SageObject):
     """
     A class for systems of polynomials, primarily for numerical purposes.
     """
-    def __init__(self, polys, var_order=None, solutions=None):
+    def __init__(self, polys, var_order=None, solutions=None, numerical_irreducible_decomposition=None):
         """
         This is a constructor that takes a list of polynomials and
         returns an object of class PolynomialSystem.
@@ -93,7 +93,7 @@ class PolynomialSystem(SageObject):
                 myvars = list(reversed(list(set(flatten([list(p.variables()) for p in polys])))))
             if var_order is None:
                 var_order = myvars
-            if var_order is not None:
+            if var_order not None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
                     self._ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
@@ -103,12 +103,19 @@ class PolynomialSystem(SageObject):
             if self._ring.base_ring() != QQ and self._ring.base_ring() != ZZ:
                 self._prec = self._ring.base_ring().precision()
             self._solutions = solutions
+            self._numerical_irreducible_decomposition = numerical_irreducible_decomposition
 
     def zero_dim_solve(self):
         engine = PHCpackEngine()
         sols = engine.zero_dim_solve(self)
         self._solutions = sols
         return sols
+
+    def numerical_irreducible_decomposition(self):
+        if self._numerical_irreducible_decomposition not None:
+            return(self._numerical_irreducible_decomposition)
+        else:
+            return("No witness set attached yet. Try calling .NumericalIrreducibleDecomposition")
 
     def ring(self):
         return(self._ring)
