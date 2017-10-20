@@ -24,6 +24,18 @@ class PolynomialSystem(SageObject):
         This is a constructor that takes a list of polynomials and
         returns an object of class PolynomialSystem.
 
+        INPUT:
+
+            - polys -- a list of polynomials or Laurent polynomials. These polynomials may constructed 
+            either within sage's SymbolicRing OR as elements of a common ring with coefficients in
+            ZZ, QQ, RR, or CC. The user is advised to be conscious of precision issues when, say,
+            calling a numerical solver on a PolynomialSystem with QQ coefficients.
+
+            - var_order (optional) -- the user may provide their preferred variable ordering for the
+            resulting polynomial system, represented as a list of variables.
+
+            - solutions (optional) -- 
+
         EXAMPLES::
 
             sage: from sage.polynomial_homotopy_types import PolynomialSystem
@@ -203,13 +215,24 @@ class NumericalPoint(SageObject):
         """
         Obtain the dictionary representation of a NumericalPoint over a Laurent polynomial ring. 
         The keys of the dictionary are variables in the ring---the values of each key is the 
-        corresponding coordinate of the NumericalPoint. If the option temp_ring is not specified, then to_dict 
+        corresponding coordinate of the NumericalPoint. If the option temp_ring is not specified, then to_dict
+        will attempt to use a ring attached to the NumericalPoint. 
 
         INPUT:
 
+            - temp_ring (optional) -- the 
+
         OUTPUT:
 
+            - a dictionary. Keys are assigned to coordinates in the order prescribed by the ring used.
+
         EXAMPLES::
+
+            sage: from polynomial_homotopy_types import PolynomialSystem, NumericalPoint
+            sage: Q = NumericalPoint([0.111,1.4334])
+            sage: R =
+from sage.rings.polynomial.polynomial_element import Polynomial
+            sage: from 
         """
         if self.__ring != None and temp_ring is None:
             temp_ring = self.__ring
@@ -439,11 +462,15 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         """
         super(ParametrizedPolynomialSystem, self).__init__(system)
         if (not isinstance(params, list)) or (False in \
-            set([g in self.__ring.gens() for g in params])):
+            set([g in self.ring().gens() for g in params])):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
-        self.variables = (set(self.__ring.gens())).difference(self.params)
+        self.variables = (set(self.ring().gens())).difference(self.params)
 #mixes variables? fix
+    def solve_instance(self, sub_dict):
+        specialized_poly_system = self.specialize(sub_dict)
+        specialized_solutions = specialized_poly_system.zero_dim_solve()
+        self.solutions.append([sub_dict, specialized_solutions])
     def specialize(self, sub_dict, specialize_ring=True):
         """
         A blah that does blah
@@ -456,13 +483,12 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
         """
         if False in set([g in sub_dict.keys() for g in self.params]):
             raise TypeError("Specialization keys should be parameters.")
-        special_self = self
-        special_self.__polynomials = [f.subs(sub_dict) for f in self.__polynomials]
+        subbed_polys = [f.subs(sub_dict) for f in self.polynomials()]
         if specialize_ring:
-            new_vars = list(set(self.__ring.gens()).difference(sub_dict.keys()))
-            specializedring = PolynomialRing(self.__polynomials[0].base_ring(), len(new_vars), new_vars)
-            special_self.__polynomials = [specializedring(str(f)) for f in special_self.polynomials()]
-            special_self.__ring = specializedring
+            new_vars = list(set(self.ring().gens()).difference(sub_dict.keys()))
+            specialized_ring = PolynomialRing(self.polynomials()[0].base_ring(), len(new_vars), new_vars)
+            subbed_polys = [specialized_ring(str(f)) for f in subbed_polys]
+        special_self = PolynomialSystem(subbed_polys)
         return special_self
 class Homotopy(ParametrizedPolynomialSystem):
     """
