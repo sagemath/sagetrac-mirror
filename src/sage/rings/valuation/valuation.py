@@ -1059,7 +1059,7 @@ class MacLaneApproximantNode(object):
     relevant, everything else are caches/debug info.) The boolean ``ef``
     denotes whether ``v`` already has the final ramification index E and
     residue degree F of this approximant.  An edge V -- P represents the
-    relation ``P.v ≤ V.v`` (pointwise on the polynomial ring K[x]) between the
+    relation `V_P \le v_V` (pointwise on the polynomial ring `K[x]`) between the
     valuations.
 
     TESTS::
