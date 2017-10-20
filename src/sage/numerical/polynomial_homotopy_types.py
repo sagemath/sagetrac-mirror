@@ -158,6 +158,27 @@ class PolynomialSystem(SageObject):
         return sols
 
     def numerical_irreducible_decomposition(self):
+        """
+        Returns the associated numerical_irreducible_decomposition
+
+        INPUT:
+
+            - none
+
+        OUTPUT:
+
+            -- the associated numericala_irreducible_decomposition if it exists
+
+        EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: S.<a,b,c>=PolynomialRing(RealField(100),3)
+            sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
+            sage: C=PolynomialSystem(G,var_order=[b,a,c])
+            sage: C.numerical_irreducible_decomposition()
+            'No witness set attached yet. Try calling .NumericalIrreducibleDecomposition'
+
+        """
         if not self._numerical_irreducible_decomposition is None:
             return(self._numerical_irreducible_decomposition)
         else:
@@ -473,12 +494,13 @@ class WitnessSet(SageObject):
 
         EXAMPLES:
 
-            sage: from sage.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=PolynomialSystem([y-x^2])
             sage: L=PolynomialSystem([y-25])
             sage: pts=[NumericalPoint([5,25]),NumericalPoint([-5,25])]
             sage: WitnessSet(F,L,pts)
+            A witness set for a dimension-1 component with 2 points.
             
         """
         if not isinstance(poly_sys, PolynomialSystem):
