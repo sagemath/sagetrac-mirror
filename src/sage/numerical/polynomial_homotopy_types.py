@@ -37,13 +37,17 @@ class PolynomialSystem(SageObject):
             - solutions (optional) -- A PolynomialSystem may be initialized with a list of solutions.
             Generally these should be the result of calling a solver.
 
+            - numerical_irreducible_decomposition -- A PolynomialSystem may be 
+              initialized with a NumericalIrreducibleDecomposition. Generally this should be the result
+              of calling numerical_irreducible_decomposition.
+
         OUTPUT:
 
             - a PolynomialSystem
 
         EXAMPLES::
 
-            sage: from sage.polynomial_homotopy_types import PolynomialSystem
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=[x^2-y,x+y]
             sage: A=PolynomialSystem(F)
@@ -58,6 +62,7 @@ class PolynomialSystem(SageObject):
             sage: C=PolynomialSystem(G,var_order=[b,a,c])
             sage: C.ring()
             Multivariate Laurent Polynomial Ring in b, a, c over Real Field with 100 bits of precision
+
             sage: var('w,z')
             (w, z)
             sage: D=PolynomialSystem([w^7-z])
@@ -105,7 +110,46 @@ class PolynomialSystem(SageObject):
             self._solutions = solutions
             self._numerical_irreducible_decomposition = numerical_irreducible_decomposition
 
-    def zero_dim_solve(self):
+    def zero_dim_solve(self):#doc test is getting upset at PHCpackEngine. Don't know why
+        """
+        Solves the zero dimensional polynomial system
+
+        INPUT:
+
+            - none
+
+        OUTPUT:
+
+            -- A list of numerical points which solve the zero dimensional polynomial system
+
+        EXAMPLES::
+
+            sage: from sage.numerical.polynomial_continuation_engine import *
+            sage: from sage.numerical.polynomial_continuation_engine import PHCpackEngine
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: R.<x,y,z>=PolynomialRing(QQ,3)
+            sage: F=PolynomialSystem([x*z-y^2,x*y-z,z-1])
+            sage: F.zero_dim_solve()
+
+            [[1.00000000000000, 1.00000000000000, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.2
+             Forward Error: 3.349e-102
+             Backward Error: 0.0
+             ,
+             [-0.500000000000000 + 0.866025403784439*I, -0.500000000000000 - 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 8.756e-17
+             Backward Error: 1.11e-16
+             ,
+             [-0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 1.228e-16
+             Backward Error: 2.776e-16
+             ]
+        """
         engine = PHCpackEngine()
         sols = engine.zero_dim_solve(self)
         self._solutions = sols
@@ -118,12 +162,108 @@ class PolynomialSystem(SageObject):
             return("No witness set attached yet. Try calling .NumericalIrreducibleDecomposition")
 
     def ring(self):
+        """
+        Returns the ring
+
+        INPUT:
+
+            - none
+
+        OUTPUT:
+
+            -- the ring that the PolynomialSystem is defined over
+
+        EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: S.<a,b,c>=PolynomialRing(RealField(100),3)
+            sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
+            sage: C=PolynomialSystem(G,var_order=[b,a,c])
+            sage: C.ring()
+            Multivariate Laurent Polynomial Ring in b, a, c over Real Field with 100 bits of precision
+        """
         return(self._ring)
 
     def polynomials(self):
+        """
+        Returns the polynomials in the PolynomialSystem
+
+        INPUT:
+
+            - none
+
+        OUTPUT:
+
+            -- the polynomials involved in the PolynomialSystem
+
+        EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: S.<a,b,c>=PolynomialRing(RealField(100),3)
+            sage: G=[(a+b+c)^2-a-b-c,(a-b)^2+(b-c)^2]
+            sage: C=PolynomialSystem(G,var_order=[b,a,c])
+            sage: C.polynomials()
+            [b^2 + 2.0000000000000000000000000000*b*a + a^2 + 2.0000000000000000000000000000*b*c + 2.0000000000000000000000000000*a*c + c^2 - b - a - c,
+             b^2 - 2.0000000000000000000000000000*b*a + 2.0000000000000000000000000000*a^2 - 2.0000000000000000000000000000*a*c + c^2]
+        """
         return(self._polynomials)
 
     def solutions(self):
+        """
+        Returns solutions to the polynomial system if the system is zero dimensional and has already been solved
+
+        INPUT:
+
+            - none
+
+        OUTPUT:
+
+            -- A list of numerical points which solve the zero dimensional polynomial system
+
+        EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: R.<x,y,z>=PolynomialRing(QQ,3)
+            sage: F=PolynomialSystem([x*z-y^2,x*y-z,z-1])
+            sage: F.zero_dim_solve()
+            [[1.00000000000000, 1.00000000000000, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.2
+             Forward Error: 3.349e-102
+             Backward Error: 0.0
+             ,
+             [-0.500000000000000 + 0.866025403784439*I, -0.500000000000000 - 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 8.756e-17
+             Backward Error: 1.11e-16
+             ,
+             [-0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 1.228e-16
+             Backward Error: 2.776e-16
+             ]
+            sage: F.solutions()
+            [[1.00000000000000, 1.00000000000000, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.2
+             Forward Error: 3.349e-102
+             Backward Error: 0.0
+             ,
+             [-0.500000000000000 + 0.866025403784439*I, -0.500000000000000 - 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 8.756e-17
+             Backward Error: 1.11e-16
+             ,
+             [-0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I, 1.00000000000000]
+             Multiplicity: 1
+             Inverse of condition number: 0.167
+             Forward Error: 1.228e-16
+             Backward Error: 2.776e-16
+             ]
+        """
         if not self._solutions is None:
             return self._solutions
         else:
@@ -146,7 +286,7 @@ class PolynomialSystem(SageObject):
 
             sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
             sage: var('x,y')
-            (x,y)
+            (x, y)
             sage: P=PolynomialSystem([x^2+y^2-1, x-y])
             sage: P.evaluate([0,2])
             [3.00000000000000000, -2.00000000000000000]
@@ -190,7 +330,7 @@ class NumericalPoint(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.numerical.phcpy_interface import NumericalPoint
+            sage: from sage.numerical.polynomial_homotopy_types import NumericalPoint
             sage: R.<x,y,z> = PolynomialRing(CC,3)
             sage: p = NumericalPoint([2,3,4+I],ring=R)
             sage: p.dict
@@ -240,7 +380,7 @@ class NumericalPoint(SageObject):
 
         EXAMPLES::
 
-            sage: from polynomial_homotopy_types import PolynomialSystem, NumericalPoint
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, NumericalPoint
             sage: Q = NumericalPoint([0.111,1.4334])
             sage: R.<x,y> = LaurentPolynomialRing(ComplexField(64))
             sage: D = Q.to_dict(R)
@@ -273,7 +413,7 @@ class NumericalPoint(SageObject):
 
         EXAMPLES::
 
-            sage: from polynomial_homotopy_types import NumericalPoint
+            sage: from sage.numerical.polynomial_homotopy_types import NumericalPoint
             sage: Q = NumericalPoint([0.111,1.4334])
             sage: Q.to_vector()
             (0.111000000000000, 1.43340000000000)
@@ -364,7 +504,7 @@ class WitnessSet(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.numerical.phcpy_interface import PolynomialSystem, NumericalPoint, WitnessSet
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem, NumericalPoint, WitnessSet
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=PolynomialSystem([y-x^2])
             sage: L=PolynomialSystem([y-25])
