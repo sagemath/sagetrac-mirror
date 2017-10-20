@@ -12,6 +12,8 @@ from sage.rings.all import CC, RR, QQ, ZZ
 from sage.modules.all import vector
 from sage.misc.flatten import flatten
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.numerical.polynomial_continuation_engine', 'PHCpackEngine')
 
 ## CLASSES
 
@@ -668,7 +670,6 @@ class Homotopy(ParametrizedPolynomialSystem):
         sage: R.<x,t> = PolynomialRing(ComplexField(prec=32))
         sage: P = PolynomialSystem([x^2 - t^2])
         sage: H = Homotopy(P,t)
-        sage: 
     """
     def __init__(self, system, param):
         """

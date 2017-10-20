@@ -7,7 +7,8 @@ from sage.rings.all import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.flatten import flatten
 from sage.structure.all import SageObject
-from sage.numerical.polynomial_homotopy_types import NumericalPoint
+from sage.numerical.polynomial_homotopy_types import *
+# from sage.rings.all import CC, RR, QQ, ZZ
 
 class HomotopyContinuationEngine(SageObject):
     """
