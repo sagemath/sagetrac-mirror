@@ -11,7 +11,6 @@ Elements of Laurent polynomial rings
 # ****************************************************************************
 from __future__ import print_function
 
-
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
 from sage.misc.misc import union
@@ -19,7 +18,6 @@ from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.structure.richcmp cimport richcmp, rich_to_bool
-
 
 
 cdef class LaurentPolynomial(CommutativeAlgebraElement):
@@ -237,7 +235,6 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
             NotImplementedError
         """
         raise NotImplementedError
-
 
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial):
