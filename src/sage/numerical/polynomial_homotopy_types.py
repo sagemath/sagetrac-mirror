@@ -91,29 +91,29 @@ class PolynomialSystem(SageObject):
             if var_order is not None:
                 if set(var_order) == set(myvars):
                     myvars = var_order
-                    self.__ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
-                    self.__polynomials = [(self.__ring)(p)  for p in polys]
+                    self._ring = LaurentPolynomialRing(good_base_ring, len(myvars), myvars)
+                    self._polynomials = [(self._ring)(p)  for p in polys]
                 else:
                     raise TypeError("Variable order is not the exact list of variables involved")
-            if self.__ring.base_ring() != QQ and self.__ring.base_ring() != ZZ:
-                self._prec = self.__ring.base_ring().precision()
-            self.__solutions = solutions
+            if self._ring.base_ring() != QQ and self._ring.base_ring() != ZZ:
+                self._prec = self._ring.base_ring().precision()
+            self._solutions = solutions
 
     def zero_dim_solve(self):
         engine = PHCpackEngine()
         sols = engine.zero_dim_solve(self)
-        self.__solutions = sols
+        self._solutions = sols
         return sols
 
     def ring(self):
-        return(self.__ring)
+        return(self._ring)
 
     def polynomials(self):
-        return(self.__polynomials)
+        return(self._polynomials)
 
     def solutions(self):
-        if self.__solutions is not None:
-            return self.__solutions
+        if self._solutions is not None:
+            return self._solutions
         else:
             print("Call zero_dim_solve() or numerical_irreducible_decomposition()"
                   "to solve polynomial system")
@@ -141,10 +141,10 @@ class PolynomialSystem(SageObject):
 
         """
         if isinstance(npoint, list):
-            npoint = NumericalPoint(npoint, ring=self.__ring)
+            npoint = NumericalPoint(npoint, ring=self._ring)
         if not isinstance(npoint, NumericalPoint):
             raise TypeError("point provided must be of type NumericalPoint")
-        return([f.subs(npoint.to_dict(temp_ring=self.__ring)) for f in self.__polynomials])
+        return([f.subs(npoint.to_dict(temp_ring=self._ring)) for f in self._polynomials])
     def __str__(self):
         """
         A blah that does blah
@@ -156,7 +156,7 @@ class PolynomialSystem(SageObject):
         EXAMPLES::
         """
 
-        return "%s over %s. " %(self.__polynomials, self.__ring)
+        return "%s over %s. " %(self._polynomials, self._ring)
     def __repr__(self):
         """
         A blah that does blah
@@ -167,7 +167,7 @@ class PolynomialSystem(SageObject):
 
         EXAMPLES::
         """
-        return "%s over %s. " %(self.__polynomials, self.__ring)
+        return "%s over %s. " %(self._polynomials, self._ring)
 class NumericalPoint(SageObject):
     """
     A class for representing points numerically
@@ -188,7 +188,7 @@ class NumericalPoint(SageObject):
         """
         if isinstance(coords, list):
             self.coordinates = coords
-            self.__ring = ring
+            self._ring = ring
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
@@ -203,8 +203,8 @@ class NumericalPoint(SageObject):
                 raise TypeError("Keys are not all in the same ring")
             if len(coords.keys()) != coords.keys()[0].parent().ngens():
                 raise TypeError("Number of keys disagrees with number of variables of ring")
-            self.__ring = coords.keys()[0].parent()
-            self.coordinates = [coords[i] for i in self.__ring.gens()]
+            self._ring = coords.keys()[0].parent()
+            self.coordinates = [coords[i] for i in self._ring.gens()]
             self.multiplicity = multiplicity
             self.rco = rco
             self.err = err
@@ -234,15 +234,15 @@ class NumericalPoint(SageObject):
 from sage.rings.polynomial.polynomial_element import Polynomial
             sage: from 
         """
-        if self.__ring != None and temp_ring is None:
-            temp_ring = self.__ring
+        if self._ring != None and temp_ring is None:
+            temp_ring = self._ring
         if temp_ring != None:
             new_dictionary = dict([(temp_ring.gens()[i], \
             self.coordinates[i]) for i in range(0, \
             len(self.coordinates))])
         else:
             raise AttributeError("please set a ring")
-        if self.__ring is not None:
+        if self._ring is not None:
             self.dict = new_dictionary
         return new_dictionary
     def to_vector(self):
@@ -333,7 +333,7 @@ class WitnessSet(SageObject):
             raise TypeError("third argument should be a list of NumericalPoints")
         if poly_sys.ring() != forms.ring():
             raise TypeError("make sure first two arguments share a common ring")
-        self.__polynomials = poly_sys
+        self._polynomials = poly_sys
         self.slices = forms
         self.points = points
         self.dimension = len(forms.polynomials())
@@ -348,7 +348,7 @@ class WitnessSet(SageObject):
         EXAMPLES::
         """
         evaluations = flatten([[(f.evaluate(p)) for f in \
-            ([self.__polynomials, self.slices])] for p in self.points])
+            ([self._polynomials, self.slices])] for p in self.points])
         if False in set([(abs(q) < tolerance) for q in evaluations]):
             return False
         else:
@@ -466,14 +466,14 @@ class ParametrizedPolynomialSystem(PolynomialSystem):
             raise TypeError("Parameters must be a list of variables in the ring.")
         self.params = params
         self.variables = (set(self.ring().gens())).difference(self.params)
-        self.__solutions=[]
+        self._solutions=[]
 #mixes variables? fix
     def solutions(self):
-        return(self.__solutions)
+        return(self._solutions)
     def solve_instance(self, sub_dict):
         specialized_poly_system = self.specialize(sub_dict)
         specialized_solutions = specialized_poly_system.zero_dim_solve()
-        self.__solutions.append([sub_dict, specialized_solutions])
+        self._solutions.append([sub_dict, specialized_solutions])
     def specialize(self, sub_dict, specialize_ring=True):
         """
         A blah that does blah
