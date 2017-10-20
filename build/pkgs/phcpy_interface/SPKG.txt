@@ -1,0 +1,23 @@
+= phcpy_interface =
+
+== Description ==
+
+phcpy is the Python interface to PHCpack, a software package to solve
+polynomial systems by homotopy continuation.
+
+== License ==
+
+ * GPL version 3 
+
+== Upstream Contact ==
+
+Jan Verschelde (janv@uic.edu)
+
+== Dependencies ==
+
+ * phcpy
+ * qdlib
+
+== Special Update/Build Instructions ==
+
+Building phcpy requires the gnu-ada compiler.
