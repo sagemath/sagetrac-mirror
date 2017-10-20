@@ -117,8 +117,13 @@ class PHCpackEngine(HomotopyContinuationEngine):
         basering = self.__originalring.base_ring()
         for phcpysol in phcpysols:
             soldict = self.phcpy.solutions.strsol2dict(phcpysol)
-            pointdict = {self.__phcpyvartoinputvardict[key] : basering(soldict[key])
-                         for key in self.__phcpyvartoinputvardict.keys()}
+            try:
+                pointdict = {self.__phcpyvartoinputvardict[key] : basering(soldict[key])
+                             for key in self.__phcpyvartoinputvardict.keys()}
+            except TypeError:
+                basering = ComplexField(prec = self.__prec)
+                pointdict = {self.__phcpyvartoinputvardict[key] : basering(soldict[key])
+                             for key in self.__phcpyvartoinputvardict.keys()}
             toreturn.append(NumericalPoint(pointdict,
                                            ring=self.__originalring,
                                            multiplicity=soldict['m'],
@@ -172,6 +177,18 @@ class PHCpackEngine(HomotopyContinuationEngine):
         else:
             phcpyprec = 'd'
 
+        if phcpyprec == 'd':
+            self.__digits = 16
+            self.__prec = 53
+        elif phcpyprec == 'dd':
+            self.__digits = 32
+            self.__prec = 106
+        elif phcpyprec == 'qd':
+            self.__digits = 64
+            self.__prec = 212
+        else:
+            raise ValueError("Invalid phcpy precision type: %s"%phcpyprec)
+            
         self.__phcpy_prec = phcpyprec
 
     def mixed_volume(self, system, stable=False):
