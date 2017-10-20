@@ -26,7 +26,7 @@ class PolynomialSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.numerical.phcpy_interface import PolynomialSystem
+            sage: from sage.polynomial_homotopy_types import PolynomialSystem
             sage: R.<x,y>=PolynomialRing(QQ,2)
             sage: F=[x^2-y,x+y]
             sage: A=PolynomialSystem(F)
@@ -102,13 +102,25 @@ class PolynomialSystem(SageObject):
 
     def evaluate(self, npoint):
         """
-        A blah that does blah
+        Evaluation of a PolynomialSystem at a NumericalPoint.
 
         INPUT:
 
+            - npoint -- either a NumericalPoint or a list giving the coordinates of a NumericalPoint
+
         OUTPUT:
 
+            -- a list of numbers obtained by evaluating each polynomial at a point
+
         EXAMPLES::
+
+            sage: from sage.numerical.polynomial_homotopy_types import PolynomialSystem
+            sage: var('x,y')
+            (x,y)
+            sage: P=PolynomialSystem([x^2+y^2-1, x-y])
+            sage: P.evaluate([0,2])
+            [3.00000000000000000, -2.00000000000000000]
+
         """
         if isinstance(npoint, list):
             npoint = NumericalPoint(npoint, ring=self.ring)
@@ -183,7 +195,9 @@ class NumericalPoint(SageObject):
         # and so on as more args are added
     def to_dict(self, temp_ring=None):
         """
-        A blah that does blah
+        Obtain the dictionary representation of a NumericalPoint over a Laurent polynomial ring. 
+        The keys of the dictionary are variables in the ring---the values of each key is the 
+        corresponding coordinate of the NumericalPoint. If the option temp_ring is not specified, then to_dict 
 
         INPUT:
 
