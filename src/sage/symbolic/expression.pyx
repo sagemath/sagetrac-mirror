@@ -5738,12 +5738,10 @@ cdef class Expression(CommutativeRingElement):
             sage: t.op[0]
             x^2
 
-        Indexing directly with ``t[1]`` causes problems with numpy types.
+        Direct indexing works as well::
 
             sage: t[1]
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
+            x
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):
