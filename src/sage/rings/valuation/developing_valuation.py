@@ -166,9 +166,11 @@ class DevelopingValuation(DiscretePseudoValuation):
         if e == 1:
             return self.simplify(f, error=error)
         if e % 2 == 0:
-            return self._pow(self.simplify(f*f, error=error*2/e, effective_degree=effective_degree*2/e), e//2, error=error, effective_degree=effective_degree)
+            return self._pow(self.simplify(f*f, error=error*2/e, effective_degree=effective_degree*2/e),
+                             e//2, error=error, effective_degree=effective_degree)
         else:
-            return self.simplify(f*self._pow(f, e-1, error=error*(e-1)/e, effective_degree=effective_degree*(e-1)/e), error=error, effective_degree=effective_degree)
+            return self.simplify(f*self._pow(f, e-1, error=error*(e-1)/e, effective_degree=effective_degree*(e-1)/e),
+                                 error=error, effective_degree=effective_degree)
 
     def coefficients(self, f):
         r"""
@@ -202,11 +204,10 @@ class DevelopingValuation(DiscretePseudoValuation):
         if f.degree() < self.phi().degree():
             yield f
         elif self.phi().degree() == 1:
-            from itertools import imap
             if self.phi() != domain.gen() or not domain.is_exact():
                 f = f(domain.gen() - self.phi()[0])
-            for c in imap(domain, f.coefficients(sparse=False)):
-                yield c
+            for c in f.coefficients(sparse=False):
+                yield domain(c)
         else:
             while f.degree() >= 0:
                 f,r = self._quo_rem(f)
@@ -262,7 +263,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         r"""
         Evaluate this valuation at ``f``.
 
-        INPUT::
+        INPUT:
 
         - ``f`` -- a polynomial in the domain of this valuation
 

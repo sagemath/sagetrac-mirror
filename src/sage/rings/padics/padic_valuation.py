@@ -15,13 +15,14 @@ EXAMPLES::
     sage: Zp(11).valuation()
     11-adic valuation
 
-These valuations can then, e.g., be used to compute factorizations in the
-completion of a ring::
+These valuations can then, e.g., be used to compute approximate factorizations
+in the completion of a ring::
 
     sage: v = ZZ.valuation(2)
     sage: R.<x> = ZZ[]
     sage: f = x^5 + x^4 + x^3 + x^2 + x - 1
-    sage: v.montes_factorization(f)
+    sage: v.montes_factorization(f, required_precision=20)
+    (x + 676027) * (x^4 + 372550*x^3 + 464863*x^2 + 385052*x + 297869)
 
 AUTHORS:
 
@@ -410,7 +411,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         sage: TestSuite(ZZ.valuation(3)).run() # long time
         sage: TestSuite(QQ.valuation(5)).run() # long time
-        sage: TestSuite(Zp(5).valuation(5)).run() # long time
+        sage: TestSuite(Zp(5).valuation()).run() # long time
 
     """
     def __init__(self, parent, p):
@@ -449,7 +450,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         OUTPUT:
 
-        An element of the :meth:`residue_field`.
+        An element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`.
 
         EXAMPLES::
 
@@ -471,7 +472,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         INPUT:
 
-        - ``x`` -- an element of the :meth:`residue_field`
+        - ``x`` -- an element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`
 
         EXAMPLES::
 
@@ -582,7 +583,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         ALGORITHM:
 
-        This is a simplified version of :meth:`mac_lane_approximants`.
+        This is a simplified version of :meth:`sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants`.
 
         EXAMPLES::
 
@@ -723,6 +724,9 @@ class pAdicValuation_base(DiscreteValuation):
             sage: R.<x> = QQ[]
             sage: L.<a> = NumberField(x^4 + 2*x^3 + 2*x^2 + 8)
             sage: QQ.valuation(2).extensions(L)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ] does not approximate a unique extension of 2-adic valuation with respect to x^4 + 2*x^3 + 2*x^2 + 8
 
         A case where the extension was incorrect at some point::
 
@@ -731,7 +735,7 @@ class pAdicValuation_base(DiscreteValuation):
             sage: M.<b> = L.extension(x^2 + 1)
             sage: w = v.extension(L).extension(M)
             sage: w(w.uniformizer())
-            1/2
+            1/4
 
         """
         if self.domain() is ring:
@@ -842,7 +846,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         OUTPUT:
 
-        An element of the :meth:`residue_field`.
+        An element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`.
 
         EXAMPLES::
 
@@ -856,12 +860,12 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     def lift(self, x):
         """
-        Lift ``x`` from the :meth:`residue_field` to the :meth:`domain` of this
+        Lift ``x`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field` to the domain of this
         valuation.
 
         INPUT:
 
-        - ``x`` -- an element of the :meth:`residue_field`
+        - ``x`` -- an element of the residue field of this valuation
 
         EXAMPLES::
 
@@ -894,7 +898,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         INPUT:
 
-        - ``v`` -- an element of the :meth:`value_semigroup` of this valuation
+        - ``v`` -- an element of the :meth:`pAdicValuation_base.value_semigroup` of this valuation
 
         EXAMPLES::
 
@@ -1059,7 +1063,7 @@ class pAdicValuation_int(pAdicValuation_base):
         """
         Evaluate this valuation at ``x``.
 
-        INPUT::
+        INPUT:
 
         - ``x`` --  an element in the domain of this valuation
 
@@ -1208,6 +1212,55 @@ class pAdicValuation_int(pAdicValuation_base):
         
         return self.domain()(reduced.lift())
 
+    def inverse(self, x, precision):
+        r"""
+        Return an approximate inverse of ``x``.
+
+        The element returned is such that the product differs from 1 by an
+        element of valuation at least ``precision``.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this valuation
+
+        - ``precision`` -- a rational or infinity
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(2)
+            sage: x = 3
+            sage: y = v.inverse(3, 2); y
+            3
+            sage: x*y - 1
+            8
+
+        This might not be possible for elements of positive valuation::
+
+            sage: v.inverse(2, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element has no approximate inverse in this ring
+
+        Unless the precision is very small::
+
+            sage: v.inverse(2, 0)
+            1
+
+        """
+        if not x.is_zero():
+            y = ~x
+            if y in self.domain():
+                return self.domain()(y)
+        if precision <= 0:
+            return self.domain().one()
+
+        from sage.rings.all import infinity
+        if self(x) > 0 or precision is infinity:
+            raise ValueError("element has no approximate inverse in this ring")
+        
+        from sage.rings.all import ZZ, QQ
+        return self.domain()(ZZ(x).inverse_mod(self.p() ** QQ(precision).ceil()))
+
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):
     r"""
@@ -1221,7 +1274,13 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
     TESTS::
 
-        sage: TestSuite(v).run() # long time
+        sage: TestSuite(v).run(skip='_test_shift') # long time
+
+    The ``_test_shift`` test fails because the parent of the shift is
+    incorrect, see :trac:`23971`::
+
+        sage: v.shift(1, -1).parent()
+        Number Field in I with defining polynomial x^2 + 1
 
     """
     def __init__(self, parent, approximant, G, approximants):
@@ -1249,8 +1308,19 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
             sage: v._to_base_domain(I)
             x
 
+        TESTS:
+
+        Check that this also works for relative extensions::
+
+            sage: v = QQ.valuation(2)
+            sage: L.<a> = NumberField(x^2 + 2)
+            sage: M.<b> = L.extension(x^2 + 1)
+            sage: w = v.extension(L).extension(M)
+            sage: w._to_base_domain(b)
+            x
+
         """
-        polynomial = f.polynomial() if hasattr(f,'polynomial') else f.lift()
+        polynomial = f.lift()
         return polynomial(self._base_valuation.domain().gen())
 
     def _from_base_domain(self, f):

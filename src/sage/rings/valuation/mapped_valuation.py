@@ -187,7 +187,7 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def reduce(self, f):
         r"""
-        Return the reduction of ``f`` in the :meth:`residue_field` of this valuation.
+        Return the reduction of ``f`` in the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field` of this valuation.
 
         EXAMPLES::
 
@@ -369,7 +369,8 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             True
 
         """
-        return isinstance(other, FiniteExtensionFromInfiniteValuation) and self._base_valuation == other._base_valuation
+        return (isinstance(other, FiniteExtensionFromInfiniteValuation)
+                and self._base_valuation == other._base_valuation)
 
     def restriction(self, ring):
         r"""

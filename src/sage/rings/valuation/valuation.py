@@ -55,6 +55,7 @@ send more than just zero to infinity::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.categories.morphism import Morphism
+from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_LT, op_GE, op_GT
 
 from sage.misc.cachefunc import cached_method
 
@@ -221,17 +222,17 @@ class DiscretePseudoValuation(Morphism):
             False
 
         """
-        if op == 0: # <
+        if op == op_LT:
             return self <= other and not (self >= other)
-        if op == 1: # <=
+        if op == op_LE:
             return self._le_(other)
-        if op == 2: # ==
+        if op == op_EQ:
             return self._eq_(other)
-        if op == 3: # !=
+        if op == op_NE:
             return not self == other
-        if op == 4: # >
+        if op == op_GT:
             return self >= other and not (self <= other)
-        if op == 5: # >=
+        if op == op_GE:
             return self._ge_(other)
         raise NotImplementedError("Operator not implemented for this valuation")
 
@@ -703,16 +704,17 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: S.<x> = R[]
             sage: v = R.valuation()
             sage: f = x^4 + 234
-            sage: v.mac_lane_approximants(f) # is_squarefree() not implemented in this ring
-            sage: v.mac_lane_approximants(f, assume_squarefree=True)
+            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet
+            2
 
         ::
 
-            sage: R = ZpFM(2, 500, print_mode='terse')
+            sage: R = ZpFM(2, 50, print_mode='terse')
             sage: S.<x> = R[]
+            sage: f = (x^32 + 16)*(x^32 + 16 + 2^16*x^2) + 2^34
             sage: v = R.valuation()
-            sage: v.mac_lane_approximants(f) # is_squarefree() is not yet implemented on this ring
-            sage: v.mac_lane_approximants(f, assume_squarefree=True)
+            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet
+            2
 
         A case that triggered an assertion at some point::
 
@@ -720,6 +722,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: f = x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 +17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116
             sage: v.mac_lane_approximants(f)
+            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 6) = 3/2, v(x^12 + 24*x^9 + 216*x^6 + 864*x^3 + 2025) = 13/2, v(x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 + 17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116) = +Infinity ]]
 
         """
         R = G.parent()
@@ -768,7 +771,12 @@ class DiscreteValuation(DiscretePseudoValuation):
             new_leafs = []
             if node.forced_leaf:
                 return new_leafs
-            augmentations = node.valuation.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=node.coefficients, valuations=node.valuations, check=False, principal_part_bound=node.principal_part_bound)
+            augmentations = node.valuation.mac_lane_step(G,
+                             report_degree_bounds_and_caches=True,
+                             coefficients=node.coefficients,
+                             valuations=node.valuations,
+                             check=False,
+                             principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()
                 new_leafs.append(MacLaneApproximantNode(w, node, ef, principal_part_bound, coefficients, valuations))
@@ -958,7 +966,9 @@ class DiscreteValuation(DiscretePseudoValuation):
         ALGORITHM:
 
         We compute :meth:`mac_lane_approximants` with ``required_precision``.
-        The key polynomials approximate factors of ``G``.
+        The key polynomials approximate factors of ``G``. This can be very
+        slow unless ``required_precision`` is set to zero. Single factor
+        lifting could improve this significantly.
 
         EXAMPLES::
 
@@ -987,22 +997,30 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         Some examples that Sebastian Pauli used in a talk at Sage Days 87.
 
-        In this example, ``f`` factors as three factors of degree 50 over an unramified extension::
+        In this example, ``f`` factors as three factors of degree 50 over an
+        unramified extension::
 
-            sage: R.<u> = ZqFM(125, 500)
+            sage: R.<u> = ZqFM(125)
             sage: S.<x> = R[]
             sage: f = (x^6+2)^25 + 5
             sage: v = R.valuation()
-            sage: v.montes_factorization(f)
+            sage: sorted(v.montes_factorization(f, assume_squarefree=True, required_precision=0), key=str)
+            [((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20), 1),
+            ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20), 1),
+            ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20), 1)]
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 
-            sage: R = Zp(5, 50)
+            sage: R = Zp(5)
             sage: S.<w> = R[]
             sage: R.<w> = R.extension(w^3 + 5)
             sage: S.<x> = R[]
             sage: f = (x^3 + 5)*(x^5 + w) + 625
-            sage: v.montes_factorization(f)
+            sage: v = R.valuation()
+            sage: sorted(v.montes_factorization(f, assume_squarefree=True, required_precision=0), key=str)
+            [((1 + O(w^60))*x + 4*w + O(w^60), 1),
+             ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60), 1),
+             ((1 + O(w^60))*x^5 + w + O(w^60), 1)]
 
         REFERENCES:
 
@@ -1059,7 +1077,7 @@ class MacLaneApproximantNode(object):
     relevant, everything else are caches/debug info.) The boolean ``ef``
     denotes whether ``v`` already has the final ramification index E and
     residue degree F of this approximant.  An edge V -- P represents the
-    relation `V_P \le v_V` (pointwise on the polynomial ring `K[x]`) between the
+    relation `v_P \le v_V` (pointwise on the polynomial ring `K[x]`) between the
     valuations.
 
     TESTS::

@@ -21,7 +21,7 @@ EXAMPLES::
     Note that many tests not only in this module do not create instances of
     valuations directly since this gives the wrong inheritance structure on
     the resulting objects::
-    
+
         sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
         sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
         sage: H = DiscretePseudoValuationSpace(QQ)
@@ -30,17 +30,17 @@ EXAMPLES::
         Traceback (most recent call last):
         ...
         AssertionError: False is not true
-    
+
     Instead, the valuations need to be created through the
     ``__make_element_class__`` of the containing space::
-    
+
         sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
         sage: v = H.__make_element_class__(TrivialDiscretePseudoValuation)(H)
         sage: v._test_category()
-    
+
     The factories such as ``TrivialPseudoValuation`` provide the right
     inheritance structure::
-    
+
         sage: v = valuations.TrivialPseudoValuation(QQ)
         sage: v._test_category()
 
@@ -154,15 +154,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: v = QQ.valuation(2)
             sage: from operator import mul
             sage: v.parent().get_action(ZZ, mul) # indirect doctest
-            Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
+            Right action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
         """
         from operator import mul, div
         from sage.rings.all import QQ, InfinityRing, ZZ
         if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
-            return ScaleAction(S, self)
-        if op == div and self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
-            return InverseScaleAction(self, S)
+            return ScaleAction(S, self, not self_on_left, op)
         return None
 
     def _an_element_(self):
@@ -182,7 +180,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     def _repr_(self):
         r"""
         Return a printable representation of this space.
-        
+
         EXAMPLES::
 
             sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
@@ -325,7 +323,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: QQ.valuation(2).is_discrete_valuation()
                 True
-            
+
             """
 
         def is_negative_pseudo_valuation(self):
@@ -393,7 +391,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 Traceback (most recent call last):
                 ...
                 ValueError: Trivial valuations do not define a uniformizing element
-                
+
             """
 
         @cached_method
@@ -491,6 +489,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             r"""
             Return the residue ring of this valuation, i.e., the elements of
             non-negative valuation modulo the elements of positive valuation.
+
             EXAMPLES::
 
                 sage: QQ.valuation(2).residue_ring()
@@ -663,7 +662,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 sage: w = v.scale(3)
                 sage: w(3)
                 3
-        
+
             Scaling can also be done through multiplication with a scalar::
 
                 sage: w/3 == v
@@ -778,7 +777,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             valuation with respect to ``other``.
 
             .. NOTE::
-            
+
                 Overriding this method tends to be a nuissance as you need to
                 handle all possible types (as in Python type) of valuations.
                 This is essentially the same problem that you have when
@@ -823,7 +822,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             else:
                 # Since n,nn,d,dd are all non-negative this is essentially equivalent to
                 # a/b > d/n and b/a > nn/dd
-                # which is 
+                # which is
                 # dd/nn > a/b > d/n
                 assert(dd/nn > d/n)
                 from sage.rings.continued_fraction import continued_fraction
@@ -846,7 +845,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                             ab_cf.extend([y,1,1])
                 ab = continued_fraction(ab_cf).value()
                 a,b = ab.numerator(), ab.denominator()
-                
+
             ret = self.domain()(numerator**a / denominator**b)
             assert(self(ret) > 0)
             assert(other(ret) < 0)
@@ -860,7 +859,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             ``other``.
 
             .. NOTE::
-            
+
                 Overriding this method tends to be a nuissance as you need to
                 handle all possible types (as in Python type) of valuations.
                 This is essentially the same problem that you have when
@@ -943,7 +942,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Produce an element which differs from ``x`` by an element of
             valuation strictly greater than the valuation of ``x`` (or strictly
             greater than ``error`` if set.)
-            
+
             If ``force`` is not set, then expensive simplifications may be avoided.
 
             EXAMPLES::
@@ -993,6 +992,47 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             return self(x)
 
+        def inverse(self, x, precision):
+            r"""
+            Return an approximate inverse of ``x``.
+
+            The element returned is such that the product differs from 1 by an
+            element of valuation at least ``precision``.
+
+            INPUT:
+
+            - ``x`` -- an element in the domain of this valuation
+
+            - ``precision`` -- a rational or infinity
+
+            EXAMPLES::
+
+                sage: v = ZZ.valuation(2)
+                sage: x = 3
+                sage: y = v.inverse(3, 2); y
+                3
+                sage: x*y - 1
+                8
+
+            This might not be possible for elements of positive valuation::
+
+                sage: v.inverse(2, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: element has no approximate inverse in this ring
+
+            Of course this always works over fields::
+
+                sage: v = QQ.valuation(2)
+                sage: v.inverse(2, 2)
+                1/2
+
+            """
+            try:
+                return x.inverse_of_unit()
+            except:
+                raise NotImplementedError("can not compute approximate inverse with respect to this valuation")
+
         def _relative_size(self, x):
             r"""
             Return an estimate on the coefficient size of ``x``.
@@ -1005,7 +1045,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             coefficients is going to lead to a significant shrinking of the
             coefficients of ``x``.
 
-            EXAMPLES:: 
+            EXAMPLES::
 
                 sage: v = Qp(2).valuation()
                 sage: v._relative_size(2)
@@ -1133,9 +1173,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     continue
                 y = self.shift(x, s)
                 if s >= 0:
-                    self(y) >= self(x)
-                if self.domain().is_exact():
-                    x == self.shift(y, -s)
+                    tester.assertGreaterEqual(self(y),self(x))
+                from sage.categories.all import Fields
+                if self.domain().is_exact() and self.domain() in Fields():
+                    # the shift here sometimes fails if elements implement
+                    # __floordiv__ incorrectly, see #23971
+                    tester.assertEqual(x, self.shift(y, -s))
 
         def _test_scale(self, **options):
             r"""
@@ -1219,6 +1262,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             S = self.domain().some_elements()
             from itertools import product
             for x,y in tester.some_elements(product(S,S)):
+                from sage.rings.all import infinity
+                if set([self(x), self(y)]) == set([infinity, -infinity]):
+                    continue
                 tester.assertEqual(self(x*y),self(x)+self(y))
 
         def _test_no_infinite_units(self, **options):
@@ -1292,7 +1338,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
-            
+
             if self.is_trivial() and not self.is_discrete_valuation():
                 # the trivial pseudo-valuation does not have a value semigroup
                 return
@@ -1311,7 +1357,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
-            
+
             if self.is_trivial() and not self.is_discrete_valuation():
                 # the trivial pseudo-valuation does not have a value semigroup
                 return
@@ -1376,7 +1422,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             for x in tester.some_elements(self.domain().some_elements()):
                 if self(x) < 0:
-                    with tester.assertRaises(ValueError):
+                    with tester.assertRaises((ValueError, ArithmeticError)):
                         self.reduce(x)
                     continue
                 if self(x) == 0:
@@ -1558,6 +1604,36 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester.assertLessEqual(TrivialValuation(self.domain()), self)
             tester.assertGreaterEqual(TrivialPseudoValuation(self.domain()), self)
 
+        def _test_inverse(self, **options):
+            r"""
+            Check the correctness of :meth:`inverse`.
+
+            TESTS::
+
+                sage: v = QQ.valuation(5)
+                sage: v._test_inverse()
+
+            """
+            tester = self._tester(**options)
+
+            for x in tester.some_elements(self.domain().some_elements()):
+                from sage.rings.all import infinity
+                for prec in (0, 1, 42, infinity):
+                    try:
+                        y = self.inverse(x, prec)
+                    except NotImplementedError:
+                        continue
+                    except ValueError:
+                        if prec is not infinity:
+                            tester.assertNotEqual(self(x), 0)
+                        tester.assertFalse(x.is_unit())
+                        continue
+
+                    tester.assertTrue(y.parent() is self.domain())
+                    if self.domain().is_exact():
+                        tester.assertGreaterEqual(self(x*y - 1), prec)
+
+
 from sage.categories.action import Action
 class ScaleAction(Action):
     r"""
@@ -1568,7 +1644,8 @@ class ScaleAction(Action):
 
         sage: v = QQ.valuation(5)
         sage: from operator import mul
-        sage: v.parent().get_action(IntegerRing, mul, self_on_left=False)
+        sage: v.parent().get_action(ZZ, mul, self_on_left=False)
+        Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
     """
     def _call_(self, s, v):
@@ -1580,31 +1657,9 @@ class ScaleAction(Action):
             sage: v = QQ.valuation(5)
             sage: 3*v # indirect doctest
             3 * 5-adic valuation
-            
+
         """
+        if not self.is_left():
+            # for a right action, the parameters are swapped
+            s,v = v,s
         return v.scale(s)
-
-class InverseScaleAction(Action):
-    r"""
-    Action of integers, rationals and the infinity ring on valuations by
-    scaling it (with the inverse of the scalar.)
-
-    EXAMPLES::
-
-        sage: v = QQ.valuation(5)
-        sage: from operator import div
-        sage: v.parent().get_action(IntegerRing, div, self_on_left=True)
-
-    """
-    def _call_(self, v, s):
-        r"""
-        Let ``s`` act on ``v`` (by division.)
-
-        EXAMPLES::
-
-            sage: v = QQ.valuation(5)
-            sage: v/3 # indirect doctest
-            1/3 * 5-adic valuation
-            
-        """
-        return v.scale(1/s)

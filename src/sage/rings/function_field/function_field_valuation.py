@@ -172,7 +172,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
         sage: v(x - 1)
         1
 
-    See :meth:`function_field.FunctionField.valuation` for further examples.
+    See :meth:`sage.rings.function_field.function_field.FunctionField.valuation` for further examples.
 
     """
     def create_key_and_extra_args(self, domain, prime):
@@ -427,7 +427,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 from sage.structure.dynamic_class import dynamic_class
                 clazz = NonClassicalRationalFunctionFieldValuation
                 if valuation.is_discrete_valuation():
-                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteValuation))
+                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteFunctionFieldValuation_base))
                 else:
                     clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_negative_infinite", (clazz, NegativeInfiniteDiscretePseudoValuation))
                 return parent.__make_element_class__(clazz)(parent, valuation)
@@ -518,6 +518,7 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^3 - x^4 - 1)
             sage: v.extensions(L)
+            [2-adic valuation]
 
         """
         K = self.domain()
