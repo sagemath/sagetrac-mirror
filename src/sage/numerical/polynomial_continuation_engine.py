@@ -116,7 +116,7 @@ class PHCpackEngine(HomotopyContinuationEngine):
         to_return = []
         base_ring = self.__original_ring.base_ring()
         for phcpy_sol in phcpy_sols:
-            sol_dict = self.phcpy.solutions().strsol2dict(phcpy_sol)
+            sol_dict = self.phcpy.solutions.strsol2dict(phcpy_sol)
             try:
                 point_dict = {self.__phcpy_var_to_input_var_dict[key] : base_ring(sol_dict[key])
                              for key in self.__phcpy_var_to_input_var_dict.keys()}
