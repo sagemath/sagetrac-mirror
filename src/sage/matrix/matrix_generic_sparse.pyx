@@ -160,7 +160,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             sage: loads(dumps(m)) == m
             True
 
-            sage: R2.<a,b> = PolynomialRing(QQ,'a','b')
+            sage: R2.<a,b> = PolynomialRing(QQ)
             sage: M2 = MatrixSpace(R2,2,3,sparse=True)
             sage: M2(m)
             [4 1 0]
@@ -199,7 +199,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         if entries is None or not entries:
             # be careful here. We might get entries set to be an empty list
             # because of the code implemented in matrix_space.MatrixSpace
-            # So the condtion
+            # So the condition
             #   if entries is None or not entries:
             #       ...
             # is valid. But

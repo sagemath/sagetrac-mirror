@@ -35,7 +35,6 @@ Special Base Classes, Decorators, etc.
    sage/misc/decorators
    sage/misc/constant_function
    sage/misc/classcall_metaclass
-   sage/misc/cython_metaclass
    sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
@@ -277,6 +276,7 @@ Miscellaneous Inspection and Development Tools
 .. toctree::
    :maxdepth: 1
 
+   sage/docs/instancedoc
    sage/misc/sageinspect
    sage/misc/edit_module
    sage/misc/getusage

@@ -29,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
+from six import integer_types
 
 import os
 from math import isnan
@@ -692,8 +693,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -774,7 +774,7 @@ class Graphics(WithEqualityById, SageObject):
         If called with no input, return the current
         ``axes_width`` setting.
 
-        EXAMPLE: We create a plot, see the default axes width (with funny
+        EXAMPLES: We create a plot, see the default axes width (with funny
         Python float rounding), then reset the width to 10 (very fat).
 
         ::
@@ -935,7 +935,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         Returns the ith graphics primitive object:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives
@@ -1025,7 +1025,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, (int, long)) and other == 0:
+        if isinstance(other, integer_types) and other == 0:
             return self
         raise TypeError
 
@@ -1626,12 +1626,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 
@@ -3027,14 +3029,15 @@ class Graphics(WithEqualityById, SageObject):
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of self.
 
-        .. Note::
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of self, passing along all arguments
+        and keywords.
+
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.

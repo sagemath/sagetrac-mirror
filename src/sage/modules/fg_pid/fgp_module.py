@@ -310,6 +310,18 @@ class FGP_Module_class(Module):
         Finitely generated module V/W over Integer Ring with invariants (4, 12)
         sage: type(Q)
         <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category'>
+    
+    TESTS::
+    
+    Make sure that the problems in
+    http://trac.sagemath.org/sage_trac/ticket/7516 are fixed::
+    
+        sage: V = FreeModule(QQ, 2)
+        sage: W = V.submodule([V([1,1])])
+        sage: Z = W.submodule([])
+        sage: WmodZ = W / Z   
+        sage: loads(dumps(WmodZ))==WmodZ
+        True
     """
 
     # The class to be used for creating elements of this
@@ -603,7 +615,7 @@ class FGP_Module_class(Module):
             sage: x = Q(V.0-V.1); x  # indirect doctest
             (0, 3)
             sage: type(x)
-            <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
+            <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category.element_class'>
             sage: x is Q(x)
             True
             sage: x.parent() is Q
@@ -622,7 +634,7 @@ class FGP_Module_class(Module):
         Compute a linear combination of the optimised generators of this module
         as returned by :meth:`.smith_form_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = ZZ**2 / span([[3,0],[0,2]], ZZ)
             sage: X.linear_combination_of_smith_form_gens([1])
@@ -1229,7 +1241,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of ``self.gens()`` in some
         fixed fg R-module.
 
-        .. note ::
+        .. NOTE::
 
             We do not assume that the generators given by ``self.gens()`` are
             the same as the Smith form generators, since this may not be true
@@ -1358,7 +1370,7 @@ class FGP_Module_class(Module):
         - ``im_gens`` - a Sequence object giving the images of ``self.gens()``,
           whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
             ....:     def gens(self):
@@ -1399,7 +1411,7 @@ class FGP_Module_class(Module):
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
             ....:     def gens(self):
@@ -1589,9 +1601,17 @@ class FGP_Module_class(Module):
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
             sage: Q.annihilator()
             Principal ideal (0) of Integer Ring
+            
+        We check that :trac:`22720` is resolved::
+            
+            sage: H=AdditiveAbelianGroup([])
+            sage: H.annihilator()
+            Principal ideal (1) of Integer Ring
         """
         if not self.is_finite():
             g = 0
+        elif self.cardinality() == 1:
+            g = 1
         else:
             g = reduce(lcm, self.invariants())
         return self.base_ring().ideal(g)

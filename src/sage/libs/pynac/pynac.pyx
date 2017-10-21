@@ -14,7 +14,7 @@ Pynac interface
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -29,7 +29,7 @@ from sage.libs.pari.all import pari
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent
+from sage.structure.element cimport Element, parent, coercion_model
 from sage.structure.sage_object import loads, dumps
 
 from sage.rings.integer_ring import ZZ
@@ -258,7 +258,7 @@ def get_fn_serial():
     Return the overall size of the Pynac function registry which
     corresponds to the last serial value plus one.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.pynac.pynac import get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
@@ -1333,7 +1333,19 @@ cdef py_float(n, PyObject* kwds):
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
     if kwds is not NULL:
-        return (<object>kwds)['parent'](n)
+        p = (<object>kwds)['parent']
+        if p is float:
+            try:
+                return float(n)
+            except TypeError:
+                return complex(n)
+        elif p is complex:
+            return p(n)
+        else:
+            try:
+                return p(n)
+            except (TypeError,ValueError):
+                return p.complex_field()(n)
     else:
         try:
             return RR(n)
@@ -1349,6 +1361,12 @@ def py_float_for_doctests(n, kwds):
         sage: from sage.libs.pynac.pynac import py_float_for_doctests
         sage: py_float_for_doctests(pi, {'parent':RealField(80)})
         3.1415926535897932384626
+        sage: py_float_for_doctests(I, {'parent':RealField(80)})
+        1.0000000000000000000000*I
+        sage: py_float_for_doctests(I, {'parent':float})
+        1j
+        sage: py_float_for_doctests(pi, {'parent':complex})
+        (3.141592653589793+0j)
     """
     return py_float(n, <PyObject*>kwds)
 
@@ -1509,8 +1527,8 @@ cdef py_sin(x):
         0.909297426825682
         sage: sin(2.*I)
         3.62686040784702*I
-        sage: sin(QQbar(I))
-        sin(I)
+        sage: sin(QQbar(I))   # known bug
+        I*sinh(1)
     """
     try:
         return x.sin()
@@ -1531,8 +1549,8 @@ cdef py_cos(x):
         -0.416146836547142
         sage: cos(2.*I)
         3.76219569108363
-        sage: cos(QQbar(I))
-        cos(I)
+        sage: cos(QQbar(I))   # known bug
+        cosh(1)
     """
     try:
         return x.cos()
@@ -1789,31 +1807,48 @@ cdef py_atan2(x, y):
 
         sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
         Graphics object consisting of 1 graphics primitive
+
+    Check that :trac:`22553` is fixed::
+
+        sage: arctan2(1.5, -1.300000000000001)
+        2.284887025407...
+        sage: atan2(2.1000000000000000000000000000000000000, -1.20000000000000000000000000000000)
+        2.089942441041419571002776071...
+
+    Check that :trac:`22877` is fixed::
+
+        sage: atan2(CC(I), CC(I+1))
+        0.553574358897045 + 0.402359478108525*I
+        sage: atan2(CBF(I), CBF(I+1))
+        [0.55357435889705 +/- 5.58e-15] + [0.402359478108525 +/- 7.11e-16]*I
+
+    Check that :trac:`23776` is fixed and RDF input gives real output::
+
+        sage: atan2(RDF(-3), RDF(-1))
+        -1.8925468811915387
     """
     from sage.symbolic.constants import pi, NaN
-    P = parent(x)
-    if P is float and parent(y) is not float:
-        P = RR
-    assert P is parent(y)
+    P = coercion_model.common_parent(x, y)
     if P is ZZ:
         P = RR
-    pi_n = P(pi)
-    cdef int sgn_y
     if y != 0:
-        sgn_y = -1 if y < 0 else 1
-        if x > 0:
-            return py_atan(abs(y/x)) * sgn_y
-        elif x == 0:
-            return pi_n/2 * sgn_y
+        if RR.has_coerce_map_from(P):
+            if x > 0:
+                res = py_atan(abs(y/x))
+            elif x < 0:
+                res = P(pi) - py_atan(abs(y/x))
+            else:
+                res = P(pi)/2
+            return res if y > 0 else -res
         else:
-            return (pi_n - py_atan(abs(y/x))) * sgn_y
+            return -I*py_log((x + I*y)/py_sqrt(x**2 + y**2))
     else:
         if x > 0:
-            return 0
-        elif x == 0:
-            return P(NaN)
+            return P(0)
+        elif x < 0:
+            return P(pi)
         else:
-            return pi_n
+            return P(NaN)
 
 def py_atan2_for_doctests(x, y):
     """
@@ -1874,6 +1909,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):

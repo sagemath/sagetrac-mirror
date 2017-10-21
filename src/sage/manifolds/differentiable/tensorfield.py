@@ -105,7 +105,7 @@ class TensorField(ModuleElement):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
@@ -936,7 +936,7 @@ class TensorField(ModuleElement):
         for assignment.
 
         The components with respect to other frames having the same domain
-        as the provided vector frame are kept. To delete them them, use the
+        as the provided vector frame are kept. To delete them, use the
         method :meth:`set_comp` instead.
 
         INPUT:
@@ -1778,8 +1778,6 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
@@ -1843,8 +1841,6 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
@@ -2240,13 +2236,13 @@ class TensorField(ModuleElement):
                 self_rr = self_r._restrictions[dom]
                 args_rr = [args_r[i]._restrictions[dom] for i in range(p)]
                 resu_rr = self_rr(*args_rr)
-                if resu_rr == 0:
+                if resu_rr.is_trivial_zero():
                     for chart in resu_rr._domain._atlas:
-                        resu._express[chart] = chart._zero_function
+                        resu._express[chart] = chart.zero_function()
                 else:
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr
-            if resu == 0:
+            if resu.is_trivial_zero():
                 return dom_resu._zero_scalar_field
             # Name of the output:
             res_name = None

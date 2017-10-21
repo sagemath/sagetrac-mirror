@@ -337,7 +337,7 @@ class LabelledPermutation(SageObject):
         r"""
         .. TODO::
 
-            resolve properly the mutablility problem with the
+            resolve properly the mutability problem with the
             :meth:`_twin` attribute.
 
         TESTS::
@@ -1440,7 +1440,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         r"""
         The twin list of the permutation
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')
             sage: p._twin
@@ -1945,7 +1945,7 @@ class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
 
         permutation -- the associated reduced permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.GeneralizedPermutation('a a','b b c c',flips='a')
             sage: q = iet.GeneralizedPermutation('a a','b b c c',flips='a',reduced=True)
@@ -2175,11 +2175,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def orbit_substitution(self):
             r"""
-            Returns the substitution on the orbit of the left extremity.
+            Return the substitution on the orbit of the left extremity.
 
             OUTPUT:
 
-            WordMorhpism -- the word morphism corresponding to the orbit
+            WordMorphism -- the word morphism corresponding to the orbit
 
             EXAMPLES::
 
@@ -2213,7 +2213,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             boolean -- ``True`` if the path is full and ``False`` else
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: p = iet.Permutation('a b c','c b a')
                 sage: r = p.rauzy_diagram()
@@ -2238,7 +2238,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the WordMorphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2268,7 +2268,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the word morphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2304,7 +2304,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- iterator over full loops
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
@@ -2343,7 +2343,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- an iterator over the full loops of given length
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()

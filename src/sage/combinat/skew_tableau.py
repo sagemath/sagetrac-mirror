@@ -666,7 +666,8 @@ class SkewTableau(ClonableList):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
+        return SkewTableau([z for z in [[y for y in x if y is None or y <= n]
+                                        for x in t] if z])
 
     def restriction_outer_shape(self, n):
         """
@@ -1578,7 +1579,7 @@ class SkewTableau(ClonableList):
 
 def _label_skew(list_of_cells, sk):
     """
-    Return a filled-in standard standard skew tableau given an
+    Return a filled-in standard skew tableau given an
     ordered list ``list_of_cells`` of the coordinates to fill in
     (as pairs) and an empty shape ``sk``.
 

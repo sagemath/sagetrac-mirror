@@ -166,12 +166,34 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         return MPolynomial_polydict
 
-    def __cmp__(left, right):
+    def __eq__(left, right):
+        """
+        Check whether ``left`` is equal to ``right``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(10), 'x', 4)
+            sage: loads(R.dumps()) == R
+            True
+        """
         if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.ngens(), left.variable_names(), left.term_order()),
-                       (right.base_ring(), right.ngens(), right.variable_names(), right.term_order()))
+            return False
+        return ((left.base_ring(), left.ngens(),
+                left.variable_names(), left.term_order()) ==
+                (right.base_ring(), right.ngens(),
+                 right.variable_names(), right.term_order()))
+
+    def __ne__(self , other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(8), 'x', 3)
+            sage: loads(R.dumps()) != R
+            False
+        """
+        return not (self == other)
 
     def __call__(self, x, check=True):
         """
@@ -553,7 +575,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
@@ -644,7 +666,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
@@ -855,7 +877,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: a list of monomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')

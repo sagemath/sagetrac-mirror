@@ -74,6 +74,15 @@ class Function_exp(GinacFunction):
             sage: exp(7*pi*I/2)
             -I
 
+        For the sake of simplification, the argument is reduced modulo the
+        period of the complex exponential function, `2\pi i`::
+
+            sage: k = var('k', domain='integer')
+            sage: exp(2*k*pi*I)
+            1
+            sage: exp(log(2) + 2*k*pi*I)
+            2
+
         The precision for the result is deduced from the precision of
         the input. Convert the input to a higher precision explicitly
         if a result with higher precision is desired::
@@ -85,7 +94,7 @@ class Function_exp(GinacFunction):
             sage: exp(2).n(100)
             7.3890560989306502272304274606
 
-        TEST::
+        TESTS::
 
             sage: latex(exp(x))
             e^{x}
@@ -105,7 +114,7 @@ class Function_exp(GinacFunction):
             sage: conjugate(exp(x))
             e^conjugate(x)
 
-        Test simplifications when taking powers of exp, #7264::
+        Test simplifications when taking powers of exp (:trac:`7264`)::
 
             sage: var('a,b,c,II')
             (a, b, c, II)
@@ -125,7 +134,7 @@ class Function_exp(GinacFunction):
             sage: exp(x)*exp(a)^2
             e^(2*a + x)
 
-        Another instance of the same problem, #7394::
+        Another instance of the same problem (:trac:`7394`)::
 
             sage: 2*sqrt(e)
             2*sqrt(e)
@@ -230,7 +239,8 @@ class Function_log(GinacFunction):
             polylog(1.414213562373095?, 3)
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
-                               conversions=dict(maxima='log', fricas='log'))
+                               conversions=dict(maxima='log', fricas='log',
+                                                mathematica='Log'))
 
     def __call__(self, *args, **kwds):
         """
@@ -305,7 +315,7 @@ class Function_log(GinacFunction):
             sage: log(a,3)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 8 found to base 3
+            ValueError: No discrete log of 8 found to base 3 modulo 13
             sage: log(F(9), 3)
             2
 
@@ -432,9 +442,25 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1)
             1.64493406684823
             sage: polylog(2, 1.0)
-            NaN + NaN*I
+            1.64493406684823
             sage: polylog(2.0, 1.0)
-            NaN + NaN*I
+            1.64493406684823
+
+            sage: BF = RealBallField(100)
+            sage: polylog(2, BF(1/3))
+            [0.36621322997706348761674629766 +/- 4.51e-30]
+            sage: polylog(2, BF(4/3))
+            nan
+            sage: parent(_)
+            Real ball field with 100 bits precision
+            sage: polylog(2, CBF(1/3))
+            [0.366213229977063 +/- 5.85e-16]
+            sage: parent(_)
+            Complex ball field with 53 bits precision
+            sage: polylog(2, CBF(1))
+            [1.644934066848226 +/- 6.59e-16]
+            sage: parent(_)
+            Complex ball field with 53 bits precision
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 
@@ -485,10 +511,16 @@ class Function_dilog(GinacFunction):
             dilog(x^2 + 1)
             sage: dilog(-1)
             -1/12*pi^2
+            sage: dilog(-1.0)
+            -0.822467033424113
             sage: dilog(-1.1)
             -0.890838090262283
-            sage: float(dilog(1))
-            1.6449340668482262
+            sage: dilog(1/2)
+            1/12*pi^2 - 1/2*log(2)^2
+            sage: dilog(.5)
+            0.582240526465012
+            sage: dilog(1/2).n()
+            0.582240526465012
             sage: var('z')
             z
             sage: dilog(z).diff(z, 2)
@@ -499,7 +531,19 @@ class Function_dilog(GinacFunction):
             sage: latex(dilog(z))
             {\rm Li}_2\left(z\right)
 
-        TESTS:
+        Dilog has a branch point at `1`. Sage's floating point libraries
+        may handle this differently from the symbolic package::
+
+            sage: dilog(1)
+            1/6*pi^2
+            sage: dilog(1.)
+            1.64493406684823 
+            sage: dilog(1).n()
+            1.64493406684823
+            sage: float(dilog(1))
+            1.6449340668482262
+
+    TESTS:
 
         ``conjugate(dilog(x))==dilog(conjugate(x))`` unless on the branch cuts
         which run along the positive real axis beginning at 1.::
@@ -518,6 +562,21 @@ class Function_dilog(GinacFunction):
             dilog(-1/2*I)
             sage: conjugate(dilog(2))
             conjugate(dilog(2))
+
+        Check that return type matches argument type where possible
+        (:trac:`18386`)::
+
+            sage: dilog(0.5)
+            0.582240526465012
+            sage: dilog(-1.0)
+            -0.822467033424113
+            sage: y = dilog(RealField(13)(0.5))
+            sage: parent(y)
+            Real Field with 13 bits of precision
+            sage: dilog(RealField(13)(1.1))
+            1.96 - 0.300*I
+            sage: parent(_)
+            Complex Field with 13 bits of precision
         """
         GinacFunction.__init__(self, 'dilog',
                 conversions=dict(maxima='li[2]'))
@@ -676,8 +735,9 @@ class Function_lambert_w(BuiltinFunction):
 
         TESTS:
 
-        When automatic simplication occurs, the parent of the output value should be
-        either the same as the parent of the input, or a Sage type::
+        When automatic simplification occurs, the parent of the output
+        value should be either the same as the parent of the input, or
+        a Sage type::
 
             sage: parent(lambert_w(int(0)))
             <... 'int'>
@@ -877,7 +937,7 @@ class Function_exp_polar(BuiltinFunction):
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
             1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
 
-        SEEALSO:
+        .. SEEALSO::
 
             `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
             `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_

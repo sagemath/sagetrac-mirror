@@ -926,7 +926,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             sage: OrderedTrees().leaf()
             []
 
-        TEST::
+        TESTS::
 
             sage: (OrderedTrees().leaf() is
             ....:     sage.combinat.ordered_tree.OrderedTrees_all().leaf())
@@ -974,7 +974,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: OrderedTrees()   # indirect doctest
             Ordered trees
@@ -1406,7 +1406,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         """
         Return the cardinality of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledOrderedTrees().cardinality()
             +Infinity
@@ -1417,7 +1417,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         """
         Return a labelled ordered tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledOrderedTrees().an_element()   # indirect doctest
             toto[3[], 42[3[], 3[]], 5[None[]]]

@@ -423,16 +423,17 @@ def ReducedPermutationsIET_iterator(
 
         nintervals = Integer(nintervals)
 
-        if not(nintervals > 0):
+        if nintervals <= 0:
             raise ValueError('number of intervals must be positive')
 
-        a0 = range(1,nintervals+1)
-        f = lambda x: ReducedPermutationIET([a0,list(x)],
-            alphabet=alphabet)
+        a0 = range(1, nintervals + 1)
+        f = lambda x: ReducedPermutationIET([a0, list(x)],
+                                            alphabet=alphabet)
         return map(f, Permutations(nintervals))
     else:
         return filter(lambda x: x.is_irreducible(),
-        ReducedPermutationsIET_iterator(nintervals,False,alphabet))
+        ReducedPermutationsIET_iterator(nintervals, False, alphabet))
+
 
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):
     """
@@ -711,7 +712,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         r"""
         Returns the relabelization obtained from this move.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: q = p.reduced()
@@ -904,7 +905,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
-    Rauzy movavability and Rauzy move::
+    Rauzy movability and Rauzy move::
 
         sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
         sage: p.has_rauzy_move(0)
@@ -1237,7 +1238,7 @@ class FlippedReducedPermutation(ReducedPermutation):
         r"""
         Performs a Rauzy move on the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True,flips='c')
             sage: p.right_rauzy_move('top')

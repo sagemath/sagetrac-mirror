@@ -767,7 +767,7 @@ class IntegerListsLex(Parent):
     readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
-    .. TODO:
+    .. TODO::
 
         Integrate all remaining tests from
         http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -1160,8 +1160,8 @@ class IntegerListsLex(Parent):
         Default brute force implementation of count by iteration
         through all the objects.
 
-        Note that this skips the call to ``_element_constructor``, unlike
-        the default implementation.
+        Note that this skips the call to ``_element_constructor_``,
+        unlike the default implementation.
 
         .. TODO::
 

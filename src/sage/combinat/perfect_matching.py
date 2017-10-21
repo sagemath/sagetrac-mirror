@@ -194,7 +194,7 @@ class PerfectMatching(ElementWrapper):
             if not(p.cycle_type() == [2 for i in range(n//2)]):
                 raise ValueError("The permutation p (= %s) is not a "
                                  "fixed point free involution" % p)
-            objects = Set(list(range(1, n + 1)))
+            objects = Set(range(1, n + 1))
             data = p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly
         elif isinstance(p, PerfectMatching):
@@ -344,13 +344,13 @@ class PerfectMatching(ElementWrapper):
         Returns the conjugate of the perfect matching ``self`` by the
         permutation ``p`` of the ground set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
             [(4, 6), (1, 2), (5, 3)]
 
-        TEST::
+        TESTS::
 
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
@@ -933,7 +933,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         r"""
         See :meth:`__classcall__`
 
-        TEST::
+        TESTS::
 
             sage: M = PerfectMatchings(6)
             sage: TestSuite(M).run()

@@ -11,6 +11,14 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     sage: Posets(5)
     Posets containing 5 elements
 
+The infinite set of all posets can be used to find minimal examples::
+
+    sage: for P in Posets():
+    ....:     if not P.is_series_parallel():
+    ....:         break
+    sage: P
+    Finite poset containing 4 elements
+
 **Catalog of common posets:**
 
 .. csv-table::
@@ -21,11 +29,12 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.AntichainPoset` | Return an antichain on `n` elements.
     :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
+    :meth:`~Posets.Crown` | Return the crown poset on `2n` elements.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
-    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
@@ -64,14 +73,15 @@ Constructions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import add_metaclass
+from six import add_metaclass, string_types
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
-from sage.combinat.posets.posets import Poset, FinitePosets_n
+from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
+from sage.categories.finite_posets import FinitePosets
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
@@ -335,6 +345,40 @@ class Posets(object):
                                   facade=facade)
 
     @staticmethod
+    def Crown(n, facade=None):
+        """
+        Return the crown poset of `2n` elements.
+
+        In this poset every element `i` for `0 \leq i \leq n-1`
+        is covered by elements `i+n` and `i+n+1`, except that
+        `n-1` is covered by `n` and `n+1`.
+
+        INPUT:
+
+        - ``n`` -- number of elements, an integer at least 2
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: Posets.Crown(3)
+            Finite poset containing 6 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 2:
+            raise ValueError("n must be an integer at least 2")
+        D = {i: [i+n, i+n+1] for i in range(n-1)}
+        D[n-1] = [n, n+n-1]
+        return FinitePoset(hasse_diagram=DiGraph(D), category=FinitePosets(),
+                           facade=facade)
+
+    @staticmethod
     def DivisorLattice(n, facade=None):
         """
         Return the divisor lattice of an integer.
@@ -442,10 +486,11 @@ class Posets(object):
     def RestrictedIntegerPartitions(n):
         """
         Return the poset of integer partitions on the integer `n`
-        ordered by restricted refinement. That is, if `p` and `q`
-        are integer partitions of `n`, then `p` covers `q` if and
-        only if `q` is obtained from `p` by joining two distinct
-        parts of `p` (and sorting, if necessary).
+        ordered by restricted refinement.
+
+        That is, if `p` and `q` are integer partitions of `n`, then
+        `p` covers `q` if and only if `q` is obtained from `p` by
+        joining two distinct parts of `p` (and sorting, if necessary).
 
         EXAMPLES::
 
@@ -453,6 +498,7 @@ class Posets(object):
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             17
+
         """
         def lower_covers(partition):
             r"""
@@ -479,7 +525,7 @@ class Posets(object):
     @staticmethod
     def IntegerPartitionsDominanceOrder(n):
         r"""
-        Return the poset of integer partitions on the integer `n`
+        Return the lattice of integer partitions on the integer `n`
         ordered by dominance.
 
         That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are
@@ -533,14 +579,14 @@ class Posets(object):
         `p=1` will return a chain. To create interesting examples,
         keep the probability small, perhaps on the order of `1/n`.
 
-        .. SEEALSO:: :meth:`RandomLattice`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
             sage: P = Posets.RandomPoset(5, 0.3)
             sage: P.cover_relations()
             [[5, 4], [4, 2], [1, 2]]
+
+        .. SEEALSO:: :meth:`RandomLattice`
 
         TESTS::
 
@@ -608,7 +654,8 @@ class Posets(object):
           * ``None``, no restrictions for lattices to create
           * ``'planar'``, the lattice has an upward planar drawing
           * ``'dismantlable'`` (implicated by ``'planar'``)
-          * ``'distributive'``
+          * ``'distributive'`` (implicated by ``'stone'``)
+          * ``'stone'``
 
         OUTPUT:
 
@@ -625,8 +672,6 @@ class Posets(object):
             Results are reproducible in same Sage version only. Underlying
             algorithm may change in future versions.
 
-        .. SEEALSO:: :meth:`RandomPoset`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
@@ -637,6 +682,8 @@ class Posets(object):
             sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
             sage: L.is_dismantlable()
             True
+
+        .. SEEALSO:: :meth:`RandomPoset`
 
         TESTS::
 
@@ -693,12 +740,12 @@ class Posets(object):
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D, cover_relations=True)
 
-        if isinstance(properties, basestring):
+        if isinstance(properties, string_types):
             properties = set([properties])
         else:
             properties = set(properties)
 
-        known_properties = set(['planar', 'dismantlable', 'distributive'])
+        known_properties = set(['planar', 'dismantlable', 'distributive', 'stone'])
         errors = properties.difference(known_properties)
         if errors:
             raise ValueError("unknown value %s for 'properties'" % errors.pop())
@@ -707,13 +754,17 @@ class Posets(object):
             # Change this, if property='complemented' is added
             return Posets.ChainPoset(n)
 
-        # Handling properties. Every planar lattice is also dismantlable.
+        # Handling properties: planar => dismantlable, stone => distributive
         if 'planar' in properties:
             properties.discard('dismantlable')
+        if 'stone' in properties:
+            properties.discard('distributive')
 
         # Test property combinations that are not implemented.
         if 'distributive' in properties and len(properties) > 1:
             raise NotImplementedError("combining 'distributive' with other properties is not implemented")
+        if 'stone' in properties and len(properties) > 1:
+            raise NotImplementedError("combining 'stone' with other properties is not implemented")
 
         if properties == set(['planar']):
             D = _random_planar_lattice(n)
@@ -722,6 +773,11 @@ class Posets(object):
 
         if properties == set(['dismantlable']):
             D = _random_dismantlable_lattice(n)
+            D.relabel([i-1 for i in Permutations(n).random_element()])
+            return LatticePoset(D)
+
+        if properties == set(['stone']):
+            D = _random_stone_lattice(n)
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
@@ -753,7 +809,17 @@ class Posets(object):
             raise ValueError('n must be an integer')
         from sage.combinat.set_partition import SetPartitions
         S = SetPartitions(n)
-        return LatticePoset((S, S.is_less_than))
+
+        def covers(x):
+            for i, s in enumerate(x):
+                for j in range(i+1, len(x)):
+                    L = list(x)
+                    L[i] = s.union(x[j])
+                    L.pop(j)
+                    yield S(L)
+
+        return LatticePoset({x: list(covers(x)) for x in S},
+                            cover_relations=True)
 
     @staticmethod
     def SSTPoset(s, f=None):
@@ -842,11 +908,8 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Rosen] \K. Rosen *Handbook of Discrete and Combinatorial
-           Mathematics* (1999), Chapman and Hall.
-
-        .. [Garg] \V. Garg *Introduction to Lattice Theory with Computer
-           Science Applications* (2015), Wiley.
+        - [Gar2015]_
+        - [Ros1999]_
 
         TESTS::
 
@@ -1018,15 +1081,8 @@ class Posets(object):
             sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
             sage: ji.is_isomorphic(tet)
             True
-
-        REFERENCES:
-
-        .. [Striker2011] \J. Striker. *A unifying poset perpective on
-           alternating sign matrices, plane partitions, Catalan objects,
-           tournaments, and tableaux*, Advances in Applied Mathematics 46
-           (2011), no. 4, 583-609. :arXiv:`1408.5391`
         """
-        n=n-1
+        n = n - 1
         try:
             n = Integer(n)
         except TypeError:
@@ -1515,6 +1571,10 @@ def _random_distributive_lattice(n):
     from sage.combinat.posets.hasse_diagram import HasseDiagram
     from copy import copy
     from sage.combinat.subset import Subsets
+    from sage.graphs.digraph_generators import digraphs
+
+    if n < 4:
+        return digraphs.Path(n-1)
 
     H = HasseDiagram({0: []})
     while sum(1 for _ in H.antichains_iterator()) < n:
@@ -1538,5 +1598,54 @@ def _random_distributive_lattice(n):
             D.relabel({z:z-1 for z in range(to_delete + 1, D.order() + 1)})
             H = HasseDiagram(D)
     return D
+
+def _random_stone_lattice(n):
+    """
+    Return a random Stone lattice on `n` elements.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+
+    OUTPUT:
+
+    A random lattice (as a digraph) of `n` elements.
+
+    EXAMPLES::
+
+        sage: g = sage.combinat.posets.poset_examples._random_stone_lattice(10)
+        sage: LatticePoset(g).is_stone()
+        True
+
+    ALGORITHM:
+
+    Randomly split `n` to some factors. For every factor `p` generate
+    a random distributive lattice on `p-1` elements and add a new bottom
+    element to it. Compute the cartesian product of those lattices.
+    """
+    from sage.arith.misc import factor
+    from sage.combinat.partition import Partitions
+    from sage.misc.misc_c import prod
+    from copy import copy
+
+    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    sage.misc.prandom.shuffle(factors)
+
+    part_lengths = list(Partitions(len(factors)).random_element())
+    parts = []
+    while part_lengths:
+        x = part_lengths.pop()
+        parts.append(prod(factors[:x]))
+        factors = factors[x:]
+
+    result = DiGraph(1)
+    for p in parts:
+        g = _random_distributive_lattice(p-1)
+        g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
+        g.add_edge('bottom', 0)
+        result = result.cartesian_product(g)
+        result.relabel()
+
+    return result
 
 posets = Posets
