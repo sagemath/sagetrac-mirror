@@ -3347,9 +3347,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     Element = AsymptoticExpansion
 
 
-    __default_prec__ = series_precision()  # default default-precision
-
-
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
                       names=None, category=None, default_prec=None):
@@ -3469,7 +3466,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             category = CommutativeAlgebras(Rings())
 
         if default_prec is None:
-            default_prec = cls.__default_prec__
+            default_prec = series_precision()
 
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
@@ -3601,9 +3598,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        from .misc import underlying_class
-        return underlying_class(self)(**values)
-
+        return self._underlying_class()(**values)
 
     @staticmethod
     def _create_empty_summands_():
@@ -4394,11 +4389,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A.construction()[0].cls
             <class '__main__.MyAsymptoticRing'>
         """
-        from .misc import underlying_class
         return (AsymptoticRingFunctor(self.growth_group,
                                       default_prec=self.default_prec,
                                       category=self.category(),
-                                      cls=underlying_class(self)),
+                                      cls=self._underlying_class()),
                 self.coefficient_ring)
 
 

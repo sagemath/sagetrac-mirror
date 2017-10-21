@@ -245,7 +245,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.arith.all import factorial
-from sage.matrix.all import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -260,7 +260,8 @@ from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
-             right_action_product, left_action_same_n, right_action_same_n)
+             right_action_product, left_action_same_n, right_action_same_n,
+             map_to_list, next_perm)
 
 class Permutation(CombinatorialElement):
     r"""
@@ -1166,9 +1167,9 @@ class Permutation(CombinatorialElement):
             [0 1 0]
             [0 0 1]
 
-        ::
+        Alternatively::
 
-            sage: Permutation([1,3,2]).to_matrix()
+            sage: matrix(Permutation([1,3,2]))
             [1 0 0]
             [0 0 1]
             [0 1 0]
@@ -1195,15 +1196,13 @@ class Permutation(CombinatorialElement):
             [0 0 1]
             [0 1 0]
         """
-        p = self[:]
-        n = len(p)
+        # build the dictionary of entries since the matrix is
+        # extremely sparse
+        entries = { (v-1, i): 1 for i, v in enumerate(self) }
+        M = MatrixSpace(ZZ, len(self), sparse=True)
+        return M(entries)
 
-        #Build the dictionary of entries since the matrix
-        #is extremely sparse
-        entries = {}
-        for i in range(n):
-            entries[(p[i]-1,i)] = 1
-        return matrix(n, entries, sparse = True)
+    _matrix_ = to_matrix
 
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):
@@ -2759,7 +2758,7 @@ class Permutation(CombinatorialElement):
             from sage.misc.superseded import deprecation
             deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
             from_zero = True
-        
+
         if side == 'right':
             p = self
         else:
@@ -5421,8 +5420,7 @@ class Permutations_mset(Permutations):
 
     def __iter__(self):
         r"""
-        Algorithm based on:
-        http://marknelson.us/2002/03/01/next-permutation/
+        Iterate over ``self``.
 
         EXAMPLES::
 
@@ -5437,50 +5435,18 @@ class Permutations_mset(Permutations):
             [[]]
         """
         mset = self.mset
-        n = len(self.mset)
-        lmset = list(mset)
-        mset_list = sorted((lmset.index(x) for x in lmset))
+        n = len(mset)
+        from array import array
+        mset_list = array('I', sorted(mset.index(x) for x in mset))
 
-        yield self.element_class(self, [lmset[x] for x in mset_list])
+        yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
         if n <= 1:
             return
 
-        while True:
-            one = n - 2
-            two = n - 1
-            j   = n - 1
-
-            #starting from the end, find the first o such that
-            #mset_list[o] < mset_list[o+1]
-            while two > 0 and mset_list[one] >= mset_list[two]:
-                one -= 1
-                two -= 1
-
-            if two == 0:
-                return
-
-            #starting from the end, find the first j such that
-            #mset_list[j] > mset_list[one]
-            while mset_list[j] <= mset_list[one]:
-                j -= 1
-
-            #Swap positions one and j
-            t = mset_list[one]
-            mset_list[one] = mset_list[j]
-            mset_list[j] = t
-
-            #Reverse the list between two and last
-            i = int((n - two)/2)-1
-            #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
-            while i >= 0:
-                t = mset_list[ i + two ]
-                mset_list[ i + two ] = mset_list[n-1 - i]
-                mset_list[n-1 - i] = t
-                i -= 1
-
+        while next_perm(mset_list):
             #Yield the permutation
-            yield self.element_class(self, [lmset[x] for x in  mset_list])
+            yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
     def cardinality(self):
         """
@@ -7775,7 +7741,7 @@ def to_standard(p, cmp=None, key=None):
 
     Deprecation of ``cmp`` in favor of ``key``::
 
-        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: (x<y)-(x>y))
         doctest:warning...:
         DeprecationWarning: do not use 'cmp' but rather 'key' for comparison
         See http://trac.sagemath.org/21435 for details.

@@ -156,12 +156,12 @@ PROBLEM: In this module we shall typically either (a) seek bounds
 on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
 "infinity").
 
-TODO:
+.. TODO::
 
-- Johnson bounds for binary codes.
+    - Johnson bounds for binary codes.
 
-- mrrw2_bound_asymp(delta,q), "second" asymptotic
-  McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
+    - mrrw2_bound_asymp(delta,q), "second" asymptotic
+      McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 """
 from __future__ import absolute_import
 
@@ -627,7 +627,7 @@ def entropy_inverse(x, q=2):
 
         sage: from sage.coding.code_bounds import entropy_inverse
         sage: entropy_inverse(0.1)
-        0.012986862055848683
+        0.012986862055...
         sage: entropy_inverse(1)
         1/2
         sage: entropy_inverse(0, 3)

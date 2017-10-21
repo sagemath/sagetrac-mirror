@@ -7,7 +7,7 @@ Declarations for pynac, a Python frontend for ginac
 
 Check that we can externally cimport this (:trac:`18825`)::
 
-    sage: cython(  # long time
+    sage: cython(  # long time; random compiler warnings
     ....: '''
     ....: #clang c++
     ....: #clib pynac
@@ -34,7 +34,7 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string as stdstring
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
-cdef extern from "sage/libs/pynac/wrap.h":
+cdef extern from "pynac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
@@ -118,7 +118,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map, unsigned options) except +
-        GEx coeff(GEx expr, int n)    except +
+        GEx coeff(GEx expr, GEx n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
         void coefficients(GEx s, vector[pair[GEx,GEx]]) except +
@@ -256,7 +256,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
     # Conversions
     double GEx_to_double(GEx e, int* success) except +
-    GEx_to_str "_to_PyString<ex>"(GEx *s) except +
     GEx_to_str_latex "_to_PyString_latex<ex>"(GEx *s) except +
 
     bint is_a_symbol "is_a<symbol>" (GEx e)
@@ -302,7 +301,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
     bint is_a_fderivative "is_a<GiNaC::fderivative>" (GEx e)
     bint is_a_function "is_a<GiNaC::function>" (GEx e)
     bint is_exactly_a_function "is_exactly_a<GiNaC::function>" (GEx e)
-    bint is_a_ncmul "is_a<GiNaC::ncmul>" (GEx e)
 
     # Arithmetic
     int ginac_error()
@@ -327,10 +325,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
         void archive_ex(GEx e, char* name) except +
         GEx unarchive_ex(GExList sym_lst, unsigned ind) except +
         void printraw "printraw(std::cout); " (int t)
-
-    GArchive_to_str "_to_PyString<archive>"(GArchive *s)
-    void GArchive_from_str "_from_str_len<archive>"(GArchive *ar, char* s,
-            unsigned int l)
 
 
     GEx g_abs "GiNaC::abs" (GEx x)                      except + # absolute value
