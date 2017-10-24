@@ -81,7 +81,10 @@ AUTHORS:
 
 - Alexandre P. Zuge (2013-07): added join operation.
 
-- Amritanshu Prasad (2014-08): added clique polynomial
+- Amritanshu Prasad (2014-08): added clique polynomial.
+
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins (Sage Days 90): methods for computing
+  effective resistance
 
 Graph Format
 ------------
