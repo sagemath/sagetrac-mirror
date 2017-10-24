@@ -83,6 +83,9 @@ AUTHORS:
 
 - Amritanshu Prasad (2014-08): added clique polynomial
 
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins (Sage Days 90): most_common_neighbors and
+                                                                    common_neighbors_matrix added.
+
 Graph Format
 ------------
 
