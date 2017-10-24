@@ -201,11 +201,25 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    TESTS:
+
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
         cpdef test_funct(x,y): return
+
+    Ensure that the embedded filename of the compiled function is correct.  In
+    particular it should be relative to ``SPYX_TMP`` in order for certain
+    docmentation functions to work properly.  See :trac:`24097`::
+
+        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.misc import restore_cwd
+        sage: with restore_cwd(DOT_SAGE):
+        ....:     cython('''cpdef test_funct(x,y): return''')
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        cpdef test_funct(x,y): return
+
 
     AUTHORS:
 
