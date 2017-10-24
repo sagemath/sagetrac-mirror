@@ -7842,7 +7842,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        This example illustrates the common neighbors matrix  for a straight linear 2-tree counting only non-adjacent vertex pairs ::
+        The common neighbors matrix  for a straight linear 2-tree counting only non-adjacent vertex pairs ::
 
             sage: G1 = Graph()
             sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -7864,7 +7864,7 @@ class Graph(GenericGraph):
             [1 2 1 2 0 1]
             [0 1 2 1 1 0]
 
-        This example illustrates the common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+        The common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.common_neighbors_matrix()
@@ -7888,7 +7888,8 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :func: eventually add links to the other items on our wishlist
+            * :meth:`~sage.graphs.graph.most_common_neighbors` --
+              returns node pairs with most shared neighbors
 
         TESTS::
 
@@ -7908,7 +7909,7 @@ class Graph(GenericGraph):
             [0 2 0 0]
         """
         if self.has_loops():
-            raise ValueError('Unable to compute simple graph common neighbors for graphs with loops') # or, NonImplementedError
+            raise ValueError('Unable to compute simple graph common neighbors for graphs with loops')
         if self.is_directed():
             raise ValueError('Unable to compute simple graph common neighbors for directed graphs')
         A = self.adjacency_matrix()
@@ -7946,7 +7947,7 @@ class Graph(GenericGraph):
             sage: G1.most_common_neighbors(nonedgesonly = False)
             [(0, 3), (1, 2), (1, 4), (2, 3), (2, 5), (3, 4)]
 
-        This example illustrates the common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+        The common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.most_common_neighbors()
@@ -7956,7 +7957,8 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :func: eventually add links to the other items on our wishlist
+            * :meth:`~sage.graphs.graph.common_neighbors_matrix` --
+              a similar method giving a matrix full of numbers of common neighbors
 
         TESTS::
 
@@ -7991,7 +7993,7 @@ class Graph(GenericGraph):
                             output.append((v,w))
         return output
 
-            
+
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
