@@ -7874,7 +7874,7 @@ class Graph(GenericGraph):
 
             sage: graphs.CompleteGraph(4).effective_resistance(1,2) #Check Complete Graph
             1/2
-            sage: Graph(1).effective_resistance(1,1)
+            sage: Graph(1).effective_resistance(0,0)
             0
             sage: G = Graph([(0,1),(1,2)])
             sage: G.effective_resistance(0,2)
@@ -7883,8 +7883,11 @@ class Graph(GenericGraph):
             sage: G.effective_resistance(0,2)
             2/3
             sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
-            sage: G.effective_resistance(0,3) == fibonacci(2*(5-3))*fibonacci(2*3-1)/fibonacci(2*5)
+            sage: G.effective_resistance(0,3) == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            True
         """
+        from sage.matrix.constructor import matrix
+
         n = self.num_verts()
         L = self.laplacian_matrix()
         M = L.pseudoinverse()
@@ -7893,7 +7896,7 @@ class Graph(GenericGraph):
         diff = sigma* M * sigma.transpose()
 
         return diff[0,0]
-    
+
     @doc_index("Leftovers")
     def effective_resistance_matrix(self, nonedgesonly = True):
         r"""
@@ -7954,7 +7957,7 @@ class Graph(GenericGraph):
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
-            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedges=False) #Check Complete Graph
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False) #Check Complete Graph
             [  0 1/2 1/2 1/2]
             [1/2   0 1/2 1/2]
             [1/2 1/2   0 1/2]
@@ -7972,28 +7975,29 @@ class Graph(GenericGraph):
             [0 0 0 0]
             [0 1 0 0]
             sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
-            sage: G.effective_resistance_matrix[0,3] == fibonacci(2*(5-3))*fibonacci(2*3-1)/fibonacci(2*5)
+            sage: G.effective_resistance_matrix(nonedgesonly=False)[0,3] == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            True
         """
+
+        from sage.matrix.constructor import matrix
+        from sage.rings.rational_field import QQ
 
         n = self.num_verts()
         if n == 0:
             raise ValueError('Unable to compute effective resistance for empty Graph object') 
         L = self.laplacian_matrix()
         M = L.pseudoinverse()
-        d = M.diagonal()
-        d = matrix(QQ, d)
-        d = d.transpose()
-        return d
-        #onesvec = matrix(QQ, n, 1, lambda i, j: 1)
-        #S = d*onesvec.transpose() + onesvec*d.transpose() - 2* M
-        #onesmat = matrix(QQ, n, n, lambda i, j: 1)
-        #if nonedgesonly:
-        #    B = onesmat - self.adjacency_matrix()- matrix.identity(n)
-        #    S = S.elementwise_product(B)
+        d = matrix(M.diagonal()).transpose()
+        onesvec = matrix(QQ, n, 1, lambda i, j: 1)
+        S = d*onesvec.transpose() + onesvec*d.transpose() - 2* M
+        onesmat = matrix(QQ, n, n, lambda i, j: 1)
+        if nonedgesonly:
+            B = onesmat - self.adjacency_matrix()- matrix.identity(n)
+            S = S.elementwise_product(B)
 
-        #return S
+        return S
 
-    @doc_index("Leftovers")    
+    @doc_index("Leftovers")
     def least_effective_resistance(self,nonedgesonly=True):
         r"""
         Returns a list of pairs of edges with the least effective resistance
@@ -8012,18 +8016,18 @@ class Graph(GenericGraph):
 
             sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G1.least_effective_resistance()
-            [(1, 4, None)]
+            [(1, 4)]
 
         Pairs of (adjacent or non-adjacent) nodes with least effective resitance in a straight linear 2-tree on 6 vertices ::
 
             sage: G1.least_effective_resistance(nonedgesonly = False)
-            [(2, 3, None)]
+            [(2, 3)]
 
         Pairs of non-adjacent nodes with least effective resitance in a fan on 6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.least_effective_resistance()
-            [(2, 4, None)]
+            [(2, 4)]
 
         ...
 
@@ -8035,22 +8039,22 @@ class Graph(GenericGraph):
 
             sage: graphs.CompleteGraph(4).least_effective_resistance() #Check Complete Graph
             []
-            sage: graphs.CompleteGraph(4).least_effective_resistance(nonedges=False) #Check Complete Graph
-            [(2, 3, None), (1, 3, None), (0, 1, None), (0, 2, None), (1, 2, None), (0, 3, None)]
+            sage: graphs.CompleteGraph(4).least_effective_resistance(nonedgesonly=False) #Check Complete Graph
+            [(0, 1), (1, 2), (1, 3), (2, 3), (0, 3), (0, 2)]
             sage: Graph(1).least_effective_resistance()
             []
             sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
             sage: G.least_effective_resistance()
-            [(1, 3, None)]
+            [(1, 3)]
         """
         n=self.num_verts()
-        S = effective_resistance_matrix(self,nonedgesonly)
-        fulledgelist = graphs.CompleteGraph(n).edges()
+        S = self.effective_resistance_matrix(nonedgesonly)
+        fulledgelist = [(i,j) for i in range(n) for j in range(i+1,n)]
         if nonedgesonly and len(self.edges()) == n*(n-1)/2:
             return []
         else:
             if nonedgesonly:
-                offlimits = G.edges()
+                offlimits = [(edge[0],edge[1]) for edge in self.edges()]
             else: 
                 offlimits = []
             edges = set(fulledgelist) - set(offlimits)
@@ -8060,8 +8064,6 @@ class Graph(GenericGraph):
             rlist = [edge[0] for edge in rlist if edge[1] == rmin]
             return rlist
 
-        
-            
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
