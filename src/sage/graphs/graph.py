@@ -7835,8 +7835,6 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``G`` -- graph; A simple (undirected, loopless) graph
-
         - ``i``, ``j`` -- vertices 
 
         OUTPUT: rational
@@ -7868,7 +7866,12 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :func: eventually add links to the other items on our wishlist
+            * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
+              a similar method giving a matrix full of all effective resistances
+              
+            * :meth:`~sage.graphs.graph.least_effective_resistance` --
+              gives node pairs with least effective resistances
+              
 
         TESTS::
 
@@ -7947,8 +7950,12 @@ class Graph(GenericGraph):
         ...
 
         .. SEEALSO::
-
-            :func: eventually add links to the other items on our wishlist
+              
+            * :meth:`~sage.graphs.graph.least_effective_resistance` --
+              gives node pairs with least effective resistances
+              
+            * :meth:`~sage.graphs.graph.effective_resistance` --
+              compuetes effective resistance for a single node pair
 
         TESTS::
 
@@ -7957,7 +7964,7 @@ class Graph(GenericGraph):
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
-            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False) #Check Complete Graph
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False) 
             [  0 1/2 1/2 1/2]
             [1/2   0 1/2 1/2]
             [1/2 1/2   0 1/2]
@@ -8004,8 +8011,6 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``G`` -- graph; A simple (undirected, loopless) graph
-
         - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates pairs of adjacent vertices
 
         OUTPUT: list
@@ -8033,7 +8038,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :func: `effective_resistance`, `effective_resistance_matrix`
+            * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
+              a similar method giving a matrix full of all effective resistances
+                            
+            * :meth:`~sage.graphs.graph.effective_resistance` --
+              compuetes effective resistance for a single node pair
 
         TESTS::
 
