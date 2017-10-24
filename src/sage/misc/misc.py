@@ -41,6 +41,7 @@ from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types
 
+import contextlib
 import os
 import stat
 import sys
@@ -53,6 +54,10 @@ from .lazy_string import lazy_string
 from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
+
+#################################################################
+# File and directory utilities
+#################################################################
 
 def sage_makedirs(dir):
     """
@@ -108,6 +113,37 @@ if hasattr(os, 'chmod'):
         if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
             print("Setting permissions of DOT_SAGE directory so only you "
                   "can read and write it.")
+
+
+@contextlib.contextmanager
+def restore_cwd(chdir=None):
+    """
+    Context manager that restores the original working directory upon exiting.
+
+    INPUT:
+
+    - ``chdir`` -- optionally change directories to the given directory
+      upon entering the context manager
+
+    EXAMPLES:
+
+        sage: import os
+        sage: from sage.misc.misc import restore_cwd, SAGE_TMP
+        sage: cwd = os.getcwd()
+        sage: with restore_cwd(str(SAGE_TMP)):
+        ....:     print(os.getcwd() == SAGE_TMP)
+        True
+        sage: cwd == os.getcwd()
+        True
+    """
+
+    orig_cwd = os.getcwd()
+    if chdir is not None:
+        os.chdir(chdir)
+    try:
+        yield
+    finally:
+        os.chdir(orig_cwd)
 
 
 #################################################
