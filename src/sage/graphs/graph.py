@@ -7828,6 +7828,170 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
+    @doc_index("Leftovers")
+    def common_neighbors_matrix(self, nonedgesonly = True):
+        r"""
+        Returns a matrix whose (i,j) entry gives the number of common neighbors between vertices i and j
+
+        INPUT:
+
+        - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates common neighbors 
+          between adjacent vertices
+
+        OUTPUT: matrix
+
+        EXAMPLES:
+
+        This example illustrates the common neighbors matrix  for a straight linear 2-tree counting only non-adjacent vertex pairs ::
+
+            sage: G1 = Graph()
+            sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.common_neighbors_matrix(nonedgesonly = True)
+            [0 0 0 2 1 0]
+            [0 0 0 0 2 1]
+            [0 0 0 0 0 2]
+            [2 0 0 0 0 0]
+            [1 2 0 0 0 0]
+            [0 1 2 0 0 0]
+
+        We now show the common neighbors matrix which includes adjacent vertices ::
+
+            sage: G1.common_neighbors_matrix(nonedgesonly = False)
+            [0 1 1 2 1 0]
+            [1 0 2 1 2 1]
+            [1 2 0 2 1 2]
+            [2 1 2 0 2 1]
+            [1 2 1 2 0 1]
+            [0 1 2 1 1 0]
+
+        This example illustrates the common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.common_neighbors_matrix()
+            [0 0 0 0 0 0 0]
+            [0 0 0 2 1 1 1]
+            [0 0 0 0 2 1 1]
+            [0 2 0 0 0 2 1]
+            [0 1 2 0 0 0 1]
+            [0 1 1 2 0 0 1]
+            [0 1 1 1 1 1 0]
+
+        It is an error to input anything other than a simple graph::
+
+            sage: G = Graph([(0,0)],loops=True) # add edges
+            sage: G.common_neighbors_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to compute simple graph common neighbors for graphs with loops
+
+        ...
+
+        .. SEEALSO::
+
+            :func: eventually add links to the other items on our wishlist
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(4) #Check Complete Graph
+            sage: M = G.common_neighbors_matrix() #Check Complete Graph
+            sage: M.is_zero()
+            True       
+            sage: Graph(1).common_neighbors_matrix()
+            [0]
+            sage: Graph().common_neighbors_matrix()
+            []
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.common_neighbors_matrix()
+            [0 0 0 0]
+            [0 0 0 2]
+            [0 0 0 0]
+            [0 2 0 0]
+        """
+        if self.has_loops():
+            raise ValueError('Unable to compute simple graph common neighbors for graphs with loops') # or, NonImplementedError
+        if self.is_directed():
+            raise ValueError('Unable to compute simple graph common neighbors for directed graphs')
+        A = self.adjacency_matrix()
+        M = A**2
+        for v in range(0, self.num_verts()):
+            for w in range(0, self.num_verts()):
+                if v == w:
+                    M[v,w] = 0
+                if nonedgesonly == True:
+                    if A[v, w] == 1:
+                        M[v,w] = 0
+        return M
+
+    @doc_index("Leftovers")
+    def most_common_neighbors(self, nonedgesonly = True):
+        r"""
+        Returns vertex pairs with maximal number of common neighbors
+
+        INPUT:
+
+        - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates adjacent vertices
+
+        OUTPUT: list of tuples of edge pairs
+
+        EXAMPLES:
+
+        The maximum common neighbor (non-adajacent) pairs for a straight linear 2-tree::
+
+            sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.most_common_neighbors()
+            [(0, 3), (1, 4), (2, 5)]
+
+        If we include non-adjacent pairs ::
+
+            sage: G1.most_common_neighbors(nonedgesonly = False)
+            [(0, 3), (1, 2), (1, 4), (2, 3), (2, 5), (3, 4)]
+
+        This example illustrates the common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.most_common_neighbors()
+            [(1, 3), (2, 4), (3, 5)]
+
+        ...
+
+        .. SEEALSO::
+
+            :func: eventually add links to the other items on our wishlist
+
+        TESTS::
+
+            sage: G=graphs.CompleteGraph(4)#Check Complete Graph
+            sage: G.most_common_neighbors()
+            []       
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]       
+            sage: Graph(1).most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            sage: Graph().most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.most_common_neighbors()
+            [(1, 3)]
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 2), (1, 3)]
+        """
+        M = self.common_neighbors_matrix(nonedgesonly)
+        if self.num_verts()<2:
+            raise ValueError('Unable to find node pairs with common neighbors for graphs with less than 2 nodes')
+        output = []
+        maximum = max(max(M))
+        if max(max(M))>0:
+            for v in range(0, self.num_verts()):
+                for w in range(v, self.num_verts()):
+                     if M[v,w] == maximum:
+                            output.append((v,w))
+        return output
+
+            
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
