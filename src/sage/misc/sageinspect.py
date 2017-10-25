@@ -211,7 +211,7 @@ def _extract_embedded_position(docstring):
 
     Ensure that the embedded filename of the compiled function is correct.  In
     particular it should be relative to ``SPYX_TMP`` in order for certain
-    docmentation functions to work properly.  See :trac:`24097`.
+    docmentation functions to work properly.  See :trac:`24097`::
 
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.misc import restore_cwd
