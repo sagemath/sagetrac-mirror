@@ -7832,9 +7832,11 @@ class Graph(GenericGraph):
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
     @doc_index("Leftovers")
-    def effective_resistance(self,i,j):
+    def effective_resistance(self, i, j):
         r"""
-        Returns the effective resistance between nodes i and j
+        Return the effective resistance between nodes i and j.
+
+        This is the resistance between two equivalent points on an electrical network.
 
         INPUT:
 
@@ -7846,15 +7848,14 @@ class Graph(GenericGraph):
 
         Effective resitances in a straight linear 2-tree on 6 vertices ::
 
-            sage: G1 = Graph()
-            sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
-            sage: G1.effective_resistance(0,1)
+            sage: G=Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.effective_resistance(0,1)
             34/55
-            sage: G1.effective_resistance(0,3)
+            sage: G.effective_resistance(0,3)
             49/55
-            sage: G1.effective_resistance(1,4)
+            sage: G.effective_resistance(1,4)
             9/11
-            sage: G1.effective_resistance(0,5)
+            sage: G.effective_resistance(0,5)
             15/11
 
         Effective resistances in a fan on 6 vertices ::
@@ -7865,21 +7866,21 @@ class Graph(GenericGraph):
             sage: H.effective_resistance(1,3)
             49/55
 
-        ...
-
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
               a similar method giving a matrix full of all effective resistances
-              
+
             * :meth:`~sage.graphs.graph.least_effective_resistance` --
               gives node pairs with least effective resistances
-              
+
+            * See :wikipedia:`Resistance Distance` for more details.
 
         TESTS::
 
-            sage: graphs.CompleteGraph(4).effective_resistance(1,2) #Check Complete Graph
-            1/2
+            sage: G = graphs.CompleteGraph(4)
+            sage: all(G.effective_resistance(u, v) == 1/2 for u,v in G.edge_iterator(labels=0))
+            True
             sage: Graph(1).effective_resistance(0,0)
             0
             sage: G = Graph([(0,1),(1,2)])
@@ -7889,7 +7890,8 @@ class Graph(GenericGraph):
             sage: G.effective_resistance(0,2)
             2/3
             sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
-            sage: G.effective_resistance(0,3) == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            sage: r = G.effective_resistance(0,3)
+            sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
         """
         from sage.matrix.constructor import matrix
@@ -7906,21 +7908,26 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def effective_resistance_matrix(self, nonedgesonly = True):
         r"""
-        Returns a matrix whose (i,j) entry gives the effective resistance between vertices i and j
+        Return a matrix whose (i,j) entry gives the effective resistance
+        between vertices i and j.
+
+        The effective resistance is the resistance between two
+        equivalent points on an electrical network.
 
         INPUT:
 
-        - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates pairs of adjacent vertices
+        - ``nonedgesonly`` -- boolean (default: ``True``) if ``True`` eliminate
+          pairs of adjacent vertices
 
         OUTPUT: matrix
 
         EXAMPLES:
 
-        The effective resitance matrix  for a straight linear 2-tree counting only non-adjacent vertex pairs ::
+        The effective resitance matrix  for a straight linear 2-tree counting
+        only non-adjacent vertex pairs ::
 
-            sage: G1 = Graph()
-            sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
-            sage: G1.effective_resistance_matrix()
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.effective_resistance_matrix()
             [    0     0     0 49/55 59/55 15/11]
             [    0     0     0     0  9/11 59/55]
             [    0     0     0     0     0 49/55]
@@ -7928,9 +7935,10 @@ class Graph(GenericGraph):
             [59/55  9/11     0     0     0     0]
             [15/11 59/55 49/55     0     0     0]
 
-        The same effective resistance matrix, this time including adjacent vertices ::
+        The same effective resistance matrix, this time including adjacent
+        vertices ::
 
-            sage: G1.effective_resistance_matrix(nonedgesonly = False)
+            sage: G.effective_resistance_matrix(nonedgesonly = False)
             [    0 34/55 34/55 49/55 59/55 15/11]
             [34/55     0 26/55 31/55  9/11 59/55]
             [34/55 26/55     0  5/11 31/55 49/55]
@@ -7938,7 +7946,8 @@ class Graph(GenericGraph):
             [59/55  9/11 31/55 26/55     0 34/55]
             [15/11 59/55 49/55 34/55 34/55     0]
 
-        This example illustrates the common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+        This example illustrates the common neighbors matrix  for a fan on 6
+        vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.effective_resistance_matrix()
@@ -7950,24 +7959,24 @@ class Graph(GenericGraph):
             [    0   6/5 56/55 49/55     0     0 89/55]
             [    0 89/55 81/55 16/11 81/55 89/55     0]
 
-        ...
-
         .. SEEALSO::
-              
+
             * :meth:`~sage.graphs.graph.least_effective_resistance` --
               gives node pairs with least effective resistances
-              
+
             * :meth:`~sage.graphs.graph.effective_resistance` --
               compuetes effective resistance for a single node pair
 
+            * See :wikipedia:`Resistance Distance` for more details.
+
         TESTS::
 
-            sage: graphs.CompleteGraph(4).effective_resistance_matrix() #Check Complete Graph
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix()
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
-            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False) 
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False)
             [  0 1/2 1/2 1/2]
             [1/2   0 1/2 1/2]
             [1/2 1/2   0 1/2]
@@ -7985,16 +7994,16 @@ class Graph(GenericGraph):
             [0 0 0 0]
             [0 1 0 0]
             sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
-            sage: G.effective_resistance_matrix(nonedgesonly=False)[0,3] == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            sage: r = G.effective_resistance_matrix(nonedgesonly=False)[0,3]
+            sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
         """
-
         from sage.matrix.constructor import matrix
         from sage.rings.rational_field import QQ
 
         n = self.num_verts()
         if n == 0:
-            raise ValueError('Unable to compute effective resistance for empty Graph object') 
+            raise ValueError('Unable to compute effective resistance for empty Graph object')
         L = self.laplacian_matrix()
         M = L.pseudoinverse()
         d = matrix(M.diagonal()).transpose()
@@ -8008,50 +8017,59 @@ class Graph(GenericGraph):
         return S
 
     @doc_index("Leftovers")
-    def least_effective_resistance(self,nonedgesonly=True):
+    def least_effective_resistance(self, nonedgesonly=True):
         r"""
-        Returns a list of pairs of edges with the least effective resistance
+        Return a list of pairs of edges with the least effective resistance.
+
+        The effective resistance is the resistance between two
+        equivalent points on an electrical network.
 
         INPUT:
 
-        - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates pairs of adjacent vertices
+        - ``nonedgesonly`` -- Boolean (default: `True`); if true, eliminates
+          pairs of adjacent vertices
+
 
         OUTPUT: list
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a straight linear 2-tree on 6 vertices::
+        Pairs of non-adjacent nodes with least effective resitance in a straight
+        linear 2-tree on 6 vertices::
 
-            sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
-            sage: G1.least_effective_resistance()
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.least_effective_resistance()
             [(1, 4)]
 
-        Pairs of (adjacent or non-adjacent) nodes with least effective resitance in a straight linear 2-tree on 6 vertices ::
+        Pairs of (adjacent or non-adjacent) nodes with least effective resitance
+        in a straight linear 2-tree on 6 vertices ::
 
-            sage: G1.least_effective_resistance(nonedgesonly = False)
+            sage: G.least_effective_resistance(nonedgesonly = False)
             [(2, 3)]
 
-        Pairs of non-adjacent nodes with least effective resitance in a fan on 6 vertices counting only non-adjacent vertex pairs ::
+        Pairs of non-adjacent nodes with least effective resitance in a fan on
+        6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.least_effective_resistance()
             [(2, 4)]
 
-        ...
-
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
               a similar method giving a matrix full of all effective resistances
-                            
+
             * :meth:`~sage.graphs.graph.effective_resistance` --
               compuetes effective resistance for a single node pair
 
+            * See :wikipedia:`Resistance Distance` for more details.
+
+
         TESTS::
 
-            sage: graphs.CompleteGraph(4).least_effective_resistance() #Check Complete Graph
+            sage: graphs.CompleteGraph(4).least_effective_resistance()
             []
-            sage: graphs.CompleteGraph(4).least_effective_resistance(nonedgesonly=False) #Check Complete Graph
+            sage: graphs.CompleteGraph(4).least_effective_resistance(nonedgesonly=False)
             [(0, 1), (1, 2), (1, 3), (2, 3), (0, 3), (0, 2)]
             sage: Graph(1).least_effective_resistance()
             []
