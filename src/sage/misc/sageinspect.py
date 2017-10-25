@@ -236,10 +236,21 @@ def _extract_embedded_position(docstring):
         return None
 
     raw_filename = res.group('FILENAME')
-    filename = os.path.join(SAGE_SRC, raw_filename)
-    if not os.path.isfile(filename):
-        from sage.misc.misc import SPYX_TMP
-        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+    filename = raw_filename
+
+    if not os.path.isabs(filename):
+        # Try some common path prefixes for Cython modules built by/for Sage
+        # Module in the sage src tree
+        filename = os.path.join(SAGE_SRC, raw_filename)
+        if not os.path.isfile(filename):
+            # Module compiled by Sage's inline cython() compiler
+            from sage.misc.misc import SPYX_TMP
+            base = '_'.join(raw_filename.split('_')[:-1])
+            filename = os.path.join(SPYX_TMP, base, raw_filename)
+
+        # Otherwise we keep the relative path and just hope it's relative to
+        # the cwd; otherwise there's no way to be sure.
+
     lineno = int(res.group('LINENO'))
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
