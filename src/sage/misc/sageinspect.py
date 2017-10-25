@@ -240,14 +240,18 @@ def _extract_embedded_position(docstring):
 
     if not os.path.isabs(filename):
         # Try some common path prefixes for Cython modules built by/for Sage
-        # Module in the sage src tree
-        filename = os.path.join(SAGE_SRC, raw_filename)
-        if not os.path.isfile(filename):
-            # Module compiled by Sage's inline cython() compiler
-            from sage.misc.misc import SPYX_TMP
-            base = '_'.join(raw_filename.split('_')[:-1])
-            filename = os.path.join(SPYX_TMP, base, raw_filename)
-
+        # 1) Module in the sage src tree
+        # 2) Module compiled by Sage's inline cython() compiler
+        from sage.misc.misc import SPYX_TMP
+        try_filenames = [
+            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+                         raw_filename)
+        ]
+        for try_filename in try_filenames:
+            if os.path.exists(try_filename):
+                filename = try_filename
+                break
         # Otherwise we keep the relative path and just hope it's relative to
         # the cwd; otherwise there's no way to be sure.
 
