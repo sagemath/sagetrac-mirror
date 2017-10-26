@@ -1,0 +1,209 @@
+From fc4bde50a06af18229bac5ad11522cc4ebd731a0 Mon Sep 17 00:00:00 2001
+From: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date: Wed, 29 Mar 2017 14:06:54 +0200
+Subject: [PATCH] Automatic late includes.
+
+---
+ Cython/Compiler/Code.py                |  1 +
+ Cython/Compiler/ModuleNode.py          | 23 ++++++++++++++++++-----
+ Cython/Compiler/Nodes.py               | 16 +++++++++++++---
+ Cython/Compiler/Symtab.py              | 34 ++++++++++++++++++++++++++--------
+ docs/src/userguide/external_C_code.rst |  7 +++++++
+ 5 files changed, 65 insertions(+), 16 deletions(-)
+
+diff --git a/Cython/Compiler/Code.py b/Cython/Compiler/Code.py
+index 92044bec9..a7338812c 100644
+--- a/Cython/Compiler/Code.py
++++ b/Cython/Compiler/Code.py
+@@ -985,6 +985,7 @@ class GlobalState(object):
+         'global_var',
+         'string_decls',
+         'decls',
++        'late_includes',
+         'all_the_rest',
+         'pystring_table',
+         'cached_builtins',
+diff --git a/Cython/Compiler/ModuleNode.py b/Cython/Compiler/ModuleNode.py
+index 67e4c4298..d1aefcd62 100644
+--- a/Cython/Compiler/ModuleNode.py
++++ b/Cython/Compiler/ModuleNode.py
+@@ -90,7 +90,8 @@ def extend_if_not_in(L1, L2):
+                 if x not in L1:
+                     L1.append(x)
+ 
+-        extend_if_not_in(self.scope.include_files, scope.include_files)
++        extend_if_not_in(self.scope.include_files_early, scope.include_files_early)
++        extend_if_not_in(self.scope.include_files_late, scope.include_files_late)
+         extend_if_not_in(self.scope.included_files, scope.included_files)
+         extend_if_not_in(self.scope.python_include_files,
+                          scope.python_include_files)
+@@ -137,6 +138,7 @@ def process_implementation(self, options, result):
+         env.return_type = PyrexTypes.c_void_type
+         self.referenced_modules = []
+         self.find_referenced_modules(env, self.referenced_modules, {})
++        env.fixup_includes()
+         self.sort_cdef_classes(env)
+         self.generate_c_code(env, options, result)
+         self.generate_h_code(env, options, result)
+@@ -362,6 +364,10 @@ def generate_c_code(self, env, options, result):
+         code.putln("")
+         code.putln("/* Implementation of '%s' */" % env.qualified_name)
+ 
++        code = globalstate['late_includes']
++        code.putln("/* Late includes */")
++        self.generate_includes(env, modules, code, early=False)
++
+         code = globalstate['all_the_rest']
+ 
+         self.generate_cached_builtins_decls(env, code)
+@@ -653,7 +659,8 @@ def generate_module_preamble(self, env, options, cimported_modules, metadata, co
+ 
+         code.putln("#define %s" % Naming.h_guard_prefix + self.api_name(env))
+         code.putln("#define %s" % Naming.api_guard_prefix + self.api_name(env))
+-        self.generate_includes(env, cimported_modules, code)
++        code.putln("/* Early includes */")
++        self.generate_includes(env, cimported_modules, code, late=False)
+         code.putln("")
+         code.putln("#if defined(PYREX_WITHOUT_ASSERTIONS) && !defined(CYTHON_WITHOUT_ASSERTIONS)")
+         code.putln("#define CYTHON_WITHOUT_ASSERTIONS")
+@@ -727,16 +734,22 @@ def generate_dl_import_macro(self, code):
+         code.putln("  #define DL_IMPORT(_T) _T")
+         code.putln("#endif")
+ 
+-    def generate_includes(self, env, cimported_modules, code):
++    def generate_includes(self, env, cimported_modules, code, early=True, late=True):
+         includes = []
+-        for filename in env.include_files:
++        if early:
++            includes += env.include_files_early
++        if late:
++            includes += env.include_files_late
++        for filename in includes:
+             byte_decoded_filenname = str(filename)
++
+             if byte_decoded_filenname[0] == '<' and byte_decoded_filenname[-1] == '>':
+                 code.putln('#include %s' % byte_decoded_filenname)
+             else:
+                 code.putln('#include "%s"' % byte_decoded_filenname)
+ 
+-        code.putln_openmp("#include <omp.h>")
++        if early:
++            code.putln_openmp("#include <omp.h>")
+ 
+     def generate_filename_table(self, code):
+         from os.path import isabs, basename
+diff --git a/Cython/Compiler/Nodes.py b/Cython/Compiler/Nodes.py
+index 3771f95fa..b704b0771 100644
+--- a/Cython/Compiler/Nodes.py
++++ b/Cython/Compiler/Nodes.py
+@@ -461,17 +461,27 @@ def generate_execution_code(self, code):
+ 
+ class CDefExternNode(StatNode):
+     #  include_file   string or None
+-    #  body           StatNode
++    #  body           StatListNode
+ 
+     child_attrs = ["body"]
+ 
+     def analyse_declarations(self, env):
+-        if self.include_file:
+-            env.add_include_file(self.include_file)
+         old_cinclude_flag = env.in_cinclude
+         env.in_cinclude = 1
+         self.body.analyse_declarations(env)
+         env.in_cinclude = old_cinclude_flag
++        inc = self.include_file
++        if inc:
++            stats = self.body.stats
++            if inc[0] == '<' and inc[-1] == '>':
++                # System include => always early
++                env.add_include_file(inc)
++            elif stats and all(isinstance(node, CVarDefNode) for node in stats):
++                # Generate a late include if the body is not empty and
++                # all statements are variable or function declarations.
++                env.add_include_file(inc, late=True)
++            else:
++                env.add_include_file(inc)
+ 
+     def analyse_expressions(self, env):
+         return self
+diff --git a/Cython/Compiler/Symtab.py b/Cython/Compiler/Symtab.py
+index 32e10b554..04c6da9fd 100644
+--- a/Cython/Compiler/Symtab.py
++++ b/Cython/Compiler/Symtab.py
+@@ -1067,7 +1067,8 @@ class ModuleScope(Scope):
+     # doc_cname            string             C name of module doc string
+     # utility_code_list    [UtilityCode]      Queuing utility codes for forwarding to Code.py
+     # python_include_files [string]           Standard  Python headers to be included
+-    # include_files        [string]           Other C headers to be included
++    # include_files_early  [string]           C headers to be included before Cython decls
++    # include_files_late   [string]           C headers to be included after Cython decls
+     # string_to_entry      {string : Entry}   Map string const to entry
+     # identifier_to_entry  {string : Entry}   Map identifier string const to entry
+     # context              Context
+@@ -1111,7 +1112,8 @@ def __init__(self, name, parent_module, context):
+         self.utility_code_list = []
+         self.module_entries = {}
+         self.python_include_files = ["Python.h"]
+-        self.include_files = []
++        self.include_files_early = []
++        self.include_files_late = []
+         self.type_names = dict(outer_scope.type_names)
+         self.pxd_file_loaded = 0
+         self.cimported_modules = []
+@@ -1247,15 +1249,31 @@ def lookup_submodule(self, name):
+             module = module.lookup_submodule(submodule)
+         return module
+ 
+-    def add_include_file(self, filename):
+-        if filename not in self.python_include_files \
+-            and filename not in self.include_files:
+-                self.include_files.append(filename)
++    def add_include_file(self, filename, late=False):
++        if filename in self.python_include_files:
++            return
++        # Possibly, the same include appears both as early and as late
++        # include. We'll deal with this in fixup_includes().
++        if late:
++            incs = self.include_files_late
++        else:
++            incs = self.include_files_early
++        if filename not in incs:
++            incs.append(filename)
++
++    def fixup_includes(self):
++        for filename in self.include_files_early:
++            try:
++                self.include_files_late.remove(filename)
++            except ValueError:
++                pass
+ 
+     def add_imported_module(self, scope):
+         if scope not in self.cimported_modules:
+-            for filename in scope.include_files:
+-                self.add_include_file(filename)
++            for filename in scope.include_files_early:
++                self.add_include_file(filename, late=False)
++            for filename in scope.include_files_late:
++                self.add_include_file(filename, late=True)
+             self.cimported_modules.append(scope)
+             for m in scope.cimported_modules:
+                 self.add_imported_module(m)
+diff --git a/docs/src/userguide/external_C_code.rst b/docs/src/userguide/external_C_code.rst
+index c9622e82b..d4145c043 100644
+--- a/docs/src/userguide/external_C_code.rst
++++ b/docs/src/userguide/external_C_code.rst
+@@ -129,6 +129,13 @@ A few more tricks and tips:
+     cdef extern from *:
+         ...
+ 
++* If a ``cdef extern from "inc.h"`` block is not empty and contains only
++  function or variable declarations (and no type declarations of any kind),
++  Cython will put the ``#include "inc.h"`` statement after all
++  declarations generated by Cython. This means that the included file
++  has access to the variables, functions, structures, ... which are
++  declared by Cython.
++
+ Implementing functions in C
+ ---------------------------
+ 
