@@ -818,7 +818,9 @@ def solve(f, *args, **kwds):
     multiplicities = kwds.get('multiplicities', None)
     to_poly_solve = kwds.get('to_poly_solve', None)
     solution_dict = kwds.get('solution_dict', False)
-    
+    alg = kwds.get('algorithm', None)
+    domain = kwds.get('domain', None)
+
     if len(args) > 1:
         x = args
     else:
@@ -837,6 +839,42 @@ def solve(f, *args, **kwds):
         x = vars[0]
     elif not isinstance(x, Expression):
         raise TypeError("%s is not a valid variable." % repr(x))
+
+    if alg == 'sympy':
+        from sympy import FiniteSet, solveset, solve as ssolve
+        from sage.interfaces.sympy import sympy_set_to_list
+        if is_Expression(f): # f is a single expression
+            sympy_f = f._sympy_()
+        else:
+            sympy_f = tuple([s._sympy_() for s in f])
+        if is_SymbolicVariable(x):
+            sympy_vars = (x._sympy_(),)
+        else:
+            sympy_vars = tuple([v._sympy_() for v in x])
+        if len(sympy_vars) == 1 and is_Expression(f):
+            from operator import gt, ge, lt, le, ne
+            from sympy import S
+            if domain == 'real' or f.operator() in (gt, ge, lt, le, ne):
+                ret = solveset(sympy_f, sympy_vars[0], S.Reals)
+            else:
+                ret = solveset(sympy_f, sympy_vars[0])
+            return sympy_set_to_list(ret, sympy_vars)
+        else:
+            ret = ssolve(sympy_f, sympy_vars, dict=True)
+            if not isinstance(ret, dict):
+                return sympy_set_to_list(ret, sympy_vars)
+            else:
+                if kwds.get('solution_dict', False):
+                    l = []
+                    for d in ret:
+                        r = {}
+                        for (v,ex) in d.iteritems():
+                            r[v._sage_()] = ex._sage_()
+                        l.append(r)
+                    return l
+                else:
+                    return [[v._sage_() == ex._sage_() for v,ex in d.iteritems()]
+                                         for d in ret]
 
     if is_Expression(f): # f is a single expression
         if f.is_relational():
