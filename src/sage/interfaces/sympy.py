@@ -891,7 +891,7 @@ def sympy_set_to_list(set, vars):
         return [x._sage_() < oo for x in vars]
     elif set == S.Complexes:
         return [x._sage_() != UnsignedInfinity for x in vars]
-    elif set == S.EmptySet:
+    elif set is None or set == S.EmptySet:
         return []
     if isinstance(set, (And, Or, Relational)):
         if isinstance(set, And):
@@ -923,4 +923,5 @@ def sympy_set_to_list(set, vars):
             return [rel1, rel2]
         if isinstance(set, Union):
             return [sympy_set_to_list(iv, vars) for iv in set._args]
+    return set
 

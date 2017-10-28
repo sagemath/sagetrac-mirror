@@ -846,7 +846,7 @@ def solve(f, *args, **kwds):
         if is_Expression(f): # f is a single expression
             sympy_f = f._sympy_()
         else:
-            sympy_f = tuple([s._sympy_() for s in f])
+            sympy_f = [s._sympy_() for s in f]
         if is_SymbolicVariable(x):
             sympy_vars = (x._sympy_(),)
         else:
@@ -861,9 +861,7 @@ def solve(f, *args, **kwds):
             return sympy_set_to_list(ret, sympy_vars)
         else:
             ret = ssolve(sympy_f, sympy_vars, dict=True)
-            if not isinstance(ret, dict):
-                return sympy_set_to_list(ret, sympy_vars)
-            else:
+            if isinstance(ret, dict):
                 if kwds.get('solution_dict', False):
                     l = []
                     for d in ret:
@@ -875,6 +873,16 @@ def solve(f, *args, **kwds):
                 else:
                     return [[v._sage_() == ex._sage_() for v,ex in d.iteritems()]
                                          for d in ret]
+            elif isinstance(ret, list):
+                l = []
+                for sol in ret:
+                    r = {}
+                    for (v,ex) in sol.iteritems():
+                        r[v._sage_()] = ex._sage_()
+                    l.append(r)
+                return l
+            else:
+                return sympy_set_to_list(ret, sympy_vars)
 
     if is_Expression(f): # f is a single expression
         if f.is_relational():
