@@ -9205,7 +9205,7 @@ class GenericGraph(GenericGraph_pyx):
             return val
 
 
-    def twosplit(self):
+    def cleave(self):
         """
         Computes a two-vertex separation of a graph and cocyle at the cut.
         
@@ -9221,25 +9221,25 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G=Graph({0:[1,2,3],1:[4,5],2:[3,4],3:[5],4:[5],6:[2,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 2 vertices,
             (2, 4))
             sage: G=Graph({0:[1,2,3],1:[4,5],2:[3],3:[5],4:[5],6:[2,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 0 vertices,
             (2, 4))
             sage: G=Graph({0:[1,1,1,2,3],1:[4,5],2:[3,3],3:[5],4:[5],6:[2,4],7:[2,2,4,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 2 vertices,
             (2, 4))
-            sage: graphs.PetersenGraph().twosplit()
+            sage: graphs.PetersenGraph().cleave()
             Traceback (most recent call last):
             ...
             NotImplementedError: ...
@@ -9248,25 +9248,25 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G=Graph({0:[1,2,3],1:[4,5],2:[3,4],3:[5],4:[5],6:[2,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 2 vertices,
             (2, 4))
             sage: G=Graph({0:[1,2,3],1:[4,5],2:[3],3:[5],4:[5],6:[2,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 0 vertices,
             (2, 4))
             sage: G=Graph({0:[1,1,1,2,3],1:[4,5],2:[3,3],3:[5],4:[5],6:[2,4],7:[2,2,4,4]})
-            sage: G.twosplit()
+            sage: G.cleave()
             ([Subgraph of (): Multi-graph on 6 vertices,
             Subgraph of (): Multi-graph on 3 vertices,
             Subgraph of (): Multi-graph on 3 vertices],
             Multi-graph on 2 vertices,
             (2, 4))
-            sage: graphs.PetersenGraph().twosplit()
+            sage: graphs.PetersenGraph().cleave()
             Traceback (most recent call last):
             ...
             NotImplementedError: ...
@@ -9287,7 +9287,7 @@ class GenericGraph(GenericGraph_pyx):
     
         cut_size,cut_vertices = self.vertex_connectivity(value_only = False)
         if cut_size != 2:
-            raise NotImplementedError("twosplit is only implemented on graphs with vertex connectivity 2")
+            raise NotImplementedError("cleave is only implemented on graphs with vertex connectivity 2")
     
         H = Graph(self.edges(labels=False))
         H.delete_vertices(cut_vertices)
@@ -9466,13 +9466,11 @@ class GenericGraph(GenericGraph_pyx):
         
         # Each minor of self in two_blocks has a 2-vertex cut; we split
         # at this cut and check each side for S or R or a 2-vertex cut
-        # Probably defining part of twosplit here instead of above will
-        # save calls to vertex_connectivity()
         while two_blocks != []:
             nextblocks = []
             for B in two_blocks:
                 B.allow_multiple_edges(False)
-                S = B.twosplit()
+                S = B.cleave()
                 for K in S[0]:
                     if is_cycle(K):
                         #cycles.add_edges(K.edges())
@@ -9481,7 +9479,7 @@ class GenericGraph(GenericGraph_pyx):
                         nextblocks.append(K)
                     else:
                         R_blocks.append(K)
-                # add a P block if twosplit says we need it; mark virtual edge
+                # add a P block if cleave says we need it; mark virtual edge
                 #cocycles.add_edges(S[1].edges())
                 cocycles.extend(S[1].edges(labels=False))
                 #cuts.add_edge(S[2])
