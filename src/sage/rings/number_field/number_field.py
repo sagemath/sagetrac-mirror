@@ -105,7 +105,6 @@ import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
 
 import sage.rings.complex_field
-from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 import sage.rings.real_mpfr
 import sage.rings.real_mpfi
@@ -916,8 +915,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     if check:
         if D.is_square():
             raise ValueError("D must not be a perfect square.")
-    x = polygen(QQ, 'x')
-    f = x * x - D
+    R = QQ['x']
+    f = R([-D, 0, 1])
     if embedding is True:
         if D > 0:
             embedding = RLF(D).sqrt()
