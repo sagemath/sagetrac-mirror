@@ -6799,31 +6799,40 @@ cdef class Matrix(Matrix1):
 
         nr = self._nrows
         nc = self._ncols
-        A = self
+        A = <Matrix> self
 
         start_row = 0
-        pivots = []
+        cdef list pivots = []
 
         for c in range(nc):
             sig_check()
             for r in range(start_row, nr):
-                if A.get_unsafe(r, c):
+                val = A.get_unsafe(r, c)
+                if val:
                     pivots.append(c)
-                    a_inverse = ~A.get_unsafe(r,c)
-                    A.rescale_row(r, a_inverse, c)
-                    A.swap_rows(r, start_row)
-                    for i in range(nr):
-                        if i != start_row:
-                            if A.get_unsafe(i,c):
-                                minus_b = -A.get_unsafe(i, c)
-                                A.add_multiple_of_row(i, start_row, minus_b, c)
-                    start_row = start_row + 1
+                    A.rescale_row_c(r, ~val, c)
+                    if r != start_row:
+                        A.swap_rows_c(r, start_row)
+                    else:
+                        r += 1 # This is so we don't 0 out start_row below
+                    # all entries between start_row and r are already 0
+                    # Cython optimizes range() -> for loop, so we duplicate
+                    #    the code to take advange of that instead of using
+                    #    a single while loop where we control i.
+                    for i in range(start_row):
+                        val = A.get_unsafe(i,c)
+                        if val:
+                            A.add_multiple_of_row_c(i, start_row, -val, c)
+                    for i in range(r, nr):
+                        val = A.get_unsafe(i,c)
+                        if val:
+                            A.add_multiple_of_row_c(i, start_row, -val, c)
+                    start_row += 1
                     break
-        pivots = tuple(pivots)
-        self.cache('pivots', pivots)
+        self.cache('pivots', tuple(pivots))
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
-        return pivots
+        return tuple(pivots)
 
     def extended_echelon_form(self, subdivide=False, **kwds):
         r"""
