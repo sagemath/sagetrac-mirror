@@ -453,6 +453,7 @@ from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.defaults import series_precision
 from sage.rings.all import RIF
+from sage.rings.infinity import Infinity
 
 
 class NoConvergenceError(RuntimeError):
@@ -3349,7 +3350,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
-                      names=None, category=None, default_prec=None):
+                      names=None, category=None, default_prec=None, center = None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -3468,12 +3469,16 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if default_prec is None:
             default_prec = series_precision()
 
+        if center is None:
+            center = Infinity
+
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
-                                        default_prec=default_prec)
+                                        default_prec=default_prec,
+                                        center=center)
 
-    def __init__(self, growth_group, coefficient_ring, category, default_prec):
+    def __init__(self, growth_group, coefficient_ring, category, default_prec, center):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -3496,6 +3501,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
+        self._center_ = center
         super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
@@ -3551,6 +3557,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             123
         """
         return self._default_prec_
+
+    @property
+    def center(self):
+        #Docstring
+        return self._center_
 
 
     def change_parameter(self, **kwds):
