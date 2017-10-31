@@ -112,7 +112,7 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function, absolute_import, unicode_literals
+from __future__ import print_function, absolute_import
 from six.moves import range
 from six import iteritems, string_types, class_types, text_type
 from sage.misc.six import u
