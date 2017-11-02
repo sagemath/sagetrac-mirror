@@ -69,6 +69,12 @@ class HomotopyContinuationEngine(SageObject):
         """
         raise NotImplementedError
 
+def get_engine(engine_name, numthreads=1, prec=53, digits=None, useadaptiveprec=False):
+    if engine_name in ['phc','phcpy','phcpack']:
+        return PHCpackEngine(numthreads=1, prec=53, digits=None, useadaptiveprec=False)
+    else:
+        raise ValueError("Invalid engine choice: " + engine_name)
+
 class PHCpackEngine(HomotopyContinuationEngine):
     """
     PHCpack engine class for performing homotopy continuation.
