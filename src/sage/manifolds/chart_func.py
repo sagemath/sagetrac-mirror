@@ -901,12 +901,12 @@ class ChartFunction(AlgebraElement):
             curr = self._calc_method._current
             if curr == 'SR' :
                 self._der = [type(self)(self.parent(),
-                             self._simplify(diff(self.expr(), xx)))
+                             self._simplify(diff(self.expr(), xx),jump=True))
                              for xx in self._chart[:]]
             elif curr == 'sympy' :
                 self._der = [type(self)(self.parent(),
                              self._simplify(sympy.diff(self.expr(),
-                                                       xx._sympy_())))
+                                                       xx._sympy_()),jump=True))
                              for xx in self._chart[:]]
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
@@ -2121,7 +2121,7 @@ class ChartFunction(AlgebraElement):
         """
         self._der = None  # reset of the partial derivatives
 
-    def simplify(self):
+    def simplify(self,jump=True):
         r"""
         Simplify the coordinate expression of ``self``.
 
@@ -2217,7 +2217,7 @@ class ChartFunction(AlgebraElement):
 
         """
         curr = self._calc_method._current
-        self._express[curr] = self._simplify(self.expr(curr))
+        self._express[curr] = self._simplify(self.expr(curr),jump=jump)
         self._del_derived()
         return self
 

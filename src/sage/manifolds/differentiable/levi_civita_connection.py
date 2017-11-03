@@ -520,7 +520,7 @@ class LeviCivitaConnection(AffineConnection):
                                                         gg[s,k, chart].diff(j)
                                                       + gg[j,s, chart].diff(k)
                                                       - gg[j,k, chart].diff(s) )
-                                partial.append([i,j,k,rsum / 2])
+                                partial.append([i,j,k,(rsum/2).simplify(jump=False)])
                             return partial
 
                         # Computation and Assignation of values
@@ -539,7 +539,7 @@ class LeviCivitaConnection(AffineConnection):
                                                     gg[s,k, chart].diff(j)
                                                   + gg[j,s, chart].diff(k)
                                                   - gg[j,k, chart].diff(s) )
-                            gam[i,j,k, chart] = rsum / 2
+                            gam[i,j,k, chart] = (rsum / 2).simplify(jump=False)
 
                     # Assignation of results
                     self._coefficients[frame] = gam

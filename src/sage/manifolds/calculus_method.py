@@ -186,7 +186,7 @@ class CalculusMethod(SageObject):
         self._base_field_type = base_field_type
         self._latex_dict = {'sympy': sympy.latex, 'SR': latex}
 
-    def simplify(self, expression, method=None):
+    def simplify(self, expression, method=None, jump=True):
         r"""
         Apply some simplification chain to a given symbolic expression.
 
@@ -231,6 +231,7 @@ class CalculusMethod(SageObject):
             x^2 + 1
 
         """
+        if jump : return expression
         if method is None:
             method = self._current
         return self._simplify_dict[method](expression)
