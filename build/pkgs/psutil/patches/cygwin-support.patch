@@ -4576,7 +4576,7 @@ index 47772da..6636bdf 100755
  from _common import FREEBSD  # NOQA
  from _common import LINUX  # NOQA
  from _common import NETBSD  # NOQA
-@@ -230,7 +231,35 @@ elif SUNOS:
+@@ -230,6 +230,33 @@ elif SUNOS:
          sources=['psutil/_psutil_sunos.c'],
          define_macros=macros,
          libraries=['kstat', 'nsl', 'socket'])
@@ -4588,12 +4588,10 @@ index 47772da..6636bdf 100755
 +
 +    # sys.getwindowsversion() is not available in Cygwin's Python
 +    import re
-+    import subprocess
-+    winver_re = re.compile(br'\[.+ (?P<major>\d+)\.(?P<minor>\d+)\.'
-+                           br'(?P<build>\d+)\]')
- 
++    winver_re = re.compile(r'CYGWIN_NT-(?P<major>\d+)\.(?P<minor>\d+)')
++
 +    def get_winver():
-+        verstr = subprocess.check_output(['cmd', '/c', 'ver'])
++        verstr = os.uname()[0]
 +        m = winver_re.search(verstr)
 +        maj = int(m.group('major'))
 +        min = int(m.group('minor'))
@@ -4609,6 +4607,7 @@ index 47772da..6636bdf 100755
 +                 'psutil/arch/windows/process_info.c'],
 +        define_macros=macros,
 +        libraries=["psapi", "iphlpapi"])
+ 
  else:
      sys.exit('platform %s is not supported' % sys.platform)
- 
+
