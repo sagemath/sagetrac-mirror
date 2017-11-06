@@ -1,0 +1,13 @@
+def k(form):
+    form._cleanup()
+    kappa_form = DifferentialForm(F, form._degree - 1)
+    for comp in form._components:
+        fun = form._components[comp].factor()
+        i = 1
+        for n, coord in enumerate(F.base_space().coordinates()):
+            if n in comp:
+                newcomp = tuple(a for a in comp if a != n)
+                kappa_form[newcomp] += fun*coord*(-1)^(i+1)
+                i += 1
+    kappa_form._cleanup()
+    return kappa_form
