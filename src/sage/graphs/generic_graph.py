@@ -5210,37 +5210,41 @@ class GenericGraph(GenericGraph_pyx):
         itself has no cut vertices. Two distinct blocks cannot overlap in
         more than a single cut vertex.
 
-        OUTPUT: ``( B, C )``, where ``B`` is a list of blocks- each is
+        OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is
         a list of vertices and the blocks are the corresponding induced
-        subgraphs-and ``C`` is a list of cut vertices.
+        subgraphs - and ``C`` is a list of cut vertices.
 
         ALGORITHM:
 
-          We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
-          original version is recursive. We emulate the recursion using a stack.
+        We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
+        original version is recursive. We emulate the recursion using a
+        stack.
 
         .. SEEALSO::
 
             - :meth:`blocks_and_cuts_tree`
             - :meth:`~Graph.is_biconnected`
+            - :meth:`~Graph.bridges`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We construct a trivial example of a graph with one cut vertex::
+
+            sage: rings = graphs.CycleGraph(5) + graphs.CycleGraph(6)
+            sage: rings.merge_vertices([0, 5])
+            sage: rings.blocks_and_cut_vertices()
+            ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9, 10]], [0])
+
+        The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
             ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
-            sage: graphs.PathGraph(6).blocks_and_cut_vertices()
-            ([[4, 5], [3, 4], [2, 3], [1, 2], [0, 1]], [1, 2, 3, 4])
-            sage: graphs.CycleGraph(7).blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6]], [])
-            sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
-            ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
-            sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
-            sage: G.add_vertices(range(5))
-            sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
-            sage: G.blocks_and_cut_vertices()
-            ([[0, 1, 2], [0, 3, 4]], [0])
-            sage: graphs.StarGraph(3).blocks_and_cut_vertices()
-            ([[0, 1], [0, 2], [0, 3]], [0])
+
+        Decomposing paths to pairs::
+
+            sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
+            sage: g.blocks_and_cut_vertices()
+            ([[7, 8], [6, 7], [5, 6], [4, 5], [2, 3], [1, 2], [0, 1]], [5, 6, 7, 1, 2])
 
         TESTS::
 
@@ -5248,26 +5252,27 @@ class GenericGraph(GenericGraph_pyx):
             ([], [])
             sage: Graph(1).blocks_and_cut_vertices()
             ([[0]], [])
-            sage: Graph(2).blocks_and_cut_vertices()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
 
         REFERENCE:
 
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
+        from sage.misc.flatten import flatten
+
         if not self: # empty graph
-            return [],[]
+            return [], []
 
         start = next(self.vertex_iterator()) # source
 
         if len(self) == 1: # only one vertex
-            return [[start]],[]
+            return [[start]], []
 
         if not self.is_connected():
-            raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
+            tmp = [comp.blocks_and_cut_vertices() for comp
+                   in self.connected_components_subgraphs()]
+            return (flatten([x[0] for x in tmp], max_level=1),
+                    flatten([x[1] for x in tmp], max_level=1))
 
         # Each vertex is number with an integer from 1...|V(G)|, corresponding
         # to the order in which it is discovered during the DFS.
