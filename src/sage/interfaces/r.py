@@ -324,14 +324,22 @@ class R(ExtraTabCompletion, Expect):
             Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
             1.00    2.00    3.00   12.55    3.50  111.00
 
-            # Note the use of double quoting
+        Note the use of double quoting::
+
             sage: r.c('"a"','"b"','"c"')
             [1] "a" "b" "c"
 
-            # Note : -use of underscores in place of dots in R function names,
-            #        - access to R objects components as Sage dictionaries,
-            #        - no need to double-quote the dataframe column names (tags)
-            #          nor R formula (model notation).
+        The following example illustrates :
+
+        * use of underscores in place of dots in R function names,
+
+        * access to R objects components as Sage dictionaries,
+
+        * no need to double-quote the dataframe column names (tags) nor
+          R formula (model notation).
+
+        ::
+
             sage: d=r.data_frame(x=r.c(r.rep(0,4), r.rep(1,4)),\
                                  y=r.c(1,3,2,5,2,2,1,3))
             sage: tt=r.t_test(r.as_formula("y~x"),data=d)
