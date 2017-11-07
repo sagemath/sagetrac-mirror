@@ -152,3 +152,6 @@ from .asymptotic.all import *
 
 # Register classes in numbers abc
 from . import numbers_abc
+
+# Weil polynomials
+from .weil.all import *

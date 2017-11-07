@@ -1536,6 +1536,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+    
+    Extension('sage.rings.polynomial.weil.weil_polynomials',
+              sources = ['sage/rings/polynomial/weil/weil_polynomials.pyx']),
 
 
     ################################

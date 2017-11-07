@@ -1,5 +1,17 @@
 r"""
-Iterator for Weil polynomials
+Iterator for Weil polynomials.
+
+For `q` a prime power, a `q`-Weil polynomial is a monic polynomial with integer
+coefficients whose complex roots all have absolute value `sqrt(q)`. The class
+WeilPolynomials provides an iterator over a space of polynomials of this type;
+it is possible to relax the monic condition by specifying one (or more) leading
+coefficients. One may also impose certain congruence conditions; this can be
+used to limit the Newton polygons of the resulting polynomials, or to lift
+a polynomial specified by a congruence to a Weil polynomial.
+
+EXAMPLES::
+
+<Lots and lots of examples>
 
 AUTHOR:
   -- Kiran S. Kedlaya (2007-05-28): initial version
@@ -8,17 +20,23 @@ AUTHOR:
                    define WeilPolynomials iterator
                    reverse convention for polynomials
                    pass multiprecision integers to/from C
-        
-TODO:
-    - Implement real root isolation (e-antic)
 """
 
 #clang c
 #cinclude $SAGE_LOCAL/include/flint/
 #clib gomp
 #cargs -fopenmp
-#cfile all_real_roots.c
 #cfile power_sums.c
+
+#*****************************************************************************
+#       Copyright (C) 2017 Kiran S. Kedlaya <kskedl@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 cimport cython
 from cython.parallel import prange
@@ -32,15 +50,16 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.libs.gmp.mpz cimport mpz_set
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_vec cimport *
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "power_sums.h":
     ctypedef struct ps_static_data_t:
         pass
 
     ctypedef struct ps_dynamic_data_t:
-        int flag
-        long node_count
-        fmpz *sympol # Holds a return value
+        int flag        # State of the iterator
+        long node_count # Number of terminal nodes encountered
+        fmpz *sympol    # Return value (a polynomial)
 
     ps_static_data_t *ps_static_init(int d, fmpz_t q, int coeffsign, fmpz_t lead,
     		     		     int cofactor, 
@@ -122,9 +141,11 @@ cdef class dfs_manager:
             t = 0
             if np>1: k = k%(np-1) + 1
             with nogil: # Drop GIL for this parallel loop
+                sig_on()
                 for i in prange(np, schedule='dynamic', num_threads=np):
                     if self.dy_data_buf[i] != NULL:
                         next_pol(self.ps_st_data, self.dy_data_buf[i])
+                sig_off()
             for i in range(np):
                 if self.dy_data_buf[i] != NULL:
                     if self.dy_data_buf[i].flag > 0:
@@ -153,8 +174,8 @@ cdef class dfs_manager:
 
 class WeilPolynomials():
     r"""
-    Iterator for Weil polynomials, i.e., integer polynomials with all complex roots
-    having a particular absolute value.
+    Iterator for Weil polynomials, i.e., integer polynomials with all complex 
+    roots having a particular absolute value.
 
     If num_threads is specified, a parallel search (using the specified
     number of threads) is carried out. In this case, the order of values is not
@@ -165,8 +186,8 @@ class WeilPolynomials():
     By Kronecker's theorem, a monic integer polynomial has all roots of absolute
     value 1 if and only if it is a product of cyclotomic polynomials. For such a
     product to have positive sign of the functional equation, the factors `x-1`
-    and `x+1` must each occur with even multiplicity. This code confirms Kronecker's
-    theorem for polynomials of degree 6::
+    and `x+1` must each occur with even multiplicity. This code confirms 
+    Kronecker's theorem for polynomials of degree 6::
         sage: P.<x> = PolynomialRing(ZZ)
         sage: d = 6
         sage: ans1 = list(WeilPolynomials(d, 1, 1))
@@ -185,22 +206,23 @@ class WeilPolynomials():
 
         INPUT:
         
-            -- ``d`` - degree of the Weil polynomials
-            -- ``q`` - square absolute value of the roots
-            -- ``sign`` - sign of the functional equation (default: 1)
-            -- ``lead`` - one or more leading coefficients; see below (default: 1)
-            -- ``node_limit`` -- if specified, maximum number of nodes to allow in
+            - ``d`` -- degree of the Weil polynomials
+            - ``q`` -- square absolute value of the roots
+            - ``sign`` -- sign of the functional equation (default: 1)
+            - ``lead`` -- one or more leading coefficients; see below (default: 1)
+            - ``node_limit`` -- if specified, maximum number of nodes to allow in
                    a single tree traversal without raising a RuntimeError
-            -- ``num_threads`` -- number of threads to use for parallel computation
-                   (default: 1)
+            - ``num_threads`` -- number of threads to use for parallel 
+                   computation (default: 1)
 
         If ``lead`` cannot be parsed as a list, it is treated as a single integer
-        which will be the leading coefficient of all returned polynomials. Otherwise,
-        each entry is parsed either as a single integer, which is a prescribed coefficient,
-        or a pair `(i,j)` in which `i` is a coefficient which is prescribed modulo `j`.
-        Unless `d` is even and `sign` is 1, the values of `j` are required to be monotone
-        under reverse divisibility (that is, the first value must be a multiple of the second
-        and so on, with omitted values taken to be 0).
+        which will be the leading coefficient of all returned polynomials. 
+        Otherwise, each entry is parsed either as a single integer, which is a 
+        prescribed coefficient, or a pair `(i,j)` in which `i` is a coefficient
+        which is prescribed modulo `j`. Unless `d` is even and `sign` is 1, the 
+        values of `j` are required to be monotone under reverse divisibility 
+        (that is, the first value must be a multiple of the second and so on, 
+        with omitted values taken to be 0).
 
         """
         self.pol = PolynomialRing(QQ, name='x')
@@ -234,7 +256,8 @@ class WeilPolynomials():
             k = Integer(k)
             if len(modlist) == 0 and k != 0:
                 raise ValueError("Leading coefficient must be specified exactly")
-            if num_cofactor != 0 and len(modlist) > 0 and ((not k and modlist[-1]) or (k and modlist[-1]%k != 0)):
+            if num_cofactor != 0 and len(modlist) > 0 and \
+            ((not k and modlist[-1]) or (k and modlist[-1]%k != 0)):
                 raise ValueError("Invalid moduli")
             coefflist.append(j)
             modlist.append(k)
@@ -246,8 +269,8 @@ class WeilPolynomials():
         coefflist.reverse()
         if node_limit is None:
             node_limit = -1
-        self.process = dfs_manager(d2, q, coefflist, modlist, coeffsign, num_cofactor, 
-                                     node_limit, num_threads)
+        self.process = dfs_manager(d2, q, coefflist, modlist, coeffsign,
+                                   num_cofactor, node_limit, num_threads)
         self.ans = []
 
     def __iter__(self):
@@ -266,7 +289,8 @@ class WeilPolynomials():
 
     def node_count(self):
         r"""
-        Return the number of terminal nodes found in the tree, excluding actual solutions.
+        Return the number of terminal nodes found in the tree, excluding 
+        actual solutions.
         """
         if self.process is None:
             return self.count

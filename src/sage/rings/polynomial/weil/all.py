@@ -18,4 +18,4 @@ Weil polynomials
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+from weil_polynomials import WeilPolynomials
