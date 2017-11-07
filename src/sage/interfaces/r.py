@@ -340,8 +340,7 @@ class R(ExtraTabCompletion, Expect):
 
         ::
 
-            sage: d=r.data_frame(x=r.c(r.rep(0,4), r.rep(1,4)),\
-                                 y=r.c(1,3,2,5,2,2,1,3))
+            sage: d=r.data_frame(x=r.c(r.rep(0,4), r.rep(1,4)), y=r.c(1,3,2,5,2,2,1,3))
             sage: tt=r.t_test(r.as_formula("y~x"),data=d)
             sage: tt.sage().get("DATA").get("p_value")
             0.469526519083806
