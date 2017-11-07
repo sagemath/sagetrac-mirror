@@ -2298,14 +2298,14 @@ class Function_elementof(BuiltinFunction):
     EXAMPLES::
 
         sage: from sage.functions.other import element_of
-        sage: element_of(x, SR(ZZ))
-        element_of(x, Integer Ring)
-        sage: element_of(sin(x), SR(QQ))
-        element_of(sin(x), Rational Field)
+        sage: element_of(x, SR(Set(ZZ)))
+        element_of(x, Set of elements of Integer Ring)
+        sage: element_of(sin(x), SR(Set(QQ)))
+        element_of(sin(x), Set of elements of Rational Field)
         sage: element_of(x, SR(RealSet.open_closed(0,1)))
         element_of(x, (0, 1])
-        sage: element_of(x, SR(Set([4,6,8])))
-        element_of(x, {8, 4, 6})
+        sage: element_of(x, SR(Set([4,6,8]).union(Primes())))
+        element_of(x, Set-theoretic union of {8, 4, 6} and Set of all prime...
     """
     def __init__(self):
         """
@@ -2348,7 +2348,7 @@ class Function_elementof(BuiltinFunction):
         EXAMPLES::
 
             sage: from sage.functions.other import element_of
-            sage: latex(element_of(x, SR(ZZ)))
+            sage: latex(element_of(x, SR(Set(ZZ))))
             x \in \Bold{Z}
             sage: latex(element_of(x, SR(Set([4,6,8]))))
             x \in \left\{8, 4, 6\right\}
