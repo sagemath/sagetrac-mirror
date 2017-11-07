@@ -478,7 +478,7 @@ We test that ``imshow`` works as well, verifying that
 
 ::
 
-    sage: plt.imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
     sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
