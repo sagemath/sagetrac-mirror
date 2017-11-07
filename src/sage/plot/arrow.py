@@ -358,7 +358,7 @@ class Arrow(GraphicPrimitive):
             sage: a.save(filename=filename)
             sage: with open(filename, 'r') as f:
             ....:     contents = f.read().replace('\n', ' ')
-            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'
+            sage: two_stroke_pattern = r'setdash.*setdash.*stroke.*stroke.*setdash'
             sage: import re
             sage: two_stroke_re = re.compile(two_stroke_pattern)
             sage: two_stroke_re.search(contents) is None
@@ -437,7 +437,7 @@ class Arrow(GraphicPrimitive):
                             pe1.draw_path(renderer, gc, tpath, affine, rgbFace)
 
             pe1 = ConditionalStroke(CheckNthSubPath(p, 0), [pe.Stroke()])
-            pe2 = ConditionalStroke(CheckNthSubPath(p, 1), [pe.Stroke(linestyle="solid")])
+            pe2 = ConditionalStroke(CheckNthSubPath(p, 1), [pe.Stroke(dashes={'dash_offset': 0, 'dash_list': None})])
             p.set_path_effects([pe1, pe2])
 
         subplot.add_patch(p)
