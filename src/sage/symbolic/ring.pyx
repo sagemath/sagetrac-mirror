@@ -352,6 +352,8 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
+        from sage.sets.set import is_Set
+        from sage.sets.real_set import RealSet
 
         if isinstance(x, RealNumber):
             if x.is_NaN():
@@ -378,6 +380,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
+        elif is_Set(x) or isinstance(x, RealSet):
+            exp = x
         else:
             raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 
