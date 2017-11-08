@@ -1044,6 +1044,8 @@ class RealSet(UniqueRepresentation, Set_generic):
         """
         return self._intervals[i]
 
+    __getitem__ = get_interval
+
     def object(self):
         """
         Return the underlying object of ``self``.
@@ -1055,7 +1057,7 @@ class RealSet(UniqueRepresentation, Set_generic):
         """
         return self
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         A set is considered True unless it is empty, in which case it is
         considered to be False.
@@ -1069,7 +1071,7 @@ class RealSet(UniqueRepresentation, Set_generic):
         """
         return not self.is_empty()
 
-    __getitem__ = get_interval
+    __nonzero__ = __bool__
 
     # ParentMethods of Subobjects
     
