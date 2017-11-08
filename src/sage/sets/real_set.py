@@ -86,7 +86,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.richcmp import richcmp, richcmp_method
-from sage.structure.parent import Parent
+from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.rings.all import ZZ
@@ -724,7 +724,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         return self * other
 
 @richcmp_method
-class RealSet(UniqueRepresentation, Parent):
+class RealSet(UniqueRepresentation, Set_generic):
 
     @staticmethod
     def __classcall__(cls, *args):
@@ -1043,6 +1043,31 @@ class RealSet(UniqueRepresentation, Parent):
             True
         """
         return self._intervals[i]
+
+    def object(self):
+        """
+        Return the underlying object of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet(0,1).object()
+            (0, 1)
+        """
+        return self
+
+    def __nonzero__(self):
+        """
+        A set is considered True unless it is empty, in which case it is
+        considered to be False.
+
+        EXAMPLES::
+
+            sage: bool(RealSet(0, 1))
+            True
+            sage: bool(RealSet())
+            False
+        """
+        return not self.is_empty()
 
     __getitem__ = get_interval
 
