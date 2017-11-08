@@ -254,17 +254,15 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(complex(2,-3))
             (2-3j)
 
-        Any proper subset of the complex numbers::
+        Any Sage set::
 
-            sage: SR(NN)
-            Non negative integer semiring
-            sage: SR(ZZ)
-            Integer Ring
-            sage: SR(Set([1/2, 2/3, 3/4]))
-            {3/4, 2/3, 1/2}
-            sage: SR(QQ.completion(oo, oo))
-            Real Field
-            sage: SR(RealSet(0, 1))
+            sage: SR(Set(ZZ))
+            Set of elements of Integer Ring
+            sage: SR(Primes())
+            Set of all prime numbers: 2, 3, 5, 7, ...
+            sage: SR(Set([1,2,3]))
+            {1, 2, 3}
+            sage: SR(RealSet(0,1))
             (0, 1)
 
         TESTS::
