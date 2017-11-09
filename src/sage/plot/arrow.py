@@ -147,8 +147,8 @@ class CurveArrow(GraphicPrimitive):
         bpath = Path(self.vertices, self.codes)
         p = FancyArrowPatch(path=bpath,
                             lw=width, arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
-                            fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
+                            fc=color, ec=color, 
+                            linestyle=get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
         subplot.add_patch(p)
@@ -383,8 +383,8 @@ class Arrow(GraphicPrimitive):
                             lw=width,
                             arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
                             shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
-                            fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
+                            fc=color, ec=color,
+                            linestyle=get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
 
