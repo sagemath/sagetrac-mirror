@@ -2914,7 +2914,8 @@ def list_plot(data, plotjoined=False, **kwargs):
         ::
 
             sage: list_plot(yl, scale='loglog')         # both axes are log
-            UserWarning: ...
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         Instead this will work. We drop the point `(0,1)`.::
@@ -3297,7 +3298,8 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
             sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
             sage: list_plot_semilogy(list(zip(xl,yl))) # plot empty due to (1,0)
-            UserWarning:...
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         We remove `(1,0)` to fix this.::
