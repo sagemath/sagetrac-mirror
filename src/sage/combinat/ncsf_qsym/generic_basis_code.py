@@ -494,7 +494,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
-              This uses coercion to a concreate realization (either the
+              This uses coercion to a concrete realization (either the
               complete basis of non-commutative symmetric functions or
               the monomial basis of the quasi-symmetric functions).
 
@@ -1013,7 +1013,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
 
         EXAMPLES:
 
-        We construct explicitly an algbera morphism::
+        We construct explicitly an algebra morphism::
 
             sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)

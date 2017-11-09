@@ -12,11 +12,11 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division, print_function, absolute_import
 
-from __future__ import division, print_function
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccreadstr
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 
@@ -130,8 +130,7 @@ cdef class ntl_ZZX(object):
                     cc = x
                 ZZX_SetCoeff(self.x, i, cc.x)
         else:
-            v = str(v)
-            ZZX_from_str(&self.x, v)
+            ccreadstr(self.x, str(v))
 
     def __reduce__(self):
         """

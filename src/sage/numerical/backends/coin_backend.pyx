@@ -10,20 +10,26 @@ AUTHORS:
   the CBC package to version 2.7.5
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.numerical.mip import MIPSolverException
 from copy import copy
+
+from sage.parallel.ncpus import ncpus
+
 
 cdef class CoinBackend(GenericBackend):
 
@@ -757,7 +763,7 @@ cdef class CoinBackend(GenericBackend):
 
         # multithreading
         import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
+        model.setNumberThreads(ncpus())
 
         model.branchAndBound()
 
@@ -1410,7 +1416,7 @@ cdef class CoinBackend(GenericBackend):
 
         # multithreading
         import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
+        model.setNumberThreads(ncpus())
         
         if n != self.model.solver().getNumCols() or m != self.model.solver().getNumRows():
             raise ValueError("Must provide the status of every column and row variables")

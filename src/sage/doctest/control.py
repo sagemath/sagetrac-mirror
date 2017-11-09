@@ -87,10 +87,12 @@ class DocTestDefaults(SageObject):
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
         self.initial = False
+        self.exitfirst = False
         self.force_lib = False
         self.abspath = True         # sage-runtests default is False
         self.verbose = False
         self.debug = False
+        self.only_errors = False
         self.gdb = False
         self.valgrind = False
         self.massif = False
@@ -122,7 +124,7 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison by __dict__.
 
@@ -134,9 +136,23 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__,other.__dict__)
+        if not isinstance(other, DocTestDefaults):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: DD1 = DocTestDefaults(long=True)
+            sage: DD2 = DocTestDefaults(long=True)
+            sage: DD1 != DD2
+            False
+        """
+        return not (self == other)
 
 
 def skipdir(dirname):
@@ -169,7 +185,7 @@ def skipfile(filename):
         sage: f = tmp_filename(ext=".pyx")
         sage: skipfile(f)
         False
-        sage: open(f, "w").write("# nodoctest")
+        sage: _ = open(f, "w").write("# nodoctest")
         sage: skipfile(f)
         True
     """
@@ -197,7 +213,7 @@ class Logger(object):
         sage: from sage.doctest.control import Logger
         sage: t = open(tmp_filename(), "w+")
         sage: L = Logger(sys.stdout, t)
-        sage: L.write("hello world\n")
+        sage: _ = L.write("hello world\n")
         hello world
         sage: t.seek(0)
         sage: t.read()
@@ -300,9 +316,6 @@ class DocTestController(SageObject):
 
         if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
-            if s == 'true':
-                sage.misc.superseded.deprecation(18558, "Use --optional=all instead of --optional=true")
-                s = "all"
             options.optional = set(s.split(','))
             if "all" in options.optional:
                 # Special case to run all optional tests
@@ -656,6 +669,7 @@ class DocTestController(SageObject):
                                               "--work-tree=" + SAGE_ROOT,
                                               "status",
                                               "--porcelain"])
+            change = change.decode('utf-8')
             for line in change.split("\n"):
                 if not line:
                     continue
@@ -705,8 +719,8 @@ class DocTestController(SageObject):
 
             sage: dirname = tmp_dir()
             sage: filename = os.path.join(dirname, 'not_tested.py')
-            sage: with open(filename, 'w') as F:
-            ....:     F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: DC.sources
@@ -930,11 +944,6 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'
-            sage: DC = DocTestController(DocTestDefaults(optional="true"), [])
-            doctest:...: DeprecationWarning: Use --optional=all instead of --optional=true
-            See http://trac.sagemath.org/18558 for details.
-            sage: DC._optional_tags_string()
-            'all'
             sage: DC = DocTestController(DocTestDefaults(optional="sage,openssl"), [])
             sage: DC._optional_tags_string()
             'openssl,sage'
@@ -1119,6 +1128,7 @@ class DocTestController(SageObject):
                                                       "rev-parse",
                                                       "--abbrev-ref",
                                                       "HEAD"])
+                    branch = branch.decode('utf-8')
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass

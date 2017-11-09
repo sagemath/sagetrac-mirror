@@ -55,7 +55,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
            :widths: 30, 70
            :delim: @
         <BLANKLINE>
-           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ The Petersen Graph is a named graph that consists of 10 vertices...
+           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ Returns the Petersen Graph.
 
     The table of a module::
 
@@ -254,7 +254,8 @@ def list_of_subfunctions(root, only_local_functions=True):
                    local_filter(f,name))                 # possibly filter imported functions
                   }
 
-    return functions.keys(),functions
+    return list(functions.keys()), functions
+
 
 def gen_thematic_rest_table_index(root,additional_categories=None,only_local_functions=True):
     r"""
