@@ -39,7 +39,7 @@ add them and multiply them with scalars::
 from six.moves import zip
 
 from sage.structure.parent import Parent
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.structure.element import ModuleElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
@@ -590,21 +590,21 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L = LinearExpressionModule(QQ, ('x', 'y', 'z'))
 
-        Construct from coeffients and constant term::
+        Construct from coefficients and constant term::
 
-            sage: L._element_constructor([1, 2, 3], 4)
+            sage: L._element_constructor_([1, 2, 3], 4)
             x + 2*y + 3*z + 4
-            sage: L._element_constructor(vector(ZZ, [1, 2, 3]), 4)
+            sage: L._element_constructor_(vector(ZZ, [1, 2, 3]), 4)
             x + 2*y + 3*z + 4
 
         Construct constant linear expression term::
 
-            sage: L._element_constructor(4)
+            sage: L._element_constructor_(4)
             0*x + 0*y + 0*z + 4
 
         Construct from list/tuple/iterable::
        
-            sage: L._element_constructor(vector([4, 1, 2, 3]))
+            sage: L._element_constructor_(vector([4, 1, 2, 3]))
             x + 2*y + 3*z + 4
 
         Construct from a pair ``(coefficients, constant)``::
@@ -616,7 +616,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
             sage: M = LinearExpressionModule(ZZ, ('u', 'v', 'w'))
             sage: m = M([1, 2, 3], 4)
-            sage: L._element_constructor(m)
+            sage: L._element_constructor_(m)
             x + 2*y + 3*z + 4
         """
         R = self.base_ring()
@@ -641,7 +641,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
                 const = arg0[0]
                 coeffs = arg0[1:]
         else:
-            # arg1 is not None, construct from coeffients and constant term
+            # arg1 is not None, construct from coefficients and constant term
             coeffs = list(arg0)
             const = arg1
         coeffs = self.ambient_module()(coeffs)
@@ -733,13 +733,13 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: L.<x> = LinearExpressionModule(QQ)
             sage: M.<y> = LinearExpressionModule(ZZ)
             sage: L.coerce_map_from(M)
-            Conversion map:
+            Coercion map:
               From: Module of linear expressions in variable y over Integer Ring
               To:   Module of linear expressions in variable x over Rational Field
             sage: M.coerce_map_from(L)
 
             sage: M.coerce_map_from(ZZ)
-            Conversion map:
+            Coercion map:
               From: Integer Ring
               To:   Module of linear expressions in variable y over Integer Ring
             sage: M.coerce_map_from(QQ)

@@ -40,7 +40,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
@@ -214,17 +214,17 @@ class PSModularSymbolElement(ModuleElement):
 
         EXAMPLES::
 
-             sage: E = EllipticCurve('11a')
-             sage: phi = E.pollack_stevens_modular_symbol()
-             sage: phi.values()
-             [-1/5, 1, 0]
-             sage: phi.dict().keys()
-             [
-             [1 0]  [ 0 -1]  [-1 -1]
-             [0 1], [ 1  3], [ 3  2]
-             ]
-             sage: phi.values() == phi.dict().values()
-             True
+            sage: E = EllipticCurve('11a')
+            sage: phi = E.pollack_stevens_modular_symbol()
+            sage: phi.values()
+            [-1/5, 1, 0]
+            sage: phi.dict().keys()
+            [
+            [-1 -1]  [1 0]  [ 0 -1]
+            [ 3  2], [0 1], [ 1  3]
+            ]
+            sage: sorted(phi.values()) == sorted(phi.dict().values())
+            True
         """
         return [self._map[g] for g in self.parent().source().gens()]
 
@@ -429,7 +429,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - self - self | [1,0,0,-1]
+        - self -- self | [1,0,0,-1]
 
         EXAMPLES::
 

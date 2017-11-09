@@ -365,14 +365,13 @@ class CoxeterGroups(Category_singleton):
 
         def _test_reduced_word(self, **options):
             """
-            Runs sanity checks on :meth:'CoxeterGroups.ElementMethods.reduced_word' and
+            Run sanity checks on :meth:`CoxeterGroups.ElementMethods.reduced_word` and
             :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ParentMethods.from_reduced_word`
 
             EXAMPLES::
 
                 sage: W = CoxeterGroups().example()
                 sage: W._test_reduced_word()
-
             """
             tester = self._tester(**options)
             s = self.simple_reflections()
@@ -1747,7 +1746,7 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - other - an element of the same Coxeter group
+            - other -- an element of the same Coxeter group
 
             OUTPUT: a boolean
 
@@ -1818,8 +1817,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - other - an element of the same Coxeter group
-            - side - 'left' or 'right'  (default: 'right')
+            - other -- an element of the same Coxeter group
+            - side -- 'left' or 'right'  (default: 'right')
 
             OUTPUT: a boolean
 
@@ -1888,9 +1887,9 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - side - 'left' or 'right'  (default: 'right')
-            - positive - a boolean (default: False)
-            - index_set - a list of indices or None
+            - side -- 'left' or 'right'  (default: 'right')
+            - positive -- a boolean (default: False)
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 
@@ -2294,8 +2293,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - side - 'left' or 'right' (default: 'right')
-            - index_set - a list of indices or None
+            - side -- 'left' or 'right' (default: 'right')
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 
@@ -2329,8 +2328,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - side - 'left' or 'right' (default: 'right')
-            - index_set - a list of indices or None
+            - side -- 'left' or 'right' (default: 'right')
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 
