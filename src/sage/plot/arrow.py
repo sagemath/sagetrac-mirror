@@ -336,7 +336,7 @@ class Arrow(GraphicPrimitive):
         this into account. See :trac:`12836`::
 
             sage: fig = Graphics().matplotlib()
-            sage: sp = fig.add_subplot(1,1,1)
+            sage: sp = fig.add_subplot(1,1,1, label='axis1')
             sage: a = arrow((0,0), (1,1))
             sage: b = arrow((0,0), (1,1), width=20)
             sage: p1 = a[0]._render_on_subplot(sp)
