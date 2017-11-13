@@ -609,14 +609,17 @@ def CubeConnectedCycle(d):
     r"""
     Returns the cube-connected cycle of order `d`.
 
-    The cube-connected cycle of dimension `d` is the `d`-dimensional hypercube
+    The cube-connected cycle of order `d` is the `d`-dimensional hypercube
     with each of its vertices replaced by a cycle of length `d`. This graph has
     order `d \times 2^d`.
     The construction is as follows:
     Construct vertex `(x,y)` for `0 <= x < 2^d`, `0 <= y < d`.
     For each vertex, `(x,y)`, add an edge between it and `(x, (y-1) \mod d))`,
-    `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise xor
-    operator.
+    `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise
+    xor operator.
+
+    For `d=1` and `2`, the cube-connected cycle graph contains self-loops, but
+    for all other `d`, it is simple.
 
     INPUT:
 
@@ -633,20 +636,17 @@ def CubeConnectedCycle(d):
         sage: len(g) == d*2**d
         True
 
-    The diameter of cube-connected cycles for `d >= 3` is
-    `2n + \lfloor \frac{d}{2} \rfloor - 2` ::
-
-        sage: g = graphs.CubeConnectedCycle(9)
-        sage: g.diameter()
-        20
+    The diameter of cube-connected cycles for `d > 3` is
+    `2d + \lfloor \frac{d}{2} \rfloor - 2` ::
+        sage: d = 9
+        sage: g = graphs.CubeConnectedCycle(d)
+        sage: g.diameter() == 2*d+d//2-2
+        True
 
     All vertices have degree `3` when `d > 1` ::
 
         sage: g = graphs.CubeConnectedCycle(12)
         sage: all(g.degree(v) == 3 for v in g)
-        True
-        sage: g = graphs.CubeConnectedCycle(1)
-        sage: any(g.degree(v) < 3 for v in g)
         True
 
     TEST::
@@ -661,12 +661,22 @@ def CubeConnectedCycle(d):
         raise ValueError('d must be greater than 0.')
 
     G = Graph(name="Cube-Connected Cycle of dimension {}".format(d))
-    G.add_vertices((x, y) for x in range(pow(2, d)) for y in range(d))
+
+    if d == 1:
+        G.allow_loops(True)
+    if d == 2:
+        G.allow_multiple_edges(True)
+
+    for x in range(1<<d):
+        G.add_cycle([(x, y) for y in range(d)])
+
+    #only d==1 and 2 require multiple edges so we disallow them
+    #after adding the cycles
+    G.allow_multiple_edges(False, check=False)
 
     for x, y in G.vertices():
-        G.add_edge((x, y), (x, (y+1)%d))
-        G.add_edge((x, y), (x, (y-1)%d))
-        G.add_edge((x, y), (x^(2**y), y))
+        print(x,y,x^(1<<y),y)
+        G.add_edge((x, y), (x^(1<<y), y))
 
     return G
 
