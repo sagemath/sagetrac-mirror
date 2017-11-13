@@ -3350,7 +3350,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
-                      names=None, category=None, default_prec=None, center = None):
+                      names=None, category=None, default_prec=None, center=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
