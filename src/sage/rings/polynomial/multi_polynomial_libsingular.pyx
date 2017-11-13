@@ -4796,6 +4796,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: h = f^2
             sage: h.is_squarefree()
             False
+
+        TESTS::
+
+        Check that :trac:`12129` is fixed::
+
+            sage: x, y = QQ['x','y'].gens()
+            sage: f = x*y
+            sage: f.is_squarefree()
+            True
+            sage: f = (x+y)*(x+3)
+            sage: f.is_squarefree()
+            True
+
         """
         # TODO:  Use Singular (4.x) intrinsics.  (Temporary solution from #17254.)
         return all([ e == 1 for (f, e) in self.factor() ])
