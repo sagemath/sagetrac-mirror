@@ -607,7 +607,7 @@ def CirculantGraph(n, adjacency):
 
 def CubeConnectedCycle(d):
     r"""
-    Returns the cube-connected cycle of order `d`.
+    Returns the cube-connected cycle of dimension `d`.
 
     The cube-connected cycle of order `d` is the `d`-dimensional hypercube
     with each of its vertices replaced by a cycle of length `d`. This graph has
@@ -618,8 +618,9 @@ def CubeConnectedCycle(d):
     `(x,(y+1) \mod d)`, and `(x \oplus 2^y, y)`, where `\oplus` is the bitwise
     xor operator.
 
-    For `d=1` and `2`, the cube-connected cycle graph contains self-loops, but
-    for all other `d`, it is simple.
+    For `d=1` and `2`, the cube-connected cycle graph contains self-loops or
+    multiple edges between a pair of vertices, but for all other `d`, it is
+    simple.
 
     INPUT:
 
@@ -670,12 +671,12 @@ def CubeConnectedCycle(d):
     for x in range(1<<d):
         G.add_cycle([(x, y) for y in range(d)])
 
-    #only d==1 and 2 require multiple edges so we disallow them
+    #only d = 1 and 2 require multiple edges so we disallow them
     #after adding the cycles
+    G.allow_loops(False, check=False)
     G.allow_multiple_edges(False, check=False)
 
     for x, y in G.vertices():
-        print(x,y,x^(1<<y),y)
         G.add_edge((x, y), (x^(1<<y), y))
 
     return G
