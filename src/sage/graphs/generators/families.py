@@ -609,7 +609,7 @@ def CubeConnectedCycle(d):
     r"""
     Returns the cube-connected cycle of dimension `d`.
 
-    The cube-connected cycle of order `d` is the `d`-dimensional hypercube
+    The cube-connected cycle of dimension `d` is the `d`-dimensional hypercube
     with each of its vertices replaced by a cycle of length `d`. This graph has
     order `d \times 2^d`.
     The construction is as follows:
