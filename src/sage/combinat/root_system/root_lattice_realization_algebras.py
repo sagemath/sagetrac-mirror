@@ -1427,13 +1427,6 @@ class Algebras(AlgebrasCategory):
 
             return HeckeAlgebraRepresentation(self, on_basis, self.cartan_type(), q1, q2, q=1, side=side, doubled_parameters=doubled_parameters)
             
-        def rational_function_field(self, **keywords):
-            r"""
-            The fraction field of the root lattice realization algebra.
-            """
-            from sage.algebras.symmetric_algebra import FractionFieldFromLatticeGroupAlgebra
-            return FractionFieldFromLatticeGroupAlgebra(self, **keywords)
-
     class ElementMethods:
 
         def acted_upon(self, w):

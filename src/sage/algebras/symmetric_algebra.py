@@ -8,13 +8,10 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
 from sage.rings.fraction_field import FractionField_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.structure.element import Element
-
-class SymmetricAlgebraElement(Element):
-    r"""
-    An element of a symmetric algebra.
-    """
-    pass
+from sage.rings.fraction_field import FractionField_generic
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
 
 class SymmetricAlgebra(MPolynomialRing_polydict_domain, UniqueRepresentation):
     r"""
@@ -88,6 +85,16 @@ class SymmetricAlgebra(MPolynomialRing_polydict_domain, UniqueRepresentation):
 
         self._poly_ring = PolynomialRing(base_ring, [x for x in variable_names])
         self._poly_ring_fraction_field = self._poly_ring.fraction_field()
+        #self.to_poly = SetMorphism(Hom(self, self._poly_ring, category=Sets()), self.to_poly)
+        #self.to_poly.register_as_coercion()
+        self.from_poly = SetMorphism(Hom(self._poly_ring, self, category=Sets()), self.from_poly)
+        self.from_poly.register_as_coercion()
+
+    def to_poly(self, f):
+        return self._poly_ring(f)
+
+    def from_poly(self, f):
+        return self(f)
 
     def _repr_(self):
         """
@@ -229,29 +236,32 @@ class SymmetricAlgebra(MPolynomialRing_polydict_domain, UniqueRepresentation):
         """
         if not isinstance(images, (list, tuple)):
             if not isinstance(images, FiniteFamily) or images.keys() != self.keys():
-                raise TypeError("images are not properly specified")
+                raise TypeError("images are not properly specified {} {}".format(images.keys(),self.keys()))
             images = [images[k] for k in self.keys()]
         return self.hom(images)
 
-    def algebra_automorphism(self, f):
+    def induced_algebra_endomorphism(self, images):
         r"""
-        The automorphism of ``self`` induced by the automorphism `f` of
-        the base module.
+        Like :meth:`algebra_morphism` except that the elements of images 
+        are in the base module of ``self``.
 
         EXAMPLES::
 
             sage: M = CombinatorialFreeModule(QQ, [1,2])
-            sage: f = M.module_morphism(on_basis = lambda i: M.monomial(3-i),codomain=M)
-            sage: [f(v) for v in M.basis()]
-            [B[2], B[1]]
             sage: from sage.algebras.symmetric_algebra import SymmetricAlgebra
             sage: S = SymmetricAlgebra(M,prefix="x")
-            sage: p = S.from_items([((2,3),-1)]); p
-            -x1^2*x2^3
-            sage: S.algebra_automorphism(f)(p)
-            -x1^3*x2^2
+            sage: f = S.induced_algebra_endomorphism([M.monomial(2),M.monomial(1)])
+            sage: m = M.monomial(1)+3*M.monomial(2)
+            sage: f((1 + S(m))**2)
+            9*x1^2 + 6*x1*x2 + 6*x1 + x2^2 + 2*x2 + 1
         """
-        return self.algebra_morphism([self(f(v)) for v in self.base_module().basis()])
+        if not isinstance(images, (list, tuple)):
+            if not isinstance(images, FiniteFamily) or images.keys() != self.keys():
+                raise TypeError("images are not properly specified")
+            images = [self.from_module_map()(images[k]) for k in self.keys()]
+        else:
+            images = [self.from_module_map()(x) for x in images]
+        return self.hom(images,codomain=self)
 
     def divide_elements(self, numerator, denominator):
         r"""
@@ -270,290 +280,3 @@ class SymmetricAlgebra(MPolynomialRing_polydict_domain, UniqueRepresentation):
             1
         """
         return self(self._poly_ring(self._poly_ring_fraction_field(numerator/denominator)))
-
-    Element = SymmetricAlgebraElement
-
-class MyExtensionField(FractionField_generic):
-    r"""
-    Create an extension field `E` of ``intermediate_field`` by adding variables.
-
-    INPUT:
-
-    - ``intermediate_field`` -- a field
-    - ``variable_names`` -- a family of strings
-
-    EXAMPLES::
-
-        sage: from sage.algebras.symmetric_algebra import MyExtensionField
-        sage: F = QQ['q,v'].fraction_field()
-        sage: fam = Family((1,2,3), lambda i: 'x'+str(i)); fam
-        Finite family {1: 'x1', 2: 'x2', 3: 'x3'}
-        sage: E = MyExtensionField(F, fam); E
-        Fraction Field of Multivariate Polynomial Ring in q, v, x1, x2, x3 over Rational Field
-
-    The added variables may be accessed using the keys of the family ``variable_names``::
-
-        sage: E.newgens()
-        Finite family {1: x1, 2: x2, 3: x3}
-        sage: E.newgen(3)
-        x3
-
-    The variables can be accessed in the old-fashioned way.
-
-        sage: E.gen(1), E.gen(4)
-        (v, x3)
-
-    The new field comes equipped with a coercion from the old one.
-
-        sage: E(F.an_element())
-        q
-    """
-
-    def __init__(self, intermediate_field, variable_names):
-        r"""
-        TESTS::
-
-            sage: F = QQ['a,b'].fraction_field()
-            sage: from sage.algebras.symmetric_algebra import MyExtensionField
-            sage: E = MyExtensionField(F, Family(dict({1:'x1',2:'x2',3:'x3'})))
-            sage: TestSuite(E).run()
-        """
-        assert intermediate_field in Fields()
-        self._intermediate_field = intermediate_field
-        base_field = intermediate_field.base_ring()
-        assert base_field in Fields()
-        if base_field == intermediate_field:
-            old_variable_names = []
-        else:
-            old_variable_names = [str(x) for x in intermediate_field.gens()]
-        self._n_oldgens = len(old_variable_names)
-        keys = variable_names.keys()
-        self._variable_name_list = [variable_names[k] for k in keys]
-        self._variable_loc = Family(keys, lambda k: self._variable_name_list.index(variable_names[k]))
-        all_variable_names = old_variable_names + self._variable_name_list
-        self._polyring = PolynomialRing(base_field, all_variable_names)
-        FractionField_generic.__init__(self, self._polyring)
-        self._newgens = Family(keys, lambda k: self.gen(self._n_oldgens + self._variable_loc[k]))
-
-        if not self.has_coerce_map_from(intermediate_field):
-            assert self._n_oldgens > 0
-            intermediate_field.hom([self.gen(i) for i in range(self._n_oldgens)], codomain = self).register_as_coercion()
-
-    def n_oldgens(self):
-        r"""
-        Return the number of generators of the base field.
-
-        EXAMPLES::
-
-            sage: F = QQ['q,v'].fraction_field()
-            sage: from sage.algebras.symmetric_algebra import MyExtensionField
-            sage: MyExtensionField(F, Family((1,2,3),lambda i: 'x'+str(i))).n_oldgens()
-            2
-        """
-        return self._n_oldgens
-
-    def newgens(self):
-        r"""
-        Return the generators of the extension field over the base field.
-
-        EXAMPLES::
-
-            sage: F = QQ['q,v'].fraction_field()
-            sage: from sage.algebras.symmetric_algebra import MyExtensionField
-            sage: MyExtensionField(F, Family((1,2,3),lambda i: 'x'+str(i))).newgens()
-            Finite family {1: x1, 2: x2, 3: x3}
-        """
-        return self._newgens
-
-    def newgen(self, i):
-        r"""
-        Return a generator of the extension field over the base field
-        indexed by the key `i`.
-
-        EXAMPLES::
-
-            sage: F = QQ['q,v'].fraction_field()
-            sage: from sage.algebras.symmetric_algebra import MyExtensionField
-            sage: MyExtensionField(F, Family(range(1,4), lambda i: 'x'+str(i))).newgen(2)
-            x2
-        """
-        return self.newgens()[i]
-
-class FractionFieldFromLatticeGroupAlgebra(UniqueRepresentation,MyExtensionField):
-
-    r"""
-    Fraction field of the group algebra of a lattice.
-
-    This is a temporary measure; a proper implementation of Laurent polynomials
-    would make it obsolete. Currently Laurent polynomial rings do not properly
-    recognize their own elements.
-
-    INPUT:
-
-    - ``lattice_algebra`` -- The group algebra of a lattice
-
-    """
-    def __init__(self, lattice_algebra, **keywords):
-        r"""
-        INPUT:
-        - ``lattice_algebra`` -- The group algebra of a lattice (free module
-          over the integers) with distinguished basis)
-
-        The input uses the same conventions as :class:`MySymmetricAlgebra`.
-
-        This needs to be its own class. Right now this is quick and dirty.
-
-        EXAMPLES::
-
-            sage: X = CartanType(['A',2,1]).root_system().weight_lattice(extended=True)
-            sage: K = QQ['q,v'].fraction_field()
-            sage: QX = X.algebra(K)
-            sage: QX.rational_function_field().newgens()
-            Finite family {0: Lambda0, 1: Lambda1, 2: Lambda2, 'delta': Lambdadelta}
-            sage: variable_names = Family(dict({0:'L0',1:'L1',2:'L2','delta':'d'}))
-            sage: QX.rational_function_field(variable_names=variable_names).newgens()
-            Finite family {0: L0, 1: L1, 2: L2, 'delta': d}
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: FX = QX.rational_function_field(prefix="a")
-            sage: FX.newgens()
-            Finite family {1: a1, 2: a2}
-            sage: mu = X.simple_root(1)-3*X.simple_root(2)
-            sage: FX.lattice_monomial(mu)
-            a1/a2^3
-            sage: m = QX.monomial(mu); m
-            B[alpha[1] - 3*alpha[2]]
-            sage: FX(m)
-            a1/a2^3
-        """
-        base_ring = lattice_algebra.base_ring()
-
-        self._lattice_algebra = lattice_algebra
-        self._lattice = lattice_algebra.basis().keys()
-        keys = [k for k in self._lattice.basis().keys()]
-        variable_names = keywords.get('variable_names', None)
-        if variable_names is None:
-            prefix = keywords.get('prefix',None)
-            if not prefix:
-                prefix = self._lattice.prefix()
-            variable_names = Family(keys, lambda k: prefix+(repr(k) if not isinstance(k,str) else k))
-        else:
-            if not isinstance(variable_names, FiniteFamily) or variable_names.cardinality() != len(keys) or not all([x in variable_names.keys() for x in keys]):
-                raise TypeError("variable names are not given by a Family on the keys of the basis of the module")
-
-        MyExtensionField.__init__(self, base_ring, variable_names)
-
-        self._from_lattice_algebra_map = lattice_algebra.module_morphism(on_basis = lambda mu: self.lattice_monomial(mu),codomain=self)
-        self._from_lattice_algebra_map.register_as_coercion()
-
-    def lattice(self):
-        r"""
-        The lattice of which ``self`` is the fraction field of the group algebra.
-
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: QX.rational_function_field().lattice()
-            Root lattice of the Root system of type ['A', 2]
-        """
-        return self._lattice
-
-    def lattice_algebra(self):
-        r"""
-        The group algebra of a lattice of which ``self`` is the fraction field.
-
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: F = QX.rational_function_field()
-            sage: F.lattice_algebra()
-            Group algebra of the Root lattice of the Root system of type ['A', 2] over Rational Field
-        """
-        return self._lattice_algebra
-
-    def _repr_(self):
-        r"""
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: QX.rational_function_field()
-            Fraction Field of Group algebra of the Root lattice of the Root system of type ['A', 2] over Rational Field
-        """
-        return "Fraction Field of %s"%self._lattice_algebra
-
-    def lattice_monomial(self, la):
-        r"""
-        Return the Laurent monomial in ``self`` corresponding to the lattice element `la`.
-
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: F = QX.rational_function_field(prefix="a")
-            sage: F.lattice_monomial(-3*F.lattice().basis()[2])
-            1/a2^3
-        """
-        return self.prod(self.newgen(k)**la[k] for k in la.support())
-
-    def from_lattice_algebra_map(self):
-        r"""
-        The map from the group algebra of a lattice, to ``self``.
-
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().root_lattice()
-            sage: QX = X.algebra(QQ)
-            sage: F = QX.rational_function_field(prefix="a")
-            sage: F.from_lattice_algebra_map()(QX.monomial(-3*F.lattice().basis()[2]))
-            1/a2^3
-        """
-        return self._from_lattice_algebra_map
-
-    def induced_endomorphism(self, images):
-        r"""
-        The endomorphism of ``self`` defined by the images of generators.
-
-        INPUT:
-
-        - ``images`` -- A list, tuple, or family of elements of the underlying lattice.
-
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().ambient_space()
-            sage: QX = X.algebra(QQ)
-            sage: F = QX.rational_function_field(prefix="x")
-            sage: m = F.lattice_monomial(-X.an_element()); m
-            1/(x0^2*x1^2*x2^3)
-            sage: W = X.weyl_group(prefix="s")
-            sage: w = W.an_element(); w
-            s1*s2
-            sage: f = F.induced_endomorphism(tuple([w.action(x) for x in X.basis()]))
-            sage: f(m)
-            1/(x0^3*x1^2*x2^2)
-        """
-        return self.hom([self.gen(i) for i in range(self.n_oldgens())]+[self.lattice_monomial(x) for x in images],codomain=self)
-
-    def scaling_endomorphism(self, scalars):
-        r"""
-        Automorphism of ``self`` induced by multiplication of the generators
-        by the given scalars.
-
-        INPUT:
-
-        - ``scalars`` -- a family from the keys of the basis of the lattice of ``self`` to the base ring
-
-        EXAMPLES::
-
-            sage: X = CartanType("A2").root_system().ambient_space()
-            sage: K = QQ['q,v'].fraction_field()
-            sage: KX = X.algebra(K)
-            sage: F = KX.rational_function_field(prefix="x")
-            sage: basis = F.lattice().basis()
-            sage: fam = Family(basis.keys(), lambda k: K.gen(0)**(basis[k].scalar(X((0,2,1))))); fam
-            Finite family {0: 1, 1: q^2, 2: q}
-            sage: f = F.scaling_endomorphism(fam)
-            sage: [f(F.newgen(i)**2) for i in F.newgens().keys()]
-            [x0^2, q^4*x1^2, q^2*x2^2]
-        """
-        return self.hom([self.gen(i) for i in range(self.n_oldgens())]+[scalars[k]*self.newgen(k) for k in scalars.keys()],codomain=self)
