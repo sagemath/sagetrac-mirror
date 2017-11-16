@@ -1129,7 +1129,7 @@ ext_modules = [
 
     Extension('sage.rings.complex_number',
               sources = ['sage/rings/complex_number.pyx'],
-              libraries = ['gmp', 'mpfr']),
+              libraries = ['gmp', 'mpfr', 'mpc']),
 
     Extension('sage.rings.integer',
               sources = ['sage/rings/integer.pyx'],

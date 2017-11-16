@@ -39,6 +39,7 @@ cdef extern from "mpc.h":
     int  mpc_set_ui (mpc_t, unsigned long int, mpc_rnd_t)
     int  mpc_set_si (mpc_t, long int, mpc_rnd_t)
     int  mpc_set_z (mpc_t, mpz_t, mpc_rnd_t)
+    int  mpc_set_q (mpc_t, mpq_t, mpc_rnd_t)
     int  mpc_set_d (mpc_t, double, mpc_rnd_t)
     int  mpc_set_fr (mpc_t, mpfr_t, mpc_rnd_t)
     # Set value
