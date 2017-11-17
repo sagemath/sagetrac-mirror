@@ -1079,13 +1079,14 @@ cdef class FiniteField(Field):
         # E_basis_alpha is the implicit basis of E over the prime subfield
         E_basis_beta = [F_basis[i] * basis[j] for j in range(s) for i in range(F.degree())]
 
-        C = matrix([E_basis_beta[i]._vector_() for i in range(E.degree())])
+        C = matrix(E.prime_subfield(), E.degree(), E.degree(),
+                   [E_basis_beta[i]._vector_() for i in range(E.degree())])
         Cinv = C.inverse()
 
         def to_V(e):
             w = e._vector_() * Cinv
             if F.degree() > 1:
-                return vector(F, [F(w[i*F.degree():(i+1)*F.degree()]) for i in range(s)])
+                return V([F(w[i*F.degree():(i+1)*F.degree()]) for i in range(s)])
             else:
                 return w
 
