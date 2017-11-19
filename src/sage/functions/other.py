@@ -1817,7 +1817,7 @@ class Function_beta(GinacFunction):
         The result is symbolic if exact input is given::
 
             sage: ex = beta(2,1+5*I); ex
-            beta(...
+            beta...
             sage: set(ex.operands()) == set([1+5*I, 2])
             True
             sage: beta(2, 2.)
@@ -2644,7 +2644,7 @@ class Function_cases(GinacFunction):
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+
             sage: cases(x)
             Traceback (most recent call last):
             ...
@@ -2696,3 +2696,73 @@ class Function_cases(GinacFunction):
 
 cases = Function_cases()
 
+############################
+# Fresnel integrals        #
+############################
+class Function_Fresnel_sin(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The sine Fresnel integral.
+
+        It is defined by the integral
+
+        .. MATH ::
+
+            \operatorname(S)(x) = \int_0^x \sin\left(\frac{\pi t^2}{2}\right)\, dt
+
+        for real `x`. Using power series expansions, it can be extended to the
+        domain of complex numbers. See the :wikipedia:`Fresnel_integral`.
+
+        INPUT:
+
+        - ``x`` -- the argument of the function
+
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_sin
+            sage: fresnel_sin(0)
+            0
+            sage: fresnel_sin(x).subs(x==0)
+            0
+            sage: x = var('x')
+            sage: fresnel_sin(1).n(100)
+            0.43825914739035476607675669662
+            sage: fresnel_sin(x)._sympy_()
+            fresnels(x)
+        """
+        BuiltinFunction.__init__(self, "fresnel_sin", nargs=1,
+                                 latex_name=r"\operatorname{S}",
+                                 conversions=dict(maxima='fresnel_s',
+                                                  sympy='fresnels',
+                                                  mathematica='FresnelS',
+                                                  maple='FresnelS'))
+
+    def _eval_(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_sin
+            sage: fresnel_sin(pi)
+            fresnel_sin(pi)
+            sage: fresnel_sin(pi).n(100)
+            0.59824907809026766482843860921
+        """
+        return None
+
+    def _evalf_(self, x, parent=None, algorithm=None):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_sin
+            sage: fresnel_sin(pi)
+            fresnel_sin(pi)
+            sage: fresnel_sin(pi).n(100)
+            0.59824907809026766482843860921
+            sage: fresnel_sin(1.0+2*I)
+            36.7254648839914 + 15.5877511044046*I
+        """
+        import mpmath
+        from sage.libs.mpmath import utils as mpmath_utils
+        return mpmath_utils.call(mpmath.fresnels, x, parent=parent)
+
+fresnel_sin = Function_Fresnel_sin()

@@ -25,7 +25,7 @@ from .other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     abs_symbolic, sqrt, log_gamma,
                     gamma_inc, incomplete_gamma, gamma_inc_lower,
                     arg, real_part, real, frac,
-                    imag_part, imag, imaginary, conjugate, cases)
+                    imag_part, imag, imaginary, conjugate, cases, fresnel_sin)
 
 from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
@@ -84,4 +84,3 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           exponential_integral_1, Ei, exp_integral_ei)
 
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
-
