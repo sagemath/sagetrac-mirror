@@ -5,16 +5,30 @@ This module provides routines for converting new symbolic expressions
 to other types.  Primarily, it provides a class :class:`Converter`
 which will walk the expression tree and make calls to methods
 overridden by subclasses.
+
+TESTS:
+
+Check that we only import sympy as needed (:trac:`24067`). We do this
+in an external process because the doctest framework imports sympy::
+
+    sage: cmd = "import sage.symbolic.expression_conversions; 'sympy' in sys.modules"
+    sage: sage0.eval("import sage.symbolic.expression_conversions")  # long time
+    ''
+    sage: sage0.eval("'sympy' in sys.modules")                       # long time
+    'False'
 """
-###############################################################################
-#   Sage: Open Source Mathematical Software
+
+#*****************************************************************************
 #       Copyright (C) 2009 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
