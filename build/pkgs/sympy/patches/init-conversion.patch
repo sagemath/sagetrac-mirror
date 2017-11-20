@@ -1,12 +1,14 @@
 diff --git a/sympy/__init__.py b/sympy/__init__.py
-index 0c52a7512..35f088e58 100644
+index 0c52a75..1ae774e 100644
 --- a/sympy/__init__.py
 +++ b/sympy/__init__.py
-@@ -90,3 +90,7 @@ def __sympy_debug():
+@@ -90,3 +90,9 @@ evalf._create_evalf_table()
  #import abc
  
  from .deprecated import *
 +
-+from sage.interfaces.sympy import sympy_init
-+sympy_init()
-+
++try:
++    from sage.interfaces.sympy import sympy_init
++    sympy_init()
++except ImportError:
++    pass
