@@ -926,13 +926,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         elif isinstance(right, Rational):
             c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
-        elif isinstance(right, int):
-            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, long):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpz_cmp((<Integer>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
+        elif isinstance(right, int):
+            # this case should only occur in python 2
+            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, float):
             d = right
             if isnan(d):
@@ -3112,8 +3113,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ArithmeticError: reduction modulo 100 not defined
         """
-        cdef Integer z
-        cdef long yy, res
+        cdef Integer y_int, z
+        cdef long y_long, res
+
+        if isinstance(y, long):
+            # This should be treated basically the same as if y is an Integer
+            # so go ahead and convert y to an Integer first
+            y_int = PY_NEW(Integer)
+            mpz_set_pylong(y_int.value, y)
 
         # First case: Integer % Integer
         if type(x) is type(y):
@@ -3130,16 +3137,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # Next: Integer % python int
         elif isinstance(y, int):
-            yy = PyInt_AS_LONG(y)
-            if not yy:
+            y_long = PyInt_AS_LONG(y)
+            if not y_long:
                 raise ZeroDivisionError("Integer modulo by zero")
             z = PY_NEW(Integer)
-            if yy > 0:
-                mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
+            if y_long > 0:
+                mpz_fdiv_r_ui(z.value, (<Integer>x).value, y_long)
             else:
-                res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -yy)
+                res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -y_long)
                 if res:
-                    mpz_sub_ui(z.value, z.value, -yy)
+                    mpz_sub_ui(z.value, z.value, -y_long)
             return z
 
         # Use the coercion model
