@@ -392,6 +392,24 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return MPolynomial_polydict(P, {P._zero_tuple:x})
 
+    def __hash__(self):
+        """
+        Return the hash.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: p = x^2 + y^2
+            sage: hash(p) == hash(x^2 + y^2)
+            True
+            sage: hash(p) == hash(x^2 + y^2 + 0)
+            True
+            sage hash(p) == hash(x^2 + y)
+            False
+        """
+
+        return hash((self.__class__, self.element()))
+
     def __neg__(self):
         """
         EXAMPLES::

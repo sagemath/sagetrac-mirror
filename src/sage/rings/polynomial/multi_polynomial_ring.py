@@ -165,6 +165,25 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         return MPolynomial_polydict
 
+    def __hash__(self):
+        """
+        Return the hash.
+
+        EXAMPLES::
+            sage: R = PolynomialRing(Integers(10), 'x', 4)
+            sage: hash(R) == hash(PolynomialRing(Integers(10), 'x', 4))
+            True
+            sage: hash(R) == hash(PolynomialRing(Integers(12), 'x', 4))
+            False
+            sage: hash(R) == hash(PolynomialRing(Integers(10), 'y', 4))
+            False
+            sage: hash(R) == hash(PolynomialRing(Integers(10), 'x', 3))
+            False
+        """
+
+        return hash((self.__class__, self.base_ring(), self.variable_name(),
+                     self.term_order()))
+
     def __eq__(left, right):
         """
         Check whether ``left`` is equal to ``right``.

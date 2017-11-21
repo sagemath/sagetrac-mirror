@@ -121,6 +121,34 @@ cdef class PolyDict:
         self.__repn = pdict
         self.__zero = zero
 
+    def __hash__(self):
+        """
+        Return the hash.
+
+        EXAMPLES::
+
+            sage: PD1 = PolyDict({(2,3):0, (1,2):3, (2,1):4})
+            sage: PD2 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, remove_zero=True)
+            sage: PD3 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, force_etuples=False)
+            sage: PD4 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, zero=4)
+            sage: hash(PD1) == hash(PD2)
+            False
+            sage: hash(PD1) == hash(PolyDict({(2,3):0, (1,2):3, (2,1):4}))
+            True
+            sage: hash(PD1) == hash(PD3)
+            False
+            sage: hash(PD3) == hash(PolyDict({(2,3):0, (1,2):3, (2,1):4},
+            ....:                            force_etuples=False))
+            True
+            sage: hash(PD1) == hash(PD4)
+            False
+            sage: hash(PD4) == hash(PolyDict({(2,3):0, (1,2):3, (2,1):4},
+            ....:                            zero=4))
+            True
+        """
+
+        return hash((self.__class__, tuple(self.__repn.items()), self.__zero))
+
     def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
 
