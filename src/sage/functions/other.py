@@ -2746,8 +2746,25 @@ class Function_Fresnel_sin(BuiltinFunction):
             fresnel_sin(pi)
             sage: fresnel_sin(pi).n(100)
             0.59824907809026766482843860921
+            sage: fresnel_sin(oo)
+            1/2
+            sage: fresnel_sin(-oo)
+            -1/2
+            sage: fresnel_sin(I*oo)
+            -I/2
+            sage: fresnel_sin(-I*oo)
+            I/2
         """
-        return None
+        if isinstance(x, Expression):
+            if x.is_negative():
+                return -self(-x)
+            if x.is_trivial_zero():
+                return x
+            if x.is_infinity():
+                return one_half
+        elif not x:
+            return x
+
 
     def _evalf_(self, x, parent=None, algorithm=None):
         r"""
