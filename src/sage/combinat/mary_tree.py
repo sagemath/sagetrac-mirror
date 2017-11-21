@@ -70,9 +70,16 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         ...
         TypeError: This is not a 3-ary tree
 
+    .. NOTE::
+
+        For `m = 2`, the `m`-ary trees are precisely
+        the binary trees (:class:`BinaryTree`),
+        although SageMath is currently unaware of this.
+
     .. SEEALSO::
 
-        :class:`LabelledMAryTree`
+        :class:`LabelledMAryTree`,
+        :class:`BinaryTree`.
     """
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -845,10 +852,10 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
         """
         TESTS::
 
-            sage: LBT = LabelledBinaryTree
-            sage: t1 = LBT([[LBT([], label=2), None], None], label=4); t1
+            sage: LMT = LabelledMAryTree
+            sage: t1 = LMT(2, [[LMT(2, [], label=2), None], None], label=4); t1
             4[None[2[., .], .], .]
-            sage: LBT([[], [[], None]], label = 3)   # indirect doctest
+            sage: LMT(2, [[], [[], None]], label = 3)   # indirect doctest
             3[None[., .], None[None[., .], .]]
         """
         if not self:
