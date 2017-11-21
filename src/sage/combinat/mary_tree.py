@@ -37,7 +37,13 @@ from sage.misc.cachefunc import cached_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class MAryTree(AbstractClonableTree, ClonableArray):
     r"""
-    The class of `m`-ary trees
+    The class of `m`-ary trees.
+
+    An `m`-ary tree (where `m` is a positive integer) is a
+    structure that is either a *leaf* or a *node*.
+    A leaf carries no information.
+    A node is given by a list of `m` arbitrary `m`-ary trees
+    (called its *children*).
 
     INPUT:
 
@@ -63,6 +69,10 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         Traceback (most recent call last):
         ...
         TypeError: This is not a 3-ary tree
+
+    .. SEEALSO::
+
+        :class:`LabelledMAryTree`
     """
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -97,8 +107,8 @@ class MAryTree(AbstractClonableTree, ClonableArray):
     @staticmethod
     def _auto_parent(m):
         """
-        The automatic parent of the element of this class depending of
-        the arity
+        The automatic parent of the element of this class depending on
+        the arity.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -113,7 +123,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
             3-ary trees
             sage: MAryTree(3, []).parent()
             3-ary trees
-         """
+        """
         return MAryTrees_all(m)
 
     def __init__(self, parent, children=None, check=True):
@@ -204,7 +214,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         Return a labelled version of ``self``.
 
         The actual canonical labelling is currently unspecified. However, it
-        is guaranteed to have labels in `1...n` where `n` is the number of
+        is guaranteed to have labels in `1, ..., n` where `n` is the number of
         nodes of the tree. Moreover, two (unlabelled) trees compare as equal if
         and only if their canonical labelled trees compare as equal.
 
@@ -778,7 +788,13 @@ class MAryTrees_size(MAryTrees):
 @add_metaclass(ClasscallMetaclass)
 class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
     r"""
-    The class of labelled `m`-ary tree
+    The class of labelled `m`-ary trees.
+
+    A labeled `m`-ary tree (where `m` is a positive integer)
+    is a structure that is either a *leaf* or a *node*.
+    A leaf carries no information.
+    A node is given by a list of `m` labeled `m`-ary trees
+    (called its *children*) as well as a label.
 
     EXAMPLES::
 
