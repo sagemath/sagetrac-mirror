@@ -1,7 +1,7 @@
 r"""
 `m`-ary trees
 
-This module deals with `m`-ary trees as mathematical (in particular immmutable)
+This module deals with `m`-ary trees as mathematical (in particular immutable)
 objects.
 
 This is different from rooted trees as we want to fix the number of subtrees.
@@ -70,11 +70,45 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         ...
         TypeError: This is not a 3-ary tree
 
-    .. NOTE::
+    For `m = 2`, the `m`-ary trees are precisely
+    the binary trees (:class:`BinaryTree`).
+    Sage does distinguish between binary trees
+    encoded as instances of :class:`LabelledMAryTree`
+    and binary trees encoded as instances of
+    :class:`BinaryTree`, but they can be freely
+    converted between each other::
 
-        For `m = 2`, the `m`-ary trees are precisely
-        the binary trees (:class:`BinaryTree`),
-        although SageMath is currently unaware of this.
+        sage: T = LabelledMAryTree(2, [[], []], label=4)
+        sage: S = LabelledMAryTree(2, [T, T], label=9); S
+        9[4[None[., .], None[., .]], 4[None[., .], None[., .]]]
+        sage: parent(S[1][1])
+        Labelled 2-ary trees
+        sage: X = LabelledBinaryTree(S); X
+        9[4[None[., .], None[., .]], 4[None[., .], None[., .]]]
+        sage: parent(X[1][1])
+        Labelled binary trees
+        sage: Y = LabelledMAryTree(2, X); Y
+        9[4[None[., .], None[., .]], 4[None[., .], None[., .]]]
+        sage: parent(Y[1][1])
+        Labelled 2-ary trees
+        sage: Y == S
+        True
+        sage: X == S
+        False
+        sage: s = MAryTree(2, S); s
+        [[[., .], [., .]], [[., .], [., .]]]
+        sage: parent(s[1][1])
+        2-ary trees
+        sage: x = BinaryTree(s); x
+        [[[., .], [., .]], [[., .], [., .]]]
+        sage: parent(x[1][1])
+        Binary trees
+        sage: y = MAryTree(2, x); y
+        [[[., .], [., .]], [[., .], [., .]]]
+        sage: parent(y[1][1])
+        2-ary trees
+        sage: s == y
+        True
 
     .. SEEALSO::
 
