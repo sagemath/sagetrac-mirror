@@ -6,14 +6,14 @@ objects.
 
 This is different from rooted trees as we want to fix the number of subtrees.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
@@ -627,7 +627,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
         if len(word) <= ind:
             raise ValueError("Invalid word")
         if word[ind] == 0:
-            return self() # empty tree
+            return self()  # empty tree
         ind += 1
         trees = []
         for i in range(self._m):
@@ -965,9 +965,9 @@ class LabelledMAryTrees(LabelledOrderedTrees):
         """
         LT = self._element_constructor_
         t = LT([], label=3)
-        t1 = LT([t, t, t], label=42)
-        t2 = LT([[], None, None], label=5)
-        return LT([t1, None, t2], label="toto")
+        t1 = LT([t] * self._m, label=42)
+        t2 = LT([[]] + [None] * (self._m - 1), label=5)
+        return LT([t1] + [None] * (self._m - 2) + [t2], label="toto")
 
     def __call__(self, x=None, *args, **keywords):
         """
