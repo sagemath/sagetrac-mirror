@@ -2751,20 +2751,26 @@ class Function_Fresnel_sin(BuiltinFunction):
             sage: fresnel_sin(-oo)
             -1/2
             sage: fresnel_sin(I*oo)
-            -I/2
+            -1/2*I
             sage: fresnel_sin(-I*oo)
-            I/2
+            1/2*I
         """
         if isinstance(x, Expression):
             if x.is_negative():
-                return -self(-x)
+                return -fresnel_sin(-x)
             if x.is_trivial_zero():
                 return x
             if x.is_infinity():
-                return one_half
+                if x.is_positive_infinity():
+                    return one_half
+                elif x.imag_part().is_positive_infinity():
+                    return -I*one_half
+                elif x.imag_part().is_negative_infinity():
+                    return I*one_half
+        elif x < 0:
+            return -fresnel_sin(-x)
         elif not x:
             return x
-
 
     def _evalf_(self, x, parent=None, algorithm=None):
         r"""
