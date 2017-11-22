@@ -119,7 +119,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
     def __classcall_private__(cls, *args, **opts):
         r"""
         Ensure that `m`-ary trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`MAryTree`
+        are the same and that they are instances of :class:`MAryTree`.
 
         TESTS::
 
@@ -203,7 +203,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def check(self):
         r"""
-        Check that ``self`` is a `m`-ary tree.
+        Check that ``self`` is an `m`-ary tree.
 
         EXAMPLES::
 
@@ -237,7 +237,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def is_empty(self):
         """
-        Return whether ``self`` is  empty.
+        Return whether ``self`` is empty.
 
         EXAMPLES::
 
@@ -260,8 +260,8 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         and only if their canonical labelled trees compare as equal.
 
         We use a labelling that generalizes the binary search tree labelling.
-        Nodes are labelled in this order: self[0], self, self[m-1],
-        self[m-2], ..., self[1].
+        Nodes are labelled in this order:
+        ``self[0], root, self[m-1], self[m-2], ..., self[1]``.
 
         EXAMPLES::
 
@@ -292,17 +292,18 @@ class MAryTree(AbstractClonableTree, ClonableArray):
 
     def unique_growth(self):
         r"""
-        This methods make the tree grow in such a way that a tree of size `n`
-        is obtained only by the growth of a unique tree of size `n-1`.
+        This method makes the tree grow in such a way that each tree
+        of size `n` is obtained only by growing a unique tree of size
+        `n-1`.
 
-        It is used to recursively generate `m`-ary trees. The principle of
-        the growth of a tree is to replace a leaf by a node. To obtain
-        a unique growth, we only replace leafs that are positioned after
-        the last node of the tree in prefix read.
+        This is used to recursively generate `m`-ary trees. The
+        principle of the growth of a tree is to replace a leaf by a node.
+        Namely, we only replace leafs that are positioned after
+        the last node of the tree in prefix read (:meth:`prefix_read`).
 
         OUTPUT:
 
-        - an iterator on trees that are obtain by a growth of ``self``
+        - an iterator on trees that are obtained by a growth of ``self``
 
         EXAMPLES::
 
@@ -318,6 +319,10 @@ class MAryTree(AbstractClonableTree, ClonableArray):
             [[[[., ., .], ., .], ., .], [[., [., ., .], .], ., .],
             [[., ., [., ., .]], ., .], [[., ., .], [., ., .], .],
             [[., ., .], ., [., ., .]]]
+            sage: t2 = MAryTree(3, None); t2
+            .
+            sage: list(t2.unique_growth())
+            [[., ., .]]
         """
         # we transform the tree into a word
         word = self.prefix_word()
@@ -342,13 +347,13 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         r"""
         Prefix read of the tree.
 
-        We read the tree recursively in this order: ``self``,
-        ``self[0]``, ``self[1]``, ..., ``self[m-1]`` and we write 0
+        We read the tree recursively in this order: ``root``,
+        ``self[0]``, ``self[1]``, ..., ``self[m-1]``, and we write 0
         for a leaf and 1 for a node.
 
         OUTPUT:
 
-        - a list of 0 and 1, where 0 stads for a leaf and 1 for a node
+        - a list of 0 and 1, where 0 stands for a leaf and 1 for a node
 
         EXAMPLES::
 
@@ -373,15 +378,16 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         return word
 
 
-# Abstract class to serve as a Factory no instance are created.
+# Abstract class to serve as a Factory; no instances are created.
 class MAryTrees(UniqueRepresentation, Parent):
     r"""
     Factory class for `m`-ary trees.
 
     INPUT:
 
-    - `m` -- an integer, the arity of the tree
-    - ``size`` -- (optional) an integer
+    - `m` -- an integer, the arity of the trees
+    - ``size`` -- (optional) an integer, the number of nodes
+      in each tree
 
     OUPUT:
 
@@ -395,8 +401,8 @@ class MAryTrees(UniqueRepresentation, Parent):
         sage: MAryTrees(3, 2)
         3-ary trees of size 2
 
-    .. note:: this in a factory class whose constructor returns instance of
-              subclasses.
+    .. note:: this is a factory class whose constructor returns instances
+              of subclasses.
     """
     @staticmethod
     def __classcall_private__(cls, m, n=None):
@@ -430,7 +436,7 @@ class MAryTrees(UniqueRepresentation, Parent):
         else:
             n = Integer(n)
             if not n >= 0:
-                raise ValueError("n must be a non negative integer")
+                raise ValueError("n must be a nonnegative integer")
             return MAryTrees_size(m, n)
 
     @cached_method
@@ -495,7 +501,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             [., ., .]
 
             sage: TestSuite(MA3).run()
-            """
+        """
         self._m = m
         F = Family(NonNegativeIntegers(), self._get_m_ary_trees_size)
         DisjointUnionEnumeratedSets.__init__(self, F,
@@ -503,7 +509,8 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def _get_m_ary_trees_size(self, n):
         r"""
-        Return the set of `m`-ary trees of size ``n``
+        Return the set of `m`-ary trees of size `n`
+        (that is, having `n` nodes).
 
         EXAMPLES::
 
@@ -552,7 +559,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def unlabelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -563,7 +570,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def labelled_trees(self):
         """
-        Return the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -588,17 +595,18 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 
     def from_prefix_word(self, word, ind=0):
         r"""
-        Construct a tree from a list of 0 and 1 where 0 stands for a leaf
-        and 1 for a node. The tree is read in prefix order.
+        Construct a tree from a list of 0's and 1's, where 0
+        stands for a leaf and 1 for a node. The list is supposed
+        to be the result of reading the tree in prefix order.
 
         INPUT:
 
-        - ``word`` an list or tuple of 0 and 1
-        - ``ind`` (default: 0) the index to start the reading from
+        - ``word`` -- an list or tuple of 0 and 1
+        - ``ind`` -- (default: `0`) the index to start the reading from
 
         OUTPUT:
 
-        - a m-ary tree
+        - an `m`-ary tree
 
         EXAMPLES::
 
@@ -611,12 +619,15 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             sage: MA3.from_prefix_word([1, 0, 0])
             Traceback (most recent call last):
             ...
-            ValueError: Non valid word
+            ValueError: Invalid word
+            sage: MA4 = MAryTrees(4)
+            sage: MA4.from_prefix_word([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0])
+            [., [., ., ., .], ., [., ., [., ., ., .], .]]
         """
-        if len(word) == ind:
-            raise ValueError("Non valid word")
+        if len(word) <= ind:
+            raise ValueError("Invalid word")
         if word[ind] == 0:
-            return self()
+            return self() # empty tree
         ind += 1
         trees = []
         for i in range(self._m):
@@ -633,7 +644,7 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
 #################################################################
 class MAryTrees_size(MAryTrees):
     """
-    The enumerated sets of m-ary trees of given size
+    The enumerated sets of `m`-ary trees of given size.
 
     TESTS::
 
@@ -676,7 +687,8 @@ class MAryTrees_size(MAryTrees):
 
     def size(self):
         r"""
-        Return the size of the elements of the set.
+        Return the size (i.e., the number of nodes) of the
+        elements of the set.
 
         EXAMPLES::
 
@@ -733,7 +745,7 @@ class MAryTrees_size(MAryTrees):
         r"""
         The cardinality of ``self``
 
-        This is a `m`-Catalan number.
+        This is an `m`-Fuss-Catalan number.
 
         TESTS::
 
@@ -753,8 +765,8 @@ class MAryTrees_size(MAryTrees):
 
     def __iter__(self):
         r"""
-        Generator using SearchForest and the unique_growth
-        method of a tree
+        Generator using SearchForest and the ``unique_growth``
+        method of a tree.
 
         TESTS::
 
@@ -773,7 +785,7 @@ class MAryTrees_size(MAryTrees):
             def children(x):
                 return x.unique_growth()
             from sage.combinat.backtrack import SearchForest
-            SF = SearchForest(roots, children, algorithm='breath')
+            SF = SearchForest(roots, children, algorithm='breadth')
             it = SF.elements_of_depth_iterator(self._size)
             for t in it:
                 yield t
@@ -781,7 +793,7 @@ class MAryTrees_size(MAryTrees):
     @lazy_attribute
     def _parent_for(self):
         """
-        The parent of the element generated by ``self``
+        The parent of the element generated by ``self``.
 
         TESTS::
 
@@ -831,10 +843,10 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
     r"""
     The class of labelled `m`-ary trees.
 
-    A labeled `m`-ary tree (where `m` is a positive integer)
+    A labelled `m`-ary tree (where `m` is a positive integer)
     is a structure that is either a *leaf* or a *node*.
     A leaf carries no information.
-    A node is given by a list of `m` labeled `m`-ary trees
+    A node is given by a list of `m` labelled `m`-ary trees
     (called its *children*) as well as a label.
 
     EXAMPLES::
@@ -847,7 +859,7 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that trees created by the sets and directly are the same and
-        that they are instance of :class:`LabelledTree`
+        that they are instances of :class:`LabelledTree`.
 
         TESTS::
 
@@ -868,10 +880,10 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
     @staticmethod
     def _auto_parent(m):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class.
 
-        When calling the constructor of an element of this class, one need a
-        parent. This class method specifies which parent is used.
+        When calling the constructor of an element of this class, one needs
+        a parent. This class method specifies which parent is used.
 
         EXAMPLES::
 
@@ -879,7 +891,7 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
             Labelled 3-ary trees
             sage: LabelledMAryTree(3, [], label=1).parent()
             Labelled 3-ary trees
-         """
+        """
         return LabelledMAryTrees(m)
 
     def _repr_(self):
@@ -905,8 +917,8 @@ class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
 
 class LabelledMAryTrees(LabelledOrderedTrees):
     """
-    This is a parent stub to serve as a factory class for trees with various
-    labels constraints
+    This is a parent stub to serve as a factory class for trees with
+    various labels constraints.
     """
     def __init__(self, m):
         r"""
@@ -942,7 +954,7 @@ class LabelledMAryTrees(LabelledOrderedTrees):
 
     def _an_element_(self):
         """
-        Return a labelled m-ary tree.
+        Return a labelled `m`-ary tree.
 
         EXAMPLES::
 
