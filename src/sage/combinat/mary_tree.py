@@ -68,7 +68,7 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         sage: MAryTree(3, [[], None])
         Traceback (most recent call last):
         ...
-        TypeError: This is not a 3-ary tree
+        TypeError: this is not a 3-ary tree
 
     For `m = 2`, the `m`-ary trees are precisely
     the binary trees (:class:`BinaryTree`).
@@ -109,6 +109,11 @@ class MAryTree(AbstractClonableTree, ClonableArray):
         2-ary trees
         sage: s == y
         True
+
+    TESTS::
+
+        sage: t = MAryTree(3, [])
+        sage: TestSuite(t).run()
 
     .. SEEALSO::
 
@@ -212,14 +217,14 @@ class MAryTree(AbstractClonableTree, ClonableArray):
             sage: MAryTree(3, [[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: This is not a 3-ary tree
+            TypeError: this is not a 3-ary tree
             sage: MAryTree(3, [[], [], [], []])       # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: This is not a 3-ary tree
+            TypeError: this is not a 3-ary tree
         """
         if not (not self or len(self) == self.arity()):
-            raise TypeError("This is not a %s-ary tree" % (self.arity()))
+            raise TypeError("this is not a %s-ary tree" % (self.arity()))
 
     def _repr_(self):
         """
@@ -401,8 +406,10 @@ class MAryTrees(UniqueRepresentation, Parent):
         sage: MAryTrees(3, 2)
         3-ary trees of size 2
 
-    .. note:: this is a factory class whose constructor returns instances
-              of subclasses.
+    .. NOTE::
+
+        This is a factory class whose constructor returns instances
+        of subclasses.
     """
     @staticmethod
     def __classcall_private__(cls, m, n=None):
@@ -619,13 +626,13 @@ class MAryTrees_all(DisjointUnionEnumeratedSets, MAryTrees):
             sage: MA3.from_prefix_word([1, 0, 0])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid word
+            ValueError: invalid word
             sage: MA4 = MAryTrees(4)
             sage: MA4.from_prefix_word([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0])
             [., [., ., ., .], ., [., ., [., ., ., .], .]]
         """
         if len(word) <= ind:
-            raise ValueError("Invalid word")
+            raise ValueError("invalid word")
         if word[ind] == 0:
             return self()  # empty tree
         ind += 1
@@ -680,7 +687,7 @@ class MAryTrees_size(MAryTrees):
             sage: MA3_2()
             Traceback (most recent call last):
             ...
-            ValueError: Wrong number of nodes
+            ValueError: wrong number of nodes
 
         """
         return super(MAryTrees, self).__call__(x, *args, **keywords)
@@ -824,7 +831,7 @@ class MAryTrees_size(MAryTrees):
             sage: MA3_0([])   # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Wrong number of nodes
+            ValueError: wrong number of nodes
             sage: MA3_0()   # indirect doctest
             .
 
@@ -834,7 +841,7 @@ class MAryTrees_size(MAryTrees):
         """
         res = self.element_class(self._parent_for, *args, **keywords)
         if res.node_number() != self._size:
-            raise ValueError("Wrong number of nodes")
+            raise ValueError("wrong number of nodes")
         return res
 
 
