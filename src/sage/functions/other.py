@@ -2744,8 +2744,6 @@ class Function_Fresnel_sin(BuiltinFunction):
             sage: from sage.functions.other import fresnel_sin
             sage: fresnel_sin(pi)
             fresnel_sin(pi)
-            sage: fresnel_sin(pi).n(100)
-            0.59824907809026766482843860921
             sage: fresnel_sin(oo)
             1/2
             sage: fresnel_sin(-oo)
@@ -2789,3 +2787,92 @@ class Function_Fresnel_sin(BuiltinFunction):
         return mpmath_utils.call(mpmath.fresnels, x, parent=parent)
 
 fresnel_sin = Function_Fresnel_sin()
+
+class Function_Fresnel_cos(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The cosine Fresnel integral.
+
+        It is defined by the integral
+
+        .. MATH ::
+
+            \operatorname(C)(x) = \int_0^x \cos\left(\frac{\pi t^2}{2}\right)\, dt
+
+        for real `x`. Using power series expansions, it can be extended to the
+        domain of complex numbers. See the :wikipedia:`Fresnel_integral`.
+
+        INPUT:
+
+        - ``x`` -- the argument of the function
+
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_cos
+            sage: fresnel_cos(0)
+            0
+            sage: fresnel_cos(x).subs(x==0)
+            0
+            sage: x = var('x')
+            sage: fresnel_cos(1).n(100)
+            0.77989340037682282947420641365
+            sage: fresnel_cos(x)._sympy_()
+            fresnelc(x)
+        """
+        BuiltinFunction.__init__(self, "fresnel_cos", nargs=1,
+                                 latex_name=r"\operatorname{C}",
+                                 conversions=dict(maxima='fresnel_c',
+                                                  sympy='fresnelc',
+                                                  mathematica='FresnelC',
+                                                  maple='FresnelC'))
+
+    def _eval_(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_cos
+            sage: fresnel_cos(pi)
+            fresnel_cos(pi)
+            sage: fresnel_cos(oo)
+            1/2
+            sage: fresnel_cos(-oo)
+            -1/2
+            sage: fresnel_cos(I*oo)
+            1/2*I
+            sage: fresnel_cos(-I*oo)
+            -1/2*I
+        """
+        if isinstance(x, Expression):
+            if x.is_negative():
+                return -fresnel_cos(-x)
+            if x.is_trivial_zero():
+                return x
+            if x.is_infinity():
+                if x.is_positive_infinity():
+                    return one_half
+                elif x.imag_part().is_positive_infinity():
+                    return I*one_half
+                elif x.imag_part().is_negative_infinity():
+                    return -I*one_half
+        elif x < 0:
+            return -fresnel_cos(-x)
+        elif not x:
+            return x
+
+    def _evalf_(self, x, parent=None, algorithm=None):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import fresnel_cos
+            sage: fresnel_cos(pi)
+            fresnel_cos(pi)
+            sage: fresnel_cos(pi).n(100)
+            0.52369854372622864215767570284
+            sage: fresnel_cos(1.0+2*I)
+            16.0878713741255 - 36.2256879928817*I
+        """
+        import mpmath
+        from sage.libs.mpmath import utils as mpmath_utils
+        return mpmath_utils.call(mpmath.fresnelc, x, parent=parent)
+
+fresnel_cos = Function_Fresnel_cos()
