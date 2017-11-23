@@ -542,21 +542,23 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 exc_info = exception
                 exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
 
-                exc_name = exc_info[0].__name__
-                if exc_info[0].__module__:
-                    exc_qualname = exc_info[0].__module__ + '.' + exc_name
-                else:
-                    exc_qualname = exc_name
-
-                if (six.PY3 and example.exc_msg is not None and
-                        example.exc_msg.startswith(exc_name) and
-                        exc_msg.startswith(exc_qualname)):
+                if six.PY3 and example.exc_msg is not None:
                     # On Python 3 the exception repr often includes the
                     # exception's full module name (for non-builtin
                     # exceptions), whereas on Python 2 does not, so we
                     # normalize Python 3 exceptions to match tests written to
                     # Python 2
-                    exc_msg = exc_msg.replace(exc_qualname, exc_name, 1)
+                    exc_cls = exc_info[0]
+                    exc_name = exc_cls.__name__
+                    if exc_cls.__module__:
+                        exc_fullname = (exc_cls.__module__ + '.' +
+                                        exc_cls.__qualname__)
+                    else:
+                        exc_fullname = exc_cls.__qualname__
+
+                    if (example.exc_msg.startswith(exc_name) and
+                            exc_msg.startswith(exc_fullname)):
+                        exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
 
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)
