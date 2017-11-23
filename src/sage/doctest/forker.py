@@ -548,7 +548,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 else:
                     exc_qualname = exc_name
 
-                if (six.PY3 and example.exc_msg.startswith(exc_name) and
+                if (six.PY3 and example.exc_msg is not None and
+                        example.exc_msg.startswith(exc_name) and
                         exc_msg.startswith(exc_qualname)):
                     # On Python 3 the exception repr often includes the
                     # exception's full module name (for non-builtin
