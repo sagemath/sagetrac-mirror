@@ -204,6 +204,8 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp_by_eq_and_lt
+from sage.rings.infinity import Infinity
+
 
 
 class ZeroCoefficientError(ValueError):
@@ -1302,7 +1304,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
     Element = GenericTerm
 
     @staticmethod
-    def __classcall__(cls, growth_group, coefficient_ring, category=None):
+    def __classcall__(cls, growth_group, coefficient_ring, category=None, center=None):
         r"""
         Normalize the input in order to ensure a unique
         representation of the parent.
@@ -1350,10 +1352,14 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             from sage.categories.posets import Posets
             category = Monoids() & Posets()
 
-        return super(GenericTermMonoid, cls).__classcall__(
-            cls, growth_group, coefficient_ring, category)
+        if center is None:
+            center = Infinity
 
-    def __init__(self, growth_group, coefficient_ring, category):
+        return super(GenericTermMonoid, cls).__classcall__(
+            cls, growth_group, coefficient_ring, category, center)
+
+
+    def __init__(self, growth_group, coefficient_ring, category, center):
         r"""
         See :class:`GenericTermMonoid` for more information.
 
@@ -1391,6 +1397,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         self._growth_group_ = growth_group
         self._coefficient_ring_ = coefficient_ring
+        self._center_ = center
         super(GenericTermMonoid, self).__init__(category=category)
 
     @property
@@ -1422,7 +1429,12 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         return self._coefficient_ring_
 
-    def change_parameter(self, growth_group=None, coefficient_ring=None):
+    @property
+    def center(self):
+        #Docstring
+        return self._center_
+
+    def change_parameter(self, growth_group=None, coefficient_ring=None, center=None):
         r"""
         Return a term monoid with a change in one or more of the
         given parameters.
@@ -1462,10 +1474,13 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             growth_group = self.growth_group
         if coefficient_ring is None:
             coefficient_ring = self.coefficient_ring
+        if center is None:
+            center = self.center
         if self.growth_group is growth_group and \
-                self.coefficient_ring is coefficient_ring:
+                self.coefficient_ring is coefficient_ring and \
+                    self.center is center:
             return self
-        return TermMonoid(self, growth_group, coefficient_ring)
+        return TermMonoid(self, growth_group, coefficient_ring, center)
 
     def _repr_(self):
         r"""
