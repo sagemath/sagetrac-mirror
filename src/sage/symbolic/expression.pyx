@@ -7357,6 +7357,7 @@ cdef class Expression(CommutativeRingElement):
             zero = self._parent.zero()
             return zero.add(*(pol[i]*self**i
                               for i in xrange(pol.degree() + 1)))
+
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only
@@ -7381,6 +7382,15 @@ cdef class Expression(CommutativeRingElement):
             (x^2 + 2*x*y + y^2)*a
             sage: (a*(b*(a+c)*x+b*((a+c)*x+(a+c)*y)*y)).collect_common_factors()
             ((x + y)*y + x)*(a + c)*a*b
+
+        TESTS:
+
+        Check that :trac:`21009` is fixed::
+
+            sage: (1/24*((I*2^(2/3)*gamma(1/3))/pi +
+            ....: 4*2^(2/3)*gamma(1/3)/(pi*(sqrt(3) + I))) /
+            ....: x^(1/3)).collect_common_factors()
+            1/24*2^(2/3)*(4/(sqrt(3) + I) + I)*gamma(1/3)/(pi*x^(1/3))
         """
         cdef GEx x
         sig_on()
