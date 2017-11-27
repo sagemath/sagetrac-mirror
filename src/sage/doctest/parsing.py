@@ -69,14 +69,17 @@ RIFtol = RealIntervalField(64)
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
 
 
-def remove_unicode_u(string):
+def remove_string_prefix(string, prefix='u'):
     """
-    Given a string, try to remove all unicode u prefixes inside.
+    Given a string, try to remove all the specified prefix from all string
+    literal representations (e.g. the 'u' or 'b' prefixes).
 
-    This will help to keep the same doctest results in Python2 and Python3.
+    This will help to keep the same doctest results in Python 2 and Python 3.
     The input string is typically the documentation of a method or function.
     This string may contain some letters u that are unicode python2 prefixes.
-    The aim is to remove all of these u and only them.
+    Likewise, on Python 3 some tests that return bytes will have the 'b'
+    prefix, whereas on Python 2 these are just expected to be plain, unprefixed
+    strings.
 
     INPUT:
 
@@ -87,20 +90,20 @@ def remove_unicode_u(string):
 
     EXAMPLES::
 
-        sage: from sage.doctest.parsing import remove_unicode_u as remu
-        sage: remu("u'you'")
+        sage: from sage.doctest.parsing import remove_string_prefix
+        sage: remove_string_prefix("u'you'")
         "'you'"
-        sage: remu('u')
+        sage: remove_string_prefix('u')
         'u'
-        sage: remu("[u'am', 'stram', u'gram']")
+        sage: remove_string_prefix("[u'am', 'stram', u'gram']")
         "['am', 'stram', 'gram']"
-        sage: remu('[u"am", "stram", u"gram"]')
+        sage: remove_string_prefix('[u"am", "stram", u"gram"]')
         '["am", "stram", "gram"]'
 
     This deals correctly with nested quotes::
 
-        sage: str = '''[u"Singular's stuff", u'good']'''
-        sage: print(remu(str))
+        sage: s = '''[b"Singular's stuff", b'good']'''
+        sage: print(remove_string_prefix(s, prefix='b'))
         ["Singular's stuff", 'good']
 
     TESTS:
@@ -108,12 +111,12 @@ def remove_unicode_u(string):
     This supports python2 str type as input::
 
         sage: euro = "'€'"
-        sage: print(remu(euro))
+        sage: print(remove_string_prefix(euro))
         '€'
     """
-    stripped, replacements = cython_strip_string_literals(u(string),
-                                                          "__remove_unicode_u")
-    string = stripped.replace('u"', '"').replace("u'", "'")
+    magic = '__remove_{}_prefix'.format(prefix)
+    stripped, replacements = cython_strip_string_literals(u(string), magic)
+    string = stripped.replace(prefix + '"', '"').replace(prefix + "'", "'")
     for magic, literal in replacements.items():
         string = string.replace(magic, literal)
     return string
@@ -963,16 +966,19 @@ class SageOutputChecker(doctest.OutputChecker):
             repr_fixups = []
         else:
             repr_fixups = [
-                (lambda g, w: 'u"' in w or "u'" in w, remove_unicode_u),
+                (lambda g, w: 'u"' in w or "u'" in w,
+                 lambda g, w: (g, remove_string_prefix(w))),
+                (lambda g, w: 'b"' in g or "b'" in g,
+                 lambda g, w: (remove_string_prefix(w, 'b'), w)),
                 (lambda g, w: '<class' in g and '<type' in w,
-                 normalize_type_repr)
+                 lambda g, w: (g, normalize_type_repr(w)))
             ]
 
         did_fixup = False
         for quick_check, fixup in repr_fixups:
             do_fixup = quick_check(got, want)
             if do_fixup:
-                want = fixup(want)
+                got, want = fixup(got, want)
                 did_fixup = True
 
         if not did_fixup:
