@@ -16,6 +16,8 @@ Load Python, Sage, Cython, Fortran and Magma files in Sage
 import os
 import base64
 
+from sage.cpython.string import str_to_bytes, bytes_to_str, FS_ENCODING
+
 def is_loadable_filename(filename):
     """
     Returns whether a file can be loaded into Sage.  This checks only
@@ -295,8 +297,14 @@ def load_wrap(filename, attach=False):
         'sage.repl.load.load(sage.repl.load.base64.b64decode("Zm9vLnB5"),globals(),True)'
         sage: sage.repl.load.load_wrap('foo.sage')
         'sage.repl.load.load(sage.repl.load.base64.b64decode("Zm9vLnNhZ2U="),globals(),False)'
-        sage: sage.repl.load.base64.b64decode("Zm9vLnNhZ2U=")
-        'foo.sage'
+        sage: m = sage.repl.load.base64.b64decode("Zm9vLnNhZ2U=")
+        sage: m == b'foo.sage'
+        True
     """
+
+    # Note: On Python 3 b64encode only accepts bytes, and returns bytes (yet
+    # b64decode does accept str, but always returns bytes)
+    b64 = base64.b64encode(str_to_bytes(filename, FS_ENCODING,
+                                        "surrogateescape"))
     return 'sage.repl.load.load(sage.repl.load.base64.b64decode("{}"),globals(),{})'.format(
-        base64.b64encode(filename), attach)
+            bytes_to_str(b64, 'ascii'), attach)
