@@ -432,6 +432,8 @@ cdef extern from "pynac_wrap.h":
 
     bint has_symbol "GiNaC::has_symbol" (GEx ex)
     bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)
+    bint has_function "GiNaC::has_function" (GEx ex,
+            vector[stdstring] & v, bint all) except +
 
     GFunctionOptVector g_registered_functions \
             "GiNaC::function::registered_functions" ()
