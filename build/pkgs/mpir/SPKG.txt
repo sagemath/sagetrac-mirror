@@ -28,3 +28,7 @@ See http://www.mpir.org
      rm -rf src/build.vc*             # Microsoft Visual C build files
      rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
    (Saves 13 of 40 MB uncompressed.)
+ * 3.0.1prerelease is built from https://github.com/wbhart/mpir/pull/234
+   by following the (outdated) procedure outlined in 
+   https://github.com/wbhart/mpir/commit/1b3d5976292c6308c3f121c5ea2c406da0324bc8
+   and then removing the unneeded stuff as outlined above.
