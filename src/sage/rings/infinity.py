@@ -1150,6 +1150,13 @@ class InfinityRing_class(Singleton, Ring):
             Traceback (most recent call last):
             ...
             ValueError: infinite but not with +/- phase
+
+        Unsigned elements raise an exception::
+
+            sage: InfinityRing(x)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: cannot determine sign of x
         """
         # Lazy elements can wrap infinity or not, unwrap first
         from sage.rings.real_lazy import LazyWrapper
@@ -1185,8 +1192,7 @@ class InfinityRing_class(Singleton, Ring):
                 pass
 
         # If we got here then x is not infinite
-        c = int(bool(x > 0)) - int(bool(x < 0))
-        return FiniteNumber(self, c)
+        return FiniteNumber(self, x)
 
     def _coerce_map_from_(self, R):
         r"""
@@ -1265,17 +1271,41 @@ class FiniteNumber(RingElement):
         """
         Initialize ``self``.
 
-        TESTS::
+        INPUT:
 
-            sage: sage.rings.infinity.FiniteNumber(InfinityRing, 1)
+        - ``x`` -- the sign of ``x`` (positive, zero, negative)
+          determines the kind of finite number to create.
+
+        EXAMPLES::
+
+            sage: from sage.rings.infinity import FiniteNumber
+            sage: FiniteNumber(InfinityRing, 1)
             A positive finite number
-            sage: sage.rings.infinity.FiniteNumber(InfinityRing, -1)
+            sage: FiniteNumber(InfinityRing, -1e100)
             A negative finite number
-            sage: sage.rings.infinity.FiniteNumber(InfinityRing, 0)
+            sage: FiniteNumber(InfinityRing, 0)
             Zero
+            sage: FiniteNumber(InfinityRing, RIF(-2, -1))
+            A negative finite number
+            sage: FiniteNumber(InfinityRing, RIF(0, 1))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: cannot determine sign of 1.?
         """
         RingElement.__init__(self, parent)
-        self.value = x
+        sgn = None
+        try:
+            if x == 0:
+                sgn = 0
+            elif x > 0:
+                sgn = 1
+            elif x < 0:
+                sgn = -1
+        except TypeError:
+            pass
+        if sgn is None:
+            raise ArithmeticError("cannot determine sign of {!r}".format(x))
+        self.value = sgn
 
     def _richcmp_(self, other, op):
         """
