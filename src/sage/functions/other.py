@@ -2708,7 +2708,7 @@ class Function_Fresnel_sin(BuiltinFunction):
 
         .. MATH ::
 
-            \operatorname(S)(x) = \int_0^x \sin\left(\frac{\pi t^2}{2}\right)\, dt
+            \operatorname{S}(x) = \int_0^x \sin\left(\frac{\pi t^2}{2}\right)\, dt
 
         for real `x`. Using power series expansions, it can be extended to the
         domain of complex numbers. See the :wikipedia:`Fresnel_integral`.
@@ -2786,6 +2786,17 @@ class Function_Fresnel_sin(BuiltinFunction):
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.fresnels, x, parent=parent)
 
+    def _derivative_(self, x, diff_param=None):
+        """
+        EXAMPLES::
+
+            sage: x = var('x')
+            sage: fresnel_sin(x).diff(x)
+            sin(1/2*pi*x^2)
+        """
+        from sage.functions.trig import sin
+        return sin(pi*x**2/2)
+
 fresnel_sin = Function_Fresnel_sin()
 
 class Function_Fresnel_cos(BuiltinFunction):
@@ -2797,7 +2808,7 @@ class Function_Fresnel_cos(BuiltinFunction):
 
         .. MATH ::
 
-            \operatorname(C)(x) = \int_0^x \cos\left(\frac{\pi t^2}{2}\right)\, dt
+            \operatorname{C}(x) = \int_0^x \cos\left(\frac{\pi t^2}{2}\right)\, dt
 
         for real `x`. Using power series expansions, it can be extended to the
         domain of complex numbers. See the :wikipedia:`Fresnel_integral`.
@@ -2874,5 +2885,16 @@ class Function_Fresnel_cos(BuiltinFunction):
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.fresnelc, x, parent=parent)
+
+    def _derivative_(self, x, diff_param=None):
+        """
+        EXAMPLES::
+
+            sage: x = var('x')
+            sage: fresnel_cos(x).diff(x)
+            cos(1/2*pi*x^2)
+        """
+        from sage.functions.trig import cos
+        return cos(pi*x**2/2)
 
 fresnel_cos = Function_Fresnel_cos()
