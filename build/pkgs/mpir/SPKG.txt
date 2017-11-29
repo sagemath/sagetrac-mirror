@@ -32,3 +32,15 @@ See http://www.mpir.org
    by following the (outdated) procedure outlined in 
    https://github.com/wbhart/mpir/commit/1b3d5976292c6308c3f121c5ea2c406da0324bc8
    and then removing the unneeded stuff as outlined above.
+
+   In more detail, get the MPIR master,
+   check out rev. 644faf502c56f97d9accd301965fc57d6ec70868
+   apply the patch at https://trac.sagemath.org/raw-attachment/ticket/24085/01.patch
+   run
+   ./autogen.sh
+   ./configure
+   make dist
+
+   The latter will create the tarball named mpir-3.0.1.tar.bz2, which you need
+   to unpack, remove files listed above (src/build.vc* etc),
+   re-tar again, and rename the result mpir-3.0.1prerelease.tar.bz2
