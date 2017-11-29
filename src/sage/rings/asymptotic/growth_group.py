@@ -240,7 +240,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
 from sage.structure.richcmp import richcmp_by_eq_and_lt
-
+from sage.rings.infinity import Infinity 
 
 class Variable(CachedRepresentation, SageObject):
     r"""
@@ -1448,7 +1448,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
     _determine_category_axiom_mapping_ = []
 
     @staticmethod
-    def __classcall__(cls, base, var=None, category=None, ignore_variables=None):
+    def __classcall__(cls, base, var=None, center=None, category=None, ignore_variables=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -1527,6 +1527,9 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
+        if center is None:
+            center = Infinity
+            
         from sage.categories.posets import Posets
         if category is None:
             # The following block can be removed once #19269 is fixed.
@@ -1548,9 +1551,9 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
                 initial_category=initial_category)
 
         return super(GenericGrowthGroup, cls).__classcall__(
-            cls, base, var, category)
+            cls, base, var, center, category)
 
-    def __init__(self, base, var, category):
+    def __init__(self, base, var, center, category):
         r"""
         See :class:`GenericGrowthElement` for more information.
 
@@ -1621,6 +1624,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         """
         self._var_ = var
         super(GenericGrowthGroup, self).__init__(category=category,
+                                                 center=center,
                                                  base=base)
 
     def _repr_short_(self):
