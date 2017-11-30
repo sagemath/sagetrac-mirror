@@ -182,11 +182,12 @@ def skipfile(filename):
         sage: from sage.doctest.control import skipfile
         sage: skipfile("skipme.c")
         True
-        sage: f = tmp_filename(ext=".pyx")
-        sage: skipfile(f)
+        sage: filename = tmp_filename(ext=".pyx")
+        sage: skipfile(filename)
         False
-        sage: _ = open(f, "w").write("# nodoctest")
-        sage: skipfile(f)
+        sage: with open(filename, "w") as f:
+        ....:     _ = f.write("# nodoctest")
+        sage: skipfile(filename)
         True
     """
     base, ext = os.path.splitext(filename)
@@ -211,12 +212,12 @@ class Logger(object):
     EXAMPLES::
 
         sage: from sage.doctest.control import Logger
-        sage: t = open(tmp_filename(), "w+")
-        sage: L = Logger(sys.stdout, t)
-        sage: _ = L.write("hello world\n")
+        sage: with open(tmp_filename(), "w+") as t:
+        ....:     L = Logger(sys.stdout, t)
+        ....:     _ = L.write("hello world\n")
+        ....:     _ = t.seek(0)
+        ....:     t.read()
         hello world
-        sage: t.seek(0)
-        sage: t.read()
         'hello world\n'
     """
     def __init__(self, *files):
@@ -466,10 +467,10 @@ class DocTestController(SageObject):
             sage: import json
             sage: filename = tmp_filename()
             sage: with open(filename, 'w') as stats_file:
-            ....:     json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
+            ....:     json.dump({'sage.doctest.control':{'walltime':1.0r}}, stats_file)
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
 
         If the file doesn't exist, nothing happens. If there is an
         error, print a message. In any case, leave the stats alone::
@@ -479,7 +480,7 @@ class DocTestController(SageObject):
             Error loading stats from ...
             sage: DC.load_stats(os.path.join(d, "no_such_file"))
             sage: DC.stats['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
         """
         # Simply ignore non-existing files
         if not os.path.exists(filename):
@@ -501,13 +502,14 @@ class DocTestController(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
-            sage: DC.stats['sage.doctest.control'] = {u'walltime':1.0r}
+            sage: DC.stats['sage.doctest.control'] = {'walltime':1.0r}
             sage: filename = tmp_filename()
             sage: DC.save_stats(filename)
             sage: import json
-            sage: D = json.load(open(filename))
+            sage: with open(filename) as f:
+            ....:     D = json.load(f)
             sage: D['sage.doctest.control']
-            {u'walltime': 1.0}
+            {'walltime': 1.0}
         """
         from sage.misc.temporary_file import atomic_write
         with atomic_write(filename) as stats_file:
@@ -526,7 +528,8 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         In serial mode, check that logging works even if ``stdout`` is
@@ -535,13 +538,15 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(logfile=tmp_filename(), serial=True)
             sage: DC = DocTestController(DD, [])
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: S = SageSpoofInOut(open(os.devnull, "w"))
-            sage: S.start_spoofing()
-            sage: DC.log("hello world")
+            sage: with open(os.devnull, 'w') as devnull:
+            ....:     S = SageSpoofInOut(devnull)
+            ....:     S.start_spoofing()
+            ....:     DC.log("hello world")
+            ....:     S.stop_spoofing()
             hello world
-            sage: S.stop_spoofing()
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         Check that no duplicate logs appear, even when forking (:trac:`15244`)::
@@ -554,7 +559,8 @@ class DocTestController(SageObject):
             ....:     DC.logfile.close()
             ....:     os._exit(0)
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         """
@@ -639,9 +645,9 @@ class DocTestController(SageObject):
 
             sage: DD = DocTestDefaults(sagenb = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()
+            sage: DC.add_files()  # py2
             Doctesting the Sage notebook.
-            sage: DC.files[0][-6:]
+            sage: DC.files[0][-6:]  # py2
             'sagenb'
         """
         opj = os.path.join
