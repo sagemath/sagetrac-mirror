@@ -235,16 +235,20 @@ class SageSpoofInOut(SageObject):
         """
         if infile is None:
             self.infile = open(os.devnull)
+            self._close_infile = True
         else:
             self.infile = infile
+            self._close_infile = False
         if outfile is None:
             self.outfile = tempfile.TemporaryFile()
+            self._close_outfile = True
         else:
             self.outfile = outfile
+            self._close_outfile = False
         self.spoofing = False
         self.real_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "r")
-        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
-        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "a")
+        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
         self.position = 0
 
     def __del__(self):
@@ -262,6 +266,21 @@ class SageSpoofInOut(SageObject):
             Not spoofed!
         """
         self.stop_spoofing()
+        if self._close_infile:
+            try:
+                self.infile.close()
+            except OSError:
+                pass
+        if self._close_outfile:
+            try:
+                self.outfile.close()
+            except OSError:
+                pass
+        for stream in ('stdin', 'stdout', 'stderr'):
+            try:
+                getattr(self, 'real_' + stream).close()
+            except OSError:
+                pass
 
     def start_spoofing(self):
         r"""
@@ -1853,6 +1872,7 @@ class DocTestWorker(multiprocessing.Process):
         sage: result = W.result_queue.get()
         sage: reporter.report(FDS, False, W.exitcode, result, "")
             [... tests, ... s]
+        sage: W.kill()
     """
     def __init__(self, source, options, funclist=[]):
         """
@@ -1950,6 +1970,10 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
+            # Note: This closes the tempfile in the child process, but in the
+            # parent process self.outtmpfile will not be closed yet, and can
+            # still be accessed in save_result_output
+            self.outtmpfile.close()
 
     def start(self):
         """
@@ -1973,6 +1997,7 @@ class DocTestWorker(multiprocessing.Process):
             ....:     print("Write end of pipe successfully closed")
             Write end of pipe successfully closed
             sage: W.join()  # Wait for worker to finish
+            sage: W.kill()
         """
         super(DocTestWorker, self).start()
 
@@ -2012,6 +2037,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.join()
             sage: len(W.messages) > 0
             True
+            sage: W.kill()
         """
         # It's absolutely important to execute only one read() system
         # call, more might block. Assuming that we used pselect()
@@ -2048,6 +2074,7 @@ class DocTestWorker(multiprocessing.Process):
             ['cputime', 'err', 'failures', 'optionals', 'walltime']
             sage: len(W.output) > 0
             True
+            sage: W.kill()
 
         .. NOTE::
 
@@ -2117,14 +2144,19 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.is_alive()
             False
         """
+
+        # Save any result output so far before we kill the process off
+        self.save_result_output()
         if self.rmessages is not None:
             os.close(self.rmessages)
             self.rmessages = None
         if not self.killed:
             self.killed = True
-            os.killpg(self.pid, signal.SIGQUIT)
+            if self.is_alive():
+                os.killpg(self.pid, signal.SIGQUIT)
         else:
-            os.killpg(self.pid, signal.SIGKILL)
+            if self.is_alive():
+                os.killpg(self.pid, signal.SIGKILL)
 
 
 class DocTestTask(object):
