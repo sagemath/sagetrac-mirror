@@ -605,7 +605,7 @@ Dentro Cython puoi usare un
     che \`e sempre di utilizzo sicuro.
 
 I pickle nel codice Cython
-======================
+==========================
 
 Gestire i pickle (sottaceti) per le classi Python e per le classi estensioni di 
 Python, come Cython, \`e differente. Questo \`e discusso nella `Python pickling documentation`_. 
