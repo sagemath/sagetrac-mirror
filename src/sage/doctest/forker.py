@@ -49,6 +49,7 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals, get_globals
+from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
@@ -527,11 +528,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
             got = self._fakeout.getvalue()
-            try:
-                got = got.decode('utf-8')
-            except UnicodeDecodeError:
-                got = got.decode('latin1')
-            # the actual output
 
             outcome = FAILURE   # guilty until proved innocent or insane
 
@@ -820,12 +816,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example)).encode('utf-8')
+        s = str_to_bytes(pre_hash(get_source(example)), 'utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
             digest = hashlib.md5(s)
-            digest.update(reduce_hex(e.running_state for e in example.predecessors))
+            gen = (e.running_state for e in example.predecessors)
+            digest.update(str_to_bytes(reduce_hex(gen), 'ascii'))
             example.running_state = digest.hexdigest()
 
     def compile_and_execute(self, example, compiler, globs):
@@ -1480,7 +1477,7 @@ class DocTestDispatcher(SageObject):
                 result = DocTestTask(source)(self.controller.options,
                         outtmpfile, self.controller.logger)
                 outtmpfile.seek(0)
-                output = outtmpfile.read()
+                output = bytes_to_str(outtmpfile.read())
 
             self.controller.reporter.report(source, False, 0, result, output)
             if self.controller.options.exitfirst and result[1].failures:
@@ -1927,7 +1924,7 @@ class DocTestWorker(multiprocessing.Process):
 
         # Write one byte to the pipe to signal to the master process
         # that we have started properly.
-        os.write(self.wmessages, "X")
+        os.write(self.wmessages, b"X")
 
         task = DocTestTask(self.source)
 
@@ -2020,7 +2017,7 @@ class DocTestWorker(multiprocessing.Process):
         # correctly, one read() will not block.
         if self.rmessages is not None:
             s = os.read(self.rmessages, 4096)
-            self.messages += s
+            self.messages += bytes_to_str(s)
             if len(s) == 0:  # EOF
                 os.close(self.rmessages)
                 self.rmessages = None
@@ -2050,17 +2047,26 @@ class DocTestWorker(multiprocessing.Process):
             ['cputime', 'err', 'failures', 'optionals', 'walltime']
             sage: len(W.output) > 0
             True
-        """
-        from six.moves.queue import Empty
-        try:
-            self.result = self.result_queue.get(block=False)
-        except Empty:
-            self.result = (0, DictAsObject(dict(err='noresult')))
-        del self.result_queue
 
-        self.outtmpfile.seek(0)
-        self.output = self.outtmpfile.read()
-        del self.outtmpfile
+        .. NOTE::
+
+            This method is called from the parent process, not from the
+            subprocess.
+        """
+        if self.result_queue is not None:
+            from six.moves.queue import Empty
+            try:
+                self.result = self.result_queue.get(block=False)
+            except Empty:
+                self.result = (0, DictAsObject(dict(err='noresult')))
+
+            self.result_queue = None
+
+        if self.outtmpfile is not None:
+            self.outtmpfile.seek(0)
+            self.output = bytes_to_str(self.outtmpfile.read())
+            self.outtmpfile.close()
+            self.outtmpfile = None
 
     def kill(self):
         """
