@@ -4,7 +4,7 @@
 Mettere in piedi Git
 ====================
 
-Per poter lavorar sul codice sorgnte di Sage devi::
+Per poter lavorar sul codice sorgnte di Sage devi:
 
 * avere una installazione di Git funzionante (vedi :ref:`section-git-install`).
   In realt\`a Sage include gi\`a Git, come \`e spiegato pi\`u avanti. Comunque
