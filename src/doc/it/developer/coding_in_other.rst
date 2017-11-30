@@ -392,8 +392,8 @@ Ecco un altro modo di fare lo stesso calcolo nell'interfaccia Sage a Singular::
     sage: singular.LIB("brnoeth.lib")
     sage: singular.ring(5,'(x,y)','lp')
     polynomial ring, over a field, global ordering
-    //   characteristic : 5
-    //   number of vars : 2
+    // coefficients: ZZ/5
+    // number of vars : 2
     //        block   1 : ordering lp
     //                  : names    x y
     //        block   2 : ordering C
