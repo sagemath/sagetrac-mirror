@@ -312,7 +312,7 @@ def instancedoc(cls):
         ...
         TypeError: expected type, got 7
         sage: class OldStyle: pass
-        sage: instancedoc(OldStyle)
+        sage: instancedoc(OldStyle)  # py2
         Traceback (most recent call last):
         ...
         TypeError: expected type, got <class __main__.OldStyle at ...>
