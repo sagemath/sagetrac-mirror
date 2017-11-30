@@ -4,7 +4,7 @@
 The Sage Trac Server
 ====================
 
-Tutto lo sviluppo avviene tramite il `Sage Trac server <http://trac.sagemath.org>`_. Lo scopo del server Trac \`e::
+Tutto lo sviluppo avviene tramite il `Sage Trac server <http://trac.sagemath.org>`_. Lo scopo del server Trac \`e:
 
 1. fornire un luogo di discussione sulle esigenze e costituire una 
    memoria permanente.
@@ -100,7 +100,7 @@ Se hai degli account su pi\`u computer puoi usare le chiavi SSH per collegarti. 
 Collegare manualmente la tua chiave pubblica al tuo account Trac
 ----------------------------------------------------------------
 
-Il server Trac di Sage ha bisogno di conoscere una delle tue chiavi pubbliche. Puoi farne l'upload nelle preferenze, nel modo seguente::
+Il server Trac di Sage ha bisogno di conoscere una delle tue chiavi pubbliche. Puoi farne l'upload nelle preferenze, nel modo seguente:
 
 1. Vai a http://trac.sagemath.org
 

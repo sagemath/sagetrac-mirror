@@ -116,8 +116,7 @@ Modificare il codice sorgente
 =============================
 
 Una volta che hai il tuo proprio branch, sentiti libero di fare qualunque cambiamento ti piaccia. Alcuni :ref:`capitoli pi\`u avanti <section-writing-code-for-sage>` in questa Guida, ti spiegheranno come il tuo codice dovrebbe essere per andar bene in Sage, e come ci assicuriamo dell'elevata qualita' del codice.
-Il comando piu' importante di Git e' probabilmente *status*. Esso ti dice quali file sono cambiati, e come continuare a registrare i cambiamenti:
-:
+Il comando piu' importante di Git e' probabilmente *status*. Esso ti dice quali file sono cambiati, e come continuare a registrare i cambiamenti::
 
     [user@localhost sage]$ git status
     On branch master
@@ -163,7 +162,7 @@ Inoltre non dimenticare di lanciare i test (vedi :ref:`chapter-doctesting`) e pr
 .. _section-walkthrough-commit:
 
 I commit (snapshots)
-===================
+====================
 
 Ogni volta che hai raggiunto il tuo scopo, o completato un passo importante verso di esso, o semplicemente voui consolidare il lavoro fatto, dovresti effettuare il commit delle modifiche. Un *commit* \`e semplicemente una fotografia dello stato (snapshot) di tutti i file del *repository* (il programma su cui stai lavorando).
 
@@ -203,8 +202,3 @@ Questo aprira' un editor dove potrai scrivere il tuo messaggio di commit. Esso d
 
 
 Poi puoi continuare a lavorare per il tuo prossimo obiettivo, effettuare un altro commit, e cosi' via finche' avrai finito. Finche' non effetui ``git checkout` di un altro branch, tutti i commit che fai saranno parte del branch che hai creato.
-
-
-
-
-

@@ -124,7 +124,7 @@ Un'esigenza comune durante lo sviluppo \`e sincronizzare la propria copia locale
      src/sage/tests/cmdline.py      | 3 ++-
      1 file changed, 2 insertions(+), 1 deletions(-)
 
-dove qui ``user`` \`e il nome utente su Trac dell'altro developer, e ``description`` \`e la descrizione che egli ha scelto. Questo comando scaricher\`a le modifiche dal ramo remoto usato originariamente e le fonder\`a nel tuo ramo locale.Se non hai ancora pubblicato i tuoi commit locali allora puoi anche effettuarne il ``rebase`` con:
+dove qui ``user`` \`e il nome utente su Trac dell'altro developer, e ``description`` \`e la descrizione che egli ha scelto. Questo comando scaricher\`a le modifiche dal ramo remoto usato originariamente e le fonder\`a nel tuo ramo locale.Se non hai ancora pubblicato i tuoi commit locali allora puoi anche effettuarne il ``rebase`` con::
 
     [user@localhost sage]$ git pull -r trac u/user/description
     From trac.sagemath.org:sage

@@ -137,7 +137,7 @@ Nota sui nomi dei rami
 
 
 
-I ticket Trac che sono terminati o su cui si sta lavorando possono avere attaccato ad essi un ramo Git: il campo "Branch:" del ticket (vedi :ref:`section-trac-fields`) indica il ramo di git che contiene il codice. In genere il nome del ramo \`e della forma "u/user/description", dove user \`e il nome dell'utente che ha generato il ramo e description \`e qualche breve descrizione in forma libera (e pu\`o includere ulteriori barre "/" ma non degli spazi bianchi). Il nostro server Git implementa le seguenti restrizioni d'accesso per i **nomi remoti di ramo**::
+I ticket Trac che sono terminati o su cui si sta lavorando possono avere attaccato ad essi un ramo Git: il campo "Branch:" del ticket (vedi :ref:`section-trac-fields`) indica il ramo di git che contiene il codice. In genere il nome del ramo \`e della forma "u/user/description", dove user \`e il nome dell'utente che ha generato il ramo e description \`e qualche breve descrizione in forma libera (e pu\`o includere ulteriori barre "/" ma non degli spazi bianchi). Il nostro server Git implementa le seguenti restrizioni d'accesso per i **nomi remoti di ramo**:
 
 * solo lo svilppatore che ha come account "user" pu\`o
   creare dei rami che iniziano con ``u/user``.

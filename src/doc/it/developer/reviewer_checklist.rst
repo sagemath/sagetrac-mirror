@@ -25,7 +25,8 @@ Se qualcuno (altri che tu) ha inviato sul Trac server un ramo git per un ticket,
 * il manuale di riferimento compila senza errori? Puoi provare il manuale di riferimento utilizzando il comando ``sage -docbuild reference html`` per produrne la versione in HTML. Anche la versione PDF dev'essere prodotta senza errori: usa il comando ``sage -docbuild reference pdf`` per provarlo. Tale comando richiede che tu abbia installato Latex sul tuo PC.
 
 * i doctest passano tutti senza errori? \`E difficile predire quali componenti di Sage verranno toccati da una data patch, e dovresti lanciare i test dell'intera libreria (inclusi quelli etichettati "#long") prima di segnalare esito positivo alla revisione. Poi effettuare il test della libreria Sage con "make ptestlong". Vedi (link Effettuare i doctest della Sage Library) per maggiori informazioni.
-â€¢ il codice e la documentazione seguono le convenzioni documentate nelle sezioni seguenti?
+
+* il codice e la documentazione seguono le convenzioni documentate nelle sezioni seguenti?
 
 * il codice e la documentazione seguono le convenzioni documentate nelle sezioni seguenti: :ref:`convenzioni di Sage <chapter-code-basics>`, :ref:`convenzioni di Python <chapter-python>`, :ref:`convenzioni di Cython <chapter-cython>`?
 
@@ -61,7 +62,14 @@ Per maggiori consigli sulle revisioni, vedi [WSblog]_.
 .. note::
 
    "Il meglio \`e nemico del bene"
-Lo scopo della revisione \`e assicurarsi che le lineee guida sul codice di Sage siano seguite e che l'implementazione sia matematicamente corretta. Per cortesia astieniti dalla richiesta di funzionalit\`a aggiuntive e discussioni su implementazioni alternative che non siano mirate. Se vuoi che la patch sia scritta diversamente, il tuo suggerimento dev'essere una richiesta chiara e fattibile.
+
+   Lo scopo della revisione \`e assicurarsi che le lineee guida sul
+   codice di Sage siano seguite e che l'implementazione sia
+   matematicamente corretta. Per cortesia astieniti dalla richiesta di
+   funzionalit\`a aggiuntive e discussioni su implementazioni
+   alternative che non siano mirate. Se vuoi che la patch sia scritta
+   diversamente, il tuo suggerimento dev'essere una richiesta chiara e
+   fattibile.
 
 
 REFERENCES:

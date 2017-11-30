@@ -35,8 +35,7 @@ Qui c'\`e un breve riassunto di ogni parte; per maggiori dettagli, vedi l'indice
   Per qualunque cosa legata a manuali, tutorial, e linguaggi, :ref:`clicca qui
   <chapter-sage_manuals>`.
 
-- **Git (controllo di revisione):** Per scambiare le tue modifiche con la comunit\`a Sage, avrai bisogno di imparare ad usare il sistema
-di controllo di revisione; usiamo il software Git per questo.
+- **Git (controllo di revisione):** Per scambiare le tue modifiche con la comunit\`a Sage, avrai bisogno di imparare ad usare il sistema di controllo di revisione; usiamo il software Git per questo.
 
   - :ref:`Qui c'\`e <chapter-walkthrough>` una panoramica del nostro flusso di sviluppo.
   - :ref:`Nuovo a Git o al controllo di revisione? <chapter-git_trac>`
@@ -139,14 +138,6 @@ Pacchettizzare codice di terze parti
 
    packaging
    packaging_old_spkgs
-
-Guida dello sviluppatore al Notebook Sage
-=========================================
-
-.. toctree::
-   :maxdepth: 3
-
-   sagenb/index
 
 
 Indici e tabelle
