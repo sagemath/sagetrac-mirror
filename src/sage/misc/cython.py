@@ -99,14 +99,17 @@ def _parse_keywords(kwd, s):
     EXAMPLES::
 
         sage: from sage.misc.cython import _parse_keywords
+        sage: import warnings
         sage: _parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
         doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#clib' is deprecated;
         use '# distutils: libraries' instead
         See http://trac.sagemath.org/24105 for details.
         (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
-        sage: _parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
+        sage: with warnings.catch_warnings():
+        ....:     warnings.simplefilter('ignore', DeprecationWarning)
+        ....:     _parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
+        ....:     _parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
         (['foo', 'bar', 'baz'], '# qux clib foo bar baz\n #cinclude bar\n')
-        sage: _parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
         (['foo', 'bar'], '# clib foo bar # baz\n #cinclude bar\n')
 
     TESTS::
@@ -709,7 +712,8 @@ def f(%s):
     if verbose:
         print(s)
     tmpfile = tmp_filename(ext=".spyx")
-    open(tmpfile,'w').write(s)
+    with open(tmpfile,'w') as f:
+        f.write(s)
 
     d = {}
     cython_import_all(tmpfile, d,
@@ -746,10 +750,8 @@ def cython_create_local_so(filename):
 
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
-        sage: f = open('hello.spyx', 'w')
-        sage: s = "def hello():\n    print('hello')\n"
-        sage: _ = f.write(s)
-        sage: f.close()
+        sage: with open('hello.spyx', 'w') as f:
+        ....:     _ = f.write("def hello():\n    print('hello')\n")
         sage: cython_create_local_so('hello.spyx')
         Compiling hello.spyx...
         sage: sys.path.append('.')
@@ -864,9 +866,10 @@ def compile_and_load(code):
         sage: module.f(10)
         100
     """
-    file = tmp_filename(ext=".pyx")
-    open(file,'w').write(code)
-    return cython_import(file, create_local_c_file=False)
+    filename = tmp_filename(ext=".pyx")
+    with open(filename, 'w') as f:
+        f.write(code)
+    return cython_import(filename, create_local_c_file=False)
 
 
 def cython_compile(code,
@@ -899,7 +902,8 @@ def cython_compile(code,
         compiled once.
     """
     tmpfile = tmp_filename(ext=".pyx")
-    open(tmpfile,'w').write(code)
+    with open(tmpfile, 'w') as f:
+        f.write(code)
     cython_import_all(tmpfile, get_globals(),
                       verbose=verbose, compile_message=compile_message,
                       use_cache=use_cache,

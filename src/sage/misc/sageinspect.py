@@ -113,6 +113,7 @@ defined Cython code, and with rather tricky argument lines::
 
 """
 from __future__ import print_function, absolute_import
+import six
 from six.moves import range
 from six import iteritems, string_types, class_types, text_type
 from sage.misc.six import u
@@ -121,6 +122,7 @@ import ast
 import inspect
 import functools
 import os
+import sys
 import tokenize
 import types
 import re
@@ -138,11 +140,15 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    import sys
-    if sys.platform == 'cygwin':
-        return os.path.extsep+'dll'
+    if six.PY2:
+        if sys.platform == 'cygwin':
+            return os.path.extsep+'dll'
+        else:
+            return os.path.extsep+'so'
     else:
-        return os.path.extsep+'so'
+        from importlib import machinery
+        return machinery.EXTENSION_SUFFIXES[0]
+
 
 def isclassinstance(obj):
     r"""
