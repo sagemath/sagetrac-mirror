@@ -55,8 +55,11 @@ AUTHORS:
 
 """
 from subprocess import *
+import locale
 import os
 import select
+
+import six
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -847,14 +850,27 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         del pexpect_env["TERM"]
     except KeyError:
         pass
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env, **kwds)
+
+    encoding = kwds.pop('encoding', None)
+    errors = kwds.pop('errors', None)
+
+    if six.PY3:
+        if encoding is None:
+            encoding = locale.getpreferredencoding(False)
+
+        kwds['encoding'] = encoding
+        kwds['errors'] = errors
+
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
+              **kwds)
     if input:
         p.stdin.write(input)
+
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""
-    err = ""
+    out = []
+    err = []
 
     while True:
         # Try reading from fdout and fderr
@@ -872,14 +888,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             p.terminate()
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
-            s = os.read(fdout, 1024)
-            if s == "":
+            s = p.stdout.read(1024)
+            if not s:
                 fdout = None   # EOF
-            out += s
+                p.stdout.close()
+            out.append(s)
         if fderr in rlist:
-            s = os.read(fderr, 1024)
-            if s == "":
+            s = p.stderr.read(1024)
+            if not s:
                 fderr = None   # EOF
-            err += s
+                p.stderr.close()
+            err.append(s)
 
-    return (out, err, p.wait())
+    return (''.join(out), ''.join(err), p.wait())
